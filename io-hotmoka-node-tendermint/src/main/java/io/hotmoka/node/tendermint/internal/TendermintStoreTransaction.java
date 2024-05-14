@@ -42,10 +42,7 @@ public class TendermintStoreTransaction extends AbstractTrieBasedStoreTransactio
 		super(store, executors, consensus, now);
 	}
 
-	protected final Optional<TendermintValidator[]> getTendermintValidators() throws StoreException {
-		if (validators.isEmpty())
-			recomputeValidators();
-
+	protected final Optional<TendermintValidator[]> getTendermintValidators() {
 		return validators;
 	}
 
@@ -54,8 +51,8 @@ public class TendermintStoreTransaction extends AbstractTrieBasedStoreTransactio
 		super.invalidateCachesIfNeeded(response, classLoader);
 	
 		if (validatorsMightHaveChanged(response, classLoader)) {
-			LOGGER.info("the validators set might have changed: deleting their cache");
-			validators = Optional.empty();
+			recomputeValidators();
+			LOGGER.info("the validators set cache has been updated since it might have changed");
 		}
 	}
 

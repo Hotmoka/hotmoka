@@ -81,6 +81,49 @@ public abstract class ExecutionEnvironment {
 	}
 
 	/**
+	 * Yields the request that generated the transaction with the given reference.
+	 * If this node has some form of commit, then this method is called only when
+	 * the transaction has been already committed.
+	 * 
+	 * @param reference the reference of the transaction
+	 * @return the request
+	 */
+	public abstract TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, StoreException;
+
+	/**
+	 * Yields the response of the transaction having the given reference.
+	 * 
+	 * @param reference the reference of the transaction
+	 * @return the response
+	 */
+	public abstract TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, StoreException;
+
+	/**
+	 * Yields the history of the given object, that is, the references to the transactions
+	 * that can be used to reconstruct the current values of its fields.
+	 * 
+	 * @param object the reference of the object
+	 * @return the history
+	 * @throws StoreException if the store is not able to perform the operation
+	 */
+	public abstract Stream<TransactionReference> getHistory(StorageReference object) throws UnknownReferenceException, StoreException;
+
+	/**
+	 * Yields the manifest installed when the node is initialized.
+	 * 
+	 * @return the manifest
+	 * @throws StoreException if the store is not able to complete the operation correctly
+	 */
+	public abstract Optional<StorageReference> getManifest() throws StoreException;
+
+	/**
+	 * Yields the current consensus configuration of the node.
+	 * 
+	 * @return the current consensus configuration of the node
+	 */
+	public abstract ConsensusConfig<?,?> getConfig() throws StoreException;
+
+	/**
 	 * Yields a class loader for the given class path, using a cache to avoid regeneration, if possible.
 	 * 
 	 * @param classpath the class path that must be used by the class loader
@@ -147,26 +190,6 @@ public abstract class ExecutionEnvironment {
 	protected final UpdateOfField getLastUpdateToFinalField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
 		// accesses directly the transaction that created the object
 		return getLastUpdate(object, field, object.getTransaction()).orElseThrow(() -> new FieldNotFoundException(field));
-	}
-
-	/**
-	 * Yields the update to the given field of the object at the given reference, generated during a given transaction.
-	 * 
-	 * @param object the reference of the object
-	 * @param field the field of the object
-	 * @param reference the reference to the transaction
-	 * @return the update, if any. If the field of {@code object} was not modified during
-	 *         the {@code transaction}, this method returns an empty optional
-	 */
-	protected Optional<UpdateOfField> getLastUpdate(StorageReference object, FieldSignature field, TransactionReference reference) throws UnknownReferenceException, StoreException {
-		if (getResponse(reference) instanceof TransactionResponseWithUpdates trwu)
-			return trwu.getUpdates()
-					.filter(update -> update instanceof UpdateOfField)
-					.map(update -> (UpdateOfField) update)
-					.filter(update -> update.getObject().equals(object) && update.getField().equals(field))
-					.findFirst();
-		else
-			throw new StoreException("Transaction reference " + reference + " does not contain updates");
 	}
 
 	protected final Optional<StorageReference> getGamete() throws StoreException {
@@ -246,6 +269,37 @@ public abstract class ExecutionEnvironment {
 			getCheckedSignatures().computeIfAbsentNoException(reference, UncheckFunction.uncheck(_reference -> verifySignature(signatureAlgorithm, request))));
 	}
 
+	protected final String getPublicKey(StorageReference account) throws UnknownReferenceException, FieldNotFoundException, StoreException {
+		return getStringField(account, FieldSignatures.EOA_PUBLIC_KEY_FIELD);
+	}
+
+	protected final <X> Future<X> submit(Callable<X> task) {
+		return getExecutors().submit(task);
+	}
+
+	/**
+	 * Yields the time to use as current time for the requests executed inside this transaction.
+	 * 
+	 * @return the time, in milliseconds from the UNIX epoch time
+	 */
+	protected abstract long getNow();
+
+	/**
+	 * Yields the current gas price at the end of this transaction.
+	 * This might be missing if the node is not initialized yet.
+	 * 
+	 * @return the current gas price at the end of this transaction
+	 */
+	protected abstract Optional<BigInteger> getGasPrice();
+
+	protected abstract LRUCache<TransactionReference, EngineClassLoader> getClassLoaders();
+
+	protected abstract ExecutorService getExecutors();
+
+	protected abstract Hasher<TransactionRequest<?>> getHasher();
+
+	protected abstract LRUCache<TransactionReference, Boolean> getCheckedSignatures();
+
 	private boolean verifySignature(SignatureAlgorithm signature, SignedTransactionRequest<?> request) throws StoreException, UnknownReferenceException, FieldNotFoundException {
 		try {
 			return signature.getVerifier(getPublicKey(request.getCaller(), signature), SignedTransactionRequest<?>::toByteArrayWithoutSignature).verify(request, request.getSignature());
@@ -254,6 +308,26 @@ public abstract class ExecutionEnvironment {
 			LOGGER.info("the public key of " + request.getCaller() + " could not be verified: " + e.getMessage());
 			return false;
 		}
+	}
+
+	/**
+	 * Yields the update to the given field of the object at the given reference, generated during a given transaction.
+	 * 
+	 * @param object the reference of the object
+	 * @param field the field of the object
+	 * @param reference the reference to the transaction
+	 * @return the update, if any. If the field of {@code object} was not modified during
+	 *         the {@code transaction}, this method returns an empty optional
+	 */
+	private Optional<UpdateOfField> getLastUpdate(StorageReference object, FieldSignature field, TransactionReference reference) throws UnknownReferenceException, StoreException {
+		if (getResponse(reference) instanceof TransactionResponseWithUpdates trwu)
+			return trwu.getUpdates()
+					.filter(update -> update instanceof UpdateOfField)
+					.map(update -> (UpdateOfField) update)
+					.filter(update -> update.getObject().equals(object) && update.getField().equals(field))
+					.findFirst();
+		else
+			throw new StoreException("Transaction reference " + reference + " does not contain updates");
 	}
 
 	/**
@@ -273,80 +347,6 @@ public abstract class ExecutionEnvironment {
 		byte[] publicKeyEncoded = Base64.fromBase64String(publicKeyEncodedBase64);
 		return signatureAlgorithm.publicKeyFromEncoding(publicKeyEncoded);
 	}
-
-	protected final String getPublicKey(StorageReference account) throws UnknownReferenceException, FieldNotFoundException, StoreException {
-		return getStringField(account, FieldSignatures.EOA_PUBLIC_KEY_FIELD);
-	}
-
-	protected final <X> Future<X> submit(Callable<X> task) {
-		return getExecutors().submit(task);
-	}
-
-	/**
-	 * Yields the time to use as current time for the requests executed inside this transaction.
-	 * 
-	 * @return the time, in milliseconds from the UNIX epoch time
-	 */
-	protected abstract long getNow();
-
-	/**
-	 * Yields the request that generated the transaction with the given reference.
-	 * If this node has some form of commit, then this method is called only when
-	 * the transaction has been already committed.
-	 * 
-	 * @param reference the reference of the transaction
-	 * @return the request
-	 */
-	public abstract TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, StoreException;
-
-	/**
-	 * Yields the response of the transaction having the given reference.
-	 * 
-	 * @param reference the reference of the transaction
-	 * @return the response
-	 */
-	public abstract TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, StoreException;
-
-	/**
-	 * Yields the history of the given object, that is, the references to the transactions
-	 * that can be used to reconstruct the current values of its fields.
-	 * 
-	 * @param object the reference of the object
-	 * @return the history
-	 * @throws StoreException if the store is not able to perform the operation
-	 */
-	public abstract Stream<TransactionReference> getHistory(StorageReference object) throws UnknownReferenceException, StoreException;
-
-	/**
-	 * Yields the manifest installed when the node is initialized.
-	 * 
-	 * @return the manifest
-	 * @throws StoreException if the store is not able to complete the operation correctly
-	 */
-	public abstract Optional<StorageReference> getManifest() throws StoreException;
-
-	/**
-	 * Yields the current consensus configuration of the node.
-	 * 
-	 * @return the current consensus configuration of the node
-	 */
-	public abstract ConsensusConfig<?,?> getConfig() throws StoreException;
-
-	/**
-	 * Yields the current gas price at the end of this transaction.
-	 * This might be missing if the node is not initialized yet.
-	 * 
-	 * @return the current gas price at the end of this transaction
-	 */
-	protected abstract Optional<BigInteger> getGasPrice();
-
-	protected abstract LRUCache<TransactionReference, EngineClassLoader> getClassLoaders();
-
-	protected abstract ExecutorService getExecutors();
-
-	protected abstract Hasher<TransactionRequest<?>> getHasher();
-
-	protected abstract LRUCache<TransactionReference, Boolean> getCheckedSignatures();
 
 	private Optional<StorageValue> getOutcome(MethodCallTransactionResponse response) throws CodeExecutionException, TransactionException {
 		if (response instanceof MethodCallTransactionSuccessfulResponse mctsr)

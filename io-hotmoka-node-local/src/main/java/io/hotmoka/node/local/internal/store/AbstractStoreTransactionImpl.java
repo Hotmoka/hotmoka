@@ -299,32 +299,9 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 		}
 	}
 
-	public void invalidateConsensusCache() throws StoreException {
-		recomputeConsensus();
-		LOGGER.info("the consensus parameters have been recomputed");
-	}
-
-	public final void forEachTriggeredEvent(BiConsumer<StorageReference, StorageReference> notifier) throws StoreException {
-		try {
-			CheckRunnable.check(StoreException.class, UnknownReferenceException.class, FieldNotFoundException.class, () ->
-				responsesWithEventsToNotify.stream()
-					.flatMap(TransactionResponseWithEvents::getEvents)
-					.forEachOrdered(UncheckConsumer.uncheck(event -> notifier.accept(getCreator(event), event))));
-		}
-		catch (UnknownReferenceException | FieldNotFoundException e) {
-			// the set of events to notify contains an event that cannot be found in store or that
-			// has no creator field: the delivery method of the store is definitely misbehaving
-			throw new StoreException(e);
-		}
-	}
-
 	@Override
 	public final int deliveredCount() throws StoreException {
 		return delivered.size();
-	}
-
-	public final void forEachDeliveredTransaction(Consumer<TransactionRequest<?>> notifier) throws StoreException {
-		delivered.forEach(notifier::accept);
 	}
 
 	@Override
@@ -351,94 +328,32 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 		return uncommittedManifest != null ? Optional.of(uncommittedManifest) : getInitialStore().getManifest();
 	}
 
-	/**
-	 * Writes in store the given request for the given transaction reference.
-	 * 
-	 * @param reference the reference of the transaction
-	 * @param request the request
-	 * @throws StoreException if this store is not able to complete the operation correctly
-	 */
-	protected final void setRequest(TransactionReference reference, TransactionRequest<?> request) {
-		requests.put(reference, request);
+	public final void forEachTriggeredEvent(BiConsumer<StorageReference, StorageReference> notifier) throws StoreException {
+		try {
+			CheckRunnable.check(StoreException.class, UnknownReferenceException.class, FieldNotFoundException.class, () ->
+				responsesWithEventsToNotify.stream()
+					.flatMap(TransactionResponseWithEvents::getEvents)
+					.forEachOrdered(UncheckConsumer.uncheck(event -> notifier.accept(getCreator(event), event))));
+		}
+		catch (UnknownReferenceException | FieldNotFoundException e) {
+			// the set of events to notify contains an event that cannot be found in store or that
+			// has no creator field: the delivery method of the store is definitely misbehaving
+			throw new StoreException(e);
+		}
 	}
 
-	/**
-	 * Writes in store the given response for the given transaction reference.
-	 * 
-	 * @param reference the reference of the transaction
-	 * @param response the response
-	 * @throws StoreException if this store is not able to complete the operation correctly
-	 */
-	protected final void setResponse(TransactionReference reference, TransactionResponse response) {
-		responses.put(reference, response);
+	public final void forEachDeliveredTransaction(Consumer<TransactionRequest<?>> notifier) throws StoreException {
+		delivered.forEach(notifier::accept);
 	}
 
-	/**
-	 * Sets the history of the given object, that is,
-	 * the references to the transactions that provide information about
-	 * its current state, in reverse chronological order (from newest to oldest).
-	 * 
-	 * @param object the object whose history is set
-	 * @param history the stream that will become the history of the object,
-	 *                replacing its previous history; this is in chronological order,
-	 *                from newest transactions to oldest; hence the last transaction is
-	 *                that when the object has been created
-	 */
-	protected final void setHistory(StorageReference object, Stream<TransactionReference> history) {
-		histories.put(object, history.toArray(TransactionReference[]::new));
-	}
-
-	/**
-	 * Mark the node as initialized. This happens for initialization requests.
-	 * 
-	 * @param manifest the manifest to put in the node
-	 * @throws StoreException if this store is not able to complete the operation correctly
-	 */
-	protected final void setManifest(StorageReference manifest) {
-		this.manifest = manifest;
-	}
-
-	/**
-	 * Yields the builder of a response for a request of a transaction.
-	 * This method can be redefined in subclasses in order to accomodate
-	 * new kinds of transactions, specific to a node.
-	 * 
-	 * @param reference the reference to the transaction that is building the response
-	 * @param request the request
-	 * @return the builder
-	 * @throws TransactionRejectedException if the builder cannot be created
-	 */
-	protected final ResponseBuilder<?,?> responseBuilderFor(TransactionReference reference, TransactionRequest<?> request) throws TransactionRejectedException, StoreException {
-		if (request instanceof JarStoreInitialTransactionRequest jsitr)
-			return new JarStoreInitialResponseBuilder(reference, jsitr, this);
-		else if (request instanceof GameteCreationTransactionRequest gctr)
-			return new GameteCreationResponseBuilder(reference, gctr, this);
-		else if (request instanceof JarStoreTransactionRequest jstr)
-			return new JarStoreResponseBuilder(reference, jstr, this);
-		else if (request instanceof ConstructorCallTransactionRequest cctr)
-			return new ConstructorCallResponseBuilder(reference, cctr, this);
-		else if (request instanceof AbstractInstanceMethodCallTransactionRequest aimctr)
-			return new InstanceMethodCallResponseBuilder(reference, aimctr, this);
-		else if (request instanceof StaticMethodCallTransactionRequest smctr)
-			return new StaticMethodCallResponseBuilder(reference, smctr, this);
-		else if (request instanceof InitializationTransactionRequest itr)
-			return new InitializationResponseBuilder(reference, itr, this);
-		else
-			throw new StoreException("Unexpected transaction request of class " + request.getClass().getName());
+	public void invalidateConsensusCache() throws StoreException {
+		recomputeConsensus();
+		LOGGER.info("the consensus parameters have been recomputed");
 	}
 
 	@Override
 	protected final Optional<BigInteger> getGasPrice() {
 		return gasPrice;
-	}
-
-	/**
-	 * Yields the current inflation of the node.
-	 * 
-	 * @return the current inflation of the node, if the node is already initialized
-	 */
-	protected final OptionalLong getInflation() {
-		return inflation;
 	}
 
 	@Override
@@ -494,6 +409,46 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 		return runInstanceMethodCallTransaction(request, TransactionReferences.of(hasher.hash(request)));
 	}
 
+	/**
+	 * Writes in store the given response for the given transaction reference.
+	 * 
+	 * @param reference the reference of the transaction
+	 * @param response the response
+	 * @throws StoreException if this store is not able to complete the operation correctly
+	 */
+	protected final void setResponse(TransactionReference reference, TransactionResponse response) {
+		responses.put(reference, response);
+	}
+
+	/**
+	 * Yields the builder of a response for a request of a transaction.
+	 * This method can be redefined in subclasses in order to accomodate
+	 * new kinds of transactions, specific to a node.
+	 * 
+	 * @param reference the reference to the transaction that is building the response
+	 * @param request the request
+	 * @return the builder
+	 * @throws TransactionRejectedException if the builder cannot be created
+	 */
+	protected final ResponseBuilder<?,?> responseBuilderFor(TransactionReference reference, TransactionRequest<?> request) throws TransactionRejectedException, StoreException {
+		if (request instanceof JarStoreInitialTransactionRequest jsitr)
+			return new JarStoreInitialResponseBuilder(reference, jsitr, this);
+		else if (request instanceof GameteCreationTransactionRequest gctr)
+			return new GameteCreationResponseBuilder(reference, gctr, this);
+		else if (request instanceof JarStoreTransactionRequest jstr)
+			return new JarStoreResponseBuilder(reference, jstr, this);
+		else if (request instanceof ConstructorCallTransactionRequest cctr)
+			return new ConstructorCallResponseBuilder(reference, cctr, this);
+		else if (request instanceof AbstractInstanceMethodCallTransactionRequest aimctr)
+			return new InstanceMethodCallResponseBuilder(reference, aimctr, this);
+		else if (request instanceof StaticMethodCallTransactionRequest smctr)
+			return new StaticMethodCallResponseBuilder(reference, smctr, this);
+		else if (request instanceof InitializationTransactionRequest itr)
+			return new InitializationResponseBuilder(reference, itr, this);
+		else
+			throw new StoreException("Unexpected transaction request of class " + request.getClass().getName());
+	}
+
 	protected final Optional<TransactionReference> getTakamakaCode() throws StoreException {
 		var maybeManifest = getManifest();
 		if (maybeManifest.isEmpty())
@@ -516,6 +471,42 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 	Map<TransactionReference, TransactionResponse> addedResponses,
 	Map<StorageReference, TransactionReference[]> addedHistories,
 	Optional<StorageReference> addedManifest) throws StoreException;
+
+	/**
+	 * Writes in store the given request for the given transaction reference.
+	 * 
+	 * @param reference the reference of the transaction
+	 * @param request the request
+	 * @throws StoreException if this store is not able to complete the operation correctly
+	 */
+	private void setRequest(TransactionReference reference, TransactionRequest<?> request) {
+		requests.put(reference, request);
+	}
+
+	/**
+	 * Sets the history of the given object, that is,
+	 * the references to the transactions that provide information about
+	 * its current state, in reverse chronological order (from newest to oldest).
+	 * 
+	 * @param object the object whose history is set
+	 * @param history the stream that will become the history of the object,
+	 *                replacing its previous history; this is in chronological order,
+	 *                from newest transactions to oldest; hence the last transaction is
+	 *                that when the object has been created
+	 */
+	private void setHistory(StorageReference object, Stream<TransactionReference> history) {
+		histories.put(object, history.toArray(TransactionReference[]::new));
+	}
+
+	/**
+	 * Mark the node as initialized. This happens for initialization requests.
+	 * 
+	 * @param manifest the manifest to put in the node
+	 * @throws StoreException if this store is not able to complete the operation correctly
+	 */
+	private void setManifest(StorageReference manifest) {
+		this.manifest = manifest;
+	}
 
 	private void recomputeConsensus() throws StoreException {
 		try {
@@ -883,7 +874,7 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 	}
 
 	private BigInteger addInflation(BigInteger gas) throws StoreException {
-		OptionalLong currentInflation = getInflation();
+		OptionalLong currentInflation = inflation;
 	
 		if (currentInflation.isPresent())
 			gas = gas.multiply(_100_000_000.add(BigInteger.valueOf(currentInflation.getAsLong())))

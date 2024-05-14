@@ -276,7 +276,7 @@ class TendermintApplication extends ABCI {
     				}
     			}
     		}
-    		catch (NoSuchElementException | StoreException e) {
+    		catch (NoSuchElementException e) {
     			throw new RuntimeException("could not determine the new validators set", e);
     		}
     	}

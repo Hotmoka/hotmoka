@@ -171,7 +171,7 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 	}
 
 	@Override
-	protected long getNow() {
+	protected final long getNow() {
 		return System.currentTimeMillis();
 	}
 }
