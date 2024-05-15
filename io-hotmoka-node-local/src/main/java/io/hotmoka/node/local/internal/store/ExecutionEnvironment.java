@@ -26,6 +26,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -559,6 +560,8 @@ public abstract class ExecutionEnvironment {
 	 * @return the current gas price at the end of this transaction
 	 */
 	protected abstract Optional<BigInteger> getGasPrice();
+
+	protected abstract OptionalLong getInflation();
 
 	protected abstract LRUCache<TransactionReference, EngineClassLoader> getClassLoaders();
 

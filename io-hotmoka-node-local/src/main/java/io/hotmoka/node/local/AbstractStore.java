@@ -16,9 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.local;
 
-import java.math.BigInteger;
-import java.util.Optional;
-import java.util.OptionalLong;
 import java.util.concurrent.ExecutorService;
 
 import io.hotmoka.annotations.Immutable;
@@ -37,7 +34,7 @@ public abstract class AbstractStore<S extends AbstractStore<S,T>, T extends Abst
 		super(executors, consensus, config, hasher);
 	}
 
-	protected AbstractStore(AbstractStore<S, T> toClone, LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders, ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation) {
-		super(toClone, checkedSignatures, classLoaders, consensus, gasPrice, inflation);
+	protected AbstractStore(AbstractStore<S, T> toClone, LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders, StoreCache cache) {
+		super(toClone, checkedSignatures, classLoaders, cache);
 	}
 }

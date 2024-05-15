@@ -19,7 +19,6 @@ package io.hotmoka.node.disk.internal;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,7 +26,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.OptionalLong;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
@@ -43,6 +41,7 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractStore;
 import io.hotmoka.node.local.LRUCache;
+import io.hotmoka.node.local.StoreCache;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StoreException;
@@ -88,13 +87,13 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransaction> {
     	this.blockNumber = 0;
     }
 
-    DiskStore(DiskStore toClone, LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders,
-    		ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Map<TransactionReference, TransactionRequest<?>> addedRequests,
+    protected DiskStore(DiskStore toClone, LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders,
+    		StoreCache cache, Map<TransactionReference, TransactionRequest<?>> addedRequests,
     		Map<TransactionReference, TransactionResponse> addedResponses,
     		Map<StorageReference, TransactionReference[]> addedHistories,
     		Optional<StorageReference> addedManifest) throws StoreException {
 
-    	super(toClone, checkedSignatures, classLoaders, consensus, gasPrice, inflation);
+    	super(toClone, checkedSignatures, classLoaders, cache);
 
     	this.dir = toClone.dir;
     	this.requests = new HashMap<>(toClone.requests);
@@ -161,7 +160,7 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransaction> {
 			ensureDeleted(parent);
 			Files.createDirectories(parent);
 	
-			Files.writeString(getPathFor(progressive, reference, "request.txt"), request.toString(), StandardCharsets.UTF_8);
+			Files.writeString(parent.resolve("request.txt"), request.toString(), StandardCharsets.UTF_8);
 	
 			try (var context = NodeMarshallingContexts.of(Files.newOutputStream(requestPath))) {
 				request.into(context);
@@ -180,7 +179,7 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransaction> {
 			Path parent = responsePath.getParent();
 			Files.createDirectories(parent);
 
-			Files.writeString(getPathFor(progressive, reference, "response.txt"), response.toString(), StandardCharsets.UTF_8);
+			Files.writeString(parent.resolve("response.txt"), response.toString(), StandardCharsets.UTF_8);
 
 			try (var context = NodeMarshallingContexts.of(Files.newOutputStream(responsePath))) {
 				response.into(context);

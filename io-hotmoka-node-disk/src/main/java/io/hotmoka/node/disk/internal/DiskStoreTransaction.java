@@ -1,9 +1,7 @@
 package io.hotmoka.node.disk.internal;
 
-import java.math.BigInteger;
 import java.util.Map;
 import java.util.Optional;
-import java.util.OptionalLong;
 import java.util.concurrent.ExecutorService;
 
 import io.hotmoka.node.api.nodes.ConsensusConfig;
@@ -13,6 +11,7 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractStoreTransaction;
 import io.hotmoka.node.local.LRUCache;
+import io.hotmoka.node.local.StoreCache;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreException;
 
@@ -24,11 +23,11 @@ public class DiskStoreTransaction extends AbstractStoreTransaction<DiskStore, Di
 
 	@Override
 	protected DiskStore mkFinalStore(LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders,
-    		ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Map<TransactionReference, TransactionRequest<?>> addedRequests,
+    		StoreCache cache, Map<TransactionReference, TransactionRequest<?>> addedRequests,
     		Map<TransactionReference, TransactionResponse> addedResponses,
     		Map<StorageReference, TransactionReference[]> addedHistories,
     		Optional<StorageReference> addedManifest) throws StoreException {
 	
-		return new DiskStore(getInitialStore(), checkedSignatures, classLoaders, consensus, gasPrice, inflation, addedRequests, addedResponses, addedHistories, addedManifest);
+		return new DiskStore(getInitialStore(), checkedSignatures, classLoaders, cache, addedRequests, addedResponses, addedHistories, addedManifest);
 	}
 }

@@ -207,7 +207,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 					consensus = Optional.of(temp.extractConsensus());
 				}
 				catch (StoreException e) {
-					throw new NodeException("Cannot extract the consensus from the store: is the node initialized already?", e);
+					throw new NodeException("Cannot extract the consensus from the store: was the node already initialized?", e);
 				}
 			}
 

@@ -68,12 +68,14 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.LRUCache;
+import io.hotmoka.node.local.StoreCache;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.ResponseBuilder;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.StoreTransaction;
 import io.hotmoka.node.local.internal.LRUCacheImpl;
+import io.hotmoka.node.local.internal.StoreCacheImpl;
 
 /**
  * The store of a node. It keeps information about the state of the objects created
@@ -103,26 +105,7 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 
 	private volatile LRUCache<TransactionReference, EngineClassLoader> classLoaders;
 
-	/**
-	 * The current gas price in this store transaction. This information could be recovered from the store
-	 * transaction itself, but this field is used for caching. The gas price might be missing if the
-	 * node is not initialized yet.
-	 */
-	private volatile Optional<BigInteger> gasPrice;
-
-	/**
-	 * The current inflation in this store transaction. This information could be recovered from the store
-	 * transaction itself, but this field is used for caching. The inflation might be missing if the
-	 * node is not initialized yet.
-	 */
-	private volatile OptionalLong inflation;
-
-	/**
-	 * The current consensus configuration in this store transaction. This information could be recovered from
-	 * the store transaction itself, but this field is used for caching. This information might be
-	 * missing after a store check out to a specific root, after which the cache has not been recomputed yet.
-	 */
-	private volatile ConsensusConfig<?,?> consensus;
+	private volatile StoreCache cache;
 
 	/**
 	 * The gas consumed for CPU execution, RAM or storage in this transaction.
@@ -168,9 +151,7 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 		this.now = now;
 		this.checkedSignatures = store.getCheckedSignatures(); //new LRUCache<>(store.checkedSignatures);
 		this.classLoaders = store.getClassLoaders(); //new LRUCache<>(store.classLoaders); // TODO: clone?
-		this.gasPrice = store.getGasPrice();
-		this.inflation = store.inflation;
-		this.consensus = consensus;
+		this.cache = new StoreCacheImpl(store.getGasPrice(), store.getInflation(), consensus);
 		this.hasher = store.getHasher();
 		this.gasConsumed = BigInteger.ZERO;
 		this.coins = BigInteger.ZERO;
@@ -184,7 +165,7 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 
 	@Override
 	public final S getFinalStore() throws StoreException {
-		return mkFinalStore(checkedSignatures, classLoaders, consensus, gasPrice, inflation, requests, responses, histories, Optional.ofNullable(manifest));
+		return mkFinalStore(checkedSignatures, classLoaders, cache, requests, responses, histories, Optional.ofNullable(manifest));
 	}
 
 	@Override
@@ -194,7 +175,7 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 
 	@Override
 	public final ConsensusConfig<?,?> getConfig() {
-		return consensus;
+		return cache.getConfig();
 	}
 
 	@Override
@@ -331,7 +312,12 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 
 	@Override
 	protected final Optional<BigInteger> getGasPrice() {
-		return gasPrice;
+		return cache.getGasPrice();
+	}
+
+	@Override
+	protected OptionalLong getInflation() {
+		return cache.getInflation();
 	}
 
 	@Override
@@ -363,13 +349,14 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 	 */
 	protected void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws StoreException {
 		if (consensusParametersMightHaveChanged(response, classLoader)) {
-			long versionBefore = consensus.getVerificationVersion();
-			consensus = extractConsensus();
+			long versionBefore = cache.getConfig().getVerificationVersion();
+			cache = cache.setConfig(extractConsensus());
+			long versionAfter = cache.getConfig().getVerificationVersion();
 			LOGGER.info("the consensus parameters cache has been updated since it might have changed");
 			classLoaders = new LRUCacheImpl<>(100, 1000);
 
-			if (versionBefore != consensus.getVerificationVersion())
-				LOGGER.info("the version of the verification module has changed from " + versionBefore + " to " + consensus.getVerificationVersion());
+			if (versionBefore != versionAfter)
+				LOGGER.info("the version of the verification module has changed from " + versionBefore + " to " + versionAfter);
 		}
 
 		if (gasPriceMightHaveChanged(response, classLoader)) {
@@ -399,10 +386,10 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 	}
 
 	protected abstract S mkFinalStore(LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders,
-	ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Map<TransactionReference, TransactionRequest<?>> addedRequests,
-	Map<TransactionReference, TransactionResponse> addedResponses,
-	Map<StorageReference, TransactionReference[]> addedHistories,
-	Optional<StorageReference> addedManifest) throws StoreException;
+			StoreCache cache, Map<TransactionReference, TransactionRequest<?>> addedRequests,
+			Map<TransactionReference, TransactionResponse> addedResponses,
+			Map<StorageReference, TransactionReference[]> addedHistories,
+			Optional<StorageReference> addedManifest) throws StoreException;
 
 	/**
 	 * Writes in store the given request for the given transaction reference.
@@ -581,7 +568,7 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 					.orElseThrow(() -> new StoreException(GET_CURRENT_INFLATION + " should not return void"))
 					.asLong(value -> new StoreException(GET_CURRENT_INFLATION + " should return a long, not a " + value.getClass().getName()));
 	
-				inflation = OptionalLong.of(newInflation);
+				cache = cache.setInflation(newInflation);
 				LOGGER.info("the inflation cache has been updated to " + newInflation);
 			}
 		}
@@ -636,7 +623,7 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 	}
 
 	private BigInteger addInflation(BigInteger gas) throws StoreException {
-		OptionalLong currentInflation = inflation;
+		OptionalLong currentInflation = cache.getInflation();
 	
 		if (currentInflation.isPresent())
 			gas = gas.multiply(_100_000_000.add(BigInteger.valueOf(currentInflation.getAsLong())))
@@ -699,7 +686,7 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 					.orElseThrow(() -> new StoreException(GET_GAS_PRICE + " should not return void"))
 					.asBigInteger(value -> new StoreException(GET_GAS_PRICE + " should return a BigInteger, not a " + value.getClass().getName()));
 	
-				gasPrice = Optional.of(newGasPrice);
+				cache = cache.setGasPrice(newGasPrice);
 				LOGGER.info("the gas price cache has been updated to " + newGasPrice);
 			}
 		}
