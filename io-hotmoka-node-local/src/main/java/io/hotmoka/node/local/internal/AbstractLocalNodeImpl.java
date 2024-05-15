@@ -203,14 +203,14 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 				S temp = mkStore(executors, ValidatorsConsensusConfigBuilders.defaults().build(), config, hasher);
 
 				try {
-					consensus = Optional.of(temp.extractConsensus());
+					this.store = mkStore(executors, temp.extractConsensus(), config, hasher);
 				}
 				catch (StoreException e) {
 					throw new NodeException("Cannot extract the consensus from the store: was the node already initialized?", e);
 				}
 			}
-
-			this.store = mkStore(executors, consensus.get(), config, hasher);
+			else
+				this.store = mkStore(executors, consensus.get(), config, hasher);
 
 			addShutdownHook(); // move down to the concrete classes
 		}

@@ -85,16 +85,16 @@ public final class LRUCache<K, V> {
 
 	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
-	public LRUCache(int maxCapacity) {
+	/*private LRUCache(int maxCapacity) {
 		this(16, maxCapacity);
-	}
+	}*/
 
 	public LRUCache(int initialCapacity, int maxCapacity) {
 		this.maxCapacity = maxCapacity;
 		this.map = new HashMap<>(Math.min(initialCapacity, maxCapacity));
 	}
 
-	public LRUCache(LRUCache<K,V> toClone) {
+	/*public LRUCache(LRUCache<K,V> toClone) {
 		toClone.lock.readLock().lock();
 		try {
 			this.maxCapacity = toClone.maxCapacity;
@@ -106,17 +106,7 @@ public final class LRUCache<K, V> {
 		finally {
 			toClone.lock.readLock().unlock();
 		}
-	}
-
-	public int size() {
-		lock.readLock().lock();
-		try {
-			return map.size();
-		}
-		finally {
-			lock.readLock().unlock();
-		}
-	}
+	}*/
 
 	/**
 	 * Removes a node from the head position doubly-linked list.
@@ -162,8 +152,8 @@ public final class LRUCache<K, V> {
 	public void put(K key, V value) {
 		lock.writeLock().lock();
 		try {
-			if (map.containsKey(key)) {
-				Node<K, V> node = map.get(key);
+			Node<K, V> node = map.get(key);
+			if (node != null) {
 				node.value = value;
 				removeNode(node);
 				offerNode(node);
@@ -174,7 +164,7 @@ public final class LRUCache<K, V> {
 					removeNode(head);
 				}
 
-				Node<K, V> node = new Node<>(key, value);
+				node = new Node<>(key, value);
 				offerNode(node);
 				map.put(key, node);
 			}
@@ -207,20 +197,6 @@ public final class LRUCache<K, V> {
 		}
 		finally {
 			lock.readLock().unlock();
-		}
-	}
-
-	/**
-	 * Clears this cache.
-	 */
-	public void clear() {
-		lock.writeLock().lock();
-		try {
-			map.clear();
-			head = tail = null;
-		}
-		finally {
-			lock.writeLock().unlock();
 		}
 	}
 
