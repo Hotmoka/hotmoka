@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.local.internal.store;
 
 import java.math.BigInteger;
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.concurrent.ExecutorService;
@@ -29,7 +30,9 @@ import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
+import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.StoreCache;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.LocalNodeConfig;
@@ -106,6 +109,12 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 			throw e;
 		}
 	}
+
+	protected abstract S addDelta(StoreCache cache,
+			Map<TransactionReference, TransactionRequest<?>> addedRequests,
+			Map<TransactionReference, TransactionResponse> addedResponses,
+			Map<StorageReference, TransactionReference[]> addedHistories,
+			Optional<StorageReference> addedManifest) throws StoreException;
 
 	protected abstract T beginTransaction(ExecutorService executors, ConsensusConfig<?,?> consensus, long now) throws StoreException;
 

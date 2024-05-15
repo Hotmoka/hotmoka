@@ -56,8 +56,7 @@ public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S,
     	super(executors, consensus, config, hasher);
     }
 
-    protected AbstractTrieBasedStore(AbstractTrieBasedStore<S, T> toClone, StoreCache cache,
-    		byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) {
+    protected AbstractTrieBasedStore(AbstractTrieBasedStore<S, T> toClone, StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) {
     	super(toClone, cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
     }
 }

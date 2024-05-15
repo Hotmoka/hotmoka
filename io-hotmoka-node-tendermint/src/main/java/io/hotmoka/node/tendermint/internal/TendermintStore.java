@@ -59,8 +59,7 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
     	}
     }
 
-    private TendermintStore(TendermintStore toClone, StoreCache cache,
-    		byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) {
+    private TendermintStore(TendermintStore toClone, StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) {
     	super(toClone, cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
 
     	this.hasherOfHashes = toClone.hasherOfHashes;

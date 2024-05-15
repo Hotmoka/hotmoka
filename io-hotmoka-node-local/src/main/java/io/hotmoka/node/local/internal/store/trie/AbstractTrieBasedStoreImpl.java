@@ -180,9 +180,7 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
     	}
     }
 
-    protected AbstractTrieBasedStoreImpl(AbstractTrieBasedStoreImpl<S, T> toClone, StoreCache cache,
-    		byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) {
-
+    protected AbstractTrieBasedStoreImpl(AbstractTrieBasedStoreImpl<S, T> toClone, StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) {
     	super(toClone, cache);
 
     	this.env = toClone.env;
@@ -196,33 +194,30 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
     	this.rootOfRequests = Optional.of(rootOfRequests);
     }
 
-    protected abstract S make(StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests);
-
-    protected final S makeNext(StoreCache cache,
-			Map<TransactionReference, TransactionRequest<?>> addedRequests,
+    @Override
+	protected final S addDelta(StoreCache cache, Map<TransactionReference, TransactionRequest<?>> addedRequests,
 			Map<TransactionReference, TransactionResponse> addedResponses,
-			Map<StorageReference, TransactionReference[]> addedHistories,
-			Optional<StorageReference> addedManifest) throws StoreException {
-
-    	try {
-    		return CheckSupplier.check(StoreException.class, TrieException.class, () -> env.computeInTransaction(UncheckFunction.uncheck(txn -> {
+			Map<StorageReference, TransactionReference[]> addedHistories, Optional<StorageReference> addedManifest) throws StoreException {
+	
+		try {
+			return CheckSupplier.check(StoreException.class, TrieException.class, () -> env.computeInTransaction(UncheckFunction.uncheck(txn -> {
 				var trieOfRequests = mkTrieOfRequests(txn);
 				for (var entry: addedRequests.entrySet())
 					trieOfRequests.put(entry.getKey(), entry.getValue());
-
+	
 				var trieOfResponses = mkTrieOfResponses(txn);
 				for (var entry: addedResponses.entrySet())
 					trieOfResponses.put(entry.getKey(), entry.getValue());
-
+	
 				var trieOfHistories = mkTrieOfHistories(txn);
 				for (var entry: addedHistories.entrySet())
 					trieOfHistories.put(entry.getKey(), Stream.of(entry.getValue()));
-
+	
 				var trieOfInfo = mkTrieOfInfo(txn);
 				trieOfInfo.increaseNumberOfCommits();
 				if (addedManifest.isPresent())
 					trieOfInfo.setManifest(addedManifest.get());
-
+	
 				return make(cache, trieOfResponses.getRoot(), trieOfInfo.getRoot(), trieOfHistories.getRoot(), trieOfRequests.getRoot());
 			})));
 		}
@@ -230,6 +225,8 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 			throw new StoreException(e);
 		}
 	}
+
+	protected abstract S make(StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests);
 
 	@Override
     public void close() throws StoreException {
@@ -290,22 +287,6 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 		}
 	}
 
-	/**
-	 * Yields the number of commits already performed over this store.
-	 * 
-	 * @return the number of commits
-	 */
-	public long getNumberOfCommits() throws StoreException {
-		try {
-			return CheckSupplier.check(TrieException.class, StoreException.class, () ->
-				env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> mkTrieOfInfo(txn).getNumberOfCommits())
-			));
-		}
-		catch (ExodusException | TrieException e) {
-			throw new StoreException(e);
-		}
-	}
-
 	@Override
 	public byte[] getStateId() throws StoreException {
 		return mergeRootsOfTries();
@@ -327,6 +308,22 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 			return make(new StoreCacheImpl(temp.extractConsensus()), rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
 		}
 		catch (NoSuchAlgorithmException e) {
+			throw new StoreException(e);
+		}
+	}
+
+	/**
+	 * Yields the number of commits already performed over this store.
+	 * 
+	 * @return the number of commits
+	 */
+	public long getNumberOfCommits() throws StoreException {
+		try {
+			return CheckSupplier.check(TrieException.class, StoreException.class, () ->
+				env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> mkTrieOfInfo(txn).getNumberOfCommits())
+			));
+		}
+		catch (ExodusException | TrieException e) {
 			throw new StoreException(e);
 		}
 	}

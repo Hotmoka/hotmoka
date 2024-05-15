@@ -24,7 +24,6 @@ import static io.hotmoka.node.MethodSignatures.GET_GAS_PRICE;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Set;
@@ -157,7 +156,7 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 
 	@Override
 	public final S getFinalStore() throws StoreException {
-		return mkFinalStore(cache, requests, responses, histories, Optional.ofNullable(manifest));
+		return store.addDelta(cache, requests, responses, histories, Optional.ofNullable(manifest));
 	}
 
 	@Override
@@ -375,12 +374,6 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 	protected final StorageReference getCreator(StorageReference event) throws UnknownReferenceException, FieldNotFoundException, StoreException {
 		return getReferenceField(event, FieldSignatures.EVENT_CREATOR_FIELD);
 	}
-
-	protected abstract S mkFinalStore(StoreCache cache,
-			Map<TransactionReference, TransactionRequest<?>> addedRequests,
-			Map<TransactionReference, TransactionResponse> addedResponses,
-			Map<StorageReference, TransactionReference[]> addedHistories,
-			Optional<StorageReference> addedManifest) throws StoreException;
 
 	/**
 	 * Writes in store the given request for the given transaction reference.

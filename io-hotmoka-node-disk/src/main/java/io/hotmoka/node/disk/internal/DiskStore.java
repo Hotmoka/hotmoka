@@ -149,6 +149,14 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransaction> {
 		return new DiskStoreTransaction(this, executors, consensus, now);
 	}
 
+	@Override
+	protected DiskStore addDelta(StoreCache cache, Map<TransactionReference, TransactionRequest<?>> addedRequests,
+			Map<TransactionReference, TransactionResponse> addedResponses,
+			Map<StorageReference, TransactionReference[]> addedHistories, Optional<StorageReference> addedManifest) throws StoreException {
+	
+		return new DiskStore(this, cache, addedRequests, addedResponses, addedHistories, addedManifest);
+	}
+
 	private void setRequest(int progressive, TransactionReference reference, TransactionRequest<?> request) throws StoreException {
 		requests.put(reference, request);
 
