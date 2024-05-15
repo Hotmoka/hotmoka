@@ -20,6 +20,7 @@ import java.math.BigInteger;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 import io.hotmoka.annotations.Immutable;
@@ -29,27 +30,15 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.local.LRUCache;
 import io.hotmoka.node.local.StoreCache;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.Store;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.node.local.internal.LRUCacheImpl;
 import io.hotmoka.node.local.internal.StoreCacheImpl;
 
 @Immutable
 public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T extends AbstractStoreTransactionImpl<S, T>> extends ExecutionEnvironment implements Store<S, T> {
-
-	/**
-	 * Cached recent transactions whose requests that have had their signature checked.
-	 */
-	private final LRUCache<TransactionReference, Boolean> checkedSignatures;
-
-	/**
-	 * Cached class loaders for each classpath.
-	 */
-	private final LRUCache<TransactionReference, EngineClassLoader> classLoaders;
 
 	private final StoreCache cache;
 
@@ -72,18 +61,14 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 	protected AbstractStoreImpl(ExecutorService executors, ConsensusConfig<?,?> consensus, LocalNodeConfig<?,?> config, Hasher<TransactionRequest<?>> hasher) {
 		this.executors = executors;
 		this.hasher = hasher;
-		this.checkedSignatures = new LRUCacheImpl<>(100, 1000);
-		this.classLoaders = new LRUCacheImpl<>(100, 1000);
 		this.cache = new StoreCacheImpl(consensus);
 		this.maxGasPerView = config.getMaxGasPerViewTransaction();
 		this.consensusForViews = consensus.toBuilder().setMaxGasPerTransaction(maxGasPerView).build();
 	}
 
-	protected AbstractStoreImpl(AbstractStoreImpl<S, T> toClone, LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders, StoreCache cache) {
+	protected AbstractStoreImpl(AbstractStoreImpl<S, T> toClone, StoreCache cache) {
 		this.executors = toClone.executors;
 		this.hasher = toClone.hasher;
-		this.checkedSignatures = checkedSignatures; //new LRUCache<>(checkedSignatures);
-		this.classLoaders = classLoaders; //new LRUCache<>(classLoaders); // TODO: clone?
 		this.maxGasPerView = toClone.maxGasPerView;
 		this.cache = cache;
 		this.consensusForViews = cache.getConfig().toBuilder().setMaxGasPerTransaction(maxGasPerView).build();
@@ -124,9 +109,18 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 
 	protected abstract T beginTransaction(ExecutorService executors, ConsensusConfig<?,?> consensus, long now) throws StoreException;
 
+	protected final StoreCache getCache() {
+		return cache;
+	}
+
 	@Override
-	protected final LRUCache<TransactionReference, EngineClassLoader> getClassLoaders() {
-		return classLoaders;
+	protected final EngineClassLoader getClassLoader(TransactionReference classpath, Function<TransactionReference, EngineClassLoader> ifMissing) {
+		return cache.getClassLoader(classpath, ifMissing);
+	}
+
+	@Override
+	protected final boolean signatureIsValid(TransactionReference classpath, Function<TransactionReference, Boolean> ifMissing) {
+		return cache.signatureIsValid(classpath, ifMissing);
 	}
 
 	@Override
@@ -140,17 +134,12 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 	}
 
 	@Override
-	protected final LRUCache<TransactionReference, Boolean> getCheckedSignatures() {
-		return checkedSignatures;
-	}
-
-	@Override
 	protected final Optional<BigInteger> getGasPrice() {
 		return cache.getGasPrice();
 	}
 
 	@Override
-	protected OptionalLong getInflation() {
+	protected final OptionalLong getInflation() {
 		return cache.getInflation();
 	}
 

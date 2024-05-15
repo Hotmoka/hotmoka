@@ -25,11 +25,8 @@ import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
-import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.AbstractTrieBasedStore;
-import io.hotmoka.node.local.LRUCache;
 import io.hotmoka.node.local.StoreCache;
-import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 
@@ -62,9 +59,9 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
     	}
     }
 
-    private TendermintStore(TendermintStore toClone, LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders, StoreCache cache,
+    private TendermintStore(TendermintStore toClone, StoreCache cache,
     		byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) {
-    	super(toClone, checkedSignatures, classLoaders, cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
+    	super(toClone, cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
 
     	this.hasherOfHashes = toClone.hasherOfHashes;
 	}
@@ -85,8 +82,8 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
     }
 
 	@Override
-    protected TendermintStore make(LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders, StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) {
-		return new TendermintStore(this, checkedSignatures, classLoaders, cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
+    protected TendermintStore make(StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) {
+		return new TendermintStore(this, cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
 	}
 
 	@Override

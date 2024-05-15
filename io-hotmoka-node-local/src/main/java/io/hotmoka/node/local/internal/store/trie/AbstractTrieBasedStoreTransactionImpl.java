@@ -10,9 +10,7 @@ import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractStoreTransaction;
-import io.hotmoka.node.local.LRUCache;
 import io.hotmoka.node.local.StoreCache;
-import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreException;
 
 public abstract class AbstractTrieBasedStoreTransactionImpl<S extends AbstractTrieBasedStoreImpl<S, T>, T extends AbstractTrieBasedStoreTransactionImpl<S, T>> extends AbstractStoreTransaction<S, T> {
@@ -22,14 +20,12 @@ public abstract class AbstractTrieBasedStoreTransactionImpl<S extends AbstractTr
 	}
 
 	@Override
-	protected final S mkFinalStore(LRUCache<TransactionReference, Boolean> checkedSignatures,
-			LRUCache<TransactionReference, EngineClassLoader> classLoaders,
-			StoreCache cache,
+	protected final S mkFinalStore(StoreCache cache,
 			Map<TransactionReference, TransactionRequest<?>> addedRequests,
 			Map<TransactionReference, TransactionResponse> addedResponses,
 			Map<StorageReference, TransactionReference[]> addedHistories,
 			Optional<StorageReference> addedManifest) throws StoreException {
 
-		return getInitialStore().makeNext(checkedSignatures, classLoaders, cache, addedRequests, addedResponses, addedHistories, addedManifest);
+		return getInitialStore().makeNext(cache, addedRequests, addedResponses, addedHistories, addedManifest);
 	}
 }

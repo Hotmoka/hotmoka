@@ -19,9 +19,12 @@ package io.hotmoka.node.local.internal;
 import java.math.BigInteger;
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.function.Function;
 
 import io.hotmoka.node.api.nodes.ConsensusConfig;
+import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.StoreCache;
+import io.hotmoka.node.local.api.EngineClassLoader;
 
 /**
  * 
@@ -49,31 +52,50 @@ public class StoreCacheImpl implements StoreCache {
 	 */
 	private final ConsensusConfig<?,?> consensus;	
 
+	/**
+	 * Cached class loaders for each classpath.
+	 */
+	private final LRUCache<TransactionReference, EngineClassLoader> classLoaders;
+
+	/**
+	 * Cached recent transactions whose requests that have had their signature checked.
+	 */
+	private final LRUCache<TransactionReference, Boolean> checkedSignatures;
+
 	public StoreCacheImpl(ConsensusConfig<?,?> consensus) {
 		this.consensus = consensus;
 		this.gasPrice = Optional.empty();
 		this.inflation = OptionalLong.empty();
+		this.classLoaders = new LRUCache<>(100, 1000);
+		this.checkedSignatures = new LRUCache<>(100, 1000);
 	}
 
-	public StoreCacheImpl(Optional<BigInteger> gasPrice, OptionalLong inflation, ConsensusConfig<?,?> consensus) {
+	public StoreCacheImpl(Optional<BigInteger> gasPrice, OptionalLong inflation, ConsensusConfig<?,?> consensus, LRUCache<TransactionReference, EngineClassLoader> classLoaders, LRUCache<TransactionReference, Boolean> checkedSignatures) {
 		this.consensus = consensus;
 		this.gasPrice = gasPrice;
 		this.inflation = inflation;
+		this.classLoaders = classLoaders;
+		this.checkedSignatures = checkedSignatures;
 	}
 
 	@Override
 	public StoreCache setGasPrice(BigInteger gasPrice) {
-		return new StoreCacheImpl(Optional.of(gasPrice), inflation, consensus);
+		return new StoreCacheImpl(Optional.of(gasPrice), inflation, consensus, classLoaders, checkedSignatures);
 	}
 
 	@Override
 	public StoreCache setInflation(long inflation) {
-		return new StoreCacheImpl(gasPrice, OptionalLong.of(inflation), consensus);
+		return new StoreCacheImpl(gasPrice, OptionalLong.of(inflation), consensus, classLoaders, checkedSignatures);
 	}
 
 	@Override
 	public StoreCache setConfig(ConsensusConfig<?,?> consensus) {
-		return new StoreCacheImpl(gasPrice, inflation, consensus);
+		return new StoreCacheImpl(gasPrice, inflation, consensus, classLoaders, checkedSignatures);
+	}
+
+	@Override
+	public StoreCache invalidateClassLoaders() {
+		return new StoreCacheImpl(gasPrice, inflation, consensus, new LRUCache<>(100, 1000), checkedSignatures);
 	}
 
 	@Override
@@ -89,5 +111,15 @@ public class StoreCacheImpl implements StoreCache {
 	@Override
 	public ConsensusConfig<?, ?> getConfig() {
 		return consensus;
+	}
+
+	@Override
+	public final EngineClassLoader getClassLoader(TransactionReference classpath, Function<TransactionReference, EngineClassLoader> ifMissing) {
+		return classLoaders.computeIfAbsent(classpath, ifMissing);
+	}
+
+	@Override
+	public final boolean signatureIsValid(TransactionReference reference, Function<TransactionReference, Boolean> ifMissing) {
+		return checkedSignatures.computeIfAbsent(reference, ifMissing);
 	}
 }

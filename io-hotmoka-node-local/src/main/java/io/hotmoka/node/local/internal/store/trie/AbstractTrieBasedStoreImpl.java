@@ -35,13 +35,10 @@ import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractStore;
-import io.hotmoka.node.local.LRUCache;
 import io.hotmoka.node.local.StoreCache;
 import io.hotmoka.node.local.api.CheckableStore;
-import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.node.local.internal.LRUCacheImpl;
 import io.hotmoka.node.local.internal.StoreCacheImpl;
 import io.hotmoka.patricia.api.TrieException;
 import io.hotmoka.xodus.ByteIterable;
@@ -183,10 +180,10 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
     	}
     }
 
-    protected AbstractTrieBasedStoreImpl(AbstractTrieBasedStoreImpl<S, T> toClone, LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders, StoreCache cache,
+    protected AbstractTrieBasedStoreImpl(AbstractTrieBasedStoreImpl<S, T> toClone, StoreCache cache,
     		byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) {
 
-    	super(toClone, checkedSignatures, classLoaders, cache);
+    	super(toClone, cache);
 
     	this.env = toClone.env;
     	this.storeOfResponses = toClone.storeOfResponses;
@@ -199,14 +196,9 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
     	this.rootOfRequests = Optional.of(rootOfRequests);
     }
 
-    protected abstract S make(LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference,
-    		EngineClassLoader> classLoaders, StoreCache cache,
-    		byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests);
+    protected abstract S make(StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests);
 
-    protected final S makeNext(
-			LRUCache<TransactionReference, Boolean> checkedSignatures,
-			LRUCache<TransactionReference, EngineClassLoader> classLoaders,
-			StoreCache cache,
+    protected final S makeNext(StoreCache cache,
 			Map<TransactionReference, TransactionRequest<?>> addedRequests,
 			Map<TransactionReference, TransactionResponse> addedResponses,
 			Map<StorageReference, TransactionReference[]> addedHistories,
@@ -231,7 +223,7 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 				if (addedManifest.isPresent())
 					trieOfInfo.setManifest(addedManifest.get());
 
-				return make(checkedSignatures, classLoaders, cache, trieOfResponses.getRoot(), trieOfInfo.getRoot(), trieOfHistories.getRoot(), trieOfRequests.getRoot());
+				return make(cache, trieOfResponses.getRoot(), trieOfInfo.getRoot(), trieOfHistories.getRoot(), trieOfRequests.getRoot());
 			})));
 		}
 		catch (ExodusException | TrieException e) {
@@ -331,8 +323,8 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 		System.arraycopy(stateId, 96, rootOfHistories, 0, 32);
 
 		try {
-			S temp = make(new LRUCacheImpl<>(100, 1000), new LRUCacheImpl<>(100, 1000), new StoreCacheImpl(ValidatorsConsensusConfigBuilders.defaults().build()), rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
-			return make(new LRUCacheImpl<>(100, 1000), new LRUCacheImpl<>(100, 1000), new StoreCacheImpl(temp.extractConsensus()), rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
+			S temp = make(new StoreCacheImpl(ValidatorsConsensusConfigBuilders.defaults().build()), rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
+			return make(new StoreCacheImpl(temp.extractConsensus()), rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
 		}
 		catch (NoSuchAlgorithmException e) {
 			throw new StoreException(e);

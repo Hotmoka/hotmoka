@@ -22,8 +22,6 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
-import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.internal.store.trie.AbstractTrieBasedStoreImpl;
 
@@ -58,8 +56,8 @@ public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S,
     	super(executors, consensus, config, hasher);
     }
 
-    protected AbstractTrieBasedStore(AbstractTrieBasedStore<S, T> toClone, LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders, StoreCache cache,
+    protected AbstractTrieBasedStore(AbstractTrieBasedStore<S, T> toClone, StoreCache cache,
     		byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) {
-    	super(toClone, checkedSignatures, classLoaders, cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
+    	super(toClone, cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
     }
 }

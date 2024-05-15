@@ -22,8 +22,6 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
-import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.internal.store.AbstractStoreImpl;
 
@@ -34,7 +32,7 @@ public abstract class AbstractStore<S extends AbstractStore<S,T>, T extends Abst
 		super(executors, consensus, config, hasher);
 	}
 
-	protected AbstractStore(AbstractStore<S, T> toClone, LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders, StoreCache cache) {
-		super(toClone, checkedSignatures, classLoaders, cache);
+	protected AbstractStore(AbstractStore<S, T> toClone, StoreCache cache) {
+		super(toClone, cache);
 	}
 }

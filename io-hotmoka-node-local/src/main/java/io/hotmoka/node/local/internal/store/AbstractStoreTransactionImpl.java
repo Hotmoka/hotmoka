@@ -33,6 +33,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -67,15 +68,12 @@ import io.hotmoka.node.api.responses.TransactionResponseWithUpdates;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.local.LRUCache;
 import io.hotmoka.node.local.StoreCache;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.ResponseBuilder;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.StoreTransaction;
-import io.hotmoka.node.local.internal.LRUCacheImpl;
-import io.hotmoka.node.local.internal.StoreCacheImpl;
 
 /**
  * The store of a node. It keeps information about the state of the objects created
@@ -100,10 +98,6 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 	 * The storage reference of the manifest stored inside the node, if any.
 	 */
 	private volatile StorageReference manifest;
-
-	private volatile LRUCache<TransactionReference, Boolean> checkedSignatures;
-
-	private volatile LRUCache<TransactionReference, EngineClassLoader> classLoaders;
 
 	private volatile StoreCache cache;
 
@@ -149,9 +143,7 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 		this.store = store;
 		this.executors = executors;
 		this.now = now;
-		this.checkedSignatures = store.getCheckedSignatures(); //new LRUCache<>(store.checkedSignatures);
-		this.classLoaders = store.getClassLoaders(); //new LRUCache<>(store.classLoaders); // TODO: clone?
-		this.cache = new StoreCacheImpl(store.getGasPrice(), store.getInflation(), consensus);
+		this.cache = store.getCache().setConfig(consensus);
 		this.hasher = store.getHasher();
 		this.gasConsumed = BigInteger.ZERO;
 		this.coins = BigInteger.ZERO;
@@ -165,7 +157,7 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 
 	@Override
 	public final S getFinalStore() throws StoreException {
-		return mkFinalStore(checkedSignatures, classLoaders, cache, requests, responses, histories, Optional.ofNullable(manifest));
+		return mkFinalStore(cache, requests, responses, histories, Optional.ofNullable(manifest));
 	}
 
 	@Override
@@ -316,18 +308,18 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 	}
 
 	@Override
-	protected OptionalLong getInflation() {
+	protected final OptionalLong getInflation() {
 		return cache.getInflation();
 	}
 
 	@Override
-	protected final LRUCache<TransactionReference, Boolean> getCheckedSignatures() {
-		return checkedSignatures;
+	protected final EngineClassLoader getClassLoader(TransactionReference classpath, Function<TransactionReference, EngineClassLoader> ifMissing) {
+		return cache.getClassLoader(classpath, ifMissing);
 	}
 
 	@Override
-	protected final LRUCache<TransactionReference, EngineClassLoader> getClassLoaders() {
-		return classLoaders;
+	protected final boolean signatureIsValid(TransactionReference classpath, Function<TransactionReference, Boolean> ifMissing) {
+		return cache.signatureIsValid(classpath, ifMissing);
 	}
 
 	@Override
@@ -350,10 +342,9 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 	protected void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws StoreException {
 		if (consensusParametersMightHaveChanged(response, classLoader)) {
 			long versionBefore = cache.getConfig().getVerificationVersion();
-			cache = cache.setConfig(extractConsensus());
+			cache = cache.setConfig(extractConsensus()).invalidateClassLoaders();
 			long versionAfter = cache.getConfig().getVerificationVersion();
 			LOGGER.info("the consensus parameters cache has been updated since it might have changed");
-			classLoaders = new LRUCacheImpl<>(100, 1000);
 
 			if (versionBefore != versionAfter)
 				LOGGER.info("the version of the verification module has changed from " + versionBefore + " to " + versionAfter);
@@ -385,8 +376,8 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 		return getReferenceField(event, FieldSignatures.EVENT_CREATOR_FIELD);
 	}
 
-	protected abstract S mkFinalStore(LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders,
-			StoreCache cache, Map<TransactionReference, TransactionRequest<?>> addedRequests,
+	protected abstract S mkFinalStore(StoreCache cache,
+			Map<TransactionReference, TransactionRequest<?>> addedRequests,
 			Map<TransactionReference, TransactionResponse> addedResponses,
 			Map<StorageReference, TransactionReference[]> addedHistories,
 			Optional<StorageReference> addedManifest) throws StoreException;

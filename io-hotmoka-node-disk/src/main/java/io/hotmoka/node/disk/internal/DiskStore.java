@@ -40,9 +40,7 @@ import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractStore;
-import io.hotmoka.node.local.LRUCache;
 import io.hotmoka.node.local.StoreCache;
-import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StoreException;
 
@@ -87,13 +85,13 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransaction> {
     	this.blockNumber = 0;
     }
 
-    protected DiskStore(DiskStore toClone, LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders,
-    		StoreCache cache, Map<TransactionReference, TransactionRequest<?>> addedRequests,
+    protected DiskStore(DiskStore toClone, StoreCache cache,
+    		Map<TransactionReference, TransactionRequest<?>> addedRequests,
     		Map<TransactionReference, TransactionResponse> addedResponses,
     		Map<StorageReference, TransactionReference[]> addedHistories,
     		Optional<StorageReference> addedManifest) throws StoreException {
 
-    	super(toClone, checkedSignatures, classLoaders, cache);
+    	super(toClone, cache);
 
     	this.dir = toClone.dir;
     	this.requests = new HashMap<>(toClone.requests);

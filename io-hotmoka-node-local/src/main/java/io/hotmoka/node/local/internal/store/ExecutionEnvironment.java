@@ -30,6 +30,7 @@ import java.util.OptionalLong;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
@@ -75,7 +76,6 @@ import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.api.values.StringValue;
-import io.hotmoka.node.local.LRUCache;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.ResponseBuilder;
@@ -320,21 +320,7 @@ public abstract class ExecutionEnvironment {
 	 * @throws StoreException if the store is not able to complete the operation correctly
 	 */
 	protected final EngineClassLoader getClassLoader(TransactionReference classpath, ConsensusConfig<?,?> consensus) throws StoreException {
-		try {
-			var classLoaders = getClassLoaders();
-
-			var classLoader = classLoaders.get(classpath);
-			if (classLoader != null)
-				return classLoader;
-
-			var classLoader2 = new EngineClassLoaderImpl(null, Stream.of(classpath), this, consensus);
-			return classLoaders.computeIfAbsent(classpath, _classpath -> classLoader2);
-		}
-		catch (ClassNotFoundException e) {
-			// since the class loader is created from transactions that are already in the store,
-			// they should be consistent and never miss a dependent class
-			throw new StoreException(e);
-		}
+		return CheckSupplier.check(StoreException.class, () -> getClassLoader(classpath, UncheckFunction.uncheck(_classpath -> mkClassLoader(_classpath, consensus))));
 	}
 
 	protected final ClassTag getClassTag(StorageReference reference) throws UnknownReferenceException, StoreException {
@@ -502,7 +488,7 @@ public abstract class ExecutionEnvironment {
 	protected final boolean signatureIsValid(SignedTransactionRequest<?> request, SignatureAlgorithm signatureAlgorithm) throws StoreException, UnknownReferenceException, FieldNotFoundException {
 		var reference = TransactionReferences.of(getHasher().hash(request));
 		return CheckSupplier.check(StoreException.class, UnknownReferenceException.class, FieldNotFoundException.class, () ->
-			getCheckedSignatures().computeIfAbsentNoException(reference, UncheckFunction.uncheck(_reference -> verifySignature(signatureAlgorithm, request))));
+			signatureIsValid(reference, UncheckFunction.uncheck(_reference -> verifySignature(signatureAlgorithm, request))));
 	}
 
 	protected final String getPublicKey(StorageReference account) throws UnknownReferenceException, FieldNotFoundException, StoreException {
@@ -563,13 +549,24 @@ public abstract class ExecutionEnvironment {
 
 	protected abstract OptionalLong getInflation();
 
-	protected abstract LRUCache<TransactionReference, EngineClassLoader> getClassLoaders();
+	protected abstract EngineClassLoader getClassLoader(TransactionReference classpath, Function<TransactionReference, EngineClassLoader> ifMissing);
+
+	protected abstract boolean signatureIsValid(TransactionReference classpath, Function<TransactionReference, Boolean> ifMissing);
 
 	protected abstract ExecutorService getExecutors();
 
 	protected abstract Hasher<TransactionRequest<?>> getHasher();
 
-	protected abstract LRUCache<TransactionReference, Boolean> getCheckedSignatures();
+	private EngineClassLoader mkClassLoader(TransactionReference classpath, ConsensusConfig<?,?> consensus) throws StoreException {
+		try {
+			return new EngineClassLoaderImpl(null, Stream.of(classpath), this, consensus);
+		}
+		catch (ClassNotFoundException e) {
+			// since the class loader is created from transactions that are already in the store,
+			// they should be consistent and never miss a dependent class
+			throw new StoreException(e);
+		}
+	}
 
 	private boolean verifySignature(SignatureAlgorithm signature, SignedTransactionRequest<?> request) throws StoreException, UnknownReferenceException, FieldNotFoundException {
 		try {

@@ -19,8 +19,12 @@ package io.hotmoka.node.local;
 import java.math.BigInteger;
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.function.Function;
 
 import io.hotmoka.node.api.nodes.ConsensusConfig;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.local.api.EngineClassLoader;
+import io.hotmoka.node.local.api.StoreException;
 
 /**
  * 
@@ -48,9 +52,22 @@ public interface StoreCache {
 	 */
 	ConsensusConfig<?,?> getConfig();
 
+	/**
+	 * Yields a class loader for the given class path, using a cache to avoid regeneration, if possible.
+	 * 
+	 * @param classpath the class path that must be used by the class loader
+	 * @return the class loader
+	 * @throws StoreException if the store is not able to complete the operation correctly
+	 */
+	EngineClassLoader getClassLoader(TransactionReference classpath, Function<TransactionReference, EngineClassLoader> ifMissing);
+
+	boolean signatureIsValid(TransactionReference reference, Function<TransactionReference, Boolean> ifMissing);
+
 	StoreCache setGasPrice(BigInteger gasPrice);
 
 	StoreCache setInflation(long inflation);
 
 	StoreCache setConfig(ConsensusConfig<?,?> consensus);
+
+	StoreCache invalidateClassLoaders();
 }

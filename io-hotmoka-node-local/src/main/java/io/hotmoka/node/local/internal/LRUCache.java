@@ -18,12 +18,9 @@ package io.hotmoka.node.local.internal;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
-
-import io.hotmoka.node.local.LRUCache;
 
 /**
  * A class to cache objects based on LRU (Least Recently Used) cache eviction strategy,
@@ -41,7 +38,7 @@ import io.hotmoka.node.local.LRUCache;
  * 
  * Taken from https://dzone.com/articles/java-based-simple-cache-lru-eviction.
  */
-public final class LRUCacheImpl<K, V> implements LRUCache<K, V> {
+public final class LRUCache<K, V> {
 
 	/**
 	 * A doubly-linked-list implementation to save objects into the hashmap
@@ -88,16 +85,16 @@ public final class LRUCacheImpl<K, V> implements LRUCache<K, V> {
 
 	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
-	public LRUCacheImpl(int maxCapacity) {
+	public LRUCache(int maxCapacity) {
 		this(16, maxCapacity);
 	}
 
-	public LRUCacheImpl(int initialCapacity, int maxCapacity) {
+	public LRUCache(int initialCapacity, int maxCapacity) {
 		this.maxCapacity = maxCapacity;
 		this.map = new HashMap<>(Math.min(initialCapacity, maxCapacity));
 	}
 
-	public LRUCacheImpl(LRUCacheImpl<K,V> toClone) {
+	public LRUCache(LRUCache<K,V> toClone) {
 		toClone.lock.readLock().lock();
 		try {
 			this.maxCapacity = toClone.maxCapacity;
@@ -155,7 +152,13 @@ public final class LRUCacheImpl<K, V> implements LRUCache<K, V> {
 		}
 	}
 
-	@Override
+	/**
+	 * Adds a new object to the cache. If the cache size has reached it's capacity,
+	 * then the least recently accessed object will be evicted.
+	 *
+	 * @param key the key to bind
+	 * @param value the value to bind to the {@code key}
+	 */
 	public void put(K key, V value) {
 		lock.writeLock().lock();
 		try {
@@ -181,7 +184,14 @@ public final class LRUCacheImpl<K, V> implements LRUCache<K, V> {
 		}
 	}
 
-	@Override
+	/**
+	 * Fetches an object from the cache (could be null if no such mapping exists).
+	 * If the object is found in the cache, then it will be moved to the tail-end of the
+	 * doubly-linked list to indicate that it was recently accessed.
+	 *
+	 * @param key the key to access
+	 * @return the value bound to the {@code key}
+	 */
 	public V get(K key) {
 		lock.readLock().lock();
 
@@ -200,7 +210,9 @@ public final class LRUCacheImpl<K, V> implements LRUCache<K, V> {
 		}
 	}
 
-	@Override
+	/**
+	 * Clears this cache.
+	 */
 	public void clear() {
 		lock.writeLock().lock();
 		try {
@@ -212,22 +224,15 @@ public final class LRUCacheImpl<K, V> implements LRUCache<K, V> {
 		}
 	}
 
-	@Override
-	public <E extends Exception> V computeIfAbsent(K key, ValueSupplier<K,V,E> supplier) throws E {
-		V old = get(key);
-		if (old == null) {
-			V _new = supplier.supply(key);
-			if (_new != null)
-				put(key, _new);
-
-			return _new;
-		}
-		else
-			return old;
-	}
-
-	@Override
-	public V computeIfAbsentNoException(K key, Function<K,V> supplier) {
+	/**
+	 * Adds a new object to the cache, if its key was unbound.
+	 * In that case, it calls a supplier to provide the new object to add.
+	 * 
+	 * @param key the key of the cached value
+	 * @param supplier the supplier that produces the value to put in cache
+	 * @return the current (old or computed) value in cache for {@code key} at the end of the method
+	 */
+	public V computeIfAbsent(K key, Function<K,V> supplier) {
 		V old = get(key);
 		if (old == null) {
 			V _new = supplier.apply(key);
@@ -238,18 +243,5 @@ public final class LRUCacheImpl<K, V> implements LRUCache<K, V> {
 		}
 		else
 			return old;
-	}
-
-	@Override
-	public Optional<V> computeIfAbsentOptional(K key, Function<K, Optional<V>> supplier) {
-		V old = get(key);
-		if (old == null) {
-			Optional<V> _new = supplier.apply(key);
-			_new.ifPresent(v -> put(key, v));
-
-			return _new;
-		}
-		else
-			return Optional.of(old);
 	}
 }
