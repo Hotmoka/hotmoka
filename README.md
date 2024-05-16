@@ -12,6 +12,12 @@ Hotmoka is a framework for programming a network of communicating nodes, in a su
 
  <p align="center">Copyright 2022 by Fausto Spoto (fausto.spoto@hotmoka.io).</p>
 
+ This software benefits from the use of the YourKit profiler for Java:
+
+ ![Yourkit Logo](https://www.yourkit.com/images/yklogo.png)
+
+ YourKit supports open source projects with innovative and intelligent tools for monitoring and profiling Java and .NET applications. YourKit is the creator of <a href="https://www.yourkit.com/java/profiler/">YourKit Java Profiler</a>, <a href="https://www.yourkit.com/.net/profiler/">YourKit .NET Profiler</a>, and <a href="https://www.yourkit.com/youmonitor/">YourKit YouMonitor</a>.
+
 # Table of Contents
 1. [Introduction](#introduction)
 2. [Getting Started with Hotmoka](#getting-started-with-hotmoka)
