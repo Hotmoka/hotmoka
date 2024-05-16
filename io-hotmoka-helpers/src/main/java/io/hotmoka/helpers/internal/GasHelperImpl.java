@@ -28,8 +28,6 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.api.values.BigIntegerValue;
-import io.hotmoka.node.api.values.BooleanValue;
 import io.hotmoka.node.api.values.StorageReference;
 
 /**
@@ -37,7 +35,7 @@ import io.hotmoka.node.api.values.StorageReference;
  */
 public class GasHelperImpl implements GasHelper {
 	private final Node node;
-	private final StorageReference gasStation;
+	private volatile StorageReference gasStation;
 	private final TransactionReference takamakaCode;
 	private final StorageReference manifest;
 
@@ -56,29 +54,25 @@ public class GasHelperImpl implements GasHelper {
 		this.node = node;
 		this.takamakaCode = node.getTakamakaCode();
 		this.manifest = node.getManifest();
-		var _100_000 = BigInteger.valueOf(100_000);
-
-		this.gasStation = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAS_STATION, manifest))
-				.orElseThrow(() -> new NodeException("getGasStation() should not return void"));
 	}
 
 	@Override
 	public BigInteger getGasPrice() throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
-		var _100_000 = BigInteger.valueOf(100_000);
-
-		boolean ignoresGasPrice = ((BooleanValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(manifest, _100_000, takamakaCode, MethodSignatures.IGNORES_GAS_PRICE, gasStation))
-				.orElseThrow(() -> new NodeException("ignoresGasPrice() should not return void"))).getValue();
-
 		// this helps with testing, since otherwise previous tests might make the gas price explode for the subsequent tests
-		if (ignoresGasPrice)
+		if (node.getConfig().ignoresGasPrice())
 			return BigInteger.ONE;
 
+		if (gasStation == null)
+			this.gasStation = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+					(manifest, BigInteger.valueOf(100_000), takamakaCode, MethodSignatures.GET_GAS_STATION, manifest))
+					.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAS_STATION + " should not return void"))
+					.asReference(value -> new NodeException(MethodSignatures.GET_GAS_STATION + " should return a reference, not a " + value.getClass().getName()));
+
 		// we double the minimal price, to be sure that the transaction won't be rejected
-		return ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAS_PRICE, gasStation))
-				.orElseThrow(() -> new NodeException("getGasPrice() should not return void"))).getValue();
+		return node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+			(manifest, BigInteger.valueOf(100_000), takamakaCode, MethodSignatures.GET_GAS_PRICE, gasStation))
+			.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAS_PRICE + " should not return void"))
+			.asBigInteger(value -> new NodeException(MethodSignatures.GET_GAS_PRICE + " should return a BigInteger, not a " + value.getClass().getName()));
 	}
 
 	@Override

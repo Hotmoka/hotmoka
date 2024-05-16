@@ -274,7 +274,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * 
 	 * @throws TransactionRejectedException if the gas price is smaller than the current gas price of the node
 	 */
-	private void gasPriceIsLargeEnough() throws TransactionRejectedException {
+	private void gasPriceIsLargeEnough() throws TransactionRejectedException, StoreException {
 		if (transactionIsSigned() && !consensus.ignoresGasPrice()) {
 			Optional<BigInteger> maybeGasPrice = environment.getGasPrice();
 			// before initialization, the gas price is not yet available

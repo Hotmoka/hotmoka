@@ -70,7 +70,7 @@ public class NodeFromNetwork extends HotmokaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getTakamakaCode")
     void testRemoteGetTakamakaCode() throws Exception {
-    	TransactionReference localTakamakaCode = node.getTakamakaCode();
+    	TransactionReference localTakamakaCode = takamakaCode();
     	TransactionReference remoteTakamakaCode;
 
         try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
@@ -137,7 +137,7 @@ public class NodeFromNetwork extends HotmokaTest {
     void testRemoteGetRequest() throws Exception {
         try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
         	// the jar containing the base Takamaka code was installed by an initial jar store transaction request
-        	assertTrue(remote.getRequest(node.getTakamakaCode()) instanceof JarStoreInitialTransactionRequest);
+        	assertTrue(remote.getRequest(takamakaCode()) instanceof JarStoreInitialTransactionRequest);
         }
     }
 
@@ -154,7 +154,7 @@ public class NodeFromNetwork extends HotmokaTest {
     void testRemoteGetResponse() throws Exception {
         try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
         	// the jar containing the base Takamaka code was installed by an initial jar store transaction
-        	assertTrue(remote.getResponse(node.getTakamakaCode()) instanceof JarStoreInitialTransactionResponse);
+        	assertTrue(remote.getResponse(takamakaCode()) instanceof JarStoreInitialTransactionResponse);
         }
     }
 

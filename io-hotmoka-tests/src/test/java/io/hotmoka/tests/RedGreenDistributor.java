@@ -18,6 +18,7 @@ package io.hotmoka.tests;
 
 import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
@@ -208,7 +209,7 @@ class RedGreenDistributor extends HotmokaTest {
 			distributor
 		);
 
-		throwsTransactionException(() ->
+		assertThrows(TransactionException.class, () ->
 			addInstanceVoidMethodCallTransaction(
 				keys.getPrivate(),
 				eoa.get(),
@@ -225,7 +226,7 @@ class RedGreenDistributor extends HotmokaTest {
 	void createDistributorThenFailsByAddingPayeeWithoutGreen() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), ConstructorSignatures.of(DISTRIBUTOR));
 
-		throwsTransactionRejectedException(() ->
+		assertThrows(TransactionRejectedException.class, () ->
 			addInstanceVoidMethodCallTransaction(
 				privateKey(3), account(3),
 				_500_000,

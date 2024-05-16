@@ -69,10 +69,8 @@ import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.api.updates.Update;
-import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
-import io.hotmoka.node.api.values.StringValue;
 
 /**
  * A decorator of a node, that creates some initial accounts in it.
@@ -143,21 +141,19 @@ public class AccountsNodeImpl implements AccountsNode {
 		this.accounts = new StorageReference[greenRed ? funds.length / 2 : funds.length];
 		this.privateKeys = new PrivateKey[accounts.length];
 
-		StorageReference manifest = getManifest();
 		var signature = SignatureHelpers.of(this).signatureAlgorithmFor(payer);
 		Signer<SignedTransactionRequest<?>> signerOnBehalfOfPayer = signature.getSigner(privateKeyOfPayer, SignedTransactionRequest::toByteArrayWithoutSignature);
 		var _100_000 = BigInteger.valueOf(100_000L);
 		var _200_000 = BigInteger.valueOf(200_000L);
 
 		// we get the chainId of the parent
-		String chainId = ((StringValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(payer, _100_000, classpath, MethodSignatures.GET_CHAIN_ID, manifest))
-			.orElseThrow(() -> new NodeException(MethodSignatures.GET_CHAIN_ID + " should not return void"))).getValue();
+		String chainId = parent.getConfig().getChainId();
 
 		// we get the nonce of the payer
-		BigInteger nonce = ((BigIntegerValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+		BigInteger nonce = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 			(payer, _100_000, classpath, MethodSignatures.NONCE, payer))
-			.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))).getValue();
+			.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
+			.asBigInteger(value -> new NodeException(MethodSignatures.NONCE + " should return a BigInteger, not a " + value.getClass().getName()));
 
 		var gasHelper = GasHelpers.of(this);
 		BigInteger sum = ZERO;

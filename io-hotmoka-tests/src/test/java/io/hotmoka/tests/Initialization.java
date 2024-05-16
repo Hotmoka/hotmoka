@@ -16,12 +16,16 @@ limitations under the License.
 
 package io.hotmoka.tests;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import io.hotmoka.node.api.TransactionRejectedException;
 
 /**
  * A test for node initialization.
@@ -37,6 +41,6 @@ class Initialization extends HotmokaTest {
 	void initialFailsInInitialized() {
 		// the node is already initialized, since a non-initial transaction has been used to create
 		// the account with ALL_FUNDS. Hence an attempt to run an initial transaction will fail
-		throwsTransactionRejectedException(() -> addJarStoreInitialTransaction(Files.readAllBytes(Paths.get("jars/c13.jar")), takamakaCode()));
+		assertThrows(TransactionRejectedException.class, () -> addJarStoreInitialTransaction(Files.readAllBytes(Paths.get("jars/c13.jar")), takamakaCode()));
 	}
 }

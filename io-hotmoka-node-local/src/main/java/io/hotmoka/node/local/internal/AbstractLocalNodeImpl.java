@@ -70,6 +70,7 @@ import io.hotmoka.node.api.requests.InitializationTransactionRequest;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.node.api.requests.JarStoreTransactionRequest;
+import io.hotmoka.node.api.requests.MethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.GameteCreationTransactionResponse;
@@ -415,7 +416,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	public final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException {
 		try (var scope = mkScope()) {
 			var reference = TransactionReferences.of(hasher.hash(request));
-			LOGGER.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.getStaticTarget().getMethodName() + ')');
+			LOGGER.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + trim(request.getStaticTarget().getMethodName()) + ')');
 			Optional<StorageValue> result = store.beginViewTransaction().runInstanceMethodCallTransaction(request, reference);
 			LOGGER.info(reference + ": running success");
 			return result;
@@ -429,7 +430,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	public final Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException {
 		try (var scope = mkScope()) {
 			var reference = TransactionReferences.of(hasher.hash(request));
-			LOGGER.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.getStaticTarget().getMethodName() + ')');
+			LOGGER.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + trim(request.getStaticTarget().getMethodName()) + ')');
 			Optional<StorageValue> result = store.beginViewTransaction().runStaticMethodCallTransaction(request, reference);
 			LOGGER.info(reference + ": running success");
 			return result;
@@ -573,7 +574,12 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	 */
 	private TransactionReference post(TransactionRequest<?> request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
 		var reference = TransactionReferences.of(hasher.hash(request));
-		LOGGER.info(reference + ": posting (" + request.getClass().getSimpleName() + ')');
+		if (request instanceof MethodCallTransactionRequest mctr)
+			LOGGER.info(reference + ": posting (" + request.getClass().getSimpleName() + " -> " + trim(mctr.getStaticTarget().getMethodName()) + ')');
+		else if (request instanceof ConstructorCallTransactionRequest cctr)
+			LOGGER.info(reference + ": posting (" + request.getClass().getSimpleName() + " -> " + trim(cctr.getStaticTarget().getDefiningClass().getName()) + ')');
+		else
+			LOGGER.info(reference + ": posting (" + request.getClass().getSimpleName() + ')');
 
 		try {
 			store.getResponse(reference);
@@ -591,6 +597,10 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 
 			return reference;
 		}
+	}
+
+	private static String trim(String s) {
+		return s.length() > 50 ? s.substring(0, 50) + "..." : s;
 	}
 
 	/**

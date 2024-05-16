@@ -235,7 +235,7 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 		var reference = TransactionReferences.of(hasher.hash(request));
 	
 		try {
-			LOGGER.info(reference + ": delivering start (" + request.getClass().getSimpleName() + ')');
+			LOGGER.info(reference + ": delivering start");
 	
 			ResponseBuilder<?,?> responseBuilder = responseBuilderFor(reference, request);
 			TransactionResponse response = responseBuilder.getResponse();
@@ -299,11 +299,6 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 
 	public final void forEachDeliveredTransaction(Consumer<TransactionRequest<?>> notifier) throws StoreException {
 		delivered.forEach(notifier::accept);
-	}
-
-	@Override
-	protected final Optional<BigInteger> getGasPrice() {
-		return cache.getGasPrice();
 	}
 
 	@Override
@@ -373,15 +368,11 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 				LOGGER.info("the version of the verification module has changed from " + versionBefore + " to " + versionAfter);
 		}
 
-		if (gasPriceMightHaveChanged(response, classLoader)) {
+		if (gasPriceMightHaveChanged(response, classLoader))
 			recomputeGasPrice();
-			LOGGER.info("the gas price cache has been updated since it might have changed");
-		}
 
-		if (inflationMightHaveChanged(response, classLoader)) {
+		if (inflationMightHaveChanged(response, classLoader))
 			recomputeInflation();
-			LOGGER.info("the inflation cache has been updated since it might have changed");
-		}
 	}
 
 	/**

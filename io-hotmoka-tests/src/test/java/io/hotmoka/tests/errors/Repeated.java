@@ -67,14 +67,14 @@ class Repeated extends HotmokaTest {
 	void installJarTwice() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		var request = TransactionRequests.jarStore(signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0), getNonceOf(account(0)), chainId, _500_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
 		node.addJarStoreTransaction(request);
-		throwsTransactionRejectedException(() -> node.addJarStoreTransaction(request));
+		assertThrows(TransactionRejectedException.class, () -> node.addJarStoreTransaction(request));
 	}
 
 	@Test @DisplayName("install jar twice concurrently")
 	void installJarTwiceConcurrently() throws InvalidKeyException, SignatureException, TransactionRejectedException, IOException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		var request = TransactionRequests.jarStore(signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0), getNonceOf(account(0)), chainId, _500_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
 		node.postJarStoreTransaction(request);
-		throwsTransactionRejectedException(() -> node.postJarStoreTransaction(request));
+		assertThrows(TransactionRejectedException.class, () -> node.postJarStoreTransaction(request));
 	}
 
 	@Test @DisplayName("install jar twice, the first time fails, the second succeeds")

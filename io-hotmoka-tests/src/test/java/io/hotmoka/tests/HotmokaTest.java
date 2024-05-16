@@ -37,8 +37,6 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
@@ -81,7 +79,6 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
-import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.disk.DiskNodeConfigBuilders;
 import io.hotmoka.node.disk.DiskNodes;
 import io.hotmoka.node.local.AbstractLocalNode;
@@ -174,8 +171,6 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	 */
 	private static final PrivateKey privateKeyOfGamete;
 
-	private final static Logger LOGGER = Logger.getLogger(HotmokaTest.class.getName());
-
 	public interface TestBody {
 		void run() throws Exception;
 	}
@@ -209,13 +204,15 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	        manifest = node.getManifest();
 	        takamakaCode = node.getTakamakaCode();
 
-	        var gamete = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+	        var gamete = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 	    		(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
-        		.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"));
+        		.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"))
+        		.asReference(value -> new NodeException(MethodSignatures.GET_GAMETE + " should return a reference, not a " + value.getClass().getName()));
 
-			chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+			chainId = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
-				.orElseThrow(() -> new NodeException(MethodSignatures.GET_CHAIN_ID + " should not return void"))).getValue();
+				.orElseThrow(() -> new NodeException(MethodSignatures.GET_CHAIN_ID + " should not return void"))
+				.asString(value -> new NodeException(MethodSignatures.GET_CHAIN_ID + " should return a String, not a " + value.getClass().getName()));
 
 			BigInteger nonce = ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(gamete, _100_000, takamakaCode, MethodSignatures.NONCE, gamete))
@@ -545,14 +542,6 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			() -> "wrong cause: expected " + expected + " but got " + e.getMessage());
 	}
 
-	protected static void throwsTransactionException(TestBody what) {
-		assertThrows(TransactionException.class, what::run);
-	}
-
-	protected static void throwsTransactionRejectedException(TestBody what) {
-		assertThrows(TransactionRejectedException.class, what::run);
-	}
-
 	protected static void throwsVerificationException(TestBody what) {
 		throwsTransactionExceptionWithCause(VerificationException.class, what);
 	}
@@ -568,44 +557,26 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	 * @return the nonce
 	 * @throws TransactionRejectedException if the nonce cannot be found
 	 */
-	protected final BigInteger getNonceOf(StorageReference account) throws TransactionRejectedException {
+	protected final BigInteger getNonceOf(StorageReference account) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
 		try {
 			BigInteger nonce = nonces.get(account);
 			if (nonce != null)
 				nonce = nonce.add(BigInteger.ONE);
 			else
 				// we ask the account: 100,000 units of gas should be enough to run the method
-				nonce = ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+				nonce = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(account, _100_000, node.getClassTag(account).getJar(), MethodSignatures.NONCE, account))
-					.orElseThrow(() -> new TransactionRejectedException(MethodSignatures.NONCE + " should not return void", consensus))).getValue();
+					.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
+					.asBigInteger(value -> new NodeException(MethodSignatures.NONCE + " should return a BigInteger, not a " + value.getClass().getName()));
 
 			nonces.put(account, nonce);
 			return nonce;
 		}
-		catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "failed computing nonce", e);
-			throw new TransactionRejectedException("Cannot compute the nonce of " + account, consensus);
+		catch (CodeExecutionException | TransactionException e) {
+			throw new NodeException("Cannot compute the nonce of " + account);
 		}
-	}
-
-	/**
-	 * Gets the (green) balance of the given account. It calls the {@code AccountWithAccessibleBalance.getBalance()} method.
-	 * 
-	 * @param account the account
-	 * @return the balance
-	 * @throws TransactionRejectedException if the balance cannot be found
-	 */
-	protected final BigInteger getBalanceOf(StorageReference account) throws TransactionRejectedException {
-		try {
-			// we ask the account: 10,000 units of gas should be enough to run the method
-			var classTag = node.getClassTag(account);
-			return ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(account, _100_000, classTag.getJar(), MethodSignatures.BALANCE, account))
-				.orElseThrow(() -> new TransactionException(MethodSignatures.BALANCE + " should not return void"))).getValue();
-		}
-		catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "failed computing the balance", e);
-			throw new TransactionRejectedException("Cannot compute the balance of " + account, consensus);
+		catch (UnknownReferenceException e) {
+			throw new TransactionRejectedException(e, consensus);
 		}
 	}
 }

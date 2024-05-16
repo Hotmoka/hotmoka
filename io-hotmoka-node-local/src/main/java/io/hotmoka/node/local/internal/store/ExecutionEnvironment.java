@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.node.local.internal.store;
 
+import static io.hotmoka.node.MethodSignatures.GET_GAS_PRICE;
+
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -83,6 +85,11 @@ import io.hotmoka.node.local.api.StoreException;
 
 public abstract class ExecutionEnvironment {
 	private final static Logger LOGGER = Logger.getLogger(ExecutionEnvironment.class.getName());
+
+	/**
+	 * Enough gas for a simple get method.
+	 */
+	private final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
 
 	protected ExecutionEnvironment() {
 	}
@@ -500,7 +507,25 @@ public abstract class ExecutionEnvironment {
 	 * 
 	 * @return the current gas price at the end of this transaction
 	 */
-	protected abstract Optional<BigInteger> getGasPrice();
+	protected final Optional<BigInteger> getGasPrice() throws StoreException {
+		try {
+			Optional<StorageReference> manifest = getManifest();
+			if (manifest.isPresent()) {
+				TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
+				StorageReference gasStation = getGasStation().orElseThrow(() -> new StoreException("The manifest is set but the gas station is not set"));
+				BigInteger newGasPrice = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest.get(), _100_000, takamakaCode, GET_GAS_PRICE, gasStation))
+					.orElseThrow(() -> new StoreException(GET_GAS_PRICE + " should not return void"))
+					.asBigInteger(value -> new StoreException(GET_GAS_PRICE + " should return a BigInteger, not a " + value.getClass().getName()));
+	
+				return Optional.of(newGasPrice);
+			}
+			else
+				return Optional.empty();
+		}
+		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
+			throw new StoreException(e);
+		}
+	}
 
 	protected abstract OptionalLong getInflation();
 

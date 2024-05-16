@@ -97,7 +97,7 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 		var reference = TransactionReferences.of(hasher.hash(request));
 
 		try {
-			LOGGER.info(reference + ": checking start (" + request.getClass().getSimpleName() + ')');
+			LOGGER.info(reference + ": checking start");
 			responseBuilderFor(reference, request);
 			LOGGER.info(reference + ": checking success");
 		}
@@ -140,11 +140,6 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 	@Override
 	protected final Hasher<TransactionRequest<?>> getHasher() {
 		return hasher;
-	}
-
-	@Override
-	protected final Optional<BigInteger> getGasPrice() {
-		return cache.getGasPrice();
 	}
 
 	@Override

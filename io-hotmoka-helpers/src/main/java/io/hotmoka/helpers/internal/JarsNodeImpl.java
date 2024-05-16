@@ -69,7 +69,6 @@ import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
-import io.hotmoka.node.api.values.StringValue;
 
 /**
  * A decorator of a node, that installs some jars in the node.
@@ -126,7 +125,6 @@ public class JarsNodeImpl implements JarsNode {
 		this.parent = parent;
 
 		TransactionReference takamakaCode = getTakamakaCode();
-		StorageReference manifest = getManifest();
 		var signature = SignatureHelpers.of(this).signatureAlgorithmFor(payer);
 		Signer<SignedTransactionRequest<?>> signerOnBehalfOfPayer = signature.getSigner(privateKeyOfPayer, SignedTransactionRequest::toByteArrayWithoutSignature);
 		var _50_000 = BigInteger.valueOf(50_000);
@@ -137,9 +135,7 @@ public class JarsNodeImpl implements JarsNode {
 			.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))).getValue();
 
 		// we get the chainId of the parent
-		String chainId = ((StringValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(payer, _50_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
-			.orElseThrow(() -> new NodeException(MethodSignatures.GET_CHAIN_ID + " should not return void"))).getValue();
+		String chainId = parent.getConfig().getChainId();
 
 		var gasHelper = GasHelpers.of(this);
 		var jarSuppliers = new JarFuture[jars.length];

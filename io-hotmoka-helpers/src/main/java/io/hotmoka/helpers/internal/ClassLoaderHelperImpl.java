@@ -16,14 +16,11 @@ limitations under the License.
 
 package io.hotmoka.helpers.internal;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.helpers.api.ClassLoaderHelper;
-import io.hotmoka.node.MethodSignatures;
-import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
@@ -32,8 +29,6 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.GenericJarStoreTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.api.values.LongValue;
-import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 
@@ -43,10 +38,6 @@ import io.hotmoka.verification.api.TakamakaClassLoader;
  */
 public class ClassLoaderHelperImpl implements ClassLoaderHelper {
 	private final Node node;
-	private final StorageReference manifest;
-	private final TransactionReference takamakaCode;
-	private final StorageReference versions;
-	private final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
 
 	/**
 	 * Creates the helper class for building class loaders for jars installed in the given node.
@@ -61,11 +52,6 @@ public class ClassLoaderHelperImpl implements ClassLoaderHelper {
 	 */
 	public ClassLoaderHelperImpl(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
 		this.node = node;
-		this.manifest = node.getManifest();
-		this.takamakaCode = node.getTakamakaCode();
-		this.versions = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(manifest, _100_000, takamakaCode, MethodSignatures.GET_VERSIONS, manifest))
-			.orElseThrow(() -> new NodeException(MethodSignatures.GET_VERSIONS + " should not return void"));
 	}
 
 	@Override
@@ -84,10 +70,6 @@ public class ClassLoaderHelperImpl implements ClassLoaderHelper {
 		}
 		while (!ws.isEmpty());
 
-		long verificationVersion = ((LongValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(manifest, _100_000, takamakaCode, MethodSignatures.GET_VERIFICATION_VERSION, versions))
-			.orElseThrow(() -> new NodeException(MethodSignatures.GET_VERIFICATION_VERSION + " should not return void"))).getValue();
-
-		return TakamakaClassLoaders.of(jars.stream(), verificationVersion);
+		return TakamakaClassLoaders.of(jars.stream(), node.getConfig().getVerificationVersion());
 	}
 }

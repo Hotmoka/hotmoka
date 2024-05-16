@@ -21,6 +21,7 @@ import static io.hotmoka.node.StorageTypes.INT;
 import static io.hotmoka.node.StorageTypes.LONG;
 import static java.math.BigInteger.ONE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.math.BigInteger;
@@ -166,7 +167,7 @@ class Basic extends HotmokaTest {
 
 	@Test @DisplayName("new Sub(1973) without gas")
 	void callerHasNotEnoughFundsForGas() {
-		throwsTransactionRejectedException(() ->
+		assertThrows(TransactionRejectedException.class, () ->
 			addConstructorCallTransaction(privateKey(1), account(1), _200_000, ONE, classpath, ConstructorSignatures.of("io.hotmoka.examples.basic.Sub", INT), StorageValues.intOf(1973))
 		);
 	}
