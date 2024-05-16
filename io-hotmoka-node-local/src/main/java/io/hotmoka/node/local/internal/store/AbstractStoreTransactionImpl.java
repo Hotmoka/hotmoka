@@ -312,6 +312,21 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 	}
 
 	@Override
+	protected final Optional<StorageReference> getValidators() {
+		return cache.getValidators();
+	}
+
+	@Override
+	protected final Optional<StorageReference> getGasStation() {
+		return cache.getGasStation();
+	}
+
+	@Override
+	protected final Optional<StorageReference> getVersions() {
+		return cache.getVersions();
+	}
+
+	@Override
 	protected final EngineClassLoader getClassLoader(TransactionReference classpath, Function<TransactionReference, EngineClassLoader> ifMissing) {
 		return cache.getClassLoader(classpath, ifMissing);
 	}
@@ -339,6 +354,15 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 	 * @throws ClassNotFoundException if some class cannot be found in the Takamaka code
 	 */
 	protected void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws StoreException {
+		if (manifestMightHaveChanged(response)) {
+			recomputeValidators();
+			LOGGER.info("the validators cache has been updated since it might have changed");
+			recomputeGasStation();
+			LOGGER.info("the gas station cache has been updated since it might have changed");
+			recomputeVersions();
+			LOGGER.info("the versions manager cache has been updated since it might have changed");
+		}
+
 		if (consensusParametersMightHaveChanged(response, classLoader)) {
 			long versionBefore = cache.getConfig().getVerificationVersion();
 			cache = cache.setConfig(extractConsensus()).invalidateClassLoaders();
@@ -571,6 +595,64 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 		catch (ClassNotFoundException e) {
 			throw new StoreException(e);
 		}
+	}
+
+	private boolean manifestMightHaveChanged(TransactionResponse response) {
+		return response instanceof InitializationTransactionResponse;
+	}
+
+	private void recomputeValidators() throws StoreException {
+		Optional<StorageReference> manifest = getManifest();
+		if (manifest.isPresent()) {
+			try {
+				StorageReference newValidators = getReferenceField(manifest.get(), FieldSignatures.MANIFEST_VALIDATORS_FIELD);
+				cache = cache.setValidators(newValidators);
+			}
+			catch (FieldNotFoundException e) {
+				throw new StoreException("The manifest does not contain the reference to the validators set", e);
+			}
+			catch (UnknownReferenceException e) {
+				throw new StoreException("The manifest is set but cannot be found in store", e);
+			}
+		}
+		else
+			throw new StoreException("The node has been initialized but its manifest cannot be found");
+	}
+
+	private void recomputeGasStation() throws StoreException {
+		Optional<StorageReference> manifest = getManifest();
+		if (manifest.isPresent()) {
+			try {
+				StorageReference newGasStation = getReferenceField(manifest.get(), FieldSignatures.MANIFEST_GAS_STATION_FIELD);
+				cache = cache.setGasStation(newGasStation);
+			}
+			catch (FieldNotFoundException e) {
+				throw new StoreException("The manifest does not contain the reference to the gas station", e);
+			}
+			catch (UnknownReferenceException e) {
+				throw new StoreException("The manifest is set but cannot be found in store", e);
+			}
+		}
+		else
+			throw new StoreException("The node has been initialized but its manifest cannot be found");
+	}
+
+	private void recomputeVersions() throws StoreException {
+		Optional<StorageReference> manifest = getManifest();
+		if (manifest.isPresent()) {
+			try {
+				StorageReference newVersions = getReferenceField(manifest.get(), FieldSignatures.MANIFEST_VERSIONS_FIELD);
+				cache = cache.setVersions(newVersions);
+			}
+			catch (FieldNotFoundException e) {
+				throw new StoreException("The manifest does not contain the reference to the versions manager", e);
+			}
+			catch (UnknownReferenceException e) {
+				throw new StoreException("The manifest is set but cannot be found in store", e);
+			}
+		}
+		else
+			throw new StoreException("The node has been initialized but its manifest cannot be found");
 	}
 
 	/**

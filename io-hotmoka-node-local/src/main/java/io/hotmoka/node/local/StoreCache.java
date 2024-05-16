@@ -23,6 +23,7 @@ import java.util.function.Function;
 
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreException;
 
@@ -52,6 +53,12 @@ public interface StoreCache {
 	 */
 	ConsensusConfig<?,?> getConfig();
 
+	Optional<StorageReference> getValidators();
+
+	Optional<StorageReference> getGasStation();
+
+	Optional<StorageReference> getVersions();
+
 	/**
 	 * Yields a class loader for the given class path, using a cache to avoid regeneration, if possible.
 	 * 
@@ -66,6 +73,12 @@ public interface StoreCache {
 	StoreCache setGasPrice(BigInteger gasPrice);
 
 	StoreCache setInflation(long inflation);
+
+	StoreCache setValidators(StorageReference validators);
+
+	StoreCache setGasStation(StorageReference gasStation);
+
+	StoreCache setVersions(StorageReference versions);
 
 	StoreCache setConfig(ConsensusConfig<?,?> consensus);
 

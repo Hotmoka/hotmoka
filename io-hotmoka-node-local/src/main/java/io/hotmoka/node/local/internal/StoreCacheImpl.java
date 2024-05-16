@@ -23,6 +23,7 @@ import java.util.function.Function;
 
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.StoreCache;
 import io.hotmoka.node.local.api.EngineClassLoader;
 
@@ -52,6 +53,12 @@ public class StoreCacheImpl implements StoreCache {
 	 */
 	private final ConsensusConfig<?,?> consensus;	
 
+	private final Optional<StorageReference> validators;
+
+	private final Optional<StorageReference> gasStation;
+
+	private final Optional<StorageReference> versions;
+
 	/**
 	 * Cached class loaders for each classpath.
 	 */
@@ -66,36 +73,57 @@ public class StoreCacheImpl implements StoreCache {
 		this.consensus = consensus;
 		this.gasPrice = Optional.empty();
 		this.inflation = OptionalLong.empty();
+		this.validators = Optional.empty();
+		this.gasStation = Optional.empty();
+		this.versions = Optional.empty();
 		this.classLoaders = new LRUCache<>(100, 1000);
 		this.checkedSignatures = new LRUCache<>(100, 1000);
 	}
 
-	public StoreCacheImpl(Optional<BigInteger> gasPrice, OptionalLong inflation, ConsensusConfig<?,?> consensus, LRUCache<TransactionReference, EngineClassLoader> classLoaders, LRUCache<TransactionReference, Boolean> checkedSignatures) {
+	public StoreCacheImpl(Optional<BigInteger> gasPrice, OptionalLong inflation, ConsensusConfig<?,?> consensus, Optional<StorageReference> validators, Optional<StorageReference> gasStation, Optional<StorageReference> versions, LRUCache<TransactionReference, EngineClassLoader> classLoaders, LRUCache<TransactionReference, Boolean> checkedSignatures) {
 		this.consensus = consensus;
 		this.gasPrice = gasPrice;
 		this.inflation = inflation;
+		this.validators = validators;
+		this.gasStation = gasStation;
+		this.versions = versions;
 		this.classLoaders = classLoaders;
 		this.checkedSignatures = checkedSignatures;
 	}
 
 	@Override
 	public StoreCache setGasPrice(BigInteger gasPrice) {
-		return new StoreCacheImpl(Optional.of(gasPrice), inflation, consensus, classLoaders, checkedSignatures);
+		return new StoreCacheImpl(Optional.of(gasPrice), inflation, consensus, validators, gasStation, versions, classLoaders, checkedSignatures);
 	}
 
 	@Override
 	public StoreCache setInflation(long inflation) {
-		return new StoreCacheImpl(gasPrice, OptionalLong.of(inflation), consensus, classLoaders, checkedSignatures);
+		return new StoreCacheImpl(gasPrice, OptionalLong.of(inflation), consensus, validators, gasStation, versions, classLoaders, checkedSignatures);
+	}
+
+	@Override
+	public StoreCache setValidators(StorageReference validators) {
+		return new StoreCacheImpl(gasPrice, inflation, consensus, Optional.of(validators), gasStation, versions, classLoaders, checkedSignatures);
+	}
+
+	@Override
+	public StoreCache setGasStation(StorageReference gasStation) {
+		return new StoreCacheImpl(gasPrice, inflation, consensus, validators, Optional.of(gasStation), versions, classLoaders, checkedSignatures);
+	}
+
+	@Override
+	public StoreCache setVersions(StorageReference versions) {
+		return new StoreCacheImpl(gasPrice, inflation, consensus, validators, gasStation, Optional.of(versions), classLoaders, checkedSignatures);
 	}
 
 	@Override
 	public StoreCache setConfig(ConsensusConfig<?,?> consensus) {
-		return new StoreCacheImpl(gasPrice, inflation, consensus, classLoaders, checkedSignatures);
+		return new StoreCacheImpl(gasPrice, inflation, consensus, validators, gasStation, versions, classLoaders, checkedSignatures);
 	}
 
 	@Override
 	public StoreCache invalidateClassLoaders() {
-		return new StoreCacheImpl(gasPrice, inflation, consensus, new LRUCache<>(100, 1000), checkedSignatures);
+		return new StoreCacheImpl(gasPrice, inflation, consensus, validators, gasStation, versions, new LRUCache<>(100, 1000), checkedSignatures);
 	}
 
 	@Override
@@ -111,6 +139,21 @@ public class StoreCacheImpl implements StoreCache {
 	@Override
 	public ConsensusConfig<?, ?> getConfig() {
 		return consensus;
+	}
+
+	@Override
+	public Optional<StorageReference> getValidators() {
+		return validators;
+	}
+
+	@Override
+	public Optional<StorageReference> getGasStation() {
+		return gasStation;
+	}
+
+	@Override
+	public Optional<StorageReference> getVersions() {
+		return versions;
 	}
 
 	@Override

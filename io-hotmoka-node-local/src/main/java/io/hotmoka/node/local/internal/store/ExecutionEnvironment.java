@@ -405,56 +405,11 @@ public abstract class ExecutionEnvironment {
 		}
 	}
 
-	protected final Optional<StorageReference> getValidators() throws StoreException {
-		var maybeManifest = getManifest();
-		if (maybeManifest.isPresent()) {
-			try {
-				return Optional.of(getReferenceField(maybeManifest.get(), FieldSignatures.MANIFEST_VALIDATORS_FIELD));
-			}
-			catch (FieldNotFoundException e) {
-				throw new StoreException("The manifest does not contain the reference to the validators set", e);
-			}
-			catch (UnknownReferenceException e) {
-				throw new StoreException("The manifest is set but cannot be found in store", e);
-			}
-		}
-		else
-			return Optional.empty();
-	}
+	protected abstract Optional<StorageReference> getValidators() throws StoreException;
 
-	protected final Optional<StorageReference> getGasStation() throws StoreException {
-		var maybeManifest = getManifest();
-		if (maybeManifest.isPresent()) {
-			try {
-				return Optional.of(getReferenceField(maybeManifest.get(), FieldSignatures.MANIFEST_GAS_STATION_FIELD));
-			}
-			catch (FieldNotFoundException e) {
-				throw new StoreException("The manifest does not contain the reference to the gas station", e);
-			}
-			catch (UnknownReferenceException e) {
-				throw new StoreException("The manifest is set but cannot be found in store", e);
-			}
-		}
-		else
-			return Optional.empty();
-	}
+	protected abstract Optional<StorageReference> getGasStation() throws StoreException;
 
-	protected final Optional<StorageReference> getVersions() throws StoreException {
-		var maybeManifest = getManifest();
-		if (maybeManifest.isPresent()) {
-			try {
-				return Optional.of(getReferenceField(maybeManifest.get(), FieldSignatures.MANIFEST_VERSIONS_FIELD));
-			}
-			catch (FieldNotFoundException e) {
-				throw new StoreException("The manifest does not contain the reference to the versions manager", e);
-			}
-			catch (UnknownReferenceException e) {
-				throw new StoreException("The manifest is set but cannot be found in store", e);
-			}
-		}
-		else
-			return Optional.empty();
-	}
+	protected abstract Optional<StorageReference> getVersions() throws StoreException;
 
 	protected final BigInteger getTotalBalance(StorageReference contract) throws UnknownReferenceException, FieldNotFoundException, StoreException {
 		return getBalance(contract).add(getRedBalance(contract));

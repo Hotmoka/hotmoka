@@ -153,6 +153,21 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 	}
 
 	@Override
+	protected final Optional<StorageReference> getValidators() {
+		return cache.getValidators();
+	}
+
+	@Override
+	protected final Optional<StorageReference> getGasStation() {
+		return cache.getGasStation();
+	}
+
+	@Override
+	protected final Optional<StorageReference> getVersions() {
+		return cache.getVersions();
+	}
+
+	@Override
 	protected final long getNow() {
 		return System.currentTimeMillis();
 	}
