@@ -134,7 +134,7 @@ class Mempool {
 			DiskStoreTransaction transaction = node.beginTransaction(System.currentTimeMillis());
 
 			while (true) {
-				TransactionRequest<?> current = checkedMempool.poll(10, TimeUnit.MILLISECONDS);
+				TransactionRequest<?> current = checkedMempool.poll(4, TimeUnit.MILLISECONDS);
 				if (current == null)
 					transaction = restartTransaction(transaction);
 				else {

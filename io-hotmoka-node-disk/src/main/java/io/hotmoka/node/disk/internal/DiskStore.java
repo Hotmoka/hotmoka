@@ -85,7 +85,7 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransaction> {
     	this.blockNumber = 0;
     }
 
-    protected DiskStore(DiskStore toClone, StoreCache cache,
+    private DiskStore(DiskStore toClone, StoreCache cache,
     		Map<TransactionReference, TransactionRequest<?>> addedRequests,
     		Map<TransactionReference, TransactionResponse> addedResponses,
     		Map<StorageReference, TransactionReference[]> addedHistories,
