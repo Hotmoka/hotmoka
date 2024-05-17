@@ -24,7 +24,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
 
-import io.hotmoka.node.DeserializationError;
 import io.hotmoka.node.OutOfGasError;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -37,6 +36,7 @@ import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.local.DeserializationException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.ResponseBuilder;
@@ -233,12 +233,12 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * @param field the field
 		 * @return the value of the field
 		 */
-		public final Object deserializeLastUpdateFor(StorageReference object, FieldSignature field) {
+		public final Object deserializeLastUpdateFor(StorageReference object, FieldSignature field) throws DeserializationException, StoreException {
 			try {
 				return deserializer.deserialize(environment.getLastUpdateToField(object, field).getValue());
 			}
-			catch (StoreException | UnknownReferenceException | FieldNotFoundException e) {
-				throw new DeserializationError(e);
+			catch (UnknownReferenceException | FieldNotFoundException e) {
+				throw new DeserializationException(e);
 			}
 		}
 
@@ -251,12 +251,12 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * @param field the field
 		 * @return the value of the field
 		 */
-		public final Object deserializeLastUpdateForFinal(StorageReference object, FieldSignature field) {
+		public final Object deserializeLastUpdateForFinal(StorageReference object, FieldSignature field) throws DeserializationException, StoreException {
 			try {
 				return deserializer.deserialize(environment.getLastUpdateToFinalField(object, field).getValue());
 			}
-			catch (StoreException | UnknownReferenceException | FieldNotFoundException e) {
-				throw new DeserializationError(e); // TODO
+			catch (UnknownReferenceException | FieldNotFoundException e) {
+				throw new DeserializationException(e);
 			}
 		}
 
@@ -289,8 +289,9 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * @param objects the storage objects whose updates must be computed (for them and
 		 *                for the objects recursively reachable from them)
 		 * @return the updates, sorted
+		 * @throws DeserializationException 
 		 */
-		protected final Stream<Update> extractUpdatesFrom(Stream<Object> objects) {
+		protected final Stream<Update> extractUpdatesFrom(Stream<Object> objects) throws DeserializationException {
 			return updatesExtractor.extractUpdatesFrom(objects);
 		}
 

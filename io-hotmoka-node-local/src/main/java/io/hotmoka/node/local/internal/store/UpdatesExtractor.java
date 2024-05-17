@@ -29,13 +29,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.instrumentation.api.InstrumentationFields;
-import io.hotmoka.node.DeserializationError;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.local.DeserializationException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 
 /**
@@ -43,7 +43,7 @@ import io.hotmoka.node.local.api.EngineClassLoader;
  * This object is used after a transaction, to collect the fields that have changed
  * their value during the transaction.
  */
-class UpdatesExtractor {
+public class UpdatesExtractor {
 
 	private final EngineClassLoader classLoader;
 
@@ -61,8 +61,9 @@ class UpdatesExtractor {
 	 * @param objects the storage objects whose updates must be computed (for them and
 	 *                for the objects recursively reachable from them)
 	 * @return the updates, sorted
+	 * @throws DeserializationException 
 	 */
-	public Stream<Update> extractUpdatesFrom(Stream<Object> objects) {
+	public Stream<Update> extractUpdatesFrom(Stream<Object> objects) throws DeserializationException {
 		return new Processor(objects).updates.stream();
 	}
 
@@ -92,8 +93,9 @@ class UpdatesExtractor {
 		 * 
 		 * @param objects the storage objects whose updates must be computed (for them and
 		 *                for the objects recursively reachable from them)
+		 * @throws DeserializationException 
 		 */
-		private Processor(Stream<Object> objects) {
+		private Processor(Stream<Object> objects) throws DeserializationException {
 			this.workingSet = objects
 				.filter(object -> seen.add(classLoader.getStorageReferenceOf(object)))
 				.collect(Collectors.toList());
@@ -125,8 +127,9 @@ class UpdatesExtractor {
 			 * Builds the scope to extract the updates to a given object.
 			 * 
 			 * @param object the object
+			 * @throws DeserializationException 
 			 */
-			private ExtractedUpdatesSingleObject(Object object) {
+			private ExtractedUpdatesSingleObject(Object object) throws DeserializationException {
 				Class<?> clazz = object.getClass();
 				this.storageReference = classLoader.getStorageReferenceOf(object);
 				this.inStorage = classLoader.getInStorageOf(object);
@@ -146,8 +149,9 @@ class UpdatesExtractor {
 			 * Utility method called for update extraction to recur on the old value of fields of reference type.
 			 * 
 			 * @param s the storage objects whose fields are considered
+			 * @throws DeserializationException 
 			 */
-			private void recursiveExtract(Object s) {
+			private void recursiveExtract(Object s) throws DeserializationException {
 				if (s != null) {
 					Class<?> clazz = s.getClass();
 					if (classLoader.getStorage().isAssignableFrom(clazz)) {
@@ -155,7 +159,7 @@ class UpdatesExtractor {
 							workingSet.add(s);
 					}
 					else if (classLoader.isLazilyLoaded(clazz)) // eager types are not recursively followed
-						throw new DeserializationError("a field of a storage object cannot hold a " + clazz.getName());
+						throw new DeserializationException("A field of a storage object cannot hold a " + clazz.getName());
 				}
 			}
 
@@ -166,8 +170,9 @@ class UpdatesExtractor {
 			 * @param fieldName the name of the field
 			 * @param fieldClassName the name of the type of the field
 			 * @param o the value set to the field
+			 * @throws DeserializationException 
 			 */
-			private void addUpdateFor(String fieldDefiningClass, String fieldName, String fieldClassName, Object o) {
+			private void addUpdateFor(String fieldDefiningClass, String fieldName, String fieldClassName, Object o) throws DeserializationException {
 				FieldSignature field = FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.classNamed(fieldClassName));
 
 				if (o == null)
@@ -191,12 +196,12 @@ class UpdatesExtractor {
 				else if (o instanceof Enum<?> e) {
 					var clazz = e.getClass();
 					if (hasInstanceFields(clazz))
-						throw new DeserializationError("Field " + field + " of a storage object cannot hold an enumeration of class " + clazz.getName() + ": it has instance non-transient fields");
+						throw new DeserializationException("Field " + field + " of a storage object cannot hold an enumeration of class " + clazz.getName() + ": it has instance non-transient fields");
 
 					updates.add(Updates.ofEnum(storageReference, field, clazz.getName(), e.name(), false));
 				}
 				else
-					throw new DeserializationError("Field " + field + " of a storage object cannot hold a " + o.getClass().getName());
+					throw new DeserializationException("Field " + field + " of a storage object cannot hold a " + o.getClass().getName());
 			}
 
 			/**
@@ -349,8 +354,9 @@ class UpdatesExtractor {
 			 * 
 			 * @param clazz the class
 			 * @param object the object
+			 * @throws DeserializationException 
 			 */
-			private void addUpdatesForFieldsDefinedInClass(Class<?> clazz, Object object) {
+			private void addUpdatesForFieldsDefinedInClass(Class<?> clazz, Object object) throws DeserializationException {
 				for (Field field: clazz.getDeclaredFields())
 					if (!isStaticOrTransient(field)) {
 						field.setAccessible(true); // it might be private
@@ -386,8 +392,9 @@ class UpdatesExtractor {
 			 * 
 			 * @param field the field
 			 * @param currentValue the current value of the field
+			 * @throws DeserializationException 
 			 */
-			private void addUpdateFor(Field field, Object currentValue) {
+			private void addUpdateFor(Field field, Object currentValue) throws DeserializationException {
 				Class<?> fieldType = field.getType();
 				String fieldDefiningClass = field.getDeclaringClass().getName();
 				String fieldName = field.getName();

@@ -30,6 +30,8 @@ import java.util.stream.Stream;
 
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.exceptions.CheckSupplier;
+import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.instrumentation.api.GasCostModel;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.OutOfGasError;
@@ -43,6 +45,7 @@ import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.updates.UpdateOfField;
+import io.hotmoka.node.local.DeserializationException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.StoreException;
@@ -377,9 +380,11 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 			this.gas = request.getGasLimit();
 		}
 
-		protected final void init() throws StoreException {
+		protected final void init() throws StoreException, DeserializationException {
 			this.deserializedCaller = deserializer.deserialize(request.getCaller());
-			this.deserializedValidators = environment.getValidators().map(deserializer::deserialize);
+			var validators = environment.getValidators();
+			this.deserializedValidators = CheckSupplier.check(StoreException.class, DeserializationException.class, () ->
+				validators.map(UncheckFunction.uncheck(deserializer::deserialize)));
 			increaseNonceOfCaller();
 			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
 			chargeGasForStorage(BigInteger.valueOf(request.size()));
@@ -508,8 +513,9 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * Collects all updates to the balance or nonce of the caller of the transaction.
 		 * 
 		 * @return the updates
+		 * @throws DeserializationException 
 		 */
-		protected final Stream<Update> updatesToBalanceOrNonceOfCaller() {
+		protected final Stream<Update> updatesToBalanceOrNonceOfCaller() throws DeserializationException {
 			return updatesExtractor.extractUpdatesFrom(Stream.of(deserializedCaller))
 				.filter(this::isUpdateToBalanceOrNonceOfCaller);
 		}

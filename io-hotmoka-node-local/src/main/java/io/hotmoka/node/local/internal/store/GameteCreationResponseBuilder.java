@@ -25,6 +25,7 @@ import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.node.api.responses.GameteCreationTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.AbstractInitialResponseBuilder;
+import io.hotmoka.node.local.DeserializationException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreException;
 
@@ -63,7 +64,7 @@ public class GameteCreationResponseBuilder extends AbstractInitialResponseBuilde
 					classLoader.setRedBalanceOf(gamete, request.getRedInitialAmount());
 					return TransactionResponses.gameteCreation(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
 				}
-				catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+				catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | DeserializationException e) {
 					throw new RuntimeException("Unexpected exception", e);
 				}
 			}

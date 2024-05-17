@@ -31,6 +31,7 @@ import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.node.api.signatures.MethodSignature;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.local.DeserializationException;
 import io.hotmoka.node.local.api.StoreException;
 
 /**
@@ -89,8 +90,9 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 		 * @param isView true if and only if the method is annotated as view
 		 * @param result the returned value of the method, if any
 		 * @throws SideEffectsInViewMethodException if the method is annotated as view, but generated side-effects
+		 * @throws DeserializationException 
 		 */
-		protected final void viewMustBeSatisfied(boolean isView, Object result) throws SideEffectsInViewMethodException {
+		protected final void viewMustBeSatisfied(boolean isView, Object result) throws SideEffectsInViewMethodException, DeserializationException {
 			if (isView && !onlyAffectedBalanceOrNonceOfCallerOrBalanceOfValidators(result))
 				throw new SideEffectsInViewMethodException(request.getStaticTarget());
 		}
@@ -121,8 +123,9 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 		 * 
 		 * @param result the returned value for method calls or created object for constructor calls, if any
 		 * @return true if and only if that condition holds
+		 * @throws DeserializationException 
 		 */
-		private boolean onlyAffectedBalanceOrNonceOfCallerOrBalanceOfValidators(Object result) {
+		private boolean onlyAffectedBalanceOrNonceOfCallerOrBalanceOfValidators(Object result) throws DeserializationException {
 			return updates(result).allMatch(this::isUpdateToBalanceOrNonceOfCaller);
 		}
 	}

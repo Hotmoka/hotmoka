@@ -25,6 +25,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
+import io.hotmoka.exceptions.CheckSupplier;
+import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -33,6 +35,7 @@ import io.hotmoka.node.api.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.local.DeserializationException;
 import io.hotmoka.node.local.api.StoreException;
 
 /**
@@ -82,7 +85,8 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		protected ConstructorCallTransactionResponse body() {
 			try {
 				init();
-				this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
+				this.deserializedActuals = CheckSupplier.check(StoreException.class, DeserializationException.class,
+						() -> request.actuals().map(UncheckFunction.uncheck(deserializer::deserialize)).toArray(Object[]::new));
 		
 				Object[] deserializedActuals;
 				Constructor<?> constructorJVM;
@@ -130,7 +134,12 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 				LOGGER.log(Level.INFO, "constructor call failed", t);
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
 				resetBalanceOfPayerToInitialValueMinusAllPromisedGas();
-				return TransactionResponses.constructorCallFailed(t.getClass().getName(), t.getMessage(), where(t), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+				try {
+					return TransactionResponses.constructorCallFailed(t.getClass().getName(), t.getMessage(), where(t), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+				}
+				catch (DeserializationException e) {
+					throw new RuntimeException(e); // TODO
+				}
 			}
 		}
 

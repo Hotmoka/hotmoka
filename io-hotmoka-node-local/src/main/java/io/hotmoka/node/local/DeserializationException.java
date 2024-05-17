@@ -14,20 +14,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node;
+package io.hotmoka.node.local;
 
 /**
  * An exception thrown when a storage reference cannot be deserialized.
  */
 @SuppressWarnings("serial")
-public class DeserializationError extends Error {
+public class DeserializationException extends Exception {
 
 	/**
 	 * Creates the exception with the given message.
 	 * 
 	 * @param message the message
 	 */
-	public DeserializationError(String message) {
+	public DeserializationException(String message) {
 		super(message);
 	}
 
@@ -36,7 +36,7 @@ public class DeserializationError extends Error {
 	 * 
 	 * @param cause the cause
 	 */
-	public DeserializationError(Throwable cause) {
+	public DeserializationException(Throwable cause) {
 		super("Cannot deserialize value", cause);
 	}
 }

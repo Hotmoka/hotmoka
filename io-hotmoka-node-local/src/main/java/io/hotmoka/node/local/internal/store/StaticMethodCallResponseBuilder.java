@@ -21,11 +21,14 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.stream.Stream;
 
+import io.hotmoka.exceptions.CheckSupplier;
+import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.local.DeserializationException;
 import io.hotmoka.node.local.api.StoreException;
 import io.takamaka.code.constants.Constants;
 
@@ -66,7 +69,8 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 		protected MethodCallTransactionResponse body() {
 			try {
 				init();
-				this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
+				this.deserializedActuals = CheckSupplier.check(StoreException.class, DeserializationException.class,
+					() -> request.actuals().map(UncheckFunction.uncheck(deserializer::deserialize)).toArray(Object[]::new));
 
 				Method methodJVM = getMethod();
 				boolean isView = hasAnnotation(methodJVM, Constants.VIEW_NAME);
@@ -105,7 +109,12 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 			catch (Throwable t) {
 				resetBalanceOfPayerToInitialValueMinusAllPromisedGas();
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller or validators
-				return TransactionResponses.methodCallFailed(t.getClass().getName(), t.getMessage(), where(t), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+				try {
+					return TransactionResponses.methodCallFailed(t.getClass().getName(), t.getMessage(), where(t), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+				}
+				catch (DeserializationException e) {
+					throw new RuntimeException(e);
+				}
 			}
 		}
 

@@ -43,6 +43,7 @@ import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.local.AbstractNonInitialResponseBuilder;
+import io.hotmoka.node.local.DeserializationException;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.whitelisting.Dummy;
 import io.hotmoka.whitelisting.api.ResolvingClassLoader;
@@ -344,8 +345,9 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 * Collects all updates that can be seen from the context of the caller of the method or constructor.
 		 * 
 		 * @return the updates, sorted
+		 * @throws DeserializationException 
 		 */
-		protected final Stream<Update> updates() {
+		protected final Stream<Update> updates() throws DeserializationException {
 			List<Object> potentiallyAffectedObjects = new ArrayList<>();
 			scanPotentiallyAffectedObjects(potentiallyAffectedObjects::add);
 			return updatesExtractor.extractUpdatesFrom(potentiallyAffectedObjects.stream());
@@ -357,8 +359,9 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 * 
 		 * @param result the returned value or created object
 		 * @return the updates, sorted
+		 * @throws DeserializationException 
 		 */
-		protected final Stream<Update> updates(Object result) {
+		protected final Stream<Update> updates(Object result) throws DeserializationException {
 			List<Object> potentiallyAffectedObjects = new ArrayList<>();
 
 			Class<?> storage = classLoader.getStorage();

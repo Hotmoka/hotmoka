@@ -24,7 +24,9 @@ import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.node.OutOfGasError;
 import io.hotmoka.node.StorageTypes;
+import io.hotmoka.node.local.DeserializationException;
 import io.hotmoka.node.local.api.EngineClassLoader;
+import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.store.AbstractResponseBuilder;
 import io.hotmoka.node.local.internal.store.EngineClassLoaderImpl;
 import io.hotmoka.whitelisting.Dummy;
@@ -66,8 +68,10 @@ public abstract class Runtime {
 	 * @param name the name of the field
 	 * @param fieldClassName the name of the type of the field
 	 * @return the value of the field
+	 * @throws StoreException 
+	 * @throws DeserializationException 
      */
-	public static Object deserializeLastLazyUpdateFor(Object object, String definingClass, String name, String fieldClassName) {
+	public static Object deserializeLastLazyUpdateFor(Object object, String definingClass, String name, String fieldClassName) throws DeserializationException, StoreException {
 		AbstractResponseBuilder<?, ?>.ResponseCreator responseCreator = getResponseCreator();
 		return responseCreator.deserializeLastUpdateFor(responseCreator.getClassLoader().getStorageReferenceOf(object), FieldSignatures.of(definingClass, name, StorageTypes.classNamed(fieldClassName)));
 	}
@@ -81,8 +85,10 @@ public abstract class Runtime {
 	 * @param name the name of the field
 	 * @param fieldClassName the name of the type of the field
 	 * @return the value of the field
+	 * @throws StoreException 
+	 * @throws DeserializationException 
      */
-	public static Object deserializeLastLazyUpdateForFinal(Object object, String definingClass, String name, String fieldClassName) {
+	public static Object deserializeLastLazyUpdateForFinal(Object object, String definingClass, String name, String fieldClassName) throws DeserializationException, StoreException {
 		AbstractResponseBuilder<?,?>.ResponseCreator responseCreator = getResponseCreator();
 		return responseCreator.deserializeLastUpdateForFinal(responseCreator.getClassLoader().getStorageReferenceOf(object), FieldSignatures.of(definingClass, name, StorageTypes.classNamed(fieldClassName)));
 	}

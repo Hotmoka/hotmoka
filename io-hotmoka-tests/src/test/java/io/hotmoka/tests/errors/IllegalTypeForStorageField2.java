@@ -24,9 +24,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.node.ConstructorSignatures;
-import io.hotmoka.node.DeserializationError;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.local.DeserializationException;
 import io.hotmoka.tests.HotmokaTest;
 
 class IllegalTypeForStorageField2 extends HotmokaTest {
@@ -43,7 +43,7 @@ class IllegalTypeForStorageField2 extends HotmokaTest {
 
 	@Test @DisplayName("store mutable enum into Object")
 	void installJar() {
-		throwsTransactionExceptionWithCause(DeserializationError.class, () ->
+		throwsTransactionExceptionWithCause(DeserializationException.class, () ->
 			addConstructorCallTransaction
 				(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(),
 				ConstructorSignatures.of("io.takamaka.tests.errors.illegaltypeforstoragefield2.C", StorageTypes.OBJECT),
