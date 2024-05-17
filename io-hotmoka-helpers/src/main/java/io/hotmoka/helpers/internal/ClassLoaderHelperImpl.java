@@ -21,11 +21,8 @@ import java.util.HashSet;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.helpers.api.ClassLoaderHelper;
-import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.GenericJarStoreTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -43,33 +40,42 @@ public class ClassLoaderHelperImpl implements ClassLoaderHelper {
 	 * Creates the helper class for building class loaders for jars installed in the given node.
 	 * 
 	 * @param node the node
-	 * @throws TransactionRejectedException if some transaction was rejected
-	 * @throws TransactionException if some transaction failed
-	 * @throws CodeExecutionException if some transaction generated an exception
-	 * @throws InterruptedException if the current thread is interrupted while performing the operation
-	 * @throws TimeoutException if the operation does not complete within the expected time window
-	 * @throws NodeException if the node is not able to complete the operation
 	 */
-	public ClassLoaderHelperImpl(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	public ClassLoaderHelperImpl(Node node) {
 		this.node = node;
 	}
 
 	@Override
-	public TakamakaClassLoader classloaderFor(TransactionReference jar) throws ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
+	public TakamakaClassLoader classloaderFor(TransactionReference jar) throws NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
 		var ws = new ArrayList<TransactionReference>();
 		var seen = new HashSet<TransactionReference>();
 		var jars = new ArrayList<byte[]>();
-		ws.add(jar);
-		seen.add(jar);
 
-		do {
-			TransactionReference current = ws.remove(ws.size() - 1);
-			var request = (GenericJarStoreTransactionRequest<?>) node.getRequest(current);
-			jars.add(request.getJar());
-			request.getDependencies().filter(seen::add).forEachOrdered(ws::add);
+		var request = node.getRequest(jar);
+		if (request instanceof GenericJarStoreTransactionRequest<?> gjstr) {
+			jars.add(gjstr.getJar());
+			seen.add(jar);
+			gjstr.getDependencies().filter(seen::add).forEachOrdered(ws::add);
 		}
-		while (!ws.isEmpty());
+		else
+			throw new UnknownReferenceException("The transaction " + jar + " is not for a jar installation request");
 
-		return TakamakaClassLoaders.of(jars.stream(), node.getConfig().getVerificationVersion());
+		while (!ws.isEmpty()) {
+			TransactionReference current = ws.remove(ws.size() - 1);
+			request = node.getRequest(current);
+			if (request instanceof GenericJarStoreTransactionRequest<?> gjstr2) {
+				jars.add(gjstr2.getJar());
+				gjstr2.getDependencies().filter(seen::add).forEachOrdered(ws::add);
+			}
+			else
+				throw new NodeException("A jar dependency in store is not for a jar installation request");
+		}
+
+		try {
+			return TakamakaClassLoaders.of(jars.stream(), node.getConfig().getVerificationVersion());
+		}
+		catch (ClassNotFoundException e) {
+			throw new NodeException(e);
+		}
 	}
 }

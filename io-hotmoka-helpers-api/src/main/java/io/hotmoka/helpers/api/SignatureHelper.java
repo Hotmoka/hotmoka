@@ -16,15 +16,11 @@ limitations under the License.
 
 package io.hotmoka.helpers.api;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.values.StorageReference;
 
@@ -39,15 +35,10 @@ public interface SignatureHelper {
 	 * 
 	 * @param account the account
 	 * @return the algorithm
-	 * @throws TransactionRejectedException if some transaction was rejected
-	 * @throws TransactionException if some transaction failed
-	 * @throws CodeExecutionException if some transaction generated an exception
-	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
-	 * @throws NoSuchAlgorithmException if the sender uses an unknown signature algorithm
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws InterruptedException if the current thread gets interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws UnknownReferenceException if {@code account} cannot be found in the node
 	 */
-	SignatureAlgorithm signatureAlgorithmFor(StorageReference account) throws NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException, NodeException, InterruptedException, TimeoutException, UnknownReferenceException;
+	SignatureAlgorithm signatureAlgorithmFor(StorageReference account) throws NodeException, InterruptedException, TimeoutException, UnknownReferenceException;
 }

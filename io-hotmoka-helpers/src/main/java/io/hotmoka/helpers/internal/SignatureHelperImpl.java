@@ -47,9 +47,10 @@ public class SignatureHelperImpl implements SignatureHelper {
 	}
 
 	@Override
-	public SignatureAlgorithm signatureAlgorithmFor(StorageReference account) throws NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
+	public SignatureAlgorithm signatureAlgorithmFor(StorageReference account) throws NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
 		var tag = node.getClassTag(account);
 
+		try {
 		// first we try without the class loader, that does not work under Android...
 		if (tag.getClazz().equals(StorageTypes.EOA_ED25519))
 			return SignatureAlgorithms.ed25519();
@@ -73,5 +74,12 @@ public class SignatureHelperImpl implements SignatureHelper {
 			return SignatureAlgorithms.qtesla3();
 		else
 			return node.getConfig().getSignatureForRequests();
+		}
+		catch (ClassNotFoundException e) {
+			throw new NodeException("Reference " + account + " has a class that cannot be found in its classpath", e);
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw new NodeException(e);
+		}
 	}
 }

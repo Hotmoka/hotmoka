@@ -16,14 +16,10 @@ limitations under the License.
 
 package io.hotmoka.helpers.api;
 
-import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.verification.api.TakamakaClassLoader;
@@ -36,18 +32,14 @@ import io.hotmoka.verification.api.TakamakaClassLoader;
 public interface ClassLoaderHelper {
 
 	/**
-	 * Yields the class loader for the jar installed at the given reference
-	 * (including its dependencies).
+	 * Yields the class loader for the jar installed at the given reference (including its dependencies).
 	 * 
 	 * @param jar the reference inside the node
 	 * @return the class loader
-	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
-	 * @throws TransactionRejectedException if some transaction was rejected
-	 * @throws TransactionException if some transaction failed
-	 * @throws CodeExecutionException if some transaction generated an exception
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
+	 * @throws UnknownReferenceException if {@code jar} is not found in store or did not install a jar
 	 */
-	TakamakaClassLoader classloaderFor(TransactionReference jar) throws TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException, NodeException, TimeoutException, InterruptedException, NoSuchElementException, UnknownReferenceException;
+	TakamakaClassLoader classloaderFor(TransactionReference jar) throws NodeException, TimeoutException, InterruptedException, UnknownReferenceException;
 }
