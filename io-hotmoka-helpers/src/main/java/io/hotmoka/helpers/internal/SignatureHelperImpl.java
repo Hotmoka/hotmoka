@@ -48,29 +48,29 @@ public class SignatureHelperImpl implements SignatureHelper {
 		var tag = node.getClassTag(account);
 
 		try {
-		// first we try without the class loader, that does not work under Android...
-		if (tag.getClazz().equals(StorageTypes.EOA_ED25519))
-			return SignatureAlgorithms.ed25519();
-		else if (tag.getClazz().equals(StorageTypes.EOA_SHA256DSA))
-			return SignatureAlgorithms.sha256dsa();
-		else if (tag.getClazz().equals(StorageTypes.EOA_QTESLA1))
-			return SignatureAlgorithms.qtesla1();
-		else if (tag.getClazz().equals(StorageTypes.EOA_QTESLA3))
-			return SignatureAlgorithms.qtesla3();
+			// first we try without the class loader, that does not work under Android...
+			if (tag.getClazz().equals(StorageTypes.EOA_ED25519))
+				return SignatureAlgorithms.ed25519();
+			else if (tag.getClazz().equals(StorageTypes.EOA_SHA256DSA))
+				return SignatureAlgorithms.sha256dsa();
+			else if (tag.getClazz().equals(StorageTypes.EOA_QTESLA1))
+				return SignatureAlgorithms.qtesla1();
+			else if (tag.getClazz().equals(StorageTypes.EOA_QTESLA3))
+				return SignatureAlgorithms.qtesla3();
 
-		TakamakaClassLoader classLoader = classLoaderHelper.classloaderFor(tag.getJar());
-		Class<?> clazz = classLoader.loadClass(tag.getClazz().getName());
+			TakamakaClassLoader classLoader = classLoaderHelper.classloaderFor(tag.getJar());
+			Class<?> clazz = classLoader.loadClass(tag.getClazz().getName());
 
-		if (classLoader.getAccountED25519().isAssignableFrom(clazz))
-			return SignatureAlgorithms.ed25519();
-		else if (classLoader.getAccountSHA256DSA().isAssignableFrom(clazz))
-			return SignatureAlgorithms.sha256dsa();
-		else if (classLoader.getAccountQTESLA1().isAssignableFrom(clazz))
-			return SignatureAlgorithms.qtesla1();
-		else if (classLoader.getAccountQTESLA3().isAssignableFrom(clazz))
-			return SignatureAlgorithms.qtesla3();
-		else
-			return node.getConfig().getSignatureForRequests();
+			if (classLoader.getAccountED25519().isAssignableFrom(clazz))
+				return SignatureAlgorithms.ed25519();
+			else if (classLoader.getAccountSHA256DSA().isAssignableFrom(clazz))
+				return SignatureAlgorithms.sha256dsa();
+			else if (classLoader.getAccountQTESLA1().isAssignableFrom(clazz))
+				return SignatureAlgorithms.qtesla1();
+			else if (classLoader.getAccountQTESLA3().isAssignableFrom(clazz))
+				return SignatureAlgorithms.qtesla3();
+			else
+				return node.getConfig().getSignatureForRequests();
 		}
 		catch (ClassNotFoundException e) {
 			throw new NodeException("Reference " + account + " has a class that cannot be found in its classpath", e);

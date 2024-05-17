@@ -19,13 +19,11 @@ package io.hotmoka.helpers.api;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -49,23 +47,18 @@ public interface SendCoinsHelper {
 	 * @param amountRed the red balance to transfer
 	 * @param gasHandler a handler called with the total gas used for this operation. This can be useful for logging
 	 * @param requestsHandler a handler called with the paid requests used for this operation. This can be useful for logging or computing costs
-	 * @throws TransactionRejectedException if some transaction was rejected
-	 * @throws TransactionException if some transaction failed
-	 * @throws CodeExecutionException if some transaction generated an exception
-	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
-	 * @throws InvalidKeyException if the key is invalid
-	 * @throws SignatureException if some signature failed
-	 * @throws NoSuchAlgorithmException if the sender uses an unknown signature algorithm
+	 * @throws TransactionRejectedException if some transaction gets rejected
+	 * @throws TransactionException if some transaction fails
+	 * @throws InvalidKeyException if {@code keysOfPayer} is invalid
+	 * @throws SignatureException if signing with {@code keysOfPayer} failed
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws NodeException if the node is not able to complete the operation
 	 * @throws UnknownReferenceException if the node is not properly initialized
 	 */
-	void sendFromPayer(StorageReference payer, KeyPair keysOfPayer,
-			StorageReference destination, BigInteger amount, BigInteger amountRed,
+	void sendFromPayer(StorageReference payer, KeyPair keysOfPayer, StorageReference destination, BigInteger amount, BigInteger amountRed,
 			Consumer<BigInteger> gasHandler, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException,
-				NodeException, UnknownReferenceException, TimeoutException, InterruptedException;
+			throws TransactionRejectedException, TransactionException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException;
 
 	/**
 	 * Sends coins to an account, by letting the faucet of the node pay.
@@ -77,17 +70,10 @@ public interface SendCoinsHelper {
 	 * @param requestsHandler a handler called with the paid requests used for this operation. This can be useful for logging or computing costs
 	 * @throws TransactionRejectedException if some transaction was rejected
 	 * @throws TransactionException if some transaction failed
-	 * @throws CodeExecutionException if some transaction generated an exception
-	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
-	 * @throws InvalidKeyException if the key is invalid
-	 * @throws SignatureException if some signature failed
-	 * @throws NoSuchAlgorithmException if the faucet uses an unknown signature algorithm
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws InterruptedException if the current thread gets interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 */
-	void sendFromFaucet(StorageReference destination, BigInteger amount, BigInteger amountRed,
-			Consumer<BigInteger> gasHandler, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NodeException,
-				InterruptedException, TimeoutException, UnknownReferenceException;
+	void sendFromFaucet(StorageReference destination, BigInteger amount, BigInteger amountRed, Consumer<BigInteger> gasHandler, Consumer<TransactionRequest<?>[]> requestsHandler)
+			throws TransactionRejectedException, TransactionException, NodeException, InterruptedException, TimeoutException;
 }

@@ -47,15 +47,15 @@ public class NonceHelperImpl implements NonceHelper {
 	}
 
 	@Override
-	public BigInteger getNonceOf(StorageReference account) throws TransactionRejectedException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
+	public BigInteger getNonceOf(StorageReference account) throws TransactionRejectedException, TransactionException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
 		try {
 			return node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(account, _100_000, node.getClassTag(account).getJar(), MethodSignatures.NONCE, account))
 				.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
 				.asBigInteger(value -> new NodeException(MethodSignatures.NONCE + " should return a BigInteger, not a " + value.getClass().getName()));
 		}
-		catch (TransactionException | CodeExecutionException e) {
-			// a call to nonce() cannot throw these, unless the node is corrupted
+		catch (CodeExecutionException e) {
+			// the called method does not throw exceptions
 			throw new NodeException(e);
 		}
 	}

@@ -23,7 +23,7 @@ import io.hotmoka.node.api.Node;
 /**
  * Providers of objects that help with nonce operations.
  */
-public class NonceHelpers {
+public abstract class NonceHelpers {
 	private NonceHelpers() {}
 
 	/**

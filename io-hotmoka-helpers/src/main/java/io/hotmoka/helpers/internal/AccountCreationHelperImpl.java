@@ -54,7 +54,6 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StringValue;
 
 /**
  * An object that helps with the creation of new accounts.
@@ -72,32 +71,36 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 	 * Creates an object that helps with the creation of new accounts.
 	 * 
 	 * @param node the node whose accounts are considered
-	 * @throws CodeExecutionException if some transaction fails
-	 * @throws TransactionException if some transaction fails
-	 * @throws TransactionRejectedException if some transaction fails
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws NodeException if the node is not able to complete the operation
 	 */
-	public AccountCreationHelperImpl(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	public AccountCreationHelperImpl(Node node) throws NodeException, TimeoutException, InterruptedException {
 		this.node = node;
 		this.manifest = node.getManifest();
 		this.takamakaCode = node.getTakamakaCode();
 		this.nonceHelper = NonceHelpers.of(node);
 		this.gasHelper = GasHelpers.of(node);
-		this.chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
-			.orElseThrow(() -> new NodeException(MethodSignatures.GET_CHAIN_ID + " should not return void"))).getValue();
+		this.chainId = node.getConfig().getChainId();
 	}
 
 	@Override
 	public StorageReference paidByFaucet(SignatureAlgorithm signatureAlgorithm, PublicKey publicKey,
 			BigInteger balance, BigInteger balanceRed, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NodeException, InterruptedException, TimeoutException, UnknownReferenceException {
+			throws TransactionRejectedException, TransactionException, InvalidKeyException, SignatureException, NodeException, InterruptedException, TimeoutException {
 
-		var gamete = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
-			.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"));
+		StorageReference gamete;
+
+		try {
+			gamete = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
+					.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"))
+					.asReference(value -> new NodeException(MethodSignatures.GET_GAMETE + " should return a reference, not a " + value.getClass().getName()));
+		}
+		catch (CodeExecutionException e) {
+			// the method gamete() does not throw exceptions
+			throw new NodeException(e);
+		}
 
 		String methodName;
 		ClassType eoaType;
@@ -113,7 +116,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 			eoaType = StorageTypes.classNamed(StorageTypes.EOA + signature.toUpperCase());
 			break;
 		default:
-			throw new IllegalArgumentException("Unknown signature algorithm " + signature);
+			throw new NodeException("Unknown signature algorithm " + signature);
 		}
 
 		// we use an empty signature algorithm and an arbitrary key, since the faucet is unsigned
@@ -122,14 +125,30 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		Signer<SignedTransactionRequest<?>> signer = signatureForFaucet.getSigner(keyPair.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 		String publicKeyEncoded = Base64.toBase64String(signatureAlgorithm.encodingOf(publicKey));
 		var method = MethodSignatures.ofNonVoid(StorageTypes.GAMETE, methodName, eoaType, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.STRING);
+		BigInteger nonce;
+
+		try {
+			nonce = nonceHelper.getNonceOf(gamete);
+		}
+		catch (UnknownReferenceException | TransactionRejectedException e) {
+			// the gamete exists and is an account
+			throw new NodeException(e);
+		}
+
 		var request = TransactionRequests.instanceMethodCall
-			(signer, gamete, nonceHelper.getNonceOf(gamete),
+			(signer, gamete, nonce,
 			chainId, gas, gasHelper.getGasPrice(), takamakaCode,
 			method, gamete,
 			StorageValues.bigIntegerOf(balance), StorageValues.bigIntegerOf(balanceRed), StorageValues.stringOf(publicKeyEncoded));
 
-		return (StorageReference) node.addInstanceMethodCallTransaction(request)
-			.orElseThrow(() -> new NodeException(method + " should not return void"));
+		try {
+			return (StorageReference) node.addInstanceMethodCallTransaction(request)
+					.orElseThrow(() -> new NodeException(method + " should not return void"));
+		}
+		catch (CodeExecutionException e) {
+			// the method faucet() does not throw exceptions
+			throw new NodeException(e);
+		}
 	}
 
 	@Override

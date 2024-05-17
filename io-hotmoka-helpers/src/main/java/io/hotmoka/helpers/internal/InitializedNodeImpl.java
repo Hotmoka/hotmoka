@@ -67,8 +67,8 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 	 *                                    if this is {@code null}, a generic empty set of validators is created
 	 * @param producerOfGasStationBuilder an algorithm that creates the builder of the gas station to be installed in the manifest of the node;
 	 *                                    if this is {@code null}, a generic gas station is created
-	 * @throws TransactionRejectedException if some transaction that installs the jar or creates the accounts is rejected
-	 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
+	 * @throws TransactionRejectedException if some transaction gets rejected
+	 * @throws TransactionException if some transaction fails
 	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
 	 * @throws IOException if the jar file cannot be accessed
 	 * @throws NodeException if the node is not able to perform the operation
@@ -129,13 +129,15 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 	 * @param parent the node to decorate
 	 * @param consensus the consensus parameters that will be set for the node
 	 * @param takamakaCode the jar containing the basic Takamaka classes
-	 * @throws TransactionRejectedException if some transaction that installs the jar or creates the accounts is rejected
+	 * @throws TransactionRejectedException if some transaction gets rejected
+	 * @throws TransactionException if some transaction fails
 	 * @throws IOException if the jar file cannot be accessed
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
+	 * @throws TransactionException if some transaction fails
 	 */
-	public InitializedNodeImpl(Node parent, ConsensusConfig<?,?> consensus, Path takamakaCode) throws TransactionRejectedException, IOException, NodeException, TimeoutException, InterruptedException {
+	public InitializedNodeImpl(Node parent, ConsensusConfig<?,?> consensus, Path takamakaCode) throws TransactionRejectedException, TransactionException, IOException, NodeException, TimeoutException, InterruptedException {
 		super(parent);
 
 		// we install the jar containing the basic Takamaka classes
@@ -172,7 +174,8 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 		try {
 			manifest = parent.addConstructorCallTransaction(request);
 		}
-		catch (TransactionRejectedException | CodeExecutionException | TransactionException e) {
+		catch (CodeExecutionException e) {
+			// the called method does not throw exceptions
 			throw new NodeException(e);
 		}
 
@@ -180,67 +183,7 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 		parent.addInitializationTransaction(TransactionRequests.initialization(takamakaCodeReference, manifest));
 	}
 
-	/**
-	 * Creates a decorated node with basic Takamaka classes, gamete and manifest.
-	 * Uses the given key pair for controlling the gamete. It installs empty validators.
-	 * 
-	 * @param parent the node to decorate
-	 * @param consensus the consensus parameters that will be set for the node
-	 * @param takamakaCode the jar containing the basic Takamaka classes
-	 * @param producerOfGasStationBuilder an algorithm that creates the builder of the gas station to be installed in the manifest of the node;
-	 *                                    if this is {@code null}, a generic gas station is created
-	 * @throws TransactionRejectedException if some transaction that installs the jar or creates the accounts is rejected
-	 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
-	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
-	 * @throws IOException if the jar file cannot be accessed
-	 * @throws NodeException if the node is not able to perform the operation
-	 * @throws TimeoutException if no answer arrives before a time window
-	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
-	 */
-	public InitializedNodeImpl(Node parent, ConsensusConfig<?,?> consensus, Path takamakaCode, ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStationBuilder)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, NodeException, TimeoutException, InterruptedException {
-
-		super(parent);
-
-		// we install the jar containing the basic Takamaka classes
-		TransactionReference takamakaCodeReference = parent.addJarStoreInitialTransaction(TransactionRequests.jarStoreInitial(Files.readAllBytes(takamakaCode)));
-
-		// we create a gamete with both red and green coins
-		this.gamete = parent.addGameteCreationTransaction(TransactionRequests.gameteCreation(takamakaCodeReference, consensus.getInitialSupply(), consensus.getInitialRedSupply(), consensus.getPublicKeyOfGameteBase64()));
-
-		if (producerOfGasStationBuilder == null)
-			producerOfGasStationBuilder = this::createGenericGasStationBuilder;
-
-		// we create the builder of the validators
-		StorageReference builderOfValidators = createEmptyValidatorsBuilder(this, consensus, takamakaCodeReference);
-
-		// we create the builder of the gas station
-		StorageReference builderOfGasStation = producerOfGasStationBuilder.apply(this, consensus, takamakaCodeReference);
-
-		BigInteger nonceOfGamete = getNonceOfGamete(parent, takamakaCodeReference);
-		var function = StorageTypes.classNamed(Function.class.getName());
-
-		// we create the manifest, passing the storage array of validators in store and their powers
-		var request = TransactionRequests.constructorCall
-			(new byte[0], gamete, nonceOfGamete, "", BigInteger.valueOf(1_000_000), ZERO, takamakaCodeReference,
-					ConstructorSignatures.of(StorageTypes.MANIFEST, StorageTypes.STRING, StorageTypes.STRING, StorageTypes.INT,
-					StorageTypes.INT, StorageTypes.LONG,
-					StorageTypes.BOOLEAN, StorageTypes.BOOLEAN,
-					StorageTypes.STRING, StorageTypes.GAMETE, StorageTypes.LONG, function, function),
-			StorageValues.stringOf(consensus.getGenesisTime().toString()),
-			StorageValues.stringOf(consensus.getChainId()), StorageValues.intOf(consensus.getMaxErrorLength()), StorageValues.intOf(consensus.getMaxDependencies()),
-			StorageValues.longOf(consensus.getMaxCumulativeSizeOfDependencies()),
-			StorageValues.booleanOf(consensus.allowsUnsignedFaucet()), StorageValues.booleanOf(consensus.skipsVerification()),
-			StorageValues.stringOf(consensus.getSignatureForRequests().getName()), gamete, StorageValues.longOf(consensus.getVerificationVersion()),
-			builderOfValidators, builderOfGasStation);
-
-		StorageReference manifest = parent.addConstructorCallTransaction(request);
-
-		// we install the manifest and initialize the node
-		parent.addInitializationTransaction(TransactionRequests.initialization(takamakaCodeReference, manifest));
-	}
-
-	private BigInteger getNonceOfGamete(Node node, TransactionReference takamakaCode) throws NodeException, TimeoutException, InterruptedException {
+	private BigInteger getNonceOfGamete(Node node, TransactionReference takamakaCode) throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException {
 		var _1_000_000 = BigInteger.valueOf(1_000_000);
 		var getNonceRequest = TransactionRequests.instanceViewMethodCall(gamete, _1_000_000, takamakaCode, MethodSignatures.NONCE, gamete);
 
@@ -249,13 +192,13 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 				.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
 				.asBigInteger(value -> new NodeException(MethodSignatures.NONCE + " should return a BigInteger, not a " + value.getClass().getName()));
 		}
-		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
-			// we installed both the gamete and the takamakaCode: a run call must work then, or the node is corrupted
+		catch (CodeExecutionException e) {
+			// the nonce() method does not throw exceptions
 			throw new NodeException(e);
 		}
 	}
 
-	private StorageReference createEmptyValidatorsBuilder(InitializedNode node, ConsensusConfig<?,?> consensus, TransactionReference takamakaCode) throws NodeException, TimeoutException, InterruptedException {
+	private StorageReference createEmptyValidatorsBuilder(InitializedNode node, ConsensusConfig<?,?> consensus, TransactionReference takamakaCode) throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException {
 		var _200_000 = BigInteger.valueOf(200_000);
 		var nonceOfGamete = getNonceOfGamete(node, takamakaCode);
 	
@@ -272,14 +215,13 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 
 			return node.addConstructorCallTransaction(request);
 		}
-		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
-			// before the installation of the manifest, no check can fail on this constructor call, since
-			// we created both the gamete and the takamaka code reference; unless the node is corrupted
+		catch (CodeExecutionException e) {
+			// the called constructor does not throw exceptions
 			throw new NodeException(e);
 		}
 	}
 
-	private StorageReference createGenericGasStationBuilder(InitializedNode node, ConsensusConfig<?,?> consensus, TransactionReference takamakaCode) throws NodeException, TimeoutException, InterruptedException {
+	private StorageReference createGenericGasStationBuilder(InitializedNode node, ConsensusConfig<?,?> consensus, TransactionReference takamakaCode) throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException {
 		BigInteger nonceOfGamete = getNonceOfGamete(node, takamakaCode);
 	
 		try {
@@ -294,9 +236,8 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 
 			return node.addConstructorCallTransaction(request);
 		}
-		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
-			// before the installation of the manifest, no check can fail on this constructor call, since
-			// we created both the gamete and the takamaka code reference; unless the node is corrupted
+		catch (CodeExecutionException e) {
+			// the called constructor does not throw exceptions
 			throw new NodeException(e);
 		}
 	}

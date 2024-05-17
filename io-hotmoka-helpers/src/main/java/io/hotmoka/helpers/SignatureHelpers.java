@@ -23,7 +23,7 @@ import io.hotmoka.node.api.Node;
 /**
  * Providers of helpers to determine the signature algorithm to use for an externally owned account.
  */
-public class SignatureHelpers {
+public abstract class SignatureHelpers {
 	private SignatureHelpers() {}
 
 	/**

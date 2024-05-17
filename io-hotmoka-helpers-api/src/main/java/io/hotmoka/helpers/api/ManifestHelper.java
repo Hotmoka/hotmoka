@@ -18,12 +18,14 @@ package io.hotmoka.helpers.api;
 
 import java.util.concurrent.TimeoutException;
 
+import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * An object that helps with the access to the manifest of a node.
  */
+@ThreadSafe
 public interface ManifestHelper {
 
 	/**

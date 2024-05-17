@@ -96,9 +96,8 @@ public class JarsNodeImpl extends AbstractNodeDecorator<Node> implements JarsNod
 					.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
 					.asBigInteger(value -> new NodeException(MethodSignatures.NONCE + " should return a BigInteger, not a " + value.getClass().getName()));
 		}
-		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
-			// the signature of the payer could be determined, so there is no way for this run call to fail,
-			// being called on the takamaka code reference of the node; unless the node is corrupted
+		catch (CodeExecutionException e) {
+			// the called method does not throw exceptions
 			throw new NodeException(e);
 		}
 

@@ -26,15 +26,12 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
-import io.hotmoka.closeables.api.OnCloseHandler;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.api.Signer;
+import io.hotmoka.helpers.AbstractNodeDecorator;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.helpers.api.AccountsNode;
@@ -45,42 +42,20 @@ import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.ConstructorFuture;
-import io.hotmoka.node.api.JarFuture;
-import io.hotmoka.node.api.MethodFuture;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
-import io.hotmoka.node.api.nodes.ConsensusConfig;
-import io.hotmoka.node.api.nodes.NodeInfo;
-import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
-import io.hotmoka.node.api.requests.InitializationTransactionRequest;
-import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.node.api.requests.JarStoreInitialTransactionRequest;
-import io.hotmoka.node.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
-import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
-import io.hotmoka.node.api.requests.TransactionRequest;
-import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.api.updates.ClassTag;
-import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StorageValue;
+import io.takamaka.code.constants.Constants;
 
 /**
  * A decorator of a node, that creates some initial accounts in it.
  */
-public class AccountsNodeImpl implements AccountsNode {
-
-	/**
-	 * The node that is decorated.
-	 */
-	private final Node parent;
+public class AccountsNodeImpl extends AbstractNodeDecorator<Node> implements AccountsNode {
 
 	/**
 	 * The accounts created during initialization.
@@ -98,19 +73,43 @@ public class AccountsNodeImpl implements AccountsNode {
 	private final StorageReference container;
 
 	/**
-	 * True if and only if this node has been closed already.
+	 * Creates a decorated node by creating initial accounts. The transactions get paid by a given account.
+	 * The standard accounts container is used.
+	 * 
+	 * @param parent the node that gets decorated
+	 * @param payer the account that pays for the transactions that initialize the new accounts
+	 * @param privateKeyOfPayer the private key of the account that pays for the transactions;
+	 *                          it will be used to sign requests for initializing the accounts;
+	 *                          the account must have enough coins to initialize the required accounts
+	 * @param classpath the classpath where {@code containerClassName} must be resolved
+	 * @param greenRed true if both green and red balances must be initialized; if false, only the green balance is initialized
+	 * @param funds the initial funds of the accounts that are created; if {@code greenRed} is true,
+	 *              they must be understood in pairs, each pair for the green and red initial funds of each account (green before red)
+	 * @throws TransactionRejectedException if some transaction that creates the accounts is rejected
+	 * @throws TransactionException if some transaction that creates the accounts fails
+	 * @throws SignatureException if some request could not be signed
+	 * @throws InvalidKeyException if some key used for signing transactions is invalid
+	 * @throws NoSuchAlgorithmException if the payer uses an unknown signature algorithm
+	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws InterruptedException if the current thread is interrupted while performing the operation
+	 * @throws TimeoutException if the operation does not complete within the expected time window
+	 * @throws UnknownReferenceException if the payer is unknown
 	 */
-	private final AtomicBoolean isClosed = new AtomicBoolean();
+	public static AccountsNodeImpl mk(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, TransactionReference classpath, boolean greenRed, BigInteger... funds)
+			throws TransactionRejectedException, TransactionException, InvalidKeyException, SignatureException, NodeException, UnknownReferenceException, TimeoutException, InterruptedException {
+
+		try {
+			return new AccountsNodeImpl(parent, payer, privateKeyOfPayer, Constants.EXTERNALLY_OWNED_ACCOUNTS_NAME, classpath, greenRed, funds);
+		}
+		catch (CodeExecutionException e) {
+			// the container class is fixed, hence this exception cannot occur
+			throw new NodeException(e);
+		}
+	}
 
 	/**
-	 * We need this intermediate definition since two instances of a method reference
-	 * are not the same, nor equals.
-	 */
-	private final OnCloseHandler this_close = this::close;
-
-	/**
-	 * Creates a decorated node by creating initial accounts.
-	 * The transactions get payer by a given account.
+	 * Creates a decorated node by creating initial accounts. The transactions get paid by a given account.
+	 * It allows one to specify the class of the accounts container.
 	 * 
 	 * @param parent the node that gets decorated
 	 * @param payer the account that pays for the transactions that initialize the new accounts
@@ -129,15 +128,16 @@ public class AccountsNodeImpl implements AccountsNode {
 	 * @throws SignatureException if some request could not be signed
 	 * @throws InvalidKeyException if some key used for signing transactions is invalid
 	 * @throws NoSuchAlgorithmException if the payer uses an unknown signature algorithm
-	 * @throws ClassNotFoundException if the class of the payer cannot be determined
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
-	 * @throws UnknownReferenceException if the node is not properly initialized
+	 * @throws UnknownReferenceException if the payer is unknown
 	 */
 	public AccountsNodeImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, String containerClassName, TransactionReference classpath, boolean greenRed, BigInteger... funds)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NodeException, UnknownReferenceException, TimeoutException, InterruptedException {
-		this.parent = parent;
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NodeException, UnknownReferenceException, TimeoutException, InterruptedException {
+
+		super(parent);
+
 		this.accounts = new StorageReference[greenRed ? funds.length / 2 : funds.length];
 		this.privateKeys = new PrivateKey[accounts.length];
 
@@ -150,10 +150,17 @@ public class AccountsNodeImpl implements AccountsNode {
 		String chainId = parent.getConfig().getChainId();
 
 		// we get the nonce of the payer
-		BigInteger nonce = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(payer, _100_000, classpath, MethodSignatures.NONCE, payer))
-			.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
-			.asBigInteger(value -> new NodeException(MethodSignatures.NONCE + " should return a BigInteger, not a " + value.getClass().getName()));
+		BigInteger nonce;
+
+		try {
+			nonce = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(payer, _100_000, classpath, MethodSignatures.NONCE, payer))
+				.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
+				.asBigInteger(value -> new NodeException(MethodSignatures.NONCE + " should return a BigInteger, not a " + value.getClass().getName()));
+		}
+		catch (CodeExecutionException e) {
+			// the nonce() method does not throw exceptions
+			throw new NodeException(e);
+		}
 
 		var gasHelper = GasHelpers.of(this);
 		BigInteger sum = ZERO;
@@ -167,7 +174,16 @@ public class AccountsNodeImpl implements AccountsNode {
 		for (int i = 0; i < funds.length / k; i++) {
 			KeyPair keys = signature.getKeyPair();
 			privateKeys[i] = keys.getPrivate();
-			String publicKey = Base64.toBase64String(signature.encodingOf(keys.getPublic()));
+			String publicKey;
+
+			try {
+				publicKey = Base64.toBase64String(signature.encodingOf(keys.getPublic()));
+			}
+			catch (InvalidKeyException e) {
+				// we have created the key from the corresponding signature, this cannot happen
+				throw new NodeException(e);
+			}
+
 			publicKeys.append(i == 0 ? publicKey : (' ' + publicKey));
 			BigInteger fund = funds[i * k];
 			sum = sum.add(fund);
@@ -184,50 +200,43 @@ public class AccountsNodeImpl implements AccountsNode {
 		BigInteger gas = _200_000.multiply(BigInteger.valueOf(funds.length / k));
 
 		this.container = addConstructorCallTransaction(TransactionRequests.constructorCall
-			(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getSafeGasPrice(), classpath,
-			ConstructorSignatures.of(containerClassName, StorageTypes.BIG_INTEGER, StorageTypes.STRING, StorageTypes.STRING),
-			StorageValues.bigIntegerOf(sum), StorageValues.stringOf(balances.toString()), StorageValues.stringOf(publicKeys.toString())));
+				(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getSafeGasPrice(), classpath,
+						ConstructorSignatures.of(containerClassName, StorageTypes.BIG_INTEGER, StorageTypes.STRING, StorageTypes.STRING),
+						StorageValues.bigIntegerOf(sum), StorageValues.stringOf(balances.toString()), StorageValues.stringOf(publicKeys.toString())));
 
 		if (greenRed) {
 			nonce = nonce.add(ONE);
 
 			// we set the red balances of the accounts now
 			addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall
-				(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getSafeGasPrice(), classpath,
-				MethodSignatures.ofVoid(StorageTypes.ACCOUNTS, "addRedBalances", StorageTypes.BIG_INTEGER, StorageTypes.STRING),
-				this.container, StorageValues.bigIntegerOf(sumRed), StorageValues.stringOf(redBalances.toString())));
+					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getSafeGasPrice(), classpath,
+							MethodSignatures.ofVoid(StorageTypes.ACCOUNTS, "addRedBalances", StorageTypes.BIG_INTEGER, StorageTypes.STRING),
+							this.container, StorageValues.bigIntegerOf(sumRed), StorageValues.stringOf(redBalances.toString())));
 		}
 
 		var get = MethodSignatures.ofNonVoid(StorageTypes.ACCOUNTS, "get", StorageTypes.EOA, StorageTypes.INT);
 
 		for (int i = 0; i < funds.length / k; i++)
-			this.accounts[i] = (StorageReference) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(payer, _100_000, classpath, get, container, StorageValues.intOf(i)))
-				.orElseThrow(() -> new NodeException("get() should not return void"));
-
-		// when the parent is closed, this decorator will be closed as well
-		parent.addOnCloseHandler(this_close);
+			this.accounts[i] = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(payer, _100_000, classpath, get, container, StorageValues.intOf(i)))
+				.orElseThrow(() -> new NodeException(get + " should not return void"))
+				.asReference(value -> new NodeException(get + " should return a reference, not a " + value.getClass().getName()));
 	}
 
 	@Override
 	public Stream<StorageReference> accounts() throws ClosedNodeException {
-		if (isClosed.get())
-			throw new ClosedNodeException();
-
+		ensureNotClosed();
 		return Stream.of(accounts);
 	}
 
 	@Override
 	public StorageReference container() throws ClosedNodeException {
-		if (isClosed.get())
-			throw new ClosedNodeException();
-
+		ensureNotClosed();
 		return container;
 	}
 
 	@Override
 	public StorageReference account(int i) throws NoSuchElementException, ClosedNodeException {
-		if (isClosed.get())
-			throw new ClosedNodeException();
+		ensureNotClosed();
 
 		if (i < 0 || i >= accounts.length)
 			throw new NoSuchElementException();
@@ -238,151 +247,17 @@ public class AccountsNodeImpl implements AccountsNode {
 
 	@Override
 	public Stream<PrivateKey> privateKeys() throws ClosedNodeException {
-		if (isClosed.get())
-			throw new ClosedNodeException();
-
+		ensureNotClosed();
 		return Stream.of(privateKeys);
 	}
 
 	@Override
 	public PrivateKey privateKey(int i) throws NoSuchElementException, ClosedNodeException {
-		if (isClosed.get())
-			throw new ClosedNodeException();
+		ensureNotClosed();
 
 		if (i < 0 || i >= privateKeys.length)
 			throw new NoSuchElementException();
 
 		return privateKeys[i];
-	}
-
-	@Override
-	public void close() throws InterruptedException, NodeException {
-		if (!isClosed.getAndSet(true))
-			parent.close();
-	}
-
-	@Override
-	public StorageReference getManifest() throws NodeException, TimeoutException, InterruptedException {
-		return parent.getManifest();
-	}
-
-	@Override
-	public TransactionReference getTakamakaCode() throws NodeException, TimeoutException, InterruptedException {
-		return parent.getTakamakaCode();
-	}
-
-	@Override
-	public NodeInfo getNodeInfo() throws NodeException, TimeoutException, InterruptedException {
-		return parent.getNodeInfo();
-	}
-
-	@Override
-	public ClassTag getClassTag(StorageReference reference) throws NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
-		return parent.getClassTag(reference);
-	}
-
-	@Override
-	public Stream<Update> getState(StorageReference reference) throws UnknownReferenceException, NodeException, TimeoutException, InterruptedException {
-		return parent.getState(reference);
-	}
-
-	@Override
-	public TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
-		return parent.addJarStoreInitialTransaction(request);
-	}
-
-	@Override
-	public StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
-		return parent.addGameteCreationTransaction(request);
-	}
-
-	@Override
-	public TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException, NodeException, TimeoutException, InterruptedException {
-		return parent.addJarStoreTransaction(request);
-	}
-
-	@Override
-	public StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
-		return parent.addConstructorCallTransaction(request);
-	}
-
-	@Override
-	public Optional<StorageValue> addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
-		return parent.addInstanceMethodCallTransaction(request);
-	}
-
-	@Override
-	public Optional<StorageValue> addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
-		return parent.addStaticMethodCallTransaction(request);
-	}
-
-	@Override
-	public Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
-		return parent.runInstanceMethodCallTransaction(request);
-	}
-
-	@Override
-	public Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
-		return parent.runStaticMethodCallTransaction(request);
-	}
-
-	@Override
-	public JarFuture postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
-		return parent.postJarStoreTransaction(request);
-	}
-
-	@Override
-	public ConstructorFuture postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
-		return parent.postConstructorCallTransaction(request);
-	}
-
-	@Override
-	public MethodFuture postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
-		return parent.postInstanceMethodCallTransaction(request);
-	}
-
-	@Override
-	public MethodFuture postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
-		return parent.postStaticMethodCallTransaction(request);
-	}
-
-	@Override
-	public void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
-		parent.addInitializationTransaction(request);
-	}
-
-	@Override
-	public ConsensusConfig<?,?> getConfig() throws NodeException, TimeoutException, InterruptedException {
-		return parent.getConfig();
-	}
-
-	@Override
-	public TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, NodeException, TimeoutException, InterruptedException {
-		return parent.getRequest(reference);
-	}
-
-	@Override
-	public TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, UnknownReferenceException, NodeException, TimeoutException, InterruptedException {
-		return parent.getResponse(reference);
-	}
-
-	@Override
-	public TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException, NodeException {
-		return parent.getPolledResponse(reference);
-	}
-
-	@Override
-	public Subscription subscribeToEvents(StorageReference key, BiConsumer<StorageReference, StorageReference> handler) throws UnsupportedOperationException, NodeException {
-		return parent.subscribeToEvents(key, handler);
-	}
-
-	@Override
-	public void addOnCloseHandler(OnCloseHandler handler) {
-		parent.addOnCloseHandler(handler);
-	}
-
-	@Override
-	public void removeOnCloseHandler(OnCloseHandler handler) {
-		parent.removeOnCloseHandler(handler);
 	}
 }

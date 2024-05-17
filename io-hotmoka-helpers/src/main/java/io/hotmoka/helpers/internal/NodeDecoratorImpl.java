@@ -52,7 +52,7 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 
 /**
- * A partial implementation of a decorator of a node. It forwards all calls to the decorator node.
+ * A partial implementation of a decorator of a node. It forwards all calls to the decorated node.
  * Subclasses will add the decoration.
  * 
  * @param <N> the type of the decorated node

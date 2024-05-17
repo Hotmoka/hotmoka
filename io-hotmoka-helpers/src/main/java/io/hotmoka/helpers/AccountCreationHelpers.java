@@ -29,7 +29,7 @@ import io.hotmoka.node.api.TransactionRejectedException;
 /**
  * Providers of objects that help with the creation of new accounts.
  */
-public class AccountCreationHelpers {
+public abstract class AccountCreationHelpers {
 	private AccountCreationHelpers() {}
 
 	/**

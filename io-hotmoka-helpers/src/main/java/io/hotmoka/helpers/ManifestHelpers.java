@@ -18,17 +18,17 @@ package io.hotmoka.helpers;
 
 import java.util.concurrent.TimeoutException;
 
-import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.helpers.api.ManifestHelper;
 import io.hotmoka.helpers.internal.ManifestHelperImpl;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
 
 /**
  * Providers of helpers for accessing the manifest of a node.
  */
-@ThreadSafe
-public class ManifestHelpers {
+public abstract class ManifestHelpers {
 
 	private ManifestHelpers() {}
 
@@ -37,11 +37,13 @@ public class ManifestHelpers {
 	 * 
 	 * @param node the node whose manifest is considered
 	 * @return the helper
+	 * @throws TransactionRejectedException if some transaction gets rejected
+	 * @throws TransactionException if some transaction fails
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws NodeException if the node is not able to complete the operation
 	 */
-	public static ManifestHelper of(Node node) throws NodeException, TimeoutException, InterruptedException {
+	public static ManifestHelper of(Node node) throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException {
 		return new ManifestHelperImpl(node);
 	}
 }

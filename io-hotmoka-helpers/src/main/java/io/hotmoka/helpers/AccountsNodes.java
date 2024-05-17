@@ -24,7 +24,6 @@ import java.security.SignatureException;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 
-import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.helpers.api.AccountsNode;
 import io.hotmoka.helpers.internal.AccountsNodeImpl;
 import io.hotmoka.node.api.CodeExecutionException;
@@ -40,14 +39,14 @@ import io.takamaka.code.constants.Constants;
 /**
  * Providers of nodes that install a bunch of accounts and give access to them.
  */
-@ThreadSafe
-public class AccountsNodes {
+public abstract class AccountsNodes {
 
 	private AccountsNodes() {}
 
 	/**
 	 * Yields a node initialized with a set of accounts.
 	 * An account must be provided, that pays for the transactions.
+	 * The standard accounts container class is used.
 	 * 
 	 * @param parent the node to decorate
 	 * @param payer the account that pays for the transactions that initialize the new accounts
@@ -58,17 +57,16 @@ public class AccountsNodes {
 	 * @return a decorated view of {@code parent}
 	 * @throws TransactionRejectedException if some transaction that creates the accounts is rejected
 	 * @throws TransactionException if some transaction that creates the accounts fails
-	 * @throws CodeExecutionException if some transaction that creates the accounts throws an exception
 	 * @throws SignatureException if some request could not be signed
 	 * @throws InvalidKeyException if some key used for signing transactions is invalid
 	 * @throws NoSuchAlgorithmException if the payer uses an unknown signature algorithm
-	 * @throws ClassNotFoundException if the class of the payer cannot be determined
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
+	 * @throws UnknownReferenceException if the payer is unknown
      */
-	public static AccountsNode of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NodeException, UnknownReferenceException, TimeoutException, InterruptedException {
-		return new AccountsNodeImpl(parent, payer, privateKeyOfPayer, Constants.EXTERNALLY_OWNED_ACCOUNTS_NAME, parent.getTakamakaCode(), false, funds);
+	public static AccountsNode of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, BigInteger... funds) throws TransactionRejectedException, TransactionException, InvalidKeyException, SignatureException, NodeException, UnknownReferenceException, TimeoutException, InterruptedException {
+		return AccountsNodeImpl.mk(parent, payer, privateKeyOfPayer, parent.getTakamakaCode(), false, funds);
 	}
 
 	/**
@@ -90,15 +88,13 @@ public class AccountsNodes {
 	 * @throws CodeExecutionException if some transaction that creates the accounts throws an exception
 	 * @throws SignatureException if some request could not be signed
 	 * @throws InvalidKeyException if some key used for signing transactions is invalid
-	 * @throws NoSuchAlgorithmException if the signature algorithm of {@code parent} is not available
-	 * @throws ClassNotFoundException if the class of the payer cannot be determined
+	 * @throws NoSuchAlgorithmException if the payer uses an unknown signature algorithm
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
-	 * @throws NoSuchElementException if the node is not properly initialized
-	 * @throws UnknownReferenceException if {@code payer} cannot be found in the node
+	 * @throws UnknownReferenceException if the payer is unknown
      */
-	public static AccountsNode of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, String containerClassName, TransactionReference classpath, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NodeException, NoSuchElementException, TimeoutException, InterruptedException, UnknownReferenceException {
+	public static AccountsNode of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, String containerClassName, TransactionReference classpath, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
 		return new AccountsNodeImpl(parent, payer, privateKeyOfPayer, containerClassName, classpath, false, funds);
 	}
 

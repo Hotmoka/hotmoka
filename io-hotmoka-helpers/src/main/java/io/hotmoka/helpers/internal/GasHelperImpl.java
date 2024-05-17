@@ -54,7 +54,7 @@ public class GasHelperImpl implements GasHelper {
 	}
 
 	@Override
-	public BigInteger getGasPrice() throws NodeException, TimeoutException, InterruptedException {
+	public BigInteger getGasPrice() throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException {
 		// this helps with testing, since otherwise previous tests might make the gas price explode for the subsequent tests
 		if (node.getConfig().ignoresGasPrice())
 			return BigInteger.ONE;
@@ -66,20 +66,20 @@ public class GasHelperImpl implements GasHelper {
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAS_STATION + " should not return void"))
 				.asReference(value -> new NodeException(MethodSignatures.GET_GAS_STATION + " should return a reference, not a " + value.getClass().getName()));
 
-			// we double the minimal price, to be sure that the transaction won't be rejected
 			return node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, BigInteger.valueOf(100_000), takamakaCode, MethodSignatures.GET_GAS_PRICE, gasStation))
 					.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAS_PRICE + " should not return void"))
 					.asBigInteger(value -> new NodeException(MethodSignatures.GET_GAS_PRICE + " should return a BigInteger, not a " + value.getClass().getName()));
 		}
-		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
+		catch (CodeExecutionException e) {
 			// these two run calls cannot fail in an initialized node
 			throw new NodeException(e);
 		}
 	}
 
 	@Override
-	public BigInteger getSafeGasPrice() throws NodeException, TimeoutException, InterruptedException {
+	public BigInteger getSafeGasPrice() throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException {
+		// we double the minimal price, to be sure that the transaction won't be rejected
 		return BigInteger.TWO.multiply(getGasPrice());
 	}
 }

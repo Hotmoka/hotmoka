@@ -18,7 +18,6 @@ package io.hotmoka.helpers;
 
 import java.util.concurrent.TimeoutException;
 
-import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.helpers.api.GasCounter;
 import io.hotmoka.helpers.internal.GasCounterImpl;
 import io.hotmoka.node.api.Node;
@@ -30,8 +29,7 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 /**
  * Providers of counters of the gas consumed for the execution of a set of requests.
  */
-@ThreadSafe
-public class GasCounters {
+public abstract class GasCounters {
 
 	private GasCounters() {}
 

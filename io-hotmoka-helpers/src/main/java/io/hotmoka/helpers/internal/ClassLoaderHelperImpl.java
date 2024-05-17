@@ -34,6 +34,10 @@ import io.hotmoka.verification.api.TakamakaClassLoader;
  * transaction reference inside a node.
  */
 public class ClassLoaderHelperImpl implements ClassLoaderHelper {
+
+	/**
+	 * The node for which the jars get created.
+	 */
 	private final Node node;
 
 	/**

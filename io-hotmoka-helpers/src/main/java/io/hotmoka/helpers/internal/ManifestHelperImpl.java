@@ -71,8 +71,10 @@ public class ManifestHelperImpl extends AbstractNodeDecorator<Node> implements M
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws NodeException if the node is not able to complete the operation
+	 * @throws TransactionRejectedException if some transaction gets rejected
+	 * @throws TransactionException if some transaction fails
 	 */
-	public ManifestHelperImpl(Node node) throws NodeException, TimeoutException, InterruptedException {
+	public ManifestHelperImpl(Node node) throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException {
 		super(node);
 
 		this.takamakaCode = node.getTakamakaCode();
@@ -104,8 +106,8 @@ public class ManifestHelperImpl extends AbstractNodeDecorator<Node> implements M
 					.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"))
 					.asReference(value -> new NodeException(MethodSignatures.GET_GAMETE + " should return a reference, not a " + value.getClass().getName()));
 		}
-		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
-			// the node is already initialized, hence these run calls cannot fail if the node is not corrupted
+		catch (CodeExecutionException e) {
+			// the called methods do not throw exceptions
 			throw new NodeException(e);
 		}
 	}
@@ -156,17 +158,8 @@ public class ManifestHelperImpl extends AbstractNodeDecorator<Node> implements M
 	public String getChainId() throws NodeException, TimeoutException, InterruptedException {
 		ensureNotClosed();
 
-		try {
-			// this cannot be precomputed as, for instance, the manifest, since it might change
-			return getParent().runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
-					.orElseThrow(() -> new NodeException(MethodSignatures.GET_CHAIN_ID + " should not return void"))
-					.asString(value -> new NodeException(MethodSignatures.GET_CHAIN_ID + " should return a string, not a " + value.getClass().getName()));
-		}
-		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
-			// the node is initialized, hence this run call cannot throw these, unless the node is corrupted
-			throw new NodeException(e);
-		}
+		// this cannot be precomputed as, for instance, the manifest, since it might change
+		return getParent().getConfig().getChainId();
 	}
 
 	@Override

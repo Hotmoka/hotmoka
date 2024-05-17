@@ -20,16 +20,13 @@ import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.helpers.api.SendCoinsHelper;
 import io.hotmoka.helpers.internal.SendCoinsHelperImpl;
-import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
 
 /**
  * Providers of objects that help with sending coins to accounts.
  */
-public class SendCoinsHelpers {
+public abstract class SendCoinsHelpers {
 
 	private SendCoinsHelpers() {}
 
@@ -37,15 +34,12 @@ public class SendCoinsHelpers {
 	 * Yields an object that helps with sending coins to accounts.
 	 * 
 	 * @param node the node whose accounts are considered
-	 * @return the helper object
-	 * @throws CodeExecutionException if some transaction fails
-	 * @throws TransactionException if some transaction fails
-	 * @throws TransactionRejectedException if some transaction fails
+	 * @return the send coin helper
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws NodeException if the node is not able to complete the operation
 	 */
-	public static SendCoinsHelper of(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	public static SendCoinsHelper of(Node node) throws NodeException, TimeoutException, InterruptedException {
 		return new SendCoinsHelperImpl(node);
 	}
 }

@@ -26,7 +26,7 @@ import io.hotmoka.node.api.NodeException;
 /**
  * Providers of objects that help with gas operations.
  */
-public class GasHelpers {
+public abstract class GasHelpers {
 	
 	private GasHelpers() {}
 

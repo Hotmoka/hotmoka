@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.concurrent.TimeoutException;
 
-import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.helpers.internal.InitializedNodeImpl;
 import io.hotmoka.node.api.CodeExecutionException;
@@ -37,8 +36,7 @@ import io.hotmoka.node.api.values.StorageReference;
  * Providers of nodes where the jar with the basic Takamaka classes have been installed,
  * along with a gamete and a manifest.
  */
-@ThreadSafe
-public class InitializedNodes {
+public abstract class InitializedNodes {
 
 	private InitializedNodes() {}
 
@@ -50,13 +48,14 @@ public class InitializedNodes {
 	 * @param consensus the consensus parameters that will be set for the node
 	 * @param takamakaCode the jar containing the basic Takamaka classes
 	 * @return an initialized view of {@code parent}
-	 * @throws TransactionRejectedException if some transaction that installs the jar or creates the accounts is rejected
+	 * @throws TransactionRejectedException if some transaction gets rejected
+	 * @throws TransactionException if some transaction fails
 	 * @throws IOException if the jar file cannot be accessed
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	public static InitializedNode of(Node parent, ConsensusConfig<?,?> consensus, Path takamakaCode) throws TransactionRejectedException, IOException, NodeException, TimeoutException, InterruptedException {
+	public static InitializedNode of(Node parent, ConsensusConfig<?,?> consensus, Path takamakaCode) throws TransactionRejectedException, TransactionException, IOException, NodeException, TimeoutException, InterruptedException {
 		return new InitializedNodeImpl(parent, consensus, takamakaCode);
 	}
 
@@ -73,8 +72,8 @@ public class InitializedNodes {
 	 * @param producerOfGasStation an algorithm that creates the builder of the gas station to be installed in the manifest of the node;
 	 *                             if this is {@code null}, a generic gas station is created
 	 * @return an initialized view of {@code parent}
-	 * @throws TransactionRejectedException if some transaction that installs the jar or creates the accounts is rejected
-	 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
+	 * @throws TransactionRejectedException if some transaction gets rejected
+	 * @throws TransactionException if some transaction fails
 	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
 	 * @throws IOException if the jar file cannot be accessed
 	 * @throws NodeException if the node is not able to perform the operation
@@ -103,8 +102,8 @@ public class InitializedNodes {
 		 * @param consensus the consensus parameters of the node
 		 * @param takamakaCode the reference to the transaction that installed the Takamaka base classes in the node
 		 * @return the reference of the object
-		 * @throws TransactionRejectedException if some transaction that installs the jar or creates the accounts is rejected
-		 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
+		 * @throws TransactionRejectedException if some transaction gets rejected
+		 * @throws TransactionException if some transaction fails
 		 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
 		 * @throws NodeException if the node is not able to perform the operation
 		 * @throws TimeoutException if no answer arrives before a time window

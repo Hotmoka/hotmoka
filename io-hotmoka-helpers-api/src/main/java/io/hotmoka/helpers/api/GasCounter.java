@@ -18,9 +18,12 @@ package io.hotmoka.helpers.api;
 
 import java.math.BigInteger;
 
+import io.hotmoka.annotations.ThreadSafe;
+
 /**
  * A counter of the gas consumed for the execution of a set of requests.
  */
+@ThreadSafe
 public interface GasCounter {
 
 	/**

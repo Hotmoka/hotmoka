@@ -23,7 +23,6 @@ import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.util.concurrent.TimeoutException;
 
-import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.helpers.api.JarsNode;
 import io.hotmoka.helpers.internal.JarsNodeImpl;
 import io.hotmoka.node.api.Node;
@@ -36,8 +35,7 @@ import io.hotmoka.node.api.values.StorageReference;
 /**
  * Providers of nodes that provide access to a set of previously installed jars,
  */
-@ThreadSafe
-public class JarsNodes {
+public abstract class JarsNodes {
 
 	private JarsNodes() {}
 

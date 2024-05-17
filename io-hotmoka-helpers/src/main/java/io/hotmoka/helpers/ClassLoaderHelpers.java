@@ -24,7 +24,7 @@ import io.hotmoka.node.api.Node;
  * Providers of helpers for building class loaders for the jar installed at a given
  * transaction reference inside a node.
  */
-public class ClassLoaderHelpers {
+public abstract class ClassLoaderHelpers {
 
 	private ClassLoaderHelpers() {}
 

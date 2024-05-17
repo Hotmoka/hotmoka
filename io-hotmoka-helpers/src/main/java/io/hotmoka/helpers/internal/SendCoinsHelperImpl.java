@@ -23,7 +23,6 @@ import static io.hotmoka.node.StorageTypes.PAYABLE_CONTRACT;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
@@ -49,7 +48,6 @@ import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StringValue;
 
 /**
  * Implementation of an object that helps with sending coins to accounts.
@@ -67,29 +65,24 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 	 * Creates an object that helps with sending coins to accounts.
 	 * 
 	 * @param node the node whose accounts are considered
-	 * @throws CodeExecutionException if some transaction fails
-	 * @throws TransactionException if some transaction fails
-	 * @throws TransactionRejectedException if some transaction fails
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws NodeException if the node is not able to complete the operation
 	 */
-	public SendCoinsHelperImpl(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	public SendCoinsHelperImpl(Node node) throws NodeException, TimeoutException, InterruptedException {
 		this.node = node;
 		this.manifest = node.getManifest();
 		this.takamakaCode = node.getTakamakaCode();
 		this.nonceHelper = NonceHelpers.of(node);
 		this.gasHelper = GasHelpers.of(node);
-		this.chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
-			.orElseThrow(() -> new NodeException(MethodSignatures.GET_CHAIN_ID + " should not return void"))).getValue();
+		this.chainId = node.getConfig().getChainId();
 	}
 
 	@Override
 	public void sendFromPayer(StorageReference payer, KeyPair keysOfPayer,
 			StorageReference destination, BigInteger amount, BigInteger amountRed,
 			Consumer<BigInteger> gasHandler, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
+			throws TransactionRejectedException, TransactionException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
 
 		var signature = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
 		Signer<SignedTransactionRequest<?>> signer = signature.getSigner(keysOfPayer.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
@@ -105,49 +98,70 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 			destination,
 			StorageValues.bigIntegerOf(amount));
 
-		node.addInstanceMethodCallTransaction(request1);
-		requestsHandler.accept(new TransactionRequest<?>[] { request1 });
+		try {
+			node.addInstanceMethodCallTransaction(request1);
+			requestsHandler.accept(new TransactionRequest<?>[] { request1 });
 
-		if (amountRed.signum() > 0) {
-			var request2 = TransactionRequests.instanceMethodCall
-				(signer,
-				payer, nonceHelper.getNonceOf(payer),
-				chainId, gas, gasHelper.getGasPrice(), takamakaCode,
-				MethodSignatures.RECEIVE_RED_BIG_INTEGER,
-				destination,
-				StorageValues.bigIntegerOf(amountRed));
+			if (amountRed.signum() > 0) {
+				var request2 = TransactionRequests.instanceMethodCall
+						(signer,
+								payer, nonceHelper.getNonceOf(payer),
+								chainId, gas, gasHelper.getGasPrice(), takamakaCode,
+								MethodSignatures.RECEIVE_RED_BIG_INTEGER,
+								destination,
+								StorageValues.bigIntegerOf(amountRed));
 
-			node.addInstanceMethodCallTransaction(request2);
-			requestsHandler.accept(new TransactionRequest<?>[] { request2 });
+				node.addInstanceMethodCallTransaction(request2);
+				requestsHandler.accept(new TransactionRequest<?>[] { request2 });
+			}
+		}
+		catch (CodeExecutionException e) {
+			// receive() does not throw exceptions
+			throw new NodeException(e);
 		}
 	}
 
 	@Override
 	public void sendFromFaucet(StorageReference destination, BigInteger amount, BigInteger amountRed,
 			Consumer<BigInteger> gasHandler, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NodeException, InterruptedException, TimeoutException, UnknownReferenceException {
+			throws TransactionRejectedException, TransactionException, NodeException, InterruptedException, TimeoutException {
 
-		var gamete = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
-			.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"));
+		try {
+			var gamete = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
+					.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"))
+					.asReference(value -> new NodeException(MethodSignatures.GET_GAMETE + " should return a reference, not a " + value.getClass().getName()));
 
-		gasHandler.accept(_100_000);
+			gasHandler.accept(_100_000);
 
-		// we use the empty signature algorithm, since the faucet is unsigned
-		var signature = SignatureAlgorithms.empty();
-		var request = TransactionRequests.instanceMethodCall
-			(signature.getSigner(signature.getKeyPair().getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
-			gamete, nonceHelper.getNonceOf(gamete),
-			chainId, _100_000, gasHelper.getGasPrice(), takamakaCode,
-			MethodSignatures.ofVoid(GAMETE, "faucet", PAYABLE_CONTRACT, BIG_INTEGER, BIG_INTEGER),
-			gamete,
-			destination, StorageValues.bigIntegerOf(amount), StorageValues.bigIntegerOf(amountRed));
+			// we use the empty signature algorithm, since the faucet is unsigned
+			var signature = SignatureAlgorithms.empty();
+			var request = TransactionRequests.instanceMethodCall
+					(signature.getSigner(signature.getKeyPair().getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
+							gamete, nonceHelper.getNonceOf(gamete),
+							chainId, _100_000, gasHelper.getGasPrice(), takamakaCode,
+							MethodSignatures.ofVoid(GAMETE, "faucet", PAYABLE_CONTRACT, BIG_INTEGER, BIG_INTEGER),
+							gamete,
+							destination, StorageValues.bigIntegerOf(amount), StorageValues.bigIntegerOf(amountRed));
 
-		node.addInstanceMethodCallTransaction(request);
-		requestsHandler.accept(new TransactionRequest<?>[] { request });
+			node.addInstanceMethodCallTransaction(request);
+			requestsHandler.accept(new TransactionRequest<?>[] { request });
+		}
+		catch (InvalidKeyException | SignatureException e) {
+			// the empty signature receives a correct key
+			throw new NodeException(e);
+		}
+		catch (CodeExecutionException e) {
+			// the called methods do not throw exceptions
+			throw new NodeException(e);
+		}
+		catch (UnknownReferenceException e) {
+			// the gamete of the node must exist, since the node is initialized
+			throw new NodeException(e);
+		}
 	}
 
-	private static BigInteger gasForTransactionWhosePayerHasSignature(String signature, Node node) {
+	private static BigInteger gasForTransactionWhosePayerHasSignature(String signature, Node node) throws NodeException {
 		switch (signature) {
 		case "ed25519":
 		case "sha256dsa":
@@ -159,7 +173,7 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 		case "empty":
 			return _100_000;
 		default:
-			throw new IllegalArgumentException("unknown signature algorithm " + signature);
+			throw new NodeException("Unknown signature algorithm " + signature);
 		}
 	}
 }
