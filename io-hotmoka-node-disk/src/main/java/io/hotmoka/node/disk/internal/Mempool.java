@@ -124,6 +124,9 @@ class Mempool {
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
+		catch (RuntimeException e) {
+			LOGGER.log(Level.SEVERE, "Unexpected exception", e);
+		}
 	}
 
 	/**
@@ -155,6 +158,9 @@ class Mempool {
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
+		}
+		catch (RuntimeException e) {
+			LOGGER.log(Level.SEVERE, "Unexpected exception", e);
 		}
 	}
 

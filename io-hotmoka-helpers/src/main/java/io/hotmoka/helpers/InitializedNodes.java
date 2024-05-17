@@ -18,9 +18,6 @@ package io.hotmoka.helpers;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SignatureException;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.annotations.ThreadSafe;
@@ -57,14 +54,11 @@ public class InitializedNodes {
 	 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
 	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
 	 * @throws IOException if the jar file cannot be accessed
-	 * @throws SignatureException if some initialization request could not be signed
-	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
-	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	public static InitializedNode of(Node parent, ConsensusConfig<?,?> consensus, Path takamakaCode) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, NodeException, TimeoutException, InterruptedException {
+	public static InitializedNode of(Node parent, ConsensusConfig<?,?> consensus, Path takamakaCode) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, NodeException, TimeoutException, InterruptedException {
 		return new InitializedNodeImpl(parent, consensus, takamakaCode, null);
 	}
 
@@ -85,15 +79,14 @@ public class InitializedNodes {
 	 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
 	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
 	 * @throws IOException if the jar file cannot be accessed
-	 * @throws SignatureException if some initialization request could not be signed
-	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
-	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
 	public static InitializedNode of(Node parent, ValidatorsConsensusConfig<?,?> consensus,
-			Path takamakaCode, ProducerOfStorageObject<ValidatorsConsensusConfig<?,?>> producerOfValidatorsBuilder, ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStation) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, NodeException, TimeoutException, InterruptedException {
+			Path takamakaCode, ProducerOfStorageObject<ValidatorsConsensusConfig<?,?>> producerOfValidatorsBuilder, ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStation)
+					throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, NodeException, TimeoutException, InterruptedException {
+
 		return new InitializedNodeImpl(parent, consensus, takamakaCode, producerOfValidatorsBuilder, producerOfGasStation);
 	}
 
@@ -110,20 +103,16 @@ public class InitializedNodes {
 		 * 
 		 * @param node the node in whose store the object is being created
 		 * @param consensus the consensus parameters of the node
-		 * @param takamakaCodeReference the reference to the transaction that installed the Takamaka base classes in the node
+		 * @param takamakaCode the reference to the transaction that installed the Takamaka base classes in the node
 		 * @return the reference of the object
 		 * @throws TransactionRejectedException if some transaction that installs the jar or creates the accounts is rejected
 		 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
 		 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
-		 * @throws SignatureException if some initialization request could not be signed
-		 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
-		 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 		 * @throws NodeException if the node is not able to perform the operation
 		 * @throws TimeoutException if no answer arrives before a time window
 		 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 		 */
-		StorageReference apply(InitializedNode node, C consensus, TransactionReference takamakaCodeReference)
-			throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException,
-					NodeException, TimeoutException, InterruptedException;
+		StorageReference apply(InitializedNode node, C consensus, TransactionReference takamakaCode)
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException;
 	}
 }

@@ -76,7 +76,6 @@ import io.hotmoka.node.api.signatures.MethodSignature;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.signatures.VoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.disk.DiskNodeConfigBuilders;
@@ -214,9 +213,10 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_CHAIN_ID + " should not return void"))
 				.asString(value -> new NodeException(MethodSignatures.GET_CHAIN_ID + " should return a String, not a " + value.getClass().getName()));
 
-			BigInteger nonce = ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+			BigInteger nonce = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(gamete, _100_000, takamakaCode, MethodSignatures.NONCE, gamete))
-				.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))).getValue();
+				.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
+				.asBigInteger(value -> new NodeException(MethodSignatures.NONCE + " should return a BigInteger, not a " + value.getClass().getName()));
 
 			BigInteger aLot = Coin.level6(1000000000);
 

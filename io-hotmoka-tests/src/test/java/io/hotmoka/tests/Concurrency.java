@@ -16,8 +16,8 @@ limitations under the License.
 
 package io.hotmoka.tests;
 
-import static java.math.BigInteger.ONE;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static java.math.BigInteger.ONE;
 
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
@@ -25,6 +25,10 @@ import java.security.SignatureException;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -36,9 +40,9 @@ import org.junit.jupiter.api.Test;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.values.BigIntegerValue;
 
 /**
  * A test for generating transactions in concurrency and check that everything
@@ -49,6 +53,8 @@ import io.hotmoka.node.api.values.BigIntegerValue;
  */
 class Concurrency extends HotmokaTest {
 
+	private final static Logger LOGGER = Logger.getLogger(Concurrency.class.getName());
+
 	/**
 	 * The number of threads that operate concurrently. At least 2 or this test will hang!
 	 */
@@ -58,7 +64,7 @@ class Concurrency extends HotmokaTest {
 	static void beforeAll() {
 		String cheapTests = System.getProperty("cheapTests");
 		if ("true".equals(cheapTests)) {
-			System.out.println("Running in cheap mode since cheapTests = true");
+			LOGGER.info("Running in cheap mode since cheapTests = true");
 			NUMBER_OF_THREADS = 4;
 		}
 	}
@@ -69,71 +75,80 @@ class Concurrency extends HotmokaTest {
 		setAccounts(Stream.generate(() -> _500_000).limit(NUMBER_OF_THREADS));
 	}
 
-	private class Worker implements Runnable {
-		private final Random random = new Random();
-		private final int num;
-		private boolean failed;
-
-		private Worker(int num) {
-			this.num = num;
-		}
-
-		@Override
-		public void run() {
-			try {
-				while (true) {
-					// we generate the number of a random distinct worker
-					int other = random.ints(0, NUMBER_OF_THREADS).filter(i -> i != num).findFirst().getAsInt();
-
-					// we ask for the balance of the account bound to the this worker
-					BigInteger ourBalance = ((BigIntegerValue) runInstanceNonVoidMethodCallTransaction
-						(account(num), _50_000, takamakaCode(), MethodSignatures.BALANCE, account(num))).getValue();
-
-					// we ask for the balance of the account bound to the other worker
-					BigInteger otherBalance = ((BigIntegerValue) runInstanceNonVoidMethodCallTransaction
-						(account(num), _50_000, takamakaCode(), MethodSignatures.BALANCE, account(other))).getValue();
-
-					// if we are poorer than other, we send him only 5,000 units of coin; otherwise, we send him 10,000 units
-					int sent = ourBalance.subtract(otherBalance).signum() < 0 ? 5_000 : 10_000;
-					addInstanceVoidMethodCallTransaction(privateKey(num), account(num), _50_000, ONE, takamakaCode(),
-							MethodSignatures.RECEIVE_INT, account(other), StorageValues.intOf(sent));
-				}
-			}
-			catch (TransactionRejectedException e) {
-				// eventually, the paying account "num" might not have enough gas to pay for a transaction
-				if (e.getMessage().startsWith("The payer has not enough funds to buy 50000 units of gas")) {
-					return;
-				}
-				else {
-					failed = true;
-					throw new RuntimeException(e);
-				}
-			}
-			catch (TransactionException e) {
-				// eventually, the paying account "num" might not have enough balance to pay the other account
-				if (e.getMessage().startsWith("io.takamaka.code.lang.InsufficientFundsError")) {
-					return;
-				}
-				else {
-					failed = true;
-					throw new RuntimeException(e);
-				}
-			}
-			catch (InvalidKeyException | SignatureException | CodeExecutionException e) {
-				failed = true;
-				throw new RuntimeException(e);
-			}
-			catch (RuntimeException e) {
-				throw e;
-			}
-			catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-	}
-
 	@Test @DisplayName("More threads generate transactions concurrently")
 	void concurrently() throws InterruptedException, ExecutionException {
+		var remaining = new AtomicInteger(NUMBER_OF_THREADS);
+
+		// we need a lock despite using an AtomicInteger, just to guarantee that
+		// remaining workers are reported in order in the logs
+		var lock = new Object();
+
+		class Worker implements Runnable {
+			private final int num;
+			private boolean failed;
+
+			private Worker(int num) {
+				this.num = num;
+			}
+
+			@Override
+			public void run() {
+				try {
+					Random random = new Random();
+
+					while (true) {
+						// we generate the number of another random distinct worker
+						int other = random.ints(0, NUMBER_OF_THREADS).filter(i -> i != num).findFirst().getAsInt();
+
+						// we ask for the balance of the account bound to the this worker
+						BigInteger ourBalance = runInstanceNonVoidMethodCallTransaction
+							(account(num), _50_000, takamakaCode(), MethodSignatures.BALANCE, account(num))
+							.asBigInteger(value -> new NodeException(MethodSignatures.BALANCE + " should return a BigInteger, not a " + value.getClass().getName()));
+
+						// we ask for the balance of the account bound to the other worker
+						BigInteger otherBalance = runInstanceNonVoidMethodCallTransaction
+							(account(num), _50_000, takamakaCode(), MethodSignatures.BALANCE, account(other))
+							.asBigInteger(value -> new NodeException(MethodSignatures.BALANCE + " should return a BigInteger, not a " + value.getClass().getName()));
+
+						// if we are poorer than other, we send him only 5,000 units of coin; otherwise, we send him 10,000 units
+						int sent = ourBalance.subtract(otherBalance).signum() < 0 ? 5_000 : 10_000;
+						addInstanceVoidMethodCallTransaction(privateKey(num), account(num), _50_000, ONE, takamakaCode(),
+							MethodSignatures.RECEIVE_INT, account(other), StorageValues.intOf(sent));
+					}
+				}
+				catch (TransactionRejectedException e) {
+					// eventually, the paying account "num" might not have enough gas to pay for a transaction
+					if (!e.getMessage().startsWith("The payer has not enough funds to buy"))
+						failure(e);
+					else
+						synchronized (lock) {
+							LOGGER.info("Worker #" + num + " exits since it has not enough funds for buying gas: " + remaining.decrementAndGet() + " workers remaining");
+						}
+				}
+				catch (TransactionException e) {
+					// eventually, the paying account "num" might not have enough balance to pay the other account
+					if (!e.getMessage().startsWith("io.takamaka.code.lang.InsufficientFundsError"))
+						failure(e);
+					else
+						synchronized (lock) {
+							LOGGER.info("Worker #" + num + " exits since it has not enough funds for paying: " + remaining.decrementAndGet() + " workers remaining");
+						}
+				}
+				catch (InvalidKeyException | SignatureException | CodeExecutionException | TimeoutException | NodeException e) {
+					failure(e);
+				}
+				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+					failure(e);
+				}
+			}
+
+			private void failure(Exception exception) {
+				failed = true;
+				LOGGER.log(Level.SEVERE, "Unexpected exception", exception);
+			}
+		}
+
 		// we create an array of THREAD_NUMBER workers
 		var workers = IntStream.range(0, NUMBER_OF_THREADS).mapToObj(Worker::new).toArray(Worker[]::new);
 		var customThreadPool = new ForkJoinPool(NUMBER_OF_THREADS);

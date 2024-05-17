@@ -167,7 +167,7 @@ class StorageMap extends HotmokaTest {
 	void put100RandomThenSize() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		var map = (StorageReference) addStaticNonVoidMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP);
 
-		StorageReference[] accounts = new StorageReference[10];
+		var accounts = new StorageReference[10];
 		for (int i = 0; i < 10; i++) {
 			KeyPair keys = signature().getKeyPair();
 			String publicKey = Base64.toBase64String(signature().encodingOf(keys.getPublic()));
@@ -179,9 +179,9 @@ class StorageMap extends HotmokaTest {
 			addInstanceVoidMethodCallTransaction
 				(key, account0, _100_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT, map, accounts[i], StorageValues.bigIntegerOf(random.nextLong()));
 
-		IntValue size = (IntValue) runInstanceNonVoidMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_SIZE, map);
+		int size = runInstanceNonVoidMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_SIZE, map).asInt(__ -> new NodeException());
 
-		assertEquals(10, size.getValue());
+		assertEquals(10, size);
 	}
 
 	@Test @DisplayName("mkEmptyExportedStorageMap() put 10 times the same key then size is 1")
@@ -196,9 +196,9 @@ class StorageMap extends HotmokaTest {
 			addInstanceVoidMethodCallTransaction
 				(key, account0, _50_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT, map, eoa, StorageValues.bigIntegerOf(random.nextLong()));
 
-		IntValue size = (IntValue) runInstanceNonVoidMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_SIZE, map);
+		int size = runInstanceNonVoidMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_SIZE, map).asInt(__ -> new NodeException());
 
-		assertEquals(1, size.getValue());
+		assertEquals(1, size);
 	}
 
 	@Test @DisplayName("mkEmptyExportedStorageMap() put 10 times equal string keys then size is 1")
@@ -210,9 +210,9 @@ class StorageMap extends HotmokaTest {
 			addInstanceVoidMethodCallTransaction
 				(key, account0, _50_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT, map, StorageValues.stringOf("hello"), StorageValues.bigIntegerOf(random.nextLong()));
 
-		IntValue size = (IntValue) runInstanceNonVoidMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_SIZE, map);
+		int size = runInstanceNonVoidMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_SIZE, map).asInt(__ -> new NodeException());
 
-		assertEquals(1, size.getValue());
+		assertEquals(1, size);
 	}
 
 	@Test @DisplayName("mkEmptyExportedStorageMap() put 10 random BigInteger keys then min key is correct")
@@ -229,9 +229,9 @@ class StorageMap extends HotmokaTest {
 			addInstanceVoidMethodCallTransaction(key, account0, _100_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT, map, StorageValues.bigIntegerOf(bi), StorageValues.stringOf("hello"));
 		}
 
-		BigIntegerValue result = (BigIntegerValue) runInstanceNonVoidMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_MIN, map);
+		BigInteger result = runInstanceNonVoidMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_MIN, map).asBigInteger(__ -> new NodeException());
 
-		assertEquals(min, result.getValue());
+		assertEquals(min, result);
 	}
 
 	@Test @DisplayName("mkEmptyExportedStorageMap() put 10 storage keys then remove the last then size is 9")
@@ -254,9 +254,10 @@ class StorageMap extends HotmokaTest {
 		while (++i < 10);
 
 		addInstanceVoidMethodCallTransaction(key, account0, _100_000, BigInteger.ONE, classpath, STORAGE_MAP_REMOVE, map, accounts[random.nextInt(10)]);
-		IntValue size = (IntValue) runInstanceNonVoidMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_SIZE, map);
 
-		assertEquals(9, size.getValue());
+		int size = runInstanceNonVoidMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_SIZE, map).asInt(__ -> new NodeException());
+
+		assertEquals(9, size);
 	}
 
 	@Test @DisplayName("mkEmptyExportedStorageMap() put 10 storage keys and checks contains after each put")
@@ -270,15 +271,11 @@ class StorageMap extends HotmokaTest {
 			accounts[i] = addConstructorCallTransaction(key, account0, _100_000, BigInteger.ONE, classpath, ConstructorSignatures.of(StorageTypes.EOA, StorageTypes.STRING), StorageValues.stringOf(publicKey));
 		}
 
-		var results = new BooleanValue[10];
-
 		var random = new Random();
 		for (int i = 0; i < 10; i++) {
 			addInstanceVoidMethodCallTransaction(key, account0, _100_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT, map, accounts[i], StorageValues.bigIntegerOf(random.nextLong()));
-			results[i] = (BooleanValue) addInstanceNonVoidMethodCallTransaction(key, account0, _100_000, BigInteger.ONE, classpath, MethodSignatures.ofNonVoid(STORAGE_MAP_VIEW, "containsKey", BOOLEAN, StorageTypes.OBJECT), map, accounts[i]);
+			assertTrue(addInstanceNonVoidMethodCallTransaction(key, account0, _100_000, BigInteger.ONE, classpath, MethodSignatures.ofNonVoid(STORAGE_MAP_VIEW, "containsKey", BOOLEAN, StorageTypes.OBJECT), map, accounts[i])
+				.asBoolean(__ -> new NodeException()));
 		}
-
-		for (BooleanValue result: results)
-			assertTrue(result.getValue());
 	}
 }

@@ -19,7 +19,6 @@ package io.hotmoka.node.local.internal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 
 /**
@@ -41,8 +40,7 @@ import java.util.function.Function;
 public final class LRUCache<K, V> {
 
 	/**
-	 * A doubly-linked-list implementation to save objects into the hashmap
-	 * as key-value pari.
+	 * A doubly-linked-list implementation to save objects into the hashmap as key-value pairs.
 	 * 
 	 * @author sunil
 	 *
@@ -83,7 +81,12 @@ public final class LRUCache<K, V> {
 	 */
 	private Node<K, V> head, tail;
 
-	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+	/**
+	 * The lock on the data structure. We cannot use a read/write reentrant lock since the
+	 * {@link #get(Object)} operation, despite its name, actually modifies the data structure
+	 * hence it must be kept in mutual exclusion with other {@link #get(Object)} calls.
+	 */
+	private final Object lock = new Object();
 
 	/*private LRUCache(int maxCapacity) {
 		this(16, maxCapacity);
@@ -150,8 +153,7 @@ public final class LRUCache<K, V> {
 	 * @param value the value to bind to the {@code key}
 	 */
 	public void put(K key, V value) {
-		lock.writeLock().lock();
-		try {
+		synchronized (lock) {
 			Node<K, V> node = map.get(key);
 			if (node != null) {
 				node.value = value;
@@ -169,9 +171,6 @@ public final class LRUCache<K, V> {
 				map.put(key, node);
 			}
 		}
-		finally {
-			lock.writeLock().unlock();
-		}
 	}
 
 	/**
@@ -183,9 +182,7 @@ public final class LRUCache<K, V> {
 	 * @return the value bound to the {@code key}
 	 */
 	public V get(K key) {
-		lock.readLock().lock();
-
-		try {
+		synchronized (lock) {
 			Node<K, V> node = map.get(key);
 			if (node == null)
 				return null;
@@ -194,9 +191,6 @@ public final class LRUCache<K, V> {
 			offerNode(node);
 
 			return node.value;
-		}
-		finally {
-			lock.readLock().unlock();
 		}
 	}
 
