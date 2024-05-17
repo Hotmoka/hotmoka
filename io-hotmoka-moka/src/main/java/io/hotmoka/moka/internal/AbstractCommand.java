@@ -24,6 +24,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Scanner;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Base58ConversionException;
@@ -58,6 +60,8 @@ public abstract class AbstractCommand implements Runnable {
 	protected static final String ANSI_PURPLE = "\u001B[35m";
 	protected static final String ANSI_CYAN = "\u001B[36m";
 	protected static final String ANSI_WHITE = "\u001B[37m";
+
+	private final static Logger LOGGER = Logger.getLogger(AbstractCommand.class.getName());
 
 	@Override
 	public final void run() {
@@ -140,13 +144,22 @@ public abstract class AbstractCommand implements Runnable {
 	}
 
 	protected void printCosts(Node node, TransactionRequest<?>... requests) {
-		var gasCounter = GasCounters.of(node, requests);
-		String result = ANSI_CYAN + "Total gas consumed: " + gasCounter.total() + "\n";
-		result += ANSI_GREEN + "  for CPU: " + gasCounter.forCPU() + "\n";
-		result += "  for RAM: " + gasCounter.forRAM() + "\n";
-		result += "  for storage: " + gasCounter.forStorage() + "\n";
-		result += "  for penalty: " + gasCounter.forPenalty() + ANSI_RESET;
-		System.out.println(result);
+		try {
+			var gasCounter = GasCounters.of(node, requests);
+			String result = ANSI_CYAN + "Total gas consumed: " + gasCounter.total() + "\n";
+			result += ANSI_GREEN + "  for CPU: " + gasCounter.forCPU() + "\n";
+			result += "  for RAM: " + gasCounter.forRAM() + "\n";
+			result += "  for storage: " + gasCounter.forStorage() + "\n";
+			result += "  for penalty: " + gasCounter.forPenalty() + ANSI_RESET;
+			System.out.println(result);
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
+		catch (NodeException | TimeoutException | TransactionRejectedException | UnknownReferenceException e) {
+			LOGGER.log(Level.SEVERE, "cannot compute the gas costs", e);
+			throw new RuntimeException(e); // TODO
+		}
 	}
 
 	protected void yesNo(String message) {
@@ -188,7 +201,7 @@ public abstract class AbstractCommand implements Runnable {
 	protected void printPassphrase(Account account) {
 		System.out.println("Please take note of the following passphrase of 36 words,");
         System.out.println("you will need it to reinstall the account in this or another machine or application in the future:\n");
-        AtomicInteger counter = new AtomicInteger(0);
+        var counter = new AtomicInteger(0);
         account.bip39Words().stream().forEachOrdered(word -> System.out.printf("%2d: %s\n", counter.incrementAndGet(), word));
 	}
 

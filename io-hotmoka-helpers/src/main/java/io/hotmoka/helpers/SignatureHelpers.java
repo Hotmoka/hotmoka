@@ -16,15 +16,9 @@ limitations under the License.
 
 package io.hotmoka.helpers;
 
-import java.util.concurrent.TimeoutException;
-
 import io.hotmoka.helpers.api.SignatureHelper;
 import io.hotmoka.helpers.internal.SignatureHelperImpl;
-import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
 
 /**
  * Providers of helpers to determine the signature algorithm to use for an externally owned account.
@@ -37,14 +31,8 @@ public class SignatureHelpers {
 	 * 
 	 * @param node the node
 	 * @return the signature helper
-	 * @throws TransactionRejectedException if some transaction that installs the jars is rejected
-	 * @throws TransactionException if some transaction that installs the jars fails
-	 * @throws CodeExecutionException if some transaction that installs the jars throws an exception
-	 * @throws InterruptedException if the current thread is interrupted while performing the operation
-	 * @throws TimeoutException if the operation does not complete within the expected time window
-	 * @throws NodeException if the node is not able to complete the operation
 	 */
-	public static SignatureHelper of(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	public static SignatureHelper of(Node node) {
 		return new SignatureHelperImpl(node);
 	}
 }

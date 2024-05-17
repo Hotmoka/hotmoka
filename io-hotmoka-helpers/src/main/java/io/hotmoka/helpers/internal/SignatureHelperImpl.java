@@ -25,11 +25,8 @@ import io.hotmoka.helpers.ClassLoaderHelpers;
 import io.hotmoka.helpers.api.ClassLoaderHelper;
 import io.hotmoka.helpers.api.SignatureHelper;
 import io.hotmoka.node.StorageTypes;
-import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.verification.api.TakamakaClassLoader;
@@ -41,7 +38,7 @@ public class SignatureHelperImpl implements SignatureHelper {
 	private final Node node;
 	private final ClassLoaderHelper classLoaderHelper;
 
-	public SignatureHelperImpl(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	public SignatureHelperImpl(Node node) {
 		this.node = node;
 		this.classLoaderHelper = ClassLoaderHelpers.of(node);
 	}

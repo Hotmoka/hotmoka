@@ -51,15 +51,13 @@ public class InitializedNodes {
 	 * @param takamakaCode the jar containing the basic Takamaka classes
 	 * @return an initialized view of {@code parent}
 	 * @throws TransactionRejectedException if some transaction that installs the jar or creates the accounts is rejected
-	 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
-	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
 	 * @throws IOException if the jar file cannot be accessed
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	public static InitializedNode of(Node parent, ConsensusConfig<?,?> consensus, Path takamakaCode) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, NodeException, TimeoutException, InterruptedException {
-		return new InitializedNodeImpl(parent, consensus, takamakaCode, null);
+	public static InitializedNode of(Node parent, ConsensusConfig<?,?> consensus, Path takamakaCode) throws TransactionRejectedException, IOException, NodeException, TimeoutException, InterruptedException {
+		return new InitializedNodeImpl(parent, consensus, takamakaCode);
 	}
 
 	/**

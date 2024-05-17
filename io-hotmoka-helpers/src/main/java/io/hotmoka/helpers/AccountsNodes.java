@@ -38,7 +38,7 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.takamaka.code.constants.Constants;
 
 /**
- * Providers of nodes that give access to a previously installed set of accounts.
+ * Providers of nodes that install a bunch of accounts and give access to them.
  */
 @ThreadSafe
 public class AccountsNodes {
@@ -47,7 +47,7 @@ public class AccountsNodes {
 
 	/**
 	 * Yields a node initialized with a set of accounts.
-	 * An account is provided, that pays for the transactions.
+	 * An account must be provided, that pays for the transactions.
 	 * 
 	 * @param parent the node to decorate
 	 * @param payer the account that pays for the transactions that initialize the new accounts

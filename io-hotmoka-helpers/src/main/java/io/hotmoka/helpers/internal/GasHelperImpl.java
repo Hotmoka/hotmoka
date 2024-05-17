@@ -43,40 +43,43 @@ public class GasHelperImpl implements GasHelper {
 	 * Creates an object that helps with gas operations.
 	 * 
 	 * @param node the node whose gas is considered
-	 * @throws TransactionRejectedException if some transaction was rejected
-	 * @throws TransactionException if some transaction failed
-	 * @throws CodeExecutionException if some transaction generated an exception
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws NodeException if the node is not able to complete the operation
 	 */
-	public GasHelperImpl(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	public GasHelperImpl(Node node) throws NodeException, TimeoutException, InterruptedException {
 		this.node = node;
 		this.takamakaCode = node.getTakamakaCode();
 		this.manifest = node.getManifest();
 	}
 
 	@Override
-	public BigInteger getGasPrice() throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	public BigInteger getGasPrice() throws NodeException, TimeoutException, InterruptedException {
 		// this helps with testing, since otherwise previous tests might make the gas price explode for the subsequent tests
 		if (node.getConfig().ignoresGasPrice())
 			return BigInteger.ONE;
 
-		if (gasStation == null)
-			this.gasStation = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, BigInteger.valueOf(100_000), takamakaCode, MethodSignatures.GET_GAS_STATION, manifest))
-					.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAS_STATION + " should not return void"))
-					.asReference(value -> new NodeException(MethodSignatures.GET_GAS_STATION + " should return a reference, not a " + value.getClass().getName()));
+		try {
+			if (gasStation == null)
+				this.gasStation = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+						(manifest, BigInteger.valueOf(100_000), takamakaCode, MethodSignatures.GET_GAS_STATION, manifest))
+				.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAS_STATION + " should not return void"))
+				.asReference(value -> new NodeException(MethodSignatures.GET_GAS_STATION + " should return a reference, not a " + value.getClass().getName()));
 
-		// we double the minimal price, to be sure that the transaction won't be rejected
-		return node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(manifest, BigInteger.valueOf(100_000), takamakaCode, MethodSignatures.GET_GAS_PRICE, gasStation))
-			.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAS_PRICE + " should not return void"))
-			.asBigInteger(value -> new NodeException(MethodSignatures.GET_GAS_PRICE + " should return a BigInteger, not a " + value.getClass().getName()));
+			// we double the minimal price, to be sure that the transaction won't be rejected
+			return node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+					(manifest, BigInteger.valueOf(100_000), takamakaCode, MethodSignatures.GET_GAS_PRICE, gasStation))
+					.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAS_PRICE + " should not return void"))
+					.asBigInteger(value -> new NodeException(MethodSignatures.GET_GAS_PRICE + " should return a BigInteger, not a " + value.getClass().getName()));
+		}
+		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
+			// these two run calls cannot fail in an initialized node
+			throw new NodeException(e);
+		}
 	}
 
 	@Override
-	public BigInteger getSafeGasPrice() throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	public BigInteger getSafeGasPrice() throws NodeException, TimeoutException, InterruptedException {
 		return BigInteger.TWO.multiply(getGasPrice());
 	}
 }

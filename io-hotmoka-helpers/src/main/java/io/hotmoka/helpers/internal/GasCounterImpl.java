@@ -68,16 +68,21 @@ public class GasCounterImpl implements GasCounter {
 	 * Creates the counter of the gas consumed for the execution of a set of requests.
 	 * 
 	 * @param node the node that executed the requests
-	 * @param requests the requests
+	 * @param requests the requests whose consumed gas must be computed
+	 * @throws InterruptedException if the execution gets interrupted
+	 * @throws TimeoutException if no answer arrives within the expected time window
+	 * @throws UnknownReferenceException if some request has not been processed by the node
+	 * @throws TransactionRejectedException if some request has been rejected by the node
+	 * @throws NodeException if the node is not able to complete the operation correctly
 	 */
-	public GasCounterImpl(Node node, TransactionRequest<?>... requests) {
+	public GasCounterImpl(Node node, TransactionRequest<?>... requests) throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, UnknownReferenceException {
 		Hasher<TransactionRequest<?>> hasher;
 
 		try {
 			hasher = HashingAlgorithms.sha256().getHasher(TransactionRequest::toByteArray);
 		}
 		catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException("Unepexted exception", e);
+			throw new NodeException(e);
 		}
 
 		var references = Stream.of(requests).map(hasher::hash).map(TransactionReferences::of).toArray(TransactionReference[]::new);
@@ -87,16 +92,13 @@ public class GasCounterImpl implements GasCounter {
 		var forStorage = BigInteger.ZERO;
 	
 		for (var reference: references)
-			try {
-				if (node.getResponse(reference) instanceof NonInitialTransactionResponse responseWithGas) {
-					forCPU = forCPU.add(responseWithGas.getGasConsumedForCPU());
-					forRAM = forRAM.add(responseWithGas.getGasConsumedForRAM());
-					forStorage = forStorage.add(responseWithGas.getGasConsumedForStorage());
-					if (responseWithGas instanceof FailedTransactionResponse ftr)
-						forPenalty = forPenalty.add(ftr.getGasConsumedForPenalty());
-				}
+			if (node.getResponse(reference) instanceof NonInitialTransactionResponse responseWithGas) {
+				forCPU = forCPU.add(responseWithGas.getGasConsumedForCPU());
+				forRAM = forRAM.add(responseWithGas.getGasConsumedForRAM());
+				forStorage = forStorage.add(responseWithGas.getGasConsumedForStorage());
+				if (responseWithGas instanceof FailedTransactionResponse ftr)
+					forPenalty = forPenalty.add(ftr.getGasConsumedForPenalty());
 			}
-			catch (TransactionRejectedException | UnknownReferenceException | NodeException | TimeoutException | InterruptedException e) {}
 	
 		this.total = forCPU.add(forRAM).add(forStorage).add(forPenalty);
 		this.forCPU = forCPU;

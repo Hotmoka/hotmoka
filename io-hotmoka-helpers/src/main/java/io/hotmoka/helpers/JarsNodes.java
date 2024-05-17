@@ -26,7 +26,6 @@ import java.util.concurrent.TimeoutException;
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.helpers.api.JarsNode;
 import io.hotmoka.helpers.internal.JarsNodeImpl;
-import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
@@ -56,7 +55,6 @@ public class JarsNodes {
 	 * @return a decorated view of {@code parent}
 	 * @throws TransactionRejectedException if some transaction that installs the jars is rejected
 	 * @throws TransactionException if some transaction that installs the jars fails
-	 * @throws CodeExecutionException if some transaction that installs the jars throws an exception
 	 * @throws IOException if the jar file cannot be accessed
 	 * @throws SignatureException if some request could not be signed
 	 * @throws InvalidKeyException if some key used for signing transactions is invalid
@@ -66,7 +64,7 @@ public class JarsNodes {
 	 * @throws NodeException if the node is not able to complete the operation
 	 * @throws UnknownReferenceException if {@code payer} cannot be found in {@code parent}
      */
-	public static JarsNode of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path... jars) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
+	public static JarsNode of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path... jars) throws TransactionRejectedException, TransactionException, IOException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
 		return new JarsNodeImpl(parent, payer, privateKeyOfPayer, jars);
 	}
 }

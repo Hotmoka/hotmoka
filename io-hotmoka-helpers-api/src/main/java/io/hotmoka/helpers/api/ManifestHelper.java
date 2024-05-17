@@ -18,11 +18,7 @@ package io.hotmoka.helpers.api;
 
 import java.util.concurrent.TimeoutException;
 
-import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 
 /**
@@ -31,74 +27,60 @@ import io.hotmoka.node.api.values.StorageReference;
 public interface ManifestHelper {
 
 	/**
-	 * Yields the reference to the transaction that installed
-	 * the Takamaka code in the node.
-	 * 
-	 * @return the reference to the transaction that installed the Takamaka code
-	 */
-	TransactionReference getTakamakaCode();
-
-	/**
 	 * Yields the accounts ledger of the node.
 	 * 
 	 * @return the reference to the accounts ledger
 	 */
-	StorageReference getAccountsLedger();
+	StorageReference getAccountsLedger() throws NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Yields the initial validators of the node.
 	 * 
 	 * @return the reference to the initial validators
 	 */
-	StorageReference getInitialValidators();
+	StorageReference getInitialValidators() throws NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Yields the validators of the node.
 	 * 
 	 * @return the reference to the validators
 	 */
-	StorageReference getValidators();
+	StorageReference getValidators() throws NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Yields the manifest of the node.
 	 * 
 	 * @return the reference to the manifest
 	 */
-	StorageReference getManifest();
+	StorageReference getManifest() throws NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Yields the versions of the node.
 	 * 
 	 * @return the reference to the versions
 	 */
-	StorageReference getVersions();
+	StorageReference getVersions() throws NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Yields the gamete of the node.
 	 * 
 	 * @return the reference to the gamete
 	 */
-	StorageReference getGamete();
+	StorageReference getGamete() throws NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Yields the gas station of the node.
 	 * 
 	 * @return the reference to the gas station
 	 */
-	StorageReference getGasStation();
+	StorageReference getGasStation() throws NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Yields the chain id of the node.
 	 * 
 	 * @return the chain id
-	 * @throws TransactionRejectedException if some transaction was rejected
-	 * @throws TransactionException if some transaction failed
-	 * @throws CodeExecutionException if some transaction generated an exception
-	 * @throws NodeException if the node is not able to perform the operation
-	 * @throws TimeoutException if no answer arrives before a time window
-	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	String getChainId() throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException;
+	String getChainId() throws NodeException, TimeoutException, InterruptedException;
 
 	@Override
 	String toString();

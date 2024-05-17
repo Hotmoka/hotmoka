@@ -68,7 +68,6 @@ public class JarsNodeImpl extends AbstractNodeDecorator<Node> implements JarsNod
 	 *                          It will be used to sign requests for installing the jars;
 	 *                          the account must have enough coins for those transactions
 	 * @param jars the jars to install in the node
-	 * @throws TransactionRejectedException if some transaction that installs the jars is rejected
 	 * @throws TransactionException if some transaction that installs the jars fails
 	 * @throws CodeExecutionException if some transaction that installs the jars throws an exception
 	 * @throws IOException if the jar file cannot be accessed
@@ -80,7 +79,7 @@ public class JarsNodeImpl extends AbstractNodeDecorator<Node> implements JarsNod
 	 * @throws NodeException if the node is not able to complete the operation
 	 * @throws UnknownReferenceException if {@code payer} cannot be found in {@code parent}
      */
-	public JarsNodeImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path... jars) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
+	public JarsNodeImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path... jars) throws TransactionRejectedException, TransactionException, IOException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
 		super(parent);
 
 		TransactionReference takamakaCode = getTakamakaCode();
@@ -89,10 +88,19 @@ public class JarsNodeImpl extends AbstractNodeDecorator<Node> implements JarsNod
 		var _50_000 = BigInteger.valueOf(50_000);
 
 		// we get the nonce of the payer
-		BigInteger nonce = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(payer, _50_000, takamakaCode, MethodSignatures.NONCE, payer))
-			.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
-			.asBigInteger(value -> new NodeException(MethodSignatures.NONCE + " should return a BigInteger, not a " + value.getClass().getName()));
+		BigInteger nonce;
+
+		try {
+			nonce = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+					(payer, _50_000, takamakaCode, MethodSignatures.NONCE, payer))
+					.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
+					.asBigInteger(value -> new NodeException(MethodSignatures.NONCE + " should return a BigInteger, not a " + value.getClass().getName()));
+		}
+		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
+			// the signature of the payer could be determined, so there is no way for this run call to fail,
+			// being called on the takamaka code reference of the node; unless the node is corrupted
+			throw new NodeException(e);
+		}
 
 		// we get the chainId of the parent
 		String chainId = parent.getConfig().getChainId();

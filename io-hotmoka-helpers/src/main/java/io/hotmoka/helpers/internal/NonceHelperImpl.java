@@ -28,7 +28,6 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
-import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
 
 /**
@@ -48,10 +47,16 @@ public class NonceHelperImpl implements NonceHelper {
 	}
 
 	@Override
-	public BigInteger getNonceOf(StorageReference account) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
-		// we ask the account: 100,000 units of gas should be enough to run the method
-		return ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(account, _100_000, node.getClassTag(account).getJar(), MethodSignatures.NONCE, account))
-			.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))).getValue();
+	public BigInteger getNonceOf(StorageReference account) throws TransactionRejectedException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
+		try {
+			return node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+				(account, _100_000, node.getClassTag(account).getJar(), MethodSignatures.NONCE, account))
+				.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
+				.asBigInteger(value -> new NodeException(MethodSignatures.NONCE + " should return a BigInteger, not a " + value.getClass().getName()));
+		}
+		catch (TransactionException | CodeExecutionException e) {
+			// a call to nonce() cannot throw these, unless the node is corrupted
+			throw new NodeException(e);
+		}
 	}
 }

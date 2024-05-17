@@ -239,7 +239,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	}
 
 	private static void initializeNodeIfNeeded(Node node) throws TransactionRejectedException, TransactionException,
-			CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, NodeException, TimeoutException, InterruptedException {
+			CodeExecutionException, IOException, NodeException, TimeoutException, InterruptedException {
 
 		try {
 			node.getManifest();
@@ -345,8 +345,19 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		nodeWithAccountsView = AccountsNodes.ofGreenRed(node, localGamete, privateKeyOfLocalGamete, coins);
 	}
 
-	protected static void setJar(String jar) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException, NoSuchElementException, ClassNotFoundException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
-		HotmokaTest.jar = JarsNodes.of(node, localGamete, privateKeyOfLocalGamete, pathOfExample(jar)).jar(0);
+	protected static void setJar(String jar) throws TransactionRejectedException, TransactionException, IOException, NodeException, TimeoutException, InterruptedException {
+		try {
+			HotmokaTest.jar = JarsNodes.of(node, localGamete, privateKeyOfLocalGamete, pathOfExample(jar)).jar(0);
+		}
+		catch (NoSuchElementException e) {
+			throw new NodeException(e); // we installed exactly one jar
+		}
+		catch (UnknownReferenceException e) {
+			throw new NodeException(e); // the local gamete exists! We created it
+		}
+		catch (InvalidKeyException | SignatureException e) {
+			throw new NodeException(e); // we set a correct key for the local gamete!
+		}
 	}
 
 	protected final TransactionReference takamakaCode() {

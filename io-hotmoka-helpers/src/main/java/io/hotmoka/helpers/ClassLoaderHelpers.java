@@ -16,15 +16,9 @@ limitations under the License.
 
 package io.hotmoka.helpers;
 
-import java.util.concurrent.TimeoutException;
-
 import io.hotmoka.helpers.api.ClassLoaderHelper;
 import io.hotmoka.helpers.internal.ClassLoaderHelperImpl;
-import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
 
 /**
  * Providers of helpers for building class loaders for the jar installed at a given
@@ -39,14 +33,8 @@ public class ClassLoaderHelpers {
 	 * 
 	 * @param node the node
 	 * @return the helper object
-	 * @throws TransactionRejectedException if some transaction was rejected
-	 * @throws TransactionException if some transaction failed
-	 * @throws CodeExecutionException if some transaction generated an exception
-	 * @throws InterruptedException if the current thread is interrupted while performing the operation
-	 * @throws TimeoutException if the operation does not complete within the expected time window
-	 * @throws NodeException if the node is not able to complete the operation
 	 */
-	public static ClassLoaderHelper of(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	public static ClassLoaderHelper of(Node node) {
 		return new ClassLoaderHelperImpl(node);
 	}
 }

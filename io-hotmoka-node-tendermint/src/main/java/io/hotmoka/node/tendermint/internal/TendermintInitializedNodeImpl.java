@@ -83,10 +83,50 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
+	public TendermintInitializedNodeImpl(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, Path takamakaCode)
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, NodeException, TimeoutException, InterruptedException {
+
+		super(mkParent(parent, consensus, takamakaCode));
+	}
+
+	/**
+	 * Creates a decorated node with basic Takamaka classes, gamete and manifest.
+	 * Uses the given keys to control the gamete. Uses the chain id, the genesis time and the validators
+	 * of the underlying Tendermint network. It allows to specify the gas station to use.
+	 * 
+	 * @param parent the node to decorate
+	 * @param consensus the consensus parameters that will be set for the node
+	 * @param producerOfGasStationBuilder
+	 * 		an algorithm that creates the builder of the gas station to be installed in the manifest of the node;
+	 *      if this is {@code null}, a generic gas station is created
+	 * @param takamakaCode the jar containing the basic Takamaka classes
+	 * @throws TransactionRejectedException if some transaction that installs the jar or creates the accounts is rejected
+	 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
+	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
+	 * @throws IOException if the jar file cannot be accessed
+	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws TimeoutException if no answer arrives before a time window
+	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
+	 */
 	public TendermintInitializedNodeImpl(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStationBuilder, Path takamakaCode)
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, NodeException, TimeoutException, InterruptedException {
 
 		super(mkParent(parent, consensus, producerOfGasStationBuilder, takamakaCode));
+	}
+
+	private static InitializedNode mkParent(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, Path takamakaCode) throws NodeException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException {
+		var tendermintConfigFile = new TendermintConfigFile(parent.getLocalConfig());
+		var poster = new TendermintPoster(parent.getLocalConfig(), tendermintConfigFile.tendermintPort);
+
+		// we modify the consensus parameters, by setting the chain identifier and the genesis time to that of the underlying Tendermint network
+		consensus = consensus.toBuilder()
+			.setChainId(poster.getTendermintChainId())
+			.setGenesisTime(LocalDateTime.parse(poster.getGenesisTime(), DateTimeFormatter.ISO_DATE_TIME))
+			.build();
+
+		return InitializedNodes.of(parent, consensus, takamakaCode,
+			(node, _consensus, takamakaCodeReference) -> createTendermintValidatorsBuilder(poster, node, _consensus, takamakaCodeReference),
+			null);
 	}
 
 	private static InitializedNode mkParent(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStationBuilder, Path takamakaCode) throws NodeException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException {
@@ -109,9 +149,17 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 
 		StorageReference gamete = node.gamete();
 		var getNonceRequest = TransactionRequests.instanceViewMethodCall(gamete, BigInteger.valueOf(50_000), takamakaCodeReference, MethodSignatures.NONCE, gamete);
-		BigInteger nonceOfGamete = node.runInstanceMethodCallTransaction(getNonceRequest)
-			.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
-			.asBigInteger(value -> new NodeException(MethodSignatures.NONCE + " should return a BigInteger, not a " + value.getClass().getName()));
+		BigInteger nonceOfGamete;
+
+		try {
+			nonceOfGamete = node.runInstanceMethodCallTransaction(getNonceRequest)
+				.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
+				.asBigInteger(value -> new NodeException(MethodSignatures.NONCE + " should return a BigInteger, not a " + value.getClass().getName()));
+		}
+		catch (CodeExecutionException | TransactionException e) {
+			// this run call cannot fail for the gamete, unless the node is corrupted
+			throw new NodeException(e);
+		}
 
 		// we create validators corresponding to those declared in the configuration file of the Tendermint node
 		var tendermintValidators = poster.getTendermintValidators().toArray(TendermintValidator[]::new);

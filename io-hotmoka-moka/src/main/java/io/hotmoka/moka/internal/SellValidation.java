@@ -19,6 +19,7 @@ package io.hotmoka.moka.internal;
 import java.math.BigInteger;
 import java.net.URI;
 import java.security.KeyPair;
+import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.GasHelpers;
@@ -32,6 +33,8 @@ import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
@@ -154,7 +157,7 @@ public class SellValidation extends AbstractCommand {
 				yesNo("Do you really want to spend up to " + gas + " gas units to place on sale the validation power [Y/N] ");
 		}
 
-		private void printCosts(TransactionRequest<?>... requests) {
+		private void printCosts(TransactionRequest<?>... requests) throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, UnknownReferenceException {
 			if (printCosts)
 				SellValidation.this.printCosts(node, requests);
 		}

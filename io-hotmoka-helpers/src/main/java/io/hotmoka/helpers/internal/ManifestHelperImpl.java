@@ -23,11 +23,14 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import io.hotmoka.helpers.AbstractNodeDecorator;
 import io.hotmoka.helpers.api.ManifestHelper;
+import io.hotmoka.node.ClosedNodeException;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
-import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.CodeExecutionException;
@@ -41,23 +44,25 @@ import io.hotmoka.node.api.values.BooleanValue;
 import io.hotmoka.node.api.values.IntValue;
 import io.hotmoka.node.api.values.LongValue;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.api.values.StringValue;
 
 /**
  * Implementation of an object that helps with the access to the manifest of a node.
  */
-public class ManifestHelperImpl implements ManifestHelper {
-	private final Node node;
+public class ManifestHelperImpl extends AbstractNodeDecorator<Node> implements ManifestHelper {
 	private final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
 	private final static BigInteger _100_000_000 = BigInteger.valueOf(100_000_000L);
-	private final StorageReference gasStation;
 	private final TransactionReference takamakaCode;
 	private final StorageReference manifest;
+	private final StorageReference gasStation;
 	private final StorageReference versions;
 	private final StorageReference validators;
 	private final StorageReference initialValidators;
 	private final StorageReference accountsLedger;
 	private final StorageReference gamete;
+
+	private final static Logger LOGGER = Logger.getLogger(ManifestHelperImpl.class.getName());
 
 	/**
 	 * Creates an object that helps with the access to the manifest of a node.
@@ -67,94 +72,121 @@ public class ManifestHelperImpl implements ManifestHelper {
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws NodeException if the node is not able to complete the operation
 	 */
-	public ManifestHelperImpl(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
-		this.node = node;
+	public ManifestHelperImpl(Node node) throws NodeException, TimeoutException, InterruptedException {
+		super(node);
+
 		this.takamakaCode = node.getTakamakaCode();
 		this.manifest = node.getManifest();
-		this.validators = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest))
-			.orElseThrow(() -> new NodeException(MethodSignatures.GET_VALIDATORS + " should not return void"));
-		this.initialValidators = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_VALIDATORS, manifest))
-			.orElseThrow(() -> new NodeException(MethodSignatures.GET_INITIAL_VALIDATORS + " should not return void"));
-		this.gasStation = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAS_STATION, manifest))
-			.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAS_STATION + " should not return void"));
-		this.versions = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(manifest, _100_000, takamakaCode, MethodSignatures.GET_VERSIONS, manifest))
-			.orElseThrow(() -> new NodeException(MethodSignatures.GET_VERSIONS + " should not return void"));
-		this.accountsLedger = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(manifest, _100_000, takamakaCode, MethodSignatures.GET_ACCOUNTS_LEDGER, manifest))
-			.orElseThrow(() -> new NodeException(MethodSignatures.GET_ACCOUNTS_LEDGER + " should not return void"));
-		this.gamete = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
-			.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"));
+
+		try {
+			this.validators = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest))
+					.orElseThrow(() -> new NodeException(MethodSignatures.GET_VALIDATORS + " should not return void"))
+					.asReference(value -> new NodeException(MethodSignatures.GET_VALIDATORS + " should return a reference, not a " + value.getClass().getName()));
+			this.initialValidators = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_VALIDATORS, manifest))
+					.orElseThrow(() -> new NodeException(MethodSignatures.GET_INITIAL_VALIDATORS + " should not return void"))
+					.asReference(value -> new NodeException(MethodSignatures.GET_INITIAL_VALIDATORS + " should return a reference, not a " + value.getClass().getName()));
+			this.gasStation = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAS_STATION, manifest))
+					.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAS_STATION + " should not return void"))
+					.asReference(value -> new NodeException(MethodSignatures.GET_GAS_STATION + " should return a reference, not a " + value.getClass().getName()));
+			this.versions = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VERSIONS, manifest))
+					.orElseThrow(() -> new NodeException(MethodSignatures.GET_VERSIONS + " should not return void"))
+					.asReference(value -> new NodeException(MethodSignatures.GET_VERSIONS + " should return a reference, not a " + value.getClass().getName()));
+			this.accountsLedger = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_ACCOUNTS_LEDGER, manifest))
+					.orElseThrow(() -> new NodeException(MethodSignatures.GET_ACCOUNTS_LEDGER + " should not return void"))
+					.asReference(value -> new NodeException(MethodSignatures.GET_ACCOUNTS_LEDGER + " should return a reference, not a " + value.getClass().getName()));
+			this.gamete = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
+					.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"))
+					.asReference(value -> new NodeException(MethodSignatures.GET_GAMETE + " should return a reference, not a " + value.getClass().getName()));
+		}
+		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
+			// the node is already initialized, hence these run calls cannot fail if the node is not corrupted
+			throw new NodeException(e);
+		}
 	}
 
 	@Override
-	public TransactionReference getTakamakaCode() {
-		return takamakaCode;
-	}
-
-	@Override
-	public StorageReference getAccountsLedger() {
+	public StorageReference getAccountsLedger() throws ClosedNodeException {
+		ensureNotClosed();
 		return accountsLedger;
 	}
 
 	@Override
-	public StorageReference getInitialValidators() {
+	public StorageReference getInitialValidators() throws ClosedNodeException {
+		ensureNotClosed();
 		return initialValidators;
 	}
 
 	@Override
-	public StorageReference getValidators() {
+	public StorageReference getValidators() throws ClosedNodeException {
+		ensureNotClosed();
 		return validators;
 	}
 
 	@Override
-	public StorageReference getManifest() {
+	public StorageReference getManifest() throws ClosedNodeException {
+		ensureNotClosed();
 		return manifest;
 	}
 
 	@Override
-	public StorageReference getVersions() {
+	public StorageReference getVersions() throws ClosedNodeException {
+		ensureNotClosed();
 		return versions;
 	}
 
 	@Override
-	public StorageReference getGamete() {
+	public StorageReference getGamete() throws ClosedNodeException {
+		ensureNotClosed();
 		return gamete;
 	}
 
 	@Override
-	public StorageReference getGasStation() {
+	public StorageReference getGasStation() throws ClosedNodeException {
+		ensureNotClosed();
 		return gasStation;
 	}
 
 	@Override
-	public String getChainId() throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
-		return ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(gamete, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
-			.orElseThrow(() -> new NodeException(MethodSignatures.GET_CHAIN_ID + " should not return void"))).getValue();
+	public String getChainId() throws NodeException, TimeoutException, InterruptedException {
+		ensureNotClosed();
+
+		try {
+			// this cannot be precomputed as, for instance, the manifest, since it might change
+			return getParent().runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
+					.orElseThrow(() -> new NodeException(MethodSignatures.GET_CHAIN_ID + " should not return void"))
+					.asString(value -> new NodeException(MethodSignatures.GET_CHAIN_ID + " should return a string, not a " + value.getClass().getName()));
+		}
+		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
+			// the node is initialized, hence this run call cannot throw these, unless the node is corrupted
+			throw new NodeException(e);
+		}
 	}
 
 	@Override
 	public String toString() {
 		var builder = new StringBuilder();
+		var node = getParent();
 
 		try {
 			builder.append("├─ takamakaCode: ").append(takamakaCode).append("\n");
 			builder.append("└─ manifest: ").append(manifest).append("\n");
 
-			String genesisTime = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+			String genesisTime = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(gamete, _100_000, takamakaCode, MethodSignatures.GET_GENESIS_TIME, manifest))
-				.orElseThrow(() -> new NodeException(MethodSignatures.GET_GENESIS_TIME + " should not return void"))).getValue();
+				.orElseThrow(() -> new NodeException(MethodSignatures.GET_GENESIS_TIME + " should not return void"))
+				.asString(value -> new NodeException(MethodSignatures.GET_GENESIS_TIME + " should return a string, not a " + value.getClass().getName()));
 			builder.append("   ├─ genesisTime: ").append(genesisTime).append("\n");
 
-			String chainId = getChainId();
-			builder.append("   ├─ chainId: ").append(chainId).append("\n");
+			builder.append("   ├─ chainId: ").append(getChainId()).append("\n");
 
-			int maxErrorLength = ((IntValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+			int maxErrorLength = ((IntValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall // TODO: avoid casts
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_ERROR_LENGTH, manifest))
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_MAX_ERROR_LENGTH + " should not return void"))).getValue();
 
@@ -553,8 +585,11 @@ public class ManifestHelperImpl implements ManifestHelper {
 
 			builder.append("      └─ verificationVersion: ").append(verificationVersion).append("\n");
 		}
-		catch (Exception e) {
-			builder.append("error while accessing the manifest of the node: ").append(e).append("\n");
+		catch (NodeException | TransactionRejectedException | TransactionException | CodeExecutionException | TimeoutException e) {
+			LOGGER.log(Level.SEVERE, "cannot extract the information inside the manifest", e);
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
 		}
 
 		return builder.toString();
