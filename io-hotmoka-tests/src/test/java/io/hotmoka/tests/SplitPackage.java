@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.tests;
 
 import static java.math.BigInteger.ONE;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -56,7 +57,7 @@ class SplitPackage extends HotmokaTest {
 	
 	@Test @DisplayName("jars with packages split among them cannot be put together")
 	void testSplitPackages() {
-		throwsTransactionRejectedWithCause(IllegalArgumentException.class, () ->
+		assertThrows(TransactionRejectedException.class, () ->
 			addJarStoreTransaction(privateKey(0), account(0), _1_000_000, ONE, takamakaCode(), bytesOf("basicdependency.jar"), jar()));
 	}
 }

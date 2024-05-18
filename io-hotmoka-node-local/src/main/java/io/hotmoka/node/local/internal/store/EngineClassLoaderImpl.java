@@ -18,7 +18,6 @@ package io.hotmoka.node.local.internal.store;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -42,6 +41,7 @@ import io.hotmoka.exceptions.CheckRunnable;
 import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.instrumentation.api.InstrumentationFields;
 import io.hotmoka.node.StorageTypes;
+import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.responses.TransactionResponse;
@@ -156,6 +156,8 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * w.r.t. its version when the response has been added into the store.
 	 */
 	private final Reverification reverification;
+
+	private final ConsensusConfig<?, ?> consensus;
 	
 	private final static int CLASS_END_LENGTH = ".class".length();
 
@@ -169,13 +171,12 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @throws ClassNotFoundException if some class of the dependencies cannot be found
 	 * @throws StoreException 
 	 */
-	public EngineClassLoaderImpl(byte[] jar, Stream<TransactionReference> dependencies, ExecutionEnvironment environment, ConsensusConfig<?,?> consensus) throws StoreException, ClassNotFoundException {
+	public EngineClassLoaderImpl(byte[] jar, Stream<TransactionReference> dependencies, ExecutionEnvironment environment, ConsensusConfig<?,?> consensus) throws StoreException, TransactionRejectedException {
 		try {
 			var dependenciesAsList = dependencies.collect(Collectors.toList());
 
-			// consensus might be null just after restarting a node, during the recomputation of the same consensus from the store;
-			// if reverification is not possible, we build an empty reverification object, for no dependencies
-			this.reverification = new Reverification(consensus != null ? dependenciesAsList.stream() : Stream.empty(), environment, consensus);
+			this.consensus = consensus;
+			this.reverification = new Reverification(dependenciesAsList.stream(), environment, consensus);
 			var jars = new ArrayList<byte[]>();
 			var transactionsOfJars = new ArrayList<TransactionReference>();
 			this.parent = mkTakamakaClassLoader(dependenciesAsList.stream(), consensus, jar, environment, jars, transactionsOfJars);
@@ -224,8 +225,9 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @return the class loader
 	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
 	 * @throws StoreException 
+	 * @throws TransactionRejectedException 
 	 */
-	private TakamakaClassLoader mkTakamakaClassLoader(Stream<TransactionReference> dependencies, ConsensusConfig<?,?> consensus, byte[] start, ExecutionEnvironment environment, List<byte[]> jars, ArrayList<TransactionReference> transactionsOfJars) throws ClassNotFoundException, StoreException {
+	private TakamakaClassLoader mkTakamakaClassLoader(Stream<TransactionReference> dependencies, ConsensusConfig<?,?> consensus, byte[] start, ExecutionEnvironment environment, List<byte[]> jars, ArrayList<TransactionReference> transactionsOfJars) throws StoreException, TransactionRejectedException {
 		var counter = new AtomicInteger();
 
 		if (start != null) {
@@ -234,15 +236,17 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			counter.incrementAndGet();
 		}
 
-		CheckRunnable.check(StoreException.class, () -> dependencies.forEachOrdered(UncheckConsumer.uncheck(dependency -> addJars(dependency, consensus, jars, transactionsOfJars, environment, counter))));
+		CheckRunnable.check(StoreException.class, TransactionRejectedException.class, () -> dependencies.forEachOrdered(UncheckConsumer.uncheck(dependency -> addJars(dependency, consensus, jars, transactionsOfJars, environment, counter))));
 		processClassInJar(jars, transactionsOfJars);
 
-		// consensus might be null if the node is restarting, during the recomputation of its consensus itself
 		try {
-			return TakamakaClassLoaders.of(jars.stream(), consensus != null ? consensus.getVerificationVersion() : 0);
+			return TakamakaClassLoaders.of(jars.stream(), consensus.getVerificationVersion());
 		}
 		catch (UnsupportedVerificationVersionException e) {
 			throw new StoreException(e);
+		}
+		catch (ClassNotFoundException e) {
+			throw new TransactionRejectedException(e, consensus);
 		}
 	}
 
@@ -252,8 +256,9 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * 
 	 * @param jars the jars that form the classpath of this classloader
 	 * @param transactionsOfJars the transactions that have installed the {@code jars}
+	 * @throws TransactionRejectedException 
 	 */
-	private void processClassInJar(List<byte[]> jars, List<TransactionReference> transactionsOfJars) {
+	private void processClassInJar(List<byte[]> jars, List<TransactionReference> transactionsOfJars) throws TransactionRejectedException {
 		// a map from each package name to the jar that defines it
 		Map<String, Integer> packages = new HashMap<>();
 
@@ -268,7 +273,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
     					int lastDot = className.lastIndexOf('.');
 
     					if (lastDot == 0)
-    						throw new IllegalArgumentException("package names cannot start with a dot");
+    						throw new TransactionRejectedException("Package names cannot start with a dot");
 
     					String packageName = lastDot < 0 ? "" : className.substring(0, lastDot);
     					Integer previously = packages.get(packageName);
@@ -276,9 +281,9 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
     						packages.put(packageName, pos);
     					else if (previously != pos)
     						if (packageName.isEmpty())
-    							throw new IllegalArgumentException("the default package cannot be split across more jars");
+    							throw new TransactionRejectedException("The default package cannot be split across more jars", consensus);
     						else
-    							throw new IllegalArgumentException("package " + packageName + " cannot be split across more jars");
+    							throw new TransactionRejectedException("Package " + packageName + " cannot be split across more jars", consensus);
 
     					// if the transaction reference is null, it means that the class comes from a jar that is being installed
     					// by the transaction that created this class loader. In that case, the storage reference of the class is not used
@@ -289,7 +294,8 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
     			}
             }
     		catch (IOException e) {
-    			throw new UncheckedIOException(e);
+    			// the jars seem corrupted
+    			throw new TransactionRejectedException(e, consensus);
     		}
 
 			pos++;
@@ -305,11 +311,12 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @param jarTransactions the list of transactions where the {@code jars} have been installed
 	 * @param node the node for which the class loader is created
 	 * @param counter the number of jars that have been encountered up to now, during the recursive descent
+	 * @throws TransactionRejectedException 
 	 */
-	private void addJars(TransactionReference classpath, ConsensusConfig<?,?> consensus, List<byte[]> jars, List<TransactionReference> jarTransactions, ExecutionEnvironment environment, AtomicInteger counter) throws StoreException {
+	private void addJars(TransactionReference classpath, ConsensusConfig<?,?> consensus, List<byte[]> jars, List<TransactionReference> jarTransactions, ExecutionEnvironment environment, AtomicInteger counter) throws StoreException, TransactionRejectedException {
 		// consensus might be null if the node is restarting, during the recomputation of its consensus itself
 		if (consensus != null && counter.incrementAndGet() > consensus.getMaxDependencies())
-			throw new IllegalArgumentException("too many dependencies in classpath: max is " + consensus.getMaxDependencies());
+			throw new TransactionRejectedException("Too many dependencies in classpath: max is " + consensus.getMaxDependencies(), consensus);
 
 		TransactionResponseWithInstrumentedJar responseWithInstrumentedJar = getResponseWithInstrumentedJarAtUncommitted(classpath, environment);
 
@@ -321,7 +328,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 
 		// consensus might be null if the node is restarting, during the recomputation of its consensus itself
 		if (consensus != null && jars.stream().mapToLong(bytes -> bytes.length).sum() > consensus.getMaxCumulativeSizeOfDependencies())
-			throw new IllegalArgumentException("too large cumulative size of dependencies in classpath: max is " + consensus.getMaxCumulativeSizeOfDependencies() + " bytes");
+			throw new TransactionRejectedException("Too large cumulative size of dependencies in classpath: max is " + consensus.getMaxCumulativeSizeOfDependencies() + " bytes", consensus);
 	}
 
 	/*
@@ -332,9 +339,9 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @param reference the reference of the transaction
 	 * @param node the node for which the class loader is created
 	 * @return the response
-	 * @throws IllegalArgumentException if the transaction does not exist in the store, or did not generate a response with instrumented jar
+	 * @throws TransactionRejectedException if the transaction does not exist in the store, or did not generate a response with instrumented jar
 	 */
-	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference, ExecutionEnvironment environment) throws StoreException {
+	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference, ExecutionEnvironment environment) throws StoreException, TransactionRejectedException {
 		// first we check if the response has been reverified and we use the reverified version
 		Optional<TransactionResponse> maybeResponse = reverification.getReverifiedResponse(reference);
 		TransactionResponse response;
@@ -346,14 +353,14 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 				response = environment.getResponse(reference);
 			}
 			catch (UnknownReferenceException e) {
-				throw new IllegalArgumentException("unknown transaction reference " + reference); // TODO
+				throw new TransactionRejectedException("Unknown transaction reference " + reference, consensus);
 			}
 		}
 
 		if (response instanceof TransactionResponseWithInstrumentedJar trwij)
 			return trwij;
 		else
-			throw new IllegalArgumentException("The transaction " + reference + " did not install a jar in store"); // TODO
+			throw new TransactionRejectedException("The transaction " + reference + " did not install a jar in store", consensus);
 	}
 
 	@Override

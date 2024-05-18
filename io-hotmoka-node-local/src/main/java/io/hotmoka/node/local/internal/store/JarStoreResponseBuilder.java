@@ -55,13 +55,7 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 	protected EngineClassLoader mkClassLoader() throws StoreException, TransactionRejectedException {
 		// we redefine this method, since the class loader must be able to access the
 		// jar that is being installed and its dependencies, in order to instrument them
-		try {
-			return new EngineClassLoaderImpl(request.getJar(), request.getDependencies(), environment, consensus);
-		}
-		catch (ClassNotFoundException | IllegalArgumentException e) {
-			// the request is trying to install a jar with inconsistent dependencies
-			throw new TransactionRejectedException(e, consensus);
-		}
+		return new EngineClassLoaderImpl(request.getJar(), request.getDependencies(), environment, consensus);
 	}
 
 	@Override

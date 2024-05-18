@@ -179,9 +179,10 @@ public class ManifestHelperImpl extends AbstractNodeDecorator<Node> implements M
 
 			builder.append("   ├─ chainId: ").append(getChainId()).append("\n");
 
-			int maxErrorLength = ((IntValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall // TODO: avoid casts
+			int maxErrorLength = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall // TODO: avoid casts
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_ERROR_LENGTH, manifest))
-				.orElseThrow(() -> new NodeException(MethodSignatures.GET_MAX_ERROR_LENGTH + " should not return void"))).getValue();
+				.orElseThrow(() -> new NodeException(MethodSignatures.GET_MAX_ERROR_LENGTH + " should not return void"))
+				.asInt(value -> new NodeException(MethodSignatures.GET_MAX_ERROR_LENGTH + " should return an int, not a " + value.getClass().getName()));
 
 			builder.append("   ├─ maxErrorLength: ").append(maxErrorLength).append("\n");
 
