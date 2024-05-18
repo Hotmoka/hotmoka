@@ -53,7 +53,7 @@ import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StringValue;
-import io.hotmoka.node.local.DeserializationException;
+import io.hotmoka.node.local.internal.store.UpdatesExtractionException;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -325,11 +325,11 @@ class Basic extends HotmokaTest {
 			runInstanceNonVoidMethodCallTransaction(master, _200_000, classpath, MethodSignatures.ofNonVoid(WITH_LIST, "toString", StorageTypes.STRING), wl));
 	}
 
-	@Test @DisplayName("new WithList().illegal() throws TransactionException since DeserializationError")
-	void deserializationError() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	@Test @DisplayName("new WithList().illegal() throws TransactionException since UpdatesExtractionException")
+	void updatesExtractionException() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference wl = addConstructorCallTransaction(key, master, _200_000, ONE, classpath, ConstructorSignatures.of(WITH_LIST));
 		
-		throwsTransactionExceptionWithCause(DeserializationException.class, () ->
+		throwsTransactionExceptionWithCause(UpdatesExtractionException.class, () ->
 			addInstanceVoidMethodCallTransaction(key, master, _200_000, ONE, classpath, MethodSignatures.ofVoid(WITH_LIST, "illegal"), wl)
 		);
 	}
