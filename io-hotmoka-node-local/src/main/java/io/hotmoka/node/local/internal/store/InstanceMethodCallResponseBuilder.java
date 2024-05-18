@@ -102,10 +102,9 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	 * 
 	 * @return the method
 	 * @throws NoSuchMethodException if the method could not be found
-	 * @throws SecurityException if the method could not be accessed
 	 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
 	 */
-	private Method getFromContractMethod() throws NoSuchMethodException, SecurityException, ClassNotFoundException {
+	private Method getFromContractMethod() throws NoSuchMethodException, ClassNotFoundException {
 		MethodSignature method = request.getStaticTarget();
 		Class<?> returnType = method instanceof NonVoidMethodSignature nvms ? classLoader.loadClass(nvms.getReturnType()) : void.class;
 		Class<?>[] argTypes = formalsAsClassForFromContract();

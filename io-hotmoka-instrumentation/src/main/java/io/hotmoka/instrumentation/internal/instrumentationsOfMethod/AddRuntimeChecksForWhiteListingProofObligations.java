@@ -57,7 +57,7 @@ import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
 import io.hotmoka.whitelisting.HasDeterministicTerminatingToString;
 import io.hotmoka.whitelisting.MustBeFalse;
-import io.hotmoka.whitelisting.ResolvingClassLoaders;
+import io.hotmoka.whitelisting.WhiteListingClassLoaders;
 import io.hotmoka.whitelisting.WhitelistingConstants;
 import io.hotmoka.whitelisting.api.WhiteListingProofObligation;
 
@@ -408,7 +408,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 			// we only accept white-listing annotations from the white-listing module;
 			// this avoids the risk of users sending their white-listing annotations along
 			// with their code and implementing the check method in dangerous ways
-			if (annotationType.getPackage() == ResolvingClassLoaders.class.getPackage()) {
+			if (annotationType.getPackage() == WhiteListingClassLoaders.class.getPackage()) {
 				WhiteListingProofObligation wlpo = annotationType.getAnnotation(WhiteListingProofObligation.class);
 				if (wlpo != null)
 					// we check if the annotation could not be statically discharged

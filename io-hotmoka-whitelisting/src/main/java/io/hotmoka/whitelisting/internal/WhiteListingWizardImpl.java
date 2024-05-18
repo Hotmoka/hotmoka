@@ -23,6 +23,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Optional;
 
+import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 import io.hotmoka.whitelisting.api.WhiteListingWizard;
 
 /**
@@ -34,7 +35,7 @@ class WhiteListingWizardImpl implements WhiteListingWizard {
 	/**
 	 * The class loader used to load the classes whose code is checked for white-listing.
 	 */
-	private final ResolvingClassLoaderImpl classLoader;
+	private final WhiteListingClassLoaderImpl classLoader;
 
 	/**
 	 * The package name where the white-listing annotations are looked for.
@@ -45,31 +46,19 @@ class WhiteListingWizardImpl implements WhiteListingWizard {
 	 * Builds a wizard.
 	 * 
 	 * @param classLoader the class loader used to load the classes whose code is checked for white-listing
+	 * @throws UnsupportedVerificationVersionException if the annotations for the required verification
+	 *                                                 version cannot be found in the database
 	 */
-	WhiteListingWizardImpl(ResolvingClassLoaderImpl classLoader) {
+	WhiteListingWizardImpl(WhiteListingClassLoaderImpl classLoader) throws UnsupportedVerificationVersionException {
 		this.classLoader = classLoader;
 		this.whiteListedRootWithVersion = WHITE_LISTED_ROOT + ".version" + classLoader.getVerificationVersion() + ".";
 		ensureVerificationVersionExistsInDatabase();
 	}
 
-	/**
-	 * Tries to load the white-listing annotations of class java.lang.Object from the database.
-	 * 
-	 * @throws MissingWhiteListingAnnotationsError if the annotations cannot be found in the database
-	 */
-	private void ensureVerificationVersionExistsInDatabase() {
-		try {
-			classLoader.loadClass(whiteListedRootWithVersion + Object.class.getName());
-		}
-		catch (ClassNotFoundException e) {
-			throw new IllegalStateException("the white-listing annotations are missing for verification version " + classLoader.getVerificationVersion());
-		}
-	}
-
 	@Override
 	public Optional<Field> whiteListingModelOf(Field field) {
-		// if the class defining the field has been loaded by the blockchain class loader,
-		// then it comes from blockchain and the field is white-listed
+		// if the class defining the field has been loaded by this class loader,
+		// then it comes from store of the node and the field is white-listed
 		if (field.getDeclaringClass().getClassLoader() == classLoader)
 			return Optional.of(field);
 		else
@@ -78,11 +67,9 @@ class WhiteListingWizardImpl implements WhiteListingWizard {
 
 	@Override
 	public Optional<Constructor<?>> whiteListingModelOf(Constructor<?> constructor) {
-		// if the class defining the constructor has been loaded by the blockchain class loader,
-		// then it comes from blockchain and the constructor is white-listed
-		Class<?> declaringClass = constructor.getDeclaringClass();
-
-		if (declaringClass.getClassLoader() == classLoader)
+		// if the class defining the constructor has been loaded by this class loader,
+		// then it comes from the store of the node and the constructor is white-listed
+		if (constructor.getDeclaringClass().getClassLoader() == classLoader)
 			return Optional.of(constructor);
 		else
 			return constructorInWhiteListedLibraryFor(constructor);
@@ -93,8 +80,8 @@ class WhiteListingWizardImpl implements WhiteListingWizard {
 		Class<?> declaringClass = method.getDeclaringClass();
 
 		if (declaringClass.getClassLoader() == classLoader)
-			// if the class defining the method has been loaded by the blockchain class loader,
-			// then it comes from blockchain and the method is white-listed
+			// if the class defining the method has been loaded by this class loader,
+			// then it comes from the store of the node and the method is white-listed
 			return Optional.of(method);
 		else {
 			// otherwise we check in the possibly overridden methods
@@ -133,6 +120,21 @@ class WhiteListingWizardImpl implements WhiteListingWizard {
 		return Optional.empty();
 	}
 
+	/**
+	 * Ensures that the required version of the white-listing annotations is present.
+	 * 
+	 * @throws UnsupportedVerificationVersionException if the annotations for the required verification
+	 *                                                 version cannot be found in the database
+	 */
+	private void ensureVerificationVersionExistsInDatabase() throws UnsupportedVerificationVersionException {
+		try {
+			classLoader.loadClass(whiteListedRootWithVersion + Object.class.getName());
+		}
+		catch (ClassNotFoundException e) {
+			throw new UnsupportedVerificationVersionException(classLoader.getVerificationVersion());
+		}
+	}
+
 	private Optional<Field> fieldInWhiteListedLibraryFor(Field field) {
 		try {
 			return classLoader.resolveField(mirrorClassNameFor(field), field.getName(), field.getType());
@@ -153,15 +155,15 @@ class WhiteListingWizardImpl implements WhiteListingWizard {
 		}
 	}
 
-	private Optional<java.lang.reflect.Method> methodInWhiteListedLibraryFor(java.lang.reflect.Method method) {
+	private Optional<Method> methodInWhiteListedLibraryFor(Method method) {
 		// Method Object.getClass() is white-listed but we cannot put it in the white-listed library, since that method is final in Object
 		if (method.getDeclaringClass() == Object.class && "getClass".equals(method.getName()))
 			try {
 				return Optional.of(Object.class.getMethod("getClass"));
 			}
-			catch (NoSuchMethodException | SecurityException e) {
+			catch (NoSuchMethodException e) {
 				// this will never happen
-				throw new IllegalStateException("Cannot access method Object.getClass()");
+				throw new RuntimeException(e);
 			}
 	
 		try {

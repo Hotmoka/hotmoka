@@ -14,11 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.local.api;
+package io.hotmoka.whitelisting.api;
 
 /**
- * An exception thrown when the verification version of the node
- * is not supported by its verification module.
+ * An exception thrown when the verification version of the node is not supported.
  */
 public class UnsupportedVerificationVersionException extends Exception {
 	private static final long serialVersionUID = -1232455923178336022L;
@@ -34,7 +33,7 @@ public class UnsupportedVerificationVersionException extends Exception {
 	 * @param verificationVerification the unsupported verification version
 	 */
 	public UnsupportedVerificationVersionException(long verificationVerification) {
-		super("the verification module does not support version " + verificationVerification);
+		super("The verification module does not support version " + verificationVerification);
 
 		this.verificationVerification = verificationVerification;
 	}

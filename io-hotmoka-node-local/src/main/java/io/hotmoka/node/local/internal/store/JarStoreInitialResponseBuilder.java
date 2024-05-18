@@ -27,9 +27,9 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.AbstractInitialResponseBuilder;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
 import io.hotmoka.verification.VerificationException;
 import io.hotmoka.verification.VerifiedJars;
+import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 
 /**
  * Builds the creator of response for a transaction that installs a jar in the node, during its initialization.

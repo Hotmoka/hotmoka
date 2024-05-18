@@ -24,8 +24,9 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.hotmoka.verification.api.TakamakaClassLoader;
-import io.hotmoka.whitelisting.ResolvingClassLoaders;
-import io.hotmoka.whitelisting.api.ResolvingClassLoader;
+import io.hotmoka.whitelisting.WhiteListingClassLoaders;
+import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
+import io.hotmoka.whitelisting.api.WhiteListingClassLoader;
 import io.hotmoka.whitelisting.api.WhiteListingWizard;
 import io.takamaka.code.constants.Constants;
 
@@ -37,7 +38,7 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	/**
 	 * The decorated resolving class loader.
 	 */
-	private final ResolvingClassLoader parent;
+	private final WhiteListingClassLoader parent;
 
 	/**
 	 * The class token of the contract class.
@@ -118,21 +119,26 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
 	 */
 	public TakamakaClassLoaderImpl(Stream<byte[]> jars, long verificationVersion) throws ClassNotFoundException {
-		this.parent = ResolvingClassLoaders.of(jars, verificationVersion);
-		this.contract = loadClass(Constants.CONTRACT_NAME);
-		this.externallyOwnedAccount = loadClass(Constants.EOA_NAME);
-		this.abstractValidators = loadClass(Constants.ABSTRACT_VALIDATORS_NAME);
-		this.gamete = loadClass(Constants.GAMETE_NAME);
-		this.account = loadClass(Constants.ACCOUNT_NAME);
-		this.accountED25519 = loadClass(Constants.ACCOUNT_ED25519_NAME);
-		this.accountQTESLA1 = loadClass(Constants.ACCOUNT_QTESLA1_NAME);
-		this.accountQTESLA3 = loadClass(Constants.ACCOUNT_QTESLA3_NAME);
-		this.accountSHA256DSA = loadClass(Constants.ACCOUNT_SHA256DSA_NAME);
-		this.storage = loadClass(Constants.STORAGE_NAME);
-		this.consensusUpdateEvent = loadClass(Constants.CONSENSUS_UPDATE_NAME);
-		this.gasPriceUpdateEvent = loadClass(Constants.GAS_PRICE_UPDATE_NAME);
-		this.inflationUpdateEvent = loadClass(Constants.INFLATION_UPDATE_NAME);
-		this.validatorsUpdateEvent = loadClass(Constants.VALIDATORS_UPDATE_NAME);
+		try {
+			this.parent = WhiteListingClassLoaders.of(jars, verificationVersion);
+			this.contract = loadClass(Constants.CONTRACT_NAME);
+			this.externallyOwnedAccount = loadClass(Constants.EOA_NAME);
+			this.abstractValidators = loadClass(Constants.ABSTRACT_VALIDATORS_NAME);
+			this.gamete = loadClass(Constants.GAMETE_NAME);
+			this.account = loadClass(Constants.ACCOUNT_NAME);
+			this.accountED25519 = loadClass(Constants.ACCOUNT_ED25519_NAME);
+			this.accountQTESLA1 = loadClass(Constants.ACCOUNT_QTESLA1_NAME);
+			this.accountQTESLA3 = loadClass(Constants.ACCOUNT_QTESLA3_NAME);
+			this.accountSHA256DSA = loadClass(Constants.ACCOUNT_SHA256DSA_NAME);
+			this.storage = loadClass(Constants.STORAGE_NAME);
+			this.consensusUpdateEvent = loadClass(Constants.CONSENSUS_UPDATE_NAME);
+			this.gasPriceUpdateEvent = loadClass(Constants.GAS_PRICE_UPDATE_NAME);
+			this.inflationUpdateEvent = loadClass(Constants.INFLATION_UPDATE_NAME);
+			this.validatorsUpdateEvent = loadClass(Constants.VALIDATORS_UPDATE_NAME);
+		}
+		catch (UnsupportedVerificationVersionException e) {
+			throw new RuntimeException(e); // TODO
+		}
 	}
 
 	@Override

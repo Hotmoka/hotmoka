@@ -46,7 +46,7 @@ import io.hotmoka.node.local.AbstractNonInitialResponseBuilder;
 import io.hotmoka.node.local.DeserializationException;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.whitelisting.Dummy;
-import io.hotmoka.whitelisting.api.ResolvingClassLoader;
+import io.hotmoka.whitelisting.api.WhiteListingClassLoader;
 import io.hotmoka.whitelisting.api.WhiteListingPredicate;
 import io.hotmoka.whitelisting.api.WhiteListingProofObligation;
 import io.takamaka.code.constants.Constants;
@@ -148,7 +148,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 				if (line >= 0 && !cursor.getClassName().startsWith(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME))
 					try {
 						Class<?> clazz = classLoader.loadClass(cursor.getClassName());
-						if (clazz.getClassLoader() instanceof ResolvingClassLoader)
+						if (clazz.getClassLoader() instanceof WhiteListingClassLoader)
 							return cursor.getFileName() + ":" + line;
 					}
 					catch (Exception e) {}

@@ -39,8 +39,8 @@ import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.ResponseBuilder;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
 import io.hotmoka.verification.VerificationException;
+import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 
 /**
  * A generic implementation of the creator of a response.

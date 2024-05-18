@@ -148,7 +148,6 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		 * 
 		 * @return the constructor
 		 * @throws NoSuchMethodException if the constructor could not be found
-		 * @throws SecurityException if the constructor could not be accessed
 		 * @throws ClassNotFoundException if the class of the constructor or of some parameter cannot be found
 		 */
 		private Constructor<?> getConstructor() throws ClassNotFoundException, NoSuchMethodException {
@@ -156,7 +155,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 			ConstructorSignature constructor = request.getStaticTarget();
 
 			return classLoader.resolveConstructor(constructor.getDefiningClass().getName(), argTypes)
-				.orElseThrow(() -> new NoSuchMethodException(constructor.toString()));
+					.orElseThrow(() -> new NoSuchMethodException(constructor.toString()));
 		}
 
 		/**
@@ -172,7 +171,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 			ConstructorSignature constructor = request.getStaticTarget();
 
 			return classLoader.resolveConstructor(constructor.getDefiningClass().getName(), argTypes)
-				.orElseThrow(() -> new NoSuchMethodException(constructor.toString()));
+					.orElseThrow(() -> new NoSuchMethodException(constructor.toString()));
 		}
 
 		/**

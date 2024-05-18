@@ -23,4 +23,5 @@ module io.hotmoka.whitelisting {
 	opens io.hotmoka.whitelisting.internal.checks; // they are accessed by reflection
 
 	requires transitive io.hotmoka.whitelisting.api;
+	requires java.logging;
 }

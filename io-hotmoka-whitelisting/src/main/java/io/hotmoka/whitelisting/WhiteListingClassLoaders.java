@@ -18,15 +18,16 @@ package io.hotmoka.whitelisting;
 
 import java.util.stream.Stream;
 
-import io.hotmoka.whitelisting.api.ResolvingClassLoader;
-import io.hotmoka.whitelisting.internal.ResolvingClassLoaderImpl;
+import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
+import io.hotmoka.whitelisting.api.WhiteListingClassLoader;
+import io.hotmoka.whitelisting.internal.WhiteListingClassLoaderImpl;
 
 /**
- * A provider of resolving class loaders.
+ * A provider of white-listing class loaders.
  */
-public final class ResolvingClassLoaders {
+public final class WhiteListingClassLoaders {
 
-	private ResolvingClassLoaders() {}
+	private WhiteListingClassLoaders() {}
 
 	/**
 	 * Yields a resolving class loader that loads classes from the given jars, provided as byte arrays.
@@ -35,8 +36,10 @@ public final class ResolvingClassLoaders {
 	 * @param verificationVersion the version of the verification module that must be used; this affects the
 	 *                            set of white-listing annotations used by the class loader
 	 * @return the class loader
+	 * @throws UnsupportedVerificationVersionException if the annotations for the required verification
+	 *                                                 version cannot be found in the database
 	 */
-	public static ResolvingClassLoader of(Stream<byte[]> jars, long verificationVersion) {
-		return new ResolvingClassLoaderImpl(jars, verificationVersion);
+	public static WhiteListingClassLoader of(Stream<byte[]> jars, long verificationVersion) throws UnsupportedVerificationVersionException {
+		return new WhiteListingClassLoaderImpl(jars, verificationVersion);
 	}
 }

@@ -16,12 +16,12 @@ limitations under the License.
 
 package io.hotmoka.verification.api;
 
-import io.hotmoka.whitelisting.api.ResolvingClassLoader;
+import io.hotmoka.whitelisting.api.WhiteListingClassLoader;
 
 /**
  * A class loader used to access the definition of the classes of a Takamaka program.
  */
-public interface TakamakaClassLoader extends ResolvingClassLoader {
+public interface TakamakaClassLoader extends WhiteListingClassLoader {
 
 	/**
 	 * Determines if a class is an instance of the storage class.

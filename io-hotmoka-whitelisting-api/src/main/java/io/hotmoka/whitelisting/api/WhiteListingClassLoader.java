@@ -25,7 +25,7 @@ import java.util.Optional;
  * A class loader that implements resolution methods for fields, constructors and methods,
  * according to Java's resolution rules.
  */
-public interface ResolvingClassLoader {
+public interface WhiteListingClassLoader {
 
 	/**
 	 * Yields the version of the verification module that this class loader is using.
@@ -64,7 +64,6 @@ public interface ResolvingClassLoader {
 	 * @param name the name of the field
 	 * @param type the type of the field
 	 * @return the resolved field, if any
-	 * @throws ClassNotFoundException if some class could not be found during resolution
 	 */
 	Optional<Field> resolveField(String className, String name, Class<?> type) throws ClassNotFoundException;
 
@@ -84,7 +83,7 @@ public interface ResolvingClassLoader {
 	 * @param className the name of the class declaring the constructor
 	 * @param args the arguments of the constructor
 	 * @return the resolved constructor, if any
-	 * @throws ClassNotFoundException if some class could not be found during resolution
+	 * @throws ClassNotFoundException if {@code className} cannot be found
 	 */
 	Optional<Constructor<?>> resolveConstructor(String className, Class<?>[] args) throws ClassNotFoundException;
 
@@ -105,9 +104,9 @@ public interface ResolvingClassLoader {
 	 * @param args the arguments of the method
 	 * @param returnType the return type of the method
 	 * @return the resolved method, if any. It is defined in {@code className} or in one of its superclasses or implemented interfaces
-	 * @throws ClassNotFoundException if some class could not be found during resolution
+	 * @throws ClassNotFoundException if {@code className} cannot be found
 	 */
-	Optional<java.lang.reflect.Method> resolveMethod(String className, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException;
+	Optional<Method> resolveMethod(String className, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException;
 
 	/**
 	 * Yields the method resolved from the given static description.
@@ -118,7 +117,7 @@ public interface ResolvingClassLoader {
 	 * @param returnType the return type of the method
 	 * @return the resolved method, if any. It is defined in {@code className} or in one of its superclasses or implemented interfaces
 	 */
-	Optional<java.lang.reflect.Method> resolveMethod(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType);
+	Optional<Method> resolveMethod(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType);
 
 	/**
 	 * Yields the interface method resolved from the given static description.
@@ -128,7 +127,7 @@ public interface ResolvingClassLoader {
 	 * @param args the arguments of the method
 	 * @param returnType the return type of the method
 	 * @return the resolved method, if any. It is defined in {@code className} or in one of its implemented interfaces
-	 * @throws ClassNotFoundException if some class could not be found during resolution
+	 * @throws ClassNotFoundException if {@code className} cannot be found
 	 */
 	Optional<Method> resolveInterfaceMethod(String className, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException;
 
