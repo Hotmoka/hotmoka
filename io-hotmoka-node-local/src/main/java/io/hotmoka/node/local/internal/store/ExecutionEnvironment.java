@@ -544,7 +544,7 @@ public abstract class ExecutionEnvironment {
 		catch (ClassNotFoundException e) {
 			// since the class loader is created from transactions that are already in the store,
 			// they should be consistent and never miss a dependent class
-			throw new StoreException(e);
+			throw new StoreException(e); // TODO: really?
 		}
 	}
 

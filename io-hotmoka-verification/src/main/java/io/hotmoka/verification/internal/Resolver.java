@@ -19,6 +19,7 @@ package io.hotmoka.verification.internal;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Optional;
 
 import org.apache.bcel.Const;
@@ -69,11 +70,10 @@ public class Resolver {
 	 */
 	public Optional<Field> resolvedFieldFor(FieldInstruction fi) throws ClassNotFoundException {
 		ReferenceType holder = fi.getReferenceType(cpg);
-		if (holder instanceof ObjectType) {
+		if (holder instanceof ObjectType ot) {
 			String name = fi.getFieldName(cpg);
 			Class<?> type = verifiedClass.jar.bcelToClass.of(fi.getFieldType(cpg));
-	
-			return verifiedClass.jar.classLoader.resolveField(((ObjectType) holder).getClassName(), name, type);
+			return verifiedClass.jar.classLoader.resolveField(ot.getClassName(), name, type);
 		}
 	
 		return Optional.empty();
@@ -88,15 +88,15 @@ public class Resolver {
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 	 */
 	public Optional<? extends Executable> resolvedExecutableFor(InvokeInstruction invoke) throws ClassNotFoundException {
-		if (invoke instanceof INVOKEDYNAMIC) {
+		if (invoke instanceof INVOKEDYNAMIC invokedynamic) {
 			Bootstraps bootstraps = verifiedClass.bootstraps;
-			return bootstraps.getTargetOf(bootstraps.getBootstrapFor((INVOKEDYNAMIC) invoke));
+			return bootstraps.getTargetOf(bootstraps.getBootstrapFor(invokedynamic));
 		}
 
 		String methodName = invoke.getMethodName(cpg);
 		ReferenceType receiver = invoke.getReferenceType(cpg);
 		// it is possible to call a method on an array: in that case, the callee is a method of java.lang.Object
-		String receiverClassName = receiver instanceof ObjectType ? ((ObjectType) receiver).getClassName() : "java.lang.Object";
+		String receiverClassName = receiver instanceof ObjectType ot ? ot.getClassName() : "java.lang.Object";
 		Class<?>[] args = verifiedClass.jar.bcelToClass.of(invoke.getArgumentTypes(cpg));
 
 		if (invoke instanceof INVOKESPECIAL && Const.CONSTRUCTOR_NAME.equals(methodName))
@@ -142,15 +142,15 @@ public class Resolver {
 	 * @return the method, if any
 	 * @throws ClassNotFoundException if {@code className} cannot be found in the Takamaka program
 	 */
-	Optional<java.lang.reflect.Method> resolveMethodWithPossiblyExpandedArgs(String className, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
-		Optional<java.lang.reflect.Method> result = verifiedClass.jar.classLoader.resolveMethod(className, methodName, args, returnType);
+	Optional<Method> resolveMethodWithPossiblyExpandedArgs(String className, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
+		Optional<Method> result = verifiedClass.jar.classLoader.resolveMethod(className, methodName, args, returnType);
 		return result.isPresent() ? result : verifiedClass.jar.classLoader.resolveMethod(className, methodName, expandArgsForFromContract(args), returnType);
 	}
 
 	/**
 	 * Yields the resolved method from the given class with the given name, arguments and return type,
 	 * as it would be resolved for a call to an interface method.
-	 * If the method is an {@code @@Entry} of a class already instrumented, it will yield its version with
+	 * If the method is a {@code @@FromContract} of a class already instrumented, it will yield its version with
 	 * the instrumentation arguments added at its end.
 	 * 
 	 * @param className the name of the class from where the method is looked for
@@ -160,8 +160,8 @@ public class Resolver {
 	 * @return the method, if any
 	 * @throws ClassNotFoundException if {@code className} cannot be found in the Takamaka program
 	 */
-	Optional<java.lang.reflect.Method> resolveInterfaceMethodWithPossiblyExpandedArgs(String className, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
-		Optional<java.lang.reflect.Method> result = verifiedClass.jar.classLoader.resolveInterfaceMethod(className, methodName, args, returnType);
+	Optional<Method> resolveInterfaceMethodWithPossiblyExpandedArgs(String className, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
+		Optional<Method> result = verifiedClass.jar.classLoader.resolveInterfaceMethod(className, methodName, args, returnType);
 		return result.isPresent() ? result : verifiedClass.jar.classLoader.resolveInterfaceMethod(className, methodName, expandArgsForFromContract(args), returnType);
 	}
 

@@ -33,7 +33,6 @@ import org.apache.bcel.classfile.ClassFormatException;
 import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.util.ClassLoaderRepository;
 
-import io.hotmoka.verification.UnsupportedVerificationVersionException;
 import io.hotmoka.verification.VerificationException;
 import io.hotmoka.verification.api.Annotations;
 import io.hotmoka.verification.api.BcelToClass;
@@ -41,6 +40,7 @@ import io.hotmoka.verification.api.Error;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.verification.api.VerifiedClass;
 import io.hotmoka.verification.api.VerifiedJar;
+import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 
 /**
  * An implementation of a jar that has undergone static verification before

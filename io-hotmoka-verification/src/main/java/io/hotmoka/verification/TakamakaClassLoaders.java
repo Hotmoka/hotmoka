@@ -20,6 +20,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.verification.internal.TakamakaClassLoaderImpl;
+import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 
 /**
  * A provider of class loaders used to access the definition of the classes of a Takamaka program.
@@ -35,9 +36,10 @@ public final class TakamakaClassLoaders {
 	 * @param verificationVersion the version of the verification module that must be used; this affects the
 	 *                            set of white-listing annotations used by the class loader
 	 * @return the class loader
-	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
+	 * @throws UnsupportedVerificationVersionException if the required verification version is not available
+	 * @throws ClassNotFoundException 
 	 */
-	public static TakamakaClassLoader of(Stream<byte[]> jars, long verificationVersion) throws ClassNotFoundException {
+	public static TakamakaClassLoader of(Stream<byte[]> jars, long verificationVersion) throws UnsupportedVerificationVersionException, ClassNotFoundException {
 		return new TakamakaClassLoaderImpl(jars, verificationVersion);
 	}
 }

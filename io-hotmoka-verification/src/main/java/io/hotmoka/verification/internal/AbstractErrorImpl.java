@@ -78,9 +78,8 @@ public abstract class AbstractErrorImpl implements io.hotmoka.verification.api.E
 
 	@Override
 	public final boolean equals(Object other) {
-		return other instanceof io.hotmoka.verification.api.Error && getClass() == other.getClass()
-			&& where.equals(((io.hotmoka.verification.api.Error) other).getWhere())
-			&& message.equals(((io.hotmoka.verification.api.Error) other).getMessage());
+		return other instanceof io.hotmoka.verification.api.Error error && getClass() == other.getClass()
+			&& where.equals(error.getWhere()) && message.equals(error.getMessage());
 	}
 
 	@Override
@@ -93,10 +92,12 @@ public abstract class AbstractErrorImpl implements io.hotmoka.verification.api.E
 		return where + ": " + message;
 	}
 
+	@Override
 	public String getWhere() {
 		return where;
 	}
 
+	@Override
 	public String getMessage() {
 		return message;
 	}

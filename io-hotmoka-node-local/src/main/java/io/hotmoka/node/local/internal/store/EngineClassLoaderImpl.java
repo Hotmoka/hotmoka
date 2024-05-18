@@ -54,6 +54,7 @@ import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.api.TakamakaClassLoader;
+import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 import io.hotmoka.whitelisting.api.WhiteListingWizard;
 
 /**
@@ -237,7 +238,12 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		processClassInJar(jars, transactionsOfJars);
 
 		// consensus might be null if the node is restarting, during the recomputation of its consensus itself
-		return TakamakaClassLoaders.of(jars.stream(), consensus != null ? consensus.getVerificationVersion() : 0);
+		try {
+			return TakamakaClassLoaders.of(jars.stream(), consensus != null ? consensus.getVerificationVersion() : 0);
+		}
+		catch (UnsupportedVerificationVersionException e) {
+			throw new StoreException(e);
+		}
 	}
 
 	/**
@@ -347,7 +353,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		if (response instanceof TransactionResponseWithInstrumentedJar trwij)
 			return trwij;
 		else
-			throw new IllegalArgumentException("The transaction " + reference + " did not install a jar in store");
+			throw new IllegalArgumentException("The transaction " + reference + " did not install a jar in store"); // TODO
 	}
 
 	@Override

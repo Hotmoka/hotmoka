@@ -34,8 +34,8 @@ public class HeightAtBytecode {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof HeightAtBytecode && ((HeightAtBytecode) other).ih == ih
-			&& ((HeightAtBytecode) other).stackHeightBeforeBytecode == stackHeightBeforeBytecode;
+		return other instanceof HeightAtBytecode hab && hab.ih == ih
+			&& hab.stackHeightBeforeBytecode == stackHeightBeforeBytecode;
 	}
 
 	@Override

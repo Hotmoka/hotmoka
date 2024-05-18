@@ -21,6 +21,7 @@ import java.io.IOException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.verification.api.VerifiedJar;
 import io.hotmoka.verification.internal.VerifiedJarImpl;
+import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 
 /**
  * A provider of jars that have undergone static verification, before being installed into blockchain.

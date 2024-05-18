@@ -47,6 +47,7 @@ import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.VerificationException;
 import io.hotmoka.verification.VerifiedJars;
 import io.hotmoka.verification.api.VerifiedJar;
+import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 
 /**
  * A class used to perform a re-verification of jars already stored in the node.
@@ -189,10 +190,7 @@ class Reverification {
 				var tcl = TakamakaClassLoaders.of(jars.stream(), consensus != null ? consensus.getVerificationVersion() : 0);
 				return VerifiedJars.of(jar, tcl, gjstr instanceof InitialTransactionRequest, consensus != null && consensus.skipsVerification());
 			}
-			catch (io.hotmoka.verification.UnsupportedVerificationVersionException e) {
-				throw new StoreException("Unsupported verification versin " + e.verificationVerification);
-			}
-			catch (ClassNotFoundException | IOException e) {
+			catch (ClassNotFoundException | IOException | UnsupportedVerificationVersionException e) {
 				throw new StoreException(e);
 			}
 		}

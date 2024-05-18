@@ -28,6 +28,7 @@ import io.hotmoka.node.api.requests.GenericJarStoreTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.api.TakamakaClassLoader;
+import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 
 /**
  * Implementation of a helper object for building class loaders for the jar installed at a given
@@ -50,7 +51,7 @@ public class ClassLoaderHelperImpl implements ClassLoaderHelper {
 	}
 
 	@Override
-	public TakamakaClassLoader classloaderFor(TransactionReference jar) throws NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
+	public TakamakaClassLoader classloaderFor(TransactionReference jar) throws NodeException, TimeoutException, InterruptedException, UnknownReferenceException, ClassNotFoundException {
 		var ws = new ArrayList<TransactionReference>();
 		var seen = new HashSet<TransactionReference>();
 		var jars = new ArrayList<byte[]>();
@@ -78,7 +79,7 @@ public class ClassLoaderHelperImpl implements ClassLoaderHelper {
 		try {
 			return TakamakaClassLoaders.of(jars.stream(), node.getConfig().getVerificationVersion());
 		}
-		catch (ClassNotFoundException e) {
+		catch (UnsupportedVerificationVersionException e) {
 			throw new NodeException(e);
 		}
 	}

@@ -26,7 +26,6 @@ import org.apache.bcel.generic.LoadInstruction;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.PUTFIELD;
-import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
 /**
@@ -57,24 +56,21 @@ public abstract class CheckOnMethods extends CheckOnClasses {
 
 	private boolean isConstructorOfInstanceInnerClass() {
 		int dollarPos = className.lastIndexOf('$');
-		ObjectType t;
 
 		// constructors of inner classes c have a first implicit parameter whose type t is the parent class
 		// and they start with aload_0 aload_1 putfield c.f:t
 		if (dollarPos > 0 && Const.CONSTRUCTOR_NAME.equals(method.getName())
-				&& methodArgs.length > 0 && methodArgs[0] instanceof ObjectType
-				&& (t = (ObjectType) methodArgs[0]).getClassName().equals(className.substring(0, dollarPos))) {
+				&& methodArgs.length > 0 && methodArgs[0] instanceof ObjectType ot
+				&& ot.getClassName().equals(className.substring(0, dollarPos))) {
 
 			InstructionList il = method.getInstructionList();
 			if (il != null && il.getLength() >= 3) {
 				Instruction[] instructions = il.getInstructions();
-				ReferenceType c;
-				PUTFIELD putfield;
 
-				return instructions[0] instanceof LoadInstruction && ((LoadInstruction) instructions[0]).getIndex() == 0
-						&& instructions[1] instanceof LoadInstruction && ((LoadInstruction) instructions[1]).getIndex() == 1
-						&& instructions[2] instanceof PUTFIELD && (putfield = (PUTFIELD) instructions[2]).getFieldType(cpg).equals(t)
-						&& (c = putfield.getReferenceType(cpg)) instanceof ObjectType && ((ObjectType) c).getClassName().equals(className);
+				return instructions[0] instanceof LoadInstruction li0 && li0.getIndex() == 0
+						&& instructions[1] instanceof LoadInstruction li1 && li1.getIndex() == 1
+						&& instructions[2] instanceof PUTFIELD putfield && putfield.getFieldType(cpg).equals(ot)
+						&& putfield.getReferenceType(cpg) instanceof ObjectType pot && pot.getClassName().equals(className);
 			}
 		}
 

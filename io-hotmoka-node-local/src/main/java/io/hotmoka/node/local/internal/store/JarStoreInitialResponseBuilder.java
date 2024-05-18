@@ -72,9 +72,6 @@ public class JarStoreInitialResponseBuilder extends AbstractInitialResponseBuild
 					var instrumentedJar = InstrumentedJars.of(VerifiedJars.of(request.getJar(), classLoader, true, consensus.skipsVerification()), consensus.getGasCostModel());
 					return TransactionResponses.jarStoreInitial(instrumentedJar.toBytes(), request.getDependencies(), consensus.getVerificationVersion());
 				}
-				catch (io.hotmoka.verification.UnsupportedVerificationVersionException e) {
-					throw new UnsupportedVerificationVersionException(e.verificationVerification);
-				}
 				catch (IOException t) {
 					throw new RuntimeException("unexpected exception", t);
 				}

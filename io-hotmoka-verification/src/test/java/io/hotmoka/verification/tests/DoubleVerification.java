@@ -26,8 +26,8 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.testing.AbstractLoggedTests;
 import io.hotmoka.verification.TakamakaClassLoaders;
-import io.hotmoka.verification.UnsupportedVerificationVersionException;
 import io.hotmoka.verification.VerifiedJars;
+import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 import io.takamaka.code.constants.Constants;
 
 /**

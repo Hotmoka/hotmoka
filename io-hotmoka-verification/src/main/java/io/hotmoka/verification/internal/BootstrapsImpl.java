@@ -118,14 +118,12 @@ public class BootstrapsImpl implements Bootstraps {
 	public boolean lambdaIsEntry(BootstrapMethod bootstrap) throws ClassNotFoundException {
 		if (bootstrap.getNumBootstrapArguments() == 3) {
 			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
-			if (constant instanceof ConstantMethodHandle) {
-				ConstantMethodHandle mh = (ConstantMethodHandle) constant;
-				Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
-				if (constant2 instanceof ConstantMethodref) {
-					ConstantMethodref mr = (ConstantMethodref) constant2;
-					int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
+			if (constant instanceof ConstantMethodHandle cmh) {
+				Constant constant2 = cpg.getConstant(cmh.getReferenceIndex());
+				if (constant2 instanceof ConstantMethodref cmr) {
+					int classNameIndex = ((ConstantClass) cpg.getConstant(cmr.getClassIndex())).getNameIndex();
 					String className = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
-					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
+					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(cmr.getNameAndTypeIndex());
 					String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
 					String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
 

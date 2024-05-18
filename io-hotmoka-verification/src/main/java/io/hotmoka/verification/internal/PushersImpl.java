@@ -55,7 +55,7 @@ public class PushersImpl implements Pushers {
 
 	/**
 	 * This iterator provides the results on demand. This is very important in order to
-	 * implement a hazy {@link PushersImpl#getPushers(InstructionHandle, int, InstructionList, ConstantPoolGen)}.
+	 * implement a lazy {@link PushersImpl#getPushers(InstructionHandle, int, InstructionList, ConstantPoolGen)}.
 	 */
 	private static class MyIterator implements Iterator<InstructionHandle> {
 		private final InstructionList il;
@@ -91,9 +91,9 @@ public class PushersImpl implements Pushers {
 				// we proceed with the instructions that jump at currentIh
 				Stream.of(currentIh.getTargeters()).forEach(targeter -> {
 					if (targeter instanceof CodeExceptionGen)
-						throw new IllegalStateException("Cannot find stack pushers");
-					else if (targeter instanceof BranchInstruction)
-						predecessors.add(findInstruction(il, (BranchInstruction) targeter).orElseThrow(() -> new IllegalStateException("Cannot find stack pushers")));
+						throw new IllegalStateException("Cannot find stack pushers"); // TODO: this should be checked
+					else if (targeter instanceof BranchInstruction bi)
+						predecessors.add(findInstruction(il, bi).orElseThrow(() -> new IllegalStateException("Cannot find stack pushers"))); // TODO: this should be checked
 				});
 
 				predecessors.forEach(p -> process(p, current.stackHeightBeforeBytecode));

@@ -113,8 +113,11 @@ public class AnnotationsImpl implements Annotations {
 			Method value = entry.getClass().getMethod("value");
 			contractClass = (Class<?>) value.invoke(entry);
 		}
-		catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+		catch (NoSuchMethodException | IllegalAccessException e) {
 			return null;
+		}
+		catch (InvocationTargetException e) {
+			throw new RuntimeException(e);
 		}
 
 		return contractClass != null ? contractClass : jar.classLoader.getContract();
@@ -132,9 +135,8 @@ public class AnnotationsImpl implements Annotations {
 	 * @param annotationName the name of the annotation class
 	 * @return the annotation, if any
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
-	 * @throws SecurityException 
 	 */
-	private Optional<Annotation> getAnnotation(String className, String methodName, Type[] formals, Type returnType, String annotationName) throws SecurityException, ClassNotFoundException {
+	private Optional<Annotation> getAnnotation(String className, String methodName, Type[] formals, Type returnType, String annotationName) throws ClassNotFoundException {
 		if (methodName.equals(Const.CONSTRUCTOR_NAME))
 			return getAnnotationOfConstructor(className, formals, annotationName);
 		else
