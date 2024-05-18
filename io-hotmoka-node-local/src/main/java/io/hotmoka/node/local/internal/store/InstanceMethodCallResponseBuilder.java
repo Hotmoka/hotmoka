@@ -198,7 +198,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				try {
 					return TransactionResponses.methodCallFailed(t.getClass().getName(), t.getMessage(), where(t), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 				}
-				catch (UpdatesExtractionException e) {
+				catch (UpdatesExtractionException | StoreException e) {
 					throw new RuntimeException(e); // TODO
 				}
 			}

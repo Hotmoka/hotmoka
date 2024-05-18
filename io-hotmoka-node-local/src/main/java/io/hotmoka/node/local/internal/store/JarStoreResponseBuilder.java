@@ -111,7 +111,7 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 				try {
 					return TransactionResponses.jarStoreFailed(t.getClass().getName(), t.getMessage(), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 				}
-				catch (UpdatesExtractionException e) {
+				catch (UpdatesExtractionException | StoreException e) {
 					throw new RuntimeException(e); // TODO
 				}
 			}

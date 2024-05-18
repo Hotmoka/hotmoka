@@ -27,7 +27,7 @@ public class UpdatesExtractionException extends Exception {
 	 * 
 	 * @param message the message
 	 */
-	public UpdatesExtractionException(String message) {
+	UpdatesExtractionException(String message) {
 		super(message);
 	}
 
@@ -37,7 +37,7 @@ public class UpdatesExtractionException extends Exception {
 	 * @param message the message
 	 * @param cause the cause
 	 */
-	public UpdatesExtractionException(String message, Throwable cause) {
+	UpdatesExtractionException(String message, Throwable cause) {
 		super(message, cause);
 	}
 
@@ -46,7 +46,7 @@ public class UpdatesExtractionException extends Exception {
 	 * 
 	 * @param cause the cause
 	 */
-	public UpdatesExtractionException(Throwable cause) {
+	UpdatesExtractionException(Throwable cause) {
 		super("Cannot extract the updates", cause);
 	}
 }

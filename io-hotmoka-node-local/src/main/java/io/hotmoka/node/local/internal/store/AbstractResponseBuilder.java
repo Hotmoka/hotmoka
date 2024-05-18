@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Stream;
 
 import io.hotmoka.node.OutOfGasError;
 import io.hotmoka.node.StorageValues;
@@ -34,7 +33,6 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.DeserializationException;
 import io.hotmoka.node.local.api.EngineClassLoader;
@@ -280,19 +278,6 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 */
 		public final EngineClassLoaderImpl getClassLoader() {
 			return (EngineClassLoaderImpl) classLoader;
-		}
-
-		/**
-		 * Yields the updates extracted from the given storage objects and from the objects
-		 * reachable from them, recursively.
-		 * 
-		 * @param objects the storage objects whose updates must be computed (for them and
-		 *                for the objects recursively reachable from them)
-		 * @return the updates, sorted
-		 * @throws UpdatesExtractionException 
-		 */
-		protected final Stream<Update> extractUpdatesFrom(Stream<Object> objects) throws UpdatesExtractionException {
-			return updatesExtractor.extractUpdatesFrom(objects);
 		}
 
 		/**

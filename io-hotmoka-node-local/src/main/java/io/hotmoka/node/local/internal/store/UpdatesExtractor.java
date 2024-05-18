@@ -36,21 +36,26 @@ import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.local.DeserializationException;
 import io.hotmoka.node.local.api.EngineClassLoader;
+import io.hotmoka.node.local.api.StoreException;
 import io.takamaka.code.constants.Constants;
 
 /**
  * An extractor of the updates to the state reachable, in RAM, from some storage objects.
- * This object is used after a transaction, to collect the fields that have changed
- * their value during the transaction.
+ * This extractor is used after a transaction, to collect the updates to fields
+ * that have changed their value during the transaction.
  */
 public class UpdatesExtractor {
 
+	/**
+	 * The class loader that loaded the objects.
+	 */
 	private final EngineClassLoader classLoader;
 
 	/**
 	 * Builds an extractor of the updates to the state reachable from some storage objects.
+	 * 
+	 * @param classLoader the class loader used to load the objects later passed to {@link #extractUpdatesFrom(Stream)}
 	 */
 	UpdatesExtractor(EngineClassLoader classLoader) {
 		this.classLoader = classLoader;
@@ -61,11 +66,15 @@ public class UpdatesExtractor {
 	 * reachable from them, recursively.
 	 * 
 	 * @param objects the storage objects whose updates must be computed (for them and
-	 *                for the objects recursively reachable from them)
+	 *                for the objects recursively reachable from them); this must have been
+	 *                loaded with the class loader provided to the constructor and to be
+	 *                instances of {@code io.takamaka.code.lang.Storage}
 	 * @return the updates, sorted
-	 * @throws UpdatesExtractionException if the updates cannot be extracted
+	 * @throws UpdatesExtractionException if the updates cannot be extracted, because for instance an illegal
+	 *                                    value has been stored into some field
+	 * @throws StoreException if the operation cannot be completed
 	 */
-	public Stream<Update> extractUpdatesFrom(Stream<Object> objects) throws UpdatesExtractionException {
+	public Stream<Update> extractUpdatesFrom(Stream<Object> objects) throws UpdatesExtractionException, StoreException {
 		return new Processor(objects).updates.stream();
 	}
 
@@ -85,19 +94,21 @@ public class UpdatesExtractor {
 		private final Set<StorageReference> seen = new HashSet<>();
 
 		/**
-		 * The extracted updates.
+		 * The extracted updates so far.
 		 */
 		private final SortedSet<Update> updates = new TreeSet<>();
 
 		/**
 		 * Builds an internal scope to extract the updates to the given objects,
-		 * and those reachable from them, recursively.
+		 * and to those reachable from them, recursively.
 		 * 
 		 * @param objects the storage objects whose updates must be computed (for them and
 		 *                for the objects recursively reachable from them)
-		 * @throws DeserializationException 
+		 * @throws UpdatesExtractionException if the updates cannot be extracted, because for instance an illegal
+		 *                                    value has been stored into some field
+		 * @throws StoreException if the operation cannot be completed
 		 */
-		private Processor(Stream<Object> objects) throws UpdatesExtractionException {
+		private Processor(Stream<Object> objects) throws UpdatesExtractionException, StoreException {
 			this.workingSet = objects
 				.filter(object -> seen.add(classLoader.getStorageReferenceOf(object)))
 				.collect(Collectors.toList());
@@ -129,9 +140,11 @@ public class UpdatesExtractor {
 			 * Builds the scope to extract the updates to a given object.
 			 * 
 			 * @param object the object
-			 * @throws UpdatesExtractionException 
+			 * @throws UpdatesExtractionException if the updates cannot be extracted, because for instance an illegal
+			 *                                    value has been stored into some field
+			 * @throws StoreException if the operation cannot be completed
 			 */
-			private ExtractedUpdatesSingleObject(Object object) throws UpdatesExtractionException {
+			private ExtractedUpdatesSingleObject(Object object) throws UpdatesExtractionException, StoreException {
 				Class<?> clazz = object.getClass();
 				this.storageReference = classLoader.getStorageReferenceOf(object);
 				this.inStorage = classLoader.getInStorageOf(object);
@@ -144,61 +157,46 @@ public class UpdatesExtractor {
 					addUpdatesForFieldsDefinedInClass(clazz, object);
 					previous = clazz;
 					if (clazz == null)
-						throw new UpdatesExtractionException("Cannot extract the updates of an object that is not subclass of " + Constants.STORAGE_NAME);
+						// the objects where expected to be instances of io.takamaka.code.lang.Storage
+						throw new StoreException("Cannot extract the updates of an object that is not subclass of " + Constants.STORAGE_NAME);
 
 					clazz = clazz.getSuperclass();
 				}
 			}
 
 			/**
-			 * Utility method called for update extraction to recur on the old value of fields of reference type.
+			 * Adds to the set of updates the one stating that a field has been assigned to a new value.
 			 * 
-			 * @param s the storage objects whose fields are considered
-			 * @throws UpdatesExtractionException 
-			 */
-			private void recursiveExtract(Object s) throws UpdatesExtractionException {
-				if (s != null) {
-					Class<?> clazz = s.getClass();
-					if (classLoader.getStorage().isAssignableFrom(clazz)) {
-						if (seen.add(classLoader.getStorageReferenceOf(s)))
-							workingSet.add(s);
-					}
-					else if (classLoader.isLazilyLoaded(clazz)) // eager types are not recursively followed
-						throw new UpdatesExtractionException("A field of a storage object cannot hold a " + clazz.getName());
-				}
-			}
-
-			/**
-			 * Takes note that a field of lazy type has changed its value and consequently adds it to the set of updates.
-			 * 
-			 * @param fieldDefiningClass the class of the field. This can only be the class of the storage object or one of its superclasses
+			 * @param fieldDefiningClass the class of the field; this can only be the class of the storage object defining the field or one of its superclasses
 			 * @param fieldName the name of the field
 			 * @param fieldClassName the name of the type of the field
-			 * @param object the value set to the field
-			 * @throws UpdatesExtractionException 
+			 * @param newValue the value set to the field
+			 * @throws UpdatesExtractionException if the updates cannot be extracted, because for instance an illegal
+			 *                                    value has been stored into some field
+			 * @throws StoreException if the operation cannot be completed
 			 */
-			private void addUpdateFor(String fieldDefiningClass, String fieldName, String fieldClassName, Object object) throws UpdatesExtractionException {
+			private void addUpdateFor(String fieldDefiningClass, String fieldName, String fieldClassName, Object newValue) throws UpdatesExtractionException, StoreException {
 				var field = FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.classNamed(fieldClassName));
 
-				if (object == null)
+				if (newValue == null)
 					// the field has been set to null
 					updates.add(Updates.toNull(storageReference, field, false));
-				else if (classLoader.getStorage().isAssignableFrom(object.getClass())) {
+				else if (classLoader.getStorage().isAssignableFrom(newValue.getClass())) {
 					// the field has been set to a storage object
-					var storageReference2 = classLoader.getStorageReferenceOf(object);
+					var storageReference2 = classLoader.getStorageReferenceOf(newValue);
 					updates.add(Updates.ofStorage(storageReference, field, storageReference2));
 
 					// if the new value has not yet been considered, we put in the list of object still to be processed
 					if (seen.add(storageReference2))
-						workingSet.add(object);
+						workingSet.add(newValue);
 				}
 				// the following cases occur if the declared type of the field is Object but it is updated
 				// to an object whose type is allowed in storage
-				else if (object instanceof String s)
+				else if (newValue instanceof String s)
 					updates.add(Updates.ofString(storageReference, field, s));
-				else if (object instanceof BigInteger bi)
+				else if (newValue instanceof BigInteger bi)
 					updates.add(Updates.ofBigInteger(storageReference, field, bi));
-				else if (object instanceof Enum<?> e) {
+				else if (newValue instanceof Enum<?> e) {
 					var clazz = e.getClass();
 					if (hasInstanceFields(clazz))
 						throw new UpdatesExtractionException("Field " + field + " of a storage object cannot hold an enumeration of class " + clazz.getName() + ": it has instance non-transient fields");
@@ -206,7 +204,7 @@ public class UpdatesExtractor {
 					updates.add(Updates.ofEnum(storageReference, field, clazz.getName(), e.name(), false));
 				}
 				else
-					throw new UpdatesExtractionException("Field " + field + " of a storage object cannot hold a " + object.getClass().getName());
+					throw new UpdatesExtractionException("Field " + field + " of a storage object cannot hold a " + newValue.getClass().getName()); // TODO: OK
 			}
 
 			/**
@@ -214,15 +212,16 @@ public class UpdatesExtractor {
 			 * 
 			 * @param clazz the class
 			 * @return true only if that condition holds
+			 * @throws StoreException if the operation cannot be completed
 			 */
-			private static boolean hasInstanceFields(Class<?> clazz) throws UpdatesExtractionException {
+			private static boolean hasInstanceFields(Class<?> clazz) throws StoreException {
 				try {
 					return Stream.of(clazz.getDeclaredFields())
 							.map(Field::getModifiers)
 							.anyMatch(modifiers -> !Modifier.isStatic(modifiers) && !Modifier.isTransient(modifiers));
 				}
 				catch (SecurityException e) {
-					throw new UpdatesExtractionException(e);
+					throw new StoreException(e);
 				}
 			}
 
@@ -364,16 +363,19 @@ public class UpdatesExtractor {
 			 * 
 			 * @param clazz the class
 			 * @param object the object
-			 * @throws DeserializationException 
+			 * @throws UpdatesExtractionException if the updates cannot be extracted, because for instance an illegal
+			 *                                    value has been stored into some field
+			 * @throws StoreException if the operation cannot be completed
 			 */
-			private void addUpdatesForFieldsDefinedInClass(Class<?> clazz, Object object) throws UpdatesExtractionException {
+			private void addUpdatesForFieldsDefinedInClass(Class<?> clazz, Object object) throws UpdatesExtractionException, StoreException {
 				Field[] declaredFields;
 
 				try {
 					declaredFields = clazz.getDeclaredFields();
 				}
 				catch (SecurityException e) {
-					throw new UpdatesExtractionException("Cannot access the fields defined in class " + clazz.getName(), e);
+					// the class loader is the same used to load clazz: this exception should be impossible
+					throw new StoreException("Cannot access the fields defined in class " + clazz.getName(), e);
 				}
 
 				for (Field field: declaredFields)
@@ -382,7 +384,7 @@ public class UpdatesExtractor {
 							field.setAccessible(true); // it might be private
 						}
 						catch (SecurityException | InaccessibleObjectException e) {
-							throw new UpdatesExtractionException("Cannot make field " + field.getDeclaringClass().getName() + "." + field.getName() + " accessible", e);
+							throw new StoreException("Cannot make field " + field.getDeclaringClass().getName() + "." + field.getName() + " accessible", e);
 						}
 
 						Object currentValue, oldValue;
@@ -391,65 +393,85 @@ public class UpdatesExtractor {
 							currentValue = field.get(object);
 						}
 						catch (IllegalArgumentException | IllegalAccessException | ExceptionInInitializerError e) {
-							throw new UpdatesExtractionException("Cannot access field " + field.getDeclaringClass().getName() + "." + field.getName(), e);
+							throw new StoreException("Cannot access field " + field.getDeclaringClass().getName() + "." + field.getName(), e);
 						}
 
 						String oldName = InstrumentationFields.OLD_PREFIX + field.getName();
 						try {
-							Field oldField = field.getDeclaringClass().getDeclaredField(oldName); // TODO: is this just clazz ?
+							Field oldField = clazz.getDeclaredField(oldName);
 							oldField.setAccessible(true); // it is always private
 							oldValue = oldField.get(object);
 						}
-						catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException | ExceptionInInitializerError e) {
-							throw new UpdatesExtractionException("Cannot access the old value for field " + field.getDeclaringClass().getName() + "." + field.getName(), e);
+						catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException | InaccessibleObjectException | ExceptionInInitializerError e) {
+							throw new StoreException("Cannot access the old value of field " + field.getDeclaringClass().getName() + "." + field.getName(), e);
 						}
 
 						if (!inStorage || !Objects.equals(oldValue, currentValue))
 							addUpdateFor(field, currentValue);
 
-						if (inStorage && classLoader.isLazilyLoaded(field.getType()))
+						if (oldValue != null && inStorage && classLoader.isLazilyLoaded(field.getType()))
 							recursiveExtract(oldValue);
 					}
 			}
 
 			/**
-			 * Yields the update that represents the fact that a field has been updated to a new current value.
+			 * Recurs on the old value of the fields of reference type.
+			 * 
+			 * @param object the storage object whose fields are considered
+			 * @throws StoreException if the operation cannot be completed
+			 */
+			private void recursiveExtract(Object object) throws StoreException {
+				Class<?> clazz = object.getClass();
+				if (classLoader.getStorage().isAssignableFrom(clazz)) {
+					if (seen.add(classLoader.getStorageReferenceOf(object)))
+						workingSet.add(object);
+				}
+				else if (classLoader.isLazilyLoaded(clazz)) // eager types are not recursively followed
+					// there was an illegal value in this field: this should never happen
+					throw new StoreException("A field of a storage object cannot hold a " + clazz.getName());
+			}
+
+			/**
+			 * Yields the update that represents the fact that a field has been updated to a new value.
 			 * 
 			 * @param field the field
-			 * @param currentValue the current value of the field
-			 * @throws UpdatesExtractionException 
+			 * @param newValue the new value of the field
+			 * @throws UpdatesExtractionException if the updates cannot be extracted, because for instance an illegal
+			 *                                    value has been stored into some field
+			 * @throws StoreException if the operation cannot be completed
 			 */
-			private void addUpdateFor(Field field, Object currentValue) throws UpdatesExtractionException {
+			private void addUpdateFor(Field field, Object newValue) throws UpdatesExtractionException, StoreException {
 				Class<?> fieldType = field.getType();
 				String fieldDefiningClass = field.getDeclaringClass().getName();
 				String fieldName = field.getName();
 
 				if (fieldType == char.class)
-					addUpdateFor(fieldDefiningClass, fieldName, (char) currentValue);
+					addUpdateFor(fieldDefiningClass, fieldName, (char) newValue);
 				else if (fieldType == boolean.class)
-					addUpdateFor(fieldDefiningClass, fieldName, (boolean) currentValue);
+					addUpdateFor(fieldDefiningClass, fieldName, (boolean) newValue);
 				else if (fieldType == byte.class)
-					addUpdateFor(fieldDefiningClass, fieldName, (byte) currentValue);
+					addUpdateFor(fieldDefiningClass, fieldName, (byte) newValue);
 				else if (fieldType == short.class)
-					addUpdateFor(fieldDefiningClass, fieldName, (short) currentValue);
+					addUpdateFor(fieldDefiningClass, fieldName, (short) newValue);
 				else if (fieldType == int.class)
-					addUpdateFor(fieldDefiningClass, fieldName, (int) currentValue);
+					addUpdateFor(fieldDefiningClass, fieldName, (int) newValue);
 				else if (fieldType == long.class)
-					addUpdateFor(fieldDefiningClass, fieldName, (long) currentValue);
+					addUpdateFor(fieldDefiningClass, fieldName, (long) newValue);
 				else if (fieldType == float.class)
-					addUpdateFor(fieldDefiningClass, fieldName, (float) currentValue);
+					addUpdateFor(fieldDefiningClass, fieldName, (float) newValue);
 				else if (fieldType == double.class)
-					addUpdateFor(fieldDefiningClass, fieldName, (double) currentValue);
+					addUpdateFor(fieldDefiningClass, fieldName, (double) newValue);
 				else if (fieldType == BigInteger.class)
-					addUpdateFor(fieldDefiningClass, fieldName, (BigInteger) currentValue);
+					addUpdateFor(fieldDefiningClass, fieldName, (BigInteger) newValue);
 				else if (fieldType == String.class)
-					addUpdateFor(fieldDefiningClass, fieldName, (String) currentValue);
+					addUpdateFor(fieldDefiningClass, fieldName, (String) newValue);
 				else if (fieldType.isEnum())
-					addUpdateFor(fieldDefiningClass, fieldName, fieldType.getName(), (Enum<?>) currentValue);
+					addUpdateFor(fieldDefiningClass, fieldName, fieldType.getName(), (Enum<?>) newValue);
 				else if (classLoader.isLazilyLoaded(fieldType))
-					addUpdateFor(fieldDefiningClass, fieldName, fieldType.getName(), currentValue);
+					addUpdateFor(fieldDefiningClass, fieldName, fieldType.getName(), newValue);
 				else
-					throw new UpdatesExtractionException("Unexpected type " + fieldType.getName() + " for a field of a storage object: " + fieldDefiningClass + '.' + fieldName);
+					// for instance, arrays: they should have been forbidden when verifying the installed jars
+					throw new StoreException("Unexpected type " + fieldType.getName() + " for a field of a storage object: " + fieldDefiningClass + '.' + fieldName);
 			}
 
 			/**

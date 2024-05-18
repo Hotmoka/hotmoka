@@ -63,7 +63,7 @@ public class GameteCreationResponseBuilder extends AbstractInitialResponseBuilde
 					classLoader.setRedBalanceOf(gamete, request.getRedInitialAmount());
 					return TransactionResponses.gameteCreation(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
 				}
-				catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | UpdatesExtractionException e) {
+				catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | UpdatesExtractionException | StoreException e) {
 					throw new RuntimeException("Unexpected exception", e);
 				}
 			}

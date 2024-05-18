@@ -347,7 +347,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 * @return the updates, sorted
 		 * @throws DeserializationException 
 		 */
-		protected final Stream<Update> updates() throws UpdatesExtractionException {
+		protected final Stream<Update> updates() throws UpdatesExtractionException, StoreException {
 			List<Object> potentiallyAffectedObjects = new ArrayList<>();
 			scanPotentiallyAffectedObjects(potentiallyAffectedObjects::add);
 			return updatesExtractor.extractUpdatesFrom(potentiallyAffectedObjects.stream());
@@ -361,7 +361,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 * @return the updates, sorted
 		 * @throws DeserializationException 
 		 */
-		protected final Stream<Update> updates(Object result) throws UpdatesExtractionException {
+		protected final Stream<Update> updates(Object result) throws UpdatesExtractionException, StoreException {
 			List<Object> potentiallyAffectedObjects = new ArrayList<>();
 
 			Class<?> storage = classLoader.getStorage();

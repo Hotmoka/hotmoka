@@ -19,7 +19,7 @@ package io.hotmoka.examples.errors.illegaltypeforstoragefield4;
 import io.takamaka.code.lang.Storage;
 
 public class C extends Storage {
-	// the content of this field must be checked at run time, to verify that it is a storage value
+	// the content of this field will be checked at run time, to verify that it is a storage value
 	private final MyInterface f;
 
 	public C() {
