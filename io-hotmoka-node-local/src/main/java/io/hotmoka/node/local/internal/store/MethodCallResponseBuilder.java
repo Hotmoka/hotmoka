@@ -92,7 +92,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 		 * @throws SideEffectsInViewMethodException if the method is annotated as view, but generated side-effects
 		 * @throws DeserializationException 
 		 */
-		protected final void viewMustBeSatisfied(boolean isView, Object result) throws SideEffectsInViewMethodException, DeserializationException {
+		protected final void viewMustBeSatisfied(boolean isView, Object result) throws SideEffectsInViewMethodException, UpdatesExtractionException {
 			if (isView && !onlyAffectedBalanceOrNonceOfCallerOrBalanceOfValidators(result))
 				throw new SideEffectsInViewMethodException(request.getStaticTarget());
 		}
@@ -125,7 +125,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 		 * @return true if and only if that condition holds
 		 * @throws DeserializationException 
 		 */
-		private boolean onlyAffectedBalanceOrNonceOfCallerOrBalanceOfValidators(Object result) throws DeserializationException {
+		private boolean onlyAffectedBalanceOrNonceOfCallerOrBalanceOfValidators(Object result) throws UpdatesExtractionException {
 			return updates(result).allMatch(this::isUpdateToBalanceOrNonceOfCaller);
 		}
 	}

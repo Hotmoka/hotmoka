@@ -28,7 +28,6 @@ import io.hotmoka.node.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.node.api.responses.JarStoreTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.AbstractNonInitialResponseBuilder;
-import io.hotmoka.node.local.DeserializationException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.verification.VerifiedJars;
@@ -112,7 +111,7 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 				try {
 					return TransactionResponses.jarStoreFailed(t.getClass().getName(), t.getMessage(), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 				}
-				catch (DeserializationException e) {
+				catch (UpdatesExtractionException e) {
 					throw new RuntimeException(e); // TODO
 				}
 			}

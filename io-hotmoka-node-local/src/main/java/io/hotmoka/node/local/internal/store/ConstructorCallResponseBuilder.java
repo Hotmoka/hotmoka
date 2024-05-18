@@ -137,7 +137,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 				try {
 					return TransactionResponses.constructorCallFailed(t.getClass().getName(), t.getMessage(), where(t), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 				}
-				catch (DeserializationException e) {
+				catch (UpdatesExtractionException e) {
 					throw new RuntimeException(e); // TODO
 				}
 			}

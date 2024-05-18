@@ -515,7 +515,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * @return the updates
 		 * @throws DeserializationException 
 		 */
-		protected final Stream<Update> updatesToBalanceOrNonceOfCaller() throws DeserializationException {
+		protected final Stream<Update> updatesToBalanceOrNonceOfCaller() throws UpdatesExtractionException {
 			return updatesExtractor.extractUpdatesFrom(Stream.of(deserializedCaller))
 				.filter(this::isUpdateToBalanceOrNonceOfCaller);
 		}

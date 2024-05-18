@@ -289,9 +289,9 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * @param objects the storage objects whose updates must be computed (for them and
 		 *                for the objects recursively reachable from them)
 		 * @return the updates, sorted
-		 * @throws DeserializationException 
+		 * @throws UpdatesExtractionException 
 		 */
-		protected final Stream<Update> extractUpdatesFrom(Stream<Object> objects) throws DeserializationException {
+		protected final Stream<Update> extractUpdatesFrom(Stream<Object> objects) throws UpdatesExtractionException {
 			return updatesExtractor.extractUpdatesFrom(objects);
 		}
 
