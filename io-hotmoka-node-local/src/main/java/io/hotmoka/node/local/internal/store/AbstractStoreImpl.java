@@ -81,7 +81,7 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 
 	@Override
 	public final T beginViewTransaction() throws StoreException {
-		return beginTransaction(getExecutors(), consensusForViews, System.currentTimeMillis());
+		return beginTransaction(getExecutors(), consensusForViews, getNow());
 	}
 
 	@Override

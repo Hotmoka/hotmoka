@@ -20,6 +20,7 @@ import static io.hotmoka.node.StorageTypes.BOOLEAN;
 import static io.hotmoka.node.StorageTypes.BYTE;
 import static io.hotmoka.node.StorageTypes.INT;
 import static io.hotmoka.node.StorageValues.byteOf;
+import static java.lang.Thread.sleep;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;
@@ -31,6 +32,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Logger;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -101,14 +103,16 @@ class BlindAuction extends HotmokaTest {
 	 */
 	private MessageDigest digest;
 
+	private final static Logger LOGGER = Logger.getLogger(BlindAuction.class.getName());
+
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		setJar("auction.jar");
 
 		if (isUsingTendermint() || node instanceof RemoteNode) {
 			// the Tendermint blockchain is slower and requires more time for all transactions in this test
-			BIDDING_TIME = 40_000;
-			REVEAL_TIME = 70_000;
+			BIDDING_TIME = 25_000;
+			REVEAL_TIME = 40_000;
 		}
 	}
 
@@ -133,6 +137,7 @@ class BlindAuction extends HotmokaTest {
 			random.nextBytes(salt);
 			StorageReference bytes32 = codeAsBytes32(player, value, fake, salt);
 			addInstanceVoidMethodCallTransaction(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), BID, auction.get(), StorageValues.bigIntegerOf(deposit), bytes32);
+			LOGGER.info("bidding " + i + "/" + NUM_BIDS);
 		}
 	}
 
@@ -154,6 +159,7 @@ class BlindAuction extends HotmokaTest {
 				StorageReference bytes32 = codeAsBytes32(player, value, fake, salt);
 				addInstanceVoidMethodCallTransaction(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), BID, auction.get(), StorageValues.bigIntegerOf(deposit), bytes32);
 				sleep(2000);
+				LOGGER.info("bidding " + i + "/" + NUM_BIDS);
 			}
 		});
 	}
@@ -197,7 +203,7 @@ class BlindAuction extends HotmokaTest {
 
 	@Test @DisplayName("three players put bids before end of bidding time then reveal")
 	void bidsThenReveal() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
-		long start = System.currentTimeMillis();
+		final long start = System.currentTimeMillis();
 		ConstructorFuture auction = postConstructorCallTransaction
 			(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_BLIND_AUCTION, StorageValues.intOf(BIDDING_TIME), StorageValues.intOf(REVEAL_TIME));
 
@@ -229,12 +235,13 @@ class BlindAuction extends HotmokaTest {
 			bids.add(new BidToReveal(player, value, fake, salt));
 			addInstanceVoidMethodCallTransaction(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), BID, auction.get(), StorageValues.bigIntegerOf(deposit), bytes32);
 
+			LOGGER.info("bidding " + i + "/" + NUM_BIDS);
         	i++;
 		}
 
 		waitUntil(BIDDING_TIME + 5000, start);
 
-		// we create the revealed bids in blockchain; this is safe now, since the bidding time is over
+		// we create the revealed bids in the node; this is safe now, since the bidding time is over
 		for (BidToReveal bid: bids)
 			bid.createBytes32();
 
@@ -242,26 +249,34 @@ class BlindAuction extends HotmokaTest {
 		for (BidToReveal bid: bids)
 			bidsInStore.add(bid.intoStore());
 
+		int counter = 1;
 		Iterator<BidToReveal> it = bids.iterator();
 		for (StorageReference bidInStore: bidsInStore) {
 			int player = it.next().player;
 			addInstanceVoidMethodCallTransaction(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), REVEAL, auction.get(), bidInStore);
+			LOGGER.info("revealing " + counter + "/" + bids.size());
+			counter++;
 		}
 
-		waitUntil(BIDDING_TIME + REVEAL_TIME + 5000, start);
+		waitUntil(BIDDING_TIME + REVEAL_TIME + 5000L, start);
 
+		LOGGER.info("ending the auction");
 		// the winner can be a StorageReference but also a NullValue, if all bids were fake
 		StorageValue winner = addInstanceNonVoidMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), AUCTION_END, auction.get());
+		LOGGER.info("auction ended");
 		if (winner instanceof NullValue)
 			winner = null;
 
 		assertEquals(expectedWinner, winner);
 	}
 
-	private void waitUntil(long duration, long start) {
-		while (System.currentTimeMillis() - start < duration) {
-			sleep(100);
-		}
+	private void waitUntil(long duration, long start) throws InterruptedException {
+		long toSleep = duration - (System.currentTimeMillis() - start);
+		LOGGER.info("sleeping for " + toSleep + "ms...");
+		if (toSleep > 0)
+			sleep(toSleep);
+
+		LOGGER.info("waking up");
 	}
 
 	private StorageReference codeAsBytes32(int player, BigInteger value, boolean fake, byte[] salt) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
@@ -284,12 +299,5 @@ class BlindAuction extends HotmokaTest {
 				byteOf(hash[20]), byteOf(hash[21]), byteOf(hash[22]), byteOf(hash[23]),
 				byteOf(hash[24]), byteOf(hash[25]), byteOf(hash[26]), byteOf(hash[27]),
 				byteOf(hash[28]), byteOf(hash[29]), byteOf(hash[30]), byteOf(hash[31]));
-	}
-
-	private static void sleep(long milliseconds) {
-		try {
-			Thread.sleep(milliseconds);
-		}
-		catch (InterruptedException e) {}
 	}
 }

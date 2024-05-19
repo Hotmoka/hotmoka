@@ -217,20 +217,20 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 			return CheckSupplier.check(StoreException.class, TrieException.class, () -> env.computeInTransaction(UncheckFunction.uncheck(txn -> {
 				var trieOfRequests = mkTrieOfRequests(txn);
 				for (var entry: addedRequests.entrySet())
-					trieOfRequests.put(entry.getKey(), entry.getValue());
+					trieOfRequests = trieOfRequests.put(entry.getKey(), entry.getValue());
 	
 				var trieOfResponses = mkTrieOfResponses(txn);
 				for (var entry: addedResponses.entrySet())
-					trieOfResponses.put(entry.getKey(), entry.getValue());
+					trieOfResponses = trieOfResponses.put(entry.getKey(), entry.getValue());
 	
 				var trieOfHistories = mkTrieOfHistories(txn);
 				for (var entry: addedHistories.entrySet())
-					trieOfHistories.put(entry.getKey(), Stream.of(entry.getValue()));
+					trieOfHistories = trieOfHistories.put(entry.getKey(), Stream.of(entry.getValue()));
 	
 				var trieOfInfo = mkTrieOfInfo(txn);
-				trieOfInfo.increaseNumberOfCommits();
+				trieOfInfo = trieOfInfo.increaseNumberOfCommits();
 				if (addedManifest.isPresent())
-					trieOfInfo.setManifest(addedManifest.get());
+					trieOfInfo = trieOfInfo.setManifest(addedManifest.get());
 	
 				return make(cache, trieOfResponses.getRoot(), trieOfInfo.getRoot(), trieOfHistories.getRoot(), trieOfRequests.getRoot());
 			})));
@@ -291,10 +291,11 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 	}
 
 	@Override
-	public Stream<TransactionReference> getHistory(StorageReference object) throws StoreException {
+	public Stream<TransactionReference> getHistory(StorageReference object) throws StoreException, UnknownReferenceException {
 		try {
 			return CheckSupplier.check(TrieException.class, StoreException.class, () -> env.computeInReadonlyTransaction
-				(UncheckFunction.uncheck(txn -> mkTrieOfHistories(txn).get(object))).orElse(Stream.empty()));
+				(UncheckFunction.uncheck(txn -> mkTrieOfHistories(txn).get(object))))
+					.orElseThrow(() -> new UnknownReferenceException(object));
 		}
 		catch (ExodusException | TrieException e) {
 			throw new StoreException(e);

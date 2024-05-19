@@ -387,8 +387,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
         	TransactionResponse response = node.getResponse(reference);
 
         	synchronized (tracingLock) {
-        		if (response instanceof NonInitialTransactionResponse) {
-        			NonInitialTransactionResponse nitr = (NonInitialTransactionResponse) response;
+        		if (response instanceof NonInitialTransactionResponse nitr) {
         			gasConsumedForCPU = gasConsumedForCPU.add(nitr.getGasConsumedForCPU());
         			gasConsumedForRAM = gasConsumedForRAM.add(nitr.getGasConsumedForRAM());
         			gasConsumedForStorage = gasConsumedForStorage.add(nitr.getGasConsumedForStorage());

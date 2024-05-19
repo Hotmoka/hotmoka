@@ -42,7 +42,6 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.PUTFIELD;
 import org.apache.bcel.generic.RET;
 import org.apache.bcel.generic.RETURN;
-import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
@@ -107,15 +106,15 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 	private void shiftUp(MethodGen method, int slotForCaller) {
 		for (InstructionHandle ih: method.getInstructionList()) {
 			Instruction ins = ih.getInstruction();
-			if (ins instanceof LocalVariableInstruction && !(ins instanceof LoadCaller)) {
-				int local = ((LocalVariableInstruction) ins).getIndex();
+			if (ins instanceof LocalVariableInstruction lvi && !(ins instanceof LoadCaller)) {
+				int local = lvi.getIndex();
 				if (local >= slotForCaller) {
-					if (ins instanceof IINC)
-						ih.setInstruction(new IINC(local + 1, ((IINC) ins).getIncrement()));
-					else if (ins instanceof LoadInstruction)
-						ih.setInstruction(InstructionFactory.createLoad(((LoadInstruction) ins).getType(cpg), local + 1));
-					else if (ins instanceof StoreInstruction)
-						ih.setInstruction(InstructionFactory.createStore(((StoreInstruction) ins).getType(cpg), local + 1));
+					if (ins instanceof IINC iinc)
+						ih.setInstruction(new IINC(local + 1, iinc.getIncrement()));
+					else if (ins instanceof LoadInstruction li)
+						ih.setInstruction(InstructionFactory.createLoad(li.getType(cpg), local + 1));
+					else if (ins instanceof StoreInstruction si)
+						ih.setInstruction(InstructionFactory.createStore(si.getType(cpg), local + 1));
 				}
 			}
 		}
@@ -147,13 +146,13 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 		if (method.getName().equals(Const.CONSTRUCTOR_NAME)) {
 			isConstructorOfInstanceInnerClass = isConstructorOfInstanceInnerClass();
 			InstructionHandle callToSuperConstructor = callToSuperConstructor(il, method, slotForCaller, isConstructorOfInstanceInnerClass);
-			INVOKESPECIAL invokespecial = (INVOKESPECIAL) callToSuperConstructor.getInstruction();
+			var invokespecial = (INVOKESPECIAL) callToSuperConstructor.getInstruction();
 			// if the superconstructor is @FromContract, then it will take care of setting the caller for us
 			String classNameOfSuperConstructor = invokespecial.getClassName(cpg);
 			Type[] argumentTypes = invokespecial.getArgumentTypes(cpg);
 			if (argumentTypes.length > 0 && argumentTypes[argumentTypes.length - 1].equals(DUMMY_OT)) {
 				// the target has been already instrumented, we removed the extra arguments
-				Type[] copy = new Type[argumentTypes.length - 2];
+				var copy = new Type[argumentTypes.length - 2];
 				System.arraycopy(argumentTypes, 0, copy, 0, copy.length);
 				argumentTypes = copy;
 			}
@@ -226,13 +225,11 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 			InstructionList il = method.getInstructionList();
 			if (il != null && il.getLength() >= 3) {
 				Instruction[] instructions = il.getInstructions();
-				ReferenceType c;
-				PUTFIELD putfield;
 
-				return instructions[0] instanceof LoadInstruction && ((LoadInstruction) instructions[0]).getIndex() == 0
-					&& instructions[1] instanceof LoadInstruction && ((LoadInstruction) instructions[1]).getIndex() == 1
-					&& instructions[2] instanceof PUTFIELD && (putfield = (PUTFIELD) instructions[2]).getFieldType(cpg).equals(t)
-					&& (c = putfield.getReferenceType(cpg)) instanceof ObjectType && ((ObjectType) c).getClassName().equals(className);
+				return instructions[0] instanceof LoadInstruction li0 && li0.getIndex() == 0
+					&& instructions[1] instanceof LoadInstruction li1 && li1.getIndex() == 1
+					&& instructions[2] instanceof PUTFIELD putfield && putfield.getFieldType(cpg).equals(t)
+					&& putfield.getReferenceType(cpg) instanceof ObjectType ot && ot.getClassName().equals(className);
 			}
 		}
 
@@ -270,7 +267,7 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 		// including calling two constructors of the superclass at different places. In all such cases
 		// this method fails and rejects the code: such non-standard code is not supported by Takamaka
 		Instruction startInstruction = start.getInstruction();
-		if (startInstruction instanceof LoadInstruction && ((LoadInstruction) startInstruction).getIndex() == 0) {
+		if (startInstruction instanceof LoadInstruction li && li.getIndex() == 0) {
 			Set<InstructionHandle> callsForConstructorChaining = new HashSet<>();
 			HeightAtBytecode seed = new HeightAtBytecode(start.getNext(), 1);
 			Set<HeightAtBytecode> seen = new HashSet<>();
@@ -283,9 +280,9 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 				int stackHeightAfterBytecode = current.stackHeightBeforeBytecode;
 				Instruction bytecode = current.ih.getInstruction();
 
-				if (bytecode instanceof StoreInstruction) {
-					int modifiedLocal = ((StoreInstruction) bytecode).getIndex();
-					int size = ((StoreInstruction) bytecode).getType(cpg).getSize();
+				if (bytecode instanceof StoreInstruction si) {
+					int modifiedLocal = si.getIndex();
+					int size = si.getType(cpg).getSize();
 					if (modifiedLocal == slotForCaller || (size == 2 && modifiedLocal == slotForCaller - 1))
 						throw new IllegalStateException("Unexpected modification of local " + slotForCaller
 								+ " before initialization of " + className);
@@ -296,31 +293,30 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 
 				if (stackHeightAfterBytecode == 0) {
 					// found a consumer of the aload_0: is it really a call to a constructor of the superclass or of the same class?
-					if (bytecode instanceof INVOKESPECIAL
-							&& (((INVOKESPECIAL) bytecode).getClassName(cpg).equals(getSuperclassName()) ||
-									((INVOKESPECIAL) bytecode).getClassName(cpg).equals(className))
-							&& ((INVOKESPECIAL) bytecode).getMethodName(cpg).equals(Const.CONSTRUCTOR_NAME))
+					if (bytecode instanceof INVOKESPECIAL invokespecial
+							&& (invokespecial.getClassName(cpg).equals(getSuperclassName()) || invokespecial.getClassName(cpg).equals(className))
+							&& invokespecial.getMethodName(cpg).equals(Const.CONSTRUCTOR_NAME))
 						callsForConstructorChaining.add(current.ih);
 					else
 						throw new IllegalStateException("Unexpected consumer of local 0 " + bytecode + " before initialization of " + className);
 				}
-				else if (bytecode instanceof GotoInstruction) {
-					HeightAtBytecode added = new HeightAtBytecode(((GotoInstruction) bytecode).getTarget(), stackHeightAfterBytecode);
+				else if (bytecode instanceof GotoInstruction gi) {
+					var added = new HeightAtBytecode(gi.getTarget(), stackHeightAfterBytecode);
 					if (seen.add(added))
 						workingSet.add(added);
 				}
-				else if (bytecode instanceof IfInstruction) {
-					HeightAtBytecode added = new HeightAtBytecode(current.ih.getNext(), stackHeightAfterBytecode);
+				else if (bytecode instanceof IfInstruction ii) {
+					var added = new HeightAtBytecode(current.ih.getNext(), stackHeightAfterBytecode);
 					if (seen.add(added))
 						workingSet.add(added);
-					added = new HeightAtBytecode(((IfInstruction) bytecode).getTarget(), stackHeightAfterBytecode);
+					added = new HeightAtBytecode(ii.getTarget(), stackHeightAfterBytecode);
 					if (seen.add(added))
 						workingSet.add(added);
 				}
 				else if (bytecode instanceof BranchInstruction || bytecode instanceof ATHROW || bytecode instanceof RETURN || bytecode instanceof RET)
 					throw new IllegalStateException("Unexpected instruction " + bytecode + " before initialization of " + className);
 				else {
-					HeightAtBytecode added = new HeightAtBytecode(current.ih.getNext(), stackHeightAfterBytecode);
+					var added = new HeightAtBytecode(current.ih.getNext(), stackHeightAfterBytecode);
 					if (seen.add(added))
 						workingSet.add(added);
 				}
@@ -383,8 +379,8 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 
 		@Override
 		public boolean equals(Object other) {
-			return other instanceof HeightAtBytecode && ((HeightAtBytecode) other).ih == ih
-				&& ((HeightAtBytecode) other).stackHeightBeforeBytecode == stackHeightBeforeBytecode;
+			return other instanceof HeightAtBytecode hab && hab.ih == ih
+				&& hab.stackHeightBeforeBytecode == stackHeightBeforeBytecode;
 		}
 
 		@Override

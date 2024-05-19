@@ -217,8 +217,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 		return poster;
 	}
 
-	@Override
-	protected TendermintStoreTransaction beginTransaction(long now) throws NodeException {
+	protected TendermintStoreTransaction beginTransaction(long now, String behaving, String misbehaving) throws NodeException {
 		return super.beginTransaction(now);
 	}
 

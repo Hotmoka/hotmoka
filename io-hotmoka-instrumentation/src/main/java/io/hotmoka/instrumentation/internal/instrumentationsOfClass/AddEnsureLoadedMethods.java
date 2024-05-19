@@ -75,8 +75,8 @@ public class AddEnsureLoadedMethods extends ClassLevelInstrumentation {
 			replaceField(oldField, newField.getField());
 		}
 
-		Type type = Type.getType(field.getType());
-		InstructionList il = new InstructionList();
+		var type = Type.getType(field.getType());
+		var il = new InstructionList();
 		InstructionHandle _return = il.append(InstructionConst.RETURN);
 		il.insert(_return, InstructionFactory.createThis());
 		// we use reflection to access the private field "inStorage"
@@ -102,7 +102,7 @@ public class AddEnsureLoadedMethods extends ClassLevelInstrumentation {
 		il.insert(_return, factory.createPutField(className, fieldName, type));
 		il.insert(_return, factory.createPutField(className, InstrumentationFields.OLD_PREFIX + fieldName, type));
 
-		MethodGen ensureLoaded = new MethodGen(PRIVATE_SYNTHETIC, BasicType.VOID, Type.NO_ARGS, null,
+		var ensureLoaded = new MethodGen(PRIVATE_SYNTHETIC, BasicType.VOID, Type.NO_ARGS, null,
 				InstrumentationConstants.ENSURE_LOADED_PREFIX + fieldName, className, il, cpg);
 		addMethod(ensureLoaded, true);
 	}

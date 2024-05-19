@@ -55,7 +55,7 @@ public class InstrumentMethodsOfSupportClasses extends MethodLevelInstrumentatio
 
 		if (className.equals(Constants.STORAGE_NAME)) {
 			if ("compareByStorageReference".equals(method.getName()) && (args = method.getArgumentTypes()).length == 1 && STORAGE_OT.equals(args[0])) {
-				InstructionList il = new InstructionList();
+				var il = new InstructionList();
 				il.append(InstructionConst.ALOAD_0);
 				il.append(InstructionConst.ALOAD_1);
 				il.append(factory.createInvoke(WhitelistingConstants.RUNTIME_NAME, "compareStorageReferencesOf", Type.INT, new Type[] { Type.OBJECT, Type.OBJECT }, Const.INVOKESTATIC));
@@ -63,7 +63,7 @@ public class InstrumentMethodsOfSupportClasses extends MethodLevelInstrumentatio
 				method.setInstructionList(il);
 			}
 			else if (Const.CONSTRUCTOR_NAME.equals(method.getName()) && method.getArgumentTypes().length == 0) {
-				InstructionList il = new InstructionList();
+				var il = new InstructionList();
 				il.append(InstructionFactory.createThis());
 				il.append(factory.createInvoke(Object.class.getName(), Const.CONSTRUCTOR_NAME, Type.VOID, Type.NO_ARGS, Const.INVOKESPECIAL));
 				il.append(InstructionFactory.createThis());
@@ -78,7 +78,7 @@ public class InstrumentMethodsOfSupportClasses extends MethodLevelInstrumentatio
 		}
 		else if (className.equals(Constants.TAKAMAKA_NAME)) {
 			if ("event".equals(method.getName()) && (args = method.getArgumentTypes()).length == 1 && EVENT_OT.equals(args[0])) {
-				InstructionList il = new InstructionList();
+				var il = new InstructionList();
 				il.append(InstructionConst.ALOAD_0);
 				il.append(factory.createInvoke(WhitelistingConstants.RUNTIME_NAME, "event", Type.VOID, new Type[] { ObjectType.OBJECT }, Const.INVOKESTATIC));
 				il.append(InstructionConst.RETURN);
@@ -86,7 +86,7 @@ public class InstrumentMethodsOfSupportClasses extends MethodLevelInstrumentatio
 			}
 			else if ("withGas".equals(method.getName()) && (args = method.getArgumentTypes()).length == 2 && BIGINTEGER_OT.equals(args[0])
 					&& new ObjectType(Callable.class.getName()).equals(args[1])) {
-				InstructionList il = new InstructionList();
+				var il = new InstructionList();
 				il.append(InstructionConst.ALOAD_0);
 				il.append(InstructionConst.ALOAD_1);
 				il.append(factory.createInvoke(WhitelistingConstants.RUNTIME_NAME, "withGas", Type.OBJECT, args, Const.INVOKESTATIC));
@@ -94,13 +94,13 @@ public class InstrumentMethodsOfSupportClasses extends MethodLevelInstrumentatio
 				method.setInstructionList(il);
 			}
 			else if ("now".equals(method.getName()) && method.getArgumentTypes().length == 0) {
-				InstructionList il = new InstructionList();
+				var il = new InstructionList();
 				il.append(factory.createInvoke(WhitelistingConstants.RUNTIME_NAME, "now", Type.LONG, Type.NO_ARGS, Const.INVOKESTATIC));
 				il.append(InstructionConst.LRETURN);
 				method.setInstructionList(il);
 			}
 			else if ("isSystemCall".equals(method.getName()) && method.getArgumentTypes().length == 0) {
-				InstructionList il = new InstructionList();
+				var il = new InstructionList();
 				il.append(factory.createInvoke(WhitelistingConstants.RUNTIME_NAME, "isSystemCall", Type.BOOLEAN, Type.NO_ARGS, Const.INVOKESTATIC));
 				il.append(InstructionConst.IRETURN);
 				method.setInstructionList(il);
@@ -108,7 +108,7 @@ public class InstrumentMethodsOfSupportClasses extends MethodLevelInstrumentatio
 		}
 		else if (className.equals(Constants.EOA_NAME)) {
 			if ("mint".equals(method.getName())) {
-				InstructionList il = new InstructionList();
+				var il = new InstructionList();
 				il.append(InstructionConst.ALOAD_0);
 				il.append(factory.createInvoke(Constants.STORAGE_NAME, "caller", CONTRACT_OT, Type.NO_ARGS, Const.INVOKEVIRTUAL));
 				il.append(InstructionConst.ALOAD_0);
@@ -118,7 +118,7 @@ public class InstrumentMethodsOfSupportClasses extends MethodLevelInstrumentatio
 				method.setInstructionList(il);
 			}
 			else if ("burn".equals(method.getName())) {
-				InstructionList il = new InstructionList();
+				var il = new InstructionList();
 				il.append(InstructionConst.ALOAD_0);
 				il.append(factory.createInvoke(Constants.STORAGE_NAME, "caller", CONTRACT_OT, Type.NO_ARGS, Const.INVOKEVIRTUAL));
 				il.append(InstructionConst.ALOAD_0);

@@ -118,8 +118,7 @@ public class AddGasUpdates extends MethodLevelInstrumentation {
 	private void addRamGasUpdate(InstructionHandle ih, InstructionList il, CodeExceptionGen[] ceg) throws ClassNotFoundException {
 		Instruction bytecode = ih.getInstruction();
 
-		if (bytecode instanceof InvokeInstruction) {
-			InvokeInstruction invoke = (InvokeInstruction) bytecode;
+		if (bytecode instanceof InvokeInstruction invoke) {
 			ReferenceType receiver = invoke.getReferenceType(cpg);
 			// we do not count the calls due to instrumentation, such as those for gas metering themselves
 			if (!RUNTIME_OT.equals(receiver)) {
@@ -135,8 +134,7 @@ public class AddGasUpdates extends MethodLevelInstrumentation {
 				addRamGasUpdate(size, ih, il, ceg);
 			}
 		}
-		else if (bytecode instanceof NEW) {
-			NEW _new = (NEW) bytecode;
+		else if (bytecode instanceof NEW _new) {
 			ObjectType createdClass = _new.getLoadClassType(cpg);
 			long size = gasCostModel.ramCostOfObject() + numberOfInstanceFieldsOf(createdClass) * (long) gasCostModel.ramCostOfField();
 			addRamGasUpdate(size, ih, il, ceg);
@@ -145,8 +143,8 @@ public class AddGasUpdates extends MethodLevelInstrumentation {
 			// the behavior of getType() is different between the two instructions;
 			// it yields the created array type for NEWARRAY, while it gets the type
 			// of the elements of the created array type for ANEWARRAY
-			Type createdType = bytecode instanceof NEWARRAY ?
-				((NEWARRAY) bytecode).getType() :
+			Type createdType = bytecode instanceof NEWARRAY na ?
+				na.getType() :
 				new ArrayType(((ANEWARRAY) bytecode).getType(cpg), 1);
 			String allocatorName = getNewNameForPrivateMethod(InstrumentationConstants.EXTRA_ALLOCATOR);
 			String bigInteger = BigInteger.class.getName();
@@ -154,7 +152,7 @@ public class AddGasUpdates extends MethodLevelInstrumentation {
 			InvokeInstruction multiply = factory.createInvoke(bigInteger, "multiply", BIGINTEGER_OT, ONE_BIGINTEGER_ARGS, Const.INVOKEVIRTUAL);
 			InvokeInstruction add = factory.createInvoke(bigInteger, "add", BIGINTEGER_OT, ONE_BIGINTEGER_ARGS, Const.INVOKEVIRTUAL);
 
-			InstructionList allocatorIl = new InstructionList();
+			var allocatorIl = new InstructionList();
 			allocatorIl.append(InstructionConst.ILOAD_0);
 			allocatorIl.append(InstructionConst.I2L);
 			allocatorIl.append(valueOf);
@@ -176,14 +174,13 @@ public class AddGasUpdates extends MethodLevelInstrumentation {
 			allocatorIl.insert(InstructionFactory.createBranchInstruction(Const.IFLT, creation));
 			allocatorIl.insert(InstructionConst.ILOAD_0);
 
-			MethodGen allocator = new MethodGen(PRIVATE_SYNTHETIC_STATIC, createdType, ONE_INT_ARGS, null, allocatorName, className, allocatorIl, cpg);
+			var allocator = new MethodGen(PRIVATE_SYNTHETIC_STATIC, createdType, ONE_INT_ARGS, null, allocatorName, className, allocatorIl, cpg);
 			addMethod(allocator, true);
 
 			// the original multianewarray gets replaced with a call to the allocation method
 			ih.setInstruction(factory.createInvoke(className, allocatorName, createdType, ONE_INT_ARGS, Const.INVOKESTATIC));
 		}
-		else if (bytecode instanceof MULTIANEWARRAY) {
-			MULTIANEWARRAY multianewarray = (MULTIANEWARRAY) bytecode;
+		else if (bytecode instanceof MULTIANEWARRAY multianewarray) {
 			Type createdType = multianewarray.getType(cpg);
 			// this bytecode might only create some dimensions of the created array type 
 			int createdDimensions = multianewarray.getDimensions();
@@ -265,7 +262,7 @@ public class AddGasUpdates extends MethodLevelInstrumentation {
 			allocatorIl.insert(fallBack2, factory.createInvoke(WhitelistingConstants.RUNTIME_NAME, "chargeForRAM", Type.VOID, ONE_BIGINTEGER_ARGS, Const.INVOKESTATIC));
 			allocatorIl.insert(fallBack2, InstructionFactory.createBranchInstruction(Const.GOTO, creation));
 
-			MethodGen allocator = new MethodGen(PRIVATE_SYNTHETIC_STATIC, createdType, args, null, allocatorName, className, allocatorIl, cpg);
+			var allocator = new MethodGen(PRIVATE_SYNTHETIC_STATIC, createdType, args, null, allocatorName, className, allocatorIl, cpg);
 			addMethod(allocator, true);
 
 			// the original multianewarray gets replaced with a call to the allocation method

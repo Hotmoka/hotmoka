@@ -67,8 +67,8 @@ public class AddAccessorMethods extends ClassLevelInstrumentation {
 	 * @param field the field
 	 */
 	private void addSetterFor(Field field) {
-		Type type = Type.getType(field.getType());
-		InstructionList il = new InstructionList();
+		var type = Type.getType(field.getType());
+		var il = new InstructionList();
 		il.append(InstructionFactory.createThis());
 		il.append(InstructionConst.DUP);
 		il.append(factory.createInvoke(className, InstrumentationConstants.ENSURE_LOADED_PREFIX + field.getName(), BasicType.VOID, Type.NO_ARGS, Const.INVOKESPECIAL));
@@ -76,8 +76,7 @@ public class AddAccessorMethods extends ClassLevelInstrumentation {
 		il.append(factory.createPutField(className, field.getName(), type));
 		il.append(InstructionConst.RETURN);
 
-		MethodGen setter = new MethodGen(PUBLIC_SYNTHETIC_FINAL, BasicType.VOID, new Type[] { type }, null,
-			setterNameFor(className, field.getName()), className, il, cpg);
+		var setter = new MethodGen(PUBLIC_SYNTHETIC_FINAL, BasicType.VOID, new Type[] { type }, null, setterNameFor(className, field.getName()), className, il, cpg);
 		addMethod(setter, false);
 	}
 
@@ -87,16 +86,15 @@ public class AddAccessorMethods extends ClassLevelInstrumentation {
 	 * @param field the field
 	 */
 	private void addGetterFor(Field field) {
-		Type type = Type.getType(field.getType());
-		InstructionList il = new InstructionList();
+		var type = Type.getType(field.getType());
+		var il = new InstructionList();
 		il.append(InstructionFactory.createThis());
 		il.append(InstructionConst.DUP);
 		il.append(factory.createInvoke(className, InstrumentationConstants.ENSURE_LOADED_PREFIX + field.getName(), BasicType.VOID, Type.NO_ARGS, Const.INVOKESPECIAL));
 		il.append(factory.createGetField(className, field.getName(), type));
 		il.append(InstructionFactory.createReturn(type));
 
-		MethodGen getter = new MethodGen(PUBLIC_SYNTHETIC_FINAL, type, Type.NO_ARGS, null,
-			getterNameFor(className, field.getName()), className, il, cpg);
+		var getter = new MethodGen(PUBLIC_SYNTHETIC_FINAL, type, Type.NO_ARGS, null, getterNameFor(className, field.getName()), className, il, cpg);
 		addMethod(getter, false);
 	}
 }

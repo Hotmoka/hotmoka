@@ -20,6 +20,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
@@ -81,23 +82,22 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 		if (!method.isAbstract())
 			for (InstructionHandle ih: method.getInstructionList()) {
 				Instruction ins = ih.getInstruction();
-				if (ins instanceof FieldInstruction) {
-					FieldInstruction fi = (FieldInstruction) ins;
+				if (ins instanceof FieldInstruction fi) {
 					Field model = verifiedClass.whiteListingModelOf(fi);
 					if (hasProofObligations(model))
 						// proof obligations are currently not implemented nor used on fields
 						throw new IllegalStateException("unexpected white-listing proof obligation for field " + fi.getReferenceType(cpg) + "." + fi.getFieldName(cpg));
 				}
-				else if (ins instanceof InvokeInstruction) {
+				else if (ins instanceof InvokeInstruction invoke) {
 					// we share the same checker for equivalent invoke instructions
 					String key = keyFor(ih);
 					InvokeInstruction replacement = whiteListingCache.get(key);
 					if (replacement != null)
 						ih.setInstruction(replacement);
 					else {
-						Executable model = verifiedClass.whiteListingModelOf((InvokeInstruction) ins);
+						Executable model = verifiedClass.whiteListingModelOf(invoke);
 						if (hasProofObligations(model)) {
-							replacement = addWhiteListVerificationMethod(ih, (InvokeInstruction) ins, model, key);
+							replacement = addWhiteListVerificationMethod(ih, invoke, model, key);
 							whiteListingCache.put(key, replacement);
 							ih.setInstruction(replacement);
 						}
@@ -120,11 +120,11 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 	 * @throws ClassNotFoundException if some class cannot be found in the Takamaka program
 	 */
 	private InvokeInstruction addWhiteListVerificationMethod(InstructionHandle ih, InvokeInstruction ins, Executable model, String key) throws ClassNotFoundException {
-		if (ins instanceof INVOKEDYNAMIC)
-			if (isCallToConcatenationMetaFactory((INVOKEDYNAMIC) ins))
-				return addWhiteListVerificationMethodForINVOKEDYNAMICForStringConcatenation((INVOKEDYNAMIC) ins);
+		if (ins instanceof INVOKEDYNAMIC invokedynamic)
+			if (isCallToConcatenationMetaFactory(invokedynamic))
+				return addWhiteListVerificationMethodForINVOKEDYNAMICForStringConcatenation(invokedynamic);
 			else
-				return addWhiteListVerificationMethod((INVOKEDYNAMIC) ins, model);
+				return addWhiteListVerificationMethod(invokedynamic, model);
 		else
 			return addWhiteListVerificationMethodForNonINVOKEDYNAMIC(ih, ins, model, key);
 	}
@@ -176,7 +176,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 
 	private InvokeInstruction addWhiteListVerificationMethodForINVOKEDYNAMICForStringConcatenation(INVOKEDYNAMIC invokedynamic) throws ClassNotFoundException {
 		String verifierName = getNewNameForPrivateMethod(InstrumentationConstants.EXTRA_VERIFIER);
-		InstructionList il = new InstructionList();
+		var il = new InstructionList();
 		String signature = invokedynamic.getSignature(cpg);
 		Type verifierReturnType = Type.getReturnType(signature);
 		Type[] args = Type.getArgumentTypes(signature);
@@ -187,8 +187,8 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 		for (Type argType: args) {
 			il.append(InstructionFactory.createLoad(argType, index));
 			index += argType.getSize();
-			if (argType instanceof ObjectType) {
-				Class<?> argClass = classLoader.loadClass(((ObjectType) argType).getClassName());
+			if (argType instanceof ObjectType ot) {
+				Class<?> argClass = classLoader.loadClass(ot.getClassName());
 
 				// we check if we can statically verify that the value redefines hashCode or toString
 				if (!redefinesHashCodeOrToString(argClass)) {
@@ -235,7 +235,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 	 */
 	private InvokeInstruction addWhiteListVerificationMethod(INVOKEDYNAMIC invokedynamic, Executable model) throws ClassNotFoundException {
 		String verifierName = getNewNameForPrivateMethod(InstrumentationConstants.EXTRA_VERIFIER);
-		InstructionList il = new InstructionList();
+		var il = new InstructionList();
 		List<Type> args = new ArrayList<>();
 		List<Type> argsWithoutReceiver = new ArrayList<>();
 		BootstrapMethod bootstrap = bootstraps.getBootstrapFor(invokedynamic);
@@ -251,7 +251,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 		else
 			receiver = (ObjectType) Type.getArgumentTypes(descriptor.getBytes())[0];
 
-		Type verifierReturnType = target instanceof Constructor<?> ? Type.VOID : Type.getType(((java.lang.reflect.Method) target).getReturnType());
+		Type verifierReturnType = target instanceof Constructor<?> ? Type.VOID : Type.getType(((Method) target).getReturnType());
 		int index = 0;
 
 		if (!Modifier.isStatic(target.getModifiers())) {
@@ -308,7 +308,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 		return annotationType == MustBeFalse.class &&
 			pushers.getPushers(ih, slots, method.getInstructionList(), cpg)
 				.map(InstructionHandle::getInstruction)
-				.allMatch(ins -> ins instanceof ICONST && ((ICONST) ins).getValue().equals(0));
+				.allMatch(ins -> ins instanceof ICONST iconst && iconst.getValue().equals(0));
 	}
 
 	private boolean isCallToConcatenationMetaFactory(INVOKEDYNAMIC invokedynamic) {
@@ -343,7 +343,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 		String verifierName = getNewNameForPrivateMethod(InstrumentationConstants.EXTRA_VERIFIER);
 		Type verifierReturnType = invoke.getReturnType(cpg);
 		String methodName = invoke.getMethodName(cpg);
-		InstructionList il = new InstructionList();
+		var il = new InstructionList();
 		List<Type> args = new ArrayList<>();
 		int index = 0;
 		boolean atLeastOne = false;
@@ -393,7 +393,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 		il.append(InstructionFactory.createReturn(verifierReturnType));
 
 		Type[] argsAsArray = args.toArray(Type[]::new);
-		MethodGen addedVerifier = new MethodGen(PRIVATE_SYNTHETIC_STATIC, verifierReturnType, argsAsArray, null, verifierName, className, il, cpg);
+		var addedVerifier = new MethodGen(PRIVATE_SYNTHETIC_STATIC, verifierReturnType, argsAsArray, null, verifierName, className, il, cpg);
 		addMethod(addedVerifier, false);
 
 		return factory.createInvoke(className, verifierName, verifierReturnType, argsAsArray, Const.INVOKESTATIC);

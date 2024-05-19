@@ -92,8 +92,7 @@ public class AddExtraArgsToCallsToFromContract extends MethodLevelInstrumentatio
 		var returnType = invoke.getReturnType(cpg);
 		int slots = Stream.of(args).mapToInt(Type::getSize).sum();
 		
-		if (invoke instanceof INVOKEDYNAMIC) {
-			var invokedynamic = (INVOKEDYNAMIC) invoke;
+		if (invoke instanceof INVOKEDYNAMIC invokedynamic) {
 			var cid = (ConstantInvokeDynamic) cpg.getConstant(invokedynamic.getIndex());
 
 			// this is an invokedynamic that calls a @FromContract: we must capture the calling contract
@@ -184,14 +183,13 @@ public class AddExtraArgsToCallsToFromContract extends MethodLevelInstrumentatio
 	 * @throws ClassNotFoundException if some class cannot be found in the Takamaka program
 	 */
 	private boolean isCallToFromContract(Instruction instruction) throws ClassNotFoundException {
-		if (instruction instanceof INVOKEDYNAMIC)
-			return bootstrapMethodsThatWillRequireExtraThis.contains(bootstraps.getBootstrapFor((INVOKEDYNAMIC) instruction));
-		else if (instruction instanceof InvokeInstruction) {
-			var invoke = (InvokeInstruction) instruction;
+		if (instruction instanceof INVOKEDYNAMIC invokedynamic)
+			return bootstrapMethodsThatWillRequireExtraThis.contains(bootstraps.getBootstrapFor(invokedynamic));
+		else if (instruction instanceof InvokeInstruction invoke) {
 			var receiver = invoke.getReferenceType(cpg);
 			// we do not consider calls added by instrumentation
-			if (receiver instanceof ObjectType && !receiver.equals(RUNTIME_OT))
-				return annotations.isFromContract(((ObjectType) receiver).getClassName(),
+			if (receiver instanceof ObjectType ot && !receiver.equals(RUNTIME_OT))
+				return annotations.isFromContract(ot.getClassName(),
 					invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));
 		}
 
@@ -211,10 +209,9 @@ public class AddExtraArgsToCallsToFromContract extends MethodLevelInstrumentatio
 		// first we check if an equal constant method handle was already in the constant pool
 		int size = cpg.getSize(), index;
 		for (index = 0; index < size; index++)
-			if (cpg.getConstant(index) instanceof ConstantInvokeDynamic) {
-				ConstantInvokeDynamic c = (ConstantInvokeDynamic) cpg.getConstant(index);
-				if (c.getBootstrapMethodAttrIndex() == cid.getBootstrapMethodAttrIndex()
-						&& c.getNameAndTypeIndex() == cid.getNameAndTypeIndex())
+			if (cpg.getConstant(index) instanceof ConstantInvokeDynamic cid2) {
+				if (cid2.getBootstrapMethodAttrIndex() == cid.getBootstrapMethodAttrIndex()
+						&& cid2.getNameAndTypeIndex() == cid.getNameAndTypeIndex())
 					return index; // found
 			}
 

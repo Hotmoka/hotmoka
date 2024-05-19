@@ -27,6 +27,7 @@ import java.security.InvalidKeyException;
 import java.security.SignatureException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Logger;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -72,6 +73,8 @@ class PollWithTimeWindow extends HotmokaTest {
 	private StorageReference stakeholder2;
 	private StorageReference stakeholder3;
 
+	private final static Logger LOGGER = Logger.getLogger(PollWithTimeWindow.class.getName());
+
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		setJar("polls.jar");
@@ -85,6 +88,12 @@ class PollWithTimeWindow extends HotmokaTest {
 		stakeholder1 = account(1);
 		stakeholder2 = account(2);
 		stakeholder3 = account(3);
+	}
+
+	private static void sleep(long ms) throws InterruptedException {
+		LOGGER.info("sleeping for " + ms + "ms");
+		TimeUnit.MILLISECONDS.sleep(ms);
+		LOGGER.info("waking up");
 	}
 
 	private StorageReference addSimpleSharedEntity(BigInteger share0, BigInteger share1, BigInteger share2, BigInteger share3) 
@@ -132,22 +141,22 @@ class PollWithTimeWindow extends HotmokaTest {
 		long start = isUsingTendermint() || node instanceof RemoteNode ? 10_000L : 2000L;
 		long duration = isUsingTendermint() || node instanceof RemoteNode ? 10_000L : 5000L;
 		long expired = start + duration + 100L;
-		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, duration);
 		long now = System.currentTimeMillis();
+		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, duration);
 
 		BooleanValue isOver = (BooleanValue) runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll);
 		Assertions.assertFalse(isOver.getValue());
 		
 		assertThrows(TransactionException.class, () -> addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), CLOSE_POLL, poll));
 
-		TimeUnit.MILLISECONDS.sleep(start - (System.currentTimeMillis() - now) + 2000);
+		sleep(start - (System.currentTimeMillis() - now) + 2000);
 		
 		isOver = (BooleanValue) runInstanceNonVoidMethodCallTransaction(stakeholder0, _50_000, jar(), IS_OVER, poll);
 		Assertions.assertFalse(isOver.getValue());
 		
 		assertThrows(TransactionException.class, () -> addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), CLOSE_POLL, poll));
-		
-		TimeUnit.MILLISECONDS.sleep(expired - (System.currentTimeMillis() - now) + 2000);
+
+		sleep(expired - (System.currentTimeMillis() - now) + 2000);
 		
 		isOver = (BooleanValue) runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll);
 		Assertions.assertTrue(isOver.getValue());
@@ -165,15 +174,16 @@ class PollWithTimeWindow extends HotmokaTest {
 		StorageReference action = addAction();
 		// the Tendermint blockchain is slower
 		long start = isUsingTendermint() || node instanceof RemoteNode ? 10_000L : 2000L;
-		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, 10_000L);
+		long duration = isUsingTendermint() || node instanceof RemoteNode ? 10_000L : 3000L;
 		long now = System.currentTimeMillis();
+		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, duration);
 
 		assertThrows(TransactionException.class, () -> addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), VOTE_POLL, poll));
 		assertThrows(TransactionException.class, () -> addInstanceVoidMethodCallTransaction(privateKey(1), stakeholder1, _1_000_000, ZERO, jar(), VOTE_POLL, poll));
 		assertThrows(TransactionException.class, () -> addInstanceVoidMethodCallTransaction(privateKey(2), stakeholder2, _1_000_000, ZERO, jar(), VOTE_POLL, poll));
 		assertThrows(TransactionException.class, () -> addInstanceVoidMethodCallTransaction(privateKey(3), stakeholder3, _1_000_000, ZERO, jar(), VOTE_POLL, poll));
 		
-		TimeUnit.MILLISECONDS.sleep(start - (System.currentTimeMillis() - now) + 2000L);
+		sleep(start - (System.currentTimeMillis() - now) + 2000L);
 		
 		addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), VOTE_POLL, poll);
 		addInstanceVoidMethodCallTransaction(privateKey(1), stakeholder1, _1_000_000, ZERO, jar(), VOTE_POLL, poll);
@@ -190,7 +200,7 @@ class PollWithTimeWindow extends HotmokaTest {
 	}
 	
 	@Test
-	@DisplayName("new PollWithTimeWindow() where a participant votes when the wime window is expired")
+	@DisplayName("new PollWithTimeWindow() where a participant votes when the time window is expired")
 	void voteWithExpiredTimeWindow() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException, NodeException, TimeoutException {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
@@ -198,8 +208,8 @@ class PollWithTimeWindow extends HotmokaTest {
 		long duration = 200L;
 		long expired = start + duration + 2000L;
 		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, duration);
-		
-		TimeUnit.MILLISECONDS.sleep(expired);
+
+		sleep(expired);
 		
 		assertThrows(TransactionException.class, () -> addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), VOTE_POLL, poll));
 
@@ -221,14 +231,14 @@ class PollWithTimeWindow extends HotmokaTest {
 		// the Tendermint node is slower
 		long duration = isUsingTendermint() || node instanceof RemoteNode ? 10_000L : 2000L;
 		long expired = start + duration;
-		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, duration);
 		long now = System.currentTimeMillis();
+		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, duration);
 		
 		addInstanceVoidMethodCallTransaction(privateKey(1), stakeholder1, _1_000_000, ZERO, jar(), VOTE_POLL, poll);
 		addInstanceVoidMethodCallTransaction(privateKey(2), stakeholder2, _1_000_000, ZERO, jar(), VOTE_POLL, poll);
 		addInstanceVoidMethodCallTransaction(privateKey(3), stakeholder3, _1_000_000, ZERO, jar(), VOTE_POLL, poll);
-		
-		TimeUnit.MILLISECONDS.sleep(expired - (System.currentTimeMillis() - now) + 2000);
+
+		sleep(expired - (System.currentTimeMillis() - now) + 2000L);
 		
 		BooleanValue isOver = (BooleanValue) runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll);	
 		Assertions.assertTrue(isOver.getValue());

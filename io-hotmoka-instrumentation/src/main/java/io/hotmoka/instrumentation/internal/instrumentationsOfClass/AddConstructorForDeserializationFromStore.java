@@ -18,7 +18,6 @@ package io.hotmoka.instrumentation.internal.instrumentationsOfClass;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.SortedSet;
 import java.util.function.Consumer;
 
@@ -55,7 +54,7 @@ public class AddConstructorForDeserializationFromStore extends ClassLevelInstrum
 		builder.super();
 
 		if (isStorage) {
-			List<Type> args = new ArrayList<>();
+			var args = new ArrayList<Type>();
 
 			// the parameters of the constructor start with a storage reference to the object being deserialized
 			args.add(Type.OBJECT);
@@ -100,7 +99,7 @@ public class AddConstructorForDeserializationFromStore extends ClassLevelInstrum
 	 * @return the number of local variables used to accomodate the arguments passed to the constructor of the superclass
 	 */
 	private int addCallToSuper(InstructionList il) {
-		List<Type> argsForSuperclasses = new ArrayList<>();
+		var argsForSuperclasses = new ArrayList<Type>();
 		il.append(InstructionFactory.createThis());
 
 		// the Storage class does not pass the storage reference upwards

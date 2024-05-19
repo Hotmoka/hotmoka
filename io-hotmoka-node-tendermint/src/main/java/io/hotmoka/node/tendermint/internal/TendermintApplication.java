@@ -73,6 +73,10 @@ class TendermintApplication extends ABCI {
 	 */
 	private volatile TendermintValidator[] validatorsAtPreviousBlock;
 
+	private volatile String behaving;
+
+	private volatile String misbehaving;
+
 	/**
 	 * The current transaction, if any.
 	 */
@@ -214,12 +218,11 @@ class TendermintApplication extends ABCI {
 	protected ResponseBeginBlock beginBlock(RequestBeginBlock request) {
 		String behaving = spaceSeparatedSequenceOfBehavingValidatorsAddresses(request);
     	String misbehaving = spaceSeparatedSequenceOfMisbehavingValidatorsAddresses(request);
+
     	try {
-    		transaction = node.beginTransaction(timeOfBlock(request));
-    		LOGGER.info("validators reward: behaving: " + behaving + ", misbehaving: " + misbehaving);
-    		transaction.deliverRewardTransaction(behaving, misbehaving);
+    		transaction = node.beginTransaction(timeOfBlock(request), behaving, misbehaving);
     	}
-    	catch (StoreException | NodeException e) {
+    	catch (NodeException e) {
     		throw new RuntimeException(e); // TODO
     	}
 
@@ -286,6 +289,13 @@ class TendermintApplication extends ABCI {
 
 	@Override
 	protected ResponseCommit commit(RequestCommit request) throws NodeException {
+		try {
+			transaction.deliverRewardTransaction(behaving, misbehaving);
+		}
+		catch (StoreException e) {
+			throw new RuntimeException(e);
+		}
+
 		node.moveToFinalStoreOf(transaction);
 		byte[] hash = node.getStateId();
 		LOGGER.info("committed state with hash " + Hex.toHexString(hash).toUpperCase());

@@ -163,6 +163,8 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 		try {
 			Optional<StorageReference> maybeManifest = getManifest();
 			if (maybeManifest.isPresent()) {
+				LOGGER.info("reward distribution: behaving validators: " + behaving + ", misbehaving validators: " + misbehaving);
+
 				// we use the manifest as caller, since it is an externally-owned account
 				StorageReference manifest = maybeManifest.get();
 				BigInteger nonce = getNonce(manifest);
@@ -214,7 +216,6 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 			}
 		}
 		catch (TransactionRejectedException | FieldNotFoundException | UnknownReferenceException e) {
-			LOGGER.log(Level.SEVERE, "could not reward the validators", e);
 			throw new StoreException("Could not reward the validators", e);
 		}
 	}
@@ -343,7 +344,6 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 	 * 
 	 * @param reference the reference of the transaction
 	 * @param response the response
-	 * @throws StoreException if this store is not able to complete the operation correctly
 	 */
 	protected final void setResponse(TransactionReference reference, TransactionResponse response) {
 		responses.put(reference, response);
@@ -546,12 +546,12 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 	private void takeNoteForNextReward(TransactionRequest<?> request, TransactionResponse response) throws StoreException {
 		if (!(request instanceof SystemTransactionRequest)) {
 			delivered.add(request);
-	
+
 			if (response instanceof NonInitialTransactionResponse responseAsNonInitial) {
 				BigInteger gasConsumedButPenalty = responseAsNonInitial.getGasConsumedForCPU()
 						.add(responseAsNonInitial.getGasConsumedForStorage())
 						.add(responseAsNonInitial.getGasConsumedForRAM());
-	
+
 				gasConsumed = gasConsumed.add(gasConsumedButPenalty);
 	
 				BigInteger gasConsumedTotal = gasConsumedButPenalty;

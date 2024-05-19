@@ -252,10 +252,12 @@ public class BlindAuction extends Auction {
     }
 
     private static void onlyBefore(long when) {
-		require(now() < when, "Too late");
+    	long diff = now() - when;
+		require(diff <= 0, diff + " ms too late");
 	}
 
 	private static void onlyAfter(long when) {
-		require(now() > when, "Too early");
+		long diff = now() - when;
+		require(diff >= 0, -diff + " ms too early");
 	}
 }
