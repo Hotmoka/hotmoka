@@ -209,7 +209,7 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
     }
 
     @Override
-	protected final S addDelta(StoreCache cache, Map<TransactionReference, TransactionRequest<?>> addedRequests,
+	protected S addDelta(StoreCache cache, Map<TransactionReference, TransactionRequest<?>> addedRequests,
 			Map<TransactionReference, TransactionResponse> addedResponses,
 			Map<StorageReference, TransactionReference[]> addedHistories, Optional<StorageReference> addedManifest) throws StoreException {
 	

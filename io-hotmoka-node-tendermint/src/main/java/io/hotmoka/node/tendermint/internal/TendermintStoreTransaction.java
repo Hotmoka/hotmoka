@@ -38,8 +38,10 @@ public class TendermintStoreTransaction extends AbstractTrieBasedStoreTransactio
 
 	private final static Logger LOGGER = Logger.getLogger(TendermintStoreTransaction.class.getName());
 
-	protected TendermintStoreTransaction(TendermintStore store, ExecutorService executors, ConsensusConfig<?,?> consensus, long now) throws StoreException {
+	protected TendermintStoreTransaction(TendermintStore store, ExecutorService executors, ConsensusConfig<?,?> consensus, long now, Optional<TendermintValidator[]> validators) throws StoreException {
 		super(store, executors, consensus, now);
+
+		this.validators = validators;
 	}
 
 	protected final Optional<TendermintValidator[]> getTendermintValidators() {
