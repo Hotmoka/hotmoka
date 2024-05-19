@@ -19,9 +19,7 @@ package io.hotmoka.node.local.internal.store;
 import java.math.BigInteger;
 import java.util.Map;
 import java.util.Optional;
-import java.util.OptionalLong;
 import java.util.concurrent.ExecutorService;
-import java.util.function.Function;
 import java.util.logging.Logger;
 
 import io.hotmoka.annotations.Immutable;
@@ -34,7 +32,6 @@ import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.StoreCache;
-import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.Store;
 import io.hotmoka.node.local.api.StoreException;
@@ -57,12 +54,11 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 
 	private final Hasher<TransactionRequest<?>> hasher;
 
-	private final ExecutorService executors;
-
 	private final static Logger LOGGER = Logger.getLogger(AbstractStoreImpl.class.getName());
 
 	protected AbstractStoreImpl(ExecutorService executors, ConsensusConfig<?,?> consensus, LocalNodeConfig<?,?> config, Hasher<TransactionRequest<?>> hasher) {
-		this.executors = executors;
+		super(executors);
+
 		this.hasher = hasher;
 		this.cache = new StoreCacheImpl(consensus);
 		this.maxGasPerView = config.getMaxGasPerViewTransaction();
@@ -70,7 +66,8 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 	}
 
 	protected AbstractStoreImpl(AbstractStoreImpl<S, T> toClone, StoreCache cache) {
-		this.executors = toClone.executors;
+		super(toClone.getExecutors());
+
 		this.hasher = toClone.hasher;
 		this.maxGasPerView = toClone.maxGasPerView;
 		this.cache = cache;
@@ -78,18 +75,13 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 	}
 
 	@Override
-	public final ConsensusConfig<?,?> getConfig() {
-		return cache.getConfig();
-	}
-
-	@Override
 	public final T beginTransaction(long now) throws StoreException {
-		return beginTransaction(executors, cache.getConfig(), now);
+		return beginTransaction(getExecutors(), cache.getConfig(), now);
 	}
 
 	@Override
 	public final T beginViewTransaction() throws StoreException {
-		return beginTransaction(executors, consensusForViews, System.currentTimeMillis());
+		return beginTransaction(getExecutors(), consensusForViews, System.currentTimeMillis());
 	}
 
 	@Override
@@ -110,56 +102,37 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 		}
 	}
 
+	public final S initCaches() throws StoreException {
+		var newCache = cache
+			.setConfig(extractConsensus())
+			.invalidateClassLoaders()
+			.setValidators(extractValidators())
+			.setGasStation(extractGasStation())
+			.setVersions(extractVersions())
+			.setGasPrice(extractGasPrice())
+			.setInflation(extractInflation());
+
+		return setCache(newCache);
+	}
+
 	protected abstract S addDelta(StoreCache cache,
 			Map<TransactionReference, TransactionRequest<?>> addedRequests,
 			Map<TransactionReference, TransactionResponse> addedResponses,
 			Map<StorageReference, TransactionReference[]> addedHistories,
 			Optional<StorageReference> addedManifest) throws StoreException;
 
+	protected abstract S setCache(StoreCache cache);
+
 	protected abstract T beginTransaction(ExecutorService executors, ConsensusConfig<?,?> consensus, long now) throws StoreException;
 
+	@Override
 	protected final StoreCache getCache() {
 		return cache;
 	}
 
 	@Override
-	protected final EngineClassLoader getClassLoader(TransactionReference classpath, Function<TransactionReference, EngineClassLoader> ifMissing) {
-		return cache.getClassLoader(classpath, ifMissing);
-	}
-
-	@Override
-	protected final boolean signatureIsValid(TransactionReference classpath, Function<TransactionReference, Boolean> ifMissing) {
-		return cache.signatureIsValid(classpath, ifMissing);
-	}
-
-	@Override
-	protected final ExecutorService getExecutors() {
-		return executors;
-	}
-
-	@Override
 	protected final Hasher<TransactionRequest<?>> getHasher() {
 		return hasher;
-	}
-
-	@Override
-	protected final OptionalLong getInflation() {
-		return cache.getInflation();
-	}
-
-	@Override
-	protected final Optional<StorageReference> getValidators() {
-		return cache.getValidators();
-	}
-
-	@Override
-	protected final Optional<StorageReference> getGasStation() {
-		return cache.getGasStation();
-	}
-
-	@Override
-	protected final Optional<StorageReference> getVersions() {
-		return cache.getVersions();
 	}
 
 	@Override

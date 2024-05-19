@@ -475,7 +475,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			if (getExternallyOwnedAccount().isAssignableFrom(clazz))
 				externallyOwnedAccountNonce.set(object, value);
 			else
-				throw new IllegalArgumentException("unknown account class " + clazz);
+				throw new IllegalArgumentException("unknown account class " + clazz); // TODO: what to throw here?
 		}
 		catch (IllegalArgumentException e) {
 			throw e;

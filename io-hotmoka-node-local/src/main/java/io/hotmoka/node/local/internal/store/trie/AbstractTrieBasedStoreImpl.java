@@ -194,6 +194,20 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
     	this.rootOfRequests = Optional.of(rootOfRequests);
     }
 
+    protected AbstractTrieBasedStoreImpl(AbstractTrieBasedStoreImpl<S, T> toClone, StoreCache cache) {
+    	super(toClone, cache);
+
+    	this.env = toClone.env;
+    	this.storeOfResponses = toClone.storeOfResponses;
+    	this.storeOfInfo = toClone.storeOfInfo;
+    	this.storeOfHistories = toClone.storeOfHistories;
+    	this.storeOfRequests = toClone.storeOfRequests;
+    	this.rootOfResponses = toClone.rootOfResponses;
+    	this.rootOfInfo = toClone.rootOfInfo;
+    	this.rootOfHistories = toClone.rootOfHistories;
+    	this.rootOfRequests = toClone.rootOfRequests;
+    }
+
     @Override
 	protected final S addDelta(StoreCache cache, Map<TransactionReference, TransactionRequest<?>> addedRequests,
 			Map<TransactionReference, TransactionResponse> addedResponses,
@@ -304,8 +318,8 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 		System.arraycopy(stateId, 96, rootOfHistories, 0, 32);
 
 		try {
-			S temp = make(new StoreCacheImpl(ValidatorsConsensusConfigBuilders.defaults().build()), rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
-			return make(new StoreCacheImpl(temp.extractConsensus()), rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
+			return make(new StoreCacheImpl(ValidatorsConsensusConfigBuilders.defaults().build()), rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests)
+					.initCaches();
 		}
 		catch (NoSuchAlgorithmException e) {
 			throw new StoreException(e);

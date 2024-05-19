@@ -244,22 +244,14 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		/**
 		 * For system calls to the rewarding method of the validators.
 		 */
-		private void mintCoinsForRewardToValidators() {
-			try {
-				Optional<StorageReference> manifest;
-				if (isSystemCall() && request.getStaticTarget().equals(MethodSignatures.VALIDATORS_REWARD) && (manifest = environment.getManifest()).isPresent() && request.getCaller().equals(manifest.get())) {
-					Optional<StorageValue> firstArg = request.actuals().findFirst();
-					if (firstArg.isPresent()) {
-						StorageValue value = firstArg.get();
-						if (value instanceof BigIntegerValue biv) {
-							Object caller = getDeserializedCaller();
-							classLoader.setBalanceOf(caller, classLoader.getBalanceOf(caller).add(biv.getValue()));
-						}
-					}
+		private void mintCoinsForRewardToValidators() throws StoreException {
+			Optional<StorageReference> manifest;
+			if (isSystemCall() && request.getStaticTarget().equals(MethodSignatures.VALIDATORS_REWARD) && (manifest = environment.getManifest()).isPresent() && request.getCaller().equals(manifest.get())) {
+				Optional<StorageValue> firstArg = request.actuals().findFirst();
+				if (firstArg.isPresent() && firstArg.get() instanceof BigIntegerValue biv) {
+					Object caller = getDeserializedCaller();
+					classLoader.setBalanceOf(caller, classLoader.getBalanceOf(caller).add(biv.getValue()));
 				}
-			}
-			catch (StoreException e) {
-				LOGGER.log(Level.SEVERE, "cannot access the manifest", e);
 			}
 		}
 

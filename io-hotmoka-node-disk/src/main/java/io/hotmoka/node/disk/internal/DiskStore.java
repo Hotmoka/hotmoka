@@ -85,6 +85,17 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransaction> {
     	this.blockNumber = 0;
     }
 
+    private DiskStore(DiskStore toClone, StoreCache cache) {
+    	super(toClone, cache);
+
+    	this.dir = toClone.dir;
+    	this.requests = new HashMap<>(toClone.requests);
+    	this.responses = new HashMap<>(toClone.responses);
+    	this.histories = new HashMap<>(toClone.histories);
+    	this.manifest = toClone.manifest;
+    	this.blockNumber = toClone.blockNumber;
+    }
+
     private DiskStore(DiskStore toClone, StoreCache cache,
     		Map<TransactionReference, TransactionRequest<?>> addedRequests,
     		Map<TransactionReference, TransactionResponse> addedResponses,
@@ -155,6 +166,11 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransaction> {
 			Map<StorageReference, TransactionReference[]> addedHistories, Optional<StorageReference> addedManifest) throws StoreException {
 	
 		return new DiskStore(this, cache, addedRequests, addedResponses, addedHistories, addedManifest);
+	}
+
+	@Override
+	protected DiskStore setCache(StoreCache cache) {
+		return new DiskStore(this, cache);
 	}
 
 	private void setRequest(int progressive, TransactionReference reference, TransactionRequest<?> request) throws StoreException {

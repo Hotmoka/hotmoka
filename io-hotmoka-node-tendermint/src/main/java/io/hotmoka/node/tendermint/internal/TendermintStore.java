@@ -65,6 +65,17 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
     	this.hasherOfHashes = toClone.hasherOfHashes;
 	}
 
+    private TendermintStore(TendermintStore toClone, StoreCache cache) {
+    	super(toClone, cache);
+
+    	this.hasherOfHashes = toClone.hasherOfHashes;
+	}
+
+    @Override
+    protected TendermintStore setCache(StoreCache cache) {
+    	return new TendermintStore(this, cache);
+    }
+
     /**
      * Yields the hash of this store. It is computed from the roots of its tries.
      * 

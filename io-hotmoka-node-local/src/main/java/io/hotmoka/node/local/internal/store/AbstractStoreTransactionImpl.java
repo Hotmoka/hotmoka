@@ -18,8 +18,6 @@ package io.hotmoka.node.local.internal.store;
 
 import static io.hotmoka.exceptions.CheckSupplier.check;
 import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
-import static io.hotmoka.node.MethodSignatures.GET_CURRENT_INFLATION;
-import static io.hotmoka.node.MethodSignatures.GET_GAS_PRICE;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -32,7 +30,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -47,8 +44,6 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
@@ -129,8 +124,6 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 
 	private final long now;
 
-	private final ExecutorService executors;
-
 	/**
 	 * Enough gas for a simple get method.
 	 */
@@ -139,8 +132,9 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 	private final static BigInteger _100_000_000 = BigInteger.valueOf(100_000_000L);
 
 	protected AbstractStoreTransactionImpl(S store, ExecutorService executors, ConsensusConfig<?,?> consensus, long now) {
+		super(executors);
+
 		this.store = store;
-		this.executors = executors;
 		this.now = now;
 		this.cache = store.getCache().setConfig(consensus);
 		this.hasher = store.getHasher();
@@ -162,11 +156,6 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 	@Override
 	public final long getNow() {
 		return now;
-	}
-
-	@Override
-	public final ConsensusConfig<?,?> getConfig() {
-		return cache.getConfig();
 	}
 
 	@Override
@@ -302,38 +291,8 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 	}
 
 	@Override
-	protected final OptionalLong getInflation() {
-		return cache.getInflation();
-	}
-
-	@Override
-	protected final Optional<StorageReference> getValidators() {
-		return cache.getValidators();
-	}
-
-	@Override
-	protected final Optional<StorageReference> getGasStation() {
-		return cache.getGasStation();
-	}
-
-	@Override
-	protected final Optional<StorageReference> getVersions() {
-		return cache.getVersions();
-	}
-
-	@Override
-	protected final EngineClassLoader getClassLoader(TransactionReference classpath, Function<TransactionReference, EngineClassLoader> ifMissing) {
-		return cache.getClassLoader(classpath, ifMissing);
-	}
-
-	@Override
-	protected final boolean signatureIsValid(TransactionReference classpath, Function<TransactionReference, Boolean> ifMissing) {
-		return cache.signatureIsValid(classpath, ifMissing);
-	}
-
-	@Override
-	protected final ExecutorService getExecutors() {
-		return executors;
+	protected final StoreCache getCache() {
+		return cache;
 	}
 
 	@Override
@@ -350,11 +309,11 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 	 */
 	protected void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws StoreException {
 		if (manifestMightHaveChanged(response)) {
-			recomputeValidators();
+			cache = cache.setValidators(extractValidators());
 			LOGGER.info("the validators cache has been updated since it might have changed");
-			recomputeGasStation();
+			cache = cache.setGasStation(extractGasStation());
 			LOGGER.info("the gas station cache has been updated since it might have changed");
-			recomputeVersions();
+			cache = cache.setVersions(extractVersions());
 			LOGGER.info("the versions manager cache has been updated since it might have changed");
 		}
 
@@ -368,11 +327,15 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 				LOGGER.info("the version of the verification module has changed from " + versionBefore + " to " + versionAfter);
 		}
 
-		if (gasPriceMightHaveChanged(response, classLoader))
-			recomputeGasPrice();
+		if (gasPriceMightHaveChanged(response, classLoader)) {
+			cache = cache.setGasPrice(extractGasPrice());
+			LOGGER.info("the gas cache has been updated since it might have changed: the new gas price is " + cache.getGasPrice().get());
+		}
 
-		if (inflationMightHaveChanged(response, classLoader))
-			recomputeInflation();
+		if (inflationMightHaveChanged(response, classLoader)) {
+			cache = cache.setInflation(extractInflation());
+			LOGGER.info("the inflation cache has been updated since it might have changed: the new inflation is " + cache.getInflation().getAsLong());
+		}
 	}
 
 	/**
@@ -557,25 +520,6 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 		return false;
 	}
 
-	private void recomputeInflation() throws StoreException {
-		try {
-			Optional<StorageReference> manifest = getManifest();
-			if (manifest.isPresent()) {
-				TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
-				StorageReference validators = getValidators().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
-				long newInflation = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest.get(), _100_000, takamakaCode, GET_CURRENT_INFLATION, validators))
-					.orElseThrow(() -> new StoreException(GET_CURRENT_INFLATION + " should not return void"))
-					.asLong(value -> new StoreException(GET_CURRENT_INFLATION + " should return a long, not a " + value.getClass().getName()));
-	
-				cache = cache.setInflation(newInflation);
-				LOGGER.info("the inflation cache has been updated to " + newInflation);
-			}
-		}
-		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
-			throw new StoreException(e);
-		}
-	}
-
 	private boolean isInflationUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws StoreException {
 		try {
 			return classLoader.isInflationUpdateEvent(getClassName(event));
@@ -590,60 +534,6 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 
 	private boolean manifestMightHaveChanged(TransactionResponse response) {
 		return response instanceof InitializationTransactionResponse;
-	}
-
-	private void recomputeValidators() throws StoreException {
-		Optional<StorageReference> manifest = getManifest();
-		if (manifest.isPresent()) {
-			try {
-				StorageReference newValidators = getReferenceField(manifest.get(), FieldSignatures.MANIFEST_VALIDATORS_FIELD);
-				cache = cache.setValidators(newValidators);
-			}
-			catch (FieldNotFoundException e) {
-				throw new StoreException("The manifest does not contain the reference to the validators set", e);
-			}
-			catch (UnknownReferenceException e) {
-				throw new StoreException("The manifest is set but cannot be found in store", e);
-			}
-		}
-		else
-			throw new StoreException("The node has been initialized but its manifest cannot be found");
-	}
-
-	private void recomputeGasStation() throws StoreException {
-		Optional<StorageReference> manifest = getManifest();
-		if (manifest.isPresent()) {
-			try {
-				StorageReference newGasStation = getReferenceField(manifest.get(), FieldSignatures.MANIFEST_GAS_STATION_FIELD);
-				cache = cache.setGasStation(newGasStation);
-			}
-			catch (FieldNotFoundException e) {
-				throw new StoreException("The manifest does not contain the reference to the gas station", e);
-			}
-			catch (UnknownReferenceException e) {
-				throw new StoreException("The manifest is set but cannot be found in store", e);
-			}
-		}
-		else
-			throw new StoreException("The node has been initialized but its manifest cannot be found");
-	}
-
-	private void recomputeVersions() throws StoreException {
-		Optional<StorageReference> manifest = getManifest();
-		if (manifest.isPresent()) {
-			try {
-				StorageReference newVersions = getReferenceField(manifest.get(), FieldSignatures.MANIFEST_VERSIONS_FIELD);
-				cache = cache.setVersions(newVersions);
-			}
-			catch (FieldNotFoundException e) {
-				throw new StoreException("The manifest does not contain the reference to the versions manager", e);
-			}
-			catch (UnknownReferenceException e) {
-				throw new StoreException("The manifest is set but cannot be found in store", e);
-			}
-		}
-		else
-			throw new StoreException("The node has been initialized but its manifest cannot be found");
 	}
 
 	/**
@@ -731,25 +621,6 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 
 	private BigInteger getCurrentSupply(StorageReference validators) throws UnknownReferenceException, FieldNotFoundException, StoreException {
 		return getBigIntegerField(validators, FieldSignatures.ABSTRACT_VALIDATORS_CURRENT_SUPPLY_FIELD);
-	}
-
-	private void recomputeGasPrice() throws StoreException {
-		try {
-			Optional<StorageReference> manifest = getManifest();
-			if (manifest.isPresent()) {
-				TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
-				StorageReference gasStation = getGasStation().orElseThrow(() -> new StoreException("The manifest is set but the gas station is not set"));
-				BigInteger newGasPrice = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest.get(), _100_000, takamakaCode, GET_GAS_PRICE, gasStation))
-					.orElseThrow(() -> new StoreException(GET_GAS_PRICE + " should not return void"))
-					.asBigInteger(value -> new StoreException(GET_GAS_PRICE + " should return a BigInteger, not a " + value.getClass().getName()));
-	
-				cache = cache.setGasPrice(newGasPrice);
-				LOGGER.info("the gas price cache has been updated to " + newGasPrice);
-			}
-		}
-		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
-			throw new StoreException(e);
-		}
 	}
 
 	private void scheduleEventsForNotificationAfterCommit(TransactionResponse response) {

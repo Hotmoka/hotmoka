@@ -201,19 +201,22 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 			this.executors = Executors.newCachedThreadPool(); // TODO. turn off this if construction fails
 
 			if (consensus.isEmpty()) {
+				// we start from a store with empty caches and dummy consensus; this is not a problem
+				// since initCaches() executes run transactions, that do not use the cache and do not depend on the consensus
 				S temp = mkStore(executors, ValidatorsConsensusConfigBuilders.defaults().build(), config, hasher);
 
 				try {
-					this.store = mkStore(executors, temp.extractConsensus(), config, hasher);
+					this.store = temp.initCaches();
 				}
 				catch (StoreException e) {
-					throw new NodeException("Cannot extract the consensus from the store: was the node already initialized?", e);
+					throw new NodeException("Cannot initialize the caches of the store: was the node already initialized?", e);
 				}
 			}
 			else
+				// the node is starting from scratch: the caches are left empty and the consensus is well-known
 				this.store = mkStore(executors, consensus.get(), config, hasher);
 
-			addShutdownHook(); // move down to the concrete classes
+			addShutdownHook();
 		}
 		catch (NoSuchAlgorithmException | IOException e) {
 			throw new NodeException(e);
