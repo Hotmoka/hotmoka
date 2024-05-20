@@ -161,7 +161,7 @@ public abstract class ABCI {
 	 * 
 	 * @param request the request
 	 * @return the response
-	 * @throws NodeException 
+	 * @throws NodeException if the node is not able to complete the operation correctly
 	 */
 	protected abstract ResponseInfo info(RequestInfo request) throws NodeException;
 
@@ -202,6 +202,7 @@ public abstract class ABCI {
 	 * 
 	 * @param request the request
 	 * @return the response
+	 * @throws NodeException if the node is not able to complete the operation correctly
 	 */
 	protected abstract ResponseCommit commit(RequestCommit request) throws NodeException;
 

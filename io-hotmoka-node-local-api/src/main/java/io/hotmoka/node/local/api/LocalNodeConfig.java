@@ -20,7 +20,6 @@ import java.math.BigInteger;
 import java.nio.file.Path;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.node.api.transactions.TransactionReference;
 
 /**
  * The configuration of a node.
@@ -56,22 +55,6 @@ public interface LocalNodeConfig<C extends LocalNodeConfig<C,B>, B extends Local
 	 * @return the delay of two subsequent polling attempts, in milliseconds
 	 */
 	long getPollingDelay();
-
-	/**
-	 * Yields the size of the cache for the {@link io.hotmoka.node.api.Node#getRequest(TransactionReference)} method.
-	 * It defaults to 1,000.
-	 * 
-	 * @return the size of the cache for the {@link io.hotmoka.node.api.Node#getRequest(TransactionReference)} method
-	 */
-	int getRequestCacheSize();
-
-	/**
-	 * Yields the size of the cache for the {@link io.hotmoka.node.api.Node#getResponseUncommited(TransactionReference)} method.
-	 * It defaults to 1,000.
-	 * 
-	 * @return the size of the cache for the {@link io.hotmoka.node.api.Node#getResponseUncommited(TransactionReference)} method
-	 */
-	int getResponseCacheSize();
 
 	/**
 	 * Yields the maximal amount of gas that a view transaction can consume.

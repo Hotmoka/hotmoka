@@ -23,6 +23,7 @@ import java.util.Optional;
  * 
  * @param <Key> the type of the keys of the trie
  * @param <Value> the type of the values of the trie
+ * @param <T> the type of this trie
  */
 public interface PatriciaTrie<Key, Value, T extends PatriciaTrie<Key, Value, T>> {
 

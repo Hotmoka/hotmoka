@@ -50,7 +50,7 @@ import io.hotmoka.node.local.api.StoreException;
  * while the histories are kept in RAM.
  */
 @Immutable
-class DiskStore extends AbstractStore<DiskStore, DiskStoreTransaction> {
+class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
 
 	/**
 	 * The path where the database of the store gets created.
@@ -156,8 +156,8 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransaction> {
 	}
 
 	@Override
-	protected DiskStoreTransaction beginTransaction(ExecutorService executors, ConsensusConfig<?,?> consensus, long now) {
-		return new DiskStoreTransaction(this, executors, consensus, now);
+	protected DiskStoreTransformation beginTransaction(ExecutorService executors, ConsensusConfig<?,?> consensus, long now) {
+		return new DiskStoreTransformation(this, executors, consensus, now);
 	}
 
 	@Override

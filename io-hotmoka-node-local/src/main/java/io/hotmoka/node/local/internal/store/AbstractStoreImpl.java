@@ -38,7 +38,7 @@ import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.StoreCacheImpl;
 
 @Immutable
-public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T extends AbstractStoreTransactionImpl<S, T>> extends ExecutionEnvironment implements Store<S, T> {
+public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T extends AbstractStoreTransformationImpl<S, T>> extends ExecutionEnvironment implements Store<S, T> {
 
 	private final StoreCache cache;
 

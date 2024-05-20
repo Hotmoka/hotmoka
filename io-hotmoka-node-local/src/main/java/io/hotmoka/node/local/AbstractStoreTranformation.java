@@ -19,7 +19,7 @@ package io.hotmoka.node.local;
 import java.util.concurrent.ExecutorService;
 
 import io.hotmoka.node.api.nodes.ConsensusConfig;
-import io.hotmoka.node.local.internal.store.AbstractStoreTransactionImpl;
+import io.hotmoka.node.local.internal.store.AbstractStoreTransformationImpl;
 
 /**
  * The store of a node. It keeps information about the state of the objects created
@@ -27,9 +27,9 @@ import io.hotmoka.node.local.internal.store.AbstractStoreTransactionImpl;
  * its hash is held in the node, if consensus is needed. Stores must be thread-safe, since they can
  * be used concurrently for executing more requests.
  */
-public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T extends AbstractStoreTransaction<S, T>> extends AbstractStoreTransactionImpl<S, T> {
+public abstract class AbstractStoreTranformation<S extends AbstractStore<S, T>, T extends AbstractStoreTranformation<S, T>> extends AbstractStoreTransformationImpl<S, T> {
 
-	protected AbstractStoreTransaction(S store, ExecutorService executors, ConsensusConfig<?,?> consensus, long now) {
+	protected AbstractStoreTranformation(S store, ExecutorService executors, ConsensusConfig<?,?> consensus, long now) {
 		super(store, executors, consensus, now);
 	}
 }

@@ -26,7 +26,7 @@ import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.internal.store.AbstractStoreImpl;
 
 @Immutable
-public abstract class AbstractStore<S extends AbstractStore<S,T>, T extends AbstractStoreTransaction<S, T>> extends AbstractStoreImpl<S, T> {
+public abstract class AbstractStore<S extends AbstractStore<S,T>, T extends AbstractStoreTranformation<S, T>> extends AbstractStoreImpl<S, T> {
 
 	protected AbstractStore(ExecutorService executors, ConsensusConfig<?,?> consensus, LocalNodeConfig<?,?> config, Hasher<TransactionRequest<?>> hasher) {
 		super(executors, consensus, config, hasher);

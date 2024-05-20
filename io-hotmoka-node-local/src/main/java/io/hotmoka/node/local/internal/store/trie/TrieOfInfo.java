@@ -45,7 +45,7 @@ public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue, TrieOfI
 	 */
 	public TrieOfInfo(KeyValueStore store, Optional<byte[]> root) throws TrieException {
 		super(store, root, HashingAlgorithms.identity1().getHasher(key -> new byte[] { key }),
-			sha256(), StorageValue::toByteArray, bytes -> StorageValues.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))), -1L);
+			sha256(), StorageValue::toByteArray, bytes -> StorageValues.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))));
 	}
 
 	private TrieOfInfo(TrieOfInfo cloned, byte[] root) {

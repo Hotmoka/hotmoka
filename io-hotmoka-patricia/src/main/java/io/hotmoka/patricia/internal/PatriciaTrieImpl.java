@@ -20,6 +20,7 @@ import java.util.Optional;
 
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.HashingAlgorithm;
+import io.hotmoka.patricia.AbstractPatriciaTrie;
 import io.hotmoka.patricia.FromBytes;
 import io.hotmoka.patricia.ToBytes;
 import io.hotmoka.patricia.api.KeyValueStore;
@@ -30,7 +31,7 @@ import io.hotmoka.patricia.api.KeyValueStore;
  * @param <Key> the type of the keys of the trie
  * @param <Value> the type of the values of the trie
  */
-public class PatriciaTrieImpl<Key, Value> extends AbstractPatriciaTrieImpl<Key, Value, PatriciaTrieImpl<Key, Value>> {
+public class PatriciaTrieImpl<Key, Value> extends AbstractPatriciaTrie<Key, Value, PatriciaTrieImpl<Key, Value>> {
 
 	/**
 	 * Creates a new Merkle-Patricia trie supported by the given underlying store,
@@ -43,18 +44,12 @@ public class PatriciaTrieImpl<Key, Value> extends AbstractPatriciaTrieImpl<Key, 
 	 * @param hashingForNodes the hashing algorithm for the nodes of the trie
 	 * @param valueToBytes a function that marshals values into their byte representation
 	 * @param bytesToValue a function that unmarshals bytes into the represented value
-	 * @param numberOfCommits the current number of commits already executed on the store; this trie
-	 *                        will record which data can be garbage collected (eventually)
-	 *                        because they become unreachable as result of the store updates
-	 *                        performed during commit {@code numerOfCommits}; this value could
-	 *                        be -1L if the trie is only used for reading, so that there is no need
-	 *                        to keep track of keys that can be garbage-collected
 	 */
 	public PatriciaTrieImpl(KeyValueStore store, Optional<byte[]> root,
 			Hasher<? super Key> hasherForKeys, HashingAlgorithm hashingForNodes,
-			ToBytes<? super Value> valueToBytes, FromBytes<? extends Value> bytesToValue, long numberOfCommits) {
+			ToBytes<? super Value> valueToBytes, FromBytes<? extends Value> bytesToValue) {
 
-		super(store, root, hasherForKeys, hashingForNodes, valueToBytes, bytesToValue, numberOfCommits);
+		super(store, root, hasherForKeys, hashingForNodes, valueToBytes, bytesToValue);
 	}
 
 	/**
@@ -65,16 +60,6 @@ public class PatriciaTrieImpl<Key, Value> extends AbstractPatriciaTrieImpl<Key, 
 	 */
 	private PatriciaTrieImpl(PatriciaTrieImpl<Key, Value> cloned, byte[] root) {
 		super(cloned, root);
-	}
-
-	/**
-	 * Clones the given trie, but for its supporting store, that is set to the provided value.
-	 * 
-	 * @param cloned the trie to clone
-	 * @param store the store to use in the cloned trie
-	 */
-	private PatriciaTrieImpl(PatriciaTrieImpl<Key, Value> cloned, KeyValueStore store) {
-		super(cloned, store);
 	}
 
 	@Override

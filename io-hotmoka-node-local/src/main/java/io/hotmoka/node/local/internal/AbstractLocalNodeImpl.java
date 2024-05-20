@@ -82,7 +82,7 @@ import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.local.AbstractStore;
-import io.hotmoka.node.local.AbstractStoreTransaction;
+import io.hotmoka.node.local.AbstractStoreTranformation;
 import io.hotmoka.node.local.api.LocalNode;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StoreException;
@@ -94,7 +94,7 @@ import io.hotmoka.node.local.api.StoreException;
  * @param <S> the type of the store of the node
  */
 @ThreadSafe
-public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S extends AbstractStore<S, T>, T extends AbstractStoreTransaction<S, T>> extends AbstractAutoCloseableWithLockAndOnCloseHandlers<ClosedNodeException> implements LocalNode<C> {
+public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S extends AbstractStore<S, T>, T extends AbstractStoreTranformation<S, T>> extends AbstractAutoCloseableWithLockAndOnCloseHandlers<ClosedNodeException> implements LocalNode<C> {
 
 	/**
 	 * The manager of the subscriptions to the events occurring in this node.

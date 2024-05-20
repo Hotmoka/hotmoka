@@ -44,6 +44,8 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	
 	/**
 	 * Replaces all reverified responses into the store for which the response is built.
+	 * 
+	 * @throws StoreException if the operation did not complete correctly
 	 */
 	void replaceReverifiedResponses() throws StoreException;
 

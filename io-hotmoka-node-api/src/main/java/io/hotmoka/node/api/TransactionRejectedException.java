@@ -40,6 +40,8 @@ public class TransactionRejectedException extends Exception {
 	 * Builds an exception with the given message.
 	 * 
 	 * @param message the message
+	 * @param consensus the consensus of the node generating this message; this is used to trim the
+	 *                  message to the maximal length allowed in the consensus
 	 */
 	public TransactionRejectedException(String message, ConsensusConfig<?,?> consensus) {
 		super(trim(message, consensus.getMaxErrorLength()));
@@ -49,6 +51,8 @@ public class TransactionRejectedException extends Exception {
 	 * Builds an exception with the given cause.
 	 * 
 	 * @param cause the cause
+	 * @param consensus the consensus of the node generating this message; this is used to trim the
+	 *                  message to the maximal length allowed in the consensus
 	 */
 	public TransactionRejectedException(Throwable cause, ConsensusConfig<?,?> consensus) {
 		super(trim(cause.getClass().getName() + messageOf(cause), consensus.getMaxErrorLength()), cause); // TODO: getMaxErrorLength should be moved to LocalConfig

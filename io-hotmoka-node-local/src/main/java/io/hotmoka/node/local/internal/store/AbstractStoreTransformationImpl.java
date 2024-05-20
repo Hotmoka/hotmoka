@@ -67,7 +67,7 @@ import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.ResponseBuilder;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.node.local.api.StoreTransaction;
+import io.hotmoka.node.local.api.StoreTransformation;
 
 /**
  * The store of a node. It keeps information about the state of the objects created
@@ -75,8 +75,8 @@ import io.hotmoka.node.local.api.StoreTransaction;
  * its hash is held in the node, if consensus is needed. Stores must be thread-safe, since they can
  * be used concurrently for executing more requests.
  */
-public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S, T>, T extends AbstractStoreTransactionImpl<S, T>> extends ExecutionEnvironment implements StoreTransaction<S, T> {
-	private final static Logger LOGGER = Logger.getLogger(AbstractStoreTransactionImpl.class.getName());
+public abstract class AbstractStoreTransformationImpl<S extends AbstractStoreImpl<S, T>, T extends AbstractStoreTransformationImpl<S, T>> extends ExecutionEnvironment implements StoreTransformation<S, T> {
+	private final static Logger LOGGER = Logger.getLogger(AbstractStoreTransformationImpl.class.getName());
 	private final S store;
 
 	private final ConcurrentMap<TransactionReference, TransactionRequest<?>> requests = new ConcurrentHashMap<>();
@@ -131,7 +131,7 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 
 	private final static BigInteger _100_000_000 = BigInteger.valueOf(100_000_000L);
 
-	protected AbstractStoreTransactionImpl(S store, ExecutorService executors, ConsensusConfig<?,?> consensus, long now) {
+	protected AbstractStoreTransformationImpl(S store, ExecutorService executors, ConsensusConfig<?,?> consensus, long now) {
 		super(executors);
 
 		this.store = store;
@@ -245,7 +245,7 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 	}
 
 	@Override
-	public final int deliveredCount() throws StoreException {
+	public final int deliveredCount() {
 		return delivered.size();
 	}
 

@@ -60,7 +60,7 @@ public class TrieOfResponses extends AbstractPatriciaTrie<TransactionReference, 
 	 */
 	public TrieOfResponses(KeyValueStore store, Optional<byte[]> root) throws TrieException {
 		super(store, root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
-			sha256(), TransactionResponse::toByteArray, bytes -> TransactionResponses.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))), -1L);
+			sha256(), TransactionResponse::toByteArray, bytes -> TransactionResponses.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))));
 
 		this.hasherForJars = sha256().getHasher(Function.identity());
 	}

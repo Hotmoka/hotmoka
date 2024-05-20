@@ -64,6 +64,7 @@ public interface WhiteListingClassLoader {
 	 * @param name the name of the field
 	 * @param type the type of the field
 	 * @return the resolved field, if any
+	 * @throws ClassNotFoundException if {@code className} cannot be found
 	 */
 	Optional<Field> resolveField(String className, String name, Class<?> type) throws ClassNotFoundException;
 

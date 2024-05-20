@@ -45,7 +45,7 @@ import io.hotmoka.node.local.internal.store.trie.AbstractTrieBasedStoreImpl;
  * This class is meant to be subclassed by specifying where errors, requests and histories are kept.
  */
 @Immutable
-public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S, T>, T extends AbstractTrieBasedStoreTransaction<S, T>> extends AbstractTrieBasedStoreImpl<S, T> {
+public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S, T>, T extends AbstractTrieBasedStoreTransformation<S, T>> extends AbstractTrieBasedStoreImpl<S, T> {
 
 	/**
 	 * Creates a store. Its roots are initialized as in the Xodus store, if present.

@@ -25,7 +25,6 @@ import java.util.Objects;
 import com.moandjiezana.toml.Toml;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.LocalNodeConfigBuilder;
 
@@ -59,18 +58,6 @@ public abstract class LocalNodeConfigImpl<C extends LocalNodeConfig<C,B>, B exte
 	public final long pollingDelay;
 
 	/**
-	 * The size of the cache for the {@link io.hotmoka.node.api.Node#getRequest(TransactionReference)} method.
-	 * It defaults to 1,000.
-	 */
-	public final int requestCacheSize;
-
-	/**
-	 * The size of the cache for the {@link io.hotmoka.node.api.Node#getResponseUncommited(TransactionReference)} method.
-	 * It defaults to 1,000.
-	 */
-	public final int responseCacheSize;
-
-	/**
 	 * The maximal amount of gas that a view transaction can consume.
 	 * It defaults to 100_000_000.
 	 */
@@ -85,8 +72,6 @@ public abstract class LocalNodeConfigImpl<C extends LocalNodeConfig<C,B>, B exte
 		this.dir = builder.dir;
 		this.maxPollingAttempts = builder.maxPollingAttempts;
 		this.pollingDelay = builder.pollingDelay;
-		this.requestCacheSize = builder.requestCacheSize;
-		this.responseCacheSize = builder.responseCacheSize;
 		this.maxGasPerViewTransaction = builder.maxGasPerViewTransaction;
 	}
 
@@ -103,16 +88,6 @@ public abstract class LocalNodeConfigImpl<C extends LocalNodeConfig<C,B>, B exte
 	@Override
 	public long getPollingDelay() {
 		return pollingDelay;
-	}
-
-	@Override
-	public int getRequestCacheSize() {
-		return requestCacheSize;
-	}
-
-	@Override
-	public int getResponseCacheSize() {
-		return responseCacheSize;
 	}
 
 	@Override
@@ -139,12 +114,6 @@ public abstract class LocalNodeConfigImpl<C extends LocalNodeConfig<C,B>, B exte
 		sb.append("# this delay is then increased by 10% at each subsequent attempt\n");
 		sb.append("polling_delay = " + pollingDelay + "\n");
 		sb.append("\n");
-		sb.append("# the size of the cache for getRequest() method of the node\n");
-		sb.append("request_cache_size = " + requestCacheSize + "\n");
-		sb.append("\n");
-		sb.append("# the size of the cache for getResponse() method of the node\n");
-		sb.append("response_cache_size = " + responseCacheSize + "\n");
-		sb.append("\n");
 		sb.append("# the maximal amount of gas that a view transaction can consume\n");
 		sb.append("max_gas_per_view_transaction = \"" + maxGasPerViewTransaction + "\"\n");
 
@@ -157,8 +126,6 @@ public abstract class LocalNodeConfigImpl<C extends LocalNodeConfig<C,B>, B exte
 			return dir.equals(otherConfig.dir) &&
 				maxPollingAttempts == otherConfig.maxPollingAttempts &&
 				pollingDelay == otherConfig.pollingDelay &&
-				requestCacheSize == otherConfig.requestCacheSize &&
-				responseCacheSize == otherConfig.responseCacheSize &&
 				maxGasPerViewTransaction.equals(otherConfig.maxGasPerViewTransaction);
 		else
 			return false;
@@ -181,8 +148,6 @@ public abstract class LocalNodeConfigImpl<C extends LocalNodeConfig<C,B>, B exte
 		private Path dir = Paths.get("chain");
 		private long maxPollingAttempts = 60;
 		private long pollingDelay = 10;
-		private int requestCacheSize = 1_000;
-		private int responseCacheSize = 1_000;
 		private BigInteger maxGasPerViewTransaction = BigInteger.valueOf(100_000_000);
 
 		/**
@@ -199,8 +164,6 @@ public abstract class LocalNodeConfigImpl<C extends LocalNodeConfig<C,B>, B exte
 			setDir(config.getDir());
 			setMaxPollingAttempts(config.getMaxPollingAttempts());
 			setPollingDelay(config.getPollingDelay());
-			setRequestCacheSize(config.getRequestCacheSize());
-			setResponseCacheSize(config.getResponseCacheSize());
 			setMaxGasPerViewTransaction(config.getMaxGasPerViewTransaction());
 		}
 
@@ -222,19 +185,6 @@ public abstract class LocalNodeConfigImpl<C extends LocalNodeConfig<C,B>, B exte
 			var pollingDelay = toml.getLong("polling_delay");
 			if (pollingDelay != null)
 				setPollingDelay(pollingDelay);
-
-			var requestCacheSize = toml.getLong("request_cache_size");
-			if (requestCacheSize != null)
-				if (requestCacheSize < 0 || requestCacheSize > Integer.MAX_VALUE)
-					throw new IllegalArgumentException("requestCacheSize must be non-negative and no larger than " + Integer.MAX_VALUE);
-				else
-					setRequestCacheSize((int) (long) requestCacheSize);
-
-			var responseCacheSize = toml.getLong("response_cache_size");
-			if (responseCacheSize < 0 || responseCacheSize > Integer.MAX_VALUE)
-				throw new IllegalArgumentException("responseCacheSize must be non-negative and no larger than " + Integer.MAX_VALUE);
-			else
-				setResponseCacheSize((int) (long) responseCacheSize);
 
 			var maxGasPerViewTransaction = toml.getString("max_gas_per_view_transaction");
 			if (maxGasPerViewTransaction != null)
@@ -274,24 +224,6 @@ public abstract class LocalNodeConfigImpl<C extends LocalNodeConfig<C,B>, B exte
 				throw new IllegalArgumentException("pollingDelay must non-negative");
 
 			this.pollingDelay = pollingDelay;
-			return getThis();
-		}
-
-		@Override
-		public B setRequestCacheSize(int requestCacheSize) {
-			if (requestCacheSize < 0)
-				throw new IllegalArgumentException("requestCacheSize must non-negative");
-
-			this.requestCacheSize = requestCacheSize;
-			return getThis();
-		}
-
-		@Override
-		public B setResponseCacheSize(int responseCacheSize) {
-			if (responseCacheSize < 0)
-				throw new IllegalArgumentException("responseCacheSize must non-negative");
-
-			this.responseCacheSize = responseCacheSize;
 			return getThis();
 		}
 

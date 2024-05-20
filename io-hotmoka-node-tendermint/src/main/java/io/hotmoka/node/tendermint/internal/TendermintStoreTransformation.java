@@ -23,12 +23,12 @@ import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponseWithEvents;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.local.AbstractTrieBasedStoreTransaction;
+import io.hotmoka.node.local.AbstractTrieBasedStoreTransformation;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.StoreException;
 
-public class TendermintStoreTransaction extends AbstractTrieBasedStoreTransaction<TendermintStore, TendermintStoreTransaction> {
+public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransformation<TendermintStore, TendermintStoreTransformation> {
 
 	/**
 	 * The current validators set in this store transaction. This information could be recovered from the store transaction itself,
@@ -36,9 +36,9 @@ public class TendermintStoreTransaction extends AbstractTrieBasedStoreTransactio
 	 */
 	private volatile Optional<TendermintValidator[]> validators;
 
-	private final static Logger LOGGER = Logger.getLogger(TendermintStoreTransaction.class.getName());
+	private final static Logger LOGGER = Logger.getLogger(TendermintStoreTransformation.class.getName());
 
-	protected TendermintStoreTransaction(TendermintStore store, ExecutorService executors, ConsensusConfig<?,?> consensus, long now, Optional<TendermintValidator[]> validators) throws StoreException {
+	protected TendermintStoreTransformation(TendermintStore store, ExecutorService executors, ConsensusConfig<?,?> consensus, long now, Optional<TendermintValidator[]> validators) throws StoreException {
 		super(store, executors, consensus, now);
 
 		this.validators = validators;

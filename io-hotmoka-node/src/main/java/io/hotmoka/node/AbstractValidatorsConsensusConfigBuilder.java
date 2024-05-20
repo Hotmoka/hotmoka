@@ -48,7 +48,6 @@ public abstract class AbstractValidatorsConsensusConfigBuilder<C extends Validat
 	 * Creates a builder containing default data. but for the given signature.
 	 * 
 	 * @param signatureForRequests the signature algorithm to use for signing the requests
-	 * @return the builder
 	 */
 	protected AbstractValidatorsConsensusConfigBuilder(SignatureAlgorithm signatureForRequests) {
 		super(signatureForRequests);

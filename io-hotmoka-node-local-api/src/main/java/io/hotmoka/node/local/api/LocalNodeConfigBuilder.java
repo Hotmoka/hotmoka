@@ -19,8 +19,6 @@ package io.hotmoka.node.local.api;
 import java.math.BigInteger;
 import java.nio.file.Path;
 
-import io.hotmoka.node.api.transactions.TransactionReference;
-
 /**
  * The builder of a configuration object.
  * 
@@ -66,24 +64,6 @@ public interface LocalNodeConfigBuilder<C extends LocalNodeConfig<C,B>, B extend
 	 * @return this builder
 	 */
 	B setPollingDelay(long pollingDelay);
-
-	/**
-	 * Sets size of the cache for the {@link io.hotmoka.node.api.Node#getRequest(TransactionReference)} method.
-	 * It defaults to 1,000.
-	 * 
-	 * @param requestCacheSize the cache size
-	 * @return this builder
-	 */
-	B setRequestCacheSize(int requestCacheSize);
-
-	/**
-	 * Sets size of the cache for the {@link io.hotmoka.node.api.Node#getResponseUncommited(TransactionReference)} method.
-	 * It defaults to 1,000.
-	 * 
-	 * @param responseCacheSize the cache size
-	 * @return this builder
-	 */
-	B setResponseCacheSize(int responseCacheSize);
 
 	/**
 	 * Builds the configuration.

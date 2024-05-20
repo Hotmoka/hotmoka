@@ -40,7 +40,7 @@ import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
  * Tendermint, since it keeps such information inside its blocks.
  */
 @Immutable
-public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, TendermintStoreTransaction> {
+public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, TendermintStoreTransformation> {
 
 	/**
 	 * The hasher used to merge the hashes of the many tries.
@@ -122,8 +122,8 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
 	}
 
 	@Override
-	protected TendermintStoreTransaction beginTransaction(ExecutorService executors, ConsensusConfig<?,?> consensus, long now) throws StoreException {
-		return new TendermintStoreTransaction(this, executors, consensus, now, validators);
+	protected TendermintStoreTransformation beginTransaction(ExecutorService executors, ConsensusConfig<?,?> consensus, long now) throws StoreException {
+		return new TendermintStoreTransformation(this, executors, consensus, now, validators);
 	}
 
 	/**

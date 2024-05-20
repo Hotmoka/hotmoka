@@ -80,7 +80,7 @@ class TendermintApplication extends ABCI {
 	/**
 	 * The current transaction, if any.
 	 */
-	private volatile TendermintStoreTransaction transaction;
+	private volatile TendermintStoreTransformation transaction;
 
 	private final TendermintNodeImpl node;
 

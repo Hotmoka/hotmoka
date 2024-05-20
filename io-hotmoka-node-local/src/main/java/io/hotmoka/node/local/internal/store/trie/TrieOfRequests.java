@@ -43,7 +43,7 @@ public class TrieOfRequests extends AbstractPatriciaTrie<TransactionReference, T
 	 */
 	public TrieOfRequests(KeyValueStore store, Optional<byte[]> root) throws TrieException {
 		super(store, root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
-			sha256(), TransactionRequest<?>::toByteArray, bytes -> TransactionRequests.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))), -1L);
+			sha256(), TransactionRequest<?>::toByteArray, bytes -> TransactionRequests.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))));
 	}
 
 	private TrieOfRequests(TrieOfRequests cloned, byte[] root) {

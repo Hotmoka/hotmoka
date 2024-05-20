@@ -29,13 +29,17 @@ import io.hotmoka.node.AbstractConsensusConfig;
 import io.hotmoka.node.AbstractConsensusConfigBuilder;
 import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.node.api.nodes.ValidatorsConsensusConfigBuilder;
+import io.hotmoka.node.internal.nodes.ValidatorsConsensusConfigImpl.ValidatorsConsensusConfigBuilderImpl;
 
 /**
  * Implementation of the consensus parameters of a Hotmoka node that uses validators.
  * This information is typically contained in the manifest of the node.
+ * 
+ * @param <C> the type of this consensus configuration
+ * @param B the type of the builder of this consensus configuration
  */
 @Immutable
-public abstract class ValidatorsConsensusConfigImpl<C extends ValidatorsConsensusConfig<C,B>, B extends ValidatorsConsensusConfigBuilder<C,B>>
+public abstract class ValidatorsConsensusConfigImpl<C extends ValidatorsConsensusConfigImpl<C,B>, B extends ValidatorsConsensusConfigBuilderImpl<C,B>>
 		extends AbstractConsensusConfig<C,B>
 		implements ValidatorsConsensusConfig<C,B> {
 

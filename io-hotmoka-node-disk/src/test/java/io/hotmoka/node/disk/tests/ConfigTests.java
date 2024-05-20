@@ -59,8 +59,6 @@ public class ConfigTests extends AbstractLoggedTests {
 			.setMaxGasPerViewTransaction(BigInteger.valueOf(10000L))
 			.setMaxPollingAttempts(13)
 			.setPollingDelay(100)
-			.setRequestCacheSize(17)
-			.setResponseCacheSize(19)
 			.setTransactionsPerBlock(11)
 			.build();
 	}

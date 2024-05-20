@@ -48,7 +48,6 @@ public abstract class AbstractConsensusConfigBuilder<C extends ConsensusConfig<C
 	 * Creates a builder containing default data. but for the given signature.
 	 * 
 	 * @param signatureForRequests the signature algorithm to use for signing the requests
-	 * @return the builder
 	 */
 	protected AbstractConsensusConfigBuilder(SignatureAlgorithm signatureForRequests) {
 		super(signatureForRequests);

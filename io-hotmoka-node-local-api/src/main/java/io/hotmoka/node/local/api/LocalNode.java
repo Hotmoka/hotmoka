@@ -24,9 +24,15 @@ import io.hotmoka.node.api.NodeException;
  * Partial implementation of a local (ie., non-remote) node.
  * 
  * @param <C> the type of the configuration object used by the node
- * @param <S> the type of the store of the node
  */
 @ThreadSafe
 public interface LocalNode<C extends LocalNodeConfig<C,?>> extends Node {
+
+	/**
+	 * Yields the local configuration of this node.
+	 * 
+	 * @return the local configuration
+	 * @throws NodeException if this node cannot complete the operation correctly
+	 */
 	C getLocalConfig() throws NodeException;
 }

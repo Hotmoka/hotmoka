@@ -17,8 +17,6 @@ limitations under the License.
 package io.hotmoka.node;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
-import io.hotmoka.node.api.nodes.ValidatorsConsensusConfigBuilder;
 import io.hotmoka.node.internal.nodes.ValidatorsConsensusConfigImpl;
 
 /**
@@ -29,14 +27,14 @@ import io.hotmoka.node.internal.nodes.ValidatorsConsensusConfigImpl;
  * @param <B> the concrete type of the builder
  */
 @Immutable
-public abstract class AbstractValidatorsConsensusConfig<C extends ValidatorsConsensusConfig<C,B>, B extends ValidatorsConsensusConfigBuilder<C,B>> extends ValidatorsConsensusConfigImpl<C,B> {
+public abstract class AbstractValidatorsConsensusConfig<C extends AbstractValidatorsConsensusConfig<C,B>, B extends AbstractValidatorsConsensusConfigBuilder<C,B>> extends ValidatorsConsensusConfigImpl<C,B> {
 
 	/**
 	 * Full constructor for the builder pattern.
 	 * 
 	 * @param builder the builder where information is extracted from
 	 */
-	protected AbstractValidatorsConsensusConfig(AbstractValidatorsConsensusConfigBuilder<C,B> builder) {
+	protected AbstractValidatorsConsensusConfig(B builder) {
 		super(builder);
 	}
 }

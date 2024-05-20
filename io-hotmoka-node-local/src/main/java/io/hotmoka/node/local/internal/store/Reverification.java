@@ -41,7 +41,7 @@ import io.hotmoka.node.api.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.local.AbstractStoreTransaction;
+import io.hotmoka.node.local.AbstractStoreTranformation;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.VerificationException;
@@ -112,7 +112,7 @@ class Reverification {
 			try {
 				environment.getRequest(reference);
 
-				if (environment instanceof AbstractStoreTransaction<?,?> ast)
+				if (environment instanceof AbstractStoreTranformation<?,?> ast)
 					ast.setResponse(reference, entry.getValue());
 			}
 			catch (UnknownReferenceException e) {

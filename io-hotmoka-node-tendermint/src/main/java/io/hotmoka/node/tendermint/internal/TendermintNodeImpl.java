@@ -57,7 +57,7 @@ import io.hotmoka.tendermint.abci.Server;
  * its state in a transactional database implemented by the {@link TendermintStore} class.
  */
 @ThreadSafe
-public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, TendermintStore, TendermintStoreTransaction> implements TendermintNode {
+public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, TendermintStore, TendermintStoreTransformation> implements TendermintNode {
 
 	private final static Logger LOGGER = Logger.getLogger(TendermintNodeImpl.class.getName());
 
@@ -217,7 +217,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 		return poster;
 	}
 
-	protected TendermintStoreTransaction beginTransaction(long now, String behaving, String misbehaving) throws NodeException {
+	protected TendermintStoreTransformation beginTransaction(long now, String behaving, String misbehaving) throws NodeException {
 		return super.beginTransaction(now);
 	}
 
@@ -227,7 +227,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	}
 
 	@Override
-	protected void moveToFinalStoreOf(TendermintStoreTransaction transaction) throws NodeException {
+	protected void moveToFinalStoreOf(TendermintStoreTransformation transaction) throws NodeException {
 		super.moveToFinalStoreOf(transaction);
 	}
 

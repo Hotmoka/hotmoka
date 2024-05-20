@@ -40,8 +40,9 @@ import io.hotmoka.patricia.api.UnknownKeyException;
  *
  * @param <Key> the type of the keys of the trie
  * @param <Value> the type of the values of the trie
+ * @param <T> the type of this trie
  */
-public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends PatriciaTrie<Key, Value, T>> implements PatriciaTrie<Key, Value, T> {
+public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPatriciaTrieImpl<Key, Value, T>> implements PatriciaTrie<Key, Value, T> {
 
 	/**
 	 * The store that supports this trie.
@@ -69,14 +70,6 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends PatriciaTri
 	private final FromBytes<? extends Value> bytesToValue;
 
 	/**
-	 * The current number of commits already executed on the store; this trie
-	 * will record which data must be garbage collected (eventually)
-	 * as result of the store updates performed during that commit. This might
-	 * be -1L if the trie is only used for reading.
-	 */
-	private final long numberOfCommits;
-
-	/**
 	 * The hash of the empty node.
 	 */
 	private final byte[] hashOfEmpty;
@@ -97,16 +90,10 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends PatriciaTri
 	 * @param hashingForNodes the hashing algorithm for the nodes of the trie
 	 * @param valueToBytes a function that marshals values into their byte representation
 	 * @param bytesToValue a function that unmarshals bytes into the represented value
-	 * @param numberOfCommits the current number of commits already executed on the store; this trie
-	 *                        will record which data can be garbage collected (eventually)
-	 *                        because they become unreachable as result of the store updates
-	 *                        performed during commit {@code numerOfCommits}; this value could
-	 *                        be -1L if the trie is only used for reading, so that there is no need
-	 *                        to keep track of keys that can be garbage-collected
 	 */
 	public AbstractPatriciaTrieImpl(KeyValueStore store, Optional<byte[]> root,
 			Hasher<? super Key> hasherForKeys, HashingAlgorithm hashingForNodes,
-			ToBytes<? super Value> valueToBytes, FromBytes<? extends Value> bytesToValue, long numberOfCommits) {
+			ToBytes<? super Value> valueToBytes, FromBytes<? extends Value> bytesToValue) {
 
 		this.store = store;
 		this.hasherForKeys = hasherForKeys;
@@ -114,7 +101,6 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends PatriciaTri
 		this.bytesToValue = bytesToValue;
 		this.valueToBytes = valueToBytes;
 		this.hashOfEmpty = hasherForNodes.hash(new Empty());
-		this.numberOfCommits = numberOfCommits;
 		this.root = root.orElse(hashOfEmpty);
 	}
 
@@ -131,25 +117,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends PatriciaTri
 		this.bytesToValue = cloned.bytesToValue;
 		this.valueToBytes = cloned.valueToBytes;
 		this.hashOfEmpty = cloned.hashOfEmpty;
-		this.numberOfCommits = cloned.numberOfCommits;
 		this.root = root.clone();
-	}
-
-	/**
-	 * Clones the given trie, but for its supporting store, that is set to the provided value.
-	 * 
-	 * @param cloned the trie to clone
-	 * @param store the store to use in the cloned trie
-	 */
-	protected AbstractPatriciaTrieImpl(AbstractPatriciaTrieImpl<Key, Value, T> cloned, KeyValueStore store) {
-		this.store = store;
-		this.hasherForKeys = cloned.hasherForKeys;
-		this.hasherForNodes = cloned.hasherForNodes;
-		this.bytesToValue = cloned.bytesToValue;
-		this.valueToBytes = cloned.valueToBytes;
-		this.hashOfEmpty = cloned.hashOfEmpty;
-		this.numberOfCommits = cloned.numberOfCommits;
-		this.root = cloned.root;
 	}
 
 	@Override
