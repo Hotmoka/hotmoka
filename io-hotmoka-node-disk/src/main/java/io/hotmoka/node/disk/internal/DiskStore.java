@@ -32,7 +32,6 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.api.Hasher;
-import io.hotmoka.node.NodeMarshallingContexts;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
@@ -136,11 +135,11 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
 
 		int progressive = 0;
 		for (var entry: addedRequests.entrySet())
-			setRequest(progressive++, entry.getKey(), entry.getValue());
+			dumpRequest(progressive++, entry.getKey(), entry.getValue());
 
 		progressive = 0;
 		for (var entry: addedResponses.entrySet())
-			setResponse(progressive++, entry.getKey(), entry.getValue());
+			dumpResponse(progressive++, entry.getKey(), entry.getValue());
 
 		for (var entry: addedHistories.entrySet())
 			histories.put(entry.getKey(), entry.getValue());
@@ -196,39 +195,27 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
 		return new DiskStore(this, cache);
 	}
 
-	private void setRequest(int progressive, TransactionReference reference, TransactionRequest<?> request) throws StoreException {
+	private void dumpRequest(int progressive, TransactionReference reference, TransactionRequest<?> request) throws StoreException {
 		requests.put(reference, request);
 
 		try {
-			Path requestPath = getPathFor(progressive, reference, "request");
+			Path requestPath = getPathFor(progressive, reference, "request.txt");
 			Path parent = requestPath.getParent();
 			ensureDeleted(parent);
 			Files.createDirectories(parent);
-	
-			Files.writeString(parent.resolve("request.txt"), request.toString(), StandardCharsets.UTF_8);
-	
-			try (var context = NodeMarshallingContexts.of(Files.newOutputStream(requestPath))) {
-				request.into(context);
-			}
+			Files.writeString(requestPath, request.toString(), StandardCharsets.UTF_8);
 		}
 		catch (IOException e) {
 			throw new StoreException(e);
 		}
 	}
 
-	private void setResponse(int progressive, TransactionReference reference, TransactionResponse response) throws StoreException {
+	private void dumpResponse(int progressive, TransactionReference reference, TransactionResponse response) throws StoreException {
 		responses.put(reference, response);
 
 		try {
-			Path responsePath = getPathFor(progressive, reference, "response");
-			Path parent = responsePath.getParent();
-			Files.createDirectories(parent);
-
-			Files.writeString(parent.resolve("response.txt"), response.toString(), StandardCharsets.UTF_8);
-
-			try (var context = NodeMarshallingContexts.of(Files.newOutputStream(responsePath))) {
-				response.into(context);
-			}
+			Path responsePath = getPathFor(progressive, reference, "response.txt");
+			Files.writeString(responsePath, response.toString(), StandardCharsets.UTF_8);
 		}
 		catch (IOException e) {
 			throw new StoreException(e);
