@@ -55,9 +55,12 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
 
 	/**
      * Creates a store for the Tendermint blockchain.
-     * 
-     * @param node an object that can be used to send post requests to Tendermint
-     */
+	 * 
+	 * @param executors the executors to use for running transactions
+	 * @param consensus the consensus configuration of the node having the store
+	 * @param config the local configuration of the node having the store
+	 * @param hasher the hasher for computing the transaction reference from the requests
+	 */
     TendermintStore(ExecutorService executors, ConsensusConfig<?,?> consensus, TendermintNodeConfig config, Hasher<TransactionRequest<?>> hasher) throws StoreException {
     	super(executors, consensus, config, hasher);
 
@@ -71,6 +74,16 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
     	this.validators = Optional.empty();
     }
 
+	/**
+	 * Creates a clone of a store.
+	 * 
+	 * @param toClone the store to clone
+	 * @param cache to caches to use in the cloned store
+	 * @param rootOfResponses the root to use for the tries of responses
+	 * @param rootOfInfo the root to use for the tries of infos
+	 * @param rootOfHistories the root to use for the tries of histories
+	 * @param rootOfRequests the root to use for the tries of requests
+	 */
     private TendermintStore(TendermintStore toClone, StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) {
     	super(toClone, cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
 
@@ -78,6 +91,12 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
     	this.validators = toClone.validators;
 	}
 
+	/**
+	 * Creates a clone of a store.
+	 * 
+	 * @param toClone the store to clone
+	 * @param cache to caches to use in the cloned store
+	 */
     private TendermintStore(TendermintStore toClone, StoreCache cache) {
     	super(toClone, cache);
 
@@ -122,7 +141,7 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
 	}
 
 	@Override
-	protected TendermintStoreTransformation beginTransaction(ExecutorService executors, ConsensusConfig<?,?> consensus, long now) throws StoreException {
+	protected TendermintStoreTransformation beginTransformation(ExecutorService executors, ConsensusConfig<?,?> consensus, long now) throws StoreException {
 		return new TendermintStoreTransformation(this, executors, consensus, now, validators);
 	}
 

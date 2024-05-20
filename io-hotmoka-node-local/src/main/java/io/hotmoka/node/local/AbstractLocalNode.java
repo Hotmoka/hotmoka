@@ -28,6 +28,7 @@ import io.hotmoka.node.local.internal.AbstractLocalNodeImpl;
  * 
  * @param <C> the type of the configuration object used by the node
  * @param <S> the type of the store of the node
+ * @param <T> the type of the store transformations of the store of the node
  */
 @ThreadSafe
 public abstract class AbstractLocalNode<C extends LocalNodeConfig<C,?>, S extends AbstractStore<S, T>, T extends AbstractStoreTranformation<S, T>> extends AbstractLocalNodeImpl<C, S, T> {
@@ -37,18 +38,18 @@ public abstract class AbstractLocalNode<C extends LocalNodeConfig<C,?>, S extend
 	 * 
 	 * @param config the configuration of the node
 	 * @param consensus the consensus parameters at the beginning of the life of the node
-	 * @throws NodeException 
+	 * @throws NodeException if the node could not be created
 	 */
 	protected AbstractLocalNode(C config, ConsensusConfig<?,?> consensus) throws NodeException {
 		super(config, consensus);
 	}
 
 	/**
-	 * Builds a node, recycling a previous existing store. The store must be that
-	 * of an already initialized node, whose consensus parameters are recovered from its manifest.
+	 * Builds a node, recycling a previous existing store. The store will be that
+	 * of an already initialized node, and the consensus parameters will be extracted from the store.
 	 * 
 	 * @param config the configuration of the node
-	 * @throws NodeException 
+	 * @throws NodeException if the node could not be created
 	 */
 	protected AbstractLocalNode(C config) throws NodeException {
 		super(config);

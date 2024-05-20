@@ -1,3 +1,19 @@
+/*
+Copyright 2024 Fausto Spoto
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package io.hotmoka.node.tendermint.internal;
 
 import static io.hotmoka.exceptions.CheckSupplier.check;
@@ -28,6 +44,9 @@ import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.StoreException;
 
+/**
+ * A transformation of a store of a Tendermint node.
+ */
 public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransformation<TendermintStore, TendermintStoreTransformation> {
 
 	/**
@@ -38,6 +57,15 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 
 	private final static Logger LOGGER = Logger.getLogger(TendermintStoreTransformation.class.getName());
 
+	/**
+	 * Creates a transformation whose transaction are executed with the given executors.
+	 * 
+	 * @param store the initial store of the transformation
+	 * @param executors the executors
+	 * @param consensus the consensus to use for the execution of transactions in the transformation
+	 * @param now the current time to use for the execution of transactions in the transformation
+	 * @param validators the Tendermint validators at the beginning of the transformation
+	 */
 	protected TendermintStoreTransformation(TendermintStore store, ExecutorService executors, ConsensusConfig<?,?> consensus, long now, Optional<TendermintValidator[]> validators) throws StoreException {
 		super(store, executors, consensus, now);
 

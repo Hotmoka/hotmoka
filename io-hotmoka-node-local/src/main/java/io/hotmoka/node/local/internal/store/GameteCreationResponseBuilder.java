@@ -38,9 +38,9 @@ public class GameteCreationResponseBuilder extends AbstractInitialResponseBuilde
 	 * 
 	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request of the transaction
-	 * @param node the node that is running the transaction
+	 * @param environment the execution environment used for computing the response
 	 * @throws TransactionRejectedException if the builder cannot be created
-	 * @throws StoreException 
+	 * @throws StoreException if the operation cannot be completed correctly
 	 */
 	public GameteCreationResponseBuilder(TransactionReference reference, GameteCreationTransactionRequest request, ExecutionEnvironment environment) throws TransactionRejectedException, StoreException {
 		super(reference, request, environment);

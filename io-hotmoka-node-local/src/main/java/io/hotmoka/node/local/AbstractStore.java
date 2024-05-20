@@ -25,13 +25,34 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.internal.store.AbstractStoreImpl;
 
+/**
+ * A partial store of a node. It is a container of request/response pairs.
+ * Stores are immutable and consequently thread-safe.
+ * 
+ * @param <S> the type of this store
+ * @param <T> the type of the store transformations that can be started from this store
+ */
 @Immutable
 public abstract class AbstractStore<S extends AbstractStore<S,T>, T extends AbstractStoreTranformation<S, T>> extends AbstractStoreImpl<S, T> {
 
+	/**
+	 * Creates a store.
+	 * 
+	 * @param executors the executors to use for running transactions
+	 * @param consensus the consensus configuration of the node having the store
+	 * @param config the local configuration of the node having the store
+	 * @param hasher the hasher for computing the transaction reference from the requests
+	 */
 	protected AbstractStore(ExecutorService executors, ConsensusConfig<?,?> consensus, LocalNodeConfig<?,?> config, Hasher<TransactionRequest<?>> hasher) {
 		super(executors, consensus, config, hasher);
 	}
 
+	/**
+	 * Creates a clone of a store.
+	 * 
+	 * @param toClone the store to clone
+	 * @param cache to caches to use in the cloned store
+	 */
 	protected AbstractStore(AbstractStore<S, T> toClone, StoreCache cache) {
 		super(toClone, cache);
 	}

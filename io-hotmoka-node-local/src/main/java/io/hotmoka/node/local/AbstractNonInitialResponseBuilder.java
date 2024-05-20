@@ -39,9 +39,9 @@ public abstract class AbstractNonInitialResponseBuilder<Request extends NonIniti
 	 * 
 	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request of the transaction
-	 * @param node the node that is creating the response
-	 * @throws TransactionRejectedException if the builder cannot be built
-	 * @throws StoreException 
+	 * @param environment the execution environment used for computing the response
+	 * @throws TransactionRejectedException if the builder cannot be created
+	 * @throws StoreException if the operation cannot be completed correctly
 	 */
 	protected AbstractNonInitialResponseBuilder(TransactionReference reference, Request request, ExecutionEnvironment environment) throws TransactionRejectedException, StoreException {
 		super(reference, request, environment);
@@ -54,8 +54,6 @@ public abstract class AbstractNonInitialResponseBuilder<Request extends NonIniti
 
 		/**
 		 * Creates the response from the request.
-		 * 
-		 * @throws TransactionRejectedException if the transaction has been rejected
 		 */
 		protected ResponseCreator() {}
 	}

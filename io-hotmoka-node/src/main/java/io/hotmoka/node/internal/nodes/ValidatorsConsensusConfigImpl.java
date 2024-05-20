@@ -136,7 +136,8 @@ public abstract class ValidatorsConsensusConfigImpl<C extends ValidatorsConsensu
 	/**
 	 * The builder of a configuration object.
 	 * 
-	 * @param <T> the concrete type of the builder
+	 * @param <C> the type of the consensus configuration
+	 * @param <B> the type of this builder of the consensus configuration
 	 */
 	public abstract static class ValidatorsConsensusConfigBuilderImpl<C extends ValidatorsConsensusConfigImpl<C,B>, B extends ValidatorsConsensusConfigBuilderImpl<C,B>>
 			extends AbstractConsensusConfigBuilder<C,B>

@@ -26,9 +26,20 @@ import io.hotmoka.node.local.internal.store.AbstractStoreTransformationImpl;
  * by the requests executed by the node. A store is external to the node and, typically, only
  * its hash is held in the node, if consensus is needed. Stores must be thread-safe, since they can
  * be used concurrently for executing more requests.
+ * 
+ * @param <S> the type of store used in the transformation
+ * @param <T> the type of the transformation
  */
 public abstract class AbstractStoreTranformation<S extends AbstractStore<S, T>, T extends AbstractStoreTranformation<S, T>> extends AbstractStoreTransformationImpl<S, T> {
 
+	/**
+	 * Creates a transformation whose transaction are executed with the given executors.
+	 * 
+	 * @param store the initial store of the transformation
+	 * @param executors the executors
+	 * @param consensus the consensus to use for the execution of transactions in the transformation
+	 * @param now the current time to use for the execution of transactions in the transformation
+	 */
 	protected AbstractStoreTranformation(S store, ExecutorService executors, ConsensusConfig<?,?> consensus, long now) {
 		super(store, executors, consensus, now);
 	}

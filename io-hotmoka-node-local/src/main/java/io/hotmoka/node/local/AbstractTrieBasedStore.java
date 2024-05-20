@@ -26,40 +26,47 @@ import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.internal.store.trie.AbstractTrieBasedStoreImpl;
 
 /**
- * A historical store of a node. It is a transactional database that keeps
- * the successful responses of the Hotmoka transactions
- * but not their requests, histories and errors (for this reason it is <i>partial</i>).
- * Its implementation is based on Merkle-Patricia tries,
- * supported by JetBrains' Xodus transactional database.
+ * A store of a node, based on tries. It is a container of request/response pairs.
+ * Stores are immutable and consequently thread-safe.
  * 
- * The information kept in this store consists of:
- * 
- * <ul>
- * <li> a map from each Hotmoka request reference to the response computed for that request
- * <li> miscellaneous control information, such as where the node's manifest
- *      is installed or the current root and number of commits
- * </ul>
- * 
- * This information is added in store by push methods and accessed through get methods.
- * 
- * This class is meant to be subclassed by specifying where errors, requests and histories are kept.
+ * @param <S> the type of this store
+ * @param <T> the type of the store transformations that can be started from this store
  */
 @Immutable
 public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S, T>, T extends AbstractTrieBasedStoreTransformation<S, T>> extends AbstractTrieBasedStoreImpl<S, T> {
 
 	/**
-	 * Creates a store. Its roots are initialized as in the Xodus store, if present.
+	 * Creates a store.
 	 * 
- 	 * @param dir the path where the database of the store is kept
+	 * @param executors the executors to use for running transactions
+	 * @param consensus the consensus configuration of the node having the store
+	 * @param config the local configuration of the node having the store
+	 * @param hasher the hasher for computing the transaction reference from the requests
 	 */
     protected AbstractTrieBasedStore(ExecutorService executors, ConsensusConfig<?,?> consensus, LocalNodeConfig<?,?> config, Hasher<TransactionRequest<?>> hasher) {
     	super(executors, consensus, config, hasher);
     }
 
+	/**
+	 * Creates a clone of a store.
+	 * 
+	 * @param toClone the store to clone
+	 * @param cache to caches to use in the cloned store
+	 */
     protected AbstractTrieBasedStore(AbstractTrieBasedStore<S, T> toClone, StoreCache cache) {
     	super(toClone, cache);
     }
 
+	/**
+	 * Creates a clone of a store.
+	 * 
+	 * @param toClone the store to clone
+	 * @param cache to caches to use in the cloned store
+	 * @param rootOfResponses the root to use for the tries of responses
+	 * @param rootOfInfo the root to use for the tries of infos
+	 * @param rootOfHistories the root to use for the tries of histories
+	 * @param rootOfRequests the root to use for the tries of requests
+	 */
     protected AbstractTrieBasedStore(AbstractTrieBasedStore<S, T> toClone, StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) {
     	super(toClone, cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
     }

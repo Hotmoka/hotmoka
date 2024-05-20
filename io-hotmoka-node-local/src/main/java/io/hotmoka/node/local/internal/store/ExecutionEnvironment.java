@@ -85,6 +85,10 @@ import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.ResponseBuilder;
 import io.hotmoka.node.local.api.StoreException;
 
+/**
+ * An executor environment abstract both a store and a store transformation and allows
+ * the execution of run transactions in both.
+ */
 public abstract class ExecutionEnvironment {
 	private final static Logger LOGGER = Logger.getLogger(ExecutionEnvironment.class.getName());
 
@@ -95,6 +99,11 @@ public abstract class ExecutionEnvironment {
 	 */
 	private final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
 
+	/**
+	 * Creates an execution environment whose transactions are executed with the given executors.
+	 * 
+	 * @param executors the executors
+	 */
 	protected ExecutionEnvironment(ExecutorService executors) {
 		this.executors = executors;
 	}
@@ -648,7 +657,7 @@ public abstract class ExecutionEnvironment {
 	}
 
 	protected final boolean signatureIsValid(TransactionReference classpath, Function<TransactionReference, Boolean> ifMissing) {
-		return getCache().signatureIsValid(classpath, ifMissing);
+		return getCache().getValidSignatureOutcome(classpath, ifMissing);
 	}
 
 	protected abstract Hasher<TransactionRequest<?>> getHasher();

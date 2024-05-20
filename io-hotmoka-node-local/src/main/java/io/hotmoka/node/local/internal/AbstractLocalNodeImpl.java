@@ -92,6 +92,7 @@ import io.hotmoka.node.local.api.StoreException;
  * 
  * @param <C> the type of the configuration object used by the node
  * @param <S> the type of the store of the node
+ * @param <T> the type of the store transformations that can be started from this store
  */
 @ThreadSafe
 public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S extends AbstractStore<S, T>, T extends AbstractStoreTranformation<S, T>> extends AbstractAutoCloseableWithLockAndOnCloseHandlers<ClosedNodeException> implements LocalNode<C> {

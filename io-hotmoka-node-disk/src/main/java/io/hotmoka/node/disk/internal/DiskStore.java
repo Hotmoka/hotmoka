@@ -84,7 +84,12 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
 
 	/**
      * Creates the starting disk store of a node.
-     */
+	 * 
+	 * @param executors the executors to use for running transactions
+	 * @param consensus the consensus configuration of the node having the store
+	 * @param config the local configuration of the node having the store
+	 * @param hasher the hasher for computing the transaction reference from the requests
+	 */
     DiskStore(ExecutorService executors, ConsensusConfig<?,?> consensus, LocalNodeConfig<?,?> config, Hasher<TransactionRequest<?>> hasher) {
     	super(executors, consensus, config, hasher);
 
@@ -174,7 +179,7 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
 	}
 
 	@Override
-	protected DiskStoreTransformation beginTransaction(ExecutorService executors, ConsensusConfig<?,?> consensus, long now) {
+	protected DiskStoreTransformation beginTransformation(ExecutorService executors, ConsensusConfig<?,?> consensus, long now) {
 		return new DiskStoreTransformation(this, executors, consensus, now);
 	}
 

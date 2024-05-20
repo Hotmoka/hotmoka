@@ -216,11 +216,11 @@ class TendermintApplication extends ABCI {
 
 	@Override
 	protected ResponseBeginBlock beginBlock(RequestBeginBlock request) {
-		String behaving = spaceSeparatedSequenceOfBehavingValidatorsAddresses(request);
-    	String misbehaving = spaceSeparatedSequenceOfMisbehavingValidatorsAddresses(request);
+		behaving = spaceSeparatedSequenceOfBehavingValidatorsAddresses(request);
+    	misbehaving = spaceSeparatedSequenceOfMisbehavingValidatorsAddresses(request);
 
     	try {
-    		transaction = node.beginTransaction(timeOfBlock(request), behaving, misbehaving);
+    		transaction = node.beginTransaction(timeOfBlock(request));
     	}
     	catch (NodeException e) {
     		throw new RuntimeException(e); // TODO

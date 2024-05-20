@@ -37,6 +37,13 @@ import io.hotmoka.node.local.api.Store;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.StoreCacheImpl;
 
+/**
+ * Partial implementation of a store of a node. It is a container of request/response pairs.
+ * Stores are immutable and consequently thread-safe.
+ * 
+ * @param <S> the type of this store
+ * @param <T> the type of the store transformations that can be started from this store
+ */
 @Immutable
 public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T extends AbstractStoreTransformationImpl<S, T>> extends ExecutionEnvironment implements Store<S, T> {
 
@@ -56,6 +63,14 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 
 	private final static Logger LOGGER = Logger.getLogger(AbstractStoreImpl.class.getName());
 
+	/**
+	 * Creates a store.
+	 * 
+	 * @param executors the executors to use for running transactions
+	 * @param consensus the consensus configuration of the node having the store
+	 * @param config the local configuration of the node having the store
+	 * @param hasher the hasher for computing the transaction reference from the requests
+	 */
 	protected AbstractStoreImpl(ExecutorService executors, ConsensusConfig<?,?> consensus, LocalNodeConfig<?,?> config, Hasher<TransactionRequest<?>> hasher) {
 		super(executors);
 
@@ -65,6 +80,12 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 		this.consensusForViews = consensus.toBuilder().setMaxGasPerTransaction(maxGasPerView).build();
 	}
 
+	/**
+	 * Creates a clone of a store.
+	 * 
+	 * @param toClone the store to clone
+	 * @param cache to caches to use in the cloned store
+	 */
 	protected AbstractStoreImpl(AbstractStoreImpl<S, T> toClone, StoreCache cache) {
 		super(toClone.getExecutors());
 
@@ -76,12 +97,12 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 
 	@Override
 	public final T beginTransaction(long now) throws StoreException {
-		return beginTransaction(getExecutors(), cache.getConfig(), now);
+		return beginTransformation(getExecutors(), cache.getConfig(), now);
 	}
 
 	@Override
 	public final T beginViewTransaction() throws StoreException {
-		return beginTransaction(getExecutors(), consensusForViews, getNow());
+		return beginTransformation(getExecutors(), consensusForViews, getNow());
 	}
 
 	@Override
@@ -102,6 +123,12 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 		}
 	}
 
+	/**
+	 * Yields a clone of this store, but for its caches that are initialized with information extracted from this store.
+	 * 
+	 * @return the resulting store
+	 * @throws StoreException if the operation cannot be completed correctly
+	 */
 	public final S initCaches() throws StoreException {
 		var newCache = cache
 			.setConfig(extractConsensus())
@@ -115,6 +142,17 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 		return setCache(newCache);
 	}
 
+	/**
+	 * Yields a store derived from this by setting the given cache and adding the given extra information.
+	 * 
+	 * @param cache the cache for the resulting store
+	 * @param addedRequests the requests to add
+	 * @param addedResponses the responses to add
+	 * @param addedHistories the histories to add
+	 * @param addedManifest the manifest to add, if any
+	 * @return the resulting store
+	 * @throws StoreException if the operation cannot be completed correctly
+	 */
 	protected abstract S addDelta(StoreCache cache,
 			Map<TransactionReference, TransactionRequest<?>> addedRequests,
 			Map<TransactionReference, TransactionResponse> addedResponses,
@@ -123,7 +161,16 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 
 	protected abstract S setCache(StoreCache cache);
 
-	protected abstract T beginTransaction(ExecutorService executors, ConsensusConfig<?,?> consensus, long now) throws StoreException;
+	/**
+	 * Begins a new store transformation.
+	 * 
+	 * @param executors the executors used to execute transactions in the transformation
+	 * @param consensus the consensus configuration at the beginning of the transformation
+	 * @param now the time used as current time for the transactions executed in the transformation
+	 * @return the transformation
+	 * @throws StoreException if the operation cannot be completed correctly
+	 */
+	protected abstract T beginTransformation(ExecutorService executors, ConsensusConfig<?,?> consensus, long now) throws StoreException;
 
 	@Override
 	protected final StoreCache getCache() {
