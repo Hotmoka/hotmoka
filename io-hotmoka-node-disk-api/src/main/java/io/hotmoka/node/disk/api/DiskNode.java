@@ -23,7 +23,7 @@ import io.hotmoka.node.local.api.LocalNode;
  * A blockchain node that stores, sequentially, transactions in a directory
  * on disk memory. It is only meant for experimentation and testing. It does not
  * form a real blockchain, since there is no peer-to-peer network, nor mining.
- * Updates are stored inside the blocks, rather than in an external database.
+ * Updates are stored in the file system, as files, rather than in an external database.
  */
 @ThreadSafe
 public interface DiskNode extends LocalNode<DiskNodeConfig> {

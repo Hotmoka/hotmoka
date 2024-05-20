@@ -40,7 +40,7 @@ public abstract class DiskNodes {
 	 * @param config the configuration of the node
 	 * @param consensus the consensus configuration of the node
 	 * @return the node
-	 * @throws NodeException 
+	 * @throws NodeException if the operation cannot be completed correctly
 	 */
 	public static DiskNode init(DiskNodeConfig config, ConsensusConfig<?,?> consensus) throws NodeException {
 		return new DiskNodeImpl(config, consensus);

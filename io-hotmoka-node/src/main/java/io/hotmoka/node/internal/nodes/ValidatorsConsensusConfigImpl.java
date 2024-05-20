@@ -36,7 +36,7 @@ import io.hotmoka.node.internal.nodes.ValidatorsConsensusConfigImpl.ValidatorsCo
  * This information is typically contained in the manifest of the node.
  * 
  * @param <C> the type of this consensus configuration
- * @param B the type of the builder of this consensus configuration
+ * @param <B> the type of the builder of this consensus configuration
  */
 @Immutable
 public abstract class ValidatorsConsensusConfigImpl<C extends ValidatorsConsensusConfigImpl<C,B>, B extends ValidatorsConsensusConfigBuilderImpl<C,B>>
@@ -138,7 +138,7 @@ public abstract class ValidatorsConsensusConfigImpl<C extends ValidatorsConsensu
 	 * 
 	 * @param <T> the concrete type of the builder
 	 */
-	public abstract static class ValidatorsConsensusConfigBuilderImpl<C extends ValidatorsConsensusConfig<C,B>, B extends ValidatorsConsensusConfigBuilder<C,B>>
+	public abstract static class ValidatorsConsensusConfigBuilderImpl<C extends ValidatorsConsensusConfigImpl<C,B>, B extends ValidatorsConsensusConfigBuilderImpl<C,B>>
 			extends AbstractConsensusConfigBuilder<C,B>
 			implements ValidatorsConsensusConfigBuilder<C,B> {
 
@@ -169,7 +169,7 @@ public abstract class ValidatorsConsensusConfigImpl<C extends ValidatorsConsensu
 		 * 
 		 * @param config the configuration object
 		 */
-		protected ValidatorsConsensusConfigBuilderImpl(ValidatorsConsensusConfig<C,B> config) {
+		protected ValidatorsConsensusConfigBuilderImpl(C config) {
 			super(config);
 
 			setBuyerSurcharge(config.getBuyerSurcharge());

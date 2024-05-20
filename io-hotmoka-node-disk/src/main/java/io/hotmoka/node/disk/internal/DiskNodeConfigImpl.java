@@ -27,10 +27,7 @@ import io.hotmoka.node.disk.api.DiskNodeConfigBuilder;
 import io.hotmoka.node.local.AbstractLocalNodeConfig;
 
 /**
- * The configuration of a node on disk memory.
- * 
- * @param <C> the concrete type of the configuration
- * @param <B> the concrete type of the builder
+ * The configuration of a node in disk memory.
  */
 @Immutable
 public class DiskNodeConfigImpl extends AbstractLocalNodeConfig<DiskNodeConfig, DiskNodeConfigBuilder> implements DiskNodeConfig {

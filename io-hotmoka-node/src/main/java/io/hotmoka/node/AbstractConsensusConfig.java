@@ -17,8 +17,6 @@ limitations under the License.
 package io.hotmoka.node;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.node.api.nodes.ConsensusConfig;
-import io.hotmoka.node.api.nodes.ConsensusConfigBuilder;
 import io.hotmoka.node.internal.nodes.ConsensusConfigImpl;
 
 /**
@@ -29,7 +27,7 @@ import io.hotmoka.node.internal.nodes.ConsensusConfigImpl;
  * @param <B> the concrete type of the builder
  */
 @Immutable
-public abstract class AbstractConsensusConfig<C extends ConsensusConfig<C,B>, B extends ConsensusConfigBuilder<C,B>> extends ConsensusConfigImpl<C,B> {
+public abstract class AbstractConsensusConfig<C extends AbstractConsensusConfig<C,B>, B extends AbstractConsensusConfigBuilder<C,B>> extends ConsensusConfigImpl<C,B> {
 
 	/**
 	 * Full constructor for the builder pattern.

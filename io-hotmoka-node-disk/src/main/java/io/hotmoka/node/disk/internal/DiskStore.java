@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2024 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -45,9 +45,9 @@ import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StoreException;
 
 /**
- * The store of the memory blockchain. It is not transactional and just writes
- * everything immediately into files. It keeps responses into persistent memory,
- * while the histories are kept in RAM.
+ * The store of a disk blockchain. It is not transactional and just writes
+ * everything immediately into files. It keeps requests and responses into
+ * persistent memory, while the histories are kept in RAM.
  */
 @Immutable
 class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
@@ -56,23 +56,34 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
 	 * The path where the database of the store gets created.
 	 */
 	private final Path dir;
+
+	/**
+	 * The requests in this store.
+	 */
 	private final Map<TransactionReference, TransactionRequest<?>> requests;
+
+	/**
+	 * The responses in this store.
+	 */
 	private final Map<TransactionReference, TransactionResponse> responses;
 
 	/**
-	 * The histories of the objects created in blockchain. In a real implementation, this mustbe persistent.
+	 * The histories of the objects in this store.
 	 */
 	private final Map<StorageReference, TransactionReference[]> histories;
 
 	/**
-	 * The storage reference of the manifest stored inside the node, if any.
+	 * The storage reference of the manifest in this store, if any.
 	 */
 	private final Optional<StorageReference> manifest;
 
+	/**
+	 * The number of the block having this store.
+	 */
 	private final int blockNumber;
 
 	/**
-     * Creates a state for a node.
+     * Creates the starting disk store of a node.
      */
     DiskStore(ExecutorService executors, ConsensusConfig<?,?> consensus, LocalNodeConfig<?,?> config, Hasher<TransactionRequest<?>> hasher) {
     	super(executors, consensus, config, hasher);
@@ -85,6 +96,9 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
     	this.blockNumber = 0;
     }
 
+	/**
+     * Clones a disk store, using the given cache.
+     */
     private DiskStore(DiskStore toClone, StoreCache cache) {
     	super(toClone, cache);
 
@@ -96,6 +110,10 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
     	this.blockNumber = toClone.blockNumber;
     }
 
+	/**
+     * Clones a disk store, using the given cache and adding the given
+     * delta information to the result.
+     */
     private DiskStore(DiskStore toClone, StoreCache cache,
     		Map<TransactionReference, TransactionRequest<?>> addedRequests,
     		Map<TransactionReference, TransactionResponse> addedResponses,

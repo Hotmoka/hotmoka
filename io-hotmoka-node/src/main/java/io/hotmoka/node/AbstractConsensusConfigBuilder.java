@@ -24,8 +24,6 @@ import com.moandjiezana.toml.Toml;
 
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.node.api.nodes.ConsensusConfig;
-import io.hotmoka.node.api.nodes.ConsensusConfigBuilder;
 import io.hotmoka.node.internal.nodes.ConsensusConfigImpl;
 
 /**
@@ -34,7 +32,7 @@ import io.hotmoka.node.internal.nodes.ConsensusConfigImpl;
  * @param <C> the concrete type of the configuration
  * @param <B> the concrete type of the builder
  */
-public abstract class AbstractConsensusConfigBuilder<C extends ConsensusConfig<C,B>, B extends ConsensusConfigBuilder<C,B>> extends ConsensusConfigImpl.ConsensusConfigBuilderImpl<C,B> {
+public abstract class AbstractConsensusConfigBuilder<C extends AbstractConsensusConfig<C,B>, B extends AbstractConsensusConfigBuilder<C,B>> extends ConsensusConfigImpl.ConsensusConfigBuilderImpl<C,B> {
 
 	/**
 	 * Creates the builder.
@@ -72,7 +70,7 @@ public abstract class AbstractConsensusConfigBuilder<C extends ConsensusConfig<C
 	 * 
 	 * @param config the configuration object
 	 */
-	protected AbstractConsensusConfigBuilder(ConsensusConfig<C,B> config) {
+	protected AbstractConsensusConfigBuilder(C config) {
 		super(config);
 	}
 }

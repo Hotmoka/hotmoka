@@ -498,7 +498,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		 * 
 		 * @param config the configuration object
 		 */
-		protected ConsensusConfigBuilderImpl(ConsensusConfig<C,B> config) {
+		protected ConsensusConfigBuilderImpl(C config) {
 			setChainId(config.getChainId());
 			setGenesisTime(config.getGenesisTime());
 			setMaxErrorLength(config.getMaxErrorLength());
