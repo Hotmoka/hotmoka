@@ -33,54 +33,59 @@ public interface ManifestHelper {
 	 * 
 	 * @return the reference to the accounts ledger
 	 */
-	StorageReference getAccountsLedger() throws NodeException, TimeoutException, InterruptedException;
+	StorageReference getAccountsLedger();
 
 	/**
 	 * Yields the initial validators of the node.
 	 * 
 	 * @return the reference to the initial validators
 	 */
-	StorageReference getInitialValidators() throws NodeException, TimeoutException, InterruptedException;
+	StorageReference getInitialValidators();
 
 	/**
 	 * Yields the validators of the node.
 	 * 
 	 * @return the reference to the validators
 	 */
-	StorageReference getValidators() throws NodeException, TimeoutException, InterruptedException;
+	StorageReference getValidators();
 
 	/**
 	 * Yields the manifest of the node.
 	 * 
 	 * @return the reference to the manifest
 	 */
-	StorageReference getManifest() throws NodeException, TimeoutException, InterruptedException;
+	StorageReference getManifest();
 
 	/**
 	 * Yields the versions of the node.
 	 * 
 	 * @return the reference to the versions
 	 */
-	StorageReference getVersions() throws NodeException, TimeoutException, InterruptedException;
+	StorageReference getVersions();
 
 	/**
 	 * Yields the gamete of the node.
 	 * 
 	 * @return the reference to the gamete
 	 */
-	StorageReference getGamete() throws NodeException, TimeoutException, InterruptedException;
+	StorageReference getGamete();
 
 	/**
 	 * Yields the gas station of the node.
 	 * 
 	 * @return the reference to the gas station
 	 */
-	StorageReference getGasStation() throws NodeException, TimeoutException, InterruptedException;
+	StorageReference getGasStation();
 
 	/**
-	 * Yields the chain id of the node.
+	 * Yields the chain id of the node. This might throw exceptions since
+	 * it performs an actual query on the node, being the chain id potentially
+	 * variable when consensus changes.
 	 * 
 	 * @return the chain id
+	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws TimeoutException if no answer arrives before a time window
+	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
 	String getChainId() throws NodeException, TimeoutException, InterruptedException;
 

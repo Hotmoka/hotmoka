@@ -40,6 +40,7 @@ public interface ClassLoaderHelper {
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 * @throws UnknownReferenceException if {@code jar} is not found in store or did not install a jar
+	 * @throws ClassNotFoundException if the classpath rooted at {@code jar} is incomplete
 	 */
 	TakamakaClassLoader classloaderFor(TransactionReference jar) throws NodeException, TimeoutException, InterruptedException, UnknownReferenceException, ClassNotFoundException;
 }

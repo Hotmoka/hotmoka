@@ -26,9 +26,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import io.hotmoka.helpers.AbstractNodeDecorator;
 import io.hotmoka.helpers.api.ManifestHelper;
-import io.hotmoka.node.ClosedNodeException;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
@@ -50,9 +48,10 @@ import io.hotmoka.node.api.values.StringValue;
 /**
  * Implementation of an object that helps with the access to the manifest of a node.
  */
-public class ManifestHelperImpl extends AbstractNodeDecorator<Node> implements ManifestHelper {
+public class ManifestHelperImpl implements ManifestHelper {
 	private final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
 	private final static BigInteger _100_000_000 = BigInteger.valueOf(100_000_000L);
+	private final Node node;
 	private final TransactionReference takamakaCode;
 	private final StorageReference manifest;
 	private final StorageReference gasStation;
@@ -75,8 +74,7 @@ public class ManifestHelperImpl extends AbstractNodeDecorator<Node> implements M
 	 * @throws TransactionException if some transaction fails
 	 */
 	public ManifestHelperImpl(Node node) throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException {
-		super(node);
-
+		this.node = node;
 		this.takamakaCode = node.getTakamakaCode();
 		this.manifest = node.getManifest();
 
@@ -113,59 +111,49 @@ public class ManifestHelperImpl extends AbstractNodeDecorator<Node> implements M
 	}
 
 	@Override
-	public StorageReference getAccountsLedger() throws ClosedNodeException {
-		ensureNotClosed();
+	public StorageReference getAccountsLedger() {
 		return accountsLedger;
 	}
 
 	@Override
-	public StorageReference getInitialValidators() throws ClosedNodeException {
-		ensureNotClosed();
+	public StorageReference getInitialValidators() {
 		return initialValidators;
 	}
 
 	@Override
-	public StorageReference getValidators() throws ClosedNodeException {
-		ensureNotClosed();
+	public StorageReference getValidators() {
 		return validators;
 	}
 
 	@Override
-	public StorageReference getManifest() throws ClosedNodeException {
-		ensureNotClosed();
+	public StorageReference getManifest() {
 		return manifest;
 	}
 
 	@Override
-	public StorageReference getVersions() throws ClosedNodeException {
-		ensureNotClosed();
+	public StorageReference getVersions() {
 		return versions;
 	}
 
 	@Override
-	public StorageReference getGamete() throws ClosedNodeException {
-		ensureNotClosed();
+	public StorageReference getGamete() {
 		return gamete;
 	}
 
 	@Override
-	public StorageReference getGasStation() throws ClosedNodeException {
-		ensureNotClosed();
+	public StorageReference getGasStation() {
 		return gasStation;
 	}
 
 	@Override
 	public String getChainId() throws NodeException, TimeoutException, InterruptedException {
-		ensureNotClosed();
-
 		// this cannot be precomputed as, for instance, the manifest, since it might change
-		return getParent().getConfig().getChainId();
+		return node.getConfig().getChainId();
 	}
 
 	@Override
 	public String toString() {
 		var builder = new StringBuilder();
-		var node = getParent();
 
 		try {
 			builder.append("├─ takamakaCode: ").append(takamakaCode).append("\n");
@@ -186,9 +174,10 @@ public class ManifestHelperImpl extends AbstractNodeDecorator<Node> implements M
 
 			builder.append("   ├─ maxErrorLength: ").append(maxErrorLength).append("\n");
 
-			int maxDependencies = ((IntValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+			int maxDependencies = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_DEPENDENCIES, manifest))
-				.orElseThrow(() -> new NodeException(MethodSignatures.GET_MAX_DEPENDENCIES + " should not return void"))).getValue();
+				.orElseThrow(() -> new NodeException(MethodSignatures.GET_MAX_DEPENDENCIES + " should not return void"))
+				.asInt(value -> new NodeException(MethodSignatures.GET_MAX_DEPENDENCIES + " should return an int,not a " + value.getClass().getName()));
 
 			builder.append("   ├─ maxDependencies: ").append(maxDependencies).append("\n");
 
@@ -581,6 +570,7 @@ public class ManifestHelperImpl extends AbstractNodeDecorator<Node> implements M
 		}
 		catch (NodeException | TransactionRejectedException | TransactionException | CodeExecutionException | TimeoutException e) {
 			LOGGER.log(Level.SEVERE, "cannot extract the information inside the manifest", e);
+			throw new RuntimeException(e);
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();

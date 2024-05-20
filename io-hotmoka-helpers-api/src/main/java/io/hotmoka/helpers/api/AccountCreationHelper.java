@@ -19,10 +19,8 @@ package io.hotmoka.helpers.api;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.SignatureException;
-import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
@@ -68,7 +66,7 @@ public interface AccountCreationHelper {
 	 */
 	StorageReference paidByFaucet(SignatureAlgorithm signatureAlgorithm, PublicKey publicKey,
 			BigInteger balance, BigInteger balanceRed, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NodeException, InterruptedException, TimeoutException, UnknownReferenceException;
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NodeException, InterruptedException, TimeoutException;
 
 	/**
 	 * Creates a new account by letting another account pay.
@@ -89,19 +87,17 @@ public interface AccountCreationHelper {
 	 * @throws CodeExecutionException if some transaction generated an exception
 	 * @throws InvalidKeyException if the key is invalid
 	 * @throws SignatureException if some signature failed
-	 * @throws NoSuchAlgorithmException if the payer uses an unknown signature algorithm
-	 * @throws ClassNotFoundException if the class of the payer is unknown
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws NodeException if the node is not able to complete the operation
-	 * @throws UnknownReferenceException if the node is not properly initialized	
+	 * @throws UnknownReferenceException if {@code payer} cannot be found in the node	
 	 */
 	StorageReference paidBy(StorageReference payer, KeyPair keysOfPayer,
 			SignatureAlgorithm signatureAlgorithm, PublicKey publicKey, BigInteger balance, BigInteger balanceRed,
 			boolean addToLedger,
 			Consumer<BigInteger> gasHandler,
 			Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException,
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException,
 					NodeException, TimeoutException, InterruptedException, UnknownReferenceException;
 
 	/**
@@ -114,17 +110,15 @@ public interface AccountCreationHelper {
 	 * @return the storage reference of the validator
 	 * @throws TransactionRejectedException if some transaction was rejected
 	 * @throws TransactionException if some transaction failed
-	 * @throws CodeExecutionException if some transaction generated an exception
 	 * @throws InvalidKeyException if the key is invalid
 	 * @throws SignatureException if some signature failed
-	 * @throws NoSuchAlgorithmException if the faucet uses an unknown signature algorithm
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws InterruptedException if the current thread gets interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 */
 	StorageReference tendermintValidatorPaidByFaucet(PublicKey publicKey,
 			BigInteger balance, BigInteger balanceRed, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, NodeException, InterruptedException, TimeoutException, UnknownReferenceException;
+			throws TransactionRejectedException, TransactionException, InvalidKeyException, SignatureException, NodeException, InterruptedException, TimeoutException;
 
 	/**
 	 * Creates a new Tendermint validator by letting another account pay.
@@ -142,16 +136,14 @@ public interface AccountCreationHelper {
 	 * @throws CodeExecutionException if some transaction generated an exception
 	 * @throws InvalidKeyException if the key is invalid
 	 * @throws SignatureException if some signature failed
-	 * @throws NoSuchAlgorithmException if the payer uses an unknown signature algorithm
-	 * @throws ClassNotFoundException if the class of the payer is unknown
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws NodeException if the node is not able to complete the operation
-	 * @throws NoSuchElementException if the node is not properly initialized
+	 * @throws UnknownReferenceException if {@code payer} cannot be found in the node
 	 */
 	StorageReference tendermintValidatorPaidBy(StorageReference payer, KeyPair keysOfPayer, PublicKey publicKey, BigInteger balance, BigInteger balanceRed,
 			Consumer<BigInteger> gasHandler,
 			Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException,
-				NodeException, TimeoutException, InterruptedException, NoSuchElementException, UnknownReferenceException;
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException,
+				NodeException, TimeoutException, InterruptedException, UnknownReferenceException;
 }

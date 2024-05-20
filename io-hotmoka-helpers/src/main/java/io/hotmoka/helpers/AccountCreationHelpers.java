@@ -20,11 +20,8 @@ import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.helpers.api.AccountCreationHelper;
 import io.hotmoka.helpers.internal.AccountCreationHelperImpl;
-import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
 
 /**
  * Providers of objects that help with the creation of new accounts.
@@ -37,14 +34,11 @@ public abstract class AccountCreationHelpers {
 	 * 
 	 * @param node the node whose accounts are considered
 	 * @return the helper object
-	 * @throws CodeExecutionException if some transaction fails
-	 * @throws TransactionException if some transaction fails
-	 * @throws TransactionRejectedException if some transaction fails
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws NodeException if the node is not able to complete the operation
 	 */
-	public static AccountCreationHelper of(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	public static AccountCreationHelper of(Node node) throws NodeException, TimeoutException, InterruptedException {
 		return new AccountCreationHelperImpl(node);
 	}
 }

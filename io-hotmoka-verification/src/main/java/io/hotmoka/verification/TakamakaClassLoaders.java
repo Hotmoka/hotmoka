@@ -37,7 +37,7 @@ public final class TakamakaClassLoaders {
 	 *                            set of white-listing annotations used by the class loader
 	 * @return the class loader
 	 * @throws UnsupportedVerificationVersionException if the required verification version is not available
-	 * @throws ClassNotFoundException 
+	 * @throws ClassNotFoundException if the classpath rooted at {@code jar} is incomplete
 	 */
 	public static TakamakaClassLoader of(Stream<byte[]> jars, long verificationVersion) throws UnsupportedVerificationVersionException, ClassNotFoundException {
 		return new TakamakaClassLoaderImpl(jars, verificationVersion);

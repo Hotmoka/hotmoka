@@ -22,7 +22,6 @@ import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.SignatureException;
-import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
@@ -157,7 +156,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 			boolean addToLedger,
 			Consumer<BigInteger> gasHandler,
 			Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NoSuchElementException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
 
 		ClassType eoaType;
 		String signature = signatureAlgorithm.getName();
@@ -234,13 +233,39 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 	@Override
 	public StorageReference tendermintValidatorPaidByFaucet(PublicKey publicKey,
 			BigInteger balance, BigInteger balanceRed, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, NoSuchElementException, NodeException, InterruptedException, TimeoutException, UnknownReferenceException {
+			throws TransactionRejectedException, TransactionException, InvalidKeyException, SignatureException, NodeException, InterruptedException, TimeoutException {
 
-		var gamete = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
-			.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"));
+		StorageReference gamete;
+		
+		try {
+			gamete = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
+					.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"))
+					.asReference(value -> new NodeException(MethodSignatures.GET_GAMETE + " should return a reference, not a " + value.getClass().getName()));
+		}
+		catch (CodeExecutionException e) {
+			// the method gamete() does not throw exceptions
+			throw new NodeException(e);
+		}
 
-		var ed25519 = SignatureAlgorithms.ed25519();
+		SignatureAlgorithm ed25519;
+
+		try {
+			ed25519 = SignatureAlgorithms.ed25519();
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw new NodeException(e);
+		}
+
+		BigInteger nonce;
+		try {
+			nonce = nonceHelper.getNonceOf(gamete);
+		}
+		catch (UnknownReferenceException e) {
+			// the gamete exists in an initialized node
+			throw new NodeException(e);
+		}
+
 		BigInteger gas = gasForCreatingAccountWithSignature(ed25519);
 
 		// we use an empty signature algorithm and an arbitrary key, since the faucet is unsigned
@@ -250,24 +275,36 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		String publicKeyEncoded = Base64.toBase64String(ed25519.encodingOf(publicKey)); // Tendermint uses ed25519 only
 		var method = MethodSignatures.ofNonVoid(StorageTypes.GAMETE, "faucetTendermintED25519Validator", StorageTypes.TENDERMINT_ED25519_VALIDATOR, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.STRING);
 		var request = TransactionRequests.instanceMethodCall
-			(signer, gamete, nonceHelper.getNonceOf(gamete),
-			chainId, gas, gasHelper.getGasPrice(), takamakaCode,
-			method, gamete,
+			(signer, gamete, nonce, chainId, gas, gasHelper.getGasPrice(), takamakaCode, method, gamete,
 			StorageValues.bigIntegerOf(balance), StorageValues.bigIntegerOf(balanceRed), StorageValues.stringOf(publicKeyEncoded));
 
-		return (StorageReference) node.addInstanceMethodCallTransaction(request)
-			.orElseThrow(() -> new NodeException(method + " should not return void"));
+		try {
+			return (StorageReference) node.addInstanceMethodCallTransaction(request)
+					.orElseThrow(() -> new NodeException(method + " should not return void"));
+		}
+		catch (CodeExecutionException e) {
+			// the called method does not throw exceptions
+			throw new NodeException(e);
+		}
 	}
 
 	@Override
 	public StorageReference tendermintValidatorPaidBy(StorageReference payer, KeyPair keysOfPayer, PublicKey publicKey, BigInteger balance, BigInteger balanceRed,
 			Consumer<BigInteger> gasHandler,
 			Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NoSuchElementException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
 
 		var signatureForPayer = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
 
-		var ed25519 = SignatureAlgorithms.ed25519();
+		SignatureAlgorithm ed25519;
+
+		try {
+			ed25519 = SignatureAlgorithms.ed25519();
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw new NodeException(e);
+		}
+
 		BigInteger gas1 = gasForCreatingAccountWithSignature(ed25519);
 		BigInteger gas2 = gasForTransactionWhosePayerHasSignature(signatureForPayer.getName());
 		BigInteger totalGas = balanceRed.signum() > 0 ? gas1.add(gas2).add(gas2) : gas1.add(gas2);
