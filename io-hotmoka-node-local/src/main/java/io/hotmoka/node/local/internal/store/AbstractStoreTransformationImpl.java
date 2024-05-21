@@ -84,17 +84,17 @@ public abstract class AbstractStoreTransformationImpl<S extends AbstractStoreImp
 	/**
 	 * The requests added during this transformation. They are kept in order of addition.
 	 */
-	private final Map<TransactionReference, TransactionRequest<?>> requests = new HashMap<>();
+	private final Map<TransactionReference, TransactionRequest<?>> deltaRequests = new HashMap<>();
 
 	/**
 	 * The responses added during this transformation.
 	 */
-	private final Map<TransactionReference, TransactionResponse> responses = new HashMap<>();
+	private final Map<TransactionReference, TransactionResponse> deltaResponses = new HashMap<>();
 
 	/**
 	 * The histories of the objects created during this transformation.
 	 */
-	private final Map<StorageReference, TransactionReference[]> histories = new HashMap<>();
+	private final Map<StorageReference, TransactionReference[]> deltaHistories = new HashMap<>();
 
 	/**
 	 * The storage reference of the manifest added during this transformation, if any.
@@ -120,11 +120,6 @@ public abstract class AbstractStoreTransformationImpl<S extends AbstractStoreImp
 	 * The reward to send to the validators, accumulated during this transformation, without considering the inflation.
 	 */
 	private volatile BigInteger coinsWithoutInflation;
-
-	/**
-	 * The Hotmoka requests executed during this transaction.
-	 */
-	private final Set<TransactionRequest<?>> delivered = ConcurrentHashMap.newKeySet();
 
 	/**
 	 * The transactions containing events that must be notified at commit-time.
@@ -169,12 +164,7 @@ public abstract class AbstractStoreTransformationImpl<S extends AbstractStoreImp
 
 	@Override
 	public final S getFinalStore() throws StoreException {
-		return store.addDelta(cache, requests, responses, histories, Optional.ofNullable(manifest));
-	}
-
-	@Override
-	public final long getNow() {
-		return now;
+		return store.addDelta(cache, deltaRequests, deltaResponses, deltaHistories, Optional.ofNullable(manifest));
 	}
 
 	@Override
@@ -211,7 +201,7 @@ public abstract class AbstractStoreTransformationImpl<S extends AbstractStoreImp
 					if (extra.signum() > 0)
 						minted = minted.add(extra);
 				}
-	
+
 				var request = TransactionRequests.instanceSystemMethodCall
 					(manifest, nonce, _100_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD, validators,
 					StorageValues.bigIntegerOf(coins), StorageValues.bigIntegerOf(minted),
@@ -265,25 +255,25 @@ public abstract class AbstractStoreTransformationImpl<S extends AbstractStoreImp
 
 	@Override
 	public final int deliveredCount() {
-		return delivered.size();
+		return deltaRequests.size();
 	}
 
 	@Override
 	public final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, StoreException {
-		var uncommittedRequest = requests.get(reference);
-		return uncommittedRequest != null ? uncommittedRequest : getInitialStore().getRequest(reference);
+		var request = deltaRequests.get(reference);
+		return request != null ? request : getInitialStore().getRequest(reference);
 	}
 
 	@Override
 	public final TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, StoreException {
-		var uncommittedResponse = responses.get(reference);
-		return uncommittedResponse != null ? uncommittedResponse : getInitialStore().getResponse(reference);
+		var response = deltaResponses.get(reference);
+		return response != null ? response : getInitialStore().getResponse(reference);
 	}
 
 	@Override
 	public final Stream<TransactionReference> getHistory(StorageReference object) throws UnknownReferenceException, StoreException {
-		var uncommittedHistory = histories.get(object);
-		return uncommittedHistory != null ? Stream.of(uncommittedHistory) : getInitialStore().getHistory(object);
+		var history = deltaHistories.get(object);
+		return history != null ? Stream.of(history) : getInitialStore().getHistory(object);
 	}
 
 	@Override
@@ -306,8 +296,13 @@ public abstract class AbstractStoreTransformationImpl<S extends AbstractStoreImp
 		}
 	}
 
-	public final void forEachDeliveredTransaction(Consumer<TransactionRequest<?>> notifier) throws StoreException {
-		delivered.forEach(notifier::accept);
+	public final void forEachDeliveredTransaction(Consumer<TransactionReference> notifier) throws StoreException {
+		deltaRequests.keySet().forEach(notifier::accept);
+	}
+
+	@Override
+	protected final long getNow() {
+		return now;
 	}
 
 	@Override
@@ -365,7 +360,7 @@ public abstract class AbstractStoreTransformationImpl<S extends AbstractStoreImp
 	 * @param response the response
 	 */
 	protected final void setResponse(TransactionReference reference, TransactionResponse response) {
-		responses.put(reference, response);
+		deltaResponses.put(reference, response);
 	}
 
 	protected final StorageReference getCreator(StorageReference event) throws UnknownReferenceException, FieldNotFoundException, StoreException {
@@ -380,7 +375,7 @@ public abstract class AbstractStoreTransformationImpl<S extends AbstractStoreImp
 	 * @throws StoreException if this store is not able to complete the operation correctly
 	 */
 	private void setRequest(TransactionReference reference, TransactionRequest<?> request) {
-		requests.put(reference, request);
+		deltaRequests.put(reference, request);
 	}
 
 	/**
@@ -395,7 +390,7 @@ public abstract class AbstractStoreTransformationImpl<S extends AbstractStoreImp
 	 *                that when the object has been created
 	 */
 	private void setHistory(StorageReference object, Stream<TransactionReference> history) {
-		histories.put(object, history.toArray(TransactionReference[]::new));
+		deltaHistories.put(object, history.toArray(TransactionReference[]::new));
 	}
 
 	/**
@@ -563,28 +558,24 @@ public abstract class AbstractStoreTransformationImpl<S extends AbstractStoreImp
 	 * @throws StoreException if the operation could not be successfully completed
 	 */
 	private void takeNoteForNextReward(TransactionRequest<?> request, TransactionResponse response) throws StoreException {
-		if (!(request instanceof SystemTransactionRequest)) {
-			delivered.add(request);
+		if (!(request instanceof SystemTransactionRequest) && response instanceof NonInitialTransactionResponse responseAsNonInitial) {
+			BigInteger gasConsumedButPenalty = responseAsNonInitial.getGasConsumedForCPU()
+				.add(responseAsNonInitial.getGasConsumedForStorage())
+				.add(responseAsNonInitial.getGasConsumedForRAM());
 
-			if (response instanceof NonInitialTransactionResponse responseAsNonInitial) {
-				BigInteger gasConsumedButPenalty = responseAsNonInitial.getGasConsumedForCPU()
-						.add(responseAsNonInitial.getGasConsumedForStorage())
-						.add(responseAsNonInitial.getGasConsumedForRAM());
+			gasConsumed = gasConsumed.add(gasConsumedButPenalty);
 
-				gasConsumed = gasConsumed.add(gasConsumedButPenalty);
-	
-				BigInteger gasConsumedTotal = gasConsumedButPenalty;
-				if (response instanceof FailedTransactionResponse ftr)
-					gasConsumedTotal = gasConsumedTotal.add(ftr.getGasConsumedForPenalty());
-	
-				BigInteger gasPrice = ((NonInitialTransactionRequest<?>) request).getGasPrice();
-				BigInteger reward = gasConsumedTotal.multiply(gasPrice);
-				coinsWithoutInflation = coinsWithoutInflation.add(reward);
-	
-				gasConsumedTotal = addInflation(gasConsumedTotal);
-				reward = gasConsumedTotal.multiply(gasPrice);
-				coins = coins.add(reward);
-			}
+			BigInteger gasConsumedTotal = gasConsumedButPenalty;
+			if (response instanceof FailedTransactionResponse ftr)
+				gasConsumedTotal = gasConsumedTotal.add(ftr.getGasConsumedForPenalty());
+
+			BigInteger gasPrice = ((NonInitialTransactionRequest<?>) request).getGasPrice();
+			BigInteger reward = gasConsumedTotal.multiply(gasPrice);
+			coinsWithoutInflation = coinsWithoutInflation.add(reward);
+
+			gasConsumedTotal = addInflation(gasConsumedTotal);
+			reward = gasConsumedTotal.multiply(gasPrice);
+			coins = coins.add(reward);
 		}
 	}
 

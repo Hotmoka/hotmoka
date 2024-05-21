@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.node.local;
 
+import java.util.Optional;
+
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
@@ -34,24 +36,14 @@ import io.hotmoka.node.local.internal.AbstractLocalNodeImpl;
 public abstract class AbstractLocalNode<C extends LocalNodeConfig<C,?>, S extends AbstractStore<S, T>, T extends AbstractStoreTranformation<S, T>> extends AbstractLocalNodeImpl<C, S, T> {
 
 	/**
-	 * Builds a node with a brand new, empty store.
+	 * Creates a node.
 	 * 
-	 * @param config the configuration of the node
-	 * @param consensus the consensus parameters at the beginning of the life of the node
+	 * @param consensus the consensus configuration of the node; if missing, this will be extracted
+	 *                  from the database of the node
+	 * @param config the local configuration of the node
 	 * @throws NodeException if the node could not be created
 	 */
-	protected AbstractLocalNode(C config, ConsensusConfig<?,?> consensus) throws NodeException {
-		super(config, consensus);
-	}
-
-	/**
-	 * Builds a node, recycling a previous existing store. The store will be that
-	 * of an already initialized node, and the consensus parameters will be extracted from the store.
-	 * 
-	 * @param config the configuration of the node
-	 * @throws NodeException if the node could not be created
-	 */
-	protected AbstractLocalNode(C config) throws NodeException {
-		super(config);
+	protected AbstractLocalNode(Optional<ConsensusConfig<?,?>> consensus, C config) throws NodeException {
+		super(consensus, config);
 	}
 }

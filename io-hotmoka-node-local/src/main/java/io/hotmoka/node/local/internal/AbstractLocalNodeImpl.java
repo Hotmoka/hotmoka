@@ -164,64 +164,64 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	private final static Logger LOGGER = Logger.getLogger(AbstractLocalNodeImpl.class.getName());
 
 	/**
-	 * Builds a node with a brand new, empty store.
+	 * Creates a new node.
 	 * 
+	 * @param consensus the consensus configuration of the node; if missing, this will be extracted
+	 *                  from the database of the node
 	 * @param config the configuration of the node
-	 * @param consensus the consensus parameters at the beginning of the life of the node
-	 * @throws NodeException 
+	 * @throws NodeException if the operation cannot be completed correctly
 	 */
-	protected AbstractLocalNodeImpl(C config, ConsensusConfig<?,?> consensus) throws NodeException {
-		this(config, Optional.of(consensus));
-	}
-
-	/**
-	 * Builds a node, recycling a previous existing store. The store must be that
-	 * of an already initialized node, whose consensus parameters are recovered from its manifest.
-	 * 
-	 * @param config the configuration of the node
-	 * @throws NodeException 
-	 */
-	protected AbstractLocalNodeImpl(C config) throws NodeException {
-		this(config, Optional.empty());
-	}
-
-	private AbstractLocalNodeImpl(C config, Optional<ConsensusConfig<?,?>> consensus) throws NodeException {
+	protected AbstractLocalNodeImpl(Optional<ConsensusConfig<?,?>> consensus, C config) throws NodeException {
 		super(ClosedNodeException::new);
 
+		this.config = config;
+		this.recentlyRejectedTransactionsMessages = new LRUCache<>(100, 1000);
+		this.semaphores = new ConcurrentHashMap<>();
+
 		try {
-			this.config = config;
 			this.hasher = HashingAlgorithms.sha256().getHasher(TransactionRequest::toByteArray);
-			this.recentlyRejectedTransactionsMessages = new LRUCache<>(100, 1000);
-			this.semaphores = new ConcurrentHashMap<>();
-
-			if (consensus.isPresent()) {
-				deleteRecursively(config.getDir());  // cleans the directory where the node's data live
-				Files.createDirectories(config.getDir());
-			}
-
-			this.executors = Executors.newCachedThreadPool(); // TODO. turn off this if construction fails
-
-			if (consensus.isEmpty()) {
-				// we start from a store with empty caches and dummy consensus; this is not a problem
-				// since initCaches() executes run transactions, that do not use the cache and do not depend on the consensus
-				S temp = mkStore(executors, ValidatorsConsensusConfigBuilders.defaults().build(), config, hasher);
-
-				try {
-					this.store = temp.initCaches();
-				}
-				catch (StoreException e) {
-					throw new NodeException("Cannot initialize the caches of the store: was the node already initialized?", e);
-				}
-			}
-			else
-				// the node is starting from scratch: the caches are left empty and the consensus is well-known
-				this.store = mkStore(executors, consensus.get(), config, hasher);
-
-			addShutdownHook();
 		}
-		catch (NoSuchAlgorithmException | IOException e) {
+		catch (NoSuchAlgorithmException e) {
 			throw new NodeException(e);
 		}
+
+		if (consensus.isPresent())
+			initWorkingDirectory();
+
+		this.executors = Executors.newCachedThreadPool();
+
+		addShutdownHook();
+	}
+
+	private final void initWorkingDirectory() throws NodeException {
+		try {
+			deleteRecursively(config.getDir());  // cleans the directory where the node's data live
+			Files.createDirectories(config.getDir());
+		}
+		catch (IOException e) {
+			throw new NodeException(e);
+		}
+	}
+
+	protected final void initStore(Optional<ConsensusConfig<?,?>> consensus) throws NodeException {
+		if (consensus.isEmpty()) {
+			try {
+				// we start from a store with empty caches and dummy consensus; this is not a problem
+				// since initCaches() executes run transactions, that do not use the cache and do not depend on the consensus
+				this.store = mkStore(executors, ValidatorsConsensusConfigBuilders.defaults().build(), config, hasher)
+						.initCaches();
+			}
+			catch (NoSuchAlgorithmException e) {
+				throw new NodeException(e);
+			}
+			catch (StoreException e) {
+				e.printStackTrace();
+				throw new NodeException("Cannot fill the cache of the store: was the node already initialized?", e);
+			}
+		}
+		else
+			// the node is starting from scratch: the caches are left empty and the consensus is well-known
+			this.store = mkStore(executors, consensus.get(), config, hasher);
 	}
 
 	@Override
@@ -517,23 +517,8 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	protected void moveBranchTo(S store) throws NodeException {}
 
 	protected void closeResources() throws NodeException, InterruptedException {
-		try {
-			executors.shutdownNow();
-		}
-		finally {
-			try {
-				S store = this.store;
-				if (store != null)
-					store.close();
-			}
-			catch (StoreException e) {
-				throw new NodeException(e);
-			}
-			finally {
-				// we give five seconds
-				executors.awaitTermination(5, TimeUnit.SECONDS);
-			}
-		}
+		executors.shutdownNow();
+		executors.awaitTermination(5, TimeUnit.SECONDS);
 	}
 
 	/**
@@ -556,8 +541,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	 * 
 	 * @param reference the reference of the transaction
 	 */
-	private void signalCompleted(TransactionRequest<?> request) {
-		var reference = TransactionReferences.of(hasher.hash(request));
+	private void signalCompleted(TransactionReference reference) {
 		Semaphore semaphore = semaphores.remove(reference);
 		if (semaphore != null)
 			semaphore.release();

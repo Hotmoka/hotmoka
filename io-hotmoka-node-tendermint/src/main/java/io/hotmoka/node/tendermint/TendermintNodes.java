@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.node.tendermint;
 
+import java.util.Optional;
+
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.node.tendermint.api.TendermintNode;
@@ -43,7 +45,7 @@ public abstract class TendermintNodes {
 	 * @throws NodeException if the operation cannot be completed correctly
 	 */
 	public static TendermintNode init(TendermintNodeConfig config, ValidatorsConsensusConfig<?,?> consensus) throws NodeException, InterruptedException {
-		return new TendermintNodeImpl(config, consensus);
+		return new TendermintNodeImpl(config, Optional.of(consensus));
 	}
 
 	/**
@@ -58,6 +60,6 @@ public abstract class TendermintNodes {
 	 * @throws NodeException if the operation cannot be completed correctly
 	 */
 	public static TendermintNode resume(TendermintNodeConfig config) throws NodeException, InterruptedException {
-		return new TendermintNodeImpl(config);
+		return new TendermintNodeImpl(config, Optional.empty());
 	}
 }

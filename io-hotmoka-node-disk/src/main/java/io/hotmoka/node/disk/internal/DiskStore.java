@@ -278,7 +278,4 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
 				.map(Path::toFile)
 				.forEach(File::delete);
 	}
-
-	@Override
-	public void close() {}
 }

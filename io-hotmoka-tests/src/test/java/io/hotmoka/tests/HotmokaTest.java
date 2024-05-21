@@ -291,7 +291,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkDiskBlockchain() throws NodeException {
+	private static Node mkDiskBlockchain() throws NodeException, InterruptedException {
 		try {
 			var consensus = fillConsensusConfig(ConsensusConfigBuilders.defaults()).build();
 			HotmokaTest.consensus = consensus;

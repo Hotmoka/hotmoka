@@ -42,13 +42,14 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.nodes.NodeInfo;
-import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.local.AbstractLocalNode;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.tendermint.api.TendermintNode;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 import io.hotmoka.tendermint.abci.Server;
+import io.hotmoka.xodus.ExodusException;
+import io.hotmoka.xodus.env.Environment;
 
 /**
  * An implementation of a node working over the Tendermint generic blockchain engine.
@@ -82,6 +83,11 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	private final boolean isWindows;
 
 	/**
+	 * The Xodus environment used for storing the tries.
+	 */
+	private final Environment env;
+
+	/**
 	 * Builds a brand new Tendermint blockchain. This constructor spawns the Tendermint process on localhost
 	 * and connects it to an ABCI application for handling its transactions.
 	 * 
@@ -90,61 +96,27 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	 * @throws IOException 
 	 * @throws NodeException 
 	 */
-	public TendermintNodeImpl(TendermintNodeConfig config, ValidatorsConsensusConfig<?,?> consensus) throws NodeException, InterruptedException {
-		super(config, consensus);
+	public TendermintNodeImpl(TendermintNodeConfig config, Optional<ConsensusConfig<?,?>> consensus) throws NodeException, InterruptedException {
+		super(consensus, config);
 
 		try {
+			this.env = new Environment(config.getDir() + "/store");
 			this.isWindows = System.getProperty("os.name").startsWith("Windows");
-			initWorkingDirectoryOfTendermintProcess(config);
+			initStore(consensus);
+			if (consensus.isPresent())
+				initWorkingDirectoryOfTendermintProcess(config);
 			var tendermintConfigFile = new TendermintConfigFile(config);
 			this.abci = new Server(tendermintConfigFile.abciPort, new TendermintApplication(this));
 			this.abci.start();
-			LOGGER.info("ABCI started at port " + tendermintConfigFile.abciPort);
+			LOGGER.info("Tendermint ABCI started at port " + tendermintConfigFile.abciPort);
 			this.poster = new TendermintPoster(config, tendermintConfigFile.tendermintPort);
 			this.tendermint = new Tendermint(config);
 			LOGGER.info("Tendermint started at port " + tendermintConfigFile.tendermintPort);
 		}
-		catch (IOException e) {
-			tryClose();
-			throw new NodeException(e);
-		}
-		catch (TimeoutException e) {
-			LOGGER.log(Level.SEVERE, "the creation of the Tendermint blockchain failed. Is Tendermint installed?", e);
-			tryClose();
-			throw new NodeException("the creation of the Tendermint blockchain failed. Is Tendermint installed?", e);
-		}
-	}
-
-	/**
-	 * Builds a Tendermint blockchain recycling the previous store. The consensus parameters
-	 * are recovered from the manifest in the store. This constructor spawns the Tendermint process on localhost
-	 * and connects it to an ABCI application for handling its transactions.
-	 * 
-	 * @param config the configuration of the blockchain
-	 * @throws IOException 
-	 * @throws NodeException 
-	 */
-	public TendermintNodeImpl(TendermintNodeConfig config) throws NodeException, InterruptedException {
-		super(config);
-
-		try {
-			this.isWindows = System.getProperty("os.name").startsWith("Windows");
-			var tendermintConfigFile = new TendermintConfigFile(config);
-			this.abci = new Server(tendermintConfigFile.abciPort, new TendermintApplication(this));
-			this.abci.start();
-			LOGGER.info("ABCI started at port " + tendermintConfigFile.abciPort);
-			this.poster = new TendermintPoster(config, tendermintConfigFile.tendermintPort);
-			this.tendermint = new Tendermint(config);
-			LOGGER.info("Tendermint started at port " + tendermintConfigFile.tendermintPort);
-		}
-		catch (IOException e) {
-			tryClose();
-			throw new NodeException(e);
-		}
-		catch (TimeoutException e) {
-			LOGGER.log(Level.SEVERE, "the creation of the Tendermint blockchain failed. Is Tendermint installed?", e);
-			tryClose();
-			throw new NodeException("the creation of the Tendermint blockchain failed. Is Tendermint installed?", e);
+		catch (IOException | TimeoutException e) {
+			LOGGER.log(Level.SEVERE, "the creation of the Tendermint node failed. Is Tendermint installed?", e);
+			close();
+			throw new NodeException("The creation of the Tendermint node failed. Is Tendermint installed?", e);
 		}
 	}
 
@@ -194,14 +166,22 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 			closeTendermintAndABCI();
 		}
 		finally {
-			super.closeResources();
+			try {
+				env.close();
+			}
+			catch (ExodusException e) {
+				throw new NodeException(e);
+			}
+			finally {
+				super.closeResources();
+			}
 		}
 	}
 
 	@Override
 	protected TendermintStore mkStore(ExecutorService executors, ConsensusConfig<?,?> consensus, TendermintNodeConfig config, Hasher<TransactionRequest<?>> hasher) throws NodeException {
 		try {
-			return new TendermintStore(executors, consensus, config, hasher);
+			return new TendermintStore(env, executors, consensus, config, hasher);
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);
@@ -213,7 +193,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 		poster.postRequest(request);
 	}
 
-	protected TendermintPoster getPoster() {
+	protected TendermintPoster getPoster() { // TODO: can remove?
 		return poster;
 	}
 
@@ -235,15 +215,6 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	@Override
 	protected void signalRejected(TransactionRequest<?> request, TransactionRejectedException e) {
 		super.signalRejected(request, e);
-	}
-
-	private void tryClose() {
-		try {
-			close();
-		}
-		catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "cannot close the blockchain", e);
-		}
 	}
 
 	private void closeTendermintAndABCI() throws NodeException, InterruptedException {
@@ -311,13 +282,12 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	 */
 	private void initWorkingDirectoryOfTendermintProcess(TendermintNodeConfig config) throws InterruptedException, NodeException {
 		Optional<Path> tendermintConfigurationToClone = config.getTendermintConfigurationToClone();
+		Path tendermintHome = config.getDir().resolve("blocks");
 
 		try {
 			if (tendermintConfigurationToClone.isEmpty()) {
 				// if there is no configuration to clone, we create a default network of a single node
 				// that plays the role of the unique validator of the network
-
-				Path tendermintHome = config.getDir().resolve("blocks");
 				String executableName = isWindows ? "cmd.exe /c tendermint.exe" : "tendermint";
 				//if (run("tendermint testnet --v 1 --o " + tendermintHome + " --populate-persistent-peers", Optional.empty()).waitFor() != 0)
 				if (run(executableName + " init --home " + tendermintHome, Optional.empty()).waitFor() != 0) // TODO: add timeout
@@ -326,7 +296,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 			else
 				// we clone the configuration files inside config.tendermintConfigurationToClone
 				// into the blocks subdirectory of the node directory
-				copyRecursively(tendermintConfigurationToClone.get(), config.getDir().resolve("blocks"));
+				copyRecursively(tendermintConfigurationToClone.get(), tendermintHome);
 		}
 		catch (IOException e) {
 			throw new NodeException(e);

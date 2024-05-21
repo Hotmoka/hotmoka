@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.disk.internal;
 
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
 
@@ -51,12 +52,20 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, DiskStore, D
 	 * 
 	 * @param config the configuration of the blockchain
 	 * @param consensus the consensus parameters of the blockchain
-	 * @throws NodeException 
+	 * @throws NodeException if the operation cannot be completed correctly
+	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 */
-	public DiskNodeImpl(DiskNodeConfig config, ConsensusConfig<?,?> consensus) throws NodeException {
-		super(config, consensus);
+	public DiskNodeImpl(DiskNodeConfig config, ConsensusConfig<?,?> consensus) throws NodeException, InterruptedException {
+		super(Optional.of(consensus), config);
 
-		this.mempool = new Mempool(this, config.getTransactionsPerBlock());
+		try {
+			initStore(Optional.of(consensus));
+			this.mempool = new Mempool(this, config.getTransactionsPerBlock());
+		}
+		catch (NodeException e) {
+			close();
+			throw e;
+		}
 	}
 
 	@Override

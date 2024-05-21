@@ -111,15 +111,16 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 	/**
 	 * Creates a store.
 	 * 
+	 * @param env the Xodus environment to use for creating the tries
 	 * @param executors the executors to use for running transactions
 	 * @param consensus the consensus configuration of the node having the store
 	 * @param config the local configuration of the node having the store
 	 * @param hasher the hasher for computing the transaction reference from the requests
 	 */
-    protected AbstractTrieBasedStoreImpl(ExecutorService executors, ConsensusConfig<?,?> consensus, LocalNodeConfig<?,?> config, Hasher<TransactionRequest<?>> hasher) {
+    protected AbstractTrieBasedStoreImpl(Environment env, ExecutorService executors, ConsensusConfig<?,?> consensus, LocalNodeConfig<?,?> config, Hasher<TransactionRequest<?>> hasher) {
     	super(executors, consensus, config, hasher);
 
-    	this.env = new Environment(config.getDir() + "/store");
+    	this.env = env;
 
 		var storeOfInfo = new AtomicReference<io.hotmoka.xodus.env.Store>();
 		var roots = new AtomicReference<Optional<byte[]>>();
@@ -248,16 +249,6 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 	}
 
 	protected abstract S make(StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests);
-
-	@Override
-    public void close() throws StoreException {
-    	try {
-    		env.close();
-    	}
-    	catch (ExodusException e) {
-    		throw new StoreException(e);
-    	}
-    }
 
     @Override
 	public TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, StoreException {

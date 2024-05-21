@@ -36,7 +36,7 @@ import io.hotmoka.node.api.values.StorageReference;
  * @param <T> the type of the store transformations that can be started from this store
  */
 @Immutable
-public interface Store<S extends Store<S, T>, T extends StoreTransformation<S, T>> extends AutoCloseable {
+public interface Store<S extends Store<S, T>, T extends StoreTransformation<S, T>> {
 
 	/**
 	 * Yields the request contained in this store, with the given reference.
@@ -114,10 +114,4 @@ public interface Store<S extends Store<S, T>, T extends StoreTransformation<S, T
 	 * @throws StoreException if this store is not able to perform the operation
 	 */
 	T beginViewTransaction() throws StoreException;
-
-	/**
-	 * Closes this store, releasing any resource contained in this store.
-	 */
-	@Override
-	void close() throws StoreException, InterruptedException; // TODO: probably remove this
 }

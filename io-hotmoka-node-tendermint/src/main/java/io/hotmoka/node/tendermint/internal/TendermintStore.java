@@ -34,6 +34,7 @@ import io.hotmoka.node.local.AbstractTrieBasedStore;
 import io.hotmoka.node.local.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
+import io.hotmoka.xodus.env.Environment;
 
 /**
  * A partial trie-based store. Errors and requests are recovered by asking
@@ -56,13 +57,14 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
 	/**
      * Creates a store for the Tendermint blockchain.
 	 * 
+	 * @param env the Xodus environment to use for storing the tries
 	 * @param executors the executors to use for running transactions
 	 * @param consensus the consensus configuration of the node having the store
 	 * @param config the local configuration of the node having the store
 	 * @param hasher the hasher for computing the transaction reference from the requests
 	 */
-    TendermintStore(ExecutorService executors, ConsensusConfig<?,?> consensus, TendermintNodeConfig config, Hasher<TransactionRequest<?>> hasher) throws StoreException {
-    	super(executors, consensus, config, hasher);
+    TendermintStore(Environment env, ExecutorService executors, ConsensusConfig<?,?> consensus, TendermintNodeConfig config, Hasher<TransactionRequest<?>> hasher) throws StoreException {
+    	super(env, executors, consensus, config, hasher);
 
     	try {
     		this.hasherOfHashes = HashingAlgorithms.sha256().getHasher(Function.identity());

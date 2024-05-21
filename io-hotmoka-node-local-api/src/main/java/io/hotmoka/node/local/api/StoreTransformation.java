@@ -45,13 +45,6 @@ public interface StoreTransformation<S extends Store<S,T>, T extends StoreTransf
 	S getInitialStore();
 
 	/**
-	 * Yields the time used as current time for the requests executed inside this transformation.
-	 * 
-	 * @return the time, in milliseconds from the UNIX epoch time
-	 */
-	long getNow();
-
-	/**
 	 * Runs the given request of execution of a view instance method, at the final store of this transformation.
 	 * 
 	 * @param request the request to run

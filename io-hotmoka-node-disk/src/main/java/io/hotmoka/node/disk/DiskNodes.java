@@ -41,8 +41,9 @@ public abstract class DiskNodes {
 	 * @param consensus the consensus configuration of the node
 	 * @return the node
 	 * @throws NodeException if the operation cannot be completed correctly
+	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 */
-	public static DiskNode init(DiskNodeConfig config, ConsensusConfig<?,?> consensus) throws NodeException {
+	public static DiskNode init(DiskNodeConfig config, ConsensusConfig<?,?> consensus) throws NodeException, InterruptedException {
 		return new DiskNodeImpl(config, consensus);
 	}
 }

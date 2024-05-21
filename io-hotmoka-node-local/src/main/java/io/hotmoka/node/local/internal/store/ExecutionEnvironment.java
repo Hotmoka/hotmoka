@@ -163,18 +163,31 @@ public abstract class ExecutionEnvironment {
 
 	protected final ConsensusConfig<?,?> extractConsensus() throws StoreException {
 		Optional<StorageReference> maybeManifest = getManifest();
-		if(maybeManifest.isEmpty())
+		if (maybeManifest.isEmpty())
 			throw new StoreException("Cannot extract the consensus if the manifest is not set yet");
-	
+
 		try {
 			// enough gas for a simple get method
 			BigInteger _100_000 = BigInteger.valueOf(100_000L);
 	
 			StorageReference manifest = maybeManifest.get();
 			TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
-			StorageReference validators = getValidators().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
-			StorageReference gasStation = getGasStation().orElseThrow(() -> new StoreException("The manifest is set but the gas station is not set"));
-			StorageReference versions = getVersions().orElseThrow(() -> new StoreException("The manifest is set but the versions are not set"));
+
+			// we cannot call getValidators(), getVersions() and getGasStation() since we are here exactly because the caches are not set yet
+			StorageReference validators = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest))
+					.orElseThrow(() -> new StoreException(MethodSignatures.GET_VALIDATORS + " should not return void"))
+					.asReference(value -> new StoreException(MethodSignatures.GET_VALIDATORS + " should return a reference, not a " + value.getClass().getName()));
+
+			StorageReference gasStation = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAS_STATION, manifest))
+					.orElseThrow(() -> new StoreException(MethodSignatures.GET_GAS_STATION + " should not return void"))
+					.asReference(value -> new StoreException(MethodSignatures.GET_GAS_STATION + " should return a reference, not a " + value.getClass().getName()));
+
+			StorageReference versions = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VERSIONS, manifest))
+					.orElseThrow(() -> new StoreException(MethodSignatures.GET_VERSIONS + " should not return void"))
+					.asReference(value -> new StoreException(MethodSignatures.GET_VERSIONS + " should return a reference, not a " + value.getClass().getName()));
 	
 			String genesisTime = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_GENESIS_TIME, manifest))
