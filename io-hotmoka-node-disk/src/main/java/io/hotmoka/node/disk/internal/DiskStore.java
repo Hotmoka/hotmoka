@@ -57,19 +57,24 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
 	private final Path dir;
 
 	/**
-	 * The requests in this store.
+	 * The previous store, from which this is derived by difference.
 	 */
-	private final Map<TransactionReference, TransactionRequest<?>> requests;
+	private final Optional<DiskStore> previous;
 
 	/**
-	 * The responses in this store.
+	 * The difference of requests added in this store.
 	 */
-	private final Map<TransactionReference, TransactionResponse> responses;
+	private final Map<TransactionReference, TransactionRequest<?>> deltaRequests;
 
 	/**
-	 * The histories of the objects in this store.
+	 * The difference of responses added in this store.
 	 */
-	private final Map<StorageReference, TransactionReference[]> histories;
+	private final Map<TransactionReference, TransactionResponse> deltaResponses;
+
+	/**
+	 * The difference of histories of the objects added in this store.
+	 */
+	private final Map<StorageReference, TransactionReference[]> deltaHistories;
 
 	/**
 	 * The storage reference of the manifest in this store, if any.
@@ -93,9 +98,10 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
     	super(executors, consensus, config, hasher);
 
     	this.dir = config.getDir();
-    	this.requests = new ConcurrentHashMap<>();
-    	this.responses = new ConcurrentHashMap<>();
-    	this.histories = new ConcurrentHashMap<>();
+    	this.previous = Optional.empty();
+    	this.deltaRequests = new ConcurrentHashMap<>();
+    	this.deltaResponses = new ConcurrentHashMap<>();
+    	this.deltaHistories = new ConcurrentHashMap<>();
     	this.manifest = Optional.empty();
     	this.blockHeight = 0;
     }
@@ -107,10 +113,11 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
     	super(toClone, cache);
 
     	this.dir = toClone.dir;
+    	this.previous = toClone.previous;
     	// no need to clone these sets, since we are not modifying them
-    	this.requests = toClone.requests;
-    	this.responses = toClone.responses;
-    	this.histories = toClone.histories;
+    	this.deltaRequests = toClone.deltaRequests;
+    	this.deltaResponses = toClone.deltaResponses;
+    	this.deltaHistories = toClone.deltaHistories;
     	this.manifest = toClone.manifest;
     	this.blockHeight = toClone.blockHeight;
     }
@@ -128,44 +135,59 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
     	super(toClone, cache);
 
     	this.dir = toClone.dir;
-    	this.requests = new HashMap<>(toClone.requests);
-    	this.responses = new HashMap<>(toClone.responses);
-    	this.histories = new HashMap<>(toClone.histories);
+
+    	// we apply two strategies: either the delta set of the previous store is small, and we clone it
+    	if (toClone.deltaHistories.size() + addedHistories.size() < 2000) {
+    		this.previous = toClone.previous;
+    		this.deltaRequests = new HashMap<>(toClone.deltaRequests);
+    		this.deltaResponses = new HashMap<>(toClone.deltaResponses);
+    		this.deltaHistories = new HashMap<>(toClone.deltaHistories);
+    		deltaRequests.putAll(addedRequests);
+    		deltaResponses.putAll(addedResponses);
+    		deltaHistories.putAll(addedHistories);
+    	}
+    	else {
+    		// or we point to the cloned store as previous and only report the delta information in this store;
+    		// this avoids cloning big hashsets, but creates a long list of stores that make the
+    		// search for requests and responses longer
+    		this.previous = Optional.of(toClone);
+    		this.deltaRequests = new HashMap<>(addedRequests);
+    		this.deltaResponses = new HashMap<>(addedResponses);
+    		this.deltaHistories = new HashMap<>(addedHistories);
+    	}
+
     	this.manifest = addedManifest.or(() -> toClone.manifest);
     	this.blockHeight = toClone.blockHeight + 1;
 
 		int progressive = 0;
-		for (var entry: addedRequests.entrySet()) {
-			requests.put(entry.getKey(), entry.getValue());
+		for (var entry: addedRequests.entrySet())
 			dumpRequest(progressive++, entry.getKey(), entry.getValue());
-		}
 
 		progressive = 0;
-		for (var entry: addedResponses.entrySet()) {
-			responses.put(entry.getKey(), entry.getValue());
+		for (var entry: addedResponses.entrySet())
 			dumpResponse(progressive++, entry.getKey(), entry.getValue());
-		}
-
-		for (var entry: addedHistories.entrySet())
-			histories.put(entry.getKey(), entry.getValue());
     }
 
     @Override
     public TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException {
-    	var response = responses.get(reference);
+    	var response = deltaResponses.get(reference);
     	if (response != null)
     		return response;
-    	else
+    	else if (previous.isEmpty())
     		throw new UnknownReferenceException(reference);
+    	else
+    		return previous.get().getResponse(reference);
     }
 
 	@Override
 	public Stream<TransactionReference> getHistory(StorageReference object) throws UnknownReferenceException {
-		TransactionReference[] history = histories.get(object);
+		TransactionReference[] history = deltaHistories.get(object);
 		if (history != null)
 			return Stream.of(history);
-		else
+		else if (previous.isEmpty())
 			throw new UnknownReferenceException(object);
+		else
+			return previous.get().getHistory(object);
 	}
 
 	@Override
@@ -175,11 +197,13 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
 
 	@Override
 	public TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException {
-		var request = requests.get(reference);
+		var request = deltaRequests.get(reference);
     	if (request != null)
     		return request;
-    	else
+    	else if (previous.isEmpty())
     		throw new UnknownReferenceException(reference);
+    	else
+    		return previous.get().getRequest(reference);
 	}
 
 	@Override
