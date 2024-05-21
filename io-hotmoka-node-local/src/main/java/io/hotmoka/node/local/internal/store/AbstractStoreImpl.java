@@ -159,6 +159,12 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 			Map<StorageReference, TransactionReference[]> addedHistories,
 			Optional<StorageReference> addedManifest) throws StoreException;
 
+	/**
+	 * Yields a store identical to this, but for its cache, that is set as given.
+	 * 
+	 * @param cache the cache to set in the resulting store
+	 * @return the resulting store
+	 */
 	protected abstract S setCache(StoreCache cache);
 
 	/**

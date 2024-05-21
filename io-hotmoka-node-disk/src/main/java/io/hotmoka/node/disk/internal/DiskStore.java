@@ -77,9 +77,9 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
 	private final Optional<StorageReference> manifest;
 
 	/**
-	 * The number of the block having this store.
+	 * The height of the block having this store.
 	 */
-	private final int blockNumber;
+	private final int blockHeight;
 
 	/**
      * Creates the starting disk store of a node.
@@ -97,7 +97,7 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
     	this.responses = new ConcurrentHashMap<>();
     	this.histories = new ConcurrentHashMap<>();
     	this.manifest = Optional.empty();
-    	this.blockNumber = 0;
+    	this.blockHeight = 0;
     }
 
 	/**
@@ -107,11 +107,12 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
     	super(toClone, cache);
 
     	this.dir = toClone.dir;
-    	this.requests = new HashMap<>(toClone.requests);
-    	this.responses = new HashMap<>(toClone.responses);
-    	this.histories = new HashMap<>(toClone.histories);
+    	// no need to clone these sets, since we are not modifying them
+    	this.requests = toClone.requests;
+    	this.responses = toClone.responses;
+    	this.histories = toClone.histories;
     	this.manifest = toClone.manifest;
-    	this.blockNumber = toClone.blockNumber;
+    	this.blockHeight = toClone.blockHeight;
     }
 
 	/**
@@ -131,15 +132,19 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
     	this.responses = new HashMap<>(toClone.responses);
     	this.histories = new HashMap<>(toClone.histories);
     	this.manifest = addedManifest.or(() -> toClone.manifest);
-    	this.blockNumber = addedRequests.isEmpty() ? toClone.blockNumber : toClone.blockNumber + 1;
+    	this.blockHeight = toClone.blockHeight + 1;
 
 		int progressive = 0;
-		for (var entry: addedRequests.entrySet())
+		for (var entry: addedRequests.entrySet()) {
+			requests.put(entry.getKey(), entry.getValue());
 			dumpRequest(progressive++, entry.getKey(), entry.getValue());
+		}
 
 		progressive = 0;
-		for (var entry: addedResponses.entrySet())
+		for (var entry: addedResponses.entrySet()) {
+			responses.put(entry.getKey(), entry.getValue());
 			dumpResponse(progressive++, entry.getKey(), entry.getValue());
+		}
 
 		for (var entry: addedHistories.entrySet())
 			histories.put(entry.getKey(), entry.getValue());
@@ -186,8 +191,14 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
 	protected DiskStore addDelta(StoreCache cache, Map<TransactionReference, TransactionRequest<?>> addedRequests,
 			Map<TransactionReference, TransactionResponse> addedResponses,
 			Map<StorageReference, TransactionReference[]> addedHistories, Optional<StorageReference> addedManifest) throws StoreException {
-	
-		return new DiskStore(this, cache, addedRequests, addedResponses, addedHistories, addedManifest);
+
+		// optimization: if we are adding no requests (and therefore no responses and no histories) then
+		// we reuse the same store; moreover, the block height will remain unchanged, so that no empty blocks
+		// are dumped to the file system
+		if (addedRequests.isEmpty())
+			return this;
+		else
+			return new DiskStore(this, cache, addedRequests, addedResponses, addedHistories, addedManifest);
 	}
 
 	@Override
@@ -196,8 +207,6 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
 	}
 
 	private void dumpRequest(int progressive, TransactionReference reference, TransactionRequest<?> request) throws StoreException {
-		requests.put(reference, request);
-
 		try {
 			Path requestPath = getPathFor(progressive, reference, "request.txt");
 			Path parent = requestPath.getParent();
@@ -211,8 +220,6 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
 	}
 
 	private void dumpResponse(int progressive, TransactionReference reference, TransactionResponse response) throws StoreException {
-		responses.put(reference, response);
-
 		try {
 			Path responsePath = getPathFor(progressive, reference, "response.txt");
 			Files.writeString(responsePath, response.toString(), StandardCharsets.UTF_8);
@@ -231,7 +238,7 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
 	 * @throws FileNotFoundException if the reference is unknown
 	 */
 	private Path getPathFor(int progressive, TransactionReference reference, String name) throws FileNotFoundException {
-		return dir.resolve("b" + blockNumber).resolve(progressive + "-" + reference).resolve(name);
+		return dir.resolve("b" + blockHeight).resolve(progressive + "-" + reference).resolve(name);
 	}
 
 	/**

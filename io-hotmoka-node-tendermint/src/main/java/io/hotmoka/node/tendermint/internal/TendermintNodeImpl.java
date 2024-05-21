@@ -158,9 +158,9 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 		}
 	}
 
-	protected final long getNumberOfCommits() throws NodeException {
+	protected final long getBlockHeight() throws NodeException {
 		try {
-			return getStore().getNumberOfCommits();
+			return getStore().getBlockHeight();
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);

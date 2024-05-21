@@ -185,7 +185,7 @@ class TendermintApplication extends ABCI {
 	protected ResponseInfo info(RequestInfo request) throws NodeException {
 		return ResponseInfo.newBuilder()
 			.setLastBlockAppHash(ByteString.copyFrom(node.getStateId())) // hash of the store used for consensus
-			.setLastBlockHeight(node.getNumberOfCommits()).build();
+			.setLastBlockHeight(node.getBlockHeight()).build();
 	}
 
 	@Override

@@ -57,34 +57,26 @@ public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue, TrieOfI
 		return new TrieOfInfo(this, root);
 	}
 
-	private static HashingAlgorithm sha256() throws TrieException {
-		try {
-			return HashingAlgorithms.sha256();
-		}
-		catch (NoSuchAlgorithmException e) {
-			throw new TrieException(e);		}
-	}
-
 	/**
-	 * Yields the number of commits.
+	 * Yields the block height.
 	 * 
-	 * @return the number of commits. This is 0 if the number of commits has not been set yet
+	 * @return the block height of this store
 	 * @throws TrieException if the operation cannot be completed correctly
 	 */
-	public long getNumberOfCommits() throws TrieException {
+	public long getBlockHeight() throws TrieException {
 		return get((byte) 0)
-			.map(commits -> ((LongValue) commits).getValue())
+			.map(height -> ((LongValue) height).getValue())
 			.orElse(0L);
 	}
 
 	/**
-	 * Increases the number of commits.
+	 * Increases the block height.
 	 * 
-	 * @return the new (ie, incremented) number of commits
+	 * @return a trie identical to this but with an incremented block height
 	 * @throws TrieException if the operation cannot be completed correctly
 	 */
-	public TrieOfInfo increaseNumberOfCommits() throws TrieException {
-		return put((byte) 0, StorageValues.longOf(getNumberOfCommits() + 1));
+	public TrieOfInfo increaseBlockHeight() throws TrieException {
+		return put((byte) 0, StorageValues.longOf(getBlockHeight() + 1));
 	}
 
 	/**
@@ -110,5 +102,13 @@ public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue, TrieOfI
 	 */
 	public TrieOfInfo setManifest(StorageReference manifest) throws TrieException {
 		return put((byte) 1, manifest);
+	}
+
+	private static HashingAlgorithm sha256() throws TrieException {
+		try {
+			return HashingAlgorithms.sha256();
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw new TrieException(e);		}
 	}
 }

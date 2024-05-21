@@ -235,7 +235,7 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 					trieOfHistories = trieOfHistories.put(entry.getKey(), Stream.of(entry.getValue()));
 	
 				var trieOfInfo = mkTrieOfInfo(txn);
-				trieOfInfo = trieOfInfo.increaseNumberOfCommits();
+				trieOfInfo = trieOfInfo.increaseBlockHeight();
 				if (addedManifest.isPresent())
 					trieOfInfo = trieOfInfo.setManifest(addedManifest.get());
 	
@@ -339,10 +339,10 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 	 * 
 	 * @return the number of commits
 	 */
-	public long getNumberOfCommits() throws StoreException {
+	public long getBlockHeight() throws StoreException {
 		try {
 			return CheckSupplier.check(TrieException.class, StoreException.class, () ->
-				env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> mkTrieOfInfo(txn).getNumberOfCommits())
+				env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> mkTrieOfInfo(txn).getBlockHeight())
 			));
 		}
 		catch (ExodusException | TrieException e) {
