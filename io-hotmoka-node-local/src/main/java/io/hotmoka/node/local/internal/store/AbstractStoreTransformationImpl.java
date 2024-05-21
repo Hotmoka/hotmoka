@@ -21,12 +21,13 @@ import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -70,10 +71,8 @@ import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.StoreTransformation;
 
 /**
- * The store of a node. It keeps information about the state of the objects created
- * by the requests executed by the node. A store is external to the node and, typically, only
- * its hash is held in the node, if consensus is needed. Stores must be thread-safe, since they can
- * be used concurrently for executing more requests.
+ * Partial implementation of a store transformation. This is not thread-safe hence it must
+ * be used by a thread at a time or shared under synchronization.
  * 
  * @param <S> the type of store used in the transformation
  * @param <T> the type of the transformation
@@ -82,39 +81,48 @@ public abstract class AbstractStoreTransformationImpl<S extends AbstractStoreImp
 	private final static Logger LOGGER = Logger.getLogger(AbstractStoreTransformationImpl.class.getName());
 	private final S store;
 
-	private final ConcurrentMap<TransactionReference, TransactionRequest<?>> requests = new ConcurrentHashMap<>();
-	private final ConcurrentMap<TransactionReference, TransactionResponse> responses = new ConcurrentHashMap<>();
-
 	/**
-	 * The histories of the objects created in blockchain. In a real implementation, this must
-	 * be stored in a persistent state.
+	 * The requests added during this transformation. They are kept in order of addition.
 	 */
-	private final ConcurrentMap<StorageReference, TransactionReference[]> histories = new ConcurrentHashMap<>();
+	private final Map<TransactionReference, TransactionRequest<?>> requests = new HashMap<>();
 
 	/**
-	 * The storage reference of the manifest stored inside the node, if any.
+	 * The responses added during this transformation.
+	 */
+	private final Map<TransactionReference, TransactionResponse> responses = new HashMap<>();
+
+	/**
+	 * The histories of the objects created during this transformation.
+	 */
+	private final Map<StorageReference, TransactionReference[]> histories = new HashMap<>();
+
+	/**
+	 * The storage reference of the manifest added during this transformation, if any.
 	 */
 	private volatile StorageReference manifest;
 
+	/**
+	 * The cache used during this transformation.
+	 */
 	private volatile StoreCache cache;
 
 	/**
-	 * The gas consumed for CPU execution, RAM or storage in this transaction.
+	 * The gas consumed for CPU execution, RAM or storage in this transformation.
 	 */
 	private volatile BigInteger gasConsumed;
 
 	/**
-	 * The reward to send to the validators, accumulated during this transaction.
+	 * The reward to send to the validators, accumulated during this transformation.
 	 */
 	private volatile BigInteger coins;
 
 	/**
-	 * The reward to send to the validators, accumulated during this transaction, without considering the inflation.
+	 * The reward to send to the validators, accumulated during this transformation, without considering the inflation.
 	 */
 	private volatile BigInteger coinsWithoutInflation;
 
 	/**
-	 * The number of Hotmoka requests executed during this transaction.
+	 * The Hotmoka requests executed during this transaction.
 	 */
 	private final Set<TransactionRequest<?>> delivered = ConcurrentHashMap.newKeySet();
 
@@ -135,7 +143,7 @@ public abstract class AbstractStoreTransformationImpl<S extends AbstractStoreImp
 	private final static BigInteger _100_000_000 = BigInteger.valueOf(100_000_000L);
 
 	/**
-	 * Creates a transformation whose transaction are executed with the given executors.
+	 * Creates a transformation whose transactions are executed with the given executors.
 	 * 
 	 * @param store the initial store of the transformation
 	 * @param executors the executors
@@ -208,7 +216,7 @@ public abstract class AbstractStoreTransformationImpl<S extends AbstractStoreImp
 					(manifest, nonce, _100_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD, validators,
 					StorageValues.bigIntegerOf(coins), StorageValues.bigIntegerOf(minted),
 					StorageValues.stringOf(behaving), StorageValues.stringOf(misbehaving),
-					StorageValues.bigIntegerOf(gasConsumed), StorageValues.bigIntegerOf(delivered.size()));
+					StorageValues.bigIntegerOf(gasConsumed), StorageValues.bigIntegerOf(deliveredCount()));
 	
 				TransactionResponse response = responseBuilderFor(TransactionReferences.of(hasher.hash(request)), request).getResponse();
 				// if there is only one update, it is the update of the nonce of the manifest: we prefer not to expand

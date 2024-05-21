@@ -23,7 +23,7 @@ import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.store.trie.AbstractTrieBasedStoreTransformationImpl;
 
 /**
- * A store transformation for trie-based stores.
+ * A store transformation for trie-based stores, for extension.
  * 
  * @param <S> the type of store used in the transformation
  * @param <T> the type of the transformation

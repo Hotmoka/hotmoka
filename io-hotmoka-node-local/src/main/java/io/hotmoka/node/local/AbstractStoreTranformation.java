@@ -22,10 +22,8 @@ import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.local.internal.store.AbstractStoreTransformationImpl;
 
 /**
- * The store of a node. It keeps information about the state of the objects created
- * by the requests executed by the node. A store is external to the node and, typically, only
- * its hash is held in the node, if consensus is needed. Stores must be thread-safe, since they can
- * be used concurrently for executing more requests.
+ * Abstract implementation of a store transformation, for extension. This is not thread-safe hence it must
+ * be used by a thread at a time or shared under synchronization.
  * 
  * @param <S> the type of store used in the transformation
  * @param <T> the type of the transformation

@@ -17,8 +17,6 @@ limitations under the License.
 package io.hotmoka.node.tendermint.internal;
 
 import java.io.ByteArrayInputStream;
-import java.util.Base64;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -26,6 +24,8 @@ import java.util.stream.Stream;
 
 import com.google.protobuf.ByteString;
 
+import io.hotmoka.crypto.Base64;
+import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.TransactionRequests;
@@ -154,7 +154,14 @@ class TendermintApplication extends ABCI {
     }
 
     private static ValidatorUpdate intoValidatorUpdate(TendermintValidator validator, long newPower) {
-    	byte[] raw = Base64.getDecoder().decode(validator.publicKey);
+    	byte[] raw;
+
+    	try {
+    		raw = Base64.fromBase64String(validator.publicKey);
+    	}
+    	catch (Base64ConversionException e) {
+    		throw new RuntimeException(e); // TODO
+    	}
     	PublicKey publicKey = PublicKey.newBuilder().setEd25519(ByteString.copyFrom(raw)).build();
 
     	return ValidatorUpdate.newBuilder()
@@ -265,22 +272,17 @@ class TendermintApplication extends ABCI {
     	TendermintValidator[] currentValidators = validatorsAtPreviousBlock;
 
     	if (currentValidators != null) {
-    		try {
-    			Optional<TendermintValidator[]> validatorsInStore = transaction.getTendermintValidators();
-    			if (validatorsInStore.isPresent()) {
-    				TendermintValidator[] nextValidators = validatorsInStore.get();
-    				if (nextValidators.length == 0)
-    					LOGGER.info("refusing to remove all validators; please initialize the node with TendermintInitializedNode");
-    				else {
-    					removeCurrentValidatorsThatAreNotNextValidators(currentValidators, nextValidators, builder);
-    					addNextValidatorsThatAreNotCurrentValidators(currentValidators, nextValidators, builder);
-    					updateValidatorsThatChangedPower(currentValidators, nextValidators, builder);
-    					validatorsAtPreviousBlock = nextValidators;
-    				}
+    		Optional<TendermintValidator[]> validatorsInStore = transaction.getTendermintValidators();
+    		if (validatorsInStore.isPresent()) {
+    			TendermintValidator[] nextValidators = validatorsInStore.get();
+    			if (nextValidators.length == 0)
+    				LOGGER.info("refusing to remove all validators; please initialize the node with TendermintInitializedNode");
+    			else {
+    				removeCurrentValidatorsThatAreNotNextValidators(currentValidators, nextValidators, builder);
+    				addNextValidatorsThatAreNotCurrentValidators(currentValidators, nextValidators, builder);
+    				updateValidatorsThatChangedPower(currentValidators, nextValidators, builder);
+    				validatorsAtPreviousBlock = nextValidators;
     			}
-    		}
-    		catch (NoSuchElementException e) {
-    			throw new RuntimeException("could not determine the new validators set", e);
     		}
     	}
 
