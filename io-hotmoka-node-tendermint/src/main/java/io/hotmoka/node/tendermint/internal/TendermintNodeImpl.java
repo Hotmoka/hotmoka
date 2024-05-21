@@ -93,8 +93,8 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	 * 
 	 * @param config the configuration of the blockchain
 	 * @param consensus the consensus parameters of the node
-	 * @throws IOException 
-	 * @throws NodeException 
+	 * @throws NodeException if the operation cannot be completed correctly
+	 * @throws InterruptedException the the currently thread is interrupted before completing the construction
 	 */
 	public TendermintNodeImpl(TendermintNodeConfig config, Optional<ConsensusConfig<?,?>> consensus) throws NodeException, InterruptedException {
 		super(consensus, config);
@@ -106,10 +106,10 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 			if (consensus.isPresent())
 				initWorkingDirectoryOfTendermintProcess(config);
 			var tendermintConfigFile = new TendermintConfigFile(config);
-			this.abci = new Server(tendermintConfigFile.abciPort, new TendermintApplication(this));
+			this.poster = new TendermintPoster(config, tendermintConfigFile.tendermintPort);
+			this.abci = new Server(tendermintConfigFile.abciPort, new TendermintApplication(this, poster));
 			this.abci.start();
 			LOGGER.info("Tendermint ABCI started at port " + tendermintConfigFile.abciPort);
-			this.poster = new TendermintPoster(config, tendermintConfigFile.tendermintPort);
 			this.tendermint = new Tendermint(config);
 			LOGGER.info("Tendermint started at port " + tendermintConfigFile.tendermintPort);
 		}
@@ -191,10 +191,6 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	@Override
 	protected void postRequest(TransactionRequest<?> request) throws NodeException, TimeoutException, InterruptedException {
 		poster.postRequest(request);
-	}
-
-	protected TendermintPoster getPoster() { // TODO: can remove?
-		return poster;
 	}
 
 	@Override
@@ -364,7 +360,6 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 		 * Waits until the Tendermint process acknowledges a ping.
 		 * 
 		 * @param config the configuration of the node
-		 * @param poster the object that can be used to post to Tendermint
 		 * @throws IOException if it is not possible to connect to the Tendermint process
 		 * @throws TimeoutException if tried many times, but never got a reply
 		 * @throws InterruptedException if interrupted while pinging

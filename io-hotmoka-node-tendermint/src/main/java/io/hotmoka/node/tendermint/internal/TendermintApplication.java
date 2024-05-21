@@ -84,13 +84,16 @@ class TendermintApplication extends ABCI {
 
 	private final TendermintNodeImpl node;
 
+	private final TendermintPoster poster;
+
 	/**
      * Builds the Tendermint ABCI interface that executes Takamaka transactions.
      * 
      * @param node the node whose transactions are executed
      */
-    TendermintApplication(TendermintNodeImpl node) {
+    TendermintApplication(TendermintNodeImpl node, TendermintPoster poster) {
     	this.node = node;
+    	this.poster = poster;
     }
 
     private static String getAddressOfValidator(Validator validator) {
@@ -234,8 +237,8 @@ class TendermintApplication extends ABCI {
     	}
 
     	// the ABCI might start too early, before the Tendermint process is up
-        if (node.getPoster() != null && validatorsAtPreviousBlock == null)
-        	validatorsAtPreviousBlock = node.getPoster().getTendermintValidators().toArray(TendermintValidator[]::new);
+        if (validatorsAtPreviousBlock == null)
+        	validatorsAtPreviousBlock = poster.getTendermintValidators().toArray(TendermintValidator[]::new);
 
         return ResponseBeginBlock.newBuilder().build();
 	}

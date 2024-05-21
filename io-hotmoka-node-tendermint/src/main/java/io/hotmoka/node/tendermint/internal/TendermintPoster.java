@@ -92,85 +92,6 @@ public class TendermintPoster {
 		}
 	}
 
-	/**
-	 * Yields the Hotmoka request specified in the Tendermint result for the Hotmoka
-	 * transaction with the given hash.
-	 * 
-	 * @param hash the hash of the transaction to look for
-	 * @return the Hotmoka transaction request
-	 */
-	/*TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, StoreException {
-		try {
-			TendermintTxResponse response = gson.fromJson(tx(reference.getHash()), TendermintTxResponse.class);
-			if (response.error != null)
-				// the request to Tendermint failed
-				throw new UnknownReferenceException(reference);
-
-			String tx = response.result.tx;
-			if (tx == null)
-				throw new StoreException("No Hotmoka request in Tendermint response for transaction " + reference);
-
-			try (var context = NodeUnmarshallingContexts.of(new ByteArrayInputStream(Base64.fromBase64String(tx)))) {
-				return TransactionRequests.from(context);
-			}
-		}
-		catch (InterruptedException | TimeoutException e) {
-			throw new StoreException("Cannot get the Tendermint request returned for transaction " + reference, e);
-		}
-		catch (IOException | Base64ConversionException e) {
-			throw new StoreException("Cannot parse the Tendermint request returned for transaction " + reference, e);
-		}
-	}*/
-
-	/**
-	 * Yields the Hotmoka error in the Tendermint transaction with the given hash.
-	 * 
-	 * @param hash the hash of the transaction to look for
-	 * @return the error, if any. If the transaction didn't commit or committed successfully,
-	 *         the result is an empty optional
-	 */
-	/*String getErrorMessage(TransactionReference reference) throws UnknownReferenceException, StoreException {
-		try {
-			TendermintTxResponse response = gson.fromJson(tx(reference.getHash()), TendermintTxResponse.class);
-			if (response.error != null)
-				// the request to Tendermint failed
-				throw new UnknownReferenceException(reference);
-
-			TendermintTxResult tx_result = response.result.tx_result;
-			if (tx_result == null)
-				throw new StoreException("No result for Tendermint error for transaction " + reference);
-			else if (tx_result.data != null && !tx_result.data.isEmpty())
-				return new String(Base64.fromBase64String(tx_result.data));
-			else
-				// there is no Hotmoka error for this transaction
-				throw new UnknownReferenceException(reference);
-		}
-		catch (InterruptedException | TimeoutException e) {
-			throw new StoreException("Cannot get the Tendermint error returned for transaction " + reference, e);
-		}
-		catch (IOException | Base64ConversionException e) {
-			throw new StoreException("Cannot parse the Tendermint error returned for transaction " + reference, e);
-		}
-	}*/
-
-	/*public String tx_search(String query) throws Exception {
-		String jsonTendermintRequest = "{\"method\": \"tx_search\", \"params\": {\"query\": \"" +
-			//Base64.getEncoder().encodeToString(
-			query + "\", \"prove\": false, \"page\": \"1\", \"per_page\": \"30\", \"order_by\": \"asc\" }}";
-	
-		return postToTendermint(jsonTendermintRequest);
-	}*/
-	
-	/*public String abci_query(String path, String data) throws Exception {
-		String jsonTendermintRequest = "{\"method\": \"abci_query\", \"params\": {\"data\": \""
-				+ bytesToHex(data.getBytes())
-				//+ Base64.getEncoder().encodeToString(data.getBytes())
-				+ "\", \"prove\": true }}";
-	
-		System.out.println(jsonTendermintRequest);
-		return postToTendermint(jsonTendermintRequest);
-	}*/
-
 	String getTendermintChainId() {
 		TendermintGenesisResponse response;
 
@@ -322,41 +243,6 @@ public class TendermintPoster {
 		String jsonTendermintRequest = "{\"method\": \"validators\", \"params\": {\"page\": \"" + page + "\", \"per_page\": \"" + perPage + "\"}, \"id\": " + nextId.getAndIncrement() + "}";
 		return postToTendermint(jsonTendermintRequest);
 	}
-
-	/*public String tx_search(String query) throws Exception {
-		String jsonTendermintRequest = "{\"method\": \"tx_search\", \"params\": {\"query\": \"" +
-			//Base64.getEncoder().encodeToString(
-			query + "\", \"prove\": false, \"page\": \"1\", \"per_page\": \"30\", \"order_by\": \"asc\" }}";
-
-		return postToTendermint(jsonTendermintRequest);
-	}*/
-
-	/*public String abci_query(String path, String data) throws Exception {
-		String jsonTendermintRequest = "{\"method\": \"abci_query\", \"params\": {\"data\": \""
-				+ bytesToHex(data.getBytes())
-				//+ Base64.getEncoder().encodeToString(data.getBytes())
-				+ "\", \"prove\": true }}";
-
-		System.out.println(jsonTendermintRequest);
-		return postToTendermint(jsonTendermintRequest);
-	}*/
-
-	/**
-	 * Sends a {@code tx} request to the Tendermint process, to read the
-	 * committed data about the Tendermint transaction with the given hash.
-	 * 
-	 * @param hash the hash of the Tendermint transaction to look for
-	 * @return the response of Tendermint
-	 * @throws IOException if an I/O error occurred
-	 * @throws TimeoutException if writing the request failed after repeated trying for some time
-	 * @throws InterruptedException if the current thread was interrupted while writing the request
-	 */
-	/*private String tx(byte[] hash) throws IOException, TimeoutException, InterruptedException {
-		String jsonTendermintRequest = "{\"method\": \"tx\", \"params\": {\"hash\": \"" +
-			Base64.toBase64String(hash) + "\", \"prove\": false}, \"id\": " + nextId.getAndIncrement() + "}";
-	
-		return postToTendermint(jsonTendermintRequest);
-	}*/
 
 	/**
 	 * Sends a {@code genesis} request to the Tendermint process, to read the
