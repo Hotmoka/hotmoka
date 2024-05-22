@@ -497,8 +497,7 @@ public abstract class ExecutionEnvironment {
 
 		try {
 			return CheckSupplier.check(StoreException.class, UnknownReferenceException.class, () -> history.map(UncheckFunction.uncheck(transaction -> getLastUpdate(object, field, transaction)))
-					.filter(Optional::isPresent)
-					.map(Optional::get)
+					.flatMap(Optional::stream)
 					.findFirst())
 					.orElseThrow(() -> new FieldNotFoundException(field));
 		}

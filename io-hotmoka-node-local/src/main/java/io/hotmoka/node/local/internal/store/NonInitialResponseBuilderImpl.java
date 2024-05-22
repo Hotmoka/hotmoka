@@ -82,7 +82,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		requestMustHaveCorrectChainId();
 		signatureMustBeValid();
 		callerAndRequestMustAgreeOnNonce();
-		payerCanPayForAllPromisedGas();
+		callerCanPayForAllPromisedGas();
 	}
 
 	/**
@@ -292,7 +292,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * 
 	 * @throws TransactionRejectedException if the payer is not rich enough for that
 	 */
-	private void payerCanPayForAllPromisedGas() throws TransactionRejectedException, StoreException {
+	private void callerCanPayForAllPromisedGas() throws TransactionRejectedException, StoreException {
 		try {
 			BigInteger cost = costOf(request.getGasLimit());
 			BigInteger totalBalance = environment.getTotalBalance(request.getCaller());
