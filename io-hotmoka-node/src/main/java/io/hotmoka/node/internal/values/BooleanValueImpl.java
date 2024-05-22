@@ -21,6 +21,7 @@ import java.util.function.Function;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.values.BooleanValue;
 import io.hotmoka.node.api.values.StorageValue;
 
@@ -86,6 +87,11 @@ public final class BooleanValueImpl extends AbstractStorageValue implements Bool
 
 	@Override
 	public <E extends Exception> boolean asBoolean(Function<StorageValue, ? extends E> exception) {
+		return value;
+	}
+
+	@Override
+	public <E extends Exception> boolean asReturnedBoolean(NonVoidMethodSignature method, Function<String, ? extends E> exception) throws E {
 		return value;
 	}
 

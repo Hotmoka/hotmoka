@@ -21,6 +21,7 @@ import java.util.function.Function;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.values.LongValue;
 import io.hotmoka.node.api.values.StorageValue;
 
@@ -75,6 +76,11 @@ public final class LongValueImpl extends AbstractStorageValue implements LongVal
 
 	@Override
 	public <E extends Exception> long asLong(Function<StorageValue, ? extends E> exception) {
+		return value;
+	}
+
+	@Override
+	public <E extends Exception> long asReturnedLong(NonVoidMethodSignature method, Function<String, ? extends E> exception) throws E {
 		return value;
 	}
 

@@ -21,6 +21,7 @@ import java.util.function.Function;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.values.CharValue;
 import io.hotmoka.node.api.values.StorageValue;
 
@@ -75,6 +76,11 @@ public final class CharValueImpl extends AbstractStorageValue implements CharVal
 
 	@Override
 	public <E extends Exception> char asChar(Function<StorageValue, ? extends E> exception) {
+		return value;
+	}
+
+	@Override
+	public <E extends Exception> char asReturnedChar(NonVoidMethodSignature method, Function<String, ? extends E> exception) throws E {
 		return value;
 	}
 

@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.tendermint.internal;
 
 import java.security.NoSuchAlgorithmException;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -107,7 +108,7 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
 	}
 
     @Override
-    protected TendermintStore addDelta(StoreCache cache, Map<TransactionReference, TransactionRequest<?>> addedRequests,
+    protected TendermintStore addDelta(StoreCache cache, LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests,
     		Map<TransactionReference, TransactionResponse> addedResponses,
     		Map<StorageReference, TransactionReference[]> addedHistories, Optional<StorageReference> addedManifest)
     		throws StoreException {

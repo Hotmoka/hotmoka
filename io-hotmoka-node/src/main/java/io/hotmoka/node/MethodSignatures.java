@@ -385,7 +385,7 @@ public abstract class MethodSignatures {
 	/**
 	 * The method {@code getFinalSupply} of the validators object.
 	 */
-	public final static MethodSignature GET_FINAL_SUPPLY = AbstractMethodSignature.GET_FINAL_SUPPLY;
+	public final static NonVoidMethodSignature GET_FINAL_SUPPLY = AbstractMethodSignature.GET_FINAL_SUPPLY;
 
 	/**
 	 * The method {@code add} of the account ledger.
@@ -486,4 +486,14 @@ public abstract class MethodSignatures {
 	 * The method {@code get} of a {@code StorageMapView} contract.
 	 */	
 	public final static NonVoidMethodSignature STORAGE_MAP_VIEW_GET = AbstractMethodSignature.STORAGE_MAP_VIEW_GET;
+
+	/**
+	 * The method {@code select} of a {@code StorageSetView} contract.
+	 */
+	public final static NonVoidMethodSignature STORAGE_SET_VIEW_SELECT = AbstractMethodSignature.STORAGE_SET_VIEW_SELECT;
+
+	/**
+	 * The method {@code szie} of a {@code StorageSetView} contract.
+	 */
+	public final static NonVoidMethodSignature STORAGE_SET_VIEW_SIZE = AbstractMethodSignature.STORAGE_SET_VIEW_SIZE;
 }

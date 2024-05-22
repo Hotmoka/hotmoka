@@ -27,6 +27,7 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.TransactionReferences;
+import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
@@ -136,6 +137,11 @@ public final class StorageReferenceImpl extends AbstractStorageValue implements 
 
 	@Override
 	public <E extends Exception> StorageReference asReference(Function<StorageValue, ? extends E> exception) {
+		return this;
+	}
+
+	@Override
+	public <E extends Exception> StorageReference asReturnedReference(NonVoidMethodSignature method, Function<String, ? extends E> exception) throws E {
 		return this;
 	}
 

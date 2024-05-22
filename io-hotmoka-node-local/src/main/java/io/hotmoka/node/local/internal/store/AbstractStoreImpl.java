@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.local.internal.store;
 
 import java.math.BigInteger;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -108,17 +109,18 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 	@Override
 	public final void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException, StoreException {
 		var reference = TransactionReferences.of(hasher.hash(request));
+		String referenceAsString = reference.toString();
 
 		try {
-			LOGGER.info(reference + ": checking start");
+			LOGGER.info(referenceAsString + ": checking start");
 			responseBuilderFor(reference, request);
-			LOGGER.info(reference + ": checking success");
+			LOGGER.info(referenceAsString + ": checking success");
 		}
 		catch (TransactionRejectedException e) {
 			// we do not write the error message in the store, since a failed check request means that nobody
 			// is paying for it and therefore we do not want to expand the store; we just take note of the failure,
 			// so that getResponse knows which message to use for the rejected transaction exception
-			LOGGER.warning(reference + ": checking failed: " + e.getMessage());
+			LOGGER.warning(referenceAsString + ": checking failed: " + e.getMessage());
 			throw e;
 		}
 	}
@@ -146,7 +148,8 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 	 * Yields a store derived from this by setting the given cache and adding the given extra information.
 	 * 
 	 * @param cache the cache for the resulting store
-	 * @param addedRequests the requests to add
+	 * @param addedRequests the requests to add; by iterating on them, one gets the requests
+	 *                      in order of addition to the transformation
 	 * @param addedResponses the responses to add
 	 * @param addedHistories the histories to add
 	 * @param addedManifest the manifest to add, if any
@@ -154,7 +157,7 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
 	protected abstract S addDelta(StoreCache cache,
-			Map<TransactionReference, TransactionRequest<?>> addedRequests,
+			LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests,
 			Map<TransactionReference, TransactionResponse> addedResponses,
 			Map<StorageReference, TransactionReference[]> addedHistories,
 			Optional<StorageReference> addedManifest) throws StoreException;

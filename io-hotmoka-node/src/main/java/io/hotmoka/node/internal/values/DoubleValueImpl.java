@@ -21,6 +21,7 @@ import java.util.function.Function;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.values.DoubleValue;
 import io.hotmoka.node.api.values.StorageValue;
 
@@ -75,6 +76,11 @@ public final class DoubleValueImpl extends AbstractStorageValue implements Doubl
 
 	@Override
 	public <E extends Exception> double asDouble(Function<StorageValue, ? extends E> exception) {
+		return value;
+	}
+
+	@Override
+	public <E extends Exception> double asReturnedDouble(NonVoidMethodSignature method, Function<String, ? extends E> exception) throws E {
 		return value;
 	}
 

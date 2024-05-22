@@ -22,6 +22,7 @@ import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -84,7 +85,7 @@ public abstract class AbstractStoreTransformationImpl<S extends AbstractStoreImp
 	/**
 	 * The requests added during this transformation. They are kept in order of addition.
 	 */
-	private final Map<TransactionReference, TransactionRequest<?>> deltaRequests = new HashMap<>();
+	private final LinkedHashMap<TransactionReference, TransactionRequest<?>> deltaRequests = new LinkedHashMap<>();
 
 	/**
 	 * The responses added during this transformation.
@@ -232,9 +233,10 @@ public abstract class AbstractStoreTransformationImpl<S extends AbstractStoreImp
 	@Override
 	public final TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException, StoreException {
 		var reference = TransactionReferences.of(hasher.hash(request));
+		String referenceAsString = reference.toString();
 	
 		try {
-			LOGGER.info(reference + ": delivering start");
+			LOGGER.info(referenceAsString + ": delivering start");
 	
 			ResponseBuilder<?,?> responseBuilder = responseBuilderFor(reference, request);
 			TransactionResponse response = responseBuilder.getResponse();
@@ -244,11 +246,11 @@ public abstract class AbstractStoreTransformationImpl<S extends AbstractStoreImp
 			takeNoteForNextReward(request, response);
 			invalidateCachesIfNeeded(response, responseBuilder.getClassLoader());
 	
-			LOGGER.info(reference + ": delivering success");
+			LOGGER.info(referenceAsString + ": delivering success");
 			return response;
 		}
 		catch (TransactionRejectedException e) {
-			LOGGER.warning(reference + ": delivering failed: " + e.getMessage());
+			LOGGER.warning(referenceAsString + ": delivering failed: " + e.getMessage());
 			throw e;
 		}
 	}

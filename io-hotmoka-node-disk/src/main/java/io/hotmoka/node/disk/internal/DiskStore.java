@@ -24,6 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -127,7 +128,7 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
      * delta information to the result.
      */
     private DiskStore(DiskStore toClone, StoreCache cache,
-    		Map<TransactionReference, TransactionRequest<?>> addedRequests,
+    		LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests,
     		Map<TransactionReference, TransactionResponse> addedResponses,
     		Map<StorageReference, TransactionReference[]> addedHistories,
     		Optional<StorageReference> addedManifest) throws StoreException {
@@ -160,12 +161,13 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
     	this.blockHeight = toClone.blockHeight + 1;
 
 		int progressive = 0;
-		for (var entry: addedRequests.entrySet())
-			dumpRequest(progressive++, entry.getKey(), entry.getValue());
-
-		progressive = 0;
-		for (var entry: addedResponses.entrySet())
-			dumpResponse(progressive++, entry.getKey(), entry.getValue());
+		// by iterating on the requests, we get them in order of addition to the transformation,
+		// so that they are reported in the block files with their correct progressive inside the block
+		for (var entry: addedRequests.entrySet()) {
+			TransactionReference reference = entry.getKey();
+			dumpRequest(progressive, reference, entry.getValue());
+			dumpResponse(progressive++, reference, addedResponses.get(reference));
+		}
     }
 
     @Override
@@ -212,7 +214,7 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
 	}
 
 	@Override
-	protected DiskStore addDelta(StoreCache cache, Map<TransactionReference, TransactionRequest<?>> addedRequests,
+	protected DiskStore addDelta(StoreCache cache, LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests,
 			Map<TransactionReference, TransactionResponse> addedResponses,
 			Map<StorageReference, TransactionReference[]> addedHistories, Optional<StorageReference> addedManifest) throws StoreException {
 

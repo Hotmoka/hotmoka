@@ -26,6 +26,7 @@ import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
 import io.hotmoka.node.api.values.StorageReference;
@@ -125,8 +126,18 @@ public abstract class AbstractStorageValue extends AbstractMarshallable implemen
 	}
 
 	@Override
+	public <E extends Exception> BigInteger asReturnedBigInteger(NonVoidMethodSignature method, Function<String, ? extends E> exception) throws E {
+		throw exception.apply(method + " should return a BigInteger, not a " + getClass().getName());  // subclasses may redefine
+	}
+
+	@Override
 	public <E extends Exception> boolean asBoolean(Function<StorageValue, ? extends E> exception) throws E {
 		throw exception.apply(this);  // subclasses may redefine
+	}
+
+	@Override
+	public <E extends Exception> boolean asReturnedBoolean(NonVoidMethodSignature method, Function<String, ? extends E> exception) throws E {
+		throw exception.apply(method + " should return a boolean, not a " + getClass().getName());  // subclasses may redefine
 	}
 
 	@Override
@@ -135,8 +146,18 @@ public abstract class AbstractStorageValue extends AbstractMarshallable implemen
 	}
 
 	@Override
+	public <E extends Exception> byte asReturnedByte(NonVoidMethodSignature method, Function<String, ? extends E> exception) throws E {
+		throw exception.apply(method + " should return a byte, not a " + getClass().getName());  // subclasses may redefine
+	}
+
+	@Override
 	public <E extends Exception> char asChar(Function<StorageValue, ? extends E> exception) throws E {
 		throw exception.apply(this);  // subclasses may redefine
+	}
+
+	@Override
+	public <E extends Exception> char asReturnedChar(NonVoidMethodSignature method, Function<String, ? extends E> exception) throws E {
+		throw exception.apply(method + " should return a char, not a " + getClass().getName());  // subclasses may redefine
 	}
 
 	@Override
@@ -145,8 +166,18 @@ public abstract class AbstractStorageValue extends AbstractMarshallable implemen
 	}
 
 	@Override
+	public <E extends Exception> double asReturnedDouble(NonVoidMethodSignature method, Function<String, ? extends E> exception) throws E {
+		throw exception.apply(method + " should return a double, not a " + getClass().getName());  // subclasses may redefine
+	}
+
+	@Override
 	public <E extends Exception> float asFloat(Function<StorageValue, ? extends E> exception) throws E {
 		throw exception.apply(this);  // subclasses may redefine
+	}
+
+	@Override
+	public <E extends Exception> float asReturnedFloat(NonVoidMethodSignature method, Function<String, ? extends E> exception) throws E {
+		throw exception.apply(method + " should return a float, not a " + getClass().getName());  // subclasses may redefine
 	}
 
 	@Override
@@ -155,8 +186,18 @@ public abstract class AbstractStorageValue extends AbstractMarshallable implemen
 	}
 
 	@Override
+	public <E extends Exception> int asReturnedInt(NonVoidMethodSignature method, Function<String, ? extends E> exception) throws E {
+		throw exception.apply(method + " should return an int, not a " + getClass().getName());  // subclasses may redefine
+	}
+
+	@Override
 	public <E extends Exception> long asLong(Function<StorageValue, ? extends E> exception) throws E {
 		throw exception.apply(this);  // subclasses may redefine
+	}
+
+	@Override
+	public <E extends Exception> long asReturnedLong(NonVoidMethodSignature method, Function<String, ? extends E> exception) throws E {
+		throw exception.apply(method + " should return a long, not a " + getClass().getName());  // subclasses may redefine
 	}
 
 	@Override
@@ -165,13 +206,28 @@ public abstract class AbstractStorageValue extends AbstractMarshallable implemen
 	}
 
 	@Override
+	public <E extends Exception> short asReturnedShort(NonVoidMethodSignature method, Function<String, ? extends E> exception) throws E {
+		throw exception.apply(method + " should return a short, not a " + getClass().getName());  // subclasses may redefine
+	}
+
+	@Override
 	public <E extends Exception> StorageReference asReference(Function<StorageValue, ? extends E> exception) throws E {
 		throw exception.apply(this);  // subclasses may redefine
 	}
 
 	@Override
+	public <E extends Exception> StorageReference asReturnedReference(NonVoidMethodSignature method, Function<String, ? extends E> exception) throws E {
+		throw exception.apply(method + " should return a reference, not a " + getClass().getName());  // subclasses may redefine
+	}
+
+	@Override
 	public <E extends Exception> String asString(Function<StorageValue, ? extends E> exception) throws E {
 		throw exception.apply(this);  // subclasses may redefine
+	}
+
+	@Override
+	public <E extends Exception> String asReturnedString(NonVoidMethodSignature method, Function<String, ? extends E> exception) throws E {
+		throw exception.apply(method + " should return a String, not a " + getClass().getName());  // subclasses may redefine
 	}
 
 	@Override

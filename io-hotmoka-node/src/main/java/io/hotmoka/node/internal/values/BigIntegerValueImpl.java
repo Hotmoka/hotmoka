@@ -23,6 +23,7 @@ import java.util.function.Function;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageValue;
 
@@ -77,6 +78,11 @@ public final class BigIntegerValueImpl extends AbstractStorageValue implements B
 
 	@Override
 	public <E extends Exception> BigInteger asBigInteger(Function<StorageValue, ? extends E> exception) {
+		return value;
+	}
+
+	@Override
+	public <E extends Exception> BigInteger asReturnedBigInteger(NonVoidMethodSignature method, Function<String, ? extends E> exception) throws E {
 		return value;
 	}
 

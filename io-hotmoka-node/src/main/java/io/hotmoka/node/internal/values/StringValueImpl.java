@@ -22,6 +22,7 @@ import java.util.function.Function;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.api.values.StringValue;
 
@@ -77,6 +78,11 @@ public final class StringValueImpl extends AbstractStorageValue implements Strin
 
 	@Override
 	public <E extends Exception> String asString(Function<StorageValue, ? extends E> exception) {
+		return value;
+	}
+
+	@Override
+	public <E extends Exception> String asReturnedString(NonVoidMethodSignature method, Function<String, ? extends E> exception) throws E {
 		return value;
 	}
 

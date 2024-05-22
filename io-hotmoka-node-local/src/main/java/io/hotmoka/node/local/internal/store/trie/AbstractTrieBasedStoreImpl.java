@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.local.internal.store.trie;
 
 import java.security.NoSuchAlgorithmException;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -217,7 +218,7 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
     }
 
     @Override
-	protected S addDelta(StoreCache cache, Map<TransactionReference, TransactionRequest<?>> addedRequests,
+	protected S addDelta(StoreCache cache, LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests,
 			Map<TransactionReference, TransactionResponse> addedResponses,
 			Map<StorageReference, TransactionReference[]> addedHistories, Optional<StorageReference> addedManifest) throws StoreException {
 	

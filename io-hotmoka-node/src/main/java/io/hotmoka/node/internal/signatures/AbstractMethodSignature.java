@@ -409,4 +409,14 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 	 * The method {@code get} of a {@code StorageMapView} contract.
 	 */	
 	public final static NonVoidMethodSignature STORAGE_MAP_VIEW_GET = MethodSignatures.ofNonVoid(StorageTypes.STORAGE_MAP_VIEW, "get", StorageTypes.OBJECT, StorageTypes.OBJECT);
+
+	/**
+	 * The method {@code select} of a {@code StorageSetView} contract.
+	 */
+	public final static NonVoidMethodSignature STORAGE_SET_VIEW_SELECT = MethodSignatures.ofNonVoid(StorageTypes.STORAGE_SET_VIEW, "select", StorageTypes.OBJECT, StorageTypes.INT);
+
+	/**
+	 * The method {@code size} of a {@code StorageSetView} contract.
+	 */
+	public final static NonVoidMethodSignature STORAGE_SET_VIEW_SIZE = MethodSignatures.ofNonVoid(StorageTypes.STORAGE_SET_VIEW, "size", StorageTypes.INT);
 }
