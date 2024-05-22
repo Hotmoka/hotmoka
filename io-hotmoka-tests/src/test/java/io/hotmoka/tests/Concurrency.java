@@ -16,8 +16,8 @@ limitations under the License.
 
 package io.hotmoka.tests;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static java.math.BigInteger.ONE;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
@@ -43,6 +43,7 @@ import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * A test for generating transactions in concurrency and check that everything
@@ -94,26 +95,26 @@ class Concurrency extends HotmokaTest {
 			@Override
 			public void run() {
 				try {
-					Random random = new Random();
+					var random = new Random();
+					StorageReference ourAccount = account(num);
 
 					while (true) {
 						// we generate the number of another random distinct worker
 						int other = random.ints(0, NUMBER_OF_THREADS).filter(i -> i != num).findFirst().getAsInt();
+						StorageReference otherAccount = account(other);
 
 						// we ask for the balance of the account bound to the this worker
-						BigInteger ourBalance = runInstanceNonVoidMethodCallTransaction
-							(account(num), _50_000, takamakaCode(), MethodSignatures.BALANCE, account(num))
-							.asBigInteger(value -> new NodeException(MethodSignatures.BALANCE + " should return a BigInteger, not a " + value.getClass().getName()));
+						BigInteger ourBalance = runInstanceNonVoidMethodCallTransaction(ourAccount, _50_000, takamakaCode(), MethodSignatures.BALANCE, ourAccount)
+							.asReturnedBigInteger(MethodSignatures.BALANCE, NodeException::new);
 
 						// we ask for the balance of the account bound to the other worker
-						BigInteger otherBalance = runInstanceNonVoidMethodCallTransaction
-							(account(num), _50_000, takamakaCode(), MethodSignatures.BALANCE, account(other))
-							.asBigInteger(value -> new NodeException(MethodSignatures.BALANCE + " should return a BigInteger, not a " + value.getClass().getName()));
+						BigInteger otherBalance = runInstanceNonVoidMethodCallTransaction(ourAccount, _50_000, takamakaCode(), MethodSignatures.BALANCE, otherAccount)
+							.asReturnedBigInteger(MethodSignatures.BALANCE, NodeException::new);
 
 						// if we are poorer than other, we send him only 5,000 units of coin; otherwise, we send him 10,000 units
 						int sent = ourBalance.subtract(otherBalance).signum() < 0 ? 5_000 : 10_000;
-						addInstanceVoidMethodCallTransaction(privateKey(num), account(num), _50_000, ONE, takamakaCode(),
-							MethodSignatures.RECEIVE_INT, account(other), StorageValues.intOf(sent));
+						addInstanceVoidMethodCallTransaction(privateKey(num), ourAccount, _50_000, ONE, takamakaCode(),
+							MethodSignatures.RECEIVE_INT, otherAccount, StorageValues.intOf(sent));
 					}
 				}
 				catch (TransactionRejectedException e) {

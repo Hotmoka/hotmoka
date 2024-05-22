@@ -58,9 +58,19 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
 	private final Path dir;
 
 	/**
-	 * The previous store, from which this is derived by difference.
+	 * The previous store for looking up the requests, from which this is derived by difference.
 	 */
-	private final Optional<DiskStore> previous;
+	private final Optional<DiskStore> previousForRequests;
+
+	/**
+	 * The previous store for looking up the responses, from which this is derived by difference.
+	 */
+	private final Optional<DiskStore> previousForResponses;
+
+	/**
+	 * The previous store for looking up the histories, from which this is derived by difference.
+	 */
+	private final Optional<DiskStore> previousForHistories;
 
 	/**
 	 * The difference of requests added in this store.
@@ -99,7 +109,9 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
     	super(executors, consensus, config, hasher);
 
     	this.dir = config.getDir();
-    	this.previous = Optional.empty();
+    	this.previousForRequests = Optional.empty();
+    	this.previousForResponses = Optional.empty();
+    	this.previousForHistories = Optional.empty();
     	this.deltaRequests = new ConcurrentHashMap<>();
     	this.deltaResponses = new ConcurrentHashMap<>();
     	this.deltaHistories = new ConcurrentHashMap<>();
@@ -114,7 +126,9 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
     	super(toClone, cache);
 
     	this.dir = toClone.dir;
-    	this.previous = toClone.previous;
+    	this.previousForRequests = toClone.previousForRequests;
+    	this.previousForResponses = toClone.previousForResponses;
+    	this.previousForHistories = toClone.previousForHistories;
     	// no need to clone these sets, since we are not modifying them
     	this.deltaRequests = toClone.deltaRequests;
     	this.deltaResponses = toClone.deltaResponses;
@@ -137,23 +151,42 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
 
     	this.dir = toClone.dir;
 
-    	// we apply two strategies: either the delta set of the previous store is small, and we clone it
-    	if (toClone.deltaHistories.size() + addedHistories.size() < 2000) {
-    		this.previous = toClone.previous;
+    	boolean historiesAreFew = toClone.deltaHistories.size() + addedHistories.size() < 5000;
+    	boolean requestsAreFew = toClone.deltaRequests.size() + addedRequests.size() < 5000;
+    	boolean responsesAreFew = toClone.deltaResponses.size() + addedResponses.size() < 5000;
+
+    	// we apply two strategies: either the delta set of the previous store is small, and we clone it;
+    	// or we point to the cloned store as previous and only report the delta information in this store;
+    	// this avoids cloning big hashsets, but creates a long list of stores that make the
+    	// search for requests and responses longer
+
+    	if (requestsAreFew) {
+    		this.previousForRequests = toClone.previousForRequests;
     		this.deltaRequests = new HashMap<>(toClone.deltaRequests);
-    		this.deltaResponses = new HashMap<>(toClone.deltaResponses);
-    		this.deltaHistories = new HashMap<>(toClone.deltaHistories);
     		deltaRequests.putAll(addedRequests);
+    	}
+    	else {
+    		this.previousForRequests = Optional.of(toClone);
+    		this.deltaRequests = new HashMap<>(addedRequests);
+    	}
+
+    	if (responsesAreFew) {
+    		this.previousForResponses = toClone.previousForResponses;
+    		this.deltaResponses = new HashMap<>(toClone.deltaResponses);
     		deltaResponses.putAll(addedResponses);
+    	}
+    	else {
+    		this.previousForResponses = Optional.of(toClone);
+    		this.deltaResponses = new HashMap<>(addedResponses);
+    	}
+
+    	if (historiesAreFew) {
+    		this.previousForHistories = toClone.previousForHistories;
+    		this.deltaHistories = new HashMap<>(toClone.deltaHistories);
     		deltaHistories.putAll(addedHistories);
     	}
     	else {
-    		// or we point to the cloned store as previous and only report the delta information in this store;
-    		// this avoids cloning big hashsets, but creates a long list of stores that make the
-    		// search for requests and responses longer
-    		this.previous = Optional.of(toClone);
-    		this.deltaRequests = new HashMap<>(addedRequests);
-    		this.deltaResponses = new HashMap<>(addedResponses);
+    		this.previousForHistories = Optional.of(toClone);
     		this.deltaHistories = new HashMap<>(addedHistories);
     	}
 
@@ -175,10 +208,10 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
     	var response = deltaResponses.get(reference);
     	if (response != null)
     		return response;
-    	else if (previous.isEmpty())
+    	else if (previousForResponses.isEmpty())
     		throw new UnknownReferenceException(reference);
     	else
-    		return previous.get().getResponse(reference);
+    		return previousForResponses.get().getResponse(reference);
     }
 
 	@Override
@@ -186,10 +219,10 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
 		TransactionReference[] history = deltaHistories.get(object);
 		if (history != null)
 			return Stream.of(history);
-		else if (previous.isEmpty())
+		else if (previousForHistories.isEmpty())
 			throw new UnknownReferenceException(object);
 		else
-			return previous.get().getHistory(object);
+			return previousForHistories.get().getHistory(object);
 	}
 
 	@Override
@@ -202,10 +235,10 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
 		var request = deltaRequests.get(reference);
     	if (request != null)
     		return request;
-    	else if (previous.isEmpty())
+    	else if (previousForRequests.isEmpty())
     		throw new UnknownReferenceException(reference);
     	else
-    		return previous.get().getRequest(reference);
+    		return previousForRequests.get().getRequest(reference);
 	}
 
 	@Override
