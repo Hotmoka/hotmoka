@@ -420,9 +420,10 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	public final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException {
 		try (var scope = mkScope()) {
 			var reference = TransactionReferences.of(hasher.hash(request));
-			LOGGER.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + trim(request.getStaticTarget().getMethodName()) + ')');
+			String referenceAsString = reference.toString();
+			LOGGER.info(referenceAsString + ": running start (" + request.getClass().getSimpleName() + " -> " + trim(request.getStaticTarget().getMethodName()) + ')');
 			Optional<StorageValue> result = store.beginViewTransaction().runInstanceMethodCallTransaction(request, reference);
-			LOGGER.info(reference + ": running success");
+			LOGGER.info(referenceAsString + ": running success");
 			return result;
 		}
 		catch (StoreException e) {
@@ -434,9 +435,10 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	public final Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException {
 		try (var scope = mkScope()) {
 			var reference = TransactionReferences.of(hasher.hash(request));
-			LOGGER.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + trim(request.getStaticTarget().getMethodName()) + ')');
+			String referenceAsString = reference.toString();
+			LOGGER.info(referenceAsString + ": running start (" + request.getClass().getSimpleName() + " -> " + trim(request.getStaticTarget().getMethodName()) + ')');
 			Optional<StorageValue> result = store.beginViewTransaction().runStaticMethodCallTransaction(request, reference);
-			LOGGER.info(reference + ": running success");
+			LOGGER.info(referenceAsString + ": running success");
 			return result;
 		}
 		catch (StoreException e) {

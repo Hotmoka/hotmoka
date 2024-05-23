@@ -312,7 +312,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	@SuppressWarnings("unused")
 	private static Node mkRemoteNode(Node exposed) throws IOException, DeploymentException {
-		NodeServices.of(exposed, 8001);
+		NodeServices.of(exposed, 8001); // it will close when exposed will be closed
 		return RemoteNodes.of(URI.create("ws://localhost:8001"), 100_000);
 	}
 
