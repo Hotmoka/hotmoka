@@ -160,12 +160,6 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	protected final static String chainId;
 
 	/**
-	 * True if and only if the tests are run with the Tendermint node. This node is slower,
-	 * so that some tests will be reduced in complexity accordingly.
-	 */
-	private static boolean isUsingTendermint;
-
-	/**
 	 * The private key of the gamete.
 	 */
 	private static final PrivateKey privateKeyOfGamete;
@@ -192,9 +186,9 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	        privateKeyOfGamete = keys.getPrivate();
 
 	        Node wrapped;
-	        node = wrapped = mkDiskBlockchain();
+	        //node = wrapped = mkDiskBlockchain();
 	        //node = wrapped = mkTendermintBlockchain();
-	        //node = mkRemoteNode(wrapped = mkDiskBlockchain());
+	        node = mkRemoteNode(wrapped = mkDiskBlockchain());
 	        //node = mkRemoteNode(wrapped = mkTendermintBlockchain());
 	        //node = wrapped = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
 	        //node = wrapped = mkRemoteNode("localhost:8080");
@@ -206,17 +200,17 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	        var gamete = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 	    		(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
         		.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"))
-        		.asReference(value -> new NodeException(MethodSignatures.GET_GAMETE + " should return a reference, not a " + value.getClass().getName()));
+        		.asReturnedReference(MethodSignatures.GET_GAMETE, NodeException::new);
 
 			chainId = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_CHAIN_ID + " should not return void"))
-				.asString(value -> new NodeException(MethodSignatures.GET_CHAIN_ID + " should return a String, not a " + value.getClass().getName()));
+				.asReturnedString(MethodSignatures.GET_CHAIN_ID, NodeException::new);
 
 			BigInteger nonce = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(gamete, _100_000, takamakaCode, MethodSignatures.NONCE, gamete))
 				.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
-				.asBigInteger(value -> new NodeException(MethodSignatures.NONCE + " should return a BigInteger, not a " + value.getClass().getName()));
+				.asReturnedBigInteger(MethodSignatures.NONCE, NodeException::new);
 
 			BigInteger aLot = Coin.level6(1000000000);
 
@@ -260,8 +254,6 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		try {
 			var consensus = fillConsensusConfig(ValidatorsConsensusConfigBuilders.defaults()).build();
 			HotmokaTest.consensus = consensus;
-
-			isUsingTendermint = true;
 
 			var config = TendermintNodeConfigBuilders.defaults()
 					.setDir(Files.createTempDirectory("hotmoka-chain"))
@@ -394,10 +386,6 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	protected static SignatureAlgorithm signature() {
 		return signature;
-	}
-
-	protected static boolean isUsingTendermint() {
-		return isUsingTendermint;
 	}
 
 	protected final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, NodeException, TimeoutException, InterruptedException {
@@ -535,12 +523,6 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			() -> "wrong message: it does not contain " + subMessage);
 	}
 
-	protected static void throwsTransactionRejectedWithCause(Class<? extends Throwable> expected, TestBody what) {
-		var e = assertThrows(TransactionRejectedException.class, what::run);
-		assertTrue(e.getMessage().startsWith(expected.getName()),
-			() -> "wrong cause: expected " + expected.getName() + " but got " + e.getMessage());
-	}
-
 	protected static void throwsTransactionExceptionWithCause(String expected, TestBody what) {
 		var e = assertThrows(TransactionException.class, what::run);
 		assertTrue(e.getMessage().startsWith(expected),
@@ -566,7 +548,6 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	 * 
 	 * @param account the account
 	 * @return the nonce
-	 * @throws TransactionRejectedException if the nonce cannot be found
 	 */
 	protected final BigInteger getNonceOf(StorageReference account) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
 		try {
@@ -578,7 +559,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 				nonce = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(account, _100_000, node.getClassTag(account).getJar(), MethodSignatures.NONCE, account))
 					.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
-					.asBigInteger(value -> new NodeException(MethodSignatures.NONCE + " should return a BigInteger, not a " + value.getClass().getName()));
+					.asReturnedBigInteger(MethodSignatures.NONCE, NodeException::new);
 
 			nonces.put(account, nonce);
 			return nonce;

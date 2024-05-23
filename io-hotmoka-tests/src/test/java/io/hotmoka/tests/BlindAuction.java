@@ -55,7 +55,6 @@ import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.NullValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
-import io.hotmoka.node.remote.api.RemoteNode;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -109,7 +108,7 @@ class BlindAuction extends HotmokaTest {
 	static void beforeAll() throws Exception {
 		setJar("auction.jar");
 
-		if (isUsingTendermint() || node instanceof RemoteNode) {
+		if (node.getNodeInfo().getType().contains("TendermintNode")) {
 			// the Tendermint blockchain is slower and requires more time for all transactions in this test
 			BIDDING_TIME = 25_000;
 			REVEAL_TIME = 40_000;

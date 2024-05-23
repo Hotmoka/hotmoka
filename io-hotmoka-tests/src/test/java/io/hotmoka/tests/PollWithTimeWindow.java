@@ -49,7 +49,6 @@ import io.hotmoka.node.api.signatures.VoidMethodSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.BooleanValue;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.remote.api.RemoteNode;
 
 class PollWithTimeWindow extends HotmokaTest {
 	private static final ClassType SIMPLE_SHARED_ENTITY = StorageTypes.classNamed("io.takamaka.code.dao.SimpleSharedEntity");
@@ -138,8 +137,9 @@ class PollWithTimeWindow extends HotmokaTest {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
 		// Tendermint is slower
-		long start = isUsingTendermint() || node instanceof RemoteNode ? 10_000L : 2000L;
-		long duration = isUsingTendermint() || node instanceof RemoteNode ? 10_000L : 5000L;
+		boolean isUsingTendermint = node.getNodeInfo().getType().contains("TendermintNode");
+		long start = isUsingTendermint ? 10_000L : 2000L;
+		long duration = isUsingTendermint ? 10_000L : 5000L;
 		long expired = start + duration + 100L;
 		long now = System.currentTimeMillis();
 		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, duration);
@@ -173,8 +173,9 @@ class PollWithTimeWindow extends HotmokaTest {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
 		// the Tendermint blockchain is slower
-		long start = isUsingTendermint() || node instanceof RemoteNode ? 10_000L : 2000L;
-		long duration = isUsingTendermint() || node instanceof RemoteNode ? 10_000L : 3000L;
+		boolean isUsingTendermint = node.getNodeInfo().getType().contains("TendermintNode");
+		long start = isUsingTendermint ? 10_000L : 2000L;
+		long duration = isUsingTendermint ? 10_000L : 3000L;
 		long now = System.currentTimeMillis();
 		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, duration);
 
@@ -229,7 +230,8 @@ class PollWithTimeWindow extends HotmokaTest {
 		StorageReference action = addAction();
 		long start = 0L;
 		// the Tendermint node is slower
-		long duration = isUsingTendermint() || node instanceof RemoteNode ? 10_000L : 2000L;
+		boolean isUsingTendermint = node.getNodeInfo().getType().contains("TendermintNode");
+		long duration = isUsingTendermint ? 10_000L : 2000L;
 		long expired = start + duration;
 		long now = System.currentTimeMillis();
 		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, duration);

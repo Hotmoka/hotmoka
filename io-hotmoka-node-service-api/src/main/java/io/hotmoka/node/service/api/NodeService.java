@@ -151,7 +151,9 @@ public interface NodeService extends AutoCloseable {
 
 	/**
 	 * Stops the service and releases its resources.
+	 * 
+	 * @throws InterruptedException if the current thread gets interrupted during the closing operation
 	 */
 	@Override
-	void close();
+	void close() throws InterruptedException;
 }
