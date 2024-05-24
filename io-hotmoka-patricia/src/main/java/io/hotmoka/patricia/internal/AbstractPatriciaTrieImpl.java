@@ -294,7 +294,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		var node = getNodeFromHash(hash, 0);
 		int previous = node.count;
 		node = node.withIncrementedReferenceCount();
-		//System.out.println(node.getClass().getSimpleName() + ": " + previous + " -> " + node.count);
+		System.out.println(node.getClass().getSimpleName() + ": " + previous + " -> " + node.count);
 
 		try {
 			store.put(hash, node.toByteArray()); // TODO: can we avoid to unmarshal and marshal again?

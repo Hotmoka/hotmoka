@@ -25,7 +25,6 @@ import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
@@ -198,10 +197,11 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 
 		super.moveToFinalStoreOf(transaction);
 
+		TendermintStore newStore = getStore();
+
 		try {
-			getStore().moveRootBranchToThis();
-			if (!Arrays.equals(oldStore.getHash(), getStore().getHash()))
-				{} //System.out.println("I could free");
+			newStore.moveRootBranchToThis();
+			//oldStore.free(newStore); // TODO
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);

@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.local.internal.store.trie;
 
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -340,13 +341,20 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 	 * 
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	public void free() throws StoreException {
+	public void free(S newStore) throws StoreException {
 		try {
 			CheckRunnable.check(StoreException.class, TrieException.class, () -> env.executeInTransaction(UncheckConsumer.uncheck(txn -> {
-				mkTrieOfRequests(txn).free();
-				mkTrieOfResponses(txn).free();
-				mkTrieOfHistories(txn).free();
-				mkTrieOfInfo(txn).free();
+				if (rootOfRequests.isPresent() && !Arrays.equals(rootOfRequests.get(), newStore.getRootOfRequests().get()))
+					mkTrieOfRequests(txn).free();
+
+				if (rootOfResponses.isPresent() && !Arrays.equals(rootOfResponses.get(), newStore.getRootOfResponses().get()))
+					mkTrieOfResponses(txn).free();
+
+				if (rootOfHistories.isPresent() && !Arrays.equals(rootOfHistories.get(), newStore.getRootOfHistories().get()))
+					mkTrieOfHistories(txn).free();
+
+				if (rootOfInfo.isPresent() && !Arrays.equals(rootOfInfo.get(), newStore.getRootOfInfo().get()))
+					mkTrieOfInfo(txn).free();
 			})));
 		}
 		catch (ExodusException | TrieException e) {
@@ -379,6 +387,22 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 		catch (ExodusException e) {
 			throw new StoreException(e);
 		}
+	}
+
+	protected final Optional<byte[]> getRootOfRequests() {
+		return rootOfRequests;
+	}
+
+	protected final Optional<byte[]> getRootOfResponses() {
+		return rootOfResponses;
+	}
+
+	protected final Optional<byte[]> getRootOfHistories() {
+		return rootOfHistories;
+	}
+
+	protected final Optional<byte[]> getRootOfInfo() {
+		return rootOfInfo;
 	}
 
 	protected TrieOfResponses mkTrieOfResponses(Transaction txn) throws StoreException {
