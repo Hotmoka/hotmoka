@@ -139,7 +139,6 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		byte[] nibblesOfHashedKey = toNibbles(hashedKey);
 		AbstractNode oldRoot = getNodeFromHash(root, 0);
 		AbstractNode newRoot = oldRoot.put(nibblesOfHashedKey, 0, value);
-		oldRoot.markAsGarbageCollectable(root);
 		return checkoutAt(hasherForNodes.hash(newRoot));
 	}
 
@@ -360,19 +359,6 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 				throw new TrieException(e);
 			}
 		}
-
-		/**
-		 * Takes note that this node, having the given key (hash), became garbage during an update
-		 * occurred during the current commit.
-		 * 
-		 * @param key the key that became garbage
-		 * @throws TrieException if this trie is not able to complete the operation correctly
-		 */
-		protected void markAsGarbageCollectable(byte[] key) throws TrieException {
-			//long numberOfGarbageKeys = getNumberOfGarbageKeys(numberOfCommits);
-			//setGarbageKey(numberOfCommits, numberOfGarbageKeys, key);
-			//setNumberOfGarbageKeys(numberOfCommits, numberOfGarbageKeys + 1);
-		}
 	}
 
 	/**
@@ -397,8 +383,8 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 			this.children = children;
 
 			for (int pos = 0; pos < children.length; pos++)
-				if (this.children[pos] == null)
-					this.children[pos] = hashOfEmpty.clone();
+				if (children[pos] == null)
+					this.children[pos] = hashOfEmpty;
 		}
 
 		/**
@@ -433,10 +419,11 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 				throw new TrieException("Inconsistent key length in Patricia trie nibblesOfHashedKey.length = " + nibblesOfHashedKey.length + ", cursor = " + cursor);
 
 			byte selection = nibblesOfHashedKey[cursor];
-			if (Arrays.equals(children[selection], hashOfEmpty))
+			byte[] child = children[selection];
+			if (Arrays.equals(child, hashOfEmpty))
 				throw new UnknownKeyException("Key not found in Patricia trie");
 
-			return getNodeFromHash(children[selection], cursor + 1).get(nibblesOfHashedKey, cursor + 1);
+			return getNodeFromHash(child, cursor + 1).get(nibblesOfHashedKey, cursor + 1);
 		}
 
 		@Override
@@ -447,7 +434,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 			byte selection = nibblesOfHashedKey[cursor];
 			AbstractNode oldChild = getNodeFromHash(children[selection], cursor + 1); // we recur
 			AbstractNode newChild = oldChild.put(nibblesOfHashedKey, cursor + 1, value);
-			oldChild.markAsGarbageCollectable(children[selection]);
+			// the following only clones the backbone of the array,not its elements, which is fine
 			byte[][] childrenCopy = children.clone();
 			childrenCopy[selection] = hasherForNodes.hash(newChild);
 
@@ -518,7 +505,6 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 			if (lengthOfDistinctPortion == 0) {
 				AbstractNode oldNext = getNodeFromHash(next, sharedNibbles.length + cursor);
 				AbstractNode newNext = oldNext.put(nibblesOfHashedKey, sharedNibbles.length + cursor, value); // we recur
-				oldNext.markAsGarbageCollectable(next);
 
 				return new Extension(sharedNibbles, hasherForNodes.hash(newNext)).putInStore();
 			}
@@ -690,11 +676,6 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 			catch (IOException e) {
 				throw new TrieException(e);
 			}
-		}
-
-		@Override
-		protected void markAsGarbageCollectable(byte[] key) throws TrieException {
-			// we disable garbage collection for the empty nodes, since they are not kept in store
 		}
 	}
 }
