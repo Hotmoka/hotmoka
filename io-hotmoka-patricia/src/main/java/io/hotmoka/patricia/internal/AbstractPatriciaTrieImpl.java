@@ -238,16 +238,50 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 	 * @throws TrieException if this trie is not able to complete the operation correctly
 	 */
 	private AbstractNode getNodeFromHash(byte[] hash, int cursor) throws TrieException {
+		try {
+			return getNodeFromHashIfPresent(hash, cursor);
+		}
+		catch (UnknownKeyException e) {
+			throw new TrieException("This trie refers to a node that cannot be found in the trie itself", e);
+		}
+	}
+
+	/**
+	 * Yields the node whose hash is the given one.
+	 * 
+	 * @param hash the hash of the node to look up; this must exist in this trie
+	 * @param cursor the number of nibbles in the path from the root of the trie to the node;
+	 *               this is needed in order to foresee the size of the leaves
+	 * @return the node
+	 * @throws TrieException if this trie is not able to complete the operation correctly
+	 * @throws UnknownKeyException if there is no node with the given hash
+	 */
+	private AbstractNode getNodeFromHashIfPresent(byte[] hash, int cursor) throws TrieException, UnknownKeyException {
 		if (Arrays.equals(hash, hashOfEmpty))
 			return EMPTY;
 
 		try (var ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(store.get(hash))))) {
 			return from(ois, cursor);
 		}
-		catch (UnknownKeyException e) {
-			throw new TrieException("This trie refers to a node that cannot be found in the trie itself", e);
-		}
 		catch (KeyValueStoreException | IOException e) {
+			throw new TrieException(e);
+		}
+	}
+
+	/**
+	 * Increments the reference count of the given node in store.
+	 * 
+	 * @param hash the hash of the node whose reference count must be incremented; this must exist in store
+	 * @throws TrieException if the operation cannot be completed correctly
+	 */
+	private void incrementReferenceCountOfNode(byte[] hash) throws TrieException {
+		var descendant = getNodeFromHash(hash, 0);
+		descendant = descendant.incrementReferenceCount();
+		//System.out.println(descendant.getClass().getSimpleName() + ": " + (descendant.count - 1) + " -> " + descendant.count);
+		try {
+			store.put(hash, descendant.toByteArray()); // TODO: can we avoid to unmarshal and marshal again?
+		}
+		catch (KeyValueStoreException e) {
 			throw new TrieException(e);
 		}
 	}
@@ -331,16 +365,62 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		/**
 		 * The number of pointers into this node.
 		 */
-		protected int counter;
+		protected final int count;
 
 		/**
 		 * Builds a node.
 		 * 
-		 * @param counter the number of pointers leading into the node
+		 * @param count the number of pointers leading into the node
 		 */
-		protected AbstractNode(int counter) {
-			this.counter = counter;
+		protected AbstractNode(int count) {
+			this.count = count;
 		}
+
+		@Override
+		public final void into(MarshallingContext context) throws IOException {
+			context.writeInt(count);
+			intoWithoutReferenceCounter(context);
+		}
+
+		/**
+		 * Persist this node in the store of the trie.
+		 * 
+		 * @return this same node
+		 * @throws TrieException if the trie is not able to complete the operation correctly
+		 */
+		protected final AbstractNode putInStore() throws TrieException {
+			byte[] hash = hasherForNodes.hash(this);
+		
+			try {
+				// if an equal node exists in store (without considering its reference counter), then we return it,
+				// so that the result will have the current reference counter for the node
+				return getNodeFromHashIfPresent(hash, 0);
+			}
+			catch (UnknownKeyException e) {
+				try {
+					store.put(hash, toByteArray()); // we bind it to its hash in the store
+					incrementReferenceCountOfDescedants();
+					return this;
+				}
+				catch (KeyValueStoreException ee) {
+					throw new TrieException(ee);
+				}
+			}
+		}
+
+		/**
+		 * Increments the reference count of the descendants of this node.
+		 * 
+		 * @throws TrieException if the trie is not able to complete the operation correctly
+		 */
+		protected abstract void incrementReferenceCountOfDescedants() throws TrieException;
+
+		/**
+		 * Yields a node identical to this but whose reference count has been incremented by one.
+		 * 
+		 * @return the resulting node
+		 */
+		protected abstract AbstractNode incrementReferenceCount();
 
 		/**
 		 * Yields the value bound to the given key.
@@ -369,28 +449,6 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		 * @throws TrieException if the trie is not able to complete the operation correctly
 		 */
 		protected abstract AbstractNode put(byte[] nibblesOfHashedKey, int cursor, Value value) throws TrieException;
-
-		/**
-		 * Persist this node in the store of the trie.
-		 * 
-		 * @return this same node
-		 * @throws TrieException if the trie is not able to complete the operation correctly
-		 */
-		protected final AbstractNode putInStore() throws TrieException {
-			try {
-				store.put(hasherForNodes.hash(this), toByteArray()); // we bind it to its hash in the store
-				return this;
-			}
-			catch (KeyValueStoreException e) {
-				throw new TrieException(e);
-			}
-		}
-
-		@Override
-		public final void into(MarshallingContext context) throws IOException {
-			context.writeInt(counter);
-			intoWithoutReferenceCounter(context);
-		}
 
 		/**
 		 * Marshals this object into the given context, but does not report the reference counter.
@@ -435,10 +493,10 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		 * @param children the hashes of the branching children of the node.
 		 *                 If the nth child is missing the array can hold null for it,
 		 *                 which will be replaced with {@code hashOfEmpty}
-		 * @param counter the number of pointers leading into the node
+		 * @param count the number of pointers leading into the node
 		 */
-		private Branch(byte[][] children, int counter) {
-			super(counter);
+		private Branch(byte[][] children, int count) {
+			super(count);
 
 			this.children = children;
 
@@ -471,6 +529,18 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 				// useless to write the empty nodes, since the selector keeps the same information
 				if (!Arrays.equals(child, hashOfEmpty))
 					context.writeBytes(child);
+		}
+
+		@Override
+		protected void incrementReferenceCountOfDescedants() throws TrieException {
+			for (byte[] child: children)
+				if (!Arrays.equals(child, hashOfEmpty))
+					incrementReferenceCountOfNode(child);
+		}
+
+		@Override
+		protected AbstractNode incrementReferenceCount() {
+			return new Branch(children, count + 1);
 		}
 
 		@Override
@@ -528,10 +598,10 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		 *                      It 4 most significant bits are constantly set to 0.
 		 *                      This array is never empty
 		 * @param next the hash of the next node, the only child of the extension node
-		 * @param counter the number of pointers leading into the node
+		 * @param count the number of pointers leading into the node
 		 */
-		private Extension(byte[] sharedNibbles, byte[] next, int counter) {
-			super(counter);
+		private Extension(byte[] sharedNibbles, byte[] next, int count) {
+			super(count);
 
 			this.sharedNibbles = sharedNibbles;
 			this.next = next;
@@ -541,6 +611,16 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		protected void intoWithoutReferenceCounter(MarshallingContext context) throws IOException {
 			context.writeBytes(compactNibblesIntoBytes(sharedNibbles, (byte) 0x00, (byte) 0x01));
 			context.writeBytes(next);
+		}
+
+		@Override
+		protected void incrementReferenceCountOfDescedants() throws TrieException {
+			incrementReferenceCountOfNode(next);
+		}
+
+		@Override
+		protected AbstractNode incrementReferenceCount() {
+			return new Extension(sharedNibbles, next, count + 1);
 		}
 
 		@Override
@@ -633,10 +713,10 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		 *               Its 4 most significant bits are constantly set to 0. This
 		 *               array can be empty
 		 * @param value the marshalled bytes of the value bound to the key leading to this node
-		 * @param counter the number of pointers leading into the node
+		 * @param count the number of pointers leading into the node
 		 */
-		private Leaf(byte[] keyEnd, byte[] value, int counter) {
-			super(counter);
+		private Leaf(byte[] keyEnd, byte[] value, int count) {
+			super(count);
 
 			this.keyEnd = keyEnd;
 			this.value = value;
@@ -646,6 +726,15 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		protected void intoWithoutReferenceCounter(MarshallingContext context) throws IOException {
 			context.writeBytes(compactNibblesIntoBytes(keyEnd, (byte) 0x02, (byte) 0x03));
 			context.writeBytes(value);
+		}
+
+		@Override
+		protected void incrementReferenceCountOfDescedants() {
+		}
+
+		@Override
+		protected AbstractNode incrementReferenceCount() {
+			return new Leaf(keyEnd, value, count + 1);
 		}
 
 		@Override
@@ -727,6 +816,15 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		@Override
 		protected void intoWithoutReferenceCounter(MarshallingContext context) throws IOException {
 			context.writeByte((byte) 0x05);
+		}
+
+		@Override
+		protected void incrementReferenceCountOfDescedants() {
+		}
+
+		@Override
+		protected AbstractNode incrementReferenceCount() {
+			return this;
 		}
 
 		@Override
