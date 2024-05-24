@@ -72,6 +72,11 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 	private final FromBytes<? extends Value> bytesToValue;
 
 	/**
+	 * The only instance of the Empty node.
+	 */
+	private final Empty EMPTY = new Empty();
+
+	/**
 	 * The hash of the empty node.
 	 */
 	private final byte[] hashOfEmpty;
@@ -102,7 +107,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		this.hasherForNodes = hashingForNodes.getHasher(AbstractNode::toByteArray);
 		this.bytesToValue = bytesToValue;
 		this.valueToBytes = valueToBytes;
-		this.hashOfEmpty = hasherForNodes.hash(new Empty());
+		this.hashOfEmpty = hasherForNodes.hash(EMPTY);
 		this.root = root.orElse(hashOfEmpty);
 	}
 
@@ -168,6 +173,8 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 	 * @throws IOException if the node could not be unmarshalled
 	 */
 	private AbstractNode from(ObjectInputStream ois, int cursor) throws IOException {
+		int counter = ois.readInt();
+
 		byte kind = ois.readByte();
 
 		if (kind == 0x00 || (kind & 0xf0) == 0x10) {
@@ -214,7 +221,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 			return new Leaf(keyEnd, value, 0);
 		}
 		else if (kind == 0x05)
-			return new Empty();
+			return EMPTY;
 		else
 			throw new IOException("Unexpected Patricia node kind: " + kind);
 	}
@@ -230,7 +237,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 	 */
 	private AbstractNode getNodeFromHash(byte[] hash, int cursor) throws TrieException {
 		if (Arrays.equals(hash, hashOfEmpty))
-			return new Empty();
+			return EMPTY;
 
 		try (var ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(store.get(hash))))) {
 			return from(ois, cursor);
@@ -376,6 +383,11 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 				throw new TrieException(e);
 			}
 		}
+
+		@Override
+		public void into(MarshallingContext context) throws IOException {
+			context.writeInt(counter);
+		}
 	}
 
 	/**
@@ -424,6 +436,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 
 		@Override
 		public void into(MarshallingContext context) throws IOException {
+			super.into(context);
 			context.writeByte(0x04);
 			context.writeShort(selector());
 
@@ -499,6 +512,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 
 		@Override
 		public void into(MarshallingContext context) throws IOException {
+			super.into(context);
 			context.writeBytes(compactNibblesIntoBytes(sharedNibbles, (byte) 0x00, (byte) 0x01));
 			context.writeBytes(next);
 		}
@@ -604,6 +618,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 
 		@Override
 		public void into(MarshallingContext context) throws IOException {
+			super.into(context);
 			context.writeBytes(compactNibblesIntoBytes(keyEnd, (byte) 0x02, (byte) 0x03));
 			context.writeBytes(value);
 		}
@@ -686,6 +701,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 
 		@Override
 		public void into(MarshallingContext context) throws IOException {
+			super.into(context);
 			context.writeByte((byte) 0x05);
 		}
 
