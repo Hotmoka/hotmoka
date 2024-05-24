@@ -46,12 +46,12 @@ public class TrieOfRequests extends AbstractPatriciaTrie<TransactionReference, T
 			sha256(), TransactionRequest<?>::toByteArray, bytes -> TransactionRequests.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))));
 	}
 
-	private TrieOfRequests(TrieOfRequests cloned, byte[] root) {
+	private TrieOfRequests(TrieOfRequests cloned, byte[] root) throws TrieException {
 		super(cloned, root);
 	}
 
 	@Override
-	public TrieOfRequests checkoutAt(byte[] root) {
+	public TrieOfRequests checkoutAt(byte[] root) throws TrieException {
 		return new TrieOfRequests(this, root);
 	}
 

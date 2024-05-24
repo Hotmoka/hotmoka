@@ -21,6 +21,7 @@ import java.util.Optional;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.patricia.api.KeyValueStore;
+import io.hotmoka.patricia.api.TrieException;
 import io.hotmoka.patricia.internal.AbstractPatriciaTrieImpl;
 
 /**
@@ -43,10 +44,11 @@ public abstract class AbstractPatriciaTrie<Key, Value, T extends AbstractPatrici
 	 * @param hashingForNodes the hashing algorithm for the nodes of the trie
 	 * @param valueToBytes a function that marshals values into their byte representation
 	 * @param bytesToValue a function that unmarshals bytes into the represented value
+	 * @throws TrieException if the creation cannot be completed correctly
 	 */
 	protected AbstractPatriciaTrie(KeyValueStore store, Optional<byte[]> root,
 			Hasher<? super Key> hasherForKeys, HashingAlgorithm hashingForNodes,
-			ToBytes<? super Value> valueToBytes, FromBytes<? extends Value> bytesToValue) {
+			ToBytes<? super Value> valueToBytes, FromBytes<? extends Value> bytesToValue) throws TrieException {
 
 		super(store, root, hasherForKeys, hashingForNodes, valueToBytes, bytesToValue);
 	}
@@ -58,8 +60,9 @@ public abstract class AbstractPatriciaTrie<Key, Value, T extends AbstractPatrici
 	 *               trie has been derived by a sequence of put operations passing through
 	 *               the given root, that has not been garbage-collected yet
 	 * @param root the root used to check out the trie
+	 * @throws TrieException if the creation cannot be completed correctly
 	 */
-	protected AbstractPatriciaTrie(T cloned, byte[] root) {
+	protected AbstractPatriciaTrie(T cloned, byte[] root) throws TrieException {
 		super(cloned, root);
 	}
 }

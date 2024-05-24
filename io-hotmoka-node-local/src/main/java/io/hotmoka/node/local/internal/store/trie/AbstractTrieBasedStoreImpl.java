@@ -26,7 +26,9 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.api.Hasher;
+import io.hotmoka.exceptions.CheckRunnable;
 import io.hotmoka.exceptions.CheckSupplier;
+import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.api.UnknownReferenceException;
@@ -240,7 +242,14 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 				trieOfInfo = trieOfInfo.increaseBlockHeight();
 				if (addedManifest.isPresent())
 					trieOfInfo = trieOfInfo.setManifest(addedManifest.get());
-	
+
+				// we increment the reference count of the roots of the resulting tries, so that
+				// they do not get garbage collected until this store is freed
+				trieOfResponses.incrementReferenceCountOfRoot();
+				trieOfInfo.incrementReferenceCountOfRoot();
+				trieOfHistories.incrementReferenceCountOfRoot();
+				trieOfRequests.incrementReferenceCountOfRoot();
+
 				return make(cache, trieOfResponses.getRoot(), trieOfInfo.getRoot(), trieOfHistories.getRoot(), trieOfRequests.getRoot());
 			})));
 		}
@@ -249,7 +258,7 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 		}
 	}
 
-	protected abstract S make(StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests);
+    protected abstract S make(StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests);
 
     @Override
 	public TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, StoreException {
@@ -322,6 +331,25 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 					.initCaches();
 		}
 		catch (NoSuchAlgorithmException e) {
+			throw new StoreException(e);
+		}
+	}
+
+	/**
+	 * Deallocates the nodes of the tries that were only used for this store.
+	 * 
+	 * @throws StoreException if the operation cannot be completed correctly
+	 */
+	public void free() throws StoreException {
+		try {
+			CheckRunnable.check(StoreException.class, TrieException.class, () -> env.executeInTransaction(UncheckConsumer.uncheck(txn -> {
+				mkTrieOfRequests(txn).free();
+				mkTrieOfResponses(txn).free();
+				mkTrieOfHistories(txn).free();
+				mkTrieOfInfo(txn).free();
+			})));
+		}
+		catch (ExodusException | TrieException e) {
 			throw new StoreException(e);
 		}
 	}

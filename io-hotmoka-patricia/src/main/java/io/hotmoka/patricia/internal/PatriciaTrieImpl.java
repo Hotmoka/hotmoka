@@ -24,6 +24,7 @@ import io.hotmoka.patricia.AbstractPatriciaTrie;
 import io.hotmoka.patricia.FromBytes;
 import io.hotmoka.patricia.ToBytes;
 import io.hotmoka.patricia.api.KeyValueStore;
+import io.hotmoka.patricia.api.TrieException;
 
 /**
  * Implementation of a Merkle-Patricia trie.
@@ -44,10 +45,11 @@ public class PatriciaTrieImpl<Key, Value> extends AbstractPatriciaTrie<Key, Valu
 	 * @param hashingForNodes the hashing algorithm for the nodes of the trie
 	 * @param valueToBytes a function that marshals values into their byte representation
 	 * @param bytesToValue a function that unmarshals bytes into the represented value
+	 * @throws TrieException if the creation cannot be completed correctly
 	 */
 	public PatriciaTrieImpl(KeyValueStore store, Optional<byte[]> root,
 			Hasher<? super Key> hasherForKeys, HashingAlgorithm hashingForNodes,
-			ToBytes<? super Value> valueToBytes, FromBytes<? extends Value> bytesToValue) {
+			ToBytes<? super Value> valueToBytes, FromBytes<? extends Value> bytesToValue) throws TrieException {
 
 		super(store, root, hasherForKeys, hashingForNodes, valueToBytes, bytesToValue);
 	}
@@ -57,13 +59,14 @@ public class PatriciaTrieImpl<Key, Value> extends AbstractPatriciaTrie<Key, Valu
 	 * 
 	 * @param cloned the trie to clone
 	 * @param root the root to use in the cloned trie
+	 * @throws TrieException if the creation cannot be completed correctly
 	 */
-	private PatriciaTrieImpl(PatriciaTrieImpl<Key, Value> cloned, byte[] root) {
+	private PatriciaTrieImpl(PatriciaTrieImpl<Key, Value> cloned, byte[] root) throws TrieException {
 		super(cloned, root);
 	}
 
 	@Override
-	public PatriciaTrieImpl<Key, Value> checkoutAt(byte[] root) {
+	public PatriciaTrieImpl<Key, Value> checkoutAt(byte[] root) throws TrieException {
 		return new PatriciaTrieImpl<>(this, root);
 	}
 }

@@ -507,7 +507,6 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	protected void moveToFinalStoreOf(T transaction) throws NodeException {
 		try {
 			this.store = transaction.getFinalStore();
-			moveBranchTo(store);
 			transaction.forEachDeliveredTransaction(this::signalCompleted);
 			transaction.forEachTriggeredEvent(this::notifyEvent);
 		}
@@ -515,8 +514,6 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 			throw new NodeException(e);
 		}
 	}
-
-	protected void moveBranchTo(S store) throws NodeException {}
 
 	protected void closeResources() throws NodeException, InterruptedException {
 		executors.shutdownNow();

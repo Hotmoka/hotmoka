@@ -25,6 +25,7 @@ import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
@@ -149,18 +150,6 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	}
 
 	@Override
-	protected void moveBranchTo(TendermintStore store) throws NodeException {
-		super.moveBranchTo(store);
-
-		try {
-			store.moveRootBranchToThis();
-		}
-		catch (StoreException e) {
-			throw new NodeException(e);
-		}
-	}
-
-	@Override
 	protected void closeResources() throws NodeException, InterruptedException {
 		try {
 			closeTendermintAndABCI();
@@ -205,7 +194,18 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 
 	@Override
 	protected void moveToFinalStoreOf(TendermintStoreTransformation transaction) throws NodeException {
+		TendermintStore oldStore = getStore();
+
 		super.moveToFinalStoreOf(transaction);
+
+		try {
+			getStore().moveRootBranchToThis();
+			if (!Arrays.equals(oldStore.getHash(), getStore().getHash()))
+				{} //System.out.println("I could free");
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}
 	}
 
 	@Override

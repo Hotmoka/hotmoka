@@ -50,7 +50,7 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 			bytes -> Stream.of(MarshallableArrayOfTransactionReferences.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))).transactions));
 	}
 
-	private TrieOfHistories(TrieOfHistories cloned, byte[] root) {
+	private TrieOfHistories(TrieOfHistories cloned, byte[] root) throws TrieException {
 		super(cloned, root);
 	}
 
@@ -90,7 +90,7 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 	}
 
 	@Override
-	public TrieOfHistories checkoutAt(byte[] root) {
+	public TrieOfHistories checkoutAt(byte[] root) throws TrieException {
 		return new TrieOfHistories(this, root);
 	}
 }

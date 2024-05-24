@@ -48,12 +48,12 @@ public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue, TrieOfI
 			sha256(), StorageValue::toByteArray, bytes -> StorageValues.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))));
 	}
 
-	private TrieOfInfo(TrieOfInfo cloned, byte[] root) {
+	private TrieOfInfo(TrieOfInfo cloned, byte[] root) throws TrieException {
 		super(cloned, root);
 	}
 
 	@Override
-	public TrieOfInfo checkoutAt(byte[] root) {
+	public TrieOfInfo checkoutAt(byte[] root) throws TrieException {
 		return new TrieOfInfo(this, root);
 	}
 

@@ -65,7 +65,7 @@ public class TrieOfResponses extends AbstractPatriciaTrie<TransactionReference, 
 		this.hasherForJars = sha256().getHasher(Function.identity());
 	}
 
-	private TrieOfResponses(TrieOfResponses cloned, byte[] root) {
+	private TrieOfResponses(TrieOfResponses cloned, byte[] root) throws TrieException {
 		super(cloned, root);
 
 		this.hasherForJars = cloned.hasherForJars;
@@ -86,7 +86,7 @@ public class TrieOfResponses extends AbstractPatriciaTrie<TransactionReference, 
 	}
 
 	@Override
-	public TrieOfResponses checkoutAt(byte[] root) {
+	public TrieOfResponses checkoutAt(byte[] root) throws TrieException {
 		return new TrieOfResponses(this, root);
 	}
 

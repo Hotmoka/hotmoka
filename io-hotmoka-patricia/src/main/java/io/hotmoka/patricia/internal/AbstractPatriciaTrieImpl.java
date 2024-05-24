@@ -98,10 +98,11 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 	 * @param hashingForNodes the hashing algorithm for the nodes of the trie
 	 * @param valueToBytes a function that marshals values into their byte representation
 	 * @param bytesToValue a function that unmarshals bytes into the represented value
+	 * @throws TrieException if the creation cannot be completed correctly
 	 */
 	public AbstractPatriciaTrieImpl(KeyValueStore store, Optional<byte[]> root,
 			Hasher<? super Key> hasherForKeys, HashingAlgorithm hashingForNodes,
-			ToBytes<? super Value> valueToBytes, FromBytes<? extends Value> bytesToValue) {
+			ToBytes<? super Value> valueToBytes, FromBytes<? extends Value> bytesToValue) throws TrieException {
 
 		this.store = store;
 		this.hasherForKeys = hasherForKeys;
@@ -118,8 +119,9 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 	 * 
 	 * @param cloned the trie to clone
 	 * @param root the root to use in the cloned trie
+	 * @throws TrieException if the creation cannot be completed correctly
 	 */
-	protected AbstractPatriciaTrieImpl(AbstractPatriciaTrieImpl<Key, Value, T> cloned, byte[] root) {
+	protected AbstractPatriciaTrieImpl(AbstractPatriciaTrieImpl<Key, Value, T> cloned, byte[] root) throws TrieException {
 		this.store = cloned.store;
 		this.hasherForKeys = cloned.hasherForKeys;
 		this.hasherForNodes = cloned.hasherForNodes;
@@ -154,6 +156,20 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 	@Override
 	public final byte[] getRoot() {
 		return root.clone();
+	}
+
+	@Override
+	public final void incrementReferenceCountOfRoot() throws TrieException {
+		incrementReferenceCountOfNode(root);
+	}
+
+	/**
+	 * Frees this trie, removing from the store all nodes that were only used for this trie.
+	 * 
+	 * @throws TrieException if the operation cannot be completed successfully
+	 */
+	public final void free() throws TrieException {
+		getNodeFromHash(root, 0).free(root);
 	}
 
 	/**
@@ -275,11 +291,13 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 	 * @throws TrieException if the operation cannot be completed correctly
 	 */
 	private void incrementReferenceCountOfNode(byte[] hash) throws TrieException {
-		var descendant = getNodeFromHash(hash, 0);
-		descendant = descendant.incrementReferenceCount();
-		//System.out.println(descendant.getClass().getSimpleName() + ": " + (descendant.count - 1) + " -> " + descendant.count);
+		var node = getNodeFromHash(hash, 0);
+		int previous = node.count;
+		node = node.withIncrementedReferenceCount();
+		//System.out.println(node.getClass().getSimpleName() + ": " + previous + " -> " + node.count);
+
 		try {
-			store.put(hash, descendant.toByteArray()); // TODO: can we avoid to unmarshal and marshal again?
+			store.put(hash, node.toByteArray()); // TODO: can we avoid to unmarshal and marshal again?
 		}
 		catch (KeyValueStoreException e) {
 			throw new TrieException(e);
@@ -409,6 +427,33 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		}
 
 		/**
+		 * Removes this node from the store if its reference count is 1; If this node
+		 * gets removed, then the reference count of the descendants gets decremented and
+		 * they get potentially freed as well.
+		 * 
+		 * @param hash the hash of this same node
+		 * @throws TrieException if the operation cannot be completed successfully
+		 */
+		protected void free(byte[] hash) throws TrieException {
+			AbstractNode replacement = withDecrementedReferenceCount();
+			System.out.println(getClass().getSimpleName() + ": " + count + " -> " + replacement.count);
+
+			try {
+				if (replacement.count > 0)
+					store.put(hash, replacement.toByteArray()); // TODO: can we avoid to unmarshal and marshal again?
+				else {
+					store.remove(hash);
+					freeDescendants();
+				}
+			}
+			catch (KeyValueStoreException | UnknownKeyException e) {
+				throw new TrieException(e);
+			}
+		}
+
+		protected abstract void freeDescendants() throws TrieException;
+
+		/**
 		 * Increments the reference count of the descendants of this node.
 		 * 
 		 * @throws TrieException if the trie is not able to complete the operation correctly
@@ -420,7 +465,14 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		 * 
 		 * @return the resulting node
 		 */
-		protected abstract AbstractNode incrementReferenceCount();
+		protected abstract AbstractNode withIncrementedReferenceCount();
+
+		/**
+		 * Yields a node identical to this but whose reference count has been decremented by one.
+		 * 
+		 * @return the resulting node
+		 */
+		protected abstract AbstractNode withDecrementedReferenceCount();
 
 		/**
 		 * Yields the value bound to the given key.
@@ -539,8 +591,20 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		}
 
 		@Override
-		protected AbstractNode incrementReferenceCount() {
+		protected AbstractNode withIncrementedReferenceCount() {
 			return new Branch(children, count + 1);
+		}
+
+		@Override
+		protected AbstractNode withDecrementedReferenceCount() {
+			return new Branch(children, count - 1);
+		}
+
+		@Override
+		protected void freeDescendants() throws TrieException {
+			for (byte[] child: children)
+				if (!Arrays.equals(child, hashOfEmpty))
+					getNodeFromHash(child, 0).free(child);
 		}
 
 		@Override
@@ -619,8 +683,18 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		}
 
 		@Override
-		protected AbstractNode incrementReferenceCount() {
+		protected AbstractNode withIncrementedReferenceCount() {
 			return new Extension(sharedNibbles, next, count + 1);
+		}
+
+		@Override
+		protected AbstractNode withDecrementedReferenceCount() {
+			return new Extension(sharedNibbles, next, count - 1);
+		}
+
+		@Override
+		protected void freeDescendants() throws TrieException {
+			getNodeFromHash(next, 0).free(next);
 		}
 
 		@Override
@@ -733,8 +807,17 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		}
 
 		@Override
-		protected AbstractNode incrementReferenceCount() {
+		protected AbstractNode withIncrementedReferenceCount() {
 			return new Leaf(keyEnd, value, count + 1);
+		}
+
+		@Override
+		protected void freeDescendants() {
+		}
+
+		@Override
+		protected AbstractNode withDecrementedReferenceCount() {
+			return new Leaf(keyEnd, value, count - 1);
 		}
 
 		@Override
@@ -823,7 +906,20 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		}
 
 		@Override
-		protected AbstractNode incrementReferenceCount() {
+		protected void free(byte[] hash) {
+		}
+
+		@Override
+		protected void freeDescendants() {
+		}
+
+		@Override
+		protected AbstractNode withIncrementedReferenceCount() {
+			return this;
+		}
+
+		@Override
+		protected AbstractNode withDecrementedReferenceCount() {
 			return this;
 		}
 
