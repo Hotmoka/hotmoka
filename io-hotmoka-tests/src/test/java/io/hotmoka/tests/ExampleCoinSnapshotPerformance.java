@@ -67,9 +67,9 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.NonInitialTransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.signatures.MethodSignature;
+import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
-import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
 
 /**
@@ -192,8 +192,8 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
         private final MethodSignature TRANSFER;
         private final MethodSignature BURN;
         private final MethodSignature MINT;
-        private final MethodSignature YIELD_SNAPSHOT;
-        private final static MethodSignature TO_BIG_INTEGER = MethodSignatures.ofNonVoid(StorageTypes.UNSIGNED_BIG_INTEGER, "toBigInteger", StorageTypes.BIG_INTEGER);
+        private final NonVoidMethodSignature YIELD_SNAPSHOT;
+        private final static NonVoidMethodSignature TO_BIG_INTEGER = MethodSignatures.ofNonVoid(StorageTypes.UNSIGNED_BIG_INTEGER, "toBigInteger", StorageTypes.BIG_INTEGER);
         private final static ClassType CREATOR = StorageTypes.classNamed("io.hotmoka.examples.tokens.ExampleCoinCreator");
         private final Random random = new Random(192846374);
         private final NonceHelper nonceHelper = NonceHelpers.of(node);
@@ -312,12 +312,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     				// we select 1/100 of the potential receivers
     				for (int howMany = investors.length / 100; howMany > 0; howMany--) {
     					int amount = 10 * (random.nextInt(5) + 1);
-    					int receiverIndex;
-
-    					do {
-    						receiverIndex = random.nextInt(investors.length);
-    					}
-    					while (receiverIndex == index);
+    					int receiverIndex = random.ints(0, investors.length).filter(i -> i != index).findFirst().getAsInt();
 
     					// the following might fail if the account runs out of tokens, but that's fine
     					transfer(account, privateKeyOfSender, investors[receiverIndex], amount);
@@ -369,14 +364,18 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
 
     	private int convertUBItoInt(StorageReference ubi) throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
     		var request = TransactionRequests.instanceViewMethodCall(creator, _50_000, jar(), TO_BIG_INTEGER, ubi);
-        	BigIntegerValue bi = (BigIntegerValue) node.runInstanceMethodCallTransaction(request).get();
-            return bi.getValue().intValue();
+    		return node.runInstanceMethodCallTransaction(request)
+    			.orElseThrow(NodeException::new)
+        		.asReturnedBigInteger(TO_BIG_INTEGER, NodeException::new)
+        		.intValue();
         }
 
         private StorageReference createSnapshot() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NoSuchElementException, NodeException, InterruptedException, TimeoutException, UnknownReferenceException {
         	var request = TransactionRequests.instanceMethodCall
         		(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, nonceHelper.getNonceOf(creator), chainId, _500_000, ZERO, jar(), YIELD_SNAPSHOT, coin);
-            StorageReference result = (StorageReference) node.addInstanceMethodCallTransaction(request).get();
+            StorageReference result = node.addInstanceMethodCallTransaction(request)
+            	.orElseThrow(NodeException::new)
+            	.asReturnedReference(YIELD_SNAPSHOT, NodeException::new);
             trace(result.getTransaction());
 
             return result;
