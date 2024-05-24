@@ -18,6 +18,7 @@ package io.hotmoka.patricia.internal;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.Arrays;
@@ -104,7 +105,8 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 
 		this.store = store;
 		this.hasherForKeys = hasherForKeys;
-		this.hasherForNodes = hashingForNodes.getHasher(AbstractNode::toByteArray);
+		// the hashing of the nodes does not consider the reference counter
+		this.hasherForNodes = hashingForNodes.getHasher(AbstractNode::toByteArrayWithoutReferenceCounter);
 		this.bytesToValue = bytesToValue;
 		this.valueToBytes = valueToBytes;
 		this.hashOfEmpty = hasherForNodes.hash(EMPTY);
@@ -188,7 +190,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 			byte[] sharedNibbles = expandBytesIntoNibbles(sharedBytes, (byte) 0x00);
 			byte[] next = ois.readAllBytes();
 
-			return new Extension(sharedNibbles, next, 0);
+			return new Extension(sharedNibbles, next, counter);
 		}
 		else if (kind == 0x04) {
 			short selector = ois.readShort();
@@ -201,7 +203,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 						throw new IOException("Hash length mismatch in Patricia node");
 				}
 
-			return new Branch(children, 0);
+			return new Branch(children, counter);
 		}
 		else if (kind == 0x02 || (kind & 0xf0) == 0x30) {
 			int expected;
@@ -218,7 +220,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 			byte[] keyEnd = expandBytesIntoNibbles(nibbles, (byte) 0x02);
 			byte[] value = ois.readAllBytes();
 
-			return new Leaf(keyEnd, value, 0);
+			return new Leaf(keyEnd, value, counter);
 		}
 		else if (kind == 0x05)
 			return EMPTY;
@@ -385,8 +387,34 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		}
 
 		@Override
-		public void into(MarshallingContext context) throws IOException {
+		public final void into(MarshallingContext context) throws IOException {
 			context.writeInt(counter);
+			intoWithoutReferenceCounter(context);
+		}
+
+		/**
+		 * Marshals this object into the given context, but does not report the reference counter.
+		 * 
+		 * @param context the marshalling context
+		 * @throws IOException if marshalling fails
+		 */
+		protected abstract void intoWithoutReferenceCounter(MarshallingContext context) throws IOException;
+
+		/**
+		 * Transforms this node into an array, but without the reference counter.
+		 * 
+		 * @return the resulting array
+		 */
+		private byte[] toByteArrayWithoutReferenceCounter() {
+			try (var baos = new ByteArrayOutputStream(); var context = createMarshallingContext(baos)) {
+				intoWithoutReferenceCounter(context);
+				context.flush();
+				return baos.toByteArray();
+			}
+			catch (IOException e) {
+				// impossible with a ByteArrayOutputStream
+				throw new RuntimeException("Unexpected exception", e);
+			}
 		}
 	}
 
@@ -435,8 +463,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		}
 
 		@Override
-		public void into(MarshallingContext context) throws IOException {
-			super.into(context);
+		protected void intoWithoutReferenceCounter(MarshallingContext context) throws IOException {
 			context.writeByte(0x04);
 			context.writeShort(selector());
 
@@ -511,8 +538,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		}
 
 		@Override
-		public void into(MarshallingContext context) throws IOException {
-			super.into(context);
+		protected void intoWithoutReferenceCounter(MarshallingContext context) throws IOException {
 			context.writeBytes(compactNibblesIntoBytes(sharedNibbles, (byte) 0x00, (byte) 0x01));
 			context.writeBytes(next);
 		}
@@ -617,8 +643,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		}
 
 		@Override
-		public void into(MarshallingContext context) throws IOException {
-			super.into(context);
+		protected void intoWithoutReferenceCounter(MarshallingContext context) throws IOException {
 			context.writeBytes(compactNibblesIntoBytes(keyEnd, (byte) 0x02, (byte) 0x03));
 			context.writeBytes(value);
 		}
@@ -700,8 +725,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		}
 
 		@Override
-		public void into(MarshallingContext context) throws IOException {
-			super.into(context);
+		protected void intoWithoutReferenceCounter(MarshallingContext context) throws IOException {
 			context.writeByte((byte) 0x05);
 		}
 
