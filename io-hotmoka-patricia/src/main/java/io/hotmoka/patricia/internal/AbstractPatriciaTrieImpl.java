@@ -23,6 +23,7 @@ import java.io.ObjectInputStream;
 import java.util.Arrays;
 import java.util.Optional;
 
+import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.marshalling.AbstractMarshallable;
@@ -42,6 +43,7 @@ import io.hotmoka.patricia.api.UnknownKeyException;
  * @param <Value> the type of the values of the trie
  * @param <T> the type of this trie
  */
+@Immutable
 public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPatriciaTrieImpl<Key, Value, T>> implements PatriciaTrie<Key, Value, T> {
 
 	/**
@@ -179,7 +181,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 			byte[] sharedNibbles = expandBytesIntoNibbles(sharedBytes, (byte) 0x00);
 			byte[] next = ois.readAllBytes();
 
-			return new Extension(sharedNibbles, next);
+			return new Extension(sharedNibbles, next, 0);
 		}
 		else if (kind == 0x04) {
 			short selector = ois.readShort();
@@ -192,7 +194,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 						throw new IOException("Hash length mismatch in Patricia node");
 				}
 
-			return new Branch(children);
+			return new Branch(children, 0);
 		}
 		else if (kind == 0x02 || (kind & 0xf0) == 0x30) {
 			int expected;
@@ -209,7 +211,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 			byte[] keyEnd = expandBytesIntoNibbles(nibbles, (byte) 0x02);
 			byte[] value = ois.readAllBytes();
 
-			return new Leaf(keyEnd, value);
+			return new Leaf(keyEnd, value, 0);
 		}
 		else if (kind == 0x05)
 			return new Empty();
@@ -314,7 +316,22 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 	/**
 	 * A node of a Merkle-Patricia tree.
 	 */
+	@Immutable
 	private abstract class AbstractNode extends AbstractMarshallable {
+
+		/**
+		 * The number of pointers into this node.
+		 */
+		protected int counter;
+
+		/**
+		 * Builds a node.
+		 * 
+		 * @param counter the number of pointers leading into the node
+		 */
+		protected AbstractNode(int counter) {
+			this.counter = counter;
+		}
 
 		/**
 		 * Yields the value bound to the given key.
@@ -378,8 +395,11 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		 * @param children the hashes of the branching children of the node.
 		 *                 If the nth child is missing the array can hold null for it,
 		 *                 which will be replaced with {@code hashOfEmpty}
+		 * @param counter the number of pointers leading into the node
 		 */
-		private Branch(byte[][] children) {
+		private Branch(byte[][] children, int counter) {
+			super(counter);
+
 			this.children = children;
 
 			for (int pos = 0; pos < children.length; pos++)
@@ -438,7 +458,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 			byte[][] childrenCopy = children.clone();
 			childrenCopy[selection] = hasherForNodes.hash(newChild);
 
-			return new Branch(childrenCopy).putInStore();
+			return new Branch(childrenCopy, 0).putInStore();
 		}
 	}
 
@@ -468,8 +488,11 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		 *                      It 4 most significant bits are constantly set to 0.
 		 *                      This array is never empty
 		 * @param next the hash of the next node, the only child of the extension node
+		 * @param counter the number of pointers leading into the node
 		 */
-		private Extension(byte[] sharedNibbles, byte[] next) {
+		private Extension(byte[] sharedNibbles, byte[] next, int counter) {
+			super(counter);
+
 			this.sharedNibbles = sharedNibbles;
 			this.next = next;
 		}
@@ -506,7 +529,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 				AbstractNode oldNext = getNodeFromHash(next, sharedNibbles.length + cursor);
 				AbstractNode newNext = oldNext.put(nibblesOfHashedKey, sharedNibbles.length + cursor, value); // we recur
 
-				return new Extension(sharedNibbles, hasherForNodes.hash(newNext)).putInStore();
+				return new Extension(sharedNibbles, hasherForNodes.hash(newNext), 0).putInStore();
 			}
 			else {
 				var sharedNibbles1 = new byte[sharedNibbles.length - lengthOfSharedPortion - 1];
@@ -516,11 +539,11 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 				byte selection1 = sharedNibbles[lengthOfSharedPortion];
 				byte selection2 = nibblesOfHashedKey[lengthOfSharedPortion + cursor];
 				var children = new byte[16][];
-				byte[] hashOfChild1 = (sharedNibbles1.length == 0) ? next : hasherForNodes.hash(new Extension(sharedNibbles1, next).putInStore());
+				byte[] hashOfChild1 = (sharedNibbles1.length == 0) ? next : hasherForNodes.hash(new Extension(sharedNibbles1, next, 0).putInStore());
 				AbstractNode child2;
 
 				try {
-					child2 = new Leaf(keyEnd2, valueToBytes.get(value)).putInStore();
+					child2 = new Leaf(keyEnd2, valueToBytes.get(value), 0).putInStore();
 				}
 				catch (IOException e) {
 					throw new TrieException(e);
@@ -529,13 +552,13 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 				children[selection1] = hashOfChild1;
 				children[selection2] = hasherForNodes.hash(child2);
 
-				AbstractNode branch = new Branch(children).putInStore();
+				AbstractNode branch = new Branch(children, 0).putInStore();
 
 				if (lengthOfSharedPortion > 0) {
 					// yield an extension node linked to a branch node with two alternatives
 					var sharedNibbles = new byte[lengthOfSharedPortion];
 					System.arraycopy(this.sharedNibbles, 0, sharedNibbles, 0, lengthOfSharedPortion);
-					return new Extension(sharedNibbles, hasherForNodes.hash(branch)).putInStore();
+					return new Extension(sharedNibbles, hasherForNodes.hash(branch), 0).putInStore();
 				}
 				else
 					// yield a branch node with two alternatives
@@ -570,8 +593,11 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		 *               Its 4 most significant bits are constantly set to 0. This
 		 *               array can be empty
 		 * @param value the marshalled bytes of the value bound to the key leading to this node
+		 * @param counter the number of pointers leading into the node
 		 */
-		private Leaf(byte[] keyEnd, byte[] value) {
+		private Leaf(byte[] keyEnd, byte[] value, int counter) {
+			super(counter);
+
 			this.keyEnd = keyEnd;
 			this.value = value;
 		}
@@ -612,7 +638,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 			try {
 				if (lengthOfDistinctPortion == 0)
 					// the keys coincide
-					return new Leaf(keyEnd, valueToBytes.get(value)).putInStore();
+					return new Leaf(keyEnd, valueToBytes.get(value), 0).putInStore();
 				else {
 					// since there is a distinct portion, there must be at least a nibble in keyEnd
 					var keyEnd1 = new byte[keyEnd.length - lengthOfSharedPortion - 1];
@@ -622,17 +648,17 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 					byte selection1 = keyEnd[lengthOfSharedPortion];
 					byte selection2 = nibblesOfHashedKey[lengthOfSharedPortion + cursor];
 					var children = new byte[16][];
-					var leaf1 = new Leaf(keyEnd1, this.value).putInStore();
-					var leaf2 = new Leaf(keyEnd2, valueToBytes.get(value)).putInStore();
+					var leaf1 = new Leaf(keyEnd1, this.value, 0).putInStore();
+					var leaf2 = new Leaf(keyEnd2, valueToBytes.get(value), 0).putInStore();
 					children[selection1] = hasherForNodes.hash(leaf1);
 					children[selection2] = hasherForNodes.hash(leaf2);
-					var branch = new Branch(children).putInStore();
+					var branch = new Branch(children, 0).putInStore();
 
 					if (lengthOfSharedPortion > 0) {
 						// yield an extension node linked to a branch node with two alternatives leaves
 						var sharedNibbles = new byte[lengthOfSharedPortion];
 						System.arraycopy(keyEnd, 0, sharedNibbles, 0, lengthOfSharedPortion);
-						return new Extension(sharedNibbles, hasherForNodes.hash(branch)).putInStore();
+						return new Extension(sharedNibbles, hasherForNodes.hash(branch), 0).putInStore();
 					}
 					else
 						// yield a branch node with two alternatives leaves
@@ -653,7 +679,10 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		/**
 		 * Builds an empty node of a Patricia trie.
 		 */
-		private Empty() {}
+		private Empty() {
+			// the reference counter is irrelevant, since this node is never allocated nor garbage-collected
+			super(0);
+		}
 
 		@Override
 		public void into(MarshallingContext context) throws IOException {
@@ -671,7 +700,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 			System.arraycopy(nibblesOfHashedKey, cursor, nibblesEnd, 0, nibblesEnd.length);
 
 			try {
-				return new Leaf(nibblesEnd, valueToBytes.get(value)).putInStore();
+				return new Leaf(nibblesEnd, valueToBytes.get(value), 0).putInStore();
 			}
 			catch (IOException e) {
 				throw new TrieException(e);
