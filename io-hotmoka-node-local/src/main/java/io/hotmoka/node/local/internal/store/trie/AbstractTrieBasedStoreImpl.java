@@ -352,11 +352,7 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 		}
 	}
 
-	/**
-	 * Yields the number of commits already performed over this store.
-	 * 
-	 * @return the number of commits
-	 */
+	@Override
 	public long getHeight() throws StoreException {
 		try {
 			return CheckSupplier.check(TrieException.class, StoreException.class, () ->
@@ -368,8 +364,8 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 		}
 	}
 
-	public void moveRootBranchToThis() throws StoreException {
-		var rootAsBI = ByteIterable.fromBytes(mergeRootsOfTries());
+	public void moveRootBranchToThis(S oldStore) throws StoreException {
+		var rootAsBI = ByteIterable.fromBytes(getStateId());
 
 		try {
 			env.executeInTransaction(txn -> storeOfInfo.put(txn, ROOT, rootAsBI));

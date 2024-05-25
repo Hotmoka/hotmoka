@@ -466,7 +466,6 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 				throw new NodeException(e);
 			}
 			catch (StoreException e) {
-				e.printStackTrace();
 				throw new NodeException("Cannot fill the cache of the store: was the node already initialized?", e);
 			}
 		}
@@ -509,6 +508,8 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 		try {
 			S oldStore = store;
 			store = transaction.getFinalStore();
+			store.moveRootBranchToThis(oldStore);
+
 			if (!storesToGC.offer(oldStore))
 				LOGGER.warning("could not enqueue old store for garbage collection: the queue is full!");
 

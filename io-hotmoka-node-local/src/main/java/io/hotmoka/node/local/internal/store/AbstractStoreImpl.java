@@ -207,4 +207,8 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 		int hash = hashCode();
 		return new byte[] { (byte) ((hash >> 24) % 0xff), (byte) ((hash >> 16) % 0xff), (byte) ((hash >> 8) % 0xff), (byte) (hash % 0xff) };
 	}
+
+	public void moveRootBranchToThis(S oldStore) throws StoreException {
+		// subclasses may redefine
+	}
 }
