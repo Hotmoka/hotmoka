@@ -28,10 +28,12 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -43,6 +45,7 @@ import java.util.stream.Stream;
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.closeables.AbstractAutoCloseableWithLockAndOnCloseHandlers;
 import io.hotmoka.crypto.HashingAlgorithms;
+import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.exceptions.CheckRunnable;
 import io.hotmoka.exceptions.UncheckConsumer;
@@ -139,6 +142,11 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	private final LRUCache<TransactionReference, String> recentlyRejectedTransactionsMessages;
 
 	/**
+	 * The queue of old stores to garbage-collect.
+	 */
+	private final BlockingQueue<S> storesToGC = new LinkedBlockingDeque<>(1_000);
+
+	/**
 	 * The store of this node.
 	 */
 	private volatile S store;
@@ -190,38 +198,10 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 
 		this.executors = Executors.newCachedThreadPool();
 
+		// we start the garbage-collection task
+		executors.execute(this::gc);
+
 		addShutdownHook();
-	}
-
-	private final void initWorkingDirectory() throws NodeException {
-		try {
-			deleteRecursively(config.getDir());  // cleans the directory where the node's data live
-			Files.createDirectories(config.getDir());
-		}
-		catch (IOException e) {
-			throw new NodeException(e);
-		}
-	}
-
-	protected final void initStore(Optional<ConsensusConfig<?,?>> consensus) throws NodeException {
-		if (consensus.isEmpty()) {
-			try {
-				// we start from a store with empty caches and dummy consensus; this is not a problem
-				// since initCaches() executes run transactions, that do not use the cache and do not depend on the consensus
-				this.store = mkStore(executors, ValidatorsConsensusConfigBuilders.defaults().build(), config, hasher)
-						.initCaches();
-			}
-			catch (NoSuchAlgorithmException e) {
-				throw new NodeException(e);
-			}
-			catch (StoreException e) {
-				e.printStackTrace();
-				throw new NodeException("Cannot fill the cache of the store: was the node already initialized?", e);
-			}
-		}
-		else
-			// the node is starting from scratch: the caches are left empty and the consensus is well-known
-			this.store = mkStore(executors, consensus.get(), config, hasher);
 	}
 
 	@Override
@@ -474,6 +454,27 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 		}
 	}
 
+	protected final void initStore(Optional<ConsensusConfig<?,?>> consensus) throws NodeException {
+		if (consensus.isEmpty()) {
+			try {
+				// we start from a store with empty caches and dummy consensus; this is not a problem
+				// since initCaches() executes run transactions, that do not use the cache and do not depend on the consensus
+				this.store = mkStore(executors, ValidatorsConsensusConfigBuilders.defaults().build(), config, hasher)
+						.initCaches();
+			}
+			catch (NoSuchAlgorithmException e) {
+				throw new NodeException(e);
+			}
+			catch (StoreException e) {
+				e.printStackTrace();
+				throw new NodeException("Cannot fill the cache of the store: was the node already initialized?", e);
+			}
+		}
+		else
+			// the node is starting from scratch: the caches are left empty and the consensus is well-known
+			this.store = mkStore(executors, consensus.get(), config, hasher);
+	}
+
 	protected final S getStore() {
 		return store;
 	}
@@ -506,7 +507,11 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 
 	protected void moveToFinalStoreOf(T transaction) throws NodeException {
 		try {
-			this.store = transaction.getFinalStore();
+			S oldStore = store;
+			store = transaction.getFinalStore();
+			if (!storesToGC.offer(oldStore))
+				LOGGER.warning("could not enqueue old store for garbage collection: the queue is full!");
+
 			transaction.forEachDeliveredTransaction(this::signalCompleted);
 			transaction.forEachTriggeredEvent(this::notifyEvent);
 		}
@@ -534,6 +539,38 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	 * @param request the request
 	 */
 	protected abstract void postRequest(TransactionRequest<?> request) throws NodeException, InterruptedException, TimeoutException;
+
+	private void initWorkingDirectory() throws NodeException {
+		try {
+			deleteRecursively(config.getDir());  // cleans the directory where the node's data live
+			Files.createDirectories(config.getDir());
+		}
+		catch (IOException e) {
+			throw new NodeException(e);
+		}
+	}
+
+	/**
+	 * The garbage-collection routine. It takes stores to garbage-collect and frees them.
+	 */
+	private void gc()  {
+		try {
+			while (!Thread.currentThread().isInterrupted()) {
+				try {
+					S next = storesToGC.take();
+					byte[] id = next.getStateId();
+					next.free();
+					LOGGER.info("garbage collected store " + Hex.toHexString(id));
+				}
+				catch (StoreException e) {
+					LOGGER.log(Level.SEVERE, "could not garbage-collect a store", e);
+				}
+			}
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
+	}
 
 	/**
 	 * Wakes up who was waiting for the outcome of the given transaction.

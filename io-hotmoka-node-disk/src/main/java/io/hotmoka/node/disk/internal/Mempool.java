@@ -165,15 +165,17 @@ class Mempool {
 	}
 
 	private DiskStoreTransformation restartTransaction(DiskStoreTransformation transaction) throws NodeException {
-		try {
-			if (transaction.deliveredCount() > 0)
+		// if we delivered zero transactions, we prefer to avoid the creation of an empty block
+		if (transaction.deliveredCount() > 0) {
+			try {
 				transaction.deliverRewardTransaction("", "");
-		}
-		catch (StoreException e) {
-			throw new NodeException(e);
-		}
+			}
+			catch (StoreException e) {
+				throw new NodeException(e);
+			}
 
-		node.moveToFinalStoreOf(transaction);
+			node.moveToFinalStoreOf(transaction);
+		}
 
 		return node.beginTransaction(System.currentTimeMillis());
 	}

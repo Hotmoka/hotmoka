@@ -190,7 +190,6 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				}
 			}
 			catch (Throwable t) {
-				t.printStackTrace();
 				LOGGER.log(Level.INFO, "transaction failed: " + t.getMessage());
 				resetBalanceOfPayerToInitialValueMinusAllPromisedGas();
 

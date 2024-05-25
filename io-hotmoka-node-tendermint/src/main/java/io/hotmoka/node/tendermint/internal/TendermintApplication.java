@@ -303,7 +303,7 @@ class TendermintApplication extends ABCI {
 
 		node.moveToFinalStoreOf(transaction);
 		byte[] hash = node.getStateId();
-		LOGGER.info("committed state with hash " + Hex.toHexString(hash).toUpperCase());
+		LOGGER.info("committed Tendermint state " + Hex.toHexString(hash).toUpperCase());
 		return ResponseCommit.newBuilder().setData(ByteString.copyFrom(hash)).build();
 	}
 

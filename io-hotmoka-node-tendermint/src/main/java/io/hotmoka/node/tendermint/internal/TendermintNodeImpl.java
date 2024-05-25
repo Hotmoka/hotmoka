@@ -132,7 +132,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 
 	protected final long getBlockHeight() throws NodeException {
 		try {
-			return getStore().getBlockHeight();
+			return getStore().getHeight();
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);
@@ -192,25 +192,13 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	}
 
 	@Override
-	protected void moveToFinalStoreOf(TendermintStoreTransformation transaction) throws NodeException {
-		TendermintStore oldStore = getStore();
-
-		super.moveToFinalStoreOf(transaction);
-
-		TendermintStore newStore = getStore();
-
-		try {
-			newStore.moveRootBranchToThis();
-			//oldStore.free(newStore); // TODO
-		}
-		catch (StoreException e) {
-			throw new NodeException(e);
-		}
+	protected void signalRejected(TransactionRequest<?> request, TransactionRejectedException e) {
+		super.signalRejected(request, e);
 	}
 
 	@Override
-	protected void signalRejected(TransactionRequest<?> request, TransactionRejectedException e) {
-		super.signalRejected(request, e);
+	protected void moveToFinalStoreOf(TendermintStoreTransformation transaction) throws NodeException {
+		super.moveToFinalStoreOf(transaction);
 	}
 
 	private void closeTendermintAndABCI() throws NodeException, InterruptedException {

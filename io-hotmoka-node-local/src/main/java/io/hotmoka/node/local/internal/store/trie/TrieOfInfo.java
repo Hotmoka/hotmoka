@@ -63,7 +63,7 @@ public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue, TrieOfI
 	 * @return the block height of this store
 	 * @throws TrieException if the operation cannot be completed correctly
 	 */
-	public long getBlockHeight() throws TrieException {
+	public long getHeight() throws TrieException {
 		return get((byte) 0)
 			.map(height -> ((LongValue) height).getValue())
 			.orElse(0L);
@@ -75,8 +75,8 @@ public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue, TrieOfI
 	 * @return a trie identical to this but with an incremented block height
 	 * @throws TrieException if the operation cannot be completed correctly
 	 */
-	public TrieOfInfo increaseBlockHeight() throws TrieException {
-		return put((byte) 0, StorageValues.longOf(getBlockHeight() + 1));
+	public TrieOfInfo increaseHeight() throws TrieException {
+		return put((byte) 0, StorageValues.longOf(getHeight() + 1));
 	}
 
 	/**

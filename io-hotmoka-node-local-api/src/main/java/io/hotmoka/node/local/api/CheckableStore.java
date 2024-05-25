@@ -20,7 +20,7 @@ import io.hotmoka.annotations.Immutable;
 
 /**
  * A store that can be checked out, that is, its view of the world can be moved
- * back and forth in time. Different moments of the store are identifies by state
+ * back and forth in time. Different moments of the store are identified by
  * identifiers, that can be checked out when needed.
  * 
  * @param <S> the type of this store
@@ -30,19 +30,11 @@ import io.hotmoka.annotations.Immutable;
 public interface CheckableStore<S extends CheckableStore<S, T>, T extends StoreTransformation<S, T>> extends Store<S, T> {
 
 	/**
-	 * Yields a unique identifier for the current state of this store.
-	 * 
-	 * @return the unique identifier; this is for instance the hash of the state
-	 * @throws StoreException if the operation cannot be completed correctly
-	 */
-	byte[] getStateId() throws StoreException;
-
-	/**
 	 * Yields a store derived from this by resetting the view of the world to that expressed
-	 * by the given state identifier. This assumes that this store was derived by a chain of transformations
-	 * passing through a store with that state identifier and that the latter has not been garbage-collected.
+	 * by the given identifier. This assumes that this store was derived by a chain of transformations
+	 * passing through a store with that identifier, that has not been garbage-collected yet.
 	 * 
-	 * @param stateId the state identifier to reset the store to
+	 * @param stateId the identifier of the resulting store
 	 * @return the resulting store
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */

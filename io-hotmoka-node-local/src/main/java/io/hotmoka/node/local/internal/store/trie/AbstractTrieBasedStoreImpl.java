@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.node.local.internal.store.trie;
 
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -240,7 +239,7 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 					trieOfHistories = trieOfHistories.put(entry.getKey(), Stream.of(entry.getValue()));
 	
 				var trieOfInfo = mkTrieOfInfo(txn);
-				trieOfInfo = trieOfInfo.increaseBlockHeight();
+				trieOfInfo = trieOfInfo.increaseHeight();
 				if (addedManifest.isPresent())
 					trieOfInfo = trieOfInfo.setManifest(addedManifest.get());
 
@@ -336,25 +335,16 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 		}
 	}
 
-	/**
-	 * Deallocates the nodes of the tries that were only used for this store.
-	 * 
-	 * @throws StoreException if the operation cannot be completed correctly
-	 */
-	public void free(S newStore) throws StoreException {
+	@Override
+	public void free() throws StoreException {
+		super.free();
+
 		try {
 			CheckRunnable.check(StoreException.class, TrieException.class, () -> env.executeInTransaction(UncheckConsumer.uncheck(txn -> {
-				if (rootOfRequests.isPresent() && !Arrays.equals(rootOfRequests.get(), newStore.getRootOfRequests().get()))
-					mkTrieOfRequests(txn).free();
-
-				if (rootOfResponses.isPresent() && !Arrays.equals(rootOfResponses.get(), newStore.getRootOfResponses().get()))
-					mkTrieOfResponses(txn).free();
-
-				if (rootOfHistories.isPresent() && !Arrays.equals(rootOfHistories.get(), newStore.getRootOfHistories().get()))
-					mkTrieOfHistories(txn).free();
-
-				if (rootOfInfo.isPresent() && !Arrays.equals(rootOfInfo.get(), newStore.getRootOfInfo().get()))
-					mkTrieOfInfo(txn).free();
+				mkTrieOfRequests(txn).free();
+				mkTrieOfResponses(txn).free();
+				mkTrieOfHistories(txn).free();
+				mkTrieOfInfo(txn).free();
 			})));
 		}
 		catch (ExodusException | TrieException e) {
@@ -367,10 +357,10 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 	 * 
 	 * @return the number of commits
 	 */
-	public long getBlockHeight() throws StoreException {
+	public long getHeight() throws StoreException {
 		try {
 			return CheckSupplier.check(TrieException.class, StoreException.class, () ->
-				env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> mkTrieOfInfo(txn).getBlockHeight())
+				env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> mkTrieOfInfo(txn).getHeight())
 			));
 		}
 		catch (ExodusException | TrieException e) {
@@ -387,22 +377,6 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 		catch (ExodusException e) {
 			throw new StoreException(e);
 		}
-	}
-
-	protected final Optional<byte[]> getRootOfRequests() {
-		return rootOfRequests;
-	}
-
-	protected final Optional<byte[]> getRootOfResponses() {
-		return rootOfResponses;
-	}
-
-	protected final Optional<byte[]> getRootOfHistories() {
-		return rootOfHistories;
-	}
-
-	protected final Optional<byte[]> getRootOfInfo() {
-		return rootOfInfo;
 	}
 
 	protected TrieOfResponses mkTrieOfResponses(Transaction txn) throws StoreException {
@@ -459,11 +433,14 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 	 */
 	private byte[] mergeRootsOfTries() throws StoreException {
 		var result = new byte[128];
-		System.arraycopy(rootOfResponses.get(), 0, result, 0, 32);
-		System.arraycopy(rootOfInfo.get(), 0, result, 32, 32);
-		System.arraycopy(rootOfRequests.get(), 0, result, 64, 32);
-		System.arraycopy(rootOfHistories.get(), 0, result, 96, 32);
+		// TODO: remove Optional!!
+		System.arraycopy(rootOfResponses.orElse(EMPTY), 0, result, 0, 32);
+		System.arraycopy(rootOfInfo.orElse(EMPTY), 0, result, 32, 32);
+		System.arraycopy(rootOfRequests.orElse(EMPTY), 0, result, 64, 32);
+		System.arraycopy(rootOfHistories.orElse(EMPTY), 0, result, 96, 32);
 
 		return result;
 	}
+
+	private final static byte[] EMPTY = new byte[32];
 }

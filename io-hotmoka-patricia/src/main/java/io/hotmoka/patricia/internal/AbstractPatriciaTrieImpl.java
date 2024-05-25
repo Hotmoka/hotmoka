@@ -292,9 +292,9 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 	 */
 	private void incrementReferenceCountOfNode(byte[] hash) throws TrieException {
 		var node = getNodeFromHash(hash, 0);
-		int previous = node.count;
+		//int previous = node.count;
 		node = node.withIncrementedReferenceCount();
-		System.out.println(node.getClass().getSimpleName() + ": " + previous + " -> " + node.count);
+		//System.out.println(node.getClass().getSimpleName() + ": " + previous + " -> " + node.count);
 
 		try {
 			store.put(hash, node.toByteArray()); // TODO: can we avoid to unmarshal and marshal again?
@@ -436,7 +436,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		 */
 		protected void free(byte[] hash) throws TrieException {
 			AbstractNode replacement = withDecrementedReferenceCount();
-			System.out.println(getClass().getSimpleName() + ": " + count + " -> " + replacement.count);
+			//System.out.println(getClass().getSimpleName() + ": " + count + " -> " + replacement.count);
 
 			try {
 				if (replacement.count > 0)

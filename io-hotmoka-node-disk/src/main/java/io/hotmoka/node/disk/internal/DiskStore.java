@@ -242,6 +242,11 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
 	}
 
 	@Override
+	public long getHeight() {
+		return blockHeight;
+	}
+
+	@Override
 	protected DiskStoreTransformation beginTransformation(ExecutorService executors, ConsensusConfig<?,?> consensus, long now) {
 		return new DiskStoreTransformation(this, executors, consensus, now);
 	}
