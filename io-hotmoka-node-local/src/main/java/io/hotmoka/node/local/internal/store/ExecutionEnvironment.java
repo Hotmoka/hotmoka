@@ -418,7 +418,7 @@ public abstract class ExecutionEnvironment {
 			try {
 				return runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest.get(), _100_000, takamakaCode, GET_GAS_PRICE, gasStation))
 					.orElseThrow(() -> new StoreException(GET_GAS_PRICE + " should not return void"))
-					.asBigInteger(value -> new StoreException(GET_GAS_PRICE + " should return a BigInteger, not a " + value.getClass().getName()));
+					.asReturnedBigInteger(GET_GAS_PRICE, StoreException::new);
 			}
 			catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
 				throw new StoreException(e);

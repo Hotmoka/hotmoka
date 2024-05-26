@@ -43,13 +43,11 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.api.requests.TransactionRequest;
-import io.hotmoka.node.local.AbstractLocalNode;
+import io.hotmoka.node.local.AbstractCheckableLocalNode;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.tendermint.api.TendermintNode;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 import io.hotmoka.tendermint.abci.Server;
-import io.hotmoka.xodus.ExodusException;
-import io.hotmoka.xodus.env.Environment;
 
 /**
  * An implementation of a node working over the Tendermint generic blockchain engine.
@@ -58,7 +56,7 @@ import io.hotmoka.xodus.env.Environment;
  * its state in a transactional database implemented by the {@link TendermintStore} class.
  */
 @ThreadSafe
-public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, TendermintStore, TendermintStoreTransformation> implements TendermintNode {
+public class TendermintNodeImpl extends AbstractCheckableLocalNode<TendermintNodeConfig, TendermintStore, TendermintStoreTransformation> implements TendermintNode {
 
 	private final static Logger LOGGER = Logger.getLogger(TendermintNodeImpl.class.getName());
 
@@ -83,11 +81,6 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	private final boolean isWindows;
 
 	/**
-	 * The Xodus environment used for storing the tries.
-	 */
-	private final Environment env;
-
-	/**
 	 * Builds a brand new Tendermint blockchain. This constructor spawns the Tendermint process on localhost
 	 * and connects it to an ABCI application for handling its transactions.
 	 * 
@@ -100,7 +93,6 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 		super(consensus, config);
 
 		try {
-			this.env = new Environment(config.getDir() + "/store");
 			this.isWindows = System.getProperty("os.name").startsWith("Windows");
 			initStore(consensus);
 			if (consensus.isPresent())
@@ -139,7 +131,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 		}
 	}
 
-	protected final byte[] getStateId() throws NodeException {
+	protected final byte[] getTendermintHash() throws NodeException {
 		try {
 			return getStore().getTendermintHash();
 		}
@@ -154,22 +146,14 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 			closeTendermintAndABCI();
 		}
 		finally {
-			try {
-				env.close();
-			}
-			catch (ExodusException e) {
-				throw new NodeException(e);
-			}
-			finally {
-				super.closeResources();
-			}
+			super.closeResources();
 		}
 	}
 
 	@Override
 	protected TendermintStore mkStore(ExecutorService executors, ConsensusConfig<?,?> consensus, TendermintNodeConfig config, Hasher<TransactionRequest<?>> hasher) throws NodeException {
 		try {
-			return new TendermintStore(env, executors, consensus, config, hasher);
+			return new TendermintStore(getEnvironment(), executors, consensus, config, hasher);
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);
@@ -247,7 +231,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	 * @throws IOException if the command cannot be run
 	 */
 	private Process run(String command, Optional<String> redirection) throws IOException {
-		ProcessBuilder processBuilder = new ProcessBuilder();
+		var processBuilder = new ProcessBuilder();
 		processBuilder.command(command.split(" "));
 		redirection.map(File::new).ifPresent(processBuilder::redirectOutput);
 

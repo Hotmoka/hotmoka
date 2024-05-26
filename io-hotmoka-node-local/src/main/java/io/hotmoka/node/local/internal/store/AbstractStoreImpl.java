@@ -195,20 +195,4 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 	protected final long getNow() {
 		return System.currentTimeMillis();
 	}
-
-	@Override
-	public void free() throws StoreException {
-		// nothing by default, but subclasses may redefine
-	}
-
-	@Override
-	public byte[] getStateId() throws StoreException {
-		// we return the hash of this object, as four bytes; subclasses may redefine
-		int hash = hashCode();
-		return new byte[] { (byte) ((hash >> 24) % 0xff), (byte) ((hash >> 16) % 0xff), (byte) ((hash >> 8) % 0xff), (byte) (hash % 0xff) };
-	}
-
-	public void moveRootBranchToThis(S oldStore) throws StoreException {
-		// subclasses may redefine
-	}
 }

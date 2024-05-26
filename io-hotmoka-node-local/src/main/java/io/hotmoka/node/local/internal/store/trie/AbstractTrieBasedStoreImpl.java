@@ -44,7 +44,6 @@ import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.StoreCacheImpl;
 import io.hotmoka.patricia.api.TrieException;
-import io.hotmoka.xodus.ByteIterable;
 import io.hotmoka.xodus.ExodusException;
 import io.hotmoka.xodus.env.Environment;
 import io.hotmoka.xodus.env.Transaction;
@@ -108,11 +107,6 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 	private final byte[] rootOfHistories;
 
 	/**
-	 * The key used inside {@link #storeOfInfo} to keep the root.
-	 */
-	private final static ByteIterable ROOT = ByteIterable.fromBytes("root".getBytes());
-
-	/**
 	 * Creates a store.
 	 * 
 	 * @param env the Xodus environment to use for creating the tries
@@ -130,11 +124,9 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 		var storeOfResponses = new AtomicReference<io.hotmoka.xodus.env.Store>();
 		var storeOfRequests = new AtomicReference<io.hotmoka.xodus.env.Store>();
 		var storeOfHistories = new AtomicReference<io.hotmoka.xodus.env.Store>();
-		var roots = new AtomicReference<Optional<byte[]>>();
 
 		env.executeInTransaction(txn -> {
 			storeOfInfo.set(env.openStoreWithoutDuplicates("info", txn));
-    		roots.set(Optional.ofNullable(storeOfInfo.get().get(txn, ROOT)).map(ByteIterable::getBytes));
 			storeOfResponses.set(env.openStoreWithoutDuplicates("responses", txn));
 			storeOfRequests.set(env.openStoreWithoutDuplicates("requests", txn));
 			storeOfHistories.set(env.openStoreWithoutDuplicates("history", txn));
@@ -148,13 +140,6 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 		this.rootOfInfo = new byte[32];
 		this.rootOfRequests = new byte[32];
 		this.rootOfHistories = new byte[32];
-
-		roots.get().ifPresent(h -> {
-    		System.arraycopy(h, 0, rootOfResponses, 0, 32);
-    		System.arraycopy(h, 32, rootOfInfo, 0, 32);
-    		System.arraycopy(h, 64, rootOfRequests, 0, 32);
-    		System.arraycopy(h, 96, rootOfHistories, 0, 32);
-    	});
     }
 
 	/**
@@ -325,8 +310,6 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 
 	@Override
 	public void free() throws StoreException {
-		super.free();
-
 		try {
 			CheckRunnable.check(StoreException.class, TrieException.class, () -> env.executeInTransaction(UncheckConsumer.uncheck(txn -> {
 				mkTrieOfRequests(txn).free();
@@ -348,17 +331,6 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 			));
 		}
 		catch (ExodusException | TrieException e) {
-			throw new StoreException(e);
-		}
-	}
-
-	public void moveRootBranchToThis(S oldStore) throws StoreException {
-		var rootAsBI = ByteIterable.fromBytes(getStateId());
-
-		try {
-			env.executeInTransaction(txn -> storeOfInfo.put(txn, ROOT, rootAsBI));
-		}
-		catch (ExodusException e) {
 			throw new StoreException(e);
 		}
 	}

@@ -86,6 +86,7 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.local.AbstractStore;
 import io.hotmoka.node.local.AbstractStoreTranformation;
+import io.hotmoka.node.local.api.CheckableStore;
 import io.hotmoka.node.local.api.LocalNode;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StoreException;
@@ -156,6 +157,8 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	 */
 	public final static String HOTMOKA_VERSION;
 
+	private final static Logger LOGGER = Logger.getLogger(AbstractLocalNodeImpl.class.getName());
+
 	static {
 		// we access the Maven properties from the pom.xml file of the project
 		try (InputStream is = AbstractLocalNodeImpl.class.getModule().getResourceAsStream("io.hotmoka.node.local.maven.properties")) {
@@ -168,8 +171,6 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 			throw new ExceptionInInitializerError(e);
 		}
 	}
-
-	private final static Logger LOGGER = Logger.getLogger(AbstractLocalNodeImpl.class.getName());
 
 	/**
 	 * Creates a new node.
@@ -454,11 +455,11 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 		}
 	}
 
-	protected final void initStore(Optional<ConsensusConfig<?,?>> consensus) throws NodeException {
+	protected void initStore(Optional<ConsensusConfig<?,?>> consensus) throws NodeException {
 		if (consensus.isEmpty()) {
 			try {
-				// we start from a store with empty caches and dummy consensus; this is not a problem
-				// since initCaches() executes run transactions, that do not use the cache and do not depend on the consensus
+				// we start from a store with empty caches and dummy consensus; this is not a problem since
+				// initCaches() executes run transactions only, that do not use the cache and do not depend on the consensus
 				this.store = mkStore(executors, ValidatorsConsensusConfigBuilders.defaults().build(), config, hasher)
 						.initCaches();
 			}
@@ -476,6 +477,14 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 
 	protected final S getStore() {
 		return store;
+	}
+
+	protected final void setStore(S store) {
+		this.store = store;
+	}
+
+	protected final ExecutorService getExecutors() {
+		return executors;
 	}
 
 	protected void signalRejected(TransactionRequest<?> request, TransactionRejectedException e) {
@@ -506,13 +515,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 
 	protected void moveToFinalStoreOf(T transaction) throws NodeException {
 		try {
-			S oldStore = store;
 			store = transaction.getFinalStore();
-			store.moveRootBranchToThis(oldStore);
-
-			if (!storesToGC.offer(oldStore))
-				LOGGER.warning("could not enqueue old store for garbage collection: the queue is full!");
-
 			transaction.forEachDeliveredTransaction(this::signalCompleted);
 			transaction.forEachTriggeredEvent(this::notifyEvent);
 		}
@@ -522,8 +525,14 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	}
 
 	protected void closeResources() throws NodeException, InterruptedException {
-		executors.shutdownNow();
-		executors.awaitTermination(5, TimeUnit.SECONDS);
+		long start = System.currentTimeMillis();
+
+		try {
+			executors.shutdownNow();
+		}
+		finally {
+			executors.awaitTermination(5000 - System.currentTimeMillis() + start, TimeUnit.MILLISECONDS);
+		}
 	}
 
 	/**
@@ -559,9 +568,11 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 			while (!Thread.currentThread().isInterrupted()) {
 				try {
 					S next = storesToGC.take();
-					byte[] id = next.getStateId();
-					next.free();
-					LOGGER.info("garbage collected store " + Hex.toHexString(id));
+					if (next instanceof CheckableStore<?,?> cs) {
+						byte[] id = cs.getStateId();
+						cs.free();
+						LOGGER.info("garbage collected store " + Hex.toHexString(id));
+					}
 				}
 				catch (StoreException e) {
 					LOGGER.log(Level.SEVERE, "could not garbage-collect a store", e);
