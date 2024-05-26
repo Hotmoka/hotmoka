@@ -38,14 +38,15 @@ public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue, TrieOfI
 
 	/**
 	 * Builds a Merkle-Patricia trie that maps miscellaneous information into their value.
+	 * It uses sha256 as hashing algorithm for the trie's nodes and an array of 0's to represent
+	 * the empty trie.
 	 * 
 	 * @param store the supporting key/value store
-	 * @param txn the transaction where updates are reported
 	 * @param root the root of the trie to check out; use empty to create the empty trie
 	 */
-	public TrieOfInfo(KeyValueStore store, Optional<byte[]> root) throws TrieException {
+	public TrieOfInfo(KeyValueStore store, byte[] root) throws TrieException {
 		super(store, root, HashingAlgorithms.identity1().getHasher(key -> new byte[] { key }),
-			sha256(), StorageValue::toByteArray, bytes -> StorageValues.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))));
+			sha256(), new byte[32], StorageValue::toByteArray, bytes -> StorageValues.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))));
 	}
 
 	private TrieOfInfo(TrieOfInfo cloned, byte[] root) throws TrieException {

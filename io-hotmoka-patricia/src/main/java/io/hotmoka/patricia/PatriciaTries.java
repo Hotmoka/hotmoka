@@ -16,8 +16,6 @@ limitations under the License.
 
 package io.hotmoka.patricia;
 
-import java.util.Optional;
-
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.patricia.api.KeyValueStore;
@@ -38,9 +36,10 @@ public final class PatriciaTries {
 	 * 
 	 * @param store the store used to store the nodes of the tree, as a mapping from nodes' hashes
 	 *              to the marshalled representation of the nodes
-	 * @param root the root of the trie; pass it empty to create an empty trie
+	 * @param root the root of the trie
 	 * @param hasherForKeys the hasher for the keys
 	 * @param hashingForNodes the hashing algorithm for the nodes of the trie
+	 * @param hashOfEmpty the hash of the empty trie
 	 * @param valueToBytes a function that marshals values into their byte representation
 	 * @param bytesToValue a function that unmarshals bytes into the represented value
 	 * @param <Key> the type of the keys of the trie
@@ -48,10 +47,10 @@ public final class PatriciaTries {
 	 * @return the trie
 	 * @throws TrieException if the creation cannot be completed correctly
 	 */
-	public static <Key, Value> PatriciaTrie<Key, Value, ?> of(KeyValueStore store, Optional<byte[]> root,
-			Hasher<? super Key> hasherForKeys, HashingAlgorithm hashingForNodes,
+	public static <Key, Value> PatriciaTrie<Key, Value, ?> of(KeyValueStore store, byte[] root,
+			Hasher<? super Key> hasherForKeys, HashingAlgorithm hashingForNodes, byte[] hashOfEmpty,
 			ToBytes<? super Value> valueToBytes, FromBytes<? extends Value> bytesToValue) throws TrieException {
 
-		return new PatriciaTrieImpl<>(store, root, hasherForKeys, hashingForNodes, valueToBytes, bytesToValue);
+		return new PatriciaTrieImpl<>(store, root, hasherForKeys, hashingForNodes, hashOfEmpty, valueToBytes, bytesToValue);
 	}
 }

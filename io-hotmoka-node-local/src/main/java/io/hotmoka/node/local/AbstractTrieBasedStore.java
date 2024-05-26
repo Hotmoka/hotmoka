@@ -28,7 +28,8 @@ import io.hotmoka.xodus.env.Environment;
 
 /**
  * A store of a node, based on tries. It is a container of request/response pairs.
- * Stores are immutable and consequently thread-safe.
+ * Stores are immutable and consequently thread-safe. Its states are arrays of 128 bytes.
+ * It uses an array of 0's to represent the empty store.
  * 
  * @param <S> the type of this store
  * @param <T> the type of the store transformations that can be started from this store

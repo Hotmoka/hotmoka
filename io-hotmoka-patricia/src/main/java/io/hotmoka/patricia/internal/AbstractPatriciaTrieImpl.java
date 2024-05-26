@@ -93,25 +93,50 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 	 * 
 	 * @param store the store used to store the nodes of the tree, as a mapping from nodes' hashes
 	 *              to the marshalled representation of the nodes
-	 * @param root the root of the trie; pass it empty to create an empty trie
+	 * @param root the root of the trie
 	 * @param hasherForKeys the hasher for the keys
 	 * @param hashingForNodes the hashing algorithm for the nodes of the trie
+	 * @param hashOfEmpty the hash of the empty trie
 	 * @param valueToBytes a function that marshals values into their byte representation
 	 * @param bytesToValue a function that unmarshals bytes into the represented value
 	 * @throws TrieException if the creation cannot be completed correctly
 	 */
-	public AbstractPatriciaTrieImpl(KeyValueStore store, Optional<byte[]> root,
-			Hasher<? super Key> hasherForKeys, HashingAlgorithm hashingForNodes,
+	public AbstractPatriciaTrieImpl(KeyValueStore store, byte[] root,
+			Hasher<? super Key> hasherForKeys, HashingAlgorithm hashingForNodes, byte[] hashOfEmpty,
 			ToBytes<? super Value> valueToBytes, FromBytes<? extends Value> bytesToValue) throws TrieException {
 
 		this.store = store;
 		this.hasherForKeys = hasherForKeys;
 		// the hashing of the nodes does not consider the reference counter
-		this.hasherForNodes = hashingForNodes.getHasher(AbstractNode::toByteArrayWithoutReferenceCounter);
+		var hasher = hashingForNodes.getHasher(AbstractNode::toByteArrayWithoutReferenceCounter);
+		this.hashOfEmpty = hashOfEmpty.clone();
+		this.hasherForNodes = new Hasher<>() {
+
+			@Override
+			public byte[] hash(AbstractNode what) {
+				if (what instanceof Empty)
+					return AbstractPatriciaTrieImpl.this.hashOfEmpty;
+				else
+					return hasher.hash(what);
+			}
+
+			@Override
+			public byte[] hash(AbstractNode what, int start, int length) {
+				if (what instanceof Empty)
+					return AbstractPatriciaTrieImpl.this.hashOfEmpty;
+				else
+					return hasher.hash(what, start, length);
+			}
+
+			@Override
+			public int length() {
+				return hasher.length();
+			}
+		};
+
 		this.bytesToValue = bytesToValue;
 		this.valueToBytes = valueToBytes;
-		this.hashOfEmpty = hasherForNodes.hash(EMPTY);
-		this.root = root.orElse(hashOfEmpty);
+		this.root = root.clone();
 	}
 
 	/**

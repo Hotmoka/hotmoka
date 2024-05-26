@@ -16,8 +16,6 @@ limitations under the License.
 
 package io.hotmoka.patricia.internal;
 
-import java.util.Optional;
-
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.patricia.AbstractPatriciaTrie;
@@ -43,15 +41,16 @@ public class PatriciaTrieImpl<Key, Value> extends AbstractPatriciaTrie<Key, Valu
 	 * @param root the root of the trie; pass it empty to create an empty trie
 	 * @param hasherForKeys the hasher for the keys
 	 * @param hashingForNodes the hashing algorithm for the nodes of the trie
+	 * @param hashOfEmpty the hash of the empty trie
 	 * @param valueToBytes a function that marshals values into their byte representation
 	 * @param bytesToValue a function that unmarshals bytes into the represented value
 	 * @throws TrieException if the creation cannot be completed correctly
 	 */
-	public PatriciaTrieImpl(KeyValueStore store, Optional<byte[]> root,
-			Hasher<? super Key> hasherForKeys, HashingAlgorithm hashingForNodes,
+	public PatriciaTrieImpl(KeyValueStore store, byte[] root,
+			Hasher<? super Key> hasherForKeys, HashingAlgorithm hashingForNodes, byte[] hashOfEmpty,
 			ToBytes<? super Value> valueToBytes, FromBytes<? extends Value> bytesToValue) throws TrieException {
 
-		super(store, root, hasherForKeys, hashingForNodes, valueToBytes, bytesToValue);
+		super(store, root, hasherForKeys, hashingForNodes, hashOfEmpty, valueToBytes, bytesToValue);
 	}
 
 	/**

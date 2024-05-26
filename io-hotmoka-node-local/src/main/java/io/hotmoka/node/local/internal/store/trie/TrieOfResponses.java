@@ -42,6 +42,8 @@ import io.hotmoka.patricia.api.UnknownKeyException;
 /**
  * A Merkle-Patricia trie that maps references to transaction requests into their responses.
  * It optimizes the trie by sharing identical jars in responses containing an instrumented jar.
+ * It uses sha256 as hashing algorithm for the trie's nodes and an array of 0's to represent
+ * the empty trie.
  */
 public class TrieOfResponses extends AbstractPatriciaTrie<TransactionReference, TransactionResponse, TrieOfResponses> {
 
@@ -58,9 +60,9 @@ public class TrieOfResponses extends AbstractPatriciaTrie<TransactionReference, 
 	 * @param store the supporting key/value store
 	 * @param root the root of the trie to check out; use empty to create the empty trie
 	 */
-	public TrieOfResponses(KeyValueStore store, Optional<byte[]> root) throws TrieException {
+	public TrieOfResponses(KeyValueStore store, byte[] root) throws TrieException {
 		super(store, root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
-			sha256(), TransactionResponse::toByteArray, bytes -> TransactionResponses.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))));
+			sha256(), new byte[32], TransactionResponse::toByteArray, bytes -> TransactionResponses.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))));
 
 		this.hasherForJars = sha256().getHasher(Function.identity());
 	}

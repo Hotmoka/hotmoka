@@ -141,7 +141,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 
 	protected final byte[] getStateId() throws NodeException {
 		try {
-			return getStore().getHash();
+			return getStore().getTendermintHash();
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);

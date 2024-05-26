@@ -33,6 +33,8 @@ import io.hotmoka.patricia.api.TrieException;
 /**
  * A map from storage references to an array of transaction references (their <i>history</i>),
  * backed by a Merkle-Patricia trie.
+ * It uses sha256 as hashing algorithm for the trie's nodes and an array of 0's to represent
+ * the empty trie.
  */
 public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stream<TransactionReference>, TrieOfHistories> {
 
@@ -41,12 +43,11 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 	 * an array of transaction references (their <i>history</i>).
 	 * 
 	 * @param store the supporting key/value store
-	 * @param txn the transaction where updates are reported
 	 * @param root the root of the trie to check out; use empty to create the empty trie
 	 */
-	public TrieOfHistories(KeyValueStore store, Optional<byte[]> root) throws TrieException {
+	public TrieOfHistories(KeyValueStore store, byte[] root) throws TrieException {
 		super(store, root, sha256().getHasher(StorageReference::toByteArrayWithoutSelector),
-			sha256(), s -> new MarshallableArrayOfTransactionReferences(s.toArray(TransactionReference[]::new)).toByteArray(), // TODO: avoid using marshallables
+			sha256(),  new byte[32], s -> new MarshallableArrayOfTransactionReferences(s.toArray(TransactionReference[]::new)).toByteArray(), // TODO: avoid using marshallables
 			bytes -> Stream.of(MarshallableArrayOfTransactionReferences.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))).transactions));
 	}
 

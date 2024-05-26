@@ -124,11 +124,11 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
     }
 
     /**
-     * Yields the hash of this store. It is computed from the roots of its tries.
+     * Yields the hash of this store, for Tendermint. It is computed from the roots of its tries.
      * 
-     * @return the hash. If the store is currently empty, it yields an empty array of bytes
+     * @return the hash; if the store is currently empty, it yields an empty array of bytes
      */
-    protected byte[] getHash() throws StoreException {
+    protected byte[] getTendermintHash() throws StoreException {
     	if (isEmpty())
     		return new byte[0]; // Tendermint requires an empty array at the beginning, for consensus
     	else

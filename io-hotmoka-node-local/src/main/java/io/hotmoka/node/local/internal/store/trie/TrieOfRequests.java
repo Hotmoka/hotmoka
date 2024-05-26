@@ -18,7 +18,6 @@ package io.hotmoka.node.local.internal.store.trie;
 
 import java.io.ByteArrayInputStream;
 import java.security.NoSuchAlgorithmException;
-import java.util.Optional;
 
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.HashingAlgorithm;
@@ -32,6 +31,8 @@ import io.hotmoka.patricia.api.TrieException;
 
 /**
  * A Merkle-Patricia trie that maps references to transaction requests into their request itself.
+ * It uses sha256 as hashing algorithm for the trie's nodes and an array of 0's to represent
+ * the empty trie.
  */
 public class TrieOfRequests extends AbstractPatriciaTrie<TransactionReference, TransactionRequest<?>, TrieOfRequests> {
 
@@ -41,9 +42,9 @@ public class TrieOfRequests extends AbstractPatriciaTrie<TransactionReference, T
 	 * @param store the supporting key/value store
 	 * @param root the root of the trie to check out; use empty to create the empty trie
 	 */
-	public TrieOfRequests(KeyValueStore store, Optional<byte[]> root) throws TrieException {
+	public TrieOfRequests(KeyValueStore store, byte[] root) throws TrieException {
 		super(store, root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
-			sha256(), TransactionRequest<?>::toByteArray, bytes -> TransactionRequests.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))));
+			sha256(),  new byte[32], TransactionRequest<?>::toByteArray, bytes -> TransactionRequests.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))));
 	}
 
 	private TrieOfRequests(TrieOfRequests cloned, byte[] root) throws TrieException {

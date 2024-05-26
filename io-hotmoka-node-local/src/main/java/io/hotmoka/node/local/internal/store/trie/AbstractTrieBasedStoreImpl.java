@@ -51,7 +51,8 @@ import io.hotmoka.xodus.env.Transaction;
 
 /**
  * Partial implementation of a store of a node, based on tries. It is a container of request/response pairs.
- * Stores are immutable and consequently thread-safe.
+ * Stores are immutable and consequently thread-safe. Its states are arrays of 128 bytes.
+ * It uses an array of 0's to represent the empty store.
  * 
  * @param <S> the type of this store
  * @param <T> the type of the store transformations that can be started from this store
@@ -87,24 +88,24 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 	private final io.hotmoka.xodus.env.Store storeOfHistories;
 
 	/**
-	 * The root of the trie of the responses. It is empty if the trie is empty.
+	 * The root of the trie of the responses.
 	 */
-	private final Optional<byte[]> rootOfResponses;
+	private final byte[] rootOfResponses;
 
 	/**
-	 * The root of the trie of the miscellaneous info. It is empty if the trie is empty.
+	 * The root of the trie of the miscellaneous info.
 	 */
-	private final Optional<byte[]> rootOfInfo;
+	private final byte[] rootOfInfo;
 
 	/**
-	 * The root of the trie of the requests. It is empty if the trie is empty.
+	 * The root of the trie of the requests.
 	 */
-	private final Optional<byte[]> rootOfRequests;
+	private final byte[] rootOfRequests;
 
 	/**
-	 * The root of the trie of histories. It is empty if the trie is empty.
+	 * The root of the trie of histories.
 	 */
-	private final Optional<byte[]> rootOfHistories;
+	private final byte[] rootOfHistories;
 
 	/**
 	 * The key used inside {@link #storeOfInfo} to keep the root.
@@ -126,18 +127,14 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
     	this.env = env;
 
 		var storeOfInfo = new AtomicReference<io.hotmoka.xodus.env.Store>();
+		var storeOfResponses = new AtomicReference<io.hotmoka.xodus.env.Store>();
+		var storeOfRequests = new AtomicReference<io.hotmoka.xodus.env.Store>();
+		var storeOfHistories = new AtomicReference<io.hotmoka.xodus.env.Store>();
 		var roots = new AtomicReference<Optional<byte[]>>();
 
 		env.executeInTransaction(txn -> {
 			storeOfInfo.set(env.openStoreWithoutDuplicates("info", txn));
     		roots.set(Optional.ofNullable(storeOfInfo.get().get(txn, ROOT)).map(ByteIterable::getBytes));
-    	});
-
-    	var storeOfResponses = new AtomicReference<io.hotmoka.xodus.env.Store>();
-		var storeOfRequests = new AtomicReference<io.hotmoka.xodus.env.Store>();
-		var storeOfHistories = new AtomicReference<io.hotmoka.xodus.env.Store>();
-
-		env.executeInTransaction(txn -> {
 			storeOfResponses.set(env.openStoreWithoutDuplicates("responses", txn));
 			storeOfRequests.set(env.openStoreWithoutDuplicates("requests", txn));
 			storeOfHistories.set(env.openStoreWithoutDuplicates("history", txn));
@@ -147,32 +144,17 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
     	this.storeOfInfo = storeOfInfo.get();
 		this.storeOfRequests = storeOfRequests.get();
 		this.storeOfHistories = storeOfHistories.get();
+		this.rootOfResponses = new byte[32];
+		this.rootOfInfo = new byte[32];
+		this.rootOfRequests = new byte[32];
+		this.rootOfHistories = new byte[32];
 
-    	Optional<byte[]> hashesOfRoots = roots.get();
-
-    	if (hashesOfRoots.isEmpty()) {
-    		rootOfResponses = Optional.empty();
-    		rootOfInfo = Optional.empty();
-    		rootOfRequests = Optional.empty();
-    		rootOfHistories = Optional.empty();
-    	}
-    	else {
-    		var rootOfResponses = new byte[32];
-    		System.arraycopy(hashesOfRoots.get(), 0, rootOfResponses, 0, 32);
-    		this.rootOfResponses = Optional.of(rootOfResponses);
-
-    		var rootOfInfo = new byte[32];
-    		System.arraycopy(hashesOfRoots.get(), 32, rootOfInfo, 0, 32);
-    		this.rootOfInfo = Optional.of(rootOfInfo);
-
-    		var rootOfRequests = new byte[32];
-    		System.arraycopy(hashesOfRoots.get(), 64, rootOfRequests, 0, 32);
-    		this.rootOfRequests = Optional.of(rootOfRequests);
-
-    		var rootOfHistory = new byte[32];
-    		System.arraycopy(hashesOfRoots.get(), 96, rootOfHistory, 0, 32);
-    		this.rootOfHistories = Optional.of(rootOfHistory);
-    	}
+		roots.get().ifPresent(h -> {
+    		System.arraycopy(h, 0, rootOfResponses, 0, 32);
+    		System.arraycopy(h, 32, rootOfInfo, 0, 32);
+    		System.arraycopy(h, 64, rootOfRequests, 0, 32);
+    		System.arraycopy(h, 96, rootOfHistories, 0, 32);
+    	});
     }
 
 	/**
@@ -193,10 +175,10 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
     	this.storeOfInfo = toClone.storeOfInfo;
     	this.storeOfHistories = toClone.storeOfHistories;
     	this.storeOfRequests = toClone.storeOfRequests;
-    	this.rootOfResponses = Optional.of(rootOfResponses);
-    	this.rootOfInfo = Optional.of(rootOfInfo);
-    	this.rootOfHistories = Optional.of(rootOfHistories);
-    	this.rootOfRequests = Optional.of(rootOfRequests);
+    	this.rootOfResponses = rootOfResponses;
+    	this.rootOfInfo = rootOfInfo;
+    	this.rootOfHistories = rootOfHistories;
+    	this.rootOfRequests = rootOfRequests;
     }
 
 	/**
@@ -311,8 +293,14 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 	}
 
 	@Override
-	public byte[] getStateId() throws StoreException {
-		return mergeRootsOfTries();
+	public byte[] getStateId() {
+		var result = new byte[128];
+		System.arraycopy(rootOfResponses, 0, result, 0, 32);
+		System.arraycopy(rootOfInfo, 0, result, 32, 32);
+		System.arraycopy(rootOfRequests, 0, result, 64, 32);
+		System.arraycopy(rootOfHistories, 0, result, 96, 32);
+
+		return result;
 	}
 
 	@Override
@@ -417,26 +405,14 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 	 * @return true if and only if that condition holds
 	 */
 	protected boolean isEmpty() {
-		return rootOfResponses.isEmpty() && rootOfInfo.isEmpty() && rootOfRequests.isEmpty() && rootOfHistories.isEmpty();
+		return isEmpty(rootOfResponses) && isEmpty(rootOfInfo) && isEmpty(rootOfRequests) && isEmpty(rootOfHistories);
 	}
 
-	/**
-	 * Yields the concatenation of the roots of the tries in this store,
-	 * resulting after all updates performed to the store. Hence, they point
-	 * to the latest view of the store.
-	 * 
-	 * @return the concatenation
-	 */
-	private byte[] mergeRootsOfTries() throws StoreException {
-		var result = new byte[128];
-		// TODO: remove Optional!!
-		System.arraycopy(rootOfResponses.orElse(EMPTY), 0, result, 0, 32);
-		System.arraycopy(rootOfInfo.orElse(EMPTY), 0, result, 32, 32);
-		System.arraycopy(rootOfRequests.orElse(EMPTY), 0, result, 64, 32);
-		System.arraycopy(rootOfHistories.orElse(EMPTY), 0, result, 96, 32);
+	private static boolean isEmpty(byte[] hash) {
+		for (byte b: hash)
+			if (b != 0)
+				return false;
 
-		return result;
+		return true;
 	}
-
-	private final static byte[] EMPTY = new byte[32];
 }
