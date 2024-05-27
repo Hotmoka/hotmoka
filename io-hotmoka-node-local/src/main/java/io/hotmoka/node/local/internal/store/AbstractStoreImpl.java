@@ -65,7 +65,7 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 	private final static Logger LOGGER = Logger.getLogger(AbstractStoreImpl.class.getName());
 
 	/**
-	 * Creates a store.
+	 * Creates an empty store.
 	 * 
 	 * @param executors the executors to use for running transactions
 	 * @param consensus the consensus configuration of the node having the store
@@ -82,10 +82,10 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 	}
 
 	/**
-	 * Creates a clone of a store.
+	 * Creates a clone of a store, up to the cache.
 	 * 
 	 * @param toClone the store to clone
-	 * @param cache to caches to use in the cloned store
+	 * @param cache the cache to use in the cloned store
 	 */
 	protected AbstractStoreImpl(AbstractStoreImpl<S, T> toClone, StoreCache cache) {
 		super(toClone.getExecutors());

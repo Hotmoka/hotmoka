@@ -81,22 +81,28 @@ public class TendermintNodeImpl extends AbstractCheckableLocalNode<TendermintNod
 	private final boolean isWindows;
 
 	/**
-	 * Builds a brand new Tendermint blockchain. This constructor spawns the Tendermint process on localhost
+	 * Builds a Tendermint node. This constructor spawns the Tendermint process on localhost
 	 * and connects it to an ABCI application for handling its transactions.
 	 * 
 	 * @param config the configuration of the blockchain
-	 * @param consensus the consensus parameters of the node
+	 * @param consensus the consensus parameters of the node; if empty, the previous store saved on disk will
+	 *                  be resumed and the consensus extracted from there
 	 * @throws NodeException if the operation cannot be completed correctly
 	 * @throws InterruptedException the the currently thread is interrupted before completing the construction
 	 */
 	public TendermintNodeImpl(TendermintNodeConfig config, Optional<ConsensusConfig<?,?>> consensus) throws NodeException, InterruptedException {
 		super(consensus, config);
 
+		this.isWindows = System.getProperty("os.name").startsWith("Windows");
+
 		try {
-			this.isWindows = System.getProperty("os.name").startsWith("Windows");
-			initStore(consensus);
-			if (consensus.isPresent())
+			if (consensus.isPresent()) {
+				initWithEmptyStore(consensus.get());
 				initWorkingDirectoryOfTendermintProcess(config);
+			}
+			else
+				initWithSavedStore();
+
 			var tendermintConfigFile = new TendermintConfigFile(config);
 			this.poster = new TendermintPoster(config, tendermintConfigFile.tendermintPort);
 			this.abci = new Server(tendermintConfigFile.abciPort, new TendermintApplication(this, poster));

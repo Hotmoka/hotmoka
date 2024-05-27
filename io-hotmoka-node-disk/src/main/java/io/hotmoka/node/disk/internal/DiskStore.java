@@ -95,10 +95,10 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
 	/**
 	 * The height of the block having this store.
 	 */
-	private final int blockHeight;
+	private final int height;
 
 	/**
-     * Creates the starting disk store of a node.
+     * Creates an empty disk store for a node.
 	 * 
 	 * @param executors the executors to use for running transactions
 	 * @param consensus the consensus configuration of the node having the store
@@ -116,11 +116,11 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
     	this.deltaResponses = new ConcurrentHashMap<>();
     	this.deltaHistories = new ConcurrentHashMap<>();
     	this.manifest = Optional.empty();
-    	this.blockHeight = 0;
+    	this.height = 0;
     }
 
 	/**
-     * Clones a disk store, using the given cache.
+     * Clones a disk store, up to the cache.
      */
     private DiskStore(DiskStore toClone, StoreCache cache) {
     	super(toClone, cache);
@@ -134,7 +134,7 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
     	this.deltaResponses = toClone.deltaResponses;
     	this.deltaHistories = toClone.deltaHistories;
     	this.manifest = toClone.manifest;
-    	this.blockHeight = toClone.blockHeight;
+    	this.height = toClone.height;
     }
 
 	/**
@@ -191,7 +191,7 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
     	}
 
     	this.manifest = addedManifest.or(() -> toClone.manifest);
-    	this.blockHeight = toClone.blockHeight + 1;
+    	this.height = toClone.height + 1;
 
 		int progressive = 0;
 		// by iterating on the requests, we get them in order of addition to the transformation,
@@ -243,7 +243,7 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
 
 	@Override
 	public long getHeight() {
-		return blockHeight;
+		return height;
 	}
 
 	@Override
@@ -302,7 +302,7 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
 	 * @throws FileNotFoundException if the reference is unknown
 	 */
 	private Path getPathFor(int progressive, TransactionReference reference, String name) throws FileNotFoundException {
-		return dir.resolve("b" + blockHeight).resolve(progressive + "-" + reference).resolve(name);
+		return dir.resolve("b" + height).resolve(progressive + "-" + reference).resolve(name);
 	}
 
 	/**

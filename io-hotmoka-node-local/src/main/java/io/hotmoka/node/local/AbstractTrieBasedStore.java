@@ -38,7 +38,7 @@ import io.hotmoka.xodus.env.Environment;
 public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S, T>, T extends AbstractTrieBasedStoreTransformation<S, T>> extends AbstractTrieBasedStoreImpl<S, T> {
 
 	/**
-	 * Creates a store.
+	 * Creates an empty store.
 	 * 
 	 * @param env the Xodus environment to use for storing the tries
 	 * @param executors the executors to use for running transactions
@@ -51,17 +51,17 @@ public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S,
     }
 
 	/**
-	 * Creates a clone of a store.
+	 * Creates a clone of a store, up to the cache.
 	 * 
 	 * @param toClone the store to clone
-	 * @param cache to caches to use in the cloned store
+	 * @param cache the cache to use in the cloned store
 	 */
     protected AbstractTrieBasedStore(AbstractTrieBasedStore<S, T> toClone, StoreCache cache) {
     	super(toClone, cache);
     }
 
 	/**
-	 * Creates a clone of a store.
+	 * Creates a clone of a store, up to cache and roots.
 	 * 
 	 * @param toClone the store to clone
 	 * @param cache to caches to use in the cloned store

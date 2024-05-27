@@ -59,7 +59,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, DiskStore, D
 		super(Optional.of(consensus), config);
 
 		try {
-			initStore(Optional.of(consensus));
+			initWithEmptyStore(consensus);
 			this.mempool = new Mempool(this, config.getTransactionsPerBlock());
 		}
 		catch (NodeException e) {

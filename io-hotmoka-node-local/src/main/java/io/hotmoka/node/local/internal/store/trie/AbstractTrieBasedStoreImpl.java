@@ -21,7 +21,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
@@ -107,7 +106,7 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 	private final byte[] rootOfHistories;
 
 	/**
-	 * Creates a store.
+	 * Creates an empty store.
 	 * 
 	 * @param env the Xodus environment to use for creating the tries
 	 * @param executors the executors to use for running transactions
@@ -119,23 +118,10 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
     	super(executors, consensus, config, hasher);
 
     	this.env = env;
-
-		var storeOfInfo = new AtomicReference<io.hotmoka.xodus.env.Store>();
-		var storeOfResponses = new AtomicReference<io.hotmoka.xodus.env.Store>();
-		var storeOfRequests = new AtomicReference<io.hotmoka.xodus.env.Store>();
-		var storeOfHistories = new AtomicReference<io.hotmoka.xodus.env.Store>();
-
-		env.executeInTransaction(txn -> {
-			storeOfInfo.set(env.openStoreWithoutDuplicates("info", txn));
-			storeOfResponses.set(env.openStoreWithoutDuplicates("responses", txn));
-			storeOfRequests.set(env.openStoreWithoutDuplicates("requests", txn));
-			storeOfHistories.set(env.openStoreWithoutDuplicates("history", txn));
-		});
-
-    	this.storeOfResponses = storeOfResponses.get();
-    	this.storeOfInfo = storeOfInfo.get();
-		this.storeOfRequests = storeOfRequests.get();
-		this.storeOfHistories = storeOfHistories.get();
+    	this.storeOfResponses = env.computeInTransaction(txn -> env.openStoreWithoutDuplicates("responses", txn));
+    	this.storeOfInfo = env.computeInTransaction(txn -> env.openStoreWithoutDuplicates("info", txn));
+		this.storeOfRequests = env.computeInTransaction(txn -> env.openStoreWithoutDuplicates("requests", txn));
+		this.storeOfHistories = env.computeInTransaction(txn -> env.openStoreWithoutDuplicates("histories", txn));
 		this.rootOfResponses = new byte[32];
 		this.rootOfInfo = new byte[32];
 		this.rootOfRequests = new byte[32];
@@ -143,10 +129,10 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
     }
 
 	/**
-	 * Creates a clone of a store.
+	 * Creates a clone of a store, up to cache and roots.
 	 * 
 	 * @param toClone the store to clone
-	 * @param cache to caches to use in the cloned store
+	 * @param cache the cache to use in the cloned store
 	 * @param rootOfResponse the root to use for the tries of responses
 	 * @param rootOfInfo the root to use for the tries of infos
 	 * @param rootOfHistories the root to use for the tries of histories
@@ -167,23 +153,13 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
     }
 
 	/**
-	 * Creates a clone of store.
+	 * Creates a clone of store, up to cache.
 	 * 
 	 * @param toClone the store to clone
-	 * @param cache to caches to use in the cloned store
+	 * @param cache the cache to use in the cloned store
 	 */
     protected AbstractTrieBasedStoreImpl(AbstractTrieBasedStoreImpl<S, T> toClone, StoreCache cache) {
-    	super(toClone, cache);
-
-    	this.env = toClone.env;
-    	this.storeOfResponses = toClone.storeOfResponses;
-    	this.storeOfInfo = toClone.storeOfInfo;
-    	this.storeOfHistories = toClone.storeOfHistories;
-    	this.storeOfRequests = toClone.storeOfRequests;
-    	this.rootOfResponses = toClone.rootOfResponses;
-    	this.rootOfInfo = toClone.rootOfInfo;
-    	this.rootOfHistories = toClone.rootOfHistories;
-    	this.rootOfRequests = toClone.rootOfRequests;
+    	this(toClone, cache, toClone.rootOfResponses, toClone.rootOfInfo, toClone.rootOfHistories, toClone.rootOfRequests);
     }
 
     @Override
@@ -228,7 +204,7 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
     protected abstract S make(StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests);
 
     @Override
-	public TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, StoreException {
+	public final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, StoreException {
     	try {
     		return CheckSupplier.check(TrieException.class, StoreException.class, () ->
     			env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> mkTrieOfRequests(txn).get(reference)))
@@ -241,7 +217,7 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 	}
 
 	@Override
-    public TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, StoreException {
+    public final TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, StoreException {
     	try {
     		return CheckSupplier.check(TrieException.class, StoreException.class, () ->
     			env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> mkTrieOfResponses(txn).get(reference)))
@@ -254,7 +230,7 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 	}
 
 	@Override
-	public Optional<StorageReference> getManifest() throws StoreException {
+	public final Optional<StorageReference> getManifest() throws StoreException {
 		try {
 			return CheckSupplier.check(TrieException.class, StoreException.class, () ->
 				env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> mkTrieOfInfo(txn).getManifest())
@@ -266,7 +242,7 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 	}
 
 	@Override
-	public Stream<TransactionReference> getHistory(StorageReference object) throws StoreException, UnknownReferenceException {
+	public final Stream<TransactionReference> getHistory(StorageReference object) throws StoreException, UnknownReferenceException {
 		try {
 			return CheckSupplier.check(TrieException.class, StoreException.class, () -> env.computeInReadonlyTransaction
 				(UncheckFunction.uncheck(txn -> mkTrieOfHistories(txn).get(object))))
@@ -278,7 +254,19 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 	}
 
 	@Override
-	public byte[] getStateId() {
+	public final long getHeight() throws StoreException {
+		try {
+			return CheckSupplier.check(TrieException.class, StoreException.class, () ->
+				env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> mkTrieOfInfo(txn).getHeight())
+			));
+		}
+		catch (ExodusException | TrieException e) {
+			throw new StoreException(e);
+		}
+	}
+
+	@Override
+	public final byte[] getStateId() {
 		var result = new byte[128];
 		System.arraycopy(rootOfResponses, 0, result, 0, 32);
 		System.arraycopy(rootOfInfo, 0, result, 32, 32);
@@ -289,7 +277,7 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 	}
 
 	@Override
-	public S checkoutAt(byte[] stateId) throws StoreException {
+	public final S checkoutAt(byte[] stateId) throws StoreException {
 		var rootOfResponses = new byte[32];
 		System.arraycopy(stateId, 0, rootOfResponses, 0, 32);
 		var rootOfInfo = new byte[32];
@@ -309,7 +297,7 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 	}
 
 	@Override
-	public void free() throws StoreException {
+	public final void free() throws StoreException {
 		try {
 			CheckRunnable.check(StoreException.class, TrieException.class, () -> env.executeInTransaction(UncheckConsumer.uncheck(txn -> {
 				mkTrieOfRequests(txn).free();
@@ -323,19 +311,16 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 		}
 	}
 
-	@Override
-	public long getHeight() throws StoreException {
-		try {
-			return CheckSupplier.check(TrieException.class, StoreException.class, () ->
-				env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> mkTrieOfInfo(txn).getHeight())
-			));
-		}
-		catch (ExodusException | TrieException e) {
-			throw new StoreException(e);
-		}
+	/**
+	 * Determines if all roots of the tries in this store are empty.
+	 * 
+	 * @return true if and only if that condition holds
+	 */
+	protected final boolean isEmpty() {
+		return isEmpty(rootOfResponses) && isEmpty(rootOfInfo) && isEmpty(rootOfRequests) && isEmpty(rootOfHistories);
 	}
 
-	protected TrieOfResponses mkTrieOfResponses(Transaction txn) throws StoreException {
+	private TrieOfResponses mkTrieOfResponses(Transaction txn) throws StoreException {
 		try {
 			return new TrieOfResponses(new KeyValueStoreOnXodus(storeOfResponses, txn), rootOfResponses);
 		}
@@ -344,7 +329,7 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 		}
 	}
 
-	protected TrieOfInfo mkTrieOfInfo(Transaction txn) throws StoreException {
+	private TrieOfInfo mkTrieOfInfo(Transaction txn) throws StoreException {
 		try {
 			return new TrieOfInfo(new KeyValueStoreOnXodus(storeOfInfo, txn), rootOfInfo);
 		}
@@ -353,7 +338,7 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 		}
 	}
 
-	protected TrieOfRequests mkTrieOfRequests(Transaction txn) throws StoreException {
+	private TrieOfRequests mkTrieOfRequests(Transaction txn) throws StoreException {
 		try {
 			return new TrieOfRequests(new KeyValueStoreOnXodus(storeOfRequests, txn), rootOfRequests);
 		}
@@ -362,22 +347,13 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 		}
 	}
 
-	protected TrieOfHistories mkTrieOfHistories(Transaction txn) throws StoreException {
+	private TrieOfHistories mkTrieOfHistories(Transaction txn) throws StoreException {
 		try {
 			return new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistories, txn), rootOfHistories);
 		}
 		catch (TrieException e) {
 			throw new StoreException(e);
 		}
-	}
-
-	/**
-	 * Determines if all roots of the tries in this store are empty.
-	 * 
-	 * @return true if and only if that condition holds
-	 */
-	protected boolean isEmpty() {
-		return isEmpty(rootOfResponses) && isEmpty(rootOfInfo) && isEmpty(rootOfRequests) && isEmpty(rootOfHistories);
 	}
 
 	private static boolean isEmpty(byte[] hash) {

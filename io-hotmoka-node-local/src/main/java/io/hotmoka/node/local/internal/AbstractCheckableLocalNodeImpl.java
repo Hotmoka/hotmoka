@@ -91,11 +91,11 @@ public abstract class AbstractCheckableLocalNodeImpl<C extends LocalNodeConfig<C
 	}
 
 	@Override
-	protected void initStore(Optional<ConsensusConfig<?, ?>> consensus) throws NodeException {
-		super.initStore(consensus);
+	protected void initWithSavedStore() throws NodeException {
+		super.initWithSavedStore();
 
 		var roots = env.computeInTransaction(txn -> Optional.ofNullable(storeOfNode.get(txn, ROOT)).map(ByteIterable::getBytes));
-		System.out.println("Checkable.initStore(): " + roots);
+		System.out.println("Checkable.initWithSavedStore(): " + roots);
 
 		if (roots.isPresent()) {
 			try {

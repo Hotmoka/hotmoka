@@ -36,7 +36,7 @@ import io.hotmoka.node.local.internal.store.AbstractStoreImpl;
 public abstract class AbstractStore<S extends AbstractStore<S,T>, T extends AbstractStoreTranformation<S, T>> extends AbstractStoreImpl<S, T> {
 
 	/**
-	 * Creates a store.
+	 * Creates an empty store.
 	 * 
 	 * @param executors the executors to use for running transactions
 	 * @param consensus the consensus configuration of the node having the store
@@ -48,10 +48,10 @@ public abstract class AbstractStore<S extends AbstractStore<S,T>, T extends Abst
 	}
 
 	/**
-	 * Creates a clone of a store.
+	 * Creates a clone of a store, up to the cache.
 	 * 
 	 * @param toClone the store to clone
-	 * @param cache to caches to use in the cloned store
+	 * @param cache the cache to use in the cloned store
 	 */
 	protected AbstractStore(AbstractStore<S, T> toClone, StoreCache cache) {
 		super(toClone, cache);

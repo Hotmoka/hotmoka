@@ -455,24 +455,37 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 		}
 	}
 
-	protected void initStore(Optional<ConsensusConfig<?,?>> consensus) throws NodeException {
-		if (consensus.isEmpty()) {
-			try {
-				// we start from a store with empty caches and dummy consensus; this is not a problem since
-				// initCaches() executes run transactions only, that do not use the cache and do not depend on the consensus
-				this.store = mkStore(executors, ValidatorsConsensusConfigBuilders.defaults().build(), config, hasher)
-						.initCaches();
-			}
-			catch (NoSuchAlgorithmException e) {
-				throw new NodeException(e);
-			}
-			catch (StoreException e) {
-				throw new NodeException("Cannot fill the cache of the store: was the node already initialized?", e);
-			}
+	/**
+	 * Initializes the node with an empty store.
+	 * 
+	 * @param consensus the initial consensus of the node
+	 * @throws NodeException if the operation cannot be completed correctly
+	 */
+	protected void initWithEmptyStore(ConsensusConfig<?,?> consensus) throws NodeException {
+		// the node is starting from scratch: the caches are left empty and the consensus is well-known
+		this.store = mkStore(executors, consensus, config, hasher);
+	}
+
+	/**
+	 * Initializes the node with the last saved store, hence resuming a node
+	 * from its saved state. The saved store must have been initialized, so that
+	 * the consensus can be extracted from the saved store.
+	 * 
+	 * @throws NodeException if the operation cannot be completed correctly
+	 */
+	protected void initWithSavedStore() throws NodeException {
+		try {
+			// we create a store with empty caches and dummy consensus and then initialize its cache and consensus;
+			// this is not a problem since initCaches() executes run transactions only, that do not use
+			// the cache and do not depend on the consensus
+			this.store = mkStore(executors, ValidatorsConsensusConfigBuilders.defaults().build(), config, hasher).initCaches();
 		}
-		else
-			// the node is starting from scratch: the caches are left empty and the consensus is well-known
-			this.store = mkStore(executors, consensus.get(), config, hasher);
+		catch (NoSuchAlgorithmException e) {
+			throw new NodeException(e);
+		}
+		catch (StoreException e) {
+			throw new NodeException("Cannot fill the cache of the store: was the node already initialized?", e);
+		}
 	}
 
 	protected final S getStore() {

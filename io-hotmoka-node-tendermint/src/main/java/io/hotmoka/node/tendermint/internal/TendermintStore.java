@@ -56,7 +56,7 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
 	private volatile Optional<TendermintValidator[]> validators;
 
 	/**
-     * Creates a store for the Tendermint blockchain.
+     * Creates an empty store for the Tendermint blockchain.
 	 * 
 	 * @param env the Xodus environment to use for storing the tries
 	 * @param executors the executors to use for running transactions
@@ -78,7 +78,7 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
     }
 
 	/**
-	 * Creates a clone of a store.
+	 * Creates a clone of a store, up to cache and roots.
 	 * 
 	 * @param toClone the store to clone
 	 * @param cache to caches to use in the cloned store
@@ -95,10 +95,10 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
 	}
 
 	/**
-	 * Creates a clone of a store.
+	 * Creates a clone of a store, up to cache.
 	 * 
 	 * @param toClone the store to clone
-	 * @param cache to caches to use in the cloned store
+	 * @param cache the cache to use in the cloned store
 	 */
     private TendermintStore(TendermintStore toClone, StoreCache cache) {
     	super(toClone, cache);
