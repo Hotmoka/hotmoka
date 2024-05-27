@@ -39,7 +39,7 @@ public abstract class AbstractLocalNode<C extends LocalNodeConfig<C,?>, S extend
 	 * Creates a node.
 	 * 
 	 * @param consensus the consensus configuration of the node; if missing, this will be extracted
-	 *                  from the database of the node
+	 *                  from the saved state of the node
 	 * @param config the local configuration of the node
 	 * @throws NodeException if the node could not be created
 	 */

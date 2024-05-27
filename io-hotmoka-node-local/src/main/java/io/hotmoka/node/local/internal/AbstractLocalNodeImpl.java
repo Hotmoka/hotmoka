@@ -28,12 +28,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -45,7 +43,6 @@ import java.util.stream.Stream;
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.closeables.AbstractAutoCloseableWithLockAndOnCloseHandlers;
 import io.hotmoka.crypto.HashingAlgorithms;
-import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.exceptions.CheckRunnable;
 import io.hotmoka.exceptions.UncheckConsumer;
@@ -55,7 +52,6 @@ import io.hotmoka.node.JarFutures;
 import io.hotmoka.node.SubscriptionsManagers;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.UninitializedNodeException;
-import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.ConstructorFuture;
 import io.hotmoka.node.api.JarFuture;
@@ -86,7 +82,6 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.local.AbstractStore;
 import io.hotmoka.node.local.AbstractStoreTranformation;
-import io.hotmoka.node.local.api.CheckableStore;
 import io.hotmoka.node.local.api.LocalNode;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StoreException;
@@ -143,11 +138,6 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	private final LRUCache<TransactionReference, String> recentlyRejectedTransactionsMessages;
 
 	/**
-	 * The queue of old stores to garbage-collect.
-	 */
-	private final BlockingQueue<S> storesToGC = new LinkedBlockingDeque<>(1_000);
-
-	/**
 	 * The store of this node.
 	 */
 	private volatile S store;
@@ -176,7 +166,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	 * Creates a new node.
 	 * 
 	 * @param consensus the consensus configuration of the node; if missing, this will be extracted
-	 *                  from the database of the node
+	 *                  from the saved state of the node
 	 * @param config the configuration of the node
 	 * @throws NodeException if the operation cannot be completed correctly
 	 */
@@ -198,9 +188,6 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 			initWorkingDirectory();
 
 		this.executors = Executors.newCachedThreadPool();
-
-		// we start the garbage-collection task
-		executors.execute(this::gc);
 
 		addShutdownHook();
 	}
@@ -473,20 +460,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	 * 
 	 * @throws NodeException if the operation cannot be completed correctly
 	 */
-	protected void initWithSavedStore() throws NodeException {
-		try {
-			// we create a store with empty caches and dummy consensus and then initialize its cache and consensus;
-			// this is not a problem since initCaches() executes run transactions only, that do not use
-			// the cache and do not depend on the consensus
-			this.store = mkStore(executors, ValidatorsConsensusConfigBuilders.defaults().build(), config, hasher).initCaches();
-		}
-		catch (NoSuchAlgorithmException e) {
-			throw new NodeException(e);
-		}
-		catch (StoreException e) {
-			throw new NodeException("Cannot fill the cache of the store: was the node already initialized?", e);
-		}
-	}
+	protected abstract void initWithSavedStore() throws NodeException;
 
 	protected final S getStore() {
 		return store;
@@ -570,30 +544,6 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 		}
 		catch (IOException e) {
 			throw new NodeException(e);
-		}
-	}
-
-	/**
-	 * The garbage-collection routine. It takes stores to garbage-collect and frees them.
-	 */
-	private void gc()  {
-		try {
-			while (!Thread.currentThread().isInterrupted()) {
-				try {
-					S next = storesToGC.take();
-					if (next instanceof CheckableStore<?,?> cs) {
-						byte[] id = cs.getStateId();
-						cs.free();
-						LOGGER.info("garbage collected store " + Hex.toHexString(id));
-					}
-				}
-				catch (StoreException e) {
-					LOGGER.log(Level.SEVERE, "could not garbage-collect a store", e);
-				}
-			}
-		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
 		}
 	}
 

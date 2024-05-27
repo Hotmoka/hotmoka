@@ -39,7 +39,7 @@ public abstract class AbstractCheckableLocalNode<C extends LocalNodeConfig<C,?>,
 	 * Creates a new node.
 	 * 
 	 * @param consensus the consensus configuration of the node; if missing, this will be extracted
-	 *                  from the database of the node
+	 *                  from the saved state of the node
 	 * @param config the configuration of the node
 	 * @throws NodeException if the operation cannot be completed correctly
 	 */

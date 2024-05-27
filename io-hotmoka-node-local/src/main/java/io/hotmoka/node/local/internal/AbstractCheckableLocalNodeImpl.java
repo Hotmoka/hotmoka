@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.local.internal;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -24,6 +25,7 @@ import java.util.logging.Logger;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.crypto.Hex;
+import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.local.AbstractLocalNode;
@@ -72,7 +74,7 @@ public abstract class AbstractCheckableLocalNodeImpl<C extends LocalNodeConfig<C
 	 * Creates a new node.
 	 * 
 	 * @param consensus the consensus configuration of the node; if missing, this will be extracted
-	 *                  from the database of the node
+	 *                  from the saved state of the node
 	 * @param config the configuration of the node
 	 * @throws NodeException if the operation cannot be completed correctly
 	 */
@@ -92,18 +94,24 @@ public abstract class AbstractCheckableLocalNodeImpl<C extends LocalNodeConfig<C
 
 	@Override
 	protected void initWithSavedStore() throws NodeException {
-		super.initWithSavedStore();
+		// we start from the empty store
+		try {
+			super.initWithEmptyStore(ValidatorsConsensusConfigBuilders.defaults().build());
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw new NodeException(e);
+		}
 
-		var roots = env.computeInTransaction(txn -> Optional.ofNullable(storeOfNode.get(txn, ROOT)).map(ByteIterable::getBytes));
-		System.out.println("Checkable.initWithSavedStore(): " + roots);
+		// then we check it out at its store branch
+		var root = env.computeInTransaction(txn -> Optional.ofNullable(storeOfNode.get(txn, ROOT)).map(ByteIterable::getBytes));
+		if (root.isEmpty())
+			throw new NodeException("Cannot find the root of the saved store of the node");
 
-		if (roots.isPresent()) {
-			try {
-				setStore(getStore().checkoutAt(roots.get()));
-			}
-			catch (StoreException e) {
-				throw new NodeException(e);
-			}
+		try {
+			setStore(getStore().checkoutAt(root.get()));
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
 		}
 	}
 
