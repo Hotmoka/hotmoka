@@ -37,6 +37,7 @@ import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.xodus.ByteIterable;
 import io.hotmoka.xodus.ExodusException;
 import io.hotmoka.xodus.env.Environment;
+import io.hotmoka.xodus.env.Transaction;
 
 /**
  * Partial implementation of a local (ie., non-remote) node.
@@ -67,6 +68,13 @@ public abstract class AbstractCheckableLocalNodeImpl<C extends LocalNodeConfig<C
 	 * The key used inside {@link #storeOfNode} to keep the root of the store of this node.
 	 */
 	private final static ByteIterable ROOT = ByteIterable.fromBytes("root".getBytes());
+
+	/**
+	 * The key used inside {@link #storeOfNode} to keep the list of old stores
+	 * that are candidate for garbage-collection, as soon as their height is sufficiently
+	 * smaller than the height of the store of this node.
+	 */
+	private final static ByteIterable PAST_STORES = ByteIterable.fromBytes("past stores".getBytes());
 
 	private final static Logger LOGGER = Logger.getLogger(AbstractCheckableLocalNodeImpl.class.getName());
 
@@ -122,7 +130,7 @@ public abstract class AbstractCheckableLocalNodeImpl<C extends LocalNodeConfig<C
 
 		try {
 			var rootAsBI = ByteIterable.fromBytes(getStore().getStateId());
-			env.executeInTransaction(txn -> storeOfNode.put(txn, ROOT, rootAsBI));
+			env.executeInTransaction(txn -> setRootBranch(oldStore, rootAsBI, txn));
 
 			if (!storesToGC.offer(oldStore))
 				LOGGER.warning("could not enqueue old store for garbage collection: the queue is full!");
@@ -145,6 +153,11 @@ public abstract class AbstractCheckableLocalNodeImpl<C extends LocalNodeConfig<C
 				throw new NodeException(e);
 			}
 		}
+	}
+
+	private void setRootBranch(S oldStore, ByteIterable rootAsBI, Transaction txn) {
+		storeOfNode.put(txn, ROOT, rootAsBI); // we set the root branch
+		//storeOfNode.put(txn, PAST_STORES, null); // we add the old store to the past stores list
 	}
 
 	/**
