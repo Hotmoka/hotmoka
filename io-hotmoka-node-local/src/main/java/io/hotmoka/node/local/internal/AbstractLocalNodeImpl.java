@@ -165,12 +165,11 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	/**
 	 * Creates a new node.
 	 * 
-	 * @param consensus the consensus configuration of the node; if missing, this will be extracted
-	 *                  from the saved state of the node
 	 * @param config the configuration of the node
+	 * @param init if true, the working directory of the node gets initialized
 	 * @throws NodeException if the operation cannot be completed correctly
 	 */
-	protected AbstractLocalNodeImpl(Optional<ConsensusConfig<?,?>> consensus, C config) throws NodeException {
+	protected AbstractLocalNodeImpl(C config, boolean init) throws NodeException {
 		super(ClosedNodeException::new);
 
 		this.config = config;
@@ -184,7 +183,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 			throw new NodeException(e);
 		}
 
-		if (consensus.isPresent())
+		if (init)
 			initWorkingDirectory();
 
 		this.executors = Executors.newCachedThreadPool();

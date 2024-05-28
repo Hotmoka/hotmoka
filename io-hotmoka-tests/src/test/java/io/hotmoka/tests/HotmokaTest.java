@@ -252,8 +252,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	@SuppressWarnings("unused")
 	private static Node mkTendermintBlockchain() throws NodeException, InterruptedException {
 		try {
-			var consensus = fillConsensusConfig(ValidatorsConsensusConfigBuilders.defaults()).build();
-			HotmokaTest.consensus = consensus;
+			consensus = fillConsensusConfig(ValidatorsConsensusConfigBuilders.defaults()).build();
 
 			var config = TendermintNodeConfigBuilders.defaults()
 					.setDir(Files.createTempDirectory("hotmoka-chain"))
@@ -261,7 +260,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 					.setMaxGasPerViewTransaction(_10_000_000)
 					.build();
 
-			return TendermintNodes.init(config, consensus);
+			return TendermintNodes.init(config);
 		}
 		catch (IOException | NoSuchAlgorithmException e) {
 			throw new NodeException(e);
@@ -285,8 +284,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	@SuppressWarnings("unused")
 	private static Node mkDiskBlockchain() throws NodeException, InterruptedException {
 		try {
-			var consensus = fillConsensusConfig(ConsensusConfigBuilders.defaults()).build();
-			HotmokaTest.consensus = consensus;
+			consensus = fillConsensusConfig(ConsensusConfigBuilders.defaults()).build();
 
 			var config = DiskNodeConfigBuilders.defaults()
 					.setDir(Files.createTempDirectory("hotmoka-chain"))
@@ -295,7 +293,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 					.setPollingDelay(10)
 					.build();
 
-			return DiskNodes.init(config, consensus);
+			return DiskNodes.init(config);
 		}
 		catch (IOException | NoSuchAlgorithmException e) {
 			throw new NodeException(e);

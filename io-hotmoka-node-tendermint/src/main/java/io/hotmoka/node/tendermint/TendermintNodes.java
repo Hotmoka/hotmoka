@@ -16,10 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.tendermint;
 
-import java.util.Optional;
-
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.node.tendermint.api.TendermintNode;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 import io.hotmoka.node.tendermint.internal.TendermintNodeImpl;
@@ -36,16 +33,12 @@ public abstract class TendermintNodes {
 	 * It spawns the Tendermint process and connects it to an ABCI application for handling its transactions.
 	 * 
 	 * @param config the configuration of the blockchain
-	 * @param consensus the consensus parameters at the beginning of the life of the blockchain;
-	 *                  when creating a node that starts synchronization with an already
-	 *                  existing network, these must be the parameters at the beginning of the
-	 *                  history of the network
 	 * @return the Tendermint node
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 * @throws NodeException if the operation cannot be completed correctly
 	 */
-	public static TendermintNode init(TendermintNodeConfig config, ValidatorsConsensusConfig<?,?> consensus) throws NodeException, InterruptedException {
-		return new TendermintNodeImpl(config, Optional.of(consensus));
+	public static TendermintNode init(TendermintNodeConfig config) throws NodeException, InterruptedException {
+		return new TendermintNodeImpl(config, true);
 	}
 
 	/**
@@ -60,6 +53,6 @@ public abstract class TendermintNodes {
 	 * @throws NodeException if the operation cannot be completed correctly
 	 */
 	public static TendermintNode resume(TendermintNodeConfig config) throws NodeException, InterruptedException {
-		return new TendermintNodeImpl(config, Optional.empty());
+		return new TendermintNodeImpl(config, false);
 	}
 }

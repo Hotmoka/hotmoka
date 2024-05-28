@@ -25,7 +25,6 @@ import java.util.logging.Logger;
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.local.AbstractLocalNode;
 import io.hotmoka.node.local.AbstractStore;
 import io.hotmoka.node.local.AbstractStoreTranformation;
@@ -79,13 +78,12 @@ public abstract class AbstractCheckableLocalNodeImpl<C extends LocalNodeConfig<C
 	/**
 	 * Creates a new node.
 	 * 
-	 * @param consensus the consensus configuration of the node; if missing, this will be extracted
-	 *                  from the saved state of the node
 	 * @param config the configuration of the node
+	 * @param init if true, the working directory of the node gets initialized
 	 * @throws NodeException if the operation cannot be completed correctly
 	 */
-	protected AbstractCheckableLocalNodeImpl(Optional<ConsensusConfig<?,?>> consensus, C config) throws NodeException {
-		super(consensus, config);
+	protected AbstractCheckableLocalNodeImpl(C config, boolean init) throws NodeException {
+		super(config, init);
 
 		this.env = new Environment(config.getDir() + "/node");
 		this.storeOfNode = env.computeInTransaction(txn -> env.openStoreWithoutDuplicates("node", txn));

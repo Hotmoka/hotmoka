@@ -130,9 +130,9 @@ public class InitDisk extends AbstractCommand {
 				.setPublicKeyOfGamete(signature.publicKeyFromEncoding(Base58.decode(keyOfGamete)))
 				.build();
 
-			try (var node = this.node = DiskNodes.init(nodeConfig, consensus);
+			try (var node = this.node = DiskNodes.init(nodeConfig);
 				var initialized = this.initialized = InitializedNodes.of(node, consensus,
-						Paths.get(takamakaCode.replace("TAKAMAKA-VERSION", Constants.TAKAMAKA_VERSION)));
+					Paths.get(takamakaCode.replace("TAKAMAKA-VERSION", Constants.TAKAMAKA_VERSION)));
 				var service = NodeServices.of(node, port)) {
 
 				printManifest();

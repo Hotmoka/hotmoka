@@ -18,7 +18,6 @@ package io.hotmoka.node.disk;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.disk.api.DiskNode;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.disk.internal.DiskNodeImpl;
@@ -38,12 +37,11 @@ public abstract class DiskNodes {
 	 * Creates a brand new node whose store is kept in disk memory.
 	 * 
 	 * @param config the configuration of the node
-	 * @param consensus the consensus configuration of the node
 	 * @return the node
 	 * @throws NodeException if the operation cannot be completed correctly
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 */
-	public static DiskNode init(DiskNodeConfig config, ConsensusConfig<?,?> consensus) throws NodeException, InterruptedException {
-		return new DiskNodeImpl(config, consensus);
+	public static DiskNode init(DiskNodeConfig config) throws NodeException, InterruptedException {
+		return new DiskNodeImpl(config);
 	}
 }

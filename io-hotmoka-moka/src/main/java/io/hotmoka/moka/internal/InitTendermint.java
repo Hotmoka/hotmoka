@@ -167,7 +167,7 @@ public class InitTendermint extends AbstractCommand {
 				.setPublicKeyOfGamete(signature.publicKeyFromEncoding(Base58.decode(keyOfGamete)))
 				.build();
 
-			try (var node = TendermintNodes.init(nodeConfig, consensus);
+			try (var node = TendermintNodes.init(nodeConfig);
 				 var initialized = this.initialized = TendermintInitializedNodes.of(node, consensus, Paths.get(takamakaCode.replace("TAKAMAKA-VERSION", Constants.TAKAMAKA_VERSION)));
 				 var service = NodeServices.of(initialized, port)) {
 

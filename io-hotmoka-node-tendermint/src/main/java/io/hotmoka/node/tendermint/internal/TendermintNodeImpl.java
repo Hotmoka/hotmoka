@@ -40,7 +40,6 @@ import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.local.AbstractCheckableLocalNode;
@@ -85,18 +84,17 @@ public class TendermintNodeImpl extends AbstractCheckableLocalNode<TendermintNod
 	 * and connects it to an ABCI application for handling its transactions.
 	 * 
 	 * @param config the configuration of the blockchain
-	 * @param consensus the consensus parameters of the node; if empty, the previous store saved on disk will
-	 *                  be resumed and the consensus extracted from there
+	 * @param init if true, the working directory of the node gets initialized
 	 * @throws NodeException if the operation cannot be completed correctly
 	 * @throws InterruptedException the the currently thread is interrupted before completing the construction
 	 */
-	public TendermintNodeImpl(TendermintNodeConfig config, Optional<ConsensusConfig<?,?>> consensus) throws NodeException, InterruptedException {
-		super(consensus, config);
+	public TendermintNodeImpl(TendermintNodeConfig config, boolean init) throws NodeException, InterruptedException {
+		super(config, init);
 
 		this.isWindows = System.getProperty("os.name").startsWith("Windows");
 
 		try {
-			if (consensus.isPresent()) {
+			if (init) {
 				initWithEmptyStore();
 				initWorkingDirectoryOfTendermintProcess(config);
 			}
