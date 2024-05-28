@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2024 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ import java.util.concurrent.ExecutorService;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.api.Hasher;
-import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.local.api.LocalNodeConfig;
+import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.store.trie.AbstractTrieBasedStoreImpl;
 import io.hotmoka.xodus.env.Environment;
 
@@ -42,12 +42,12 @@ public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S,
 	 * 
 	 * @param env the Xodus environment to use for storing the tries
 	 * @param executors the executors to use for running transactions
-	 * @param consensus the consensus configuration of the node having the store
 	 * @param config the local configuration of the node having the store
 	 * @param hasher the hasher for computing the transaction reference from the requests
+	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-    protected AbstractTrieBasedStore(Environment env, ExecutorService executors, ConsensusConfig<?,?> consensus, LocalNodeConfig<?,?> config, Hasher<TransactionRequest<?>> hasher) {
-    	super(env, executors, consensus, config, hasher);
+    protected AbstractTrieBasedStore(Environment env, ExecutorService executors, LocalNodeConfig<?,?> config, Hasher<TransactionRequest<?>> hasher) throws StoreException {
+    	super(env, executors, config, hasher);
     }
 
 	/**

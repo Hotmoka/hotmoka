@@ -68,17 +68,17 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 	 * Creates an empty store.
 	 * 
 	 * @param executors the executors to use for running transactions
-	 * @param consensus the consensus configuration of the node having the store
 	 * @param config the local configuration of the node having the store
 	 * @param hasher the hasher for computing the transaction reference from the requests
+	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	protected AbstractStoreImpl(ExecutorService executors, ConsensusConfig<?,?> consensus, LocalNodeConfig<?,?> config, Hasher<TransactionRequest<?>> hasher) {
+	protected AbstractStoreImpl(ExecutorService executors, LocalNodeConfig<?,?> config, Hasher<TransactionRequest<?>> hasher) throws StoreException {
 		super(executors);
 
 		this.hasher = hasher;
-		this.cache = new StoreCacheImpl(consensus);
+		this.cache = new StoreCacheImpl();
 		this.maxGasPerView = config.getMaxGasPerViewTransaction();
-		this.consensusForViews = consensus.toBuilder().setMaxGasPerTransaction(maxGasPerView).build();
+		this.consensusForViews = cache.getConfig().toBuilder().setMaxGasPerTransaction(maxGasPerView).build();
 	}
 
 	/**
@@ -126,20 +126,28 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 	}
 
 	/**
-	 * Yields a clone of this store, but for its caches that are initialized with information extracted from this store.
+	 * Yields a clone of this store, but for its cache, that is initialized with information extracted from this store.
 	 * 
 	 * @return the resulting store
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	public final S initCaches() throws StoreException {
-		var newCache = cache
-			.setConfig(extractConsensus())
-			.invalidateClassLoaders()
-			.setValidators(extractValidators())
-			.setGasStation(extractGasStation())
-			.setVersions(extractVersions())
-			.setGasPrice(extractGasPrice())
-			.setInflation(extractInflation());
+	protected final S reloadCache() throws StoreException {
+		StoreCache newCache = cache;
+
+		// if this store is already initialized, we can extract the cache information
+		// from the store itself, otherwise the default information will be kept
+		if (getManifest().isPresent()) {
+			newCache = newCache
+				.setConfig(extractConsensus())
+				.invalidateClassLoaders()
+				.setValidators(extractValidators())
+				.setGasStation(extractGasStation())
+				.setVersions(extractVersions())
+				.setGasPrice(extractGasPrice())
+				.setInflation(extractInflation());
+
+			LOGGER.info("the store's cache has been reloaded");
+		}
 
 		return setCache(newCache);
 	}

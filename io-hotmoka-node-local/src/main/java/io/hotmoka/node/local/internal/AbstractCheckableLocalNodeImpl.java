@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.local.internal;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -25,7 +24,6 @@ import java.util.logging.Logger;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.crypto.Hex;
-import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.local.AbstractLocalNode;
@@ -103,12 +101,7 @@ public abstract class AbstractCheckableLocalNodeImpl<C extends LocalNodeConfig<C
 	@Override
 	protected void initWithSavedStore() throws NodeException {
 		// we start from the empty store
-		try {
-			super.initWithEmptyStore(ValidatorsConsensusConfigBuilders.defaults().build());
-		}
-		catch (NoSuchAlgorithmException e) {
-			throw new NodeException(e);
-		}
+		super.initWithEmptyStore();
 
 		// then we check it out at its store branch
 		var root = env.computeInTransaction(txn -> Optional.ofNullable(storeOfNode.get(txn, ROOT)).map(ByteIterable::getBytes));

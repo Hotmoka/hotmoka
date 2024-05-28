@@ -101,12 +101,12 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
      * Creates an empty disk store for a node.
 	 * 
 	 * @param executors the executors to use for running transactions
-	 * @param consensus the consensus configuration of the node having the store
 	 * @param config the local configuration of the node having the store
 	 * @param hasher the hasher for computing the transaction reference from the requests
+	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-    DiskStore(ExecutorService executors, ConsensusConfig<?,?> consensus, LocalNodeConfig<?,?> config, Hasher<TransactionRequest<?>> hasher) {
-    	super(executors, consensus, config, hasher);
+    DiskStore(ExecutorService executors, LocalNodeConfig<?,?> config, Hasher<TransactionRequest<?>> hasher) throws StoreException {
+    	super(executors, config, hasher);
 
     	this.dir = config.getDir();
     	this.previousForRequests = Optional.empty();

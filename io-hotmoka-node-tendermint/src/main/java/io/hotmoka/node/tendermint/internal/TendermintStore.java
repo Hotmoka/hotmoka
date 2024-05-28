@@ -60,12 +60,11 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
 	 * 
 	 * @param env the Xodus environment to use for storing the tries
 	 * @param executors the executors to use for running transactions
-	 * @param consensus the consensus configuration of the node having the store
 	 * @param config the local configuration of the node having the store
 	 * @param hasher the hasher for computing the transaction reference from the requests
 	 */
-    TendermintStore(Environment env, ExecutorService executors, ConsensusConfig<?,?> consensus, TendermintNodeConfig config, Hasher<TransactionRequest<?>> hasher) throws StoreException {
-    	super(env, executors, consensus, config, hasher);
+    TendermintStore(Environment env, ExecutorService executors, TendermintNodeConfig config, Hasher<TransactionRequest<?>> hasher) throws StoreException {
+    	super(env, executors, config, hasher);
 
     	try {
     		this.hasherOfHashes = HashingAlgorithms.sha256().getHasher(Function.identity());

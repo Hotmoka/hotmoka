@@ -445,12 +445,11 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	/**
 	 * Initializes the node with an empty store.
 	 * 
-	 * @param consensus the initial consensus of the node
 	 * @throws NodeException if the operation cannot be completed correctly
 	 */
-	protected void initWithEmptyStore(ConsensusConfig<?,?> consensus) throws NodeException {
+	protected void initWithEmptyStore() throws NodeException {
 		// the node is starting from scratch: the caches are left empty and the consensus is well-known
-		this.store = mkStore(executors, consensus, config, hasher);
+		this.store = mkStore(executors, config, hasher);
 	}
 
 	/**
@@ -527,7 +526,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	 * 
 	 * @return the store
 	 */
-	protected abstract S mkStore(ExecutorService executors, ConsensusConfig<?,?> config, C localConfig, Hasher<TransactionRequest<?>> hasher) throws NodeException;
+	protected abstract S mkStore(ExecutorService executors, C localConfig, Hasher<TransactionRequest<?>> hasher) throws NodeException;
 
 	/**
 	 * Node-specific implementation to post the given request. Each node should implement this,

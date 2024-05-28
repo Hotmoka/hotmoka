@@ -32,6 +32,7 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.disk.api.DiskNode;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.local.AbstractLocalNode;
+import io.hotmoka.node.local.api.StoreException;
 
 /**
  * An implementation of a node that stores transactions in a directory
@@ -59,7 +60,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, DiskStore, D
 		super(Optional.of(consensus), config);
 
 		try {
-			initWithEmptyStore(consensus);
+			initWithEmptyStore();
 			this.mempool = new Mempool(this, config.getTransactionsPerBlock());
 		}
 		catch (NodeException e) {
@@ -76,8 +77,13 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, DiskStore, D
 	}
 
 	@Override
-	protected DiskStore mkStore(ExecutorService executors, ConsensusConfig<?,?> consensus, DiskNodeConfig config, Hasher<TransactionRequest<?>> hasher) {
-		return new DiskStore(executors, consensus, config, hasher);
+	protected DiskStore mkStore(ExecutorService executors, DiskNodeConfig config, Hasher<TransactionRequest<?>> hasher) throws NodeException {
+		try {
+			return new DiskStore(executors, config, hasher);
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}
 	}
 
 	@Override

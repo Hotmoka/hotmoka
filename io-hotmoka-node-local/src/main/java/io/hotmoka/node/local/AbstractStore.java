@@ -20,9 +20,9 @@ import java.util.concurrent.ExecutorService;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.api.Hasher;
-import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.local.api.LocalNodeConfig;
+import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.store.AbstractStoreImpl;
 
 /**
@@ -39,12 +39,12 @@ public abstract class AbstractStore<S extends AbstractStore<S,T>, T extends Abst
 	 * Creates an empty store.
 	 * 
 	 * @param executors the executors to use for running transactions
-	 * @param consensus the consensus configuration of the node having the store
 	 * @param config the local configuration of the node having the store
 	 * @param hasher the hasher for computing the transaction reference from the requests
+	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	protected AbstractStore(ExecutorService executors, ConsensusConfig<?,?> consensus, LocalNodeConfig<?,?> config, Hasher<TransactionRequest<?>> hasher) {
-		super(executors, consensus, config, hasher);
+	protected AbstractStore(ExecutorService executors, LocalNodeConfig<?,?> config, Hasher<TransactionRequest<?>> hasher) throws StoreException {
+		super(executors, config, hasher);
 	}
 
 	/**

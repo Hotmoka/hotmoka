@@ -17,15 +17,18 @@ limitations under the License.
 package io.hotmoka.node.local.internal;
 
 import java.math.BigInteger;
+import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.function.Function;
 
+import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.StoreCache;
 import io.hotmoka.node.local.api.EngineClassLoader;
+import io.hotmoka.node.local.api.StoreException;
 
 /**
  * 
@@ -69,8 +72,19 @@ public class StoreCacheImpl implements StoreCache {
 	 */
 	private final LRUCache<TransactionReference, Boolean> checkedSignatures;
 
-	public StoreCacheImpl(ConsensusConfig<?,?> consensus) {
-		this.consensus = consensus;
+	/**
+	 * Creates empty caches.
+	 * 
+	 * @throws StoreException if the operation cannot be completed correctly
+	 */
+	public StoreCacheImpl() throws StoreException {
+		try {
+			this.consensus = ValidatorsConsensusConfigBuilders.defaults().build();
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw new StoreException(e);
+		}
+
 		this.gasPrice = Optional.empty();
 		this.inflation = OptionalLong.empty();
 		this.validators = Optional.empty();

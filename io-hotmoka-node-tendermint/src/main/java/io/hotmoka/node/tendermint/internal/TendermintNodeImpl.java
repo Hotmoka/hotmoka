@@ -97,7 +97,7 @@ public class TendermintNodeImpl extends AbstractCheckableLocalNode<TendermintNod
 
 		try {
 			if (consensus.isPresent()) {
-				initWithEmptyStore(consensus.get());
+				initWithEmptyStore();
 				initWorkingDirectoryOfTendermintProcess(config);
 			}
 			else
@@ -157,9 +157,9 @@ public class TendermintNodeImpl extends AbstractCheckableLocalNode<TendermintNod
 	}
 
 	@Override
-	protected TendermintStore mkStore(ExecutorService executors, ConsensusConfig<?,?> consensus, TendermintNodeConfig config, Hasher<TransactionRequest<?>> hasher) throws NodeException {
+	protected TendermintStore mkStore(ExecutorService executors, TendermintNodeConfig config, Hasher<TransactionRequest<?>> hasher) throws NodeException {
 		try {
-			return new TendermintStore(getEnvironment(), executors, consensus, config, hasher);
+			return new TendermintStore(getEnvironment(), executors, config, hasher);
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);

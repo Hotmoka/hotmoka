@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.local.internal.store.trie;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -29,9 +28,7 @@ import io.hotmoka.exceptions.CheckRunnable;
 import io.hotmoka.exceptions.CheckSupplier;
 import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.exceptions.UncheckFunction;
-import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.api.UnknownReferenceException;
-import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -110,12 +107,12 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 	 * 
 	 * @param env the Xodus environment to use for creating the tries
 	 * @param executors the executors to use for running transactions
-	 * @param consensus the consensus configuration of the node having the store
 	 * @param config the local configuration of the node having the store
 	 * @param hasher the hasher for computing the transaction reference from the requests
+	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-    protected AbstractTrieBasedStoreImpl(Environment env, ExecutorService executors, ConsensusConfig<?,?> consensus, LocalNodeConfig<?,?> config, Hasher<TransactionRequest<?>> hasher) {
-    	super(executors, consensus, config, hasher);
+    protected AbstractTrieBasedStoreImpl(Environment env, ExecutorService executors, LocalNodeConfig<?,?> config, Hasher<TransactionRequest<?>> hasher) throws StoreException {
+    	super(executors, config, hasher);
 
     	this.env = env;
     	this.storeOfResponses = env.computeInTransaction(txn -> env.openStoreWithoutDuplicates("responses", txn));
@@ -287,13 +284,8 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 		var rootOfHistories = new byte[32];
 		System.arraycopy(stateId, 96, rootOfHistories, 0, 32);
 
-		try {
-			return make(new StoreCacheImpl(ValidatorsConsensusConfigBuilders.defaults().build()), rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests)
-					.initCaches();
-		}
-		catch (NoSuchAlgorithmException e) {
-			throw new StoreException(e);
-		}
+		// we provide an empty cache and then ask to reload it from the state of the resulting store
+		return make(new StoreCacheImpl(), rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests).reloadCache();
 	}
 
 	@Override
