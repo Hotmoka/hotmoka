@@ -18,9 +18,8 @@ package io.hotmoka.node.local;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.local.api.CheckableStore;
 import io.hotmoka.node.local.api.LocalNodeConfig;
-import io.hotmoka.node.local.internal.AbstractCheckableLocalNodeImpl;
+import io.hotmoka.node.local.internal.AbstractTrieBasedLocalNodeImpl;
 
 /**
  * Partial implementation of a local (ie., non-remote) node.
@@ -30,7 +29,7 @@ import io.hotmoka.node.local.internal.AbstractCheckableLocalNodeImpl;
  * @param <T> the type of the store transformations that can be started from this store
  */
 @ThreadSafe
-public abstract class AbstractCheckableLocalNode<C extends LocalNodeConfig<C,?>, S extends AbstractStore<S, T> & CheckableStore<S, T>, T extends AbstractStoreTranformation<S, T>> extends AbstractCheckableLocalNodeImpl<C, S, T> {
+public abstract class AbstractTrieBasedLocalNode<C extends LocalNodeConfig<C,?>, S extends AbstractTrieBasedStore<S, T>, T extends AbstractTrieBasedStoreTransformation<S, T>> extends AbstractTrieBasedLocalNodeImpl<C, S, T> {
 
 	/**
 	 * Creates a new node.
@@ -39,7 +38,7 @@ public abstract class AbstractCheckableLocalNode<C extends LocalNodeConfig<C,?>,
 	 * @param init if true, the working directory of the node gets initialized
 	 * @throws NodeException if the operation cannot be completed correctly
 	 */
-	protected AbstractCheckableLocalNode(C config, boolean init) throws NodeException {
+	protected AbstractTrieBasedLocalNode(C config, boolean init) throws NodeException {
 		super(config, init);
 	}
 }

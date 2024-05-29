@@ -42,7 +42,7 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.api.requests.TransactionRequest;
-import io.hotmoka.node.local.AbstractCheckableLocalNode;
+import io.hotmoka.node.local.AbstractTrieBasedLocalNode;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.tendermint.api.TendermintNode;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
@@ -55,7 +55,7 @@ import io.hotmoka.tendermint.abci.Server;
  * its state in a transactional database implemented by the {@link TendermintStore} class.
  */
 @ThreadSafe
-public class TendermintNodeImpl extends AbstractCheckableLocalNode<TendermintNodeConfig, TendermintStore, TendermintStoreTransformation> implements TendermintNode {
+public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNodeConfig, TendermintStore, TendermintStoreTransformation> implements TendermintNode {
 
 	private final static Logger LOGGER = Logger.getLogger(TendermintNodeImpl.class.getName());
 

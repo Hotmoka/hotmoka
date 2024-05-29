@@ -466,7 +466,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		 */
 		protected void free(byte[] hash) throws TrieException {
 			AbstractNode replacement = withDecrementedReferenceCount();
-			System.out.println(getClass().getSimpleName() + ": " + count + " -> " + replacement.count);
+			//System.out.println(getClass().getSimpleName() + ": " + count + " -> " + replacement.count);
 
 			try {
 				if (replacement.count > 0)

@@ -47,12 +47,4 @@ public interface CheckableStore<S extends CheckableStore<S, T>, T extends StoreT
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
 	S checkoutAt(byte[] stateId) throws StoreException;
-
-	/**
-	 * Deallocates all resources used for the checked-out vision of this store. This method should be called
-	 * only once per store. Moreover, after a call to this method, no more methods should be called on this store.
-	 * 
-	 * @throws StoreException if the operation cannot be completed correctly
-	 */
-	void free() throws StoreException;
 }

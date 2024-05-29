@@ -24,9 +24,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.api.Hasher;
-import io.hotmoka.exceptions.CheckRunnable;
 import io.hotmoka.exceptions.CheckSupplier;
-import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.TransactionRequest;
@@ -310,15 +308,19 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 		return make(new StoreCacheImpl(), rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests).reloadCache();
 	}
 
-	@Override
-	public final void free() throws StoreException {
+	/**
+	 * Deallocates all resources used for the checked-out vision of this store. This method should be called
+	 * only once per store. Moreover, after a call to this method, no more methods should be called on this store.
+	 * 
+	 * @param txn the database transaction where the garbage-collection is performed
+	 * @throws StoreException if the operation cannot be completed correctly
+	 */
+	public final void free(Transaction txn) throws StoreException {
 		try {
-			CheckRunnable.check(StoreException.class, TrieException.class, () -> env.executeInTransaction(UncheckConsumer.uncheck(txn -> {
-				mkTrieOfRequests(txn).free();
-				mkTrieOfResponses(txn).free();
-				mkTrieOfHistories(txn).free();
-				mkTrieOfInfo(txn).free();
-			})));
+			mkTrieOfRequests(txn).free();
+			mkTrieOfResponses(txn).free();
+			mkTrieOfHistories(txn).free();
+			mkTrieOfInfo(txn).free();
 		}
 		catch (ExodusException | TrieException e) {
 			throw new StoreException(e);

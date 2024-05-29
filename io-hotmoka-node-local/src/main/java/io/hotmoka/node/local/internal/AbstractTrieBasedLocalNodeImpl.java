@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.node.local.internal;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,16 +25,18 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.crypto.Hex;
+import io.hotmoka.exceptions.CheckRunnable;
+import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.local.AbstractLocalNode;
-import io.hotmoka.node.local.AbstractStore;
-import io.hotmoka.node.local.AbstractStoreTranformation;
-import io.hotmoka.node.local.api.CheckableStore;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.internal.store.trie.AbstractTrieBasedStoreImpl;
+import io.hotmoka.node.local.internal.store.trie.AbstractTrieBasedStoreTransformationImpl;
 import io.hotmoka.xodus.ByteIterable;
 import io.hotmoka.xodus.ExodusException;
 import io.hotmoka.xodus.env.Environment;
@@ -46,7 +50,7 @@ import io.hotmoka.xodus.env.Transaction;
  * @param <T> the type of the store transformations that can be started from this store
  */
 @ThreadSafe
-public abstract class AbstractCheckableLocalNodeImpl<C extends LocalNodeConfig<C,?>, S extends AbstractStore<S, T> & CheckableStore<S, T>, T extends AbstractStoreTranformation<S, T>> extends AbstractLocalNode<C, S, T> {
+public abstract class AbstractTrieBasedLocalNodeImpl<C extends LocalNodeConfig<C,?>, S extends AbstractTrieBasedStoreImpl<S, T>, T extends AbstractTrieBasedStoreTransformationImpl<S, T>> extends AbstractLocalNode<C, S, T> {
 
 	/**
 	 * The Xodus environment used for storing information about the node, such as its store.
@@ -75,7 +79,7 @@ public abstract class AbstractCheckableLocalNodeImpl<C extends LocalNodeConfig<C
 	 */
 	private final static ByteIterable PAST_STORES = ByteIterable.fromBytes("past stores".getBytes());
 
-	private final static Logger LOGGER = Logger.getLogger(AbstractCheckableLocalNodeImpl.class.getName());
+	private final static Logger LOGGER = Logger.getLogger(AbstractTrieBasedLocalNodeImpl.class.getName());
 
 	/**
 	 * Creates a new node.
@@ -84,7 +88,7 @@ public abstract class AbstractCheckableLocalNodeImpl<C extends LocalNodeConfig<C
 	 * @param init if true, the working directory of the node gets initialized
 	 * @throws NodeException if the operation cannot be completed correctly
 	 */
-	protected AbstractCheckableLocalNodeImpl(C config, boolean init) throws NodeException {
+	protected AbstractTrieBasedLocalNodeImpl(C config, boolean init) throws NodeException {
 		super(config, init);
 
 		this.env = new Environment(config.getDir() + "/node");
@@ -124,12 +128,8 @@ public abstract class AbstractCheckableLocalNodeImpl<C extends LocalNodeConfig<C
 		try {
 			var rootAsBI = ByteIterable.fromBytes(getStore().getStateId());
 			env.executeInTransaction(txn -> setRootBranch(oldStore, rootAsBI, txn));
-
-			if (!isUsed(oldStore))
-				if (!storesToGC.offer(oldStore))
-					LOGGER.warning("could not enqueue old store for garbage collection: the queue is full!");
 		}
-		catch (StoreException | ExodusException e) {
+		catch (ExodusException e) {
 			throw new NodeException(e);
 		}
 	}
@@ -149,33 +149,39 @@ public abstract class AbstractCheckableLocalNodeImpl<C extends LocalNodeConfig<C
 		}
 	}
 
-	private final ConcurrentMap<CheckableStore<?,?>, Integer> storeUsers = new ConcurrentHashMap<>();
+	private static class StateId {
+		private final byte[] id;
+		private StateId(byte[] id) {
+			this.id = id;
+		}
+
+		@Override
+		public boolean equals(Object other) {
+			return other instanceof StateId si && Arrays.equals(id, si.id);
+		}
+
+		@Override
+		public int hashCode() {
+			return Arrays.hashCode(id);
+		}
+	}
+
+	private final ConcurrentMap<StateId, Integer> storeUsers = new ConcurrentHashMap<>();
 
 	@Override
 	protected void enter(S store) {
 		super.enter(store);
-		storeUsers.putIfAbsent(store, 0);
-		storeUsers.compute(store, (_store, old) -> old + 1);
+		storeUsers.compute(new StateId(store.getStateId()), (_store, old) -> old == null ? 0 : old + 1);
 	}
 
 	@Override
 	protected void exit(S store) {
-		storeUsers.compute(store, (_store, old) -> old - 1);
-
-		if (!isUsed(store))
-			if (!storesToGC.offer(store))
-				LOGGER.warning("could not enqueue old store for garbage collection: the queue is full!");
-
+		storeUsers.compute(new StateId(store.getStateId()), (_store, old) -> old - 1);
 		super.exit(store);
 	}
 
-	private boolean isUsed(S store) {
-		return store == getStore() || storeUsers.getOrDefault(store, 0) > 0;
-	}
-
-	private void setRootBranch(S oldStore, ByteIterable rootAsBI, Transaction txn) {
-		storeOfNode.put(txn, ROOT, rootAsBI); // we set the root branch
-		//storeOfNode.put(txn, PAST_STORES, null); // we add the old store to the past stores list
+	private boolean isUsed(StateId id) {
+		return !id.equals(new StateId(getStore().getStateId())) || storeUsers.getOrDefault(id, 0) > 0;
 	}
 
 	/**
@@ -187,7 +193,7 @@ public abstract class AbstractCheckableLocalNodeImpl<C extends LocalNodeConfig<C
 				try {
 					S next = storesToGC.take();
 					byte[] id = next.getStateId();
-					next.free();
+					CheckRunnable.check(StoreException.class, () -> env.executeInTransaction(UncheckConsumer.uncheck(txn -> gc(next, txn))));
 					LOGGER.info("garbage collected store " + Hex.toHexString(id));
 				}
 				catch (StoreException e) {
@@ -198,5 +204,68 @@ public abstract class AbstractCheckableLocalNodeImpl<C extends LocalNodeConfig<C
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
+	}
+
+	private void gc(S store, Transaction txn) throws StoreException {
+		store.free(txn);
+	}
+
+	private void findPastStoresThatCanBeGarbageCollected() {
+		try {
+			Stream<byte[]> ids = env.computeInReadonlyTransaction(txn -> getPastStoresNotYetGarbageCollected(txn));
+			ids.map(StateId::new)
+				.filter(id -> !isUsed(id))
+				.forEach(this::offerToGC);
+
+			Thread.sleep(2000L);
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
+	}
+
+	private void offerToGC(StateId id) {
+		//if (!storesToGC.offer(oldStore))
+			//LOGGER.warning("could not enqueue old store for garbage collection: the queue is full!");
+	}
+
+	private Stream<byte[]> getPastStoresNotYetGarbageCollected(Transaction txn) throws ExodusException {
+		var ids = Optional.ofNullable(storeOfNode.get(txn, PAST_STORES)).map(ByteIterable::getBytes);
+		byte[] bytes = ids.orElse(new byte[0]);
+	
+		// each store id consists of 128 bytes
+		var result = new ArrayList<byte[]>();
+		for (int pos = 0; pos < bytes.length; pos += 128) {
+			var id = new byte[128];
+			System.arraycopy(bytes, pos, id, 0, 128);
+			result.add(id);
+		}
+	
+		return result.stream();
+	}
+
+	private void setRootBranch(S oldStore, ByteIterable rootAsBI, Transaction txn) throws ExodusException {
+		storeOfNode.put(txn, ROOT, rootAsBI); // we set the root branch
+		addPastStoreToListOfNotYetGarbageCollected(oldStore, txn); // we add the old store to the past stores list
+	}
+
+	private void addPastStoreToListOfNotYetGarbageCollected(S store, Transaction txn) throws ExodusException {
+		var addedId = store.getStateId();
+		var ids = Optional.ofNullable(storeOfNode.get(txn, PAST_STORES)).map(ByteIterable::getBytes);
+		byte[] bytes = ids.orElse(new byte[0]);
+
+		// each store id consists of 128 bytes
+		for (int pos = 0; pos < bytes.length; pos += 128) {
+			var id = new byte[128];
+			System.arraycopy(bytes, pos, id, 0, 128);
+			if (Arrays.equals(addedId, id))
+				return;
+		}
+
+		var expanded = new byte[bytes.length + 128];
+		System.arraycopy(bytes, 0, expanded, 0, bytes.length);
+		System.arraycopy(addedId, 0, expanded, bytes.length, 128);
+		System.out.println(getPastStoresNotYetGarbageCollected(txn).count());
+		storeOfNode.put(txn, PAST_STORES, ByteIterable.fromBytes(expanded));
 	}
 }
