@@ -21,7 +21,6 @@ import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 
 import java.math.BigInteger;
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
@@ -61,13 +60,12 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 	 * Creates a transformation whose transaction are executed with the given executors.
 	 * 
 	 * @param store the initial store of the transformation
-	 * @param executors the executors
 	 * @param consensus the consensus to use for the execution of transactions in the transformation
 	 * @param now the current time to use for the execution of transactions in the transformation
 	 * @param validators the Tendermint validators at the beginning of the transformation
 	 */
-	protected TendermintStoreTransformation(TendermintStore store, ExecutorService executors, ConsensusConfig<?,?> consensus, long now, Optional<TendermintValidator[]> validators) throws StoreException {
-		super(store, executors, consensus, now);
+	protected TendermintStoreTransformation(TendermintStore store, ConsensusConfig<?,?> consensus, long now, Optional<TendermintValidator[]> validators) throws StoreException {
+		super(store, consensus, now);
 
 		this.validators = validators;
 	}

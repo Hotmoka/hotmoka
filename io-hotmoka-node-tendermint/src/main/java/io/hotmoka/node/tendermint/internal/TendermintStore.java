@@ -20,7 +20,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
 import java.util.function.Function;
 
 import io.hotmoka.annotations.Immutable;
@@ -34,8 +33,6 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractTrieBasedStore;
 import io.hotmoka.node.local.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
-import io.hotmoka.xodus.env.Environment;
 
 /**
  * A partial trie-based store. Errors and requests are recovered by asking
@@ -58,13 +55,10 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
 	/**
      * Creates an empty store for the Tendermint blockchain.
 	 * 
-	 * @param env the Xodus environment to use for storing the tries
-	 * @param executors the executors to use for running transactions
-	 * @param config the local configuration of the node having the store
-	 * @param hasher the hasher for computing the transaction reference from the requests
+	 * @param node the node for which the store is created
 	 */
-    TendermintStore(Environment env, ExecutorService executors, TendermintNodeConfig config, Hasher<TransactionRequest<?>> hasher) throws StoreException {
-    	super(env, executors, config, hasher);
+    TendermintStore(TendermintNodeImpl node) throws StoreException {
+    	super(node);
 
     	try {
     		this.hasherOfHashes = HashingAlgorithms.sha256().getHasher(Function.identity());
@@ -143,8 +137,8 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
 	}
 
 	@Override
-	protected TendermintStoreTransformation beginTransformation(ExecutorService executors, ConsensusConfig<?,?> consensus, long now) throws StoreException {
-		return new TendermintStoreTransformation(this, executors, consensus, now, validators);
+	protected TendermintStoreTransformation beginTransformation(ConsensusConfig<?,?> consensus, long now) throws StoreException {
+		return new TendermintStoreTransformation(this, consensus, now, validators);
 	}
 
 	/**

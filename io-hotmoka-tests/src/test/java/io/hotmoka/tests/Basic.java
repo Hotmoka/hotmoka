@@ -53,7 +53,7 @@ import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StringValue;
-import io.hotmoka.node.local.internal.store.UpdatesExtractionException;
+import io.hotmoka.node.local.internal.UpdatesExtractionException;
 import io.takamaka.code.constants.Constants;
 
 /**

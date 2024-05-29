@@ -35,8 +35,6 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.local.AbstractLocalNode;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.node.local.internal.store.trie.AbstractTrieBasedStoreImpl;
-import io.hotmoka.node.local.internal.store.trie.AbstractTrieBasedStoreTransformationImpl;
 import io.hotmoka.xodus.ByteIterable;
 import io.hotmoka.xodus.ExodusException;
 import io.hotmoka.xodus.env.Environment;
@@ -61,6 +59,28 @@ public abstract class AbstractTrieBasedLocalNodeImpl<C extends LocalNodeConfig<C
 	 * The Xodus store that holds the persistent information of the node.
 	 */
 	private final io.hotmoka.xodus.env.Store storeOfNode;
+
+	/**
+	 * The Xodus store that holds the Merkle-Patricia trie of the responses to the requests.
+	 */
+	private final io.hotmoka.xodus.env.Store storeOfResponses;
+
+	/**
+	 * The Xodus store that holds miscellaneous information about the store.
+	 */
+    private final io.hotmoka.xodus.env.Store storeOfInfo;
+
+	/**
+	 * The Xodus store that holds the Merkle-Patricia trie of the requests.
+	 */
+	private final io.hotmoka.xodus.env.Store storeOfRequests;
+
+	/**
+	 * The Xodus store that holds the history of each storage reference, ie, a list of
+	 * transaction references that contribute
+	 * to provide values to the fields of the storage object at that reference.
+	 */
+	private final io.hotmoka.xodus.env.Store storeOfHistories;
 
 	/**
 	 * The queue of old stores to garbage-collect.
@@ -93,9 +113,29 @@ public abstract class AbstractTrieBasedLocalNodeImpl<C extends LocalNodeConfig<C
 
 		this.env = new Environment(config.getDir() + "/node");
 		this.storeOfNode = env.computeInTransaction(txn -> env.openStoreWithoutDuplicates("node", txn));
+    	this.storeOfResponses = env.computeInTransaction(txn -> env.openStoreWithoutDuplicates("responses", txn));
+    	this.storeOfInfo = env.computeInTransaction(txn -> env.openStoreWithoutDuplicates("info", txn));
+		this.storeOfRequests = env.computeInTransaction(txn -> env.openStoreWithoutDuplicates("requests", txn));
+		this.storeOfHistories = env.computeInTransaction(txn -> env.openStoreWithoutDuplicates("histories", txn));
 
 		// we start the garbage-collection task
 		getExecutors().execute(this::gc);
+	}
+
+	protected final io.hotmoka.xodus.env.Store getStoreOfResponses() {
+		return storeOfResponses;
+	}
+
+	protected final io.hotmoka.xodus.env.Store getStoreOfInfo() {
+		return storeOfInfo;
+	}
+
+	protected final io.hotmoka.xodus.env.Store getStoreOfRequests() {
+		return storeOfRequests;
+	}
+
+	protected final io.hotmoka.xodus.env.Store getStoreOfHistories() {
+		return storeOfHistories;
 	}
 
 	protected final Environment getEnvironment() {

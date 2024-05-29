@@ -14,24 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.local;
+package io.hotmoka.node.local.internal;
 
 import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.requests.InitialTransactionRequest;
-import io.hotmoka.node.api.responses.InitialTransactionResponse;
+import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.node.local.internal.ExecutionEnvironment;
-import io.hotmoka.node.local.internal.InitialResponseBuilderImpl;
 
 /**
- * Partial implementation of the creator of the response for an initial transaction. Initial transactions do not consume gas.
- * 
- * @param <Request> the type of the request of the transaction
- * @param <Response> the type of the response of the transaction
+ * The builder of the response for a transaction that executes a static method of Takamaka code
+ * annotated as {@link io.takamaka.code.lang.View}.
  */
-public abstract class AbstractInitialResponseBuilder<Request extends InitialTransactionRequest<Response>, Response extends InitialTransactionResponse>
-		extends InitialResponseBuilderImpl<Request, Response> {
+public class StaticViewMethodCallResponseBuilder extends StaticMethodCallResponseBuilder {
 
 	/**
 	 * Creates the builder of the response.
@@ -42,18 +36,12 @@ public abstract class AbstractInitialResponseBuilder<Request extends InitialTran
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	protected AbstractInitialResponseBuilder(TransactionReference reference, Request request, ExecutionEnvironment environment) throws TransactionRejectedException, StoreException {
+	public StaticViewMethodCallResponseBuilder(TransactionReference reference, StaticMethodCallTransactionRequest request, ExecutionEnvironment environment) throws TransactionRejectedException, StoreException {
 		super(reference, request, environment);
 	}
 
-	/**
-	 * The creator of the response from the request.
-	 */
-	protected abstract class ResponseCreator extends InitialResponseBuilderImpl<Request, Response>.ResponseCreator {
-
-		/**
-		 * Creates the response from the request.
-		 */
-		protected ResponseCreator() {}
+	@Override
+	protected boolean isView() {
+		return true;
 	}
 }

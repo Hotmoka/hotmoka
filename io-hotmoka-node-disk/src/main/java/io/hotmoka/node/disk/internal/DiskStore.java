@@ -28,11 +28,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.crypto.api.Hasher;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
@@ -41,7 +40,6 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractStore;
 import io.hotmoka.node.local.StoreCache;
-import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StoreException;
 
 /**
@@ -100,15 +98,18 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
 	/**
      * Creates an empty disk store for a node.
 	 * 
-	 * @param executors the executors to use for running transactions
-	 * @param config the local configuration of the node having the store
-	 * @param hasher the hasher for computing the transaction reference from the requests
+	 * @param node the node for which the store is created
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-    DiskStore(ExecutorService executors, LocalNodeConfig<?,?> config, Hasher<TransactionRequest<?>> hasher) throws StoreException {
-    	super(executors, config, hasher);
+    DiskStore(DiskNodeImpl node) throws StoreException {
+    	super(node);
 
-    	this.dir = config.getDir();
+    	try {
+    		this.dir = node.getLocalConfig().getDir();
+    	}
+    	catch (NodeException e) {
+    		throw new StoreException(e);
+    	}
     	this.previousForRequests = Optional.empty();
     	this.previousForResponses = Optional.empty();
     	this.previousForHistories = Optional.empty();
@@ -247,8 +248,8 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
 	}
 
 	@Override
-	protected DiskStoreTransformation beginTransformation(ExecutorService executors, ConsensusConfig<?,?> consensus, long now) {
-		return new DiskStoreTransformation(this, executors, consensus, now);
+	protected DiskStoreTransformation beginTransformation(ConsensusConfig<?,?> consensus, long now) {
+		return new DiskStoreTransformation(this, consensus, now);
 	}
 
 	@Override

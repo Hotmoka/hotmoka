@@ -17,16 +17,16 @@ limitations under the License.
 package io.hotmoka.node.local;
 
 import io.hotmoka.node.api.nodes.ConsensusConfig;
-import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.node.local.internal.AbstractTrieBasedStoreTransformationImpl;
+import io.hotmoka.node.local.internal.AbstractStoreTransformationImpl;
 
 /**
- * A store transformation for trie-based stores, for extension.
+ * Abstract implementation of a store transformation, for extension. This is not thread-safe hence it must
+ * be used by a thread at a time or shared under synchronization.
  * 
  * @param <S> the type of store used in the transformation
  * @param <T> the type of the transformation
  */
-public abstract class AbstractTrieBasedStoreTransformation<S extends AbstractTrieBasedStore<S, T>, T extends AbstractTrieBasedStoreTransformation<S, T>> extends AbstractTrieBasedStoreTransformationImpl<S, T> {
+public abstract class AbstractStoreTransformation<S extends AbstractStore<S, T>, T extends AbstractStoreTransformation<S, T>> extends AbstractStoreTransformationImpl<S, T> {
 
 	/**
 	 * Creates a transformation whose transaction are executed with the given executors.
@@ -34,9 +34,8 @@ public abstract class AbstractTrieBasedStoreTransformation<S extends AbstractTri
 	 * @param store the initial store of the transformation
 	 * @param consensus the consensus to use for the execution of transactions in the transformation
 	 * @param now the current time to use for the execution of transactions in the transformation
-	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	protected AbstractTrieBasedStoreTransformation(S store, ConsensusConfig<?,?> consensus, long now) throws StoreException {
+	protected AbstractStoreTransformation(S store, ConsensusConfig<?,?> consensus, long now) {
 		super(store, consensus, now);
 	}
 }

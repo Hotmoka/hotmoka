@@ -16,25 +16,22 @@ limitations under the License.
 
 package io.hotmoka.node.disk.internal;
 
-import java.util.concurrent.ExecutorService;
-
 import io.hotmoka.node.api.nodes.ConsensusConfig;
-import io.hotmoka.node.local.AbstractStoreTranformation;
+import io.hotmoka.node.local.AbstractStoreTransformation;
 
 /**
  * A transformation of a store of a disk node.
  */
-public class DiskStoreTransformation extends AbstractStoreTranformation<DiskStore, DiskStoreTransformation> {
+public class DiskStoreTransformation extends AbstractStoreTransformation<DiskStore, DiskStoreTransformation> {
 
 	/**
 	 * Creates a transformation from an initial store.
 	 * 
 	 * @param store the initial store
-	 * @param executors the executors to use for running transactions in the transformation
 	 * @param consensus the consensus configuration of the node having the store
 	 * @param now the time to use as now for the transactions executed in the transformation
 	 */
-	public DiskStoreTransformation(DiskStore store, ExecutorService executors, ConsensusConfig<?,?> consensus, long now) {
-		super(store, executors, consensus, now);
+	public DiskStoreTransformation(DiskStore store, ConsensusConfig<?,?> consensus, long now) {
+		super(store, consensus, now);
 	}
 }

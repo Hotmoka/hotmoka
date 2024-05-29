@@ -16,14 +16,9 @@ limitations under the License.
 
 package io.hotmoka.node.local;
 
-import java.util.concurrent.ExecutorService;
-
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.crypto.api.Hasher;
-import io.hotmoka.node.api.requests.TransactionRequest;
-import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.node.local.internal.store.AbstractStoreImpl;
+import io.hotmoka.node.local.internal.AbstractStoreImpl;
 
 /**
  * A partial store of a node. It is a container of request/response pairs.
@@ -33,18 +28,16 @@ import io.hotmoka.node.local.internal.store.AbstractStoreImpl;
  * @param <T> the type of the store transformations that can be started from this store
  */
 @Immutable
-public abstract class AbstractStore<S extends AbstractStore<S,T>, T extends AbstractStoreTranformation<S, T>> extends AbstractStoreImpl<S, T> {
+public abstract class AbstractStore<S extends AbstractStore<S,T>, T extends AbstractStoreTransformation<S, T>> extends AbstractStoreImpl<S, T> {
 
 	/**
 	 * Creates an empty store.
 	 * 
-	 * @param executors the executors to use for running transactions
-	 * @param config the local configuration of the node having the store
-	 * @param hasher the hasher for computing the transaction reference from the requests
+	 * @param node the node for which the store is created
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	protected AbstractStore(ExecutorService executors, LocalNodeConfig<?,?> config, Hasher<TransactionRequest<?>> hasher) throws StoreException {
-		super(executors, config, hasher);
+	protected AbstractStore(AbstractLocalNode<?,?,?> node) throws StoreException {
+		super(node);
 	}
 
 	/**

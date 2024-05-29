@@ -30,7 +30,7 @@ import io.hotmoka.node.local.internal.AbstractLocalNodeImpl;
  * @param <T> the type of the store transformations of the store of the node
  */
 @ThreadSafe
-public abstract class AbstractLocalNode<C extends LocalNodeConfig<C,?>, S extends AbstractStore<S, T>, T extends AbstractStoreTranformation<S, T>> extends AbstractLocalNodeImpl<C, S, T> {
+public abstract class AbstractLocalNode<C extends LocalNodeConfig<C,?>, S extends AbstractStore<S, T>, T extends AbstractStoreTransformation<S, T>> extends AbstractLocalNodeImpl<C, S, T> {
 
 	/**
 	 * Creates a node.

@@ -26,7 +26,6 @@ import java.net.HttpURLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -36,7 +35,6 @@ import java.util.stream.Stream;
 import com.google.gson.JsonSyntaxException;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -155,9 +153,9 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	}
 
 	@Override
-	protected TendermintStore mkStore(ExecutorService executors, TendermintNodeConfig config, Hasher<TransactionRequest<?>> hasher) throws NodeException {
+	protected TendermintStore mkStore() throws NodeException {
 		try {
-			return new TendermintStore(getEnvironment(), executors, config, hasher);
+			return new TendermintStore(this);
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);

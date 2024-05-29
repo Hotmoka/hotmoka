@@ -80,8 +80,6 @@ import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
-import io.hotmoka.node.local.AbstractStore;
-import io.hotmoka.node.local.AbstractStoreTranformation;
 import io.hotmoka.node.local.api.LocalNode;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StoreException;
@@ -94,7 +92,7 @@ import io.hotmoka.node.local.api.StoreException;
  * @param <T> the type of the store transformations that can be started from this store
  */
 @ThreadSafe
-public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S extends AbstractStore<S, T>, T extends AbstractStoreTranformation<S, T>> extends AbstractAutoCloseableWithLockAndOnCloseHandlers<ClosedNodeException> implements LocalNode<C> {
+public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S extends AbstractStoreImpl<S, T>, T extends AbstractStoreTransformationImpl<S, T>> extends AbstractAutoCloseableWithLockAndOnCloseHandlers<ClosedNodeException> implements LocalNode<C> {
 
 	/**
 	 * The manager of the subscriptions to the events occurring in this node.
@@ -496,7 +494,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	 */
 	protected void initWithEmptyStore() throws NodeException {
 		// the node is starting from scratch: the caches are left empty and the consensus is well-known
-		store = mkStore(executors, config, hasher);
+		store = mkStore();
 	}
 
 	/**
@@ -534,6 +532,10 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 
 	protected final ExecutorService getExecutors() {
 		return executors;
+	}
+
+	protected final Hasher<TransactionRequest<?>> getHasher() {
+		return hasher;
 	}
 
 	protected void signalRejected(TransactionRequest<?> request, TransactionRejectedException e) {
@@ -595,7 +597,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	 * 
 	 * @return the store
 	 */
-	protected abstract S mkStore(ExecutorService executors, C localConfig, Hasher<TransactionRequest<?>> hasher) throws NodeException;
+	protected abstract S mkStore() throws NodeException;
 
 	/**
 	 * Node-specific implementation to post the given request. Each node should implement this,

@@ -16,15 +16,9 @@ limitations under the License.
 
 package io.hotmoka.node.local;
 
-import java.util.concurrent.ExecutorService;
-
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.crypto.api.Hasher;
-import io.hotmoka.node.api.requests.TransactionRequest;
-import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.node.local.internal.store.trie.AbstractTrieBasedStoreImpl;
-import io.hotmoka.xodus.env.Environment;
+import io.hotmoka.node.local.internal.AbstractTrieBasedStoreImpl;
 
 /**
  * A store of a node, based on tries. It is a container of request/response pairs.
@@ -40,14 +34,11 @@ public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S,
 	/**
 	 * Creates an empty store.
 	 * 
-	 * @param env the Xodus environment to use for storing the tries
-	 * @param executors the executors to use for running transactions
-	 * @param config the local configuration of the node having the store
-	 * @param hasher the hasher for computing the transaction reference from the requests
+	 * @param node the node for which the store is created
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-    protected AbstractTrieBasedStore(Environment env, ExecutorService executors, LocalNodeConfig<?,?> config, Hasher<TransactionRequest<?>> hasher) throws StoreException {
-    	super(env, executors, config, hasher);
+    protected AbstractTrieBasedStore(AbstractTrieBasedLocalNode<?,?,?> node) throws StoreException {
+    	super(node);
     }
 
 	/**
