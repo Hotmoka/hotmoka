@@ -206,8 +206,14 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 
 	@Override
 	public final ConsensusConfig<?,?> getConfig() throws NodeException {
+		S store = this.store;
+		enter(store);
+
 		try (var scope = mkScope()) {
 			return store.getConfig();
+		}
+		finally {
+			exit(store);
 		}
 	}
 
@@ -234,11 +240,17 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 
 	@Override
 	public final StorageReference getManifest() throws NodeException {
+		S store = this.store;
+		enter(store);
+
 		try (var scope = mkScope()) {
 			return store.getManifest().orElseThrow(UninitializedNodeException::new);
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);
+		}
+		finally {
+			exit(store);
 		}
 	}
 
@@ -267,16 +279,25 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 
 	@Override
 	public final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, NodeException {
+		S store = this.store;
+		enter(store);
+		
 		try (var scope = mkScope()) {
 			return store.getRequest(Objects.requireNonNull(reference));
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);
 		}
+		finally {
+			exit(store);
+		}
 	}
 
 	@Override
 	public final TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, UnknownReferenceException, NodeException {
+		S store = this.store;
+		enter(store);
+
 		try (var scope = mkScope()) {
 			try {
 				return store.getResponse(Objects.requireNonNull(reference));
@@ -292,10 +313,16 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 		catch (StoreException e) {
 			throw new NodeException(e);
 		}
+		finally {
+			exit(store);
+		}
 	}
 
 	@Override
 	public final ClassTag getClassTag(StorageReference reference) throws UnknownReferenceException, NodeException {
+		S store = this.store;
+		enter(store);
+
 		try (var scope = mkScope()) {
 			Objects.requireNonNull(reference);
 
@@ -311,20 +338,29 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 		catch (StoreException e) {
 			throw new NodeException(e);
 		}
+		finally {
+			exit(store);
+		}
 	}
 
 	@Override
 	public final Stream<Update> getState(StorageReference reference) throws UnknownReferenceException, NodeException {
+		S store = this.store;
+		enter(store);
+
 		try (var scope = mkScope()) {
 			try {
 				Stream<TransactionReference> history = store.getHistory(Objects.requireNonNull(reference));
 				var updates = new HashSet<Update>();
-				CheckRunnable.check(StoreException.class, () -> history.forEachOrdered(UncheckConsumer.uncheck(transaction -> addUpdatesCommitted(reference, transaction, updates))));
+				CheckRunnable.check(StoreException.class, () -> history.forEachOrdered(UncheckConsumer.uncheck(transaction -> addUpdatesCommitted(store, reference, transaction, updates))));
 				return updates.stream();
 			}
 			catch (StoreException e) {
 				throw new NodeException(e);
 			}
+		}
+		finally {
+			exit(store);
 		}
 	}
 
@@ -385,6 +421,9 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 
 	@Override
 	public final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException {
+		S store = this.store;
+		enter(store);
+
 		try (var scope = mkScope()) {
 			var reference = TransactionReferences.of(hasher.hash(request));
 			String referenceAsString = reference.toString();
@@ -396,10 +435,16 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 		catch (StoreException e) {
 			throw new NodeException(e);
 		}
+		finally {
+			exit(store);
+		}
 	}
 
 	@Override
 	public final Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException {
+		S store = this.store;
+		enter(store);
+
 		try (var scope = mkScope()) {
 			var reference = TransactionReferences.of(hasher.hash(request));
 			String referenceAsString = reference.toString();
@@ -410,6 +455,9 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);
+		}
+		finally {
+			exit(store);
 		}
 	}
 
@@ -448,8 +496,24 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	 */
 	protected void initWithEmptyStore() throws NodeException {
 		// the node is starting from scratch: the caches are left empty and the consensus is well-known
-		this.store = mkStore(executors, config, hasher);
+		store = mkStore(executors, config, hasher);
 	}
+
+	/**
+	 * Called when this node is executing something that needs the given store.
+	 * It can be used, for instance, to take note that the store cannot be
+	 * garbage-collected from that moment.
+	 * 
+	 * @param store the store
+	 */
+	protected void enter(S store) {}
+
+	/**
+	 * Called when this node finished executing something that needed the given store.
+	 * 
+	 * @param store the store
+	 */
+	protected void exit(S store) {}
 
 	/**
 	 * Initializes the node with the last saved store, hence resuming a node
@@ -481,11 +545,17 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	}
 
 	protected void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException, NodeException {
+		S store = this.store;
+		enter(store);
+
 		try {
 			store.checkTransaction(request);
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);
+		}
+		finally {
+			exit(store);
 		}
 	}
 
@@ -578,6 +648,9 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 		else
 			LOGGER.info(reference + ": posting (" + request.getClass().getSimpleName() + ')');
 
+		S store = this.store;
+		enter(store);
+
 		try {
 			store.getResponse(reference);
 			// if the response is found, then no exception is thrown above and the request was repeated
@@ -589,10 +662,13 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 		catch (UnknownReferenceException e) {
 			// this is fine: there was no previous request with the same reference so we register
 			// its semaphore and post the request for execution
-			createSemaphore(reference);
+			createSemaphore(store, reference);
 			postRequest(request);
 
 			return reference;
+		}
+		finally {
+			exit(store);
 		}
 	}
 
@@ -609,7 +685,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	 * @param updates the set where they must be added
 	 * @throws StoreException 
 	 */
-	private void addUpdatesCommitted(StorageReference object, TransactionReference referenceInHistory, Set<Update> updates) throws StoreException {
+	private void addUpdatesCommitted(S store, StorageReference object, TransactionReference referenceInHistory, Set<Update> updates) throws StoreException {
 		try {
 			if (store.getResponse(referenceInHistory) instanceof TransactionResponseWithUpdates trwu)
 				trwu.getUpdates()
@@ -629,7 +705,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	 * @param reference the reference of the transaction for the request
 	 * @throws TransactionRejectedException 
 	 */
-	private void createSemaphore(TransactionReference reference) throws TransactionRejectedException {
+	private void createSemaphore(S store, TransactionReference reference) throws TransactionRejectedException {
 		if (semaphores.putIfAbsent(reference, new Semaphore(0)) != null)
 			throw new TransactionRejectedException("Repeated request " + reference, store.getConfig());
 	}

@@ -104,7 +104,7 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 				return Updates.classTag(StorageValues.referenceWithoutSelectorFrom(context), (ClassType) StorageTypes.from(context), TransactionReferences.from(context));
 			}
 			catch (ClassCastException e) {
-				throw new IOException("Failed unmrshalling a class tag", e);
+				throw new IOException("Failed unmarshalling a class tag", e);
 			}
 		}
 		case UpdateOfBigIntegerImpl.SELECTOR_BALANCE: return Updates.ofBigInteger(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.BALANCE_FIELD, context.readBigInteger());

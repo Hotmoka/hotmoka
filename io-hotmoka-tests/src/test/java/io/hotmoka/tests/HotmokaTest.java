@@ -186,9 +186,9 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	        privateKeyOfGamete = keys.getPrivate();
 
 	        Node wrapped;
-	        node = wrapped = mkDiskBlockchain();
+	        //node = wrapped = mkDiskBlockchain();
 	        //node = wrapped = mkTendermintBlockchain();
-	        //node = mkRemoteNode(wrapped = mkDiskBlockchain());
+	        node = mkRemoteNode(wrapped = mkDiskBlockchain());
 	        //node = mkRemoteNode(wrapped = mkTendermintBlockchain());
 	        //node = wrapped = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
 	        //node = wrapped = mkRemoteNode("localhost:8080");
@@ -428,9 +428,6 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	/**
 	 * Takes care of computing the next nonce.
-	 * @throws InterruptedException 
-	 * @throws TimeoutException 
-	 * @throws NodeException 
 	 */
 	protected final StorageValue addStaticNonVoidMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, NonVoidMethodSignature method, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		return node.addStaticMethodCallTransaction(TransactionRequests.staticMethodCall(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, actuals)).orElseThrow(() -> new NodeException(method + " did not return any value"));
@@ -438,9 +435,6 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	/**
 	 * Takes care of computing the next nonce.
-	 * @throws InterruptedException 
-	 * @throws TimeoutException 
-	 * @throws NodeException 
 	 */
 	protected final void addStaticVoidMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, VoidMethodSignature method, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		node.addStaticMethodCallTransaction(TransactionRequests.staticMethodCall(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, actuals));

@@ -18,6 +18,8 @@ package io.hotmoka.node.local.internal;
 
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -123,8 +125,9 @@ public abstract class AbstractCheckableLocalNodeImpl<C extends LocalNodeConfig<C
 			var rootAsBI = ByteIterable.fromBytes(getStore().getStateId());
 			env.executeInTransaction(txn -> setRootBranch(oldStore, rootAsBI, txn));
 
-			if (!storesToGC.offer(oldStore))
-				LOGGER.warning("could not enqueue old store for garbage collection: the queue is full!");
+			if (!isUsed(oldStore))
+				if (!storesToGC.offer(oldStore))
+					LOGGER.warning("could not enqueue old store for garbage collection: the queue is full!");
 		}
 		catch (StoreException | ExodusException e) {
 			throw new NodeException(e);
@@ -144,6 +147,30 @@ public abstract class AbstractCheckableLocalNodeImpl<C extends LocalNodeConfig<C
 				throw new NodeException(e);
 			}
 		}
+	}
+
+	private final ConcurrentMap<CheckableStore<?,?>, Integer> storeUsers = new ConcurrentHashMap<>();
+
+	@Override
+	protected void enter(S store) {
+		super.enter(store);
+		storeUsers.putIfAbsent(store, 0);
+		storeUsers.compute(store, (_store, old) -> old + 1);
+	}
+
+	@Override
+	protected void exit(S store) {
+		storeUsers.compute(store, (_store, old) -> old - 1);
+
+		if (!isUsed(store))
+			if (!storesToGC.offer(store))
+				LOGGER.warning("could not enqueue old store for garbage collection: the queue is full!");
+
+		super.exit(store);
+	}
+
+	private boolean isUsed(S store) {
+		return store == getStore() || storeUsers.getOrDefault(store, 0) > 0;
 	}
 
 	private void setRootBranch(S oldStore, ByteIterable rootAsBI, Transaction txn) {

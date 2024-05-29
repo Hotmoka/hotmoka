@@ -166,22 +166,44 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 	
 		try {
 			return CheckSupplier.check(StoreException.class, TrieException.class, () -> env.computeInTransaction(UncheckFunction.uncheck(txn -> {
+				System.out.println("added requests: " + addedRequests.entrySet().size());
 				var trieOfRequests = mkTrieOfRequests(txn);
-				for (var entry: addedRequests.entrySet())
+				for (var entry: addedRequests.entrySet()) {
+					trieOfRequests.incrementReferenceCountOfRoot();
+					var old = trieOfRequests;
 					trieOfRequests = trieOfRequests.put(entry.getKey(), entry.getValue());
+					old.free();
+				}
 	
+				System.out.println("added responses: " + addedResponses.entrySet().size());
 				var trieOfResponses = mkTrieOfResponses(txn);
-				for (var entry: addedResponses.entrySet())
+				for (var entry: addedResponses.entrySet()) {
+					trieOfResponses.incrementReferenceCountOfRoot();
+					var old = trieOfResponses;
 					trieOfResponses = trieOfResponses.put(entry.getKey(), entry.getValue());
-	
+					old.free();
+				}
+
+				System.out.println("added histories: " + addedHistories.entrySet().size());
 				var trieOfHistories = mkTrieOfHistories(txn);
-				for (var entry: addedHistories.entrySet())
+				for (var entry: addedHistories.entrySet()) {
+					trieOfHistories.incrementReferenceCountOfRoot();
+					var old = trieOfHistories;
 					trieOfHistories = trieOfHistories.put(entry.getKey(), Stream.of(entry.getValue()));
+					old.free();
+				}
 	
 				var trieOfInfo = mkTrieOfInfo(txn);
+				trieOfInfo.incrementReferenceCountOfRoot();
+				var old = trieOfInfo;
 				trieOfInfo = trieOfInfo.increaseHeight();
-				if (addedManifest.isPresent())
+				old.free();
+				if (addedManifest.isPresent()) {
+					trieOfInfo.incrementReferenceCountOfRoot();
+					old = trieOfInfo;
 					trieOfInfo = trieOfInfo.setManifest(addedManifest.get());
+					old.free();
+				}
 
 				// we increment the reference count of the roots of the resulting tries, so that
 				// they do not get garbage collected until this store is freed
