@@ -153,7 +153,7 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
     }
 
 	@Override
-    protected TendermintStore make(StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) {
+    protected TendermintStore mkStore(StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) {
 		return new TendermintStore(this, cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
 	}
 
