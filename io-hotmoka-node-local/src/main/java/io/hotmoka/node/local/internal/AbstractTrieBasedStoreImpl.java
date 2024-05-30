@@ -109,6 +109,17 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
     protected AbstractTrieBasedStoreImpl(AbstractTrieBasedLocalNode<?,?,?> node) throws StoreException {
+    	this(node, new byte[128]);
+    }
+
+    /**
+	 * Creates a store checked out at the given state identifier.
+	 * 
+	 * @param node the node for which the store is created
+	 * @param stateId the state identifier
+	 * @throws StoreException if the operation cannot be completed correctly
+	 */
+    protected AbstractTrieBasedStoreImpl(AbstractTrieBasedLocalNode<?,?,?> node, byte[] stateId) throws StoreException {
     	super(node);
 
     	this.env = node.getEnvironment();
@@ -117,12 +128,16 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 		this.storeOfRequests = node.getStoreOfRequests();
 		this.storeOfHistories = node.getStoreOfHistories();
 		this.rootOfResponses = new byte[32];
+		System.arraycopy(stateId, 0, rootOfResponses, 0, 32);
 		this.rootOfInfo = new byte[32];
+		System.arraycopy(stateId, 32, rootOfInfo, 0, 32);
 		this.rootOfRequests = new byte[32];
+		System.arraycopy(stateId, 64, rootOfRequests, 0, 32);
 		this.rootOfHistories = new byte[32];
+		System.arraycopy(stateId, 96, rootOfHistories, 0, 32);
     }
 
-	/**
+    /**
 	 * Creates a clone of a store, up to cache and roots.
 	 * 
 	 * @param toClone the store to clone
@@ -163,7 +178,6 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 	
 		try {
 			return CheckSupplier.check(StoreException.class, TrieException.class, () -> env.computeInTransaction(UncheckFunction.uncheck(txn -> {
-				System.out.println("added requests: " + addedRequests.entrySet().size());
 				var trieOfRequests = mkTrieOfRequests(txn);
 				for (var entry: addedRequests.entrySet()) {
 					trieOfRequests.incrementReferenceCountOfRoot();
@@ -172,7 +186,6 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 					old.free();
 				}
 	
-				System.out.println("added responses: " + addedResponses.entrySet().size());
 				var trieOfResponses = mkTrieOfResponses(txn);
 				for (var entry: addedResponses.entrySet()) {
 					trieOfResponses.incrementReferenceCountOfRoot();
@@ -181,7 +194,6 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 					old.free();
 				}
 
-				System.out.println("added histories: " + addedHistories.entrySet().size());
 				var trieOfHistories = mkTrieOfHistories(txn);
 				for (var entry: addedHistories.entrySet()) {
 					trieOfHistories.incrementReferenceCountOfRoot();

@@ -163,6 +163,16 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	}
 
 	@Override
+	protected TendermintStore mkStore(byte[] stateId) throws NodeException {
+		try {
+			return new TendermintStore(this, stateId);
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}
+	}
+
+	@Override
 	protected void postRequest(TransactionRequest<?> request) throws NodeException, TimeoutException, InterruptedException {
 		poster.postRequest(request);
 	}

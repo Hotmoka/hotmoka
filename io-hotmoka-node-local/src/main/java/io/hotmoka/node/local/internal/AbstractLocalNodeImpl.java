@@ -123,7 +123,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	private final ConcurrentMap<TransactionReference, Semaphore> semaphores;
 
 	/**
-	 * An executor for short background tasks.
+	 * An executor for background tasks.
 	 */
 	private final ExecutorService executors;
 
@@ -593,9 +593,9 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	}
 
 	/**
-	 * Factory method for creating the store of this node.
+	 * Factory method for creating an empty store for this node.
 	 * 
-	 * @return the store
+	 * @return the store empty
 	 */
 	protected abstract S mkStore() throws NodeException;
 

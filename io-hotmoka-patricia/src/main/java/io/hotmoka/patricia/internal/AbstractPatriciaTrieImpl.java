@@ -301,6 +301,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		if (Arrays.equals(hash, hashOfEmpty))
 			return EMPTY;
 
+		//try (var bais = new ByteArrayInputStream(store.get(hash)); var context = UnmarshallingContexts.of(bais)) {
 		try (var ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(store.get(hash))))) {
 			return from(ois, cursor);
 		}

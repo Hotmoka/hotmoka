@@ -41,7 +41,18 @@ public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S,
     	super(node);
     }
 
-	/**
+    /**
+	 * Creates a store checked out at the given state identifier.
+	 * 
+	 * @param node the node for which the store is created
+	 * @param stateId the state identifier
+	 * @throws StoreException if the operation cannot be completed correctly
+	 */
+    protected AbstractTrieBasedStore(AbstractTrieBasedLocalNode<?,?,?> node, byte[] stateId) throws StoreException {
+    	super(node, stateId);
+    }
+
+    /**
 	 * Creates a clone of a store, up to the cache.
 	 * 
 	 * @param toClone the store to clone

@@ -58,7 +58,18 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
 	 * @param node the node for which the store is created
 	 */
     TendermintStore(TendermintNodeImpl node) throws StoreException {
-    	super(node);
+    	this(node, new byte[128]);
+    }
+
+    /**
+	 * Creates a store checked out at the given state identifier.
+	 * 
+	 * @param node the node for which the store is created
+	 * @param stateId the state identifier
+	 * @throws StoreException if the operation cannot be completed correctly
+	 */
+    TendermintStore(TendermintNodeImpl node, byte[] stateId) throws StoreException {
+    	super(node, stateId);
 
     	try {
     		this.hasherOfHashes = HashingAlgorithms.sha256().getHasher(Function.identity());
@@ -70,7 +81,7 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
     	this.validators = Optional.empty();
     }
 
-	/**
+    /**
 	 * Creates a clone of a store, up to cache and roots.
 	 * 
 	 * @param toClone the store to clone
