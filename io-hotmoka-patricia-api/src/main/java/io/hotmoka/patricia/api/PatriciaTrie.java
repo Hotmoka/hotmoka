@@ -56,13 +56,6 @@ public interface PatriciaTrie<Key, Value, T extends PatriciaTrie<Key, Value, T>>
 	byte[] getRoot() throws TrieException;
 
 	/**
-	 * Increments the reference count of the root of this trie.
-	 * 
-	 * @throws TrieException if the operation cannot be completed correctly
-	 */
-	void incrementReferenceCountOfRoot() throws TrieException;
-
-	/**
 	 * Yields an independent clone of this trie, but for its root, that is set to the provided value.
 	 * 
 	 * @param root the root to use in the cloned trie

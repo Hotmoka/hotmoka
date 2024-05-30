@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.node.local.internal;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
@@ -28,12 +27,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.crypto.Hex;
 import io.hotmoka.exceptions.CheckRunnable;
 import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.local.AbstractLocalNode;
+import io.hotmoka.node.local.StateIds;
 import io.hotmoka.node.local.api.LocalNodeConfig;
+import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.xodus.ByteIterable;
 import io.hotmoka.xodus.ExodusException;
@@ -156,7 +156,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<C extends LocalNodeConfig<C
 			throw new NodeException("Cannot find the root of the saved store of the node");
 
 		try {
-			setStore(getStore().checkoutAt(root.get()));
+			setStore(getStore().checkedOutAt(StateIds.of(root.get())));
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);
@@ -167,14 +167,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<C extends LocalNodeConfig<C
 	protected void moveToFinalStoreOf(T transaction) throws NodeException {
 		S oldStore = getStore();
 		super.moveToFinalStoreOf(transaction);
-
-		try {
-			var rootAsBI = ByteIterable.fromBytes(getStore().getStateId());
-			env.executeInTransaction(txn -> setRootBranch(oldStore, rootAsBI, txn));
-		}
-		catch (ExodusException e) {
-			throw new NodeException(e);
-		}
+		setRootBranch(oldStore);
 	}
 
 	@Override
@@ -192,38 +185,15 @@ public abstract class AbstractTrieBasedLocalNodeImpl<C extends LocalNodeConfig<C
 		}
 	}
 
-	private static class StateId {
-		private final byte[] id;
-
-		private StateId(byte[] id) {
-			this.id = id;
-		}
-
-		@Override
-		public boolean equals(Object other) {
-			return other instanceof StateId si && Arrays.equals(id, si.id);
-		}
-
-		@Override
-		public int hashCode() {
-			return Arrays.hashCode(id);
-		}
-
-		@Override
-		public String toString() {
-			return Hex.toHexString(id);
-		}
-	}
-
 	@Override
 	protected void enter(S store) {
 		super.enter(store);
-		storeUsers.compute(new StateId(store.getStateId()), (_store, old) -> old == null ? 1 : old + 1);
+		storeUsers.compute(store.getStateId(), (_store, old) -> old == null ? 1 : old + 1);
 	}
 
 	@Override
 	protected void exit(S store) {
-		storeUsers.compute(new StateId(store.getStateId()), (_store, old) -> old - 1);
+		storeUsers.compute(store.getStateId(), (_store, old) -> old - 1);
 		super.exit(store);
 	}
 
@@ -233,10 +203,12 @@ public abstract class AbstractTrieBasedLocalNodeImpl<C extends LocalNodeConfig<C
 	 * @param stateId the state identifier
 	 * @return the resulting store
 	 */
-	protected abstract S mkStore(byte[] stateId) throws NodeException;
+	protected abstract S mkStore(StateId stateId) throws NodeException;
 
 	private boolean isUsed(StateId id) {
-		return id.equals(new StateId(getStore().getStateId())) || storeUsers.getOrDefault(id, 0) > 0;
+		var currentStore = getStore();
+		// the current store might be null if the node has just restarted and its store has not been set yet 
+		return currentStore != null && id.equals(currentStore.getStateId()) || storeUsers.getOrDefault(id, 0) > 0;
 	}
 
 	/**
@@ -246,14 +218,14 @@ public abstract class AbstractTrieBasedLocalNodeImpl<C extends LocalNodeConfig<C
 		try {
 			while (!Thread.currentThread().isInterrupted()) {
 				S next = storesToGC.take();
-				byte[] id = next.getStateId();
+				StateId id = next.getStateId();
 
 				try {
-					CheckRunnable.check(StoreException.class, () -> env.executeInTransaction(UncheckConsumer.uncheck(txn -> gc(next, new StateId(id), txn))));
-					LOGGER.info("garbage collected store " + Hex.toHexString(id));
+					CheckRunnable.check(StoreException.class, () -> env.executeInTransaction(UncheckConsumer.uncheck(txn -> gc(next, id, txn))));
+					LOGGER.info("garbage-collected store " + id);
 				}
 				catch (StoreException e) {
-					LOGGER.log(Level.SEVERE, "could not garbage-collect store " + Hex.toHexString(id), e);
+					LOGGER.log(Level.SEVERE, "could not garbage-collect store " + id, e);
 				}
 			}
 		}
@@ -275,9 +247,9 @@ public abstract class AbstractTrieBasedLocalNodeImpl<C extends LocalNodeConfig<C
 				for (StateId id: ids) {
 					if (!isUsed(id)) {
 						try {
-							S oldStore = mkStore(id.id);
+							S oldStore = mkStore(id);
 							if (!storesToGC.offer(oldStore))
-								LOGGER.warning("could not enqueue old store for garbage collection: the queue is full!");
+								LOGGER.warning("could offer store " + id + " to the garbage-collector: the queue is full!");
 						}
 						catch (NodeException e) {
 							LOGGER.log(Level.SEVERE, "cannot offer store " + id + " to the garbage-collector", e);
@@ -293,6 +265,23 @@ public abstract class AbstractTrieBasedLocalNodeImpl<C extends LocalNodeConfig<C
 		}
 	}
 
+	private void setRootBranch(S oldStore) throws NodeException {
+		S currentStore = getStore();
+		byte[] id = currentStore.getStateId().getBytes();
+		var rootAsBI = ByteIterable.fromBytes(id);
+	
+		try {
+			CheckRunnable.check(StoreException.class, () -> env.executeInTransaction(UncheckConsumer.uncheck(txn -> {
+				storeOfNode.put(txn, ROOT, rootAsBI); // set the root branch
+				currentStore.malloc(txn); // increment the reference count of the new store
+				addPastStoreToListOfNotYetGarbageCollected(oldStore, txn); // add the old store to the past stores list
+			})));
+		}
+		catch (ExodusException | StoreException e) {
+			throw new NodeException(e);
+		}
+	}
+
 	private List<StateId> getPastStoresNotYetGarbageCollected(Transaction txn) throws ExodusException {
 		var ids = Optional.ofNullable(storeOfNode.get(txn, PAST_STORES)).map(ByteIterable::getBytes);
 		byte[] bytes = ids.orElse(new byte[0]);
@@ -302,7 +291,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<C extends LocalNodeConfig<C
 		for (int pos = 0; pos < bytes.length; pos += 128) {
 			var id = new byte[128];
 			System.arraycopy(bytes, pos, id, 0, 128);
-			result.add(new StateId(id));
+			result.add(StateIds.of(id));
 		}
 	
 		return result;
@@ -313,15 +302,10 @@ public abstract class AbstractTrieBasedLocalNodeImpl<C extends LocalNodeConfig<C
 		ids.remove(id);
 		byte[] reduced = new byte[128 * ids.size()];
 		for (int pos = 0; pos < reduced.length; pos += 128)
-			System.arraycopy(ids.get(pos / 128).id, 0, reduced, pos, 128);
+			System.arraycopy(ids.get(pos / 128).getBytes(), 0, reduced, pos, 128);
 
 		storeOfNode.put(txn, PAST_STORES, ByteIterable.fromBytes(reduced));
 		System.out.println(getPastStoresNotYetGarbageCollected(txn).size());
-	}
-
-	private void setRootBranch(S oldStore, ByteIterable rootAsBI, Transaction txn) throws ExodusException {
-		storeOfNode.put(txn, ROOT, rootAsBI); // we set the root branch
-		addPastStoreToListOfNotYetGarbageCollected(oldStore, txn); // we add the old store to the past stores list
 	}
 
 	private void addPastStoreToListOfNotYetGarbageCollected(S store, Transaction txn) throws ExodusException {
@@ -333,13 +317,13 @@ public abstract class AbstractTrieBasedLocalNodeImpl<C extends LocalNodeConfig<C
 		for (int pos = 0; pos < bytes.length; pos += 128) {
 			var id = new byte[128];
 			System.arraycopy(bytes, pos, id, 0, 128);
-			if (Arrays.equals(addedId, id))
+			if (addedId.equals(StateIds.of(id)))
 				return;
 		}
 
 		var expanded = new byte[bytes.length + 128];
 		System.arraycopy(bytes, 0, expanded, 0, bytes.length);
-		System.arraycopy(addedId, 0, expanded, bytes.length, 128);
+		System.arraycopy(addedId.getBytes(), 0, expanded, bytes.length, 128);
 		storeOfNode.put(txn, PAST_STORES, ByteIterable.fromBytes(expanded));
 		System.out.println(getPastStoresNotYetGarbageCollected(txn).size());
 	}

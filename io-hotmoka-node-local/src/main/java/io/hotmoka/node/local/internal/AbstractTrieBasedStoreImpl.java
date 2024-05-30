@@ -31,8 +31,10 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractStore;
 import io.hotmoka.node.local.AbstractTrieBasedLocalNode;
+import io.hotmoka.node.local.StateIds;
 import io.hotmoka.node.local.StoreCache;
 import io.hotmoka.node.local.api.CheckableStore;
+import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.tries.KeyValueStoreOnXodus;
 import io.hotmoka.node.local.internal.tries.TrieOfHistories;
@@ -109,7 +111,7 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
     protected AbstractTrieBasedStoreImpl(AbstractTrieBasedLocalNode<?,?,?> node) throws StoreException {
-    	this(node, new byte[128]);
+    	this(node, StateIds.of(new byte[128]));
     }
 
     /**
@@ -119,7 +121,7 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 	 * @param stateId the state identifier
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-    protected AbstractTrieBasedStoreImpl(AbstractTrieBasedLocalNode<?,?,?> node, byte[] stateId) throws StoreException {
+    protected AbstractTrieBasedStoreImpl(AbstractTrieBasedLocalNode<?,?,?> node, StateId stateId) throws StoreException {
     	super(node);
 
     	this.env = node.getEnvironment();
@@ -127,14 +129,15 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
     	this.storeOfInfo = node.getStoreOfInfo();
 		this.storeOfRequests = node.getStoreOfRequests();
 		this.storeOfHistories = node.getStoreOfHistories();
+		byte[] bytes = stateId.getBytes();
 		this.rootOfResponses = new byte[32];
-		System.arraycopy(stateId, 0, rootOfResponses, 0, 32);
+		System.arraycopy(bytes, 0, rootOfResponses, 0, 32);
 		this.rootOfInfo = new byte[32];
-		System.arraycopy(stateId, 32, rootOfInfo, 0, 32);
+		System.arraycopy(bytes, 32, rootOfInfo, 0, 32);
 		this.rootOfRequests = new byte[32];
-		System.arraycopy(stateId, 64, rootOfRequests, 0, 32);
+		System.arraycopy(bytes, 64, rootOfRequests, 0, 32);
 		this.rootOfHistories = new byte[32];
-		System.arraycopy(stateId, 96, rootOfHistories, 0, 32);
+		System.arraycopy(bytes, 96, rootOfHistories, 0, 32);
     }
 
     /**
@@ -180,7 +183,7 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 			return CheckSupplier.check(StoreException.class, TrieException.class, () -> env.computeInTransaction(UncheckFunction.uncheck(txn -> {
 				var trieOfRequests = mkTrieOfRequests(txn);
 				for (var entry: addedRequests.entrySet()) {
-					trieOfRequests.incrementReferenceCountOfRoot();
+					trieOfRequests.malloc();
 					var old = trieOfRequests;
 					trieOfRequests = trieOfRequests.put(entry.getKey(), entry.getValue());
 					old.free();
@@ -188,7 +191,7 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 	
 				var trieOfResponses = mkTrieOfResponses(txn);
 				for (var entry: addedResponses.entrySet()) {
-					trieOfResponses.incrementReferenceCountOfRoot();
+					trieOfResponses.malloc();
 					var old = trieOfResponses;
 					trieOfResponses = trieOfResponses.put(entry.getKey(), entry.getValue());
 					old.free();
@@ -196,30 +199,23 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 
 				var trieOfHistories = mkTrieOfHistories(txn);
 				for (var entry: addedHistories.entrySet()) {
-					trieOfHistories.incrementReferenceCountOfRoot();
+					trieOfHistories.malloc();
 					var old = trieOfHistories;
 					trieOfHistories = trieOfHistories.put(entry.getKey(), Stream.of(entry.getValue()));
 					old.free();
 				}
 	
 				var trieOfInfo = mkTrieOfInfo(txn);
-				trieOfInfo.incrementReferenceCountOfRoot();
+				trieOfInfo.malloc();
 				var old = trieOfInfo;
 				trieOfInfo = trieOfInfo.increaseHeight();
 				old.free();
 				if (addedManifest.isPresent()) {
-					trieOfInfo.incrementReferenceCountOfRoot();
+					trieOfInfo.malloc();
 					old = trieOfInfo;
 					trieOfInfo = trieOfInfo.setManifest(addedManifest.get());
 					old.free();
 				}
-
-				// we increment the reference count of the roots of the resulting tries, so that
-				// they do not get garbage collected until this store is freed
-				trieOfResponses.incrementReferenceCountOfRoot();
-				trieOfInfo.incrementReferenceCountOfRoot();
-				trieOfHistories.incrementReferenceCountOfRoot();
-				trieOfRequests.incrementReferenceCountOfRoot();
 
 				return make(cache, trieOfResponses.getRoot(), trieOfInfo.getRoot(), trieOfHistories.getRoot(), trieOfRequests.getRoot());
 			})));
@@ -294,46 +290,71 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 	}
 
 	@Override
-	public final byte[] getStateId() {
+	public final StateId getStateId() {
 		var result = new byte[128];
 		System.arraycopy(rootOfResponses, 0, result, 0, 32);
 		System.arraycopy(rootOfInfo, 0, result, 32, 32);
 		System.arraycopy(rootOfRequests, 0, result, 64, 32);
 		System.arraycopy(rootOfHistories, 0, result, 96, 32);
 
-		return result;
+		return StateIds.of(result);
 	}
 
 	@Override
-	public final S checkoutAt(byte[] stateId) throws StoreException {
+	public final S checkedOutAt(StateId stateId) throws StoreException {
+		var bytes = stateId.getBytes();
 		var rootOfResponses = new byte[32];
-		System.arraycopy(stateId, 0, rootOfResponses, 0, 32);
+		System.arraycopy(bytes, 0, rootOfResponses, 0, 32);
 		var rootOfInfo = new byte[32];
-		System.arraycopy(stateId, 32, rootOfInfo, 0, 32);
+		System.arraycopy(bytes, 32, rootOfInfo, 0, 32);
 		var rootOfRequests = new byte[32];
-		System.arraycopy(stateId, 64, rootOfRequests, 0, 32);
+		System.arraycopy(bytes, 64, rootOfRequests, 0, 32);
 		var rootOfHistories = new byte[32];
-		System.arraycopy(stateId, 96, rootOfHistories, 0, 32);
+		System.arraycopy(bytes, 96, rootOfHistories, 0, 32);
 
 		// we provide an empty cache and then ask to reload it from the state of the resulting store
 		return make(new StoreCacheImpl(), rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests).reloadCache();
 	}
 
 	/**
-	 * Deallocates all resources used for the checked-out vision of this store. This method should be called
-	 * only once per store. Moreover, after a call to this method, no more methods should be called on this store.
+	 * Allocates the resources used for the checked-out vision of this store.
 	 * 
-	 * @param txn the database transaction where the garbage-collection is performed
+	 * @param txn the database transaction where the operation is performed
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	public final void free(Transaction txn) throws StoreException {
+	protected final void malloc(Transaction txn) throws StoreException {
+		var trieOfRequests = mkTrieOfRequests(txn);
+		var trieOfResponses = mkTrieOfResponses(txn);
+		var trieOfHistories = mkTrieOfHistories(txn);
+		var trieOfInfo = mkTrieOfInfo(txn);
+
+		try {
+			// we increment the reference count of the roots of the resulting tries, so that
+			// they do not get garbage collected until this store is freed
+			trieOfResponses.malloc();
+			trieOfInfo.malloc();
+			trieOfHistories.malloc();
+			trieOfRequests.malloc();
+		}
+		catch (TrieException e) {
+			throw new StoreException(e);
+		}
+	}
+
+	/**
+	 * Deallocates all resources used for the checked-out vision of this store.
+	 * 
+	 * @param txn the database transaction where the operation is performed
+	 * @throws StoreException if the operation cannot be completed correctly
+	 */
+	protected final void free(Transaction txn) throws StoreException {
 		try {
 			mkTrieOfRequests(txn).free();
 			mkTrieOfResponses(txn).free();
 			mkTrieOfHistories(txn).free();
 			mkTrieOfInfo(txn).free();
 		}
-		catch (ExodusException | TrieException e) {
+		catch (TrieException e) {
 			throw new StoreException(e);
 		}
 	}

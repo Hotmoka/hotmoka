@@ -30,12 +30,12 @@ import io.hotmoka.annotations.Immutable;
 public interface CheckableStore<S extends CheckableStore<S, T>, T extends StoreTransformation<S, T>> extends Store<S, T> {
 
 	/**
-	 * Yields an identifier of this store.
+	 * Yields the identifier of this store.
 	 * 
 	 * @return the identifier; this is for instance the hash of the store
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	byte[] getStateId() throws StoreException;
+	StateId getStateId() throws StoreException;
 
 	/**
 	 * Yields a store derived from this by resetting the view of the world to that expressed
@@ -46,5 +46,5 @@ public interface CheckableStore<S extends CheckableStore<S, T>, T extends StoreT
 	 * @return the resulting store
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	S checkoutAt(byte[] stateId) throws StoreException;
+	S checkedOutAt(StateId stateId) throws StoreException;
 }

@@ -183,8 +183,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		return root.clone();
 	}
 
-	@Override
-	public final void incrementReferenceCountOfRoot() throws TrieException {
+	public final void malloc() throws TrieException {
 		incrementReferenceCountOfNode(root);
 	}
 
@@ -209,38 +208,37 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 	/**
 	 * Factory method that unmarshals a node from the given stream.
 	 * 
-	 * @param ois the stream
+	 * @param context the stream
 	 * @param cursor the number of nibbles in the path from the root of the trie to the node;
 	 *               this is needed in order to foresee the size of the leaves
 	 * @return the node
 	 * @throws IOException if the node could not be unmarshalled
 	 */
-	private AbstractNode from(UnmarshallingContext ois, int cursor) throws IOException {
-		int counter = ois.readCompactInt();
-
-		byte kind = ois.readByte();
+	private AbstractNode from(UnmarshallingContext context, int cursor) throws IOException {
+		int counter = context.readCompactInt();
+		byte kind = context.readByte();
 
 		if (kind == 0x00 || (kind & 0xf0) == 0x10) {
 			int nodeHashSize = hasherForNodes.length();
-			int sharedBytesLength = ois.available() - nodeHashSize + 1;
+			int sharedBytesLength = context.available() - nodeHashSize + 1;
 			var sharedBytes = new byte[sharedBytesLength];
 			sharedBytes[0] = kind;
-			if (sharedBytesLength - 1 != ois.readNBytes(sharedBytes, 1, sharedBytesLength - 1))
+			if (sharedBytesLength - 1 != context.readNBytes(sharedBytes, 1, sharedBytesLength - 1))
 				throw new IOException("Nibbles length mismatch in an extension node of a Patricia trie");
 
 			byte[] sharedNibbles = expandBytesIntoNibbles(sharedBytes, (byte) 0x00);
-			byte[] next = ois.readAllBytes();
+			byte[] next = context.readAllBytes();
 
 			return new Extension(sharedNibbles, next, counter);
 		}
 		else if (kind == 0x04) {
-			short selector = ois.readShort();
+			short selector = context.readShort();
 			int nodeHashSize = hasherForNodes.length();
 			var children = new byte[16][];
 			for (int pos = 0, bit = 0x8000; pos < 16; pos++, bit >>= 1)
 				if ((selector & bit) != 0) {
 					children[pos] = new byte[nodeHashSize];
-					if (nodeHashSize != ois.readNBytes(children[pos], 0, nodeHashSize))
+					if (nodeHashSize != context.readNBytes(children[pos], 0, nodeHashSize))
 						throw new IOException("Hash length mismatch in Patricia node");
 				}
 
@@ -255,11 +253,11 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 
 			var nibbles = new byte[expected];
 			nibbles[0] = kind;
-			if (expected - 1 != ois.readNBytes(nibbles, 1, expected - 1))
+			if (expected - 1 != context.readNBytes(nibbles, 1, expected - 1))
 				throw new IOException("keyEnd length mismatch in a leaf node of a Patricia trie");
 
 			byte[] keyEnd = expandBytesIntoNibbles(nibbles, (byte) 0x02);
-			byte[] value = ois.readAllBytes();
+			byte[] value = context.readAllBytes();
 
 			return new Leaf(keyEnd, value, counter);
 		}
@@ -322,7 +320,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		//System.out.println(node.getClass().getSimpleName() + ": " + previous + " -> " + node.count);
 
 		try {
-			store.put(hash, node.toByteArray()); // TODO: can we avoid to unmarshal and marshal again?
+			store.put(hash, node.toByteArray());
 		}
 		catch (KeyValueStoreException e) {
 			throw new TrieException(e);
@@ -470,7 +468,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 
 			try {
 				if (replacement.count > 0)
-					store.put(hash, replacement.toByteArray()); // TODO: can we avoid to unmarshal and marshal again?
+					store.put(hash, replacement.toByteArray());
 				else {
 					freed++;
 					System.out.printf("%d/%d: %.2f\n", freed, allocated, freed * 100.0 / allocated);

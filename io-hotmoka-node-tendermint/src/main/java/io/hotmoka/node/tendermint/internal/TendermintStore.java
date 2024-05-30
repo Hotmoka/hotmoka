@@ -31,7 +31,9 @@ import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractTrieBasedStore;
+import io.hotmoka.node.local.StateIds;
 import io.hotmoka.node.local.StoreCache;
+import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreException;
 
 /**
@@ -58,7 +60,16 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
 	 * @param node the node for which the store is created
 	 */
     TendermintStore(TendermintNodeImpl node) throws StoreException {
-    	this(node, new byte[128]);
+    	super(node);
+
+    	try {
+    		this.hasherOfHashes = HashingAlgorithms.sha256().getHasher(Function.identity());
+    	}
+    	catch (NoSuchAlgorithmException e) {
+    		throw new StoreException(e);
+    	}
+
+    	this.validators = Optional.empty();
     }
 
     /**
@@ -68,7 +79,7 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
 	 * @param stateId the state identifier
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-    TendermintStore(TendermintNodeImpl node, byte[] stateId) throws StoreException {
+    TendermintStore(TendermintNodeImpl node, StateId stateId) throws StoreException {
     	super(node, stateId);
 
     	try {
@@ -163,7 +174,7 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
 	 * @throws TrieException 
 	 */
 	private byte[] mergeRootsOfTriesWithoutInfo() throws StoreException {
-		byte[] bytes = getStateId();
+		byte[] bytes = getStateId().getBytes();
 		for (int pos = 32; pos < 64; pos++)
 			bytes[pos] = 0;
 	

@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.local;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.AbstractTrieBasedStoreImpl;
 
@@ -48,7 +49,7 @@ public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S,
 	 * @param stateId the state identifier
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-    protected AbstractTrieBasedStore(AbstractTrieBasedLocalNode<?,?,?> node, byte[] stateId) throws StoreException {
+    protected AbstractTrieBasedStore(AbstractTrieBasedLocalNode<?,?,?> node, StateId stateId) throws StoreException {
     	super(node, stateId);
     }
 
