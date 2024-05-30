@@ -31,7 +31,6 @@ import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractTrieBasedStore;
-import io.hotmoka.node.local.StateIds;
 import io.hotmoka.node.local.StoreCache;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreException;

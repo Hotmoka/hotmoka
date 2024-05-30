@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.local.internal;
+package io.hotmoka.node.local.internal.tries;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -36,11 +36,7 @@ import io.hotmoka.node.local.StoreCache;
 import io.hotmoka.node.local.api.CheckableStore;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.node.local.internal.tries.KeyValueStoreOnXodus;
-import io.hotmoka.node.local.internal.tries.TrieOfHistories;
-import io.hotmoka.node.local.internal.tries.TrieOfInfo;
-import io.hotmoka.node.local.internal.tries.TrieOfRequests;
-import io.hotmoka.node.local.internal.tries.TrieOfResponses;
+import io.hotmoka.node.local.internal.StoreCacheImpl;
 import io.hotmoka.patricia.api.TrieException;
 import io.hotmoka.xodus.ExodusException;
 import io.hotmoka.xodus.env.Environment;

@@ -18,7 +18,7 @@ package io.hotmoka.node.local;
 
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.node.local.internal.AbstractTrieBasedStoreTransformationImpl;
+import io.hotmoka.node.local.internal.tries.AbstractTrieBasedStoreTransformationImpl;
 
 /**
  * A store transformation for trie-based stores, for extension.

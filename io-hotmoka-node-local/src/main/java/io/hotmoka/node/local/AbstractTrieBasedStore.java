@@ -19,7 +19,7 @@ package io.hotmoka.node.local;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.node.local.internal.AbstractTrieBasedStoreImpl;
+import io.hotmoka.node.local.internal.tries.AbstractTrieBasedStoreImpl;
 
 /**
  * A store of a node, based on tries. It is a container of request/response pairs.

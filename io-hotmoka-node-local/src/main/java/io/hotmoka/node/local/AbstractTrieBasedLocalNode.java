@@ -19,7 +19,7 @@ package io.hotmoka.node.local;
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.local.api.LocalNodeConfig;
-import io.hotmoka.node.local.internal.AbstractTrieBasedLocalNodeImpl;
+import io.hotmoka.node.local.internal.tries.AbstractTrieBasedLocalNodeImpl;
 
 /**
  * Partial implementation of a local (ie., non-remote) node.
