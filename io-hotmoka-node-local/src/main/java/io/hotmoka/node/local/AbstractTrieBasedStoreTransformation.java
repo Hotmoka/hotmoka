@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.local;
 
 import io.hotmoka.node.api.nodes.ConsensusConfig;
+import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.tries.AbstractTrieBasedStoreTransformationImpl;
 
@@ -26,7 +27,7 @@ import io.hotmoka.node.local.internal.tries.AbstractTrieBasedStoreTransformation
  * @param <S> the type of store used in the transformation
  * @param <T> the type of the transformation
  */
-public abstract class AbstractTrieBasedStoreTransformation<S extends AbstractTrieBasedStore<S, T>, T extends AbstractTrieBasedStoreTransformation<S, T>> extends AbstractTrieBasedStoreTransformationImpl<S, T> {
+public abstract class AbstractTrieBasedStoreTransformation<N extends AbstractTrieBasedLocalNode<N,C,S,T>, C extends LocalNodeConfig<C,?>, S extends AbstractTrieBasedStore<N,C,S,T>, T extends AbstractTrieBasedStoreTransformation<N,C,S,T>> extends AbstractTrieBasedStoreTransformationImpl<N,C,S,T> {
 
 	/**
 	 * Creates a transformation whose transaction are executed with the given executors.

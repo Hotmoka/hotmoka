@@ -79,7 +79,6 @@ import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.api.values.StringValue;
-import io.hotmoka.node.local.AbstractLocalNode;
 import io.hotmoka.node.local.StoreCache;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
@@ -89,14 +88,16 @@ import io.hotmoka.node.local.api.StoreException;
 /**
  * An executor environment abstract both a store and a store transformation and allows
  * the execution of run transactions in both.
+ * 
+ * @param <N> the type of the nodes for which the execution is performed
  */
-public abstract class ExecutionEnvironment {
+public abstract class ExecutionEnvironment<N extends AbstractLocalNodeImpl<?,?,?,?>> {
 	private final static Logger LOGGER = Logger.getLogger(ExecutionEnvironment.class.getName());
 
 	/**
 	 * The node for which the execution is performed.
 	 */
-	private final AbstractLocalNode<?,?,?> node;
+	private final N node;
 
 	/**
 	 * Enough gas for a simple get method.
@@ -108,7 +109,7 @@ public abstract class ExecutionEnvironment {
 	 * 
 	 * @param node the node for which the execution is performed
 	 */
-	protected ExecutionEnvironment(AbstractLocalNode<?,?,?> node) {
+	protected ExecutionEnvironment(N node) {
 		this.node = node;
 	}
 
@@ -170,7 +171,7 @@ public abstract class ExecutionEnvironment {
 	 * 
 	 * @return the node for which the execution is performed
 	 */
-	protected final AbstractLocalNode<?, ?, ?> getNode() {
+	protected final N getNode() {
 		return node;
 	}
 

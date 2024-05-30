@@ -171,7 +171,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @throws ClassNotFoundException if some class of the dependencies cannot be found
 	 * @throws StoreException 
 	 */
-	public EngineClassLoaderImpl(byte[] jar, Stream<TransactionReference> dependencies, ExecutionEnvironment environment, ConsensusConfig<?,?> consensus) throws StoreException, TransactionRejectedException {
+	public EngineClassLoaderImpl(byte[] jar, Stream<TransactionReference> dependencies, ExecutionEnvironment<?> environment, ConsensusConfig<?,?> consensus) throws StoreException, TransactionRejectedException {
 		try {
 			var dependenciesAsList = dependencies.collect(Collectors.toList());
 
@@ -227,7 +227,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @throws StoreException 
 	 * @throws TransactionRejectedException 
 	 */
-	private TakamakaClassLoader mkTakamakaClassLoader(Stream<TransactionReference> dependencies, ConsensusConfig<?,?> consensus, byte[] start, ExecutionEnvironment environment, List<byte[]> jars, ArrayList<TransactionReference> transactionsOfJars) throws StoreException, TransactionRejectedException {
+	private TakamakaClassLoader mkTakamakaClassLoader(Stream<TransactionReference> dependencies, ConsensusConfig<?,?> consensus, byte[] start, ExecutionEnvironment<?> environment, List<byte[]> jars, ArrayList<TransactionReference> transactionsOfJars) throws StoreException, TransactionRejectedException {
 		var counter = new AtomicInteger();
 
 		if (start != null) {
@@ -313,7 +313,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @param counter the number of jars that have been encountered up to now, during the recursive descent
 	 * @throws TransactionRejectedException 
 	 */
-	private void addJars(TransactionReference classpath, ConsensusConfig<?,?> consensus, List<byte[]> jars, List<TransactionReference> jarTransactions, ExecutionEnvironment environment, AtomicInteger counter) throws StoreException, TransactionRejectedException {
+	private void addJars(TransactionReference classpath, ConsensusConfig<?,?> consensus, List<byte[]> jars, List<TransactionReference> jarTransactions, ExecutionEnvironment<?> environment, AtomicInteger counter) throws StoreException, TransactionRejectedException {
 		// consensus might be null if the node is restarting, during the recomputation of its consensus itself
 		if (consensus != null && counter.incrementAndGet() > consensus.getMaxDependencies())
 			throw new TransactionRejectedException("Too many dependencies in classpath: max is " + consensus.getMaxDependencies(), consensus);
@@ -341,7 +341,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @return the response
 	 * @throws TransactionRejectedException if the transaction does not exist in the store, or did not generate a response with instrumented jar
 	 */
-	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference, ExecutionEnvironment environment) throws StoreException, TransactionRejectedException {
+	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference, ExecutionEnvironment<?> environment) throws StoreException, TransactionRejectedException {
 		// first we check if the response has been reverified and we use the reverified version
 		Optional<TransactionResponse> maybeResponse = reverification.getReverifiedResponse(reference);
 		TransactionResponse response;

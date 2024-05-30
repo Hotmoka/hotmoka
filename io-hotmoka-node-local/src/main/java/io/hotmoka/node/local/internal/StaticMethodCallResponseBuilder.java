@@ -46,7 +46,7 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	public StaticMethodCallResponseBuilder(TransactionReference reference, StaticMethodCallTransactionRequest request, ExecutionEnvironment environment) throws TransactionRejectedException, StoreException {
+	public StaticMethodCallResponseBuilder(TransactionReference reference, StaticMethodCallTransactionRequest request, ExecutionEnvironment<?> environment) throws TransactionRejectedException, StoreException {
 		super(reference, request, environment);
 	}
 

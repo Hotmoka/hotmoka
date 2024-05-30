@@ -18,6 +18,7 @@ package io.hotmoka.node.local.internal.tries;
 
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.local.AbstractStoreTransformation;
+import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StoreException;
 
 /**
@@ -26,7 +27,7 @@ import io.hotmoka.node.local.api.StoreException;
  * @param <S> the type of store used in the transformation
  * @param <T> the type of the transformation
  */
-public abstract class AbstractTrieBasedStoreTransformationImpl<S extends AbstractTrieBasedStoreImpl<S, T>, T extends AbstractTrieBasedStoreTransformationImpl<S, T>> extends AbstractStoreTransformation<S, T> {
+public abstract class AbstractTrieBasedStoreTransformationImpl<N extends AbstractTrieBasedLocalNodeImpl<N,C,S,T>, C extends LocalNodeConfig<C,?>, S extends AbstractTrieBasedStoreImpl<N,C,S,T>, T extends AbstractTrieBasedStoreTransformationImpl<N,C,S,T>> extends AbstractStoreTransformation<N,C,S,T> {
 
 	/**
 	 * Creates a transformation whose transaction are executed with the given executors.

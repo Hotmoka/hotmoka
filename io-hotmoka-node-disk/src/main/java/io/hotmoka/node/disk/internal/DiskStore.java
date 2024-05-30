@@ -38,6 +38,7 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.local.AbstractStore;
 import io.hotmoka.node.local.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
@@ -48,7 +49,7 @@ import io.hotmoka.node.local.api.StoreException;
  * persistent memory, while the histories are kept in RAM.
  */
 @Immutable
-class DiskStore extends AbstractStore<DiskStore, DiskStoreTransformation> {
+class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, DiskStoreTransformation> {
 
 	/**
 	 * The path where the database of the store gets created.

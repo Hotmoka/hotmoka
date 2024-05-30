@@ -29,7 +29,7 @@ import io.hotmoka.node.local.internal.tries.AbstractTrieBasedLocalNodeImpl;
  * @param <T> the type of the store transformations that can be started from this store
  */
 @ThreadSafe
-public abstract class AbstractTrieBasedLocalNode<C extends LocalNodeConfig<C,?>, S extends AbstractTrieBasedStore<S, T>, T extends AbstractTrieBasedStoreTransformation<S, T>> extends AbstractTrieBasedLocalNodeImpl<C, S, T> {
+public abstract class AbstractTrieBasedLocalNode<N extends AbstractTrieBasedLocalNode<N,C,S,T>, C extends LocalNodeConfig<C,?>, S extends AbstractTrieBasedStore<N,C,S,T>, T extends AbstractTrieBasedStoreTransformation<N,C,S,T>> extends AbstractTrieBasedLocalNodeImpl<N,C,S,T> {
 
 	/**
 	 * Creates a new node.

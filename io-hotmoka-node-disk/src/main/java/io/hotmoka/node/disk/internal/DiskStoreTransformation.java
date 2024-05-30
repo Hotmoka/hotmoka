@@ -17,12 +17,13 @@ limitations under the License.
 package io.hotmoka.node.disk.internal;
 
 import io.hotmoka.node.api.nodes.ConsensusConfig;
+import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.local.AbstractStoreTransformation;
 
 /**
  * A transformation of a store of a disk node.
  */
-public class DiskStoreTransformation extends AbstractStoreTransformation<DiskStore, DiskStoreTransformation> {
+public class DiskStoreTransformation extends AbstractStoreTransformation<DiskNodeImpl, DiskNodeConfig, DiskStore, DiskStoreTransformation> {
 
 	/**
 	 * Creates a transformation from an initial store.

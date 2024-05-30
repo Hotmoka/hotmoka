@@ -39,7 +39,7 @@ public class InitializationResponseBuilder extends AbstractInitialResponseBuilde
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	public InitializationResponseBuilder(TransactionReference reference, InitializationTransactionRequest request, ExecutionEnvironment environment) throws TransactionRejectedException, StoreException {
+	public InitializationResponseBuilder(TransactionReference reference, InitializationTransactionRequest request, ExecutionEnvironment<?> environment) throws TransactionRejectedException, StoreException {
 		super(reference, request, environment);
 	}
 

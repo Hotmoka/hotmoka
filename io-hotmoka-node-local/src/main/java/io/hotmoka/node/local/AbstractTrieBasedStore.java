@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.local;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.tries.AbstractTrieBasedStoreImpl;
@@ -30,7 +31,7 @@ import io.hotmoka.node.local.internal.tries.AbstractTrieBasedStoreImpl;
  * @param <T> the type of the store transformations that can be started from this store
  */
 @Immutable
-public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S, T>, T extends AbstractTrieBasedStoreTransformation<S, T>> extends AbstractTrieBasedStoreImpl<S, T> {
+public abstract class AbstractTrieBasedStore<N extends AbstractTrieBasedLocalNode<N,C,S,T>, C extends LocalNodeConfig<C,?>, S extends AbstractTrieBasedStore<N,C,S,T>, T extends AbstractTrieBasedStoreTransformation<N,C,S,T>> extends AbstractTrieBasedStoreImpl<N,C,S,T> {
 
 	/**
 	 * Creates an empty store.
@@ -38,7 +39,7 @@ public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S,
 	 * @param node the node for which the store is created
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-    protected AbstractTrieBasedStore(AbstractTrieBasedLocalNode<?,?,?> node) throws StoreException {
+    protected AbstractTrieBasedStore(N node) throws StoreException {
     	super(node);
     }
 
@@ -49,7 +50,7 @@ public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S,
 	 * @param stateId the state identifier
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-    protected AbstractTrieBasedStore(AbstractTrieBasedLocalNode<?,?,?> node, StateId stateId) throws StoreException {
+    protected AbstractTrieBasedStore(N node, StateId stateId) throws StoreException {
     	super(node, stateId);
     }
 
@@ -59,7 +60,7 @@ public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S,
 	 * @param toClone the store to clone
 	 * @param cache the cache to use in the cloned store
 	 */
-    protected AbstractTrieBasedStore(AbstractTrieBasedStore<S, T> toClone, StoreCache cache) {
+    protected AbstractTrieBasedStore(AbstractTrieBasedStore<N,C,S,T> toClone, StoreCache cache) {
     	super(toClone, cache);
     }
 
@@ -73,7 +74,7 @@ public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S,
 	 * @param rootOfHistories the root to use for the tries of histories
 	 * @param rootOfRequests the root to use for the tries of requests
 	 */
-    protected AbstractTrieBasedStore(AbstractTrieBasedStore<S, T> toClone, StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) {
+    protected AbstractTrieBasedStore(AbstractTrieBasedStore<N,C,S,T> toClone, StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) {
     	super(toClone, cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
     }
 }

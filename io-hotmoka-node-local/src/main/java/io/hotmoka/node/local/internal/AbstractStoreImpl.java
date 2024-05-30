@@ -31,8 +31,8 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.local.AbstractLocalNode;
 import io.hotmoka.node.local.StoreCache;
+import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.Store;
 import io.hotmoka.node.local.api.StoreException;
 
@@ -44,7 +44,7 @@ import io.hotmoka.node.local.api.StoreException;
  * @param <T> the type of the store transformations that can be started from this store
  */
 @Immutable
-public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T extends AbstractStoreTransformationImpl<S, T>> extends ExecutionEnvironment implements Store<S, T> {
+public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>, C extends LocalNodeConfig<C,?>, S extends AbstractStoreImpl<N,C,S,T>, T extends AbstractStoreTransformationImpl<N,C,S,T>> extends ExecutionEnvironment<N> implements Store<S,T> {
 
 	private final StoreCache cache;
 
@@ -64,7 +64,7 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 	 * @param node the node for which the store is created
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	protected AbstractStoreImpl(AbstractLocalNode<?,?,?> node) throws StoreException {
+	protected AbstractStoreImpl(N node) throws StoreException {
 		super(node);
 
 		this.cache = new StoreCacheImpl();
@@ -82,7 +82,7 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 	 * @param toClone the store to clone
 	 * @param cache the cache to use in the cloned store
 	 */
-	protected AbstractStoreImpl(AbstractStoreImpl<S, T> toClone, StoreCache cache) {
+	protected AbstractStoreImpl(AbstractStoreImpl<N,C,S,T> toClone, StoreCache cache) {
 		super(toClone.getNode());
 
 		this.cache = cache;

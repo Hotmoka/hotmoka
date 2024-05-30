@@ -59,7 +59,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	public InstanceMethodCallResponseBuilder(TransactionReference reference, AbstractInstanceMethodCallTransactionRequest request, ExecutionEnvironment environment) throws TransactionRejectedException, StoreException {
+	public InstanceMethodCallResponseBuilder(TransactionReference reference, AbstractInstanceMethodCallTransactionRequest request, ExecutionEnvironment<?> environment) throws TransactionRejectedException, StoreException {
 		super(reference, request, environment);
 
 		// calls to @View methods are allowed to receive non-exported values

@@ -63,7 +63,7 @@ public class Deserializer {
 	/**
 	 * The environment where deserialization is performed.
 	 */
-	private final ExecutionEnvironment environment;
+	private final ExecutionEnvironment<?> environment;
 
 	/**
 	 * The class loader that can be used to load classes.
@@ -119,7 +119,7 @@ public class Deserializer {
 	 * @param environment the execution environment for which deserialization is performed
 	 * @param classLoader the class loader that can be used to load classes during deserialization
 	 */
-	Deserializer(ExecutionEnvironment environment, EngineClassLoader classLoader) {
+	Deserializer(ExecutionEnvironment<?> environment, EngineClassLoader classLoader) {
 		this.environment = environment;
 		this.classLoader = classLoader;
 	}

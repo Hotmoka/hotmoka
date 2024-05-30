@@ -42,11 +42,12 @@ import io.hotmoka.node.local.AbstractTrieBasedStoreTransformation;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 
 /**
  * A transformation of a store of a Tendermint node.
  */
-public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransformation<TendermintStore, TendermintStoreTransformation> {
+public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransformation<TendermintNodeImpl, TendermintNodeConfig, TendermintStore, TendermintStoreTransformation> {
 
 	/**
 	 * The current validators set in this store transaction. This information could be recovered from the store transaction itself,

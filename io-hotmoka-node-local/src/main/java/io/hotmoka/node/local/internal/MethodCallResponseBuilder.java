@@ -50,7 +50,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	protected MethodCallResponseBuilder(TransactionReference reference, Request request, ExecutionEnvironment environment) throws TransactionRejectedException, StoreException {
+	protected MethodCallResponseBuilder(TransactionReference reference, Request request, ExecutionEnvironment<?> environment) throws TransactionRejectedException, StoreException {
 		super(reference, request, environment);
 	}
 

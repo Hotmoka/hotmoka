@@ -69,7 +69,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	protected CodeCallResponseBuilder(TransactionReference reference, Request request, ExecutionEnvironment environment) throws TransactionRejectedException, StoreException {
+	protected CodeCallResponseBuilder(TransactionReference reference, Request request, ExecutionEnvironment<?> environment) throws TransactionRejectedException, StoreException {
 		super(reference, request, environment);
 
 		// calls to @View methods are allowed to receive non-exported values

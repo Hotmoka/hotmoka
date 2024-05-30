@@ -71,7 +71,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	protected NonInitialResponseBuilderImpl(TransactionReference reference, Request request, ExecutionEnvironment environment) throws TransactionRejectedException, StoreException {
+	protected NonInitialResponseBuilderImpl(TransactionReference reference, Request request, ExecutionEnvironment<?> environment) throws TransactionRejectedException, StoreException {
 		super(reference, request, environment);
 
 		this.gasCostModel = consensus.getGasCostModel();

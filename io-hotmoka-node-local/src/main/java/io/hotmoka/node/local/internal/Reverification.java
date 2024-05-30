@@ -64,7 +64,7 @@ class Reverification {
 	/**
 	 * The node whose responses are reverified.
 	 */
-	private final ExecutionEnvironment environment;
+	private final ExecutionEnvironment<?> environment;
 
 	/**
 	 * The consensus parameters to use for reverification. This might be {@code null} if the node is restarting,
@@ -81,7 +81,7 @@ class Reverification {
 	 * @param consensus the consensus parameters to use for reverification
 	 * @throws StoreException 
 	 */
-	Reverification(Stream<TransactionReference> transactions, ExecutionEnvironment environment, ConsensusConfig<?,?> consensus) throws StoreException {
+	Reverification(Stream<TransactionReference> transactions, ExecutionEnvironment<?> environment, ConsensusConfig<?,?> consensus) throws StoreException {
 		this.environment = environment;
 		this.consensus = consensus;
 
@@ -112,7 +112,7 @@ class Reverification {
 			try {
 				environment.getRequest(reference);
 
-				if (environment instanceof AbstractStoreTransformation<?,?> ast)
+				if (environment instanceof AbstractStoreTransformation<?,?,?,?> ast)
 					ast.setResponse(reference, entry.getValue());
 			}
 			catch (UnknownReferenceException e) {

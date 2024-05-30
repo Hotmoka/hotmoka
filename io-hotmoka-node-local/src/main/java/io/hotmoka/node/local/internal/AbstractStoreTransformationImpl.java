@@ -66,6 +66,7 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.StoreCache;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
+import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.ResponseBuilder;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.StoreTransformation;
@@ -77,7 +78,7 @@ import io.hotmoka.node.local.api.StoreTransformation;
  * @param <S> the type of store used in the transformation
  * @param <T> the type of the transformation
  */
-public abstract class AbstractStoreTransformationImpl<S extends AbstractStoreImpl<S, T>, T extends AbstractStoreTransformationImpl<S, T>> extends ExecutionEnvironment implements StoreTransformation<S, T> {
+public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNodeImpl<N,C,S,T>, C extends LocalNodeConfig<C,?>, S extends AbstractStoreImpl<N,C,S,T>, T extends AbstractStoreTransformationImpl<N,C,S,T>> extends ExecutionEnvironment<N> implements StoreTransformation<S, T> {
 	private final static Logger LOGGER = Logger.getLogger(AbstractStoreTransformationImpl.class.getName());
 	private final S store;
 

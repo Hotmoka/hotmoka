@@ -37,7 +37,7 @@ import io.hotmoka.node.local.api.StoreException;
  * nor transactions. Updates are stored in files, rather than in an external database.
  */
 @ThreadSafe
-public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, DiskStore, DiskStoreTransformation> implements DiskNode {
+public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig, DiskStore, DiskStoreTransformation> implements DiskNode {
 
 	/**
 	 * The mempool where transaction requests are stored and eventually executed.

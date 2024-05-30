@@ -40,7 +40,7 @@ public abstract class InitialResponseBuilderImpl<Request extends InitialTransact
 	 * @param request the request of the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected InitialResponseBuilderImpl(TransactionReference reference, Request request, ExecutionEnvironment environment) throws TransactionRejectedException, StoreException {
+	protected InitialResponseBuilderImpl(TransactionReference reference, Request request, ExecutionEnvironment<?> environment) throws TransactionRejectedException, StoreException {
 		super(reference, request, environment);
 
 		if (environment.getManifest().isPresent())

@@ -48,7 +48,7 @@ import io.hotmoka.xodus.env.Transaction;
  * @param <T> the type of the store transformations that can be started from this store
  */
 @ThreadSafe
-public abstract class AbstractTrieBasedLocalNodeImpl<C extends LocalNodeConfig<C,?>, S extends AbstractTrieBasedStoreImpl<S, T>, T extends AbstractTrieBasedStoreTransformationImpl<S, T>> extends AbstractLocalNode<C, S, T> {
+public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBasedLocalNodeImpl<N,C,S,T>, C extends LocalNodeConfig<C,?>, S extends AbstractTrieBasedStoreImpl<N,C,S,T>, T extends AbstractTrieBasedStoreTransformationImpl<N,C,S,T>> extends AbstractLocalNode<N,C,S,T> {
 
 	/**
 	 * The Xodus environment used for storing information about the node, such as its store.

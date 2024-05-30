@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.local;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.AbstractStoreImpl;
 
@@ -28,7 +29,7 @@ import io.hotmoka.node.local.internal.AbstractStoreImpl;
  * @param <T> the type of the store transformations that can be started from this store
  */
 @Immutable
-public abstract class AbstractStore<S extends AbstractStore<S,T>, T extends AbstractStoreTransformation<S, T>> extends AbstractStoreImpl<S, T> {
+public abstract class AbstractStore<N extends AbstractLocalNode<N,C,S,T>, C extends LocalNodeConfig<C,?>, S extends AbstractStore<N,C,S,T>, T extends AbstractStoreTransformation<N,C,S,T>> extends AbstractStoreImpl<N,C,S,T> {
 
 	/**
 	 * Creates an empty store.
@@ -36,7 +37,7 @@ public abstract class AbstractStore<S extends AbstractStore<S,T>, T extends Abst
 	 * @param node the node for which the store is created
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	protected AbstractStore(AbstractLocalNode<?,?,?> node) throws StoreException {
+	protected AbstractStore(N node) throws StoreException {
 		super(node);
 	}
 
@@ -46,7 +47,7 @@ public abstract class AbstractStore<S extends AbstractStore<S,T>, T extends Abst
 	 * @param toClone the store to clone
 	 * @param cache the cache to use in the cloned store
 	 */
-	protected AbstractStore(AbstractStore<S, T> toClone, StoreCache cache) {
+	protected AbstractStore(AbstractStore<N,C,S,T> toClone, StoreCache cache) {
 		super(toClone, cache);
 	}
 }

@@ -34,13 +34,14 @@ import io.hotmoka.node.local.AbstractTrieBasedStore;
 import io.hotmoka.node.local.StoreCache;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 
 /**
  * A partial trie-based store. Errors and requests are recovered by asking
  * Tendermint, since it keeps such information inside its blocks.
  */
 @Immutable
-public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, TendermintStoreTransformation> {
+public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, TendermintNodeConfig, TendermintStore, TendermintStoreTransformation> {
 
 	/**
 	 * The hasher used to merge the hashes of the many tries.
