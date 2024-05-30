@@ -16,11 +16,9 @@ limitations under the License.
 
 package io.hotmoka.patricia.internal;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -28,7 +26,9 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.marshalling.AbstractMarshallable;
+import io.hotmoka.marshalling.UnmarshallingContexts;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.patricia.FromBytes;
 import io.hotmoka.patricia.ToBytes;
 import io.hotmoka.patricia.api.KeyValueStore;
@@ -215,8 +215,8 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 	 * @return the node
 	 * @throws IOException if the node could not be unmarshalled
 	 */
-	private AbstractNode from(ObjectInputStream ois, int cursor) throws IOException {
-		int counter = ois.readInt();
+	private AbstractNode from(UnmarshallingContext ois, int cursor) throws IOException {
+		int counter = ois.readCompactInt();
 
 		byte kind = ois.readByte();
 
@@ -301,9 +301,8 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		if (Arrays.equals(hash, hashOfEmpty))
 			return EMPTY;
 
-		//try (var bais = new ByteArrayInputStream(store.get(hash)); var context = UnmarshallingContexts.of(bais)) {
-		try (var ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(store.get(hash))))) {
-			return from(ois, cursor);
+		try (var bais = new ByteArrayInputStream(store.get(hash)); var context = UnmarshallingContexts.of(bais)) {
+			return from(context, cursor);
 		}
 		catch (KeyValueStoreException | IOException e) {
 			throw new TrieException(e);
@@ -425,7 +424,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 
 		@Override
 		public final void into(MarshallingContext context) throws IOException {
-			context.writeInt(count);
+			context.writeCompactInt(count);
 			intoWithoutReferenceCounter(context);
 		}
 
