@@ -187,8 +187,8 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	        Node wrapped;
 	        //node = wrapped = mkDiskNode();
-	        node = wrapped = mkTendermintNode();
-	        //node = mkRemoteNode(wrapped = mkDiskNode());
+	        //node = wrapped = mkTendermintNode();
+	        node = mkRemoteNode(wrapped = mkDiskNode());
 	        //node = mkRemoteNode(wrapped = mkTendermintNode());
 	        //node = wrapped = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
 	        //node = wrapped = mkRemoteNode("localhost:8080");

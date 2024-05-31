@@ -190,7 +190,7 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 		try {
 			return node.runInstanceMethodCallTransaction(getNonceRequest)
 				.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
-				.asBigInteger(value -> new NodeException(MethodSignatures.NONCE + " should return a BigInteger, not a " + value.getClass().getName()));
+				.asReturnedBigInteger(MethodSignatures.NONCE, NodeException::new);
 		}
 		catch (CodeExecutionException e) {
 			// the nonce() method does not throw exceptions

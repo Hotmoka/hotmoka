@@ -191,9 +191,10 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		Signer<SignedTransactionRequest<?>> signer = signatureForPayer.getSigner(keysOfPayer.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 
 		if (addToLedger) {
-			var accountsLedger = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+			var accountsLedger = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_ACCOUNTS_LEDGER, manifest))
-				.orElseThrow(() -> new NodeException(MethodSignatures.GET_ACCOUNTS_LEDGER + " should not return void"));
+				.orElseThrow(() -> new NodeException(MethodSignatures.GET_ACCOUNTS_LEDGER + " should not return void"))
+				.asReturnedReference(MethodSignatures.GET_ACCOUNTS_LEDGER, NodeException::new);
 
 			var method = MethodSignatures.ofNonVoid(StorageTypes.ACCOUNTS_LEDGER, "add", StorageTypes.EOA, StorageTypes.BIG_INTEGER, StorageTypes.STRING);
 			request1 = TransactionRequests.instanceMethodCall
@@ -204,8 +205,9 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 				StorageValues.bigIntegerOf(balance),
 				StorageValues.stringOf(publicKeyEncoded));
 
-			account = (StorageReference) node.addInstanceMethodCallTransaction((InstanceMethodCallTransactionRequest) request1)
-				.orElseThrow(() -> new NodeException(method + " should not return void"));
+			account = node.addInstanceMethodCallTransaction((InstanceMethodCallTransactionRequest) request1)
+				.orElseThrow(() -> new NodeException(method + " should not return void"))
+				.asReturnedReference(method, NodeException::new);
 		}
 		else {
 			request1 = TransactionRequests.constructorCall
@@ -238,10 +240,10 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		StorageReference gamete;
 		
 		try {
-			gamete = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+			gamete = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
 					.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"))
-					.asReference(value -> new NodeException(MethodSignatures.GET_GAMETE + " should return a reference, not a " + value.getClass().getName()));
+					.asReturnedReference(MethodSignatures.GET_GAMETE, NodeException::new);
 		}
 		catch (CodeExecutionException e) {
 			// the method gamete() does not throw exceptions
@@ -279,8 +281,9 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 			StorageValues.bigIntegerOf(balance), StorageValues.bigIntegerOf(balanceRed), StorageValues.stringOf(publicKeyEncoded));
 
 		try {
-			return (StorageReference) node.addInstanceMethodCallTransaction(request)
-					.orElseThrow(() -> new NodeException(method + " should not return void"));
+			return node.addInstanceMethodCallTransaction(request)
+					.orElseThrow(() -> new NodeException(method + " should not return void"))
+					.asReturnedReference(method, NodeException::new);
 		}
 		catch (CodeExecutionException e) {
 			// the called method does not throw exceptions

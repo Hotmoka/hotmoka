@@ -155,7 +155,7 @@ public class AccountsNodeImpl extends AbstractNodeDecorator<Node> implements Acc
 		try {
 			nonce = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(payer, _100_000, classpath, MethodSignatures.NONCE, payer))
 				.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
-				.asBigInteger(value -> new NodeException(MethodSignatures.NONCE + " should return a BigInteger, not a " + value.getClass().getName()));
+				.asReturnedBigInteger(MethodSignatures.NONCE, NodeException::new);
 		}
 		catch (CodeExecutionException e) {
 			// the nonce() method does not throw exceptions

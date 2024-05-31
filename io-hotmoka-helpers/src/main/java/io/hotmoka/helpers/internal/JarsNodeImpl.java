@@ -31,10 +31,10 @@ import java.util.concurrent.TimeoutException;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.AbstractNodeDecorator;
 import io.hotmoka.helpers.GasHelpers;
+import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.helpers.api.JarsNode;
 import io.hotmoka.node.ClosedNodeException;
-import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.JarFuture;
@@ -85,21 +85,9 @@ public class JarsNodeImpl extends AbstractNodeDecorator<Node> implements JarsNod
 		TransactionReference takamakaCode = getTakamakaCode();
 		var signature = SignatureHelpers.of(this).signatureAlgorithmFor(payer);
 		Signer<SignedTransactionRequest<?>> signerOnBehalfOfPayer = signature.getSigner(privateKeyOfPayer, SignedTransactionRequest::toByteArrayWithoutSignature);
-		var _50_000 = BigInteger.valueOf(50_000);
 
 		// we get the nonce of the payer
-		BigInteger nonce;
-
-		try {
-			nonce = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(payer, _50_000, takamakaCode, MethodSignatures.NONCE, payer))
-					.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
-					.asBigInteger(value -> new NodeException(MethodSignatures.NONCE + " should return a BigInteger, not a " + value.getClass().getName()));
-		}
-		catch (CodeExecutionException e) {
-			// the called method does not throw exceptions
-			throw new NodeException(e);
-		}
+		BigInteger nonce = NonceHelpers.of(parent).getNonceOf(payer, takamakaCode);
 
 		// we get the chainId of the parent
 		String chainId = parent.getConfig().getChainId();

@@ -301,31 +301,24 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	private void removeFromPastStoresThatCanBeGarbageCollected(StateId id, Transaction txn) throws ExodusException {
 		List<StateId> ids = getPastStoresNotYetGarbageCollected(txn);
 		ids.remove(id);
-		byte[] reduced = new byte[128 * ids.size()];
+		var reduced = new byte[128 * ids.size()];
 		for (int pos = 0; pos < reduced.length; pos += 128)
 			System.arraycopy(ids.get(pos / 128).getBytes(), 0, reduced, pos, 128);
 
 		storeOfNode.put(txn, PAST_STORES, ByteIterable.fromBytes(reduced));
-		System.out.println(getPastStoresNotYetGarbageCollected(txn).size());
+		//System.out.println(getPastStoresNotYetGarbageCollected(txn).size());
 	}
 
 	private void addPastStoreToListOfNotYetGarbageCollected(S store, Transaction txn) throws ExodusException {
-		var addedId = store.getStateId();
-		var ids = Optional.ofNullable(storeOfNode.get(txn, PAST_STORES)).map(ByteIterable::getBytes);
-		byte[] bytes = ids.orElse(new byte[0]);
+		List<StateId> ids = getPastStoresNotYetGarbageCollected(txn);
+		if (!ids.contains(store.getStateId())) {
+			ids.add(store.getStateId());
+			var expanded = new byte[128 * ids.size()];
+			for (int pos = 0; pos < expanded.length; pos += 128)
+				System.arraycopy(ids.get(pos / 128).getBytes(), 0, expanded, pos, 128);
 
-		// each store id consists of 128 bytes
-		for (int pos = 0; pos < bytes.length; pos += 128) {
-			var id = new byte[128];
-			System.arraycopy(bytes, pos, id, 0, 128);
-			if (addedId.equals(StateIds.of(id)))
-				return;
+			storeOfNode.put(txn, PAST_STORES, ByteIterable.fromBytes(expanded));
+			//System.out.println(getPastStoresNotYetGarbageCollected(txn).size());
 		}
-
-		var expanded = new byte[bytes.length + 128];
-		System.arraycopy(bytes, 0, expanded, 0, bytes.length);
-		System.arraycopy(addedId.getBytes(), 0, expanded, bytes.length, 128);
-		storeOfNode.put(txn, PAST_STORES, ByteIterable.fromBytes(expanded));
-		System.out.println(getPastStoresNotYetGarbageCollected(txn).size());
 	}
 }

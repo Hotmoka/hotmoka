@@ -82,27 +82,27 @@ public class ManifestHelperImpl implements ManifestHelper {
 			this.validators = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest))
 					.orElseThrow(() -> new NodeException(MethodSignatures.GET_VALIDATORS + " should not return void"))
-					.asReference(value -> new NodeException(MethodSignatures.GET_VALIDATORS + " should return a reference, not a " + value.getClass().getName()));
+					.asReturnedReference(MethodSignatures.GET_VALIDATORS, NodeException::new);
 			this.initialValidators = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_VALIDATORS, manifest))
 					.orElseThrow(() -> new NodeException(MethodSignatures.GET_INITIAL_VALIDATORS + " should not return void"))
-					.asReference(value -> new NodeException(MethodSignatures.GET_INITIAL_VALIDATORS + " should return a reference, not a " + value.getClass().getName()));
+					.asReturnedReference(MethodSignatures.GET_INITIAL_VALIDATORS, NodeException::new);
 			this.gasStation = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAS_STATION, manifest))
 					.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAS_STATION + " should not return void"))
-					.asReference(value -> new NodeException(MethodSignatures.GET_GAS_STATION + " should return a reference, not a " + value.getClass().getName()));
+					.asReturnedReference(MethodSignatures.GET_GAS_STATION, NodeException::new);
 			this.versions = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VERSIONS, manifest))
 					.orElseThrow(() -> new NodeException(MethodSignatures.GET_VERSIONS + " should not return void"))
-					.asReference(value -> new NodeException(MethodSignatures.GET_VERSIONS + " should return a reference, not a " + value.getClass().getName()));
+					.asReturnedReference(MethodSignatures.GET_VERSIONS, NodeException::new);
 			this.accountsLedger = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_ACCOUNTS_LEDGER, manifest))
 					.orElseThrow(() -> new NodeException(MethodSignatures.GET_ACCOUNTS_LEDGER + " should not return void"))
-					.asReference(value -> new NodeException(MethodSignatures.GET_ACCOUNTS_LEDGER + " should return a reference, not a " + value.getClass().getName()));
+					.asReturnedReference(MethodSignatures.GET_ACCOUNTS_LEDGER, NodeException::new);
 			this.gamete = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
 					.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"))
-					.asReference(value -> new NodeException(MethodSignatures.GET_GAMETE + " should return a reference, not a " + value.getClass().getName()));
+					.asReturnedReference(MethodSignatures.GET_GAMETE, NodeException::new);
 		}
 		catch (CodeExecutionException e) {
 			// the called methods do not throw exceptions
@@ -302,7 +302,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 			StorageReference offers;
 			{
 				var method = MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY, "getOffers", StorageTypes.STORAGE_SET_VIEW);
-				offers = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+				offers = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 						(manifest, _100_000, takamakaCode, method, validators))
 						.orElseThrow(() -> new NodeException(method + " should not return void"))
 						.asReturnedReference(method, NodeException::new);
@@ -324,9 +324,13 @@ public class ManifestHelperImpl implements ManifestHelper {
 
 			builder.append(String.format("   │  ├─ surcharge for buying validation power: %d (ie. %.6f%%)\n", buyerSurcharge, buyerSurcharge / 1_000_000.0));
 
-			int slashingForMisbehaving = ((IntValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getSlashingForMisbehaving", StorageTypes.INT), validators))
-				.orElseThrow(() -> new NodeException("getSlashingForMisbehaving() should not return void"))).getValue();
+			int slashingForMisbehaving;
+			{
+				NonVoidMethodSignature method = MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getSlashingForMisbehaving", StorageTypes.INT);
+				slashingForMisbehaving = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, method, validators))
+						.orElseThrow(() -> new NodeException("getSlashingForMisbehaving() should not return void"))
+						.asReturnedInt(method, NodeException::new);
+			}
 
 			builder.append(String.format("   │  ├─ slashing for misbehaving validators: %d (ie. %.6f%%)\n", slashingForMisbehaving, slashingForMisbehaving / 1_000_000.0));
 
@@ -362,9 +366,13 @@ public class ManifestHelperImpl implements ManifestHelper {
 					.orElseThrow(() -> new NodeException("getSeller() should not return void"));
 
 				// the set of offers might contain expired offers since it gets updated lazily
-				boolean isOngoing = ((BooleanValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_OFFER, "isOngoing", StorageTypes.BOOLEAN), offer))
-					.orElseThrow(() -> new NodeException("isOngoing() should not return void"))).getValue();
+				boolean isOngoing;
+				{
+					NonVoidMethodSignature method = MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_OFFER, "isOngoing", StorageTypes.BOOLEAN);
+					isOngoing = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, method, offer))
+							.orElseThrow(() -> new NodeException("isOngoing() should not return void"))
+							.asReturnedBoolean(method, NodeException::new);
+				}
 
 				if (isOngoing)
 					offersPerValidator.computeIfAbsent(seller, _seller -> new TreeSet<>()).add(offer);

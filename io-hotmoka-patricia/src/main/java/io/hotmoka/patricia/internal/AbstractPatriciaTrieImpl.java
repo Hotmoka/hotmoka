@@ -374,8 +374,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		return result;
 	}
 
-	private static long freed;
-	private static long allocated;
+	//private static long freed, allocated;
 
 	private static byte[] expandBytesIntoNibbles(byte[] bytes, byte evenSelector) {
 		byte[] nibbles;
@@ -442,8 +441,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 			}
 			catch (UnknownKeyException e) {
 				try {
-					allocated++;
-					System.out.printf("%d/%d: %.2f\n", freed, allocated, freed * 100.0 / allocated);
+					//System.out.printf("%d/%d: %.2f\n", freed, ++allocated, freed * 100.0 / allocated);
 					store.put(hash, toByteArray()); // we bind it to its hash in the store
 					incrementReferenceCountOfDescedants();
 					return this;
@@ -464,14 +462,12 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		 */
 		protected void free(byte[] hash) throws TrieException {
 			AbstractNode replacement = withDecrementedReferenceCount();
-			//System.out.println(getClass().getSimpleName() + ": " + count + " -> " + replacement.count);
 
 			try {
 				if (replacement.count > 0)
 					store.put(hash, replacement.toByteArray());
 				else {
-					freed++;
-					System.out.printf("%d/%d: %.2f\n", freed, allocated, freed * 100.0 / allocated);
+					//System.out.printf("%d/%d: %.2f\n", ++freed, allocated, freed * 100.0 / allocated);
 					store.remove(hash);
 					freeDescendants();
 				}

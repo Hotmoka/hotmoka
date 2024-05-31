@@ -64,12 +64,12 @@ public class GasHelperImpl implements GasHelper {
 				this.gasStation = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 						(manifest, BigInteger.valueOf(100_000), takamakaCode, MethodSignatures.GET_GAS_STATION, manifest))
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAS_STATION + " should not return void"))
-				.asReference(value -> new NodeException(MethodSignatures.GET_GAS_STATION + " should return a reference, not a " + value.getClass().getName()));
+				.asReturnedReference(MethodSignatures.GET_GAS_STATION, NodeException::new);
 
 			return node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, BigInteger.valueOf(100_000), takamakaCode, MethodSignatures.GET_GAS_PRICE, gasStation))
 					.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAS_PRICE + " should not return void"))
-					.asBigInteger(value -> new NodeException(MethodSignatures.GET_GAS_PRICE + " should return a BigInteger, not a " + value.getClass().getName()));
+					.asReturnedBigInteger(MethodSignatures.GET_GAS_PRICE, NodeException::new);
 		}
 		catch (CodeExecutionException e) {
 			// these two run calls cannot fail in an initialized node
