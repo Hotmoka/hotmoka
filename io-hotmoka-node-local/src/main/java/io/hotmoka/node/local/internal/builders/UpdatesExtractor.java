@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.local.internal;
+package io.hotmoka.node.local.internal.builders;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InaccessibleObjectException;
@@ -57,7 +57,7 @@ public class UpdatesExtractor {
 	 * 
 	 * @param classLoader the class loader used to load the objects later passed to {@link #extractUpdatesFrom(Stream)}
 	 */
-	UpdatesExtractor(EngineClassLoader classLoader) {
+	public UpdatesExtractor(EngineClassLoader classLoader) {
 		this.classLoader = classLoader;
 	}
 

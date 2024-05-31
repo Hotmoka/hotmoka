@@ -24,7 +24,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.node.ConstructorSignatures;
-import io.hotmoka.node.local.internal.UpdatesExtractionException;
+import io.hotmoka.node.local.internal.builders.UpdatesExtractionException;
 import io.hotmoka.tests.HotmokaTest;
 
 class IllegalTypeForStorageField4 extends HotmokaTest {

@@ -21,8 +21,8 @@ import io.hotmoka.node.api.requests.NonInitialTransactionRequest;
 import io.hotmoka.node.api.responses.NonInitialTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.node.local.internal.ExecutionEnvironment;
-import io.hotmoka.node.local.internal.NonInitialResponseBuilderImpl;
+import io.hotmoka.node.local.internal.builders.ExecutionEnvironment;
+import io.hotmoka.node.local.internal.builders.NonInitialResponseBuilderImpl;
 
 /**
  * Partial implementation of the creator of the response for a non-initial transaction.

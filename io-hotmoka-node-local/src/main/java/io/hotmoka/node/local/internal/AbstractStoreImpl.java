@@ -35,6 +35,7 @@ import io.hotmoka.node.local.StoreCache;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.Store;
 import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.internal.builders.ExecutionEnvironment;
 
 /**
  * Partial implementation of a store of a node. It is a container of request/response pairs.
@@ -53,6 +54,9 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	 */
 	private final N node;
 
+	/**
+	 * The cache of this store.
+	 */
 	private final StoreCache cache;
 
 	/**

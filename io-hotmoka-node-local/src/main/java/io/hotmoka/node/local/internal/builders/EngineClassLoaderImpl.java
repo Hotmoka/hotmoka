@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.local.internal;
+package io.hotmoka.node.local.internal.builders;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -37,6 +37,7 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import io.hotmoka.node.local.internal.Reverification;
 import io.hotmoka.exceptions.CheckRunnable;
 import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.instrumentation.api.InstrumentationFields;

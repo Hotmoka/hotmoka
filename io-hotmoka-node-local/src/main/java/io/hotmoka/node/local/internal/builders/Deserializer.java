@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.local.internal;
+package io.hotmoka.node.local.internal.builders;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -119,7 +119,7 @@ public class Deserializer {
 	 * @param environment the execution environment for which deserialization is performed
 	 * @param classLoader the class loader that can be used to load classes during deserialization
 	 */
-	Deserializer(ExecutionEnvironment environment, EngineClassLoader classLoader) {
+	public Deserializer(ExecutionEnvironment environment, EngineClassLoader classLoader) {
 		this.environment = environment;
 		this.classLoader = classLoader;
 	}

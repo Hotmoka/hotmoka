@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.local.internal;
+package io.hotmoka.node.local.internal.builders;
 
 /**
  * An exception thrown when the extraction of the updates to objects in RAM fails.

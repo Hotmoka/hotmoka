@@ -43,6 +43,7 @@ import io.hotmoka.node.api.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.AbstractStoreTransformation;
 import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.internal.builders.ExecutionEnvironment;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.VerificationException;
 import io.hotmoka.verification.VerifiedJars;
@@ -52,7 +53,7 @@ import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 /**
  * A class used to perform a re-verification of jars already stored in the node.
  */
-class Reverification {
+public class Reverification {
 	private final static Logger LOGGER = Logger.getLogger(Reverification.class.getName());
 
 	/**
@@ -81,7 +82,7 @@ class Reverification {
 	 * @param consensus the consensus parameters to use for reverification
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	Reverification(Stream<TransactionReference> transactions, ExecutionEnvironment environment, ConsensusConfig<?,?> consensus) throws StoreException {
+	public Reverification(Stream<TransactionReference> transactions, ExecutionEnvironment environment, ConsensusConfig<?,?> consensus) throws StoreException {
 		this.environment = environment;
 		this.consensus = consensus;
 

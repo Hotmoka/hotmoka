@@ -21,8 +21,8 @@ import io.hotmoka.node.api.requests.InitialTransactionRequest;
 import io.hotmoka.node.api.responses.InitialTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.node.local.internal.ExecutionEnvironment;
-import io.hotmoka.node.local.internal.InitialResponseBuilderImpl;
+import io.hotmoka.node.local.internal.builders.ExecutionEnvironment;
+import io.hotmoka.node.local.internal.builders.InitialResponseBuilderImpl;
 
 /**
  * Partial implementation of the creator of the response for an initial transaction. Initial transactions do not consume gas.

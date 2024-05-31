@@ -70,6 +70,7 @@ import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.ResponseBuilder;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.StoreTransformation;
+import io.hotmoka.node.local.internal.builders.ExecutionEnvironment;
 
 /**
  * Partial implementation of a store transformation. This is not thread-safe hence it must
