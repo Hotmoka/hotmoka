@@ -24,8 +24,10 @@ import io.hotmoka.node.local.internal.AbstractStoreTransformationImpl;
  * Abstract implementation of a store transformation, for extension. This is not thread-safe hence it must
  * be used by a thread at a time or shared under synchronization.
  * 
- * @param <S> the type of store used in the transformation
- * @param <T> the type of the transformation
+ * @param <N> the type of the node whose store performs this transformation
+ * @param <C> the type of the configuration of the node whose store performs this transformation
+ * @param <S> the type of the store that performs this transformation
+ * @param <T> the type of this store transformation
  */
 public abstract class AbstractStoreTransformation<N extends AbstractLocalNode<N,C,S,T>, C extends LocalNodeConfig<C,?>, S extends AbstractStore<N,C,S,T>, T extends AbstractStoreTransformation<N,C,S,T>> extends AbstractStoreTransformationImpl<N,C,S,T> {
 

@@ -32,8 +32,8 @@ import io.hotmoka.node.api.values.StorageValue;
  * A transformation of a store. It is a modification of an initial store towards a final store,
  * induced by the execution of requests.
  * 
- * @param <S> the type of store used in the transformation
- * @param <T> the type of the transformation
+ * @param <S> the type of store used in this transformation
+ * @param <T> the type of this transformation
  */
 public interface StoreTransformation<S extends Store<S,T>, T extends StoreTransformation<S,T>> {
 

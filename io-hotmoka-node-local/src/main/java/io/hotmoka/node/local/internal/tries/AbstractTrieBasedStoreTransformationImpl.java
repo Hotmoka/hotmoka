@@ -24,8 +24,10 @@ import io.hotmoka.node.local.api.StoreException;
 /**
  * Partial implementation of a store transformation for trie-based stores.
  * 
- * @param <S> the type of store used in the transformation
- * @param <T> the type of the transformation
+ * @param <N> the type of the node whose store performs this transformation
+ * @param <C> the type of the configuration of the node whose store performs this transformation
+ * @param <S> the type of the store that performs this transformation
+ * @param <T> the type of this store transformation
  */
 public abstract class AbstractTrieBasedStoreTransformationImpl<N extends AbstractTrieBasedLocalNodeImpl<N,C,S,T>, C extends LocalNodeConfig<C,?>, S extends AbstractTrieBasedStoreImpl<N,C,S,T>, T extends AbstractTrieBasedStoreTransformationImpl<N,C,S,T>> extends AbstractStoreTransformation<N,C,S,T> {
 

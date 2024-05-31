@@ -62,9 +62,9 @@ class Reverification {
 	private final ConcurrentMap<TransactionReference, TransactionResponse> reverified = new ConcurrentHashMap<>();
 
 	/**
-	 * The node whose responses are reverified.
+	 * The execution environment whete the reverification is performed.
 	 */
-	private final ExecutionEnvironment<?> environment;
+	private final ExecutionEnvironment environment;
 
 	/**
 	 * The consensus parameters to use for reverification. This might be {@code null} if the node is restarting,
@@ -77,11 +77,11 @@ class Reverification {
 	 * They must be transactions that installed jars in the store of the node.
 	 * 
 	 * @param transactions the transactions
-	 * @param node the node
+	 * @param environment the execution environment where the reverification is performed
 	 * @param consensus the consensus parameters to use for reverification
-	 * @throws StoreException 
+	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	Reverification(Stream<TransactionReference> transactions, ExecutionEnvironment<?> environment, ConsensusConfig<?,?> consensus) throws StoreException {
+	Reverification(Stream<TransactionReference> transactions, ExecutionEnvironment environment, ConsensusConfig<?,?> consensus) throws StoreException {
 		this.environment = environment;
 		this.consensus = consensus;
 

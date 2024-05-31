@@ -75,10 +75,12 @@ import io.hotmoka.node.local.api.StoreTransformation;
  * Partial implementation of a store transformation. This is not thread-safe hence it must
  * be used by a thread at a time or shared under synchronization.
  * 
- * @param <S> the type of store used in the transformation
- * @param <T> the type of the transformation
+ * @param <N> the type of the node whose store performs this transformation
+ * @param <C> the type of the configuration of the node whose store performs this transformation
+ * @param <S> the type of the store that performs this transformation
+ * @param <T> the type of this store transformation
  */
-public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNodeImpl<N,C,S,T>, C extends LocalNodeConfig<C,?>, S extends AbstractStoreImpl<N,C,S,T>, T extends AbstractStoreTransformationImpl<N,C,S,T>> extends ExecutionEnvironment<N> implements StoreTransformation<S, T> {
+public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNodeImpl<N,C,S,T>, C extends LocalNodeConfig<C,?>, S extends AbstractStoreImpl<N,C,S,T>, T extends AbstractStoreTransformationImpl<N,C,S,T>> extends ExecutionEnvironment implements StoreTransformation<S, T> {
 	private final static Logger LOGGER = Logger.getLogger(AbstractStoreTransformationImpl.class.getName());
 	private final S store;
 
@@ -144,7 +146,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	 * @param now the current time to use for the execution of transactions in the transformation
 	 */
 	protected AbstractStoreTransformationImpl(S store, ConsensusConfig<?,?> consensus, long now) {
-		super(store.getNode());
+		super(store.getNode().getExecutors());
 
 		this.store = store;
 		this.now = now;

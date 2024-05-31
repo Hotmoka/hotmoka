@@ -87,9 +87,10 @@ import io.hotmoka.node.local.api.StoreException;
 /**
  * Partial implementation of a local (ie., non-remote) node.
  * 
- * @param <C> the type of the configuration object used by the node
- * @param <S> the type of the store of the node
- * @param <T> the type of the store transformations that can be started from this store
+ * @param <N> the type of this node
+ * @param <C> the type of the configuration of this node
+ * @param <S> the type of the store of this node
+ * @param <T> the type of the store transformations that can be started from the store of this node
  */
 @ThreadSafe
 public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,S,T>, C extends LocalNodeConfig<C,?>, S extends AbstractStoreImpl<N,C,S,T>, T extends AbstractStoreTransformationImpl<N,C,S,T>> extends AbstractAutoCloseableWithLockAndOnCloseHandlers<ClosedNodeException> implements LocalNode<C> {

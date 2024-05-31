@@ -67,11 +67,11 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * 
 	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request of the transaction
-	 * @param environment the execution environment used for computing the response
+	 * @param environment the execution environment where the response is built
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	protected NonInitialResponseBuilderImpl(TransactionReference reference, Request request, ExecutionEnvironment<?> environment) throws TransactionRejectedException, StoreException {
+	protected NonInitialResponseBuilderImpl(TransactionReference reference, Request request, ExecutionEnvironment environment) throws TransactionRejectedException, StoreException {
 		super(reference, request, environment);
 
 		this.gasCostModel = consensus.getGasCostModel();

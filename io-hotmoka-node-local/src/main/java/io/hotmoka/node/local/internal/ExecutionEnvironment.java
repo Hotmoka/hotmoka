@@ -88,16 +88,14 @@ import io.hotmoka.node.local.api.StoreException;
 /**
  * An executor environment abstract both a store and a store transformation and allows
  * the execution of run transactions in both.
- * 
- * @param <N> the type of the nodes for which the execution is performed
  */
-public abstract class ExecutionEnvironment<N extends AbstractLocalNodeImpl<?,?,?,?>> {
+public abstract class ExecutionEnvironment {
 	private final static Logger LOGGER = Logger.getLogger(ExecutionEnvironment.class.getName());
 
 	/**
-	 * The node for which the execution is performed.
+	 * The executors to use to spawn new tasks.
 	 */
-	private final N node;
+	private final ExecutorService executors;
 
 	/**
 	 * Enough gas for a simple get method.
@@ -107,10 +105,10 @@ public abstract class ExecutionEnvironment<N extends AbstractLocalNodeImpl<?,?,?
 	/**
 	 * Creates an execution environment whose transactions are executed with the given executors.
 	 * 
-	 * @param node the node for which the execution is performed
+	 * @param executors the executors to use to spawn new tasks
 	 */
-	protected ExecutionEnvironment(N node) {
-		this.node = node;
+	protected ExecutionEnvironment(ExecutorService executors) {
+		this.executors = executors;
 	}
 
 	public final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException, StoreException {
@@ -164,15 +162,6 @@ public abstract class ExecutionEnvironment<N extends AbstractLocalNodeImpl<?,?,?
 	 */
 	public final ConsensusConfig<?,?> getConfig() {
 		return getCache().getConfig();
-	}
-
-	/**
-	 * Yields the node for which the execution is performed.
-	 * 
-	 * @return the node for which the execution is performed
-	 */
-	protected final N getNode() {
-		return node;
 	}
 
 	protected final ConsensusConfig<?,?> extractConsensus() throws StoreException {
@@ -603,7 +592,7 @@ public abstract class ExecutionEnvironment<N extends AbstractLocalNodeImpl<?,?,?
 	}
 
 	protected final <X> Future<X> submit(Callable<X> task) {
-		return node.getExecutors().submit(task);
+		return executors.submit(task);
 	}
 
 	/**
@@ -640,7 +629,7 @@ public abstract class ExecutionEnvironment<N extends AbstractLocalNodeImpl<?,?,?
 	}
 
 	protected final ExecutorService getExecutors() {
-		return node.getExecutors();
+		return executors;
 	}
 
 	/**

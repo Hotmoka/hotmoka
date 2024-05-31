@@ -55,7 +55,10 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 */
 	private final TransactionReference reference;
 
-	protected final ExecutionEnvironment<?> environment;
+	/**
+	 * The execution environment where the response is built.
+	 */
+	protected final ExecutionEnvironment environment;
 
 	/**
 	 * The class loader used for the transaction.
@@ -77,10 +80,11 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * 
 	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request for which the response is being built
-	 * @param storeTransaction the transaction where the updates to the store get accumulated
+	 * @param environment the execution environment where the response is built
 	 * @throws TransactionRejectedException if the builder cannot be created
+	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	protected AbstractResponseBuilder(TransactionReference reference, Request request, ExecutionEnvironment<?> environment) throws TransactionRejectedException, StoreException {
+	protected AbstractResponseBuilder(TransactionReference reference, Request request, ExecutionEnvironment environment) throws TransactionRejectedException, StoreException {
 		this.environment = environment;
 		this.request = request;
 		this.reference = reference;

@@ -25,6 +25,8 @@ import io.hotmoka.node.local.internal.AbstractStoreImpl;
  * A partial store of a node. It is a container of request/response pairs.
  * Stores are immutable and consequently thread-safe.
  * 
+ * @param <N> the type of the node having this store
+ * @param <C> the type of the configuration of the node having this store
  * @param <S> the type of this store
  * @param <T> the type of the store transformations that can be started from this store
  */

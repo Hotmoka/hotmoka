@@ -90,6 +90,7 @@ public interface Store<S extends Store<S, T>, T extends StoreTransformation<S, T
 	 * Yields the number of transformations performed to reach this store
 	 * 
 	 * @return the number of transformations
+	 * @throws StoreException if this store is not able to perform the operation
 	 */
 	long getHeight() throws StoreException;
 

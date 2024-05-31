@@ -25,9 +25,10 @@ import io.hotmoka.node.local.internal.AbstractLocalNodeImpl;
  * Partial implementation of a local (ie., non-remote) node.
  * Specific implementations can subclass this and implement the abstract template methods.
  * 
- * @param <C> the type of the configuration object used by the node
- * @param <S> the type of the store of the node
- * @param <T> the type of the store transformations of the store of the node
+ * @param <N> the type of this node
+ * @param <C> the type of the configuration of this node
+ * @param <S> the type of the store of this node
+ * @param <T> the type of the store transformations that can be started from the store of this node
  */
 @ThreadSafe
 public abstract class AbstractLocalNode<N extends AbstractLocalNode<N,C,S,T>, C extends LocalNodeConfig<C,?>, S extends AbstractStore<N,C,S,T>, T extends AbstractStoreTransformation<N,C,S,T>> extends AbstractLocalNodeImpl<N,C,S,T> {

@@ -27,6 +27,8 @@ import io.hotmoka.node.local.internal.tries.AbstractTrieBasedStoreImpl;
  * Stores are immutable and consequently thread-safe. Its states are arrays of 128 bytes.
  * It uses an array of 0's to represent the empty store.
  * 
+ * @param <N> the type of the node having this store
+ * @param <C> the type of the configuration of the node having this store
  * @param <S> the type of this store
  * @param <T> the type of the store transformations that can be started from this store
  */

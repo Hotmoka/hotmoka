@@ -43,9 +43,10 @@ import io.hotmoka.xodus.env.Transaction;
 /**
  * Partial implementation of a local (ie., non-remote) node.
  * 
- * @param <C> the type of the configuration object used by the node
- * @param <S> the type of the store of the node
- * @param <T> the type of the store transformations that can be started from this store
+ * @param <N> the type of this node
+ * @param <C> the type of the configuration of this node
+ * @param <S> the type of the store of this node
+ * @param <T> the type of the store transformations that can be started from the store of this node
  */
 @ThreadSafe
 public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBasedLocalNodeImpl<N,C,S,T>, C extends LocalNodeConfig<C,?>, S extends AbstractTrieBasedStoreImpl<N,C,S,T>, T extends AbstractTrieBasedStoreTransformationImpl<N,C,S,T>> extends AbstractLocalNode<N,C,S,T> {

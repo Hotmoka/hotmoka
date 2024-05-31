@@ -35,11 +35,11 @@ public class InitializationResponseBuilder extends AbstractInitialResponseBuilde
 	 * 
 	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request of the transaction
-	 * @param environment the execution environment used for computing the response
+	 * @param environment the execution environment where the response is built
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	public InitializationResponseBuilder(TransactionReference reference, InitializationTransactionRequest request, ExecutionEnvironment<?> environment) throws TransactionRejectedException, StoreException {
+	public InitializationResponseBuilder(TransactionReference reference, InitializationTransactionRequest request, ExecutionEnvironment environment) throws TransactionRejectedException, StoreException {
 		super(reference, request, environment);
 	}
 

@@ -40,11 +40,18 @@ import io.hotmoka.node.local.api.StoreException;
  * Partial implementation of a store of a node. It is a container of request/response pairs.
  * Stores are immutable and consequently thread-safe.
  * 
+ * @param <N> the type of the node having this store
+ * @param <C> the type of the configuration of the node having this store
  * @param <S> the type of this store
  * @param <T> the type of the store transformations that can be started from this store
  */
 @Immutable
-public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>, C extends LocalNodeConfig<C,?>, S extends AbstractStoreImpl<N,C,S,T>, T extends AbstractStoreTransformationImpl<N,C,S,T>> extends ExecutionEnvironment<N> implements Store<S,T> {
+public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>, C extends LocalNodeConfig<C,?>, S extends AbstractStoreImpl<N,C,S,T>, T extends AbstractStoreTransformationImpl<N,C,S,T>> extends ExecutionEnvironment implements Store<S,T> {
+
+	/**
+	 * The node having this store.
+	 */
+	private final N node;
 
 	private final StoreCache cache;
 
@@ -65,8 +72,9 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
 	protected AbstractStoreImpl(N node) throws StoreException {
-		super(node);
+		super(node.getExecutors());
 
+		this.node = node;
 		this.cache = new StoreCacheImpl();
 		try {
 			this.consensusForViews = cache.getConfig().toBuilder().setMaxGasPerTransaction(node.getLocalConfig().getMaxGasPerViewTransaction()).build();
@@ -83,8 +91,9 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	 * @param cache the cache to use in the cloned store
 	 */
 	protected AbstractStoreImpl(AbstractStoreImpl<N,C,S,T> toClone, StoreCache cache) {
-		super(toClone.getNode());
+		super(toClone.getNode().getExecutors());
 
+		this.node = toClone.getNode();
 		this.cache = cache;
 		this.consensusForViews = cache.getConfig().toBuilder().setMaxGasPerTransaction(toClone.consensusForViews.getMaxGasPerTransaction()).build();
 	}
@@ -180,6 +189,15 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
 	protected abstract T beginTransformation(ConsensusConfig<?,?> consensus, long now) throws StoreException;
+
+	/**
+	 * Yields the node having this store.
+	 * 
+	 * @return the node having this store
+	 */
+	protected final N getNode() {
+		return node;
+	}
 
 	@Override
 	protected final StoreCache getCache() {
