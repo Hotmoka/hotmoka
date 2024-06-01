@@ -42,7 +42,7 @@ public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue, TrieOfI
 	 * the empty trie.
 	 * 
 	 * @param store the supporting key/value store
-	 * @param root the root of the trie to check out; use empty to create the empty trie
+	 * @param root the root of the trie to check out
 	 */
 	public TrieOfInfo(KeyValueStore store, byte[] root) throws TrieException {
 		super(store, root, HashingAlgorithms.identity1().getHasher(key -> new byte[] { key }),

@@ -17,7 +17,7 @@ limitations under the License.
 package io.hotmoka.tests;
 
 /*
- * MODIFY AT LINE 202 TO SELECT THE NODE IMPLEMENTATION TO TEST.
+ * MODIFY AT LINE 189 TO SELECT THE NODE IMPLEMENTATION TO TEST.
  */
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -91,6 +91,7 @@ import io.hotmoka.testing.AbstractLoggedTests;
 import io.hotmoka.verification.VerificationException;
 import io.takamaka.code.constants.Constants;
 import jakarta.websocket.DeploymentException;
+
 
 public abstract class HotmokaTest extends AbstractLoggedTests {
 	protected static final BigInteger _50_000 = BigInteger.valueOf(50_000);
@@ -186,9 +187,9 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	        privateKeyOfGamete = keys.getPrivate();
 
 	        Node wrapped;
-	        //node = wrapped = mkDiskNode();
+	        node = wrapped = mkDiskNode();
 	        //node = wrapped = mkTendermintNode();
-	        node = mkRemoteNode(wrapped = mkDiskNode());
+	        //node = mkRemoteNode(wrapped = mkDiskNode());
 	        //node = mkRemoteNode(wrapped = mkTendermintNode());
 	        //node = wrapped = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
 	        //node = wrapped = mkRemoteNode("localhost:8080");

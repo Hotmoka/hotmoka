@@ -40,7 +40,7 @@ public class TrieOfRequests extends AbstractPatriciaTrie<TransactionReference, T
 	 * Builds a Merkle-Patricia trie that maps references to transaction requests into their responses.
 	 * 
 	 * @param store the supporting key/value store
-	 * @param root the root of the trie to check out; use empty to create the empty trie
+	 * @param root the root of the trie to check out
 	 */
 	public TrieOfRequests(KeyValueStore store, byte[] root) throws TrieException {
 		super(store, root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),

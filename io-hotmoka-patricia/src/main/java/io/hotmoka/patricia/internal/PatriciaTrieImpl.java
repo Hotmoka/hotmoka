@@ -38,7 +38,7 @@ public class PatriciaTrieImpl<Key, Value> extends AbstractPatriciaTrie<Key, Valu
 	 * 
 	 * @param store the store used to store the nodes of the tree, as a mapping from nodes' hashes
 	 *              to the marshalled representation of the nodes
-	 * @param root the root of the trie; pass it empty to create an empty trie
+	 * @param root the root of the trie
 	 * @param hasherForKeys the hasher for the keys
 	 * @param hashingForNodes the hashing algorithm for the nodes of the trie
 	 * @param hashOfEmpty the hash of the empty trie

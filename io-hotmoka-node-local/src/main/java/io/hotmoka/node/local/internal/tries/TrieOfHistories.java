@@ -16,14 +16,13 @@ limitations under the License.
 
 package io.hotmoka.node.local.internal.tries;
 
-import java.io.ByteArrayInputStream;
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.HashingAlgorithm;
-import io.hotmoka.node.NodeUnmarshallingContexts;
+import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.patricia.AbstractPatriciaTrie;
@@ -47,8 +46,33 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 	 */
 	public TrieOfHistories(KeyValueStore store, byte[] root) throws TrieException {
 		super(store, root, sha256().getHasher(StorageReference::toByteArrayWithoutSelector),
-			sha256(),  new byte[32], s -> new MarshallableArrayOfTransactionReferences(s.toArray(TransactionReference[]::new)).toByteArray(), // TODO: avoid using marshallables
-			bytes -> Stream.of(MarshallableArrayOfTransactionReferences.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))).transactions));
+			sha256(), new byte[32], TrieOfHistories::historyToBytes, TrieOfHistories::bytesToHistory);
+	}
+
+	private static byte[] historyToBytes(Stream<TransactionReference> history) {
+		TransactionReference[] toConcat = history.toArray(TransactionReference[]::new);
+		int requestHashLength = TransactionReference.REQUEST_HASH_LENGTH;
+		byte[] result = new byte[toConcat.length * requestHashLength];
+
+		int pos = 0;
+		for (TransactionReference reference: toConcat) {
+			System.arraycopy(reference.getHash(), 0, result, pos, requestHashLength);
+			pos += requestHashLength;
+		}
+
+		return result;
+	}
+
+	private static Stream<TransactionReference> bytesToHistory(byte[] bytes) {
+		int requestHashLength = TransactionReference.REQUEST_HASH_LENGTH;
+		var references = new TransactionReference[bytes.length / requestHashLength];
+		for (int index = 0, pos = 0; pos < bytes.length; pos += requestHashLength, index++) {
+			var hash = new byte[requestHashLength];
+			System.arraycopy(bytes, pos, hash, 0, requestHashLength);
+			references[index] = TransactionReferences.of(hash);
+		}
+		
+		return Stream.of(references);
 	}
 
 	private TrieOfHistories(TrieOfHistories cloned, byte[] root) throws TrieException {
