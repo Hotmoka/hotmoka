@@ -8,10 +8,10 @@
 
 # Source it as follows (if you want to interact with panarea.hotmoka.io,
 # but any node of the same blockchain will do):
-# bash <(curl -H 'Cache-Control: no-cache, no-store' -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/buy.sh) hotmoka 1.5.0 ws://panarea.hotmoka.io
+# bash <(curl -H 'Cache-Control: no-cache, no-store' -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/buy.sh) hotmoka 1.6.0 ws://panarea.hotmoka.io
 
 TYPE=${1:-hotmoka}
-VERSION=${2:-1.5.0}
+VERSION=${2:-1.6.0}
 
 TYPE_CAPITALIZED=${TYPE^}
 DIR=${TYPE}_node_info

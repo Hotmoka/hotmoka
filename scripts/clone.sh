@@ -4,16 +4,16 @@
 # that clones and synchronizes with a remote node
 
 # Source it as follows (to clone the node at panarea.hotmoka.io)
-# bash <(curl -H 'Cache-Control: no-cache, no-store' -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/clone.sh) hotmoka 1.5.0 ws://panarea.hotmoka.io
+# bash <(curl -H 'Cache-Control: no-cache, no-store' -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/clone.sh) hotmoka 1.6.0 ws://panarea.hotmoka.io
 # The validation keys of the node will be randomly generated. If you want to specify
 # such keys (because, for instance, you were a validator already and want to start the
 # same node again) then you can provided the address of the validator account:
 # this script will assume that you possess the corresponding pem file in the
 # hotmoka_node_info directory:
-# bash <(curl -H 'Cache-Control: no-cache, no-store' -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/clone.sh) hotmoka 1.5.0 ws://panarea.hotmoka.io validator
+# bash <(curl -H 'Cache-Control: no-cache, no-store' -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/clone.sh) hotmoka 1.6.0 ws://panarea.hotmoka.io validator
 
 TYPE=${1:-hotmoka}
-VERSION=${2:-1.5.0}
+VERSION=${2:-1.6.0}
 
 TYPE_CAPITALIZED=${TYPE^}
 DIR=${TYPE}_node_info

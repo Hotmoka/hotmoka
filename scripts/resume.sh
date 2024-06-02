@@ -4,7 +4,7 @@
 # that resumes an already existing node
 
 # Source it as follows:
-# bash <(curl -H 'Cache-Control: no-cache, no-store' -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/resume.sh) hotmoka 1.5.0
+# bash <(curl -H 'Cache-Control: no-cache, no-store' -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/resume.sh) hotmoka 1.6.0
 # No keys will be generated. The node will be resumed as it was when it got stopped.
 
 TYPE=${1:-hotmoka}
@@ -15,12 +15,12 @@ then
     DOCKER_ID=hotmoka
     CLI=moka
     GITHUB_ID=Hotmoka
-    VERSION=${2:-1.5.0}
+    VERSION=${2:-1.6.0}
 else
     DOCKER_ID=veroforchain
     CLI=blue
     GITHUB_ID=Vero4Chain
-    VERSION=${2:-1.5.0}
+    VERSION=${2:-1.6.0}
 fi;
 
 case $(uname -m) in
