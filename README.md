@@ -222,7 +222,7 @@ the project of the repository where you can find the related code.
 You can clone that completed tutorial examples repository as follows:
 
 ```shell
-$ git clone --branch v1.5.0 https://github.com/Hotmoka/hotmoka_tutorial.git
+$ git clone --branch v1.6.0 https://github.com/Hotmoka/hotmoka_tutorial.git
 ```
 
 This will create the `hotmoka_tutorial` directory. Inside that directory, you will
@@ -323,7 +323,7 @@ Receiver and payer have different roles but are treated identically in Hotmoka:
 they are objects stored in state at their respective state locations, known as
 their _storage references_. For instance the caller in
 Figure 1 might be allocated at the storage
-reference `ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0`. A storage reference has two parts, separated
+reference `595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0`. A storage reference has two parts, separated
 by a `#` sign. The first part are 64 hexadecimal digits (ie, 32 bytes)
 that identify the
 transaction that created the object; the second part is a progressive number
@@ -416,7 +416,7 @@ computer and a recent version of Maven.
 
 You should download and untar the latest release into the directory
 where you want to install `moka`. For instance, assuming that
-the latest version is `1.5.0` and that
+the latest version is `1.6.0` and that
 you want to install it under `~/Opt/moka`, you can run the following commands:
 
 ````shell
@@ -424,8 +424,8 @@ $ cd ~/Opt
 $ mkdir moka
 $ cd moka
 $ wget https://github.com/Hotmoka/hotmoka/releases/
-     download/v1.5.0/moka_1.5.0.tar.gz
-$ tar zxf moka_1.5.0.tar.gz
+     download/v1.6.0/moka_1.6.0.tar.gz
+$ tar zxf moka_1.6.0.tar.gz
 $ export PATH=$PATH:$(pwd)
 ````
 
@@ -616,20 +616,20 @@ about the node at that address, as you can see below:
 ```shell
 $ moka info --uri ws://panarea.hotmoka.io
 Info about the node:
-  takamakaCode: 539c58b64358bcd2aaca8752ae2442aa119b0cadffc233ac7cfc07dd6d69e96f
-  manifest: 9632a28d2690bff35fb0ecf7cdf13e130e496c0a3ae689b4b41251e8afd0396a#0
+  takamakaCode: 776a721ab24a0daaad8f128307ee090069646437be9469b879cfa8b8c6526afe
+  manifest: 323eda20a41176da86f0967a86aae5154e97aae163cdbc28f8e50b36bf11f48f#0
     chainId: marabunta
     maxErrorLength: 300
     signature: ed25519
     ...
-    gamete: f7dc662c145ac39c36fb91d69379680fdee842a2bce66112156cff7c70a327a6#0
+    gamete: 04355968e61a05f6eb9c2c2c0270cc88cb821b80876d9db351ec83f21391a80b#0
       balance: 99999999999999999999...
       maxFaucet: 10000000000000
       ...
-    gasStation: 9632a28d2690bff35fb0ecf7cdf13e130e496c0a3ae689b4b41251e8afd0396a#14
+    gasStation: 323eda20a41176da86f0967a86aae5154e97aae163cdbc28f8e50b36bf11f48f#14
       gasPrice: 1
       ...
-    validators: 9632a28d2690bff35fb0ecf7cdf13e130e496c0a3ae689b4b41251e8afd0396a#1
+    validators: 323eda20a41176da86f0967a86aae5154e97aae163cdbc28f8e50b36bf11f48f#1
       totalSupply: 1000000000000000...
       ...
 ```
@@ -661,7 +661,7 @@ and contains, for instance, the total supply of the cryptocurrency (how much cry
 been minted up to now).
 
 As we said in the previous section, Java objects in the Hotmoka node are identified by their
-_storage reference_, such as `9632a28d2690bff35fb0ecf7cdf13e130e496c0a3ae689b4b41251e8afd0396a#14`.
+_storage reference_, such as `323eda20a41176da86f0967a86aae5154e97aae163cdbc28f8e50b36bf11f48f#14`.
 You can think at a storage reference as a machine-independent pointer inside the
 memory, or state, of the node.
 
@@ -707,51 +707,51 @@ $ moka create-account 50000000000 --payer faucet --uri ws://panarea.hotmoka.io
 
 Please specify the password of the new account: chocolate
 Free account creation succeeds only if the gamete supports an open unsigned faucet.
-Created account ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0.
+Created account 595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0.
 Its entropy has been saved into the file
-  "ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0.pem".
+  "595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0.pem".
 Please take note of the following passphrase of 36 words:
 
- 1: cluster
- 2: window
- 3: notice
- 4: orchard
- 5: roast
- 6: section
- 7: purchase
- 8: limit
- 9: accident
-10: blade
-11: bicycle
-12: march
-13: smart
-14: scrub
-15: future
-16: police
-17: excess
-18: total
-19: purity
-20: angle
-21: skirt
-22: damp
-23: inch
-24: shoulder
-25: clock
-26: enroll
-27: have
-28: plug
-29: chapter
-30: prefer
-31: merge
-32: you
-33: pilot
-34: segment
-35: cash
-36: vintage
+ 1: awkward
+ 2: train
+ 3: mask
+ 4: inform
+ 5: ridge
+ 6: smoke
+ 7: scissors
+ 8: obvious
+ 9: dumb
+10: angle
+11: segment
+12: believe
+13: next
+14: piece
+15: theme
+16: garage
+17: history
+18: insane
+19: property
+20: trap
+21: stay
+22: sheriff
+23: venture
+24: lemon
+25: flush
+26: level
+27: beach
+28: tourist
+29: fly
+30: couple
+31: yard
+32: tooth
+33: leave
+34: miss
+35: retreat
+36: hair
 ```
 
 A *storage reference*
-`ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0` has been created.
+`595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0` has been created.
 
 > Note that this reference will be different in your machine, as well as the 36 words passphrase.
 > Change these accordingly in the subsequent examples.
@@ -771,19 +771,19 @@ let us check that our account really exists at its address,
 by querying the node with the `moka state` command:
 
 ```shell
-$ moka state ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0
+$ moka state 595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0
   --uri ws://panarea.hotmoka.io
 
 This is the state of object
-ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0
+595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0
 @ws://panarea.hotmoka.io
 
 class io.takamaka.code.lang.ExternallyOwnedAccount
   (from jar installed at
-   539c58b64358bcd2aaca8752ae2442aa119b0cadffc233ac7cfc07dd6d69e96f)
+   776a721ab24a0daaad8f128307ee090069646437be9469b879cfa8b8c6526afe)
 
   nonce:java.math.BigInteger = 0
-  publicKey:java.lang.String = "Us+I9cmpCom0V2mj6122bZ6ETwkgrEqLhW4/hImgfn0="
+  publicKey:java.lang.String = "3m/WLUPeXeNTL/PbnqBL3M9Pt2EzMvyFSlEPsmdLDo8="
   balance:java.math.BigInteger =
     50000000000 (inherited from io.takamaka.code.lang.Contract)
   balanceRed:java.math.BigInteger =
@@ -795,7 +795,7 @@ fields of the account object. Moreover, note that Hotmoka knows
 which is the class of the object at that address
 (it is a `io.takamaka.code.lang.ExternallyOwnedAccount`)
 and where that class is defined (inside the jar
-at address `539c58b64358bcd2aaca8752ae2442aa119b0cadffc233ac7cfc07dd6d69e96f`,
+at address `776a721ab24a0daaad8f128307ee090069646437be9469b879cfa8b8c6526afe`,
 that is, `takamakaCode`).
 
 > This is completely different from what happens, for instance,
@@ -824,7 +824,7 @@ if you want to recharge your account with 200000 extra coins, you can type:
 
 ```shell
 $ moka send 200000
-    ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0
+    595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0
     --payer faucet --uri ws://panarea.hotmoka.io
 ```
 You can then use the `moka state` command to verify that the balance of
@@ -866,7 +866,7 @@ has been added to your accounts (see Figure 11).
 
 ## Importing Accounts
 
-We have created `ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0` with `moka` and
+We have created `595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0` with `moka` and
 `701e20be588db820744df467826d67b9fe451406d7f75da6ef8aeb6805a7365f#0` with Mokito. We might want to _import_ the former in Mokito and the latter
 in `moka`, and we want to import both inside Hotwallet,
 so that we can operate on both accounts with all three tools. In order to import
@@ -964,24 +964,24 @@ exactly as one would do in Ethereum and other blockchains. He runs the following
 $ moka create-key
 
 Please specify the password of the new key: kiwis
-A new key DtoTbvTTFK6vwD4Gqx84Zy8ZKuty2AxUBiHr9ibey9Jz has been created.
+A new key EnRbA7uAxNvDxJKbPQ5vh6PTWcewfhnunf1CfH47og8T has been created.
 Its entropy has been saved into the file
-  "./DtoTbvTTFK6vwD4Gqx84Zy8ZKuty2AxUBiHr9ibey9Jz.pem".
+  "./EnRbA7uAxNvDxJKbPQ5vh6PTWcewfhnunf1CfH47og8T.pem".
 ```
 Note that there is no `--uri` part in the `moka create-key` command, since this operation
 runs completely off-line: no object gets created in the state of any Hotmoka node for now.
 Anonymous pastes the new key into an anonymous email message to us:
 
 ```
-Please pay 10000 coins to the key DtoTbvTTFK6vwD4Gqx84Zy8ZKuty2AxUBiHr9ibey9Jz.
+Please pay 10000 coins to the key EnRbA7uAxNvDxJKbPQ5vh6PTWcewfhnunf1CfH47og8T.
 ```
 
 Once we receive this email, we use (for instance) our previous account to send 10000 coins to that key:
 
 ```shell
-$ moka send 10000 DtoTbvTTFK6vwD4Gqx84Zy8ZKuty2AxUBiHr9ibey9Jz
+$ moka send 10000 EnRbA7uAxNvDxJKbPQ5vh6PTWcewfhnunf1CfH47og8T
     --anonymous
-    --payer ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0
+    --payer 595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0
     --uri ws://panarea.hotmoka.io
 
 Please specify the password of the payer account: chocolate
@@ -999,44 +999,44 @@ from time to time to see if we have paid, by running the command `moka bind-key`
 until it succeeds:
 
 ```shell
-$ moka bind-key DtoTbvTTFK6vwD4Gqx84Zy8ZKuty2AxUBiHr9ibey9Jz
+$ moka bind-key EnRbA7uAxNvDxJKbPQ5vh6PTWcewfhnunf1CfH47og8T
     --uri ws://panarea.hotmoka.io
 
 Cannot bind: nobody has paid anonymously to the key
-  DtoTbvTTFK6vwD4Gqx84Zy8ZKuty2AxUBiHr9ibey9Jz up to now.
+  EnRbA7uAxNvDxJKbPQ5vh6PTWcewfhnunf1CfH47og8T up to now.
 
-$ moka bind-key DtoTbvTTFK6vwD4Gqx84Zy8ZKuty2AxUBiHr9ibey9Jz
+$ moka bind-key EnRbA7uAxNvDxJKbPQ5vh6PTWcewfhnunf1CfH47og8T
     --uri ws://panarea.hotmoka.io
 
 Cannot bind: nobody has paid anonymously to the key
-  DtoTbvTTFK6vwD4Gqx84Zy8ZKuty2AxUBiHr9ibey9Jz up to now.
+  EnRbA7uAxNvDxJKbPQ5vh6PTWcewfhnunf1CfH47og8T up to now.
 
-$ moka bind-key DtoTbvTTFK6vwD4Gqx84Zy8ZKuty2AxUBiHr9ibey9Jz
+$ moka bind-key EnRbA7uAxNvDxJKbPQ5vh6PTWcewfhnunf1CfH47og8T
     --uri ws://panarea.hotmoka.io
 
-A new account 7d8ad0f560db6e519bdd7d2e17f0f2453dcb63cf09972aca8a187502bb9eab1a#0
+A new account 1098c9c732fc164bf4e22ad551ec2e5b531590bad4e3ee31820f011490085085#0
   has been created.
 Its entropy has been saved into the file
-  "./7d8ad0f560db6e519bdd7d2e17f0f2453dcb63cf09972aca8a187502bb9eab1a#0.pem".
+  "./1098c9c732fc164bf4e22ad551ec2e5b531590bad4e3ee31820f011490085085#0.pem".
 ```
 Once `moka bind-key` succeeds, Anonymous can enjoy his brand new account, that he
 can control with the `kiwis` password.
 
 So how does that work? The answer is that the `--anonymous` option to `moka send`
-creates the account `7d8ad0f560db6e519bdd7d2e17f0f2453dcb63cf09972aca8a187502bb9eab1a#0` with the public key of
+creates the account `1098c9c732fc164bf4e22ad551ec2e5b531590bad4e3ee31820f011490085085#0` with the public key of
 Anonymous inside it, so that Anonymous will be able to control that account.
 But there is more: the `moka send` command will also associate that account to the
-key `DtoTbvTTFK6vwD4Gqx84Zy8ZKuty2AxUBiHr9ibey9Jz` inside a hash map contained in the manifest of the node,
+key `EnRbA7uAxNvDxJKbPQ5vh6PTWcewfhnunf1CfH47og8T` inside a hash map contained in the manifest of the node,
 called _accounts ledger_. The `moka bind-key` command will simply query that
-hash map, to see if somebody has already bound an account to `DtoTbvTTFK6vwD4Gqx84Zy8ZKuty2AxUBiHr9ibey9Jz`.
+hash map, to see if somebody has already bound an account to `EnRbA7uAxNvDxJKbPQ5vh6PTWcewfhnunf1CfH47og8T`.
 
-> If, inside the accounts ledger, there is an account _C_ already associated to the key `DtoTbvTTFK6vwD4Gqx84Zy8ZKuty2AxUBiHr9ibey9Jz`,
+> If, inside the accounts ledger, there is an account _C_ already associated to the key `EnRbA7uAxNvDxJKbPQ5vh6PTWcewfhnunf1CfH47og8T`,
 > then the `moka send` command will not create a new account but will increase the
 > balance of _C_ and the `moka bind-key` command will consequently yield _C_.
 > This is a security measure in order
 > to avoid payment disruptions due to the association of dummy accounts to some keys
 > or to repeated payments to the same key.
-> In any case, the public key of _C_ can only be `DtoTbvTTFK6vwD4Gqx84Zy8ZKuty2AxUBiHr9ibey9Jz`, since the accounts ledger
+> In any case, the public key of _C_ can only be `EnRbA7uAxNvDxJKbPQ5vh6PTWcewfhnunf1CfH47og8T`, since the accounts ledger
 > enforces that constraint when it gets populated with accounts:
 > if somebody associates a key _K_ to an account _C_, then the public key
 > contained inside _C_ must be _K_.
@@ -1065,7 +1065,7 @@ You will need Java JDK version at least 11.
 Clone the project with:
 
 ```shell
-$ git clone --branch v1.5.0 https://github.com/Hotmoka/hotmoka.git
+$ git clone --branch v1.6.0 https://github.com/Hotmoka/hotmoka.git
 ```
 
 then `cd` to the `moka` directory and
@@ -1128,18 +1128,18 @@ automatic  explicit  unnamed
 modules/automatic:
 bcel-6.7.0.jar
 grpc-stub-1.54.2.jar
-io-hotmoka-node-tendermint-abci-1.5.0.jar
+io-hotmoka-node-tendermint-abci-1.6.0.jar
 ...
 
 modules/explicit:
 bcprov-jdk15on-1.70.jar
-io-hotmoka-node-local-1.5.0.jar
-io-hotmoka-node-local-api-1.5.0.jar
-io-hotmoka-verification-1.5.0.jar
-io-hotmoka-verification-api-1.5.0.jar
+io-hotmoka-node-local-1.6.0.jar
+io-hotmoka-node-local-api-1.6.0.jar
+io-hotmoka-verification-1.6.0.jar
+io-hotmoka-verification-api-1.6.0.jar
 gson-2.8.9.jar
-io-hotmoka-node-disk-1.5.0.jar
-io-hotmoka-node-disk-api-1.5.0.jar
+io-hotmoka-node-disk-1.6.0.jar
+io-hotmoka-node-disk-api-1.6.0.jar
 io-takamaka-code-1.3.0.jar
 it-univr-bcel-1.2.1.jar
 picocli-4.7.2.jar
@@ -1346,13 +1346,13 @@ there already, so that
 ```shell
 $ cd hotmoka_tutorial
 $ moka install family/target/family-0.0.1.jar
-    --payer ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0
+    --payer 595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0
     --uri ws://panarea.hotmoka.io
 
 Please specify the password of the payer account: chocolate
 Do you really want to spend up to 494900 gas units to install the jar [Y/N] Y
 family/target/family-0.0.1.jar has been installed
-at d6e61f8eb43ac5ffcd2679cb8e1c364852caac1eb909f1023b8887867c8f61fd
+at c528447126a378e816d64bf811374dceb691cc11d89589f6dca95b919adda62f
 Total gas consumed: 219355
   for CPU: 261
   for RAM: 1299
@@ -1420,27 +1420,27 @@ the `runs` project, replacing that generated by Eclipse:
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-node-remote</artifactId>
-      <version>1.5.0</version>
+      <version>1.6.0</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-helpers</artifactId>
-      <version>1.5.0</version>
+      <version>1.6.0</version>
     </dependency>
 	<dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-node-tendermint</artifactId>
-      <version>1.5.0</version>
+      <version>1.6.0</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-node-disk</artifactId>
-      <version>1.5.0</version>
+      <version>1.6.0</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-node-service</artifactId>
-      <version>1.5.0</version>
+      <version>1.6.0</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
@@ -1507,16 +1507,14 @@ import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.remote.RemoteNodes;
 
 public class Family {
 
   // change this with your account's storage reference
   private final static String
-    ADDRESS = "ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0";
+    ADDRESS = "595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0";
 
   public static void main(String[] args) throws Exception {
 
@@ -1541,24 +1539,24 @@ public class Family {
       // we get the nonce of our account: we use the account itself as caller and
       // an arbitrary nonce (ZERO in the code) since we are running
       // a @View method of the account
-      BigInteger nonce = ((BigIntegerValue) node
+      BigInteger nonce = node
         .runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
           (account, // payer
           BigInteger.valueOf(50_000), // gas limit
           takamakaCode, // class path for the execution of the transaction
           MethodSignatures.NONCE, // method
-          account)).get()) // receiver of the method call
-        .getValue();
+          account)).get() // receiver of the method call
+        .asBigInteger(__ -> new ClassCastException());
 
       // we get the chain identifier of the network
-      String chainId = ((StringValue) node
+      String chainId = node
         .runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
           (account, // payer
           BigInteger.valueOf(50_000), // gas limit
           takamakaCode, // class path for the execution of the transaction
           MethodSignatures.GET_CHAIN_ID, // method
-          manifest)).get()) // receiver of the method call
-        .getValue();
+          manifest)).get() // receiver of the method call
+        .asString(__ -> new ClassCastException());
 
       var gasHelper = GasHelpers.of(node);
 
@@ -1652,7 +1650,7 @@ the run menu option or the run green arrow of Eclipse.
 You should see the following on the screen:
 ```
 family-0.0.1.jar installed at:
-4a49c4de02ef3a89e269cf023d654406b26799873e3a86a5edde23494062fb6f
+7e33772fa98a58ec0e6cb80a7d76bb8410e208d77ad7e062a781782f20ed4077
 ```
 The exact address will change. In any case, note that this reference to the jar is functionally equivalent to that
 obtained before with the `moka install` command: they point to the same jar.
@@ -1663,8 +1661,8 @@ __[See projects `runs` and `family_storage` inside the `hotmoka_tutorial` reposi
 
 The jar of our program is in the store of the node now: the `moka install` command
 has installed it at
-`d6e61f8eb43ac5ffcd2679cb8e1c364852caac1eb909f1023b8887867c8f61fd`
-and our code at `4a49c4de02ef3a89e269cf023d654406b26799873e3a86a5edde23494062fb6f`.
+`c528447126a378e816d64bf811374dceb691cc11d89589f6dca95b919adda62f`
+and our code at `7e33772fa98a58ec0e6cb80a7d76bb8410e208d77ad7e062a781782f20ed4077`.
 We can use either of them, interchangeably, as class path for the execution of a transaction that
 tries to run the constructor of `Person` and add a brand
 new `Person` object into the store of the node. We can perform this through the `moka` tool:
@@ -1674,8 +1672,8 @@ $ cd hotmoka_tutorial # if you are not already there
 $ moka create
     io.takamaka.family.Person
     "Albert Einstein" 14 4 1879 null null
-    --payer ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0
-    --classpath d6e61f8eb43ac5ffcd2679cb8e1c364852caac1eb909f1023b8887867c8f61fd
+    --payer 595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0
+    --classpath c528447126a378e816d64bf811374dceb691cc11d89589f6dca95b919adda62f
     --uri ws://panarea.hotmoka.io
 
 Please specify the password of the payer account: chocolate
@@ -1751,17 +1749,17 @@ $ cd family
 $ mvn clean package
 $ cd ..
 $ moka install family/target/family-0.0.1.jar
-    --payer ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0
+    --payer 595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0
     --uri ws://panarea.hotmoka.io
 ...
 has been installed at
-  186c69408be303bab1b75b506de1f5080c25ceff72c66a05c99ed406a642e90f
+  41a90f9525299c5df98113275ad73c7335c091446bfa5dda78394f3c7fef9ca3
 ...
 $ moka create
     io.takamaka.family.Person
     "Albert Einstein" 14 4 1879 null null
-    --payer ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0
-    --classpath 186c69408be303bab1b75b506de1f5080c25ceff72c66a05c99ed406a642e90f
+    --payer 595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0
+    --classpath 41a90f9525299c5df98113275ad73c7335c091446bfa5dda78394f3c7fef9ca3
     --uri ws://panarea.hotmoka.io
 
 Please specify the password of the payer account: chocolate
@@ -1769,7 +1767,7 @@ Do you really want to spend up to 500000 gas units to call
 public Person(String,int,int,int,Person,Person) ? [Y/N] Y
 
 The new object has been allocated at
-  ad0553caca35a81250e78f301523474d81b87af4d48d5b0a91c7c6beca52d29b#0
+  a2cbcac5034741bd711d29866cd7c6db169cee61e31817db3b40c8daf964a2d8#0
 
 Total gas consumed: 41721
   for CPU: 291
@@ -1780,21 +1778,21 @@ Total gas consumed: 41721
 
 The new object has been allocated at a storage reference that can be used
 to refer to it, also in the future:
-`ad0553caca35a81250e78f301523474d81b87af4d48d5b0a91c7c6beca52d29b#0`.
+`a2cbcac5034741bd711d29866cd7c6db169cee61e31817db3b40c8daf964a2d8#0`.
 You can verify that it is actually there and that its fields are correctly initialized,
 by using the `moka state` command:
 
 ```shell
 $ cd hotmoka_tutorial
-$ moka state ad0553caca35a81250e78f301523474d81b87af4d48d5b0a91c7c6beca52d29b#0
+$ moka state a2cbcac5034741bd711d29866cd7c6db169cee61e31817db3b40c8daf964a2d8#0
     --uri ws://panarea.hotmoka.io
 
 This is the state of object
-ad0553caca35a81250e78f301523474d81b87af4d48d5b0a91c7c6beca52d29b#0
+a2cbcac5034741bd711d29866cd7c6db169cee61e31817db3b40c8daf964a2d8#0
 @ws://panarea.hotmoka.io
 
 class io.takamaka.family.Person (from jar installed at
-    186c69408be303bab1b75b506de1f5080c25ceff72c66a05c99ed406a642e90f)
+    41a90f9525299c5df98113275ad73c7335c091446bfa5dda78394f3c7fef9ca3)
 
   day:int = 14
   month:int = 4
@@ -1845,16 +1843,14 @@ import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
-import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.remote.RemoteNodes;
 
 public class Family2 {
 
   // change this with your account's storage reference
   private final static String
-    ADDRESS = "ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0";
+    ADDRESS = "595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0";
 
 private final static ClassType PERSON = StorageTypes.classNamed("io.takamaka.family.Person");
 
@@ -1881,24 +1877,24 @@ private final static ClassType PERSON = StorageTypes.classNamed("io.takamaka.fam
       // we get the nonce of our account: we use the account itself as caller and
       // an arbitrary nonce (ZERO in the code) since we are running
       // a @View method of the account
-      BigInteger nonce = ((BigIntegerValue) node
+      BigInteger nonce = node
         .runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
           (account, // payer
           BigInteger.valueOf(50_000), // gas limit
           takamakaCode, // class path for the execution of the transaction
           MethodSignatures.NONCE, // method
-          account)).get()) // receiver of the method call
-        .getValue();
+          account)).get() // receiver of the method call
+        .asBigInteger(__ -> new ClassCastException());
 
       // we get the chain identifier of the network
-      String chainId = ((StringValue) node
+      String chainId = node
         .runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
           (account, // payer
           BigInteger.valueOf(50_000), // gas limit
           takamakaCode, // class path for the execution of the transaction
           MethodSignatures.GET_CHAIN_ID, // method
-          manifest)).get()) // receiver of the method call
-        .getValue();
+          manifest)).get() // receiver of the method call
+        .asString(__ -> new ClassCastException());
 
       var gasHelper = GasHelpers.of(node);
 
@@ -1985,7 +1981,7 @@ Run `Family2` from Eclipse.
 You should see the following on the console:
 ```
 New object allocated at
-2651af2642874957433676f4073b35d21bbd28e5ab52970bf9207ca6f45bac9b#0
+121cb3b56d7fd61828b87e6e9a68bde8c14049a86d9b8156480104bc66c4f19b#0
 ```
 The exact address will change at any run.
 
@@ -2008,9 +2004,9 @@ specifying our `Person` object as *receiver*.
 
 ```shell
 $ moka call
-    ad0553caca35a81250e78f301523474d81b87af4d48d5b0a91c7c6beca52d29b#0
+    a2cbcac5034741bd711d29866cd7c6db169cee61e31817db3b40c8daf964a2d8#0
     toString
-    --payer ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0
+    --payer 595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0
     --uri ws://panarea.hotmoka.io
 
 Please specify the password of the payer account: chocolate
@@ -2073,27 +2069,27 @@ $ cd family
 $ mvn clean package
 $ cd ..
 $ moka install family/target/family-0.0.1.jar
-    --payer ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0
+    --payer 595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0
     --uri ws://panarea.hotmoka.io
 ...
 has been installed at
-  800683890e775acc01212f25102c56a1aab1244eaa81a5a9f8610bb120344cc9
+  9c9866798810d966605ecdaacb8130c5d644c77ee518fe3273ac75930e107ce8
 ...
 $ moka create
     io.takamaka.family.Person
     "Albert Einstein" 14 4 1879 null null
-    --payer ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0
-    --classpath 800683890e775acc01212f25102c56a1aab1244eaa81a5a9f8610bb120344cc9
+    --payer 595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0
+    --classpath 9c9866798810d966605ecdaacb8130c5d644c77ee518fe3273ac75930e107ce8
     --uri ws://panarea.hotmoka.io
 
 ...
 The new object has been allocated at
-  92e098c2cecdce49475fa8a5ee1437f3926829a12e6f8594d2b43a3ffff4ac87#0
+  2111769886f5760d7431ab0cc2044bfe3d967ee7b67fd6917b54955a2b1db237#0
 ...
 $ moka call
-    92e098c2cecdce49475fa8a5ee1437f3926829a12e6f8594d2b43a3ffff4ac87#0
+    2111769886f5760d7431ab0cc2044bfe3d967ee7b67fd6917b54955a2b1db237#0
     toString
-    --payer ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0
+    --payer 595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0
     --uri ws://panarea.hotmoka.io
 
 ...
@@ -2148,17 +2144,15 @@ import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
-import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
-import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.remote.RemoteNodes;
 
 public class Family3 {
 
   // change this with your account's storage reference
   private final static String
-    ADDRESS = "ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0";
+    ADDRESS = "595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0";
 
   private final static ClassType PERSON = StorageTypes.classNamed("io.takamaka.family.Person");
 
@@ -2185,24 +2179,24 @@ public class Family3 {
       // we get the nonce of our account: we use the account itself as caller and
       // an arbitrary nonce (ZERO in the code) since we are running
       // a @View method of the account
-      BigInteger nonce = ((BigIntegerValue) node
+      BigInteger nonce = node
         .runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
           (account, // payer
-          BigInteger.valueOf(50_000), // gas limit
-          takamakaCode, // class path for the execution of the transaction
-          MethodSignatures.NONCE, // method
-          account)).get()) // receiver of the method call
-        .getValue();
+           BigInteger.valueOf(50_000), // gas limit
+           takamakaCode, // class path for the execution of the transaction
+           MethodSignatures.NONCE, // method
+           account)).get() // receiver of the method call
+         .asBigInteger(__ -> new ClassCastException());
 
       // we get the chain identifier of the network
-      String chainId = ((StringValue) node
+      String chainId = node
         .runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
           (account, // payer
           BigInteger.valueOf(50_000), // gas limit
           takamakaCode, // class path for the execution of the transaction
           MethodSignatures.GET_CHAIN_ID, // method
-          manifest)).get()) // receiver of the method call
-        .getValue();
+          manifest)).get() // receiver of the method call
+        .asString(__ -> new ClassCastException());
 
       var gasHelper = GasHelpers.of(node);
 
@@ -3331,14 +3325,14 @@ We can now start by installing that jar in the node:
 ```shell
 $ cd hotmoka_tutorial   # if not already there
 $ moka install ponzi/target/ponzi-0.0.1.jar
-    --payer ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0
+    --payer 595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0
     --uri ws://panarea.hotmoka.io
 
 Please specify the password of the payer account: chocolate
 Do you really want to spend up to 697300 gas units to install the jar [Y/N] Y
 
 ponzi/target/ponzi-0.0.1.jar has been installed at
-a45b8ea4b0df82e53271b80e5aff20291b339e6388e3a935ff5b8b355e08fa1f
+cbae2bc748bf266d0a14061d84fe0bee3f1ff91070a47905b42e1a259e06aeef
 ```
 
 We create two more accounts now, letting our first account pay:
@@ -3346,7 +3340,7 @@ We create two more accounts now, letting our first account pay:
 ```shell
 $ moka create-account
     10000000
-    --payer ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0
+    --payer 595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0
     --uri ws://panarea.hotmoka.io
 
 Please specify the password of the payer account: chocolate
@@ -3358,15 +3352,15 @@ Total gas consumed: 44574
   for storage: 42821
   for penalty: 0
 
-A new account 66ac35b5435eb558f1c09cac7b8eed44a17c71b9cb8fecc7a1822f51b8397e08#0
+A new account af84c36211ed0b3b9e4b5a0c94a80f6d250be891f7e37dd87db20c5559e52b76#0
 has been created.
 Its entropy has been saved into the file
-"66ac35b5435eb558f1c09cac7b8eed44a17c71b9cb8fecc7a1822f51b8397e08#0.pem".
+"af84c36211ed0b3b9e4b5a0c94a80f6d250be891f7e37dd87db20c5559e52b76#0.pem".
 Please take note of the following passphrase of 36 words...
 
 $ moka create-account
     10000000
-    --payer ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0
+    --payer 595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0
     --uri ws://panarea.hotmoka.io
 
 Please specify the password of the payer account: chocolate
@@ -3378,10 +3372,10 @@ Total gas consumed: 44574
   for storage: 42821
   for penalty: 0
 
-A new account 1624f46d236f29470512d64054a734b746a042e03a1110419bd317cf245becf7#0
+A new account 61d7083cb775081f62bd3560074a898e88385833c254add0fbd50982b30ee7cf#0
 has been created.
 Its entropy has been saved into the file
-"1624f46d236f29470512d64054a734b746a042e03a1110419bd317cf245becf7#0.pem".
+"61d7083cb775081f62bd3560074a898e88385833c254add0fbd50982b30ee7cf#0.pem".
 Please take note of the following passphrase of 36 words...
 ```
 
@@ -3391,8 +3385,8 @@ and become the first investor of the contract:
 ```shell
 $ moka create
     io.takamaka.ponzi.GradualPonzi
-    --payer ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0
-    --classpath a45b8ea4b0df82e53271b80e5aff20291b339e6388e3a935ff5b8b355e08fa1f
+    --payer 595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0
+    --classpath cbae2bc748bf266d0a14061d84fe0bee3f1ff91070a47905b42e1a259e06aeef
     --uri ws://panarea.hotmoka.io
 
 Please specify the password of the payer account: chocolate
@@ -3400,16 +3394,16 @@ Do you really want to spend up to 500000 gas units to call
 @FromContract(PayableContract.class) public GradualPonzi() ? [Y/N] Y
 
 The new object has been allocated at
-e2b10bce9162b976970b31b6c910845d61ddad5b2e0056850520f4686e0d4a4a#0
+81443a1d24d3b7d26820c6a6b09a7d00b7ec341c46fc5db223d47393c949bf19#0
 ```
 
 We let the other two players invest, in sequence, in the `GradualPonzi` contract:
 
 ```shell
 $ moka call
-    e2b10bce9162b976970b31b6c910845d61ddad5b2e0056850520f4686e0d4a4a#0
+    81443a1d24d3b7d26820c6a6b09a7d00b7ec341c46fc5db223d47393c949bf19#0
     invest 5000
-    --payer 66ac35b5435eb558f1c09cac7b8eed44a17c71b9cb8fecc7a1822f51b8397e08#0
+    --payer af84c36211ed0b3b9e4b5a0c94a80f6d250be891f7e37dd87db20c5559e52b76#0
     --uri ws://panarea.hotmoka.io
 
 Please specify the password of the payer account: orange
@@ -3417,9 +3411,9 @@ Do you really want to spend up to 500000 gas units to call
 public void invest(java.math.BigInteger) ? [Y/N] Y
 
 $ moka call
-    e2b10bce9162b976970b31b6c910845d61ddad5b2e0056850520f4686e0d4a4a#0
+    81443a1d24d3b7d26820c6a6b09a7d00b7ec341c46fc5db223d47393c949bf19#0
     invest 15000
-    --payer 1624f46d236f29470512d64054a734b746a042e03a1110419bd317cf245becf7#0
+    --payer 61d7083cb775081f62bd3560074a898e88385833c254add0fbd50982b30ee7cf#0
     --uri ws://panarea.hotmoka.io
 
 Please specify the password of the payer account: apple
@@ -3433,9 +3427,9 @@ since the code of the contract requires a minimum investment:
 
 ```shell
 $ moka call
-    e2b10bce9162b976970b31b6c910845d61ddad5b2e0056850520f4686e0d4a4a#0
+    81443a1d24d3b7d26820c6a6b09a7d00b7ec341c46fc5db223d47393c949bf19#0
     invest 500
-    --payer ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0
+    --payer 595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0
     --uri ws://panarea.hotmoka.io
 
 Please specify the password of the payer account: chocolate
@@ -3462,19 +3456,19 @@ require(amount.compareTo(MINIMUM_INVESTMENT) >= 0,
 Finally, we can check the state of the contract:
 
 ```shell
-$ moka state e2b10bce9162b976970b31b6c910845d61ddad5b2e0056850520f4686e0d4a4a#0
+$ moka state 81443a1d24d3b7d26820c6a6b09a7d00b7ec341c46fc5db223d47393c949bf19#0
     --uri ws://panarea.hotmoka.io
 
 This is the state of object
-e2b10bce9162b976970b31b6c910845d61ddad5b2e0056850520f4686e0d4a4a#0
+81443a1d24d3b7d26820c6a6b09a7d00b7ec341c46fc5db223d47393c949bf19#0
 @ws://panarea.hotmoka.io
 
 class io.takamaka.ponzi.GradualPonzi (from jar installed at
-    a45b8ea4b0df82e53271b80e5aff20291b339e6388e3a935ff5b8b355e08fa1f)
+    cbae2bc748bf266d0a14061d84fe0bee3f1ff91070a47905b42e1a259e06aeef)
 
   MINIMUM_INVESTMENT:java.math.BigInteger = 1000
   investors:io.takamaka.code.util.StorageList
-    = e2b10bce9162b976970b31b6c910845d61ddad5b2e0056850520f4686e0d4a4a#1
+    = 81443a1d24d3b7d26820c6a6b09a7d00b7ec341c46fc5db223d47393c949bf19#1
   balance:java.math.BigInteger = 0 (inherited from io.takamaka.code.lang.Contract)
   balanceRed:java.math.BigInteger = 0 (inherited from io.takamaka.code.lang.Contract)
 ```
@@ -3482,20 +3476,20 @@ You can see that the contract keeps no balance. Moreover, its `investors` field 
 object, whose state can be further investigated:
 
 ```shell
-$ moka state e2b10bce9162b976970b31b6c910845d61ddad5b2e0056850520f4686e0d4a4a#1
+$ moka state 81443a1d24d3b7d26820c6a6b09a7d00b7ec341c46fc5db223d47393c949bf19#1
     --uri ws://panarea.hotmoka.io
 
 This is the state of object
-e2b10bce9162b976970b31b6c910845d61ddad5b2e0056850520f4686e0d4a4a#1
+81443a1d24d3b7d26820c6a6b09a7d00b7ec341c46fc5db223d47393c949bf19#1
 @ws://panarea.hotmoka.io
 
 class io.takamaka.code.util.StorageLinkedList (from jar installed at
-    539c58b64358bcd2aaca8752ae2442aa119b0cadffc233ac7cfc07dd6d69e96f)
+    776a721ab24a0daaad8f128307ee090069646437be9469b879cfa8b8c6526afe)
 
   first:io.takamaka.code.util.StorageLinkedList$Node
-    = e2b10bce9162b976970b31b6c910845d61ddad5b2e0056850520f4686e0d4a4a#2
+    = 81443a1d24d3b7d26820c6a6b09a7d00b7ec341c46fc5db223d47393c949bf19#2
   last:io.takamaka.code.util.StorageLinkedList$Node
-    = 21f66fdcaaa583e15c258ff10c0232cfd45522932a3164678601b3c08cea53b3#0
+    = 36d36b397c0ae0a99058b93aadd11d0ab8edc217033f2d4f979f00bcaa9d9840#0
   size:int = 3
 ```
 As you can see, it is a `StorageLinkedList` of size three, since it contains our three accounts that interacted with the
@@ -4004,14 +3998,14 @@ Let us start by installing that jar in the node:
 
 ```shell
 $ moka install tictactoe/target/tictactoe-0.0.1.jar
-    --payer ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0
+    --payer 595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0
     --uri ws://panarea.hotmoka.io
 
 Please specify the password of the payer account: chocolate
 Do you really want to spend up to 870600 gas units to install the jar [Y/N] Y
 
 tictactoe/target/tictactoe-0.0.1.jar has been installed
-at 6eb9b42f336e6745ad90cddfbf9d6a18217a4f3d713fd5c09c51a6e66f80b322
+at 6bfc957d64cefee01950a9c185e7abfc83333b5632386c7af827bfa919cfe884
 ```
 
 Then we create an instance of the contract in the node:
@@ -4019,8 +4013,8 @@ Then we create an instance of the contract in the node:
 ```shell
 $ moka create
     io.takamaka.tictactoe.TicTacToe
-    --payer ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0
-    --classpath 6eb9b42f336e6745ad90cddfbf9d6a18217a4f3d713fd5c09c51a6e66f80b322
+    --payer 595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0
+    --classpath 6bfc957d64cefee01950a9c185e7abfc83333b5632386c7af827bfa919cfe884
     --uri ws://panarea.hotmoka.io
 
 Please specify the password of the payer account: chocolate
@@ -4028,7 +4022,7 @@ Do you really want to spend up to 500000 gas units to call
 @FromContract(PayableContract.class) public TicTacToe() ? [Y/N] Y
 
 The new object has been allocated at
-dda0e74c32656173df094de78fba1192398a577eefe897b8f1eb56fab978eaef#0
+85c41cf3c548f997c5bf791d2caaec0a9d13e6f442ce651df128c4a77d9de803#0
 ```
 
 We use two of our accounts now, that we have already created in the previous section,
@@ -4039,15 +4033,15 @@ The first player starts, by playing at (1,1), and bets 100:
 
 ```shell
 $ moka call
-    dda0e74c32656173df094de78fba1192398a577eefe897b8f1eb56fab978eaef#0
+    85c41cf3c548f997c5bf791d2caaec0a9d13e6f442ce651df128c4a77d9de803#0
     play 100 1 1
-    --payer ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0
+    --payer 595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0
     --uri ws://panarea.hotmoka.io
 
 $ moka call
-    dda0e74c32656173df094de78fba1192398a577eefe897b8f1eb56fab978eaef#0
+    85c41cf3c548f997c5bf791d2caaec0a9d13e6f442ce651df128c4a77d9de803#0
     toString
-    --payer ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0
+    --payer 595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0
     --uri ws://panarea.hotmoka.io
 
 X| | 
@@ -4061,15 +4055,15 @@ The second player plays after, at (2,1), betting 100:
 
 ```shell
 $ moka call
-    dda0e74c32656173df094de78fba1192398a577eefe897b8f1eb56fab978eaef#0
+    85c41cf3c548f997c5bf791d2caaec0a9d13e6f442ce651df128c4a77d9de803#0
     play 100 2 1
-    --payer 66ac35b5435eb558f1c09cac7b8eed44a17c71b9cb8fecc7a1822f51b8397e08#0
+    --payer af84c36211ed0b3b9e4b5a0c94a80f6d250be891f7e37dd87db20c5559e52b76#0
     --uri ws://panarea.hotmoka.io
 
 $ moka call
-    dda0e74c32656173df094de78fba1192398a577eefe897b8f1eb56fab978eaef#0
+    85c41cf3c548f997c5bf791d2caaec0a9d13e6f442ce651df128c4a77d9de803#0
     toString
-    --payer 66ac35b5435eb558f1c09cac7b8eed44a17c71b9cb8fecc7a1822f51b8397e08#0
+    --payer af84c36211ed0b3b9e4b5a0c94a80f6d250be891f7e37dd87db20c5559e52b76#0
     --uri ws://panarea.hotmoka.io
 
 X|O| 
@@ -4084,15 +4078,15 @@ The first player replies, playing at (1,2):
 
 ```shell
 $ moka call
-    dda0e74c32656173df094de78fba1192398a577eefe897b8f1eb56fab978eaef#0
+    85c41cf3c548f997c5bf791d2caaec0a9d13e6f442ce651df128c4a77d9de803#0
     play 0 1 2
-    --payer ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0
+    --payer 595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0
     --uri ws://panarea.hotmoka.io
 
 $ moka call
-    dda0e74c32656173df094de78fba1192398a577eefe897b8f1eb56fab978eaef#0
+    85c41cf3c548f997c5bf791d2caaec0a9d13e6f442ce651df128c4a77d9de803#0
     toString
-    --payer ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0
+    --payer 595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0
     --uri ws://panarea.hotmoka.io
 
 X|O| 
@@ -4106,15 +4100,15 @@ Then the second player plays at (2,2):
 
 ```shell
 $ moka call
-    dda0e74c32656173df094de78fba1192398a577eefe897b8f1eb56fab978eaef#0
+    85c41cf3c548f997c5bf791d2caaec0a9d13e6f442ce651df128c4a77d9de803#0
     play 0 2 2
-    --payer 66ac35b5435eb558f1c09cac7b8eed44a17c71b9cb8fecc7a1822f51b8397e08#0
+    --payer af84c36211ed0b3b9e4b5a0c94a80f6d250be891f7e37dd87db20c5559e52b76#0
     --uri ws://panarea.hotmoka.io
 
 $ moka call
-    dda0e74c32656173df094de78fba1192398a577eefe897b8f1eb56fab978eaef#0
+    85c41cf3c548f997c5bf791d2caaec0a9d13e6f442ce651df128c4a77d9de803#0
     toString
-    --payer 66ac35b5435eb558f1c09cac7b8eed44a17c71b9cb8fecc7a1822f51b8397e08#0
+    --payer af84c36211ed0b3b9e4b5a0c94a80f6d250be891f7e37dd87db20c5559e52b76#0
     --uri ws://panarea.hotmoka.io
 
 X|O| 
@@ -4128,15 +4122,15 @@ The first player wins by playing at (1,3):
 
 ```shell
 $ moka call
-    dda0e74c32656173df094de78fba1192398a577eefe897b8f1eb56fab978eaef#0
+    85c41cf3c548f997c5bf791d2caaec0a9d13e6f442ce651df128c4a77d9de803#0
     play 0 1 3
-    --payer ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0
+    --payer 595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0
     --uri ws://panarea.hotmoka.io
 
 $ moka call
-    dda0e74c32656173df094de78fba1192398a577eefe897b8f1eb56fab978eaef#0
+    85c41cf3c548f997c5bf791d2caaec0a9d13e6f442ce651df128c4a77d9de803#0
     toString
-    --payer ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0
+    --payer 595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0
     --uri ws://panarea.hotmoka.io
 
 X|O| 
@@ -4147,15 +4141,15 @@ X| |
 ```
 We can verify that the game is over now:
 ```shell
-$ moka state dda0e74c32656173df094de78fba1192398a577eefe897b8f1eb56fab978eaef#0
+$ moka state 85c41cf3c548f997c5bf791d2caaec0a9d13e6f442ce651df128c4a77d9de803#0
     --uri ws://panarea.hotmoka.io
 
 This is the state of object
-dda0e74c32656173df094de78fba1192398a577eefe897b8f1eb56fab978eaef#0
+85c41cf3c548f997c5bf791d2caaec0a9d13e6f442ce651df128c4a77d9de803#0
 @ws://panarea.hotmoka.io
 
 class io.takamaka.tictactoe.TicTacToe (from jar installed at
-    6eb9b42f336e6745ad90cddfbf9d6a18217a4f3d713fd5c09c51a6e66f80b322)
+    6bfc957d64cefee01950a9c185e7abfc83333b5632386c7af827bfa919cfe884)
 
   ...
   gameOver:boolean = true
@@ -4169,9 +4163,9 @@ If the second player attempts to play now, the transaction will be rejected, sin
 
 ```shell
 $ moka call
-    dda0e74c32656173df094de78fba1192398a577eefe897b8f1eb56fab978eaef#0
+    85c41cf3c548f997c5bf791d2caaec0a9d13e6f442ce651df128c4a77d9de803#0
     play 0 2 3
-    --payer 66ac35b5435eb558f1c09cac7b8eed44a17c71b9cb8fecc7a1822f51b8397e08#0
+    --payer af84c36211ed0b3b9e4b5a0c94a80f6d250be891f7e37dd87db20c5559e52b76#0
     --uri ws://panarea.hotmoka.io
 
 io.hotmoka.node.api.TransactionException:
@@ -4832,7 +4826,6 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
-import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.remote.RemoteNodes;
 
 public class Auction {
@@ -4840,9 +4833,9 @@ public class Auction {
   private final static String[] ADDRESSES = new String[3];
   
   static {
-    ADDRESSES[0] = "ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0";
-    ADDRESSES[1] = "66ac35b5435eb558f1c09cac7b8eed44a17c71b9cb8fecc7a1822f51b8397e08#0";
-    ADDRESSES[2] = "1624f46d236f29470512d64054a734b746a042e03a1110419bd317cf245becf7#0";
+    ADDRESSES[0] = "595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0";
+    ADDRESSES[1] = "af84c36211ed0b3b9e4b5a0c94a80f6d250be891f7e37dd87db20c5559e52b76#0";
+    ADDRESSES[2] = "61d7083cb775081f62bd3560074a898e88385833c254add0fbd50982b30ee7cf#0";
   }
 
   public final static int NUM_BIDS = 10; // number of bids placed
@@ -4979,14 +4972,13 @@ public class Auction {
 
   private String getChainId() throws Exception {
     StorageReference manifest = node.getManifest();
-    return ((StringValue) node.runInstanceMethodCallTransaction
-      (TransactionRequests.instanceViewMethodCall
-        (accounts[0], // payer
-        BigInteger.valueOf(50_000), // gas limit
-        takamakaCode, // class path for the execution of the transaction
-        MethodSignatures.GET_CHAIN_ID, // method
-        manifest)).get()) // receiver of the method call
-      .getValue();
+   return node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+      (accounts[0], // payer
+      BigInteger.valueOf(50_000), // gas limit
+      takamakaCode, // class path for the execution of the transaction
+      MethodSignatures.GET_CHAIN_ID, // method
+      manifest)).get() // receiver of the method call
+        .asString(__ -> new ClassCastException());
   }
 
   private TransactionReference installJar() throws Exception {
@@ -5301,8 +5293,8 @@ actually computes the right winner, since they will always print the identical s
 object (different at each run, in general), such as:
 
 ```
-expected winner: 1624f46d236f29470512d64054a734b746a042e03a1110419bd317cf245becf7#0
-actual winner: 1624f46d236f29470512d64054a734b746a042e03a1110419bd317cf245becf7#0
+expected winner: 61d7083cb775081f62bd3560074a898e88385833c254add0fbd50982b30ee7cf#0
+actual winner: 61d7083cb775081f62bd3560074a898e88385833c254add0fbd50982b30ee7cf#0
 ```
 
 You can run class `Auction` from Eclipse.
@@ -5324,8 +5316,8 @@ Revealing bid 2 out of 20
 Revealing bid 3 out of 20
 ...
 Revealing bid 10 out of 10
-expected winner: 66ac35b5435eb558f1c09cac7b8eed44a17c71b9cb8fecc7a1822f51b8397e08#0
-actual winner: 66ac35b5435eb558f1c09cac7b8eed44a17c71b9cb8fecc7a1822f51b8397e08#0
+expected winner: af84c36211ed0b3b9e4b5a0c94a80f6d250be891f7e37dd87db20c5559e52b76#0
+actual winner: af84c36211ed0b3b9e4b5a0c94a80f6d250be891f7e37dd87db20c5559e52b76#0
 ```
 
 ### Listening to Events
@@ -5625,13 +5617,13 @@ Then you can install that jar in the node, by letting our first account pay:
 ```shell
 $ cd ..
 $ moka install erc20/target/erc20-0.0.1.jar
-    --payer ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0
+    --payer 595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0
     --uri ws://panarea.hotmoka.io
 
 Please specify the password of the payer account: chocolate
 Do you really want to spend up to 504100 gas units to install the jar [Y/N] Y
 erc20/target/erc20-0.0.1.jar has been installed at
-cb01fa40fad6cdcb56a7a0ab99a706f15d9b9533f5cec6bb299ecc9835f66b31
+b72ee0386d4ecfd9a319c247da4e6f7126ac1d5eb06fbffd18020ce7effa0e0a
 Total gas consumed: 244568
   for CPU: 262
   for RAM: 1303
@@ -5645,14 +5637,14 @@ for that:
 ```shell
 $ moka create
   io.takamaka.erc20.CryptoBuddy
-  --payer ecc98397a53d4e9cbab9046caa6e5c96372b6965a6d3626753a2dff9a4f8648d#0
-  --classpath cb01fa40fad6cdcb56a7a0ab99a706f15d9b9533f5cec6bb299ecc9835f66b31
+  --payer 595548f802fb6c2e9eb1f3ad4f8b3c93fe59d0144df2f59e627fb7267ef1bae0#0
+  --classpath b72ee0386d4ecfd9a319c247da4e6f7126ac1d5eb06fbffd18020ce7effa0e0a
   --uri ws://panarea.hotmoka.io
 
 Please specify the password of the payer account: chocolate
 Do you really want to spend up to 500000 gas units to call CryptoBuddy() ? [Y/N] Y
 The new object has been allocated at
-7aadc95bca587da7705496bf1b833594125e983ccaabdb784de42b10c2aa9e8a#0
+d9d0d07bf8b534084257122e10d5ca4d095f290d2efd0a346b99de9afb64f1aa#0
 Total gas consumed: 129369
   for CPU: 1314
   for RAM: 2843
@@ -5661,7 +5653,7 @@ Total gas consumed: 129369
 ```
 
 The new ledger instance is installed in the storage of the node now, at the address
-`7aadc95bca587da7705496bf1b833594125e983ccaabdb784de42b10c2aa9e8a#0`. It is possible to start interacting with that ledger instance, by transferring
+`d9d0d07bf8b534084257122e10d5ca4d095f290d2efd0a346b99de9afb64f1aa#0`. It is possible to start interacting with that ledger instance, by transferring
 tokens between accounts. For instance, this can be done with the `moka call` command,
 that allows one to invoke the `transfer` or `transferFrom` methods of the ledger.
 It is possible to show the state of the ledger with the `moka state` command, although specific
@@ -6542,7 +6534,7 @@ public class Decorators {
    		.setInitialSupply(SUPPLY)
    		.setPublicKeyOfGamete(keys.getPublic()).build();
 
-	try (var node = DiskNodes.init(config, consensus)) {
+	try (var node = DiskNodes.init(config)) {
       // first view: store the io-takamaka-code jar and create manifest and gamete
 	  var initialized = InitializedNodes.of(node, consensus, takamakaCodePath);
 
@@ -6647,7 +6639,7 @@ public class Publisher {
 		.setInitialSupply(SUPPLY)
 		.build();
 
-	try (var original = TendermintNodes.init(config, consensus);
+	try (var original = TendermintNodes.init(config);
       // uncomment the next line if you want to initialize the node
       // var initialized = InitializedNodes.of(original, consensus, takamakaCodePath);
       var service = NodeServices.of(original, 8001)) {
@@ -6771,9 +6763,8 @@ on a machine `my.validator.com` we can execute:
 
 ```java
 TendermintNodeConfig config = TendermintNodeConfigBuilders.defaults().build();
-ValidatorsConsensusConfig consensus = ValidatorsConsensusConfigBuilders.defaults().build();
 
-try (Node original = TendermintNodes.init(config, consensus);
+try (Node original = TendermintNodes.init(config);
      NodeService service = NodeServices.of(original, 8001)) {
   ...
 }
@@ -6838,7 +6829,8 @@ var consensus = ValidatorsConsensusConfigBuilders.defaults()
   .setSignatureForRequests(SignatureAlgorithms.ed25519()) // this is the default
   .build();
 
-try (Node node = TendermintNodes.init(config, consensus)) {
+try (Node node = TendermintNodes.init(config);
+     Node initialized = InitializedNodes.of(node, consensus, takamakaCodePath)) {
   ...
 }
 ```
@@ -6965,20 +6957,20 @@ $ moka create-account 1000000000000 --payer faucet --uri ws://panarea.hotmoka.io
 
 Please specify the password of the new account: game
 ...
-A new account 96797575214cfebb5e38b132e06b09582d1aadf28895fade1a57a9d123883209#0
+A new account 399952f7c726021aeeb8db4bdc168387525aa4c1732b47cabc29db1541532430#0
 has been created
 ```
 
 You can check the class of the new account with the `moka state` command:
 
 ```shell
-$ moka state 96797575214cfebb5e38b132e06b09582d1aadf28895fade1a57a9d123883209#0
+$ moka state 399952f7c726021aeeb8db4bdc168387525aa4c1732b47cabc29db1541532430#0
     --uri ws://panarea.hotmoka.io
 
 ...
 class io.takamaka.code.lang.ExternallyOwnedAccountED25519 ...
   publicKey:java.lang.String =
-    "+ioEmT5i38Mo2auegR/Sj0OZxmLbhvaXFtvudDKXMbI="
+    "i0nn/zcy4AIPy6rref9rPjTq/qVNIn8Zi7iPET9wLpE="
   balance:java.math.BigInteger = 1000000000000
 ...
 ```
@@ -6994,7 +6986,7 @@ $ moka create-account 1000000000000
 
 Please specify the password of the new account: play
 ...
-A new account b28f591b8d31d291bfeb07d0556d75965d9bb53f3177621bd4845947ea185402#0
+A new account 4f3d5aa316baedc080bd75cfa0ed80042c049644451bbe21490a4f8aaddaf458#0
 has been created
 ```
 This creation has been more expensive, because the public key of the
@@ -7002,12 +6994,12 @@ sha256dsa algorithm is much longer than that for the ed25519 algorithm.
 You can verify this with the `moka state` command:
 
 ```shell
-$ moka state b28f591b8d31d291bfeb07d0556d75965d9bb53f3177621bd4845947ea185402#0
+$ moka state 4f3d5aa316baedc080bd75cfa0ed80042c049644451bbe21490a4f8aaddaf458#0
     --uri ws://panarea.hotmoka.io
 
 ...
 class io.takamaka.code.lang.ExternallyOwnedAccountSHA256DSA ...
-  publicKey:java.lang.String = "MIIDQjCCAjUGByqGSM44BAEwggIoAo..."
+  publicKey:java.lang.String = "MIIDRjCCAjkGByqGSM44BAEwggIsAo..."
   balance:java.math.BigInteger = 1000000000000000
   ...
 ```
@@ -7024,7 +7016,7 @@ Please specify the password of the new account: quantum1
 ...
 Total gas consumed: 5294043
 ...
-A new account 6e9d738c572c01f13b53948d0a5bd7d2f8c323fa24f699a9e61fbeaa90d294ca#0
+A new account 5c3428e7967b71ca4af3c236960c93e45da09961fdc75b9f6a695910c7ddcf1d#0
 has been created
 ```
 The creation of this account has been very expensive, since quantum-resistant
@@ -7035,7 +7027,7 @@ Finally, let us use the previous qtesla-p-I account to create a qtesla-p-III acc
 
 ```shell
 $ moka create-account 100000
-    --payer 6e9d738c572c01f13b53948d0a5bd7d2f8c323fa24f699a9e61fbeaa90d294ca#0
+    --payer 5c3428e7967b71ca4af3c236960c93e45da09961fdc75b9f6a695910c7ddcf1d#0
     --signature qtesla3 --uri ws://panarea.hotmoka.io
 
 Please specify the password of the payer account: quantum1
@@ -7043,7 +7035,7 @@ Please specify the password of the new account: quantum3
 ...
 Total gas consumed: 5294170
 ...
-A new account fcdbd2437b0f404df1a384d478184117adef43479126f7804e95225d579a6262#0
+A new account 411813d7049a0bb8e3adfa2d3623bd03eae1d92654668a35f75d0fcf26f7d5e5#0
 has been created
 ```
 
@@ -7058,13 +7050,13 @@ the `family-0.0.1.jar` code in the node:
 ```shell
 $ cd hotmoka_tutorial
 $ moka install family/target/family-0.0.1.jar
-    --payer 6e9d738c572c01f13b53948d0a5bd7d2f8c323fa24f699a9e61fbeaa90d294ca#0
+    --payer 5c3428e7967b71ca4af3c236960c93e45da09961fdc75b9f6a695910c7ddcf1d#0
     --uri ws://panarea.hotmoka.io
 
 Please specify the password of the payer account: quantum1
 Do you really want to spend up to 696900 gas units to install the jar [Y/N] Y
 family/target/family-0.0.1.jar has been installed
-at 72475b6541c780b7b5ae33c5d762580cf4fe685489e7291336a0030e188209f8
+at 54763a31c8cdf56af5f09643c9a185cedb7eb53a6eaab057fb275e7620fb709d
 ...
 ```
 
@@ -7108,9 +7100,9 @@ key pair of the gamete, as we did in the previous chapter:
 $ moka create-key
 
 Please specify the password of the new key: king
-A new key E4nsMYUerQq2pB4hKV3vGee3bcWuGPNYw1QtcNqkXXLU has been created.
+A new key 9YWXKfU1mot3twaU8WD885GGTrzAK1A8v2JUohwBXkcD has been created.
 Its entropy has been saved into the file
-  "./E4nsMYUerQq2pB4hKV3vGee3bcWuGPNYw1QtcNqkXXLU.pem".
+  "./9YWXKfU1mot3twaU8WD885GGTrzAK1A8v2JUohwBXkcD.pem".
 ```
 
 We can now start a Docker node as a container:
@@ -7118,16 +7110,16 @@ We can now start a Docker node as a container:
 ```shell
 $ docker run -dit
     -e INITIAL_SUPPLY=1000000000000000
-    -e KEY_OF_GAMETE=E4nsMYUerQq2pB4hKV3vGee3bcWuGPNYw1QtcNqkXXLU
+    -e KEY_OF_GAMETE=9YWXKfU1mot3twaU8WD885GGTrzAK1A8v2JUohwBXkcD
     -e CHAIN_ID=caterpillar
     -e OPEN_UNSIGNED_FAUCET=true
     -p 8001:8001
     -p 26656:26656
     -v chain:/home/hotmoka/chain
-    hotmoka/tendermint-node:1.5.0
+    hotmoka/tendermint-node:1.6.0
     init
 
-2bdcaefb79c9c2109b8fd0266665991f08fd6725bbc66f2754d5bbaabc693493
+cf8d78e004372082466abfff9a5f58d97f2cbbaa02cfef97e906e2f3132e68cc
 ```
 
 Wait for around 30 seconds, in order to give time to the node to start. After that time, the node should be up
@@ -7137,10 +7129,10 @@ and running in your local machine, as you can verify with `moka info`:
 $ moka info --uri ws://localhost:8001
 
 Info about the node:
-  takamakaCode: 539c58b64358bcd2aaca8752ae2442aa119b0cadffc233ac7cfc07dd6d69e96f
-  manifest: a9214bed3cd29aceb99ac13bb0ec62af5e37cdd62cd38eac48f5de45390ee811#0
+  takamakaCode: 776a721ab24a0daaad8f128307ee090069646437be9469b879cfa8b8c6526afe
+  manifest: 477cb65e250c45f411e75b421de087f35e87454aae56c996d08cedecfe71b745#0
     chainId: caterpillar
-    gamete: a66fcddf15aa4458068b8f3eba79272c4436e04240891763ab9a756ad6c0fdd0#0
+    gamete: 8ee52ae1790422d4738845ff1e54c0232de55f3042e40720034e8cab909c2eae#0
       balance: 1000000000000000
     ...
 ```
@@ -7151,12 +7143,12 @@ Info about the node:
 In order to use the gamete, we must bind the key to its storage reference:
 
 ```shell
-$ moka bind-key E4nsMYUerQq2pB4hKV3vGee3bcWuGPNYw1QtcNqkXXLU
+$ moka bind-key 9YWXKfU1mot3twaU8WD885GGTrzAK1A8v2JUohwBXkcD
 
-A new account a66fcddf15aa4458068b8f3eba79272c4436e04240891763ab9a756ad6c0fdd0#0
+A new account 8ee52ae1790422d4738845ff1e54c0232de55f3042e40720034e8cab909c2eae#0
   has been created.
 Its entropy has been saved into the file
-  "./a66fcddf15aa4458068b8f3eba79272c4436e04240891763ab9a756ad6c0fdd0#0.pem".
+  "./8ee52ae1790422d4738845ff1e54c0232de55f3042e40720034e8cab909c2eae#0.pem".
 ```
 
 That's all. We can now use the gamete to open the faucet of the node (`moka faucet`) and play
@@ -7166,11 +7158,11 @@ to `ws://localhost:8001` instead of `ws://panarea.hotmoka.io`.
 Let us analyze the options passed to `docker`. The `run -dit` command means that we want to
 instantiate, and run as an interactive daemon,
 a Docker image, which is actually specified at the end:
-`hotmoka/tendermint-node:1.5.0`. Docker will download that image from Docker Hub.
+`hotmoka/tendermint-node:1.6.0`. Docker will download that image from Docker Hub.
 
 > That image assumes that you are using a Linux machine based on the amd64 architecture.
 > If you are using a Linux machine based on the arm64 architecture, use the
-> `hotmoka/tendermint-node-arm64:1.5.0` image. If you are using a Windows machine,
+> `hotmoka/tendermint-node-arm64:1.6.0` image. If you are using a Windows machine,
 > you need to run a Linux image inside a Linux virtual machine, as always in Docker.
 > Please refer to the Docker documentation to know how this can be accomplished.
 
@@ -7205,7 +7197,7 @@ The `docker run` command printed a hash at the end, that identifies the running 
 We can use it, for instance, to turn the container off when we do not need it anymore:
 
 ```shell
-$ docker stop 2bdcaefb79c9c2109b8fd0266665991f08fd6725bbc66f2754d5bbaabc693493
+$ docker stop cf8d78e004372082466abfff9a5f58d97f2cbbaa02cfef97e906e2f3132e68cc
 ```
 
 > The hash will be different in your experiments. Use yours.
@@ -7233,10 +7225,10 @@ $ docker run -dit
     -p 8001:8001
     -p 26656:26656
     -v chain:/home/hotmoka/chain
-    hotmoka/tendermint-node:1.5.0
+    hotmoka/tendermint-node:1.6.0
     resume
 
-0c9878d4857b6709ba8c745c114f5e23fe2c6f2af142c80404d82e03ca3b67d8
+603015fe011c516e63196566ec1ede0ebae579bdadabb5a0443ee3b370870541
 ```
 
 Wait for a few seconds and then verify that the _same_ node is back:
@@ -7245,10 +7237,10 @@ Wait for a few seconds and then verify that the _same_ node is back:
 $ moka info --uri ws://localhost:8001
 
 Info about the node:
-  takamakaCode: 539c58b64358bcd2aaca8752ae2442aa119b0cadffc233ac7cfc07dd6d69e96f
-  manifest: a9214bed3cd29aceb99ac13bb0ec62af5e37cdd62cd38eac48f5de45390ee811#0
+  takamakaCode: 776a721ab24a0daaad8f128307ee090069646437be9469b879cfa8b8c6526afe
+  manifest: 477cb65e250c45f411e75b421de087f35e87454aae56c996d08cedecfe71b745#0
     chainId: caterpillar
-    gamete: a66fcddf15aa4458068b8f3eba79272c4436e04240891763ab9a756ad6c0fdd0#0
+    gamete: 8ee52ae1790422d4738845ff1e54c0232de55f3042e40720034e8cab909c2eae#0
       balance: 1000000000000000
     ...
 ```
@@ -7256,13 +7248,13 @@ Info about the node:
 Turn the node off now and conclude our experiment:
 
 ```shell
-$ docker stop 0c9878d4857b6709ba8c745c114f5e23fe2c6f2af142c80404d82e03ca3b67d8
+$ docker stop 603015fe011c516e63196566ec1ede0ebae579bdadabb5a0443ee3b370870541
 ```
 
 The Docker image contains a `help` command. Try for instance:
 
 ```shell
-$ docker run --rm -it hotmoka/tendermint-node:1.5.0 help
+$ docker run --rm -it hotmoka/tendermint-node:1.6.0 help
 
 This container runs a Hotmoka node based on Tendermint.
 It understands the following commands and options:
@@ -7296,10 +7288,10 @@ $ docker run -dit
     -p 8001:8001
     -p 26656:26656
     -v chain:/home/hotmoka/chain
-    hotmoka/tendermint-node:1.5.0
+    hotmoka/tendermint-node:1.6.0
     resume
 
-84a307f16dca5b2e1f199dad17569dd79db54da11f60ad5303314cb8c02128f9
+95d5cc7ba10b4ce6f14712786f8c3c14577d2c470b4e5e34eadeb2777df5f6be
 ```
 
 After a few seconds, the node will be up and we can show its manifest:
@@ -7308,16 +7300,16 @@ After a few seconds, the node will be up and we can show its manifest:
 $ moka info
 
 Info about the node:
- takamakaCode: 539c58b64358bcd2aaca8752ae2442aa119b0cadffc233ac7cfc07dd6d69e96f
- manifest: a9214bed3cd29aceb99ac13bb0ec62af5e37cdd62cd38eac48f5de45390ee811#0
+ takamakaCode: 776a721ab24a0daaad8f128307ee090069646437be9469b879cfa8b8c6526afe
+ manifest: 477cb65e250c45f411e75b421de087f35e87454aae56c996d08cedecfe71b745#0
    chainId: caterpillar
-   gamete: a66fcddf15aa4458068b8f3eba79272c4436e04240891763ab9a756ad6c0fdd0#0
+   gamete: 8ee52ae1790422d4738845ff1e54c0232de55f3042e40720034e8cab909c2eae#0
      balance: 1000000000000000
    ...
-   validators: a9214bed3cd29aceb99ac13bb0ec62af5e37cdd62cd38eac48f5de45390ee811#1
+   validators: 477cb65e250c45f411e75b421de087f35e87454aae56c996d08cedecfe71b745#1
      number of validators: 1
-     validator #0: d9aa5ee6c7ba17f746bf539f133e4248bff2af56b6b060e8458358f58e6a8c40#0
-        id: 2B0CB544900A57983032AE1D87CFA06DB5A0981C
+     validator #0: e3ec768d5c4eacae8062854e84f8e848809e8fbf5b968b23fd6d7ec942bd3c57#0
+        id: 684CC341743E300E7A0E2718AA15788834526EE8
         balance: 0
         staked: 0
         power: 1000000
@@ -7328,7 +7320,7 @@ but must be available to the person who started the container.
 Normally, it is the key that was created before starting the node (with `moka create-key`) and
 that is later bound to the storage address of the gamete (with `moka bind-key`). If you
 followed the instructions in the previous section, you should have an
-`a66fcddf15aa4458068b8f3eba79272c4436e04240891763ab9a756ad6c0fdd0#0.pem` file in your file system
+`8ee52ae1790422d4738845ff1e54c0232de55f3042e40720034e8cab909c2eae#0.pem` file in your file system
 (the actual address will be different in your machine, but will match the address of the gamete
 in your node). With that pem file, you have _superuser_ rights, in the sense that you can, for instance,
 open and close the faucet (but only if you started the node with the `OPEN_UNSIGNED_FAUCET` option set to true).
@@ -7336,7 +7328,7 @@ Moreover, you own all cryptocurrency minted for the node! With that, you can cre
 as you want and in general run any transaction you like.
 
 There is a second account that has been created. Namely, the _validator_ account, at the address
-`d9aa5ee6c7ba17f746bf539f133e4248bff2af56b6b060e8458358f58e6a8c40#0` (this will be different in your node).
+`e3ec768d5c4eacae8062854e84f8e848809e8fbf5b968b23fd6d7ec942bd3c57#0` (this will be different in your node).
 This is an externally owned account that gets remunerated for every non-`@View`
 transaction run in the node and included in blockchain. The previous print-out shows that, at
 the beginning, the balance of the validator is 0. Let us run a transaction and check what happens.
@@ -7345,16 +7337,16 @@ we hold the keys of the gamete):
 
 ```shell
 $ moka create-account 1234567
-    --payer a66fcddf15aa4458068b8f3eba79272c4436e04240891763ab9a756ad6c0fdd0#0
+    --payer 8ee52ae1790422d4738845ff1e54c0232de55f3042e40720034e8cab909c2eae#0
 
 Please specify the password of the payer account: king
 Please specify the password of the new account: rock-and-roll
 Do you really want to spend up to 200000 gas units to create a new account [Y/N] Y
-Total gas consumed: 2575
-A new account 5ffed1e1bcad06a052a9468d07899ef9170dd990b8d6cf400dcb04a9f628cc5a#0
+Total gas consumed: 2563
+A new account 7b19fe903a39002b4a2404277a42350ba3dc96df041e854bbf6cc644c82fb902#0
   has been created.
 Its entropy has been saved into the file
-  "5ffed1e1bcad06a052a9468d07899ef9170dd990b8d6cf400dcb04a9f628cc5a#0.pem".
+  "7b19fe903a39002b4a2404277a42350ba3dc96df041e854bbf6cc644c82fb902#0.pem".
 ```
 
 The gas consumed for this transaction has been forwarded to the validators of the blockchain, at its current price.
@@ -7364,33 +7356,33 @@ Since there is only a single validator, everything goes to it, as you can verify
 $ moka info
 
 Info about the node:
- takamakaCode: 539c58b64358bcd2aaca8752ae2442aa119b0cadffc233ac7cfc07dd6d69e96f
- manifest: a9214bed3cd29aceb99ac13bb0ec62af5e37cdd62cd38eac48f5de45390ee811#0
+ takamakaCode: 776a721ab24a0daaad8f128307ee090069646437be9469b879cfa8b8c6526afe
+ manifest: 477cb65e250c45f411e75b421de087f35e87454aae56c996d08cedecfe71b745#0
    chainId: caterpillar
-   gamete: a66fcddf15aa4458068b8f3eba79272c4436e04240891763ab9a756ad6c0fdd0#0
-     balance: 999999998762858
+   gamete: 8ee52ae1790422d4738845ff1e54c0232de55f3042e40720034e8cab909c2eae#0
+     balance: 999999998762870
    ...
-   validators: a9214bed3cd29aceb99ac13bb0ec62af5e37cdd62cd38eac48f5de45390ee811#1
+   validators: 477cb65e250c45f411e75b421de087f35e87454aae56c996d08cedecfe71b745#1
      surcharge for buying validation power: 50000000 (ie. 50.000000%)
      slashing for misbehaving validators: 1000000 (ie. 1.000000%)
      slashing for not behaving validators: 500000 (ie. 0.500000%)
      percent of validators' reward that gets staked: 75000000 (ie. 75.000000%)
      number of validators: 1
-     validator #0: d9aa5ee6c7ba17f746bf539f133e4248bff2af56b6b060e8458358f58e6a8c40#0
-        id: 2B0CB544900A57983032AE1D87CFA06DB5A0981C 
-        balance: 645
-        staked: 1932
+     validator #0: e3ec768d5c4eacae8062854e84f8e848809e8fbf5b968b23fd6d7ec942bd3c57#0
+        id: 684CC341743E300E7A0E2718AA15788834526EE8 
+        balance: 642
+        staked: 1923
         power: 1000000
      initialInflation: 100000 (ie. 0.100000%)
      currentInflation: 99999 (ie. 0.099999%)
 ```
 The manifest reported above tells us that the gamete has now a reduced balance:
-it paid 1000000000000000 - 999999998762858 that is 1237142 panareas to create the new account.
+it paid 1000000000000000 - 999999998762870 that is 1237130 panareas to create the new account.
 Of these, 1234567 went to the balance of the new account. The remaining
-1237142 - 1234567, that is 2575, have been paid for gas (it seems that the gas price
-was at one panarea per gas unit). It is important to note that the 2575 panareas did not go
-_immediately_ to the only validator: as shown above, only 645 have been paid immediately;
-other 1932 have been _staked_ for that validator, that is, kept in the validators contract
+1237130 - 1234567, that is 2563, have been paid for gas (it seems that the gas price
+was at one panarea per gas unit). It is important to note that the 2563 panareas did not go
+_immediately_ to the only validator: as shown above, only 642 have been paid immediately;
+other 1923 have been _staked_ for that validator, that is, kept in the validators contract
 as a motivation for the validator to behave correctly. In the future, if the validator misbehaves
 (that is, does not validate the transactions correctly or does not validate them at all) then
 this stake will be reduced by a percent that is called _slashing_. This is reported above
@@ -7400,12 +7392,12 @@ validators that do not validate at all (for instance, they are down).
 The staked amount of panareas will be forwarded to the validator only when it will sell all its
 validation power to another validator and stop being a validator.
 
-There is a final remark. We said that 2575 panareas have been forwarded to the validator
-(immediately or staked). But 645 + 1932
-is 2577. Where do these 2577 - 2575 (that is, 2 panareas)
+There is a final remark. We said that 2563 panareas have been forwarded to the validator
+(immediately or staked). But 642 + 1923
+is 2565. Where do these 2565 - 2563 (that is, 2 panareas)
 come from? They have been _minted_, that is, created from scratch as a form of _inflation_.
 You can see from the manifest that the initial inflation was 0.1%. It is actually the case that
-0.1% of 2575 is 2 (approximatively).
+0.1% of 2563 is 2 (approximatively).
 
 We have understood that the validator account receives payments for the validation of transactions.
 But who controls this validator? It turns out that the Docker container
@@ -7416,16 +7408,16 @@ You must be root to do that:
 ```shell
 $ sudo ls /var/lib/docker/volumes/chain/_data/
 
-d9aa5ee6c7ba17f746bf539f133e4248bff2af56b6b060e8458358f58e6a8c40#0.pem
+e3ec768d5c4eacae8062854e84f8e848809e8fbf5b968b23fd6d7ec942bd3c57#0.pem
 ...
 ```
 In alternative, you can use the `docker exec` command to run a command inside the container.
 You do not need to be root, but need to remember the id of the running container:
 ```shell
-$ docker exec 84a307f16dca5b2e1f199dad17569dd79db54da11f60ad5303314cb8c02128f9
+$ docker exec 95d5cc7ba10b4ce6f14712786f8c3c14577d2c470b4e5e34eadeb2777df5f6be
     /bin/ls | grep ".pem"
 
-d9aa5ee6c7ba17f746bf539f133e4248bff2af56b6b060e8458358f58e6a8c40#0.pem
+e3ec768d5c4eacae8062854e84f8e848809e8fbf5b968b23fd6d7ec942bd3c57#0.pem
 ```
 
 Who owns that key controls the validator. Therefore, it is not safe to keep it in the
@@ -7433,7 +7425,7 @@ file system. Instead, move it into a safer place:
 
 ```shell
 $ sudo mv /var/lib/docker/volumes/chain/_data/
-    d9aa5ee6c7ba17f746bf539f133e4248bff2af56b6b060e8458358f58e6a8c40#0.pem
+    e3ec768d5c4eacae8062854e84f8e848809e8fbf5b968b23fd6d7ec942bd3c57#0.pem
     my_safe_place/
 ```
 
@@ -7453,7 +7445,7 @@ priv_validator_key.json
 ```
 This file must remain in the node, or otherwise Tendermint cannot vote for validation.
 The Docker script magically ensures that, correctly, this file contains the same key
-as `d9aa5ee6c7ba17f746bf539f133e4248bff2af56b6b060e8458358f58e6a8c40#0.pem`, although in a different format.
+as `e3ec768d5c4eacae8062854e84f8e848809e8fbf5b968b23fd6d7ec942bd3c57#0.pem`, although in a different format.
 
 ## Starting a Tendermint Hotmoka Node on Amazon EC2
 
@@ -7506,7 +7498,7 @@ ec2$ docker run -dit
        -p 80:8001
        -p 26656:26656
        -v chain:/home/hotmoka/chain
-       hotmoka/tendermint-node:1.5.0
+       hotmoka/tendermint-node:1.6.0
        init
 
 5f3799b58c6569b50dbebee6db3061ebf8e3c2c7ac6e0882579129ca66302786
@@ -7604,7 +7596,7 @@ ec2$ docker run -dit
        -p 80:8001
        -p 26656:26656
        -v chain:/home/hotmoka/chain
-       hotmoka/tendermint-node:1.5.0
+       hotmoka/tendermint-node:1.6.0
        start
 
 3335d7609ecbd3d6ad42577aee0d0a2fd1bc59ed3c18ae7da2d77febbd776a84
@@ -7619,13 +7611,13 @@ of `ws://panarea.hotmoka.io`:
 $ moka info --uri ec2-34-244-119-200.eu-west-1.compute.amazonaws.com
 
 Info about the node:
-  takamakaCode: 539c58b64358bcd2aaca8752ae2442aa119b0cadffc233ac7cfc07dd6d69e96f
-  manifest: 9632a28d2690bff35fb0ecf7cdf13e130e496c0a3ae689b4b41251e8afd0396a#0
+  takamakaCode: 776a721ab24a0daaad8f128307ee090069646437be9469b879cfa8b8c6526afe
+  manifest: 323eda20a41176da86f0967a86aae5154e97aae163cdbc28f8e50b36bf11f48f#0
     chainId: marabunta
     maxErrorLength: 300
     signature: ed25519
     ...
-    gamete: f7dc662c145ac39c36fb91d69379680fdee842a2bce66112156cff7c70a327a6#0
+    gamete: 04355968e61a05f6eb9c2c2c0270cc88cb821b80876d9db351ec83f21391a80b#0
       balance: 99999999999999999999...
       maxFaucet: 10000000000000
 ```
@@ -7660,10 +7652,10 @@ total quantity shared among all validator nodes. For instance, when we have show
 nodes, we have seen information about the only validator in the subsequent form:
 
 ```shell
- validator #0: d9aa5ee6c7ba17f746bf539f133e4248bff2af56b6b060e8458358f58e6a8c40#0
-    id: 2B0CB544900A57983032AE1D87CFA06DB5A0981C 
-    balance: 645
-    staked: 1932
+ validator #0: e3ec768d5c4eacae8062854e84f8e848809e8fbf5b968b23fd6d7ec942bd3c57#0
+    id: 684CC341743E300E7A0E2718AA15788834526EE8 
+    balance: 642
+    staked: 1923
     power: 1000000
 ```
 
@@ -7798,7 +7790,7 @@ alice.hotmoka.io$ docker run --rm -dit
     -p 80:8001
     -p 26656:26656
     -v chain:/home/hotmoka/chain
-    hotmoka/tendermint-node:1.5.0
+    hotmoka/tendermint-node:1.6.0
     init
 
 alice.hotmoka.io$ moka bind-key 8oHse15C9pKUuqFLYRQBPgefdGzGq9mpWPF3dRQg27A5
@@ -7828,7 +7820,7 @@ bob.hotmoka.io$ docker run --rm -dit
     -p 80:8001
     -p 26656:26656
     -v chain:/home/hotmoka/chain
-    hotmoka/tendermint-node:1.5.0
+    hotmoka/tendermint-node:1.6.0
     start
 
 070abbc643163e6273c6d9da98f4a83bd94e178743c31344321a60c41d3c2d21
@@ -7855,7 +7847,7 @@ of the `Offer` class in Figure 37 (with `moka create`)
 and must then use her validator object as caller of method `place` of the validators object
 of the blockchain (with `moka call`). That object is advertized in the manifest of the node:
 ```
-validators: a9214bed3cd29aceb99ac13bb0ec62af5e37cdd62cd38eac48f5de45390ee811#1
+validators: 477cb65e250c45f411e75b421de087f35e87454aae56c996d08cedecfe71b745#1
 ```
 However, Alice can simplify her work by using the `moka sell-validation` command, that does everything
 at once for her. There is a little difficulty though. Selling shares is not free, it costs some gas.
@@ -8236,7 +8228,7 @@ Hotmoka nodes verify the following static constraints:
 23. All referenced classes, constructors, methods and fields must be white-listed.
     Those from classes installed in the store of the node are always white-listed by
     default. Other classes loaded from the Java class path must have been explicitly
-    marked as white-listed in the `io-hotmoka-whitelisting-1.5.0.jar` archive.
+    marked as white-listed in the `io-hotmoka-whitelisting-1.6.0.jar` archive.
 
 > Hence, for instance, the classes of the support library `io.takamaka.code.lang.Storage`
 > and `io.takamaka.code.lang.Takamaka` are white-listed, since they
@@ -8245,7 +8237,7 @@ Hotmoka nodes verify the following static constraints:
 > jars installed in the node are similarly white-listed.
 > Method `java.lang.System.currentTimeMillis()` is not white-listed,
 > since it is loaded from the Java class path and is not annotated as white-listed
-> in `io-takamaka--whitelisting-1.5.0.jar`.
+> in `io-takamaka--whitelisting-1.6.0.jar`.
 
 24. Bootstrap methods for the `invokedynamic` bytecode use only standard call-site
     resolvers, namely, instances of `java.lang.invoke.LambdaMetafactory.metafactory`
