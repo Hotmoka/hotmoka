@@ -1486,9 +1486,7 @@ import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.remote.RemoteNodes;
 
 public class Family {
@@ -1520,24 +1518,24 @@ public class Family {
       // we get the nonce of our account: we use the account itself as caller and
       // an arbitrary nonce (ZERO in the code) since we are running
       // a @View method of the account
-      BigInteger nonce = ((BigIntegerValue) node
+      BigInteger nonce = node
         .runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
           (account, // payer
           BigInteger.valueOf(50_000), // gas limit
           takamakaCode, // class path for the execution of the transaction
           MethodSignatures.NONCE, // method
-          account)).get()) // receiver of the method call
-        .getValue();
+          account)).get() // receiver of the method call
+        .asBigInteger(__ -> new ClassCastException());
 
       // we get the chain identifier of the network
-      String chainId = ((StringValue) node
+      String chainId = node
         .runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
           (account, // payer
           BigInteger.valueOf(50_000), // gas limit
           takamakaCode, // class path for the execution of the transaction
           MethodSignatures.GET_CHAIN_ID, // method
-          manifest)).get()) // receiver of the method call
-        .getValue();
+          manifest)).get() // receiver of the method call
+        .asString(__ -> new ClassCastException());
 
       var gasHelper = GasHelpers.of(node);
 
@@ -1824,9 +1822,7 @@ import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
-import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.remote.RemoteNodes;
 
 public class Family2 {
@@ -1860,24 +1856,24 @@ private final static ClassType PERSON = StorageTypes.classNamed("io.takamaka.fam
       // we get the nonce of our account: we use the account itself as caller and
       // an arbitrary nonce (ZERO in the code) since we are running
       // a @View method of the account
-      BigInteger nonce = ((BigIntegerValue) node
+      BigInteger nonce = node
         .runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
           (account, // payer
           BigInteger.valueOf(50_000), // gas limit
           takamakaCode, // class path for the execution of the transaction
           MethodSignatures.NONCE, // method
-          account)).get()) // receiver of the method call
-        .getValue();
+          account)).get() // receiver of the method call
+        .asBigInteger(__ -> new ClassCastException());
 
       // we get the chain identifier of the network
-      String chainId = ((StringValue) node
+      String chainId = node
         .runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
           (account, // payer
           BigInteger.valueOf(50_000), // gas limit
           takamakaCode, // class path for the execution of the transaction
           MethodSignatures.GET_CHAIN_ID, // method
-          manifest)).get()) // receiver of the method call
-        .getValue();
+          manifest)).get() // receiver of the method call
+        .asString(__ -> new ClassCastException());
 
       var gasHelper = GasHelpers.of(node);
 
@@ -2127,10 +2123,8 @@ import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
-import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
-import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.remote.RemoteNodes;
 
 public class Family3 {
@@ -2164,24 +2158,24 @@ public class Family3 {
       // we get the nonce of our account: we use the account itself as caller and
       // an arbitrary nonce (ZERO in the code) since we are running
       // a @View method of the account
-      BigInteger nonce = ((BigIntegerValue) node
+      BigInteger nonce = node
         .runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
           (account, // payer
-          BigInteger.valueOf(50_000), // gas limit
-          takamakaCode, // class path for the execution of the transaction
-          MethodSignatures.NONCE, // method
-          account)).get()) // receiver of the method call
-        .getValue();
+           BigInteger.valueOf(50_000), // gas limit
+           takamakaCode, // class path for the execution of the transaction
+           MethodSignatures.NONCE, // method
+           account)).get() // receiver of the method call
+         .asBigInteger(__ -> new ClassCastException());
 
       // we get the chain identifier of the network
-      String chainId = ((StringValue) node
+      String chainId = node
         .runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
           (account, // payer
           BigInteger.valueOf(50_000), // gas limit
           takamakaCode, // class path for the execution of the transaction
           MethodSignatures.GET_CHAIN_ID, // method
-          manifest)).get()) // receiver of the method call
-        .getValue();
+          manifest)).get() // receiver of the method call
+        .asString(__ -> new ClassCastException());
 
       var gasHelper = GasHelpers.of(node);
 
@@ -4820,7 +4814,6 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
-import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.remote.RemoteNodes;
 
 public class Auction {
@@ -4967,14 +4960,13 @@ public class Auction {
 
   private String getChainId() throws Exception {
     StorageReference manifest = node.getManifest();
-    return ((StringValue) node.runInstanceMethodCallTransaction
-      (TransactionRequests.instanceViewMethodCall
-        (accounts[0], // payer
-        BigInteger.valueOf(50_000), // gas limit
-        takamakaCode, // class path for the execution of the transaction
-        MethodSignatures.GET_CHAIN_ID, // method
-        manifest)).get()) // receiver of the method call
-      .getValue();
+   return node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+      (accounts[0], // payer
+      BigInteger.valueOf(50_000), // gas limit
+      takamakaCode, // class path for the execution of the transaction
+      MethodSignatures.GET_CHAIN_ID, // method
+      manifest)).get() // receiver of the method call
+        .asString(__ -> new ClassCastException());
   }
 
   private TransactionReference installJar() throws Exception {
@@ -6534,7 +6526,7 @@ public class Decorators {
    		.setInitialSupply(SUPPLY)
    		.setPublicKeyOfGamete(keys.getPublic()).build();
 
-	try (var node = DiskNodes.init(config, consensus)) {
+	try (var node = DiskNodes.init(config)) {
       // first view: store the io-takamaka-code jar and create manifest and gamete
 	  var initialized = InitializedNodes.of(node, consensus, takamakaCodePath);
 
@@ -6639,7 +6631,7 @@ public class Publisher {
 		.setInitialSupply(SUPPLY)
 		.build();
 
-	try (var original = TendermintNodes.init(config, consensus);
+	try (var original = TendermintNodes.init(config);
       // uncomment the next line if you want to initialize the node
       // var initialized = InitializedNodes.of(original, consensus, takamakaCodePath);
       var service = NodeServices.of(original, 8001)) {
@@ -6763,9 +6755,8 @@ on a machine `my.validator.com` we can execute:
 
 ```java
 TendermintNodeConfig config = TendermintNodeConfigBuilders.defaults().build();
-ValidatorsConsensusConfig consensus = ValidatorsConsensusConfigBuilders.defaults().build();
 
-try (Node original = TendermintNodes.init(config, consensus);
+try (Node original = TendermintNodes.init(config);
      NodeService service = NodeServices.of(original, 8001)) {
   ...
 }
@@ -6830,7 +6821,8 @@ var consensus = ValidatorsConsensusConfigBuilders.defaults()
   .setSignatureForRequests(SignatureAlgorithms.ed25519()) // this is the default
   .build();
 
-try (Node node = TendermintNodes.init(config, consensus)) {
+try (Node node = TendermintNodes.init(config);
+     Node initialized = InitializedNodes.of(node, consensus, takamakaCodePath)) {
   ...
 }
 ```
