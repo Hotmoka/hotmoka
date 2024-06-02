@@ -245,7 +245,23 @@ with Andrea Benini, Mauro Gambini and Sara Migliorini.
 
 &nbsp;
 
-_Verona, July 2022_.
+[Markdownonly]: <p align="center"><img width="200" src="pics/docker-hub.png" alt="DockerHub logo"></p><p>Hotmoka enjoys being a <a href="https://hub.docker.com/">Docker-sponsored open source program</a>. <a href="https://hub.docker.com/">DockerHub</a> provides for free a repository for the distribution of the Docker images of Hotmoka.</p>
+
+[PDFonly]: ![Hotmoka enjoys being a <a href="https://hub.docker.com/">Docker-sponsored open source program</a>. <a href="https://hub.docker.com/">DockerHub</a> provides for free a repository for the distribution of the Docker images of Hotmoka.](pics/docker-hub.png){ width=30% }
+
+&nbsp;
+
+[Markdownonly]: <p align="center"><img width="200" src="pics/github.png" alt="GitHub logo"></p><p><a href="https://github.com/">GitHub</a> is hosting the code of Hotmoka for free, running tests and packaging actions at each commit and hosting its releases for download.</p>
+
+[PDFonly]: ![<a href="https://github.com/">GitHub</a> is hosting the code of Hotmoka for free, running tests and packaging actions at each commit and hosting its releases for download.](pics/github.png){ width=30% }
+
+&nbsp;
+
+[Markdownonly]: <p align="center"><img width="200" src="pics/YourKit.png" alt="YourKit logo"></p><p>Hotmoka benefits from the use of a free license of the YourKit profiler for Java. YourKit supports open source projects with innovative and intelligent tools for monitoring and profiling Java and .NET applications. YourKit is the creator of <a href="https://www.yourkit.com/java/profiler/">YourKit Java Profiler</a>, <a href="https://www.yourkit.com/.net/profiler/">YourKit .NET Profiler</a>, and <a href="https://www.yourkit.com/youmonitor/">YourKit YouMonitor</a>.</p>
+
+[PDFonly]: ![Hotmoka benefits from the use of a free license of the YourKit profiler for Java. YourKit supports open source projects with innovative and intelligent tools for monitoring and profiling Java and .NET applications. YourKit is the creator of <a href="https://www.yourkit.com/java/profiler/">YourKit Java Profiler</a>, <a href="https://www.yourkit.com/.net/profiler/">YourKit .NET Profiler</a>, and <a href="https://www.yourkit.com/youmonitor/">YourKit YouMonitor</a>.](pics/YourKit.png){ width=27% }
+
+_Verona, June 2024_.
 
 # Getting Started with @Type
 
