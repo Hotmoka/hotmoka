@@ -40,6 +40,9 @@ import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.SignatureAlgorithms;
@@ -92,7 +95,7 @@ import io.hotmoka.verification.VerificationException;
 import io.takamaka.code.constants.Constants;
 import jakarta.websocket.DeploymentException;
 
-
+@ExtendWith(HotmokaTest.NodeHandler.class)
 public abstract class HotmokaTest extends AbstractLoggedTests {
 	protected static final BigInteger _50_000 = BigInteger.valueOf(50_000);
 	protected static final BigInteger _100_000 = BigInteger.valueOf(100_000);
@@ -102,12 +105,88 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	protected static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
 	protected static final BigInteger _10_000_000_000 = BigInteger.valueOf(10_000_000_000L);
 
+	static class NodeHandler implements BeforeAllCallback, ExtensionContext.Store.CloseableResource {
+
+	    private static boolean started = false;
+
+	    @Override
+	    public void beforeAll(ExtensionContext context) throws Exception {
+	    	if (!started) {
+	    		started = true;
+	    		context.getRoot().getStore(org.junit.jupiter.api.extension.ExtensionContext.Namespace.GLOBAL).put("any unique name", this);
+
+	    		// we use always the same entropy and password, so that the tests become deterministic (if they are not explicitly non-deterministic)
+	    		var entropy = Entropies.of(new byte[16]);
+	    		var password = "";
+	    		var localSignature = signature = SignatureAlgorithms.ed25519det();  // good for testing
+	    		var keys = entropy.keys(password, localSignature);
+	    		consensus = ValidatorsConsensusConfigBuilders.defaults()
+	    				.setSignatureForRequests(signature)
+	    				.allowUnsignedFaucet(true) // good for testing
+	    				.ignoreGasPrice(true) // good for testing
+	    				.setInitialSupply(Coin.level7(10000000)) // enough for all tests
+	    				.setInitialRedSupply(Coin.level7(10000000)) // enough for all tests
+	    				.setPublicKeyOfGamete(keys.getPublic())
+	    				.build();
+	    		privateKeyOfGamete = keys.getPrivate();
+
+	    		Node wrapped;
+	    		//node = wrapped = mkDiskNode();
+	    		//node = wrapped = mkTendermintNode();
+	    		node = mkRemoteNode(wrapped = mkDiskNode());
+	    		//node = mkRemoteNode(wrapped = mkTendermintNode());
+	    		//node = wrapped = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
+	    		//node = wrapped = mkRemoteNode("localhost:8080");
+	    		initializeNodeIfNeeded(wrapped);
+
+	    		manifest = node.getManifest();
+	    		takamakaCode = node.getTakamakaCode();
+
+	    		var gamete = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+	    				(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
+	    				.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"))
+	    				.asReturnedReference(MethodSignatures.GET_GAMETE, NodeException::new);
+
+	    		chainId = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+	    				(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
+	    				.orElseThrow(() -> new NodeException(MethodSignatures.GET_CHAIN_ID + " should not return void"))
+	    				.asReturnedString(MethodSignatures.GET_CHAIN_ID, NodeException::new);
+
+	    		BigInteger nonce = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+	    				(gamete, _100_000, takamakaCode, MethodSignatures.NONCE, gamete))
+	    				.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
+	    				.asReturnedBigInteger(MethodSignatures.NONCE, NodeException::new);
+
+	    		BigInteger aLot = Coin.level6(1000000000);
+
+	    		// we set the thresholds for the faucets of the gamete
+	    		Signer<SignedTransactionRequest<?>> signerOfGamete = signature.getSigner(privateKeyOfGamete, SignedTransactionRequest::toByteArrayWithoutSignature);
+	    		node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall
+	    				(signerOfGamete, gamete, nonce, chainId, _100_000, BigInteger.ONE, takamakaCode,
+	    						MethodSignatures.ofVoid(StorageTypes.GAMETE, "setMaxFaucet", StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER), gamete,
+	    						StorageValues.bigIntegerOf(aLot), StorageValues.bigIntegerOf(aLot)));
+
+	    		var local = AccountsNodes.ofGreenRed(node, gamete, privateKeyOfGamete, aLot, aLot);
+	    		localGamete = local.account(0);
+	    		privateKeyOfLocalGamete = local.privateKey(0);
+
+	    		System.out.println("initialized the test node " + node.getNodeInfo());
+	        }
+	    }
+
+	    @Override
+	    public void close() throws Exception {
+	    	node.close();
+	    	System.out.println("closed the test node");
+	    }
+	}
+
 	/**
 	 * The node that gets created before starting running the tests.
 	 * This node will hence be created only once and
 	 * each test will create the accounts and add the jars that it needs.
 	 */
-	protected final static Node node;
+	protected static Node node;
 
 	/**
 	 * The consensus parameters of the node.
@@ -117,27 +196,27 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	/**
 	 * The private key of the account used at each run of the tests.
 	 */
-	private final static PrivateKey privateKeyOfLocalGamete;
+	private static PrivateKey privateKeyOfLocalGamete;
 
 	/**
 	 * The account that can be used as gamete for each run of the tests.
 	 */
-	private final static StorageReference localGamete;
+	private static StorageReference localGamete;
 
 	/**
 	 * The signature algorithm used for signing the requests.
 	 */
-	private final static SignatureAlgorithm signature;
+	private static SignatureAlgorithm signature;
 
 	/**
 	 * The reference to the manifest in the test node.
 	 */
-	private final static StorageReference manifest;
+	private static StorageReference manifest;
 
 	/**
 	 * The transaction that installed the Takamaka runtime in the test node.
 	 */
-	private final static TransactionReference takamakaCode;
+	private static TransactionReference takamakaCode;
 
 	/**
 	 * The jar under test.
@@ -158,79 +237,15 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	/**
 	 * The chain identifier of the node used for the tests.
 	 */
-	protected final static String chainId;
+	private static String chainId;
 
 	/**
 	 * The private key of the gamete.
 	 */
-	private static final PrivateKey privateKeyOfGamete;
+	private static PrivateKey privateKeyOfGamete;
 
 	public interface TestBody {
 		void run() throws Exception;
-	}
-
-	static {
-		try {
-	        // we use always the same entropy and password, so that the tests become deterministic (if they are not explicitly non-deterministic)
-	        var entropy = Entropies.of(new byte[16]);
-			var password = "";
-			var localSignature = signature = SignatureAlgorithms.ed25519det();  // good for testing
-			var keys = entropy.keys(password, localSignature);
-			consensus = ValidatorsConsensusConfigBuilders.defaults()
-	    			.setSignatureForRequests(signature)
-	    			.allowUnsignedFaucet(true) // good for testing
-	    			.ignoreGasPrice(true) // good for testing
-	    			.setInitialSupply(Coin.level7(10000000)) // enough for all tests
-	    			.setInitialRedSupply(Coin.level7(10000000)) // enough for all tests
-	    			.setPublicKeyOfGamete(keys.getPublic())
-	    			.build();
-	        privateKeyOfGamete = keys.getPrivate();
-
-	        Node wrapped;
-	        //node = wrapped = mkDiskNode();
-	        //node = wrapped = mkTendermintNode();
-	        node = mkRemoteNode(wrapped = mkDiskNode());
-	        //node = mkRemoteNode(wrapped = mkTendermintNode());
-	        //node = wrapped = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
-	        //node = wrapped = mkRemoteNode("localhost:8080");
-	        initializeNodeIfNeeded(wrapped);
-
-	        manifest = node.getManifest();
-	        takamakaCode = node.getTakamakaCode();
-
-	        var gamete = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-	    		(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
-        		.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"))
-        		.asReturnedReference(MethodSignatures.GET_GAMETE, NodeException::new);
-
-			chainId = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
-				.orElseThrow(() -> new NodeException(MethodSignatures.GET_CHAIN_ID + " should not return void"))
-				.asReturnedString(MethodSignatures.GET_CHAIN_ID, NodeException::new);
-
-			BigInteger nonce = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(gamete, _100_000, takamakaCode, MethodSignatures.NONCE, gamete))
-				.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
-				.asReturnedBigInteger(MethodSignatures.NONCE, NodeException::new);
-
-			BigInteger aLot = Coin.level6(1000000000);
-
-			// we set the thresholds for the faucets of the gamete
-			Signer<SignedTransactionRequest<?>> signerOfGamete = signature.getSigner(privateKeyOfGamete, SignedTransactionRequest::toByteArrayWithoutSignature);
-			node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall
-				(signerOfGamete, gamete, nonce, chainId, _100_000, BigInteger.ONE, takamakaCode,
-				MethodSignatures.ofVoid(StorageTypes.GAMETE, "setMaxFaucet", StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER), gamete,
-				StorageValues.bigIntegerOf(aLot), StorageValues.bigIntegerOf(aLot)));
-
-	        var local = AccountsNodes.ofGreenRed(node, gamete, privateKeyOfGamete, aLot, aLot);
-	        localGamete = local.account(0);
-	        privateKeyOfLocalGamete = local.privateKey(0);
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			System.exit(0);
-			throw new ExceptionInInitializerError(e);
-		}
 	}
 
 	private static void initializeNodeIfNeeded(Node node) throws TransactionRejectedException, TransactionException,
@@ -361,6 +376,10 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	protected final static TransactionReference jar() {
 		return jar;
+	}
+
+	protected final static String chainId() {
+		return chainId;
 	}
 
 	protected final StorageReference account(int i) throws NoSuchElementException, NodeException, TimeoutException, InterruptedException {

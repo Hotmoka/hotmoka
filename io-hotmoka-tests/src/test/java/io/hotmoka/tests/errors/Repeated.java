@@ -58,21 +58,21 @@ class Repeated extends HotmokaTest {
 
 	@Test @DisplayName("install jar")
 	void installJar() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException, NoSuchElementException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
-		var request = TransactionRequests.jarStore(signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0), getNonceOf(account(0)), chainId, _500_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
+		var request = TransactionRequests.jarStore(signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0), getNonceOf(account(0)), chainId(), _500_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
 		TransactionReference reference = node.addJarStoreTransaction(request);
 		assertTrue(node.getResponse(reference) instanceof JarStoreTransactionSuccessfulResponse);
 	}
 
 	@Test @DisplayName("install jar twice")
 	void installJarTwice() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
-		var request = TransactionRequests.jarStore(signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0), getNonceOf(account(0)), chainId, _500_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
+		var request = TransactionRequests.jarStore(signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0), getNonceOf(account(0)), chainId(), _500_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
 		node.addJarStoreTransaction(request);
 		assertThrows(TransactionRejectedException.class, () -> node.addJarStoreTransaction(request));
 	}
 
 	@Test @DisplayName("install jar twice concurrently")
 	void installJarTwiceConcurrently() throws InvalidKeyException, SignatureException, TransactionRejectedException, IOException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
-		var request = TransactionRequests.jarStore(signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0), getNonceOf(account(0)), chainId, _500_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
+		var request = TransactionRequests.jarStore(signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0), getNonceOf(account(0)), chainId(), _500_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
 		node.postJarStoreTransaction(request);
 		assertThrows(TransactionRejectedException.class, () -> node.postJarStoreTransaction(request));
 	}
@@ -84,18 +84,18 @@ class Repeated extends HotmokaTest {
 
 		// the following request uses the wrong nonce, hence it will be rejected now
 		// it will charge 20,000 units of coin to account(0), for penalty
-		var request = TransactionRequests.jarStore(signer, account(0), nonce.add(ONE), chainId, _500_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
+		var request = TransactionRequests.jarStore(signer, account(0), nonce.add(ONE), chainId(), _500_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
 
 		assertThrows(TransactionRejectedException.class, () -> node.addJarStoreTransaction(request));
 
 		// we run a transaction now, with the correct nonce, that increases the nonce of account(0)
-		BigInteger balance = ((BigIntegerValue) node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall(signer, account(0), nonce, chainId, _100_000, ONE, takamakaCode(), MethodSignatures.BALANCE, account(0)))
+		BigInteger balance = ((BigIntegerValue) node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall(signer, account(0), nonce, chainId(), _100_000, ONE, takamakaCode(), MethodSignatures.BALANCE, account(0)))
 			.orElseThrow(() -> new NodeException(MethodSignatures.BALANCE + " should not return void"))).getValue();
 		assertEquals(BigInteger.valueOf(999900000), balance);
 
 		// we perform a similar request now, that will pass since the nonce is correct this time: we need to change for instance the gas limit
 		// otherwise this second request might be rejected (for instance by Tendermint), being considered as a repeated transaction
-		var request2 = TransactionRequests.jarStore(signer, account(0), nonce.add(ONE), chainId, _500_000.add(ONE), ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
+		var request2 = TransactionRequests.jarStore(signer, account(0), nonce.add(ONE), chainId(), _500_000.add(ONE), ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
 		TransactionReference reference = node.addJarStoreTransaction(request2);
 
 		// getResponse() agrees

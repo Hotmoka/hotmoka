@@ -21,7 +21,7 @@ import java.nio.file.Path;
 import io.hotmoka.node.local.api.LocalNodeConfigBuilder;
 
 /**
- * The builder of a configuration of a Tendermint blockchain.
+ * The builder of a configuration of a Tendermint node.
  */
 public interface TendermintNodeConfigBuilder extends LocalNodeConfigBuilder<TendermintNodeConfig, TendermintNodeConfigBuilder> {
 

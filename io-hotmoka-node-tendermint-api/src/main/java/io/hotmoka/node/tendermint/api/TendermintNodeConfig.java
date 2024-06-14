@@ -23,7 +23,7 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 
 /**
- * The configuration of a Tendermint blockchain.
+ * The configuration of a Tendermint node.
  */
 @Immutable
 public interface TendermintNodeConfig extends LocalNodeConfig<TendermintNodeConfig, TendermintNodeConfigBuilder> {

@@ -39,7 +39,7 @@ public class TendermintNodeConfigImpl extends AbstractLocalNodeConfig<Tendermint
 	 * if a brand new Tendermint blockchain is created.
 	 * That configuration will then be used for the execution of Tendermint.
 	 * This might be missing, in which case a default Tendermint configuration is created,
-	 * with the same node as single validator. It defaults to {@code null}.
+	 * with the same node as single validator. It defaults to empty.
 	 */
 	public final Optional<Path> tendermintConfigurationToClone;
 

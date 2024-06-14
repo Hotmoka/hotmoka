@@ -226,7 +226,7 @@ public class NodeFromNetwork extends HotmokaTest {
     	try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
     		assertNotNull(remote.addJarStoreTransaction(TransactionRequests.jarStore
        			(signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0),
-				ZERO, chainId, _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar"), takamakaCode())));
+				ZERO, chainId(), _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar"), takamakaCode())));
         }
     }
 
@@ -240,7 +240,7 @@ public class NodeFromNetwork extends HotmokaTest {
         	TransactionRejectedException e = assertThrows(TransactionRejectedException.class, () ->
         		remote.addJarStoreTransaction(TransactionRequests.jarStore
        				(signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0),
-					ZERO, chainId, _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar")
+					ZERO, chainId(), _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar")
 					// , takamakaCode() // <-- forgot that
 			)));
         	assertTrue(e.getMessage().contains(ClassNotFoundException.class.getName()));
@@ -254,7 +254,7 @@ public class NodeFromNetwork extends HotmokaTest {
         	TransactionException e = assertThrows(TransactionException.class, () ->
         		remote.addJarStoreTransaction(TransactionRequests.jarStore
         			(signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0),
-        			ZERO, chainId, _100_000, ONE, takamakaCode(), bytesOf("callernotonthis.jar"), takamakaCode())));
+        			ZERO, chainId(), _100_000, ONE, takamakaCode(), bytesOf("callernotonthis.jar"), takamakaCode())));
 
         	assertTrue(e.getMessage().contains(VerificationException.class.getName()));
         	assertTrue(e.getMessage().contains("caller() can only be called on \"this\""));
@@ -267,7 +267,7 @@ public class NodeFromNetwork extends HotmokaTest {
     	try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
     		JarFuture future = remote.postJarStoreTransaction(TransactionRequests.jarStore
            			(signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0),
-    				ZERO, chainId, _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar"), takamakaCode()));
+    				ZERO, chainId(), _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar"), takamakaCode()));
 
         	// we wait until the request has been processed
     		assertNotNull(future.get());
@@ -283,7 +283,7 @@ public class NodeFromNetwork extends HotmokaTest {
         	// the execution does not stop, nor throws anything
         	JarFuture future = remote.postJarStoreTransaction(TransactionRequests.jarStore
            		(signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0),
-    			ZERO, chainId, _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar")
+    			ZERO, chainId(), _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar")
         		// , takamakaCode() // <-- forgot that
            	));
 
@@ -303,7 +303,7 @@ public class NodeFromNetwork extends HotmokaTest {
         	// the execution does not stop, nor throws anything
         	JarFuture future = remote.postJarStoreTransaction(TransactionRequests.jarStore
            		(signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0),
-       			ZERO, chainId, _500_000, ONE, takamakaCode(), bytesOf("callernotonthis.jar"), takamakaCode()));
+       			ZERO, chainId(), _500_000, ONE, takamakaCode(), bytesOf("callernotonthis.jar"), takamakaCode()));
 
         	// we wait until the request has been processed; this will throw a TransactionException at the end,
         	// since the request was accepted but its execution failed

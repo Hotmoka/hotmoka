@@ -36,6 +36,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <io.hotmoka.testing.version>1.4.1</io.hotmoka.testing.version>
     <io.hotmoka.xodus.version>1.4.4</io.hotmoka.xodus.version>
     <io.hotmoka.closeables.version>1.4.1</io.hotmoka.closeables.version>
+    <mokamint.version>0.0.1</mokamint.version>
   </properties>
 
   <groupId>io.hotmoka</groupId>
@@ -116,6 +117,8 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <module>io-hotmoka-node-tendermint</module>
     <module>io-hotmoka-node-messages-api</module>
     <module>io-hotmoka-node-messages</module>
+    <module>io-hotmoka-node-mokamint-api</module>
+    <module>io-hotmoka-node-mokamint</module>
   </modules>
 
   <dependencies>

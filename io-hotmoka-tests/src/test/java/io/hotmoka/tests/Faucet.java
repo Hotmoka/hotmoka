@@ -66,7 +66,7 @@ public class Faucet extends HotmokaTest {
 
 		var method = MethodSignatures.ofNonVoid(StorageTypes.GAMETE, "faucet", StorageTypes.EOA, StorageTypes.INT, StorageTypes.STRING);
 		var account = (StorageReference) node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall
-			(signer, gamete, getNonceOf(gamete), chainId, _100_000, ONE, takamakaCode(),
+			(signer, gamete, getNonceOf(gamete), chainId(), _100_000, ONE, takamakaCode(),
 			method, gamete, StorageValues.intOf(100_000), StorageValues.stringOf(publicKey)))
 			.orElseThrow(() -> new NodeException(method + " should not return void"));
 
@@ -87,7 +87,7 @@ public class Faucet extends HotmokaTest {
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
 			node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall
-				(signer, caller, getNonceOf(caller), chainId, _50_000, ONE, takamakaCode(),
+				(signer, caller, getNonceOf(caller), chainId(), _50_000, ONE, takamakaCode(),
 				MethodSignatures.ofNonVoid(StorageTypes.GAMETE, "faucet", StorageTypes.EOA, StorageTypes.INT, StorageTypes.STRING),
 				gamete, StorageValues.intOf(100_000), StorageValues.stringOf(publicKey))));
 	}
