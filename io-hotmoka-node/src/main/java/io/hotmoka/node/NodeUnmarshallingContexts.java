@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -36,10 +35,9 @@ public abstract class NodeUnmarshallingContexts {
 	 * {@link NodeMarshallingContexts#of(OutputStream)}.
 	 * 
 	 * @param is the stream from which bytes get unmarshalled
-	 * @throws IOException if the context cannot be created
 	 * @return the context
 	 */
-	public static UnmarshallingContext of(InputStream is) throws IOException {
+	public static UnmarshallingContext of(InputStream is) {
 		return new NodeUnmarshallingContext(is);
 	}
 }

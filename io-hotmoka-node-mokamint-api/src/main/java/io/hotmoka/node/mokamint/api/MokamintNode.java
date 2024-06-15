@@ -24,4 +24,11 @@ import io.hotmoka.node.local.api.LocalNode;
  */
 @ThreadSafe
 public interface MokamintNode extends LocalNode<MokamintNodeConfig> {
+
+	/**
+	 * Yields the Mokamint engine supporting this Hotmoka node.
+	 * 
+	 * @return the Mokamint engine
+	 */
+	io.mokamint.node.local.api.LocalNode getMokamintNode();
 }

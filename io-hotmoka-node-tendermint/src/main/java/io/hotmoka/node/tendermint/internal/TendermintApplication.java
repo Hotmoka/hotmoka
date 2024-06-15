@@ -78,9 +78,9 @@ class TendermintApplication extends ABCI {
 	private volatile String misbehaving;
 
 	/**
-	 * The current transaction, if any.
+	 * The current store transformation, if any.
 	 */
-	private volatile TendermintStoreTransformation transaction;
+	private volatile TendermintStoreTransformation transformation;
 
 	private final TendermintNodeImpl node;
 
@@ -230,7 +230,7 @@ class TendermintApplication extends ABCI {
     	misbehaving = spaceSeparatedSequenceOfMisbehavingValidatorsAddresses(request);
 
     	try {
-    		transaction = node.beginTransaction(timeOfBlock(request));
+    		transformation = node.beginTransaction(timeOfBlock(request));
     	}
     	catch (NodeException e) {
     		throw new RuntimeException(e); // TODO
@@ -252,7 +252,7 @@ class TendermintApplication extends ABCI {
         	var hotmokaRequest = TransactionRequests.from(context);
 
         	try {
-        		transaction.deliverTransaction(hotmokaRequest);
+        		transformation.deliverTransaction(hotmokaRequest);
         		responseBuilder.setCode(0);
         	}
         	catch (TransactionRejectedException e) {
@@ -275,7 +275,7 @@ class TendermintApplication extends ABCI {
     	TendermintValidator[] currentValidators = validatorsAtPreviousBlock;
 
     	if (currentValidators != null) {
-    		Optional<TendermintValidator[]> validatorsInStore = transaction.getTendermintValidators();
+    		Optional<TendermintValidator[]> validatorsInStore = transformation.getTendermintValidators();
     		if (validatorsInStore.isPresent()) {
     			TendermintValidator[] nextValidators = validatorsInStore.get();
     			if (nextValidators.length == 0)
@@ -295,13 +295,13 @@ class TendermintApplication extends ABCI {
 	@Override
 	protected ResponseCommit commit(RequestCommit request) throws NodeException {
 		try {
-			transaction.deliverRewardTransaction(behaving, misbehaving);
+			transformation.deliverRewardTransaction(behaving, misbehaving);
 		}
 		catch (StoreException e) {
 			throw new RuntimeException(e);
 		}
 
-		node.moveToFinalStoreOf(transaction);
+		node.moveToFinalStoreOf(transformation);
 		byte[] hash = node.getTendermintHash();
 		LOGGER.info("committed Tendermint state " + Hex.toHexString(hash).toUpperCase());
 		return ResponseCommit.newBuilder().setData(ByteString.copyFrom(hash)).build();

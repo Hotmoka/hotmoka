@@ -16,9 +16,15 @@ limitations under the License.
 
 package io.hotmoka.node.mokamint;
 
+import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.SignatureException;
+
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.mokamint.api.MokamintNode;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
+import io.hotmoka.node.mokamint.internal.MokamintNodeImpl;
+import io.mokamint.node.local.api.LocalNodeConfig;
 
 /**
  * Providers of blockchain nodes that rely on the Mokamint proof of space engine.
@@ -36,8 +42,8 @@ public abstract class MokamintNodes {
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 * @throws NodeException if the operation cannot be completed correctly
 	 */
-	public static MokamintNode init(MokamintNodeConfig config) throws NodeException, InterruptedException {
-		return null; //new TendermintNodeImpl(config, true);
+	public static MokamintNode init(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws NodeException, InterruptedException, InvalidKeyException, SignatureException {
+		return new MokamintNodeImpl(config, mokamintConfig, keyPair, true);
 	}
 
 	/**
@@ -51,7 +57,7 @@ public abstract class MokamintNodes {
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 * @throws NodeException if the operation cannot be completed correctly
 	 */
-	public static MokamintNode resume(MokamintNodeConfig config) throws NodeException, InterruptedException {
-		return null; //new TendermintNodeImpl(config, false);
+	public static MokamintNode resume(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws NodeException, InterruptedException, InvalidKeyException, SignatureException {
+		return new MokamintNodeImpl(config, mokamintConfig, keyPair, false);
 	}
 }

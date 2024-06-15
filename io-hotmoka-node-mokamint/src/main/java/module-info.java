@@ -24,6 +24,13 @@ module io.hotmoka.node.mokamint {
 
 	requires transitive io.hotmoka.node.mokamint.api;
 	requires transitive io.hotmoka.node.api;
+	requires io.hotmoka.node;
+	requires io.hotmoka.node.local;
 	requires io.hotmoka.annotations;
+	requires transitive io.mokamint.node.local.api;
+	requires io.mokamint.node.local;
+	requires io.mokamint.node;
+	requires io.mokamint.application;
+	requires toml4j;
 	requires java.logging;
 }

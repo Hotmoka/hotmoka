@@ -75,6 +75,12 @@
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-node-mokamint</artifactId>
+      <version>${hotmoka.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-node-service</artifactId>
       <version>${hotmoka.version}</version>
       <scope>test</scope>
@@ -84,6 +90,21 @@
       <artifactId>io-hotmoka-node-remote</artifactId>
       <version>${hotmoka.version}</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.mokamint</groupId>
+      <artifactId>io-mokamint-plotter-api</artifactId>
+      <version>${mokamint.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.mokamint</groupId>
+      <artifactId>io-mokamint-miner-local</artifactId>
+      <version>${mokamint.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.mokamint</groupId>
+      <artifactId>io-mokamint-plotter</artifactId>
+      <version>${mokamint.version}</version>
     </dependency>
 	<dependency>
       <groupId>org.jboss.shrinkwrap.resolver</groupId>

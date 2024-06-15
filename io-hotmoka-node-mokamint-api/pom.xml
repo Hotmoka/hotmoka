@@ -29,6 +29,11 @@
       <artifactId>io-hotmoka-annotations</artifactId>
       <version>${io.hotmoka.annotations.version}</version>
     </dependency>
+    <dependency>
+      <groupId>io.mokamint</groupId>
+      <artifactId>io-mokamint-node-local-api</artifactId>
+      <version>${mokamint.version}</version>
+    </dependency>
   </dependencies>
 
   <profiles>

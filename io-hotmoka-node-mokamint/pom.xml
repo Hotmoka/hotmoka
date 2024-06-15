@@ -35,6 +35,21 @@
       <artifactId>io-hotmoka-annotations</artifactId>
       <version>${io.hotmoka.annotations.version}</version>
     </dependency>
+    <dependency>
+      <groupId>io.mokamint</groupId>
+      <artifactId>io-mokamint-node-local</artifactId>
+      <version>${mokamint.version}</version>
+    </dependency>
+     <dependency>
+      <groupId>io.mokamint</groupId>
+      <artifactId>io-mokamint-application</artifactId>
+      <version>${mokamint.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>toml4j</artifactId>
+      <version>0.7.3</version>
+    </dependency>
   </dependencies>
 
   <profiles>

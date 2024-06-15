@@ -17,7 +17,7 @@ limitations under the License.
 package io.hotmoka.tests;
 
 /*
- * MODIFY AT LINE 189 TO SELECT THE NODE IMPLEMENTATION TO TEST.
+ * MODIFY AT LINE 143 TO SELECT THE NODE IMPLEMENTATION TO TEST.
  */
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -83,6 +83,8 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.disk.DiskNodeConfigBuilders;
 import io.hotmoka.node.disk.DiskNodes;
+import io.hotmoka.node.mokamint.MokamintNodes;
+import io.hotmoka.node.mokamint.MokamintNodeConfigBuilders;
 import io.hotmoka.node.local.AbstractLocalNode;
 import io.hotmoka.node.remote.RemoteNodes;
 import io.hotmoka.node.service.NodeServices;
@@ -92,6 +94,14 @@ import io.hotmoka.node.tendermint.TendermintNodes;
 import io.hotmoka.node.tendermint.api.TendermintNode;
 import io.hotmoka.testing.AbstractLoggedTests;
 import io.hotmoka.verification.VerificationException;
+import io.mokamint.miner.local.LocalMiners;
+import io.mokamint.miner.api.Miner;
+import io.mokamint.node.local.LocalNodeConfigBuilders;
+import io.mokamint.nonce.Prologs;
+import io.mokamint.plotter.api.Plot;
+import io.mokamint.plotter.api.PlotAndKeyPair;
+import io.mokamint.plotter.PlotAndKeyPairs;
+import io.mokamint.plotter.Plots;
 import io.takamaka.code.constants.Constants;
 import jakarta.websocket.DeploymentException;
 
@@ -132,8 +142,9 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	    		Node wrapped;
 	    		//node = wrapped = mkDiskNode();
+	    		node = wrapped = mkMokamintNode();
 	    		//node = wrapped = mkTendermintNode();
-	    		node = mkRemoteNode(wrapped = mkDiskNode());
+	    		//node = mkRemoteNode(wrapped = mkDiskNode());
 	    		//node = mkRemoteNode(wrapped = mkTendermintNode());
 	    		//node = wrapped = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
 	    		//node = wrapped = mkRemoteNode("localhost:8080");
@@ -170,14 +181,21 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	    		localGamete = local.account(0);
 	    		privateKeyOfLocalGamete = local.privateKey(0);
 
-	    		System.out.println("initialized the test node " + node.getNodeInfo());
+	    		System.out.println("Running all tests against node " + node.getNodeInfo());
 	        }
 	    }
 
 	    @Override
 	    public void close() throws Exception {
 	    	node.close();
-	    	System.out.println("closed the test node");
+
+	    	if (miner != null)
+	    		miner.close();
+
+	    	if (plot != null)
+	    		plot.close();
+
+	    	System.out.println("Closed the test node");
 	    }
 	}
 
@@ -192,6 +210,16 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	 * The consensus parameters of the node.
 	 */
 	protected static ConsensusConfig<?,?> consensus;
+
+	/**
+	 * The plot used by the miner of the test node, if it is a Mokamint node.
+	 */
+	private static Plot plot;
+
+	/**
+	 * The miner of the test node, if it is a Mokamint node.
+	 */
+	private static Miner miner;
 
 	/**
 	 * The private key of the account used at each run of the tests.
@@ -243,7 +271,6 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	 * The private key of the gamete.
 	 */
 	private static PrivateKey privateKeyOfGamete;
-
 	public interface TestBody {
 		void run() throws Exception;
 	}
@@ -279,6 +306,39 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			return TendermintNodes.init(config);
 		}
 		catch (IOException | NoSuchAlgorithmException e) {
+			throw new NodeException(e);
+		}
+	}
+
+	@SuppressWarnings("unused")
+	private static Node mkMokamintNode() throws NodeException, InterruptedException, InvalidKeyException, SignatureException {
+		try {
+			consensus = fillConsensusConfig(ValidatorsConsensusConfigBuilders.defaults()).build();
+
+			Path hotmokaChainPath = Files.createTempDirectory("hotmoka-chain");
+
+			var config = MokamintNodeConfigBuilders.defaults()
+					.setDir(hotmokaChainPath)
+					.setMaxGasPerViewTransaction(_10_000_000)
+					.build();
+
+			var mokamintConfig = LocalNodeConfigBuilders.defaults()
+					// we use the same chain id for the Hotmoka node and for the underlying Mokamint engine,
+					// although this is not necessary
+					.setChainId(consensus.getChainId())
+					.setTargetBlockCreationTime(300L)
+					.setInitialAcceleration(1000000000000000L)
+					.setDir(hotmokaChainPath.resolve("blocks")).build();
+			var nodeKeys = mokamintConfig.getSignatureForBlocks().getKeyPair();
+			var plotKeys = mokamintConfig.getSignatureForDeadlines().getKeyPair();
+			var node = MokamintNodes.init(config, mokamintConfig, nodeKeys);
+			var prolog = Prologs.of(mokamintConfig.getChainId(), mokamintConfig.getSignatureForBlocks(), nodeKeys.getPublic(), mokamintConfig.getSignatureForDeadlines(), plotKeys.getPublic(), new byte[0]);
+			plot = Plots.create(hotmokaChainPath.resolve("test.plot"), prolog, 1000, 1000, mokamintConfig.getHashingForDeadlines(), __ -> {});
+			miner = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, plotKeys) });
+			node.getMokamintNode().add(miner).orElseThrow(() -> new NodeException("Could not create the miner for the test node"));
+			return node;
+		}
+		catch (IOException | NoSuchAlgorithmException | io.mokamint.node.api.NodeException e) {
 			throw new NodeException(e);
 		}
 	}

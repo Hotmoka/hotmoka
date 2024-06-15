@@ -606,7 +606,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 * 
 	 * @param request the request
 	 */
-	protected abstract void postRequest(TransactionRequest<?> request) throws NodeException, InterruptedException, TimeoutException;
+	protected abstract void postRequest(TransactionRequest<?> request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException;
 
 	private void initWorkingDirectory() throws NodeException {
 		try {
