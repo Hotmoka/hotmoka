@@ -633,7 +633,7 @@ public abstract class ExecutionEnvironment {
 	}
 
 	/**
-	 * Yields the time to use as current time for the requests executed inside this transaction.
+	 * Yields the time to use as current time for the requests executed inside this environment.
 	 * 
 	 * @return the time, in milliseconds from the UNIX epoch time
 	 */

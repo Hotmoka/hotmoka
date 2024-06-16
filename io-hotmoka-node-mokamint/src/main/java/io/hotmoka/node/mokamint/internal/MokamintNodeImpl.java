@@ -26,7 +26,6 @@ import java.time.ZoneOffset;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.node.ClosedNodeException;
 import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.TransactionRequests;
@@ -43,12 +42,12 @@ import io.mokamint.application.AbstractApplication;
 import io.mokamint.application.api.ApplicationException;
 import io.mokamint.application.api.UnknownGroupIdException;
 import io.mokamint.application.api.UnknownStateException;
+import io.mokamint.node.Transactions;
 import io.mokamint.node.api.Transaction;
 import io.mokamint.node.local.AlreadyInitializedException;
 import io.mokamint.node.local.LocalNodes;
 import io.mokamint.node.local.api.LocalNode;
 import io.mokamint.node.local.api.LocalNodeConfig;
-import io.mokamint.node.Transactions;
 import io.mokamint.nonce.api.Deadline;
 
 /**
@@ -72,7 +71,6 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 	public MokamintNodeImpl(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair, boolean init) throws InvalidKeyException, SignatureException, NodeException, InterruptedException {
 		super(config, init);
 
-		//try {
 		if (init) {
 			initWithEmptyStore();
 		}
@@ -85,19 +83,15 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		catch (AlreadyInitializedException | TimeoutException | ApplicationException | io.mokamint.node.api.NodeException e) {
 			throw new NodeException(e);
 		}
-
-		//}
-		/*catch (IOException | TimeoutException e) {
-			LOGGER.log(Level.SEVERE, "the creation of the Mokamint node failed", e);
-			close();
-			throw new NodeException("The creation of the Mokamint node failed", e);
-		}*/
 	}
 
 	@Override
-	public NodeInfo getNodeInfo() throws ClosedNodeException {
+	public NodeInfo getNodeInfo() throws NodeException, InterruptedException, TimeoutException {
 		try (var scope = mkScope()) {
-			return NodeInfos.of(MokamintNode.class.getName(), HOTMOKA_VERSION, "");
+			return NodeInfos.of(MokamintNode.class.getName(), HOTMOKA_VERSION, mokamintNode.getInfo().getUUID().toString());
+		}
+		catch (io.mokamint.node.api.NodeException e) {
+			throw new NodeException(e);
 		}
 	}
 
@@ -151,26 +145,6 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		}
 	}
 
-	@Override
-	protected void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException, NodeException {
-		super.checkTransaction(request);
-	}
-
-	@Override
-	protected void signalRejected(TransactionRequest<?> request, TransactionRejectedException e) {
-		super.signalRejected(request, e);
-	}
-
-	@Override
-	protected MokamintStoreTransformation beginTransaction(long now) throws NodeException {
-		return super.beginTransaction(now);
-	}
-
-	@Override
-	protected void moveToFinalStoreOf(MokamintStoreTransformation transaction) throws NodeException {
-		super.moveToFinalStoreOf(transaction);
-	}
-
 	private class MokamintHotmokaApplication extends AbstractApplication {
 
 		/**
@@ -192,10 +166,10 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 					MokamintNodeImpl.this.checkTransaction(TransactionRequests.from(context));
 				}
 				catch (IOException e) {
-					throw new io.mokamint.node.api.TransactionRejectedException("The transaction request cannot be computed", e);
+					throw new io.mokamint.node.api.TransactionRejectedException(e.getMessage(), e);
 				}
 				catch (TransactionRejectedException e) {
-					throw new io.mokamint.node.api.TransactionRejectedException("The transaction request has been rejected", e);
+					throw new io.mokamint.node.api.TransactionRejectedException(e.getMessage(), e);
 				}
 	        }
 			catch (IOException | NodeException e) {
@@ -215,7 +189,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 					return TransactionRequests.from(context).toString();
 				}
 				catch (IOException e) {
-					throw new io.mokamint.node.api.TransactionRejectedException("The transaction request cannot be computed", e);
+					throw new io.mokamint.node.api.TransactionRejectedException(e.getMessage(), e);
 				}
 	        }
 			catch (IOException e) {
@@ -231,7 +205,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		@Override
 		public int beginBlock(long height, LocalDateTime when, byte[] stateId) throws UnknownStateException, ApplicationException, TimeoutException, InterruptedException {
 			try {
-				transformation = beginTransaction(when.toEpochSecond(ZoneOffset.UTC));
+				transformation = beginTransaction(when.toInstant(ZoneOffset.UTC).toEpochMilli());
 			}
 	    	catch (NodeException e) {
 	    		throw new ApplicationException(e);
@@ -249,7 +223,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 	        		hotmokaRequest = TransactionRequests.from(context);
 	        	}
 	        	catch (IOException e) {
-	        		throw new io.mokamint.node.api.TransactionRejectedException("The transaction request cannot be computed", e);
+	        		throw new io.mokamint.node.api.TransactionRejectedException(e.getMessage(), e);
 	        	}
 
 	        	try {
@@ -257,7 +231,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 	        	}
 	        	catch (TransactionRejectedException e) {
 	        		signalRejected(hotmokaRequest, e);
-	        		throw new io.mokamint.node.api.TransactionRejectedException("The transaction request has been rejected", e);
+	        		throw new io.mokamint.node.api.TransactionRejectedException(e.getMessage(), e);
 	        	}
 	        	catch (StoreException e) {
 	        		throw new ApplicationException(e);

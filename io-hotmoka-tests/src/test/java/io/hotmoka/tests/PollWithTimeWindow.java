@@ -137,9 +137,10 @@ class PollWithTimeWindow extends HotmokaTest {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
 		// Tendermint is slower
-		boolean isUsingTendermint = node.getNodeInfo().getType().contains("TendermintNode");
-		long start = isUsingTendermint ? 10_000L : 2000L;
-		long duration = isUsingTendermint ? 10_000L : 5000L;
+		String type = node.getNodeInfo().getType();
+		boolean isSlow = type.contains("TendermintNode") || type.contains("MokamintNode");
+		long start = isSlow ? 10_000L : 2000L;
+		long duration = isSlow ? 10_000L : 5000L;
 		long expired = start + duration + 100L;
 		long now = System.currentTimeMillis();
 		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, duration);
@@ -173,9 +174,10 @@ class PollWithTimeWindow extends HotmokaTest {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
 		// the Tendermint blockchain is slower
-		boolean isUsingTendermint = node.getNodeInfo().getType().contains("TendermintNode");
-		long start = isUsingTendermint ? 10_000L : 2000L;
-		long duration = isUsingTendermint ? 10_000L : 3000L;
+		String type = node.getNodeInfo().getType();
+		boolean isSlow = type.contains("TendermintNode") || type.contains("MokamintNode");
+		long start = isSlow ? 10_000L : 2000L;
+		long duration = isSlow ? 10_000L : 3000L;
 		long now = System.currentTimeMillis();
 		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, duration);
 
@@ -230,8 +232,9 @@ class PollWithTimeWindow extends HotmokaTest {
 		StorageReference action = addAction();
 		long start = 0L;
 		// the Tendermint node is slower
-		boolean isUsingTendermint = node.getNodeInfo().getType().contains("TendermintNode");
-		long duration = isUsingTendermint ? 10_000L : 2000L;
+		String type = node.getNodeInfo().getType();
+		boolean isSlow = type.contains("TendermintNode") || type.contains("MokamintNode");
+		long duration = isSlow ? 10_000L : 2000L;
 		long expired = start + duration;
 		long now = System.currentTimeMillis();
 		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, duration);

@@ -97,6 +97,7 @@ import io.hotmoka.verification.VerificationException;
 import io.mokamint.miner.local.LocalMiners;
 import io.mokamint.miner.api.Miner;
 import io.mokamint.node.local.LocalNodeConfigBuilders;
+import io.mokamint.node.service.PublicNodeServices;
 import io.mokamint.nonce.Prologs;
 import io.mokamint.plotter.api.Plot;
 import io.mokamint.plotter.api.PlotAndKeyPair;
@@ -326,19 +327,20 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 					// we use the same chain id for the Hotmoka node and for the underlying Mokamint engine,
 					// although this is not necessary
 					.setChainId(consensus.getChainId())
-					.setTargetBlockCreationTime(300L)
-					.setInitialAcceleration(1000000000000000L)
+					.setTargetBlockCreationTime(2000L)
+					.setInitialAcceleration(50000000000000L)
 					.setDir(hotmokaChainPath.resolve("blocks")).build();
 			var nodeKeys = mokamintConfig.getSignatureForBlocks().getKeyPair();
 			var plotKeys = mokamintConfig.getSignatureForDeadlines().getKeyPair();
-			var node = MokamintNodes.init(config, mokamintConfig, nodeKeys);
 			var prolog = Prologs.of(mokamintConfig.getChainId(), mokamintConfig.getSignatureForBlocks(), nodeKeys.getPublic(), mokamintConfig.getSignatureForDeadlines(), plotKeys.getPublic(), new byte[0]);
-			plot = Plots.create(hotmokaChainPath.resolve("test.plot"), prolog, 1000, 1000, mokamintConfig.getHashingForDeadlines(), __ -> {});
+			plot = Plots.create(hotmokaChainPath.resolve("test.plot"), prolog, 1000, 4000, mokamintConfig.getHashingForDeadlines(), __ -> {});
 			miner = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, plotKeys) });
+			var node = MokamintNodes.init(config, mokamintConfig, nodeKeys);
 			node.getMokamintNode().add(miner).orElseThrow(() -> new NodeException("Could not create the miner for the test node"));
+			PublicNodeServices.open(node.getMokamintNode(), 8030);
 			return node;
 		}
-		catch (IOException | NoSuchAlgorithmException | io.mokamint.node.api.NodeException e) {
+		catch (IOException | NoSuchAlgorithmException | io.mokamint.node.api.NodeException | DeploymentException e) {
 			throw new NodeException(e);
 		}
 	}

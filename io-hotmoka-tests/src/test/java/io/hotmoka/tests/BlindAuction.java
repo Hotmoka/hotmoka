@@ -108,10 +108,17 @@ class BlindAuction extends HotmokaTest {
 	static void beforeAll() throws Exception {
 		setJar("auction.jar");
 
-		if (node.getNodeInfo().getType().contains("TendermintNode")) {
+		String type = node.getNodeInfo().getType();
+
+		if (type.contains("TendermintNode")) {
 			// the Tendermint blockchain is slower and requires more time for all transactions in this test
-			BIDDING_TIME = 25_000;
+			BIDDING_TIME = 30_000;
 			REVEAL_TIME = 40_000;
+		}
+		else if (type.contains("MokamintNode")) {
+			// the Mokamint blockchain is slower and requires more time for all transactions in this test
+			BIDDING_TIME = 90_000;
+			REVEAL_TIME = 70_000;
 		}
 	}
 
@@ -257,7 +264,7 @@ class BlindAuction extends HotmokaTest {
 			counter++;
 		}
 
-		waitUntil(BIDDING_TIME + REVEAL_TIME + 5000L, start);
+		waitUntil(BIDDING_TIME + REVEAL_TIME + 5000, start);
 
 		LOGGER.info("ending the auction");
 		// the winner can be a StorageReference but also a NullValue, if all bids were fake

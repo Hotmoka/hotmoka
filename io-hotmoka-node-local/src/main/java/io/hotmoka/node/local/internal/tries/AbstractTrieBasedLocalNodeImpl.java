@@ -306,7 +306,6 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 			System.arraycopy(ids.get(pos / 128).getBytes(), 0, reduced, pos, 128);
 
 		storeOfNode.put(txn, PAST_STORES, ByteIterable.fromBytes(reduced));
-		//System.out.println(getPastStoresNotYetGarbageCollected(txn).size());
 	}
 
 	private void addPastStoreToListOfNotYetGarbageCollected(S store, Transaction txn) throws ExodusException {
@@ -318,7 +317,6 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 				System.arraycopy(ids.get(pos / 128).getBytes(), 0, expanded, pos, 128);
 
 			storeOfNode.put(txn, PAST_STORES, ByteIterable.fromBytes(expanded));
-			//System.out.println(getPastStoresNotYetGarbageCollected(txn).size());
 		}
 	}
 }
