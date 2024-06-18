@@ -263,7 +263,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	 */
 	private void initWorkingDirectoryOfTendermintProcess(TendermintNodeConfig config) throws InterruptedException, NodeException {
 		Optional<Path> tendermintConfigurationToClone = config.getTendermintConfigurationToClone();
-		Path tendermintHome = config.getDir().resolve("blocks");
+		Path tendermintHome = config.getDir().resolve("tendermint");
 
 		try {
 			if (tendermintConfigurationToClone.isEmpty()) {
@@ -336,7 +336,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		 */
 		private Process spawnTendermintProcess(TendermintNodeConfig config) throws IOException {
 			// spawns a process that remains in background
-			Path tendermintHome = config.getDir().resolve("blocks");
+			Path tendermintHome = config.getDir().resolve("tendermint");
 			String executableName = isWindows ? "cmd.exe /c tendermint.exe" : "tendermint";
 			return run(executableName + " node --home " + tendermintHome + " --abci grpc", Optional.of("tendermint.log"));
 		}

@@ -106,7 +106,7 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
     	super(node);
 
     	try {
-    		this.dir = node.getLocalConfig().getDir();
+    		this.dir = node.getLocalConfig().getDir().resolve("hotmoka").resolve("store");
     	}
     	catch (NodeException e) {
     		throw new StoreException(e);

@@ -21,13 +21,13 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.util.Optional;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import io.hotmoka.exceptions.CheckSupplier;
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.NonWhiteListedCallException;
+import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
@@ -131,7 +131,8 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 					((StorageReference) serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			}
 			catch (Throwable t) {
-				LOGGER.log(Level.INFO, "constructor call failed", t);
+				var reference = TransactionReferences.of(environment.getHasher().hash(getRequest()));
+				LOGGER.warning(reference + ": failed with message: \"" + t.getMessage() + "\"");
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
 				resetBalanceOfPayerToInitialValueMinusAllPromisedGas();
 				try {

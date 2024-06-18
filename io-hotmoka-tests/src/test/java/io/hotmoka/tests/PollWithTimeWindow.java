@@ -47,7 +47,6 @@ import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.signatures.VoidMethodSignature;
 import io.hotmoka.node.api.types.ClassType;
-import io.hotmoka.node.api.values.BooleanValue;
 import io.hotmoka.node.api.values.StorageReference;
 
 class PollWithTimeWindow extends HotmokaTest {
@@ -115,20 +114,26 @@ class PollWithTimeWindow extends HotmokaTest {
 	void successfulPollWithValidWindowWhereAllStakeHoldersVote() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
-		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, 0L, 10_000L);
+
+		// the Tendermint and Mokamint blockchains are slower
+		String type = node.getNodeInfo().getType();
+		boolean isTendermint = type.contains("TendermintNode");
+		boolean isMokamint = type.contains("MokamintNode");
+		long duration = isMokamint ? 40_000 : isTendermint ? 10_000 : 3000;
+		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, 0L, duration);
 		
 		addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), VOTE_POLL, poll);
 		addInstanceVoidMethodCallTransaction(privateKey(1), stakeholder1, _1_000_000, ZERO, jar(), VOTE_POLL, poll);
 		addInstanceVoidMethodCallTransaction(privateKey(2), stakeholder2, _1_000_000, ZERO, jar(), VOTE_POLL, poll);
 		addInstanceVoidMethodCallTransaction(privateKey(3), stakeholder3, _1_000_000, ZERO, jar(), VOTE_POLL, poll);
-		
-		BooleanValue isOver = (BooleanValue) runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll);
-		Assertions.assertTrue(isOver.getValue());
+
+		boolean isOver = runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll).asReturnedBoolean(IS_OVER, NodeException::new);
+		Assertions.assertTrue(isOver);
 		
 		addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), CLOSE_POLL, poll);
 		
-		BooleanValue isActionPerformed = (BooleanValue) runInstanceNonVoidMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action);
-		Assertions.assertTrue(isActionPerformed.getValue());
+		boolean isRunPerformed = runInstanceNonVoidMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action).asReturnedBoolean(IS_RUN_PERFORMED, NodeException::new);
+		Assertions.assertTrue(isRunPerformed);
 	}
 	
 	@Test
@@ -136,36 +141,41 @@ class PollWithTimeWindow extends HotmokaTest {
 	void pollWithCloseAttemptsBeforeWindowExpired() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException, NodeException, TimeoutException {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
-		// Tendermint is slower
+		// the Tendermint and Mokamint blockchains are slower
 		String type = node.getNodeInfo().getType();
-		boolean isSlow = type.contains("TendermintNode") || type.contains("MokamintNode");
-		long start = isSlow ? 10_000L : 2000L;
-		long duration = isSlow ? 10_000L : 5000L;
-		long expired = start + duration + 100L;
+		boolean isTendermint = type.contains("TendermintNode");
+		boolean isMokamint = type.contains("MokamintNode");
+		long start = isMokamint ? 40_000 : isTendermint ? 10_000 : 2000;
+		long duration = isMokamint ? 40_000 : isTendermint ? 10_000 : 3000;
+		long expired = start + duration + (isMokamint ? 30_000 : 2_000);
 		long now = System.currentTimeMillis();
 		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, duration);
 
-		BooleanValue isOver = (BooleanValue) runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll);
-		Assertions.assertFalse(isOver.getValue());
+		boolean isOver = runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll).asReturnedBoolean(IS_OVER, NodeException::new);
+		Assertions.assertFalse(isOver);
 		
 		assertThrows(TransactionException.class, () -> addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), CLOSE_POLL, poll));
 
 		sleep(start - (System.currentTimeMillis() - now) + 2000);
-		
-		isOver = (BooleanValue) runInstanceNonVoidMethodCallTransaction(stakeholder0, _50_000, jar(), IS_OVER, poll);
-		Assertions.assertFalse(isOver.getValue());
-		
+
+		isOver = runInstanceNonVoidMethodCallTransaction(stakeholder0, _50_000, jar(), IS_OVER, poll).asReturnedBoolean(IS_OVER, NodeException::new);
+		Assertions.assertFalse(isOver);
+
 		assertThrows(TransactionException.class, () -> addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), CLOSE_POLL, poll));
 
-		sleep(expired - (System.currentTimeMillis() - now) + 2000);
-		
-		isOver = (BooleanValue) runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll);
-		Assertions.assertTrue(isOver.getValue());
-		
+		sleep(expired - (System.currentTimeMillis() - now));
+
+		isOver = runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll).asReturnedBoolean(IS_OVER, NodeException::new);
+		Assertions.assertTrue(isOver);
+
+		// with Mokamint, it is possible that the previous run succeeds (the poll is over) but the next call fails (the poll is not over):
+		// this is because run transactions are run in the current UTC time while add transactions are run in the time of creation of the block,
+		// that in general is a bit before than the former; because of this, it is safer to add a large delay in "expired" (30 seconds)
+		// in order to give time to Mokamint to create a new block, with an updated time
 		addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), CLOSE_POLL, poll);
 		
-		BooleanValue isActionPerformed = (BooleanValue) runInstanceNonVoidMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action);
-		Assertions.assertFalse(isActionPerformed.getValue());
+		boolean isRunPerformed = runInstanceNonVoidMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action).asReturnedBoolean(IS_RUN_PERFORMED, NodeException::new);
+		Assertions.assertFalse(isRunPerformed);
 	}
 	
 	@Test
@@ -173,11 +183,12 @@ class PollWithTimeWindow extends HotmokaTest {
 	void successfulPollWithValidWindowWhereAllStakeHoldersVoteBeforeAndAfterStartTime() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException, NodeException, TimeoutException {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
-		// the Tendermint blockchain is slower
+		// the Tendermint and Mokamint blockchains are slower
 		String type = node.getNodeInfo().getType();
-		boolean isSlow = type.contains("TendermintNode") || type.contains("MokamintNode");
-		long start = isSlow ? 10_000L : 2000L;
-		long duration = isSlow ? 10_000L : 3000L;
+		boolean isTendermint = type.contains("TendermintNode");
+		boolean isMokamint = type.contains("MokamintNode");
+		long start = isMokamint ? 40_000 : isTendermint ? 10_000 : 2000;
+		long duration = isMokamint ? 40_000 : isTendermint ? 10_000 : 3000;
 		long now = System.currentTimeMillis();
 		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, duration);
 
@@ -186,20 +197,20 @@ class PollWithTimeWindow extends HotmokaTest {
 		assertThrows(TransactionException.class, () -> addInstanceVoidMethodCallTransaction(privateKey(2), stakeholder2, _1_000_000, ZERO, jar(), VOTE_POLL, poll));
 		assertThrows(TransactionException.class, () -> addInstanceVoidMethodCallTransaction(privateKey(3), stakeholder3, _1_000_000, ZERO, jar(), VOTE_POLL, poll));
 		
-		sleep(start - (System.currentTimeMillis() - now) + 2000L);
+		sleep(start - (System.currentTimeMillis() - now) + (isMokamint ? 10_000 : 2_000));
 		
 		addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), VOTE_POLL, poll);
 		addInstanceVoidMethodCallTransaction(privateKey(1), stakeholder1, _1_000_000, ZERO, jar(), VOTE_POLL, poll);
 		addInstanceVoidMethodCallTransaction(privateKey(2), stakeholder2, _1_000_000, ZERO, jar(), VOTE_POLL, poll);
 		addInstanceVoidMethodCallTransaction(privateKey(3), stakeholder3, _1_000_000, ZERO, jar(), VOTE_POLL, poll);
-		
-		var isOver = (BooleanValue) runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll);
-		Assertions.assertTrue(isOver.getValue());
-		
+
+		boolean isOver = runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll).asReturnedBoolean(IS_OVER, NodeException::new);
+		Assertions.assertTrue(isOver);
+
 		addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), CLOSE_POLL, poll);
 		
-		var isActionPerformed = (BooleanValue) runInstanceNonVoidMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action);
-		Assertions.assertTrue(isActionPerformed.getValue());
+		boolean isRunPerformed = runInstanceNonVoidMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action).asReturnedBoolean(IS_RUN_PERFORMED, NodeException::new);
+		Assertions.assertTrue(isRunPerformed);
 	}
 	
 	@Test
@@ -209,20 +220,23 @@ class PollWithTimeWindow extends HotmokaTest {
 		StorageReference action = addAction();
 		long start = 200L;
 		long duration = 200L;
-		long expired = start + duration + 2000L;
+		// the Mokamint blockchain is slower
+		String type = node.getNodeInfo().getType();
+		boolean isMokamint = type.contains("MokamintNode");
+		long expired = start + duration + (isMokamint ? 20_000 : 2_000);
 		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, duration);
 
 		sleep(expired);
 		
 		assertThrows(TransactionException.class, () -> addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), VOTE_POLL, poll));
 
-		BooleanValue isOver = (BooleanValue) runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll);
-		Assertions.assertTrue(isOver.getValue());
+		boolean isOver = runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll).asReturnedBoolean(IS_OVER, NodeException::new);
+		Assertions.assertTrue(isOver);
 		
 		addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), CLOSE_POLL, poll);
 		
-		BooleanValue isActionPerformed = (BooleanValue) runInstanceNonVoidMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action);
-		Assertions.assertFalse(isActionPerformed.getValue());
+		boolean isRunPerformed = runInstanceNonVoidMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action).asReturnedBoolean(IS_RUN_PERFORMED, NodeException::new);
+		Assertions.assertFalse(isRunPerformed);
 	}
 	
 	@Test
@@ -230,32 +244,37 @@ class PollWithTimeWindow extends HotmokaTest {
 	void weightVoteWithExpiredTimeWindow() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException, NodeException, TimeoutException {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(BigInteger.valueOf(10), ONE, ONE, ONE);
 		StorageReference action = addAction();
-		long start = 0L;
-		// the Tendermint node is slower
+		long start = 0;
+		// the Tendermint and Mokamint blockchains are slower
 		String type = node.getNodeInfo().getType();
-		boolean isSlow = type.contains("TendermintNode") || type.contains("MokamintNode");
-		long duration = isSlow ? 10_000L : 2000L;
-		long expired = start + duration;
+		boolean isTendermint = type.contains("TendermintNode");
+		boolean isMokamint = type.contains("MokamintNode");
+		long duration = isMokamint ? 40_000 : isTendermint ? 10_000 : 3000;
+		long expired = start + duration + (isMokamint ? 30_000 : 2000);
 		long now = System.currentTimeMillis();
 		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, duration);
-		
+
 		addInstanceVoidMethodCallTransaction(privateKey(1), stakeholder1, _1_000_000, ZERO, jar(), VOTE_POLL, poll);
 		addInstanceVoidMethodCallTransaction(privateKey(2), stakeholder2, _1_000_000, ZERO, jar(), VOTE_POLL, poll);
 		addInstanceVoidMethodCallTransaction(privateKey(3), stakeholder3, _1_000_000, ZERO, jar(), VOTE_POLL, poll);
 
-		sleep(expired - (System.currentTimeMillis() - now) + 2000L);
+		sleep(expired - (System.currentTimeMillis() - now));
 		
-		BooleanValue isOver = (BooleanValue) runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll);	
-		Assertions.assertTrue(isOver.getValue());
-		
+		boolean isOver = runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll).asReturnedBoolean(IS_OVER, NodeException::new);
+		Assertions.assertTrue(isOver);
+
+		// with Mokamint, it is possible that the previous run succeeds (the poll is over) but the next call fails (the poll is not over):
+		// this is because run transactions are run in the current UTC time while add transactions are run in the time of creation of the block,
+		// that in general is a bit before than the former; because of this, it is safer to add a large delay in "expired" (30 seconds)
+		// in order to give time to Mokamint to create a new block, with an updated time
 		addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), CLOSE_POLL, poll);
-		
-		BooleanValue isActionPerformed = (BooleanValue) runInstanceNonVoidMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action);
-		Assertions.assertFalse(isActionPerformed.getValue());
+
+		boolean isRunPerformed = runInstanceNonVoidMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action).asReturnedBoolean(IS_RUN_PERFORMED, NodeException::new);
+		Assertions.assertFalse(isRunPerformed);
 	}
 	
 	@Test
-	@DisplayName("new PollWithTimeWindow() with time parameters which leads to a numerical overflow")
+	@DisplayName("new PollWithTimeWindow() with time parameters that lead to a numerical overflow")
 	void pollWithTimeWindowNumericalOverflow() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(BigInteger.valueOf(10), ONE, ONE, ONE);
 		StorageReference action = addAction();

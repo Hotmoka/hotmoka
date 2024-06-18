@@ -133,12 +133,13 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 	}
 
 	@Override
-	protected void postRequest(TransactionRequest<?> request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	protected void postRequest(TransactionRequest<?> request) throws NodeException, InterruptedException, TimeoutException {
 		try {
 			mokamintNode.add(Transactions.of(request.toByteArray()));
 		}
 		catch (io.mokamint.node.api.TransactionRejectedException e) {
-			throw new TransactionRejectedException(e.getMessage());
+			// the mempool of the Mokamint engine has rejected the transaction:
+			// the node has been already signaled that it failed, so there is nothing to do here
 		}
 		catch (io.mokamint.node.api.NodeException e) {
 			throw new NodeException(e);
@@ -162,13 +163,20 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		@Override
 		public void checkTransaction(Transaction transaction) throws io.mokamint.node.api.TransactionRejectedException, ApplicationException, TimeoutException, InterruptedException {
 			try (var context = NodeUnmarshallingContexts.of(new ByteArrayInputStream(transaction.getBytes()))) {
+				TransactionRequest<?> hotmokaRequest;
+
 				try {
-					MokamintNodeImpl.this.checkTransaction(TransactionRequests.from(context));
-				}
-				catch (IOException e) {
-					throw new io.mokamint.node.api.TransactionRejectedException(e.getMessage(), e);
+	        		hotmokaRequest = TransactionRequests.from(context);
+	        	}
+	        	catch (IOException e) {
+	        		throw new io.mokamint.node.api.TransactionRejectedException(e.getMessage(), e);
+	        	}
+
+				try {
+					MokamintNodeImpl.this.checkTransaction(hotmokaRequest);
 				}
 				catch (TransactionRejectedException e) {
+					signalRejected(hotmokaRequest, e);
 					throw new io.mokamint.node.api.TransactionRejectedException(e.getMessage(), e);
 				}
 	        }

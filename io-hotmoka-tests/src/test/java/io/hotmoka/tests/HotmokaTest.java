@@ -34,6 +34,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeoutException;
@@ -143,9 +144,10 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	    		Node wrapped;
 	    		//node = wrapped = mkDiskNode();
-	    		node = wrapped = mkMokamintNode();
+	    		//node = wrapped = mkMokamintNode();
 	    		//node = wrapped = mkTendermintNode();
-	    		//node = mkRemoteNode(wrapped = mkDiskNode());
+	    		node = mkRemoteNode(wrapped = mkDiskNode());
+	    		//node = mkRemoteNode(wrapped = mkMokamintNode());
 	    		//node = mkRemoteNode(wrapped = mkTendermintNode());
 	    		//node = wrapped = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
 	    		//node = wrapped = mkRemoteNode("localhost:8080");
@@ -299,7 +301,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			consensus = fillConsensusConfig(ValidatorsConsensusConfigBuilders.defaults()).build();
 
 			var config = TendermintNodeConfigBuilders.defaults()
-					.setDir(Files.createTempDirectory("hotmoka-chain"))
+					.setDir(Files.createTempDirectory("hotmoka-tendermint-chain"))
 					.setTendermintConfigurationToClone(Paths.get("tendermint_config"))
 					.setMaxGasPerViewTransaction(_10_000_000)
 					.build();
@@ -316,7 +318,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		try {
 			consensus = fillConsensusConfig(ValidatorsConsensusConfigBuilders.defaults()).build();
 
-			Path hotmokaChainPath = Files.createTempDirectory("hotmoka-chain");
+			Path hotmokaChainPath = Files.createTempDirectory("hotmoka-mokamint-chain");
 
 			var config = MokamintNodeConfigBuilders.defaults()
 					.setDir(hotmokaChainPath)
@@ -329,7 +331,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 					.setChainId(consensus.getChainId())
 					.setTargetBlockCreationTime(2000L)
 					.setInitialAcceleration(50000000000000L)
-					.setDir(hotmokaChainPath.resolve("blocks")).build();
+					.setDir(hotmokaChainPath.resolve("mokamint")).build();
 			var nodeKeys = mokamintConfig.getSignatureForBlocks().getKeyPair();
 			var plotKeys = mokamintConfig.getSignatureForDeadlines().getKeyPair();
 			var prolog = Prologs.of(mokamintConfig.getChainId(), mokamintConfig.getSignatureForBlocks(), nodeKeys.getPublic(), mokamintConfig.getSignatureForDeadlines(), plotKeys.getPublic(), new byte[0]);
@@ -337,7 +339,11 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			miner = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, plotKeys) });
 			var node = MokamintNodes.init(config, mokamintConfig, nodeKeys);
 			node.getMokamintNode().add(miner).orElseThrow(() -> new NodeException("Could not create the miner for the test node"));
-			PublicNodeServices.open(node.getMokamintNode(), 8030);
+
+			// we open a web service to the underlying Mokamint node, at port 8030; this is not necessary,
+			// but it allows developers to query the node during the execution of the tests
+			PublicNodeServices.open(node.getMokamintNode(), 8030, 1800000, 1000, Optional.of(URI.create("ws://localhost:8030")));
+
 			return node;
 		}
 		catch (IOException | NoSuchAlgorithmException | io.mokamint.node.api.NodeException | DeploymentException e) {
@@ -365,7 +371,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			consensus = fillConsensusConfig(ConsensusConfigBuilders.defaults()).build();
 
 			var config = DiskNodeConfigBuilders.defaults()
-					.setDir(Files.createTempDirectory("hotmoka-chain"))
+					.setDir(Files.createTempDirectory("hotmoka-disk-chain"))
 					.setMaxGasPerViewTransaction(_10_000_000)
 					.setMaxPollingAttempts(100) // we fix these two so that we know the timeout in case of problems
 					.setPollingDelay(10)

@@ -114,7 +114,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	protected AbstractTrieBasedLocalNodeImpl(C config, boolean init) throws NodeException {
 		super(config, init);
 
-		this.env = new Environment(config.getDir() + "/node");
+		this.env = new Environment(config.getDir().resolve("hotmoka").resolve("store").toString());
 		this.storeOfNode = env.computeInTransaction(txn -> env.openStoreWithoutDuplicates("node", txn));
     	this.storeOfResponses = env.computeInTransaction(txn -> env.openStoreWithoutDuplicates("responses", txn));
     	this.storeOfInfo = env.computeInTransaction(txn -> env.openStoreWithoutDuplicates("info", txn));
@@ -243,7 +243,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	private void findPastStoresThatCanBeGarbageCollected() {
 		try {
 			while (!Thread.currentThread().isInterrupted()) {
-				List<StateId> ids = env.computeInReadonlyTransaction(txn -> getPastStoresNotYetGarbageCollected(txn));
+				List<StateId> ids = env.computeInReadonlyTransaction(this::getPastStoresNotYetGarbageCollected);
 
 				for (StateId id: ids) {
 					if (!isUsed(id)) {

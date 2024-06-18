@@ -29,6 +29,7 @@ import io.hotmoka.exceptions.CheckSupplier;
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
+import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.AbstractInstanceMethodCallTransactionRequest;
@@ -190,7 +191,8 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				}
 			}
 			catch (Throwable t) {
-				LOGGER.log(Level.INFO, "transaction failed: " + t.getMessage());
+				var reference = TransactionReferences.of(environment.getHasher().hash(getRequest()));
+				LOGGER.warning(reference + ": failed with message: \"" + t.getMessage() + "\"");
 				resetBalanceOfPayerToInitialValueMinusAllPromisedGas();
 
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller or validators

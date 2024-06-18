@@ -118,7 +118,7 @@ class BlindAuction extends HotmokaTest {
 		else if (type.contains("MokamintNode")) {
 			// the Mokamint blockchain is slower and requires more time for all transactions in this test
 			BIDDING_TIME = 90_000;
-			REVEAL_TIME = 70_000;
+			REVEAL_TIME = 90_000;
 		}
 	}
 

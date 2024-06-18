@@ -19,10 +19,12 @@ package io.hotmoka.node.local.internal.builders;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import io.hotmoka.exceptions.CheckSupplier;
 import io.hotmoka.exceptions.UncheckFunction;
+import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
@@ -36,6 +38,8 @@ import io.takamaka.code.constants.Constants;
  * The builder of the response for a transaction that executes a static method of Takamaka code.
  */
 public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<StaticMethodCallTransactionRequest> {
+
+	private final static Logger LOGGER = Logger.getLogger(StaticMethodCallResponseBuilder.class.getName());
 
 	/**
 	 * Creates the builder of the response.
@@ -107,6 +111,9 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 				}
 			}
 			catch (Throwable t) {
+				var reference = TransactionReferences.of(environment.getHasher().hash(getRequest()));
+				LOGGER.warning(reference + ": failed with message: \"" + t.getMessage() + "\"");
+
 				resetBalanceOfPayerToInitialValueMinusAllPromisedGas();
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller or validators
 				try {

@@ -17,11 +17,11 @@ limitations under the License.
 package io.hotmoka.node.local.internal.builders;
 
 import java.math.BigInteger;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import io.hotmoka.instrumentation.InstrumentedJars;
+import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.JarStoreTransactionRequest;
@@ -99,7 +99,8 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 				return TransactionResponses.jarStoreSuccessful(instrumentedBytes, request.getDependencies(), consensus.getVerificationVersion(), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			}
 			catch (Throwable t) {
-				LOGGER.log(Level.INFO, "jar store failed", t);
+				var reference = TransactionReferences.of(environment.getHasher().hash(getRequest()));
+				LOGGER.warning(reference + ": failed with message: \"" + t.getMessage() + "\"");
 				resetBalanceOfPayerToInitialValueMinusAllPromisedGas();
 				// we do not pay back the gas
 				try {
