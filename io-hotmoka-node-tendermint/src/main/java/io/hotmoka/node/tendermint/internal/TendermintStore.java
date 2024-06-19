@@ -16,15 +16,11 @@ limitations under the License.
 
 package io.hotmoka.node.tendermint.internal;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.crypto.HashingAlgorithms;
-import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
@@ -44,11 +40,6 @@ import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, TendermintNodeConfig, TendermintStore, TendermintStoreTransformation> {
 
 	/**
-	 * The hasher used to merge the hashes of the many tries.
-	 */
-	private final Hasher<byte[]> hasherOfHashes;
-
-	/**
 	 * The current validators set in this store transaction. This information could be recovered from the store transaction itself,
 	 * but this field is used for caching. The validators set might be missing if the node is not initialized yet.
 	 */
@@ -62,13 +53,6 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
     TendermintStore(TendermintNodeImpl node) throws StoreException {
     	super(node);
 
-    	try {
-    		this.hasherOfHashes = HashingAlgorithms.sha256().getHasher(Function.identity());
-    	}
-    	catch (NoSuchAlgorithmException e) {
-    		throw new StoreException(e);
-    	}
-
     	this.validators = Optional.empty();
     }
 
@@ -81,13 +65,6 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
 	 */
     TendermintStore(TendermintNodeImpl node, StateId stateId) throws StoreException {
     	super(node, stateId);
-
-    	try {
-    		this.hasherOfHashes = HashingAlgorithms.sha256().getHasher(Function.identity());
-    	}
-    	catch (NoSuchAlgorithmException e) {
-    		throw new StoreException(e);
-    	}
 
     	this.validators = Optional.empty();
     }
@@ -105,7 +82,6 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
     private TendermintStore(TendermintStore toClone, StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) {
     	super(toClone, cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
 
-    	this.hasherOfHashes = toClone.hasherOfHashes;
     	this.validators = toClone.validators;
 	}
 
@@ -118,7 +94,6 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
     private TendermintStore(TendermintStore toClone, StoreCache cache) {
     	super(toClone, cache);
 
-    	this.hasherOfHashes = toClone.hasherOfHashes;
     	this.validators = toClone.validators;
 	}
 
@@ -138,21 +113,6 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
     	return new TendermintStore(this, cache);
     }
 
-    /**
-     * Yields the hash of this store, for Tendermint. It is computed from the roots of its tries.
-     * 
-     * @return the hash; if the store is currently empty, it yields an empty array of bytes
-     */
-    protected byte[] getTendermintHash() throws StoreException {
-    	if (isEmpty())
-    		return new byte[0]; // Tendermint requires an empty array at the beginning, for consensus
-    	else
-    		// we do not use the info part of the hash, so that the hash
-    		// remains stable when the responses and the histories are stable,
-    		// although the info part has changed for the update of the number of commits
-    		return hasherOfHashes.hash(mergeRootsOfTriesWithoutInfo()); // we hash the result into 32 bytes
-    }
-
 	@Override
     protected TendermintStore mkStore(StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) {
 		return new TendermintStore(this, cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
@@ -161,23 +121,5 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
 	@Override
 	protected TendermintStoreTransformation beginTransformation(ConsensusConfig<?,?> consensus, long now) throws StoreException {
 		return new TendermintStoreTransformation(this, consensus, now, validators);
-	}
-
-	/**
-	 * Yields the concatenation of the roots of the tries in this store,
-	 * with the exclusion of the info trie, whose root is masked with 0's.
-	 * This is a trick to make the hash independent from the number of commits
-	 * stored in the info tries. In this way, Tendermint will eventually pause creating
-	 * blocks if the only different between states is the number of commits.
-	 * 
-	 * @return the concatenation
-	 * @throws TrieException 
-	 */
-	private byte[] mergeRootsOfTriesWithoutInfo() throws StoreException {
-		byte[] bytes = getStateId().getBytes();
-		for (int pos = 32; pos < 64; pos++)
-			bytes[pos] = 0;
-	
-		return bytes;
 	}
 }

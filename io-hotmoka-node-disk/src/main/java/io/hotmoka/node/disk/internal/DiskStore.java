@@ -244,11 +244,6 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
 	}
 
 	@Override
-	public long getHeight() {
-		return height;
-	}
-
-	@Override
 	protected DiskStoreTransformation beginTransformation(ConsensusConfig<?,?> consensus, long now) {
 		return new DiskStoreTransformation(this, consensus, now);
 	}

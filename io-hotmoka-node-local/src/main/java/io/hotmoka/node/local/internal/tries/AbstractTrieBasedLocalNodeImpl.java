@@ -131,6 +131,10 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		getExecutors().execute(this::findPastStoresThatCanBeGarbageCollected);
 	}
 
+	protected final io.hotmoka.xodus.env.Store getStoreOfNode() {
+		return storeOfNode;
+	}
+
 	protected final io.hotmoka.xodus.env.Store getStoreOfResponses() {
 		return storeOfResponses;
 	}
@@ -281,6 +285,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		try {
 			CheckRunnable.check(StoreException.class, () -> env.executeInTransaction(UncheckConsumer.uncheck(txn -> {
 				storeOfNode.put(txn, ROOT, rootAsBI); // set the root branch
+				setRootBranch(txn);
 				currentStore.malloc(txn); // increment the reference count of the new store
 				addPastStoreToListOfNotYetGarbageCollected(oldStore, txn); // add the old store to the past stores list
 			})));
@@ -288,6 +293,9 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		catch (ExodusException | StoreException e) {
 			throw new NodeException(e);
 		}
+	}
+
+	protected void setRootBranch(Transaction txn) throws ExodusException {
 	}
 
 	private List<StateId> getPastStoresNotYetGarbageCollected(Transaction txn) throws ExodusException {

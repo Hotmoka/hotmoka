@@ -194,7 +194,7 @@ class TendermintApplication extends ABCI {
 	@Override
 	protected ResponseInfo info(RequestInfo request) throws NodeException {
 		return ResponseInfo.newBuilder()
-			.setLastBlockAppHash(ByteString.copyFrom(node.getTendermintHash())) // hash of the store used for consensus
+			.setLastBlockAppHash(ByteString.copyFrom(node.getLastBlockApplicationHash())) // hash of the store used for consensus
 			.setLastBlockHeight(node.getBlockHeight()).build();
 	}
 
@@ -302,7 +302,7 @@ class TendermintApplication extends ABCI {
 		}
 
 		node.moveToFinalStoreOf(transformation);
-		byte[] hash = node.getTendermintHash();
+		byte[] hash = node.getLastBlockApplicationHash();
 		LOGGER.info("committed Tendermint state " + Hex.toHexString(hash).toUpperCase());
 		return ResponseCommit.newBuilder().setData(ByteString.copyFrom(hash)).build();
 	}

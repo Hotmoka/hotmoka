@@ -28,6 +28,7 @@ module io.hotmoka.node.tendermint {
 	requires io.hotmoka.annotations;
 	requires io.hotmoka.exceptions;
 	requires io.hotmoka.helpers;
+	requires io.hotmoka.patricia;
 	requires transitive io.hotmoka.helpers.api;
 	requires transitive io.hotmoka.node.api;
 	requires io.hotmoka.node.local;

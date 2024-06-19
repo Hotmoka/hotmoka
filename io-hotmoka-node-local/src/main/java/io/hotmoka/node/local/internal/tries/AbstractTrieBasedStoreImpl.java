@@ -141,48 +141,61 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 	
 		try {
 			return CheckSupplier.check(StoreException.class, TrieException.class, () -> getNode().getEnvironment().computeInTransaction(UncheckFunction.uncheck(txn -> {
-				var trieOfRequests = mkTrieOfRequests(txn);
-				for (var entry: addedRequests.entrySet()) {
-					trieOfRequests.malloc();
-					var old = trieOfRequests;
-					trieOfRequests = trieOfRequests.put(entry.getKey(), entry.getValue());
-					old.free();
-				}
-	
-				var trieOfResponses = mkTrieOfResponses(txn);
-				for (var entry: addedResponses.entrySet()) {
-					trieOfResponses.malloc();
-					var old = trieOfResponses;
-					trieOfResponses = trieOfResponses.put(entry.getKey(), entry.getValue());
-					old.free();
-				}
+				var rootOfRequests = addDeltaOfRequests(mkTrieOfRequests(txn), addedRequests);
+				var rootOfResponses = addDeltaOfResponses(mkTrieOfResponses(txn), addedResponses);
+				var rootOfHistories = addDeltaOfHistories(mkTrieOfHistories(txn), addedHistories);
+				var rootOfInfo = addDeltaOfInfos(mkTrieOfInfo(txn), addedManifest);
 
-				var trieOfHistories = mkTrieOfHistories(txn);
-				for (var entry: addedHistories.entrySet()) {
-					trieOfHistories.malloc();
-					var old = trieOfHistories;
-					trieOfHistories = trieOfHistories.put(entry.getKey(), Stream.of(entry.getValue()));
-					old.free();
-				}
-	
-				var trieOfInfo = mkTrieOfInfo(txn);
-				trieOfInfo.malloc();
-				var old = trieOfInfo;
-				trieOfInfo = trieOfInfo.increaseHeight();
-				old.free();
-				if (addedManifest.isPresent()) {
-					trieOfInfo.malloc();
-					old = trieOfInfo;
-					trieOfInfo = trieOfInfo.setManifest(addedManifest.get());
-					old.free();
-				}
-
-				return mkStore(cache, trieOfResponses.getRoot(), trieOfInfo.getRoot(), trieOfHistories.getRoot(), trieOfRequests.getRoot());
+				return mkStore(cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
 			})));
 		}
 		catch (ExodusException | TrieException e) {
 			throw new StoreException(e);
 		}
+	}
+
+	private byte[] addDeltaOfInfos(TrieOfInfo trieOfInfo, Optional<StorageReference> addedManifest) throws TrieException {
+		if (addedManifest.isPresent()) {
+			trieOfInfo.malloc();
+			var old = trieOfInfo;
+			trieOfInfo = trieOfInfo.setManifest(addedManifest.get());
+			old.free();
+		}
+
+		return trieOfInfo.getRoot();
+	}
+
+	private byte[] addDeltaOfHistories(TrieOfHistories trieOfHistories, Map<StorageReference, TransactionReference[]> addedHistories) throws TrieException {
+		for (var entry: addedHistories.entrySet()) {
+			trieOfHistories.malloc();
+			var old = trieOfHistories;
+			trieOfHistories = trieOfHistories.put(entry.getKey(), Stream.of(entry.getValue()));
+			old.free();
+		}
+
+		return trieOfHistories.getRoot();
+	}
+
+	private byte[] addDeltaOfResponses(TrieOfResponses trieOfResponses, Map<TransactionReference, TransactionResponse> addedResponses) throws TrieException {
+		for (var entry: addedResponses.entrySet()) {
+			trieOfResponses.malloc();
+			var old = trieOfResponses;
+			trieOfResponses = trieOfResponses.put(entry.getKey(), entry.getValue());
+			old.free();
+		}
+
+		return trieOfResponses.getRoot();
+	}
+
+	private byte[] addDeltaOfRequests(TrieOfRequests trieOfRequests, LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests) throws TrieException {
+		for (var entry: addedRequests.entrySet()) {
+			trieOfRequests.malloc();
+			var old = trieOfRequests;
+			trieOfRequests = trieOfRequests.put(entry.getKey(), entry.getValue());
+			old.free();
+		}
+
+		return trieOfRequests.getRoot();
 	}
 
     protected abstract S mkStore(StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests);
@@ -231,18 +244,6 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 			return CheckSupplier.check(TrieException.class, StoreException.class, () -> getNode().getEnvironment().computeInReadonlyTransaction
 				(UncheckFunction.uncheck(txn -> mkTrieOfHistories(txn).get(object))))
 					.orElseThrow(() -> new UnknownReferenceException(object));
-		}
-		catch (ExodusException | TrieException e) {
-			throw new StoreException(e);
-		}
-	}
-
-	@Override
-	public final long getHeight() throws StoreException {
-		try {
-			return CheckSupplier.check(TrieException.class, StoreException.class, () ->
-				getNode().getEnvironment().computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> mkTrieOfInfo(txn).getHeight())
-			));
 		}
 		catch (ExodusException | TrieException e) {
 			throw new StoreException(e);
@@ -319,15 +320,6 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 		}
 	}
 
-	/**
-	 * Determines if all roots of the tries in this store are empty.
-	 * 
-	 * @return true if and only if that condition holds
-	 */
-	protected final boolean isEmpty() {
-		return isEmpty(rootOfResponses) && isEmpty(rootOfInfo) && isEmpty(rootOfRequests) && isEmpty(rootOfHistories);
-	}
-
 	private TrieOfResponses mkTrieOfResponses(Transaction txn) throws StoreException {
 		try {
 			return new TrieOfResponses(new KeyValueStoreOnXodus(getNode().getStoreOfResponses(), txn), rootOfResponses);
@@ -362,13 +354,5 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 		catch (TrieException e) {
 			throw new StoreException(e);
 		}
-	}
-
-	private static boolean isEmpty(byte[] hash) {
-		for (byte b: hash)
-			if (b != 0)
-				return false;
-
-		return true;
 	}
 }
