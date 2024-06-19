@@ -571,11 +571,11 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		}
 	}
 
-	protected void moveToFinalStoreOf(T transaction) throws NodeException {
+	protected void moveToFinalStoreOf(T transformation) throws NodeException {
 		try {
-			store = transaction.getFinalStore();
-			transaction.forEachDeliveredTransaction(this::signalCompleted);
-			transaction.forEachTriggeredEvent(this::notifyEvent);
+			store = transformation.getFinalStore();
+			transformation.forEachDeliveredTransaction(this::signalCompleted);
+			transformation.forEachTriggeredEvent(this::notifyEvent);
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);

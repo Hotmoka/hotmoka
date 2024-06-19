@@ -88,6 +88,11 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 */
 	private final BlockingQueue<S> storesToGC = new LinkedBlockingDeque<>(1_000);
 
+	/**
+	 * A map from each state identifier of the store to the number of users of that store
+	 * at that state identifier. The goal of this information is to avoid garbage-collecting
+	 * store identifiers that are currently being used for some reason.
+	 */
 	private final ConcurrentMap<StateId, Integer> storeUsers = new ConcurrentHashMap<>();
 
 	/**
@@ -189,12 +194,12 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	@Override
 	protected void enter(S store) {
 		super.enter(store);
-		storeUsers.compute(store.getStateId(), (_store, old) -> old == null ? 1 : old + 1);
+		storeUsers.compute(store.getStateId(), (_id, old) -> old == null ? 1 : (old + 1));
 	}
 
 	@Override
 	protected void exit(S store) {
-		storeUsers.compute(store.getStateId(), (_store, old) -> old - 1);
+		storeUsers.compute(store.getStateId(), (_id, old) -> old - 1);
 		super.exit(store);
 	}
 
@@ -206,10 +211,13 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 */
 	protected abstract S mkStore(StateId stateId) throws NodeException;
 
-	private boolean isUsed(StateId id) {
+	private boolean canBeGarbageCollected(StateId id) {
 		var currentStore = getStore();
 		// the current store might be null if the node has just restarted and its store has not been set yet 
-		return currentStore != null && id.equals(currentStore.getStateId()) || storeUsers.getOrDefault(id, 0) > 0;
+		if (currentStore == null || !id.equals(currentStore.getStateId()))
+			return storeUsers.getOrDefault(id, 0) == 0;
+		else
+			return false;
 	}
 
 	/**
@@ -246,11 +254,10 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 				List<StateId> ids = env.computeInReadonlyTransaction(this::getPastStoresNotYetGarbageCollected);
 
 				for (StateId id: ids) {
-					if (!isUsed(id)) {
+					if (canBeGarbageCollected(id)) {
 						try {
-							S oldStore = mkStore(id);
-							if (!storesToGC.offer(oldStore))
-								LOGGER.warning("could offer store " + id + " to the garbage-collector: the queue is full!");
+							if (!storesToGC.offer(mkStore(id)))
+								LOGGER.warning("cannot offer store " + id + " to the garbage-collector: the queue is full!");
 						}
 						catch (NodeException e) {
 							LOGGER.log(Level.SEVERE, "cannot offer store " + id + " to the garbage-collector", e);
@@ -258,7 +265,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 					}
 				}
 
-				Thread.sleep(2000L);
+				Thread.sleep(5000L);
 			}
 		}
 		catch (InterruptedException e) {

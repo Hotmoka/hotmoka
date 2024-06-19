@@ -211,11 +211,12 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		}
 
 		@Override
-		public int beginBlock(long height, LocalDateTime when, byte[] stateId) throws UnknownStateException, ApplicationException, TimeoutException, InterruptedException {
+		public int beginBlock(long height, LocalDateTime when, byte[] stateId) throws UnknownStateException, ApplicationException {
 			try {
-				transformation = beginTransaction(when.toInstant(ZoneOffset.UTC).toEpochMilli());
+				transformation = getStore() //.checkedOutAt(StateIds.of(stateId))
+					.beginTransaction(when.toInstant(ZoneOffset.UTC).toEpochMilli());
 			}
-	    	catch (NodeException e) {
+			catch (StoreException e) {
 	    		throw new ApplicationException(e);
 	    	}
 
@@ -223,7 +224,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		}
 
 		@Override
-		public void deliverTransaction(int groupId, Transaction transaction) throws io.mokamint.node.api.TransactionRejectedException, UnknownGroupIdException, ApplicationException, TimeoutException, InterruptedException {
+		public void deliverTransaction(int groupId, Transaction transaction) throws io.mokamint.node.api.TransactionRejectedException, UnknownGroupIdException, ApplicationException {
 			try (var context = NodeUnmarshallingContexts.of(new ByteArrayInputStream(transaction.getBytes()))) {
 	        	TransactionRequest<?> hotmokaRequest;
 
@@ -251,7 +252,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		}
 
 		@Override
-		public byte[] endBlock(int groupId, Deadline deadline) throws ApplicationException, UnknownGroupIdException, TimeoutException, InterruptedException {
+		public byte[] endBlock(int groupId, Deadline deadline) throws ApplicationException, UnknownGroupIdException {
 			return getStore().getStateId().getBytes();
 		}
 
