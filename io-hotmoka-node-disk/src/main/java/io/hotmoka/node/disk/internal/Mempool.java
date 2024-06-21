@@ -134,7 +134,7 @@ class Mempool {
 	 */
 	private void deliver() {
 		try {
-			DiskStoreTransformation transaction = node.beginTransaction(System.currentTimeMillis());
+			DiskStoreTransformation transaction = node.getStore().beginTransaction(System.currentTimeMillis());
 
 			while (true) {
 				TransactionRequest<?> current = checkedMempool.poll(2, TimeUnit.MILLISECONDS);
@@ -165,18 +165,17 @@ class Mempool {
 	}
 
 	private DiskStoreTransformation restartTransaction(DiskStoreTransformation transaction) throws NodeException {
-		// if we delivered zero transactions, we prefer to avoid the creation of an empty block
-		if (transaction.deliveredCount() > 0) {
-			try {
+		try {
+			// if we delivered zero transactions, we prefer to avoid the creation of an empty block
+			if (transaction.deliveredCount() > 0) {
 				transaction.deliverRewardTransaction("", "");
-			}
-			catch (StoreException e) {
-				throw new NodeException(e);
+				node.moveToFinalStoreOf(transaction);
 			}
 
-			node.moveToFinalStoreOf(transaction);
+			return node.getStore().beginTransaction(System.currentTimeMillis());
 		}
-
-		return node.beginTransaction(System.currentTimeMillis());
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}
 	}
 }

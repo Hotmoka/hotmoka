@@ -505,7 +505,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 */
 	protected void exit(S store) {}
 
-	protected final S getStore() {
+	protected S getStore() {
 		return store;
 	}
 
@@ -541,15 +541,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		}
 		finally {
 			exit(store);
-		}
-	}
-
-	protected T beginTransaction(long now) throws NodeException {
-		try {
-			return store.beginTransaction(now);
-		}
-		catch (StoreException e) {
-			throw new NodeException(e);
 		}
 	}
 

@@ -197,8 +197,8 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	}
 
 	@Override
-	protected TendermintStoreTransformation beginTransaction(long now) throws NodeException {
-		return super.beginTransaction(now);
+	protected TendermintStore getStore() {
+		return super.getStore();
 	}
 
 	@Override

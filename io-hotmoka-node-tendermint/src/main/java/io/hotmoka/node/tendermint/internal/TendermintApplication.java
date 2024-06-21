@@ -231,9 +231,9 @@ class TendermintApplication extends ABCI {
     	misbehaving = spaceSeparatedSequenceOfMisbehavingValidatorsAddresses(request);
 
     	try {
-    		transformation = node.beginTransaction(timeOfBlock(request));
+    		transformation = node.getStore().beginTransaction(timeOfBlock(request));
     	}
-    	catch (NodeException e) {
+    	catch (StoreException e) {
     		throw new RuntimeException(e); // TODO
     	}
 
