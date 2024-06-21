@@ -55,7 +55,6 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 		super(config, true);
 
 		try {
-			initWithEmptyStore();
 			this.mempool = new Mempool(this, config.getTransactionsPerBlock());
 		}
 		catch (NodeException e) {
@@ -114,10 +113,5 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 	@Override
 	protected void moveToFinalStoreOf(DiskStoreTransformation transaction) throws NodeException {
 		super.moveToFinalStoreOf(transaction);
-	}
-
-	@Override
-	protected void initWithSavedStore() throws NodeException {
-		// unused
 	}
 }

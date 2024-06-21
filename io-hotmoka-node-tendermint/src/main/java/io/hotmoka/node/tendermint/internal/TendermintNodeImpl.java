@@ -41,6 +41,7 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.local.AbstractTrieBasedLocalNode;
+import io.hotmoka.node.local.StateIds;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.tendermint.api.TendermintNode;
@@ -65,6 +66,11 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	 * The key used inside {@link #storeOfNode} to keep the height of the head of this node.
 	 */
 	private final static ByteIterable HEIGHT = ByteIterable.fromBytes("height".getBytes());
+
+	/**
+	 * The key used inside {@link #storeOfNode} to keep the root of the store of this node.
+	 */
+	private final static ByteIterable ROOT = ByteIterable.fromBytes("root".getBytes());
 
 	/**
 	 * The GRPC server that runs the ABCI process.
@@ -101,12 +107,10 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		this.isWindows = System.getProperty("os.name").startsWith("Windows");
 
 		try {
-			if (init) {
-				initWithEmptyStore();
+			if (init)
 				initWorkingDirectoryOfTendermintProcess(config);
-			}
 			else
-				initWithSavedStore();
+				checkOutRootBranch();
 
 			var tendermintConfigFile = new TendermintConfigFile(config);
 			this.poster = new TendermintPoster(config, tendermintConfigFile.tendermintPort);
@@ -143,12 +147,12 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	}
 
 	/**
-	 * Yields the block height.
+	 * Yields the blockchain height.
 	 * 
-	 * @return the block height of the block having this store
+	 * @return the height of the blockchain of this node
 	 * @throws NodeException if the operation cannot be completed correctly
 	 */
-	protected final long getBlockHeight() throws NodeException {
+	protected final long getLastBlockHeight() throws NodeException {
 		try {
 			return getEnvironment().computeInReadonlyTransaction(this::getHeight);
 		}
@@ -213,8 +217,25 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	}
 
 	protected void setRootBranch(Transaction txn) throws ExodusException {
+		byte[] id = getStore().getStateId().getBytes();
+		var rootAsBI = ByteIterable.fromBytes(id);
+		// we set the root branch, that will be used if the node is resumed
+		getStoreOfNode().put(txn, ROOT, rootAsBI); // set the root branch
 		// we keep extra information about the height
 		getStoreOfNode().put(txn, HEIGHT, ByteIterable.fromBytes(longToBytes(getHeight(txn) + 1)));
+	}
+
+	private void checkOutRootBranch() throws NodeException {
+		var root = getEnvironment().computeInTransaction(txn -> Optional.ofNullable(getStoreOfNode().get(txn, ROOT)).map(ByteIterable::getBytes));
+		if (root.isEmpty())
+			throw new NodeException("Cannot find the root of the saved store of the node");
+
+		try {
+			setStore(getStore().checkedOutAt(StateIds.of(root.get())));
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}
 	}
 
 	private long getHeight(Transaction txn) throws ExodusException {

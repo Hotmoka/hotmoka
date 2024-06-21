@@ -185,6 +185,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		if (init)
 			initWorkingDirectory();
 
+		this.store = mkStore();
 		this.executors = Executors.newCachedThreadPool();
 
 		addShutdownHook();
@@ -489,16 +490,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	/**
-	 * Initializes the node with an empty store.
-	 * 
-	 * @throws NodeException if the operation cannot be completed correctly
-	 */
-	protected void initWithEmptyStore() throws NodeException {
-		// the node is starting from scratch: the caches are left empty and the consensus is well-known
-		store = mkStore();
-	}
-
-	/**
 	 * Called when this node is executing something that needs the given store.
 	 * It can be used, for instance, to take note that the store cannot be
 	 * garbage-collected from that moment.
@@ -513,15 +504,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 * @param store the store
 	 */
 	protected void exit(S store) {}
-
-	/**
-	 * Initializes the node with the last saved store, hence resuming a node
-	 * from its saved state. The saved store must have been initialized, so that
-	 * the consensus can be extracted from the saved store.
-	 * 
-	 * @throws NodeException if the operation cannot be completed correctly
-	 */
-	protected abstract void initWithSavedStore() throws NodeException;
 
 	protected final S getStore() {
 		return store;

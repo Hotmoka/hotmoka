@@ -183,6 +183,7 @@ class TendermintApplication extends ABCI {
 
 	@Override
 	protected ResponseInitChain initChain(RequestInitChain request) {
+		request.getInitialHeight();
 		return ResponseInitChain.newBuilder().build();
 	}
 
@@ -195,7 +196,7 @@ class TendermintApplication extends ABCI {
 	protected ResponseInfo info(RequestInfo request) throws NodeException {
 		return ResponseInfo.newBuilder()
 			.setLastBlockAppHash(ByteString.copyFrom(node.getLastBlockApplicationHash())) // hash of the store used for consensus
-			.setLastBlockHeight(node.getBlockHeight()).build();
+			.setLastBlockHeight(node.getLastBlockHeight()).build();
 	}
 
 	@Override

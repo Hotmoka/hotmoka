@@ -329,7 +329,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 					// we use the same chain id for the Hotmoka node and for the underlying Mokamint engine,
 					// although this is not necessary
 					.setChainId(consensus.getChainId())
-					.setTargetBlockCreationTime(2000L)
+					.setTargetBlockCreationTime(2000)
 					.setInitialAcceleration(50000000000000L)
 					.setDir(hotmokaChainPath.resolve("mokamint")).build();
 			var nodeKeys = mokamintConfig.getSignatureForBlocks().getKeyPair();

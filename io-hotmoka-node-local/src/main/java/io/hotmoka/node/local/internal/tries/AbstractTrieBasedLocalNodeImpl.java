@@ -96,11 +96,6 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	private final ConcurrentMap<StateId, Integer> storeUsers = new ConcurrentHashMap<>();
 
 	/**
-	 * The key used inside {@link #storeOfNode} to keep the root of the store of this node.
-	 */
-	private final static ByteIterable ROOT = ByteIterable.fromBytes("root".getBytes());
-
-	/**
 	 * The key used inside {@link #storeOfNode} to keep the list of old stores
 	 * that are candidate for garbage-collection, as soon as their height is sufficiently
 	 * smaller than the height of the store of this node.
@@ -156,24 +151,6 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	}
 
 	@Override
-	protected void initWithSavedStore() throws NodeException {
-		// we start from the empty store
-		super.initWithEmptyStore();
-
-		// then we check it out at its store branch
-		var root = env.computeInTransaction(txn -> Optional.ofNullable(storeOfNode.get(txn, ROOT)).map(ByteIterable::getBytes));
-		if (root.isEmpty())
-			throw new NodeException("Cannot find the root of the saved store of the node");
-
-		try {
-			setStore(getStore().checkedOutAt(StateIds.of(root.get())));
-		}
-		catch (StoreException e) {
-			throw new NodeException(e);
-		}
-	}
-
-	@Override
 	protected void moveToFinalStoreOf(T transaction) throws NodeException {
 		S oldStore = getStore();
 		super.moveToFinalStoreOf(transaction);
@@ -214,6 +191,8 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 * @return the resulting store
 	 */
 	protected abstract S mkStore(StateId stateId) throws NodeException;
+
+	protected void setRootBranch(Transaction txn) throws ExodusException {}
 
 	private boolean canBeGarbageCollected(StateId id) {
 		var currentStore = getStore();
@@ -278,24 +257,16 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	}
 
 	private void setRootBranch(S oldStore) throws NodeException {
-		S currentStore = getStore();
-		byte[] id = currentStore.getStateId().getBytes();
-		var rootAsBI = ByteIterable.fromBytes(id);
-	
 		try {
 			CheckRunnable.check(StoreException.class, () -> env.executeInTransaction(UncheckConsumer.uncheck(txn -> {
-				storeOfNode.put(txn, ROOT, rootAsBI); // set the root branch
 				setRootBranch(txn);
-				currentStore.malloc(txn); // increment the reference count of the new store
+				getStore().malloc(txn); // increment the reference count of the new store
 				addPastStoreToListOfNotYetGarbageCollected(oldStore, txn); // add the old store to the past stores list
 			})));
 		}
 		catch (ExodusException | StoreException e) {
 			throw new NodeException(e);
 		}
-	}
-
-	protected void setRootBranch(Transaction txn) throws ExodusException {
 	}
 
 	private List<StateId> getPastStoresNotYetGarbageCollected(Transaction txn) throws ExodusException {

@@ -71,12 +71,6 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 	public MokamintNodeImpl(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair, boolean init) throws InvalidKeyException, SignatureException, NodeException, InterruptedException {
 		super(config, init);
 
-		if (init) {
-			initWithEmptyStore();
-		}
-		else
-			initWithSavedStore();
-
 		try {
 			this.mokamintNode = LocalNodes.of(mokamintConfig, keyPair, new MokamintHotmokaApplication(), init);
 		}
@@ -155,7 +149,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		private volatile MokamintStoreTransformation transformation;
 
 		@Override
-		public boolean checkPrologExtra(byte[] extra) throws ApplicationException, TimeoutException, InterruptedException {
+		public boolean checkPrologExtra(byte[] extra) throws ApplicationException {
 			// TODO Auto-generated method stub
 			return true;
 		}
@@ -257,7 +251,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		}
 
 		@Override
-		public void commitBlock(int groupId) throws ApplicationException, UnknownGroupIdException, TimeoutException, InterruptedException {
+		public void commitBlock(int groupId) throws ApplicationException, UnknownGroupIdException {
 			try {
 				moveToFinalStoreOf(transformation);
 			}
