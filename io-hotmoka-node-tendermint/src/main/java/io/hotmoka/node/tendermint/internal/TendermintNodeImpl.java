@@ -40,6 +40,7 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.api.requests.TransactionRequest;
+import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.AbstractTrieBasedLocalNode;
 import io.hotmoka.node.local.StateIds;
 import io.hotmoka.node.local.api.StateId;
@@ -214,6 +215,11 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	@Override
 	protected void moveToFinalStoreOf(TendermintStoreTransformation transaction) throws NodeException {
 		super.moveToFinalStoreOf(transaction);
+	}
+
+	@Override
+	protected void publish(TransactionReference transaction) {
+		super.publish(transaction);
 	}
 
 	protected void setRootBranch(Transaction txn) throws ExodusException {

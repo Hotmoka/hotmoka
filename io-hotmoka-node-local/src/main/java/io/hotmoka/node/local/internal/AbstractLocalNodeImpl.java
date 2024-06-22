@@ -547,7 +547,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	protected void moveToFinalStoreOf(T transformation) throws NodeException {
 		try {
 			store = transformation.getFinalStore();
-			transformation.forEachDeliveredTransaction(this::signalCompleted);
 			transformation.forEachTriggeredEvent(this::notifyEvent);
 		}
 		catch (StoreException e) {
@@ -555,15 +554,24 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		}
 	}
 
+	/**
+	 * Publishes the given transaction, that is, takes note that it has been added to the store
+	 * of this node and became visible to its users. This method will signal all tasks waiting
+	 * for the completion of the transaction and will trigger all events contained
+	 * in the transaction. This method will be called, for instance, when one or more blocks
+	 * are added to the main chain of a blockchain, for each of the transactions in such blocks.
+	 * 
+	 * @param transaction the transaction to publish
+	 */
+	protected void publish(TransactionReference transaction) {
+		signalCompleted(transaction);
+	}
+
 	protected void closeResources() throws NodeException, InterruptedException {
 		long start = System.currentTimeMillis();
 
-		try {
-			executors.shutdownNow();
-		}
-		finally {
-			executors.awaitTermination(5000 - System.currentTimeMillis() + start, TimeUnit.MILLISECONDS);
-		}
+		executors.shutdownNow();
+		executors.awaitTermination(5000 - System.currentTimeMillis() + start, TimeUnit.MILLISECONDS);
 	}
 
 	/**

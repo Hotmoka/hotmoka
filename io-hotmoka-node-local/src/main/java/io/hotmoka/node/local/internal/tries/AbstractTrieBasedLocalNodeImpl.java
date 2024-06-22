@@ -151,9 +151,9 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	}
 
 	@Override
-	protected void moveToFinalStoreOf(T transaction) throws NodeException {
+	protected void moveToFinalStoreOf(T transformation) throws NodeException {
 		S oldStore = getStore();
-		super.moveToFinalStoreOf(transaction);
+		super.moveToFinalStoreOf(transformation);
 		setRootBranch(oldStore);
 	}
 

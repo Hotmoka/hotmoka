@@ -30,7 +30,6 @@ import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -297,8 +296,8 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 		}
 	}
 
-	public final void forEachDeliveredTransaction(Consumer<TransactionReference> notifier) throws StoreException {
-		deltaRequests.keySet().forEach(notifier::accept);
+	public final Stream<TransactionReference> getDeliveredRequests() {
+		return deltaRequests.keySet().stream();
 	}
 
 	@Override

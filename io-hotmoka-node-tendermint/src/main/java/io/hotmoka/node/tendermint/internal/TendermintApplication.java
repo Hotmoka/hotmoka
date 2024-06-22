@@ -299,10 +299,12 @@ class TendermintApplication extends ABCI {
 			transformation.deliverRewardTransaction(behaving, misbehaving);
 		}
 		catch (StoreException e) {
-			throw new RuntimeException(e);
+			throw new NodeException(e);
 		}
 
 		node.moveToFinalStoreOf(transformation);
+		transformation.getDeliveredRequests().forEachOrdered(node::publish);
+
 		byte[] hash = node.getLastBlockApplicationHash();
 		LOGGER.info("committed Tendermint state " + Hex.toHexString(hash).toUpperCase());
 		return ResponseCommit.newBuilder().setData(ByteString.copyFrom(hash)).build();

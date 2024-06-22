@@ -28,6 +28,7 @@ import java.util.concurrent.TimeoutException;
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.NodeUnmarshallingContexts;
+import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -43,9 +44,11 @@ import io.mokamint.application.api.ApplicationException;
 import io.mokamint.application.api.UnknownGroupIdException;
 import io.mokamint.application.api.UnknownStateException;
 import io.mokamint.node.Transactions;
+import io.mokamint.node.api.Block;
+import io.mokamint.node.api.NonGenesisBlock;
 import io.mokamint.node.api.Transaction;
+import io.mokamint.node.local.AbstractLocalNode;
 import io.mokamint.node.local.AlreadyInitializedException;
-import io.mokamint.node.local.LocalNodes;
 import io.mokamint.node.local.api.LocalNode;
 import io.mokamint.node.local.api.LocalNodeConfig;
 import io.mokamint.nonce.api.Deadline;
@@ -72,7 +75,23 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		super(config, init);
 
 		try {
-			this.mokamintNode = LocalNodes.of(mokamintConfig, keyPair, new MokamintHotmokaApplication(), init);
+			this.mokamintNode = new AbstractLocalNode(mokamintConfig, keyPair, new MokamintHotmokaApplication(), init) {
+
+				@Override
+				protected void onHeadChanged(Block newHead) {
+					super.onHeadChanged(newHead);
+
+					if (newHead instanceof NonGenesisBlock ngb)
+						for (var tx: ngb.getTransactions().toArray(Transaction[]::new)) {
+							try {
+								TransactionRequest<?> request = intoHotmokaRequest(tx);
+								publish(TransactionReferences.of(getHasher().hash(request)));
+							}
+							catch (ApplicationException | io.mokamint.node.api.TransactionRejectedException e) {
+							}
+						}
+				}
+			};
 		}
 		catch (AlreadyInitializedException | TimeoutException | ApplicationException | io.mokamint.node.api.NodeException e) {
 			throw new NodeException(e);
@@ -140,6 +159,20 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		}
 	}
 
+	private TransactionRequest<?> intoHotmokaRequest(Transaction transaction) throws io.mokamint.node.api.TransactionRejectedException, ApplicationException {
+		try (var context = NodeUnmarshallingContexts.of(new ByteArrayInputStream(transaction.getBytes()))) {
+			try {
+        		return TransactionRequests.from(context);
+        	}
+        	catch (IOException e) {
+        		throw new io.mokamint.node.api.TransactionRejectedException(e.getMessage(), e);
+        	}
+        }
+		catch (IOException e) {
+			throw new ApplicationException(e);
+		}
+	}
+
 	private class MokamintHotmokaApplication extends AbstractApplication {
 
 		/**
@@ -156,25 +189,16 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 		@Override
 		public void checkTransaction(Transaction transaction) throws io.mokamint.node.api.TransactionRejectedException, ApplicationException, TimeoutException, InterruptedException {
-			try (var context = NodeUnmarshallingContexts.of(new ByteArrayInputStream(transaction.getBytes()))) {
-				TransactionRequest<?> hotmokaRequest;
+			TransactionRequest<?> hotmokaRequest = intoHotmokaRequest(transaction);
 
-				try {
-	        		hotmokaRequest = TransactionRequests.from(context);
-	        	}
-	        	catch (IOException e) {
-	        		throw new io.mokamint.node.api.TransactionRejectedException(e.getMessage(), e);
-	        	}
-
-				try {
-					MokamintNodeImpl.this.checkTransaction(hotmokaRequest);
-				}
-				catch (TransactionRejectedException e) {
-					signalRejected(hotmokaRequest, e);
-					throw new io.mokamint.node.api.TransactionRejectedException(e.getMessage(), e);
-				}
-	        }
-			catch (IOException | NodeException e) {
+			try {
+				MokamintNodeImpl.this.checkTransaction(hotmokaRequest);
+			}
+			catch (TransactionRejectedException e) {
+				signalRejected(hotmokaRequest, e);
+				throw new io.mokamint.node.api.TransactionRejectedException(e.getMessage(), e);
+			}
+			catch (NodeException e) {
 				throw new ApplicationException(e);
 			}
 		}
@@ -186,17 +210,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 		@Override
 		public String getRepresentation(Transaction transaction) throws io.mokamint.node.api.TransactionRejectedException, ApplicationException {
-			try (var context = NodeUnmarshallingContexts.of(new ByteArrayInputStream(transaction.getBytes()))) {
-				try {
-					return TransactionRequests.from(context).toString();
-				}
-				catch (IOException e) {
-					throw new io.mokamint.node.api.TransactionRejectedException(e.getMessage(), e);
-				}
-	        }
-			catch (IOException e) {
-				throw new ApplicationException(e);
-			}
+			return intoHotmokaRequest(transaction).toString();
 		}
 
 		@Override
@@ -219,28 +233,16 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 		@Override
 		public void deliverTransaction(int groupId, Transaction transaction) throws io.mokamint.node.api.TransactionRejectedException, UnknownGroupIdException, ApplicationException {
-			try (var context = NodeUnmarshallingContexts.of(new ByteArrayInputStream(transaction.getBytes()))) {
-	        	TransactionRequest<?> hotmokaRequest;
+			TransactionRequest<?> hotmokaRequest = intoHotmokaRequest(transaction);
 
-	        	try {
-	        		hotmokaRequest = TransactionRequests.from(context);
-	        	}
-	        	catch (IOException e) {
-	        		throw new io.mokamint.node.api.TransactionRejectedException(e.getMessage(), e);
-	        	}
-
-	        	try {
-	        		transformation.deliverTransaction(hotmokaRequest);
-	        	}
-	        	catch (TransactionRejectedException e) {
-	        		signalRejected(hotmokaRequest, e);
-	        		throw new io.mokamint.node.api.TransactionRejectedException(e.getMessage(), e);
-	        	}
-	        	catch (StoreException e) {
-	        		throw new ApplicationException(e);
-	        	}
+			try {
+				transformation.deliverTransaction(hotmokaRequest);
 			}
-			catch (IOException e) {
+			catch (TransactionRejectedException e) {
+				signalRejected(hotmokaRequest, e);
+				throw new io.mokamint.node.api.TransactionRejectedException(e.getMessage(), e);
+			}
+			catch (StoreException e) {
 				throw new ApplicationException(e);
 			}
 		}

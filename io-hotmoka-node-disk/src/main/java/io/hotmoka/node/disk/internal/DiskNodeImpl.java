@@ -25,6 +25,7 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.api.requests.TransactionRequest;
+import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.disk.api.DiskNode;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.local.AbstractLocalNode;
@@ -108,6 +109,11 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 	@Override
 	protected void moveToFinalStoreOf(DiskStoreTransformation transaction) throws NodeException {
 		super.moveToFinalStoreOf(transaction);
+	}
+
+	@Override
+	protected void publish(TransactionReference transaction) {
+		super.publish(transaction);
 	}
 
 	@Override

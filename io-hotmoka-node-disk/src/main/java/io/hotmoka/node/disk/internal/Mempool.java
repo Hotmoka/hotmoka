@@ -164,12 +164,13 @@ class Mempool {
 		}
 	}
 
-	private DiskStoreTransformation restartTransaction(DiskStoreTransformation transaction) throws NodeException {
+	private DiskStoreTransformation restartTransaction(DiskStoreTransformation transformation) throws NodeException {
 		try {
 			// if we delivered zero transactions, we prefer to avoid the creation of an empty block
-			if (transaction.deliveredCount() > 0) {
-				transaction.deliverRewardTransaction("", "");
-				node.moveToFinalStoreOf(transaction);
+			if (transformation.deliveredCount() > 0) {
+				transformation.deliverRewardTransaction("", "");
+				node.moveToFinalStoreOf(transformation);
+				transformation.getDeliveredRequests().forEachOrdered(node::publish);
 			}
 
 			return node.getStore().beginTransaction(System.currentTimeMillis());
