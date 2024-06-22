@@ -23,15 +23,18 @@ import java.util.logging.Logger;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.api.Hasher;
+import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.StoreCache;
+import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.Store;
 import io.hotmoka.node.local.api.StoreException;
@@ -211,6 +214,10 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	@Override
 	protected final Hasher<TransactionRequest<?>> getHasher() {
 		return getNode().getHasher();
+	}
+
+	protected final StorageReference getCreator(StorageReference event) throws UnknownReferenceException, FieldNotFoundException, StoreException {
+		return getReferenceField(event, FieldSignatures.EVENT_CREATOR_FIELD);
 	}
 
 	@Override

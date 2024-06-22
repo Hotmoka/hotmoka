@@ -74,12 +74,14 @@ import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.GameteCreationTransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
+import io.hotmoka.node.api.responses.TransactionResponseWithEvents;
 import io.hotmoka.node.api.responses.TransactionResponseWithUpdates;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
+import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.LocalNode;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StoreException;
@@ -544,10 +546,9 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		}
 	}
 
-	protected void moveToFinalStoreOf(T transformation) throws NodeException {
+	protected S moveToFinalStoreOf(T transformation) throws NodeException {
 		try {
-			store = transformation.getFinalStore();
-			transformation.forEachTriggeredEvent(this::notifyEvent);
+			return store = transformation.getFinalStore();
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);
@@ -561,10 +562,21 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 * in the transaction. This method will be called, for instance, when one or more blocks
 	 * are added to the main chain of a blockchain, for each of the transactions in such blocks.
 	 * 
-	 * @param transaction the transaction to publish
+	 * @param reference the transaction to publish
+	 * @param store the store where {@code transaction} and its potential events can be found
 	 */
-	protected void publish(TransactionReference transaction) {
-		signalCompleted(transaction);
+	protected void publish(TransactionReference reference, S store) throws NodeException {
+		signalCompleted(reference);
+
+		try {
+			TransactionResponse response = store.getResponse(reference);
+			if (response instanceof TransactionResponseWithEvents trwe)
+				CheckRunnable.check(UnknownReferenceException.class, StoreException.class, FieldNotFoundException.class, () -> trwe.getEvents().forEachOrdered(UncheckConsumer.uncheck(event -> notifyEvent(store.getCreator(event), event))));
+		}
+		catch (StoreException | UnknownReferenceException | FieldNotFoundException e) {
+			System.out.println("failed: " + e.getMessage());
+			throw new NodeException(e);
+		}
 	}
 
 	protected void closeResources() throws NodeException, InterruptedException {

@@ -27,6 +27,8 @@ import com.google.protobuf.ByteString;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.Hex;
+import io.hotmoka.exceptions.CheckRunnable;
+import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.NodeException;
@@ -302,8 +304,8 @@ class TendermintApplication extends ABCI {
 			throw new NodeException(e);
 		}
 
-		node.moveToFinalStoreOf(transformation);
-		transformation.getDeliveredRequests().forEachOrdered(node::publish);
+		TendermintStore newStore = node.moveToFinalStoreOf(transformation);
+		CheckRunnable.check(NodeException.class, () -> transformation.getDeliveredTransactions().forEachOrdered(UncheckConsumer.uncheck(reference -> node.publish(reference, newStore))));
 
 		byte[] hash = node.getLastBlockApplicationHash();
 		LOGGER.info("committed Tendermint state " + Hex.toHexString(hash).toUpperCase());

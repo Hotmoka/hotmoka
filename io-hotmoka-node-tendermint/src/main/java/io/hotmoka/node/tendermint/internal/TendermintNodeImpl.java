@@ -213,13 +213,13 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	}
 
 	@Override
-	protected void moveToFinalStoreOf(TendermintStoreTransformation transaction) throws NodeException {
-		super.moveToFinalStoreOf(transaction);
+	protected TendermintStore moveToFinalStoreOf(TendermintStoreTransformation transaction) throws NodeException {
+		return super.moveToFinalStoreOf(transaction);
 	}
 
 	@Override
-	protected void publish(TransactionReference transaction) {
-		super.publish(transaction);
+	protected void publish(TransactionReference transaction, TendermintStore store) throws NodeException {
+		super.publish(transaction, store);
 	}
 
 	protected void setRootBranch(Transaction txn) throws ExodusException {

@@ -107,13 +107,13 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 	}
 
 	@Override
-	protected void moveToFinalStoreOf(DiskStoreTransformation transaction) throws NodeException {
-		super.moveToFinalStoreOf(transaction);
+	protected DiskStore moveToFinalStoreOf(DiskStoreTransformation transaction) throws NodeException {
+		return super.moveToFinalStoreOf(transaction);
 	}
 
 	@Override
-	protected void publish(TransactionReference transaction) {
-		super.publish(transaction);
+	protected void publish(TransactionReference transaction, DiskStore store) throws NodeException {
+		super.publish(transaction, store);
 	}
 
 	@Override

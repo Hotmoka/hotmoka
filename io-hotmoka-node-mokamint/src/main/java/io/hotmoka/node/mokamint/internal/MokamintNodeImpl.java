@@ -23,7 +23,11 @@ import java.security.KeyPair;
 import java.security.SignatureException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.NodeInfos;
@@ -35,6 +39,7 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.local.AbstractTrieBasedLocalNode;
+import io.hotmoka.node.local.StateIds;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.mokamint.api.MokamintNode;
@@ -61,8 +66,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 	private final LocalNode mokamintNode;
 
-	//private final static Logger LOGGER = Logger.getLogger(MokamintNodeImpl.class.getName());
-
+	private final static Logger LOGGER = Logger.getLogger(MokamintNodeImpl.class.getName());
 
 	/**
 	 * Builds a new disk memory node.
@@ -82,19 +86,37 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 					super.onHeadChanged(newHead);
 
 					if (newHead instanceof NonGenesisBlock ngb)
-						for (var tx: ngb.getTransactions().toArray(Transaction[]::new)) {
-							try {
-								TransactionRequest<?> request = intoHotmokaRequest(tx);
-								publish(TransactionReferences.of(getHasher().hash(request)));
-							}
-							catch (ApplicationException | io.mokamint.node.api.TransactionRejectedException e) {
-							}
-						}
+						toPublish.offer(ngb);
 				}
 			};
 		}
 		catch (AlreadyInitializedException | TimeoutException | ApplicationException | io.mokamint.node.api.NodeException e) {
 			throw new NodeException(e);
+		}
+
+		getExecutors().execute(this::publishBlocks);
+	}
+
+	private final BlockingQueue<NonGenesisBlock> toPublish = new LinkedBlockingDeque<>();
+
+	private void publishBlocks() {
+		try {
+			while (!Thread.currentThread().isInterrupted()) {
+				NonGenesisBlock next = toPublish.take();
+
+				try {
+					MokamintStore store = mkStore(StateIds.of(next.getStateId()));
+
+					for (var tx: next.getTransactions().toArray(Transaction[]::new))
+						publish(TransactionReferences.of(getHasher().hash(intoHotmokaRequest(tx))), store);
+				}
+				catch (ApplicationException | NodeException | io.mokamint.node.api.TransactionRejectedException e) {
+					LOGGER.log(Level.SEVERE, "failed to publish the transactions in a block", e);
+				}
+			}
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
 		}
 	}
 
@@ -181,6 +203,8 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		//private final ConcurrentMap<Integer, MokamintStoreTransformation> transactions = new ConcurrentHashMap<>();
 		private volatile MokamintStoreTransformation transformation;
 
+		private volatile MokamintStore finalStore;
+
 		@Override
 		public boolean checkPrologExtra(byte[] extra) throws ApplicationException {
 			// TODO Auto-generated method stub
@@ -249,13 +273,19 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 		@Override
 		public byte[] endBlock(int groupId, Deadline deadline) throws ApplicationException, UnknownGroupIdException {
-			return getStore().getStateId().getBytes();
+			try {
+				return (finalStore = transformation.getFinalStore()).getStateId().getBytes();
+			}
+			catch (StoreException e) {
+				throw new ApplicationException(e);
+			}
 		}
 
 		@Override
 		public void commitBlock(int groupId) throws ApplicationException, UnknownGroupIdException {
 			try {
-				moveToFinalStoreOf(transformation);
+				commit(finalStore);
+				setStore(finalStore);
 			}
 			catch (NodeException e) {
 				throw new ApplicationException(e);

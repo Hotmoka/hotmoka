@@ -153,6 +153,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 				throw new StoreException(e.getCause());
 			}
 			catch (InterruptedException e) {
+				Thread.currentThread().isInterrupted();
 				// TODO
 				throw new RuntimeException(e);
 			}

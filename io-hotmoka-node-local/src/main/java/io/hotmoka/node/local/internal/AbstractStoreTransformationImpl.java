@@ -296,7 +296,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 		}
 	}
 
-	public final Stream<TransactionReference> getDeliveredRequests() {
+	public final Stream<TransactionReference> getDeliveredTransactions() {
 		return deltaRequests.keySet().stream();
 	}
 

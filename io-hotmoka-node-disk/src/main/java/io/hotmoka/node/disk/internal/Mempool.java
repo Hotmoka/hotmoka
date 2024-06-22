@@ -23,6 +23,8 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import io.hotmoka.exceptions.CheckRunnable;
+import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.TransactionRequest;
@@ -169,8 +171,8 @@ class Mempool {
 			// if we delivered zero transactions, we prefer to avoid the creation of an empty block
 			if (transformation.deliveredCount() > 0) {
 				transformation.deliverRewardTransaction("", "");
-				node.moveToFinalStoreOf(transformation);
-				transformation.getDeliveredRequests().forEachOrdered(node::publish);
+				DiskStore newStore = node.moveToFinalStoreOf(transformation);
+				CheckRunnable.check(NodeException.class, () -> transformation.getDeliveredTransactions().forEachOrdered(UncheckConsumer.uncheck(reference -> node.publish(reference, newStore))));
 			}
 
 			return node.getStore().beginTransaction(System.currentTimeMillis());

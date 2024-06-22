@@ -151,10 +151,11 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	}
 
 	@Override
-	protected void moveToFinalStoreOf(T transformation) throws NodeException {
+	protected S moveToFinalStoreOf(T transformation) throws NodeException {
 		S oldStore = getStore();
-		super.moveToFinalStoreOf(transformation);
+		S newStore = super.moveToFinalStoreOf(transformation);
 		setRootBranch(oldStore);
+		return newStore;
 	}
 
 	@Override
@@ -262,6 +263,17 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 				setRootBranch(txn);
 				getStore().malloc(txn); // increment the reference count of the new store
 				addPastStoreToListOfNotYetGarbageCollected(oldStore, txn); // add the old store to the past stores list
+			})));
+		}
+		catch (ExodusException | StoreException e) {
+			throw new NodeException(e);
+		}
+	}
+
+	protected void commit(S store) throws NodeException {
+		try {
+			CheckRunnable.check(StoreException.class, () -> env.executeInTransaction(UncheckConsumer.uncheck(txn -> {
+				store.malloc(txn); // increment the reference count of the new store
 			})));
 		}
 		catch (ExodusException | StoreException e) {
