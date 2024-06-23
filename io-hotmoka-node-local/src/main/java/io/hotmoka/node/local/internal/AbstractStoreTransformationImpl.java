@@ -28,8 +28,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -125,10 +123,8 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	private volatile BigInteger coinsWithoutInflation;
 
 	/**
-	 * The transactions containing events that must be notified at commit-time.
+	 * The current time to use for the execution of transactions delivered into this transformation.
 	 */
-	private final Set<TransactionResponseWithEvents> responsesWithEventsToNotify = ConcurrentHashMap.newKeySet();
-
 	private final long now;
 
 	/**
@@ -143,7 +139,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	 * 
 	 * @param store the initial store of the transformation
 	 * @param consensus the consensus to use for the execution of transactions in the transformation
-	 * @param now the current time to use for the execution of transactions in the transformation
+	 * @param now the current time to use for the execution of delivered transactions into the transformation
 	 */
 	protected AbstractStoreTransformationImpl(S store, ConsensusConfig<?,?> consensus, long now) {
 		super(store.getNode().getExecutors());
@@ -240,7 +236,6 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 			TransactionResponse response = responseBuilder.getResponse();
 			push(reference, request, response);
 			responseBuilder.replaceReverifiedResponses();
-			scheduleEventsForNotificationAfterCommit(response);
 			takeNoteForNextReward(request, response);
 			invalidateCachesIfNeeded(response, responseBuilder.getClassLoader());
 	
@@ -280,20 +275,6 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	public final Optional<StorageReference> getManifest() throws StoreException {
 		var uncommittedManifest = manifest;
 		return uncommittedManifest != null ? Optional.of(uncommittedManifest) : getInitialStore().getManifest();
-	}
-
-	public final void forEachTriggeredEvent(BiConsumer<StorageReference, StorageReference> notifier) throws StoreException {
-		try {
-			CheckRunnable.check(StoreException.class, UnknownReferenceException.class, FieldNotFoundException.class, () ->
-				responsesWithEventsToNotify.stream()
-					.flatMap(TransactionResponseWithEvents::getEvents)
-					.forEachOrdered(UncheckConsumer.uncheck(event -> notifier.accept(getCreator(event), event))));
-		}
-		catch (UnknownReferenceException | FieldNotFoundException e) {
-			// the set of events to notify contains an event that cannot be found in store or that
-			// has no creator field: the delivery method of the store is definitely misbehaving
-			throw new StoreException(e);
-		}
 	}
 
 	public final Stream<TransactionReference> getDeliveredTransactions() {
@@ -631,11 +612,6 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 
 	private BigInteger getCurrentSupply(StorageReference validators) throws UnknownReferenceException, FieldNotFoundException, StoreException {
 		return getBigIntegerField(validators, FieldSignatures.ABSTRACT_VALIDATORS_CURRENT_SUPPLY_FIELD);
-	}
-
-	private void scheduleEventsForNotificationAfterCommit(TransactionResponse response) {
-		if (response instanceof TransactionResponseWithEvents responseWithEvents && responseWithEvents.getEvents().findAny().isPresent())
-			responsesWithEventsToNotify.add(responseWithEvents);
 	}
 
 	/**
