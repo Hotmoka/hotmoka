@@ -507,11 +507,11 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 */
 	protected void exit(S store) {}
 
-	protected S getStore() {
+	protected final S getStore() {
 		return store;
 	}
 
-	protected void setStore(S store) {
+	protected final void setStore(S store) {
 		this.store = store;
 	}
 
@@ -523,7 +523,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		return hasher;
 	}
 
-	protected void signalRejected(TransactionRequest<?> request, TransactionRejectedException e) {
+	protected final void signalRejected(TransactionRequest<?> request, TransactionRejectedException e) {
 		var reference = TransactionReferences.of(hasher.hash(request));
 		recentlyRejectedTransactionsMessages.put(reference, e.getMessage());
 		Semaphore semaphore = semaphores.remove(reference);
@@ -531,7 +531,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 			semaphore.release();
 	}
 
-	protected void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException, NodeException {
+	protected final void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException, NodeException {
 		S store = this.store;
 		enter(store);
 
@@ -556,7 +556,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 * @param reference the transaction to publish
 	 * @param store the store where {@code transaction} and its potential events can be found
 	 */
-	protected void publish(TransactionReference reference, S store) throws NodeException {
+	protected final void publish(TransactionReference reference, S store) throws NodeException {
 		signalCompleted(reference);
 
 		try {

@@ -185,8 +185,6 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 */
 	protected abstract S mkStore(StateId stateId) throws NodeException;
 
-	protected void setRootBranch(Transaction txn) throws ExodusException {}
-
 	private boolean canBeGarbageCollected(StateId id) {
 		var currentStore = getStore();
 		// the current store might be null if the node has just restarted and its store has not been set yet 
@@ -261,6 +259,8 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 			throw new NodeException(e);
 		}
 	}
+
+	protected void setRootBranch(Transaction txn) throws ExodusException {}
 
 	protected void commit(S store) throws NodeException {
 		try {
