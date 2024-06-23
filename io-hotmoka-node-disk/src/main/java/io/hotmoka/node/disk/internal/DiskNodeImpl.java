@@ -16,16 +16,22 @@ limitations under the License.
 
 package io.hotmoka.node.disk.internal;
 
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.exceptions.CheckRunnable;
+import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.node.ClosedNodeException;
 import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.api.requests.TransactionRequest;
-import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.disk.api.DiskNode;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.local.AbstractLocalNode;
@@ -56,7 +62,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 		super(config, true);
 
 		try {
-			this.mempool = new Mempool(this, config.getTransactionsPerBlock());
+			this.mempool = new Mempool();
 		}
 		catch (NodeException e) {
 			close();
@@ -96,28 +102,149 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 		mempool.add(request);
 	}
 
-	@Override
-	protected void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException, NodeException {
-		super.checkTransaction(request);
-	}
+	/**
+	 * A mempool receives transaction requests and schedules them for execution,
+	 * respecting the order in which they have been proposed.
+	 */
+	private class Mempool {
+		private final static int MAX_CAPACITY = 200_000;
 
-	@Override
-	protected void signalRejected(TransactionRequest<?> request, TransactionRejectedException e) {
-		super.signalRejected(request, e);
-	}
+		private final static Logger LOGGER = Logger.getLogger(Mempool.class.getName());
 
-	@Override
-	protected void publish(TransactionReference transaction, DiskStore store) throws NodeException {
-		super.publish(transaction, store);
-	}
+		/**
+		 * The queue of requests to check.
+		 */
+		private final BlockingQueue<TransactionRequest<?>> mempool = new LinkedBlockingDeque<>(MAX_CAPACITY);
 
-	@Override
-	protected void setStore(DiskStore store) {
-		super.setStore(store);
-	}
+		/**
+		 * The queue of the already checked requests, that still need to be executed.
+		 */
+		private final BlockingQueue<TransactionRequest<?>> checkedMempool = new LinkedBlockingDeque<>(MAX_CAPACITY);
 
-	@Override
-	protected DiskStore getStore() {
-		return super.getStore();
+		/**
+		 * The thread that checks requests when they are submitted.
+		 */
+		private final Thread checker;
+
+		/**
+		 * The thread the execution requests that have already been checked.
+		 */
+		private final Thread deliverer;
+
+		private final int transactionsPerBlock;
+		
+		/**
+		 * Builds a mempool.
+		 */
+		private Mempool() throws NodeException {
+			this.transactionsPerBlock = getLocalConfig().getTransactionsPerBlock();
+			this.checker = new Thread(this::check);
+			this.checker.start();
+			this.deliverer = new Thread(this::deliver);
+			this.deliverer.start();
+		}
+
+		/**
+		 * Adds a request to the mempool. Eventually, it will be checked and executed.
+		 * 
+		 * @param request the request
+		 * @throws InterruptedException 
+		 * @throws TimeoutException 
+		 */
+		private void add(TransactionRequest<?> request) throws InterruptedException, TimeoutException {
+			if (!mempool.offer(request, 10, TimeUnit.MILLISECONDS))
+				throw new TimeoutException("Mempool overflow");
+		}
+
+		/**
+		 * Stops the mempool, by stopping its working threads.
+		 */
+		private void stop() {
+			checker.interrupt();
+			deliverer.interrupt();
+		}
+
+		/**
+		 * The body of the checking thread. Its pops a request from the mempool and checks it.
+		 */
+		private void check() {
+			try {
+				while (true) {
+					TransactionRequest<?> current = mempool.take();
+
+					try {
+						checkTransaction(current);
+						if (!checkedMempool.offer(current)) {
+							deliverer.interrupt();
+							throw new NodeException("Mempool overflow");
+						}
+					}
+					catch (TransactionRejectedException e) {
+						signalRejected(current, e);
+					}
+				}
+			}
+			catch (NodeException e) {
+				LOGGER.log(Level.SEVERE, "transaction check failure", e);
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+			catch (RuntimeException e) {
+				LOGGER.log(Level.SEVERE, "Unexpected exception", e);
+			}
+		}
+
+		/**
+		 * The body of the thread that executes requests. Its pops a request from the checked mempool and executes it.
+		 */
+		private void deliver() {
+			try {
+				DiskStoreTransformation transaction = getStore().beginTransaction(System.currentTimeMillis());
+
+				while (true) {
+					TransactionRequest<?> current = checkedMempool.poll(2, TimeUnit.MILLISECONDS);
+					if (current == null)
+						transaction = restartTransaction(transaction);
+					else {
+						try {
+							transaction.deliverTransaction(current);
+
+							if (transaction.deliveredCount() == transactionsPerBlock - 1)
+								transaction = restartTransaction(transaction);
+						}
+						catch (TransactionRejectedException e) {
+							signalRejected(current, e);
+						}
+					}
+				}
+			}
+			catch (StoreException | NodeException e) {
+				LOGGER.log(Level.SEVERE, "transaction delivery failure", e);
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+			catch (RuntimeException e) {
+				LOGGER.log(Level.SEVERE, "Unexpected exception", e);
+			}
+		}
+
+		private DiskStoreTransformation restartTransaction(DiskStoreTransformation transformation) throws NodeException {
+			try {
+				// if we delivered zero transactions, we prefer to avoid the creation of an empty block
+				if (transformation.deliveredCount() > 0) {
+					transformation.deliverRewardTransaction("", "");
+					DiskStore newStore = transformation.getFinalStore();
+					setStore(newStore);
+					CheckRunnable.check(NodeException.class, () -> transformation.getDeliveredTransactions().forEachOrdered(UncheckConsumer.uncheck(reference -> publish(reference, newStore))));
+				}
+
+				return getStore().beginTransaction(System.currentTimeMillis());
+			}
+			catch (StoreException e) {
+				throw new NodeException(e);
+			}
+		}
 	}
 }
