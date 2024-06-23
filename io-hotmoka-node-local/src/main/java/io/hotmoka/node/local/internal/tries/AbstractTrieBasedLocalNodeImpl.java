@@ -150,20 +150,6 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		return env;
 	}
 
-	protected S moveToFinalStoreOf(T transformation) throws NodeException {
-		S oldStore = getStore();
-
-		try {
-			setStore(transformation.getFinalStore());
-		}
-		catch (StoreException e) {
-			throw new NodeException(e);
-		}
-
-		setRootBranch(oldStore);
-		return getStore();
-	}
-
 	@Override
 	protected void closeResources() throws NodeException, InterruptedException {
 		try {
@@ -263,7 +249,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		}
 	}
 
-	private void setRootBranch(S oldStore) throws NodeException {
+	protected final void setRootBranch(S oldStore) throws NodeException {
 		try {
 			CheckRunnable.check(StoreException.class, () -> env.executeInTransaction(UncheckConsumer.uncheck(txn -> {
 				setRootBranch(txn);

@@ -172,6 +172,7 @@ class Mempool {
 			if (transformation.deliveredCount() > 0) {
 				transformation.deliverRewardTransaction("", "");
 				DiskStore newStore = transformation.getFinalStore();
+				node.setStore(newStore);
 				CheckRunnable.check(NodeException.class, () -> transformation.getDeliveredTransactions().forEachOrdered(UncheckConsumer.uncheck(reference -> node.publish(reference, newStore))));
 			}
 

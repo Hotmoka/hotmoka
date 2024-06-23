@@ -212,9 +212,16 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		super.signalRejected(request, e);
 	}
 
-	@Override
-	protected TendermintStore moveToFinalStoreOf(TendermintStoreTransformation transaction) throws NodeException {
-		return super.moveToFinalStoreOf(transaction);
+	protected TendermintStore moveToFinalStoreOf(TendermintStoreTransformation transformation) throws NodeException {
+		try {
+			TendermintStore oldStore = getStore();
+			setStore(transformation.getFinalStore());
+			setRootBranch(oldStore);
+			return getStore();
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}
 	}
 
 	@Override
@@ -222,6 +229,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		super.publish(transaction, store);
 	}
 
+	@Override
 	protected void setRootBranch(Transaction txn) throws ExodusException {
 		byte[] id = getStore().getStateId().getBytes();
 		var rootAsBI = ByteIterable.fromBytes(id);

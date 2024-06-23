@@ -112,6 +112,11 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 	}
 
 	@Override
+	protected void setStore(DiskStore store) {
+		super.setStore(store);
+	}
+
+	@Override
 	protected DiskStore getStore() {
 		return super.getStore();
 	}

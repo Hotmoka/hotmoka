@@ -511,7 +511,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		return store;
 	}
 
-	protected final void setStore(S store) {
+	protected void setStore(S store) {
 		this.store = store;
 	}
 
