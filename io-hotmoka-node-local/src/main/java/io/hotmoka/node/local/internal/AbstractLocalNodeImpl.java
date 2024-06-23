@@ -560,11 +560,10 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		signalCompleted(reference);
 
 		try {
-			TransactionResponse response = store.getResponse(reference);
-			if (response instanceof TransactionResponseWithEvents trwe)
-				CheckRunnable.check(UnknownReferenceException.class, StoreException.class, FieldNotFoundException.class, () -> trwe.getEvents().forEachOrdered(UncheckConsumer.uncheck(event -> notifyEvent(storeOfHead.getCreator(event), event))));
+			if (store.getResponse(reference) instanceof TransactionResponseWithEvents trwe)
+				CheckRunnable.check(NodeException.class, () -> trwe.getEvents().forEachOrdered(UncheckConsumer.uncheck(event -> notifyEvent(event, store))));
 		}
-		catch (StoreException | UnknownReferenceException | FieldNotFoundException e) {
+		catch (StoreException | UnknownReferenceException e) {
 			throw new NodeException(e);
 		}
 	}
@@ -612,7 +611,16 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 			semaphore.release();
 	}
 
-	private void notifyEvent(StorageReference creator, StorageReference event) {
+	private void notifyEvent(StorageReference event, S store) throws NodeException {
+		StorageReference creator;
+
+		try {
+			creator = store.getCreator(event);
+		}
+		catch (StoreException | UnknownReferenceException | FieldNotFoundException e) {
+			throw new NodeException(e);
+		}
+
 		subscriptions.notifyEvent(creator, event);
 		LOGGER.info(event + ": notified as event with creator " + creator);		
 	}
