@@ -186,7 +186,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	protected abstract S mkStore(StateId stateId) throws NodeException;
 
 	private boolean canBeGarbageCollected(StateId id) {
-		var currentStore = getStore();
+		var currentStore = getStoreOfHead();
 		// the current store might be null if the node has just restarted and its store has not been set yet 
 		if (currentStore == null || !id.equals(currentStore.getStateId()))
 			return storeUsers.getOrDefault(id, 0) == 0;
@@ -251,7 +251,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		try {
 			CheckRunnable.check(StoreException.class, () -> env.executeInTransaction(UncheckConsumer.uncheck(txn -> {
 				setRootBranch(txn);
-				getStore().malloc(txn); // increment the reference count of the new store
+				getStoreOfHead().malloc(txn); // increment the reference count of the new store
 				addPastStoreToListOfNotYetGarbageCollected(oldStore, txn); // add the old store to the past stores list
 			})));
 		}

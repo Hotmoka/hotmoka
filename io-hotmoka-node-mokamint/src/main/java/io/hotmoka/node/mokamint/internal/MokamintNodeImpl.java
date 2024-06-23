@@ -245,7 +245,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		@Override
 		public int beginBlock(long height, LocalDateTime when, byte[] stateId) throws UnknownStateException, ApplicationException {
 			try {
-				transformation = getStore() //.checkedOutAt(StateIds.of(stateId))
+				transformation = getStoreOfHead() //.checkedOutAt(StateIds.of(stateId))
 					.beginTransaction(when.toInstant(ZoneOffset.UTC).toEpochMilli());
 			}
 			catch (StoreException e) {
@@ -285,7 +285,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		public void commitBlock(int groupId) throws ApplicationException, UnknownGroupIdException {
 			try {
 				commit(finalStore);
-				setStore(finalStore);
+				setStoreOfHead(finalStore);
 			}
 			catch (NodeException e) {
 				throw new ApplicationException(e);

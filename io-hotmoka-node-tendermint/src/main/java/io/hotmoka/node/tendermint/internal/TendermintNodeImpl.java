@@ -172,30 +172,6 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		}
 	}
 
-	/**
-	 * Yields the hash of the store at the current head of the blockchain.
-	 * 
-	 * @return the hash
-	 */
-	protected final byte[] getLastBlockApplicationHash() {
-		return getStore().getStateId().getBytes();
-	}
-
-	/**
-	 * Yields the blockchain height.
-	 * 
-	 * @return the height of the blockchain of this node
-	 * @throws NodeException if the operation cannot be completed correctly
-	 */
-	protected final long getLastBlockHeight() throws NodeException {
-		try {
-			return getEnvironment().computeInReadonlyTransaction(this::getHeight);
-		}
-		catch (ExodusException e) {
-			throw new NodeException(e);
-		}
-	}
-
 	@Override
 	protected void closeResources() throws NodeException, InterruptedException {
 		try {
@@ -231,21 +207,9 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		poster.postRequest(request);
 	}
 
-	protected TendermintStore moveToFinalStoreOf(TendermintStoreTransformation transformation) throws NodeException {
-		try {
-			TendermintStore oldStore = getStore();
-			setStore(transformation.getFinalStore());
-			setRootBranch(oldStore);
-			return getStore();
-		}
-		catch (StoreException e) {
-			throw new NodeException(e);
-		}
-	}
-
 	@Override
 	protected void setRootBranch(Transaction txn) throws ExodusException {
-		byte[] id = getStore().getStateId().getBytes();
+		byte[] id = getStoreOfHead().getStateId().getBytes();
 		var rootAsBI = ByteIterable.fromBytes(id);
 		// we set the root branch, that will be used if the node is resumed
 		getStoreOfNode().put(txn, ROOT, rootAsBI); // set the root branch
@@ -259,7 +223,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 			throw new NodeException("Cannot find the root of the saved store of the node");
 
 		try {
-			setStore(getStore().checkedOutAt(StateIds.of(root.get())));
+			setStoreOfHead(getStoreOfHead().checkedOutAt(StateIds.of(root.get())));
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);
@@ -580,6 +544,30 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	    	return Stream.of(validators).anyMatch(validator -> validator.address.equals(address) && validator.power != power);
 	    }
 
+	    /**
+		 * Yields the hash of the store at the current head of the blockchain.
+		 * 
+		 * @return the hash
+		 */
+		private byte[] getLastBlockApplicationHash() {
+			return getStoreOfHead().getStateId().getBytes();
+		}
+
+		/**
+		 * Yields the blockchain height.
+		 * 
+		 * @return the height of the blockchain of this node
+		 * @throws NodeException if the operation cannot be completed correctly
+		 */
+		private long getLastBlockHeight() throws NodeException {
+			try {
+				return getEnvironment().computeInReadonlyTransaction(TendermintNodeImpl.this::getHeight);
+			}
+			catch (ExodusException e) {
+				throw new NodeException(e);
+			}
+		}
+
 		@Override
 		protected ResponseInitChain initChain(RequestInitChain request) {
 			request.getInitialHeight();
@@ -630,7 +618,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	    	misbehaving = spaceSeparatedSequenceOfMisbehavingValidatorsAddresses(request);
 
 	    	try {
-	    		transformation = getStore().beginTransaction(timeOfBlock(request));
+	    		transformation = getStoreOfHead().beginTransaction(timeOfBlock(request));
 	    	}
 	    	catch (StoreException e) {
 	    		throw new RuntimeException(e); // TODO
@@ -701,7 +689,16 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 				throw new NodeException(e);
 			}
 
-			TendermintStore newStore = moveToFinalStoreOf(transformation);
+			try {
+				TendermintStore oldStore = getStoreOfHead();
+				setStoreOfHead(transformation.getFinalStore());
+				setRootBranch(oldStore);
+			}
+			catch (StoreException e) {
+				throw new NodeException(e);
+			}
+
+			TendermintStore newStore = getStoreOfHead();
 			CheckRunnable.check(NodeException.class, () -> transformation.getDeliveredTransactions().forEachOrdered(UncheckConsumer.uncheck(reference -> publish(reference, newStore))));
 
 			byte[] hash = getLastBlockApplicationHash();

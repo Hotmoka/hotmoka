@@ -139,9 +139,9 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	private final LRUCache<TransactionReference, String> recentlyRejectedTransactionsMessages;
 
 	/**
-	 * The store of this node.
+	 * The store of the head of this node.
 	 */
-	private volatile S store;
+	private volatile S storeOfHead;
 
 	/**
 	 * The version of Hotmoka used by the nodes.
@@ -187,7 +187,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		if (init)
 			initWorkingDirectory();
 
-		this.store = mkStore();
+		this.storeOfHead = mkStore();
 		this.executors = Executors.newCachedThreadPool();
 
 		addShutdownHook();
@@ -208,7 +208,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 
 	@Override
 	public final ConsensusConfig<?,?> getConfig() throws NodeException {
-		S store = this.store;
+		S store = this.storeOfHead;
 		enter(store);
 
 		try (var scope = mkScope()) {
@@ -242,7 +242,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 
 	@Override
 	public final StorageReference getManifest() throws NodeException {
-		S store = this.store;
+		S store = this.storeOfHead;
 		enter(store);
 
 		try (var scope = mkScope()) {
@@ -281,7 +281,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 
 	@Override
 	public final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, NodeException {
-		S store = this.store;
+		S store = this.storeOfHead;
 		enter(store);
 		
 		try (var scope = mkScope()) {
@@ -297,7 +297,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 
 	@Override
 	public final TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, UnknownReferenceException, NodeException {
-		S store = this.store;
+		S store = this.storeOfHead;
 		enter(store);
 
 		try (var scope = mkScope()) {
@@ -322,7 +322,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 
 	@Override
 	public final ClassTag getClassTag(StorageReference reference) throws UnknownReferenceException, NodeException {
-		S store = this.store;
+		S store = this.storeOfHead;
 		enter(store);
 
 		try (var scope = mkScope()) {
@@ -347,14 +347,14 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 
 	@Override
 	public final Stream<Update> getState(StorageReference reference) throws UnknownReferenceException, NodeException {
-		S store = this.store;
+		S store = this.storeOfHead;
 		enter(store);
 
 		try (var scope = mkScope()) {
 			try {
 				Stream<TransactionReference> history = store.getHistory(Objects.requireNonNull(reference));
 				var updates = new HashSet<Update>();
-				CheckRunnable.check(StoreException.class, () -> history.forEachOrdered(UncheckConsumer.uncheck(transaction -> addUpdatesCommitted(store, reference, transaction, updates))));
+				CheckRunnable.check(StoreException.class, () -> history.forEachOrdered(UncheckConsumer.uncheck(transaction -> addUpdatesCommitted(storeOfHead, reference, transaction, updates))));
 				return updates.stream();
 			}
 			catch (StoreException e) {
@@ -423,7 +423,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 
 	@Override
 	public final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException {
-		S store = this.store;
+		S store = this.storeOfHead;
 		enter(store);
 
 		try (var scope = mkScope()) {
@@ -444,7 +444,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 
 	@Override
 	public final Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException {
-		S store = this.store;
+		S store = this.storeOfHead;
 		enter(store);
 
 		try (var scope = mkScope()) {
@@ -507,12 +507,12 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 */
 	protected void exit(S store) {}
 
-	protected final S getStore() {
-		return store;
+	protected final S getStoreOfHead() {
+		return storeOfHead;
 	}
 
-	protected final void setStore(S store) {
-		this.store = store;
+	protected final void setStoreOfHead(S store) {
+		this.storeOfHead = store;
 	}
 
 	protected final ExecutorService getExecutors() {
@@ -532,7 +532,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	protected final void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException, NodeException {
-		S store = this.store;
+		S store = this.storeOfHead;
 		enter(store);
 
 		try {
@@ -562,7 +562,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		try {
 			TransactionResponse response = store.getResponse(reference);
 			if (response instanceof TransactionResponseWithEvents trwe)
-				CheckRunnable.check(UnknownReferenceException.class, StoreException.class, FieldNotFoundException.class, () -> trwe.getEvents().forEachOrdered(UncheckConsumer.uncheck(event -> notifyEvent(store.getCreator(event), event))));
+				CheckRunnable.check(UnknownReferenceException.class, StoreException.class, FieldNotFoundException.class, () -> trwe.getEvents().forEachOrdered(UncheckConsumer.uncheck(event -> notifyEvent(storeOfHead.getCreator(event), event))));
 		}
 		catch (StoreException | UnknownReferenceException | FieldNotFoundException e) {
 			throw new NodeException(e);
@@ -634,7 +634,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		else
 			LOGGER.info(reference + ": posting (" + request.getClass().getSimpleName() + ')');
 
-		S store = this.store;
+		S store = this.storeOfHead;
 		enter(store);
 
 		try {
