@@ -546,15 +546,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		}
 	}
 
-	protected S moveToFinalStoreOf(T transformation) throws NodeException {
-		try {
-			return store = transformation.getFinalStore();
-		}
-		catch (StoreException e) {
-			throw new NodeException(e);
-		}
-	}
-
 	/**
 	 * Publishes the given transaction, that is, takes note that it has been added to the store
 	 * of this node and became visible to its users. This method will signal all tasks waiting
@@ -574,7 +565,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 				CheckRunnable.check(UnknownReferenceException.class, StoreException.class, FieldNotFoundException.class, () -> trwe.getEvents().forEachOrdered(UncheckConsumer.uncheck(event -> notifyEvent(store.getCreator(event), event))));
 		}
 		catch (StoreException | UnknownReferenceException | FieldNotFoundException e) {
-			System.out.println("failed: " + e.getMessage());
 			throw new NodeException(e);
 		}
 	}

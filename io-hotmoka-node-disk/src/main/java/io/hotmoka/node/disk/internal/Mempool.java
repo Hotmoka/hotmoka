@@ -171,7 +171,7 @@ class Mempool {
 			// if we delivered zero transactions, we prefer to avoid the creation of an empty block
 			if (transformation.deliveredCount() > 0) {
 				transformation.deliverRewardTransaction("", "");
-				DiskStore newStore = node.moveToFinalStoreOf(transformation);
+				DiskStore newStore = transformation.getFinalStore();
 				CheckRunnable.check(NodeException.class, () -> transformation.getDeliveredTransactions().forEachOrdered(UncheckConsumer.uncheck(reference -> node.publish(reference, newStore))));
 			}
 

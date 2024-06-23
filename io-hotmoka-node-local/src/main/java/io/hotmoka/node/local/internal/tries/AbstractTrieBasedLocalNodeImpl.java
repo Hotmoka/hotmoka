@@ -150,12 +150,18 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		return env;
 	}
 
-	@Override
 	protected S moveToFinalStoreOf(T transformation) throws NodeException {
 		S oldStore = getStore();
-		S newStore = super.moveToFinalStoreOf(transformation);
+
+		try {
+			setStore(transformation.getFinalStore());
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}
+
 		setRootBranch(oldStore);
-		return newStore;
+		return getStore();
 	}
 
 	@Override
