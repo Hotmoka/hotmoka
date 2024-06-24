@@ -100,7 +100,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	/**
 	 * The storage reference of the manifest added during this transformation, if any.
 	 */
-	private volatile StorageReference manifest;
+	private volatile StorageReference deltaManifest;
 
 	/**
 	 * The cache used during this transformation.
@@ -158,8 +158,8 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	}
 
 	@Override
-	public final S getFinalStore() throws StoreException {
-		return store.addDelta(cache, deltaRequests, deltaResponses, deltaHistories, Optional.ofNullable(manifest));
+	public S getFinalStore() throws StoreException {
+		return store.addDelta(cache, deltaRequests, deltaResponses, deltaHistories, Optional.ofNullable(deltaManifest));
 	}
 
 	@Override
@@ -273,7 +273,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 
 	@Override
 	public final Optional<StorageReference> getManifest() throws StoreException {
-		var uncommittedManifest = manifest;
+		var uncommittedManifest = deltaManifest;
 		return uncommittedManifest != null ? Optional.of(uncommittedManifest) : getInitialStore().getManifest();
 	}
 
@@ -289,6 +289,22 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	@Override
 	protected final StoreCache getCache() {
 		return cache;
+	}
+
+	protected LinkedHashMap<TransactionReference, TransactionRequest<?>> getDeltaRequests() {
+		return deltaRequests;
+	}
+
+	protected Map<TransactionReference, TransactionResponse> getDeltaResponses() {
+		return deltaResponses;
+	}
+
+	protected Map<StorageReference, TransactionReference[]> getDeltaHistories() {
+		return deltaHistories;
+	}
+
+	protected Optional<StorageReference> getDeltaManifest() {
+		return Optional.ofNullable(deltaManifest);
 	}
 
 	@Override
@@ -381,7 +397,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	 * @throws StoreException if this store is not able to complete the operation correctly
 	 */
 	private void setManifest(StorageReference manifest) {
-		this.manifest = manifest;
+		this.deltaManifest = manifest;
 	}
 
 	/*

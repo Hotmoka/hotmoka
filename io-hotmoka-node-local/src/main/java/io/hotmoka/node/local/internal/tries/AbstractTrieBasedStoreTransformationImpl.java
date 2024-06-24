@@ -20,6 +20,7 @@ import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.local.AbstractStoreTransformation;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.xodus.env.Transaction;
 
 /**
  * Partial implementation of a store transformation for trie-based stores.
@@ -41,5 +42,9 @@ public abstract class AbstractTrieBasedStoreTransformationImpl<N extends Abstrac
 	 */
 	protected AbstractTrieBasedStoreTransformationImpl(S store, ConsensusConfig<?,?> consensus, long now) throws StoreException {
 		super(store, consensus, now);
+	}
+
+	public final S getFinalStore(Transaction txn) throws StoreException {
+		return getInitialStore().addDelta(getCache(), getDeltaRequests(), getDeltaResponses(), getDeltaHistories(), getDeltaManifest(), txn);
 	}
 }

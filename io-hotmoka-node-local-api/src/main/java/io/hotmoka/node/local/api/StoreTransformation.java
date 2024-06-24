@@ -108,5 +108,5 @@ public interface StoreTransformation<S extends Store<S,T>, T extends StoreTransf
 	 * @return the final store
 	 * @throws StoreException if the final store cannot be computed correctly
 	 */
-	S getFinalStore() throws StoreException;
+	S getFinalStore() throws StoreException; // TODO: remove at the end
 }

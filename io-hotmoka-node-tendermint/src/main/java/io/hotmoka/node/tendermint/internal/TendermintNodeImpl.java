@@ -27,7 +27,9 @@ import java.net.HttpURLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -207,9 +209,8 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		poster.postRequest(request);
 	}
 
-	@Override
-	protected void setRootBranch(Transaction txn) throws ExodusException {
-		byte[] id = getStoreOfHead().getStateId().getBytes();
+	private void setRootBranch(TendermintStore newStoreOfHead, Transaction txn) throws ExodusException {
+		byte[] id = newStoreOfHead.getStateId().getBytes();
 		var rootAsBI = ByteIterable.fromBytes(id);
 		// we set the root branch, that will be used if the node is resumed
 		getStoreOfNode().put(txn, ROOT, rootAsBI); // set the root branch
@@ -684,17 +685,19 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		protected ResponseCommit commit(RequestCommit request) throws NodeException {
 			try {
 				transformation.deliverRewardTransaction(behaving, misbehaving);
-			}
-			catch (StoreException e) {
-				throw new NodeException(e);
-			}
 
-			try {
-				TendermintStore oldStore = getStoreOfHead();
-				setStoreOfHead(transformation.getFinalStore());
-				setRootBranch(oldStore);
+				AtomicReference<TendermintStore> newStoreOfHead = new AtomicReference<>();
+				
+				CheckRunnable.check(ExodusException.class, NodeException.class, StoreException.class, () -> getEnvironment().executeInTransaction(UncheckConsumer.uncheck(txn -> {
+					newStoreOfHead.set(transformation.getFinalStore(txn));
+					setRootBranch(newStoreOfHead.get(), txn);
+					persist(newStoreOfHead.get(), txn);
+					keepPersistedOnly(Set.of(newStoreOfHead.get().getStateId()), txn);
+				})));
+
+				setStoreOfHead(newStoreOfHead.get());
 			}
-			catch (StoreException e) {
+			catch (ExodusException | StoreException e) {
 				throw new NodeException(e);
 			}
 

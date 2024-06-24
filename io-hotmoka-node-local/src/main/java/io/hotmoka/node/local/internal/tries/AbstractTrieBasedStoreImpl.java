@@ -154,7 +154,24 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 		}
 	}
 
-	private byte[] addDeltaOfInfos(TrieOfInfo trieOfInfo, Optional<StorageReference> addedManifest) throws TrieException {
+	protected S addDelta(StoreCache cache, LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests,
+			Map<TransactionReference, TransactionResponse> addedResponses,
+			Map<StorageReference, TransactionReference[]> addedHistories, Optional<StorageReference> addedManifest, Transaction txn) throws StoreException {
+
+		try {
+			var rootOfRequests = addDeltaOfRequests(mkTrieOfRequests(txn), addedRequests);
+			var rootOfResponses = addDeltaOfResponses(mkTrieOfResponses(txn), addedResponses);
+			var rootOfHistories = addDeltaOfHistories(mkTrieOfHistories(txn), addedHistories);
+			var rootOfInfo = addDeltaOfInfos(mkTrieOfInfo(txn), addedManifest);
+
+			return mkStore(cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
+		}
+		catch (TrieException e) {
+			throw new StoreException(e);
+		}
+	}
+
+    private byte[] addDeltaOfInfos(TrieOfInfo trieOfInfo, Optional<StorageReference> addedManifest) throws TrieException {
 		if (addedManifest.isPresent()) {
 			trieOfInfo.malloc();
 			var old = trieOfInfo;

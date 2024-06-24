@@ -19,6 +19,7 @@ package io.hotmoka.node.disk.internal;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.local.AbstractStoreTransformation;
+import io.hotmoka.node.local.api.StoreException;
 
 /**
  * A transformation of a store of a disk node.
@@ -34,5 +35,16 @@ public class DiskStoreTransformation extends AbstractStoreTransformation<DiskNod
 	 */
 	public DiskStoreTransformation(DiskStore store, ConsensusConfig<?,?> consensus, long now) {
 		super(store, consensus, now);
+	}
+
+	/**
+	 * Yields the final store of this transformation, resulting from the execution of the delivered requests
+	 * from the initial store.
+	 * 
+	 * @return the final store
+	 * @throws StoreException if the final store cannot be computed correctly
+	 */
+	public DiskStore getFinalStore() throws StoreException {
+		return getInitialStore().addDelta(getCache(), getDeltaRequests(), getDeltaResponses(), getDeltaHistories(), getDeltaManifest());
 	}
 }

@@ -17,14 +17,17 @@ limitations under the License.
 package io.hotmoka.node.local.internal.tries;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.exceptions.CheckRunnable;
@@ -97,10 +100,16 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 
 	/**
 	 * The key used inside {@link #storeOfNode} to keep the list of old stores
-	 * that are candidate for garbage-collection, as soon as their height is sufficiently
-	 * smaller than the height of the store of this node.
+	 * that are candidate for garbage-collection, if they are not used by any running task.
 	 */
-	private final static ByteIterable PAST_STORES = ByteIterable.fromBytes("past stores".getBytes());
+	private final static ByteIterable STORES_TO_GC = ByteIterable.fromBytes("stores to gc".getBytes());
+
+	/**
+	 * The key used inside {@link #storeOfNode} to keep the list of stores that this node
+	 * will not try to garbage collect. This list gets expanded when a new head is added to the
+	 * node and gets shrunk by calls to {@link #keepPersistentedOnly(Stream)}.
+	 */
+	private final static ByteIterable STORES_NOT_TO_GC = ByteIterable.fromBytes("stores not to gc".getBytes());
 
 	private final static Logger LOGGER = Logger.getLogger(AbstractTrieBasedLocalNodeImpl.class.getName());
 
@@ -177,6 +186,21 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		super.exit(store);
 	}
 
+	protected void persist(S store, Transaction txn) throws NodeException {
+		try {
+			store.malloc(txn);
+			addToStores(STORES_NOT_TO_GC, Set.of(store.getStateId()), txn);
+		}
+		catch (StoreException | ExodusException e) {
+			throw new NodeException(e);
+		}
+	}
+
+	protected void keepPersistedOnly(Set<StateId> ids, Transaction txn) throws ExodusException {
+		Set<StateId> removedIds = keepInStoresOnly(STORES_NOT_TO_GC, ids, txn);
+		addToStores(STORES_TO_GC, removedIds, txn);
+	}
+
 	/**
 	 * Factory method for creating a store for this node, checked out at the given state identifier.
 	 * 
@@ -219,25 +243,16 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 
 	private void gc(S store, StateId id, Transaction txn) throws StoreException {
 		store.free(txn);
-		removeFromPastStoresThatCanBeGarbageCollected(id, txn);
+		removeFromStores(STORES_TO_GC, Set.of(id), txn);
 	}
 
 	private void findPastStoresThatCanBeGarbageCollected() {
 		try {
 			while (!Thread.currentThread().isInterrupted()) {
-				List<StateId> ids = env.computeInReadonlyTransaction(this::getPastStoresNotYetGarbageCollected);
-
-				for (StateId id: ids) {
-					if (canBeGarbageCollected(id)) {
-						try {
-							if (!storesToGC.offer(mkStore(id)))
-								LOGGER.warning("cannot offer store " + id + " to the garbage-collector: the queue is full!");
-						}
-						catch (NodeException e) {
-							LOGGER.log(Level.SEVERE, "cannot offer store " + id + " to the garbage-collector", e);
-						}
-					}
-				}
+				env.computeInReadonlyTransaction(txn -> getStores(STORES_TO_GC, txn))
+					.stream()
+					.filter(this::canBeGarbageCollected)
+					.forEach(this::offerToGarbageCollector);
 
 				Thread.sleep(5000L);
 			}
@@ -247,20 +262,15 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		}
 	}
 
-	protected final void setRootBranch(S oldStore) throws NodeException {
+	private void offerToGarbageCollector(StateId id) {
 		try {
-			CheckRunnable.check(StoreException.class, () -> env.executeInTransaction(UncheckConsumer.uncheck(txn -> {
-				setRootBranch(txn);
-				getStoreOfHead().malloc(txn); // increment the reference count of the new store
-				addPastStoreToListOfNotYetGarbageCollected(oldStore, txn); // add the old store to the past stores list
-			})));
+			if (!storesToGC.offer(mkStore(id)))
+				LOGGER.warning("cannot offer store " + id + " to the garbage-collector: the queue is full!");
 		}
-		catch (ExodusException | StoreException e) {
-			throw new NodeException(e);
+		catch (NodeException e) {
+			LOGGER.log(Level.SEVERE, "cannot offer store " + id + " to the garbage-collector", e);
 		}
 	}
-
-	protected void setRootBranch(Transaction txn) throws ExodusException {}
 
 	protected void commit(S store) throws NodeException {
 		try {
@@ -273,8 +283,8 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		}
 	}
 
-	private List<StateId> getPastStoresNotYetGarbageCollected(Transaction txn) throws ExodusException {
-		var ids = Optional.ofNullable(storeOfNode.get(txn, PAST_STORES)).map(ByteIterable::getBytes);
+	private List<StateId> getStores(ByteIterable which, Transaction txn) throws ExodusException {
+		var ids = Optional.ofNullable(storeOfNode.get(txn, which)).map(ByteIterable::getBytes);
 		byte[] bytes = ids.orElse(new byte[0]);
 	
 		// each store id consists of 128 bytes
@@ -288,25 +298,41 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		return result;
 	}
 
-	private void removeFromPastStoresThatCanBeGarbageCollected(StateId id, Transaction txn) throws ExodusException {
-		List<StateId> ids = getPastStoresNotYetGarbageCollected(txn);
-		ids.remove(id);
-		var reduced = new byte[128 * ids.size()];
-		for (int pos = 0; pos < reduced.length; pos += 128)
-			System.arraycopy(ids.get(pos / 128).getBytes(), 0, reduced, pos, 128);
+	private void removeFromStores(ByteIterable which, Set<StateId> toRemove, Transaction txn) throws ExodusException {
+		List<StateId> ids = getStores(which, txn);
+		if (ids.removeAll(toRemove)) {
+			var reduced = new byte[128 * ids.size()];
+			for (int pos = 0; pos < reduced.length; pos += 128)
+				System.arraycopy(ids.get(pos / 128).getBytes(), 0, reduced, pos, 128);
 
-		storeOfNode.put(txn, PAST_STORES, ByteIterable.fromBytes(reduced));
+			storeOfNode.put(txn, which, ByteIterable.fromBytes(reduced));
+		}
 	}
 
-	private void addPastStoreToListOfNotYetGarbageCollected(S store, Transaction txn) throws ExodusException {
-		List<StateId> ids = getPastStoresNotYetGarbageCollected(txn);
-		if (!ids.contains(store.getStateId())) {
-			ids.add(store.getStateId());
+	private Set<StateId> keepInStoresOnly(ByteIterable which, Set<StateId> toKeep, Transaction txn) throws ExodusException {
+		List<StateId> ids = getStores(which, txn);
+		Set<StateId> removedIds = new HashSet<>(ids);
+
+		if (ids.retainAll(toKeep)) {
+			var reduced = new byte[128 * ids.size()];
+			for (int pos = 0; pos < reduced.length; pos += 128)
+				System.arraycopy(ids.get(pos / 128).getBytes(), 0, reduced, pos, 128);
+
+			storeOfNode.put(txn, which, ByteIterable.fromBytes(reduced));
+		}
+
+		removedIds.removeAll(ids);
+		return removedIds;
+	}
+
+	private void addToStores(ByteIterable which, Set<StateId> toAdd, Transaction txn) throws ExodusException {
+		List<StateId> ids = getStores(which, txn);
+		if (ids.addAll(toAdd)) {
 			var expanded = new byte[128 * ids.size()];
 			for (int pos = 0; pos < expanded.length; pos += 128)
 				System.arraycopy(ids.get(pos / 128).getBytes(), 0, expanded, pos, 128);
 
-			storeOfNode.put(txn, PAST_STORES, ByteIterable.fromBytes(expanded));
+			storeOfNode.put(txn, which, ByteIterable.fromBytes(expanded));
 		}
 	}
 }
