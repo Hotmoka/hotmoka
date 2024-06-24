@@ -134,26 +134,6 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
     	this(toClone, cache, toClone.rootOfResponses, toClone.rootOfInfo, toClone.rootOfHistories, toClone.rootOfRequests);
     }
 
-    @Override
-	protected S addDelta(StoreCache cache, LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests,
-			Map<TransactionReference, TransactionResponse> addedResponses,
-			Map<StorageReference, TransactionReference[]> addedHistories, Optional<StorageReference> addedManifest) throws StoreException {
-	
-		try {
-			return CheckSupplier.check(StoreException.class, TrieException.class, () -> getNode().getEnvironment().computeInTransaction(UncheckFunction.uncheck(txn -> {
-				var rootOfRequests = addDeltaOfRequests(mkTrieOfRequests(txn), addedRequests);
-				var rootOfResponses = addDeltaOfResponses(mkTrieOfResponses(txn), addedResponses);
-				var rootOfHistories = addDeltaOfHistories(mkTrieOfHistories(txn), addedHistories);
-				var rootOfInfo = addDeltaOfInfos(mkTrieOfInfo(txn), addedManifest);
-
-				return mkStore(cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
-			})));
-		}
-		catch (ExodusException | TrieException e) {
-			throw new StoreException(e);
-		}
-	}
-
 	protected S addDelta(StoreCache cache, LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests,
 			Map<TransactionReference, TransactionResponse> addedResponses,
 			Map<StorageReference, TransactionReference[]> addedHistories, Optional<StorageReference> addedManifest, Transaction txn) throws StoreException {

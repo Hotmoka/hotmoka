@@ -248,7 +248,18 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
 		return new DiskStoreTransformation(this, consensus, now);
 	}
 
-	@Override
+	/**
+	 * Yields a store derived from this by setting the given cache and adding the given extra information.
+	 * 
+	 * @param cache the cache for the resulting store
+	 * @param addedRequests the requests to add; by iterating on them, one gets the requests
+	 *                      in order of addition to the transformation
+	 * @param addedResponses the responses to add
+	 * @param addedHistories the histories to add
+	 * @param addedManifest the manifest to add, if any
+	 * @return the resulting store
+	 * @throws StoreException if the operation cannot be completed correctly
+	 */
 	protected DiskStore addDelta(StoreCache cache, LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests,
 			Map<TransactionReference, TransactionResponse> addedResponses,
 			Map<StorageReference, TransactionReference[]> addedHistories, Optional<StorageReference> addedManifest) throws StoreException {

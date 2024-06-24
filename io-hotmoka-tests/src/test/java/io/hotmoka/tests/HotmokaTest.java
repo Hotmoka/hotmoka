@@ -143,8 +143,8 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	    		privateKeyOfGamete = keys.getPrivate();
 
 	    		Node wrapped;
-	    		node = wrapped = mkDiskNode();
-	    		//node = wrapped = mkMokamintNode();
+	    		//node = wrapped = mkDiskNode();
+	    		node = wrapped = mkMokamintNode();
 	    		//node = wrapped = mkTendermintNode();
 	    		//node = mkRemoteNode(wrapped = mkDiskNode());
 	    		//node = mkRemoteNode(wrapped = mkMokamintNode());

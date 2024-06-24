@@ -100,13 +100,4 @@ public interface StoreTransformation<S extends Store<S,T>, T extends StoreTransf
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
 	int deliveredCount() throws StoreException;
-
-	/**
-	 * Yields the final store of this transformation, resulting from the execution of the delivered requests
-	 * from the initial store.
-	 * 
-	 * @return the final store
-	 * @throws StoreException if the final store cannot be computed correctly
-	 */
-	S getFinalStore() throws StoreException; // TODO: remove at the end
 }

@@ -44,6 +44,14 @@ public abstract class AbstractTrieBasedStoreTransformationImpl<N extends Abstrac
 		super(store, consensus, now);
 	}
 
+	/**
+	 * Yields the final store of this transformation, resulting from the execution of the delivered requests
+	 * from the initial store.
+	 * 
+	 * @param txn the Xodus transaction where the store must be created
+	 * @return the final store
+	 * @throws StoreException if the final store cannot be computed correctly
+	 */
 	public final S getFinalStore(Transaction txn) throws StoreException {
 		return getInitialStore().addDelta(getCache(), getDeltaRequests(), getDeltaResponses(), getDeltaHistories(), getDeltaManifest(), txn);
 	}

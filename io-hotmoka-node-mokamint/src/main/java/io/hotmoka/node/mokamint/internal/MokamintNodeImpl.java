@@ -23,13 +23,17 @@ import java.security.KeyPair;
 import java.security.SignatureException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.exceptions.CheckRunnable;
+import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.TransactionReferences;
@@ -273,21 +277,31 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 		@Override
 		public byte[] endBlock(int groupId, Deadline deadline) throws ApplicationException, UnknownGroupIdException {
+			AtomicReference<MokamintStore> finalStore = new AtomicReference<>();
+
 			try {
-				return (finalStore = transformation.getFinalStore()).getStateId().getBytes();
+				CheckRunnable.check(NodeException.class, StoreException.class, () -> getEnvironment().executeInTransaction(UncheckConsumer.uncheck(txn -> {
+					finalStore.set(transformation.getFinalStore(txn));
+					persist(finalStore.get(), txn);
+				})));
 			}
-			catch (StoreException e) {
+			catch (StoreException | NodeException e) {
 				throw new ApplicationException(e);
 			}
+
+			return (this.finalStore = finalStore.get()).getStateId().getBytes();
 		}
 
 		@Override
 		public void commitBlock(int groupId) throws ApplicationException, UnknownGroupIdException {
+			setStoreOfHead(finalStore);
+
 			try {
-				commit(finalStore);
-				setStoreOfHead(finalStore);
+				CheckRunnable.check(NodeException.class, StoreException.class, () -> getEnvironment().executeInTransaction(UncheckConsumer.uncheck(txn -> {
+					keepPersistedOnly(Set.of(finalStore.getStateId()), txn);
+				})));
 			}
-			catch (NodeException e) {
+			catch (StoreException | NodeException e) {
 				throw new ApplicationException(e);
 			}
 		}

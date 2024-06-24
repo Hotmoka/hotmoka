@@ -31,6 +31,7 @@ import io.hotmoka.node.local.StoreCache;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
+import io.hotmoka.xodus.env.Transaction;
 
 /**
  * A partial trie-based store. Errors and requests are recovered by asking
@@ -99,11 +100,10 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
 
     @Override
     protected TendermintStore addDelta(StoreCache cache, LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests,
-    		Map<TransactionReference, TransactionResponse> addedResponses,
-    		Map<StorageReference, TransactionReference[]> addedHistories, Optional<StorageReference> addedManifest)
-    		throws StoreException {
+			Map<TransactionReference, TransactionResponse> addedResponses,
+			Map<StorageReference, TransactionReference[]> addedHistories, Optional<StorageReference> addedManifest, Transaction txn) throws StoreException {
 
-    	TendermintStore result = super.addDelta(cache, addedRequests, addedResponses, addedHistories, addedManifest);
+    	TendermintStore result = super.addDelta(cache, addedRequests, addedResponses, addedHistories, addedManifest, txn);
     	result.validators = validators;
     	return result;
     }

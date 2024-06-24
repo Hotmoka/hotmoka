@@ -16,9 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.local.internal;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Optional;
 import java.util.logging.Logger;
 
 import io.hotmoka.annotations.Immutable;
@@ -30,8 +27,6 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
-import io.hotmoka.node.api.responses.TransactionResponse;
-import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.StoreCache;
 import io.hotmoka.node.local.api.FieldNotFoundException;
@@ -160,24 +155,6 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 
 		return setCache(newCache);
 	}
-
-	/**
-	 * Yields a store derived from this by setting the given cache and adding the given extra information.
-	 * 
-	 * @param cache the cache for the resulting store
-	 * @param addedRequests the requests to add; by iterating on them, one gets the requests
-	 *                      in order of addition to the transformation
-	 * @param addedResponses the responses to add
-	 * @param addedHistories the histories to add
-	 * @param addedManifest the manifest to add, if any
-	 * @return the resulting store
-	 * @throws StoreException if the operation cannot be completed correctly
-	 */
-	protected abstract S addDelta(StoreCache cache,
-			LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests,
-			Map<TransactionReference, TransactionResponse> addedResponses,
-			Map<StorageReference, TransactionReference[]> addedHistories,
-			Optional<StorageReference> addedManifest) throws StoreException;
 
 	/**
 	 * Yields a store identical to this, but for its cache, that is set as given.

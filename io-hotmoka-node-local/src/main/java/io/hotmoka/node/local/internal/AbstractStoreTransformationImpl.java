@@ -158,11 +158,6 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	}
 
 	@Override
-	public S getFinalStore() throws StoreException {
-		return store.addDelta(cache, deltaRequests, deltaResponses, deltaHistories, Optional.ofNullable(deltaManifest));
-	}
-
-	@Override
 	public final void deliverRewardTransaction(String behaving, String misbehaving) throws StoreException {
 		try {
 			Optional<StorageReference> maybeManifest = getManifest();
