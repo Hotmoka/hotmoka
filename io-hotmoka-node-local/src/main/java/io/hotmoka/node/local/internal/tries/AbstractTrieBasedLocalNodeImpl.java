@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.node.local.internal.tries;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -32,6 +31,7 @@ import java.util.stream.Stream;
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.exceptions.CheckRunnable;
 import io.hotmoka.exceptions.UncheckConsumer;
+import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.local.AbstractLocalNode;
 import io.hotmoka.node.local.StateIds;
@@ -186,18 +186,38 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		super.exit(store);
 	}
 
+	public int persisted, freed;
+
+	/**
+	 * Takes note that the given store must be persisted, that is, must not be garbage-collected.
+	 * A store can be persisted more than once, in which case it must be garbage-collected the
+	 * same amount of times in order to be actually removed from the database of stores.
+	 * 
+	 * @param store the store to persist
+	 * @param txn the Xodus transaction where the operation is performed
+	 * @throws NodeException if the node is not able to complete the operation correctly
+	 */
 	protected void persist(S store, Transaction txn) throws NodeException {
 		try {
 			store.malloc(txn);
-			addToStores(STORES_NOT_TO_GC, Set.of(store.getStateId()), txn);
 		}
-		catch (StoreException | ExodusException e) {
+		catch (StoreException e) {
 			throw new NodeException(e);
 		}
+
+		addToStores(STORES_NOT_TO_GC, List.of(store.getStateId()), txn);
 	}
 
-	protected void keepPersistedOnly(Set<StateId> ids, Transaction txn) throws ExodusException {
-		Set<StateId> removedIds = keepInStoresOnly(STORES_NOT_TO_GC, ids, txn);
+	/**
+	 * Takes note that only the given stores must remain persisted, while the other
+	 * stores, persisted up to now, can be garbage-collected.
+	 * 
+	 * @param ids the identifiers of the stores that must remain persisted
+	 * @param txn the Xodus transaction where the operation is performed
+	 * @throws NodeException if the node is not able to complete the operation correctly
+	 */
+	protected void keepPersistedOnly(Set<StateId> ids, Transaction txn) throws NodeException {
+		List<StateId> removedIds = retainOnlyStores(STORES_NOT_TO_GC, ids, txn);
 		addToStores(STORES_TO_GC, removedIds, txn);
 	}
 
@@ -210,12 +230,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	protected abstract S mkStore(StateId stateId) throws NodeException;
 
 	private boolean canBeGarbageCollected(StateId id) {
-		var currentStore = getStoreOfHead();
-		// the current store might be null if the node has just restarted and its store has not been set yet 
-		if (currentStore == null || !id.equals(currentStore.getStateId()))
-			return storeUsers.getOrDefault(id, 0) == 0;
-		else
-			return false;
+		return storeUsers.getOrDefault(id, 0) == 0;
 	}
 
 	/**
@@ -223,39 +238,49 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 */
 	private void gc()  {
 		try {
-			while (!Thread.currentThread().isInterrupted()) {
-				S next = storesToGC.take();
-				StateId id = next.getStateId();
-
-				try {
-					CheckRunnable.check(StoreException.class, () -> env.executeInTransaction(UncheckConsumer.uncheck(txn -> gc(next, id, txn))));
-					LOGGER.info("garbage-collected store " + id);
-				}
-				catch (StoreException e) {
-					LOGGER.log(Level.SEVERE, "could not garbage-collect store " + id, e);
-				}
-			}
+			while (!Thread.currentThread().isInterrupted())
+				gc(storesToGC.take());
+		}
+		catch (NodeException e) {
+			LOGGER.log(Level.SEVERE, "could not garbage-collect store", e);
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
 	}
 
-	private void gc(S store, StateId id, Transaction txn) throws StoreException {
-		store.free(txn);
-		removeFromStores(STORES_TO_GC, Set.of(id), txn);
+	private void gc(S store) throws NodeException {
+		StateId id = store.getStateId();
+
+		try {
+			CheckRunnable.check(StoreException.class, NodeException.class, () -> env.executeInTransaction(UncheckConsumer.uncheck(txn -> {
+				store.free(txn);
+				removeFromStores(STORES_TO_GC, id, txn);
+			})));
+
+			freed++;
+			System.out.println("persisted = " + persisted + " freed = " + freed);
+
+			LOGGER.info("garbage-collected store " + id);
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}
 	}
 
 	private void findPastStoresThatCanBeGarbageCollected() {
 		try {
 			while (!Thread.currentThread().isInterrupted()) {
-				env.computeInReadonlyTransaction(txn -> getStores(STORES_TO_GC, txn))
+				CheckRunnable.check(NodeException.class, () -> env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> getStores(STORES_TO_GC, txn)))
 					.stream()
 					.filter(this::canBeGarbageCollected)
-					.forEach(this::offerToGarbageCollector);
+					.forEach(this::offerToGarbageCollector));
 
 				Thread.sleep(5000L);
 			}
+		}
+		catch (NodeException e) {
+			LOGGER.log(Level.SEVERE, "cannot select stores to garbage-collect", e);
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
@@ -272,67 +297,108 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		}
 	}
 
-	protected void commit(S store) throws NodeException {
+	private List<StateId> getStores(ByteIterable which, Transaction txn) throws NodeException {
 		try {
-			CheckRunnable.check(StoreException.class, () -> env.executeInTransaction(UncheckConsumer.uncheck(txn -> {
-				store.malloc(txn); // increment the reference count of the new store
-			})));
+			byte[] bytes = Optional.ofNullable(storeOfNode.get(txn, which)).map(ByteIterable::getBytes).orElse(new byte[0]);
+
+			// each store id consists of 128 bytes
+			var result = new ArrayList<StateId>();
+			for (int pos = 0; pos < bytes.length; pos += 128) {
+				var id = new byte[128];
+				System.arraycopy(bytes, pos, id, 0, 128);
+				result.add(StateIds.of(id));
+			}
+
+			return result;
 		}
-		catch (ExodusException | StoreException e) {
+		catch (ExodusException e) {
 			throw new NodeException(e);
 		}
 	}
 
-	private List<StateId> getStores(ByteIterable which, Transaction txn) throws ExodusException {
-		var ids = Optional.ofNullable(storeOfNode.get(txn, which)).map(ByteIterable::getBytes);
-		byte[] bytes = ids.orElse(new byte[0]);
-	
-		// each store id consists of 128 bytes
-		var result = new ArrayList<StateId>();
-		for (int pos = 0; pos < bytes.length; pos += 128) {
-			var id = new byte[128];
-			System.arraycopy(bytes, pos, id, 0, 128);
-			result.add(StateIds.of(id));
-		}
-	
-		return result;
-	}
-
-	private void removeFromStores(ByteIterable which, Set<StateId> toRemove, Transaction txn) throws ExodusException {
+	/**
+	 * Removes the given store from the list identified by {@code which}. If that list
+	 * contains {@toRemove} more than once, it removes only one occurrence.
+	 * 
+	 * @param which the identifier of the list
+	 * @param toRemove the store to remove
+	 * @param txn the Xodus transaction where the operation is performed
+	 * @throws NodeException if the node is not able to perform the operation correctly
+	 */
+	private void removeFromStores(ByteIterable which, StateId toRemove, Transaction txn) throws NodeException {
 		List<StateId> ids = getStores(which, txn);
-		if (ids.removeAll(toRemove)) {
+
+		if (ids.remove(toRemove)) {
 			var reduced = new byte[128 * ids.size()];
 			for (int pos = 0; pos < reduced.length; pos += 128)
 				System.arraycopy(ids.get(pos / 128).getBytes(), 0, reduced, pos, 128);
 
-			storeOfNode.put(txn, which, ByteIterable.fromBytes(reduced));
+			try {
+				storeOfNode.put(txn, which, ByteIterable.fromBytes(reduced));
+			}
+			catch (ExodusException e) {
+				throw new NodeException(e);
+			}
 		}
 	}
 
-	private Set<StateId> keepInStoresOnly(ByteIterable which, Set<StateId> toKeep, Transaction txn) throws ExodusException {
+	/**
+	 * Retains only the given stores in the list identified by {@code which}. If a store in {@code toRetain}
+	 * occurs more than once in the list, all its occurrences are retained.
+	 * 
+	 * @param which the identifier of the list
+	 * @param toRetain the stores to retain
+	 * @param txn the Xodus transaction where the operation is performed
+	 * @return the stores that have been removed from the list, because they were not in {@code toRetain};
+	 *         if a store occurred more than once in the list but did not occur in {@code toRetain}, all
+	 *         its occurrences are reported here
+	 * @throws NodeException if the node is not able to perform the operation correctly
+	 */
+	private List<StateId> retainOnlyStores(ByteIterable which, Set<StateId> toRetain, Transaction txn) throws NodeException {
 		List<StateId> ids = getStores(which, txn);
-		Set<StateId> removedIds = new HashSet<>(ids);
+		List<StateId> removedIds = new ArrayList<>(ids);
 
-		if (ids.retainAll(toKeep)) {
+		if (ids.retainAll(toRetain)) {
 			var reduced = new byte[128 * ids.size()];
 			for (int pos = 0; pos < reduced.length; pos += 128)
 				System.arraycopy(ids.get(pos / 128).getBytes(), 0, reduced, pos, 128);
 
-			storeOfNode.put(txn, which, ByteIterable.fromBytes(reduced));
+			try {
+				storeOfNode.put(txn, which, ByteIterable.fromBytes(reduced));
+			}
+			catch (ExodusException e) {
+				throw new NodeException(e);
+			}
 		}
 
-		removedIds.removeAll(ids);
+		while (removedIds.removeAll(ids));
+
 		return removedIds;
 	}
 
-	private void addToStores(ByteIterable which, Set<StateId> toAdd, Transaction txn) throws ExodusException {
+	/**
+	 * Adds the given stores to the given list. If a store occurs more than once in {@code toAdd}, then
+	 * it is added with the same multiplicity to the list.
+	 * 
+	 * @param which the identifier of the list
+	 * @param toAdd the stores to add
+	 * @param txn the Xodus transaction where the operation is performed
+	 * @throws NodeException if the node is not able to complete the operation correctly
+	 */
+	private void addToStores(ByteIterable which, List<StateId> toAdd, Transaction txn) throws NodeException {
 		List<StateId> ids = getStores(which, txn);
+
 		if (ids.addAll(toAdd)) {
 			var expanded = new byte[128 * ids.size()];
 			for (int pos = 0; pos < expanded.length; pos += 128)
 				System.arraycopy(ids.get(pos / 128).getBytes(), 0, expanded, pos, 128);
 
-			storeOfNode.put(txn, which, ByteIterable.fromBytes(expanded));
+			try {
+				storeOfNode.put(txn, which, ByteIterable.fromBytes(expanded));
+			}
+			catch (ExodusException e) {
+				throw new NodeException(e);
+			}
 		}
 	}
 }

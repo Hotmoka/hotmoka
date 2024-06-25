@@ -209,13 +209,19 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		poster.postRequest(request);
 	}
 
-	private void setRootBranch(TendermintStore newStoreOfHead, Transaction txn) throws ExodusException {
+	private void setRootBranch(TendermintStore newStoreOfHead, Transaction txn) throws NodeException {
 		byte[] id = newStoreOfHead.getStateId().getBytes();
 		var rootAsBI = ByteIterable.fromBytes(id);
-		// we set the root branch, that will be used if the node is resumed
-		getStoreOfNode().put(txn, ROOT, rootAsBI); // set the root branch
-		// we keep extra information about the height
-		getStoreOfNode().put(txn, HEIGHT, ByteIterable.fromBytes(longToBytes(getHeight(txn) + 1)));
+
+		try {
+			// we set the root branch, that will be used if the node is resumed
+			getStoreOfNode().put(txn, ROOT, rootAsBI); // set the root branch
+			// we keep extra information about the height
+			getStoreOfNode().put(txn, HEIGHT, ByteIterable.fromBytes(longToBytes(getHeight(txn) + 1)));
+		}
+		catch (ExodusException e) {
+			throw new NodeException(e);
+		}
 	}
 
 	private void checkOutRootBranch() throws NodeException {
@@ -685,21 +691,23 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		protected ResponseCommit commit(RequestCommit request) throws NodeException {
 			try {
 				transformation.deliverRewardTransaction(behaving, misbehaving);
-
-				AtomicReference<TendermintStore> newStoreOfHead = new AtomicReference<>();
-				
-				CheckRunnable.check(ExodusException.class, NodeException.class, StoreException.class, () -> getEnvironment().executeInTransaction(UncheckConsumer.uncheck(txn -> {
-					newStoreOfHead.set(transformation.getFinalStore(txn));
-					setRootBranch(newStoreOfHead.get(), txn);
-					persist(newStoreOfHead.get(), txn);
-					keepPersistedOnly(Set.of(newStoreOfHead.get().getStateId()), txn);
-				})));
-
-				setStoreOfHead(newStoreOfHead.get());
 			}
-			catch (ExodusException | StoreException e) {
+			catch (StoreException e) {
 				throw new NodeException(e);
 			}
+
+			AtomicReference<TendermintStore> newStoreOfHead = new AtomicReference<>();
+
+			CheckRunnable.check(NodeException.class, () -> getEnvironment().executeInTransaction(UncheckConsumer.uncheck(txn -> {
+				newStoreOfHead.set(transformation.getFinalStore(txn));
+				setRootBranch(newStoreOfHead.get(), txn);
+				persist(newStoreOfHead.get(), txn);
+				keepPersistedOnly(Set.of(newStoreOfHead.get().getStateId()), txn);
+			})));
+
+			persisted++;
+
+			setStoreOfHead(newStoreOfHead.get());
 
 			TendermintStore newStore = getStoreOfHead();
 			CheckRunnable.check(NodeException.class, () -> transformation.getDeliveredTransactions().forEachOrdered(UncheckConsumer.uncheck(reference -> publish(reference, newStore))));

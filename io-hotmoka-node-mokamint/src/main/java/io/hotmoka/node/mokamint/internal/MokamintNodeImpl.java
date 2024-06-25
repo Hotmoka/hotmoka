@@ -289,6 +289,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 				throw new ApplicationException(e);
 			}
 
+			persisted++;
 			return (this.finalStore = finalStore.get()).getStateId().getBytes();
 		}
 
@@ -297,11 +298,11 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			setStoreOfHead(finalStore);
 
 			try {
-				CheckRunnable.check(NodeException.class, StoreException.class, () -> getEnvironment().executeInTransaction(UncheckConsumer.uncheck(txn -> {
-					keepPersistedOnly(Set.of(finalStore.getStateId()), txn);
-				})));
+				CheckRunnable.check(NodeException.class, () -> getEnvironment().executeInTransaction(UncheckConsumer.uncheck(
+					txn -> keepPersistedOnly(Set.of(finalStore.getStateId()), txn)
+				)));
 			}
-			catch (StoreException | NodeException e) {
+			catch (NodeException e) {
 				throw new ApplicationException(e);
 			}
 		}
