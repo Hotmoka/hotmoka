@@ -2,11 +2,15 @@ lib/
 modules/
 docs/
 chain/
+mokamint-chain/
+hotmoka-chain/
+disk-chain/
 .metadata/
 .recommenders/
 RemoteSystemsTempFiles/
 *.lck
 *.keys
+*.plot
 *.pri
 *.pub
 *.pem

@@ -1,0 +1,11 @@
+# creation of a plot:
+mokamint-plotter create plot.plot 0 4000 "" CYcdCR4S1zVojhFsB7cxpYsudqBhvRMoXRhFCtwcnUg9 5BYtHQ3XaygM7yjJ4vaaftA5AJAC56GNkLrDj4yQ46Wh
+
+# start a node with that plot:
+moka init-mokamint 100000000000000000000000000000 --key-of-gamete BFtoCuWq962dRyW5Mq311Na7qQmXjhH9gk4kp1AfAxMz --keys CYcdCR4S1zVojhFsB7cxpYsudqBhvRMoXRhFCtwcnUg9.pem --plot plot.plot --keys-of-plot 5BYtHQ3XaygM7yjJ4vaaftA5AJAC56GNkLrDj4yQ46Wh.pem
+
+where:
+1) BFtoCuWq962dRyW5Mq311Na7qQmXjhH9gk4kp1AfAxMz is the Base58-encoded public key of the Hotmoka gamete
+2) CYcdCR4S1zVojhFsB7cxpYsudqBhvRMoXRhFCtwcnUg9.pem is the file containing the private/public keys of the Mokamint node
+3) 5BYtHQ3XaygM7yjJ4vaaftA5AJAC56GNkLrDj4yQ46Wh.pem is the file containing the private/public keys of the Mokamint plot
+

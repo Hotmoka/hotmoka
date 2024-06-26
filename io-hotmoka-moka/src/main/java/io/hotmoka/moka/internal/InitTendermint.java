@@ -62,7 +62,7 @@ public class InitTendermint extends AbstractCommand {
 	@Parameters(description = "the initial supply of coins of the node, which goes to the gamete")
     private BigInteger initialSupply;
 
-	private final static String DELTA_SUPPLY_DEFAULT = "equals to the initial supply";
+	private final static String DELTA_SUPPLY_DEFAULT = "equal to the initial supply";
 	@Option(names = { "--delta-supply" }, description = "the amount of coins that can be minted during the life of the node, after which inflation becomes 0", defaultValue = DELTA_SUPPLY_DEFAULT)
     private String deltaSupply;
 

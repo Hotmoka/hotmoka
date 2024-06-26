@@ -39,6 +39,11 @@
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-node-mokamint</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-node-disk</artifactId>
       <version>${hotmoka.version}</version>
     </dependency>
@@ -72,6 +77,21 @@
       <artifactId>io-hotmoka-cli</artifactId>
       <version>${io.hotmoka.cli.version}</version>
     </dependency>
+    <dependency>
+      <groupId>io.mokamint</groupId>
+      <artifactId>io-mokamint-plotter</artifactId>
+      <version>${mokamint.version}</version>
+    </dependency>    
+    <dependency>
+      <groupId>io.mokamint</groupId>
+      <artifactId>io-mokamint-miner-local</artifactId>
+      <version>${mokamint.version}</version>
+    </dependency>   
+    <dependency>
+      <groupId>io.mokamint</groupId>
+      <artifactId>io-mokamint-node-service</artifactId>
+      <version>${mokamint.version}</version>
+    </dependency>  
 	<dependency>
       <groupId>info.picocli</groupId>
       <artifactId>picocli</artifactId>

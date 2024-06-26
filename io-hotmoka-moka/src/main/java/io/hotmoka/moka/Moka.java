@@ -31,6 +31,7 @@ import io.hotmoka.moka.internal.Faucet;
 import io.hotmoka.moka.internal.ImportAccount;
 import io.hotmoka.moka.internal.Info;
 import io.hotmoka.moka.internal.InitDisk;
+import io.hotmoka.moka.internal.InitMokamint;
 import io.hotmoka.moka.internal.InitTendermint;
 import io.hotmoka.moka.internal.Install;
 import io.hotmoka.moka.internal.Instrument;
@@ -69,6 +70,7 @@ import picocli.CommandLine.Command;
 					ImportAccount.class,
 					Info.class,
 					InitDisk.class,
+					InitMokamint.class,
 					InitTendermint.class,
 					Install.class,
 					Instrument.class,

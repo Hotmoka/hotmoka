@@ -29,6 +29,7 @@ module io.hotmoka.moka {
 
     requires io.hotmoka.helpers;
     requires io.hotmoka.node.tendermint;
+    requires io.hotmoka.node.mokamint;
 	requires io.hotmoka.node.disk;
 	requires io.hotmoka.node.local;
 	requires io.hotmoka.node.service;
@@ -37,6 +38,10 @@ module io.hotmoka.moka {
 	requires io.hotmoka.whitelisting.api;
 	requires io.hotmoka.cli;
 	requires io.takamaka.code.constants;
+	requires io.mokamint.node.local;
+	requires io.mokamint.plotter;
+	requires io.mokamint.miner.local;
+	requires io.mokamint.node.service;
 	requires info.picocli;
 	requires java.logging;
 }
