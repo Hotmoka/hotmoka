@@ -189,7 +189,7 @@ public class InitMokamint extends AbstractCommand {
 
 		private void askForConfirmation() {
 			if (interactive)
-				yesNo("Do you really want to start a new node at \"" + dir + "\" (old blocks and store will be lost) [Y/N] ");
+				yesNo("Do you really want to start a new Hotmoka node at \"" + dir + "\" (old blocks and store will be lost) [Y/N] ");
 		}
 
 		private void waitForEnterKey() throws IOException {
@@ -198,16 +198,17 @@ public class InitMokamint extends AbstractCommand {
 		}
 
 		private void printBanner() {
-			System.out.println("The node has been published at ws://localhost:" + port);
+			System.out.println("The Hotmoka node has been published at ws://localhost:" + port);
+			System.out.println("The Mokamint node has been published at ws://localhost:" + mokamintPort);
 		}
 
 		private void printManifest() throws TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
-			System.out.println("\nThe following node has been initialized:\n" + ManifestHelpers.of(initialized));
+			System.out.println("\nThe following Hotmoka node has been initialized:\n" + ManifestHelpers.of(initialized));
 		}
 
 		private void dumpInstructionsToBindGamete() throws NodeException, TimeoutException, InterruptedException {
 			System.out.println("\nThe owner of the key of the gamete can bind it to its address now:");
-			System.out.println("  moka bind-key " + keyOfGamete + " --url url_of_this_node");
+			System.out.println("  moka bind-key " + keyOfGamete + " --url url_of_this_Hotmoka_node");
 			System.out.println("or");
 			System.out.println("  moka bind-key " + keyOfGamete + " --reference " + initialized.gamete() + "\n");
 		}

@@ -93,6 +93,14 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 						toPublish.offer(ngb);
 				}
 			};
+
+			var headHash = mokamintNode.getChainInfo().getHeadHash()
+				.orElseThrow(() -> new NodeException("Cannot find the head of the node: are you sure that is was already initialized?"));
+
+			var head = mokamintNode.getBlock(headHash)
+				.orElseThrow(() -> new NodeException("The node has a head set but it cannot be found in its database"));
+
+			setStoreOfHead(mkStore(StateIds.of(head.getStateId())));
 		}
 		catch (AlreadyInitializedException | TimeoutException | ApplicationException | io.mokamint.node.api.NodeException e) {
 			throw new NodeException(e);

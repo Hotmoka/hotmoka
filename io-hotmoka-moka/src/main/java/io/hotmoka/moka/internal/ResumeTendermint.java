@@ -78,11 +78,11 @@ public class ResumeTendermint extends AbstractCommand {
 		}
 
 		private void printBanner() {
-			System.out.println("The node has been published at ws://localhost:" + port);
+			System.out.println("The Hotmoka node has been published at ws://localhost:" + port);
 		}
 
 		private void printManifest() throws TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
-			System.out.println("\nThe following node has been restarted:\n" + ManifestHelpers.of(node));
+			System.out.println("\nThe following Hotmoka node has been resumed:\n" + ManifestHelpers.of(node));
 		}
 	}
 }
