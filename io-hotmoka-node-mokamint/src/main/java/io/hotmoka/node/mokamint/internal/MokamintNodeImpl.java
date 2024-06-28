@@ -25,15 +25,19 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.exceptions.CheckRunnable;
+import io.hotmoka.exceptions.CheckSupplier;
 import io.hotmoka.exceptions.UncheckConsumer;
+import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.TransactionReferences;
@@ -87,8 +91,20 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 				@Override
 				protected void onHeadChanged(Block newHead) {
-					super.onHeadChanged(newHead);
+					StateId idOfStoreOfHead = StateIds.of(newHead.getStateId());
 
+					try {
+						setStoreOfHead(getStoreOfHead().checkedOutAt(idOfStoreOfHead));
+						CheckRunnable.check(NodeException.class, () -> getEnvironment().executeInTransaction(UncheckConsumer.uncheck(
+							txn -> keepPersistedOnly(Set.of(idOfStoreOfHead), txn)
+						)));
+					}
+					catch (NodeException | StoreException e) {
+						LOGGER.log(Level.SEVERE, "", e);
+					}
+
+					super.onHeadChanged(newHead);
+					
 					if (newHead instanceof NonGenesisBlock ngb)
 						toPublish.offer(ngb);
 				}
@@ -210,12 +226,11 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 	private class MokamintHotmokaApplication extends AbstractApplication {
 
 		/**
-		 * The current store transactions, for each group id of Hotmoka transactions.
+		 * The current store transformations, for each group id of Hotmoka transactions.
 		 */
-		//private final ConcurrentMap<Integer, MokamintStoreTransformation> transactions = new ConcurrentHashMap<>();
-		private volatile MokamintStoreTransformation transformation;
+		private final ConcurrentMap<Integer, MokamintStoreTransformation> transformations = new ConcurrentHashMap<>();
 
-		private volatile MokamintStore finalStore;
+		private final AtomicInteger nextId = new AtomicInteger();
 
 		@Override
 		public boolean checkPrologExtra(byte[] extra) throws ApplicationException {
@@ -256,20 +271,24 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 		@Override
 		public int beginBlock(long height, LocalDateTime when, byte[] stateId) throws UnknownStateException, ApplicationException {
+			int groupId = nextId.getAndIncrement();
+
 			try {
-				transformation = getStoreOfHead() //.checkedOutAt(StateIds.of(stateId))
-					.beginTransaction(when.toInstant(ZoneOffset.UTC).toEpochMilli());
+				transformations.put(groupId, getStoreOfHead() //.checkedOutAt(StateIds.of(stateId))
+					.beginTransformation(when.toInstant(ZoneOffset.UTC).toEpochMilli()));
 			}
 			catch (StoreException e) {
 	    		throw new ApplicationException(e);
 	    	}
 
-			return 0;
+			return groupId;
 		}
 
 		@Override
 		public void deliverTransaction(int groupId, Transaction transaction) throws io.mokamint.node.api.TransactionRejectedException, UnknownGroupIdException, ApplicationException {
 			TransactionRequest<?> hotmokaRequest = intoHotmokaRequest(transaction);
+
+			MokamintStoreTransformation transformation = getTransformation(groupId);
 
 			try {
 				transformation.deliverTransaction(hotmokaRequest);
@@ -285,39 +304,39 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 		@Override
 		public byte[] endBlock(int groupId, Deadline deadline) throws ApplicationException, UnknownGroupIdException {
-			AtomicReference<MokamintStore> finalStore = new AtomicReference<>();
+			MokamintStoreTransformation transformation = getTransformation(groupId);
+			persisted++;
 
 			try {
-				CheckRunnable.check(NodeException.class, StoreException.class, () -> getEnvironment().executeInTransaction(UncheckConsumer.uncheck(txn -> {
-					finalStore.set(transformation.getFinalStore(txn));
-					persist(finalStore.get(), txn);
+				return CheckSupplier.check(NodeException.class, StoreException.class, () -> getEnvironment().computeInTransaction(UncheckFunction.uncheck(txn -> {
+					MokamintStore finalStore = transformation.getFinalStore(txn);
+					persist(finalStore, txn);
+					return finalStore.getStateId().getBytes();
 				})));
 			}
 			catch (StoreException | NodeException e) {
 				throw new ApplicationException(e);
 			}
-
-			persisted++;
-			return (this.finalStore = finalStore.get()).getStateId().getBytes();
 		}
 
 		@Override
 		public void commitBlock(int groupId) throws ApplicationException, UnknownGroupIdException {
-			setStoreOfHead(finalStore);
-
-			try {
-				CheckRunnable.check(NodeException.class, () -> getEnvironment().executeInTransaction(UncheckConsumer.uncheck(
-					txn -> keepPersistedOnly(Set.of(finalStore.getStateId()), txn)
-				)));
-			}
-			catch (NodeException e) {
-				throw new ApplicationException(e);
-			}
+			getTransformation(groupId);
+			transformations.remove(groupId);
 		}
 
 		@Override
-		public void abortBlock(int groupId) throws ApplicationException, UnknownGroupIdException, TimeoutException, InterruptedException {
-			// TODO Auto-generated method stub
+		public void abortBlock(int groupId) throws ApplicationException, UnknownGroupIdException {
+			getTransformation(groupId);
+			transformations.remove(groupId);
+		}
+
+		private MokamintStoreTransformation getTransformation(int groupId) throws UnknownGroupIdException {
+			MokamintStoreTransformation transformation = transformations.get(groupId);
+			if (transformation == null)
+				throw new UnknownGroupIdException("Group id " + groupId + " is unknown");
+			else
+				return transformation;
 		}
 	}
 }

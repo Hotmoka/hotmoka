@@ -625,7 +625,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	    	misbehaving = spaceSeparatedSequenceOfMisbehavingValidatorsAddresses(request);
 
 	    	try {
-	    		transformation = getStoreOfHead().beginTransaction(timeOfBlock(request));
+	    		transformation = getStoreOfHead().beginTransformation(timeOfBlock(request));
 	    	}
 	    	catch (StoreException e) {
 	    		throw new RuntimeException(e); // TODO

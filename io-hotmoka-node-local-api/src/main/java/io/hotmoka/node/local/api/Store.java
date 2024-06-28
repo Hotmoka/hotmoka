@@ -102,7 +102,7 @@ public interface Store<S extends Store<S, T>, T extends StoreTransformation<S, T
 	 * @return the transformation
 	 * @throws StoreException if this store is not able to perform the operation
 	 */
-	T beginTransaction(long now) throws StoreException;
+	T beginTransformation(long now) throws StoreException;
 
 	/**
 	 * Starts a view store transformation. It assumes the time of the transformation to be the

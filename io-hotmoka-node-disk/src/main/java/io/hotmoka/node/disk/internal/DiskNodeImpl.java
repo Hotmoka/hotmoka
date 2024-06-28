@@ -200,7 +200,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 		 */
 		private void deliver() {
 			try {
-				DiskStoreTransformation transaction = getStoreOfHead().beginTransaction(System.currentTimeMillis());
+				DiskStoreTransformation transaction = getStoreOfHead().beginTransformation(System.currentTimeMillis());
 
 				while (true) {
 					TransactionRequest<?> current = checkedMempool.poll(2, TimeUnit.MILLISECONDS);
@@ -240,7 +240,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 					CheckRunnable.check(NodeException.class, () -> transformation.getDeliveredTransactions().forEachOrdered(UncheckConsumer.uncheck(reference -> publish(reference, newStore))));
 				}
 
-				return getStoreOfHead().beginTransaction(System.currentTimeMillis());
+				return getStoreOfHead().beginTransformation(System.currentTimeMillis());
 			}
 			catch (StoreException e) {
 				throw new NodeException(e);

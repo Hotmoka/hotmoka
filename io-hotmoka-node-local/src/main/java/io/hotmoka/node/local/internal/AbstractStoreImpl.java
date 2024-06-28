@@ -78,6 +78,7 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 
 		this.node = node;
 		this.cache = new StoreCacheImpl();
+
 		try {
 			this.consensusForViews = cache.getConfig().toBuilder().setMaxGasPerTransaction(node.getLocalConfig().getMaxGasPerViewTransaction()).build();
 		}
@@ -101,7 +102,7 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	}
 
 	@Override
-	public final T beginTransaction(long now) throws StoreException {
+	public final T beginTransformation(long now) throws StoreException {
 		return beginTransformation(cache.getConfig(), now);
 	}
 
