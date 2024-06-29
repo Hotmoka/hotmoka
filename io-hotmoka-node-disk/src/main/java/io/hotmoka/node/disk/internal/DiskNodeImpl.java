@@ -102,11 +102,6 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 		mempool.add(request);
 	}
 
-	@Override
-	protected DiskStore getStoreOfHead() {
-		return mempool.storeOfHead;
-	}
-
 	/**
 	 * A mempool receives transaction requests and schedules them for execution,
 	 * respecting the order in which they have been proposed.
@@ -138,14 +133,11 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 
 		private final int transactionsPerBlock;
 	
-		private volatile DiskStore storeOfHead;
-
 		/**
 		 * Builds a mempool.
 		 */
 		private Mempool() throws NodeException {
 			this.transactionsPerBlock = getLocalConfig().getTransactionsPerBlock();
-			this.storeOfHead = mkStore();
 			this.checker = new Thread(this::check);
 			this.checker.start();
 			this.deliverer = new Thread(this::deliver);
@@ -244,7 +236,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 				if (transformation.deliveredCount() > 0) {
 					transformation.deliverRewardTransaction("", "");
 					DiskStore newStore = transformation.getFinalStore();
-					storeOfHead = newStore;
+					setStoreOfHead(newStore);
 					CheckRunnable.check(NodeException.class, () -> transformation.getDeliveredTransactions().forEachOrdered(UncheckConsumer.uncheck(reference -> publish(reference, newStore))));
 				}
 

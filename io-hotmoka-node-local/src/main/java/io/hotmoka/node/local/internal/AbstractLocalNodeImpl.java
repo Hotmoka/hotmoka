@@ -507,7 +507,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 */
 	protected void exit(S store) {}
 
-	protected S getStoreOfHead() throws NodeException {
+	protected final S getStoreOfHead() throws NodeException {
 		return storeOfHead;
 	}
 

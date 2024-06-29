@@ -76,8 +76,8 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 	}
 
 	@Override
-	protected void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws StoreException, InterruptedException {
-		super.invalidateCachesIfNeeded(response, classLoader);
+	protected void updateCaches(TransactionResponse response, EngineClassLoader classLoader) throws StoreException, InterruptedException {
+		super.updateCaches(response, classLoader);
 	
 		if (validatorsMightHaveChanged(response, classLoader)) {
 			recomputeValidators();

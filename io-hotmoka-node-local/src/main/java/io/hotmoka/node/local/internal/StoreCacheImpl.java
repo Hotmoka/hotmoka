@@ -94,7 +94,7 @@ public class StoreCacheImpl implements StoreCache {
 		this.checkedSignatures = new LRUCache<>(100, 1000);
 	}
 
-	public StoreCacheImpl(Optional<BigInteger> gasPrice, OptionalLong inflation, ConsensusConfig<?,?> consensus, Optional<StorageReference> validators, Optional<StorageReference> gasStation, Optional<StorageReference> versions, LRUCache<TransactionReference, EngineClassLoader> classLoaders, LRUCache<TransactionReference, Boolean> checkedSignatures) {
+	private StoreCacheImpl(Optional<BigInteger> gasPrice, OptionalLong inflation, ConsensusConfig<?,?> consensus, Optional<StorageReference> validators, Optional<StorageReference> gasStation, Optional<StorageReference> versions, LRUCache<TransactionReference, EngineClassLoader> classLoaders, LRUCache<TransactionReference, Boolean> checkedSignatures) {
 		this.consensus = consensus;
 		this.gasPrice = gasPrice;
 		this.inflation = inflation;

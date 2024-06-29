@@ -232,7 +232,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 			push(reference, request, response);
 			responseBuilder.replaceReverifiedResponses();
 			takeNoteForNextReward(request, response);
-			invalidateCachesIfNeeded(response, responseBuilder.getClassLoader());
+			updateCaches(response, responseBuilder.getClassLoader());
 	
 			LOGGER.info(referenceAsString + ": delivering success");
 			return response;
@@ -308,14 +308,13 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	}
 
 	/**
-	 * Invalidates the caches, if needed, after the addition of the given response into store.
+	 * Updates the caches, if needed, after the addition of the given response into store.
 	 * 
 	 * @param response the store
 	 * @param classLoader the class loader of the transaction that computed {@code response}
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
-	 * @throws ClassNotFoundException if some class cannot be found in the Takamaka code
 	 */
-	protected void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws StoreException, InterruptedException {
+	protected void updateCaches(TransactionResponse response, EngineClassLoader classLoader) throws StoreException, InterruptedException {
 		if (manifestMightHaveChanged(response)) {
 			cache = cache.setValidators(extractValidators());
 			LOGGER.info("the validators cache has been updated since it might have changed");
