@@ -556,7 +556,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		 * 
 		 * @return the hash
 		 */
-		private byte[] getLastBlockApplicationHash() {
+		private byte[] getLastBlockApplicationHash() throws NodeException {
 			return getStoreOfHead().getStateId().getBytes();
 		}
 
@@ -627,7 +627,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	    	try {
 	    		transformation = getStoreOfHead().beginTransformation(timeOfBlock(request));
 	    	}
-	    	catch (StoreException e) {
+	    	catch (StoreException | NodeException e) {
 	    		throw new RuntimeException(e); // TODO
 	    	}
 
