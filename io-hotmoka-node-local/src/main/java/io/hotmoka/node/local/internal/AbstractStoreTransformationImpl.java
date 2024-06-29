@@ -158,7 +158,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	}
 
 	@Override
-	public final void deliverRewardTransaction(String behaving, String misbehaving) throws StoreException {
+	public final void deliverRewardTransaction(String behaving, String misbehaving) throws StoreException, InterruptedException {
 		try {
 			Optional<StorageReference> maybeManifest = getManifest();
 			if (maybeManifest.isPresent()) {
@@ -220,7 +220,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	}
 
 	@Override
-	public final TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException, StoreException {
+	public final TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException, StoreException, InterruptedException {
 		var reference = TransactionReferences.of(store.getHasher().hash(request));
 		String referenceAsString = reference.toString();
 	
@@ -312,9 +312,10 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	 * 
 	 * @param response the store
 	 * @param classLoader the class loader of the transaction that computed {@code response}
+	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 * @throws ClassNotFoundException if some class cannot be found in the Takamaka code
 	 */
-	protected void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws StoreException {
+	protected void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws StoreException, InterruptedException {
 		if (manifestMightHaveChanged(response)) {
 			cache = cache.setValidators(extractValidators());
 			LOGGER.info("the validators cache has been updated since it might have changed");

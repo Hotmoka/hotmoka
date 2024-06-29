@@ -224,7 +224,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		}
 	}
 
-	private void checkOutRootBranch() throws NodeException {
+	private void checkOutRootBranch() throws NodeException, InterruptedException {
 		var root = getEnvironment().computeInTransaction(txn -> Optional.ofNullable(getStoreOfNode().get(txn, ROOT)).map(ByteIterable::getBytes));
 		if (root.isEmpty())
 			throw new NodeException("Cannot find the root of the saved store of the node");
@@ -693,6 +693,10 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 				transformation.deliverRewardTransaction(behaving, misbehaving);
 			}
 			catch (StoreException e) {
+				throw new NodeException(e);
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
 				throw new NodeException(e);
 			}
 

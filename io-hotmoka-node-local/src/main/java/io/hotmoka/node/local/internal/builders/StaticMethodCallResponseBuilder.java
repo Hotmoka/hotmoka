@@ -55,7 +55,7 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 	}
 
 	@Override
-	public MethodCallTransactionResponse getResponse() throws StoreException {
+	public MethodCallTransactionResponse getResponse() throws StoreException, InterruptedException {
 		return new ResponseCreator().create();
 	}
 

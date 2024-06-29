@@ -99,8 +99,14 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 							txn -> keepPersistedOnly(Set.of(idOfStoreOfHead), txn)
 						)));
 					}
+					catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+						LOGGER.log(Level.SEVERE, "could not set the head to " + idOfStoreOfHead, e);
+						return;
+					}
 					catch (NodeException | StoreException e) {
-						LOGGER.log(Level.SEVERE, "", e);
+						LOGGER.log(Level.SEVERE, "could not set the head to " + idOfStoreOfHead, e);
+						return;
 					}
 
 					super.onHeadChanged(newHead);
@@ -270,11 +276,11 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		}
 
 		@Override
-		public int beginBlock(long height, LocalDateTime when, byte[] stateId) throws UnknownStateException, ApplicationException {
+		public int beginBlock(long height, LocalDateTime when, byte[] stateId) throws UnknownStateException, ApplicationException, InterruptedException {
 			int groupId = nextId.getAndIncrement();
 
 			try {
-				transformations.put(groupId, getStoreOfHead() //.checkedOutAt(StateIds.of(stateId))
+				transformations.put(groupId, getStoreOfHead().checkedOutAt(StateIds.of(stateId))
 					.beginTransformation(when.toInstant(ZoneOffset.UTC).toEpochMilli()));
 			}
 			catch (StoreException e) {
@@ -285,7 +291,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		}
 
 		@Override
-		public void deliverTransaction(int groupId, Transaction transaction) throws io.mokamint.node.api.TransactionRejectedException, UnknownGroupIdException, ApplicationException {
+		public void deliverTransaction(int groupId, Transaction transaction) throws io.mokamint.node.api.TransactionRejectedException, UnknownGroupIdException, ApplicationException, InterruptedException {
 			TransactionRequest<?> hotmokaRequest = intoHotmokaRequest(transaction);
 
 			MokamintStoreTransformation transformation = getTransformation(groupId);

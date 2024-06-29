@@ -38,9 +38,10 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	 * Yields the response corresponding to the request for which this builder was created.
 	 * 
 	 * @return the response
-	 * @throws StoreException if the response could not be created
+	 * @throws StoreException if the node is misbehaving
+	 * @throws InterruptedException if the current thread has been interrupted before computation the response
 	 */
-	Response getResponse() throws StoreException;
+	Response getResponse() throws StoreException, InterruptedException;
 	
 	/**
 	 * Replaces all reverified responses into the store for which the response is built.

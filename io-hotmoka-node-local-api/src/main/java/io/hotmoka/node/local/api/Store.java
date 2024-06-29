@@ -113,5 +113,5 @@ public interface Store<S extends Store<S, T>, T extends StoreTransformation<S, T
 	 * @return the transformation
 	 * @throws StoreException if this store is not able to perform the operation
 	 */
-	T beginViewTransaction() throws StoreException;
+	T beginViewTransformation() throws StoreException;
 }

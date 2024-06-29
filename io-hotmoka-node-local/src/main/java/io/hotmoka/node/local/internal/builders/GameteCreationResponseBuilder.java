@@ -52,7 +52,7 @@ public class GameteCreationResponseBuilder extends AbstractInitialResponseBuilde
 	}
 
 	@Override
-	public GameteCreationTransactionResponse getResponse() throws StoreException {
+	public GameteCreationTransactionResponse getResponse() throws StoreException, InterruptedException {
 		return new ResponseCreator() {
 
 			@Override

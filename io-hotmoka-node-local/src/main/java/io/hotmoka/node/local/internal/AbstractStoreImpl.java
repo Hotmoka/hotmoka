@@ -107,7 +107,7 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	}
 
 	@Override
-	public final T beginViewTransaction() throws StoreException {
+	public final T beginViewTransformation() throws StoreException {
 		return beginTransformation(consensusForViews, getNow());
 	}
 
@@ -136,7 +136,7 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	 * @return the resulting store
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	protected final S reloadCache() throws StoreException {
+	protected final S reloadCache() throws StoreException, InterruptedException {
 		StoreCache newCache = cache;
 
 		// if this store is already initialized, we can extract the cache information

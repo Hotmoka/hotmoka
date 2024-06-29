@@ -259,7 +259,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 	}
 
 	@Override
-	public final S checkedOutAt(StateId stateId) throws StoreException {
+	public final S checkedOutAt(StateId stateId) throws StoreException, InterruptedException {
 		var bytes = stateId.getBytes();
 		var rootOfResponses = new byte[32];
 		System.arraycopy(bytes, 0, rootOfResponses, 0, 32);

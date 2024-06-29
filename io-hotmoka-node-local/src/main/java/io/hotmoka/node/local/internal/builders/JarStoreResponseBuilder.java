@@ -75,7 +75,7 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 	}
 
 	@Override
-	public JarStoreTransactionResponse getResponse() throws StoreException {
+	public JarStoreTransactionResponse getResponse() throws StoreException, InterruptedException {
 		return new ResponseCreator().create();
 	}
 

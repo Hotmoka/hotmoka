@@ -54,8 +54,9 @@ public interface StoreTransformation<S extends Store<S,T>, T extends StoreTransf
 	 * @throws TransactionException if the request has been accepted but its execution failed with an exception not in the Takamaka code
 	 * @throws CodeExecutionException if the request has been accepted but its execution failed with a user exception in the Takamaka code
 	 * @throws StoreException if the final store is not able to complete the operation correctly
+	 * @throws InterruptedException if the current thread is interrupted before computing the result
 	 */
-	Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException, StoreException;
+	Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException, StoreException, InterruptedException;
 
 	/**
 	 * Runs the given request of execution of a view static method, at the final store of this transformation.
@@ -67,8 +68,9 @@ public interface StoreTransformation<S extends Store<S,T>, T extends StoreTransf
 	 * @throws TransactionException if the request has been accepted but its execution failed with an exception not in the Takamaka code
 	 * @throws CodeExecutionException if the request has been accepted but its execution failed with a user exception in the Takamaka code
 	 * @throws StoreException if the final store is not able to complete the operation correctly
+	 * @throws InterruptedException if the current thread is interrupted before computing the result
 	 */
-	Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException, StoreException;
+	Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException, StoreException, InterruptedException;
 
 	/**
 	 * Rewards the validators with the cost of the gas consumed for the execution of the
@@ -79,8 +81,9 @@ public interface StoreTransformation<S extends Store<S,T>, T extends StoreTransf
 	 * @param misbehaving the space-separated sequence of the identifiers of the validators that
 	 *                    misbehaved and must be punished
 	 * @throws StoreException if the final store is not able to complete the operation correctly
+	 * @throws InterruptedException if the current thread is interrupted before delivering the transaction
 	 */
-	void deliverRewardTransaction(String behaving, String misbehaving) throws StoreException;
+	void deliverRewardTransaction(String behaving, String misbehaving) throws StoreException, InterruptedException;
 
 	/**
 	 * Builds a response for the given request, executed at the current final store,
@@ -90,8 +93,9 @@ public interface StoreTransformation<S extends Store<S,T>, T extends StoreTransf
 	 * @return the response
 	 * @throws TransactionRejectedException if the request has been rejected
 	 * @throws StoreException if the final store of this transformation is not able to complete the operation correctly
+	 * @throws InterruptedException if the current thread is interrupted before delivering the transaction
 	 */
-	TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException, StoreException;
+	TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException, StoreException, InterruptedException;
 
 	/**
 	 * Yields the number of successfully requests delivered through {@link #deliverTransaction(TransactionRequest)}.

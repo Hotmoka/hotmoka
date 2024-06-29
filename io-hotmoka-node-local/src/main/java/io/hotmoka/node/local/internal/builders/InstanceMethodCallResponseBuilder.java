@@ -73,7 +73,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	}
 
 	@Override
-	public MethodCallTransactionResponse getResponse() throws StoreException {
+	public MethodCallTransactionResponse getResponse() throws StoreException, InterruptedException {
 		return new ResponseCreator().create();
 	}
 

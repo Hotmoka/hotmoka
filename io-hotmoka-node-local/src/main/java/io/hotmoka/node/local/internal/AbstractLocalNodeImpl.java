@@ -422,7 +422,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	@Override
-	public final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException {
+	public final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException {
 		S store = this.storeOfHead;
 		enter(store);
 
@@ -430,7 +430,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 			var reference = TransactionReferences.of(hasher.hash(request));
 			String referenceAsString = reference.toString();
 			LOGGER.info(referenceAsString + ": running start (" + request.getClass().getSimpleName() + " -> " + trim(request.getStaticTarget().getMethodName()) + ')');
-			Optional<StorageValue> result = store.beginViewTransaction().runInstanceMethodCallTransaction(request, reference);
+			Optional<StorageValue> result = store.beginViewTransformation().runInstanceMethodCallTransaction(request, reference);
 			LOGGER.info(referenceAsString + ": running success");
 			return result;
 		}
@@ -443,7 +443,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	@Override
-	public final Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException {
+	public final Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException {
 		S store = this.storeOfHead;
 		enter(store);
 
@@ -451,7 +451,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 			var reference = TransactionReferences.of(hasher.hash(request));
 			String referenceAsString = reference.toString();
 			LOGGER.info(referenceAsString + ": running start (" + request.getClass().getSimpleName() + " -> " + trim(request.getStaticTarget().getMethodName()) + ')');
-			Optional<StorageValue> result = store.beginViewTransaction().runStaticMethodCallTransaction(request, reference);
+			Optional<StorageValue> result = store.beginViewTransformation().runStaticMethodCallTransaction(request, reference);
 			LOGGER.info(referenceAsString + ": running success");
 			return result;
 		}

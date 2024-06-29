@@ -230,7 +230,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 			}
 		}
 
-		private DiskStoreTransformation restartTransaction(DiskStoreTransformation transformation) throws NodeException {
+		private DiskStoreTransformation restartTransaction(DiskStoreTransformation transformation) throws NodeException, InterruptedException {
 			try {
 				// if we delivered zero transactions, we prefer to avoid the creation of an empty block
 				if (transformation.deliveredCount() > 0) {

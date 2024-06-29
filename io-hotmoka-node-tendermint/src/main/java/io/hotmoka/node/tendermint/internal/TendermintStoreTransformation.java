@@ -76,7 +76,7 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 	}
 
 	@Override
-	protected void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws StoreException {
+	protected void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws StoreException, InterruptedException {
 		super.invalidateCachesIfNeeded(response, classLoader);
 	
 		if (validatorsMightHaveChanged(response, classLoader)) {
@@ -85,7 +85,7 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 		}
 	}
 
-	private void recomputeValidators() throws StoreException {
+	private void recomputeValidators() throws StoreException, InterruptedException {
 		try {
 			Optional<StorageReference> maybeManifest = getManifest();
 			if (maybeManifest.isPresent()) {

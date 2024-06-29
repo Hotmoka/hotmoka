@@ -145,17 +145,12 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 			this.updatesExtractor = new UpdatesExtractor(classLoader);
 		}
 
-		public final Response create() throws StoreException {
+		public final Response create() throws StoreException, InterruptedException {
 			try {
 				return environment.submit(new TakamakaCallable(this::body)).get();
 			}
 			catch (ExecutionException e) {
 				throw new StoreException(e.getCause());
-			}
-			catch (InterruptedException e) {
-				Thread.currentThread().isInterrupted();
-				// TODO
-				throw new RuntimeException(e);
 			}
 		}
 

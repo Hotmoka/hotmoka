@@ -111,11 +111,11 @@ public abstract class ExecutionEnvironment {
 		this.executors = executors;
 	}
 
-	public final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException, StoreException {
+	public final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException, StoreException, InterruptedException {
 		return getOutcome(new InstanceViewMethodCallResponseBuilder(reference, request, this).getResponse());
 	}
 
-	public final Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException, StoreException {
+	public final Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException, StoreException, InterruptedException {
 		return getOutcome(new StaticViewMethodCallResponseBuilder(reference, request, this).getResponse());
 	}
 
@@ -164,7 +164,7 @@ public abstract class ExecutionEnvironment {
 		return getCache().getConfig();
 	}
 
-	protected final ConsensusConfig<?,?> extractConsensus() throws StoreException {
+	protected final ConsensusConfig<?,?> extractConsensus() throws StoreException, InterruptedException {
 		Optional<StorageReference> maybeManifest = getManifest();
 		if (maybeManifest.isEmpty())
 			throw new StoreException("Cannot extract the consensus if the manifest is not set yet");
@@ -402,7 +402,7 @@ public abstract class ExecutionEnvironment {
 			throw new StoreException("The node has been initialized but its manifest cannot be found");
 	}
 
-	protected final BigInteger extractGasPrice() throws StoreException {
+	protected final BigInteger extractGasPrice() throws StoreException, InterruptedException {
 		Optional<StorageReference> manifest = getManifest();
 		if (manifest.isPresent()) {
 			TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
@@ -431,7 +431,7 @@ public abstract class ExecutionEnvironment {
 			throw new StoreException("The node has been initialized but its manifest cannot be found");
 	}
 
-	protected final long extractInflation() throws StoreException {
+	protected final long extractInflation() throws StoreException, InterruptedException {
 		Optional<StorageReference> manifest = getManifest();
 		if (manifest.isPresent()) {
 			TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
@@ -624,7 +624,7 @@ public abstract class ExecutionEnvironment {
 			throw new StoreException("Unexpected transaction request of class " + request.getClass().getName());
 	}
 
-	protected final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, StoreException {
+	protected final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, StoreException, InterruptedException {
 		return runInstanceMethodCallTransaction(request, TransactionReferences.of(getHasher().hash(request)));
 	}
 
