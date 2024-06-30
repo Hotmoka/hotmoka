@@ -47,5 +47,5 @@ public interface CheckableStore<S extends CheckableStore<S, T>, T extends StoreT
 	 * @throws StoreException if the operation cannot be completed correctly
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 */
-	S checkedOutAt(StateId stateId) throws StoreException, InterruptedException;
+	S checkedOutAt(StateId stateId) throws UnknownStateIdException, StoreException, InterruptedException;
 }

@@ -50,6 +50,7 @@ import io.hotmoka.node.local.AbstractTrieBasedLocalNode;
 import io.hotmoka.node.local.StateIds;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.api.UnknownStateIdException;
 import io.hotmoka.node.mokamint.api.MokamintNode;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
 import io.mokamint.application.AbstractApplication;
@@ -104,7 +105,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 						LOGGER.log(Level.SEVERE, "could not set the head to " + idOfStoreOfHead, e);
 						return;
 					}
-					catch (NodeException | StoreException e) {
+					catch (NodeException | StoreException | UnknownStateIdException e) {
 						LOGGER.log(Level.SEVERE, "could not set the head to " + idOfStoreOfHead, e);
 						return;
 					}
@@ -124,7 +125,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 			setStoreOfHead(mkStore(StateIds.of(head.getStateId())));
 		}
-		catch (AlreadyInitializedException | TimeoutException | ApplicationException | io.mokamint.node.api.NodeException e) {
+		catch (AlreadyInitializedException | TimeoutException | ApplicationException | io.mokamint.node.api.NodeException | UnknownStateIdException e) {
 			throw new NodeException(e);
 		}
 
@@ -144,7 +145,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 					for (var tx: next.getTransactions().toArray(Transaction[]::new))
 						publish(TransactionReferences.of(getHasher().hash(intoHotmokaRequest(tx))), store);
 				}
-				catch (ApplicationException | NodeException | io.mokamint.node.api.TransactionRejectedException e) {
+				catch (ApplicationException | NodeException | io.mokamint.node.api.TransactionRejectedException | UnknownStateIdException e) {
 					LOGGER.log(Level.SEVERE, "failed to publish the transactions in a block", e);
 				}
 			}
@@ -179,7 +180,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 	}
 
 	@Override
-	protected MokamintStore mkStore(StateId stateId) throws NodeException {
+	protected MokamintStore mkStore(StateId stateId) throws NodeException, UnknownStateIdException {
 		try {
 			return new MokamintStore(this, stateId);
 		}
@@ -286,6 +287,9 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			catch (StoreException | NodeException e) {
 	    		throw new ApplicationException(e);
 	    	}
+			catch (UnknownStateIdException e) {
+				throw new UnknownStateException(e);
+			}
 
 			return groupId;
 		}

@@ -22,6 +22,7 @@ import io.hotmoka.node.local.AbstractTrieBasedStore;
 import io.hotmoka.node.local.StoreCache;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.api.UnknownStateIdException;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
 
 /**
@@ -46,8 +47,9 @@ public class MokamintStore extends AbstractTrieBasedStore<MokamintNodeImpl, Moka
 	 * @param node the node for which the store is created
 	 * @param stateId the state identifier
 	 * @throws StoreException if the operation cannot be completed correctly
+     * @throws UnknownStateIdException 
 	 */
-    MokamintStore(MokamintNodeImpl node, StateId stateId) throws StoreException {
+    MokamintStore(MokamintNodeImpl node, StateId stateId) throws StoreException, UnknownStateIdException {
     	super(node, stateId);
     }
 
@@ -60,8 +62,9 @@ public class MokamintStore extends AbstractTrieBasedStore<MokamintNodeImpl, Moka
 	 * @param rootOfInfo the root to use for the tries of infos
 	 * @param rootOfHistories the root to use for the tries of histories
 	 * @param rootOfRequests the root to use for the tries of requests
+     * @throws StoreException 
 	 */
-    private MokamintStore(MokamintStore toClone, StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) {
+    private MokamintStore(MokamintStore toClone, StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) throws UnknownStateIdException, StoreException {
     	super(toClone, cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
 	}
 
@@ -81,7 +84,7 @@ public class MokamintStore extends AbstractTrieBasedStore<MokamintNodeImpl, Moka
     }
 
 	@Override
-    protected MokamintStore mkStore(StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) {
+    protected MokamintStore mkStore(StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) throws UnknownStateIdException, StoreException {
 		return new MokamintStore(this, cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
 	}
 

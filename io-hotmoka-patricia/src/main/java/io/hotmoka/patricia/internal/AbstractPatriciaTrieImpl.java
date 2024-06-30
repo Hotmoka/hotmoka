@@ -100,10 +100,11 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 	 * @param valueToBytes a function that marshals values into their byte representation
 	 * @param bytesToValue a function that unmarshals bytes into the represented value
 	 * @throws TrieException if the creation cannot be completed correctly
+	 * @throws UnknownKeyException 
 	 */
 	public AbstractPatriciaTrieImpl(KeyValueStore store, byte[] root,
 			Hasher<? super Key> hasherForKeys, HashingAlgorithm hashingForNodes, byte[] hashOfEmpty,
-			ToBytes<? super Value> valueToBytes, FromBytes<? extends Value> bytesToValue) throws TrieException {
+			ToBytes<? super Value> valueToBytes, FromBytes<? extends Value> bytesToValue) throws TrieException, UnknownKeyException {
 
 		this.store = store;
 		this.hasherForKeys = hasherForKeys;
@@ -137,6 +138,8 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		this.bytesToValue = bytesToValue;
 		this.valueToBytes = valueToBytes;
 		this.root = root.clone();
+
+		//getNodeFromHashIfPresent(root, 0); // TODO: activate this
 	}
 
 	/**
@@ -145,8 +148,9 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 	 * @param cloned the trie to clone
 	 * @param root the root to use in the cloned trie
 	 * @throws TrieException if the creation cannot be completed correctly
+	 * @throws UnknownKeyException 
 	 */
-	protected AbstractPatriciaTrieImpl(AbstractPatriciaTrieImpl<Key, Value, T> cloned, byte[] root) throws TrieException {
+	protected AbstractPatriciaTrieImpl(AbstractPatriciaTrieImpl<Key, Value, T> cloned, byte[] root) throws TrieException, UnknownKeyException {
 		this.store = cloned.store;
 		this.hasherForKeys = cloned.hasherForKeys;
 		this.hasherForNodes = cloned.hasherForNodes;
@@ -154,6 +158,8 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		this.valueToBytes = cloned.valueToBytes;
 		this.hashOfEmpty = cloned.hashOfEmpty;
 		this.root = root.clone();
+
+		getNodeFromHashIfPresent(root, 0);
 	}
 
 	@Override
@@ -175,7 +181,13 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		byte[] nibblesOfHashedKey = toNibbles(hashedKey);
 		AbstractNode oldRoot = getNodeFromHash(root, 0);
 		AbstractNode newRoot = oldRoot.put(nibblesOfHashedKey, 0, value);
-		return checkoutAt(hasherForNodes.hash(newRoot));
+
+		try {
+			return checkoutAt(hasherForNodes.hash(newRoot));
+		}
+		catch (UnknownKeyException e) {
+			throw new TrieException(e);
+		}
 	}
 
 	@Override

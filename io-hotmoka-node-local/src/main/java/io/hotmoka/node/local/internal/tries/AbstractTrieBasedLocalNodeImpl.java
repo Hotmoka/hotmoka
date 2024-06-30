@@ -38,6 +38,7 @@ import io.hotmoka.node.local.StateIds;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.api.UnknownStateIdException;
 import io.hotmoka.xodus.ByteIterable;
 import io.hotmoka.xodus.ExodusException;
 import io.hotmoka.xodus.env.Environment;
@@ -227,7 +228,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 * @param stateId the state identifier
 	 * @return the resulting store
 	 */
-	protected abstract S mkStore(StateId stateId) throws NodeException;
+	protected abstract S mkStore(StateId stateId) throws UnknownStateIdException, NodeException;
 
 	private boolean canBeGarbageCollected(StateId id) {
 		return storeUsers.getOrDefault(id, 0) == 0;
@@ -292,7 +293,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 			if (!storesToGC.offer(mkStore(id)))
 				LOGGER.warning("cannot offer store " + id + " to the garbage-collector: the queue is full!");
 		}
-		catch (NodeException e) {
+		catch (NodeException | UnknownStateIdException e) {
 			LOGGER.log(Level.SEVERE, "cannot offer store " + id + " to the garbage-collector", e);
 		}
 	}

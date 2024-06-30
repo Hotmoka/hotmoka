@@ -30,6 +30,7 @@ import io.hotmoka.node.local.AbstractTrieBasedStore;
 import io.hotmoka.node.local.StoreCache;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.api.UnknownStateIdException;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 import io.hotmoka.xodus.env.Transaction;
 
@@ -63,8 +64,9 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
 	 * @param node the node for which the store is created
 	 * @param stateId the state identifier
 	 * @throws StoreException if the operation cannot be completed correctly
+     * @throws UnknownStateIdException 
 	 */
-    TendermintStore(TendermintNodeImpl node, StateId stateId) throws StoreException {
+    TendermintStore(TendermintNodeImpl node, StateId stateId) throws StoreException, UnknownStateIdException {
     	super(node, stateId);
 
     	this.validators = Optional.empty();
@@ -79,8 +81,9 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
 	 * @param rootOfInfo the root to use for the tries of infos
 	 * @param rootOfHistories the root to use for the tries of histories
 	 * @param rootOfRequests the root to use for the tries of requests
+     * @throws StoreException 
 	 */
-    private TendermintStore(TendermintStore toClone, StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) {
+    private TendermintStore(TendermintStore toClone, StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) throws UnknownStateIdException, StoreException {
     	super(toClone, cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
 
     	this.validators = toClone.validators;
@@ -114,7 +117,7 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
     }
 
 	@Override
-    protected TendermintStore mkStore(StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) {
+    protected TendermintStore mkStore(StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) throws UnknownStateIdException, StoreException {
 		return new TendermintStore(this, cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
 	}
 

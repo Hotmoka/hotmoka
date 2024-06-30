@@ -62,5 +62,5 @@ public interface PatriciaTrie<Key, Value, T extends PatriciaTrie<Key, Value, T>>
 	 * @return the resulting, cloned trie
 	 * @throws TrieException if this Patricia trie is not able to complete the operation correctly
 	 */
-	T checkoutAt(byte[] root) throws TrieException;
+	T checkoutAt(byte[] root) throws UnknownKeyException, TrieException;
 }

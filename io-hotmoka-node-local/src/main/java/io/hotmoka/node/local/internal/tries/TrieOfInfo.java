@@ -24,12 +24,12 @@ import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.values.LongValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.patricia.AbstractPatriciaTrie;
 import io.hotmoka.patricia.api.KeyValueStore;
 import io.hotmoka.patricia.api.TrieException;
+import io.hotmoka.patricia.api.UnknownKeyException;
 
 /**
  * A Merkle-Patricia trie that maps miscellaneous information into their value.
@@ -43,41 +43,20 @@ public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue, TrieOfI
 	 * 
 	 * @param store the supporting key/value store
 	 * @param root the root of the trie to check out
+	 * @throws UnknownKeyException 
 	 */
-	public TrieOfInfo(KeyValueStore store, byte[] root) throws TrieException {
+	public TrieOfInfo(KeyValueStore store, byte[] root) throws TrieException, UnknownKeyException {
 		super(store, root, HashingAlgorithms.identity1().getHasher(key -> new byte[] { key }),
 			sha256(), new byte[32], StorageValue::toByteArray, bytes -> StorageValues.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))));
 	}
 
-	private TrieOfInfo(TrieOfInfo cloned, byte[] root) throws TrieException {
+	private TrieOfInfo(TrieOfInfo cloned, byte[] root) throws TrieException, UnknownKeyException {
 		super(cloned, root);
 	}
 
 	@Override
-	public TrieOfInfo checkoutAt(byte[] root) throws TrieException {
+	public TrieOfInfo checkoutAt(byte[] root) throws TrieException, UnknownKeyException {
 		return new TrieOfInfo(this, root);
-	}
-
-	/**
-	 * Yields the block height.
-	 * 
-	 * @return the block height of this store
-	 * @throws TrieException if the operation cannot be completed correctly
-	 */
-	public long getHeight() throws TrieException {
-		return get((byte) 0)
-			.map(height -> ((LongValue) height).getValue())
-			.orElse(0L);
-	}
-
-	/**
-	 * Increases the block height.
-	 * 
-	 * @return a trie identical to this but with an incremented block height
-	 * @throws TrieException if the operation cannot be completed correctly
-	 */
-	public TrieOfInfo increaseHeight() throws TrieException {
-		return put((byte) 0, StorageValues.longOf(getHeight() + 1));
 	}
 
 	/**
@@ -86,7 +65,7 @@ public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue, TrieOfI
 	 * @return the manifest, if any
 	 */
 	public Optional<StorageReference> getManifest() throws TrieException {
-		Optional<StorageValue> maybeManifest = get((byte) 1);
+		Optional<StorageValue> maybeManifest = get((byte) 0);
 		if (maybeManifest.isEmpty())
 			return Optional.empty();
 		else if (maybeManifest.get() instanceof StorageReference manifest)
@@ -99,10 +78,10 @@ public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue, TrieOfI
 	 * Sets the manifest.
 	 * 
 	 * @param manifest the manifest to set
-	 * @throws TrieException if this trie is not able to complete the operation correcly
+	 * @throws TrieException if this trie is not able to complete the operation correctly
 	 */
 	public TrieOfInfo setManifest(StorageReference manifest) throws TrieException {
-		return put((byte) 1, manifest);
+		return put((byte) 0, manifest);
 	}
 
 	private static HashingAlgorithm sha256() throws TrieException {

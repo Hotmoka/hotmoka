@@ -20,6 +20,7 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.api.UnknownStateIdException;
 import io.hotmoka.node.local.internal.tries.AbstractTrieBasedStoreImpl;
 
 /**
@@ -51,8 +52,9 @@ public abstract class AbstractTrieBasedStore<N extends AbstractTrieBasedLocalNod
 	 * @param node the node for which the store is created
 	 * @param stateId the state identifier
 	 * @throws StoreException if the operation cannot be completed correctly
+     * @throws UnknownStateIdException 
 	 */
-    protected AbstractTrieBasedStore(N node, StateId stateId) throws StoreException {
+    protected AbstractTrieBasedStore(N node, StateId stateId) throws StoreException, UnknownStateIdException {
     	super(node, stateId);
     }
 
@@ -75,8 +77,10 @@ public abstract class AbstractTrieBasedStore<N extends AbstractTrieBasedLocalNod
 	 * @param rootOfInfo the root to use for the tries of infos
 	 * @param rootOfHistories the root to use for the tries of histories
 	 * @param rootOfRequests the root to use for the tries of requests
+	 * @throws UnknownStateIdException 
+	 * @throws StoreException 
 	 */
-    protected AbstractTrieBasedStore(AbstractTrieBasedStore<N,C,S,T> toClone, StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) {
+    protected AbstractTrieBasedStore(AbstractTrieBasedStore<N,C,S,T> toClone, StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) throws UnknownStateIdException, StoreException {
     	super(toClone, cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
     }
 }

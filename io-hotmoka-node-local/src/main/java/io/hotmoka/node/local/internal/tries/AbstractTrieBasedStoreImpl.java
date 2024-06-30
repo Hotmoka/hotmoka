@@ -22,7 +22,9 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.exceptions.CheckRunnable;
 import io.hotmoka.exceptions.CheckSupplier;
+import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.TransactionRequest;
@@ -36,8 +38,10 @@ import io.hotmoka.node.local.api.CheckableStore;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.api.UnknownStateIdException;
 import io.hotmoka.node.local.internal.StoreCacheImpl;
 import io.hotmoka.patricia.api.TrieException;
+import io.hotmoka.patricia.api.UnknownKeyException;
 import io.hotmoka.xodus.ExodusException;
 import io.hotmoka.xodus.env.Transaction;
 
@@ -81,7 +85,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
     protected AbstractTrieBasedStoreImpl(N node) throws StoreException {
-    	this(node, StateIds.of(new byte[128]));
+    	this(node, StateIds.of(new byte[128]), true);
     }
 
     /**
@@ -91,7 +95,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 	 * @param stateId the state identifier
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-    protected AbstractTrieBasedStoreImpl(N node, StateId stateId) throws StoreException {
+    protected AbstractTrieBasedStoreImpl(N node, StateId stateId) throws UnknownStateIdException, StoreException {
     	super(node);
 
 		byte[] bytes = stateId.getBytes();
@@ -103,36 +107,81 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 		System.arraycopy(bytes, 64, rootOfRequests, 0, 32);
 		this.rootOfHistories = new byte[32];
 		System.arraycopy(bytes, 96, rootOfHistories, 0, 32);
+
+		checkExistence();
     }
 
     /**
-	 * Creates a clone of a store, up to cache and roots.
-	 * 
-	 * @param toClone the store to clone
-	 * @param cache the cache to use in the cloned store
-	 * @param rootOfResponse the root to use for the tries of responses
-	 * @param rootOfInfo the root to use for the tries of infos
-	 * @param rootOfHistories the root to use for the tries of histories
-	 * @param rootOfRequests the root to use for the tries of requests
-	 */
-    protected AbstractTrieBasedStoreImpl(AbstractTrieBasedStoreImpl<N,C,S,T> toClone, StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) {
+      * Creates a clone of a store, up to cache and roots.
+      * 
+      * @param toClone the store to clone
+      * @param cache the cache to use in the cloned store
+      * @param rootOfResponse the root to use for the tries of responses
+      * @param rootOfInfo the root to use for the tries of info
+      * @param rootOfHistories the root to use for the tries of histories
+      * @param rootOfRequests the root to use for the tries of requests
+     * @throws StoreException 
+      */
+     protected AbstractTrieBasedStoreImpl(AbstractTrieBasedStoreImpl<N,C,S,T> toClone, StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) throws UnknownStateIdException, StoreException {
     	super(toClone, cache);
 
     	this.rootOfResponses = rootOfResponses;
     	this.rootOfInfo = rootOfInfo;
     	this.rootOfHistories = rootOfHistories;
     	this.rootOfRequests = rootOfRequests;
-    }
 
-	/**
+    	checkExistence();
+     }
+
+     /**
 	 * Creates a clone of store, up to cache.
 	 * 
 	 * @param toClone the store to clone
 	 * @param cache the cache to use in the cloned store
 	 */
     protected AbstractTrieBasedStoreImpl(AbstractTrieBasedStoreImpl<N,C,S,T> toClone, StoreCache cache) {
-    	this(toClone, cache, toClone.rootOfResponses, toClone.rootOfInfo, toClone.rootOfHistories, toClone.rootOfRequests);
+    	this(toClone, cache, toClone.rootOfResponses, toClone.rootOfInfo, toClone.rootOfHistories, toClone.rootOfRequests, true);
     }
+
+	/**
+	 * Creates a store checked out at the given state identifier.
+	 * 
+	 * @param node the node for which the store is created
+	 * @param stateId the state identifier
+	 * @throws StoreException if the operation cannot be completed correctly
+	 */
+	 private AbstractTrieBasedStoreImpl(N node, StateId stateId, boolean dummy) throws StoreException {
+	 	super(node);
+	
+		byte[] bytes = stateId.getBytes();
+		this.rootOfResponses = new byte[32];
+		System.arraycopy(bytes, 0, rootOfResponses, 0, 32);
+		this.rootOfInfo = new byte[32];
+		System.arraycopy(bytes, 32, rootOfInfo, 0, 32);
+		this.rootOfRequests = new byte[32];
+		System.arraycopy(bytes, 64, rootOfRequests, 0, 32);
+		this.rootOfHistories = new byte[32];
+		System.arraycopy(bytes, 96, rootOfHistories, 0, 32);
+	 }
+
+	/**
+	  * Creates a clone of a store, up to cache and roots.
+	  * 
+	  * @param toClone the store to clone
+	  * @param cache the cache to use in the cloned store
+	  * @param rootOfResponse the root to use for the tries of responses
+	  * @param rootOfInfo the root to use for the tries of info
+	  * @param rootOfHistories the root to use for the tries of histories
+	  * @param rootOfRequests the root to use for the tries of requests
+	  */
+	 private AbstractTrieBasedStoreImpl(AbstractTrieBasedStoreImpl<N,C,S,T> toClone, StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests, boolean dummy) {
+		super(toClone, cache);
+	
+		this.rootOfResponses = rootOfResponses;
+		this.rootOfInfo = rootOfInfo;
+		this.rootOfHistories = rootOfHistories;
+		this.rootOfRequests = rootOfRequests;
+	}
 
 	protected S addDelta(StoreCache cache, LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests,
 			Map<TransactionReference, TransactionResponse> addedResponses,
@@ -146,12 +195,26 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 
 			return mkStore(cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
 		}
-		catch (TrieException e) {
+		catch (TrieException | UnknownStateIdException | UnknownKeyException e) {
 			throw new StoreException(e);
 		}
 	}
 
-    private byte[] addDeltaOfInfos(TrieOfInfo trieOfInfo, Optional<StorageReference> addedManifest) throws TrieException {
+	private void checkExistence() throws UnknownStateIdException, StoreException {
+		try {
+			CheckRunnable.check(UnknownKeyException.class, StoreException.class, () -> getNode().getEnvironment().executeInReadonlyTransaction(UncheckConsumer.uncheck(txn -> {
+				mkTrieOfRequests(txn);
+				mkTrieOfResponses(txn);
+				mkTrieOfHistories(txn);
+				mkTrieOfInfo(txn);
+			})));
+		}
+		catch (UnknownKeyException e) {
+			throw new UnknownStateIdException();
+		}
+	}
+
+	private byte[] addDeltaOfInfos(TrieOfInfo trieOfInfo, Optional<StorageReference> addedManifest) throws TrieException {
 		if (addedManifest.isPresent()) {
 			trieOfInfo.malloc();
 			var old = trieOfInfo;
@@ -195,7 +258,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 		return trieOfRequests.getRoot();
 	}
 
-    protected abstract S mkStore(StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests);
+    protected abstract S mkStore(StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) throws StoreException, UnknownStateIdException;
 
     @Override
 	public final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, StoreException {
@@ -259,7 +322,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 	}
 
 	@Override
-	public final S checkedOutAt(StateId stateId) throws StoreException, InterruptedException {
+	public final S checkedOutAt(StateId stateId) throws UnknownStateIdException, StoreException, InterruptedException {
 		var bytes = stateId.getBytes();
 		var rootOfResponses = new byte[32];
 		System.arraycopy(bytes, 0, rootOfResponses, 0, 32);
@@ -281,12 +344,12 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
 	protected final void malloc(Transaction txn) throws StoreException {
-		var trieOfRequests = mkTrieOfRequests(txn);
-		var trieOfResponses = mkTrieOfResponses(txn);
-		var trieOfHistories = mkTrieOfHistories(txn);
-		var trieOfInfo = mkTrieOfInfo(txn);
-
 		try {
+			var trieOfRequests = mkTrieOfRequests(txn);
+			var trieOfResponses = mkTrieOfResponses(txn);
+			var trieOfHistories = mkTrieOfHistories(txn);
+			var trieOfInfo = mkTrieOfInfo(txn);
+
 			// we increment the reference count of the roots of the resulting tries, so that
 			// they do not get garbage collected until this store is freed
 			trieOfResponses.malloc();
@@ -294,7 +357,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 			trieOfHistories.malloc();
 			trieOfRequests.malloc();
 		}
-		catch (TrieException e) {
+		catch (TrieException | UnknownKeyException e) {
 			throw new StoreException(e);
 		}
 	}
@@ -312,12 +375,12 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 			mkTrieOfHistories(txn).free();
 			mkTrieOfInfo(txn).free();
 		}
-		catch (TrieException e) {
+		catch (TrieException | UnknownKeyException e) {
 			throw new StoreException(e);
 		}
 	}
 
-	private TrieOfResponses mkTrieOfResponses(Transaction txn) throws StoreException {
+	private TrieOfResponses mkTrieOfResponses(Transaction txn) throws StoreException, UnknownKeyException {
 		try {
 			return new TrieOfResponses(new KeyValueStoreOnXodus(getNode().getStoreOfResponses(), txn), rootOfResponses);
 		}
@@ -326,7 +389,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 		}
 	}
 
-	private TrieOfInfo mkTrieOfInfo(Transaction txn) throws StoreException {
+	private TrieOfInfo mkTrieOfInfo(Transaction txn) throws StoreException, UnknownKeyException {
 		try {
 			return new TrieOfInfo(new KeyValueStoreOnXodus(getNode().getStoreOfInfo(), txn), rootOfInfo);
 		}
@@ -335,7 +398,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 		}
 	}
 
-	private TrieOfRequests mkTrieOfRequests(Transaction txn) throws StoreException {
+	private TrieOfRequests mkTrieOfRequests(Transaction txn) throws StoreException, UnknownKeyException {
 		try {
 			return new TrieOfRequests(new KeyValueStoreOnXodus(getNode().getStoreOfRequests(), txn), rootOfRequests);
 		}
@@ -344,7 +407,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 		}
 	}
 
-	private TrieOfHistories mkTrieOfHistories(Transaction txn) throws StoreException {
+	private TrieOfHistories mkTrieOfHistories(Transaction txn) throws StoreException, UnknownKeyException {
 		try {
 			return new TrieOfHistories(new KeyValueStoreOnXodus(getNode().getStoreOfHistories(), txn), rootOfHistories);
 		}

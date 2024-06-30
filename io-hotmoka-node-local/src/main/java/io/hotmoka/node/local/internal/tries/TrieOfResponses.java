@@ -59,15 +59,16 @@ public class TrieOfResponses extends AbstractPatriciaTrie<TransactionReference, 
 	 * 
 	 * @param store the supporting key/value store
 	 * @param root the root of the trie to check out
+	 * @throws UnknownKeyException 
 	 */
-	public TrieOfResponses(KeyValueStore store, byte[] root) throws TrieException {
+	public TrieOfResponses(KeyValueStore store, byte[] root) throws TrieException, UnknownKeyException {
 		super(store, root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
 			sha256(), new byte[32], TransactionResponse::toByteArray, bytes -> TransactionResponses.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))));
 
 		this.hasherForJars = sha256().getHasher(Function.identity());
 	}
 
-	private TrieOfResponses(TrieOfResponses cloned, byte[] root) throws TrieException {
+	private TrieOfResponses(TrieOfResponses cloned, byte[] root) throws TrieException, UnknownKeyException {
 		super(cloned, root);
 
 		this.hasherForJars = cloned.hasherForJars;
@@ -88,7 +89,7 @@ public class TrieOfResponses extends AbstractPatriciaTrie<TransactionReference, 
 	}
 
 	@Override
-	public TrieOfResponses checkoutAt(byte[] root) throws TrieException {
+	public TrieOfResponses checkoutAt(byte[] root) throws TrieException, UnknownKeyException {
 		return new TrieOfResponses(this, root);
 	}
 

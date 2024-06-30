@@ -55,6 +55,7 @@ import io.hotmoka.node.local.AbstractTrieBasedLocalNode;
 import io.hotmoka.node.local.StateIds;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.api.UnknownStateIdException;
 import io.hotmoka.node.tendermint.api.TendermintNode;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 import io.hotmoka.tendermint.abci.ABCI;
@@ -195,7 +196,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	}
 
 	@Override
-	protected TendermintStore mkStore(StateId stateId) throws NodeException {
+	protected TendermintStore mkStore(StateId stateId) throws NodeException, UnknownStateIdException {
 		try {
 			return new TendermintStore(this, stateId);
 		}
@@ -232,7 +233,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		try {
 			setStoreOfHead(getStoreOfHead().checkedOutAt(StateIds.of(root.get())));
 		}
-		catch (StoreException e) {
+		catch (StoreException | UnknownStateIdException e) {
 			throw new NodeException(e);
 		}
 	}

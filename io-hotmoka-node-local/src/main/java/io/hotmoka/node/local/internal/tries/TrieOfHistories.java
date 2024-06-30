@@ -28,6 +28,7 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.patricia.AbstractPatriciaTrie;
 import io.hotmoka.patricia.api.KeyValueStore;
 import io.hotmoka.patricia.api.TrieException;
+import io.hotmoka.patricia.api.UnknownKeyException;
 
 /**
  * A map from storage references to an array of transaction references (their <i>history</i>),
@@ -43,8 +44,9 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 	 * 
 	 * @param store the supporting key/value store
 	 * @param root the root of the trie to check out; use empty to create the empty trie
+	 * @throws UnknownKeyException 
 	 */
-	public TrieOfHistories(KeyValueStore store, byte[] root) throws TrieException {
+	public TrieOfHistories(KeyValueStore store, byte[] root) throws TrieException, UnknownKeyException {
 		super(store, root, sha256().getHasher(StorageReference::toByteArrayWithoutSelector),
 			sha256(), new byte[32], TrieOfHistories::historyToBytes, TrieOfHistories::bytesToHistory);
 	}
@@ -75,7 +77,7 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 		return Stream.of(references);
 	}
 
-	private TrieOfHistories(TrieOfHistories cloned, byte[] root) throws TrieException {
+	private TrieOfHistories(TrieOfHistories cloned, byte[] root) throws TrieException, UnknownKeyException {
 		super(cloned, root);
 	}
 
@@ -115,7 +117,7 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 	}
 
 	@Override
-	public TrieOfHistories checkoutAt(byte[] root) throws TrieException {
+	public TrieOfHistories checkoutAt(byte[] root) throws TrieException, UnknownKeyException {
 		return new TrieOfHistories(this, root);
 	}
 }

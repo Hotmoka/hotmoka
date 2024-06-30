@@ -28,6 +28,7 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.patricia.AbstractPatriciaTrie;
 import io.hotmoka.patricia.api.KeyValueStore;
 import io.hotmoka.patricia.api.TrieException;
+import io.hotmoka.patricia.api.UnknownKeyException;
 
 /**
  * A Merkle-Patricia trie that maps references to transaction requests into their request itself.
@@ -41,18 +42,19 @@ public class TrieOfRequests extends AbstractPatriciaTrie<TransactionReference, T
 	 * 
 	 * @param store the supporting key/value store
 	 * @param root the root of the trie to check out
+	 * @throws UnknownKeyException 
 	 */
-	public TrieOfRequests(KeyValueStore store, byte[] root) throws TrieException {
+	public TrieOfRequests(KeyValueStore store, byte[] root) throws TrieException, UnknownKeyException {
 		super(store, root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
 			sha256(), new byte[32], TransactionRequest<?>::toByteArray, bytes -> TransactionRequests.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))));
 	}
 
-	private TrieOfRequests(TrieOfRequests cloned, byte[] root) throws TrieException {
+	private TrieOfRequests(TrieOfRequests cloned, byte[] root) throws TrieException, UnknownKeyException {
 		super(cloned, root);
 	}
 
 	@Override
-	public TrieOfRequests checkoutAt(byte[] root) throws TrieException {
+	public TrieOfRequests checkoutAt(byte[] root) throws TrieException, UnknownKeyException {
 		return new TrieOfRequests(this, root);
 	}
 
