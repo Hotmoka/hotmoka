@@ -139,7 +139,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		this.valueToBytes = valueToBytes;
 		this.root = root.clone();
 
-		//getNodeFromHashIfPresent(root, 0); // TODO: activate this
+		checkExistence();
 	}
 
 	/**
@@ -159,7 +159,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		this.hashOfEmpty = cloned.hashOfEmpty;
 		this.root = root.clone();
 
-		getNodeFromHashIfPresent(root, 0);
+		checkExistence();
 	}
 
 	@Override
@@ -316,6 +316,23 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		}
 		catch (KeyValueStoreException | IOException e) {
 			throw new TrieException(e);
+		}
+	}
+
+	/**
+	 * Checks for the existence of the root of this trie in inside its store.
+	 * 
+	 * @throws TrieException if this trie is not able to complete the operation correctly
+	 * @throws UnknownKeyException if the root of this trie cannot be found in its store
+	 */
+	private void checkExistence() throws UnknownKeyException, TrieException {
+		if (!Arrays.equals(root, hashOfEmpty)) {
+			try {
+				store.get(root);
+			}
+			catch (KeyValueStoreException e) {
+				throw new TrieException(e);
+			}
 		}
 	}
 

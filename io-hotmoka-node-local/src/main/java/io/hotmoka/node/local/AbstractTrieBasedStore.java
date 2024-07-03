@@ -51,8 +51,8 @@ public abstract class AbstractTrieBasedStore<N extends AbstractTrieBasedLocalNod
 	 * 
 	 * @param node the node for which the store is created
 	 * @param stateId the state identifier
+	 * @throws UnknownStateIdException if the store with the given {@code stateId} does not exist
 	 * @throws StoreException if the operation cannot be completed correctly
-     * @throws UnknownStateIdException 
 	 */
     protected AbstractTrieBasedStore(N node, StateId stateId) throws StoreException, UnknownStateIdException {
     	super(node, stateId);
@@ -77,10 +77,25 @@ public abstract class AbstractTrieBasedStore<N extends AbstractTrieBasedLocalNod
 	 * @param rootOfInfo the root to use for the tries of infos
 	 * @param rootOfHistories the root to use for the tries of histories
 	 * @param rootOfRequests the root to use for the tries of requests
-	 * @throws UnknownStateIdException 
-	 * @throws StoreException 
+     * @param checkExistence true if and only if the existence of the resulting store must be checked
+     * @throws UnknownStateIdException if {@code checkExistence} is true and the store does not exist
+     * @throws StoreException if the operation could not be completed correctly
 	 */
-    protected AbstractTrieBasedStore(AbstractTrieBasedStore<N,C,S,T> toClone, StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) throws UnknownStateIdException, StoreException {
+    protected AbstractTrieBasedStore(AbstractTrieBasedStore<N,C,S,T> toClone, StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests, boolean checkExistence) throws UnknownStateIdException, StoreException {
+    	super(toClone, cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests, checkExistence);
+    }
+
+	/**
+	 * Creates a clone of a store, up to cache and roots. It does not check for the existence of the result.
+	 * 
+	 * @param toClone the store to clone
+	 * @param cache to caches to use in the cloned store
+	 * @param rootOfResponses the root to use for the tries of responses
+	 * @param rootOfInfo the root to use for the tries of infos
+	 * @param rootOfHistories the root to use for the tries of histories
+	 * @param rootOfRequests the root to use for the tries of requests
+	 */
+    protected AbstractTrieBasedStore(AbstractTrieBasedStore<N,C,S,T> toClone, StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) {
     	super(toClone, cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
     }
 }

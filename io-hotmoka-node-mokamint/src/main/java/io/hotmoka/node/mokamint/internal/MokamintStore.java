@@ -33,9 +33,10 @@ import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
 public class MokamintStore extends AbstractTrieBasedStore<MokamintNodeImpl, MokamintNodeConfig, MokamintStore, MokamintStoreTransformation> {
 
 	/**
-     * Creates an empty store for the Tendermint blockchain.
+     * Creates an empty store for the Mokamint blockchain.
 	 * 
 	 * @param node the node for which the store is created
+	 * @throws StoreException if the operation cannot be completed correctly
 	 */
     MokamintStore(MokamintNodeImpl node) throws StoreException {
     	super(node);
@@ -46,8 +47,8 @@ public class MokamintStore extends AbstractTrieBasedStore<MokamintNodeImpl, Moka
 	 * 
 	 * @param node the node for which the store is created
 	 * @param stateId the state identifier
+	 * @throws UnknownStateIdException if the store with the given {@code stateId} does not exist
 	 * @throws StoreException if the operation cannot be completed correctly
-     * @throws UnknownStateIdException 
 	 */
     MokamintStore(MokamintNodeImpl node, StateId stateId) throws StoreException, UnknownStateIdException {
     	super(node, stateId);
@@ -62,10 +63,12 @@ public class MokamintStore extends AbstractTrieBasedStore<MokamintNodeImpl, Moka
 	 * @param rootOfInfo the root to use for the tries of infos
 	 * @param rootOfHistories the root to use for the tries of histories
 	 * @param rootOfRequests the root to use for the tries of requests
-     * @throws StoreException 
+     * @param checkExistence true if and only if the existence of the resulting store must be checked
+     * @throws UnknownStateIdException if {@code checkExistence} is true and the store does not exist
+     * @throws StoreException if the operation could not be completed correctly
 	 */
-    private MokamintStore(MokamintStore toClone, StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) throws UnknownStateIdException, StoreException {
-    	super(toClone, cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
+    private MokamintStore(MokamintStore toClone, StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests, boolean checkExistence) throws UnknownStateIdException, StoreException {
+    	super(toClone, cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests, checkExistence);
 	}
 
 	/**
@@ -84,8 +87,8 @@ public class MokamintStore extends AbstractTrieBasedStore<MokamintNodeImpl, Moka
     }
 
 	@Override
-    protected MokamintStore mkStore(StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) throws UnknownStateIdException, StoreException {
-		return new MokamintStore(this, cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
+    protected MokamintStore mkStore(StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests, boolean checkExistence) throws UnknownStateIdException, StoreException {
+		return new MokamintStore(this, cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests, checkExistence);
 	}
 
 	@Override

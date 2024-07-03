@@ -692,34 +692,35 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		protected ResponseCommit commit(RequestCommit request) throws NodeException {
 			try {
 				transformation.deliverRewardTransaction(behaving, misbehaving);
+				AtomicReference<TendermintStore> newStoreOfHead = new AtomicReference<>();
+
+				CheckRunnable.check(NodeException.class, StoreException.class, () -> getEnvironment().executeInTransaction(UncheckConsumer.uncheck(txn -> {
+					newStoreOfHead.set(transformation.getFinalStore(txn));
+					setRootBranch(newStoreOfHead.get(), txn);
+					persist(newStoreOfHead.get(), txn);
+					keepPersistedOnly(Set.of(newStoreOfHead.get().getStateId()), txn);
+				})));
+
+				persisted++;
+
+				setStoreOfHead(newStoreOfHead.get());
+
+				TendermintStore newStore = getStoreOfHead();
+				CheckRunnable.check(NodeException.class, () -> transformation.getDeliveredTransactions().forEachOrdered(UncheckConsumer.uncheck(reference -> publish(reference, newStore))));
+
+				byte[] hash = getLastBlockApplicationHash();
+				LOGGER.info("committed Tendermint state " + Hex.toHexString(hash).toUpperCase());
+				return ResponseCommit.newBuilder().setData(ByteString.copyFrom(hash)).build();
 			}
 			catch (StoreException e) {
+				LOGGER.log(Level.SEVERE, "commit failed", e);
 				throw new NodeException(e);
 			}
 			catch (InterruptedException e) {
+				LOGGER.log(Level.WARNING, "commit interrupted", e);
 				Thread.currentThread().interrupt();
 				throw new NodeException(e);
 			}
-
-			AtomicReference<TendermintStore> newStoreOfHead = new AtomicReference<>();
-
-			CheckRunnable.check(NodeException.class, () -> getEnvironment().executeInTransaction(UncheckConsumer.uncheck(txn -> {
-				newStoreOfHead.set(transformation.getFinalStore(txn));
-				setRootBranch(newStoreOfHead.get(), txn);
-				persist(newStoreOfHead.get(), txn);
-				keepPersistedOnly(Set.of(newStoreOfHead.get().getStateId()), txn);
-			})));
-
-			persisted++;
-
-			setStoreOfHead(newStoreOfHead.get());
-
-			TendermintStore newStore = getStoreOfHead();
-			CheckRunnable.check(NodeException.class, () -> transformation.getDeliveredTransactions().forEachOrdered(UncheckConsumer.uncheck(reference -> publish(reference, newStore))));
-
-			byte[] hash = getLastBlockApplicationHash();
-			LOGGER.info("committed Tendermint state " + Hex.toHexString(hash).toUpperCase());
-			return ResponseCommit.newBuilder().setData(ByteString.copyFrom(hash)).build();
 		}
 
 		@Override

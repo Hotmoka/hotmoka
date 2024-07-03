@@ -51,6 +51,7 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
      * Creates an empty store for the Tendermint blockchain.
 	 * 
 	 * @param node the node for which the store is created
+	 * @throws StoreException if the operation cannot be completed correctly
 	 */
     TendermintStore(TendermintNodeImpl node) throws StoreException {
     	super(node);
@@ -63,8 +64,8 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
 	 * 
 	 * @param node the node for which the store is created
 	 * @param stateId the state identifier
+	 * @throws UnknownStateIdException if the store with the given {@code stateId} does not exist
 	 * @throws StoreException if the operation cannot be completed correctly
-     * @throws UnknownStateIdException 
 	 */
     TendermintStore(TendermintNodeImpl node, StateId stateId) throws StoreException, UnknownStateIdException {
     	super(node, stateId);
@@ -81,10 +82,12 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
 	 * @param rootOfInfo the root to use for the tries of infos
 	 * @param rootOfHistories the root to use for the tries of histories
 	 * @param rootOfRequests the root to use for the tries of requests
-     * @throws StoreException 
+     * @param checkExistence true if and only if the existence of the resulting store must be checked
+     * @throws UnknownStateIdException if {@code checkExistence} is true and the store does not exist
+     * @throws StoreException if the operation could not be completed correctly
 	 */
-    private TendermintStore(TendermintStore toClone, StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) throws UnknownStateIdException, StoreException {
-    	super(toClone, cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
+    private TendermintStore(TendermintStore toClone, StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests, boolean checkExistence) throws UnknownStateIdException, StoreException {
+    	super(toClone, cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests, checkExistence);
 
     	this.validators = toClone.validators;
 	}
@@ -117,8 +120,8 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
     }
 
 	@Override
-    protected TendermintStore mkStore(StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) throws UnknownStateIdException, StoreException {
-		return new TendermintStore(this, cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
+    protected TendermintStore mkStore(StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests, boolean checkExistence) throws UnknownStateIdException, StoreException {
+		return new TendermintStore(this, cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests, checkExistence);
 	}
 
 	@Override
