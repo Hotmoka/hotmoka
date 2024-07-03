@@ -20,10 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -88,11 +86,6 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	private final io.hotmoka.xodus.env.Store storeOfHistories;
 
 	/**
-	 * The queue of old stores to garbage-collect.
-	 */
-	private final BlockingQueue<S> storesToGC = new LinkedBlockingDeque<>(1_000);
-
-	/**
 	 * A map from each state identifier of the store to the number of users of that store
 	 * at that state identifier. The goal of this information is to avoid garbage-collecting
 	 * store identifiers that are currently being used for some reason.
@@ -131,9 +124,8 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		this.storeOfRequests = env.computeInTransaction(txn -> env.openStoreWithoutDuplicates("requests", txn));
 		this.storeOfHistories = env.computeInTransaction(txn -> env.openStoreWithoutDuplicates("histories", txn));
 
-		// we start the garbage-collection tasks
+		// we start the garbage-collection task
 		getExecutors().execute(this::gc);
-		getExecutors().execute(this::findPastStoresThatCanBeGarbageCollected);
 	}
 
 	protected final io.hotmoka.xodus.env.Store getStoreOfNode() {
@@ -234,26 +226,10 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		return storeUsers.getOrDefault(id, 0) == 0;
 	}
 
-	/**
-	 * The garbage-collection routine. It takes stores to garbage-collect and frees them.
-	 */
-	private void gc()  {
+	private void gc(StateId id) {
 		try {
-			while (!Thread.currentThread().isInterrupted())
-				gc(storesToGC.take());
-		}
-		catch (NodeException e) {
-			LOGGER.log(Level.SEVERE, "could not garbage-collect store", e);
-		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-		}
-	}
+			S store = mkStore(id);
 
-	private void gc(S store) throws NodeException {
-		StateId id = store.getStateId();
-
-		try {
 			CheckRunnable.check(StoreException.class, NodeException.class, () -> env.executeInTransaction(UncheckConsumer.uncheck(txn -> {
 				store.free(txn);
 				removeFromStores(STORES_TO_GC, id, txn);
@@ -264,18 +240,21 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 
 			LOGGER.info("garbage-collected store " + id);
 		}
-		catch (StoreException e) {
-			throw new NodeException(e);
+		catch (NodeException | UnknownStateIdException | StoreException e) {
+			LOGGER.log(Level.SEVERE, "cannot garbage-collect store " + id, e);
 		}
 	}
 
-	private void findPastStoresThatCanBeGarbageCollected() {
+	/**
+	 * The garbage-collection routine. It takes stores to garbage-collect and frees them.
+	 */
+	private void gc() {
 		try {
 			while (!Thread.currentThread().isInterrupted()) {
 				CheckRunnable.check(NodeException.class, () -> env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> getStores(STORES_TO_GC, txn)))
 					.stream()
 					.filter(this::canBeGarbageCollected)
-					.forEach(this::offerToGarbageCollector));
+					.forEach(this::gc));
 
 				Thread.sleep(5000L);
 			}
@@ -285,16 +264,6 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
-		}
-	}
-
-	private void offerToGarbageCollector(StateId id) {
-		try {
-			if (!storesToGC.offer(mkStore(id)))
-				LOGGER.warning("cannot offer store " + id + " to the garbage-collector: the queue is full!");
-		}
-		catch (NodeException | UnknownStateIdException e) {
-			LOGGER.log(Level.SEVERE, "cannot offer store " + id + " to the garbage-collector", e);
 		}
 	}
 
