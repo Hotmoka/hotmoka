@@ -29,7 +29,6 @@ import java.nio.file.Path;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -43,7 +42,9 @@ import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.exceptions.CheckRunnable;
+import io.hotmoka.exceptions.CheckSupplier;
 import io.hotmoka.exceptions.UncheckConsumer;
+import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.TransactionRequests;
@@ -628,7 +629,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	    	try {
 	    		transformation = getStoreOfHead().beginTransformation(timeOfBlock(request));
 	    	}
-	    	catch (StoreException | NodeException e) {
+	    	catch (StoreException e) {
 	    		throw new RuntimeException(e); // TODO
 	    	}
 
@@ -692,21 +693,19 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		protected ResponseCommit commit(RequestCommit request) throws NodeException {
 			try {
 				transformation.deliverRewardTransaction(behaving, misbehaving);
-				AtomicReference<TendermintStore> newStoreOfHead = new AtomicReference<>();
 
-				CheckRunnable.check(NodeException.class, StoreException.class, () -> getEnvironment().executeInTransaction(UncheckConsumer.uncheck(txn -> {
-					newStoreOfHead.set(transformation.getFinalStore(txn));
-					setRootBranch(newStoreOfHead.get(), txn);
-					persist(newStoreOfHead.get(), txn);
-					keepPersistedOnly(Set.of(newStoreOfHead.get().getStateId()), txn);
+				TendermintStore newStoreOfHead = CheckSupplier.check(NodeException.class, StoreException.class, () -> getEnvironment().computeInTransaction(UncheckFunction.uncheck(txn -> {
+					TendermintStore result = transformation.getFinalStore(txn);
+					setRootBranch(result, txn);
+					persist(result, txn);
+					keepPersistedOnly(Set.of(result.getStateId()), txn);
+					return result;
 				})));
 
 				persisted++;
 
-				setStoreOfHead(newStoreOfHead.get());
-
-				TendermintStore newStore = getStoreOfHead();
-				CheckRunnable.check(NodeException.class, () -> transformation.getDeliveredTransactions().forEachOrdered(UncheckConsumer.uncheck(reference -> publish(reference, newStore))));
+				setStoreOfHead(newStoreOfHead);
+				CheckRunnable.check(NodeException.class, () -> transformation.getDeliveredTransactions().forEachOrdered(UncheckConsumer.uncheck(reference -> publish(reference, newStoreOfHead))));
 
 				byte[] hash = getLastBlockApplicationHash();
 				LOGGER.info("committed Tendermint state " + Hex.toHexString(hash).toUpperCase());

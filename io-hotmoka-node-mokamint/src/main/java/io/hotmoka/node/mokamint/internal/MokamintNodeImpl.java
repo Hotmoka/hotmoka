@@ -284,7 +284,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 				transformations.put(groupId, getStoreOfHead().checkedOutAt(StateIds.of(stateId))
 					.beginTransformation(when.toInstant(ZoneOffset.UTC).toEpochMilli()));
 			}
-			catch (StoreException | NodeException e) {
+			catch (StoreException e) {
 	    		throw new ApplicationException(e);
 	    	}
 			catch (UnknownStateIdException e) {

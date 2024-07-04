@@ -208,8 +208,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 
 	@Override
 	public final ConsensusConfig<?,?> getConfig() throws NodeException {
-		S store = getStoreOfHead();
-		enter(store);
+		S store = enterHead();
 
 		try (var scope = mkScope()) {
 			return store.getConfig();
@@ -242,8 +241,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 
 	@Override
 	public final StorageReference getManifest() throws NodeException {
-		S store = getStoreOfHead();
-		enter(store);
+		S store = enterHead();
 
 		try (var scope = mkScope()) {
 			return store.getManifest().orElseThrow(UninitializedNodeException::new);
@@ -281,8 +279,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 
 	@Override
 	public final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, NodeException {
-		S store = getStoreOfHead();
-		enter(store);
+		S store = enterHead();
 		
 		try (var scope = mkScope()) {
 			return store.getRequest(Objects.requireNonNull(reference));
@@ -297,8 +294,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 
 	@Override
 	public final TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, UnknownReferenceException, NodeException {
-		S store = getStoreOfHead();
-		enter(store);
+		S store = enterHead();
 
 		try (var scope = mkScope()) {
 			try {
@@ -322,8 +318,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 
 	@Override
 	public final ClassTag getClassTag(StorageReference reference) throws UnknownReferenceException, NodeException {
-		S store = getStoreOfHead();
-		enter(store);
+		S store = enterHead();
 
 		try (var scope = mkScope()) {
 			Objects.requireNonNull(reference);
@@ -347,8 +342,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 
 	@Override
 	public final Stream<Update> getState(StorageReference reference) throws UnknownReferenceException, NodeException {
-		S store = getStoreOfHead();
-		enter(store);
+		S store = enterHead();
 
 		try (var scope = mkScope()) {
 			try {
@@ -423,8 +417,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 
 	@Override
 	public final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException {
-		S store = getStoreOfHead();
-		enter(store);
+		S store = enterHead();
 
 		try (var scope = mkScope()) {
 			var reference = TransactionReferences.of(hasher.hash(request));
@@ -444,8 +437,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 
 	@Override
 	public final Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException {
-		S store = getStoreOfHead();
-		enter(store);
+		S store = enterHead();
 
 		try (var scope = mkScope()) {
 			var reference = TransactionReferences.of(hasher.hash(request));
@@ -492,13 +484,15 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	/**
-	 * Called when this node is executing something that needs the given store.
+	 * Called when this node is executing something that needs the store of the head.
 	 * It can be used, for instance, to take note that the store cannot be
 	 * garbage-collected from that moment.
 	 * 
-	 * @param store the store
+	 * @return store the store of the head
 	 */
-	protected void enter(S store) {}
+	protected S enterHead() {
+		return getStoreOfHead();
+	}
 
 	/**
 	 * Called when this node finished executing something that needed the given store.
@@ -507,7 +501,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 */
 	protected void exit(S store) {}
 
-	protected final S getStoreOfHead() throws NodeException {
+	protected final S getStoreOfHead() {
 		return storeOfHead;
 	}
 
@@ -532,8 +526,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	protected final void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException, NodeException {
-		S store = getStoreOfHead();
-		enter(store);
+		S store = enterHead();
 
 		try {
 			store.checkTransaction(request);
@@ -642,8 +635,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		else
 			LOGGER.info(reference + ": posting (" + request.getClass().getSimpleName() + ')');
 
-		S store = getStoreOfHead();
-		enter(store);
+		S store = enterHead();
 
 		try {
 			store.getResponse(reference);

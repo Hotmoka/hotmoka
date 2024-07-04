@@ -168,9 +168,10 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	}
 
 	@Override
-	protected void enter(S store) {
-		super.enter(store);
-		storeUsers.compute(store.getStateId(), (_id, old) -> old == null ? 1 : (old + 1));
+	protected S enterHead() {
+		S head = super.enterHead();
+		storeUsers.compute(head.getStateId(), (_id, old) -> old == null ? 1 : (old + 1));
+		return head;
 	}
 
 	@Override
