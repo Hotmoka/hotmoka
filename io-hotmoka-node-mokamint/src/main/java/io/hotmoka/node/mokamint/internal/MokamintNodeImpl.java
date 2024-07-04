@@ -95,7 +95,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 					StateId idOfStoreOfHead = StateIds.of(newHead.getStateId());
 
 					try {
-						setStoreOfHead(getStoreOfHead().checkedOutAt(idOfStoreOfHead));
+						setStoreOfHead(mkStore(idOfStoreOfHead));
 						CheckRunnable.check(NodeException.class, () -> getEnvironment().executeInTransaction(UncheckConsumer.uncheck(
 							txn -> keepPersistedOnly(Set.of(idOfStoreOfHead), txn)
 						)));
@@ -105,7 +105,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 						LOGGER.log(Level.SEVERE, "could not set the head to " + idOfStoreOfHead, e);
 						return;
 					}
-					catch (NodeException | StoreException | UnknownStateIdException e) {
+					catch (NodeException | UnknownStateIdException e) {
 						LOGGER.log(Level.SEVERE, "could not set the head to " + idOfStoreOfHead, e);
 						return;
 					}
@@ -173,16 +173,6 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 	protected MokamintStore mkStore() throws NodeException {
 		try {
 			return new MokamintStore(this);
-		}
-		catch (StoreException e) {
-			throw new NodeException(e);
-		}
-	}
-
-	@Override
-	protected MokamintStore mkStore(StateId stateId) throws NodeException, UnknownStateIdException {
-		try {
-			return new MokamintStore(this, stateId);
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);
@@ -281,10 +271,10 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			int groupId = nextId.getAndIncrement();
 
 			try {
-				transformations.put(groupId, getStoreOfHead().checkedOutAt(StateIds.of(stateId))
+				transformations.put(groupId, mkStore(StateIds.of(stateId))
 					.beginTransformation(when.toInstant(ZoneOffset.UTC).toEpochMilli()));
 			}
-			catch (StoreException e) {
+			catch (StoreException | NodeException e) {
 	    		throw new ApplicationException(e);
 	    	}
 			catch (UnknownStateIdException e) {

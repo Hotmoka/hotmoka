@@ -94,30 +94,6 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
     }
 
     /**
-	 * Creates a store checked out at the given state identifier.
-	 * 
-	 * @param node the node for which the store is created
-	 * @param stateId the state identifier
-	 * @throws UnknownStateIdException if the store with the given {@code stateId} does not exist
-	 * @throws StoreException if the operation cannot be completed correctly
-	 */
-    protected AbstractTrieBasedStoreImpl(N node, StateId stateId) throws UnknownStateIdException, StoreException {
-    	super(node);
-
-		byte[] bytes = stateId.getBytes();
-		this.rootOfResponses = new byte[32];
-		System.arraycopy(bytes, 0, rootOfResponses, 0, 32);
-		this.rootOfInfo = new byte[32];
-		System.arraycopy(bytes, 32, rootOfInfo, 0, 32);
-		this.rootOfRequests = new byte[32];
-		System.arraycopy(bytes, 64, rootOfRequests, 0, 32);
-		this.rootOfHistories = new byte[32];
-		System.arraycopy(bytes, 96, rootOfHistories, 0, 32);
-
-		checkExistence();
-    }
-
-    /**
      * Creates a clone of a store, up to cache and roots.
      * 
      * @param toClone the store to clone
@@ -356,57 +332,19 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 		}
 	}
 
-	/**
-	 * Deallocates all resources used for the checked-out vision of this store.
-	 * 
-	 * @param txn the database transaction where the operation is performed
-	 * @throws StoreException if the operation cannot be completed correctly
-	 */
-	protected final void free(Transaction txn) throws StoreException {
-		try {
-			mkTrieOfRequests(txn).free();
-			mkTrieOfResponses(txn).free();
-			mkTrieOfHistories(txn).free();
-			mkTrieOfInfo(txn).free();
-		}
-		catch (TrieException | UnknownKeyException e) {
-			throw new StoreException(e);
-		}
-	}
-
 	private TrieOfResponses mkTrieOfResponses(Transaction txn) throws StoreException, UnknownKeyException {
-		try {
-			return new TrieOfResponses(new KeyValueStoreOnXodus(getNode().getStoreOfResponses(), txn), rootOfResponses);
-		}
-		catch (TrieException e) {
-			throw new StoreException(e);
-		}
+		return getNode().mkTrieOfResponses(txn, rootOfResponses);
 	}
 
 	private TrieOfInfo mkTrieOfInfo(Transaction txn) throws StoreException, UnknownKeyException {
-		try {
-			return new TrieOfInfo(new KeyValueStoreOnXodus(getNode().getStoreOfInfo(), txn), rootOfInfo);
-		}
-		catch (TrieException e) {
-			throw new StoreException(e);
-		}
+		return getNode().mkTrieOfInfo(txn, rootOfInfo);
 	}
 
 	private TrieOfRequests mkTrieOfRequests(Transaction txn) throws StoreException, UnknownKeyException {
-		try {
-			return new TrieOfRequests(new KeyValueStoreOnXodus(getNode().getStoreOfRequests(), txn), rootOfRequests);
-		}
-		catch (TrieException e) {
-			throw new StoreException(e);
-		}
+		return getNode().mkTrieOfRequests(txn, rootOfRequests);
 	}
 
 	private TrieOfHistories mkTrieOfHistories(Transaction txn) throws StoreException, UnknownKeyException {
-		try {
-			return new TrieOfHistories(new KeyValueStoreOnXodus(getNode().getStoreOfHistories(), txn), rootOfHistories);
-		}
-		catch (TrieException e) {
-			throw new StoreException(e);
-		}
+		return getNode().mkTrieOfHistories(txn, rootOfHistories);
 	}
 }

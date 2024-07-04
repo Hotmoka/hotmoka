@@ -28,7 +28,6 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractTrieBasedStore;
 import io.hotmoka.node.local.StoreCache;
-import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UnknownStateIdException;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
@@ -55,20 +54,6 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
 	 */
     TendermintStore(TendermintNodeImpl node) throws StoreException {
     	super(node);
-
-    	this.validators = Optional.empty();
-    }
-
-    /**
-	 * Creates a store checked out at the given state identifier.
-	 * 
-	 * @param node the node for which the store is created
-	 * @param stateId the state identifier
-	 * @throws UnknownStateIdException if the store with the given {@code stateId} does not exist
-	 * @throws StoreException if the operation cannot be completed correctly
-	 */
-    TendermintStore(TendermintNodeImpl node, StateId stateId) throws StoreException, UnknownStateIdException {
-    	super(node, stateId);
 
     	this.validators = Optional.empty();
     }

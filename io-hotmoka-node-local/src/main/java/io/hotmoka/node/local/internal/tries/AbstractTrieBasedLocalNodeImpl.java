@@ -28,6 +28,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.exceptions.CheckRunnable;
+import io.hotmoka.exceptions.CheckSupplier;
 import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.api.NodeException;
@@ -37,6 +38,8 @@ import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UnknownStateIdException;
+import io.hotmoka.patricia.api.TrieException;
+import io.hotmoka.patricia.api.UnknownKeyException;
 import io.hotmoka.xodus.ByteIterable;
 import io.hotmoka.xodus.ExodusException;
 import io.hotmoka.xodus.env.Environment;
@@ -132,22 +135,6 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		return storeOfNode;
 	}
 
-	protected final io.hotmoka.xodus.env.Store getStoreOfResponses() {
-		return storeOfResponses;
-	}
-
-	protected final io.hotmoka.xodus.env.Store getStoreOfInfo() {
-		return storeOfInfo;
-	}
-
-	protected final io.hotmoka.xodus.env.Store getStoreOfRequests() {
-		return storeOfRequests;
-	}
-
-	protected final io.hotmoka.xodus.env.Store getStoreOfHistories() {
-		return storeOfHistories;
-	}
-
 	protected final Environment getEnvironment() {
 		return env;
 	}
@@ -191,7 +178,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 * @param txn the Xodus transaction where the operation is performed
 	 * @throws NodeException if the node is not able to complete the operation correctly
 	 */
-	protected void persist(S store, Transaction txn) throws NodeException {
+	protected void persist(S store, Transaction txn) throws NodeException { //TODO  make this receive a StateId instead
 		try {
 			store.malloc(txn);
 		}
@@ -221,18 +208,23 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 * @param stateId the state identifier
 	 * @return the resulting store
 	 */
-	protected abstract S mkStore(StateId stateId) throws UnknownStateIdException, NodeException;
+	protected final S mkStore(StateId stateId) throws UnknownStateIdException, InterruptedException, NodeException {
+		try {
+			return mkStore().checkedOutAt(stateId);
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}
+	}
 
 	private boolean canBeGarbageCollected(StateId id) {
 		return storeUsers.getOrDefault(id, 0) == 0;
 	}
 
-	private void gc(StateId id) {
+	private void gc(StateId id) throws InterruptedException {
 		try {
-			S store = mkStore(id);
-
-			CheckRunnable.check(StoreException.class, NodeException.class, () -> env.executeInTransaction(UncheckConsumer.uncheck(txn -> {
-				store.free(txn);
+			CheckRunnable.check(StoreException.class, NodeException.class, UnknownStateIdException.class, () -> env.executeInTransaction(UncheckConsumer.uncheck(txn -> {
+				free(txn, id);
 				removeFromStores(STORES_TO_GC, id, txn);
 			})));
 
@@ -247,15 +239,84 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	}
 
 	/**
+	 * Deallocates all resources used for a given vision of the store.
+	 * 
+	 * @param txn the database transaction where the operation is performed
+	 * @param stateId the identifier of the vision of the store to deallocate
+	 * @throws StoreException if the operation cannot be completed correctly
+	 */
+	private void free(Transaction txn, StateId stateId) throws UnknownStateIdException, StoreException {
+		var bytes = stateId.getBytes();
+		var rootOfResponses = new byte[32];
+		System.arraycopy(bytes, 0, rootOfResponses, 0, 32);
+		var rootOfInfo = new byte[32];
+		System.arraycopy(bytes, 32, rootOfInfo, 0, 32);
+		var rootOfRequests = new byte[32];
+		System.arraycopy(bytes, 64, rootOfRequests, 0, 32);
+		var rootOfHistories = new byte[32];
+		System.arraycopy(bytes, 96, rootOfHistories, 0, 32);
+
+		try {
+			mkTrieOfRequests(txn, rootOfRequests).free();
+			mkTrieOfResponses(txn, rootOfResponses).free();
+			mkTrieOfHistories(txn, rootOfHistories).free();
+			mkTrieOfInfo(txn, rootOfInfo).free();
+		}
+		catch (TrieException e) {
+			throw new StoreException(e);
+		}
+		catch (UnknownKeyException e) {
+			throw new UnknownStateIdException(stateId);
+		}
+	}
+
+	protected TrieOfResponses mkTrieOfResponses(Transaction txn, byte[] rootOfResponses) throws StoreException, UnknownKeyException {
+		try {
+			return new TrieOfResponses(new KeyValueStoreOnXodus(storeOfResponses, txn), rootOfResponses);
+		}
+		catch (TrieException e) {
+			throw new StoreException(e);
+		}
+	}
+
+	protected TrieOfInfo mkTrieOfInfo(Transaction txn, byte[] rootOfInfo) throws StoreException, UnknownKeyException {
+		try {
+			return new TrieOfInfo(new KeyValueStoreOnXodus(storeOfInfo, txn), rootOfInfo);
+		}
+		catch (TrieException e) {
+			throw new StoreException(e);
+		}
+	}
+
+	protected TrieOfRequests mkTrieOfRequests(Transaction txn, byte[] rootOfRequests) throws StoreException, UnknownKeyException {
+		try {
+			return new TrieOfRequests(new KeyValueStoreOnXodus(storeOfRequests, txn), rootOfRequests);
+		}
+		catch (TrieException e) {
+			throw new StoreException(e);
+		}
+	}
+
+	protected TrieOfHistories mkTrieOfHistories(Transaction txn, byte[] rootOfHistories) throws StoreException, UnknownKeyException {
+		try {
+			return new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistories, txn), rootOfHistories);
+		}
+		catch (TrieException e) {
+			throw new StoreException(e);
+		}
+	}
+
+	/**
 	 * The garbage-collection routine. It takes stores to garbage-collect and frees them.
 	 */
 	private void gc() {
 		try {
 			while (!Thread.currentThread().isInterrupted()) {
-				CheckRunnable.check(NodeException.class, () -> env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> getStores(STORES_TO_GC, txn)))
-					.stream()
-					.filter(this::canBeGarbageCollected)
-					.forEach(this::gc));
+				List<StateId> toGC = CheckSupplier.check(NodeException.class, () -> env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> getStores(STORES_TO_GC, txn))));
+
+				for (var stateId: toGC)
+					if (canBeGarbageCollected(stateId))
+						gc(stateId);
 
 				Thread.sleep(5000L);
 			}

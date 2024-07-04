@@ -54,7 +54,6 @@ import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.local.AbstractTrieBasedLocalNode;
 import io.hotmoka.node.local.StateIds;
-import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UnknownStateIdException;
 import io.hotmoka.node.tendermint.api.TendermintNode;
@@ -197,16 +196,6 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	}
 
 	@Override
-	protected TendermintStore mkStore(StateId stateId) throws NodeException, UnknownStateIdException {
-		try {
-			return new TendermintStore(this, stateId);
-		}
-		catch (StoreException e) {
-			throw new NodeException(e);
-		}
-	}
-
-	@Override
 	protected void postRequest(TransactionRequest<?> request) throws NodeException, TimeoutException, InterruptedException {
 		poster.postRequest(request);
 	}
@@ -232,9 +221,9 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 			throw new NodeException("Cannot find the root of the saved store of the node");
 
 		try {
-			setStoreOfHead(getStoreOfHead().checkedOutAt(StateIds.of(root.get())));
+			setStoreOfHead(mkStore(StateIds.of(root.get())));
 		}
-		catch (StoreException | UnknownStateIdException e) {
+		catch (UnknownStateIdException e) {
 			throw new NodeException(e);
 		}
 	}

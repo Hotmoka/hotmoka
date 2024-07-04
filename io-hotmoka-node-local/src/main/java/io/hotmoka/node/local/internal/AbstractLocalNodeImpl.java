@@ -491,7 +491,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 * @return store the store of the head
 	 */
 	protected S enterHead() {
-		return getStoreOfHead();
+		return storeOfHead;
 	}
 
 	/**

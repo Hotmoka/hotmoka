@@ -20,7 +20,6 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.local.AbstractTrieBasedStore;
 import io.hotmoka.node.local.StoreCache;
-import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UnknownStateIdException;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
@@ -40,18 +39,6 @@ public class MokamintStore extends AbstractTrieBasedStore<MokamintNodeImpl, Moka
 	 */
     MokamintStore(MokamintNodeImpl node) throws StoreException {
     	super(node);
-    }
-
-    /**
-	 * Creates a store checked out at the given state identifier.
-	 * 
-	 * @param node the node for which the store is created
-	 * @param stateId the state identifier
-	 * @throws UnknownStateIdException if the store with the given {@code stateId} does not exist
-	 * @throws StoreException if the operation cannot be completed correctly
-	 */
-    MokamintStore(MokamintNodeImpl node, StateId stateId) throws StoreException, UnknownStateIdException {
-    	super(node, stateId);
     }
 
     /**
