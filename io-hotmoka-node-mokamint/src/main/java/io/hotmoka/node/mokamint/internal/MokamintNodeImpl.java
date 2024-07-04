@@ -271,8 +271,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			int groupId = nextId.getAndIncrement();
 
 			try {
-				transformations.put(groupId, mkStore(StateIds.of(stateId))
-					.beginTransformation(when.toInstant(ZoneOffset.UTC).toEpochMilli()));
+				transformations.put(groupId, enter(StateIds.of(stateId)).beginTransformation(when.toInstant(ZoneOffset.UTC).toEpochMilli()));
 			}
 			catch (StoreException | NodeException e) {
 	    		throw new ApplicationException(e);
@@ -321,14 +320,16 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 		@Override
 		public void commitBlock(int groupId) throws ApplicationException, UnknownGroupIdException {
-			getTransformation(groupId);
+			var transformation = getTransformation(groupId);
 			transformations.remove(groupId);
+			exit(transformation.getInitialStore());
 		}
 
 		@Override
 		public void abortBlock(int groupId) throws ApplicationException, UnknownGroupIdException {
-			getTransformation(groupId);
+			var transformation = getTransformation(groupId);
 			transformations.remove(groupId);
+			exit(transformation.getInitialStore());
 		}
 
 		private MokamintStoreTransformation getTransformation(int groupId) throws UnknownGroupIdException {

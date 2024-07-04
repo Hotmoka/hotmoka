@@ -161,10 +161,17 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		return head;
 	}
 
+	protected S enter(StateId stateId) throws UnknownStateIdException, NodeException, InterruptedException {
+		S result = mkStore(stateId);
+		storeUsers.compute(stateId, (_id, old) -> old == null ? 1 : (old + 1));
+		return result;
+	}
+
 	@Override
 	protected void exit(S store) {
 		storeUsers.compute(store.getStateId(), (_id, old) -> old == 1 ? null : (old - 1));
 		super.exit(store);
+		System.out.println(storeUsers);
 	}
 
 	public int persisted, freed;
