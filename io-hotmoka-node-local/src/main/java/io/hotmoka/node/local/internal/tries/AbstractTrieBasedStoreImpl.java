@@ -307,31 +307,6 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 		return mkStore(new StoreCacheImpl(), rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests, true).reloadCache();
 	}
 
-	/**
-	 * Allocates the resources used for the checked-out vision of this store.
-	 * 
-	 * @param txn the database transaction where the operation is performed
-	 * @throws StoreException if the operation cannot be completed correctly
-	 */
-	protected final void malloc(Transaction txn) throws StoreException {
-		try {
-			var trieOfRequests = mkTrieOfRequests(txn);
-			var trieOfResponses = mkTrieOfResponses(txn);
-			var trieOfHistories = mkTrieOfHistories(txn);
-			var trieOfInfo = mkTrieOfInfo(txn);
-
-			// we increment the reference count of the roots of the resulting tries, so that
-			// they do not get garbage collected until this store is freed
-			trieOfResponses.malloc();
-			trieOfInfo.malloc();
-			trieOfHistories.malloc();
-			trieOfRequests.malloc();
-		}
-		catch (TrieException | UnknownKeyException e) {
-			throw new StoreException(e);
-		}
-	}
-
 	private TrieOfResponses mkTrieOfResponses(Transaction txn) throws StoreException, UnknownKeyException {
 		return getNode().mkTrieOfResponses(txn, rootOfResponses);
 	}

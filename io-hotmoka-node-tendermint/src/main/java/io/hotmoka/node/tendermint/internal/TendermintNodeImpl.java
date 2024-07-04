@@ -54,6 +54,7 @@ import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.local.AbstractTrieBasedLocalNode;
 import io.hotmoka.node.local.StateIds;
+import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UnknownStateIdException;
 import io.hotmoka.node.tendermint.api.TendermintNode;
@@ -200,8 +201,8 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		poster.postRequest(request);
 	}
 
-	private void setRootBranch(TendermintStore newStoreOfHead, Transaction txn) throws NodeException {
-		byte[] id = newStoreOfHead.getStateId().getBytes();
+	private void setRootBranch(StateId stateId, Transaction txn) throws NodeException {
+		byte[] id = stateId.getBytes();
 		var rootAsBI = ByteIterable.fromBytes(id);
 
 		try {
@@ -684,9 +685,9 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 				transformation.deliverRewardTransaction(behaving, misbehaving);
 
 				TendermintStore newStoreOfHead = CheckSupplier.check(NodeException.class, StoreException.class, () -> getEnvironment().computeInTransaction(UncheckFunction.uncheck(txn -> {
-					TendermintStore result = transformation.getFinalStore(txn);
-					setRootBranch(result, txn);
-					persist(result, txn);
+					TendermintStore result = transformation.getFinalStore(txn); // TODO: this should return a stateId
+					setRootBranch(result.getStateId(), txn);
+					persist(result.getStateId(), txn);
 					keepPersistedOnly(Set.of(result.getStateId()), txn);
 					return result;
 				})));

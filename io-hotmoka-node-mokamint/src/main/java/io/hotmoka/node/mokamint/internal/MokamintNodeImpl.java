@@ -310,7 +310,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			try {
 				return CheckSupplier.check(NodeException.class, StoreException.class, () -> getEnvironment().computeInTransaction(UncheckFunction.uncheck(txn -> {
 					MokamintStore finalStore = transformation.getFinalStore(txn);
-					persist(finalStore, txn);
+					persist(finalStore.getStateId(), txn);
 					return finalStore.getStateId().getBytes();
 				})));
 			}

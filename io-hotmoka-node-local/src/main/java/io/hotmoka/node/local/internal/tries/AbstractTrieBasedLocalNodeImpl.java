@@ -174,19 +174,13 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 * A store can be persisted more than once, in which case it must be garbage-collected the
 	 * same amount of times in order to be actually removed from the database of stores.
 	 * 
-	 * @param store the store to persist
+	 * @param stateId the identifier of the store to persist
 	 * @param txn the Xodus transaction where the operation is performed
 	 * @throws NodeException if the node is not able to complete the operation correctly
 	 */
-	protected void persist(S store, Transaction txn) throws NodeException { //TODO  make this receive a StateId instead
-		try {
-			store.malloc(txn);
-		}
-		catch (StoreException e) {
-			throw new NodeException(e);
-		}
-
-		addToStores(STORES_NOT_TO_GC, List.of(store.getStateId()), txn);
+	protected void persist(StateId stateId, Transaction txn) throws NodeException {
+		malloc(stateId, txn);
+		addToStores(STORES_NOT_TO_GC, List.of(stateId), txn);
 	}
 
 	/**
@@ -224,7 +218,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	private void gc(StateId id) throws InterruptedException {
 		try {
 			CheckRunnable.check(StoreException.class, NodeException.class, UnknownStateIdException.class, () -> env.executeInTransaction(UncheckConsumer.uncheck(txn -> {
-				free(txn, id);
+				free(id, txn);
 				removeFromStores(STORES_TO_GC, id, txn);
 			})));
 
@@ -241,11 +235,11 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	/**
 	 * Deallocates all resources used for a given vision of the store.
 	 * 
-	 * @param txn the database transaction where the operation is performed
 	 * @param stateId the identifier of the vision of the store to deallocate
+	 * @param txn the database transaction where the operation is performed
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	private void free(Transaction txn, StateId stateId) throws UnknownStateIdException, StoreException {
+	private void free(StateId stateId, Transaction txn) throws UnknownStateIdException, StoreException {
 		var bytes = stateId.getBytes();
 		var rootOfResponses = new byte[32];
 		System.arraycopy(bytes, 0, rootOfResponses, 0, 32);
@@ -267,6 +261,42 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		}
 		catch (UnknownKeyException e) {
 			throw new UnknownStateIdException(stateId);
+		}
+	}
+
+	/**
+	 * Allocates the resources used for the given vision of the store.
+	 * 
+	 * @param stateId the identifier of the vision of the store to allocate
+	 * @param txn the database transaction where the operation is performed
+	 * @throws NodeException if the operation cannot be completed correctly
+	 */
+	protected final void malloc(StateId stateId, Transaction txn) throws NodeException {
+		var bytes = stateId.getBytes();
+		var rootOfResponses = new byte[32];
+		System.arraycopy(bytes, 0, rootOfResponses, 0, 32);
+		var rootOfInfo = new byte[32];
+		System.arraycopy(bytes, 32, rootOfInfo, 0, 32);
+		var rootOfRequests = new byte[32];
+		System.arraycopy(bytes, 64, rootOfRequests, 0, 32);
+		var rootOfHistories = new byte[32];
+		System.arraycopy(bytes, 96, rootOfHistories, 0, 32);
+
+		try {
+			var trieOfRequests = mkTrieOfRequests(txn, rootOfRequests);
+			var trieOfResponses = mkTrieOfResponses(txn, rootOfResponses);
+			var trieOfHistories = mkTrieOfHistories(txn, rootOfHistories);
+			var trieOfInfo = mkTrieOfInfo(txn, rootOfInfo);
+
+			// we increment the reference count of the roots of the resulting tries, so that
+			// they do not get garbage collected until this store is freed
+			trieOfResponses.malloc();
+			trieOfInfo.malloc();
+			trieOfHistories.malloc();
+			trieOfRequests.malloc();
+		}
+		catch (TrieException | StoreException | UnknownKeyException e) {
+			throw new NodeException(e);
 		}
 	}
 
