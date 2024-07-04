@@ -271,7 +271,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 * @param txn the database transaction where the operation is performed
 	 * @throws NodeException if the operation cannot be completed correctly
 	 */
-	protected final void malloc(StateId stateId, Transaction txn) throws NodeException {
+	private void malloc(StateId stateId, Transaction txn) throws NodeException {
 		var bytes = stateId.getBytes();
 		var rootOfResponses = new byte[32];
 		System.arraycopy(bytes, 0, rootOfResponses, 0, 32);

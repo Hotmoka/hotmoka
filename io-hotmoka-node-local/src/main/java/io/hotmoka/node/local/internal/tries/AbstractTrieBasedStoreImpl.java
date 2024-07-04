@@ -94,35 +94,32 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
     }
 
     /**
-     * Creates a clone of a store, up to cache and roots.
+     * Creates a clone of a store, up to cache and roots. It checks for the existence of the state.
      * 
      * @param toClone the store to clone
      * @param cache the cache to use in the cloned store
-     * @param rootOfResponse the root to use for the tries of responses
-     * @param rootOfInfo the root to use for the tries of info
-     * @param rootOfHistories the root to use for the tries of histories
-     * @param rootOfRequests the root to use for the tries of requests
-     * @param checkExistence true if and only if the existence of the resulting store must be checked
-     * @throws UnknownStateIdException if {@code checkExistence} is true and the store does not exist
+     * @param stateId the state identifier of the store to create
+     * @throws UnknownStateIdException if the required state does not exist
      * @throws StoreException if the operation could not be completed correctly
      */
-    protected AbstractTrieBasedStoreImpl(AbstractTrieBasedStoreImpl<N,C,S,T> toClone, StoreCache cache,
-    		byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests,
-    		boolean checkExistence) throws UnknownStateIdException, StoreException {
-
+    protected AbstractTrieBasedStoreImpl(AbstractTrieBasedStoreImpl<N,C,S,T> toClone, StoreCache cache, StateId stateId) throws UnknownStateIdException, StoreException {
     	super(toClone, cache);
+  
+    	var bytes = stateId.getBytes();
+		this.rootOfResponses = new byte[32];
+		System.arraycopy(bytes, 0, rootOfResponses, 0, 32);
+		this.rootOfInfo = new byte[32];
+		System.arraycopy(bytes, 32, rootOfInfo, 0, 32);
+		this.rootOfRequests = new byte[32];
+		System.arraycopy(bytes, 64, rootOfRequests, 0, 32);
+		this.rootOfHistories = new byte[32];
+		System.arraycopy(bytes, 96, rootOfHistories, 0, 32);
 
-    	this.rootOfResponses = rootOfResponses;
-    	this.rootOfInfo = rootOfInfo;
-    	this.rootOfHistories = rootOfHistories;
-    	this.rootOfRequests = rootOfRequests;
-
-    	if (checkExistence)
-    		checkExistence();
+    	checkExistence();
     }
 
     /**
-     * Creates a clone of a store, up to cache and roots. It does not check for the existence of the result.
+     * Creates a clone of a store, up to cache and roots. It does not check for the existence of the state.
      * 
      * @param toClone the store to clone
      * @param cache the cache to use in the cloned store
@@ -152,7 +149,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
     	this(toClone, cache, toClone.rootOfResponses, toClone.rootOfInfo, toClone.rootOfHistories, toClone.rootOfRequests);
     }
 
-	protected S addDelta(StoreCache cache, LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests,
+	protected StateId addDelta(StoreCache cache, LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests,
 			Map<TransactionReference, TransactionResponse> addedResponses,
 			Map<StorageReference, TransactionReference[]> addedHistories, Optional<StorageReference> addedManifest, Transaction txn) throws StoreException {
 
@@ -162,10 +159,15 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 			var rootOfHistories = addDeltaOfHistories(mkTrieOfHistories(txn), addedHistories);
 			var rootOfInfo = addDeltaOfInfos(mkTrieOfInfo(txn), addedManifest);
 
-			// we do not check for the existence of the result, since it has just been created above
-			return mkStore(cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests, false);
+			var result = new byte[128];
+			System.arraycopy(rootOfResponses, 0, result, 0, 32);
+			System.arraycopy(rootOfInfo, 0, result, 32, 32);
+			System.arraycopy(rootOfRequests, 0, result, 64, 32);
+			System.arraycopy(rootOfHistories, 0, result, 96, 32);
+
+			return StateIds.of(result);
 		}
-		catch (TrieException | UnknownStateIdException | UnknownKeyException e) {
+		catch (TrieException | UnknownKeyException e) {
 			throw new StoreException(e);
 		}
 	}
@@ -228,7 +230,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 		return trieOfRequests.getRoot();
 	}
 
-    protected abstract S mkStore(StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests, boolean checkExistence) throws StoreException, UnknownStateIdException;
+    protected abstract S mkStore(StoreCache cache, StateId stateId) throws StoreException, UnknownStateIdException;
 
     @Override
 	public final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, StoreException {
@@ -293,18 +295,8 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 
 	@Override
 	public final S checkedOutAt(StateId stateId) throws UnknownStateIdException, StoreException, InterruptedException {
-		var bytes = stateId.getBytes();
-		var rootOfResponses = new byte[32];
-		System.arraycopy(bytes, 0, rootOfResponses, 0, 32);
-		var rootOfInfo = new byte[32];
-		System.arraycopy(bytes, 32, rootOfInfo, 0, 32);
-		var rootOfRequests = new byte[32];
-		System.arraycopy(bytes, 64, rootOfRequests, 0, 32);
-		var rootOfHistories = new byte[32];
-		System.arraycopy(bytes, 96, rootOfHistories, 0, 32);
-
 		// we provide an empty cache and then ask to reload it from the state of the resulting store
-		return mkStore(new StoreCacheImpl(), rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests, true).reloadCache();
+		return mkStore(new StoreCacheImpl(), stateId).reloadCache();
 	}
 
 	private TrieOfResponses mkTrieOfResponses(Transaction txn) throws StoreException, UnknownKeyException {

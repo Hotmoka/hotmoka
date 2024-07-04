@@ -684,16 +684,17 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 			try {
 				transformation.deliverRewardTransaction(behaving, misbehaving);
 
-				TendermintStore newStoreOfHead = CheckSupplier.check(NodeException.class, StoreException.class, () -> getEnvironment().computeInTransaction(UncheckFunction.uncheck(txn -> {
-					TendermintStore result = transformation.getFinalStore(txn); // TODO: this should return a stateId
-					setRootBranch(result.getStateId(), txn);
-					persist(result.getStateId(), txn);
-					keepPersistedOnly(Set.of(result.getStateId()), txn);
-					return result;
+				StateId idOfNewStoreOfHead = CheckSupplier.check(NodeException.class, StoreException.class, () -> getEnvironment().computeInTransaction(UncheckFunction.uncheck(txn -> {
+					StateId stateIdOfFinalStore = transformation.getIdOfFinalStore(txn);
+					setRootBranch(stateIdOfFinalStore, txn);
+					persist(stateIdOfFinalStore, txn);
+					keepPersistedOnly(Set.of(stateIdOfFinalStore), txn);
+					return stateIdOfFinalStore;
 				})));
 
 				persisted++;
 
+				var newStoreOfHead = mkStore(idOfNewStoreOfHead);
 				setStoreOfHead(newStoreOfHead);
 				CheckRunnable.check(NodeException.class, () -> transformation.getDeliveredTransactions().forEachOrdered(UncheckConsumer.uncheck(reference -> publish(reference, newStoreOfHead))));
 
@@ -701,7 +702,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 				LOGGER.info("committed Tendermint state " + Hex.toHexString(hash).toUpperCase());
 				return ResponseCommit.newBuilder().setData(ByteString.copyFrom(hash)).build();
 			}
-			catch (StoreException e) {
+			catch (StoreException | UnknownStateIdException e) {
 				LOGGER.log(Level.SEVERE, "commit failed", e);
 				throw new NodeException(e);
 			}

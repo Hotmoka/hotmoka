@@ -16,22 +16,16 @@ limitations under the License.
 
 package io.hotmoka.node.tendermint.internal;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Optional;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
-import io.hotmoka.node.api.requests.TransactionRequest;
-import io.hotmoka.node.api.responses.TransactionResponse;
-import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractTrieBasedStore;
 import io.hotmoka.node.local.StoreCache;
+import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UnknownStateIdException;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
-import io.hotmoka.xodus.env.Transaction;
 
 /**
  * A partial trie-based store. Errors and requests are recovered by asking
@@ -63,16 +57,12 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
 	 * 
 	 * @param toClone the store to clone
 	 * @param cache to caches to use in the cloned store
-	 * @param rootOfResponses the root to use for the tries of responses
-	 * @param rootOfInfo the root to use for the tries of infos
-	 * @param rootOfHistories the root to use for the tries of histories
-	 * @param rootOfRequests the root to use for the tries of requests
-     * @param checkExistence true if and only if the existence of the resulting store must be checked
-     * @throws UnknownStateIdException if {@code checkExistence} is true and the store does not exist
+	 * @param stateId the state identifier of the store to create
+     * @throws UnknownStateIdException if the required state does not exist
      * @throws StoreException if the operation could not be completed correctly
 	 */
-    private TendermintStore(TendermintStore toClone, StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests, boolean checkExistence) throws UnknownStateIdException, StoreException {
-    	super(toClone, cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests, checkExistence);
+    private TendermintStore(TendermintStore toClone, StoreCache cache, StateId stateId) throws UnknownStateIdException, StoreException {
+    	super(toClone, cache, stateId);
 
     	this.validators = toClone.validators;
 	}
@@ -90,23 +80,13 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
 	}
 
     @Override
-    protected TendermintStore addDelta(StoreCache cache, LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests,
-			Map<TransactionReference, TransactionResponse> addedResponses,
-			Map<StorageReference, TransactionReference[]> addedHistories, Optional<StorageReference> addedManifest, Transaction txn) throws StoreException {
-
-    	TendermintStore result = super.addDelta(cache, addedRequests, addedResponses, addedHistories, addedManifest, txn);
-    	result.validators = validators;
-    	return result;
-    }
-
-    @Override
     protected TendermintStore setCache(StoreCache cache) {
     	return new TendermintStore(this, cache);
     }
 
 	@Override
-    protected TendermintStore mkStore(StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests, boolean checkExistence) throws UnknownStateIdException, StoreException {
-		return new TendermintStore(this, cache, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests, checkExistence);
+    protected TendermintStore mkStore(StoreCache cache, StateId stateId) throws UnknownStateIdException, StoreException {
+		return new TendermintStore(this, cache, stateId);
 	}
 
 	@Override

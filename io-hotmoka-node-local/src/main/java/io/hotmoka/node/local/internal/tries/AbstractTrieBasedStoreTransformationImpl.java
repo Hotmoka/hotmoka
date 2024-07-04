@@ -19,6 +19,7 @@ package io.hotmoka.node.local.internal.tries;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.local.AbstractStoreTransformation;
 import io.hotmoka.node.local.api.LocalNodeConfig;
+import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.xodus.env.Transaction;
 
@@ -45,14 +46,14 @@ public abstract class AbstractTrieBasedStoreTransformationImpl<N extends Abstrac
 	}
 
 	/**
-	 * Yields the final store of this transformation, resulting from the execution of the delivered requests
-	 * from the initial store.
+	 * Yields the state identifier of the final store of this transformation, resulting from the execution
+	 * of the delivered requests from the initial store.
 	 * 
 	 * @param txn the Xodus transaction where the store must be created
-	 * @return the final store
-	 * @throws StoreException if the final store cannot be computed correctly
+	 * @return the state identifier of the final store
+	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	public final S getFinalStore(Transaction txn) throws StoreException {
+	public final StateId getIdOfFinalStore(Transaction txn) throws StoreException {
 		return getInitialStore().addDelta(getCache(), getDeltaRequests(), getDeltaResponses(), getDeltaHistories(), getDeltaManifest(), txn);
 	}
 }

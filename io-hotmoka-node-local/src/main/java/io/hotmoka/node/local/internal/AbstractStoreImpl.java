@@ -141,7 +141,7 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 
 		// if this store is already initialized, we can extract the cache information
 		// from the store itself, otherwise the default information will be kept
-		if (getManifest().isPresent()) {
+		if (getManifest().isPresent())
 			newCache = newCache
 				.setConfig(extractConsensus())
 				.invalidateClassLoaders()
@@ -150,9 +150,6 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 				.setVersions(extractVersions())
 				.setGasPrice(extractGasPrice())
 				.setInflation(extractInflation());
-
-			LOGGER.info("the store's cache has been reloaded");
-		}
 
 		return setCache(newCache);
 	}

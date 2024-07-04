@@ -24,6 +24,7 @@ module io.hotmoka.node.mokamint {
 
 	requires transitive io.hotmoka.node.mokamint.api;
 	requires transitive io.hotmoka.node.api;
+	requires io.hotmoka.node.local.api;
 	requires io.hotmoka.node;
 	requires io.hotmoka.node.local;
 	requires io.hotmoka.annotations;
