@@ -485,12 +485,13 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 
 	/**
 	 * Called when this node is executing something that needs the store of the head.
-	 * It can be used, for instance, to take note that the store cannot be
+	 * It can be used, for instance, to take note that that store cannot be
 	 * garbage-collected from that moment.
 	 * 
-	 * @return store the store of the head
+	 * @return the entered store of the head
+	 * @throws NodeException if the operation could not be completed correctly
 	 */
-	protected S enterHead() {
+	protected S enterHead() throws NodeException {
 		return storeOfHead;
 	}
 
@@ -498,8 +499,9 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 * Called when this node finished executing something that needed the given store.
 	 * 
 	 * @param store the store
+	 * @throws NodeException if the operation could not be completed correctly
 	 */
-	protected void exit(S store) {}
+	protected void exit(S store) throws NodeException {}
 
 	protected final S getStoreOfHead() {
 		return storeOfHead;

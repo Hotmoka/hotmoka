@@ -172,7 +172,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 		}
 	}
 
-	private void checkExistence() throws UnknownStateIdException, StoreException {
+	protected void checkExistence() throws UnknownStateIdException, StoreException {
 		try {
 			CheckRunnable.check(UnknownKeyException.class, StoreException.class, () -> getNode().getEnvironment().executeInReadonlyTransaction(UncheckConsumer.uncheck(txn -> {
 				mkTrieOfRequests(txn);

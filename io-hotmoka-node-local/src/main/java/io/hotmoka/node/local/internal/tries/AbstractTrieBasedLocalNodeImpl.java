@@ -17,15 +17,16 @@ limitations under the License.
 package io.hotmoka.node.local.internal.tries;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
+import io.hotmoka.annotations.GuardedBy;
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.exceptions.CheckRunnable;
 import io.hotmoka.exceptions.CheckSupplier;
@@ -89,11 +90,24 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	private final io.hotmoka.xodus.env.Store storeOfHistories;
 
 	/**
+	 * The lock object used to avoid garbage-collecting stores that are currently under usage.
+	 */
+	private final Object lockGC = new Object();
+
+	/**
 	 * A map from each state identifier of the store to the number of users of that store
 	 * at that state identifier. The goal of this information is to avoid garbage-collecting
 	 * store identifiers that are currently being used for some reason.
 	 */
-	private final ConcurrentMap<StateId, Integer> storeUsers = new ConcurrentHashMap<>();
+	@GuardedBy("lockGC")
+	private final Map<StateId, Integer> storeUsers = new HashMap<>();
+
+	/**
+	 * The identifier of a store that has been selected for immediate garbage-collection,
+	 * although it might not be garbage-collected yet.
+	 */
+	@GuardedBy("lockGC")
+	private StateId selectedForGC;
 
 	/**
 	 * The key used inside {@link #storeOfNode} to keep the list of old stores
@@ -155,23 +169,76 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	}
 
 	@Override
-	protected S enterHead() {
-		S head = super.enterHead();
-		storeUsers.compute(head.getStateId(), (_id, old) -> old == null ? 1 : (old + 1));
-		return head;
+	protected S enterHead() throws NodeException {
+		S head;
+
+		while (true) {
+			head = super.enterHead();
+
+			try {
+				enter(head, head.getStateId());
+				return head;
+			}
+			catch (UnknownStateIdException e) {
+				// the head should not have been garbage-collected, until
+				// this happened between reading the head and checking its existence
+				// (highly unlikely but still possible: we just try with the new head)
+			}
+		}
 	}
 
+	/**
+	 * Called when this node is executing something that needs the store with the given state identifier.
+	 * It can be used, for instance, to take note that that store cannot be garbage-collected from that moment.
+	 * 
+	 * @return the entered store
+	 * @throws UnknownStateIdException if the required state identifier does not exist
+	 *                                 (also if it has been garbage-collected already)
+	 * @throws InterruptedException if the operation has been interrupted before being completed
+	 * @throws NodeException if the operation could not be completed correctly
+	 */
 	protected S enter(StateId stateId) throws UnknownStateIdException, NodeException, InterruptedException {
 		S result = mkStore(stateId);
-		storeUsers.compute(stateId, (_id, old) -> old == null ? 1 : (old + 1));
+		enter(result, stateId);
+
 		return result;
 	}
 
+	/**
+	 * Called when this node is executing something that needs the given store with the given state identifier.
+	 * It can be used, for instance, to take note that that store cannot be garbage-collected from that moment.
+	 * 
+	 * @throws UnknownStateIdException if the required state identifier does not exist
+	 *                                 (also if it has been garbage-collected already)
+	 * @throws NodeException if the operation could not be completed correctly
+	 */
+	private void enter(S store, StateId stateId) throws UnknownStateIdException, NodeException {
+		synchronized (lockGC) {
+			try {
+				// we check if the node does not exist or has been garbage-collected already
+				store.checkExistence();
+			}
+			catch (StoreException e) {
+				throw new NodeException(e);
+			}
+
+			// the store might well exist but be already selected for garbage-collection:
+			// we assume that it has already been garbage-collected, to avoid risks
+			if (stateId.equals(selectedForGC))
+				throw new UnknownStateIdException();
+
+			storeUsers.compute(stateId, (_id, old) -> old == null ? 1 : (old + 1));
+		}
+	}
+
 	@Override
-	protected void exit(S store) {
-		storeUsers.compute(store.getStateId(), (_id, old) -> old == 1 ? null : (old - 1));
+	protected void exit(S store) throws NodeException {
+		synchronized (lockGC) {
+			storeUsers.compute(store.getStateId(), (_id, old) -> old == 1 ? null : (old - 1));
+		}
+
 		super.exit(store);
-		System.out.println(storeUsers);
+		//System.out.println("size = " + storeUsers.size());
 	}
 
 	public int persisted, freed;
@@ -216,10 +283,6 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		catch (StoreException e) {
 			throw new NodeException(e);
 		}
-	}
-
-	private boolean canBeGarbageCollected(StateId id) {
-		return storeUsers.getOrDefault(id, 0) == 0;
 	}
 
 	private void gc(StateId id) throws InterruptedException {
@@ -351,9 +414,23 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 			while (!Thread.currentThread().isInterrupted()) {
 				List<StateId> toGC = CheckSupplier.check(NodeException.class, () -> env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> getStores(STORES_TO_GC, txn))));
 
-				for (var stateId: toGC)
-					if (canBeGarbageCollected(stateId))
+				for (var stateId: toGC) {
+					boolean canGC;
+
+					synchronized (lockGC) {
+						canGC = storeUsers.getOrDefault(stateId, 0) == 0;
+						if (canGC)
+							selectedForGC = stateId;
+					}
+
+					if (canGC) {
 						gc(stateId);
+
+						synchronized (lockGC) {
+							selectedForGC = null;
+						}
+					}
+				}
 
 				Thread.sleep(5000L);
 			}

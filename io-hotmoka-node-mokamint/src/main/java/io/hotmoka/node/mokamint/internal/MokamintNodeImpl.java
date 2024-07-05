@@ -268,17 +268,33 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 		@Override
 		public int beginBlock(long height, LocalDateTime when, byte[] stateId) throws UnknownStateException, ApplicationException, InterruptedException {
-			int groupId = nextId.getAndIncrement();
+			MokamintStore start;
 
 			try {
-				transformations.put(groupId, enter(StateIds.of(stateId)).beginTransformation(when.toInstant(ZoneOffset.UTC).toEpochMilli()));
+				start = enter(StateIds.of(stateId));
 			}
-			catch (StoreException | NodeException e) {
-	    		throw new ApplicationException(e);
-	    	}
+			catch (NodeException e) {
+				throw new ApplicationException(e);
+			}
 			catch (UnknownStateIdException e) {
 				throw new UnknownStateException(e);
 			}
+
+			int groupId = nextId.getAndIncrement();
+
+			try {
+				transformations.put(groupId, start.beginTransformation(when.toInstant(ZoneOffset.UTC).toEpochMilli()));
+			}
+			catch (StoreException e) {
+				try {
+					exit(start);
+				}
+				catch (NodeException e2) {
+					throw new ApplicationException(e2);
+				}
+
+				throw new ApplicationException(e);
+	    	}
 
 			return groupId;
 		}
@@ -319,17 +335,29 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		}
 
 		@Override
-		public void commitBlock(int groupId) throws ApplicationException, UnknownGroupIdException {
+		public void commitBlock(int groupId) throws UnknownGroupIdException, ApplicationException {
 			var transformation = getTransformation(groupId);
 			transformations.remove(groupId);
-			exit(transformation.getInitialStore());
+
+			try {
+				exit(transformation.getInitialStore());
+			}
+			catch (NodeException e) {
+				throw new ApplicationException(e);
+			}
 		}
 
 		@Override
-		public void abortBlock(int groupId) throws ApplicationException, UnknownGroupIdException {
+		public void abortBlock(int groupId) throws UnknownGroupIdException, ApplicationException {
 			var transformation = getTransformation(groupId);
 			transformations.remove(groupId);
-			exit(transformation.getInitialStore());
+
+			try {
+				exit(transformation.getInitialStore());
+			}
+			catch (NodeException e) {
+				throw new ApplicationException(e);
+			}
 		}
 
 		private MokamintStoreTransformation getTransformation(int groupId) throws UnknownGroupIdException {
