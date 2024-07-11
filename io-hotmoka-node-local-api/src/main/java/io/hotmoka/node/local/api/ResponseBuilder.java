@@ -44,19 +44,29 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	 * @throws StoreException if the node is misbehaving
 	 * @throws InterruptedException if the current thread has been interrupted before computation the response
 	 */
-	Response getResponse() throws TransactionRejectedException, StoreException, InterruptedException;
-	
-	/**
-	 * Replaces all reverified responses into the store for which the response is built.
-	 * 
-	 * @throws StoreException if the operation did not complete correctly
-	 */
-	void replaceReverifiedResponses() throws StoreException;
+	ResponseCreation<Response> getResponseCreation() throws TransactionRejectedException, StoreException, InterruptedException;
 
-	/**
-	 * Yields the class loader used to build the response.
-	 * 
-	 * @return the class loader
-	 */
-	EngineClassLoader getClassLoader();
+	interface ResponseCreation<Response extends TransactionResponse> {
+
+		/**
+		 * Yields the response corresponding to the request for which this builder was created.
+		 * 
+		 * @return the response
+		 */
+		Response getResponse();
+
+		/**
+		 * Yields the class loader used to build the response.
+		 * 
+		 * @return the class loader
+		 */
+		EngineClassLoader getClassLoader();
+
+		/**
+		 * Replaces all reverified responses into the store for which the response is built.
+		 * 
+		 * @throws StoreException if the operation did not complete correctly
+		 */
+		void replaceReverifiedResponses() throws StoreException;
+	}
 }

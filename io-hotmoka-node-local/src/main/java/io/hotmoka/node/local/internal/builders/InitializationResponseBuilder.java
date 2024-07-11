@@ -44,7 +44,7 @@ public class InitializationResponseBuilder extends AbstractInitialResponseBuilde
 	}
 
 	@Override
-	public InitializationTransactionResponse getResponse() throws TransactionRejectedException, StoreException, InterruptedException {
+	public ResponseCreation<InitializationTransactionResponse> getResponseCreation() throws TransactionRejectedException, StoreException, InterruptedException {
 		return new ResponseCreator() {
 
 			@Override

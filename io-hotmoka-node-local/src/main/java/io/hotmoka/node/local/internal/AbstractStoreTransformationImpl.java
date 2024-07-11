@@ -198,7 +198,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 					StorageValues.stringOf(behaving), StorageValues.stringOf(misbehaving),
 					StorageValues.bigIntegerOf(gasConsumed), StorageValues.bigIntegerOf(deliveredCount()));
 	
-				TransactionResponse response = responseBuilderFor(TransactionReferences.of(store.getHasher().hash(request)), request).getResponse();
+				TransactionResponse response = responseBuilderFor(TransactionReferences.of(store.getHasher().hash(request)), request).getResponseCreation().getResponse();
 				// if there is only one update, it is the update of the nonce of the manifest: we prefer not to expand
 				// the store with the transaction, so that the state stabilizes, which might give
 				// to the node the chance of suspending the generation of new blocks
@@ -228,11 +228,12 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 			LOGGER.info(referenceAsString + ": delivering start");
 	
 			ResponseBuilder<?,?> responseBuilder = responseBuilderFor(reference, request);
-			TransactionResponse response = responseBuilder.getResponse();
+			var responseCreation = responseBuilder.getResponseCreation();
+			TransactionResponse response = responseCreation.getResponse();
 			push(reference, request, response);
-			responseBuilder.replaceReverifiedResponses();
+			responseCreation.replaceReverifiedResponses();
 			takeNoteForNextReward(request, response);
-			updateCaches(response, responseBuilder.getClassLoader());
+			updateCaches(response, responseCreation.getClassLoader());
 	
 			LOGGER.info(referenceAsString + ": delivering success");
 			return response;
@@ -286,19 +287,19 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 		return cache;
 	}
 
-	protected LinkedHashMap<TransactionReference, TransactionRequest<?>> getDeltaRequests() {
+	protected final LinkedHashMap<TransactionReference, TransactionRequest<?>> getDeltaRequests() {
 		return deltaRequests;
 	}
 
-	protected Map<TransactionReference, TransactionResponse> getDeltaResponses() {
+	protected final Map<TransactionReference, TransactionResponse> getDeltaResponses() {
 		return deltaResponses;
 	}
 
-	protected Map<StorageReference, TransactionReference[]> getDeltaHistories() {
+	protected final Map<StorageReference, TransactionReference[]> getDeltaHistories() {
 		return deltaHistories;
 	}
 
-	protected Optional<StorageReference> getDeltaManifest() {
+	protected final Optional<StorageReference> getDeltaManifest() {
 		return Optional.ofNullable(deltaManifest);
 	}
 

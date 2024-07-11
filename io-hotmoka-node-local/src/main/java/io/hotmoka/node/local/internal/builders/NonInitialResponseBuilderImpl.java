@@ -62,10 +62,8 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request of the transaction
 	 * @param environment the execution environment where the response is built
-	 * @throws TransactionRejectedException if the builder cannot be created
-	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	protected NonInitialResponseBuilderImpl(TransactionReference reference, Request request, ExecutionEnvironment environment) throws TransactionRejectedException, StoreException {
+	protected NonInitialResponseBuilderImpl(TransactionReference reference, Request request, ExecutionEnvironment environment) {
 		super(reference, request, environment);
 	}
 
@@ -145,7 +143,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 */
 		private BigInteger redBalanceOfPayerInCaseOfTransactionException;
 
-		protected ResponseCreator() {
+		protected ResponseCreator() throws TransactionRejectedException, StoreException {
 			this.gas = request.getGasLimit();
 			this.gasCostModel = consensus.getGasCostModel();
 		}

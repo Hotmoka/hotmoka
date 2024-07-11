@@ -112,11 +112,11 @@ public abstract class ExecutionEnvironment {
 	}
 
 	public final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException, StoreException, InterruptedException {
-		return getOutcome(new InstanceViewMethodCallResponseBuilder(reference, request, this).getResponse());
+		return getOutcome(new InstanceViewMethodCallResponseBuilder(reference, request, this).getResponseCreation().getResponse());
 	}
 
 	public final Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException, StoreException, InterruptedException {
-		return getOutcome(new StaticViewMethodCallResponseBuilder(reference, request, this).getResponse());
+		return getOutcome(new StaticViewMethodCallResponseBuilder(reference, request, this).getResponseCreation().getResponse());
 	}
 
 	/**

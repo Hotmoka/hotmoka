@@ -44,10 +44,8 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request of the transaction
 	 * @param environment the execution environment where the response is built
-	 * @throws TransactionRejectedException if the builder cannot be created
-	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	public JarStoreResponseBuilder(TransactionReference reference, JarStoreTransactionRequest request, ExecutionEnvironment environment) throws TransactionRejectedException, StoreException {
+	public JarStoreResponseBuilder(TransactionReference reference, JarStoreTransactionRequest request, ExecutionEnvironment environment) {
 		super(reference, request, environment);
 	}
 
@@ -59,13 +57,13 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 	}
 
 	@Override
-	public JarStoreTransactionResponse getResponse() throws TransactionRejectedException, StoreException, InterruptedException {
+	public ResponseCreation<JarStoreTransactionResponse> getResponseCreation() throws TransactionRejectedException, StoreException, InterruptedException {
 		return new ResponseCreator().create();
 	}
 
 	private class ResponseCreator extends AbstractNonInitialResponseBuilder<JarStoreTransactionRequest, JarStoreTransactionResponse>.ResponseCreator {
 		
-		private ResponseCreator() {
+		private ResponseCreator() throws TransactionRejectedException, StoreException {
 		}
 
 		@Override

@@ -50,15 +50,13 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request of the transaction
 	 * @param environment the execution environment where the response is built
-	 * @throws TransactionRejectedException if the builder cannot be created
-	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	public ConstructorCallResponseBuilder(TransactionReference reference, ConstructorCallTransactionRequest request, ExecutionEnvironment environment) throws TransactionRejectedException, StoreException {
+	public ConstructorCallResponseBuilder(TransactionReference reference, ConstructorCallTransactionRequest request, ExecutionEnvironment environment) {
 		super(reference, request, environment);
 	}
 
 	@Override
-	public ConstructorCallTransactionResponse getResponse() throws TransactionRejectedException, StoreException, InterruptedException {
+	public ResponseCreation<ConstructorCallTransactionResponse> getResponseCreation() throws TransactionRejectedException, StoreException, InterruptedException {
 		return new ResponseCreator().create();
 	}
 
@@ -69,7 +67,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		 */
 		private Object[] deserializedActuals;
 
-		private ResponseCreator() {
+		private ResponseCreator() throws TransactionRejectedException, StoreException {
 		}
 
 		@Override

@@ -55,7 +55,7 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 	}
 
 	@Override
-	public MethodCallTransactionResponse getResponse() throws TransactionRejectedException, StoreException, InterruptedException {
+	public ResponseCreation<MethodCallTransactionResponse> getResponseCreation() throws TransactionRejectedException, StoreException, InterruptedException {
 		return new ResponseCreator().create();
 	}
 
@@ -66,7 +66,7 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 		 */
 		private Object[] deserializedActuals;
 
-		private ResponseCreator() {
+		private ResponseCreator() throws TransactionRejectedException, StoreException {
 		}
 
 		@Override

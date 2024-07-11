@@ -54,7 +54,7 @@ public abstract class AbstractInitialResponseBuilder<Request extends InitialTran
 		/**
 		 * Creates the response from the request.
 		 */
-		protected ResponseCreator() {}
+		protected ResponseCreator() throws TransactionRejectedException, StoreException {}
 
 		protected final void checkConsistency() throws TransactionRejectedException {
 			try {

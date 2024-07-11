@@ -66,10 +66,8 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request of the transaction
 	 * @param environment the execution environment where the response is built
-	 * @throws TransactionRejectedException if the builder cannot be created
-	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	protected CodeCallResponseBuilder(TransactionReference reference, Request request, ExecutionEnvironment environment) throws TransactionRejectedException, StoreException {
+	protected CodeCallResponseBuilder(TransactionReference reference, Request request, ExecutionEnvironment environment) {
 		super(reference, request, environment);
 	}
 
@@ -80,7 +78,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 */
 		private final List<Object> events = new ArrayList<>();
 
-		protected ResponseCreator() {}
+		protected ResponseCreator() throws TransactionRejectedException, StoreException {}
 
 		@Override
 		protected void checkConsistency() throws TransactionRejectedException {

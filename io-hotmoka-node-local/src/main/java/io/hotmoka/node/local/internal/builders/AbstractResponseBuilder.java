@@ -61,11 +61,6 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	protected final ExecutionEnvironment environment;
 
 	/**
-	 * The class loader used for the transaction.
-	 */
-	protected final EngineClassLoader classLoader;
-
-	/**
 	 * The request of the transaction.
 	 */
 	protected final Request request;
@@ -81,30 +76,17 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request for which the response is being built
 	 * @param environment the execution environment where the response is built
-	 * @throws TransactionRejectedException if the builder cannot be created
-	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	protected AbstractResponseBuilder(TransactionReference reference, Request request, ExecutionEnvironment environment) throws TransactionRejectedException, StoreException {
+	protected AbstractResponseBuilder(TransactionReference reference, Request request, ExecutionEnvironment environment) {
 		this.environment = environment;
 		this.request = request;
 		this.reference = reference;
 		this.consensus = environment.getConfig();
-		this.classLoader = mkClassLoader();
 	}
 
 	@Override
 	public final Request getRequest() {
 		return request;
-	}
-
-	@Override
-	public final EngineClassLoader getClassLoader() {
-		return classLoader;
-	}
-
-	@Override
-	public final void replaceReverifiedResponses() throws StoreException {
-		((EngineClassLoaderImpl) classLoader).replaceReverifiedResponses();
 	}
 
 	/**
@@ -136,18 +118,42 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		protected final UpdatesExtractor updatesExtractor;
 
 		/**
+		 * The class loader used for the transaction.
+		 */
+		protected final EngineClassLoader classLoader;
+
+		/**
 		 * The counter for the next storage object created during the transaction.
 		 */
 		private BigInteger nextProgressive = BigInteger.ZERO;
 
-		protected ResponseCreator() {
+		protected ResponseCreator() throws StoreException, TransactionRejectedException {
+			this.classLoader = mkClassLoader();
 			this.deserializer = new Deserializer(environment, classLoader);
 			this.updatesExtractor = new UpdatesExtractor(classLoader);
 		}
 
-		public final Response create() throws TransactionRejectedException, StoreException, InterruptedException {
+		public final ResponseCreation<Response> create() throws TransactionRejectedException, StoreException, InterruptedException {
 			try {
-				return environment.submit(new TakamakaCallable(this::body)).get();
+				Response response = environment.submit(new TakamakaCallable(this::body)).get();
+
+				return new ResponseCreation<Response>() {
+
+					@Override
+					public Response getResponse() {
+						return response;
+					}
+
+					@Override
+					public final EngineClassLoader getClassLoader() {
+						return classLoader;
+					}
+
+					@Override
+					public final void replaceReverifiedResponses() throws StoreException {
+						((EngineClassLoaderImpl) classLoader).replaceReverifiedResponses();
+					}
+				};
 			}
 			catch (ExecutionException e) {
 				Throwable cause = e.getCause();
