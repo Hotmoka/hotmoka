@@ -57,11 +57,13 @@ public class JarStoreInitialResponseBuilder extends AbstractInitialResponseBuild
 	}
 
 	@Override
-	public JarStoreInitialTransactionResponse getResponse() throws StoreException, InterruptedException {
+	public JarStoreInitialTransactionResponse getResponse() throws TransactionRejectedException, StoreException, InterruptedException {
 		return new ResponseCreator() {
 
 			@Override
-			protected JarStoreInitialTransactionResponse body() throws ClassNotFoundException, UnsupportedVerificationVersionException, VerificationException {
+			protected JarStoreInitialTransactionResponse body() throws TransactionRejectedException, ClassNotFoundException, UnsupportedVerificationVersionException, VerificationException {
+				checkConsistency();
+
 				try {
 					var instrumentedJar = InstrumentedJars.of(VerifiedJars.of(request.getJar(), classLoader, true, consensus.skipsVerification()), consensus.getGasCostModel());
 					return TransactionResponses.jarStoreInitial(instrumentedJar.toBytes(), request.getDependencies(), consensus.getVerificationVersion());

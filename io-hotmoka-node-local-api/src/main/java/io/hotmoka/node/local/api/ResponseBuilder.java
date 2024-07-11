@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.local.api;
 
+import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 
@@ -38,10 +39,12 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	 * Yields the response corresponding to the request for which this builder was created.
 	 * 
 	 * @return the response
+	 * @throws TransactionRejectedException if the response cannot be computed because the request
+	 *                                      is inconsistent in the context of execution
 	 * @throws StoreException if the node is misbehaving
 	 * @throws InterruptedException if the current thread has been interrupted before computation the response
 	 */
-	Response getResponse() throws StoreException, InterruptedException;
+	Response getResponse() throws TransactionRejectedException, StoreException, InterruptedException;
 	
 	/**
 	 * Replaces all reverified responses into the store for which the response is built.

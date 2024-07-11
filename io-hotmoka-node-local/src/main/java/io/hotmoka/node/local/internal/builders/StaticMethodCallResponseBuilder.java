@@ -55,7 +55,7 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 	}
 
 	@Override
-	public MethodCallTransactionResponse getResponse() throws StoreException, InterruptedException {
+	public MethodCallTransactionResponse getResponse() throws TransactionRejectedException, StoreException, InterruptedException {
 		return new ResponseCreator().create();
 	}
 
@@ -70,7 +70,9 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 		}
 
 		@Override
-		protected MethodCallTransactionResponse body() {
+		protected MethodCallTransactionResponse body() throws TransactionRejectedException {
+			checkConsistency();
+
 			try {
 				init();
 				this.deserializedActuals = CheckSupplier.check(StoreException.class, DeserializationException.class,

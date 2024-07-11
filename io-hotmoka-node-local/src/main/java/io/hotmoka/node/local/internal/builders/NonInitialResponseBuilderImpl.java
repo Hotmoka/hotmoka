@@ -22,7 +22,6 @@ import static java.math.BigInteger.ZERO;
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
@@ -58,11 +57,6 @@ import io.hotmoka.node.local.api.StoreException;
 public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTransactionRequest<Response>, Response extends NonInitialTransactionResponse> extends AbstractResponseBuilder<Request, Response> {
 
 	/**
-	 * The cost model of the node for which the transaction is being built.
-	 */
-	protected final GasCostModel gasCostModel;
-
-	/**
 	 * Creates a the builder of the response.
 	 * 
 	 * @param reference the reference to the transaction that is building the response
@@ -73,54 +67,12 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 */
 	protected NonInitialResponseBuilderImpl(TransactionReference reference, Request request, ExecutionEnvironment environment) throws TransactionRejectedException, StoreException {
 		super(reference, request, environment);
-
-		this.gasCostModel = consensus.getGasCostModel();
-		callerMustBeExternallyOwnedAccount();
-		gasLimitIsInsideBounds();
-		requestPromisesEnoughGas();
-		gasPriceIsLargeEnough();
-		requestMustHaveCorrectChainId();
-		signatureMustBeValid();
-		callerAndRequestMustAgreeOnNonce();
-		callerCanPayForAllPromisedGas();
-	}
-
-	/**
-	 * Determines if the transaction is signed.
-	 * 
-	 * @return true if and only if the request is signed and the transaction is not a view transaction
-	 */
-	protected boolean transactionIsSigned() {
-		return !isView() && request instanceof SignedTransactionRequest;
 	}
 
 	@Override
 	protected EngineClassLoader mkClassLoader() throws StoreException, TransactionRejectedException {
 		return environment.getClassLoader(request.getClasspath(), consensus);
 	}
-
-	/**
-	 * Computes a minimal threshold of gas that is required for the transaction.
-	 * Below this threshold, the response builder cannot be created.
-	 * 
-	 * @return the minimal threshold
-	 */
-	protected BigInteger minimalGasRequiredForTransaction() {
-		BigInteger result = gasCostModel.cpuBaseTransactionCost();
-		result = result.add(BigInteger.valueOf(request.size()));
-		result = result.add(BigInteger.valueOf(gasForStoringFailedResponse()));
-		result = result.add(classLoader.getLengthsOfJars().mapToObj(gasCostModel::cpuCostForLoadingJar).reduce(ZERO, BigInteger::add));
-		result = result.add(classLoader.getLengthsOfJars().mapToObj(gasCostModel::ramCostForLoadingJar).reduce(ZERO, BigInteger::add));
-	
-		return result;
-	}
-
-	/**
-	 * Yields the cost for storage a failed response for the transaction that is being built.
-	 * 
-	 * @return the cost
-	 */
-	protected abstract int gasForStoringFailedResponse();
 
 	/**
 	 * Determines if the transaction is a view transaction, that is, it has no side-effect on the store.
@@ -131,195 +83,12 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		return false; // subclasses may redefine
 	}
 
-	/**
-	 * Determine the signature algorithm that must have been used for signing the request.
-	 * This depends on the run-time class of the caller of the request.
-	 * 
-	 * @return the signature algorithm
-	 * @throws NodeException 
-	 */
-	private SignatureAlgorithm determineSignatureAlgorithm() throws StoreException, TransactionRejectedException {
-		try {
-			Class<?> clazz = classLoader.loadClass(environment.getClassName(request.getCaller()));
-
-			if (classLoader.getAccountED25519().isAssignableFrom(clazz))
-				return SignatureAlgorithms.ed25519();
-			else if (classLoader.getAccountSHA256DSA().isAssignableFrom(clazz))
-				return SignatureAlgorithms.sha256dsa();
-			else if (classLoader.getAccountQTESLA1().isAssignableFrom(clazz))
-				return SignatureAlgorithms.qtesla1();
-			else if (classLoader.getAccountQTESLA3().isAssignableFrom(clazz))
-				return SignatureAlgorithms.qtesla3();
-			else
-				return consensus.getSignatureForRequests();
-		}
-		catch (UnknownReferenceException e) {
-			throw new TransactionRejectedException("The caller " + request.getCaller() + " is not an object in store", consensus);
-		}
-		catch (NoSuchAlgorithmException e) {
-			throw new StoreException(e);
-		}
-		catch (ClassNotFoundException e) {
-			throw new TransactionRejectedException(e, consensus);
-		}
-	}
-
-	/**
-	 * Checks if the caller is an externally owned account or subclass.
-	 *
-	 * @throws TransactionRejectedException if the caller is not an externally owned account
-	 * @throws ClassNotFoundException if the class of the caller cannot be determined
-	 * @throws NodeException 
-	 * @throws NoSuchElementException 
-	 * @throws UnknownReferenceException 
-	 */
-	private void callerMustBeExternallyOwnedAccount() throws TransactionRejectedException, StoreException {
-		String className;
-
-		try {
-			className = environment.getClassName(request.getCaller());
-		}
-		catch (UnknownReferenceException e) {
-			throw new TransactionRejectedException("The caller " + request.getCaller() + " cannot be found in store", consensus);
-		}
-
-		try {
-			Class<?> clazz = classLoader.loadClass(className);
-			if (!classLoader.getExternallyOwnedAccount().isAssignableFrom(clazz))
-				throw new TransactionRejectedException("The caller of a request must be an externally owned account", consensus);
-		}
-		catch (ClassNotFoundException e) {
-			throw new TransactionRejectedException("The class " + className + " of the caller cannot be resolved", consensus);
-		}
-	}
-
-	/**
-	 * Checks that the request is signed with the private key of its caller.
-	 * 
-	 * @throws NodeException if the signature of the request could not be checked
-	 */
-	private void signatureMustBeValid() throws TransactionRejectedException, StoreException {
-		// if the node is not initialized yet, the signature is not checked
-		if (transactionIsSigned() && environment.getManifest().isPresent()) {
-			try {
-				if (!environment.signatureIsValid((SignedTransactionRequest<?>) request, determineSignatureAlgorithm()))
-					throw new TransactionRejectedException("Invalid request signature", consensus);
-			}
-			catch (UnknownReferenceException | FieldNotFoundException e) {
-				// we have already verified that the caller exists and is an externally owned account:
-				// hence these exceptions now can only mean that the store is corrupted
-				throw new StoreException(e);
-			}
-		}
-	}
-
-	/**
-	 * Checks if the node has the same chain identifier as the request.
-	 * 
-	 * @throws TransactionRejectedException if the node and the request have different chain identifiers
-	 */
-	private void requestMustHaveCorrectChainId() throws TransactionRejectedException, StoreException {
-		// the chain identifier is not checked for unsigned transactions or if the node is not initialized yet
-		if (transactionIsSigned() && environment.getManifest().isPresent()) {
-			String chainIdOfNode = consensus.getChainId();
-			String chainId = ((SignedTransactionRequest<?>) request).getChainId();
-			if (!chainIdOfNode.equals(chainId))
-				throw new TransactionRejectedException("Incorrect chain id: the request reports " + chainId + " but the node requires " + chainIdOfNode, consensus);
-		}
-	}
-
-	/**
-	 * Checks if the caller has the same nonce as the request.
-	 * 
-	 * @throws TransactionRejectedException if the nonce of the caller is not equal to that in {@code request}
-	 */
-	private void callerAndRequestMustAgreeOnNonce() throws TransactionRejectedException, StoreException {
-		// calls to @View methods do not check the nonce
-		if (!isView()) {
-			try {
-				BigInteger expected = environment.getNonce(request.getCaller());
-				if (!expected.equals(request.getNonce()))
-					throw new TransactionRejectedException("Incorrect nonce: the request reports " + request.getNonce()
-					+ " but the account " + request.getCaller() + " contains " + expected, consensus);
-			}
-			catch (UnknownReferenceException | FieldNotFoundException e) {
-				// we have already verified that the caller is an externally owned account, so this can only be a store corruption problem
-				throw new StoreException(e);
-			}
-		}
-	}
-
-	/**
-	 * Checks that the request provides a minimal threshold of gas for starting the transaction.
-	 * 
-	 * @throws TransactionRejectedException if the request provides too little gas
-	 */
-	private void requestPromisesEnoughGas() throws TransactionRejectedException {
-		BigInteger minimum = minimalGasRequiredForTransaction();
-		if (request.getGasLimit().compareTo(minimum) < 0)
-			throw new TransactionRejectedException("not enough gas to start the transaction, expected at least " + minimum + " units of gas", consensus);
-	}
-
-	/**
-	 * Checks that the gas of the request is between zero and the maximum in the configuration of the node.
-	 * 
-	 * @throws TransactionRejectedException if the gas is outside these bounds
-	 */
-	private void gasLimitIsInsideBounds() throws TransactionRejectedException {
-		if (request.getGasLimit().compareTo(ZERO) < 0)
-			throw new TransactionRejectedException("The gas limit cannot be negative", consensus);
-		else if (request.getGasLimit().compareTo(consensus.getMaxGasPerTransaction()) > 0)
-			throw new TransactionRejectedException("The gas limit of the request is larger than the maximum allowed (" + request.getGasLimit() + " > " + consensus.getMaxGasPerTransaction() + ")", consensus);
-	}
-
-	/**
-	 * Checks that the gas price of the request is at least as large as the current gas price of the node.
-	 * 
-	 * @throws TransactionRejectedException if the gas price is smaller than the current gas price of the node
-	 */
-	private void gasPriceIsLargeEnough() throws TransactionRejectedException, StoreException {
-		if (transactionIsSigned() && !consensus.ignoresGasPrice()) {
-			Optional<BigInteger> maybeGasPrice = environment.getGasPrice();
-			// before initialization, the gas price is not yet available
-			if (maybeGasPrice.isPresent() && request.getGasPrice().compareTo(maybeGasPrice.get()) < 0)
-				throw new TransactionRejectedException("The gas price of the request is smaller than the current gas price (" + request.getGasPrice() + " < " + maybeGasPrice.get() + ")", consensus);
-		}
-	}
-
-	/**
-	 * Checks if the payer of the request has enough funds for paying for all gas promised
-	 * (green and red coins together).
-	 * 
-	 * @throws TransactionRejectedException if the payer is not rich enough for that
-	 */
-	private void callerCanPayForAllPromisedGas() throws TransactionRejectedException, StoreException {
-		try {
-			BigInteger cost = costOf(request.getGasLimit());
-			BigInteger totalBalance = environment.getTotalBalance(request.getCaller());
-
-			if (totalBalance.subtract(cost).signum() < 0)
-				throw new TransactionRejectedException("The payer has not enough funds to buy " + request.getGasLimit() + " units of gas", consensus);
-		}
-		catch (UnknownReferenceException e) {
-			// we have verified that the caller was an account, so this can only be a store corruption problem
-			throw new StoreException(e);
-		}
-		catch (FieldNotFoundException e) {
-			throw new TransactionRejectedException("The caller " + request.getCaller() + " has no balance field", consensus);
-		}
-	}
-
-	/**
-	 * Computes the cost of the given units of gas.
-	 * 
-	 * @param gas the units of gas
-	 * @return the cost, as {@code gas} times {@code gasPrice}
-	 */
-	private BigInteger costOf(BigInteger gas) {
-		return gas.multiply(request.getGasPrice());
-	}
-
 	protected abstract class ResponseCreator extends AbstractResponseBuilder<Request, Response>.ResponseCreator {
+
+		/**
+		 * The cost model of the node for which the transaction is being built.
+		 */
+		protected final GasCostModel gasCostModel;
 
 		/**
 		 * The deserialized caller.
@@ -378,6 +147,23 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 
 		protected ResponseCreator() {
 			this.gas = request.getGasLimit();
+			this.gasCostModel = consensus.getGasCostModel();
+		}
+
+		protected void checkConsistency() throws TransactionRejectedException {
+			try {
+				callerMustBeExternallyOwnedAccount();
+				gasLimitIsInsideBounds();
+				requestPromisesEnoughGas();
+				gasPriceIsLargeEnough();
+				requestMustHaveCorrectChainId();
+				signatureMustBeValid();
+				callerAndRequestMustAgreeOnNonce();
+				callerCanPayForAllPromisedGas();
+			}
+			catch (StoreException e) {
+				throw new RuntimeException(e);
+			}
 		}
 
 		protected final void init() throws StoreException, DeserializationException {
@@ -449,6 +235,222 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 */
 		protected final BigInteger gasConsumedForPenalty() {
 			return request.getGasLimit().subtract(gasConsumedForCPU).subtract(gasConsumedForRAM).subtract(gasConsumedForStorage);
+		}
+
+		/**
+		 * Computes a minimal threshold of gas that is required for the transaction.
+		 * Below this threshold, the response builder cannot be created.
+		 * 
+		 * @return the minimal threshold
+		 */
+		protected BigInteger minimalGasRequiredForTransaction() {
+			BigInteger result = gasCostModel.cpuBaseTransactionCost();
+			result = result.add(BigInteger.valueOf(request.size()));
+			result = result.add(BigInteger.valueOf(gasForStoringFailedResponse()));
+			result = result.add(classLoader.getLengthsOfJars().mapToObj(gasCostModel::cpuCostForLoadingJar).reduce(ZERO, BigInteger::add));
+			result = result.add(classLoader.getLengthsOfJars().mapToObj(gasCostModel::ramCostForLoadingJar).reduce(ZERO, BigInteger::add));
+		
+			return result;
+		}
+
+		/**
+		 * Yields the cost for storage a failed response for the transaction that is being built.
+		 * 
+		 * @return the cost
+		 */
+		protected abstract int gasForStoringFailedResponse();
+
+		/**
+		 * Determines if the transaction is signed.
+		 * 
+		 * @return true if and only if the request is signed and the transaction is not a view transaction
+		 */
+		protected boolean transactionIsSigned() {
+			return !isView() && request instanceof SignedTransactionRequest;
+		}
+
+		/**
+		 * Checks if the caller is an externally owned account or subclass.
+		 *
+		 * @throws TransactionRejectedException if the caller is not an externally owned account
+		 */
+		private void callerMustBeExternallyOwnedAccount() throws TransactionRejectedException, StoreException {
+			String className;
+		
+			try {
+				className = environment.getClassName(request.getCaller());
+			}
+			catch (UnknownReferenceException e) {
+				throw new TransactionRejectedException("The caller " + request.getCaller() + " cannot be found in store", consensus);
+			}
+		
+			try {
+				Class<?> clazz = classLoader.loadClass(className);
+				if (!classLoader.getExternallyOwnedAccount().isAssignableFrom(clazz))
+					throw new TransactionRejectedException("The caller of a request must be an externally owned account", consensus);
+			}
+			catch (ClassNotFoundException e) {
+				throw new TransactionRejectedException("The class " + className + " of the caller cannot be resolved", consensus);
+			}
+		}
+
+		/**
+		 * Checks that the gas of the request is between zero and the maximum in the configuration of the node.
+		 * 
+		 * @throws TransactionRejectedException if the gas is outside these bounds
+		 */
+		private void gasLimitIsInsideBounds() throws TransactionRejectedException {
+			if (request.getGasLimit().compareTo(ZERO) < 0)
+				throw new TransactionRejectedException("The gas limit cannot be negative", consensus);
+			else if (request.getGasLimit().compareTo(consensus.getMaxGasPerTransaction()) > 0)
+				throw new TransactionRejectedException("The gas limit of the request is larger than the maximum allowed (" + request.getGasLimit() + " > " + consensus.getMaxGasPerTransaction() + ")", consensus);
+		}
+
+		/**
+		 * Checks that the request provides a minimal threshold of gas for starting the transaction.
+		 * 
+		 * @throws TransactionRejectedException if the request provides too little gas
+		 */
+		private void requestPromisesEnoughGas() throws TransactionRejectedException {
+			BigInteger minimum = minimalGasRequiredForTransaction();
+			if (request.getGasLimit().compareTo(minimum) < 0)
+				throw new TransactionRejectedException("not enough gas to start the transaction, expected at least " + minimum + " units of gas", consensus);
+		}
+
+		/**
+		 * Checks that the gas price of the request is at least as large as the current gas price of the node.
+		 * 
+		 * @throws TransactionRejectedException if the gas price is smaller than the current gas price of the node
+		 */
+		private void gasPriceIsLargeEnough() throws TransactionRejectedException {
+			if (transactionIsSigned() && !consensus.ignoresGasPrice()) {
+				Optional<BigInteger> maybeGasPrice = environment.getGasPrice();
+				// before initialization, the gas price is not yet available
+				if (maybeGasPrice.isPresent() && request.getGasPrice().compareTo(maybeGasPrice.get()) < 0)
+					throw new TransactionRejectedException("The gas price of the request is smaller than the current gas price (" + request.getGasPrice() + " < " + maybeGasPrice.get() + ")", consensus);
+			}
+		}
+
+		/**
+		 * Checks if the node has the same chain identifier as the request.
+		 * 
+		 * @throws TransactionRejectedException if the node and the request have different chain identifiers
+		 */
+		private void requestMustHaveCorrectChainId() throws TransactionRejectedException, StoreException {
+			// the chain identifier is not checked for unsigned transactions or if the node is not initialized yet
+			if (transactionIsSigned() && environment.getManifest().isPresent()) {
+				String chainIdOfNode = consensus.getChainId();
+				String chainId = ((SignedTransactionRequest<?>) request).getChainId();
+				if (!chainIdOfNode.equals(chainId))
+					throw new TransactionRejectedException("Incorrect chain id: the request reports " + chainId + " but the node requires " + chainIdOfNode, consensus);
+			}
+		}
+
+		/**
+		 * Checks that the request is signed with the private key of its caller.
+		 * 
+		 * @throws NodeException if the signature of the request could not be checked
+		 */
+		private void signatureMustBeValid() throws TransactionRejectedException, StoreException {
+			// if the node is not initialized yet, the signature is not checked
+			if (transactionIsSigned() && environment.getManifest().isPresent()) {
+				try {
+					if (!environment.signatureIsValid((SignedTransactionRequest<?>) request, determineSignatureAlgorithm()))
+						throw new TransactionRejectedException("Invalid request signature", consensus);
+				}
+				catch (UnknownReferenceException | FieldNotFoundException e) {
+					// we have already verified that the caller exists and is an externally owned account:
+					// hence these exceptions now can only mean that the store is corrupted
+					throw new StoreException(e);
+				}
+			}
+		}
+
+		/**
+		 * Checks if the caller has the same nonce as the request.
+		 * 
+		 * @throws TransactionRejectedException if the nonce of the caller is not equal to that in {@code request}
+		 */
+		private void callerAndRequestMustAgreeOnNonce() throws TransactionRejectedException, StoreException {
+			// calls to @View methods do not check the nonce
+			if (!isView()) {
+				try {
+					BigInteger expected = environment.getNonce(request.getCaller());
+					if (!expected.equals(request.getNonce()))
+						throw new TransactionRejectedException("Incorrect nonce: the request reports " + request.getNonce()
+						+ " but the account " + request.getCaller() + " contains " + expected, consensus);
+				}
+				catch (UnknownReferenceException | FieldNotFoundException e) {
+					// we have already verified that the caller is an externally owned account, so this can only be a store corruption problem
+					throw new StoreException(e);
+				}
+			}
+		}
+
+		/**
+		 * Checks if the payer of the request has enough funds for paying for all gas promised
+		 * (green and red coins together).
+		 * 
+		 * @throws TransactionRejectedException if the payer is not rich enough for that
+		 */
+		private void callerCanPayForAllPromisedGas() throws TransactionRejectedException, StoreException {
+			try {
+				BigInteger cost = costOf(request.getGasLimit());
+				BigInteger totalBalance = environment.getTotalBalance(request.getCaller());
+		
+				if (totalBalance.subtract(cost).signum() < 0)
+					throw new TransactionRejectedException("The payer has not enough funds to buy " + request.getGasLimit() + " units of gas", consensus);
+			}
+			catch (UnknownReferenceException e) {
+				// we have verified that the caller was an account, so this can only be a store corruption problem
+				throw new StoreException(e);
+			}
+			catch (FieldNotFoundException e) {
+				throw new TransactionRejectedException("The caller " + request.getCaller() + " has no balance field", consensus);
+			}
+		}
+
+		/**
+		 * Determine the signature algorithm that must have been used for signing the request.
+		 * This depends on the run-time class of the caller of the request.
+		 * 
+		 * @return the signature algorithm
+		 * @throws NodeException 
+		 */
+		private SignatureAlgorithm determineSignatureAlgorithm() throws StoreException, TransactionRejectedException {
+			try {
+				Class<?> clazz = classLoader.loadClass(environment.getClassName(request.getCaller()));
+		
+				if (classLoader.getAccountED25519().isAssignableFrom(clazz))
+					return SignatureAlgorithms.ed25519();
+				else if (classLoader.getAccountSHA256DSA().isAssignableFrom(clazz))
+					return SignatureAlgorithms.sha256dsa();
+				else if (classLoader.getAccountQTESLA1().isAssignableFrom(clazz))
+					return SignatureAlgorithms.qtesla1();
+				else if (classLoader.getAccountQTESLA3().isAssignableFrom(clazz))
+					return SignatureAlgorithms.qtesla3();
+				else
+					return consensus.getSignatureForRequests();
+			}
+			catch (UnknownReferenceException e) {
+				throw new TransactionRejectedException("The caller " + request.getCaller() + " is not an object in store", consensus);
+			}
+			catch (NoSuchAlgorithmException e) {
+				throw new StoreException(e);
+			}
+			catch (ClassNotFoundException e) {
+				throw new TransactionRejectedException(e, consensus);
+			}
+		}
+
+		/**
+		 * Computes the cost of the given units of gas.
+		 * 
+		 * @param gas the units of gas
+		 * @return the cost, as {@code gas} times {@code gasPrice}
+		 */
+		private BigInteger costOf(BigInteger gas) {
+			return gas.multiply(request.getGasPrice());
 		}
 
 		/**

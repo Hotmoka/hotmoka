@@ -44,9 +44,6 @@ public abstract class InitialResponseBuilderImpl<Request extends InitialTransact
 	 */
 	protected InitialResponseBuilderImpl(TransactionReference reference, Request request, ExecutionEnvironment environment) throws TransactionRejectedException, StoreException {
 		super(reference, request, environment);
-
-		if (environment.getManifest().isPresent())
-			throw new TransactionRejectedException("Cannot run an initial transaction request in an already initialized node", consensus);
 	}
 
 	protected abstract class ResponseCreator extends AbstractResponseBuilder<Request, Response>.ResponseCreator {

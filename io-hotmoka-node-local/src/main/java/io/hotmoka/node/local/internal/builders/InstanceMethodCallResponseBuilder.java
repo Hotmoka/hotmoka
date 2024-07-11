@@ -62,24 +62,11 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	 */
 	public InstanceMethodCallResponseBuilder(TransactionReference reference, AbstractInstanceMethodCallTransactionRequest request, ExecutionEnvironment environment) throws TransactionRejectedException, StoreException {
 		super(reference, request, environment);
-
-		// calls to @View methods are allowed to receive non-exported values
-		if (transactionIsSigned()) 
-			receiverIsExported();
-	}
-
-	private void receiverIsExported() throws TransactionRejectedException, StoreException {
-		enforceExported(request.getReceiver());
 	}
 
 	@Override
-	public MethodCallTransactionResponse getResponse() throws StoreException, InterruptedException {
+	public MethodCallTransactionResponse getResponse() throws TransactionRejectedException, StoreException, InterruptedException {
 		return new ResponseCreator().create();
-	}
-
-	@Override
-	protected boolean transactionIsSigned() {
-		return super.transactionIsSigned() && !isCallToFaucet();
 	}
 
 	private boolean callerIsGameteOfTheNode() {
@@ -98,22 +85,6 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 			&& callerIsGameteOfTheNode();
 	}
 
-	/**
-	 * Resolves the method that must be called, assuming that it is annotated as {@code @@FromContract}.
-	 * 
-	 * @return the method
-	 * @throws NoSuchMethodException if the method could not be found
-	 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
-	 */
-	private Method getFromContractMethod() throws NoSuchMethodException, ClassNotFoundException {
-		MethodSignature method = request.getStaticTarget();
-		Class<?> returnType = method instanceof NonVoidMethodSignature nvms ? classLoader.loadClass(nvms.getReturnType()) : void.class;
-		Class<?>[] argTypes = formalsAsClassForFromContract();
-	
-		return classLoader.resolveMethod(method.getDefiningClass().getName(), method.getMethodName(), argTypes, returnType)
-			.orElseThrow(() -> new NoSuchMethodException(method.toString()));
-	}
-
 	private class ResponseCreator extends MethodCallResponseBuilder<InstanceMethodCallTransactionRequest>.ResponseCreator {
 
 		/**
@@ -130,7 +101,23 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		}
 
 		@Override
-		protected MethodCallTransactionResponse body() {
+		protected void checkConsistency() throws TransactionRejectedException {
+			super.checkConsistency();
+
+			try {
+				// calls to @View methods are allowed to receive non-exported values
+				if (transactionIsSigned()) 
+					receiverIsExported();
+			}
+			catch (StoreException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+		@Override
+		protected MethodCallTransactionResponse body() throws TransactionRejectedException {
+			checkConsistency();
+
 			try {
 				init();
 				this.deserializedReceiver = deserializer.deserialize(request.getReceiver());
@@ -220,9 +207,34 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				throw new NoSuchMethodException("cannot call a method not annotated as @View");
 		}
 
+		/**
+		 * Resolves the method that must be called, assuming that it is annotated as {@code @@FromContract}.
+		 * 
+		 * @return the method
+		 * @throws NoSuchMethodException if the method could not be found
+		 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
+		 */
+		private Method getFromContractMethod() throws NoSuchMethodException, ClassNotFoundException {
+			MethodSignature method = request.getStaticTarget();
+			Class<?> returnType = method instanceof NonVoidMethodSignature nvms ? classLoader.loadClass(nvms.getReturnType()) : void.class;
+			Class<?>[] argTypes = formalsAsClassForFromContract();
+		
+			return classLoader.resolveMethod(method.getDefiningClass().getName(), method.getMethodName(), argTypes, returnType)
+				.orElseThrow(() -> new NoSuchMethodException(method.toString()));
+		}
+
+		private void receiverIsExported() throws TransactionRejectedException, StoreException {
+			enforceExported(request.getReceiver());
+		}
+
 		@Override
 		protected final Stream<Object> getDeserializedActuals() {
 			return Stream.of(deserializedActuals);
+		}
+
+		@Override
+		protected boolean transactionIsSigned() {
+			return super.transactionIsSigned() && !isCallToFaucet();
 		}
 
 		@Override

@@ -71,171 +71,6 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 	 */
 	protected CodeCallResponseBuilder(TransactionReference reference, Request request, ExecutionEnvironment environment) throws TransactionRejectedException, StoreException {
 		super(reference, request, environment);
-
-		// calls to @View methods are allowed to receive non-exported values
-		if (transactionIsSigned()) 
-			argumentsAreExported();
-	}
-
-	/**
-	 * Checks that all the arguments and the receiver passed to the method or constructor have exported type.
-	 * 
-	 * @throws TransactionRejectedException if that condition does not hold
-	 * @throws ClassNotFoundException if some class cannot be found in the Takamaka program
-	 * @throws NodeException 
-	 * @throws UnknownReferenceException 
-	 * @throws NoSuchElementException 
-	 */
-	private void argumentsAreExported() throws TransactionRejectedException, StoreException {
-		CheckRunnable.check(TransactionRejectedException.class, StoreException.class, () -> request.actuals()
-			.filter(actual -> actual instanceof StorageReference)
-			.map(actual -> (StorageReference) actual)
-			.forEachOrdered(UncheckConsumer.uncheck(this::enforceExported)));
-	}
-
-	/**
-	 * Enforces that the given transaction reference points to an exported object in store.
-	 * 
-	 * @param reference the transaction reference
-	 * @throws TransactionRejectedException of the type of the object in store is not exported
-	 * @throws StoreException if the class tag of {@code reference} cannot be found in the Takamaka program
-	 */
-	protected final void enforceExported(StorageReference reference) throws TransactionRejectedException, StoreException {
-		try {
-			var clazz = environment.getClassTag(reference).getClazz();
-
-			try {
-				if (!classLoader.isExported(clazz.getName()))
-					throw new TransactionRejectedException("Class " + clazz + " of the parameter " + reference + " is not exported: add @Exported to " + clazz, consensus);
-			}
-			catch (ClassNotFoundException e) {
-				throw new TransactionRejectedException("Class " + clazz + " of the parameter " + reference + " cannot be resolved", consensus);
-			}
-		}
-		catch (UnknownReferenceException e) {
-			throw new TransactionRejectedException("Object " + reference + " cannot be found in store", consensus);
-		}
-	}
-
-	/**
-	 * Determines if the given method or constructor is annotated with an annotation with the given name.
-	 * 
-	 * @param executable the method or constructor
-	 * @param annotationName the name of the annotation
-	 * @return true if and only if that condition holds
-	 */
-	protected static boolean hasAnnotation(Executable executable, String annotationName) {
-		return Stream.of(executable.getAnnotations())
-			.anyMatch(annotation -> annotation.annotationType().getName().equals(annotationName));
-	}
-
-	/**
-	 * Yields a description of the program point where the given exception should be reported
-	 * to the user. It scans its stack trace, backwards, looking for a stack element that
-	 * was loaded by a classloader of Takamaka. If it does not find it, yields {@code null}.
-	 * The idea is that users should not get any program point related to the Java library,
-	 * but only program points inside the code that they wrote.
-	 * 
-	 * @param throwable the exception
-	 * @return the program point, if available. Otherwise {@code null}
-	 */
-	protected final String where(Throwable throwable) {
-		StackTraceElement[] stackTrace = throwable.getStackTrace();
-		if (stackTrace != null)
-			for (StackTraceElement cursor: stackTrace) {
-				int line = cursor.getLineNumber();
-				// we avoid messages in synthetic code or code in the Takamaka library
-				if (line >= 0 && !cursor.getClassName().startsWith(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME))
-					try {
-						Class<?> clazz = classLoader.loadClass(cursor.getClassName());
-						if (clazz.getClassLoader() instanceof WhiteListingClassLoader)
-							return cursor.getFileName() + ":" + line;
-					}
-					catch (Exception e) {}
-			}
-
-		return null;
-	}
-
-	/**
-	 * Yields the classes of the formal arguments of the method or constructor.
-	 * 
-	 * @return the array of classes, in the same order as the formals
-	 * @throws ClassNotFoundException if some class cannot be found
-	 */
-	protected final Class<?>[] formalsAsClass() throws ClassNotFoundException {
-		List<Class<?>> classes = new ArrayList<>();
-		for (StorageType type: request.getStaticTarget().getFormals().collect(Collectors.toList()))
-			classes.add(classLoader.loadClass(type));
-	
-		return classes.toArray(Class<?>[]::new);
-	}
-
-	/**
-	 * Yields the classes of the formal arguments of the method or constructor, assuming that it is
-	 * an {@link io.takamaka.code.lang.FromContract}. These are instrumented with the addition of a
-	 * trailing contract formal argument (the caller) and of a dummy type.
-	 * 
-	 * @return the array of classes, in the same order as the formals
-	 * @throws ClassNotFoundException if some class cannot be found
-	 */
-	protected final Class<?>[] formalsAsClassForFromContract() throws ClassNotFoundException {
-		List<Class<?>> classes = new ArrayList<>();
-		for (StorageType type: request.getStaticTarget().getFormals().collect(Collectors.toList()))
-			classes.add(classLoader.loadClass(type));
-	
-		classes.add(classLoader.getContract());
-		classes.add(Dummy.class);
-	
-		return classes.toArray(Class<?>[]::new);
-	}
-
-
-	/**
-	 * Yields the serialization of the given RAM object, that is, yields its
-	 * representation in the store.
-	 * 
-	 * @param object the object to serialize. This must be a storage object, a Java wrapper
-	 *               object for numerical types, an enumeration
-	 *               or a special Java object that is allowed
-	 *               in store, such as a {@link java.lang.String} or {@link java.math.BigInteger}
-	 * @return the serialization of {@code object}, if any
-	 * @throws IllegalArgumentException if the type of {@code object} is not allowed in store
-	 */
-	protected final StorageValue serialize(Object object) throws IllegalArgumentException {
-		if (isStorage(object))
-			return classLoader.getStorageReferenceOf(object);
-		else if (object instanceof BigInteger bi)
-			return StorageValues.bigIntegerOf(bi);
-		else if (object instanceof Boolean b)
-			return StorageValues.booleanOf(b);
-		else if (object instanceof Byte b)
-			return StorageValues.byteOf(b);
-		else if (object instanceof Character c)
-			return StorageValues.charOf(c);
-		else if (object instanceof Double d)
-			return StorageValues.doubleOf(d);
-		else if (object instanceof Float f)
-			return StorageValues.floatOf(f);
-		else if (object instanceof Integer i)
-			return StorageValues.intOf(i);
-		else if (object instanceof Long l)
-			return StorageValues.longOf(l);
-		else if (object instanceof Short s)
-			return StorageValues.shortOf(s);
-		else if (object instanceof String s)
-			return StorageValues.stringOf(s);
-		else if (object instanceof Enum<?> e)
-			return StorageValues.enumElementOf(e.getClass().getName(), e.name());
-		else if (object == null)
-			return StorageValues.NULL;
-		else
-			throw new IllegalArgumentException("An object of class " + object.getClass().getName()
-				+ " cannot be kept in store since it does not implement " + Constants.STORAGE_NAME);
-	}
-
-	private boolean isStorage(Object object) {
-		return object != null && classLoader.getStorage().isAssignableFrom(object.getClass());
 	}
 
 	protected abstract class ResponseCreator extends AbstractNonInitialResponseBuilder<Request, Response>.ResponseCreator {
@@ -247,12 +82,50 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 
 		protected ResponseCreator() {}
 
+		@Override
+		protected void checkConsistency() throws TransactionRejectedException {
+			super.checkConsistency();
+
+			try {
+				// calls to @View methods are allowed to receive non-exported values
+				if (transactionIsSigned()) 
+					argumentsAreExported();
+			}
+			catch (StoreException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
 		/**
 		 * Yields the actual arguments of the call.
 		 * 
 		 * @return the actual arguments
 		 */
 		protected abstract Stream<Object> getDeserializedActuals();
+
+		/**
+		 * Enforces that the given transaction reference points to an exported object in store.
+		 * 
+		 * @param reference the transaction reference
+		 * @throws TransactionRejectedException of the type of the object in store is not exported
+		 * @throws StoreException if the class tag of {@code reference} cannot be found in the Takamaka program
+		 */
+		protected final void enforceExported(StorageReference reference) throws TransactionRejectedException, StoreException {
+			try {
+				var clazz = environment.getClassTag(reference).getClazz();
+		
+				try {
+					if (!classLoader.isExported(clazz.getName()))
+						throw new TransactionRejectedException("Class " + clazz + " of the parameter " + reference + " is not exported: add @Exported to " + clazz, consensus);
+				}
+				catch (ClassNotFoundException e) {
+					throw new TransactionRejectedException("Class " + clazz + " of the parameter " + reference + " cannot be resolved", consensus);
+				}
+			}
+			catch (UnknownReferenceException e) {
+				throw new TransactionRejectedException("Object " + reference + " cannot be found in store", consensus);
+			}
+		}
 
 		@Override
 		public final void event(Object event) {
@@ -281,6 +154,142 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 				.map(NonWhiteListedCallException::new)
 				.findFirst()
 				.ifPresent(exception -> { throw exception; });
+		}
+
+		/**
+		 * Determines if the given method or constructor is annotated with an annotation with the given name.
+		 * 
+		 * @param executable the method or constructor
+		 * @param annotationName the name of the annotation
+		 * @return true if and only if that condition holds
+		 */
+		protected static boolean hasAnnotation(Executable executable, String annotationName) {
+			return Stream.of(executable.getAnnotations())
+				.anyMatch(annotation -> annotation.annotationType().getName().equals(annotationName));
+		}
+
+		/**
+		 * Yields a description of the program point where the given exception should be reported
+		 * to the user. It scans its stack trace, backwards, looking for a stack element that
+		 * was loaded by a classloader of Takamaka. If it does not find it, yields {@code null}.
+		 * The idea is that users should not get any program point related to the Java library,
+		 * but only program points inside the code that they wrote.
+		 * 
+		 * @param throwable the exception
+		 * @return the program point, if available. Otherwise {@code null}
+		 */
+		protected final String where(Throwable throwable) {
+			StackTraceElement[] stackTrace = throwable.getStackTrace();
+			if (stackTrace != null)
+				for (StackTraceElement cursor: stackTrace) {
+					int line = cursor.getLineNumber();
+					// we avoid messages in synthetic code or code in the Takamaka library
+					if (line >= 0 && !cursor.getClassName().startsWith(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME))
+						try {
+							Class<?> clazz = classLoader.loadClass(cursor.getClassName());
+							if (clazz.getClassLoader() instanceof WhiteListingClassLoader)
+								return cursor.getFileName() + ":" + line;
+						}
+						catch (Exception e) {}
+				}
+		
+			return null;
+		}
+
+		/**
+		 * Yields the classes of the formal arguments of the method or constructor.
+		 * 
+		 * @return the array of classes, in the same order as the formals
+		 * @throws ClassNotFoundException if some class cannot be found
+		 */
+		protected final Class<?>[] formalsAsClass() throws ClassNotFoundException {
+			List<Class<?>> classes = new ArrayList<>();
+			for (StorageType type: request.getStaticTarget().getFormals().collect(Collectors.toList()))
+				classes.add(classLoader.loadClass(type));
+		
+			return classes.toArray(Class<?>[]::new);
+		}
+
+		/**
+		 * Yields the classes of the formal arguments of the method or constructor, assuming that it is
+		 * an {@link io.takamaka.code.lang.FromContract}. These are instrumented with the addition of a
+		 * trailing contract formal argument (the caller) and of a dummy type.
+		 * 
+		 * @return the array of classes, in the same order as the formals
+		 * @throws ClassNotFoundException if some class cannot be found
+		 */
+		protected final Class<?>[] formalsAsClassForFromContract() throws ClassNotFoundException {
+			List<Class<?>> classes = new ArrayList<>();
+			for (StorageType type: request.getStaticTarget().getFormals().collect(Collectors.toList()))
+				classes.add(classLoader.loadClass(type));
+		
+			classes.add(classLoader.getContract());
+			classes.add(Dummy.class);
+		
+			return classes.toArray(Class<?>[]::new);
+		}
+
+		/**
+		 * Yields the serialization of the given RAM object, that is, yields its
+		 * representation in the store.
+		 * 
+		 * @param object the object to serialize. This must be a storage object, a Java wrapper
+		 *               object for numerical types, an enumeration
+		 *               or a special Java object that is allowed
+		 *               in store, such as a {@link java.lang.String} or {@link java.math.BigInteger}
+		 * @return the serialization of {@code object}, if any
+		 * @throws IllegalArgumentException if the type of {@code object} is not allowed in store
+		 */
+		protected final StorageValue serialize(Object object) throws IllegalArgumentException {
+			if (isStorage(object))
+				return classLoader.getStorageReferenceOf(object);
+			else if (object instanceof BigInteger bi)
+				return StorageValues.bigIntegerOf(bi);
+			else if (object instanceof Boolean b)
+				return StorageValues.booleanOf(b);
+			else if (object instanceof Byte b)
+				return StorageValues.byteOf(b);
+			else if (object instanceof Character c)
+				return StorageValues.charOf(c);
+			else if (object instanceof Double d)
+				return StorageValues.doubleOf(d);
+			else if (object instanceof Float f)
+				return StorageValues.floatOf(f);
+			else if (object instanceof Integer i)
+				return StorageValues.intOf(i);
+			else if (object instanceof Long l)
+				return StorageValues.longOf(l);
+			else if (object instanceof Short s)
+				return StorageValues.shortOf(s);
+			else if (object instanceof String s)
+				return StorageValues.stringOf(s);
+			else if (object instanceof Enum<?> e)
+				return StorageValues.enumElementOf(e.getClass().getName(), e.name());
+			else if (object == null)
+				return StorageValues.NULL;
+			else
+				throw new IllegalArgumentException("An object of class " + object.getClass().getName()
+					+ " cannot be kept in store since it does not implement " + Constants.STORAGE_NAME);
+		}
+
+		private boolean isStorage(Object object) {
+			return object != null && classLoader.getStorage().isAssignableFrom(object.getClass());
+		}
+
+		/**
+		 * Checks that all the arguments and the receiver passed to the method or constructor have exported type.
+		 * 
+		 * @throws TransactionRejectedException if that condition does not hold
+		 * @throws ClassNotFoundException if some class cannot be found in the Takamaka program
+		 * @throws NodeException 
+		 * @throws UnknownReferenceException 
+		 * @throws NoSuchElementException 
+		 */
+		private void argumentsAreExported() throws TransactionRejectedException, StoreException {
+			CheckRunnable.check(TransactionRejectedException.class, StoreException.class, () -> request.actuals()
+				.filter(actual -> actual instanceof StorageReference)
+				.map(actual -> (StorageReference) actual)
+				.forEachOrdered(UncheckConsumer.uncheck(this::enforceExported)));
 		}
 
 		/**

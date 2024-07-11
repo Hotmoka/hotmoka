@@ -54,31 +54,6 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 		super(reference, request, environment);
 	}
 
-	@Override
-	protected final int gasForStoringFailedResponse() {
-		BigInteger gas = request.getGasLimit();
-
-		return TransactionResponses.methodCallFailed
-			("placeholder for the name of the exception", "placeholder for the message of the exception", "placeholder for where",
-			Stream.empty(), gas, gas, gas, gas).size();
-	}
-
-	/**
-	 * Resolves the method that must be called.
-	 * 
-	 * @return the method
-	 * @throws NoSuchMethodException if the method could not be found
-	 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
-	 */
-	protected final Method getMethod() throws ClassNotFoundException, NoSuchMethodException {
-		MethodSignature method = request.getStaticTarget();
-		Class<?> returnType = method instanceof NonVoidMethodSignature nvms ? classLoader.loadClass(nvms.getReturnType()) : void.class;
-		Class<?>[] argTypes = formalsAsClass();
-
-		return classLoader.resolveMethod(method.getDefiningClass().getName(), method.getMethodName(), argTypes, returnType)
-			.orElseThrow(() -> new NoSuchMethodException(method.toString()));
-	}
-
 	protected abstract class ResponseCreator extends CodeCallResponseBuilder<Request, MethodCallTransactionResponse>.ResponseCreator {
 
 		protected ResponseCreator() {
@@ -115,6 +90,31 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 
 			for (int pos = 0; pos < actuals.length; pos++)
 				checkWhiteListingProofObligations(methodName, actuals[pos], anns[pos]);
+		}
+
+		/**
+		 * Resolves the method that must be called.
+		 * 
+		 * @return the method
+		 * @throws NoSuchMethodException if the method could not be found
+		 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
+		 */
+		protected final Method getMethod() throws ClassNotFoundException, NoSuchMethodException {
+			MethodSignature method = request.getStaticTarget();
+			Class<?> returnType = method instanceof NonVoidMethodSignature nvms ? classLoader.loadClass(nvms.getReturnType()) : void.class;
+			Class<?>[] argTypes = formalsAsClass();
+		
+			return classLoader.resolveMethod(method.getDefiningClass().getName(), method.getMethodName(), argTypes, returnType)
+				.orElseThrow(() -> new NoSuchMethodException(method.toString()));
+		}
+
+		@Override
+		protected final int gasForStoringFailedResponse() {
+			BigInteger gas = request.getGasLimit();
+		
+			return TransactionResponses.methodCallFailed
+				("placeholder for the name of the exception", "placeholder for the message of the exception", "placeholder for where",
+				Stream.empty(), gas, gas, gas, gas).size();
 		}
 
 		/**

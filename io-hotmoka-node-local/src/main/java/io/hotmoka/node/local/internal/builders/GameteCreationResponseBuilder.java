@@ -52,11 +52,13 @@ public class GameteCreationResponseBuilder extends AbstractInitialResponseBuilde
 	}
 
 	@Override
-	public GameteCreationTransactionResponse getResponse() throws StoreException, InterruptedException {
+	public GameteCreationTransactionResponse getResponse() throws TransactionRejectedException, StoreException, InterruptedException {
 		return new ResponseCreator() {
 
 			@Override
-			protected GameteCreationTransactionResponse body() {
+			protected GameteCreationTransactionResponse body() throws TransactionRejectedException {
+				checkConsistency();
+
 				try {
 					Object gamete = classLoader.getGamete().getDeclaredConstructor(String.class).newInstance(request.getPublicKey());
 					classLoader.setBalanceOf(gamete, request.getInitialAmount());

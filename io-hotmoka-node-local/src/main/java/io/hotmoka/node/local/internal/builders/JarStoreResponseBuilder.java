@@ -59,23 +59,7 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 	}
 
 	@Override
-	protected BigInteger minimalGasRequiredForTransaction() {
-		int jarLength = request.getJarLength();
-		BigInteger result = super.minimalGasRequiredForTransaction();
-		result = result.add(gasCostModel.cpuCostForInstallingJar(jarLength));
-		result = result.add(gasCostModel.ramCostForInstallingJar(jarLength));
-
-		return result;
-	}
-
-	@Override
-	protected final int gasForStoringFailedResponse() {
-		BigInteger gas = request.getGasLimit();
-		return TransactionResponses.jarStoreFailed("placeholder for the name of the exception", "placeholder for the message of the exception", Stream.empty(), gas, gas, gas, gas).size();
-	}
-
-	@Override
-	public JarStoreTransactionResponse getResponse() throws StoreException, InterruptedException {
+	public JarStoreTransactionResponse getResponse() throws TransactionRejectedException, StoreException, InterruptedException {
 		return new ResponseCreator().create();
 	}
 
@@ -85,7 +69,9 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 		}
 
 		@Override
-		protected JarStoreTransactionResponse body() {
+		protected JarStoreTransactionResponse body() throws TransactionRejectedException {
+			checkConsistency();
+
 			try {
 				init();
 				int jarLength = request.getJarLength();
@@ -110,6 +96,22 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 					throw new RuntimeException(e); // TODO
 				}
 			}
+		}
+
+		@Override
+		protected BigInteger minimalGasRequiredForTransaction() {
+			int jarLength = request.getJarLength();
+			BigInteger result = super.minimalGasRequiredForTransaction();
+			result = result.add(gasCostModel.cpuCostForInstallingJar(jarLength));
+			result = result.add(gasCostModel.ramCostForInstallingJar(jarLength));
+		
+			return result;
+		}
+
+		@Override
+		protected final int gasForStoringFailedResponse() {
+			BigInteger gas = request.getGasLimit();
+			return TransactionResponses.jarStoreFailed("placeholder for the name of the exception", "placeholder for the message of the exception", Stream.empty(), gas, gas, gas, gas).size();
 		}
 
 		@Override

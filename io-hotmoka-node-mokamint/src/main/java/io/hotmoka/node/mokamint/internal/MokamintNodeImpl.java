@@ -78,17 +78,21 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 	private final static Logger LOGGER = Logger.getLogger(MokamintNodeImpl.class.getName());
 
 	/**
-	 * Builds a new disk memory node.
+	 * Builds a new Hotmoka node based on the Mokamint engine.
 	 * 
 	 * @param config the configuration of the node
+	 * @param mokamintConfig the configuration of the underlying Mokamint node
+	 * @param init true if and only if the working directory of the node must be initialized
+	 * @param createGenesis if true, creates a genesis block and starts mining on top
+	 *                   (initial synchronization is consequently skipped)
 	 * @throws NodeException if the operation cannot be completed correctly
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 */
-	public MokamintNodeImpl(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair, boolean init) throws InvalidKeyException, SignatureException, NodeException, InterruptedException {
+	public MokamintNodeImpl(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair, boolean init, boolean createGenesis) throws InvalidKeyException, SignatureException, NodeException, InterruptedException {
 		super(config, init);
 
 		try {
-			this.mokamintNode = new AbstractLocalNode(mokamintConfig, keyPair, new MokamintHotmokaApplication(), init) {
+			this.mokamintNode = new AbstractLocalNode(mokamintConfig, keyPair, new MokamintHotmokaApplication(), createGenesis) {
 
 				@Override
 				protected void onHeadChanged(Block newHead) {
@@ -117,13 +121,14 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 				}
 			};
 
-			var headHash = mokamintNode.getChainInfo().getHeadHash()
-				.orElseThrow(() -> new NodeException("Cannot find the head of the node: are you sure that is was already initialized?"));
+			var maybeHeadHash = mokamintNode.getChainInfo().getHeadHash();
 
-			var head = mokamintNode.getBlock(headHash)
-				.orElseThrow(() -> new NodeException("The node has a head set but it cannot be found in its database"));
+			if (maybeHeadHash.isPresent()) {
+				var head = mokamintNode.getBlock(maybeHeadHash.get())
+						.orElseThrow(() -> new NodeException("The node has a head set but it cannot be found in its database"));
 
-			setStoreOfHead(mkStore(StateIds.of(head.getStateId())));
+				setStoreOfHead(mkStore(StateIds.of(head.getStateId())));
+			}
 		}
 		catch (AlreadyInitializedException | TimeoutException | ApplicationException | io.mokamint.node.api.NodeException | UnknownStateIdException e) {
 			throw new NodeException(e);

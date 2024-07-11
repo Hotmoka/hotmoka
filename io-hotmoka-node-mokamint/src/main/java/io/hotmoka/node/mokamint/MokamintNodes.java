@@ -38,12 +38,14 @@ public abstract class MokamintNodes {
 	 * It spawns the Mokamint engine with an application for handling its transactions.
 	 * 
 	 * @param config the configuration of the blockchain
+	 * @param createGenesis if true, creates a genesis block and starts mining on top
+	 *                      (initial synchronization is consequently skipped)
 	 * @return the Mokamint node
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 * @throws NodeException if the operation cannot be completed correctly
 	 */
-	public static MokamintNode init(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws NodeException, InterruptedException, InvalidKeyException, SignatureException {
-		return new MokamintNodeImpl(config, mokamintConfig, keyPair, true);
+	public static MokamintNode init(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair, boolean createGenesis) throws NodeException, InterruptedException, InvalidKeyException, SignatureException {
+		return new MokamintNodeImpl(config, mokamintConfig, keyPair, true, createGenesis);
 	}
 
 	/**
@@ -58,6 +60,6 @@ public abstract class MokamintNodes {
 	 * @throws NodeException if the operation cannot be completed correctly
 	 */
 	public static MokamintNode resume(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws NodeException, InterruptedException, InvalidKeyException, SignatureException {
-		return new MokamintNodeImpl(config, mokamintConfig, keyPair, false);
+		return new MokamintNodeImpl(config, mokamintConfig, keyPair, false, false);
 	}
 }

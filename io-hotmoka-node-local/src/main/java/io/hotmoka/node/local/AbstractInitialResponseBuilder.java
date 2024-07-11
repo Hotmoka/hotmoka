@@ -55,5 +55,15 @@ public abstract class AbstractInitialResponseBuilder<Request extends InitialTran
 		 * Creates the response from the request.
 		 */
 		protected ResponseCreator() {}
+
+		protected final void checkConsistency() throws TransactionRejectedException {
+			try {
+				if (environment.getManifest().isPresent())
+					throw new TransactionRejectedException("Cannot run an initial transaction request in an already initialized node", consensus);
+			}
+			catch (StoreException e) {
+				new RuntimeException(e);
+			}
+		}
 	}
 }

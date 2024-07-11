@@ -167,7 +167,7 @@ public class InitMokamint extends AbstractCommand {
 			var keysOfNode = Entropies.load(keysOfMokamintNode).keys(passwordOfKeysOfMokamintNode, mokamintConfig.getSignatureForBlocks());
 			var keysOfPlot = Entropies.load(InitMokamint.this.keysOfPlot).keys(passwordOfKeysOfPlot, mokamintConfig.getSignatureForDeadlines());
 
-			try (var node = MokamintNodes.init(nodeConfig, mokamintConfig, keysOfNode);
+			try (var node = MokamintNodes.init(nodeConfig, mokamintConfig, keysOfNode, true);
 			     var plot = Plots.load(InitMokamint.this.plot);
 				 var miner = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, keysOfPlot) })) {
 

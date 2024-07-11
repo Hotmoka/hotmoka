@@ -58,16 +58,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 	}
 
 	@Override
-	protected final int gasForStoringFailedResponse() {
-		BigInteger gas = request.getGasLimit();
-
-		return TransactionResponses.constructorCallFailed
-			("placeholder for the name of the exception", "placeholder for the message of the exception", "placeholder for where",
-			Stream.empty(), gas, gas, gas, gas).size();
-	}
-
-	@Override
-	public ConstructorCallTransactionResponse getResponse() throws StoreException, InterruptedException {
+	public ConstructorCallTransactionResponse getResponse() throws TransactionRejectedException, StoreException, InterruptedException {
 		return new ResponseCreator().create();
 	}
 
@@ -82,7 +73,9 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		}
 
 		@Override
-		protected ConstructorCallTransactionResponse body() {
+		protected ConstructorCallTransactionResponse body() throws TransactionRejectedException {
+			checkConsistency();
+
 			try {
 				init();
 				this.deserializedActuals = CheckSupplier.check(StoreException.class, DeserializationException.class,
@@ -212,6 +205,15 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		@Override
 		protected final Stream<Object> getDeserializedActuals() {
 			return Stream.of(deserializedActuals);
+		}
+
+		@Override
+		protected final int gasForStoringFailedResponse() {
+			BigInteger gas = request.getGasLimit();
+		
+			return TransactionResponses.constructorCallFailed
+				("placeholder for the name of the exception", "placeholder for the message of the exception", "placeholder for where",
+				Stream.empty(), gas, gas, gas, gas).size();
 		}
 	}
 }

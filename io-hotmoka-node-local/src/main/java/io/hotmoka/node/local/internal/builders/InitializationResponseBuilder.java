@@ -44,11 +44,12 @@ public class InitializationResponseBuilder extends AbstractInitialResponseBuilde
 	}
 
 	@Override
-	public InitializationTransactionResponse getResponse() throws StoreException, InterruptedException {
+	public InitializationTransactionResponse getResponse() throws TransactionRejectedException, StoreException, InterruptedException {
 		return new ResponseCreator() {
 
 			@Override
-			protected InitializationTransactionResponse body() {
+			protected InitializationTransactionResponse body() throws TransactionRejectedException {
+				checkConsistency();
 				return TransactionResponses.initialization();	
 			}
 		}

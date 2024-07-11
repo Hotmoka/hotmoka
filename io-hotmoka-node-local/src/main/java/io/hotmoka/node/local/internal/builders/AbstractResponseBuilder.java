@@ -145,12 +145,17 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 			this.updatesExtractor = new UpdatesExtractor(classLoader);
 		}
 
-		public final Response create() throws StoreException, InterruptedException {
+		public final Response create() throws TransactionRejectedException, StoreException, InterruptedException {
 			try {
 				return environment.submit(new TakamakaCallable(this::body)).get();
 			}
 			catch (ExecutionException e) {
-				throw new StoreException(e.getCause());
+				Throwable cause = e.getCause();
+
+				if (cause instanceof TransactionRejectedException tre)
+					throw tre;
+				else
+					throw new StoreException(cause);
 			}
 		}
 
@@ -162,7 +167,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * @throws UnsupportedVerificationVersionException if the verification version is not available
 		 * @throws VerificationException if the verification of a jar failed, before being installed in the node
 		 */
-		protected abstract Response body() throws ClassNotFoundException, UnsupportedVerificationVersionException, VerificationException;
+		protected abstract Response body() throws TransactionRejectedException, ClassNotFoundException, UnsupportedVerificationVersionException, VerificationException;
 
 		/**
 		 * Yields the UTC time when the transaction is being run.
