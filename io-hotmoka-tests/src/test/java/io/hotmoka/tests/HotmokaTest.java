@@ -145,9 +145,9 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	    		privateKeyOfGamete = keys.getPrivate();
 
 	    		Node wrapped;
-	    		node = wrapped = mkDiskNode();
+	    		//node = wrapped = mkDiskNode();
 	    		//node = wrapped = mkMokamintNode();
-	    		//node = wrapped = mkMokamintNetworkOfTwoNodes();
+	    		node = wrapped = mkMokamintNetworkOfTwoNodes();
 	    		//node = wrapped = mkTendermintNode();
 	    		//node = mkRemoteNode(wrapped = mkDiskNode());
 	    		//node = mkRemoteNode(wrapped = mkMokamintNode());
@@ -427,7 +427,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			var node2 = MokamintNodes.init(config2, mokamintConfig2, nodeKeys2, false);
 			NodeServices.of(node2, 8002);
 			System.out.println("Hotmoka node 2 published at ws://localhost:8002");
-			//node2.getMokamintNode().add(miner2).orElseThrow(() -> new NodeException("Could not create the miner for the test node"));
+			node2.getMokamintNode().add(miner2).orElseThrow(() -> new NodeException("Could not create the miner for the test node"));
 
 			URI uri2 = URI.create("ws://localhost:8031");
 			PublicNodeServices.open(node2.getMokamintNode(), 8031, 1800000, 1000, Optional.of(uri2));
