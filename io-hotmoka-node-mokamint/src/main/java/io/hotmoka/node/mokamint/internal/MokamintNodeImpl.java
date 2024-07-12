@@ -23,7 +23,7 @@ import java.security.KeyPair;
 import java.security.SignatureException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Set;
+import java.util.LinkedList;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -34,9 +34,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.exceptions.CheckRunnable;
 import io.hotmoka.exceptions.CheckSupplier;
-import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.NodeUnmarshallingContexts;
@@ -95,29 +93,44 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			this.mokamintNode = new AbstractLocalNode(mokamintConfig, keyPair, new MokamintHotmokaApplication(), createGenesis) {
 
 				@Override
-				protected void onHeadChanged(Block newHead) {
+				protected void onHeadChanged(LinkedList<Block> pathToNewHead) {
+					Block newHead = pathToNewHead.getLast();
 					StateId idOfStoreOfHead = StateIds.of(newHead.getStateId());
 
 					try {
-						setStoreOfHead(mkStore(idOfStoreOfHead));
-						CheckRunnable.check(NodeException.class, () -> getEnvironment().executeInTransaction(UncheckConsumer.uncheck(
+						try {
+							setStoreOfHead(mkStore(idOfStoreOfHead));
+							/*CheckRunnable.check(NodeException.class, () -> getEnvironment().executeInTransaction(UncheckConsumer.uncheck(
 							txn -> keepPersistedOnly(Set.of(idOfStoreOfHead), txn)
-						)));
-					}
-					catch (InterruptedException e) {
-						Thread.currentThread().interrupt();
-						LOGGER.log(Level.SEVERE, "could not set the head to " + idOfStoreOfHead, e);
-						return;
+						)));*/ // TODO: we must gc somehow
+						}
+						catch (InterruptedException e) {
+							// this might well occur if the mining task is interrupted before having the time to set the new head
+
+							try {
+								setStoreOfHead(mkStore(idOfStoreOfHead)); //TODO: ugly solution: mkStore should not throw an interruption or interruption should not be used to stop mining
+								System.out.println("Salvato!");
+							}
+							catch (InterruptedException e2) {}
+
+							Thread.currentThread().interrupt();
+							System.out.println("INTERRUPT!!!!");
+							return;
+						}
+						finally {
+							super.onHeadChanged(pathToNewHead);
+
+							System.out.println("added " + pathToNewHead.size() + " blocks");
+
+							for (Block added: pathToNewHead)
+								if (added instanceof NonGenesisBlock ngb)
+									toPublish.offer(ngb);
+						}
 					}
 					catch (NodeException | UnknownStateIdException e) {
 						LOGGER.log(Level.SEVERE, "could not set the head to " + idOfStoreOfHead, e);
 						return;
 					}
-
-					super.onHeadChanged(newHead);
-					
-					if (newHead instanceof NonGenesisBlock ngb)
-						toPublish.offer(ngb);
 				}
 			};
 
@@ -147,8 +160,10 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 				try {
 					MokamintStore store = mkStore(StateIds.of(next.getStateId()));
 
-					for (var tx: next.getTransactions().toArray(Transaction[]::new))
+					for (var tx: next.getTransactions().toArray(Transaction[]::new)) {
+						System.out.println("publishing tx");
 						publish(TransactionReferences.of(getHasher().hash(intoHotmokaRequest(tx))), store);
+					}
 				}
 				catch (ApplicationException | NodeException | io.mokamint.node.api.TransactionRejectedException | UnknownStateIdException e) {
 					LOGGER.log(Level.SEVERE, "failed to publish the transactions in a block", e);
@@ -315,6 +330,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			}
 			catch (TransactionRejectedException e) {
 				signalRejected(hotmokaRequest, e);
+				System.out.println("hotmoka-mokamint lancia " + e.getMessage());
 				throw new io.mokamint.node.api.TransactionRejectedException(e.getMessage(), e);
 			}
 			catch (StoreException e) {
