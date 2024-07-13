@@ -87,7 +87,6 @@ import io.hotmoka.node.disk.DiskNodes;
 import io.hotmoka.node.local.AbstractLocalNode;
 import io.hotmoka.node.mokamint.MokamintNodeConfigBuilders;
 import io.hotmoka.node.mokamint.MokamintNodes;
-import io.hotmoka.node.mokamint.api.MokamintNode;
 import io.hotmoka.node.remote.RemoteNodes;
 import io.hotmoka.node.service.NodeServices;
 import io.hotmoka.node.tendermint.TendermintInitializedNodes;
@@ -196,22 +195,25 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	    public void close() throws Exception {
 	    	node.close();
 
-	    	if (node2 != null)
-	    		node2.close();
+	    	if (miner != null)
+	    		miner.close();
 
-	    	if (miner1 != null)
-	    		miner1.close();
+	    	if (plot != null)
+	    		plot.close();
 
-	    	if (plot1 != null)
-	    		plot1.close();
+	    	for (var extraNode: extraNodes)
+	    		extraNode.close();
 
-	    	if (miner2 != null)
-	    		miner2.close();
+	    	for (var extraMiner: extraMiners)
+	    		extraMiner.close();
 
-	    	if (plot2 != null)
-	    		plot2.close();
+	    	for (var extraPlot: extraPlots)
+	    		extraPlot.close();
 
-	    	System.out.println("Closed the test node");
+	    	if (extraNodes.length == 0)
+	    		System.out.println("Closed the test node");
+	    	else
+	    		System.out.println("Closed the test nodes");
 	    }
 	}
 
@@ -222,7 +224,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	 */
 	protected static Node node;
 
-	private static Node node2;
+	private static Node[] extraNodes = new Node[0];
 
 	/**
 	 * The consensus parameters of the node.
@@ -232,12 +234,14 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	/**
 	 * The plot used by the miner of the test node, if it is a Mokamint node.
 	 */
-	private static Plot plot1, plot2;
+	private static Plot plot;
+	private static Plot[] extraPlots = new Plot[0];
 
 	/**
 	 * The miner of the test node, if it is a Mokamint node.
 	 */
-	private static Miner miner1, miner2;
+	private static Miner miner;
+	private static Miner[] extraMiners = new Miner[0];
 
 	/**
 	 * The private key of the account used at each run of the tests.
@@ -351,10 +355,10 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			var nodeKeys = mokamintConfig.getSignatureForBlocks().getKeyPair();
 			var plotKeys = mokamintConfig.getSignatureForDeadlines().getKeyPair();
 			var prolog = Prologs.of(mokamintConfig.getChainId(), mokamintConfig.getSignatureForBlocks(), nodeKeys.getPublic(), mokamintConfig.getSignatureForDeadlines(), plotKeys.getPublic(), new byte[0]);
-			plot1 = Plots.create(hotmokaChainPath.resolve("test.plot"), prolog, 1000, 4000, mokamintConfig.getHashingForDeadlines(), __ -> {});
-			miner1 = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot1, plotKeys) });
+			plot = Plots.create(hotmokaChainPath.resolve("test.plot"), prolog, 1000, 4000, mokamintConfig.getHashingForDeadlines(), __ -> {});
+			miner = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, plotKeys) });
 			var node = MokamintNodes.init(config, mokamintConfig, nodeKeys, true);
-			node.getMokamintNode().add(miner1).orElseThrow(() -> new NodeException("Could not create the miner for the test node"));
+			node.getMokamintNode().add(miner).orElseThrow(() -> new NodeException("Could not create the miner for the test node"));
 
 			// we open a web service to the underlying Mokamint node, at port 8030; this is not necessary,
 			// but it allows developers to query the node during the execution of the tests
@@ -372,6 +376,9 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	@SuppressWarnings("unused")
 	private static Node mkMokamintNetworkOfTwoNodes() throws NodeException, InterruptedException, TimeoutException, InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException {
 		try {
+			final var TARGET_BLOCK_CREATION_TIME = 2000;
+			final var PLOT_LENGTH = 500; //4000L;
+
 			consensus = fillConsensusConfig(ValidatorsConsensusConfigBuilders.defaults()).build();
 
 			Path hotmokaChainPath1 = Files.createTempDirectory("hotmoka-mokamint-chain-1-");
@@ -385,19 +392,19 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 					// we use the same chain id for the Hotmoka node and for the underlying Mokamint engine,
 					// although this is not necessary
 					.setChainId(consensus.getChainId())
-					.setTargetBlockCreationTime(5000)
+					.setTargetBlockCreationTime(TARGET_BLOCK_CREATION_TIME)
 					.setInitialAcceleration(50000000000000L)
 					.setMaximalHistoryChangeTime(5 * 60 * 1000) // five minutes, so that it is possible to see the effects of garbage-collection during the tests
 					.setDir(hotmokaChainPath1.resolve("mokamint")).build();
 			var nodeKeys1 = mokamintConfig1.getSignatureForBlocks().getKeyPair();
 			var plotKeys1 = mokamintConfig1.getSignatureForDeadlines().getKeyPair();
 			var prolog1 = Prologs.of(mokamintConfig1.getChainId(), mokamintConfig1.getSignatureForBlocks(), nodeKeys1.getPublic(), mokamintConfig1.getSignatureForDeadlines(), plotKeys1.getPublic(), new byte[0]);
-			plot1 = Plots.create(hotmokaChainPath1.resolve("test.plot"), prolog1, 1000, 4000, mokamintConfig1.getHashingForDeadlines(), __ -> {});
-			miner1 = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot1, plotKeys1) });
+			plot = Plots.create(hotmokaChainPath1.resolve("test.plot"), prolog1, 1000, PLOT_LENGTH, mokamintConfig1.getHashingForDeadlines(), __ -> {});
+			miner = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, plotKeys1) });
 			var node1 = MokamintNodes.init(config1, mokamintConfig1, nodeKeys1, true);
 			NodeServices.of(node1, 8001);
 			System.out.println("Hotmoka node 1 published at ws://localhost:8001");
-			node1.getMokamintNode().add(miner1).orElseThrow(() -> new NodeException("Could not create the miner for the test node"));
+			node1.getMokamintNode().add(miner).orElseThrow(() -> new NodeException("Could not create the miner for the test node"));
 			initializeNodeIfNeeded(node1);
 
 			// we open a web service to the underlying Mokamint node, at port 8030; this is not necessary,
@@ -417,20 +424,23 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 					// we use the same chain id for the Hotmoka node and for the underlying Mokamint engine,
 					// although this is not necessary
 					.setChainId(consensus.getChainId())
-					.setTargetBlockCreationTime(5000)
+					.setTargetBlockCreationTime(TARGET_BLOCK_CREATION_TIME)
 					.setInitialAcceleration(50000000000000L)
 					.setMaximalHistoryChangeTime(5 * 60 * 1000) // five minutes, so that it is possible to see the effects of garbage-collection during the tests
 					.setDir(hotmokaChainPath2.resolve("mokamint")).build();
 			var nodeKeys2 = mokamintConfig2.getSignatureForBlocks().getKeyPair();
 			var plotKeys2 = mokamintConfig2.getSignatureForDeadlines().getKeyPair();
 			var prolog2 = Prologs.of(mokamintConfig2.getChainId(), mokamintConfig2.getSignatureForBlocks(), nodeKeys2.getPublic(), mokamintConfig2.getSignatureForDeadlines(), plotKeys2.getPublic(), new byte[0]);
-			plot2 = Plots.create(hotmokaChainPath2.resolve("test.plot"), prolog2, 1000, 4000, mokamintConfig2.getHashingForDeadlines(), __ -> {});
-			miner2 = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot2, plotKeys2) });
+			extraPlots = new Plot[1];
+			extraPlots[0] = Plots.create(hotmokaChainPath2.resolve("test.plot"), prolog2, 1000, PLOT_LENGTH, mokamintConfig2.getHashingForDeadlines(), __ -> {});
+			extraMiners = new Miner[1];
+			extraMiners[0] = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(extraPlots[0], plotKeys2) });
 			var node2 = MokamintNodes.init(config2, mokamintConfig2, nodeKeys2, false);
-			HotmokaTest.node2 = node2;
+			extraNodes = new Node[1];
+			extraNodes[0] = node2;
 			NodeServices.of(node2, 8002);
 			System.out.println("Hotmoka node 2 published at ws://localhost:8002");
-			node2.getMokamintNode().add(miner2).orElseThrow(() -> new NodeException("Could not create the miner for the test node"));
+			node2.getMokamintNode().add(extraMiners[0]).orElseThrow(() -> new NodeException("Could not create the miner for the test node"));
 
 			URI uri2 = URI.create("ws://localhost:8031");
 			PublicNodeServices.open(node2.getMokamintNode(), 8031, 1800000, 1000, Optional.of(uri2));
@@ -734,8 +744,8 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	protected final BigInteger getNonceOf(StorageReference account) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
 		try {
 			BigInteger nonce = nonces.get(account);
-			// if there is more than one Mokamint nodes, we need to ask the node since there might be history changes
-			if (node2 instanceof MokamintNode && nonce != null)
+			// if there is more than one node, we need to ask the node since there might be history changes
+			if (nonce != null && extraNodes.length > 0)
 				nonce = nonce.add(BigInteger.ONE);
 			else
 				// we ask the account: 100,000 units of gas should be enough to run the method
