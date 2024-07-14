@@ -107,9 +107,9 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 				catch (InvocationTargetException e) {
 					Throwable cause = e.getCause();
 					if (isCheckedForThrowsExceptions(cause, constructorJVM)) {
-						chargeGasForStorageOf(TransactionResponses.constructorCallException(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+						chargeGasForStorageOf(TransactionResponses.constructorCallException(cause.getClass().getName(), getMessage(cause), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 						refundPayerForAllRemainingGas();
-						return TransactionResponses.constructorCallException(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+						return TransactionResponses.constructorCallException(cause.getClass().getName(), getMessage(cause), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 					}
 					else
 						throw cause;
@@ -127,7 +127,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
 				resetBalanceOfPayerToInitialValueMinusAllPromisedGas();
 				try {
-					return TransactionResponses.constructorCallFailed(t.getClass().getName(), t.getMessage(), where(t), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+					return TransactionResponses.constructorCallFailed(t.getClass().getName(), getMessage(t), where(t), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 				}
 				catch (UpdatesExtractionException | StoreException e) {
 					throw new RuntimeException(e); // TODO

@@ -24,6 +24,7 @@ import java.security.SignatureException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.LinkedList;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -34,7 +35,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.exceptions.CheckRunnable;
 import io.hotmoka.exceptions.CheckSupplier;
+import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.NodeUnmarshallingContexts;
@@ -102,7 +105,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 							setStoreOfHead(mkStore(idOfStoreOfHead));
 							/*CheckRunnable.check(NodeException.class, () -> getEnvironment().executeInTransaction(UncheckConsumer.uncheck(
 							txn -> keepPersistedOnly(Set.of(idOfStoreOfHead), txn)
-						)));*/ // TODO: we must gc somehow
+						))); */// TODO: we must gc somehow
 						}
 						catch (InterruptedException e) {
 							// this might well occur if the mining task is interrupted before having the time to set the new head

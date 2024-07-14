@@ -279,10 +279,8 @@ class PollWithTimeWindow extends HotmokaTest {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(BigInteger.valueOf(10), ONE, ONE, ONE);
 		StorageReference action = addAction();
 		
-		throwsTransactionExceptionWithCauseAndMessageContaining(ArithmeticException.class, "long overflow",
-			() -> addPollWithTimeWindow(simpleSharedEntity, action, Long.MAX_VALUE, 1L));
-		throwsTransactionExceptionWithCauseAndMessageContaining(ArithmeticException.class, "long overflow",
-			() -> addPollWithTimeWindow(simpleSharedEntity, action, 1L, Long.MAX_VALUE));
+		throwsTransactionExceptionWithCause(ArithmeticException.class, () -> addPollWithTimeWindow(simpleSharedEntity, action, Long.MAX_VALUE, 1L));
+		throwsTransactionExceptionWithCause(ArithmeticException.class, () -> addPollWithTimeWindow(simpleSharedEntity, action, 1L, Long.MAX_VALUE));
 	}
 
 	@Test

@@ -88,7 +88,7 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 				resetBalanceOfPayerToInitialValueMinusAllPromisedGas();
 				// we do not pay back the gas
 				try {
-					return TransactionResponses.jarStoreFailed(t.getClass().getName(), t.getMessage(), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+					return TransactionResponses.jarStoreFailed(t.getClass().getName(), getMessage(t), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 				}
 				catch (UpdatesExtractionException | StoreException e) {
 					throw new RuntimeException(e); // TODO
