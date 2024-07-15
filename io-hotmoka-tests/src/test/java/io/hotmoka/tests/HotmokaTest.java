@@ -146,8 +146,8 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	    		Node wrapped;
 	    		//node = wrapped = mkDiskNode();
-	    		node = wrapped = mkMokamintNode();
-	    		//node = wrapped = mkMokamintNetworkOfTwoNodes();
+	    		//node = wrapped = mkMokamintNode();
+	    		node = wrapped = mkMokamintNetworkOfTwoNodes();
 	    		//node = wrapped = mkTendermintNode();
 	    		//node = mkRemoteNode(wrapped = mkDiskNode());
 	    		//node = mkRemoteNode(wrapped = mkMokamintNode());
@@ -377,7 +377,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	private static Node mkMokamintNetworkOfTwoNodes() throws NodeException, InterruptedException, TimeoutException, InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException {
 		try {
 			final var TARGET_BLOCK_CREATION_TIME = 2000;
-			final var PLOT_LENGTH = 500; //4000L;
+			final var PLOT_LENGTH = 500L;
 
 			consensus = fillConsensusConfig(ValidatorsConsensusConfigBuilders.defaults()).build();
 
@@ -389,8 +389,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 					.build();
 
 			var mokamintConfig1 = LocalNodeConfigBuilders.defaults()
-					// we use the same chain id for the Hotmoka node and for the underlying Mokamint engine,
-					// although this is not necessary
+					// we use the same chain id for the Hotmoka node and for the underlying Mokamint engine, although this is not necessary
 					.setChainId(consensus.getChainId())
 					.setTargetBlockCreationTime(TARGET_BLOCK_CREATION_TIME)
 					.setInitialAcceleration(50000000000000L)

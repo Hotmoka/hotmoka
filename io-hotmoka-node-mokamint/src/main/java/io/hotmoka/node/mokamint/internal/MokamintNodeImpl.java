@@ -24,7 +24,6 @@ import java.security.SignatureException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.LinkedList;
-import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -35,9 +34,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.exceptions.CheckRunnable;
 import io.hotmoka.exceptions.CheckSupplier;
-import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.NodeUnmarshallingContexts;
@@ -54,6 +51,7 @@ import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UnknownStateIdException;
 import io.hotmoka.node.mokamint.api.MokamintNode;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
+import io.hotmoka.xodus.ExodusException;
 import io.mokamint.application.AbstractApplication;
 import io.mokamint.application.api.ApplicationException;
 import io.mokamint.application.api.UnknownGroupIdException;
@@ -333,7 +331,6 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			}
 			catch (TransactionRejectedException e) {
 				signalRejected(hotmokaRequest, e);
-				System.out.println("hotmoka-mokamint lancia " + e.getMessage());
 				throw new io.mokamint.node.api.TransactionRejectedException(e.getMessage(), e);
 			}
 			catch (StoreException e) {
@@ -353,7 +350,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 					return stateIdOfFinalStore.getBytes();
 				})));
 			}
-			catch (StoreException | NodeException e) {
+			catch (ExodusException | StoreException | NodeException e) {
 				throw new ApplicationException(e);
 			}
 		}

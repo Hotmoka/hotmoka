@@ -184,6 +184,9 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 		catch (UnknownKeyException e) {
 			throw new UnknownStateIdException();
 		}
+		catch (ExodusException e) {
+			throw new StoreException(e);
+		}
 	}
 
 	private byte[] addDeltaOfInfos(TrieOfInfo trieOfInfo, Optional<StorageReference> addedManifest) throws TrieException {

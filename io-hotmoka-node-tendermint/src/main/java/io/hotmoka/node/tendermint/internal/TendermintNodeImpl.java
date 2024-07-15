@@ -217,14 +217,14 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	}
 
 	private void checkOutRootBranch() throws NodeException, InterruptedException {
-		var root = getEnvironment().computeInTransaction(txn -> Optional.ofNullable(getStoreOfNode().get(txn, ROOT)).map(ByteIterable::getBytes));
-		if (root.isEmpty())
-			throw new NodeException("Cannot find the root of the saved store of the node");
-
 		try {
+			var root = getEnvironment().computeInTransaction(txn -> Optional.ofNullable(getStoreOfNode().get(txn, ROOT)).map(ByteIterable::getBytes));
+			if (root.isEmpty())
+				throw new NodeException("Cannot find the root of the saved store of the node");
+
 			setStoreOfHead(mkStore(StateIds.of(root.get())));
 		}
-		catch (UnknownStateIdException e) {
+		catch (UnknownStateIdException | ExodusException e) {
 			throw new NodeException(e);
 		}
 	}
@@ -702,7 +702,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 				LOGGER.info("committed Tendermint state " + Hex.toHexString(hash).toUpperCase());
 				return ResponseCommit.newBuilder().setData(ByteString.copyFrom(hash)).build();
 			}
-			catch (StoreException | UnknownStateIdException e) {
+			catch (StoreException | ExodusException | UnknownStateIdException e) {
 				LOGGER.log(Level.SEVERE, "commit failed", e);
 				throw new NodeException(e);
 			}
