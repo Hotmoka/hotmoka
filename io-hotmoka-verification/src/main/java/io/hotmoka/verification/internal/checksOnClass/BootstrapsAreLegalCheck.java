@@ -37,7 +37,7 @@ public class BootstrapsAreLegalCheck extends CheckOnClasses {
 			bootstraps.getBootstraps()
 				.map(uncheck(bootstraps::getTargetOf))
 				.filter(Optional::isEmpty)
-				.findAny()
+				.findFirst()
 				.ifPresent(target -> issue(new IllegalBootstrapMethodError(inferSourceFile())))
 		);
 	}

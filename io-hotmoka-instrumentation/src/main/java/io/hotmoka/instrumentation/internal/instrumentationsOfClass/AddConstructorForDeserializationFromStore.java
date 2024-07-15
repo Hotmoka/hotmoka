@@ -70,7 +70,7 @@ public class AddConstructorForDeserializationFromStore extends ClassLevelInstrum
 			// already existing, user-provided constructors
 			args.add(new ObjectType(WhitelistingConstants.DUMMY_NAME));
 
-			InstructionList il = new InstructionList();
+			var il = new InstructionList();
 			int nextLocal = addCallToSuper(il);
 			addInitializationOfEagerFields(il, nextLocal);
 

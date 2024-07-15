@@ -59,7 +59,7 @@ public class NodeFromNetwork extends HotmokaTest {
     private final static ClassType HASH_MAP_TESTS = StorageTypes.classNamed("io.hotmoka.examples.javacollections.HashMapTests");
     private final static TransactionReference INEXISTENT_TRANSACTION_REFERENCE = TransactionReferences.of("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef");
     private final static StorageReference INEXISTENT_STORAGE_REFERENCE = StorageValues.reference(INEXISTENT_TRANSACTION_REFERENCE, BigInteger.valueOf(42));
-    private final static int PORT = 8002;
+    private final static int PORT = 8102;
     private final static URI URI = java.net.URI.create("ws://localhost:" + PORT);
 
     @BeforeEach

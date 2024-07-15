@@ -43,7 +43,7 @@ public class StorageClassesHaveFieldsOfStorageTypeCheck extends CheckOnClasses {
 					.filter(field -> !Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers()))
 					.filter(uncheck(field -> !isTypeAllowedForStorageFields(field.getType())))
 					.map(field -> new IllegalTypeForStorageFieldError(inferSourceFile(), field.getName(), field.getType().isEnum()))
-					.forEach(this::issue)
+					.forEachOrdered(this::issue)
 			);
 		}
 	}

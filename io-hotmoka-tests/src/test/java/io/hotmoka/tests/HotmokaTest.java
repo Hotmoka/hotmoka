@@ -146,8 +146,8 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	    		Node wrapped;
 	    		//node = wrapped = mkDiskNode();
-	    		//node = wrapped = mkMokamintNode();
-	    		node = wrapped = mkMokamintNetworkOfTwoNodes();
+	    		node = wrapped = mkMokamintNode();
+	    		//node = wrapped = mkMokamintNetworkOfTwoNodes();
 	    		//node = wrapped = mkTendermintNode();
 	    		//node = mkRemoteNode(wrapped = mkDiskNode());
 	    		//node = mkRemoteNode(wrapped = mkMokamintNode());
@@ -355,7 +355,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			var nodeKeys = mokamintConfig.getSignatureForBlocks().getKeyPair();
 			var plotKeys = mokamintConfig.getSignatureForDeadlines().getKeyPair();
 			var prolog = Prologs.of(mokamintConfig.getChainId(), mokamintConfig.getSignatureForBlocks(), nodeKeys.getPublic(), mokamintConfig.getSignatureForDeadlines(), plotKeys.getPublic(), new byte[0]);
-			plot = Plots.create(hotmokaChainPath.resolve("test.plot"), prolog, 1000, 4000, mokamintConfig.getHashingForDeadlines(), __ -> {});
+			plot = Plots.create(hotmokaChainPath.resolve("test.plot"), prolog, 1000, 500 /*4000*/, mokamintConfig.getHashingForDeadlines(), __ -> {});
 			miner = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, plotKeys) });
 			var node = MokamintNodes.init(config, mokamintConfig, nodeKeys, true);
 			node.getMokamintNode().add(miner).orElseThrow(() -> new NodeException("Could not create the miner for the test node"));

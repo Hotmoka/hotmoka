@@ -20,8 +20,10 @@ import static io.hotmoka.exceptions.CheckRunnable.check;
 import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 
 import java.lang.reflect.Executable;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -48,7 +50,6 @@ import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
-import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
 import io.hotmoka.exceptions.CheckSupplier;
@@ -77,12 +78,19 @@ public class BootstrapsImpl implements Bootstraps {
 
 	/**
 	 * The bootstrap methods of the class that lead to an entry, possibly indirectly.
+	 * We fix their order to avoid non-determinism.
 	 */
-	private final Set<BootstrapMethod> bootstrapMethodsLeadingToEntries = new HashSet<>();
+	private final List<BootstrapMethod> bootstrapMethodsLeadingToEntries = new ArrayList<>();
+
+	/**
+	 * The same as {@link #bootstrapMethodsLeadingToEntries}, but as a set, for efficient containment check.
+	 */
+	private final Set<BootstrapMethod> bootstrapMethodsLeadingToEntriesAsSet = new HashSet<>();
 
 	/**
 	 * The set of lambdas that are reachable from the entries of the class. They can
-	 * be considered as part of the code of the entries.
+	 * be considered as part of the code of the entries. The order in this set is not fixed
+	 * but this is OK since this set is only used for containment checks.
 	 */
 	private final Set<MethodGen> lambdasPartOfEntries = new HashSet<>();
 
@@ -109,8 +117,10 @@ public class BootstrapsImpl implements Bootstraps {
 			BootstrapMethod clone = this.bootstrapMethods[pos] = original.bootstrapMethods[pos].copy();
 			// the array of arguments is shared by copy(), hence we clone it explicitly
 			clone.setBootstrapArguments(original.bootstrapMethods[pos].getBootstrapArguments().clone());
-			if (original.bootstrapMethodsLeadingToEntries.contains(original.bootstrapMethods[pos]))
+			if (original.bootstrapMethodsLeadingToEntriesAsSet.contains(original.bootstrapMethods[pos])) {
+				this.bootstrapMethodsLeadingToEntriesAsSet.add(clone);
 				this.bootstrapMethodsLeadingToEntries.add(clone);
+			}
 		}
 	}
 
@@ -306,9 +316,13 @@ public class BootstrapsImpl implements Bootstraps {
 			initialSize = bootstrapMethodsLeadingToEntries.size();
 			check(ClassNotFoundException.class, () -> getBootstraps()
 				.filter(uncheck(bootstrap -> lambdaIsEntry(bootstrap) || lambdaCallsEntry(bootstrap, methods)))
-				.forEach(bootstrapMethodsLeadingToEntries::add));
+				.forEach(this::addToBootstrapMethodsLeadingToEntries));
 		}
 		while (bootstrapMethodsLeadingToEntries.size() > initialSize);
+	}
+
+	private boolean addToBootstrapMethodsLeadingToEntries(BootstrapMethod bm) {
+		return bootstrapMethodsLeadingToEntriesAsSet.add(bm) && bootstrapMethodsLeadingToEntries.add(bm);
 	}
 
 	/**
@@ -378,15 +392,12 @@ public class BootstrapsImpl implements Bootstraps {
 	private boolean leadsToEntry(InstructionHandle ih) throws ClassNotFoundException {
 		Instruction instruction = ih.getInstruction();
 	
-		if (instruction instanceof INVOKEDYNAMIC)
-			return bootstrapMethodsLeadingToEntries.contains(getBootstrapFor((INVOKEDYNAMIC) instruction));
-		else if (instruction instanceof InvokeInstruction && !(instruction instanceof INVOKESTATIC)) {
-			InvokeInstruction invoke = (InvokeInstruction) instruction;
-			ReferenceType receiver = invoke.getReferenceType(cpg);
-			return receiver instanceof ObjectType &&
+		if (instruction instanceof INVOKEDYNAMIC invokedynamic)
+			return bootstrapMethodsLeadingToEntriesAsSet.contains(getBootstrapFor(invokedynamic));
+		else if (instruction instanceof InvokeInstruction invoke && !(invoke instanceof INVOKESTATIC))
+			return invoke.getReferenceType(cpg) instanceof ObjectType ot &&
 				verifiedClass.jar.annotations.isFromContract
-					(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));
-		}
+					(ot.getClassName(), invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));
 		else
 			return false;
 	}
