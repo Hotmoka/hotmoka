@@ -293,6 +293,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	 * The private key of the gamete.
 	 */
 	private static PrivateKey privateKeyOfGamete;
+
 	public interface TestBody {
 		void run() throws Exception;
 	}
@@ -355,7 +356,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			var nodeKeys = mokamintConfig.getSignatureForBlocks().getKeyPair();
 			var plotKeys = mokamintConfig.getSignatureForDeadlines().getKeyPair();
 			var prolog = Prologs.of(mokamintConfig.getChainId(), mokamintConfig.getSignatureForBlocks(), nodeKeys.getPublic(), mokamintConfig.getSignatureForDeadlines(), plotKeys.getPublic(), new byte[0]);
-			plot = Plots.create(hotmokaChainPath.resolve("test.plot"), prolog, 1000, 500 /*4000*/, mokamintConfig.getHashingForDeadlines(), __ -> {});
+			plot = Plots.create(hotmokaChainPath.resolve("test.plot"), prolog, 1000, 4000, mokamintConfig.getHashingForDeadlines(), __ -> {});
 			miner = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, plotKeys) });
 			var node = MokamintNodes.init(config, mokamintConfig, nodeKeys, true);
 			node.getMokamintNode().add(miner).orElseThrow(() -> new NodeException("Could not create the miner for the test node"));
@@ -378,6 +379,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		try {
 			final var TARGET_BLOCK_CREATION_TIME = 2000;
 			final var PLOT_LENGTH = 500L;
+			final var MAX_HISTORY_CHANGE = 5L * 60 * 1000; // five minutes, so that it is possible to see the effects of garbage-collection during the tests
 
 			consensus = fillConsensusConfig(ValidatorsConsensusConfigBuilders.defaults()).build();
 
@@ -393,7 +395,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 					.setChainId(consensus.getChainId())
 					.setTargetBlockCreationTime(TARGET_BLOCK_CREATION_TIME)
 					.setInitialAcceleration(50000000000000L)
-					.setMaximalHistoryChangeTime(5 * 60 * 1000) // five minutes, so that it is possible to see the effects of garbage-collection during the tests
+					.setMaximalHistoryChangeTime(MAX_HISTORY_CHANGE)
 					.setDir(hotmokaChainPath1.resolve("mokamint")).build();
 			var nodeKeys1 = mokamintConfig1.getSignatureForBlocks().getKeyPair();
 			var plotKeys1 = mokamintConfig1.getSignatureForDeadlines().getKeyPair();
@@ -425,7 +427,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 					.setChainId(consensus.getChainId())
 					.setTargetBlockCreationTime(TARGET_BLOCK_CREATION_TIME)
 					.setInitialAcceleration(50000000000000L)
-					.setMaximalHistoryChangeTime(5 * 60 * 1000) // five minutes, so that it is possible to see the effects of garbage-collection during the tests
+					.setMaximalHistoryChangeTime(MAX_HISTORY_CHANGE)
 					.setDir(hotmokaChainPath2.resolve("mokamint")).build();
 			var nodeKeys2 = mokamintConfig2.getSignatureForBlocks().getKeyPair();
 			var plotKeys2 = mokamintConfig2.getSignatureForDeadlines().getKeyPair();

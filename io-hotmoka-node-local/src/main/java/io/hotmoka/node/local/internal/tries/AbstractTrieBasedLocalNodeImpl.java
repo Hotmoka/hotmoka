@@ -238,7 +238,6 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		}
 
 		super.exit(store);
-		//System.out.println("size = " + storeUsers.size());
 	}
 
 	public int persisted, freed;
@@ -435,8 +434,8 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 				Thread.sleep(5000L);
 			}
 		}
-		catch (NodeException e) {
-			LOGGER.log(Level.SEVERE, "cannot select stores to garbage-collect", e);
+		catch (NodeException | ExodusException e) {
+			LOGGER.log(Level.SEVERE, "cannot select the stores to garbage-collect", e);
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();

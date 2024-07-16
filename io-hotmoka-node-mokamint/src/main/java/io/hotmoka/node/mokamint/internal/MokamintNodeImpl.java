@@ -110,18 +110,14 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 							try {
 								setStoreOfHead(mkStore(idOfStoreOfHead)); //TODO: ugly solution: mkStore should not throw an interruption or interruption should not be used to stop mining
-								System.out.println("Salvato!");
 							}
 							catch (InterruptedException e2) {}
 
 							Thread.currentThread().interrupt();
-							System.out.println("INTERRUPT!!!!");
 							return;
 						}
 						finally {
 							super.onHeadChanged(pathToNewHead);
-
-							System.out.println("added " + pathToNewHead.size() + " blocks");
 
 							for (Block added: pathToNewHead)
 								if (added instanceof NonGenesisBlock ngb)
@@ -161,10 +157,8 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 				try {
 					MokamintStore store = mkStore(StateIds.of(next.getStateId()));
 
-					for (var tx: next.getTransactions().toArray(Transaction[]::new)) {
-						System.out.println("publishing tx");
+					for (var tx: next.getTransactions().toArray(Transaction[]::new))
 						publish(TransactionReferences.of(getHasher().hash(intoHotmokaRequest(tx))), store);
-					}
 				}
 				catch (ApplicationException | NodeException | io.mokamint.node.api.TransactionRejectedException | UnknownStateIdException e) {
 					LOGGER.log(Level.SEVERE, "failed to publish the transactions in a block", e);
@@ -358,7 +352,6 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		@Override
 		public void commitBlock(int groupId) throws UnknownGroupIdException, ApplicationException {
 			var transformation = getTransformation(groupId);
-			transformations.remove(groupId);
 
 			try {
 				exit(transformation.getInitialStore());
@@ -366,12 +359,13 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			catch (NodeException e) {
 				throw new ApplicationException(e);
 			}
+
+			transformations.remove(groupId);
 		}
 
 		@Override
 		public void abortBlock(int groupId) throws UnknownGroupIdException, ApplicationException {
 			var transformation = getTransformation(groupId);
-			transformations.remove(groupId);
 
 			try {
 				exit(transformation.getInitialStore());
@@ -379,6 +373,8 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			catch (NodeException e) {
 				throw new ApplicationException(e);
 			}
+
+			transformations.remove(groupId);
 		}
 
 		private MokamintStoreTransformation getTransformation(int groupId) throws UnknownGroupIdException {
