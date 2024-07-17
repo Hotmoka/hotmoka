@@ -687,7 +687,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 				StateId idOfNewStoreOfHead = CheckSupplier.check(NodeException.class, StoreException.class, () -> getEnvironment().computeInTransaction(UncheckFunction.uncheck(txn -> {
 					StateId stateIdOfFinalStore = transformation.getIdOfFinalStore(txn);
 					setRootBranch(stateIdOfFinalStore, txn);
-					persist(stateIdOfFinalStore, txn);
+					persist(stateIdOfFinalStore, transformation.getNow(), txn);
 					keepPersistedOnly(Set.of(stateIdOfFinalStore), txn);
 					return stateIdOfFinalStore;
 				})));

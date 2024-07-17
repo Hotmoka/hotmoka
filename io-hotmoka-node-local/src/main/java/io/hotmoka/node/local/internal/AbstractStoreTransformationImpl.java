@@ -278,7 +278,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	}
 
 	@Override
-	protected final long getNow() {
+	public final long getNow() {
 		return now;
 	}
 

@@ -196,7 +196,7 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	}
 
 	@Override
-	protected final long getNow() {
+	public final long getNow() {
 		return System.currentTimeMillis();
 	}
 }

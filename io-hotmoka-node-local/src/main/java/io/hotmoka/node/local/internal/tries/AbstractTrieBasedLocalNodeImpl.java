@@ -248,10 +248,12 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 * same amount of times in order to be actually removed from the database of stores.
 	 * 
 	 * @param stateId the identifier of the store to persist
+	 * @param now the current time used for delivering the transactions that led to the
+	 *            store to persist
 	 * @param txn the Xodus transaction where the operation is performed
 	 * @throws NodeException if the node is not able to complete the operation correctly
 	 */
-	protected void persist(StateId stateId, Transaction txn) throws NodeException {
+	protected void persist(StateId stateId, long now, Transaction txn) throws NodeException {
 		malloc(stateId, txn);
 		addToStores(STORES_NOT_TO_GC, List.of(stateId), txn);
 	}
@@ -296,7 +298,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 
 			LOGGER.info("garbage-collected store " + id);
 		}
-		catch (NodeException | UnknownStateIdException | StoreException e) {
+		catch (NodeException | UnknownStateIdException | StoreException | ExodusException e) {
 			LOGGER.log(Level.SEVERE, "cannot garbage-collect store " + id, e);
 		}
 	}

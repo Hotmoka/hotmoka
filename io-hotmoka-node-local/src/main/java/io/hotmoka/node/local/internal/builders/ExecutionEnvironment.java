@@ -637,7 +637,7 @@ public abstract class ExecutionEnvironment {
 	 * 
 	 * @return the time, in milliseconds from the UNIX epoch time
 	 */
-	protected abstract long getNow();
+	public abstract long getNow();
 
 	protected abstract StoreCache getCache();
 
