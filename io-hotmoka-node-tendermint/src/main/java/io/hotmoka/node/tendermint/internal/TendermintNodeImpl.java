@@ -27,7 +27,6 @@ import java.net.HttpURLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -688,7 +687,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 					StateId stateIdOfFinalStore = transformation.getIdOfFinalStore(txn);
 					setRootBranch(stateIdOfFinalStore, txn);
 					persist(stateIdOfFinalStore, transformation.getNow(), txn);
-					keepPersistedOnly(Set.of(stateIdOfFinalStore), txn);
+					keepPersistedOnlyNotOlderThan(transformation.getNow(), txn);
 					return stateIdOfFinalStore;
 				})));
 

@@ -16,12 +16,13 @@ limitations under the License.
 
 package io.hotmoka.node.local.internal.tries;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -255,19 +256,21 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 */
 	protected void persist(StateId stateId, long now, Transaction txn) throws NodeException {
 		malloc(stateId, txn);
-		addToStores(STORES_NOT_TO_GC, List.of(stateId), txn);
+		addToStores(STORES_NOT_TO_GC, Set.of(new StateIdAndTime(stateId, now)), txn);
 	}
 
 	/**
-	 * Takes note that only the given stores must remain persisted, while the other
-	 * stores, persisted up to now, can be garbage-collected.
+	 * Takes note that only stores not older than the given creation time limit remain persisted,
+	 * while the other stores, persisted up to now, can be garbage-collected.
 	 * 
-	 * @param ids the identifiers of the stores that must remain persisted
+	 * @param limitCreationTime the time limit: stores creates at this time or later
+	 *                          are retained, the others are marked as potentially garbage-collectable;
+	 *                          this is expressed in milliseconds after the Unix epoch
 	 * @param txn the Xodus transaction where the operation is performed
 	 * @throws NodeException if the node is not able to complete the operation correctly
 	 */
-	protected void keepPersistedOnly(Set<StateId> ids, Transaction txn) throws NodeException {
-		List<StateId> removedIds = retainOnlyStores(STORES_NOT_TO_GC, ids, txn);
+	protected void keepPersistedOnlyNotOlderThan(long limitCreationTime, Transaction txn) throws NodeException {
+		Set<StateIdAndTime> removedIds = retainOnlyNotOlderThan(STORES_NOT_TO_GC, limitCreationTime, txn);
 		addToStores(STORES_TO_GC, removedIds, txn);
 	}
 
@@ -286,20 +289,20 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		}
 	}
 
-	private void gc(StateId id) throws InterruptedException {
+	private void gc(StateIdAndTime stateIdAndTime) throws InterruptedException {
 		try {
 			CheckRunnable.check(StoreException.class, NodeException.class, UnknownStateIdException.class, () -> env.executeInTransaction(UncheckConsumer.uncheck(txn -> {
-				free(id, txn);
-				removeFromStores(STORES_TO_GC, id, txn);
+				free(stateIdAndTime.stateId, txn);
+				removeFromStores(STORES_TO_GC, stateIdAndTime, txn);
 			})));
 
 			freed++;
 			System.out.println("persisted = " + persisted + " freed = " + freed);
 
-			LOGGER.info("garbage-collected store " + id);
+			LOGGER.info("garbage-collected store " + stateIdAndTime);
 		}
 		catch (NodeException | UnknownStateIdException | StoreException | ExodusException e) {
-			LOGGER.log(Level.SEVERE, "cannot garbage-collect store " + id, e);
+			LOGGER.log(Level.SEVERE, "cannot garbage-collect store " + stateIdAndTime, e);
 		}
 	}
 
@@ -413,19 +416,19 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	private void gc() {
 		try {
 			while (!Thread.currentThread().isInterrupted()) {
-				List<StateId> toGC = CheckSupplier.check(NodeException.class, () -> env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> getStores(STORES_TO_GC, txn))));
+				Set<StateIdAndTime> toGC = CheckSupplier.check(NodeException.class, () -> env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> getStores(STORES_TO_GC, txn))));
 
-				for (var stateId: toGC) {
+				for (var stateIdAndTime: toGC) {
 					boolean canGC;
 
 					synchronized (lockGC) {
-						canGC = storeUsers.getOrDefault(stateId, 0) == 0;
+						canGC = storeUsers.getOrDefault(stateIdAndTime.stateId, 0) == 0;
 						if (canGC)
-							selectedForGC = stateId;
+							selectedForGC = stateIdAndTime.stateId;
 					}
 
 					if (canGC) {
-						gc(stateId);
+						gc(stateIdAndTime);
 
 						synchronized (lockGC) {
 							selectedForGC = null;
@@ -444,16 +447,15 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		}
 	}
 
-	private List<StateId> getStores(ByteIterable which, Transaction txn) throws NodeException {
+	private SortedSet<StateIdAndTime> getStores(ByteIterable which, Transaction txn) throws NodeException {
 		try {
 			byte[] bytes = Optional.ofNullable(storeOfNode.get(txn, which)).map(ByteIterable::getBytes).orElse(new byte[0]);
 
-			// each store id consists of 128 bytes
-			var result = new ArrayList<StateId>();
-			for (int pos = 0; pos < bytes.length; pos += 128) {
-				var id = new byte[128];
-				System.arraycopy(bytes, pos, id, 0, 128);
-				result.add(StateIds.of(id));
+			var result = new TreeSet<StateIdAndTime>();
+			for (int pos = 0; pos < bytes.length; pos += StateIdAndTime.SIZE_IN_BYTES) {
+				var snippet = new byte[StateIdAndTime.SIZE_IN_BYTES];
+				System.arraycopy(bytes, pos, snippet, 0, StateIdAndTime.SIZE_IN_BYTES);
+				result.add(new StateIdAndTime(snippet));
 			}
 
 			return result;
@@ -464,88 +466,141 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	}
 
 	/**
-	 * Removes the given store from the list identified by {@code which}. If that list
-	 * contains {@toRemove} more than once, it removes only one occurrence.
+	 * Removes the given store from the set identified by {@code which}.
 	 * 
-	 * @param which the identifier of the list
+	 * @param which the identifier of the set
 	 * @param toRemove the store to remove
 	 * @param txn the Xodus transaction where the operation is performed
 	 * @throws NodeException if the node is not able to perform the operation correctly
 	 */
-	private void removeFromStores(ByteIterable which, StateId toRemove, Transaction txn) throws NodeException {
-		List<StateId> ids = getStores(which, txn);
+	private void removeFromStores(ByteIterable which, StateIdAndTime toRemove, Transaction txn) throws NodeException {
+		SortedSet<StateIdAndTime> ids = getStores(which, txn);
 
-		if (ids.remove(toRemove)) {
-			var reduced = new byte[128 * ids.size()];
-			for (int pos = 0; pos < reduced.length; pos += 128)
-				System.arraycopy(ids.get(pos / 128).getBytes(), 0, reduced, pos, 128);
-
-			try {
-				storeOfNode.put(txn, which, ByteIterable.fromBytes(reduced));
-			}
-			catch (ExodusException e) {
-				throw new NodeException(e);
-			}
-		}
+		if (ids.remove(toRemove))
+			storeStateIdsAndTimes(which, ids, txn);
 	}
 
 	/**
-	 * Retains only the given stores in the list identified by {@code which}. If a store in {@code toRetain}
-	 * occurs more than once in the list, all its occurrences are retained.
+	 * Retains only stores that are not older than the given time in the set identified by {@code which}.
 	 * 
-	 * @param which the identifier of the list
-	 * @param toRetain the stores to retain
+	 * @param which the identifier of the set
+	 * @param limitCreationTime the time limit: stores created at that time or later are retained;
+	 *                          this is in milliseconds from the Unix epoch
 	 * @param txn the Xodus transaction where the operation is performed
-	 * @return the stores that have been removed from the list, because they were not in {@code toRetain};
-	 *         if a store occurred more than once in the list but did not occur in {@code toRetain}, all
-	 *         its occurrences are reported here
+	 * @return the stores that have been removed from the set, because they were older than {@code limitCreationTime}
 	 * @throws NodeException if the node is not able to perform the operation correctly
 	 */
-	private List<StateId> retainOnlyStores(ByteIterable which, Set<StateId> toRetain, Transaction txn) throws NodeException {
-		List<StateId> ids = getStores(which, txn);
-		List<StateId> removedIds = new ArrayList<>(ids);
+	private Set<StateIdAndTime> retainOnlyNotOlderThan(ByteIterable which, long limitCreationTime, Transaction txn) throws NodeException {
+		SortedSet<StateIdAndTime> ids = getStores(which, txn);
+		Set<StateIdAndTime> removedIds = new HashSet<>();
 
-		if (ids.retainAll(toRetain)) {
-			var reduced = new byte[128 * ids.size()];
-			for (int pos = 0; pos < reduced.length; pos += 128)
-				System.arraycopy(ids.get(pos / 128).getBytes(), 0, reduced, pos, 128);
+		for (var id: ids)
+			if (id.time < limitCreationTime)
+				removedIds.add(id);
+			else
+				break; // they are sorted in non-decreasing creation time
 
-			try {
-				storeOfNode.put(txn, which, ByteIterable.fromBytes(reduced));
-			}
-			catch (ExodusException e) {
-				throw new NodeException(e);
-			}
+		if (removedIds.size() > 0) {
+			ids.removeAll(removedIds);
+			storeStateIdsAndTimes(which, ids, txn);
 		}
-
-		while (removedIds.removeAll(ids));
 
 		return removedIds;
 	}
 
+	private void storeStateIdsAndTimes(ByteIterable which, Set<StateIdAndTime> ids, Transaction txn) throws NodeException {
+		var reduced = new byte[StateIdAndTime.SIZE_IN_BYTES * ids.size()];
+		int pos = 0;
+		for (var id: ids) {
+			System.arraycopy(id.getBytes(), 0, reduced, pos, StateIdAndTime.SIZE_IN_BYTES);
+			pos += StateIdAndTime.SIZE_IN_BYTES;
+		}
+
+		try {
+			storeOfNode.put(txn, which, ByteIterable.fromBytes(reduced));
+		}
+		catch (ExodusException e) {
+			throw new NodeException(e);
+		}
+	}
+
 	/**
-	 * Adds the given stores to the given list. If a store occurs more than once in {@code toAdd}, then
-	 * it is added with the same multiplicity to the list.
+	 * Adds the given stores to the given set.
 	 * 
-	 * @param which the identifier of the list
+	 * @param which the identifier of the set
 	 * @param toAdd the stores to add
 	 * @param txn the Xodus transaction where the operation is performed
 	 * @throws NodeException if the node is not able to complete the operation correctly
 	 */
-	private void addToStores(ByteIterable which, List<StateId> toAdd, Transaction txn) throws NodeException {
-		List<StateId> ids = getStores(which, txn);
+	private void addToStores(ByteIterable which, Set<StateIdAndTime> toAdd, Transaction txn) throws NodeException {
+		SortedSet<StateIdAndTime> ids = getStores(which, txn);
 
-		if (ids.addAll(toAdd)) {
-			var expanded = new byte[128 * ids.size()];
-			for (int pos = 0; pos < expanded.length; pos += 128)
-				System.arraycopy(ids.get(pos / 128).getBytes(), 0, expanded, pos, 128);
+		if (ids.addAll(toAdd))
+			storeStateIdsAndTimes(which, ids, txn);
+	}
 
-			try {
-				storeOfNode.put(txn, which, ByteIterable.fromBytes(expanded));
-			}
-			catch (ExodusException e) {
-				throw new NodeException(e);
-			}
+	/**
+	 * A pair of a store identifier and of its creation time. They are ordered by increasing creation time.
+	 */
+	private static class StateIdAndTime implements Comparable<StateIdAndTime> {
+		private final StateId stateId;
+		private final long time;
+		private final static int SIZE_IN_BYTES = 128 + 8;
+
+		private StateIdAndTime(StateId stateId, long time) {
+			this.stateId = stateId;
+			this.time = time;
+		}
+
+		private StateIdAndTime(byte[] bytes) {
+			var bytesForStateId = new byte[128];
+			System.arraycopy(bytes, 0, bytesForStateId, 0, 128);
+			this.stateId = StateIds.of(bytesForStateId);
+
+			long t = 0;
+		    for (int i = 0; i < 8; i++) {
+		        t <<= 8;
+		        t |= (bytes[128 + i] & 0xFF);
+		    }
+
+		    this.time = t;
+		}
+
+		private byte[] getBytes() {
+			var result = new byte[SIZE_IN_BYTES];
+			System.arraycopy(stateId.getBytes(), 0, result, 0, 128);
+
+			long l = time;
+			for (int i = 128 + 7; i >= 128; i--) {
+		        result[i] = (byte) (l & 0xFF);
+		        l >>= 8;
+		    }
+
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object other) {
+			return other instanceof StateIdAndTime siat && siat.time == time && siat.stateId.equals(stateId);
+		}
+
+		@Override
+		public int hashCode() {
+			return (int) time;
+		}
+
+		@Override
+		public int compareTo(StateIdAndTime other) {
+			int diff = Long.compare(time, other.time);
+			if (diff != 0)
+				return diff;
+			else
+				return stateId.compareTo(other.stateId);
+		}
+
+		@Override
+		public String toString() {
+			return stateId + "@" + time;
 		}
 	}
 }

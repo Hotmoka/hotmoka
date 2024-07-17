@@ -39,4 +39,12 @@ public class StateIdImpl implements StateId {
 	public String toString() {
 		return Hex.toHexString(bytes);
 	}
+
+	@Override
+	public int compareTo(StateId other) {
+		if (other instanceof StateIdImpl sii)
+			return Arrays.compare(bytes, sii.bytes); // optimization
+		else
+			return Arrays.compare(bytes, other.getBytes());
+	}
 }

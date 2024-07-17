@@ -19,7 +19,7 @@ package io.hotmoka.node.local.api;
 /**
  * The identifier of the state of a checkable store.
  */
-public interface StateId {
+public interface StateId extends Comparable<StateId> {
 
 	/**
 	 * Yields a byte representation of this identifier.
