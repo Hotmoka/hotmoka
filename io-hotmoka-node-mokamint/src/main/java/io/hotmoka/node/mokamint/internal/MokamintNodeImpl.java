@@ -34,7 +34,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.exceptions.CheckRunnable;
 import io.hotmoka.exceptions.CheckSupplier;
+import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.NodeUnmarshallingContexts;
@@ -101,9 +103,6 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 					try {
 						try {
 							setStoreOfHead(mkStore(idOfStoreOfHead));
-							/*CheckRunnable.check(NodeException.class, () -> getEnvironment().executeInTransaction(UncheckConsumer.uncheck(
-							txn -> keepPersistedOnly(Set.of(idOfStoreOfHead), txn)
-						))); */// TODO: we must gc somehow
 						}
 						catch (InterruptedException e) {
 							// this might well occur if the mining task is interrupted before having the time to set the new head
@@ -375,6 +374,19 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			}
 
 			transformations.remove(groupId);
+		}
+
+		@Override
+		public void keepFrom(LocalDateTime start) throws ApplicationException {
+			long limit = start.toInstant(ZoneOffset.UTC).toEpochMilli();
+			System.out.println("I keep only from " + limit);
+
+			try {
+				CheckRunnable.check(NodeException.class, () -> getEnvironment().executeInTransaction(UncheckConsumer.uncheck(txn -> keepPersistedOnlyNotOlderThan(limit, txn))));
+			}
+			catch (NodeException | ExodusException e) {
+				throw new ApplicationException(e);
+			}
 		}
 
 		private MokamintStoreTransformation getTransformation(int groupId) throws UnknownGroupIdException {
