@@ -147,7 +147,8 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	    		Node wrapped;
 	    		//node = wrapped = mkDiskNode();
 	    		//node = wrapped = mkMokamintNode();
-	    		node = wrapped = mkMokamintNetworkOfTwoNodes();
+	    		node = wrapped = mkMokamintNodeConnectedToPeer();
+	    		//node = wrapped = mkMokamintNetworkOfTwoNodes();
 	    		//node = wrapped = mkTendermintNode();
 	    		//node = mkRemoteNode(wrapped = mkDiskNode());
 	    		//node = mkRemoteNode(wrapped = mkMokamintNode());
@@ -374,6 +375,66 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		}
 	}
 
+	/**
+	 * This scenario assumes that there is an external, non-initialized node, published for instance like that:
+	 * 
+	 * moka start-mokamint --keys CYcdCR4S1zVojhFsB7cxpYsudqBhvRMoXRhFCtwcnUg9.pem --keys-of-plot 5BYtHQ3XaygM7yjJ4vaaftA5AJAC56GNkLrDj4yQ46Wh.pem --plot plot.plot --mokamint-port 8031 --port 8002
+	 */
+	@SuppressWarnings("unused")
+	private static Node mkMokamintNodeConnectedToPeer() throws NodeException, InterruptedException, InvalidKeyException, SignatureException, TimeoutException {
+		try {
+			consensus = fillConsensusConfig(ValidatorsConsensusConfigBuilders.defaults()).build();
+
+			Path hotmokaChainPath = Files.createTempDirectory("hotmoka-mokamint-chain-");
+
+			var config = MokamintNodeConfigBuilders.defaults()
+					.setDir(hotmokaChainPath)
+					.setMaxGasPerViewTransaction(_10_000_000)
+					.build();
+
+			var mokamintConfig = LocalNodeConfigBuilders.defaults()
+					// we use the same chain id for the Hotmoka node and for the underlying Mokamint engine, although this is not necessary
+					.setChainId(consensus.getChainId())
+					.setTargetBlockCreationTime(2000)
+					.setInitialAcceleration(50000000000000L)
+					.setMaximalHistoryChangeTime(300000L) // 5 minutes
+					.setDir(hotmokaChainPath.resolve("mokamint")).build();
+			var nodeKeys = mokamintConfig.getSignatureForBlocks().getKeyPair();
+			var plotKeys = mokamintConfig.getSignatureForDeadlines().getKeyPair();
+			var prolog = Prologs.of(mokamintConfig.getChainId(), mokamintConfig.getSignatureForBlocks(), nodeKeys.getPublic(), mokamintConfig.getSignatureForDeadlines(), plotKeys.getPublic(), new byte[0]);
+			plot = Plots.create(hotmokaChainPath.resolve("test.plot"), prolog, 1000, 4000, mokamintConfig.getHashingForDeadlines(), __ -> {});
+			miner = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, plotKeys) });
+			var node = MokamintNodes.init(config, mokamintConfig, nodeKeys, true);
+			node.getMokamintNode().add(miner).orElseThrow(() -> new NodeException("Could not create the miner for the test node"));
+
+			NodeServices.of(node, 8001);
+			System.out.println("Hotmoka node published at ws://localhost:8001");
+
+			// we open a web service to the underlying Mokamint node, at port 8030; this is not necessary,
+			// but it allows developers to query the node during the execution of the tests
+			URI uri1 = URI.create("ws://localhost:8030");
+			PublicNodeServices.open(node.getMokamintNode(), 8030, 1800000, 1000, Optional.of(uri1));
+			System.out.println("Underlying Mokamint node published at " + uri1);
+
+			URI uri2 = URI.create("ws://localhost:8031");
+
+			try {
+				if (node.getMokamintNode().add(Peers.of(uri2)).isPresent())
+					System.out.println("Added " + uri2 + " as a peer of " + uri1);
+				else
+					System.out.println("Could not add " + uri2 + " as a peer of " + uri1);
+			}
+			catch (PeerRejectedException e) {
+				System.out.println("Could not add " + uri2 + " as a peer of " + uri1 + ": it has been rejected");
+			}
+
+			return node;
+		}
+		catch (IOException | NoSuchAlgorithmException | io.mokamint.node.api.NodeException | DeploymentException e) {
+			throw new NodeException(e);
+		}
+	}
+
 	@SuppressWarnings("unused")
 	private static Node mkMokamintNetworkOfTwoNodes() throws NodeException, InterruptedException, TimeoutException, InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException {
 		try {
@@ -464,6 +525,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		}
 	}
 
+	
 	private static <B extends ConsensusConfigBuilder<?,B>> B fillConsensusConfig(ConsensusConfigBuilder<?,B> builder) throws NodeException {
 		try {
 			return builder.setSignatureForRequests(SignatureAlgorithms.ed25519det()) // good for testing

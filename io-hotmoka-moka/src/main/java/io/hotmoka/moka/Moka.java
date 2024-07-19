@@ -43,6 +43,7 @@ import io.hotmoka.moka.internal.RotateKey;
 import io.hotmoka.moka.internal.SellValidation;
 import io.hotmoka.moka.internal.Send;
 import io.hotmoka.moka.internal.ShowAccount;
+import io.hotmoka.moka.internal.StartMokamint;
 import io.hotmoka.moka.internal.StartTendermint;
 import io.hotmoka.moka.internal.State;
 import io.hotmoka.moka.internal.Verify;
@@ -82,6 +83,7 @@ import picocli.CommandLine.Command;
 			        SellValidation.class,
 			        Send.class,
 			        ShowAccount.class,
+			        StartMokamint.class,
 			        StartTendermint.class,
 			        State.class,
 			        Verify.class,
