@@ -466,9 +466,10 @@ public abstract class ExecutionEnvironment {
 	 * @param classpath the class path that must be used by the class loader
 	 * @return the class loader
 	 * @throws StoreException if the store is not able to complete the operation correctly
+	 * @throws TransactionRejectedException 
 	 */
-	protected final EngineClassLoader getClassLoader(TransactionReference classpath, ConsensusConfig<?,?> consensus) throws StoreException {
-		return CheckSupplier.check(StoreException.class, () -> getClassLoader(classpath, UncheckFunction.uncheck(_classpath -> mkClassLoader(_classpath, consensus))));
+	protected final EngineClassLoader getClassLoader(TransactionReference classpath, ConsensusConfig<?,?> consensus) throws StoreException, TransactionRejectedException {
+		return CheckSupplier.check(StoreException.class, TransactionRejectedException.class, () -> getClassLoader(classpath, UncheckFunction.uncheck(_classpath -> mkClassLoader(_classpath, consensus))));
 	}
 
 	protected final ClassTag getClassTag(StorageReference reference) throws UnknownReferenceException, StoreException {

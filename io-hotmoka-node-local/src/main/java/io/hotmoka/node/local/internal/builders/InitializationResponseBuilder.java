@@ -57,7 +57,7 @@ public class InitializationResponseBuilder extends AbstractInitialResponseBuilde
 	}
 
 	@Override
-	protected EngineClassLoader mkClassLoader() throws StoreException {
+	protected EngineClassLoader mkClassLoader() throws StoreException, TransactionRejectedException {
 		return environment.getClassLoader(request.getClasspath(), consensus); // currently not used for this transaction
 	}
 }

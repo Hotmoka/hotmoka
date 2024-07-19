@@ -146,8 +146,8 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	    		Node wrapped;
 	    		//node = wrapped = mkDiskNode();
-	    		node = wrapped = mkMokamintNode();
-	    		//node = wrapped = mkMokamintNetworkOfTwoNodes();
+	    		//node = wrapped = mkMokamintNode();
+	    		node = wrapped = mkMokamintNetworkOfTwoNodes();
 	    		//node = wrapped = mkTendermintNode();
 	    		//node = mkRemoteNode(wrapped = mkDiskNode());
 	    		//node = mkRemoteNode(wrapped = mkMokamintNode());
@@ -351,7 +351,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 					.setChainId(consensus.getChainId())
 					.setTargetBlockCreationTime(2000)
 					.setInitialAcceleration(50000000000000L)
-					.setMaximalHistoryChangeTime(5 * 60 * 1000) // five minutes, so that it is possible to see the effects of garbage-collection during the tests
+					.setMaximalHistoryChangeTime(0) // since with a single node there are no history changes, it's enough to keep only the head as history
 					.setDir(hotmokaChainPath.resolve("mokamint")).build();
 			var nodeKeys = mokamintConfig.getSignatureForBlocks().getKeyPair();
 			var plotKeys = mokamintConfig.getSignatureForDeadlines().getKeyPair();

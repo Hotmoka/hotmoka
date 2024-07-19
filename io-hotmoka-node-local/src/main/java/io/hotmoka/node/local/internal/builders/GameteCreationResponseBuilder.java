@@ -47,7 +47,7 @@ public class GameteCreationResponseBuilder extends AbstractInitialResponseBuilde
 	}
 
 	@Override
-	protected EngineClassLoader mkClassLoader() throws StoreException {
+	protected EngineClassLoader mkClassLoader() throws StoreException, TransactionRejectedException {
 		return environment.getClassLoader(request.getClasspath(), consensus);
 	}
 

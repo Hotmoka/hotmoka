@@ -276,11 +276,11 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 	@Override
 	public final Stream<TransactionReference> getHistory(StorageReference object) throws StoreException, UnknownReferenceException {
 		try {
-			return CheckSupplier.check(TrieException.class, StoreException.class, () -> getNode().getEnvironment().computeInReadonlyTransaction
+			return CheckSupplier.check(UnknownKeyException.class, StoreException.class, () -> getNode().getEnvironment().computeInReadonlyTransaction
 				(UncheckFunction.uncheck(txn -> mkTrieOfHistories(txn).get(object))))
 					.orElseThrow(() -> new UnknownReferenceException(object));
 		}
-		catch (ExodusException | TrieException e) {
+		catch (ExodusException | UnknownKeyException e) {
 			throw new StoreException(e);
 		}
 	}
