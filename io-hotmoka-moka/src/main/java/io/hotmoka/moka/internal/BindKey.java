@@ -74,9 +74,10 @@ public class BindKey extends AbstractCommand {
 			String key = Base64.toBase64String(Base58.decode(this.key));
 
 			// we look in the accounts ledger
-			var ledger = (StorageReference) node.runInstanceMethodCallTransaction
+			var ledger = node.runInstanceMethodCallTransaction
 				(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, MethodSignatures.GET_ACCOUNTS_LEDGER, manifest))
-				.orElseThrow(() -> new CommandException(MethodSignatures.GET_ACCOUNTS_LEDGER + " should not return void"));
+				.orElseThrow(() -> new CommandException(MethodSignatures.GET_ACCOUNTS_LEDGER + " should not return void"))
+				.asReturnedReference(MethodSignatures.GET_ACCOUNTS_LEDGER, CommandException::new);
 			StorageValue result = node.runInstanceMethodCallTransaction
 				(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, MethodSignatures.GET_FROM_ACCOUNTS_LEDGER, ledger, StorageValues.stringOf(key)))
 				.orElseThrow(() -> new CommandException(MethodSignatures.GET_FROM_ACCOUNTS_LEDGER + " should not return void"));

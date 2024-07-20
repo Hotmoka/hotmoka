@@ -158,7 +158,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	}
 
 	@Override
-	public final void deliverRewardTransaction(String behaving, String misbehaving) throws StoreException, InterruptedException {
+	public final void deliverRewardTransaction(String behaving, String misbehaving) throws StoreException, InterruptedException { // TODO: downgrade into TendermintStoreTransformation
 		try {
 			Optional<StorageReference> maybeManifest = getManifest();
 			if (maybeManifest.isPresent()) {
@@ -308,6 +308,14 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 		return store.getHasher();
 	}
 
+	protected final BigInteger getCoins() {
+		return coins;
+	}
+
+	protected final BigInteger getCoinsWithoutInflation() {
+		return coinsWithoutInflation;
+	}
+
 	/**
 	 * Updates the caches, if needed, after the addition of the given response into store.
 	 * 
@@ -358,6 +366,10 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 
 	protected final StorageReference getCreator(StorageReference event) throws UnknownReferenceException, FieldNotFoundException, StoreException {
 		return getReferenceField(event, FieldSignatures.EVENT_CREATOR_FIELD);
+	}
+
+	protected final BigInteger getCurrentSupply(StorageReference validators) throws UnknownReferenceException, FieldNotFoundException, StoreException {
+		return getBigIntegerField(validators, FieldSignatures.ABSTRACT_VALIDATORS_CURRENT_SUPPLY_FIELD);
 	}
 
 	/**
@@ -602,7 +614,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 			expandHistory(reference, trwu);
 	
 			if (response instanceof GameteCreationTransactionResponse gctr)
-				LOGGER.info(gctr.getGamete() + ": created as gamete");
+				LOGGER.info(reference + ": " + gctr.getGamete() + " created as gamete");
 		}
 		else if (response instanceof InitializationTransactionResponse) {
 			if (request instanceof InitializationTransactionRequest itr) {
@@ -610,8 +622,8 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 				setResponse(reference, response);
 				StorageReference manifest = itr.getManifest();
 				setManifest(manifest);
-				LOGGER.info(manifest + ": set as manifest");
-				LOGGER.info("the node has been initialized");
+				LOGGER.info(reference + ": " + manifest + " set as manifest");
+				LOGGER.info(reference + ": the node has been initialized");
 			}
 			else
 				throw new StoreException("Trying to initialize the node with a request of class " + request.getClass().getSimpleName());
@@ -620,10 +632,6 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 			setRequest(reference, request);
 			setResponse(reference, response);
 		}
-	}
-
-	private BigInteger getCurrentSupply(StorageReference validators) throws UnknownReferenceException, FieldNotFoundException, StoreException {
-		return getBigIntegerField(validators, FieldSignatures.ABSTRACT_VALIDATORS_CURRENT_SUPPLY_FIELD);
 	}
 
 	/**

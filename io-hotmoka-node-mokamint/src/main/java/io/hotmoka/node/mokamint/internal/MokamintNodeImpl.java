@@ -332,16 +332,21 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		}
 
 		@Override
-		public byte[] endBlock(int groupId, Deadline deadline) throws ApplicationException, UnknownGroupIdException {
+		public byte[] endBlock(int groupId, Deadline deadline) throws ApplicationException, UnknownGroupIdException, InterruptedException {
 			MokamintStoreTransformation transformation = getTransformation(groupId);
-			persisted++;
 
 			try {
-				return CheckSupplier.check(NodeException.class, StoreException.class, () -> getEnvironment().computeInTransaction(UncheckFunction.uncheck(txn -> {
+				transformation.deliverRewardForNodeAndMiner(deadline.getProlog());
+
+				byte[] finalId = CheckSupplier.check(NodeException.class, StoreException.class, () -> getEnvironment().computeInTransaction(UncheckFunction.uncheck(txn -> {
 					StateId stateIdOfFinalStore = transformation.getIdOfFinalStore(txn);
 					persist(stateIdOfFinalStore, transformation.getNow(), txn);
 					return stateIdOfFinalStore.getBytes();
 				})));
+
+				persisted++;
+
+				return finalId;
 			}
 			catch (ExodusException | StoreException | NodeException e) {
 				throw new ApplicationException(e);

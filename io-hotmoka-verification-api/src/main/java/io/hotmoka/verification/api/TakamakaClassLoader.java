@@ -182,6 +182,13 @@ public interface TakamakaClassLoader extends WhiteListingClassLoader {
 	Class<?> getExternallyOwnedAccount();
 
 	/**
+	 * Yields the class token of manifest class.
+	 * 
+	 * @return the class token
+	 */
+	Class<?> getManifest();
+
+	/**
 	 * Yields the class token of the abstract validators class.
 	 * 
 	 * @return the class token

@@ -30,6 +30,7 @@ module io.hotmoka.node.mokamint {
 	requires io.hotmoka.annotations;
 	requires io.hotmoka.exceptions;
 	requires io.hotmoka.xodus;
+	requires io.hotmoka.crypto;
 	requires transitive io.mokamint.node.local.api;
 	requires io.mokamint.node.local;
 	requires io.mokamint.node;

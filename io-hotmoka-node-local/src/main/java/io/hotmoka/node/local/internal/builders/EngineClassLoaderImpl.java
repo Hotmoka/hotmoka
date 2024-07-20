@@ -814,6 +814,11 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
+	public Class<?> getManifest() {
+		return parent.getManifest();
+	}
+
+	@Override
 	public Class<?> getStorage() {
 		return parent.getStorage();
 	}

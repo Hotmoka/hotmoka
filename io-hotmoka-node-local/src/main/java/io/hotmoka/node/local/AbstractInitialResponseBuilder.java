@@ -56,7 +56,7 @@ public abstract class AbstractInitialResponseBuilder<Request extends InitialTran
 		 */
 		protected ResponseCreator() throws TransactionRejectedException, StoreException {}
 
-		protected final void checkConsistency() throws TransactionRejectedException {
+		protected void checkConsistency() throws TransactionRejectedException {
 			try {
 				if (environment.getManifest().isPresent())
 					throw new TransactionRejectedException("Cannot run an initial transaction request in an already initialized node", consensus);

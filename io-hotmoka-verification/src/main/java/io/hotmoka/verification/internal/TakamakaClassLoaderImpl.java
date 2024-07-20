@@ -91,6 +91,11 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	public final Class<?> storage;
 
 	/**
+	 * The class token of the manifest class.
+	 */
+	public final Class<?> manifest;
+
+	/**
 	 * The class token of the consensus update event class.
 	 */
 	public final Class<?> consensusUpdateEvent;
@@ -129,6 +134,7 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 		this.accountQTESLA1 = loadClass(Constants.ACCOUNT_QTESLA1_NAME);
 		this.accountQTESLA3 = loadClass(Constants.ACCOUNT_QTESLA3_NAME);
 		this.accountSHA256DSA = loadClass(Constants.ACCOUNT_SHA256DSA_NAME);
+		this.manifest = loadClass(Constants.MANIFEST_NAME);
 		this.storage = loadClass(Constants.STORAGE_NAME);
 		this.consensusUpdateEvent = loadClass(Constants.CONSENSUS_UPDATE_NAME);
 		this.gasPriceUpdateEvent = loadClass(Constants.GAS_PRICE_UPDATE_NAME);
@@ -244,6 +250,11 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	@Override
 	public final Class<?> getAccountSHA256DSA() {
 		return accountSHA256DSA;
+	}
+
+	@Override
+	public Class<?> getManifest() {
+		return manifest;
 	}
 
 	@Override
