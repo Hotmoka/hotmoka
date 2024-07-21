@@ -30,6 +30,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.InvalidKeyException;
+import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
@@ -45,6 +46,7 @@ import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
+import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
@@ -146,9 +148,9 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	    		Node wrapped;
 	    		//node = wrapped = mkDiskNode();
-	    		//node = wrapped = mkMokamintNode();
+	    		node = wrapped = mkMokamintNode();
 	    		//node = wrapped = mkMokamintNodeConnectedToPeer();
-	    		node = wrapped = mkMokamintNetworkOfTwoNodes();
+	    		//node = wrapped = mkMokamintNetworkOfTwoNodes();
 	    		//node = wrapped = mkTendermintNode();
 	    		//node = mkRemoteNode(wrapped = mkDiskNode());
 	    		//node = mkRemoteNode(wrapped = mkMokamintNode());
@@ -354,13 +356,31 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 					.setInitialAcceleration(50000000000000L)
 					.setMaximalHistoryChangeTime(0) // since with a single node there are no history changes, it's enough to keep only the head as history
 					.setDir(hotmokaChainPath.resolve("mokamint")).build();
-			var nodeKeys = mokamintConfig.getSignatureForBlocks().getKeyPair();
-			var plotKeys = mokamintConfig.getSignatureForDeadlines().getKeyPair();
+
+			var entropyForNode = Entropies.random();
+			KeyPair nodeKeys = entropyForNode.keys("", mokamintConfig.getSignatureForBlocks());
+			byte[] nodePublicKeyBytes = mokamintConfig.getSignatureForBlocks().encodingOf(nodeKeys.getPublic());
+			var nodePublicKeyBase58 = Base58.encode(nodePublicKeyBytes);
+			var fileNameNodeKeys = Paths.get(nodePublicKeyBase58 + ".pem");
+			entropyForNode.dump(fileNameNodeKeys);
+			System.out.println("Keys of the Mokamint node dumped in file " + fileNameNodeKeys);
+
+			var entropyForPlot = Entropies.random();
+			KeyPair plotKeys = entropyForPlot.keys("", mokamintConfig.getSignatureForDeadlines());
+			byte[] plotPublicKeyBytes = mokamintConfig.getSignatureForDeadlines().encodingOf(plotKeys.getPublic());
+			var plotPublicKeyBase58 = Base58.encode(plotPublicKeyBytes);
+			var fileNamePlotKeys = Paths.get(plotPublicKeyBase58 + ".pem");
+			entropyForPlot.dump(fileNamePlotKeys);
+			System.out.println("Keys of of the miner of the Mokamint node dumped in file " + fileNamePlotKeys);
+
 			var prolog = Prologs.of(mokamintConfig.getChainId(), mokamintConfig.getSignatureForBlocks(), nodeKeys.getPublic(), mokamintConfig.getSignatureForDeadlines(), plotKeys.getPublic(), new byte[0]);
 			plot = Plots.create(hotmokaChainPath.resolve("test.plot"), prolog, 1000, 4000, mokamintConfig.getHashingForDeadlines(), __ -> {});
 			miner = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, plotKeys) });
 			var node = MokamintNodes.init(config, mokamintConfig, nodeKeys, true);
-			node.getMokamintNode().add(miner).orElseThrow(() -> new NodeException("Could not create the miner for the test node"));
+			NodeServices.of(node, 8001);
+			System.out.println("Hotmoka node published at ws://localhost:8001");
+
+			node.getMokamintNode().add(miner).orElseThrow(() -> new NodeException("Could not add the miner to the test node"));
 
 			// we open a web service to the underlying Mokamint node, at port 8030; this is not necessary,
 			// but it allows developers to query the node during the execution of the tests
@@ -405,7 +425,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			plot = Plots.create(hotmokaChainPath.resolve("test.plot"), prolog, 1000, 4000, mokamintConfig.getHashingForDeadlines(), __ -> {});
 			miner = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, plotKeys) });
 			var node = MokamintNodes.init(config, mokamintConfig, nodeKeys, true);
-			node.getMokamintNode().add(miner).orElseThrow(() -> new NodeException("Could not create the miner for the test node"));
+			node.getMokamintNode().add(miner).orElseThrow(() -> new NodeException("Could not add the miner to the test node"));
 
 			NodeServices.of(node, 8001);
 			System.out.println("Hotmoka node published at ws://localhost:8001");
@@ -466,7 +486,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			var node1 = MokamintNodes.init(config1, mokamintConfig1, nodeKeys1, true);
 			NodeServices.of(node1, 8001);
 			System.out.println("Hotmoka node 1 published at ws://localhost:8001");
-			node1.getMokamintNode().add(miner).orElseThrow(() -> new NodeException("Could not create the miner for the test node"));
+			node1.getMokamintNode().add(miner).orElseThrow(() -> new NodeException("Could not add the miner to the test node"));
 			initializeNodeIfNeeded(node1);
 
 			// we open a web service to the underlying Mokamint node, at port 8030; this is not necessary,
@@ -502,7 +522,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			extraNodes[0] = node2;
 			NodeServices.of(node2, 8002);
 			System.out.println("Hotmoka node 2 published at ws://localhost:8002");
-			node2.getMokamintNode().add(extraMiners[0]).orElseThrow(() -> new NodeException("Could not create the miner for the test node"));
+			node2.getMokamintNode().add(extraMiners[0]).orElseThrow(() -> new NodeException("Could not add the miner to the test node"));
 
 			URI uri2 = URI.create("ws://localhost:8031");
 			PublicNodeServices.open(node2.getMokamintNode(), 8031, 1800000, 1000, Optional.of(uri2));
@@ -532,6 +552,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 					.allowUnsignedFaucet(true) // good for testing
 					.ignoreGasPrice(true) // good for testing
 					.setInitialSupply(Coin.level7(10000000)) // enough for all tests
+					.setFinalSupply(Coin.level7(10000000).multiply(BigInteger.TWO))
 					.setInitialRedSupply(Coin.level7(10000000)) // enough for all tests
 					.setPublicKeyOfGamete(consensus.getPublicKeyOfGamete());
 		}

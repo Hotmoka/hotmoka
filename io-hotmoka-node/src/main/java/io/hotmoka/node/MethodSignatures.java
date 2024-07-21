@@ -423,6 +423,16 @@ public abstract class MethodSignatures {
 	public final static VoidMethodSignature VALIDATORS_REWARD = AbstractMethodSignature.VALIDATORS_REWARD;
 
 	/**
+	 * The method {@code rewardMokamintNode} of the validators contract.
+	 */
+	public final static VoidMethodSignature VALIDATORS_REWARD_MOKAMINT_NODE = AbstractMethodSignature.VALIDATORS_REWARD_MOKAMINT_NODE;
+
+	/**
+	 * The method {@code rewardMokamintMiner} of the validators contract.
+	 */
+	public final static VoidMethodSignature VALIDATORS_REWARD_MOKAMINT_MINER = AbstractMethodSignature.VALIDATORS_REWARD_MOKAMINT_MINER;
+
+	/**
 	 * The method {@code getBuyerSurcharge} of the validators contract.
 	 */
 	public final static NonVoidMethodSignature VALIDATORS_GET_BUYER_SURCHARGE = AbstractMethodSignature.VALIDATORS_GET_BUYER_SURCHARGE;

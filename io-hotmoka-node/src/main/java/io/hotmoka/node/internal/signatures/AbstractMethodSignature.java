@@ -346,6 +346,17 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 		(StorageTypes.VALIDATORS, "reward", StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.STRING, StorageTypes.STRING, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER);
 
 	/**
+	 * The method {@code rewardMokamintNode} of the validators contract.
+	 */
+	public final static VoidMethodSignature VALIDATORS_REWARD_MOKAMINT_NODE = MethodSignatures.ofVoid
+		(StorageTypes.VALIDATORS, "rewardMokamintNode", StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.STRING, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER);
+
+	/**
+	 * The method {@code rewardMokamintMiner} of the validators contract.
+	 */
+	public final static VoidMethodSignature VALIDATORS_REWARD_MOKAMINT_MINER = MethodSignatures.ofVoid(StorageTypes.VALIDATORS, "rewardMokamintMiner", StorageTypes.BIG_INTEGER, StorageTypes.STRING);
+
+	/**
 	 * The method {@code getBuyerSurcharge} of the validators contract.
 	 */
 	public final static NonVoidMethodSignature VALIDATORS_GET_BUYER_SURCHARGE = MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getBuyerSurcharge", StorageTypes.INT);

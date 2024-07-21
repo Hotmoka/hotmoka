@@ -51,7 +51,7 @@ public class BindKey extends AbstractCommand {
 	@Override
 	protected void execute() throws Exception {
 		checkPublicKey(key);
-		
+
 		StorageReference storageReference;
 		if ("anonymous".equals(reference))
 			storageReference = getReferenceFromAccountLedger();
@@ -60,7 +60,7 @@ public class BindKey extends AbstractCommand {
 			storageReference = StorageValues.reference(reference);
 		}
 
-		var account = Accounts.of(Entropies.load(Paths.get(key+ ".pem")), storageReference);
+		var account = Accounts.of(Entropies.load(Paths.get(key + ".pem")), storageReference);
 		System.out.println("A new account " + account + " has been created.");
 		System.out.println("Its entropy has been saved into the file \"" + account.dump() + "\".");
 	}

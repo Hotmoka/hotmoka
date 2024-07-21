@@ -256,15 +256,20 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		}
 
 		/**
-		 * For system calls to the rewarding method of the validators.
+		 * For system calls to the rewarding methods of the validators.
 		 */
 		private void mintCoinsForRewardToValidators() throws StoreException {
 			Optional<StorageReference> manifest;
-			if (isSystemCall() && request.getStaticTarget().equals(MethodSignatures.VALIDATORS_REWARD) && (manifest = environment.getManifest()).isPresent() && request.getCaller().equals(manifest.get())) {
-				Optional<StorageValue> firstArg = request.actuals().findFirst();
-				if (firstArg.isPresent() && firstArg.get() instanceof BigIntegerValue biv) {
-					Object caller = getDeserializedCaller();
-					classLoader.setBalanceOf(caller, classLoader.getBalanceOf(caller).add(biv.getValue()));
+			if (isSystemCall()) {
+				var staticTarget = request.getStaticTarget();
+				if ((staticTarget.equals(MethodSignatures.VALIDATORS_REWARD) || staticTarget.equals(MethodSignatures.VALIDATORS_REWARD_MOKAMINT_NODE) || staticTarget.equals(MethodSignatures.VALIDATORS_REWARD_MOKAMINT_MINER))
+						&& (manifest = environment.getManifest()).isPresent() && request.getCaller().equals(manifest.get())) {
+
+					Optional<StorageValue> firstArg = request.actuals().findFirst();
+					if (firstArg.isPresent() && firstArg.get() instanceof BigIntegerValue biv) {
+						Object caller = getDeserializedCaller();
+						classLoader.setBalanceOf(caller, classLoader.getBalanceOf(caller).add(biv.getValue()));
+					}
 				}
 			}
 		}

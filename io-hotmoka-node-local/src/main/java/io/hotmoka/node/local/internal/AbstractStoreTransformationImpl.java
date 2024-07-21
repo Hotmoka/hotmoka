@@ -130,9 +130,9 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	/**
 	 * Enough gas for a simple get method.
 	 */
-	private final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
+	protected final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
 
-	private final static BigInteger _100_000_000 = BigInteger.valueOf(100_000_000L);
+	protected final static BigInteger _100_000_000 = BigInteger.valueOf(100_000_000L);
 
 	/**
 	 * Creates a transformation whose transactions are executed with the given executors.
@@ -314,6 +314,10 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 
 	protected final BigInteger getCoinsWithoutInflation() {
 		return coinsWithoutInflation;
+	}
+
+	protected final BigInteger getGasConsumed() {
+		return gasConsumed;
 	}
 
 	/**
