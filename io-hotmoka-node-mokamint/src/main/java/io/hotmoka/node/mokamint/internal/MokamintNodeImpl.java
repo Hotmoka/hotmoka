@@ -76,6 +76,8 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 	private final LocalNode mokamintNode;
 
+	private volatile long limitOfTimeForGC;
+
 	private final static Logger LOGGER = Logger.getLogger(MokamintNodeImpl.class.getName());
 
 	/**
@@ -122,6 +124,9 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 								if (added instanceof NonGenesisBlock ngb)
 									toPublish.offer(ngb);
 						}
+
+						long limit = limitOfTimeForGC;
+						CheckRunnable.check(NodeException.class, () -> getEnvironment().executeInTransaction(UncheckConsumer.uncheck(txn -> keepPersistedOnlyNotOlderThan(limit, txn))));
 					}
 					catch (NodeException | UnknownStateIdException e) {
 						LOGGER.log(Level.SEVERE, "could not set the head to " + idOfStoreOfHead, e);
@@ -382,16 +387,8 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		}
 
 		@Override
-		public void keepFrom(LocalDateTime start) throws ApplicationException {
-			long limit = start.toInstant(ZoneOffset.UTC).toEpochMilli();
-			System.out.println("I keep only from " + limit);
-
-			try {
-				CheckRunnable.check(NodeException.class, () -> getEnvironment().executeInTransaction(UncheckConsumer.uncheck(txn -> keepPersistedOnlyNotOlderThan(limit, txn))));
-			}
-			catch (NodeException | ExodusException e) {
-				throw new ApplicationException(e);
-			}
+		public void keepFrom(LocalDateTime start) {
+			limitOfTimeForGC = start.toInstant(ZoneOffset.UTC).toEpochMilli();
 		}
 
 		private MokamintStoreTransformation getTransformation(int groupId) throws UnknownGroupIdException {
