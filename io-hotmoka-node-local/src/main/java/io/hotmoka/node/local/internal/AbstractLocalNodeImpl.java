@@ -139,11 +139,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	private final LRUCache<TransactionReference, String> recentlyRejectedTransactionsMessages;
 
 	/**
-	 * The store of the head of this node.
-	 */
-	private volatile S storeOfHead;
-
-	/**
 	 * The version of Hotmoka used by the nodes.
 	 */
 	public final static String HOTMOKA_VERSION;
@@ -187,7 +182,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		if (init)
 			initWorkingDirectory();
 
-		this.storeOfHead = mkStore();
 		this.executors = Executors.newCachedThreadPool();
 
 		addShutdownHook();
@@ -207,7 +201,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	@Override
-	public final ConsensusConfig<?,?> getConfig() throws NodeException {
+	public final ConsensusConfig<?,?> getConfig() throws NodeException, InterruptedException {
 		S store = enterHead();
 
 		try (var scope = mkScope()) {
@@ -226,7 +220,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	@Override
-	public final TransactionReference getTakamakaCode() throws NodeException {
+	public final TransactionReference getTakamakaCode() throws NodeException, InterruptedException {
 		try (var scope = mkScope()) {
 			var manifest = getManifest();
 
@@ -240,7 +234,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	@Override
-	public final StorageReference getManifest() throws NodeException {
+	public final StorageReference getManifest() throws NodeException, InterruptedException {
 		S store = enterHead();
 
 		try (var scope = mkScope()) {
@@ -278,7 +272,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	@Override
-	public final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, NodeException {
+	public final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, NodeException, InterruptedException {
 		S store = enterHead();
 		
 		try (var scope = mkScope()) {
@@ -293,7 +287,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	@Override
-	public final TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, UnknownReferenceException, NodeException {
+	public final TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, UnknownReferenceException, NodeException, InterruptedException {
 		S store = enterHead();
 
 		try (var scope = mkScope()) {
@@ -317,7 +311,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	@Override
-	public final ClassTag getClassTag(StorageReference reference) throws UnknownReferenceException, NodeException {
+	public final ClassTag getClassTag(StorageReference reference) throws UnknownReferenceException, NodeException, InterruptedException {
 		S store = enterHead();
 
 		try (var scope = mkScope()) {
@@ -341,7 +335,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	@Override
-	public final Stream<Update> getState(StorageReference reference) throws UnknownReferenceException, NodeException {
+	public final Stream<Update> getState(StorageReference reference) throws UnknownReferenceException, NodeException, InterruptedException {
 		S store = enterHead();
 
 		try (var scope = mkScope()) {
@@ -491,9 +485,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 * @return the entered store of the head
 	 * @throws NodeException if the operation could not be completed correctly
 	 */
-	protected S enterHead() throws NodeException {
-		return storeOfHead;
-	}
+	protected abstract S enterHead() throws NodeException, InterruptedException;
 
 	/**
 	 * Called when this node finished executing something that needed the given store.
@@ -502,14 +494,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 * @throws NodeException if the operation could not be completed correctly
 	 */
 	protected void exit(S store) throws NodeException {}
-
-	protected final S getStoreOfHead() {
-		return storeOfHead;
-	}
-
-	protected final void setStoreOfHead(S store) {
-		this.storeOfHead = store;
-	}
 
 	protected final ExecutorService getExecutors() {
 		return executors;
@@ -527,7 +511,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 			semaphore.release();
 	}
 
-	protected final void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException, NodeException {
+	protected final void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException, NodeException, InterruptedException {
 		S store = enterHead();
 
 		try {

@@ -52,6 +52,11 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 	private final Mempool mempool;
 
 	/**
+	 * The store of the head of this node.
+	 */
+	private volatile DiskStore storeOfHead;
+
+	/**
 	 * Builds a new disk memory node.
 	 * 
 	 * @param config the configuration of the node
@@ -62,6 +67,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 		super(config, true);
 
 		try {
+			this.storeOfHead = mkStore();
 			this.mempool = new Mempool();
 		}
 		catch (NodeException e) {
@@ -85,6 +91,11 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 		catch (StoreException e) {
 			throw new NodeException(e);
 		}
+	}
+
+	@Override
+	protected DiskStore enterHead() {
+		return storeOfHead;
 	}
 
 	@Override
@@ -200,7 +211,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 		 */
 		private void deliver() {
 			try {
-				DiskStoreTransformation transaction = getStoreOfHead().beginTransformation(System.currentTimeMillis());
+				DiskStoreTransformation transaction = storeOfHead.beginTransformation(System.currentTimeMillis());
 
 				while (true) {
 					TransactionRequest<?> current = checkedMempool.poll(2, TimeUnit.MILLISECONDS);
@@ -235,12 +246,11 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 				// if we delivered zero transactions, we prefer to avoid the creation of an empty block
 				if (transformation.deliveredCount() > 0) {
 					transformation.deliverRewardTransaction("", "");
-					DiskStore newStore = transformation.getFinalStore();
-					setStoreOfHead(newStore);
-					CheckRunnable.check(NodeException.class, () -> transformation.getDeliveredTransactions().forEachOrdered(UncheckConsumer.uncheck(reference -> publish(reference, newStore))));
+					storeOfHead = transformation.getFinalStore();
+					CheckRunnable.check(NodeException.class, () -> transformation.getDeliveredTransactions().forEachOrdered(UncheckConsumer.uncheck(reference -> publish(reference, storeOfHead))));
 				}
 
-				return getStoreOfHead().beginTransformation(System.currentTimeMillis());
+				return storeOfHead.beginTransformation(System.currentTimeMillis());
 			}
 			catch (StoreException e) {
 				throw new NodeException(e);

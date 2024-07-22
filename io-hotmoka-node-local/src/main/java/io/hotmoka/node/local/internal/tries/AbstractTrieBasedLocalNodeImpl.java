@@ -170,11 +170,11 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	}
 
 	@Override
-	protected S enterHead() throws NodeException {
+	protected final S enterHead() throws NodeException, InterruptedException {
 		S head;
 
 		while (true) {
-			head = super.enterHead();
+			head = getStoreOfHead();
 
 			try {
 				enter(head, head.getStateId());
@@ -187,6 +187,8 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 			}
 		}
 	}
+
+	protected abstract S getStoreOfHead() throws NodeException, InterruptedException;
 
 	/**
 	 * Called when this node is executing something that needs the store with the given state identifier.

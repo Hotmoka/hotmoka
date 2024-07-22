@@ -23,6 +23,7 @@ import java.security.KeyPair;
 import java.security.SignatureException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,6 +34,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import io.hotmoka.annotations.GuardedBy;
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.exceptions.CheckRunnable;
 import io.hotmoka.exceptions.CheckSupplier;
@@ -78,6 +80,14 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 	private volatile long limitOfTimeForGC;
 
+	private final Object headLock =new Object();
+
+	@GuardedBy("headLock")
+	private byte[] lastHeadHash;
+
+	@GuardedBy("headLock")
+	private MokamintStore storeOfHead;
+
 	private final static Logger LOGGER = Logger.getLogger(MokamintNodeImpl.class.getName());
 
 	/**
@@ -99,52 +109,25 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 				@Override
 				protected void onHeadChanged(LinkedList<Block> pathToNewHead) {
-					Block newHead = pathToNewHead.getLast();
-					StateId idOfStoreOfHead = StateIds.of(newHead.getStateId());
+					super.onHeadChanged(pathToNewHead);
+
+					for (Block added: pathToNewHead)
+						if (added instanceof NonGenesisBlock ngb)
+							toPublish.offer(ngb);
+
+					long limit = limitOfTimeForGC;
 
 					try {
-						try {
-							setStoreOfHead(mkStore(idOfStoreOfHead));
-						}
-						catch (InterruptedException e) {
-							// this might well occur if the mining task is interrupted before having the time to set the new head
-
-							try {
-								setStoreOfHead(mkStore(idOfStoreOfHead)); //TODO: ugly solution: mkStore should not throw an interruption or interruption should not be used to stop mining
-							}
-							catch (InterruptedException e2) {}
-
-							Thread.currentThread().interrupt();
-							return;
-						}
-						finally {
-							super.onHeadChanged(pathToNewHead);
-
-							for (Block added: pathToNewHead)
-								if (added instanceof NonGenesisBlock ngb)
-									toPublish.offer(ngb);
-						}
-
-						long limit = limitOfTimeForGC;
 						CheckRunnable.check(NodeException.class, () -> getEnvironment().executeInTransaction(UncheckConsumer.uncheck(txn -> keepPersistedOnlyNotOlderThan(limit, txn))));
 					}
-					catch (NodeException | UnknownStateIdException e) {
-						LOGGER.log(Level.SEVERE, "could not set the head to " + idOfStoreOfHead, e);
+					catch (NodeException e) {
+						LOGGER.log(Level.SEVERE, "could not keep persistent only stores older than " + limit, e);
 						return;
 					}
 				}
 			};
-
-			var maybeHeadHash = mokamintNode.getChainInfo().getHeadHash();
-
-			if (maybeHeadHash.isPresent()) {
-				var head = mokamintNode.getBlock(maybeHeadHash.get())
-						.orElseThrow(() -> new NodeException("The node has a head set but it cannot be found in its database"));
-
-				setStoreOfHead(mkStore(StateIds.of(head.getStateId())));
-			}
 		}
-		catch (AlreadyInitializedException | TimeoutException | ApplicationException | io.mokamint.node.api.NodeException | UnknownStateIdException e) {
+		catch (AlreadyInitializedException | TimeoutException | ApplicationException | io.mokamint.node.api.NodeException e) {
 			throw new NodeException(e);
 		}
 
@@ -194,6 +177,35 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			return new MokamintStore(this);
 		}
 		catch (StoreException e) {
+			throw new NodeException(e);
+		}
+	}
+
+	@Override
+	protected MokamintStore getStoreOfHead() throws NodeException, InterruptedException {
+		try {
+			var maybeHeadHash = mokamintNode.getChainInfo().getHeadHash();
+			if (maybeHeadHash.isEmpty())
+				return mkStore();
+
+			synchronized (headLock) {
+				if (lastHeadHash != null && Arrays.equals(lastHeadHash, maybeHeadHash.get()))
+					return storeOfHead;
+			}
+
+			var head = mokamintNode.getBlock(maybeHeadHash.get())
+				.orElseThrow(() -> new NodeException("The node has a head set but it cannot be found in its database"));
+
+			MokamintStore result = mkStore(StateIds.of(head.getStateId()));
+
+			synchronized (headLock) {
+				lastHeadHash = maybeHeadHash.get();
+				storeOfHead = result;
+			}
+
+			return result;
+		}
+		catch (io.mokamint.node.api.NodeException | TimeoutException | UnknownStateIdException e) {
 			throw new NodeException(e);
 		}
 	}

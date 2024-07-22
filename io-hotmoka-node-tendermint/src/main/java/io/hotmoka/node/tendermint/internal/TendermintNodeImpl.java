@@ -131,6 +131,11 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	private final boolean isWindows;
 
 	/**
+	 * The store of the head of this node.
+	 */
+	private volatile TendermintStore storeOfHead;
+
+	/**
 	 * Builds a Tendermint node. This constructor spawns the Tendermint process on localhost
 	 * and connects it to an ABCI application for handling its transactions.
 	 * 
@@ -145,8 +150,10 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		this.isWindows = System.getProperty("os.name").startsWith("Windows");
 
 		try {
-			if (init)
+			if (init) {
 				initWorkingDirectoryOfTendermintProcess(config);
+				storeOfHead = mkStore();
+			}
 			else
 				checkOutRootBranch();
 
@@ -196,6 +203,11 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	}
 
 	@Override
+	protected TendermintStore getStoreOfHead() {
+		return storeOfHead;
+	}
+
+	@Override
 	protected void postRequest(TransactionRequest<?> request) throws NodeException, TimeoutException, InterruptedException {
 		poster.postRequest(request);
 	}
@@ -221,7 +233,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 			if (root.isEmpty())
 				throw new NodeException("Cannot find the root of the saved store of the node");
 
-			setStoreOfHead(mkStore(StateIds.of(root.get())));
+			storeOfHead = mkStore(StateIds.of(root.get()));
 		}
 		catch (UnknownStateIdException | ExodusException e) {
 			throw new NodeException(e);
@@ -548,7 +560,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		 * @return the hash
 		 */
 		private byte[] getLastBlockApplicationHash() throws NodeException {
-			return getStoreOfHead().getStateId().getBytes();
+			return storeOfHead.getStateId().getBytes();
 		}
 
 		/**
@@ -616,7 +628,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	    	misbehaving = spaceSeparatedSequenceOfMisbehavingValidatorsAddresses(request);
 
 	    	try {
-	    		transformation = getStoreOfHead().beginTransformation(timeOfBlock(request));
+	    		transformation = storeOfHead.beginTransformation(timeOfBlock(request));
 	    	}
 	    	catch (StoreException e) {
 	    		throw new RuntimeException(e); // TODO
@@ -693,9 +705,8 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 
 				persisted++;
 
-				var newStoreOfHead = mkStore(idOfNewStoreOfHead);
-				setStoreOfHead(newStoreOfHead);
-				CheckRunnable.check(NodeException.class, () -> transformation.getDeliveredTransactions().forEachOrdered(UncheckConsumer.uncheck(reference -> publish(reference, newStoreOfHead))));
+				storeOfHead = mkStore(idOfNewStoreOfHead);
+				CheckRunnable.check(NodeException.class, () -> transformation.getDeliveredTransactions().forEachOrdered(UncheckConsumer.uncheck(reference -> publish(reference, storeOfHead))));
 
 				byte[] hash = getLastBlockApplicationHash();
 				LOGGER.info("committed Tendermint state " + Hex.toHexString(hash).toUpperCase());
