@@ -238,12 +238,12 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
     @Override
 	public final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, StoreException {
     	try {
-    		return CheckSupplier.check(TrieException.class, StoreException.class, () ->
+    		return CheckSupplier.check(TrieException.class, StoreException.class, UnknownKeyException.class, () ->
     			getNode().getEnvironment().computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> mkTrieOfRequests(txn).get(reference)))
     		)
     		.orElseThrow(() -> new UnknownReferenceException(reference));
     	}
-		catch (ExodusException | TrieException e) {
+		catch (ExodusException | TrieException | UnknownKeyException e) {
 			throw new StoreException(e);
 		}
 	}
@@ -251,12 +251,12 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 	@Override
     public final TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, StoreException {
     	try {
-    		return CheckSupplier.check(TrieException.class, StoreException.class, () ->
+    		return CheckSupplier.check(TrieException.class, StoreException.class, UnknownKeyException.class, () ->
     			getNode().getEnvironment().computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> mkTrieOfResponses(txn).get(reference)))
     		)
     		.orElseThrow(() -> new UnknownReferenceException(reference));
     	}
-		catch (ExodusException | TrieException e) {
+		catch (ExodusException | TrieException | UnknownKeyException e) {
 			throw new StoreException(e);
 		}
 	}
@@ -264,11 +264,11 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 	@Override
 	public final Optional<StorageReference> getManifest() throws StoreException {
 		try {
-			return CheckSupplier.check(TrieException.class, StoreException.class, () ->
+			return CheckSupplier.check(TrieException.class, StoreException.class, UnknownKeyException.class, () ->
 				getNode().getEnvironment().computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> mkTrieOfInfo(txn).getManifest())
 			));
 		}
-		catch (ExodusException | TrieException e) {
+		catch (ExodusException | TrieException | UnknownKeyException e) {
 			throw new StoreException(e);
 		}
 	}
