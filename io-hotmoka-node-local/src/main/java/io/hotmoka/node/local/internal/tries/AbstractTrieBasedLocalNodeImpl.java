@@ -91,7 +91,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	private final io.hotmoka.xodus.env.Store storeOfHistories;
 
 	/**
-	 * The lock object used to avoid garbage-collecting stores that are currently under usage.
+	 * The lock object used to avoid garbage-collecting stores that are currently used.
 	 */
 	private final Object lockGC = new Object();
 
@@ -102,13 +102,6 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 */
 	@GuardedBy("lockGC")
 	private final Map<StateId, Integer> storeUsers = new HashMap<>();
-
-	/**
-	 * The identifier of a store that has been selected for immediate garbage-collection,
-	 * although it might not be garbage-collected yet.
-	 */
-	@GuardedBy("lockGC")
-	private StateId selectedForGC;
 
 	/**
 	 * The key used inside {@link #storeOfNode} to keep the list of old stores
@@ -171,23 +164,14 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 
 	@Override
 	protected final S enterHead() throws NodeException, InterruptedException {
-		S head;
-
-		while (true) {
-			head = getStoreOfHead();
-
-			try {
-				enter(head, head.getStateId());
-				return head;
-			}
-			catch (UnknownStateIdException e) {
-				// the head should not have been garbage-collected, until
-				// this happened between reading the head and checking its existence
-				// (highly unlikely but still possible: we just try with the new head)
-			}
+		synchronized (lockGC) {
+			S head = getStoreOfHead();
+			enter(head, head.getStateId());
+			return head;
 		}
 	}
 
+	@GuardedBy("lockGC")
 	protected abstract S getStoreOfHead() throws NodeException, InterruptedException;
 
 	/**
@@ -201,37 +185,28 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 * @throws NodeException if the operation could not be completed correctly
 	 */
 	protected S enter(StateId stateId) throws UnknownStateIdException, NodeException, InterruptedException {
-		S result = mkStore(stateId);
-		enter(result, stateId);
-
-		return result;
+		synchronized (lockGC) {
+			S result = mkStore(stateId);
+			enter(result, stateId);
+			return result;
+		}
 	}
 
 	/**
 	 * Called when this node is executing something that needs the given store with the given state identifier.
 	 * It can be used, for instance, to take note that that store cannot be garbage-collected from that moment.
-	 * 
-	 * @throws UnknownStateIdException if the required state identifier does not exist
-	 *                                 (also if it has been garbage-collected already)
-	 * @throws NodeException if the operation could not be completed correctly
 	 */
-	private void enter(S store, StateId stateId) throws UnknownStateIdException, NodeException {
-		synchronized (lockGC) {
-			try {
-				// we check if the node does not exist or has been garbage-collected already
-				store.checkExistence();
-			}
-			catch (StoreException e) {
-				throw new NodeException(e);
-			}
-
-			// the store might well exist but be already selected for garbage-collection:
-			// we assume that it has already been garbage-collected, to avoid risks
-			if (stateId.equals(selectedForGC))
-				throw new UnknownStateIdException();
-
-			storeUsers.compute(stateId, (_id, old) -> old == null ? 1 : (old + 1));
+	@GuardedBy("lockGC")
+	private void enter(S store, StateId stateId) {
+		/*try {
+			// we check if the node does not exist or has been garbage-collected already
+			store.checkExistence();
 		}
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}*/
+
+		storeUsers.compute(stateId, (_id, old) -> old == null ? 1 : (old + 1));
 	}
 
 	@Override
@@ -420,23 +395,11 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 			while (!Thread.currentThread().isInterrupted()) {
 				Set<StateIdAndTime> toGC = CheckSupplier.check(NodeException.class, () -> env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> getStores(STORES_TO_GC, txn))));
 
-				for (var stateIdAndTime: toGC) {
-					boolean canGC;
-
+				for (var stateIdAndTime: toGC)
 					synchronized (lockGC) {
-						canGC = storeUsers.getOrDefault(stateIdAndTime.stateId, 0) == 0;
-						if (canGC)
-							selectedForGC = stateIdAndTime.stateId;
+						if (storeUsers.getOrDefault(stateIdAndTime.stateId, 0) == 0)
+							gc(stateIdAndTime);
 					}
-
-					if (canGC) {
-						gc(stateIdAndTime);
-
-						synchronized (lockGC) {
-							selectedForGC = null;
-						}
-					}
-				}
 
 				Thread.sleep(5000L);
 			}
