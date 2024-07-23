@@ -76,13 +76,31 @@ import io.mokamint.nonce.api.Deadline;
 @ThreadSafe
 public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImpl, MokamintNodeConfig, MokamintStore, MokamintStoreTransformation> implements MokamintNode {
 
+	/**
+	 * The underlying Mokamint engine.
+	 */
 	private final LocalNode mokamintNode;
 
-	private final Object headLock =new Object();
+	/**
+	 * A queue of blocks to publish. This gets enriched when the head changes and gets consumed
+	 * by the {@link #publishBlocks()} background task.
+	 */
+	private final BlockingQueue<NonGenesisBlock> toPublish = new LinkedBlockingDeque<>();
 
+	/**
+	 * A lock for accessing {@link #lastHeadStateId} and {@link #storeOfHead}.
+	 */
+	private final Object headLock = new Object();
+
+	/**
+	 * The last state identifier used in {@link #getStoreOfHead()}, for caching.
+	 */
 	@GuardedBy("headLock")
 	private byte[] lastHeadStateId;
 
+	/**
+	 * The last store computed in {@link #getStoreOfHead()}, for caching.
+	 */
 	@GuardedBy("headLock")
 	private MokamintStore storeOfHead;
 
@@ -93,11 +111,13 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 	 * 
 	 * @param config the configuration of the node
 	 * @param mokamintConfig the configuration of the underlying Mokamint node
+	 * @param keyPair the key pair of the Mokamint node that will be started
 	 * @param init true if and only if the working directory of the node must be initialized
-	 * @param createGenesis if true, creates a genesis block and starts mining on top
-	 *                   (initial synchronization is consequently skipped)
-	 * @throws NodeException if the operation cannot be completed correctly
+	 * @param createGenesis if true, creates a genesis block and starts mining on top (initial synchronization is consequently skipped)
+	 * @throws NodeException if the node is not working properly
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
+	 * @throws SignatureException if the genesis block cannot be signed
+	 * @throws InvalidKeyException if the private key of the node is invalid
 	 */
 	public MokamintNodeImpl(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair, boolean init, boolean createGenesis) throws InvalidKeyException, SignatureException, NodeException, InterruptedException {
 		super(config, init);
@@ -116,33 +136,12 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			};
 		}
 		catch (AlreadyInitializedException | TimeoutException | ApplicationException | io.mokamint.node.api.NodeException e) {
+			// if the application is not working properly or is not answering in time, we consider it as a Hotmoka node exception,
+			// since the application is actually part of this kind of Hotmoka nodes
 			throw new NodeException(e);
 		}
 
 		getExecutors().execute(this::publishBlocks);
-	}
-
-	private final BlockingQueue<NonGenesisBlock> toPublish = new LinkedBlockingDeque<>();
-
-	private void publishBlocks() {
-		try {
-			while (!Thread.currentThread().isInterrupted()) {
-				NonGenesisBlock next = toPublish.take();
-
-				try {
-					MokamintStore store = mkStore(StateIds.of(next.getStateId()));
-
-					for (var tx: next.getTransactions().toArray(Transaction[]::new))
-						publish(TransactionReferences.of(getHasher().hash(intoHotmokaRequest(tx))), store);
-				}
-				catch (ApplicationException | NodeException | io.mokamint.node.api.TransactionRejectedException | UnknownStateIdException e) {
-					LOGGER.log(Level.SEVERE, "failed to publish the transactions in block " + next.getHexHash(mokamintNode.getConfig().getHashingForBlocks()), e);
-				}
-			}
-		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-		}
 	}
 
 	@Override
@@ -222,6 +221,27 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		}
 	}
 
+	private void publishBlocks() {
+		try {
+			while (!Thread.currentThread().isInterrupted()) {
+				NonGenesisBlock next = toPublish.take();
+	
+				try {
+					MokamintStore store = mkStore(StateIds.of(next.getStateId()));
+	
+					for (var tx: next.getTransactions().toArray(Transaction[]::new))
+						publish(TransactionReferences.of(getHasher().hash(intoHotmokaRequest(tx))), store);
+				}
+				catch (ApplicationException | NodeException | io.mokamint.node.api.TransactionRejectedException | UnknownStateIdException e) {
+					LOGGER.log(Level.SEVERE, "failed to publish the transactions in block " + next.getHexHash(mokamintNode.getConfig().getHashingForBlocks()), e);
+				}
+			}
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
+	}
+
 	private TransactionRequest<?> intoHotmokaRequest(Transaction transaction) throws io.mokamint.node.api.TransactionRejectedException, ApplicationException {
 		try (var context = NodeUnmarshallingContexts.of(new ByteArrayInputStream(transaction.getBytes()))) {
 			try {
@@ -243,12 +263,14 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		 */
 		private final ConcurrentMap<Integer, MokamintStoreTransformation> transformations = new ConcurrentHashMap<>();
 
+		/**
+		 * The next group id to use for the next transformation that will be started with this application.
+		 */
 		private final AtomicInteger nextId = new AtomicInteger();
 
 		@Override
 		public boolean checkPrologExtra(byte[] extra) throws ApplicationException {
-			// TODO Auto-generated method stub
-			return true;
+			return extra.length == 0; // no extra used by this application
 		}
 
 		@Override
@@ -395,8 +417,16 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			}
 		}
 
+		/**
+		 * Yields the transformation with the given group id, if it is currently under execution with this application.
+		 * 
+		 * @param groupId the group id of the transformation
+		 * @return the transformation
+		 * @throws UnknownGroupIdException if no transformation for the given group id is currently under execution with this application
+		 */
 		private MokamintStoreTransformation getTransformation(int groupId) throws UnknownGroupIdException {
 			MokamintStoreTransformation transformation = transformations.get(groupId);
+
 			if (transformation == null)
 				throw new UnknownGroupIdException("Group id " + groupId + " is unknown");
 			else
