@@ -78,12 +78,10 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 	private final LocalNode mokamintNode;
 
-	private volatile long limitOfTimeForGC;
-
 	private final Object headLock =new Object();
 
 	@GuardedBy("headLock")
-	private byte[] lastHeadHash;
+	private byte[] lastHeadStateId;
 
 	@GuardedBy("headLock")
 	private MokamintStore storeOfHead;
@@ -114,16 +112,6 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 					for (Block added: pathToNewHead)
 						if (added instanceof NonGenesisBlock ngb)
 							toPublish.offer(ngb);
-
-					long limit = limitOfTimeForGC;
-
-					try {
-						CheckRunnable.check(NodeException.class, () -> getEnvironment().executeInTransaction(UncheckConsumer.uncheck(txn -> keepPersistedOnlyNotOlderThan(limit, txn))));
-					}
-					catch (NodeException e) {
-						LOGGER.log(Level.SEVERE, "could not keep persistent only stores older than " + limit, e);
-						return;
-					}
 				}
 			};
 		}
@@ -148,7 +136,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 						publish(TransactionReferences.of(getHasher().hash(intoHotmokaRequest(tx))), store);
 				}
 				catch (ApplicationException | NodeException | io.mokamint.node.api.TransactionRejectedException | UnknownStateIdException e) {
-					LOGGER.log(Level.SEVERE, "failed to publish the transactions in a block", e);
+					LOGGER.log(Level.SEVERE, "failed to publish the transactions in block " + next.getHexHash(mokamintNode.getConfig().getHashingForBlocks()), e);
 				}
 			}
 		}
@@ -184,22 +172,19 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 	@Override
 	protected MokamintStore getStoreOfHead() throws NodeException, InterruptedException {
 		try {
-			var maybeHeadHash = mokamintNode.getChainInfo().getHeadHash();
-			if (maybeHeadHash.isEmpty())
+			var maybeHeadStateId = mokamintNode.getChainInfo().getHeadStateId();
+			if (maybeHeadStateId.isEmpty())
 				return mkStore();
 
 			synchronized (headLock) {
-				if (lastHeadHash != null && Arrays.equals(lastHeadHash, maybeHeadHash.get()))
+				if (lastHeadStateId != null && Arrays.equals(lastHeadStateId, maybeHeadStateId.get()))
 					return storeOfHead;
 			}
 
-			var head = mokamintNode.getBlock(maybeHeadHash.get())
-				.orElseThrow(() -> new NodeException("The node has a head set but it cannot be found in its database"));
-
-			MokamintStore result = mkStore(StateIds.of(head.getStateId()));
+			MokamintStore result = mkStore(StateIds.of(maybeHeadStateId.get()));
 
 			synchronized (headLock) {
-				lastHeadHash = maybeHeadHash.get();
+				lastHeadStateId = maybeHeadStateId.get();
 				storeOfHead = result;
 			}
 
@@ -400,7 +385,14 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 		@Override
 		public void keepFrom(LocalDateTime start) {
-			limitOfTimeForGC = start.toInstant(ZoneOffset.UTC).toEpochMilli();
+			long limitOfTimeForGC = start.toInstant(ZoneOffset.UTC).toEpochMilli();
+
+			try {
+				CheckRunnable.check(NodeException.class, () -> getEnvironment().executeInTransaction(UncheckConsumer.uncheck(txn -> keepPersistedOnlyNotOlderThan(limitOfTimeForGC, txn))));
+			}
+			catch (NodeException e) {
+				LOGGER.log(Level.SEVERE, "could not keep persistent only stores older than " + limitOfTimeForGC, e);
+			}
 		}
 
 		private MokamintStoreTransformation getTransformation(int groupId) throws UnknownGroupIdException {
