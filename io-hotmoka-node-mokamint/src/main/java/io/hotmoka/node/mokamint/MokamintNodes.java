@@ -19,6 +19,7 @@ package io.hotmoka.node.mokamint;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.SignatureException;
+import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.mokamint.api.MokamintNode;
@@ -43,8 +44,9 @@ public abstract class MokamintNodes {
 	 * @return the Mokamint node
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 * @throws NodeException if the operation cannot be completed correctly
+	 * @throws TimeoutException if some operation timed out
 	 */
-	public static MokamintNode init(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair, boolean createGenesis) throws NodeException, InterruptedException, InvalidKeyException, SignatureException {
+	public static MokamintNode init(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair, boolean createGenesis) throws NodeException, InterruptedException, InvalidKeyException, SignatureException, TimeoutException {
 		return new MokamintNodeImpl(config, mokamintConfig, keyPair, true, createGenesis);
 	}
 
@@ -58,8 +60,9 @@ public abstract class MokamintNodes {
 	 * @return the Mokamint node
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 * @throws NodeException if the operation cannot be completed correctly
+	 * @throws TimeoutException if some operation timed out
 	 */
-	public static MokamintNode resume(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws NodeException, InterruptedException, InvalidKeyException, SignatureException {
+	public static MokamintNode resume(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws NodeException, InterruptedException, InvalidKeyException, SignatureException, TimeoutException {
 		return new MokamintNodeImpl(config, mokamintConfig, keyPair, false, false);
 	}
 }

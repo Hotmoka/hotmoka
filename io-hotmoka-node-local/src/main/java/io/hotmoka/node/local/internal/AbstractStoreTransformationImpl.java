@@ -273,8 +273,16 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 		return uncommittedManifest != null ? Optional.of(uncommittedManifest) : getInitialStore().getManifest();
 	}
 
+	/**
+	 * Yields the references of the transactions delivered into this transformation.
+	 * 
+	 * @return the references, in order of delivery
+	 */
 	public final Stream<TransactionReference> getDeliveredTransactions() {
-		return deltaRequests.keySet().stream();
+		// we force the order of insertion
+		var result = new ArrayList<TransactionReference>();
+		deltaRequests.forEach((key, _entry) -> result.add(key));
+		return result.stream();
 	}
 
 	@Override

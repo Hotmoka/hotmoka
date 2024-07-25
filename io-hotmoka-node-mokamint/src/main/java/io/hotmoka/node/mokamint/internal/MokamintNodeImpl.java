@@ -118,8 +118,9 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 * @throws SignatureException if the genesis block cannot be signed
 	 * @throws InvalidKeyException if the private key of the node is invalid
+	 * @throws TimeoutException if some operation timed out
 	 */
-	public MokamintNodeImpl(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair, boolean init, boolean createGenesis) throws InvalidKeyException, SignatureException, NodeException, InterruptedException {
+	public MokamintNodeImpl(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair, boolean init, boolean createGenesis) throws InvalidKeyException, SignatureException, NodeException, InterruptedException, TimeoutException {
 		super(config, init);
 
 		try {
@@ -129,13 +130,13 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 				protected void onHeadChanged(LinkedList<Block> pathToNewHead) {
 					super.onHeadChanged(pathToNewHead);
 
-					for (Block added: pathToNewHead)
+					for (Block added: pathToNewHead) // TODO: add an application method instead: publish(block)
 						if (added instanceof NonGenesisBlock ngb)
 							toPublish.offer(ngb);
 				}
 			};
 		}
-		catch (AlreadyInitializedException | TimeoutException | ApplicationException | io.mokamint.node.api.NodeException e) {
+		catch (AlreadyInitializedException | io.mokamint.node.api.NodeException e) {
 			// if the application is not working properly or is not answering in time, we consider it as a Hotmoka node exception,
 			// since the application is actually part of this kind of Hotmoka nodes
 			throw new NodeException(e);

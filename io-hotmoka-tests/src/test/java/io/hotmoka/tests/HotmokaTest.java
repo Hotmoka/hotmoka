@@ -337,7 +337,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkMokamintNode() throws NodeException, InterruptedException, InvalidKeyException, SignatureException {
+	private static Node mkMokamintNode() throws NodeException, InterruptedException, InvalidKeyException, SignatureException, TimeoutException {
 		try {
 			consensus = fillConsensusConfig(ValidatorsConsensusConfigBuilders.defaults()).build();
 
