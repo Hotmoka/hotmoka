@@ -24,7 +24,7 @@ import java.security.SignatureException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.Deque;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -127,7 +127,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			this.mokamintNode = new AbstractLocalNode(mokamintConfig, keyPair, new MokamintHotmokaApplication(), createGenesis) {
 
 				@Override
-				protected void onHeadChanged(LinkedList<Block> pathToNewHead) {
+				protected void onHeadChanged(Deque<Block> pathToNewHead) {
 					super.onHeadChanged(pathToNewHead);
 
 					for (Block added: pathToNewHead) // TODO: add an application method instead: publish(block)
