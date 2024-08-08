@@ -144,7 +144,7 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 		if (getManifest().isPresent())
 			newCache = newCache
 				.setConfig(extractConsensus())
-				.invalidateClassLoaders()
+				//.invalidateClassLoaders()
 				.setValidators(extractValidators())
 				.setGasStation(extractGasStation())
 				.setVersions(extractVersions())

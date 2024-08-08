@@ -458,8 +458,8 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	@SuppressWarnings("unused")
 	private static Node mkMokamintNetworkOfTwoNodes() throws NodeException, InterruptedException, TimeoutException, InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException {
 		try {
-			final var TARGET_BLOCK_CREATION_TIME = 2000;
-			final var PLOT_LENGTH = 500L;
+			final var TARGET_BLOCK_CREATION_TIME = 4000;
+			final var PLOT_LENGTH = 1000L; /* 4000L */
 			final var MAX_HISTORY_CHANGE = 5L * 60 * 1000; // five minutes, so that it is possible to see the effects of garbage-collection during the tests
 
 			consensus = fillConsensusConfig(ValidatorsConsensusConfigBuilders.defaults()).build();
@@ -495,6 +495,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			PublicNodeServices.open(node1.getMokamintNode(), 8030, 1800000, 1000, Optional.of(uri1));
 			System.out.println("Underlying Mokamint node 1 published at " + uri1);
 
+			//Thread.sleep(50000);
 			Path hotmokaChainPath2 = Files.createTempDirectory("hotmoka-mokamint-chain-2-");
 
 			var config2 = MokamintNodeConfigBuilders.defaults()

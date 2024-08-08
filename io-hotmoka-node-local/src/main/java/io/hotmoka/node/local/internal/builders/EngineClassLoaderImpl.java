@@ -202,7 +202,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			this.redBalanceField.setAccessible(true); // it was private
 			this.externallyOwnedAccountNonce = getExternallyOwnedAccount().getDeclaredField("nonce");
 			this.externallyOwnedAccountNonce.setAccessible(true); // it was private
-			this.abstractValidatorsCurrentSupply= getAbstractValidators().getDeclaredField("currentSupply");
+			this.abstractValidatorsCurrentSupply = getAbstractValidators().getDeclaredField("currentSupply");
 			this.abstractValidatorsCurrentSupply.setAccessible(true); // it was private
 			this.storageReference = storage.getDeclaredField(InstrumentationFields.STORAGE_REFERENCE_FIELD_NAME);
 			this.storageReference.setAccessible(true); // it was private
