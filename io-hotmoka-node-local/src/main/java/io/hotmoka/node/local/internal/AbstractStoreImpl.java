@@ -28,10 +28,10 @@ import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.local.StoreCache;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.Store;
+import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.builders.ExecutionEnvironment;
 
@@ -73,11 +73,11 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	 * @param node the node for which the store is created
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	protected AbstractStoreImpl(N node) throws StoreException {
+	protected AbstractStoreImpl(N node, StoreCache cache) throws StoreException {
 		super(node.getExecutors());
 
 		this.node = node;
-		this.cache = new StoreCacheImpl();
+		this.cache = cache;
 
 		try {
 			this.consensusForViews = cache.getConfig().toBuilder().setMaxGasPerTransaction(node.getLocalConfig().getMaxGasPerViewTransaction()).build();
@@ -144,7 +144,7 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 		if (getManifest().isPresent())
 			newCache = newCache
 				.setConfig(extractConsensus())
-				//.invalidateClassLoaders()
+				.invalidateClassLoaders()
 				.setValidators(extractValidators())
 				.setGasStation(extractGasStation())
 				.setVersions(extractVersions())

@@ -36,6 +36,7 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractTrieBasedStoreTransformation;
 import io.hotmoka.node.local.api.FieldNotFoundException;
+import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
 import io.mokamint.nonce.api.Prolog;
@@ -56,6 +57,10 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 	 */
 	protected MokamintStoreTransformation(MokamintStore store, ConsensusConfig<?,?> consensus, long now) throws StoreException {
 		super(store, consensus, now);
+	}
+
+	protected StoreCache getCacheAccessor() {
+		return super.getCache();
 	}
 
 	public void deliverRewardForNodeAndMiner(Prolog prolog) throws StoreException, InterruptedException {

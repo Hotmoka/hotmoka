@@ -494,13 +494,13 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			if (getAbstractValidators().isAssignableFrom(clazz))
 				abstractValidatorsCurrentSupply.set(validators, ((BigInteger) abstractValidatorsCurrentSupply.get(validators)).add(amount));
 			else
-				throw new IllegalArgumentException("unknown validators class " + clazz);
+				throw new IllegalArgumentException("Unknown validators class " + clazz);
 		}
 		catch (IllegalArgumentException e) {
 			throw e;
 		}
 		catch (IllegalAccessException e) {
-			throw new IllegalArgumentException("cannot access the current supply field of a validators object of class " + clazz.getName(), e);
+			throw new IllegalArgumentException("Cannot access the current supply field of a validators object of class " + clazz.getName(), e);
 		}
 	}
 
@@ -513,7 +513,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			throw e;
 		}
 		catch (IllegalAccessException e) {
-			throw new IllegalArgumentException("cannot write the red balance field of a contract object of class " + object.getClass().getName(), e);
+			throw new IllegalArgumentException("Cannot write the red balance field of a contract object of class " + object.getClass().getName(), e);
 		}
 	}
 

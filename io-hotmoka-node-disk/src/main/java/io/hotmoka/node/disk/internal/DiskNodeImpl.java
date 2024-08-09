@@ -35,6 +35,7 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.disk.api.DiskNode;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.local.AbstractLocalNode;
+import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
 
 /**
@@ -84,9 +85,9 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 	}
 
 	@Override
-	protected DiskStore mkStore() throws NodeException {
+	protected DiskStore mkStore(StoreCache cache) throws NodeException {
 		try {
-			return new DiskStore(this);
+			return new DiskStore(this, cache);
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);

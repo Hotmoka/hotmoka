@@ -18,6 +18,7 @@ package io.hotmoka.node.local;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.node.local.api.LocalNodeConfig;
+import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.AbstractStoreImpl;
 
@@ -39,8 +40,8 @@ public abstract class AbstractStore<N extends AbstractLocalNode<N,C,S,T>, C exte
 	 * @param node the node for which the store is created
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	protected AbstractStore(N node) throws StoreException {
-		super(node);
+	protected AbstractStore(N node, StoreCache cache) throws StoreException {
+		super(node, cache);
 	}
 
 	/**

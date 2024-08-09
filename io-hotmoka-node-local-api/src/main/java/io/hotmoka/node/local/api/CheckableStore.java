@@ -48,4 +48,17 @@ public interface CheckableStore<S extends CheckableStore<S, T>, T extends StoreT
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 */
 	S checkedOutAt(StateId stateId) throws UnknownStateIdException, StoreException, InterruptedException;
+
+	/**
+	 * Yields a store derived from this by resetting the view of the world to that expressed
+	 * by the given identifier. This assumes that this store was derived by a chain of transformations
+	 * passing through a store with that identifier, that has not been garbage-collected yet.
+	 * It allows one to specify the cache to use for the store.
+	 * 
+	 * @param stateId the identifier of the resulting store
+	 * @param cache the cache to use for the resulting store
+	 * @return the resulting store
+	 * @throws StoreException if the operation cannot be completed correctly
+	 */
+	S checkedOutAt(StateId stateId, StoreCache cache) throws UnknownStateIdException, StoreException;
 }

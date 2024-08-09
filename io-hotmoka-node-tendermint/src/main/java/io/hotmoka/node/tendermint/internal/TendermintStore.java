@@ -21,8 +21,8 @@ import java.util.Optional;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.local.AbstractTrieBasedStore;
-import io.hotmoka.node.local.StoreCache;
 import io.hotmoka.node.local.api.StateId;
+import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UnknownStateIdException;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
@@ -46,8 +46,8 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
 	 * @param node the node for which the store is created
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-    TendermintStore(TendermintNodeImpl node) throws StoreException {
-    	super(node);
+    TendermintStore(TendermintNodeImpl node, StoreCache cache) throws StoreException {
+    	super(node, cache);
 
     	this.validators = Optional.empty();
     }

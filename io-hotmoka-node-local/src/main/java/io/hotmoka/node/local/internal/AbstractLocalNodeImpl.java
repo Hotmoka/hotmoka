@@ -81,9 +81,11 @@ import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
+import io.hotmoka.node.local.LRUCache;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.LocalNode;
 import io.hotmoka.node.local.api.LocalNodeConfig;
+import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
 
 /**
@@ -557,9 +559,25 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	/**
 	 * Factory method for creating an empty store for this node.
 	 * 
+	 * @param cache the cache to use for the store
 	 * @return the store empty
 	 */
-	protected abstract S mkStore() throws NodeException;
+	protected abstract S mkStore(StoreCache cache) throws NodeException;
+
+	/**
+	 * Factory method for creating an empty store for this node.
+	 * 
+	 * @param cache the cache to use for the store
+	 * @return the store empty
+	 */
+	protected final S mkStore() throws NodeException {
+		try {
+			return mkStore(new StoreCacheImpl());
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}
+	}
 
 	/**
 	 * Node-specific implementation to post the given request. Each node should implement this,

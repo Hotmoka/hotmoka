@@ -40,7 +40,7 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.local.AbstractStore;
-import io.hotmoka.node.local.StoreCache;
+import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
 
 /**
@@ -102,8 +102,8 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
 	 * @param node the node for which the store is created
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-    DiskStore(DiskNodeImpl node) throws StoreException {
-    	super(node);
+    DiskStore(DiskNodeImpl node, StoreCache cache) throws StoreException {
+    	super(node, cache);
 
     	try {
     		this.dir = node.getLocalConfig().getDir().resolve("hotmoka").resolve("store");

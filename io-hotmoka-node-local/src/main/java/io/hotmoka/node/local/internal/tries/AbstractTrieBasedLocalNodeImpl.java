@@ -38,8 +38,10 @@ import io.hotmoka.node.local.AbstractLocalNode;
 import io.hotmoka.node.local.StateIds;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StateId;
+import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UnknownStateIdException;
+import io.hotmoka.node.local.internal.StoreCacheImpl;
 import io.hotmoka.patricia.api.TrieException;
 import io.hotmoka.patricia.api.UnknownKeyException;
 import io.hotmoka.xodus.ByteIterable;
@@ -184,11 +186,34 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 * @throws InterruptedException if the operation has been interrupted before being completed
 	 * @throws NodeException if the operation could not be completed correctly
 	 */
-	protected S enter(StateId stateId) throws UnknownStateIdException, NodeException, InterruptedException {
+	protected S enter(StateId stateId, StoreCache cache) throws UnknownStateIdException, NodeException, InterruptedException {
 		synchronized (lockGC) {
-			S result = mkStore(stateId);
+			S result = mkStore(stateId, cache);
 			enter(result, stateId);
 			return result;
+		}
+	}
+
+	/**
+	 * Called when this node is executing something that needs the store with the given state identifier.
+	 * It can be used, for instance, to take note that that store cannot be garbage-collected from that moment.
+	 * 
+	 * @return the entered store
+	 * @throws UnknownStateIdException if the required state identifier does not exist
+	 *                                 (also if it has been garbage-collected already)
+	 * @throws InterruptedException if the operation has been interrupted before being completed
+	 * @throws NodeException if the operation could not be completed correctly
+	 */
+	protected S enter(StateId stateId) throws UnknownStateIdException, NodeException, InterruptedException {
+		try {
+			synchronized (lockGC) {
+				S result = mkStore(stateId, new StoreCacheImpl());
+				enter(result, stateId);
+				return result;
+			}
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
 		}
 	}
 
@@ -198,14 +223,6 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 */
 	@GuardedBy("lockGC")
 	private void enter(S store, StateId stateId) {
-		/*try {
-			// we check if the node does not exist or has been garbage-collected already
-			store.checkExistence();
-		}
-		catch (StoreException e) {
-			throw new NodeException(e);
-		}*/
-
 		storeUsers.compute(stateId, (_id, old) -> old == null ? 1 : (old + 1));
 	}
 
@@ -257,9 +274,24 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 * @param stateId the state identifier
 	 * @return the resulting store
 	 */
+	protected final S mkStore(StateId stateId, StoreCache cache) throws UnknownStateIdException, InterruptedException, NodeException {
+		try {
+			return mkStore().checkedOutAt(stateId, cache);
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}
+	}
+
+	/**
+	 * Factory method for creating a store for this node, checked out at the given state identifier.
+	 * 
+	 * @param stateId the state identifier
+	 * @return the resulting store
+	 */
 	protected final S mkStore(StateId stateId) throws UnknownStateIdException, InterruptedException, NodeException {
 		try {
-			return mkStore().checkedOutAt(stateId);
+			return mkStore(stateId, new StoreCacheImpl());
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);

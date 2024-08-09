@@ -49,8 +49,10 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.local.AbstractTrieBasedLocalNode;
+import io.hotmoka.node.local.LRUCache;
 import io.hotmoka.node.local.StateIds;
 import io.hotmoka.node.local.api.StateId;
+import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UnknownStateIdException;
 import io.hotmoka.node.mokamint.api.MokamintNode;
@@ -91,6 +93,8 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 	 * A lock for accessing {@link #lastHeadStateId} and {@link #storeOfHead}.
 	 */
 	private final Object headLock = new Object();
+
+	private final LRUCache<StateId, StoreCache> lastCaches = new LRUCache<>(100, 1000);
 
 	/**
 	 * The last state identifier used in {@link #getStoreOfHead()}, for caching.
@@ -160,9 +164,9 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 	}
 
 	@Override
-	protected MokamintStore mkStore() throws NodeException {
+	protected MokamintStore mkStore(StoreCache cache) throws NodeException {
 		try {
-			return new MokamintStore(this);
+			return new MokamintStore(this, cache);
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);
@@ -181,7 +185,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 					return storeOfHead;
 			}
 
-			MokamintStore result = mkStore(StateIds.of(maybeHeadStateId.get()));
+			MokamintStore result = mkStore(StateIds.of(maybeHeadStateId.get())); // TODO: cache?
 
 			synchronized (headLock) {
 				lastHeadStateId = maybeHeadStateId.get();
@@ -224,7 +228,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 	private void publishBlocks() {
 		try {
-			while (!Thread.currentThread().isInterrupted()) {
+			while (true) {
 				NonGenesisBlock next = toPublish.take();
 	
 				try {
@@ -307,10 +311,13 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 		@Override
 		public int beginBlock(long height, LocalDateTime when, byte[] stateId) throws UnknownStateException, ApplicationException, InterruptedException {
-			MokamintStore start;
+			var si = StateIds.of(stateId);
+			var lastCache = lastCaches.get(si);
 
+			MokamintStore start;
 			try {
-				start = enter(StateIds.of(stateId));
+				// if we have information about the cache at the requested state id, we use it for better efficiency
+				start = lastCache != null ? enter(si, lastCache) : enter(si);
 			}
 			catch (NodeException e) {
 				throw new ApplicationException(e);
@@ -365,6 +372,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 				byte[] finalId = CheckSupplier.check(NodeException.class, StoreException.class, () -> getEnvironment().computeInTransaction(UncheckFunction.uncheck(txn -> {
 					StateId stateIdOfFinalStore = transformation.getIdOfFinalStore(txn);
+					lastCaches.put(stateIdOfFinalStore, transformation.getCacheAccessor());
 					persist(stateIdOfFinalStore, transformation.getNow(), txn);
 					return stateIdOfFinalStore.getBytes();
 				})));

@@ -199,24 +199,16 @@ public class WhiteListingClassLoaderImpl extends ClassLoader implements WhiteLis
 	@Override
 	protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
 		synchronized (getClassLoadingLock(name)) {
-			var maybeClass = loadClassFromCache(name);
-
-			if (maybeClass.isEmpty())
-				maybeClass = loadClassFromBootstrapClassloader(name);
-
-			if (maybeClass.isEmpty())
-				maybeClass = loadClassFromApplicationClassloader(name);
-
-			if (maybeClass.isEmpty())
-				maybeClass = loadClassFromJarsInNode(name);
-
-			if (maybeClass.isEmpty())
-				throw new ClassNotFoundException(name);
+			var clazz = loadClassFromCache(name)
+				.or(() -> loadClassFromBootstrapClassloader(name))
+				.or(() -> loadClassFromApplicationClassloader(name))
+				.or(() -> loadClassFromJarsInNode(name))
+				.orElseThrow(() -> new ClassNotFoundException(name));
 	
 			if (resolve)
-				resolveClass(maybeClass.get());
+				resolveClass(clazz);
 	
-			return maybeClass.get();
+			return clazz;
 		}
 	}
 

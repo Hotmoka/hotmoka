@@ -33,10 +33,10 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractStore;
 import io.hotmoka.node.local.StateIds;
-import io.hotmoka.node.local.StoreCache;
 import io.hotmoka.node.local.api.CheckableStore;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StateId;
+import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UnknownStateIdException;
 import io.hotmoka.node.local.internal.StoreCacheImpl;
@@ -84,8 +84,8 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 	 * @param node the node for which the store is created
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-    protected AbstractTrieBasedStoreImpl(N node) throws StoreException {
-    	super(node);
+    protected AbstractTrieBasedStoreImpl(N node, StoreCache cache) throws StoreException {
+    	super(node, cache);
 
     	this.rootOfResponses = new byte[32];
     	this.rootOfInfo = new byte[32];
@@ -236,6 +236,9 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
     protected abstract S mkStore(StoreCache cache, StateId stateId) throws StoreException, UnknownStateIdException;
 
     @Override
+	protected abstract S setCache(StoreCache cache);
+
+    @Override
 	public final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, StoreException {
     	try {
     		return CheckSupplier.check(TrieException.class, StoreException.class, UnknownKeyException.class, () ->
@@ -299,7 +302,12 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 	@Override
 	public final S checkedOutAt(StateId stateId) throws UnknownStateIdException, StoreException, InterruptedException {
 		// we provide an empty cache and then ask to reload it from the state of the resulting store
-		return mkStore(new StoreCacheImpl(), stateId).reloadCache();
+		return checkedOutAt(stateId, new StoreCacheImpl()).reloadCache();
+	}
+
+	@Override
+	public final S checkedOutAt(StateId stateId, StoreCache cache) throws UnknownStateIdException, StoreException {
+		return mkStore(cache, stateId);
 	}
 
 	private TrieOfResponses mkTrieOfResponses(Transaction txn) throws StoreException, UnknownKeyException {

@@ -19,6 +19,7 @@ package io.hotmoka.node.local;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StateId;
+import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UnknownStateIdException;
 import io.hotmoka.node.local.internal.tries.AbstractTrieBasedStoreImpl;
@@ -42,8 +43,8 @@ public abstract class AbstractTrieBasedStore<N extends AbstractTrieBasedLocalNod
 	 * @param node the node for which the store is created
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-    protected AbstractTrieBasedStore(N node) throws StoreException {
-    	super(node);
+    protected AbstractTrieBasedStore(N node, StoreCache cache) throws StoreException {
+    	super(node, cache);
     }
 
     /**
