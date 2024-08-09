@@ -28,6 +28,7 @@ import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
+import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 
@@ -48,15 +49,18 @@ public class SignatureHelperImpl implements SignatureHelper {
 		var tag = node.getClassTag(account);
 
 		try {
-			// first we try without the class loader, that does not work under Android...
-			if (tag.getClazz().equals(StorageTypes.EOA_ED25519))
+			// first we try without creating a class loader, which is faster and works under Android as well...
+			ClassType classOfTag = tag.getClazz();
+			if (classOfTag.equals(StorageTypes.EOA_ED25519))
 				return SignatureAlgorithms.ed25519();
-			else if (tag.getClazz().equals(StorageTypes.EOA_SHA256DSA))
+			else if (classOfTag.equals(StorageTypes.EOA_SHA256DSA))
 				return SignatureAlgorithms.sha256dsa();
-			else if (tag.getClazz().equals(StorageTypes.EOA_QTESLA1))
+			else if (classOfTag.equals(StorageTypes.EOA_QTESLA1))
 				return SignatureAlgorithms.qtesla1();
-			else if (tag.getClazz().equals(StorageTypes.EOA_QTESLA3))
+			else if (classOfTag.equals(StorageTypes.EOA_QTESLA3))
 				return SignatureAlgorithms.qtesla3();
+			else if (classOfTag.equals(StorageTypes.EOA) || tag.getClazz().equals(StorageTypes.GAMETE))
+				return node.getConfig().getSignatureForRequests();
 
 			TakamakaClassLoader classLoader = classLoaderHelper.classloaderFor(tag.getJar());
 			Class<?> clazz = classLoader.loadClass(tag.getClazz().getName());
