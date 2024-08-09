@@ -26,7 +26,6 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -37,7 +36,6 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import io.hotmoka.node.local.internal.Reverification;
 import io.hotmoka.exceptions.CheckRunnable;
 import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.instrumentation.api.InstrumentationFields;
@@ -53,6 +51,7 @@ import io.hotmoka.node.api.types.StorageType;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.internal.Reverification;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
@@ -238,7 +237,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		}
 
 		CheckRunnable.check(StoreException.class, TransactionRejectedException.class, () -> dependencies.forEachOrdered(UncheckConsumer.uncheck(dependency -> addJars(dependency, consensus, jars, transactionsOfJars, environment, counter))));
-		processClassInJar(jars, transactionsOfJars);
+		processClassesInJars(jars, transactionsOfJars, environment);
 
 		try {
 			return TakamakaClassLoaders.of(jars.stream(), consensus.getVerificationVersion());
@@ -249,58 +248,6 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		catch (ClassNotFoundException e) {
 			throw new TransactionRejectedException(e, consensus);
 		}
-	}
-
-	/**
-	 * Checks that there are no split packages across jars and takes note of the transaction
-	 * that installed each class in the jars.
-	 * 
-	 * @param jars the jars that form the classpath of this classloader
-	 * @param transactionsOfJars the transactions that have installed the {@code jars}
-	 * @throws TransactionRejectedException 
-	 */
-	private void processClassInJar(List<byte[]> jars, List<TransactionReference> transactionsOfJars) throws TransactionRejectedException {
-		// a map from each package name to the jar that defines it
-		Map<String, Integer> packages = new HashMap<>();
-
-		int pos = 0;
-		for (byte[] jar: jars) {
-			try (ZipInputStream jis = new ZipInputStream(new ByteArrayInputStream(jar))) {
-    			ZipEntry entry;
-    			while ((entry = jis.getNextEntry()) != null) {
-    				String className = entry.getName();
-					if (className.endsWith(".class")) {
-    					className = className.substring(0, className.length() - CLASS_END_LENGTH).replace('/', '.');
-    					int lastDot = className.lastIndexOf('.');
-
-    					if (lastDot == 0)
-    						throw new TransactionRejectedException("Package names cannot start with a dot");
-
-    					String packageName = lastDot < 0 ? "" : className.substring(0, lastDot);
-    					Integer previously = packages.get(packageName);
-    					if (previously == null)
-    						packages.put(packageName, pos);
-    					else if (previously != pos)
-    						if (packageName.isEmpty())
-    							throw new TransactionRejectedException("The default package cannot be split across more jars", consensus);
-    						else
-    							throw new TransactionRejectedException("Package " + packageName + " cannot be split across more jars", consensus);
-
-    					// if the transaction reference is null, it means that the class comes from a jar that is being installed
-    					// by the transaction that created this class loader. In that case, the storage reference of the class is not used
-    					TransactionReference reference = transactionsOfJars.get(pos);
-    					if (reference != null)
-    						transactionsThatInstalledJarForClasses.put(className, reference);
-					}
-    			}
-            }
-    		catch (IOException e) {
-    			// the jars seem corrupted
-    			throw new TransactionRejectedException(e, consensus);
-    		}
-
-			pos++;
-		}		
 	}
 
 	/**
@@ -319,7 +266,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		if (consensus != null && counter.incrementAndGet() > consensus.getMaxDependencies())
 			throw new TransactionRejectedException("Too many dependencies in classpath: max is " + consensus.getMaxDependencies(), consensus);
 
-		TransactionResponseWithInstrumentedJar responseWithInstrumentedJar = getResponseWithInstrumentedJarAtUncommitted(classpath, environment);
+		TransactionResponseWithInstrumentedJar responseWithInstrumentedJar = getResponseWithInstrumentedJarAt(classpath, environment);
 
 		// we consider its dependencies before as well, recursively
 		CheckRunnable.check(StoreException.class, () -> responseWithInstrumentedJar.getDependencies().forEachOrdered(UncheckConsumer.uncheck(dependency -> addJars(dependency, consensus, jars, jarTransactions, environment, counter))));
@@ -327,9 +274,62 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		jars.add(responseWithInstrumentedJar.getInstrumentedJar());
 		jarTransactions.add(classpath);
 
-		// consensus might be null if the node is restarting, during the recomputation of its consensus itself
 		if (consensus != null && jars.stream().mapToLong(bytes -> bytes.length).sum() > consensus.getMaxCumulativeSizeOfDependencies())
 			throw new TransactionRejectedException("Too large cumulative size of dependencies in classpath: max is " + consensus.getMaxCumulativeSizeOfDependencies() + " bytes", consensus);
+	}
+
+	/**
+	 * Checks that there are no split packages across jars and takes note of the transaction
+	 * that installed each class in the jars.
+	 * 
+	 * @param jars the jars that form the classpath of this classloader
+	 * @param transactionsOfJars the transactions that have installed the {@code jars}
+	 * @throws TransactionRejectedException 
+	 */
+	private void processClassesInJars(List<byte[]> jars, List<TransactionReference> transactionsOfJars, ExecutionEnvironment environment) throws TransactionRejectedException {
+		// a map from each package name to the jar that defines it
+		var packages = new HashMap<String, Integer>();
+	
+		int pos = 0;
+		for (byte[] jar: jars) {
+			TransactionReference reference = transactionsOfJars.get(pos);
+			/*if (reference != null && null != environment.getClassLoader(reference, _reference -> null))
+				System.out.print("@");*/
+
+			try (var jis = new ZipInputStream(new ByteArrayInputStream(jar))) {
+				ZipEntry entry;
+				while ((entry = jis.getNextEntry()) != null) {
+					String className = entry.getName();
+					if (className.endsWith(".class")) {
+						className = className.substring(0, className.length() - CLASS_END_LENGTH).replace('/', '.');
+						int lastDot = className.lastIndexOf('.');
+						if (lastDot == 0)
+							throw new TransactionRejectedException("Package names cannot start with a dot");
+	
+						String packageName = lastDot < 0 ? "" : className.substring(0, lastDot);
+						Integer previously = packages.get(packageName);
+						if (previously == null)
+							packages.put(packageName, pos);
+						else if (previously != pos)
+							if (packageName.isEmpty())
+								throw new TransactionRejectedException("The default package cannot be split across more jars", consensus);
+							else
+								throw new TransactionRejectedException("Package " + packageName + " cannot be split across more jars", consensus);
+	
+						// if the transaction reference is null, it means that the class comes from a jar that is being installed
+						// by the transaction that created this class loader. In that case, the storage reference of the class is not used
+						if (reference != null)
+							transactionsThatInstalledJarForClasses.put(className, reference);
+					}
+				}
+	        }
+			catch (IOException e) {
+				// the jars seem corrupted
+				throw new TransactionRejectedException(e, consensus);
+			}
+	
+			pos++;
+		}		
 	}
 
 	/*
@@ -338,11 +338,11 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * a jar in the store of the node.
 	 * 
 	 * @param reference the reference of the transaction
-	 * @param node the node for which the class loader is created
+	 * @param environment the execution environment for which the class loader is created
 	 * @return the response
 	 * @throws TransactionRejectedException if the transaction does not exist in the store, or did not generate a response with instrumented jar
 	 */
-	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference, ExecutionEnvironment environment) throws StoreException, TransactionRejectedException {
+	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAt(TransactionReference reference, ExecutionEnvironment environment) throws StoreException, TransactionRejectedException {
 		// first we check if the response has been reverified and we use the reverified version
 		Optional<TransactionResponse> maybeResponse = reverification.getReverifiedResponse(reference);
 		TransactionResponse response;
