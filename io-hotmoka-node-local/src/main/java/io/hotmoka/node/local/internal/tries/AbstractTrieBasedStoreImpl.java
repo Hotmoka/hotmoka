@@ -118,34 +118,19 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
     }
 
     /**
-     * Creates a clone of a store, up to cache and roots. It does not check for the existence of the state.
-     * 
-     * @param toClone the store to clone
-     * @param cache the cache to use in the cloned store
-     * @param rootOfResponse the root to use for the tries of responses
-     * @param rootOfInfo the root to use for the tries of info
-     * @param rootOfHistories the root to use for the tries of histories
-     * @param rootOfRequests the root to use for the tries of requests
-     * @throws StoreException if the operation cannot be completed correctly
-     */
-    protected AbstractTrieBasedStoreImpl(AbstractTrieBasedStoreImpl<N,C,S,T> toClone, Optional<StoreCache> cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) throws StoreException {
-    	super(toClone, cache);
-
-    	this.rootOfResponses = rootOfResponses;
-    	this.rootOfInfo = rootOfInfo;
-    	this.rootOfHistories = rootOfHistories;
-    	this.rootOfRequests = rootOfRequests;
-    }
-
-    /**
-	 * Creates a clone of store, up to cache.
+	 * Creates a clone of a store, up to cache.
 	 * 
 	 * @param toClone the store to clone
 	 * @param cache the cache to use in the cloned store
      * @throws StoreException if the operation cannot be completed correctly
 	 */
-    protected AbstractTrieBasedStoreImpl(AbstractTrieBasedStoreImpl<N,C,S,T> toClone, Optional<StoreCache> cache) throws StoreException {
-    	this(toClone, cache, toClone.rootOfResponses, toClone.rootOfInfo, toClone.rootOfHistories, toClone.rootOfRequests);
+    protected AbstractTrieBasedStoreImpl(AbstractTrieBasedStoreImpl<N,C,S,T> toClone, StoreCache cache) throws StoreException {
+    	super(toClone, Optional.of(cache));
+
+    	this.rootOfResponses = toClone.rootOfResponses;
+    	this.rootOfInfo = toClone.rootOfInfo;
+    	this.rootOfHistories = toClone.rootOfHistories;
+    	this.rootOfRequests = toClone.rootOfRequests;
     }
 
 	protected final StateId addDelta(StoreCache cache, LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests,
@@ -177,7 +162,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 	 * @return the resulting store
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	protected final S reloadCache() throws StoreException, InterruptedException {
+	protected final S withReloadedCache() throws StoreException, InterruptedException {
 		StoreCache newCache = getCache();
 	
 		// if this store is already initialized, we can extract the cache information
@@ -192,7 +177,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 				.setGasPrice(extractGasPrice())
 				.setInflation(extractInflation());
 	
-		return setCache(newCache);
+		return withCache(newCache);
 	}
 
     @Override

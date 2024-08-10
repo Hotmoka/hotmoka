@@ -51,6 +51,7 @@ public interface CheckableStore<S extends CheckableStore<S, T>, T extends StoreT
 	 * @return the resulting store
 	 * @throws UnknownStateIdException if {@code stateId} cannot be found
 	 * @throws StoreException if the operation cannot be completed correctly
+	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 */
-	S checkedOutAt(StateId stateId, Optional<StoreCache> cache) throws UnknownStateIdException, StoreException;
+	S checkedOutAt(StateId stateId, Optional<StoreCache> cache) throws UnknownStateIdException, StoreException, InterruptedException;
 }

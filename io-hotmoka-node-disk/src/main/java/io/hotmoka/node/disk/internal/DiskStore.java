@@ -276,7 +276,7 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
 	}
 
 	@Override
-	protected DiskStore setCache(StoreCache cache) throws StoreException {
+	protected DiskStore withCache(StoreCache cache) throws StoreException {
 		return new DiskStore(this, Optional.of(cache));
 	}
 

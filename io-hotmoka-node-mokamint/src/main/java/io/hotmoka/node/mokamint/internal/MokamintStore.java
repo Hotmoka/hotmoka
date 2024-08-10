@@ -35,7 +35,7 @@ import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
 public class MokamintStore extends AbstractTrieBasedStore<MokamintNodeImpl, MokamintNodeConfig, MokamintStore, MokamintStoreTransformation> {
 
 	/**
-     * Creates an empty store for the Mokamint blockchain, with empyt cache.
+     * Creates an empty store for the Mokamint blockchain, with empty cache.
 	 * 
 	 * @param node the node for which the store is created
 	 * @throws StoreException if the operation cannot be completed correctly
@@ -64,19 +64,20 @@ public class MokamintStore extends AbstractTrieBasedStore<MokamintNodeImpl, Moka
 	 * @param cache the cache to use in the cloned store
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-    private MokamintStore(MokamintStore toClone, Optional<StoreCache> cache) throws StoreException {
+    private MokamintStore(MokamintStore toClone, StoreCache cache) throws StoreException {
     	super(toClone, cache);
 	}
 
     @Override
-    protected MokamintStore setCache(StoreCache cache) throws StoreException {
-    	return new MokamintStore(this, Optional.of(cache));
-    }
+	public MokamintStore checkedOutAt(StateId stateId, Optional<StoreCache> cache) throws UnknownStateIdException, StoreException, InterruptedException {
+		var result = new MokamintStore(this, stateId, cache);
+		return cache.isPresent() ? result : result.withReloadedCache();
+	}
 
 	@Override
-    public MokamintStore checkedOutAt(StateId stateId, Optional<StoreCache> cache) throws UnknownStateIdException, StoreException {
-		return new MokamintStore(this, stateId, cache);
-	}
+    protected MokamintStore withCache(StoreCache cache) throws StoreException {
+    	return new MokamintStore(this, cache);
+    }
 
 	@Override
 	protected MokamintStoreTransformation beginTransformation(ConsensusConfig<?,?> consensus, long now) throws StoreException {

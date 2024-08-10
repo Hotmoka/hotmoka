@@ -69,23 +69,34 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	private final static Logger LOGGER = Logger.getLogger(AbstractStoreImpl.class.getName());
 
 	/**
+	 * Creates an empty store, with the given cache.
+	 * 
+	 * @param node the node for which the store is created
+	 * @param cache the cache to use in the cloned store
+	 * @throws StoreException if the operation cannot be completed correctly
+	 */
+	private AbstractStoreImpl(N node, Optional<StoreCache> cache) throws StoreException {
+		super(node.getExecutors());
+
+		this.node = node;
+		this.cache = cache.isPresent() ? cache.get() : new StoreCacheImpl();
+
+		try {
+			this.consensusForViews = this.cache.getConfig().toBuilder().setMaxGasPerTransaction(node.getLocalConfig().getMaxGasPerViewTransaction()).build();
+		}
+		catch (NodeException e) {
+			throw new StoreException(e);
+		}
+	}
+
+	/**
 	 * Creates an empty store, with empty cache.
 	 * 
 	 * @param node the node for which the store is created
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
 	protected AbstractStoreImpl(N node) throws StoreException {
-		super(node.getExecutors());
-
-		this.node = node;
-		this.cache = new StoreCacheImpl();
-
-		try {
-			this.consensusForViews = cache.getConfig().toBuilder().setMaxGasPerTransaction(node.getLocalConfig().getMaxGasPerViewTransaction()).build();
-		}
-		catch (NodeException e) {
-			throw new StoreException(e);
-		}
+		this(node, Optional.empty());
 	}
 
 	/**
@@ -96,11 +107,7 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
 	protected AbstractStoreImpl(AbstractStoreImpl<N,C,S,T> toClone, Optional<StoreCache> cache) throws StoreException {
-		super(toClone.getNode().getExecutors());
-
-		this.node = toClone.getNode();
-		this.cache = cache.isPresent() ? cache.get() : new StoreCacheImpl();
-		this.consensusForViews = this.cache.getConfig().toBuilder().setMaxGasPerTransaction(toClone.consensusForViews.getMaxGasPerTransaction()).build();
+		this(toClone.getNode(), cache);
 	}
 
 	@Override
@@ -138,7 +145,7 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	 * @param cache the cache to set in the resulting store
 	 * @return the resulting store
 	 */
-	protected abstract S setCache(StoreCache cache) throws StoreException;
+	protected abstract S withCache(StoreCache cache) throws StoreException;
 
 	/**
 	 * Begins a new store transformation.

@@ -74,20 +74,21 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
 	 * @param cache the cache to use in the cloned store
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-    private TendermintStore(TendermintStore toClone, Optional<StoreCache> cache) throws StoreException {
+    private TendermintStore(TendermintStore toClone, StoreCache cache) throws StoreException {
     	super(toClone, cache);
 
     	this.validators = toClone.validators;
 	}
 
     @Override
-	public TendermintStore checkedOutAt(StateId stateId, Optional<StoreCache> cache) throws UnknownStateIdException, StoreException {
-		return new TendermintStore(this, stateId, cache);
+    public TendermintStore checkedOutAt(StateId stateId, Optional<StoreCache> cache) throws UnknownStateIdException, StoreException, InterruptedException {
+		var result = new TendermintStore(this, stateId, cache);
+		return cache.isPresent() ? result : result.withReloadedCache();
 	}
 
 	@Override
-    protected TendermintStore setCache(StoreCache cache) throws StoreException {
-    	return new TendermintStore(this, Optional.of(cache));
+    protected TendermintStore withCache(StoreCache cache) throws StoreException {
+    	return new TendermintStore(this, cache);
     }
 
 	@Override
