@@ -33,13 +33,13 @@ import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
 public class MokamintStore extends AbstractTrieBasedStore<MokamintNodeImpl, MokamintNodeConfig, MokamintStore, MokamintStoreTransformation> {
 
 	/**
-     * Creates an empty store for the Mokamint blockchain.
+     * Creates an empty store for the Mokamint blockchain, with empyt cache.
 	 * 
 	 * @param node the node for which the store is created
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-    MokamintStore(MokamintNodeImpl node, StoreCache cache) throws StoreException {
-    	super(node, cache);
+    MokamintStore(MokamintNodeImpl node) throws StoreException {
+    	super(node);
     }
 
     /**
@@ -51,8 +51,8 @@ public class MokamintStore extends AbstractTrieBasedStore<MokamintNodeImpl, Moka
      * @throws UnknownStateIdException if the required state does not exist
      * @throws StoreException if the operation could not be completed correctly
 	 */
-    private MokamintStore(MokamintStore toClone, StoreCache cache, StateId stateId) throws UnknownStateIdException, StoreException {
-    	super(toClone, cache, stateId);
+    private MokamintStore(MokamintStore toClone, StateId stateId, StoreCache cache) throws UnknownStateIdException, StoreException {
+    	super(toClone, stateId, cache);
 	}
 
 	/**
@@ -71,8 +71,8 @@ public class MokamintStore extends AbstractTrieBasedStore<MokamintNodeImpl, Moka
     }
 
 	@Override
-    protected MokamintStore mkStore(StoreCache cache, StateId stateId) throws UnknownStateIdException, StoreException {
-		return new MokamintStore(this, cache, stateId);
+    public MokamintStore checkedOutAt(StateId stateId, StoreCache cache) throws UnknownStateIdException, StoreException {
+		return new MokamintStore(this, stateId, cache);
 	}
 
 	@Override

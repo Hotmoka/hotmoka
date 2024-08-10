@@ -78,13 +78,13 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 	private final byte[] rootOfHistories;
 
 	/**
-	 * Creates an empty store.
+	 * Creates an empty store, with empty cache.
 	 * 
 	 * @param node the node for which the store is created
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-    protected AbstractTrieBasedStoreImpl(N node, StoreCache cache) throws StoreException {
-    	super(node, cache);
+    protected AbstractTrieBasedStoreImpl(N node) throws StoreException {
+    	super(node);
 
     	this.rootOfResponses = new byte[32];
     	this.rootOfInfo = new byte[32];
@@ -101,7 +101,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
      * @throws UnknownStateIdException if the required state does not exist
      * @throws StoreException if the operation could not be completed correctly
      */
-    protected AbstractTrieBasedStoreImpl(AbstractTrieBasedStoreImpl<N,C,S,T> toClone, StoreCache cache, StateId stateId) throws UnknownStateIdException, StoreException {
+    protected AbstractTrieBasedStoreImpl(AbstractTrieBasedStoreImpl<N,C,S,T> toClone, StateId stateId, StoreCache cache) throws UnknownStateIdException, StoreException {
     	super(toClone, cache);
   
     	var bytes = stateId.getBytes();
@@ -127,9 +127,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
      * @param rootOfHistories the root to use for the tries of histories
      * @param rootOfRequests the root to use for the tries of requests
      */
-    protected AbstractTrieBasedStoreImpl(AbstractTrieBasedStoreImpl<N,C,S,T> toClone, StoreCache cache,
-    		byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) {
-
+    protected AbstractTrieBasedStoreImpl(AbstractTrieBasedStoreImpl<N,C,S,T> toClone, StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) {
     	super(toClone, cache);
 
     	this.rootOfResponses = rootOfResponses;
@@ -148,7 +146,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
     	this(toClone, cache, toClone.rootOfResponses, toClone.rootOfInfo, toClone.rootOfHistories, toClone.rootOfRequests);
     }
 
-	protected StateId addDelta(StoreCache cache, LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests,
+	protected final StateId addDelta(StoreCache cache, LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests,
 			Map<TransactionReference, TransactionResponse> addedResponses,
 			Map<StorageReference, TransactionReference[]> addedHistories, Optional<StorageReference> addedManifest, Transaction txn) throws StoreException {
 
@@ -171,83 +169,17 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 		}
 	}
 
-	protected void checkExistence() throws UnknownStateIdException, StoreException {
-		try {
-			CheckRunnable.check(UnknownKeyException.class, StoreException.class, () -> getNode().getEnvironment().executeInReadonlyTransaction(UncheckConsumer.uncheck(txn -> {
-				mkTrieOfRequests(txn);
-				mkTrieOfResponses(txn);
-				mkTrieOfHistories(txn);
-				mkTrieOfInfo(txn);
-			})));
-		}
-		catch (UnknownKeyException e) {
-			throw new UnknownStateIdException();
-		}
-		catch (ExodusException e) {
-			throw new StoreException(e);
-		}
-	}
-
-	private byte[] addDeltaOfInfos(TrieOfInfo trieOfInfo, Optional<StorageReference> addedManifest) throws TrieException {
-		if (addedManifest.isPresent()) {
-			trieOfInfo.malloc();
-			var old = trieOfInfo;
-			trieOfInfo = trieOfInfo.setManifest(addedManifest.get());
-			old.free();
-		}
-
-		return trieOfInfo.getRoot();
-	}
-
-	private byte[] addDeltaOfHistories(TrieOfHistories trieOfHistories, Map<StorageReference, TransactionReference[]> addedHistories) throws TrieException {
-		for (var entry: addedHistories.entrySet()) {
-			trieOfHistories.malloc();
-			var old = trieOfHistories;
-			trieOfHistories = trieOfHistories.put(entry.getKey(), Stream.of(entry.getValue()));
-			old.free();
-		}
-
-		return trieOfHistories.getRoot();
-	}
-
-	private byte[] addDeltaOfResponses(TrieOfResponses trieOfResponses, Map<TransactionReference, TransactionResponse> addedResponses) throws TrieException {
-		for (var entry: addedResponses.entrySet()) {
-			trieOfResponses.malloc();
-			var old = trieOfResponses;
-			trieOfResponses = trieOfResponses.put(entry.getKey(), entry.getValue());
-			old.free();
-		}
-
-		return trieOfResponses.getRoot();
-	}
-
-	private byte[] addDeltaOfRequests(TrieOfRequests trieOfRequests, LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests) throws TrieException {
-		for (var entry: addedRequests.entrySet()) {
-			trieOfRequests.malloc();
-			var old = trieOfRequests;
-			trieOfRequests = trieOfRequests.put(entry.getKey(), entry.getValue());
-			old.free();
-		}
-
-		return trieOfRequests.getRoot();
-	}
-
-    protected abstract S mkStore(StoreCache cache, StateId stateId) throws StoreException, UnknownStateIdException;
-
-    @Override
-	protected abstract S setCache(StoreCache cache);
-
-    /**
+	/**
 	 * Yields a clone of this store, but for its cache, that is initialized with information extracted from this store.
 	 * 
 	 * @return the resulting store
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	protected S reloadCache() throws StoreException, InterruptedException {
+	protected final S reloadCache() throws StoreException, InterruptedException {
 		StoreCache newCache = getCache();
-
+	
 		// if this store is already initialized, we can extract the cache information
-		// from the store itself, otherwise the default information will be kept
+		// from the store itself, otherwise the previous cache will be kept
 		if (getManifest().isPresent())
 			newCache = newCache
 				.setConfig(extractConsensus())
@@ -257,7 +189,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 				.setVersions(extractVersions())
 				.setGasPrice(extractGasPrice())
 				.setInflation(extractInflation());
-
+	
 		return setCache(newCache);
 	}
 
@@ -322,9 +254,65 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 		return StateIds.of(result);
 	}
 
-	@Override
-	public final S checkedOutAt(StateId stateId, StoreCache cache) throws UnknownStateIdException, StoreException {
-		return mkStore(cache, stateId);
+	private void checkExistence() throws UnknownStateIdException, StoreException {
+		try {
+			CheckRunnable.check(UnknownKeyException.class, StoreException.class, () -> getNode().getEnvironment().executeInReadonlyTransaction(UncheckConsumer.uncheck(txn -> {
+				mkTrieOfRequests(txn);
+				mkTrieOfResponses(txn);
+				mkTrieOfHistories(txn);
+				mkTrieOfInfo(txn);
+			})));
+		}
+		catch (UnknownKeyException e) {
+			throw new UnknownStateIdException();
+		}
+		catch (ExodusException e) {
+			throw new StoreException(e);
+		}
+	}
+
+	private byte[] addDeltaOfInfos(TrieOfInfo trieOfInfo, Optional<StorageReference> addedManifest) throws TrieException {
+		if (addedManifest.isPresent()) {
+			trieOfInfo.malloc();
+			var old = trieOfInfo;
+			trieOfInfo = trieOfInfo.setManifest(addedManifest.get());
+			old.free();
+		}
+	
+		return trieOfInfo.getRoot();
+	}
+
+	private byte[] addDeltaOfHistories(TrieOfHistories trieOfHistories, Map<StorageReference, TransactionReference[]> addedHistories) throws TrieException {
+		for (var entry: addedHistories.entrySet()) {
+			trieOfHistories.malloc();
+			var old = trieOfHistories;
+			trieOfHistories = trieOfHistories.put(entry.getKey(), Stream.of(entry.getValue()));
+			old.free();
+		}
+	
+		return trieOfHistories.getRoot();
+	}
+
+	private byte[] addDeltaOfResponses(TrieOfResponses trieOfResponses, Map<TransactionReference, TransactionResponse> addedResponses) throws TrieException {
+		for (var entry: addedResponses.entrySet()) {
+			trieOfResponses.malloc();
+			var old = trieOfResponses;
+			trieOfResponses = trieOfResponses.put(entry.getKey(), entry.getValue());
+			old.free();
+		}
+	
+		return trieOfResponses.getRoot();
+	}
+
+	private byte[] addDeltaOfRequests(TrieOfRequests trieOfRequests, LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests) throws TrieException {
+		for (var entry: addedRequests.entrySet()) {
+			trieOfRequests.malloc();
+			var old = trieOfRequests;
+			trieOfRequests = trieOfRequests.put(entry.getKey(), entry.getValue());
+			old.free();
+		}
+	
+		return trieOfRequests.getRoot();
 	}
 
 	private TrieOfResponses mkTrieOfResponses(Transaction txn) throws StoreException, UnknownKeyException {

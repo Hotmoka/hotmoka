@@ -97,13 +97,13 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
 	private final int height;
 
 	/**
-     * Creates an empty disk store for a node.
+     * Creates an empty disk store for a node, with empyt caches.
 	 * 
 	 * @param node the node for which the store is created
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-    DiskStore(DiskNodeImpl node, StoreCache cache) throws StoreException {
-    	super(node, cache);
+    DiskStore(DiskNodeImpl node) throws StoreException {
+    	super(node);
 
     	try {
     		this.dir = node.getLocalConfig().getDir().resolve("hotmoka").resolve("store");

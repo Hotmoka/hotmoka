@@ -41,13 +41,13 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
 	private volatile Optional<TendermintValidator[]> validators;
 
 	/**
-     * Creates an empty store for the Tendermint blockchain.
+     * Creates an empty store for the Tendermint blockchain, with empty cache.
 	 * 
 	 * @param node the node for which the store is created
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-    TendermintStore(TendermintNodeImpl node, StoreCache cache) throws StoreException {
-    	super(node, cache);
+    TendermintStore(TendermintNodeImpl node) throws StoreException {
+    	super(node);
 
     	this.validators = Optional.empty();
     }
@@ -61,8 +61,8 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
      * @throws UnknownStateIdException if the required state does not exist
      * @throws StoreException if the operation could not be completed correctly
 	 */
-    private TendermintStore(TendermintStore toClone, StoreCache cache, StateId stateId) throws UnknownStateIdException, StoreException {
-    	super(toClone, cache, stateId);
+    private TendermintStore(TendermintStore toClone, StateId stateId, StoreCache cache) throws UnknownStateIdException, StoreException {
+    	super(toClone, stateId, cache);
 
     	this.validators = toClone.validators;
 	}
@@ -85,8 +85,8 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
     }
 
 	@Override
-    protected TendermintStore mkStore(StoreCache cache, StateId stateId) throws UnknownStateIdException, StoreException {
-		return new TendermintStore(this, cache, stateId);
+    public TendermintStore checkedOutAt(StateId stateId, StoreCache cache) throws UnknownStateIdException, StoreException {
+		return new TendermintStore(this, stateId, cache);
 	}
 
 	@Override

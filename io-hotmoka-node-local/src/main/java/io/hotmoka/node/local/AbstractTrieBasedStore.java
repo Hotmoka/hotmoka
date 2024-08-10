@@ -38,13 +38,13 @@ import io.hotmoka.node.local.internal.tries.AbstractTrieBasedStoreImpl;
 public abstract class AbstractTrieBasedStore<N extends AbstractTrieBasedLocalNode<N,C,S,T>, C extends LocalNodeConfig<C,?>, S extends AbstractTrieBasedStore<N,C,S,T>, T extends AbstractTrieBasedStoreTransformation<N,C,S,T>> extends AbstractTrieBasedStoreImpl<N,C,S,T> {
 
 	/**
-	 * Creates an empty store.
+	 * Creates an empty store, with empty cache.
 	 * 
 	 * @param node the node for which the store is created
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-    protected AbstractTrieBasedStore(N node, StoreCache cache) throws StoreException {
-    	super(node, cache);
+    protected AbstractTrieBasedStore(N node) throws StoreException {
+    	super(node);
     }
 
     /**
@@ -69,7 +69,7 @@ public abstract class AbstractTrieBasedStore<N extends AbstractTrieBasedLocalNod
      * @throws UnknownStateIdException if the required state does not exist
      * @throws StoreException if the operation could not be completed correctly
 	 */
-    protected AbstractTrieBasedStore(AbstractTrieBasedStore<N,C,S,T> toClone, StoreCache cache, StateId stateId) throws UnknownStateIdException, StoreException {
-    	super(toClone, cache, stateId);
+    protected AbstractTrieBasedStore(AbstractTrieBasedStore<N,C,S,T> toClone, StateId stateId, StoreCache cache) throws UnknownStateIdException, StoreException {
+    	super(toClone, stateId, cache);
     }
 }

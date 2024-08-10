@@ -165,9 +165,9 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 	}
 
 	@Override
-	protected MokamintStore mkStore(StoreCache cache) throws NodeException {
+	protected MokamintStore mkStore() throws NodeException {
 		try {
-			return new MokamintStore(this, cache);
+			return new MokamintStore(this);
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);

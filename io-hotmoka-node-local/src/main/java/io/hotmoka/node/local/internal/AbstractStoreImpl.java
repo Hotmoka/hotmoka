@@ -68,16 +68,16 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	private final static Logger LOGGER = Logger.getLogger(AbstractStoreImpl.class.getName());
 
 	/**
-	 * Creates an empty store.
+	 * Creates an empty store, with empty cache.
 	 * 
 	 * @param node the node for which the store is created
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	protected AbstractStoreImpl(N node, StoreCache cache) throws StoreException {
+	protected AbstractStoreImpl(N node) throws StoreException {
 		super(node.getExecutors());
 
 		this.node = node;
-		this.cache = cache;
+		this.cache = new StoreCacheImpl();
 
 		try {
 			this.consensusForViews = cache.getConfig().toBuilder().setMaxGasPerTransaction(node.getLocalConfig().getMaxGasPerViewTransaction()).build();

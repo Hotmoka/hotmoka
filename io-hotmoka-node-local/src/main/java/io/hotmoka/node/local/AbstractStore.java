@@ -35,13 +35,13 @@ import io.hotmoka.node.local.internal.AbstractStoreImpl;
 public abstract class AbstractStore<N extends AbstractLocalNode<N,C,S,T>, C extends LocalNodeConfig<C,?>, S extends AbstractStore<N,C,S,T>, T extends AbstractStoreTransformation<N,C,S,T>> extends AbstractStoreImpl<N,C,S,T> {
 
 	/**
-	 * Creates an empty store.
+	 * Creates an empty store, with empty cache.
 	 * 
 	 * @param node the node for which the store is created
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	protected AbstractStore(N node, StoreCache cache) throws StoreException {
-		super(node, cache);
+	protected AbstractStore(N node) throws StoreException {
+		super(node);
 	}
 
 	/**

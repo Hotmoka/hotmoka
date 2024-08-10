@@ -150,8 +150,8 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	    		//node = wrapped = mkDiskNode();
 	    		//node = wrapped = mkMokamintNode();
 	    		//node = wrapped = mkMokamintNodeConnectedToPeer();
-	    		//node = wrapped = mkMokamintNetworkOfTwoNodes();
-	    		node = wrapped = mkTendermintNode();
+	    		node = wrapped = mkMokamintNetworkOfTwoNodes();
+	    		//node = wrapped = mkTendermintNode();
 	    		//node = mkRemoteNode(wrapped = mkDiskNode());
 	    		//node = mkRemoteNode(wrapped = mkMokamintNode());
 	    		//node = mkRemoteNode(wrapped = mkTendermintNode());
