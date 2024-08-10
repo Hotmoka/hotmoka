@@ -122,9 +122,11 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
     }
 
 	/**
-     * Clones a disk store, up to the cache.
+     * Clones a disk store, setting its cache.
+     * 
+	 * @throws StoreException if the operation cannot be completed correctly
      */
-    private DiskStore(DiskStore toClone, StoreCache cache) {
+    private DiskStore(DiskStore toClone, Optional<StoreCache> cache) throws StoreException {
     	super(toClone, cache);
 
     	this.dir = toClone.dir;
@@ -149,7 +151,7 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
     		Map<StorageReference, TransactionReference[]> addedHistories,
     		Optional<StorageReference> addedManifest) throws StoreException {
 
-    	super(toClone, cache);
+    	super(toClone, Optional.of(cache));
 
     	this.dir = toClone.dir;
 
@@ -274,8 +276,8 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
 	}
 
 	@Override
-	protected DiskStore setCache(StoreCache cache) {
-		return new DiskStore(this, cache);
+	protected DiskStore setCache(StoreCache cache) throws StoreException {
+		return new DiskStore(this, Optional.of(cache));
 	}
 
 	private void dumpRequest(int progressive, TransactionReference reference, TransactionRequest<?> request) throws StoreException {

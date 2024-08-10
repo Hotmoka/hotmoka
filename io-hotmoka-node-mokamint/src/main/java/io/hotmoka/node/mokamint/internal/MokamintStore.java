@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.node.mokamint.internal;
 
+import java.util.Optional;
+
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.local.AbstractTrieBasedStore;
@@ -51,7 +53,7 @@ public class MokamintStore extends AbstractTrieBasedStore<MokamintNodeImpl, Moka
      * @throws UnknownStateIdException if the required state does not exist
      * @throws StoreException if the operation could not be completed correctly
 	 */
-    private MokamintStore(MokamintStore toClone, StateId stateId, StoreCache cache) throws UnknownStateIdException, StoreException {
+    private MokamintStore(MokamintStore toClone, StateId stateId, Optional<StoreCache> cache) throws UnknownStateIdException, StoreException {
     	super(toClone, stateId, cache);
 	}
 
@@ -60,18 +62,19 @@ public class MokamintStore extends AbstractTrieBasedStore<MokamintNodeImpl, Moka
 	 * 
 	 * @param toClone the store to clone
 	 * @param cache the cache to use in the cloned store
+	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-    private MokamintStore(MokamintStore toClone, StoreCache cache) {
+    private MokamintStore(MokamintStore toClone, Optional<StoreCache> cache) throws StoreException {
     	super(toClone, cache);
 	}
 
     @Override
-    protected MokamintStore setCache(StoreCache cache) {
-    	return new MokamintStore(this, cache);
+    protected MokamintStore setCache(StoreCache cache) throws StoreException {
+    	return new MokamintStore(this, Optional.of(cache));
     }
 
 	@Override
-    public MokamintStore checkedOutAt(StateId stateId, StoreCache cache) throws UnknownStateIdException, StoreException {
+    public MokamintStore checkedOutAt(StateId stateId, Optional<StoreCache> cache) throws UnknownStateIdException, StoreException {
 		return new MokamintStore(this, stateId, cache);
 	}
 

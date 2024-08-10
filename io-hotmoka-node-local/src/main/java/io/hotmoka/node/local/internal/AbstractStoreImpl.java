@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.local.internal;
 
+import java.util.Optional;
 import java.util.logging.Logger;
 
 import io.hotmoka.annotations.Immutable;
@@ -92,13 +93,14 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	 * 
 	 * @param toClone the store to clone
 	 * @param cache the cache to use in the cloned store
+	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	protected AbstractStoreImpl(AbstractStoreImpl<N,C,S,T> toClone, StoreCache cache) {
+	protected AbstractStoreImpl(AbstractStoreImpl<N,C,S,T> toClone, Optional<StoreCache> cache) throws StoreException {
 		super(toClone.getNode().getExecutors());
 
 		this.node = toClone.getNode();
-		this.cache = cache;
-		this.consensusForViews = cache.getConfig().toBuilder().setMaxGasPerTransaction(toClone.consensusForViews.getMaxGasPerTransaction()).build();
+		this.cache = cache.isPresent() ? cache.get() : new StoreCacheImpl();
+		this.consensusForViews = this.cache.getConfig().toBuilder().setMaxGasPerTransaction(toClone.consensusForViews.getMaxGasPerTransaction()).build();
 	}
 
 	@Override
@@ -136,7 +138,7 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	 * @param cache the cache to set in the resulting store
 	 * @return the resulting store
 	 */
-	protected abstract S setCache(StoreCache cache);
+	protected abstract S setCache(StoreCache cache) throws StoreException;
 
 	/**
 	 * Begins a new store transformation.

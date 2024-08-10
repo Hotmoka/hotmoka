@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.node.local.api;
 
+import java.util.Optional;
+
 import io.hotmoka.annotations.Immutable;
 
 /**
@@ -44,9 +46,11 @@ public interface CheckableStore<S extends CheckableStore<S, T>, T extends StoreT
 	 * It allows one to specify the cache to use for the store.
 	 * 
 	 * @param stateId the identifier of the resulting store
-	 * @param cache the cache to use for the resulting store
+	 * @param cache the cache to use for the resulting store; if empty, it will be extracted from the store
+	 *              itself, which might be expensive
 	 * @return the resulting store
+	 * @throws UnknownStateIdException if {@code stateId} cannot be found
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	S checkedOutAt(StateId stateId, StoreCache cache) throws UnknownStateIdException, StoreException;
+	S checkedOutAt(StateId stateId, Optional<StoreCache> cache) throws UnknownStateIdException, StoreException;
 }

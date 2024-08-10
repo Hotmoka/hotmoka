@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.node.local;
 
+import java.util.Optional;
+
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StateId;
@@ -52,8 +54,9 @@ public abstract class AbstractTrieBasedStore<N extends AbstractTrieBasedLocalNod
 	 * 
 	 * @param toClone the store to clone
 	 * @param cache the cache to use in the cloned store
+     * @throws StoreException if the operation cannot be completed correctly
 	 */
-    protected AbstractTrieBasedStore(AbstractTrieBasedStore<N,C,S,T> toClone, StoreCache cache) {
+    protected AbstractTrieBasedStore(AbstractTrieBasedStore<N,C,S,T> toClone, Optional<StoreCache> cache) throws StoreException {
     	super(toClone, cache);
     }
 
@@ -69,7 +72,7 @@ public abstract class AbstractTrieBasedStore<N extends AbstractTrieBasedLocalNod
      * @throws UnknownStateIdException if the required state does not exist
      * @throws StoreException if the operation could not be completed correctly
 	 */
-    protected AbstractTrieBasedStore(AbstractTrieBasedStore<N,C,S,T> toClone, StateId stateId, StoreCache cache) throws UnknownStateIdException, StoreException {
+    protected AbstractTrieBasedStore(AbstractTrieBasedStore<N,C,S,T> toClone, StateId stateId, Optional<StoreCache> cache) throws UnknownStateIdException, StoreException {
     	super(toClone, stateId, cache);
     }
 }

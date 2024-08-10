@@ -101,7 +101,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
      * @throws UnknownStateIdException if the required state does not exist
      * @throws StoreException if the operation could not be completed correctly
      */
-    protected AbstractTrieBasedStoreImpl(AbstractTrieBasedStoreImpl<N,C,S,T> toClone, StateId stateId, StoreCache cache) throws UnknownStateIdException, StoreException {
+    protected AbstractTrieBasedStoreImpl(AbstractTrieBasedStoreImpl<N,C,S,T> toClone, StateId stateId, Optional<StoreCache> cache) throws UnknownStateIdException, StoreException {
     	super(toClone, cache);
   
     	var bytes = stateId.getBytes();
@@ -126,8 +126,9 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
      * @param rootOfInfo the root to use for the tries of info
      * @param rootOfHistories the root to use for the tries of histories
      * @param rootOfRequests the root to use for the tries of requests
+     * @throws StoreException if the operation cannot be completed correctly
      */
-    protected AbstractTrieBasedStoreImpl(AbstractTrieBasedStoreImpl<N,C,S,T> toClone, StoreCache cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) {
+    protected AbstractTrieBasedStoreImpl(AbstractTrieBasedStoreImpl<N,C,S,T> toClone, Optional<StoreCache> cache, byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) throws StoreException {
     	super(toClone, cache);
 
     	this.rootOfResponses = rootOfResponses;
@@ -141,8 +142,9 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 	 * 
 	 * @param toClone the store to clone
 	 * @param cache the cache to use in the cloned store
+     * @throws StoreException if the operation cannot be completed correctly
 	 */
-    protected AbstractTrieBasedStoreImpl(AbstractTrieBasedStoreImpl<N,C,S,T> toClone, StoreCache cache) {
+    protected AbstractTrieBasedStoreImpl(AbstractTrieBasedStoreImpl<N,C,S,T> toClone, Optional<StoreCache> cache) throws StoreException {
     	this(toClone, cache, toClone.rootOfResponses, toClone.rootOfInfo, toClone.rootOfHistories, toClone.rootOfRequests);
     }
 

@@ -41,7 +41,6 @@ import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UnknownStateIdException;
-import io.hotmoka.node.local.internal.StoreCacheImpl;
 import io.hotmoka.patricia.api.TrieException;
 import io.hotmoka.patricia.api.UnknownKeyException;
 import io.hotmoka.xodus.ByteIterable;
@@ -257,10 +256,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 */
 	protected final S mkStore(StateId stateId, Optional<StoreCache> cache) throws UnknownStateIdException, InterruptedException, NodeException {
 		try {
-			if (cache.isPresent())
-				return mkEmptyStore().checkedOutAt(stateId, cache.get());
-			else
-				return mkEmptyStore().checkedOutAt(stateId, new StoreCacheImpl()).reloadCache();
+			return mkEmptyStore().checkedOutAt(stateId, cache);
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);
