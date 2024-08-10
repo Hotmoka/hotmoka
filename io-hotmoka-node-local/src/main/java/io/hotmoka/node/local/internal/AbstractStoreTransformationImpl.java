@@ -291,7 +291,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	}
 
 	@Override
-	protected final StoreCache getCache() {
+	protected StoreCache getCache() {
 		return cache;
 	}
 

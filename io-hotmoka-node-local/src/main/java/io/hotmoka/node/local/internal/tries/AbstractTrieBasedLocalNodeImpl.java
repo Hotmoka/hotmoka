@@ -180,40 +180,19 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 * Called when this node is executing something that needs the store with the given state identifier.
 	 * It can be used, for instance, to take note that that store cannot be garbage-collected from that moment.
 	 * 
+	 * @param stateId the state identifier of the store to enter
+	 * @param the cache to use for the store; if missing, it gets extracted from the store itself (which might be expensive)
 	 * @return the entered store
 	 * @throws UnknownStateIdException if the required state identifier does not exist
 	 *                                 (also if it has been garbage-collected already)
 	 * @throws InterruptedException if the operation has been interrupted before being completed
 	 * @throws NodeException if the operation could not be completed correctly
 	 */
-	protected S enter(StateId stateId, StoreCache cache) throws UnknownStateIdException, NodeException, InterruptedException {
+	protected S enter(StateId stateId, Optional<StoreCache> cache) throws UnknownStateIdException, NodeException, InterruptedException {
 		synchronized (lockGC) {
 			S result = mkStore(stateId, cache);
 			enter(result, stateId);
 			return result;
-		}
-	}
-
-	/**
-	 * Called when this node is executing something that needs the store with the given state identifier.
-	 * It can be used, for instance, to take note that that store cannot be garbage-collected from that moment.
-	 * 
-	 * @return the entered store
-	 * @throws UnknownStateIdException if the required state identifier does not exist
-	 *                                 (also if it has been garbage-collected already)
-	 * @throws InterruptedException if the operation has been interrupted before being completed
-	 * @throws NodeException if the operation could not be completed correctly
-	 */
-	protected S enter(StateId stateId) throws UnknownStateIdException, NodeException, InterruptedException {
-		try {
-			synchronized (lockGC) {
-				S result = mkStore(stateId, new StoreCacheImpl());
-				enter(result, stateId);
-				return result;
-			}
-		}
-		catch (StoreException e) {
-			throw new NodeException(e);
 		}
 	}
 
@@ -270,28 +249,18 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 
 	/**
 	 * Factory method for creating a store for this node, checked out at the given state identifier.
+	 * If the cache is missing, it gets extracted from the store itself (which might be expensive).
 	 * 
 	 * @param stateId the state identifier
+	 * @param cache the cache to use for the store; if missing, it will get extracted from the store
 	 * @return the resulting store
 	 */
-	protected final S mkStore(StateId stateId, StoreCache cache) throws UnknownStateIdException, InterruptedException, NodeException {
+	protected final S mkStore(StateId stateId, Optional<StoreCache> cache) throws UnknownStateIdException, InterruptedException, NodeException {
 		try {
-			return mkStore().checkedOutAt(stateId, cache);
-		}
-		catch (StoreException e) {
-			throw new NodeException(e);
-		}
-	}
-
-	/**
-	 * Factory method for creating a store for this node, checked out at the given state identifier.
-	 * 
-	 * @param stateId the state identifier
-	 * @return the resulting store
-	 */
-	protected final S mkStore(StateId stateId) throws UnknownStateIdException, InterruptedException, NodeException {
-		try {
-			return mkStore(stateId, new StoreCacheImpl());
+			if (cache.isPresent())
+				return mkStore().checkedOutAt(stateId, cache.get());
+			else
+				return mkStore().checkedOutAt(stateId, new StoreCacheImpl()).reloadCache();
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);

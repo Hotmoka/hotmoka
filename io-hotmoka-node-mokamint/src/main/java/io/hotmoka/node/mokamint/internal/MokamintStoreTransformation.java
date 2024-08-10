@@ -59,7 +59,8 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 		super(store, consensus, now);
 	}
 
-	protected StoreCache getCacheAccessor() {
+	@Override
+	protected StoreCache getCache() {
 		return super.getCache();
 	}
 

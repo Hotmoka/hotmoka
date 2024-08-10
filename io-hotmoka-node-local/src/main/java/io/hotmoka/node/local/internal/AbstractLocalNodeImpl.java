@@ -565,10 +565,9 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	protected abstract S mkStore(StoreCache cache) throws NodeException;
 
 	/**
-	 * Factory method for creating an empty store for this node.
+	 * Factory method for creating an empty store for this node, with empty caches.
 	 * 
-	 * @param cache the cache to use for the store
-	 * @return the store empty
+	 * @return the empty store
 	 */
 	protected final S mkStore() throws NodeException {
 		try {

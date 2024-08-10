@@ -39,7 +39,6 @@ import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UnknownStateIdException;
-import io.hotmoka.node.local.internal.StoreCacheImpl;
 import io.hotmoka.patricia.api.TrieException;
 import io.hotmoka.patricia.api.UnknownKeyException;
 import io.hotmoka.xodus.ExodusException;
@@ -238,6 +237,30 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
     @Override
 	protected abstract S setCache(StoreCache cache);
 
+    /**
+	 * Yields a clone of this store, but for its cache, that is initialized with information extracted from this store.
+	 * 
+	 * @return the resulting store
+	 * @throws StoreException if the operation cannot be completed correctly
+	 */
+	protected S reloadCache() throws StoreException, InterruptedException {
+		StoreCache newCache = getCache();
+
+		// if this store is already initialized, we can extract the cache information
+		// from the store itself, otherwise the default information will be kept
+		if (getManifest().isPresent())
+			newCache = newCache
+				.setConfig(extractConsensus())
+				.invalidateClassLoaders()
+				.setValidators(extractValidators())
+				.setGasStation(extractGasStation())
+				.setVersions(extractVersions())
+				.setGasPrice(extractGasPrice())
+				.setInflation(extractInflation());
+
+		return setCache(newCache);
+	}
+
     @Override
 	public final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, StoreException {
     	try {
@@ -297,12 +320,6 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 		System.arraycopy(rootOfHistories, 0, result, 96, 32);
 
 		return StateIds.of(result);
-	}
-
-	@Override
-	public final S checkedOutAt(StateId stateId) throws UnknownStateIdException, StoreException, InterruptedException {
-		// we provide an empty cache and then ask to reload it from the state of the resulting store
-		return checkedOutAt(stateId, new StoreCacheImpl()).reloadCache();
 	}
 
 	@Override

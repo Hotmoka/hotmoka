@@ -230,11 +230,10 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 
 	private void checkOutRootBranch() throws NodeException, InterruptedException {
 		try {
-			var root = getEnvironment().computeInTransaction(txn -> Optional.ofNullable(getStoreOfNode().get(txn, ROOT)).map(ByteIterable::getBytes));
-			if (root.isEmpty())
-				throw new NodeException("Cannot find the root of the saved store of the node");
+			var root = getEnvironment().computeInTransaction(txn -> Optional.ofNullable(getStoreOfNode().get(txn, ROOT)).map(ByteIterable::getBytes))
+				.orElseThrow(() -> new NodeException("Cannot find the root of the saved store of the node"));
 
-			storeOfHead = mkStore(StateIds.of(root.get()));
+			storeOfHead = mkStore(StateIds.of(root), Optional.empty());
 		}
 		catch (UnknownStateIdException | ExodusException e) {
 			throw new NodeException(e);
@@ -706,7 +705,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 
 				persisted++;
 
-				storeOfHead = mkStore(idOfNewStoreOfHead);
+				storeOfHead = mkStore(idOfNewStoreOfHead, Optional.of(transformation.getCache()));
 				CheckRunnable.check(NodeException.class, () -> transformation.getDeliveredTransactions().forEachOrdered(UncheckConsumer.uncheck(reference -> publish(reference, storeOfHead))));
 
 				byte[] hash = getLastBlockApplicationHash();

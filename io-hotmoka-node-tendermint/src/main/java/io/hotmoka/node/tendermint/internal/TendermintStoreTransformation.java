@@ -41,6 +41,7 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractTrieBasedStoreTransformation;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
+import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 
@@ -69,6 +70,11 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 		super(store, consensus, now);
 
 		this.validators = validators;
+	}
+
+	@Override
+	protected StoreCache getCache() {
+		return super.getCache();
 	}
 
 	protected final Optional<TendermintValidator[]> getTendermintValidators() {

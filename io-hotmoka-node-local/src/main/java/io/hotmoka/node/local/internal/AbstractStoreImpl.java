@@ -131,30 +131,6 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	}
 
 	/**
-	 * Yields a clone of this store, but for its cache, that is initialized with information extracted from this store.
-	 * 
-	 * @return the resulting store
-	 * @throws StoreException if the operation cannot be completed correctly
-	 */
-	protected final S reloadCache() throws StoreException, InterruptedException {
-		StoreCache newCache = cache;
-
-		// if this store is already initialized, we can extract the cache information
-		// from the store itself, otherwise the default information will be kept
-		if (getManifest().isPresent())
-			newCache = newCache
-				.setConfig(extractConsensus())
-				.invalidateClassLoaders()
-				.setValidators(extractValidators())
-				.setGasStation(extractGasStation())
-				.setVersions(extractVersions())
-				.setGasPrice(extractGasPrice())
-				.setInflation(extractInflation());
-
-		return setCache(newCache);
-	}
-
-	/**
 	 * Yields a store identical to this, but for its cache, that is set as given.
 	 * 
 	 * @param cache the cache to set in the resulting store

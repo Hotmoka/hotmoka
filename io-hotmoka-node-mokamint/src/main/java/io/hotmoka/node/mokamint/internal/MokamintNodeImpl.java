@@ -25,6 +25,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Deque;
+import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -185,7 +186,8 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 					return storeOfHead;
 			}
 
-			MokamintStore result = mkStore(StateIds.of(maybeHeadStateId.get())); // TODO: cache?
+			var si = StateIds.of(maybeHeadStateId.get());
+			MokamintStore result = mkStore(si, Optional.ofNullable(lastCaches.get(si)));
 
 			synchronized (headLock) {
 				lastHeadStateId = maybeHeadStateId.get();
@@ -230,9 +232,10 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		try {
 			while (true) {
 				NonGenesisBlock next = toPublish.take();
+				var si = StateIds.of(next.getStateId());
 	
 				try {
-					MokamintStore store = mkStore(StateIds.of(next.getStateId()));
+					MokamintStore store = mkStore(si, Optional.ofNullable(lastCaches.get(si)));
 	
 					for (var tx: next.getTransactions().toArray(Transaction[]::new))
 						publish(TransactionReferences.of(getHasher().hash(intoHotmokaRequest(tx))), store);
@@ -312,12 +315,11 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		@Override
 		public int beginBlock(long height, LocalDateTime when, byte[] stateId) throws UnknownStateException, ApplicationException, InterruptedException {
 			var si = StateIds.of(stateId);
-			var lastCache = lastCaches.get(si);
 
 			MokamintStore start;
 			try {
 				// if we have information about the cache at the requested state id, we use it for better efficiency
-				start = lastCache != null ? enter(si, lastCache) : enter(si);
+				start = enter(si, Optional.ofNullable(lastCaches.get(si)));
 			}
 			catch (NodeException e) {
 				throw new ApplicationException(e);
@@ -372,7 +374,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 				byte[] finalId = CheckSupplier.check(NodeException.class, StoreException.class, () -> getEnvironment().computeInTransaction(UncheckFunction.uncheck(txn -> {
 					StateId stateIdOfFinalStore = transformation.getIdOfFinalStore(txn);
-					lastCaches.put(stateIdOfFinalStore, transformation.getCacheAccessor());
+					lastCaches.put(stateIdOfFinalStore, transformation.getCache());
 					persist(stateIdOfFinalStore, transformation.getNow(), txn);
 					return stateIdOfFinalStore.getBytes();
 				})));
