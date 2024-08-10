@@ -556,11 +556,11 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	/**
-	 * Factory method for creating an empty store for this node, with empyt cache.
+	 * Factory method for creating an empty store for this node, with empty cache.
 	 * 
 	 * @return the store empty
 	 */
-	protected abstract S mkStore() throws NodeException;
+	protected abstract S mkEmptyStore() throws NodeException;
 
 	/**
 	 * Node-specific implementation to post the given request. Each node should implement this,

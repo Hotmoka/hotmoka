@@ -67,7 +67,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 		super(config, true);
 
 		try {
-			this.storeOfHead = mkStore();
+			this.storeOfHead = mkEmptyStore();
 			this.mempool = new Mempool();
 		}
 		catch (NodeException e) {
@@ -84,7 +84,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 	}
 
 	@Override
-	protected DiskStore mkStore() throws NodeException {
+	protected DiskStore mkEmptyStore() throws NodeException {
 		try {
 			return new DiskStore(this);
 		}

@@ -165,7 +165,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 	}
 
 	@Override
-	protected MokamintStore mkStore() throws NodeException {
+	protected MokamintStore mkEmptyStore() throws NodeException {
 		try {
 			return new MokamintStore(this);
 		}
@@ -179,7 +179,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		try {
 			var maybeHeadStateId = mokamintNode.getChainInfo().getHeadStateId();
 			if (maybeHeadStateId.isEmpty())
-				return mkStore();
+				return mkEmptyStore();
 
 			synchronized (headLock) {
 				if (lastHeadStateId != null && Arrays.equals(lastHeadStateId, maybeHeadStateId.get()))

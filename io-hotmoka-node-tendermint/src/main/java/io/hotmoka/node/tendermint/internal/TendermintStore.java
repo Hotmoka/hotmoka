@@ -80,14 +80,14 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
 	}
 
     @Override
+	public TendermintStore checkedOutAt(StateId stateId, StoreCache cache) throws UnknownStateIdException, StoreException {
+		return new TendermintStore(this, stateId, cache);
+	}
+
+	@Override
     protected TendermintStore setCache(StoreCache cache) {
     	return new TendermintStore(this, cache);
     }
-
-	@Override
-    public TendermintStore checkedOutAt(StateId stateId, StoreCache cache) throws UnknownStateIdException, StoreException {
-		return new TendermintStore(this, stateId, cache);
-	}
 
 	@Override
 	protected TendermintStoreTransformation beginTransformation(ConsensusConfig<?,?> consensus, long now) throws StoreException {

@@ -152,7 +152,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		try {
 			if (init) {
 				initWorkingDirectoryOfTendermintProcess(config);
-				storeOfHead = mkStore();
+				storeOfHead = mkEmptyStore();
 			}
 			else
 				checkOutRootBranch();
@@ -193,7 +193,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	}
 
 	@Override
-	protected TendermintStore mkStore() throws NodeException {
+	protected TendermintStore mkEmptyStore() throws NodeException {
 		try {
 			return new TendermintStore(this);
 		}

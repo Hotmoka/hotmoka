@@ -258,9 +258,9 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	protected final S mkStore(StateId stateId, Optional<StoreCache> cache) throws UnknownStateIdException, InterruptedException, NodeException {
 		try {
 			if (cache.isPresent())
-				return mkStore().checkedOutAt(stateId, cache.get());
+				return mkEmptyStore().checkedOutAt(stateId, cache.get());
 			else
-				return mkStore().checkedOutAt(stateId, new StoreCacheImpl()).reloadCache();
+				return mkEmptyStore().checkedOutAt(stateId, new StoreCacheImpl()).reloadCache();
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);
