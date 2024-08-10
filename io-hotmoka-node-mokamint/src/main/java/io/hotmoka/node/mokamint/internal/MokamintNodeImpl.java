@@ -372,16 +372,12 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			try {
 				transformation.deliverRewardForNodeAndMiner(deadline.getProlog());
 
-				byte[] finalId = CheckSupplier.check(NodeException.class, StoreException.class, () -> getEnvironment().computeInTransaction(UncheckFunction.uncheck(txn -> {
+				return CheckSupplier.check(NodeException.class, StoreException.class, () -> getEnvironment().computeInTransaction(UncheckFunction.uncheck(txn -> {
 					StateId stateIdOfFinalStore = transformation.getIdOfFinalStore(txn);
 					lastCaches.put(stateIdOfFinalStore, transformation.getCache());
 					persist(stateIdOfFinalStore, transformation.getNow(), txn);
 					return stateIdOfFinalStore.getBytes();
 				})));
-
-				persisted++;
-
-				return finalId;
 			}
 			catch (ExodusException | StoreException | NodeException e) {
 				throw new ApplicationException(e);

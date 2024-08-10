@@ -702,8 +702,6 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 					return stateIdOfFinalStore;
 				})));
 
-				persisted++;
-
 				storeOfHead = mkStore(idOfNewStoreOfHead, Optional.of(transformation.getCache()));
 				CheckRunnable.check(NodeException.class, () -> transformation.getDeliveredTransactions().forEachOrdered(UncheckConsumer.uncheck(reference -> publish(reference, storeOfHead))));
 

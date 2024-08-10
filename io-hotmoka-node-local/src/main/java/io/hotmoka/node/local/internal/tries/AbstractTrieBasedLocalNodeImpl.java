@@ -213,8 +213,6 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		super.exit(store);
 	}
 
-	public int persisted, freed;
-
 	/**
 	 * Takes note that the given store must be persisted, that is, must not be garbage-collected.
 	 * A store can be persisted more than once, in which case it must be garbage-collected the
@@ -269,9 +267,6 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 				free(stateIdAndTime.stateId, txn);
 				removeFromStores(STORES_TO_GC, stateIdAndTime, txn);
 			})));
-
-			freed++;
-			System.out.println("persisted = " + persisted + " freed = " + freed);
 
 			LOGGER.info("garbage-collected store " + stateIdAndTime);
 		}
