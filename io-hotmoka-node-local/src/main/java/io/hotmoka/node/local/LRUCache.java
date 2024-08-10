@@ -59,7 +59,7 @@ public final class LRUCache<K, V> {
 
 		@Override
 		public String toString() {
-			return value.toString();
+			return String.valueOf(value);
 		}
 	}
 

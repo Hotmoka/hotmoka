@@ -214,7 +214,7 @@ public abstract class NodeDecoratorImpl<N extends Node> implements Node {
 	}
 
 	@Override
-	public TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, UnknownReferenceException, NodeException, TimeoutException, InterruptedException {
+	public TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, NodeException, TimeoutException, InterruptedException {
 		return parent.getResponse(reference);
 	}
 

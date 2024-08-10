@@ -81,7 +81,6 @@ import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
-import io.hotmoka.node.local.LRUCache;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.LocalNode;
 import io.hotmoka.node.local.api.LocalNodeConfig;
@@ -137,7 +136,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 * {@link #checkRequest(TransactionRequest)} failed, hence never
 	 * got the chance to pass to {@link #deliverTransaction(TransactionRequest)}.
 	 */
-	private final LRUCache<TransactionReference, String> recentlyRejectedTransactionsMessages;
+	private final ConcurrentMap<TransactionReference, String> recentlyRejectedTransactionsMessages = new ConcurrentHashMap<>();
 
 	/**
 	 * The version of Hotmoka used by the nodes.
@@ -170,7 +169,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		super(ClosedNodeException::new);
 
 		this.config = config;
-		this.recentlyRejectedTransactionsMessages = new LRUCache<>(100, 1000);
 		this.semaphores = new ConcurrentHashMap<>();
 
 		try {
@@ -259,16 +257,30 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 				// this optimizes the time of waiting
 				semaphore.acquire(); // TODO: possibly introduce a timeout here
 
-			for (long attempt = 1, delay = config.getPollingDelay(); attempt <= Math.max(1L, config.getMaxPollingAttempts()); attempt++, delay = delay * 110 / 100)
+			var attempts = config.getMaxPollingAttempts();
+			for (long attempt = 1, delay = config.getPollingDelay(); attempt <= Math.max(1L, attempts); attempt++, delay = delay * 110 / 100) {
+				S store = enterHead();
+
 				try {
-					return getResponse(reference);
+					return store.getResponse(reference);
 				}
 				catch (UnknownReferenceException e) {
-					// the response is not available yet: we wait a bit
-					Thread.sleep(delay);
+					String rejectionMessage = recentlyRejectedTransactionsMessages.remove(reference);
+					if (rejectionMessage != null)
+						throw new TransactionRejectedException(rejectionMessage, store.getConfig());
+				}
+				catch (StoreException e) {
+					throw new NodeException(e);
+				}
+				finally {
+					exit(store);
 				}
 
-			throw new TimeoutException("Cannot find the response of transaction reference " + reference + ": tried " + config.getMaxPollingAttempts() + " times");
+				// the response is not available yet, nor did it get rejected: we wait a bit
+				Thread.sleep(delay);
+			}
+
+			throw new TimeoutException("Cannot find the response of transaction reference " + reference + ": tried " + attempts + " times");
 		}
 	}
 
@@ -288,20 +300,11 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	@Override
-	public final TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, UnknownReferenceException, NodeException, InterruptedException {
+	public final TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, NodeException, InterruptedException {
 		S store = enterHead();
 
 		try (var scope = mkScope()) {
-			try {
 				return store.getResponse(Objects.requireNonNull(reference));
-			}
-			catch (UnknownReferenceException e) {
-				String rejectionMessage = recentlyRejectedTransactionsMessages.get(reference);
-				if (rejectionMessage != null)
-					throw new TransactionRejectedException(rejectionMessage, store.getConfig());
-				else
-					throw new UnknownReferenceException(reference);
-			}
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);
@@ -507,9 +510,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	protected final void signalRejected(TransactionRequest<?> request, TransactionRejectedException e) {
 		var reference = TransactionReferences.of(hasher.hash(request));
 		recentlyRejectedTransactionsMessages.put(reference, e.getMessage());
-		Semaphore semaphore = semaphores.remove(reference);
-		if (semaphore != null)
-			semaphore.release();
+		signalCompleted(reference);
 	}
 
 	protected final void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException, NodeException, InterruptedException {
@@ -700,7 +701,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	/**
 	 * Adds a shutdown hook that shuts down the blockchain orderly if the JVM terminates.
 	 */
-	private void addShutdownHook() { // TODO: do we really need it? It seems that is never called
+	private void addShutdownHook() { // TODO: do we really need it? It seems that it is never called
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 			try {
 				close();

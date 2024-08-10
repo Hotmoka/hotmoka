@@ -167,8 +167,8 @@ public class NodeFromNetwork extends HotmokaTest {
     }
 
     @Test
-    @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getResponse for the reference of a failed request")
-    void testRemoteGetResponseFailed() throws Exception {
+    @DisplayName("starts a network server from a Hotmoka node and makes a remote call to post a jar that fails")
+    void testRemoteJarStoreResponseFailed() throws Exception {
         try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
         	// we try to install a jar, but we forget to add its dependency (lambdas.jar needs takamakaCode() as dependency);
         	// this means that the request fails and the future refers to a failed request; since this is a post,
@@ -180,10 +180,6 @@ public class NodeFromNetwork extends HotmokaTest {
         	// we wait until the request has been processed; this will throw a TransactionRejectedException at the end,
         	// since the request failed and its transaction was rejected
         	assertThrows(TransactionRejectedException.class, future::get);
-
-        	// if we ask for the outcome of the request, we will get the TransactionRejectedException as answer
-        	TransactionRejectedException e = assertThrows(TransactionRejectedException.class, () -> remote.getPolledResponse(future.getReferenceOfRequest()));
-        	assertTrue(e.getMessage().contains(ClassNotFoundException.class.getName()));
         }
     }
 
@@ -196,27 +192,6 @@ public class NodeFromNetwork extends HotmokaTest {
 
         	// we poll for its result: lambdas.jar has been correctly installed in the node, hence the response is successful
         	assertTrue(remote.getPolledResponse(future.getReferenceOfRequest()) instanceof JarStoreTransactionSuccessfulResponse);
-        }
-    }
-
-    @Test
-    @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getPolledResponse for the reference of a failed request")
-    void testRemoteGetPolledResponseFailed() throws Exception {
-        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
-        	// we try to install a jar, but we forget to add its dependency (lambdas.jar needs takamakaCode() as dependency);
-        	// this means that the request fails and the future refers to a failed request; since this is a post,
-        	// the execution does not stop, nor throws anything
-        	JarFuture future = postJarStoreTransaction(privateKey(0), account(0), _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar")
-        		// takamakaCode(), // <-- forgot that
-       		);
-
-        	// we wait until the request has been processed; this will throw a TransactionRejectedException at the end,
-        	// since the request failed and its transaction was rejected
-        	assertThrows(TransactionRejectedException.class, future::get);
-
-        	// if we ask for the outcome of the request to the remote node, we will get the TransactionRejectedException as answer
-        	TransactionRejectedException e = assertThrows(TransactionRejectedException.class, () -> remote.getPolledResponse(future.getReferenceOfRequest()));
-        	assertTrue(e.getMessage().contains(ClassNotFoundException.class.getName()));
         }
     }
 

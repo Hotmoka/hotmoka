@@ -262,7 +262,7 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
     		try {
 				sendObjectAsync(session, GetResponseResultMessages.of(node.getResponse(grm.getReference()), message.getId()));
 			}
-			catch (TimeoutException | InterruptedException | NodeException | TransactionRejectedException | UnknownReferenceException e) {
+			catch (TimeoutException | InterruptedException | NodeException | UnknownReferenceException e) {
 				sendExceptionAsync(session, e, message.getId());
 			}
     	}

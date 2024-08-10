@@ -164,13 +164,12 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * 
 	 * @param reference the reference of the transaction
 	 * @return the response
-	 * @throws TransactionRejectedException if there is a request for that transaction but it failed with this exception
 	 * @throws UnknownReferenceException if the response of {@code reference} cannot be found in this node
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, UnknownReferenceException, NodeException, TimeoutException, InterruptedException;
+	TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Waits until a transaction has been committed, or until its delivering fails.
