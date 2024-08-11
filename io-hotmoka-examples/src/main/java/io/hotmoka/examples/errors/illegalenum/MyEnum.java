@@ -14,10 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.examples.enums;
+package io.hotmoka.examples.errors.illegalenum;
 
+/**
+ * An enumeration with instance fields.
+ */
 public enum MyEnum {
-	PAST,
-	PRESENT,
-	FUTURE
+	FIRST, SECOND, THIRD;
 }

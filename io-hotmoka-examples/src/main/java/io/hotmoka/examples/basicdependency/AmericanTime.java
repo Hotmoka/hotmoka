@@ -16,12 +16,26 @@ limitations under the License.
 
 package io.hotmoka.examples.basicdependency;
 
+import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
 
 public class AmericanTime extends Time {
-	public enum Period {
-		AM, PM
+
+	public class Period extends Storage {
+		private final String s;
+
+		private Period(String s) {
+			this.s = s;
+		}
+
+		@Override
+		public String toString() {
+			return s;
+		}
 	}
+
+	private final Period AM = new Period("AM");
+	private final Period PM = new Period("PM");
 
 	public AmericanTime(int hours, int minutes, int seconds, Period period) {
 		super(seconds + 60 * minutes + 3600 * translateHours(period, hours));
@@ -38,7 +52,7 @@ public class AmericanTime extends Time {
 		if (hours == 12)
 			hours = 0;
 
-		if (period == Period.AM)
+		if (period.s.equals("AM"))
 			return hours;
 		else
 			return hours + 12;
@@ -50,9 +64,9 @@ public class AmericanTime extends Time {
 
 		int hours = (secondsFromStartOfDay / 3600);
 		if (hours < 12)
-			period = Period.AM;
+			period = AM;
 		else
-			period = Period.PM;
+			period = PM;
 
 		if (hours == 0)
 			hours = 12;

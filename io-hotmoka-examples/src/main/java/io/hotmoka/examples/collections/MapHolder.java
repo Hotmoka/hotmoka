@@ -30,14 +30,32 @@ import io.takamaka.code.util.StorageTreeMap;
 public class MapHolder extends Storage {
 	private final StorageMap<BigInteger, State> map = new StorageTreeMap<>();
 
-	public enum State {
-		RUNNING, SLEEPING, WAITING
+	public class State extends Storage implements Comparable<State> {
+		private final String s;
+
+		private State(String s) {
+			this.s = s;
+		}
+
+		@Override
+		public String toString() {
+			return s;
+		}
+
+		@Override
+		public int compareTo(State other) {
+			return s.compareTo(other.s);
+		}
 	}
 
+	private final State RUNNING = new State("RUNNING");
+	private final State SLEEPING = new State("SLEEPING");
+	private final State WAITING = new State("WAITING");
+
     public MapHolder() {
-		map.put(BigInteger.ZERO, State.RUNNING);
-		map.put(BigInteger.ONE, State.SLEEPING);
-		map.put(BigInteger.TEN, State.WAITING);
+		map.put(BigInteger.ZERO, RUNNING);
+		map.put(BigInteger.ONE, SLEEPING);
+		map.put(BigInteger.TEN, WAITING);
 	}
 
 	public @View State get0() {
@@ -53,38 +71,38 @@ public class MapHolder extends Storage {
 	}
 
 	public @View boolean isRunning(Object state) {
-		return state == State.RUNNING;
+		return state == RUNNING;
 	}
 
 	public @View boolean isSleeping(Object state) {
-		return state == State.SLEEPING;
+		return state == SLEEPING;
 	}
 
 	public @View boolean isWaiting(Object state) {
-		return state == State.WAITING;
+		return state == WAITING;
 	}
 
 	public @View boolean isRunning2(State state) {
-		return state == State.RUNNING;
+		return state == RUNNING;
 	}
 
 	public @View boolean isSleeping2(State state) {
-		return state == State.SLEEPING;
+		return state == SLEEPING;
 	}
 
 	public @View boolean isWaiting2(State state) {
-		return state == State.WAITING;
+		return state == WAITING;
 	}
 
 	public @View boolean isRunning3(Comparable<?> state) {
-		return state == State.RUNNING;
+		return state == RUNNING;
 	}
 
 	public @View boolean isSleeping3(Comparable<?> state) {
-		return state == State.SLEEPING;
+		return state == SLEEPING;
 	}
 
 	public @View boolean isWaiting3(Comparable<?> state) {
-		return state == State.WAITING;
+		return state == WAITING;
 	}
 }

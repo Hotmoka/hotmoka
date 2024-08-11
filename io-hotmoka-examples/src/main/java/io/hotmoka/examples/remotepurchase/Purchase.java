@@ -20,13 +20,30 @@ import static io.takamaka.code.lang.Takamaka.event;
 import static io.takamaka.code.lang.Takamaka.require;
 
 import io.takamaka.code.lang.Contract;
-import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Event;
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
+import io.takamaka.code.lang.Storage;
 
 public class Purchase extends Contract {
-	private enum State { Created, Locked, Inactive }
+
+	public class State extends Storage {
+		private final String s;
+
+		private State(String s) {
+			this.s = s;
+		}
+
+		@Override
+		public String toString() {
+			return s;
+		}
+	}
+
+	private final State Created = new State("CREATED");
+	private final State Locked = new State("LOCKED");
+	private final State Inactive = new State("INACTIVE");
 
     public static class Aborted extends Event {
 		private @FromContract Aborted() {}
@@ -48,7 +65,7 @@ public class Purchase extends Contract {
 		require(amount % 2 == 0, "You must deposit an even amount of money");
 		seller = (PayableContract) caller();
         value = amount / 2;
-        setState(State.Created);
+        setState(Created);
     }
 
 	private void isBuyer(Contract payer) {
@@ -71,9 +88,9 @@ public class Purchase extends Contract {
     /// Can only be called by the seller before the contract is locked.
 	public @FromContract void abort() {
         isSeller(caller());
-        inState(State.Created);
+        inState(Created);
         event(new Aborted());
-        setState(State.Inactive);
+        setState(Inactive);
         seller.receive(value * 2);
     }
 
@@ -81,20 +98,20 @@ public class Purchase extends Contract {
     /// Transaction has to include `2 * value` money.
     /// The money will be locked until confirmReceived is called.
 	public @Payable @FromContract(PayableContract.class) void confirmPurchase(int amount) {
-        inState(State.Created);
+        inState(Created);
         require(amount == 2 * value, "amount must be twice as value");
         event(new PurchaseConfirmed());
         buyer = (PayableContract) caller();
-        setState(State.Locked);
+        setState(Locked);
     }
 
     /// Confirm that you (the buyer) received the item.
     /// This will release the locked money of both parties.
 	public @FromContract void confirmReceived() {
         isBuyer(caller());
-        inState(State.Locked);
+        inState(Locked);
         event(new ItemReceived());
-        setState(State.Inactive);
+        setState(Inactive);
         buyer.receive(value);
         seller.receive(value * 3);
     }

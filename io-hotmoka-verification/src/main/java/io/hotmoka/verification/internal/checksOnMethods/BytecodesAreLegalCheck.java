@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnMethods;
 
-import org.apache.bcel.Const;
 import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionHandle;
 import org.apache.bcel.generic.JsrInstruction;
@@ -52,17 +51,13 @@ public class BytecodesAreLegalCheck extends CheckOnMethods {
 	private void checkIfItIsIllegal(InstructionHandle ih) {
 		Instruction ins = ih.getInstruction();
 
-		if (ins instanceof PUTSTATIC) {
-			// static field updates are allowed inside the synthetic methods or static initializer,
-			// for instance in an enumeration
-			if (!method.isSynthetic() && !Const.STATIC_INITIALIZER_NAME.equals(methodName))
-				issue(new IllegalPutstaticInstructionError(inferSourceFile(), methodName, lineOf(ih)));
-		}
+		if (ins instanceof PUTSTATIC)
+			issue(new IllegalPutstaticInstructionError(inferSourceFile(), methodName, lineOf(ih)));
 		else if (ins instanceof JsrInstruction)
 			issue(new IllegalJsrInstructionError(inferSourceFile(), methodName, lineOf(ih)));
 		else if (ins instanceof RET)
 			issue(new IllegalRetInstructionError(inferSourceFile(), methodName, lineOf(ih)));
-		else if (!method.isStatic() && ins instanceof StoreInstruction && ((StoreInstruction) ins).getIndex() == 0)
+		else if (!method.isStatic() && ins instanceof StoreInstruction si && si.getIndex() == 0)
 			issue(new IllegalUpdateOfLocal0Error(inferSourceFile(), methodName, lineOf(ih)));					
 		else if (ins instanceof MONITORENTER || ins instanceof MONITOREXIT)
 			issue(new IllegalSynchronizationError(inferSourceFile(), methodName, lineOf(ih)));

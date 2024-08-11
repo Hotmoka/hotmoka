@@ -23,7 +23,7 @@ import io.hotmoka.node.api.values.EnumValue;
  * An update of a field of enumeration type.
  */
 @Immutable
-public interface UpdateOfEnum extends UpdateOfField {
+public interface UpdateOfEnum extends UpdateOfField { // TODO: enums are currently forbidden by the static initializer check: these classes might be removed eventually
 
 	@Override
 	EnumValue getValue();

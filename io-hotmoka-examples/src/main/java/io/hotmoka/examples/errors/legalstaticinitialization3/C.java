@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2024 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@ limitations under the License.
 
 package io.hotmoka.examples.errors.legalstaticinitialization3;
 
-public enum MyEnum {
-	FIRST, SECOND;
-
+public class C {
 	public final static double d = 3.1415; // legal
 }

@@ -16,15 +16,6 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnMethods;
 
-import static io.hotmoka.exceptions.CheckRunnable.check;
-import static io.hotmoka.exceptions.CheckSupplier.check;
-import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.Comparator;
-import java.util.stream.Stream;
-
 import org.apache.bcel.Const;
 import org.apache.bcel.generic.MethodGen;
 
@@ -40,31 +31,7 @@ public class IsNotStaticInitializerCheck extends CheckOnMethods {
 	public IsNotStaticInitializerCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws SecurityException, ClassNotFoundException {
 		super(builder, method);
 
-		if (method.getInstructionList() != null && Const.STATIC_INITIALIZER_NAME.equals(methodName))
-			if (isEnum() || isSynthetic()) {
-				// checks that the static fields of enum's or synthetic classes with a static initializer
-				// are either synthetic or enum elements or final static fields with
-				// an explicit constant initializer. This check is necessary since we cannot forbid static initializers
-				// in such classes, hence we do at least avoid the existence of extra static fields
-				Class<?> clazz = classLoader.loadClass(className);
-				check(ClassNotFoundException.class, () ->
-					Stream.of(clazz.getDeclaredFields())
-						.sorted(Comparator.comparing(Field::getName))
-						.filter(uncheck(field -> Modifier.isStatic(field.getModifiers()) && !field.isSynthetic() && !field.isEnumConstant()
-								&& !(Modifier.isFinal(field.getModifiers()) && hasExplicitConstantValue(field))))
-						.findFirst()
-						.ifPresent(field -> issue(new IllegalStaticInitializationError(inferSourceFile(), methodName, lineOf(instructions().findFirst().get()))))
-				);
-			}
-			else
-				issue(new IllegalStaticInitializationError(inferSourceFile(), methodName, lineOf(instructions().findFirst().get())));
-	}
-
-	private boolean hasExplicitConstantValue(Field field) throws ClassNotFoundException {
-		return check(ClassNotFoundException.class, () ->
-			getFields()
-				.filter(uncheck(f -> f.isStatic() && f.getName().equals(field.getName()) && bcelToClass.of(f.getType()) == field.getType()))
-				.allMatch(f -> f.getConstantValue() != null)
-		);
+		if (Const.STATIC_INITIALIZER_NAME.equals(methodName))
+			issue(new IllegalStaticInitializationError(inferSourceFile(), methodName, lineOf(instructions().findFirst().get())));
 	}
 }

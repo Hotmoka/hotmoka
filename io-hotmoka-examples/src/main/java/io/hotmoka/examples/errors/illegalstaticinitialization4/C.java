@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2024 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,21 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.examples.accountwithenum;
+package io.hotmoka.examples.errors.illegalstaticinitialization4;
 
-import io.takamaka.code.lang.ExternallyOwnedAccount;
-
-public class AccountWithEnum extends ExternallyOwnedAccount {
-	private enum MyEnum { SMALL, BIG }
-	private final MyEnum me;
-
-	public AccountWithEnum(String publicKey) {
-		super(publicKey);
-
-		this.me = publicKey.endsWith("a") ? MyEnum.BIG : MyEnum.SMALL;
-	}
-
-	public int ordinal() {
-		return me.ordinal();
+public class C {
+	
+	static {
+		String s = "Yes, that's illegal in Takamaka!";
+		s.hashCode();
 	}
 }

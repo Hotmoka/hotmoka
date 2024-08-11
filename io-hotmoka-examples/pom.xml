@@ -125,12 +125,6 @@
             </configuration>
           </execution>
 
-		  <execution><id>enums</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>enums</classifier>
-              <includes><include>io/hotmoka/examples/enums/**</include></includes>
-            </configuration>
-          </execution>
-
 		  <execution><id>methodonthis</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>methodonthis</classifier>
               <includes><include>io/hotmoka/examples/methodonthis/**</include></includes>
@@ -599,15 +593,9 @@
             </configuration>
           </execution>
 
-		  <execution><id>illegaltypeforstoragefield2</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>illegaltypeforstoragefield2</classifier>
-              <includes><include>io/hotmoka/examples/errors/illegaltypeforstoragefield2/**</include></includes>
-            </configuration>
-          </execution>
-
-		  <execution><id>illegaltypeforstoragefield3</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>illegaltypeforstoragefield3</classifier>
-              <includes><include>io/hotmoka/examples/errors/illegaltypeforstoragefield3/**</include></includes>
+		  <execution><id>illegalenum</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>illegalenum</classifier>
+              <includes><include>io/hotmoka/examples/errors/illegalenum/**</include></includes>
             </configuration>
           </execution>
 
@@ -812,12 +800,6 @@
 		  <execution><id>cycle</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>cycle</classifier>
               <includes><include>io/hotmoka/examples/cycle/**</include></includes>
-            </configuration>
-          </execution>
-
-		  <execution><id>accountwithenum</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>accountwithenum</classifier>
-              <includes><include>io/hotmoka/examples/accountwithenum/**</include></includes>
             </configuration>
           </execution>
 

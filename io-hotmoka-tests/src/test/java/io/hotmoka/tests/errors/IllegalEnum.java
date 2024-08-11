@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2024 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,36 +18,23 @@ package io.hotmoka.tests.errors;
 
 import java.math.BigInteger;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.node.ConstructorSignatures;
-import io.hotmoka.node.StorageTypes;
-import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.local.DeserializationException;
 import io.hotmoka.tests.HotmokaTest;
 
-class IllegalTypeForStorageField2 extends HotmokaTest {
-
-	@BeforeAll
-	static void beforeAll() throws Exception {
-		setJar("illegaltypeforstoragefield2.jar");
-	}
+class IllegalEnum extends HotmokaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
 		setAccounts(_1_000_000_000);
 	}
 
-	@Test @DisplayName("store mutable enum into Object")
+	@Test @DisplayName("install jar")
 	void installJar() {
-		throwsTransactionExceptionWithCause(DeserializationException.class, () ->
-			addConstructorCallTransaction
-				(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(),
-				ConstructorSignatures.of("io.takamaka.tests.errors.illegaltypeforstoragefield2.C", StorageTypes.OBJECT),
-				StorageValues.enumElementOf("io.takamaka.tests.errors.illegaltypeforstoragefield2.MyEnum", "FIRST"))
+		throwsVerificationException(() ->
+			addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("illegalenum.jar"), takamakaCode())
 		);
 	}
 }

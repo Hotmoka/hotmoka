@@ -24,10 +24,17 @@ public abstract class String {
 	public abstract int length();
 	public abstract boolean isEmpty();
 	public abstract boolean equals(java.lang.Object other);
+	public abstract int compareTo(java.lang.String other);
 	public abstract int hashCode();
 	public abstract java.lang.String toString();
 	public abstract java.lang.String valueOf(long l);
 	public abstract java.lang.String valueOf(int i);
+	public abstract java.lang.String valueOf(char c);
+	public abstract java.lang.String valueOf(short s);
+	public abstract java.lang.String valueOf(double d);
+	public abstract java.lang.String valueOf(float f);
+	public abstract java.lang.String valueOf(boolean b);
+	public abstract java.lang.String valueOf(byte b);
 	public abstract java.lang.String valueOf(@HasDeterministicTerminatingToString java.lang.Object obj);
 	public abstract java.lang.String concat(java.lang.String other);
 	public abstract boolean endsWith(java.lang.String suffix);

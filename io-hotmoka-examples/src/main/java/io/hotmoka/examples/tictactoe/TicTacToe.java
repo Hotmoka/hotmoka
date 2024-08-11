@@ -26,6 +26,7 @@ import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
+import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
 import io.takamaka.code.util.StorageTreeArray;
 
@@ -40,16 +41,16 @@ import io.takamaka.code.util.StorageTreeArray;
  */
 public class TicTacToe extends Contract {
 
-	public enum Tile {
-		EMPTY, CROSS, CIRCLE;
+	public class Tile extends Storage {
+		private final char c;
+
+		private Tile(char c) {
+			this.c = c;
+		}
 
 		@Override
 		public String toString() {
-			switch (this) {
-			case EMPTY: return " ";
-			case CROSS: return "X";
-			default: return "O";
-			}
+			return String.valueOf(c);
 		}
 
 		private Tile nextTurn() {
@@ -57,13 +58,17 @@ public class TicTacToe extends Contract {
 		}
 	}
 
+	private final Tile EMPTY = new Tile(' ');
+	private final Tile CROSS = new Tile('X');
+	private final Tile CIRCLE = new Tile('O');
+
 	private static final long MINIMUM_BET = 100L;
 
-	private final StorageTreeArray<Tile> board = new StorageTreeArray<>(9, Tile.EMPTY);
+	private final StorageTreeArray<Tile> board = new StorageTreeArray<>(9, EMPTY);
 	private final PayableContract creator;
 	private PayableContract crossPlayer;
 	private PayableContract circlePlayer;
-	private Tile turn = Tile.CROSS; // cross plays first
+	private Tile turn = CROSS; // cross plays first
 	private boolean gameOver;
 
 	public @FromContract(PayableContract.class) TicTacToe() {
@@ -82,11 +87,11 @@ public class TicTacToe extends Contract {
 	public @Payable @FromContract(PayableContract.class) void play(long amount, int x, int y) {
 		require(!gameOver, "the game is over");
 		require(1 <= x && x <= 3 && 1 <= y && y <= 3, "coordinates must be between 1 and 3");
-		require(at(x, y) == Tile.EMPTY, "the selected tile is not empty");
+		require(at(x, y) == EMPTY, "the selected tile is not empty");
 
 		PayableContract player = (PayableContract) caller();
 
-		if (turn == Tile.CROSS)
+		if (turn == CROSS)
 			if (crossPlayer == null) {
 				require(amount >= MINIMUM_BET, () -> "you must invest at least " + MINIMUM_BET + " coins");
 				crossPlayer = player;
@@ -126,7 +131,7 @@ public class TicTacToe extends Contract {
 	}
 
 	private boolean isDraw() {
-		return rangeClosed(0, 8).mapToObj(board::get).noneMatch(Tile.EMPTY::equals);
+		return rangeClosed(0, 8).mapToObj(board::get).noneMatch(EMPTY::equals);
 	}
 
 	@Override
