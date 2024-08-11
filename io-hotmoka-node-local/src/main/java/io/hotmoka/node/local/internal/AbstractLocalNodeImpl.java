@@ -81,6 +81,7 @@ import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
+import io.hotmoka.node.local.LRUCache;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.LocalNode;
 import io.hotmoka.node.local.api.LocalNodeConfig;
@@ -136,7 +137,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 * {@link #checkRequest(TransactionRequest)} failed, hence never
 	 * got the chance to pass to {@link #deliverTransaction(TransactionRequest)}.
 	 */
-	private final ConcurrentMap<TransactionReference, String> recentlyRejectedTransactionsMessages = new ConcurrentHashMap<>();
+	private final LRUCache<TransactionReference, String> recentlyRejectedTransactionsMessages = new LRUCache<>(100, 1000);
 
 	/**
 	 * The version of Hotmoka used by the nodes.
@@ -265,7 +266,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 					return store.getResponse(reference);
 				}
 				catch (UnknownReferenceException e) {
-					String rejectionMessage = recentlyRejectedTransactionsMessages.remove(reference);
+					String rejectionMessage = recentlyRejectedTransactionsMessages.get(reference);
 					if (rejectionMessage != null)
 						throw new TransactionRejectedException(rejectionMessage, store.getConfig());
 				}
@@ -304,7 +305,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		S store = enterHead();
 
 		try (var scope = mkScope()) {
-				return store.getResponse(Objects.requireNonNull(reference));
+			return store.getResponse(Objects.requireNonNull(reference));
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);

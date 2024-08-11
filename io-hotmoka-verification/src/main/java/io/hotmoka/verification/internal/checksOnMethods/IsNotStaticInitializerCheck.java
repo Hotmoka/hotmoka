@@ -22,6 +22,7 @@ import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.Comparator;
 import java.util.stream.Stream;
 
 import org.apache.bcel.Const;
@@ -48,9 +49,10 @@ public class IsNotStaticInitializerCheck extends CheckOnMethods {
 				Class<?> clazz = classLoader.loadClass(className);
 				check(ClassNotFoundException.class, () ->
 					Stream.of(clazz.getDeclaredFields())
+						.sorted(Comparator.comparing(Field::getName))
 						.filter(uncheck(field -> Modifier.isStatic(field.getModifiers()) && !field.isSynthetic() && !field.isEnumConstant()
 								&& !(Modifier.isFinal(field.getModifiers()) && hasExplicitConstantValue(field))))
-						.findAny()
+						.findFirst()
 						.ifPresent(field -> issue(new IllegalStaticInitializationError(inferSourceFile(), methodName, lineOf(instructions().findFirst().get()))))
 				);
 			}
