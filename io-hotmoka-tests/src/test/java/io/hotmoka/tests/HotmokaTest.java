@@ -89,6 +89,7 @@ import io.hotmoka.node.disk.DiskNodes;
 import io.hotmoka.node.local.AbstractLocalNode;
 import io.hotmoka.node.mokamint.MokamintNodeConfigBuilders;
 import io.hotmoka.node.mokamint.MokamintNodes;
+import io.hotmoka.node.mokamint.api.MokamintNode;
 import io.hotmoka.node.remote.RemoteNodes;
 import io.hotmoka.node.service.NodeServices;
 import io.hotmoka.node.tendermint.TendermintInitializedNodes;
@@ -147,10 +148,11 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	    		privateKeyOfGamete = keys.getPrivate();
 
 	    		Node wrapped;
-	    		node = wrapped = mkDiskNode();
+	    		//node = wrapped = mkDiskNode();
 	    		//node = wrapped = mkMokamintNode();
 	    		//node = wrapped = mkMokamintNodeConnectedToPeer();
 	    		//node = wrapped = mkMokamintNetworkOfTwoNodes();
+	    		node = wrapped = mkMokamintNetwork(4);
 	    		//node = wrapped = mkTendermintNode();
 	    		//node = mkRemoteNode(wrapped = mkDiskNode());
 	    		//node = mkRemoteNode(wrapped = mkMokamintNode());
@@ -459,7 +461,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	private static Node mkMokamintNetworkOfTwoNodes() throws NodeException, InterruptedException, TimeoutException, InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException {
 		try {
 			final var TARGET_BLOCK_CREATION_TIME = 4000;
-			final var PLOT_LENGTH = 1000L; /* 4000L */
+			final var PLOT_LENGTH = 4000L;
 			final var MAX_HISTORY_CHANGE = 5L * 60 * 1000; // five minutes, so that it is possible to see the effects of garbage-collection during the tests
 
 			consensus = fillConsensusConfig(ValidatorsConsensusConfigBuilders.defaults()).build();
@@ -546,6 +548,98 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		}
 	}
 
+	@SuppressWarnings("unused")
+	private static Node mkMokamintNetwork(int howManyNodes) throws NodeException, InterruptedException, TimeoutException, TransactionRejectedException, TransactionException, CodeExecutionException {
+		if (howManyNodes < 1)
+			throw new IllegalArgumentException("A network needs at least a node");
+
+		final var TARGET_BLOCK_CREATION_TIME = 4000;
+		final var PLOT_LENGTH = 500L; // TODO
+		final var MAX_HISTORY_CHANGE = 5L * 60 * 1000; // five minutes, so that it is possible to see the effects of garbage-collection during the tests
+
+		MokamintNode firstNode = null;
+		URI firstUri = null;
+
+		extraPlots = new Plot[howManyNodes - 1];
+		extraMiners = new Miner[howManyNodes - 1];
+		extraNodes = new Node[howManyNodes - 1];
+
+		try {
+			consensus = fillConsensusConfig(ValidatorsConsensusConfigBuilders.defaults()).build();
+
+			for (int nodeNum = 1; nodeNum <= howManyNodes; nodeNum++) {
+				Path hotmokaChainPath = Files.createTempDirectory("hotmoka-mokamint-chain-" + nodeNum + "-");
+
+				var config = MokamintNodeConfigBuilders.defaults()
+					.setDir(hotmokaChainPath)
+					.setMaxGasPerViewTransaction(_10_000_000)
+					.build();
+
+				var mokamintConfig = LocalNodeConfigBuilders.defaults()
+					// we use the same chain id for the Hotmoka node and for the underlying Mokamint engine, although this is not necessary
+					.setChainId(consensus.getChainId())
+					.setTargetBlockCreationTime(TARGET_BLOCK_CREATION_TIME)
+					.setInitialAcceleration(50000000000000L)
+					.setMaximalHistoryChangeTime(MAX_HISTORY_CHANGE)
+					.setDir(hotmokaChainPath.resolve("mokamint")).build();
+
+				var nodeKeys = mokamintConfig.getSignatureForBlocks().getKeyPair();
+				var plotKeys = mokamintConfig.getSignatureForDeadlines().getKeyPair();
+				var prolog = Prologs.of(mokamintConfig.getChainId(), mokamintConfig.getSignatureForBlocks(), nodeKeys.getPublic(), mokamintConfig.getSignatureForDeadlines(), plotKeys.getPublic(), new byte[0]);
+
+				System.out.println("Creating plot " + nodeNum + " of " + PLOT_LENGTH + " nonces");
+				var plot = Plots.create(hotmokaChainPath.resolve("test.plot"), prolog, 1000, PLOT_LENGTH, mokamintConfig.getHashingForDeadlines(), __ -> {});
+
+				var miner = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, plotKeys) });
+
+				MokamintNode node = MokamintNodes.init(config, mokamintConfig, nodeKeys, nodeNum == 1); // we create a brand new geneiss block, but only in node 1
+
+				if (nodeNum == 1) {
+					HotmokaTest.plot = plot;
+					HotmokaTest.miner = miner;
+				}
+				else {
+					extraPlots[nodeNum - 2] = plot;
+					extraMiners[nodeNum - 2] = miner;
+					extraNodes[nodeNum - 2] = node;
+				}
+
+				NodeServices.of(node, 8000 + nodeNum);
+				System.out.println("Hotmoka node " + nodeNum + " published at ws://localhost:" + (8000 + nodeNum));
+				int nodeNumCopy = nodeNum;
+				node.getMokamintNode().add(miner).orElseThrow(() -> new NodeException("Could not add the miner to test node " + nodeNumCopy));
+
+				// we open a web service to the underlying Mokamint node; this is not necessary,
+				// but it allows developers to query the node during the execution of the tests
+				var uri = URI.create("ws://localhost:" + (8029 + nodeNum));
+				PublicNodeServices.open(node.getMokamintNode(), 8029 + nodeNum, 1800000, 1000, Optional.of(uri));
+				System.out.println("Underlying Mokamint node " + nodeNum + " published at " + uri);
+
+				if (nodeNum == 1) {
+					firstNode = node;
+					firstUri = uri;
+					System.out.println("Initializing Hotmoka node " + nodeNum);
+					initializeNodeIfNeeded(node);
+				}
+				else {
+					try {
+						if (firstNode.getMokamintNode().add(Peers.of(uri)).isPresent())
+							System.out.println("Added " + uri + " as a peer of " + firstUri);
+						else
+							System.out.println("Could not add " + uri + " as a peer of " + firstUri);
+					}
+					catch (PeerRejectedException e) {
+						System.out.println("Could not add " + uri + " as a peer of " + firstUri + ": " + e.getMessage());
+					}
+				}
+			}
+
+			return firstNode;
+		}
+		catch (IOException | NoSuchAlgorithmException | io.mokamint.node.api.NodeException | DeploymentException | InvalidKeyException | SignatureException e) {
+			throw new NodeException(e);
+		}
+	}
 	
 	private static <B extends ConsensusConfigBuilder<?,B>> B fillConsensusConfig(ConsensusConfigBuilder<?,B> builder) throws NodeException {
 		try {
