@@ -45,7 +45,7 @@ public abstract class AbstractPatriciaTrie<Key, Value, T extends AbstractPatrici
 	 * @param valueToBytes a function that marshals values into their byte representation
 	 * @param bytesToValue a function that unmarshals bytes into the represented value
 	 * @throws TrieException if the creation cannot be completed correctly
-	 * @throws UnknownKeyException 
+	 * @throws UnknownKeyException if {@code root} is unknown in the store of the trie
 	 */
 	protected AbstractPatriciaTrie(KeyValueStore store, byte[] root,
 			Hasher<? super Key> hasherForKeys, HashingAlgorithm hashingForNodes, byte[] hashOfEmpty,
@@ -62,7 +62,7 @@ public abstract class AbstractPatriciaTrie<Key, Value, T extends AbstractPatrici
 	 *               the given root, that has not been garbage-collected yet
 	 * @param root the root used to check out the trie
 	 * @throws TrieException if the creation cannot be completed correctly
-	 * @throws UnknownKeyException 
+	 * @throws UnknownKeyException if {@code root} is unknown in the store of the trie
 	 */
 	protected AbstractPatriciaTrie(T cloned, byte[] root) throws TrieException, UnknownKeyException {
 		super(cloned, root);

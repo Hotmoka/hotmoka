@@ -38,29 +38,38 @@ public abstract class MokamintNodes {
 	 * Creates and starts a node with a brand new store, of a blockchain based on Mokamint.
 	 * It spawns the Mokamint engine with an application for handling its transactions.
 	 * 
-	 * @param config the configuration of the blockchain
+	 * @param config the configuration of the Hotmoka node
+	 * @param mokamintConfig the configuration of the underlying Mokamint node
+	 * @param keyPair the keys of the Mokamint node, used to sign the blocks that it mines
 	 * @param createGenesis if true, creates a genesis block and starts mining on top
-	 *                      (initial synchronization is consequently skipped)
+	 *                      (initial synchronization is consequently skipped), otherwise it waits
+	 *                      for whispered blocks and then starts mining on top of them
 	 * @return the Mokamint node
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 * @throws NodeException if the operation cannot be completed correctly
 	 * @throws TimeoutException if some operation timed out
+	 * @throws InvalidKeyException if the {@code keyPair} is invalid
+	 * @throws SignatureException if the genesis block cannot be signed with {@code keyPair}
 	 */
 	public static MokamintNode init(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair, boolean createGenesis) throws NodeException, InterruptedException, InvalidKeyException, SignatureException, TimeoutException {
 		return new MokamintNodeImpl(config, mokamintConfig, keyPair, true, createGenesis);
 	}
 
 	/**
-	 * Starts a Mokamint node that uses an already existing store. The consensus
+	 * Creates and starts a Mokamint node that uses an already existing store. The consensus
 	 * parameters are recovered from the manifest in the store, hence the store must
 	 * be that of an already initialized blockchain. It spawns the Mokamint engine
 	 * and connects it to an application for handling its transactions.
 	 * 
-	 * @param config the configuration of the blockchain
+	 * @param config the configuration of the Hotmoka node
+	 * @param mokamintConfig the configuration of the underlying Mokamint node
+	 * @param keyPair the keys of the Mokamint node, used to sign the blocks that it mines
 	 * @return the Mokamint node
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 * @throws NodeException if the operation cannot be completed correctly
 	 * @throws TimeoutException if some operation timed out
+	 * @throws InvalidKeyException if the {@code keyPair} is invalid
+	 * @throws SignatureException if the genesis block cannot be signed with {@code keyPair}
 	 */
 	public static MokamintNode resume(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws NodeException, InterruptedException, InvalidKeyException, SignatureException, TimeoutException {
 		return new MokamintNodeImpl(config, mokamintConfig, keyPair, false, false);

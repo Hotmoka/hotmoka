@@ -47,7 +47,7 @@ public final class PatriciaTries {
 	 * @param <Value> the type of the values of the trie
 	 * @return the trie
 	 * @throws TrieException if the creation cannot be completed correctly
-	 * @throws UnknownKeyException 
+	 * @throws UnknownKeyException if {@code root} is unknown in the store of the trie
 	 */
 	public static <Key, Value> PatriciaTrie<Key, Value, ?> of(KeyValueStore store, byte[] root,
 			Hasher<? super Key> hasherForKeys, HashingAlgorithm hashingForNodes, byte[] hashOfEmpty,

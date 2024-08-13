@@ -46,7 +46,7 @@ public class PatriciaTrieImpl<Key, Value> extends AbstractPatriciaTrie<Key, Valu
 	 * @param valueToBytes a function that marshals values into their byte representation
 	 * @param bytesToValue a function that unmarshals bytes into the represented value
 	 * @throws TrieException if the creation cannot be completed correctly
-	 * @throws UnknownKeyException 
+	 * @throws UnknownKeyException if {@code root} is unknown in the store of the trie
 	 */
 	public PatriciaTrieImpl(KeyValueStore store, byte[] root,
 			Hasher<? super Key> hasherForKeys, HashingAlgorithm hashingForNodes, byte[] hashOfEmpty,

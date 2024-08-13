@@ -53,9 +53,17 @@ public abstract class AbstractInitialResponseBuilder<Request extends InitialTran
 
 		/**
 		 * Creates the response from the request.
+		 * 
+		 * @throws TransactionRejectedException if the request is rejected
+		 * @throws StoreException if the store of the node misbehaves
 		 */
 		protected ResponseCreator() throws TransactionRejectedException, StoreException {}
 
+		/**
+		 * Checks if the request should be rejected, even before trying to execute it.
+		 * 
+		 * @throws TransactionRejectedException if the request should be rejected
+		 */
 		protected void checkConsistency() throws TransactionRejectedException {
 			try {
 				if (environment.getManifest().isPresent())

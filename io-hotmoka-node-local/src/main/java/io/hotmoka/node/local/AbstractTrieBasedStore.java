@@ -64,12 +64,9 @@ public abstract class AbstractTrieBasedStore<N extends AbstractTrieBasedLocalNod
 	 * Creates a clone of a store, up to cache and roots.
 	 * 
 	 * @param toClone the store to clone
+	 * @param stateId the state to check out in the cloned store
 	 * @param cache to caches to use in the cloned store
-	 * @param rootOfResponses the root to use for the tries of responses
-	 * @param rootOfInfo the root to use for the tries of info
-	 * @param rootOfHistories the root to use for the tries of histories
-	 * @param rootOfRequests the root to use for the tries of requests
-     * @throws UnknownStateIdException if the required state does not exist
+     * @throws UnknownStateIdException if {@code stateId} does not exist
      * @throws StoreException if the operation could not be completed correctly
 	 */
     protected AbstractTrieBasedStore(AbstractTrieBasedStore<N,C,S,T> toClone, StateId stateId, Optional<StoreCache> cache) throws UnknownStateIdException, StoreException {

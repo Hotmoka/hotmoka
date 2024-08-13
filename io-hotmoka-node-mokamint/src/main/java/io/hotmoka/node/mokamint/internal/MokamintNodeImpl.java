@@ -112,18 +112,19 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 	private final static Logger LOGGER = Logger.getLogger(MokamintNodeImpl.class.getName());
 
 	/**
-	 * Builds a new Hotmoka node based on the Mokamint engine.
+	 * Builds and starts a Mokamint node that uses an already existing store. The consensus
+	 * parameters are recovered from the manifest in the store, hence the store must
+	 * be that of an already initialized blockchain. It spawns the Mokamint engine
+	 * and connects it to an application for handling its transactions.
 	 * 
-	 * @param config the configuration of the node
+	 * @param config the configuration of the Hotmoka node
 	 * @param mokamintConfig the configuration of the underlying Mokamint node
-	 * @param keyPair the key pair of the Mokamint node that will be started
-	 * @param init true if and only if the working directory of the node must be initialized
-	 * @param createGenesis if true, creates a genesis block and starts mining on top (initial synchronization is consequently skipped)
-	 * @throws NodeException if the node is not working properly
+	 * @param keyPair the keys of the Mokamint node, used to sign the blocks that it mines
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
-	 * @throws SignatureException if the genesis block cannot be signed
-	 * @throws InvalidKeyException if the private key of the node is invalid
+	 * @throws NodeException if the operation cannot be completed correctly
 	 * @throws TimeoutException if some operation timed out
+	 * @throws InvalidKeyException if the {@code keyPair} is invalid
+	 * @throws SignatureException if the genesis block cannot be signed with {@code keyPair}
 	 */
 	public MokamintNodeImpl(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair, boolean init, boolean createGenesis) throws InvalidKeyException, SignatureException, NodeException, InterruptedException, TimeoutException {
 		super(config, init);

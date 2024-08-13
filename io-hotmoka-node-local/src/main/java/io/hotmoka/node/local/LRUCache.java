@@ -26,16 +26,15 @@ import java.util.function.Function;
  * wherein if the cache size has reached the maximum allocated capacity, the
  * least recently used objects in the cache will be evicted.
  * 
- * @author sunil
- *
- * @param <K>
- * @param <V>
- *
  * <p>
  *        Date: 14/Nov/2019
  * </p>
  * 
  * Taken from https://dzone.com/articles/java-based-simple-cache-lru-eviction.
+ * 
+ * @author sunil
+ * @param <K> the type of the keys of the cache
+ * @param <V> the type of the values of the cache
  */
 public final class LRUCache<K, V> {
 
@@ -44,8 +43,8 @@ public final class LRUCache<K, V> {
 	 * 
 	 * @author sunil
 	 *
-	 * @param <K>
-	 * @param <V>
+	 * @param <K> the type of the keys of the cache
+	 * @param <V> the type of the values of the cache
 	 */
 	private static class Node<K, V> {
 		private V value;
@@ -92,6 +91,12 @@ public final class LRUCache<K, V> {
 		this(16, maxCapacity);
 	}*/
 
+	/**
+	 * Creates an LRU cache with the given capacities.
+	 * 
+	 * @param initialCapacity the initial capacity of the cache
+	 * @param maxCapacity the maximal capacity of the cache
+	 */
 	public LRUCache(int initialCapacity, int maxCapacity) {
 		this.maxCapacity = maxCapacity;
 		this.map = new HashMap<>(Math.min(initialCapacity, maxCapacity));

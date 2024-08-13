@@ -57,6 +57,9 @@ public abstract class AbstractNonInitialResponseBuilder<Request extends NonIniti
 
 		/**
 		 * Creates the response from the request.
+		 * 
+		 * @throws TransactionRejectedException if the request is rejected
+		 * @throws StoreException if the store of the node misbehaves
 		 */
 		protected ResponseCreator() throws TransactionRejectedException, StoreException {}
 

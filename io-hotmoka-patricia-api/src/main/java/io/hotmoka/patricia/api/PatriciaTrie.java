@@ -60,6 +60,7 @@ public interface PatriciaTrie<Key, Value, T extends PatriciaTrie<Key, Value, T>>
 	 * 
 	 * @param root the root to use in the cloned trie
 	 * @return the resulting, cloned trie
+	 * @throws UnknownKeyException if {@code root} is unknown in the store of the trie
 	 * @throws TrieException if this Patricia trie is not able to complete the operation correctly
 	 */
 	T checkoutAt(byte[] root) throws UnknownKeyException, TrieException;

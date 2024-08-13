@@ -46,6 +46,11 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	 */
 	ResponseCreation<Response> getResponseCreation() throws TransactionRejectedException, StoreException, InterruptedException;
 
+	/**
+	 * The result of the creation of a response.
+	 *
+	 * @param <Response> the type of the response
+	 */
 	interface ResponseCreation<Response extends TransactionResponse> {
 
 		/**
