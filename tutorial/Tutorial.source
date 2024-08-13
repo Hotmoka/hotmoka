@@ -2332,8 +2332,7 @@ The set of _storage values_ is the union of
 doubles and booleans);
 2. reference values whose class extends `io.takamaka.code.lang.Storage` (that is, _storage objects_);
 3. `null`;
-4. elements of an `enum` without instance non-transient fields;
-5. a few special reference values: `java.math.BigInteger`s and `java.lang.String`s.
+4. a few special reference values: `java.math.BigInteger`s and `java.lang.String`s.
 
 Storage values cross the
 node's boundary inside wrapper objects. For instance the integer 2019
@@ -2361,7 +2360,7 @@ objects and must, themselves, be kept in store. Hence, a storage object:
 
 1. has a class that extends (directly or indirectly) `io.takamaka.code.lang.Storage`, and
 2. is such that all its fields hold storage values (primitives, storage objects, `null`,
-elements of `enum`s without instance non-transient fields, a `java.math.BigInteger` or a `java.lang.String`).
+a `java.math.BigInteger` or a `java.lang.String`).
 
 Note that the above conditions hold for the class `Person` defined above. Instead,
 the following are examples of what is **not** allowed in a field of a storage object:
@@ -3539,20 +3538,20 @@ as in Figure @fig:tictactoe_draw.
 
 [PDFonly]: ![Figure @fig:tictactoe_draw. A draw.](pics/tictactoe_draw.png "Figure @fig:tictactoe_draw. A draw."){ width=39% }
 
-A natural representation of the tic-tac-toe board is a bidimensional array
+A natural representation of the tic-tac-toe board is a two-dimensional array
 where indexes are distributed as shown in Figure @fig:tictactoe_grid.
 
-[Markdownonly]: <p align="center"><img width="250" height="250" src="pics/tictactoe_grid.png" alt="Figure @fig:tictactoe_grid. A bidimensional representation of the game"></p><p align="center">Figure @fig:tictactoe_grid. A bidimensional representation of the game.</p>
+[Markdownonly]: <p align="center"><img width="250" height="250" src="pics/tictactoe_grid.png" alt="Figure @fig:tictactoe_grid. A two-dimensional representation of the game"></p><p align="center">Figure @fig:tictactoe_grid. A two-dimensional representation of the game.</p>
 
-[PDFonly]: ![Figure @fig:tictactoe_grid. A bidimensional representation of the game.](pics/tictactoe_grid.png "Figure @fig:tictactoe_grid. A bidimensional representation of the game."){ width=35% }
+[PDFonly]: ![Figure @fig:tictactoe_grid. A two-dimensional representation of the game.](pics/tictactoe_grid.png "Figure @fig:tictactoe_grid. A two-idimensional representation of the game."){ width=35% }
 
 This can be implemented as a `StorageTreeArray<StorageTreeArray<Tile>>`, where `Tile` is
-an enumeration of the three possible tiles (empty, cross, circle). This is
+a class that enumerates the three possible tiles (empty, cross, circle). This is
 possible but overkill. It is simpler and cheaper (also in terms of gas)
 to use the previous diagram as a conceptual representation of the board
 shown to the users, but use, internally,
-a monodimensional array of nine tiles, distributed as in Figure @fig:tictactoe_linear.
-This monodimensional array can be implemented as a `StorageTreeArray<Tile>`. There will be functions
+a one-dimensional array of nine tiles, distributed as in Figure @fig:tictactoe_linear.
+This one-dimensional array can be implemented as a `StorageTreeArray<Tile>`. There will be functions
 for translating the conceptual representation into the internal one.
 
 [Markdownonly]: <p align="center"><img width="220" src="pics/tictactoe_grid_linear.png" alt="Figure @fig:tictactoe_linear. A linear representation of the game"></p><p align="center">Figure @fig:tictactoe_linear. A linear representation of the game.</p>
@@ -3625,22 +3624,23 @@ import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
+import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
 import io.takamaka.code.util.StorageArray;
 import io.takamaka.code.util.StorageTreeArray;
 
 public class TicTacToe extends Contract {
 
-  public enum Tile {
-    EMPTY, CROSS, CIRCLE;
+  public class Tile extends Storage {
+    private final char c;
+
+    private Tile(char c) {
+      this.c = c;
+    }
 
     @Override
     public String toString() {
-      switch (this) {
-      case EMPTY: return " ";
-      case CROSS: return "X";
-      default: return "O";
-      }
+      return String.valueOf(c);
     }
 
     private Tile nextTurn() {
@@ -3648,9 +3648,13 @@ public class TicTacToe extends Contract {
     }
   }
 
-  private final StorageArray<Tile> board = new StorageTreeArray<>(9, Tile.EMPTY);
+  private final Tile EMPTY = new Tile(' ');
+  private final Tile CROSS = new Tile('X');
+  private final Tile CIRCLE = new Tile('O');
+
+  private final StorageArray<Tile> board = new StorageTreeArray<>(9, EMPTY);
   private PayableContract crossPlayer, circlePlayer;
-  private Tile turn = Tile.CROSS; // cross plays first
+  private Tile turn = CROSS; // cross plays first
   private boolean gameOver;
 
   public @View Tile at(int x, int y) {
@@ -3669,11 +3673,11 @@ public class TicTacToe extends Contract {
     require(!gameOver, "the game is over");
     require(1 <= x && x <= 3 && 1 <= y && y <= 3,
       "coordinates must be between 1 and 3");
-    require(at(x, y) == Tile.EMPTY, "the selected tile is not empty");
+    require(at(x, y) == EMPTY, "the selected tile is not empty");
 
     var player = (PayableContract) caller();
 
-    if (turn == Tile.CROSS)
+    if (turn == CROSS)
       if (crossPlayer == null)
         crossPlayer = player;
       else
@@ -3715,30 +3719,27 @@ public class TicTacToe extends Contract {
 }
 ```
 
-The internal enumeration `Tile` represents the three alternatives that can be
+The internal class `Tile` represents the three alternatives that can be
 put in the tic-tac-toe board. It overrides the default
 `toString()` implementation, to yield the
 usual representation for such alternatives; its `nextTurn()` method
 alternates between cross and circle.
 
-> There is no need to make the `Tile` enumeration `static`, to save gas,
-> since enumerations are always implicitly `static` in Java.
-
-The board of the game is represented as a `new StorageTreeArray<>(9, Tile.EMPTY)`, whose
-elements are indexed from 0 to 8 (inclusive) and are initialized to `Tile.EMPTY`.
+The board of the game is represented as a `new StorageTreeArray<>(9, EMPTY)`, whose
+elements are indexed from 0 to 8 (inclusive) and are initialized to `EMPTY`.
 It is also possible to construct the array as `new StorageTreeArray<>(9)`, but then
 its elements would hold the default value `null` and the array would need to be initialized
 inside a constructor for `TicTacToe`:
 
 ```java
 public TicTacToe() {
-  rangeClosed(0, 8).forEachOrdered(index -> board.set(index, Tile.EMPTY));
+  rangeClosed(0, 8).forEachOrdered(index -> board.set(index, EMPTY));
 }
 ```
 
 Methods `at()` and `set()` read and set the board element
-at indexes (x,y), respectively. They transform the bidimensional conceptual representation
-of the board into its internal monodimensional representation. Since `at()` is `public`,
+at indexes (x,y), respectively. They transform the two-dimensional conceptual representation
+of the board into its internal one-dimensional representation. Since `at()` is `public`,
 we defensively check the validity of the indexes there.
 
 Method `play()` is the heart of the contract. It is called by the accounts
@@ -3837,22 +3838,23 @@ import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
+import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
 import io.takamaka.code.util.StorageArray;
 import io.takamaka.code.util.StorageTreeArray;
 
 public class TicTacToe extends Contract {
 
-  public enum Tile {
-    EMPTY, CROSS, CIRCLE;
+  public class Tile extends Storage {
+    private final char c;
+
+    private Tile(char c) {
+      this.c = c;
+    }
 
     @Override
     public String toString() {
-      switch (this) {
-      case EMPTY: return " ";
-      case CROSS: return "X";
-      default: return "O";
-      }
+      return String.valueOf(c);
     }
 
     private Tile nextTurn() {
@@ -3860,12 +3862,16 @@ public class TicTacToe extends Contract {
     }
   }
 
+  private final Tile EMPTY = new Tile(' ');
+  private final Tile CROSS = new Tile('X');
+  private final Tile CIRCLE = new Tile('O');
+
   private final static long MINIMUM_BET = 100L;
 
-  private final StorageArray<Tile> board = new StorageTreeArray<>(9, Tile.EMPTY);
+  private final StorageArray<Tile> board = new StorageTreeArray<>(9, EMPTY);
   private final PayableContract creator;
   private PayableContract crossPlayer, circlePlayer;
-  private Tile turn = Tile.CROSS; // cross plays first
+  private Tile turn = CROSS; // cross plays first
   private boolean gameOver;
 
   public @FromContract(PayableContract.class) TicTacToe() {
@@ -3888,11 +3894,11 @@ public class TicTacToe extends Contract {
     require(!gameOver, "the game is over");
     require(1 <= x && x <= 3 && 1 <= y && y <= 3,
       "coordinates must be between 1 and 3");
-    require(at(x, y) == Tile.EMPTY, "the selected tile is not empty");
+    require(at(x, y) == EMPTY, "the selected tile is not empty");
 
     var player = (PayableContract) caller();
 
-    if (turn == Tile.CROSS)
+    if (turn == CROSS)
       if (crossPlayer == null) {
         require(amount >= MINIMUM_BET,
           () -> "you must bet at least " + MINIMUM_BET + " coins");
@@ -3935,7 +3941,7 @@ public class TicTacToe extends Contract {
   }
 
   private boolean isDraw() {
-    return rangeClosed(0, 8).mapToObj(board::get).noneMatch(Tile.EMPTY::equals);
+    return rangeClosed(0, 8).mapToObj(board::get).noneMatch(EMPTY::equals);
   }
 
   @Override
@@ -8084,7 +8090,7 @@ to overridden methods follow by Liskov's principle [[LiskovW94]](#references).
   fields whose type
   is primitive (`char`, `byte`, `short`, `int`, `long`, `float`,
   `double` or `boolean`), or is a class that extends `io.takamaka.code.lang.Storage`,
-  or is an `enum` without instance non-transient fields, or is any of
+  or is any of
   `java.math.BigInteger`, `java.lang.String`, `java.lang.Object` or an interface
   (see [Storage Types and Constraints on Storage Classes](#storage-types-and-constraints-on-storage-classes)).
 
@@ -8100,9 +8106,8 @@ to overridden methods follow by Liskov's principle [[LiskovW94]](#references).
 > (`StorageTreeMap<K extends Storage, V extends Storage>`). This second choice
 > will be erased by using `Storage` as static type of the erased fields of the
 > class. However, not all storage reference values extend `Storage`. For instance,
-> this solution would not allow one to write `StorageTreeMap<MyEnum, BigInteger>`, where
-> `MyEnum` is an enumeration type with no instance non-transient fields: both
-> `MyEnum` and `BigInteger` are storage types, but neither extends `Storage`.
+> this solution would not allow one to write `StorageTreeMap<String, BigInteger>`, where
+> both `String` and `BigInteger` are storage types, but neither extends `Storage`.
 > The fact that fields of type `java.lang.Object` or interface actually hold a
 > storage value at the end of a transaction is checked dynamically (see the
 > dynamic checks below).
