@@ -4,7 +4,6 @@ INITIAL_SUPPLY=${INITIAL_SUPPLY:-100000000000000000000000000000}
 DELTA_SUPPLY=${DELTA_SUPPLY:-${INITIAL_SUPPLY}}
 OPEN_UNSIGNED_FAUCET=${OPEN_UNSIGNED_FAUCET:-false}
 KEY_OF_GAMETE=${KEY_OF_GAMETE:-missing}
-CHAIN_ID=${CHAIN_ID:-missing}
 MAX_GAS_PER_VIEW=${MAX_GAS_PER_VIEW:-10000000}
 OBLIVION=${OBLIVION:-250000}
 INFLATION=${INFLATION:-100000}
@@ -12,7 +11,6 @@ INITIAL_GAS_PRICE=${INITIAL_GAS_PRICE:-100}
 
 echo
 echo "Starting a Mokamint node as the single initial node of a brand new blockchain"
-echo "  CHAIN_ID=$CHAIN_ID"
 echo "  INITIAL_SUPPLY=$INITIAL_SUPPLY"
 echo "  DELTA_SUPPLY=$DELTA_SUPPLY"
 echo "  KEY_OF_GAMETE=$KEY_OF_GAMETE"
@@ -22,8 +20,4 @@ echo "  MAX_GAS_PER_VIEW=$MAX_GAS_PER_VIEW"
 echo "  OBLIVION=$OBLIVION"
 echo "  INFLATION=$INFLATION"
 
-# set the chain id as requested
-sed -i "s/chain_id = .*/chain_id = \"$CHAIN_ID\"/" mokamint_config.cfg
-
-# invoke moka in a way that uses the mokamint configuration that was previously created inside the chain directory
-moka init-mokamint ${INITIAL_SUPPLY} --delta-supply=${DELTA_SUPPLY} --interactive=true --open-unsigned-faucet=${OPEN_UNSIGNED_FAUCET} --key-of-gamete=${KEY_OF_GAMETE} --takamaka-code /modules/explicit/io-takamaka-code-TAKAMAKA-VERSION.jar --mokamint-config=mokamint_config.cfg --plot mokamint_node/plot.plot --keys mokamint_node/node.pem --keys-of-plot mokamint_node/miner.pem --max-gas-per-view ${MAX_GAS_PER_VIEW} --oblivion ${OBLIVION} --inflation ${INFLATION} --initial-gas-price ${INITIAL_GAS_PRICE}
+moka init-mokamint ${INITIAL_SUPPLY} --delta-supply=${DELTA_SUPPLY} --interactive=true --open-unsigned-faucet=${OPEN_UNSIGNED_FAUCET} --key-of-gamete=${KEY_OF_GAMETE} --takamaka-code /modules/explicit/io-takamaka-code-TAKAMAKA-VERSION.jar --mokamint-config=mokamint_node/mokamint_config.cfg --plot mokamint_node/plot.plot --keys mokamint_node/node.pem --keys-of-plot mokamint_node/miner.pem --max-gas-per-view ${MAX_GAS_PER_VIEW} --oblivion ${OBLIVION} --inflation ${INFLATION} --initial-gas-price ${INITIAL_GAS_PRICE}

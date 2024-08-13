@@ -31,6 +31,7 @@ import io.hotmoka.node.service.NodeServices;
 import io.mokamint.miner.local.LocalMiners;
 import io.mokamint.node.local.LocalNodeConfigBuilders;
 import io.mokamint.node.service.PublicNodeServices;
+import io.mokamint.node.service.RestrictedNodeServices;
 import io.mokamint.plotter.PlotAndKeyPairs;
 import io.mokamint.plotter.Plots;
 import io.mokamint.plotter.api.PlotAndKeyPair;
@@ -68,6 +69,9 @@ public class ResumeMokamint extends AbstractCommand {
 
 	@Option(names = { "--mokamint-port" }, description = "the network port for the publication of the Mokamint service", defaultValue="8030")
 	private int mokamintPort;
+
+	@Option(names = { "--mokamint-port-restricted" }, description = "the network port for the publication of the restricted Mokamint service", defaultValue="8031")
+	private int mokamintPortRestricted;
 
 	@Option(names = { "--keys-of-plot" }, description = "the path to the keys of the plot file")
 	private Path keysOfPlot;
@@ -132,8 +136,9 @@ public class ResumeMokamint extends AbstractCommand {
 		}
 
 		private void publish(MokamintNode node) throws Exception {
-			// the next service will be closed when the node will be closed
+			// the next services will be closed when the node will be closed
 			PublicNodeServices.open(node.getMokamintNode(), mokamintPort, 1800000, 1000, Optional.of(URI.create("ws://localhost:" + mokamintPort)));
+			RestrictedNodeServices.open(node.getMokamintNode(), mokamintPortRestricted);
 
 			printManifest(node);
 			printBanner();
@@ -147,7 +152,7 @@ public class ResumeMokamint extends AbstractCommand {
 
 		private void printBanner() {
 			System.out.println("The Hotmoka node has been published at ws://localhost:" + port);
-			System.out.println("The Mokamint node has been published at ws://localhost:" + mokamintPort);
+			System.out.println("The Mokamint node has been published at ws://localhost:" + mokamintPort + " (public) and ws://localhost:" + mokamintPortRestricted + " (restricted)");
 		}
 
 		private void printManifest(MokamintNode node) throws Exception {

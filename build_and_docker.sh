@@ -32,4 +32,8 @@ DOCKER_FILE_BLUEKNOT=dockerfiles/tendermint-node/blueknot-tendermint-node-arm64
 docker buildx build --push --platform linux/arm64 -t ${DOCKER_IMAGE_HOTMOKA} -f ${DOCKER_FILE_HOTMOKA} .
 #docker buildx build --push --platform linux/arm64 -t ${DOCKER_IMAGE_BLUEKNOT} -f ${DOCKER_FILE_BLUEKNOT} .
 
+DOCKER_IMAGE_HOTMOKA=hotmoka/mokamint-node:${VERSION}
+DOCKER_FILE_HOTMOKA=dockerfiles/mokamint-node/mokamint-node
+docker buildx build --push --platform linux/amd64 -t ${DOCKER_IMAGE_HOTMOKA} -f ${DOCKER_FILE_HOTMOKA} .
+
 tar -cvf moka_${VERSION}.tar --directory io-hotmoka-moka modules moka moka.bat; gzip moka_${VERSION}.tar

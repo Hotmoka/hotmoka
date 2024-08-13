@@ -42,6 +42,7 @@ import io.hotmoka.node.service.NodeServices;
 import io.mokamint.miner.local.LocalMiners;
 import io.mokamint.node.local.LocalNodeConfigBuilders;
 import io.mokamint.node.service.PublicNodeServices;
+import io.mokamint.node.service.RestrictedNodeServices;
 import io.mokamint.plotter.PlotAndKeyPairs;
 import io.mokamint.plotter.Plots;
 import io.mokamint.plotter.api.PlotAndKeyPair;
@@ -94,6 +95,9 @@ public class InitMokamint extends AbstractCommand {
 
 	@Option(names = { "--mokamint-port" }, description = "the network port for the publication of the Mokamint service", defaultValue="8030")
 	private int mokamintPort;
+
+	@Option(names = { "--mokamint-port-restricted" }, description = "the network port for the publication of the restricted Mokamint service", defaultValue="8031")
+	private int mokamintPortRestricted;
 
 	@Option(names = { "--dir" }, description = "the directory that will contain blocks and state of the node", defaultValue = "chain")
 	private Path dir;
@@ -154,6 +158,7 @@ public class InitMokamint extends AbstractCommand {
 			var consensus = ConsensusConfigBuilders.defaults()
 				.allowUnsignedFaucet(openUnsignedFaucet)
 				.ignoreGasPrice(ignoreGasPrice)
+				.setChainId(mokamintConfig.getChainId()) // we use the same chain id as the underlying Mokamint engine, although this is not needed in general
 				.setSignatureForRequests(signature)
 				.setInitialGasPrice(initialGasPrice)
 				.setOblivion(oblivion)
@@ -173,8 +178,9 @@ public class InitMokamint extends AbstractCommand {
 
 				node.getMokamintNode().add(miner).orElseThrow(() -> new CommandException("Could not add a miner to the test node"));
 
-				// the next service will be closed when the node will be closed
+				// the next services will be closed when the node will be closed
 				PublicNodeServices.open(node.getMokamintNode(), mokamintPort, 1800000, 1000, Optional.of(URI.create("ws://localhost:" + mokamintPort)));
+				RestrictedNodeServices.open(node.getMokamintNode(), mokamintPortRestricted);
 
 				try (var initialized = this.initialized = InitializedNodes.of(node, consensus, Paths.get(takamakaCode.replace("TAKAMAKA-VERSION", Constants.TAKAMAKA_VERSION)));
 				     var service = NodeServices.of(initialized, port)) {
@@ -199,7 +205,7 @@ public class InitMokamint extends AbstractCommand {
 
 		private void printBanner() {
 			System.out.println("The Hotmoka node has been published at ws://localhost:" + port);
-			System.out.println("The Mokamint node has been published at ws://localhost:" + mokamintPort);
+			System.out.println("The Mokamint node has been published at ws://localhost:" + mokamintPort + " (public) and ws://localhost:" + mokamintPortRestricted + " (restricted)");
 		}
 
 		private void printManifest() throws TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {

@@ -123,11 +123,9 @@ sed -i "s/create_empty_blocks = true/create_empty_blocks = false/g" node0/config
 sed -i '/timeout_commit = /s/".*"/"'${TIMEOUT_COMMIT}s'"/' node0/config/config.toml
 
 # set the remote node as persistent seed
-echo "3"
 sed -i '/persistent_peers =/s/".*"/"'$REMOTE_NODE_ID@$BASE_NETWORK_URI:26656'"/' node0/config/config.toml
 
 # invoke moka in a way that deletes the tendermint configuration that was initially
 # created into node0, so that we do not leave garbage around;
 # in any case, it has been copied inside the chain directory
-echo "4"
 moka start-tendermint --interactive=false --tendermint-config=node0 --delete-tendermint-config --max-gas-per-view ${MAX_GAS_PER_VIEW}
