@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.internal.gson;
 
-import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
@@ -40,6 +39,7 @@ import io.hotmoka.node.api.values.NullValue;
 import io.hotmoka.node.api.values.ShortValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StringValue;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**
@@ -108,8 +108,12 @@ public abstract class UpdateJson implements JsonRepresentation<Update> {
 	}
 
 	@Override
-	public Update unmap() throws IllegalArgumentException, HexConversionException {
-		var object = (StorageReference) this.object.unmap();
+	public Update unmap() throws InconsistentJsonException {
+		StorageReference object;
+		if (this.object.unmap() instanceof StorageReference objectSr)
+			object = objectSr;
+		else
+			throw new InconsistentJsonException("A storage reference was expected as object");
 
 		if (clazz != null)
 			return Updates.classTag(object, StorageTypes.classNamed(clazz), jar.unmap());
@@ -144,6 +148,6 @@ public abstract class UpdateJson implements JsonRepresentation<Update> {
 		else if (value instanceof NullValue)
 			return Updates.toNull(object, field, eager);
 		else
-			throw new IllegalArgumentException("Illegal update JSON");
+			throw new InconsistentJsonException("Illegal update JSON");
 	}
 }

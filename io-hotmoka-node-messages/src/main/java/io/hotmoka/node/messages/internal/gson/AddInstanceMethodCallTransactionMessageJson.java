@@ -16,13 +16,12 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal.gson;
 
-import io.hotmoka.crypto.Base64ConversionException;
-import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.messages.AddInstanceMethodCallTransactionMessages;
 import io.hotmoka.node.messages.api.AddInstanceMethodCallTransactionMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * The JSON representation of an {@link AddInstanceMethodCallTransactionMessage}.
@@ -37,12 +36,12 @@ public abstract class AddInstanceMethodCallTransactionMessageJson extends Abstra
 	}
 
 	@Override
-	public AddInstanceMethodCallTransactionMessage unmap() throws IllegalArgumentException, HexConversionException, Base64ConversionException {
+	public AddInstanceMethodCallTransactionMessage unmap() throws InconsistentJsonException {
 		var unmappedRequest = request.unmap();
 		if (unmappedRequest instanceof InstanceMethodCallTransactionRequest imctr)
 			return AddInstanceMethodCallTransactionMessages.of(imctr, getId());
 		else
-			throw new IllegalArgumentException("The argument of the addInstanceMethodCallTransactionRequest() method must be an InstanceMethodCallTransactionRequest");
+			throw new InconsistentJsonException("The argument of the addInstanceMethodCallTransactionRequest() method must be an InstanceMethodCallTransactionRequest");
 	}
 
 	@Override

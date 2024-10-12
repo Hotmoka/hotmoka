@@ -16,12 +16,12 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal.gson;
 
-import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.messages.GetClassTagResultMessages;
 import io.hotmoka.node.messages.api.GetClassTagResultMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * The JSON representation of a {@link GetClassTagResultMessage}.
@@ -36,12 +36,12 @@ public abstract class GetClassTagResultMessageJson extends AbstractRpcMessageJso
 	}
 
 	@Override
-	public GetClassTagResultMessage unmap() throws HexConversionException {
+	public GetClassTagResultMessage unmap() throws InconsistentJsonException {
 		var unmappedResult = result.unmap();
 		if (unmappedResult instanceof ClassTag ct)
 			return GetClassTagResultMessages.of(ct, getId());
 		else
-			throw new IllegalArgumentException("The return value of a getClassTag() call must be a class tag");
+			throw new InconsistentJsonException("The return value of a getClassTag() call must be a class tag");
 	}
 
 	@Override

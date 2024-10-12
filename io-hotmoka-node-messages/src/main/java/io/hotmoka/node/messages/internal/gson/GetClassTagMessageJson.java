@@ -16,12 +16,12 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal.gson;
 
-import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.messages.GetClassTagMessages;
 import io.hotmoka.node.messages.api.GetClassTagMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * The JSON representation of an {@link GetClassTagMessage}.
@@ -36,12 +36,12 @@ public abstract class GetClassTagMessageJson extends AbstractRpcMessageJsonRepre
 	}
 
 	@Override
-	public GetClassTagMessage unmap() throws IllegalArgumentException, HexConversionException {
+	public GetClassTagMessage unmap() throws InconsistentJsonException {
 		var unmappedReference = reference.unmap();
 		if (unmappedReference instanceof StorageReference sr)
 			return GetClassTagMessages.of(sr, getId());
 		else
-			throw new IllegalArgumentException("The argument of a getClassTag() call must be a storage reference");
+			throw new InconsistentJsonException("The argument of a getClassTag() call must be a storage reference");
 	}
 
 	@Override

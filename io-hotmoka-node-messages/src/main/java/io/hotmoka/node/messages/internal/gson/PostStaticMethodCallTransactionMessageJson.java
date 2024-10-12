@@ -16,13 +16,12 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal.gson;
 
-import io.hotmoka.crypto.Base64ConversionException;
-import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.messages.PostStaticMethodCallTransactionMessages;
 import io.hotmoka.node.messages.api.PostStaticMethodCallTransactionMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * The JSON representation of a {@link PostStaticMethodCallTransactionMessage}.
@@ -37,12 +36,12 @@ public abstract class PostStaticMethodCallTransactionMessageJson extends Abstrac
 	}
 
 	@Override
-	public PostStaticMethodCallTransactionMessage unmap() throws IllegalArgumentException, HexConversionException, Base64ConversionException {
+	public PostStaticMethodCallTransactionMessage unmap() throws InconsistentJsonException {
 		var unmappedRequest = request.unmap();
 		if (unmappedRequest instanceof StaticMethodCallTransactionRequest cctr)
 			return PostStaticMethodCallTransactionMessages.of(cctr, getId());
 		else
-			throw new IllegalArgumentException("The argument of the postStaticMethodCallTransactionRequest() method must be an StaticMethodCallTransactionRequest");
+			throw new InconsistentJsonException("The argument of the postStaticMethodCallTransactionRequest() method must be an StaticMethodCallTransactionRequest");
 	}
 
 	@Override

@@ -16,12 +16,12 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal.gson;
 
-import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.messages.GetStateMessages;
 import io.hotmoka.node.messages.api.GetStateMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * The JSON representation of an {@link GetStateMessage}.
@@ -36,12 +36,12 @@ public abstract class GetStateMessageJson extends AbstractRpcMessageJsonRepresen
 	}
 
 	@Override
-	public GetStateMessage unmap() throws IllegalArgumentException, HexConversionException {
+	public GetStateMessage unmap() throws InconsistentJsonException {
 		var unmappedReference = reference.unmap();
 		if (unmappedReference instanceof StorageReference sr)
 			return GetStateMessages.of(sr, getId());
 		else
-			throw new IllegalArgumentException("The argument of a getState() call must be a storage reference");
+			throw new InconsistentJsonException("The argument of a getState() call must be a storage reference");
 	}
 
 	@Override

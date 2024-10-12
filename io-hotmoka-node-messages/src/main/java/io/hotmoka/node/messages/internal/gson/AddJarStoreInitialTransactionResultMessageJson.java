@@ -16,11 +16,11 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal.gson;
 
-import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.messages.AddJarStoreInitialTransactionResultMessages;
 import io.hotmoka.node.messages.api.AddJarStoreInitialTransactionResultMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * The JSON representation of a {@link AddJarStoreInitialTransactionResultMessage}.
@@ -35,7 +35,7 @@ public abstract class AddJarStoreInitialTransactionResultMessageJson extends Abs
 	}
 
 	@Override
-	public AddJarStoreInitialTransactionResultMessage unmap() throws HexConversionException {
+	public AddJarStoreInitialTransactionResultMessage unmap() throws InconsistentJsonException {
 		return AddJarStoreInitialTransactionResultMessages.of(result.unmap(), getId());
 	}
 

@@ -42,6 +42,7 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**
@@ -233,25 +234,37 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 	}
 
 	@Override
-	public TransactionRequest<?> unmap() throws IllegalArgumentException, HexConversionException, Base64ConversionException {
-		if (GameteCreationTransactionRequest.class.getSimpleName().equals(type))
-			return TransactionRequests.gameteCreation(classpath.unmap(), initialAmount, redInitialAmount, publicKey);
-		else if (InitializationTransactionRequest.class.getSimpleName().equals(type))
-			return TransactionRequests.initialization(classpath.unmap(), (StorageReference) manifest.unmap());
-		else if (JarStoreInitialTransactionRequest.class.getSimpleName().equals(type))
-			return TransactionRequests.jarStoreInitial(Base64.fromBase64String(jar), convertedDependencies());
-		else if (JarStoreTransactionRequest.class.getSimpleName().equals(type))
-			return TransactionRequests.jarStore(Hex.fromHexString(signature), (StorageReference) caller.unmap(), nonce, chainId, gasLimit, gasPrice, classpath.unmap(), Base64.fromBase64String(jar), convertedDependencies());
-		else if (ConstructorCallTransactionRequest.class.getSimpleName().equals(type))
-			return TransactionRequests.constructorCall(Hex.fromHexString(signature), (StorageReference) caller.unmap(), nonce, chainId, gasLimit, gasPrice, classpath.unmap(), constructor.unmap(), convertedActuals());
-		else if (StaticMethodCallTransactionRequest.class.getSimpleName().equals(type))
-			return TransactionRequests.staticMethodCall(Hex.fromHexString(signature), (StorageReference) caller.unmap(), nonce, chainId, gasLimit, gasPrice, classpath.unmap(), method.unmap(), convertedActuals());
-		else if (InstanceMethodCallTransactionRequest.class.getSimpleName().equals(type))
-			return TransactionRequests.instanceMethodCall(Hex.fromHexString(signature), (StorageReference) caller.unmap(), nonce, chainId, gasLimit, gasPrice, classpath.unmap(), method.unmap(), (StorageReference) receiver.unmap(), convertedActuals());
-		else if (InstanceSystemMethodCallTransactionRequest.class.getSimpleName().equals(type))
-			return TransactionRequests.instanceSystemMethodCall((StorageReference) caller.unmap(), nonce, gasLimit, classpath.unmap(), method.unmap(), (StorageReference) receiver.unmap(), convertedActuals());
+	public TransactionRequest<?> unmap() throws InconsistentJsonException {
+		try {
+			if (GameteCreationTransactionRequest.class.getSimpleName().equals(type))
+				return TransactionRequests.gameteCreation(classpath.unmap(), initialAmount, redInitialAmount, publicKey);
+			else if (InitializationTransactionRequest.class.getSimpleName().equals(type))
+				return TransactionRequests.initialization(classpath.unmap(), unmapIntoStorageReference(manifest));
+			else if (JarStoreInitialTransactionRequest.class.getSimpleName().equals(type))
+				return TransactionRequests.jarStoreInitial(Base64.fromBase64String(jar), convertedDependencies());
+			else if (JarStoreTransactionRequest.class.getSimpleName().equals(type))
+				return TransactionRequests.jarStore(Hex.fromHexString(signature), unmapIntoStorageReference(caller), nonce, chainId, gasLimit, gasPrice, classpath.unmap(), Base64.fromBase64String(jar), convertedDependencies());
+			else if (ConstructorCallTransactionRequest.class.getSimpleName().equals(type))
+				return TransactionRequests.constructorCall(Hex.fromHexString(signature), unmapIntoStorageReference(caller), nonce, chainId, gasLimit, gasPrice, classpath.unmap(), constructor.unmap(), convertedActuals());
+			else if (StaticMethodCallTransactionRequest.class.getSimpleName().equals(type))
+				return TransactionRequests.staticMethodCall(Hex.fromHexString(signature), unmapIntoStorageReference(caller), nonce, chainId, gasLimit, gasPrice, classpath.unmap(), method.unmap(), convertedActuals());
+			else if (InstanceMethodCallTransactionRequest.class.getSimpleName().equals(type))
+				return TransactionRequests.instanceMethodCall(Hex.fromHexString(signature), unmapIntoStorageReference(caller), nonce, chainId, gasLimit, gasPrice, classpath.unmap(), method.unmap(), unmapIntoStorageReference(receiver), convertedActuals());
+			else if (InstanceSystemMethodCallTransactionRequest.class.getSimpleName().equals(type))
+				return TransactionRequests.instanceSystemMethodCall(unmapIntoStorageReference(caller), nonce, gasLimit, classpath.unmap(), method.unmap(), unmapIntoStorageReference(receiver), convertedActuals());
+			else
+				throw new InconsistentJsonException("Unexpected request type " + type);
+		}
+		catch (HexConversionException | Base64ConversionException e) {
+			throw new InconsistentJsonException(e);
+		}
+	}
+
+	private static StorageReference unmapIntoStorageReference(StorageValues.Json json) throws InconsistentJsonException {
+		if (json.unmap() instanceof StorageReference sr)
+			return sr;
 		else
-			throw new IllegalArgumentException("Unexpected request type " + type);
+			throw new InconsistentJsonException("Unexpected storage value");
 	}
 
 	private TransactionReference[] convertedDependencies() throws HexConversionException {

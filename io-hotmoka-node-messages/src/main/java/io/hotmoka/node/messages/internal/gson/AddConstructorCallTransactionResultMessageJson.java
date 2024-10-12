@@ -16,12 +16,12 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal.gson;
 
-import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.messages.AddConstructorCallTransactionResultMessages;
 import io.hotmoka.node.messages.api.AddConstructorCallTransactionResultMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * The JSON representation of an {@link AddConstructorCallTransactionResultMessage}.
@@ -36,12 +36,12 @@ public abstract class AddConstructorCallTransactionResultMessageJson extends Abs
 	}
 
 	@Override
-	public AddConstructorCallTransactionResultMessage unmap() throws IllegalArgumentException, HexConversionException {
+	public AddConstructorCallTransactionResultMessage unmap() throws InconsistentJsonException {
 		var unmappedResult = result.unmap();
 		if (unmappedResult instanceof StorageReference sr)
 			return AddConstructorCallTransactionResultMessages.of(sr, getId());
 		else
-			throw new IllegalArgumentException("The argument of addConstructorCallTransaction() must be a StorageReference");
+			throw new InconsistentJsonException("The argument of addConstructorCallTransaction() must be a StorageReference");
 	}
 
 	@Override

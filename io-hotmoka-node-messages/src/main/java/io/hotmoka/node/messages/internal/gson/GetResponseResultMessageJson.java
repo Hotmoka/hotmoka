@@ -16,11 +16,11 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal.gson;
 
-import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.messages.GetResponseResultMessages;
 import io.hotmoka.node.messages.api.GetResponseResultMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * The JSON representation of a {@link GetResponseResultMessage}.
@@ -35,7 +35,7 @@ public abstract class GetResponseResultMessageJson extends AbstractRpcMessageJso
 	}
 
 	@Override
-	public GetResponseResultMessage unmap() throws IllegalArgumentException, HexConversionException {
+	public GetResponseResultMessage unmap() throws InconsistentJsonException {
 		return GetResponseResultMessages.of(result.unmap(), getId());
 	}
 

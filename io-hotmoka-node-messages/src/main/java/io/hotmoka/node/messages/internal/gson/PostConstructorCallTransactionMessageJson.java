@@ -16,13 +16,12 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal.gson;
 
-import io.hotmoka.crypto.Base64ConversionException;
-import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.node.messages.PostConstructorCallTransactionMessages;
 import io.hotmoka.node.messages.api.PostConstructorCallTransactionMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * The JSON representation of a {@link PostConstructorCallTransactionMessage}.
@@ -37,12 +36,12 @@ public abstract class PostConstructorCallTransactionMessageJson extends Abstract
 	}
 
 	@Override
-	public PostConstructorCallTransactionMessage unmap() throws IllegalArgumentException, HexConversionException, Base64ConversionException {
+	public PostConstructorCallTransactionMessage unmap() throws InconsistentJsonException {
 		var unmappedRequest = request.unmap();
 		if (unmappedRequest instanceof ConstructorCallTransactionRequest cctr)
 			return PostConstructorCallTransactionMessages.of(cctr, getId());
 		else
-			throw new IllegalArgumentException("The argument of the postConstructorCallTransactionRequest() method must be a ConstructorCallTransactionRequest");
+			throw new InconsistentJsonException("The argument of the postConstructorCallTransactionRequest() method must be a ConstructorCallTransactionRequest");
 	}
 
 	@Override

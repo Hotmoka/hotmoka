@@ -16,12 +16,12 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal.gson;
 
-import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.messages.GetManifestResultMessages;
 import io.hotmoka.node.messages.api.GetManifestResultMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * The JSON representation of a {@link GetManifestResultMessage}.
@@ -36,12 +36,12 @@ public abstract class GetManifestResultMessageJson extends AbstractRpcMessageJso
 	}
 
 	@Override
-	public GetManifestResultMessage unmap() throws HexConversionException {
+	public GetManifestResultMessage unmap() throws InconsistentJsonException {
 		var unmappedResult = result.unmap();
 		if (unmappedResult instanceof StorageReference sr)
 			return GetManifestResultMessages.of(sr, getId());
 		else
-			throw new IllegalArgumentException("The result of a getManifest() call must be a storage reference");
+			throw new InconsistentJsonException("The result of a getManifest() call must be a storage reference");
 	}
 
 	@Override

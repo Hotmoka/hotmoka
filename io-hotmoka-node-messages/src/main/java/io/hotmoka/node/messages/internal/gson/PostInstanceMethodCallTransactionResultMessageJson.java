@@ -16,11 +16,11 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal.gson;
 
-import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.messages.PostInstanceMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.api.PostInstanceMethodCallTransactionResultMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * The JSON representation of a {@link PostInstanceMethodCallTransactionResultMessage}.
@@ -35,7 +35,7 @@ public abstract class PostInstanceMethodCallTransactionResultMessageJson extends
 	}
 
 	@Override
-	public PostInstanceMethodCallTransactionResultMessage unmap() throws HexConversionException {
+	public PostInstanceMethodCallTransactionResultMessage unmap() throws InconsistentJsonException {
 		return PostInstanceMethodCallTransactionResultMessages.of(result.unmap(), getId());
 	}
 

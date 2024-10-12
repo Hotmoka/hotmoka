@@ -18,11 +18,11 @@ package io.hotmoka.node.messages.internal.gson;
 
 import java.util.Optional;
 
-import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.messages.AddStaticMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.api.AddStaticMethodCallTransactionResultMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * The JSON representation of a {@link AddStaticMethodCallTransactionResultMessage}.
@@ -37,7 +37,7 @@ public abstract class AddStaticMethodCallTransactionResultMessageJson extends Ab
 	}
 
 	@Override
-	public AddStaticMethodCallTransactionResultMessage unmap() throws IllegalArgumentException, HexConversionException {
+	public AddStaticMethodCallTransactionResultMessage unmap() throws InconsistentJsonException {
 		return AddStaticMethodCallTransactionResultMessages.of(result == null ? Optional.empty() : Optional.of(result.unmap()), getId());
 	}
 

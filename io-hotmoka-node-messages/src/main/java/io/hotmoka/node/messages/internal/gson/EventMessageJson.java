@@ -16,11 +16,11 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal.gson;
 
-import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.messages.EventMessages;
 import io.hotmoka.node.messages.api.EventMessage;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**
@@ -36,16 +36,16 @@ public abstract class EventMessageJson implements JsonRepresentation<EventMessag
 	}
 
 	@Override
-	public EventMessage unmap() throws IllegalArgumentException, HexConversionException {
+	public EventMessage unmap() throws InconsistentJsonException {
 		var unmappedEvent = event.unmap();
 		if (unmappedEvent instanceof StorageReference event) {
 			var unmappedCreator = creator.unmap();
 			if (unmappedCreator instanceof StorageReference creator)
 				return EventMessages.of(creator, event);
 			else
-				throw new IllegalArgumentException("The creator of an event message must be a storage reference");
+				throw new InconsistentJsonException("The creator of an event message must be a storage reference");
 		}
 		else
-			throw new IllegalArgumentException("The event in an event message must be a storage reference");
+			throw new InconsistentJsonException("The event in an event message must be a storage reference");
 	}
 }

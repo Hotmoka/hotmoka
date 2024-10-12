@@ -20,6 +20,7 @@ import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**
@@ -33,7 +34,12 @@ public abstract class TransactionReferenceJson implements JsonRepresentation<Tra
 	}
 
 	@Override
-	public TransactionReference unmap() throws HexConversionException {
-		return TransactionReferences.of(Hex.fromHexString(hash));
+	public TransactionReference unmap() throws InconsistentJsonException {
+		try {
+			return TransactionReferences.of(Hex.fromHexString(hash));
+		}
+		catch (HexConversionException e) {
+			throw new InconsistentJsonException(e);
+		}
 	}
 }

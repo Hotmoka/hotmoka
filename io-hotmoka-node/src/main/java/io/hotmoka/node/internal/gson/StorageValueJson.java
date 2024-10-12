@@ -18,7 +18,6 @@ package io.hotmoka.node.internal.gson;
 
 import java.math.BigInteger;
 
-import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.values.BigIntegerValue;
@@ -35,6 +34,7 @@ import io.hotmoka.node.api.values.ShortValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.api.values.StringValue;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**
@@ -95,7 +95,7 @@ public abstract class StorageValueJson implements JsonRepresentation<StorageValu
 	}
 
 	@Override
-	public StorageValue unmap() throws IllegalArgumentException, HexConversionException {
+	public StorageValue unmap() throws InconsistentJsonException {
 		if (bigIntegerValue != null)
 			return StorageValues.bigIntegerOf(bigIntegerValue);
 		else if (booleanValue != null)
@@ -123,6 +123,6 @@ public abstract class StorageValueJson implements JsonRepresentation<StorageValu
 		else if (stringValue != null)
 			return StorageValues.stringOf(stringValue);
 		else
-			throw new IllegalArgumentException("Illegal storage value JSON");
+			throw new InconsistentJsonException("Illegal storage value JSON");
 	}
 }
