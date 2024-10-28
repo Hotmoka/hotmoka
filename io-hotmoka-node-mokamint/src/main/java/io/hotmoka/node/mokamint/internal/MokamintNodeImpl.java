@@ -242,7 +242,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 						publish(TransactionReferences.of(getHasher().hash(intoHotmokaRequest(tx))), store);
 				}
 				catch (ApplicationException | NodeException | io.mokamint.node.api.TransactionRejectedException | UnknownStateIdException e) {
-					LOGGER.log(Level.SEVERE, "failed to publish the transactions in block " + next.getHexHash(mokamintNode.getConfig().getHashingForBlocks()), e);
+					LOGGER.log(Level.SEVERE, "failed to publish the transactions in block " + next.getHexHash(), e);
 				}
 			}
 		}
