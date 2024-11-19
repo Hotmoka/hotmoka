@@ -247,7 +247,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 				if (transformation.deliveredCount() > 0) {
 					transformation.deliverRewardTransaction("", "");
 					storeOfHead = transformation.getFinalStore();
-					CheckRunnable.check(NodeException.class, () -> transformation.getDeliveredTransactions().forEachOrdered(UncheckConsumer.uncheck(reference -> publish(reference, storeOfHead))));
+					CheckRunnable.check(NodeException.class, () -> transformation.getDeliveredTransactions().forEachOrdered(UncheckConsumer.uncheck(NodeException.class, reference -> publish(reference, storeOfHead))));
 				}
 
 				return storeOfHead.beginTransformation(System.currentTimeMillis());

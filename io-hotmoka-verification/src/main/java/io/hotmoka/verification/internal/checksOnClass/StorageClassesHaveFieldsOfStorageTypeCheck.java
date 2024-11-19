@@ -41,7 +41,7 @@ public class StorageClassesHaveFieldsOfStorageTypeCheck extends CheckOnClasses {
 			check(ClassNotFoundException.class, () ->
 				Stream.of(clazz.getDeclaredFields())
 					.filter(field -> !Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers()))
-					.filter(uncheck(field -> !isTypeAllowedForStorageFields(field.getType())))
+					.filter(uncheck(ClassNotFoundException.class, field -> !isTypeAllowedForStorageFields(field.getType())))
 					.map(field -> new IllegalTypeForStorageFieldError(inferSourceFile(), field.getName(), field.getType().isEnum()))
 					.forEachOrdered(this::issue)
 			);

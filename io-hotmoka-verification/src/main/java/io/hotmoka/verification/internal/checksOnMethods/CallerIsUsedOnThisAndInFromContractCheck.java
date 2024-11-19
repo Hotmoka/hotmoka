@@ -45,7 +45,7 @@ public class CallerIsUsedOnThisAndInFromContractCheck extends CheckOnMethods {
 
 		check(ClassNotFoundException.class, () ->
 			instructions()
-				.filter(uncheck(this::isCallToStorageCaller))
+				.filter(uncheck(ClassNotFoundException.class, this::isCallToStorageCaller))
 				.forEach(ih -> {
 					if (!isFromContract)
 						issue(new CallerOutsideFromContractError(inferSourceFile(), methodName, lineOf(ih)));

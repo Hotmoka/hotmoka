@@ -33,6 +33,7 @@ import io.hotmoka.exceptions.CheckRunnable;
 import io.hotmoka.exceptions.CheckSupplier;
 import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.exceptions.UncheckFunction;
+import io.hotmoka.exceptions.functions.ConsumerWithExceptions3;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.local.AbstractLocalNode;
 import io.hotmoka.node.local.StateIds;
@@ -263,11 +264,12 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 
 	private void gc(StateIdAndTime stateIdAndTime) throws InterruptedException {
 		try {
-			CheckRunnable.check(StoreException.class, NodeException.class, UnknownStateIdException.class, () -> env.executeInTransaction(UncheckConsumer.uncheck(txn -> {
+			ConsumerWithExceptions3<Transaction, StoreException, NodeException, UnknownStateIdException> gc = txn -> {
 				free(stateIdAndTime.stateId, txn);
 				removeFromStores(STORES_TO_GC, stateIdAndTime, txn);
-			})));
+			};
 
+			env.executeInTransaction(StoreException.class, NodeException.class, UnknownStateIdException.class, gc);
 			LOGGER.info("garbage-collected store " + stateIdAndTime);
 		}
 		catch (NodeException | UnknownStateIdException | StoreException | ExodusException e) {
@@ -385,7 +387,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	private void gc() {
 		try {
 			while (!Thread.currentThread().isInterrupted()) {
-				Set<StateIdAndTime> toGC = CheckSupplier.check(NodeException.class, () -> env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> getStores(STORES_TO_GC, txn))));
+				Set<StateIdAndTime> toGC = env.computeInReadonlyTransaction(NodeException.class, txn -> getStores(STORES_TO_GC, txn));
 
 				for (var stateIdAndTime: toGC)
 					synchronized (lockGC) {

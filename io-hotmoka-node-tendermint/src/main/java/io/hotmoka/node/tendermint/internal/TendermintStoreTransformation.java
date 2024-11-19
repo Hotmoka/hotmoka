@@ -22,7 +22,6 @@ import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 import java.math.BigInteger;
 import java.util.Optional;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.MethodSignatures;
@@ -157,18 +156,11 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 
 			if (maybeManifest.isPresent()) {
 				StorageReference validators = getValidators().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
-				Stream<StorageReference> events = trwe.getEvents();
 
-				try {
-					return check(StoreException.class, UnknownReferenceException.class, FieldNotFoundException.class, () ->
-						events.filter(uncheck(event -> isValidatorsUpdateEvent(event, classLoader)))
-						.map(UncheckFunction.uncheck(this::getCreator))
+				return check(StoreException.class, () ->
+					trwe.getEvents().filter(uncheck(StoreException.class, event -> isValidatorsUpdateEvent(event, classLoader)))
+						.map(UncheckFunction.uncheck(StoreException.class, this::getCreatorOfEvent))
 						.anyMatch(validators::equals));
-				}
-				catch (UnknownReferenceException | FieldNotFoundException e) {
-					// if it was possible to verify that it is an event, then it exists in store and must have a creator or otherwise the store is corrupted
-					throw new StoreException(e);
-				}
 			}
 		}
 

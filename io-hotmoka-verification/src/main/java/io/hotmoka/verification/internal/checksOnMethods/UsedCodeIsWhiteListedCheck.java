@@ -46,23 +46,19 @@ public class UsedCodeIsWhiteListedCheck extends CheckOnMethods {
 
 	public UsedCodeIsWhiteListedCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws ClassNotFoundException {
 		super(builder, method);
-
-		check(ClassNotFoundException.class, () ->
-			instructions().forEach(uncheck(this::checkSingleInstruction))
-		);
+		check(ClassNotFoundException.class, () -> instructions().forEach(uncheck(ClassNotFoundException.class, this::checkSingleInstruction)));
 	}
 
 	private void checkSingleInstruction(InstructionHandle ih) throws ClassNotFoundException {
 		Instruction ins = ih.getInstruction();
-		if (ins instanceof FieldInstruction) {
-			FieldInstruction fi = (FieldInstruction) ins;
+		if (ins instanceof FieldInstruction fi) {
 			if (!hasWhiteListingModel(fi))
 				issue(new IllegalAccessToNonWhiteListedFieldError(inferSourceFile(), methodName, lineOf(ih), fi.getLoadClassType(cpg).getClassName(), fi.getFieldName(cpg)));
 		}
-		else if (ins instanceof InvokeInstruction) {
-			var invoke = (InvokeInstruction) ins;
+		else if (ins instanceof InvokeInstruction invoke) {
 			if (!hasWhiteListingModel(invoke)) {
 				Optional<? extends Executable> target = resolver.resolvedExecutableFor(invoke);
+
 				if (target.isPresent()) {
 					Executable executable = target.get();
 					if (executable instanceof Constructor<?>)

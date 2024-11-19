@@ -65,7 +65,7 @@ public class InstrumentedJarImpl implements InstrumentedJar {
 		// we cannot proceed in parallel since the BCEL library is not thread-safe
 		this.classes = check(ClassNotFoundException.class, () ->
 			verifiedJar.classes()
-				.map(uncheck(clazz -> InstrumentedClasses.of(clazz, gasCostModel)))
+				.map(uncheck(ClassNotFoundException.class, clazz -> InstrumentedClasses.of(clazz, gasCostModel)))
 				.collect(Collectors.toCollection(TreeSet::new))
 		);
 	}

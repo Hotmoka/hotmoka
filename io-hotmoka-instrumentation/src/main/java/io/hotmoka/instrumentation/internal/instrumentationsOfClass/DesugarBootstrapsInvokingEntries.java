@@ -64,7 +64,7 @@ public class DesugarBootstrapsInvokingEntries extends ClassLevelInstrumentation 
 	public DesugarBootstrapsInvokingEntries(InstrumentedClassImpl.Builder builder) throws ClassNotFoundException {
 		builder.super();
 		check(ClassNotFoundException.class, () ->
-			bootstraps.getBootstrapsLeadingToEntries().forEachOrdered(uncheck(this::desugarBootstrapCallingEntry))
+			bootstraps.getBootstrapsLeadingToEntries().forEachOrdered(uncheck(ClassNotFoundException.class, this::desugarBootstrapCallingEntry))
 		);
 	}
 

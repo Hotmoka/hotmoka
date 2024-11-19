@@ -16,9 +16,6 @@ limitations under the License.
 
 package io.hotmoka.instrumentation.internal.instrumentationsOfMethod;
 
-import static io.hotmoka.exceptions.CheckRunnable.check;
-import static io.hotmoka.exceptions.UncheckConsumer.uncheck;
-
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.util.Comparator;
@@ -90,7 +87,8 @@ public class AddGasUpdates extends MethodLevelInstrumentation {
 			CodeExceptionGen[] ceg = method.getExceptionHandlers();
 
 			dominators.forEach(dominator -> addCpuGasUpdate(dominator, il, ceg, dominators));
-			check(ClassNotFoundException.class, () -> il.forEach(uncheck(ih -> addRamGasUpdate(ih, il, ceg))));
+			for (var ih: il)
+				addRamGasUpdate(ih, il, ceg);
 		}
 	}
 

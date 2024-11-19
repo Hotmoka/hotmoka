@@ -56,7 +56,7 @@ public class FromContractCodeIsConsistentWithClassHierarchyCheck extends CheckOn
 				.filter(m -> !Modifier.isPrivate(m.getModifiers())
 						&& m.getName().equals(methodName) && m.getReturnType() == rt
 						&& Arrays.equals(m.getParameterTypes(), args))
-				.anyMatch(uncheck(m -> !compatibleFromContracts(contractTypeForEntry, annotations.getFromContractArgument(clazz.getName(), methodName, methodArgs, methodReturnType))))
+				.anyMatch(uncheck(ClassNotFoundException.class, m -> !compatibleFromContracts(contractTypeForEntry, annotations.getFromContractArgument(clazz.getName(), methodName, methodArgs, methodReturnType))))
 			))
 			issue(new InconsistentFromContractError(inferSourceFile(), methodName, clazz.getName()));
 

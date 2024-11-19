@@ -37,9 +37,7 @@ import java.util.logging.Logger;
 
 import io.hotmoka.annotations.GuardedBy;
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.exceptions.CheckRunnable;
 import io.hotmoka.exceptions.CheckSupplier;
-import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.NodeUnmarshallingContexts;
@@ -418,7 +416,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			long limitOfTimeForGC = start.toInstant(ZoneOffset.UTC).toEpochMilli();
 
 			try {
-				CheckRunnable.check(NodeException.class, () -> getEnvironment().executeInTransaction(UncheckConsumer.uncheck(txn -> keepPersistedOnlyNotOlderThan(limitOfTimeForGC, txn))));
+				getEnvironment().executeInTransaction(NodeException.class, txn -> keepPersistedOnlyNotOlderThan(limitOfTimeForGC, txn));
 			}
 			catch (NodeException e) {
 				LOGGER.log(Level.SEVERE, "could not keep persistent only stores older than " + limitOfTimeForGC, e);

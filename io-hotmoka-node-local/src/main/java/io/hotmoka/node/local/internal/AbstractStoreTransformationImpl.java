@@ -376,8 +376,22 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 		deltaResponses.put(reference, response);
 	}
 
-	protected final StorageReference getCreator(StorageReference event) throws UnknownReferenceException, FieldNotFoundException, StoreException {
-		return getReferenceField(event, FieldSignatures.EVENT_CREATOR_FIELD);
+	/**
+	 * Yields the creator of the given event.
+	 * 
+	 * @param event the reference to the event; this is assumed to be non-{@code null}
+	 *              and to actually refer an event
+	 * @return the creator of {@code event}
+	 * @throws StoreException if the store is corrupted
+	 */
+	protected final StorageReference getCreatorOfEvent(StorageReference event) throws StoreException {
+		try {
+			return getReferenceField(event, FieldSignatures.EVENT_CREATOR_FIELD);
+		}
+		catch (UnknownReferenceException | FieldNotFoundException e) {
+			// if it was possible to verify that it is an event, then it exists in store and must have a creator or otherwise the store is corrupted
+			throw new StoreException(e);
+		}
 	}
 
 	protected final BigInteger getCurrentSupply(StorageReference validators) throws UnknownReferenceException, FieldNotFoundException, StoreException {
@@ -441,18 +455,11 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 				StorageReference validators = getValidators().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
 				StorageReference versions = getVersions().orElseThrow(() -> new StoreException("The manifest is set but the versions are not set"));
 				StorageReference gasStation = getGasStation().orElseThrow(() -> new StoreException("The manifest is set but gas station is not set"));
-				Stream<StorageReference> events = trwe.getEvents();
-	
-				try {
-					return check(StoreException.class, UnknownReferenceException.class, FieldNotFoundException.class, () ->
-						events.filter(uncheck(event -> isConsensusUpdateEvent(event, classLoader)))
-						.map(UncheckFunction.uncheck(this::getCreator))
+
+				return check(StoreException.class, () ->
+					trwe.getEvents().filter(uncheck(StoreException.class, event -> isConsensusUpdateEvent(event, classLoader)))
+						.map(UncheckFunction.uncheck(StoreException.class, this::getCreatorOfEvent))
 						.anyMatch(creator -> creator.equals(manifest) || creator.equals(validators) || creator.equals(gasStation) || creator.equals(versions)));
-				}
-				catch (UnknownReferenceException | FieldNotFoundException e) {
-					// if it was possible to verify that it is an event, then it exists in store and must have a creator or otherwise the store is corrupted
-					throw new StoreException(e);
-				}
 			}
 		}
 	
@@ -480,29 +487,12 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 	 */
 	private boolean gasPriceMightHaveChanged(TransactionResponse response, EngineClassLoader classLoader) throws StoreException {
-		if (response instanceof InitializationTransactionResponse)
-			return true;
-		else if (response instanceof TransactionResponseWithEvents trwe && trwe.getEvents().findAny().isPresent()) {
-			Optional<StorageReference> maybeGasStation = getGasStation();
-	
-			if (maybeGasStation.isPresent()) {
-				var gasStation = maybeGasStation.get();
-				Stream<StorageReference> events = trwe.getEvents();
-	
-				try {
-					return check(StoreException.class, UnknownReferenceException.class, FieldNotFoundException.class, () ->
-						events.filter(uncheck(event -> isGasPriceUpdateEvent(event, classLoader)))
-						.map(UncheckFunction.uncheck(this::getCreator))
-						.anyMatch(gasStation::equals));
-				}
-				catch (UnknownReferenceException | FieldNotFoundException e) {
-					// if it was possible to verify that it is an event, then it exists in store and must have a creator or otherwise the store is corrupted
-					throw new StoreException(e);
-				}
-			}
-		}
-	
-		return false;
+		return response instanceof InitializationTransactionResponse ||
+			(response instanceof TransactionResponseWithEvents trwe && trwe.getEvents().findAny().isPresent() &&
+				check(StoreException.class, () -> getGasStation().map(gasStation ->
+					trwe.getEvents().filter(uncheck(StoreException.class, event -> isGasPriceUpdateEvent(event, classLoader)))
+						.map(UncheckFunction.uncheck(StoreException.class, this::getCreatorOfEvent))
+						.anyMatch(gasStation::equals)).orElse(false)));
 	}
 
 	private boolean isGasPriceUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws StoreException {
@@ -526,29 +516,12 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 	 */
 	private boolean inflationMightHaveChanged(TransactionResponse response, EngineClassLoader classLoader) throws StoreException {
-		if (response instanceof InitializationTransactionResponse)
-			return true;
-		else if (response instanceof TransactionResponseWithEvents trwe && trwe.getEvents().findAny().isPresent()) {
-			Optional<StorageReference> maybeValidators = getValidators();
-	
-			if (maybeValidators.isPresent()) {
-				var validators = maybeValidators.get();
-				Stream<StorageReference> events = trwe.getEvents();
-	
-				try {
-					return check(StoreException.class, UnknownReferenceException.class, FieldNotFoundException.class, () ->
-						events.filter(uncheck(event -> isInflationUpdateEvent(event, classLoader)))
-						.map(UncheckFunction.uncheck(this::getCreator))
-						.anyMatch(validators::equals));
-				}
-				catch (UnknownReferenceException | FieldNotFoundException e) {
-					// if it was possible to verify that it is an event, then it exists in store and must have a creator or otherwise the store is corrupted
-					throw new StoreException(e);
-				}
-			}
-		}
-	
-		return false;
+		return response instanceof InitializationTransactionResponse ||
+			(response instanceof TransactionResponseWithEvents trwe && trwe.getEvents().findAny().isPresent() &&
+				check(StoreException.class, () -> getValidators().map(validators ->
+					trwe.getEvents().filter(uncheck(StoreException.class, event -> isInflationUpdateEvent(event, classLoader)))
+						.map(UncheckFunction.uncheck(StoreException.class, this::getCreatorOfEvent))
+						.anyMatch(validators::equals)).orElse(false)));
 	}
 
 	private boolean isInflationUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws StoreException {
@@ -661,7 +634,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 			response.getUpdates()
 				.map(Update::getObject)
 				.distinct()
-				.forEachOrdered(UncheckConsumer.uncheck(object -> setHistory(object, simplifiedHistory(object, reference, response.getUpdates())))));
+				.forEachOrdered(UncheckConsumer.uncheck(StoreException.class, object -> setHistory(object, simplifiedHistory(object, reference, response.getUpdates())))));
 	}
 
 	/**

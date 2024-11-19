@@ -38,7 +38,6 @@ import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.LoadInstruction;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
-import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
 import io.hotmoka.verification.errors.IllegalModificationOfAmountInConstructorChaining;
@@ -57,7 +56,7 @@ public class AmountIsNotModifiedInConstructorChaining extends CheckOnMethods {
 		if (Const.CONSTRUCTOR_NAME.equals(methodName) && methodArgs.length > 0 && annotations.isPayable(className, methodName, methodArgs, methodReturnType)) {
 			check(ClassNotFoundException.class, () ->
 				instructions()
-					.filter(uncheck(this::callsPayableFromContractConstructorOnThis))
+					.filter(uncheck(ClassNotFoundException.class, this::callsPayableFromContractConstructorOnThis))
 					.filter(this::amountMightBeChanged)
 					.map(ih -> new IllegalModificationOfAmountInConstructorChaining(inferSourceFile(), method.getName(), lineOf(method, ih)))
 					.forEachOrdered(this::issue)
@@ -97,7 +96,7 @@ public class AmountIsNotModifiedInConstructorChaining extends CheckOnMethods {
 
 			if (previous != null) {
 				Instruction previousIns = previous.getInstruction();
-				if (previousIns instanceof IINC && ((IINC) previousIns).getIndex() == local)
+				if (previousIns instanceof IINC iinc && iinc.getIndex() == local)
 					return true;
 
 				if (seen.add(previous))
@@ -109,16 +108,12 @@ public class AmountIsNotModifiedInConstructorChaining extends CheckOnMethods {
 			if (Stream.of(targeters).anyMatch(targeter -> targeter instanceof CodeExceptionGen))
 				throw new IllegalStateException("Cannot follow stack pushers");
 
-			Stream.of(targeters).filter(targeter -> targeter instanceof BranchInstruction)
-				.map(targeter -> (BranchInstruction) targeter)
-				.forEachOrdered(branch -> {
-					Optional<InstructionHandle> added = findInstruction(branch);
-					if (added.isEmpty())
-						throw new IllegalStateException("Cannot follow stack pushers");
-					else
-						if (seen.add(added.get()))
-							workingSet.add(added.get());
-			});
+			for (var targeter: targeters)
+				if (targeter instanceof BranchInstruction branch) {
+					InstructionHandle added = findInstruction(branch).orElseThrow(() -> new IllegalStateException("Cannot follow stack pushers"));
+					if (seen.add(added))
+						workingSet.add(added);
+				}
 		}
 		while (!workingSet.isEmpty());
 
@@ -136,16 +131,13 @@ public class AmountIsNotModifiedInConstructorChaining extends CheckOnMethods {
     }
 
     private boolean callsPayableFromContractConstructorOnThis(InstructionHandle ih) throws ClassNotFoundException {
-		Instruction instruction = ih.getInstruction();
-		if (instruction instanceof INVOKESPECIAL) {
-			InvokeInstruction invoke = (InvokeInstruction) instruction;
+		if (ih.getInstruction() instanceof INVOKESPECIAL invoke) {
 			String methodName = invoke.getMethodName(cpg);
 			if (Const.CONSTRUCTOR_NAME.equals(methodName)) {
-				Type[] argumentTypes = invoke.getArgumentTypes(cpg);
-				ReferenceType receiver = invoke.getReferenceType(cpg);
-				if (receiver instanceof ObjectType) {
+				if (invoke.getReferenceType(cpg) instanceof ObjectType receiver) {
+					Type[] argumentTypes = invoke.getArgumentTypes(cpg);
 					int slots = Stream.of(argumentTypes).mapToInt(Type::getSize).sum();
-					String classNameOfReceiver = ((ObjectType) receiver).getClassName();
+					String classNameOfReceiver = receiver.getClassName();
 					Type returnType = invoke.getReturnType(cpg);
 					boolean callsPayableFromContract = annotations.isFromContract(classNameOfReceiver, methodName, argumentTypes, returnType) &&
 						annotations.isPayable(classNameOfReceiver, methodName, argumentTypes, returnType);
@@ -153,7 +145,7 @@ public class AmountIsNotModifiedInConstructorChaining extends CheckOnMethods {
 					return callsPayableFromContract &&
 						pushers.getPushers(ih, slots + 1, method.getInstructionList(), cpg)
 							.map(InstructionHandle::getInstruction)
-							.allMatch(ins -> ins instanceof LoadInstruction && ((LoadInstruction) ins).getIndex() == 0);	
+							.allMatch(ins -> ins instanceof LoadInstruction load && load.getIndex() == 0);	
 				}
 			}
 		}

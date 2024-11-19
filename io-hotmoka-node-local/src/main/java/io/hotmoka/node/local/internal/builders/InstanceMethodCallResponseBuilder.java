@@ -25,8 +25,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-import io.hotmoka.exceptions.CheckSupplier;
-import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.TransactionReferences;
@@ -41,7 +39,6 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
-import io.hotmoka.node.local.DeserializationException;
 import io.hotmoka.node.local.api.StoreException;
 import io.takamaka.code.constants.Constants;
 
@@ -121,8 +118,10 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 			try {
 				init();
 				this.deserializedReceiver = deserializer.deserialize(request.getReceiver());
-				this.deserializedActuals = CheckSupplier.check(StoreException.class, DeserializationException.class,
-						() -> request.actuals().map(UncheckFunction.uncheck(deserializer::deserialize)).toArray(Object[]::new));
+				var actuals = request.actuals().toArray(StorageValue[]::new);
+				this.deserializedActuals = new Object[actuals.length];
+				for (int pos = 0; pos < actuals.length; pos++)
+					deserializedActuals[pos] = deserializer.deserialize(actuals[pos]);
 
 				Object[] deserializedActuals;
 				Method methodJVM;

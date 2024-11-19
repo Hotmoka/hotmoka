@@ -703,7 +703,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 				})));
 
 				storeOfHead = mkStore(idOfNewStoreOfHead, Optional.of(transformation.getCache()));
-				CheckRunnable.check(NodeException.class, () -> transformation.getDeliveredTransactions().forEachOrdered(UncheckConsumer.uncheck(reference -> publish(reference, storeOfHead))));
+				CheckRunnable.check(NodeException.class, () -> transformation.getDeliveredTransactions().forEachOrdered(UncheckConsumer.uncheck(NodeException.class, reference -> publish(reference, storeOfHead))));
 
 				byte[] hash = getLastBlockApplicationHash();
 				LOGGER.info("committed Tendermint state " + Hex.toHexString(hash).toUpperCase());

@@ -17,14 +17,11 @@ limitations under the License.
 package io.hotmoka.node.internal.gson;
 
 import java.math.BigInteger;
-import java.util.stream.Stream;
 
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.HexConversionException;
-import io.hotmoka.exceptions.CheckSupplier;
-import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
@@ -267,15 +264,19 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 			throw new InconsistentJsonException("Unexpected storage value");
 	}
 
-	private TransactionReference[] convertedDependencies() throws HexConversionException {
-		return CheckSupplier.check(HexConversionException.class,
-			() -> Stream.of(dependencies).map(UncheckFunction.uncheck(TransactionReferences.Json::unmap)).toArray(TransactionReference[]::new)
-		);
+	private TransactionReference[] convertedDependencies() throws InconsistentJsonException {
+		var result = new TransactionReference[dependencies.length];
+		for (int pos = 0; pos < result.length; pos++)
+			result[pos] = dependencies[pos].unmap();
+
+		return result;
 	}
 
-	private StorageValue[] convertedActuals() throws HexConversionException {
-		return CheckSupplier.check(HexConversionException.class,
-			() -> Stream.of(actuals).map(UncheckFunction.uncheck(StorageValues.Json::unmap)).toArray(StorageValue[]::new)
-		);
+	private StorageValue[] convertedActuals() throws InconsistentJsonException {
+		var result = new StorageValue[actuals.length];
+		for (int pos = 0; pos < result.length; pos++)
+			result[pos] = actuals[pos].unmap();
+
+		return result;
 	}
 }

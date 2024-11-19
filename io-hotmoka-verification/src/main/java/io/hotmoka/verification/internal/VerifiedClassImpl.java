@@ -279,7 +279,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 		}
 
 		private void applyAllChecksToTheMethodsOfTheClass() throws ClassNotFoundException {
-			check(ClassNotFoundException.class, () -> Stream.of(methods).forEachOrdered(uncheck(method -> versionsManager.applyAllMethodChecks(this, method))));
+			check(ClassNotFoundException.class, () -> Stream.of(methods).forEachOrdered(uncheck(ClassNotFoundException.class, method -> versionsManager.applyAllMethodChecks(this, method))));
 		}
 
 		/**

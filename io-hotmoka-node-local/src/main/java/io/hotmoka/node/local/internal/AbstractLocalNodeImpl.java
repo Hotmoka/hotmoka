@@ -347,7 +347,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 			try {
 				Stream<TransactionReference> history = store.getHistory(Objects.requireNonNull(reference));
 				var updates = new HashSet<Update>();
-				CheckRunnable.check(StoreException.class, () -> history.forEachOrdered(UncheckConsumer.uncheck(transaction -> addUpdatesCommitted(store, reference, transaction, updates))));
+				CheckRunnable.check(StoreException.class, () -> history.forEachOrdered(UncheckConsumer.uncheck(StoreException.class, transaction -> addUpdatesCommitted(store, reference, transaction, updates))));
 				return updates.stream();
 			}
 			catch (StoreException e) {
@@ -543,7 +543,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 
 		try {
 			if (store.getResponse(reference) instanceof TransactionResponseWithEvents trwe)
-				CheckRunnable.check(NodeException.class, () -> trwe.getEvents().forEachOrdered(UncheckConsumer.uncheck(event -> notifyEvent(event, store))));
+				CheckRunnable.check(NodeException.class, () -> trwe.getEvents().forEachOrdered(UncheckConsumer.uncheck(NodeException.class, event -> notifyEvent(event, store))));
 		}
 		catch (StoreException | UnknownReferenceException e) {
 			throw new NodeException(e);

@@ -26,6 +26,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.exceptions.CheckSupplier;
 import io.hotmoka.exceptions.UncheckFunction;
+import io.hotmoka.exceptions.functions.FunctionWithExceptions2;
 import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionResponses;
@@ -35,6 +36,7 @@ import io.hotmoka.node.api.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.local.DeserializationException;
 import io.hotmoka.node.local.api.StoreException;
 
@@ -76,8 +78,9 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 
 			try {
 				init();
+				FunctionWithExceptions2<StorageValue, ? extends Object, StoreException, DeserializationException> deserialize = deserializer::deserialize;
 				this.deserializedActuals = CheckSupplier.check(StoreException.class, DeserializationException.class,
-						() -> request.actuals().map(UncheckFunction.uncheck(deserializer::deserialize)).toArray(Object[]::new));
+					() -> request.actuals().map(UncheckFunction.uncheck(StoreException.class, DeserializationException.class, deserialize)).toArray(Object[]::new));
 		
 				Object[] deserializedActuals;
 				Constructor<?> constructorJVM;

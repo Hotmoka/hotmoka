@@ -68,7 +68,7 @@ public class AddExtraArgsToCallsToFromContract extends MethodLevelInstrumentatio
 			InstructionList il = method.getInstructionList();
 			List<InstructionHandle> callsToFromContract = check(ClassNotFoundException.class, () ->
 				StreamSupport.stream(il.spliterator(), false)
-					.filter(uncheck(ih -> isCallToFromContract(ih.getInstruction()))).collect(Collectors.toList())
+					.filter(uncheck(ClassNotFoundException.class, ih -> isCallToFromContract(ih.getInstruction()))).collect(Collectors.toList())
 			);
 
 			for (InstructionHandle ih: callsToFromContract)

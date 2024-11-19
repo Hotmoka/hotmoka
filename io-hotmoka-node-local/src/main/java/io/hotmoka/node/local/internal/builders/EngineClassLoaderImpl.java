@@ -38,6 +38,7 @@ import java.util.zip.ZipInputStream;
 
 import io.hotmoka.exceptions.CheckRunnable;
 import io.hotmoka.exceptions.UncheckConsumer;
+import io.hotmoka.exceptions.functions.ConsumerWithExceptions2;
 import io.hotmoka.instrumentation.api.InstrumentationFields;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -236,7 +237,10 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			counter.incrementAndGet();
 		}
 
-		CheckRunnable.check(StoreException.class, TransactionRejectedException.class, () -> dependencies.forEachOrdered(UncheckConsumer.uncheck(dependency -> addJars(dependency, consensus, jars, transactionsOfJars, environment, counter))));
+		ConsumerWithExceptions2<TransactionReference, StoreException, TransactionRejectedException> addJars = dependency -> addJars(dependency, consensus, jars, transactionsOfJars, environment, counter);
+		CheckRunnable.check(StoreException.class, TransactionRejectedException.class,
+			() -> dependencies.forEachOrdered(UncheckConsumer.uncheck(StoreException.class, TransactionRejectedException.class, addJars)));
+
 		processClassesInJars(jars, transactionsOfJars, environment);
 
 		try {
@@ -269,7 +273,9 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		TransactionResponseWithInstrumentedJar responseWithInstrumentedJar = getResponseWithInstrumentedJarAt(classpath, environment);
 
 		// we consider its dependencies before as well, recursively
-		CheckRunnable.check(StoreException.class, () -> responseWithInstrumentedJar.getDependencies().forEachOrdered(UncheckConsumer.uncheck(dependency -> addJars(dependency, consensus, jars, jarTransactions, environment, counter))));
+		ConsumerWithExceptions2<TransactionReference, StoreException, TransactionRejectedException> addJars = dependency -> addJars(dependency, consensus, jars, jarTransactions, environment, counter);
+		CheckRunnable.check(StoreException.class, TransactionRejectedException.class,
+			() -> responseWithInstrumentedJar.getDependencies().forEachOrdered(UncheckConsumer.uncheck(StoreException.class, TransactionRejectedException.class, addJars)));
 
 		jars.add(responseWithInstrumentedJar.getInstrumentedJar());
 		jarTransactions.add(classpath);

@@ -29,8 +29,6 @@ import java.util.stream.Stream;
 
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.exceptions.CheckSupplier;
-import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.instrumentation.api.GasCostModel;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.OutOfGasError;
@@ -167,8 +165,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		protected final void init() throws StoreException, DeserializationException {
 			this.deserializedCaller = deserializer.deserialize(request.getCaller());
 			var validators = environment.getValidators();
-			this.deserializedValidators = CheckSupplier.check(StoreException.class, DeserializationException.class, () ->
-				validators.map(UncheckFunction.uncheck(deserializer::deserialize)));
+			this.deserializedValidators = validators.isPresent() ? Optional.of(deserializer.deserialize(validators.get())) : Optional.empty();
 			increaseNonceOfCaller();
 			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
 			chargeGasForStorage(BigInteger.valueOf(request.size()));

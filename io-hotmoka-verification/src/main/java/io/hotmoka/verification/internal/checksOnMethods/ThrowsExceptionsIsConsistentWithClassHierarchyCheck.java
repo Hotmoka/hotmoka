@@ -54,7 +54,7 @@ public class ThrowsExceptionsIsConsistentWithClassHierarchyCheck extends CheckOn
 				.filter(m -> !Modifier.isPrivate(m.getModifiers())
 						&& m.getName().equals(methodName) && m.getReturnType() == rt
 						&& Arrays.equals(m.getParameterTypes(), args))
-				.anyMatch(uncheck(m -> wasThrowsExceptions != annotations.isThrowsExceptions(clazz.getName(), methodName, methodArgs, methodReturnType)))
+				.anyMatch(uncheck(ClassNotFoundException.class, m -> wasThrowsExceptions != annotations.isThrowsExceptions(clazz.getName(), methodName, methodArgs, methodReturnType)))
 		))
 			issue(new InconsistentThrowsExceptionsError(inferSourceFile(), methodName, clazz.getName()));
 	

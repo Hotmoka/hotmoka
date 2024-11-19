@@ -26,11 +26,6 @@
       <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
-      <groupId>io.hotmoka</groupId>
-      <artifactId>io-takamaka-code-constants</artifactId>
-      <version>${io.takamaka.code.version}</version>
-    </dependency>
-    <dependency>
       <groupId>io.hotmoka.annotations</groupId>
       <artifactId>io-hotmoka-annotations</artifactId>
       <version>${io.hotmoka.annotations.version}</version>
@@ -40,7 +35,7 @@
       <artifactId>io-mokamint-node-local</artifactId>
       <version>${mokamint.version}</version>
     </dependency>
-     <dependency>
+    <dependency>
       <groupId>io.mokamint</groupId>
       <artifactId>io-mokamint-application</artifactId>
       <version>${mokamint.version}</version>

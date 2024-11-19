@@ -31,6 +31,7 @@ import java.util.stream.Stream;
 import io.hotmoka.exceptions.CheckSupplier;
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.exceptions.UncheckedException;
+import io.hotmoka.exceptions.functions.FunctionWithExceptions2;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -133,9 +134,11 @@ public class Deserializer {
 	 * @throws StoreException if the operation could not be completed correctly
 	 */
 	public Object deserialize(StorageValue value) throws DeserializationException, StoreException {
-		if (value instanceof StorageReference sr)
+		if (value instanceof StorageReference sr) {
 			// we use a cache to provide the same value if the same reference gets deserialized twice
-			return CheckSupplier.check(DeserializationException.class, StoreException.class, () -> cache.computeIfAbsent(sr, UncheckFunction.uncheck(this::createStorageObject)));
+			FunctionWithExceptions2<StorageReference, ? extends Object, DeserializationException, StoreException> createStorageObject = this::createStorageObject;
+			return CheckSupplier.check(DeserializationException.class, StoreException.class, () -> cache.computeIfAbsent(sr, UncheckFunction.uncheck(DeserializationException.class, StoreException.class, createStorageObject)));
+		}
 		else if (value instanceof IntValue iv)
 			return iv.getValue();
 		else if (value instanceof BooleanValue bv)

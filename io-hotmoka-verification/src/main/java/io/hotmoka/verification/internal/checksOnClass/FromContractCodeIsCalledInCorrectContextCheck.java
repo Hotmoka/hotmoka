@@ -79,7 +79,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 				.filter(method -> (method.isStatic() && !lambdasUnreachableFromStaticMethods.contains(method)))
 				.forEachOrdered(method ->
 					instructionsOf(method)
-						.filter(uncheck(this::callsFromContract))
+						.filter(uncheck(ClassNotFoundException.class, this::callsFromContract))
 						.map(ih -> new IllegalCallToFromContractError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
 						.forEachOrdered(this::issue)
 				);
@@ -89,7 +89,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 				.filter(method -> !isContract)
 				.forEachOrdered(method ->
 					instructionsOf(method)
-						.filter(uncheck(ih -> callsFromContract(ih) && (method.isStatic() || !callsFromContractOnThis(ih, method.getInstructionList()))))
+						.filter(uncheck(ClassNotFoundException.class, ih -> callsFromContract(ih) && (method.isStatic() || !callsFromContractOnThis(ih, method.getInstructionList()))))
 						.map(ih -> new IllegalCallToFromContractError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
 						.forEachOrdered(this::issue)
 				);
@@ -100,7 +100,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 				.filter(method -> !method.isStatic())
 				.forEachOrdered(method ->
 					instructionsOf(method)
-						.filter(UncheckPredicate.uncheck(ih -> callsFromContractOnThis(ih, method.getInstructionList())))
+						.filter(UncheckPredicate.uncheck(ClassNotFoundException.class, ih -> callsFromContractOnThis(ih, method.getInstructionList())))
 						.map(ih -> new IllegalCallToFromContractError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
 						.forEachOrdered(this::issue)
 				);
@@ -108,10 +108,10 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 			// from contract code called on this can only be called by @FromContract code 
 			getMethods()
 				.filter(method -> !method.isStatic())
-				.forEachOrdered(uncheck(method -> {
+				.forEachOrdered(uncheck(ClassNotFoundException.class, method -> {
 					boolean isInsideFromContract = bootstraps.isPartOfFromContract(method) || annotations.isFromContract(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
 					instructionsOf(method)
-						.filter(uncheck(ih -> !isInsideFromContract && callsFromContractOnThis(ih, method.getInstructionList())))
+						.filter(uncheck(ClassNotFoundException.class, ih -> !isInsideFromContract && callsFromContractOnThis(ih, method.getInstructionList())))
 						.map(ih -> new IllegalCallToFromContractOnThisError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
 						.forEachOrdered(this::issue);
 				}));
@@ -120,10 +120,10 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 			getMethods()
 				.filter(method -> !method.isStatic())
 				.filter(method -> method.getName().equals(Const.CONSTRUCTOR_NAME))
-				.filter(uncheck(method -> !annotations.isPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType())))
+				.filter(uncheck(ClassNotFoundException.class, method -> !annotations.isPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType())))
 				.forEachOrdered(method ->
 					instructionsOf(method)
-						.filter(UncheckPredicate.uncheck(ih -> callsPayableFromContractConstructorOnThis(ih, method.getInstructionList())))
+						.filter(UncheckPredicate.uncheck(ClassNotFoundException.class, ih -> callsPayableFromContractConstructorOnThis(ih, method.getInstructionList())))
 						.map(ih -> new IllegalCallToPayableConstructorOnThis(inferSourceFile(), method.getName(), lineOf(method, ih)))
 						.forEachOrdered(this::issue)
 					);
@@ -132,10 +132,10 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 			getMethods()
 				.filter(method -> !method.isStatic())
 				.filter(method -> method.getName().equals(Const.CONSTRUCTOR_NAME))
-				.filter(uncheck(method -> !annotations.isRedPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType())))
+				.filter(uncheck(ClassNotFoundException.class, method -> !annotations.isRedPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType())))
 				.forEachOrdered(method ->
 					instructionsOf(method)
-						.filter(UncheckPredicate.uncheck(ih -> callsRedPayableFromContractConstructorOnThis(ih, method.getInstructionList())))
+						.filter(UncheckPredicate.uncheck(ClassNotFoundException.class, ih -> callsRedPayableFromContractConstructorOnThis(ih, method.getInstructionList())))
 						.map(ih -> new IllegalCallToRedPayableConstructorOnThis(inferSourceFile(), method.getName(), lineOf(method, ih)))
 						.forEachOrdered(this::issue)
 					);

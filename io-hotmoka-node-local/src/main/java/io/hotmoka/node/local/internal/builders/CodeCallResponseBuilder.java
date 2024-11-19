@@ -30,6 +30,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.exceptions.CheckRunnable;
 import io.hotmoka.exceptions.UncheckConsumer;
+import io.hotmoka.exceptions.functions.ConsumerWithExceptions2;
 import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.NodeException;
@@ -284,10 +285,11 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 * @throws NoSuchElementException 
 		 */
 		private void argumentsAreExported() throws TransactionRejectedException, StoreException {
+			ConsumerWithExceptions2<StorageReference, TransactionRejectedException, StoreException> enforceExported = this::enforceExported;
 			CheckRunnable.check(TransactionRejectedException.class, StoreException.class, () -> request.actuals()
 				.filter(actual -> actual instanceof StorageReference)
 				.map(actual -> (StorageReference) actual)
-				.forEachOrdered(UncheckConsumer.uncheck(this::enforceExported)));
+				.forEachOrdered(UncheckConsumer.uncheck(TransactionRejectedException.class, StoreException.class, enforceExported)));
 		}
 
 		/**

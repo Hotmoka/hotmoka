@@ -315,7 +315,7 @@ public class BootstrapsImpl implements Bootstraps {
 		do {
 			initialSize = bootstrapMethodsLeadingToEntries.size();
 			check(ClassNotFoundException.class, () -> getBootstraps()
-				.filter(uncheck(bootstrap -> lambdaIsEntry(bootstrap) || lambdaCallsEntry(bootstrap, methods)))
+				.filter(uncheck(ClassNotFoundException.class, bootstrap -> lambdaIsEntry(bootstrap) || lambdaCallsEntry(bootstrap, methods)))
 				.forEach(this::addToBootstrapMethodsLeadingToEntries));
 		}
 		while (bootstrapMethodsLeadingToEntries.size() > initialSize);
@@ -338,7 +338,7 @@ public class BootstrapsImpl implements Bootstraps {
 		var ws = new LinkedList<MethodGen>();
 		check(ClassNotFoundException.class, () ->
 			Stream.of(methods)
-				.filter(uncheck(method -> verifiedClass.jar.annotations.isFromContract(verifiedClass.getClassName(), method.getName(), method.getArgumentTypes(), method.getReturnType())))
+				.filter(uncheck(ClassNotFoundException.class, method -> verifiedClass.jar.annotations.isFromContract(verifiedClass.getClassName(), method.getName(), method.getArgumentTypes(), method.getReturnType())))
 				.forEach(ws::add)
 		);
 
@@ -375,7 +375,7 @@ public class BootstrapsImpl implements Bootstraps {
 			InstructionList instructions = lambda.get().getInstructionList();
 			if (instructions != null)
 				return CheckSupplier.check(ClassNotFoundException.class, () ->
-					StreamSupport.stream(instructions.spliterator(), false).anyMatch(uncheck(this::leadsToEntry))
+					StreamSupport.stream(instructions.spliterator(), false).anyMatch(uncheck(ClassNotFoundException.class, this::leadsToEntry))
 				);
 		}
 

@@ -55,7 +55,7 @@ public class PayableCodeIsConsistentWithClassHierarchyCheck extends CheckOnMetho
 						&& Arrays.equals(m.getParameterTypes(), args));
 
 		if (check(ClassNotFoundException.class, () ->
-			methods.anyMatch(uncheck(m -> wasPayable != annotations.isPayable(clazz.getName(), methodName, methodArgs, methodReturnType)))))
+			methods.anyMatch(uncheck(ClassNotFoundException.class, m -> wasPayable != annotations.isPayable(clazz.getName(), methodName, methodArgs, methodReturnType)))))
 			issue(new InconsistentPayableError(inferSourceFile(), methodName, clazz.getName()));
 	
 		Class<?> superclass = clazz.getSuperclass();

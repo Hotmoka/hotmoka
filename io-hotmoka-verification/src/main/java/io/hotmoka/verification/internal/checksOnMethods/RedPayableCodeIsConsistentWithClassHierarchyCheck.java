@@ -54,7 +54,7 @@ public class RedPayableCodeIsConsistentWithClassHierarchyCheck extends CheckOnMe
 				.filter(m -> !Modifier.isPrivate(m.getModifiers())
 						&& m.getName().equals(methodName) && m.getReturnType() == rt
 						&& Arrays.equals(m.getParameterTypes(), args))
-				.anyMatch(uncheck(m -> wasRedPayable != annotations.isRedPayable(clazz.getName(), methodName, methodArgs, methodReturnType)))
+				.anyMatch(uncheck(ClassNotFoundException.class, m -> wasRedPayable != annotations.isRedPayable(clazz.getName(), methodName, methodArgs, methodReturnType)))
 		))
 			issue(new InconsistentRedPayableError(inferSourceFile(), methodName, clazz.getName()));
 	

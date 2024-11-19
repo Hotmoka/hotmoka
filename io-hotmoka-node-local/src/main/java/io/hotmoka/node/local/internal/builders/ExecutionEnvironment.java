@@ -44,6 +44,8 @@ import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.exceptions.CheckSupplier;
 import io.hotmoka.exceptions.UncheckFunction;
+import io.hotmoka.exceptions.functions.FunctionWithExceptions2;
+import io.hotmoka.exceptions.functions.FunctionWithExceptions3;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.TransactionReferences;
@@ -469,7 +471,8 @@ public abstract class ExecutionEnvironment {
 	 * @throws TransactionRejectedException 
 	 */
 	protected final EngineClassLoader getClassLoader(TransactionReference classpath, ConsensusConfig<?,?> consensus) throws StoreException, TransactionRejectedException {
-		return CheckSupplier.check(StoreException.class, TransactionRejectedException.class, () -> getClassLoader(classpath, UncheckFunction.uncheck(_classpath -> mkClassLoader(_classpath, consensus))));
+		FunctionWithExceptions2<TransactionReference, EngineClassLoader, StoreException, TransactionRejectedException> mkClassLoader = _classpath -> mkClassLoader(_classpath, consensus);
+		return CheckSupplier.check(StoreException.class, TransactionRejectedException.class, () -> getClassLoader(classpath, UncheckFunction.uncheck(StoreException.class, TransactionRejectedException.class, mkClassLoader)));
 	}
 
 	protected final ClassTag getClassTag(StorageReference reference) throws UnknownReferenceException, StoreException {
@@ -500,10 +503,11 @@ public abstract class ExecutionEnvironment {
 		Stream<TransactionReference> history = getHistory(object);
 
 		try {
-			return CheckSupplier.check(StoreException.class, UnknownReferenceException.class, () -> history.map(UncheckFunction.uncheck(transaction -> getLastUpdate(object, field, transaction)))
-					.flatMap(Optional::stream)
-					.findFirst())
-					.orElseThrow(() -> new FieldNotFoundException(field));
+			FunctionWithExceptions2<TransactionReference, Optional<UpdateOfField>, StoreException, UnknownReferenceException> getLastUpdate = transaction -> getLastUpdate(object, field, transaction);
+			return CheckSupplier.check(StoreException.class, UnknownReferenceException.class, () -> history.map(UncheckFunction.uncheck(StoreException.class, UnknownReferenceException.class, getLastUpdate))
+				.flatMap(Optional::stream)
+				.findFirst())
+				.orElseThrow(() -> new FieldNotFoundException(field));
 		}
 		catch (UnknownReferenceException e) {
 			throw new StoreException("Object " + object + " has a history containing a reference not in store");
@@ -565,9 +569,9 @@ public abstract class ExecutionEnvironment {
 		var fieldsAlreadySeen = new HashSet<FieldSignature>();
 
 		return getHistory(object)
-				.flatMap(CheckSupplier.check(StoreException.class, () -> UncheckFunction.uncheck(this::getUpdates)))
-				.filter(update -> update.isEager() && update instanceof UpdateOfField uof && update.getObject().equals(object) && fieldsAlreadySeen.add(uof.getField()))
-				.map(update -> (UpdateOfField) update);
+			.flatMap(CheckSupplier.check(StoreException.class, () -> UncheckFunction.uncheck(StoreException.class, this::getUpdates)))
+			.filter(update -> update.isEager() && update instanceof UpdateOfField uof && update.getObject().equals(object) && fieldsAlreadySeen.add(uof.getField()))
+			.map(update -> (UpdateOfField) update);
 	}
 
 	protected final Stream<Update> getUpdates(TransactionReference referenceInHistory) throws StoreException {
@@ -584,8 +588,9 @@ public abstract class ExecutionEnvironment {
 
 	protected final boolean signatureIsValid(SignedTransactionRequest<?> request, SignatureAlgorithm signatureAlgorithm) throws StoreException, UnknownReferenceException, FieldNotFoundException {
 		var reference = TransactionReferences.of(getHasher().hash(request));
+		FunctionWithExceptions3<TransactionReference, Boolean, StoreException, UnknownReferenceException, FieldNotFoundException> verifySignature = _reference -> verifySignature(signatureAlgorithm, request);
 		return CheckSupplier.check(StoreException.class, UnknownReferenceException.class, FieldNotFoundException.class, () ->
-			signatureIsValid(reference, UncheckFunction.uncheck(_reference -> verifySignature(signatureAlgorithm, request))));
+			signatureIsValid(reference, UncheckFunction.uncheck(StoreException.class, UnknownReferenceException.class, FieldNotFoundException.class, verifySignature)));
 	}
 
 	protected final String getPublicKey(StorageReference account) throws UnknownReferenceException, FieldNotFoundException, StoreException {

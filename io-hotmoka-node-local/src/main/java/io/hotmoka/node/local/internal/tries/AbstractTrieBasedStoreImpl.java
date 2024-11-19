@@ -22,10 +22,10 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.exceptions.CheckRunnable;
 import io.hotmoka.exceptions.CheckSupplier;
-import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.exceptions.UncheckFunction;
+import io.hotmoka.exceptions.functions.ConsumerWithExceptions2;
+import io.hotmoka.exceptions.functions.FunctionWithExceptions3;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
@@ -209,9 +209,8 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 	@Override
 	public final Optional<StorageReference> getManifest() throws StoreException {
 		try {
-			return CheckSupplier.check(TrieException.class, StoreException.class, UnknownKeyException.class, () ->
-				getNode().getEnvironment().computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> mkTrieOfInfo(txn).getManifest())
-			));
+			FunctionWithExceptions3<Transaction, Optional<StorageReference>, TrieException, StoreException, UnknownKeyException> getManifest = txn -> mkTrieOfInfo(txn).getManifest();
+			return getNode().getEnvironment().computeInReadonlyTransaction(TrieException.class, StoreException.class, UnknownKeyException.class, getManifest);
 		}
 		catch (ExodusException | TrieException | UnknownKeyException e) {
 			throw new StoreException(e);
@@ -221,11 +220,11 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 	@Override
 	public final Stream<TransactionReference> getHistory(StorageReference object) throws StoreException, UnknownReferenceException {
 		try {
-			return CheckSupplier.check(UnknownKeyException.class, StoreException.class, () -> getNode().getEnvironment().computeInReadonlyTransaction
-				(UncheckFunction.uncheck(txn -> mkTrieOfHistories(txn).get(object))))
-					.orElseThrow(() -> new UnknownReferenceException(object));
+			FunctionWithExceptions3<Transaction, Optional<Stream<TransactionReference>>, UnknownKeyException, StoreException, TrieException> getObject = txn -> mkTrieOfHistories(txn).get(object);
+			return getNode().getEnvironment().computeInReadonlyTransaction(UnknownKeyException.class, StoreException.class, TrieException.class, getObject)
+				.orElseThrow(() -> new UnknownReferenceException(object));
 		}
-		catch (ExodusException | UnknownKeyException e) {
+		catch (ExodusException | UnknownKeyException | TrieException e) {
 			throw new StoreException(e);
 		}
 	}
@@ -243,12 +242,14 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 
 	private void checkExistence() throws UnknownStateIdException, StoreException {
 		try {
-			CheckRunnable.check(UnknownKeyException.class, StoreException.class, () -> getNode().getEnvironment().executeInReadonlyTransaction(UncheckConsumer.uncheck(txn -> {
+			ConsumerWithExceptions2<Transaction, UnknownKeyException, StoreException> checkTriesExist = txn -> {
 				mkTrieOfRequests(txn);
 				mkTrieOfResponses(txn);
 				mkTrieOfHistories(txn);
 				mkTrieOfInfo(txn);
-			})));
+			};
+
+			getNode().getEnvironment().executeInReadonlyTransaction(UnknownKeyException.class, StoreException.class, checkTriesExist);
 		}
 		catch (UnknownKeyException e) {
 			throw new UnknownStateIdException();

@@ -37,6 +37,7 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.PUTFIELD;
 import org.apache.bcel.generic.Type;
 
+import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.instrumentation.api.InstrumentationFields;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
@@ -60,8 +61,8 @@ public class ReplaceFieldAccessesWithAccessors extends MethodLevelInstrumentatio
 		if (!method.isAbstract()) {
 			InstructionList il = method.getInstructionList();
 			check(ClassNotFoundException.class, () ->
-				StreamSupport.stream(il.spliterator(), false).filter(uncheck(this::isAccessToLazilyLoadedFieldInStorageClass))
-					.forEach(io.hotmoka.exceptions.UncheckConsumer.uncheck(ih -> ih.setInstruction(accessorCorrespondingTo((FieldInstruction) ih.getInstruction()))))
+				StreamSupport.stream(il.spliterator(), false).filter(uncheck(ClassNotFoundException.class, this::isAccessToLazilyLoadedFieldInStorageClass))
+					.forEach(UncheckConsumer.uncheck(ClassNotFoundException.class, ih -> ih.setInstruction(accessorCorrespondingTo((FieldInstruction) ih.getInstruction()))))
 			);
 		}
 	}
