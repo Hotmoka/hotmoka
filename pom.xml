@@ -36,7 +36,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <io.hotmoka.testing.version>1.4.1</io.hotmoka.testing.version>
     <io.hotmoka.xodus.version>1.4.6</io.hotmoka.xodus.version>
     <io.hotmoka.closeables.version>1.4.1</io.hotmoka.closeables.version>
-    <mokamint.version>1.0.1</mokamint.version>
+    <mokamint.version>1.1.0</mokamint.version>
   </properties>
 
   <groupId>io.hotmoka</groupId>
