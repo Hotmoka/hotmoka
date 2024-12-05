@@ -33,7 +33,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
@@ -188,9 +187,14 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	@Override
-	public final void close() throws InterruptedException, NodeException {
-		if (stopNewCalls())
-			closeResources();
+	public final void close() throws NodeException {
+		try {
+			if (stopNewCalls())
+				closeResources();
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
 	}
 
 	@Override
@@ -550,11 +554,8 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		}
 	}
 
-	protected void closeResources() throws NodeException, InterruptedException {
-		long start = System.currentTimeMillis();
-
+	protected void closeResources() throws NodeException {
 		executors.shutdownNow();
-		executors.awaitTermination(5000 - System.currentTimeMillis() + start, TimeUnit.MILLISECONDS);
 	}
 
 	/**
@@ -706,9 +707,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 			try {
 				close();
-			}
-			catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
 			}
 			catch (NodeException e) {
 				LOGGER.log(Level.SEVERE, "The shutdown hook of the node failed", e);

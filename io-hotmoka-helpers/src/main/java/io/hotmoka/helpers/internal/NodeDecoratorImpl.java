@@ -20,6 +20,8 @@ import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import io.hotmoka.closeables.api.OnCloseHandler;
@@ -69,11 +71,13 @@ public abstract class NodeDecoratorImpl<N extends Node> implements Node {
 	 */
 	private final AtomicBoolean isClosed = new AtomicBoolean();
 
+	private final static Logger LOGGER = Logger.getLogger(NodeDecoratorImpl.class.getName());
+
 	/**
 	 * We need this intermediate definition since two instances of a method reference
 	 * are not the same, nor equals.
 	 */
-	private final OnCloseHandler this_close = this::close;
+	private final OnCloseHandler this_close = this::tryClose;
 
 	/**
 	 * Creates a decorated node.
@@ -108,9 +112,18 @@ public abstract class NodeDecoratorImpl<N extends Node> implements Node {
 	}
 
 	@Override
-	public void close() throws InterruptedException, NodeException {
+	public void close() throws NodeException {
 		if (!isClosed.getAndSet(true))
 			parent.close();
+	}
+
+	private void tryClose() {
+		try {
+			close();
+		}
+		catch (NodeException e) {
+			LOGGER.log(Level.SEVERE, "cannot close the decoted node", e);
+		}
 	}
 
 	@Override

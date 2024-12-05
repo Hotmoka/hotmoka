@@ -29,10 +29,6 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.GuardedBy;
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.exceptions.CheckRunnable;
-import io.hotmoka.exceptions.CheckSupplier;
-import io.hotmoka.exceptions.UncheckConsumer;
-import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.exceptions.functions.ConsumerWithExceptions3;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.local.AbstractLocalNode;
@@ -150,7 +146,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	}
 
 	@Override
-	protected void closeResources() throws NodeException, InterruptedException {
+	protected void closeResources() throws NodeException {
 		try {
 			super.closeResources();
 		}

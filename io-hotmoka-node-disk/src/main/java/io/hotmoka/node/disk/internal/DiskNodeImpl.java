@@ -99,7 +99,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 	}
 
 	@Override
-	protected void closeResources() throws NodeException, InterruptedException {
+	protected void closeResources() throws NodeException {
 		try {
 			mempool.stop();
 		}

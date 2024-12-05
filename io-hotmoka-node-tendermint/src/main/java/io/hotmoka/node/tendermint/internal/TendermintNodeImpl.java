@@ -183,7 +183,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	}
 
 	@Override
-	protected void closeResources() throws NodeException, InterruptedException {
+	protected void closeResources() throws NodeException {
 		try {
 			closeTendermintAndABCI();
 		}
@@ -264,7 +264,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	    return result;
 	}
 
-	private void closeTendermintAndABCI() throws NodeException, InterruptedException {
+	private void closeTendermintAndABCI() throws NodeException {
 		try {
 			if (tendermint != null)
 				tendermint.close();
@@ -277,11 +277,16 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		}
 	}
 
-	private void closeABCI() throws InterruptedException {
+	private void closeABCI() {
 		if (abci != null && !abci.isShutdown()) {
 			abci.shutdown();
-			abci.awaitTermination();
-		}		
+			try {
+				abci.awaitTermination();
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+		}
 	}
 
 	private static void copyRecursively(Path src, Path dest) throws IOException {
@@ -378,18 +383,23 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		}
 	
 		@Override
-		public void close() throws InterruptedException, IOException {
+		public void close() throws IOException {
 			// the following is important under Windows, since the shell script thats starts Tendermint
 			// under Windows spawns it as a subprocess
 			process.descendants().forEach(ProcessHandle::destroy);
 			process.destroy();
-			process.waitFor();
-	
-			if (isWindows)
-				// this seems important under Windows
-				try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
-					LOGGER.info(br.lines().collect(Collectors.joining()));
-				}
+
+			try {
+				process.waitFor();
+				if (isWindows)
+					// this seems important under Windows
+					try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+						LOGGER.info(br.lines().collect(Collectors.joining()));
+					}
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
 	
 			LOGGER.info("the Tendermint process has been shut down");
 		}

@@ -395,9 +395,8 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	/**
 	 * Closes the node.
 	 * 
-	 * @throws InterruptedException if the current thread has been interrupted while closing the node
 	 * @throws NodeException if the node is not able to close correctly
 	 */
 	@Override
-	void close() throws InterruptedException, NodeException;
+	void close() throws NodeException;
 }

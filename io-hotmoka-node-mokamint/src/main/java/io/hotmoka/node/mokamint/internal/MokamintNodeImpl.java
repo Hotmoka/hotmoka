@@ -201,7 +201,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 	}
 
 	@Override
-	protected void closeResources() throws NodeException, InterruptedException {
+	protected void closeResources() throws NodeException {
 		try {
 			mokamintNode.close();
 		}
