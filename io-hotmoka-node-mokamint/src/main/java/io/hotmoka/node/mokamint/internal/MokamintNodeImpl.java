@@ -37,8 +37,7 @@ import java.util.logging.Logger;
 
 import io.hotmoka.annotations.GuardedBy;
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.exceptions.CheckSupplier;
-import io.hotmoka.exceptions.UncheckFunction;
+import io.hotmoka.exceptions.functions.FunctionWithExceptions2;
 import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.TransactionReferences;
@@ -371,12 +370,14 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			try {
 				transformation.deliverRewardForNodeAndMiner(deadline.getProlog());
 
-				return CheckSupplier.check(NodeException.class, StoreException.class, () -> getEnvironment().computeInTransaction(UncheckFunction.uncheck(txn -> {
+				FunctionWithExceptions2<io.hotmoka.xodus.env.Transaction, byte[], NodeException, StoreException> function = txn -> {
 					StateId stateIdOfFinalStore = transformation.getIdOfFinalStore(txn);
 					lastCaches.put(stateIdOfFinalStore, transformation.getCache());
 					persist(stateIdOfFinalStore, transformation.getNow(), txn);
 					return stateIdOfFinalStore.getBytes();
-				})));
+				};
+
+				return getEnvironment().computeInTransaction(NodeException.class, StoreException.class, function);
 			}
 			catch (ExodusException | StoreException | NodeException e) {
 				throw new ApplicationException(e);
@@ -433,10 +434,10 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		private MokamintStoreTransformation getTransformation(int groupId) throws UnknownGroupIdException {
 			MokamintStoreTransformation transformation = transformations.get(groupId);
 
-			if (transformation == null)
-				throw new UnknownGroupIdException("Group id " + groupId + " is unknown");
-			else
+			if (transformation != null)
 				return transformation;
+			else
+				throw new UnknownGroupIdException("Group id " + groupId + " is unknown");
 		}
 	}
 }

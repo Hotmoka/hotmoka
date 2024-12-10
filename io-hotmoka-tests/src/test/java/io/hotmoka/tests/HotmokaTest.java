@@ -402,9 +402,11 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		if (howManyNodes < 1)
 			throw new IllegalArgumentException("A network needs at least a node");
 
-		final var TARGET_BLOCK_CREATION_TIME = 4000;
+		// if the block creation time is too small, the nodes might lose synchronization
+		// because the time for whispering is higher than the time for mining new blocks
+		final var TARGET_BLOCK_CREATION_TIME = 4_000;
 		final var PLOT_LENGTH = 500L; // TODO
-		final var MAX_HISTORY_CHANGE = 5L * 60 * 1000; // five minutes, so that it is possible to see the effects of garbage-collection during the tests
+		final var MAX_HISTORY_CHANGE = 15L * 60 * 1000; // fifteen minutes, so that it is possible to see the effects of garbage-collection during the tests
 
 		MokamintNode firstNode = null;
 		URI firstUri = null;
@@ -445,8 +447,8 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 				var prolog = Prologs.of(mokamintConfig.getChainId(), mokamintConfig.getSignatureForBlocks(), nodeKeys.getPublic(), mokamintConfig.getSignatureForDeadlines(), plotKeys.getPublic(), new byte[0]);
 
-				System.out.println("Creating plot " + nodeNum + " of " + PLOT_LENGTH + " nonces");
-				var plot = Plots.create(hotmokaChainPath.resolve("test.plot"), prolog, 1000, PLOT_LENGTH, mokamintConfig.getHashingForDeadlines(), __ -> {});
+				System.out.println("Creating plot " + nodeNum + " of " + (PLOT_LENGTH * nodeNum) + " nonces");
+				var plot = Plots.create(hotmokaChainPath.resolve("test.plot"), prolog, 1000, PLOT_LENGTH * nodeNum, mokamintConfig.getHashingForDeadlines(), __ -> {});
 				plots.add(plot);
 
 				var miner = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, plotKeys) });

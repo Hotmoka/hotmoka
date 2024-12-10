@@ -126,7 +126,8 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	protected AbstractTrieBasedLocalNodeImpl(C config, boolean init) throws NodeException {
 		super(config, init);
 
-		this.env = new Environment(config.getDir().resolve("hotmoka").resolve("store").toString());
+		var path = config.getDir().resolve("hotmoka").resolve("store");
+		this.env = new Environment(path.toString());
 		this.storeOfNode = env.computeInTransaction(txn -> env.openStoreWithoutDuplicates("node", txn));
     	this.storeOfResponses = env.computeInTransaction(txn -> env.openStoreWithoutDuplicates("responses", txn));
     	this.storeOfInfo = env.computeInTransaction(txn -> env.openStoreWithoutDuplicates("info", txn));
@@ -135,6 +136,8 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 
 		// we start the garbage-collection task
 		getExecutors().execute(this::gc);
+
+		LOGGER.info("opened the store database at " + path);
 	}
 
 	protected final io.hotmoka.xodus.env.Store getStoreOfNode() {

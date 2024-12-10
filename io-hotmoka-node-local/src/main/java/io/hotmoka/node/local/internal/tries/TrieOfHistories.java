@@ -96,7 +96,7 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 		if (result.isEmpty())
 			return Optional.empty();
 
-		TransactionReference[] transactions = result.get().toArray(TransactionReference[]::new);
+		var transactions = result.get().toArray(TransactionReference[]::new);
 		// histories always end with the transaction that created the object,
 		// hence with the transaction of the storage reference of the object
 		var withLast = new TransactionReference[transactions.length + 1];

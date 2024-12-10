@@ -22,9 +22,8 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.exceptions.CheckSupplier;
-import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.exceptions.functions.ConsumerWithExceptions2;
+import io.hotmoka.exceptions.functions.FunctionWithExceptions2;
 import io.hotmoka.exceptions.functions.FunctionWithExceptions3;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.TransactionRequest;
@@ -32,6 +31,7 @@ import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractStore;
+import io.hotmoka.node.local.LRUCache;
 import io.hotmoka.node.local.StateIds;
 import io.hotmoka.node.local.api.CheckableStore;
 import io.hotmoka.node.local.api.LocalNodeConfig;
@@ -182,34 +182,43 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 
     @Override
 	public final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, StoreException {
+    	FunctionWithExceptions3<Transaction, Optional<TransactionRequest<?>>, TrieException, StoreException, UnknownKeyException> function = txn -> mkTrieOfRequests(txn).get(reference);
     	try {
-    		return CheckSupplier.check(TrieException.class, StoreException.class, UnknownKeyException.class, () ->
-    			getNode().getEnvironment().computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> mkTrieOfRequests(txn).get(reference)))
-    		)
-    		.orElseThrow(() -> new UnknownReferenceException(reference));
+    		return getNode().getEnvironment().computeInReadonlyTransaction(TrieException.class, StoreException.class, UnknownKeyException.class, function)
+    			.orElseThrow(() -> new UnknownReferenceException(reference));
     	}
 		catch (ExodusException | TrieException | UnknownKeyException e) {
 			throw new StoreException(e);
 		}
 	}
 
-	@Override
+    private final LRUCache<TransactionReference, TransactionResponse> getResponseCache = new LRUCache<>(100, 1_000);
+
+    @Override
     public final TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, StoreException {
+    	// we use a cache since this is shown as a hotspot by the YourKit profiler
+    	FunctionWithExceptions2<TransactionReference, TransactionResponse, UnknownReferenceException, StoreException> supplier = this::getResponseInternal;
+		return getResponseCache.computeIfAbsent(reference, supplier, UnknownReferenceException.class, StoreException.class);
+	}
+
+    private TransactionResponse getResponseInternal(TransactionReference reference) throws UnknownReferenceException, StoreException {
+    	FunctionWithExceptions3<Transaction, Optional<TransactionResponse>, TrieException, StoreException, UnknownKeyException> function = txn -> mkTrieOfResponses(txn).get(reference);
+
     	try {
-    		return CheckSupplier.check(TrieException.class, StoreException.class, UnknownKeyException.class, () ->
-    			getNode().getEnvironment().computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> mkTrieOfResponses(txn).get(reference)))
-    		)
-    		.orElseThrow(() -> new UnknownReferenceException(reference));
+    		var response = getNode().getEnvironment().computeInReadonlyTransaction(TrieException.class, StoreException.class, UnknownKeyException.class, function)
+    			.orElseThrow(() -> new UnknownReferenceException(reference));
+
+    		return response;
     	}
 		catch (ExodusException | TrieException | UnknownKeyException e) {
 			throw new StoreException(e);
 		}
 	}
 
-	@Override
+    @Override
 	public final Optional<StorageReference> getManifest() throws StoreException {
+		FunctionWithExceptions3<Transaction, Optional<StorageReference>, TrieException, StoreException, UnknownKeyException> getManifest = txn -> mkTrieOfInfo(txn).getManifest();
 		try {
-			FunctionWithExceptions3<Transaction, Optional<StorageReference>, TrieException, StoreException, UnknownKeyException> getManifest = txn -> mkTrieOfInfo(txn).getManifest();
 			return getNode().getEnvironment().computeInReadonlyTransaction(TrieException.class, StoreException.class, UnknownKeyException.class, getManifest);
 		}
 		catch (ExodusException | TrieException | UnknownKeyException e) {
@@ -219,8 +228,8 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 
 	@Override
 	public final Stream<TransactionReference> getHistory(StorageReference object) throws StoreException, UnknownReferenceException {
+		FunctionWithExceptions3<Transaction, Optional<Stream<TransactionReference>>, UnknownKeyException, StoreException, TrieException> getObject = txn -> mkTrieOfHistories(txn).get(object);
 		try {
-			FunctionWithExceptions3<Transaction, Optional<Stream<TransactionReference>>, UnknownKeyException, StoreException, TrieException> getObject = txn -> mkTrieOfHistories(txn).get(object);
 			return getNode().getEnvironment().computeInReadonlyTransaction(UnknownKeyException.class, StoreException.class, TrieException.class, getObject)
 				.orElseThrow(() -> new UnknownReferenceException(object));
 		}

@@ -21,6 +21,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
+import io.hotmoka.exceptions.CheckSupplier;
+import io.hotmoka.exceptions.UncheckFunction;
+import io.hotmoka.exceptions.functions.FunctionWithExceptions1;
+import io.hotmoka.exceptions.functions.FunctionWithExceptions2;
+import io.hotmoka.exceptions.functions.FunctionWithExceptions3;
+import io.hotmoka.exceptions.functions.FunctionWithExceptions4;
+
 /**
  * A class to cache objects based on LRU (Least Recently Used) cache eviction strategy,
  * wherein if the cache size has reached the maximum allocated capacity, the
@@ -218,5 +225,73 @@ public final class LRUCache<K, V> {
 		}
 		else
 			return old;
+	}
+
+	/**
+	 * Adds a new object to the cache, if its key was unbound.
+	 * In that case, it calls a supplier to provide the new object to add.
+	 * 
+	 * @param key the key of the cached value
+	 * @param supplier the supplier that produces the value to put in cache
+	 * @param exception1 a first kind of exceptions that might be thrown by the supplier
+	 * @return the current (old or computed) value in cache for {@code key} at the end of the method
+	 * @throws E1 if the supplier throws this exception
+	 */
+	public <E1 extends Throwable> V computeIfAbsent(K key, FunctionWithExceptions1<K, V, E1> supplier, Class<E1> exception1) throws E1 {
+		return CheckSupplier.check(exception1, () -> computeIfAbsent(key, k -> UncheckFunction.<K, V, E1> uncheck(exception1, supplier).apply(k)));
+	}
+
+	/**
+	 * Adds a new object to the cache, if its key was unbound.
+	 * In that case, it calls a supplier to provide the new object to add.
+	 * 
+	 * @param key the key of the cached value
+	 * @param supplier the supplier that produces the value to put in cache
+	 * @param exception1 a first kind of exceptions that might be thrown by the supplier
+	 * @param exception2 a second kind of exceptions that might be thrown by the supplier
+	 * @return the current (old or computed) value in cache for {@code key} at the end of the method
+	 * @throws E1 if the supplier throws this exception
+	 * @throws E2 if the supplier throws this exception
+	 */
+	public <E1 extends Throwable, E2 extends Throwable> V computeIfAbsent(K key, FunctionWithExceptions2<K, V, E1, E2> supplier, Class<E1> exception1, Class<E2> exception2) throws E1, E2 {
+		return CheckSupplier.check(exception1, exception2, () -> computeIfAbsent(key, k -> UncheckFunction.<K, V, E1, E2> uncheck(exception1, exception2, supplier).apply(k)));
+	}
+
+	/**
+	 * Adds a new object to the cache, if its key was unbound.
+	 * In that case, it calls a supplier to provide the new object to add.
+	 * 
+	 * @param key the key of the cached value
+	 * @param supplier the supplier that produces the value to put in cache
+	 * @param exception1 a first kind of exceptions that might be thrown by the supplier
+	 * @param exception2 a second kind of exceptions that might be thrown by the supplier
+	 * @param exception3 a third kind of exceptions that might be thrown by the supplier
+	 * @return the current (old or computed) value in cache for {@code key} at the end of the method
+	 * @throws E1 if the supplier throws this exception
+	 * @throws E2 if the supplier throws this exception
+	 * @throws E3 if the supplier throws this exception
+	 */
+	public <E1 extends Throwable, E2 extends Throwable, E3 extends Throwable> V computeIfAbsent(K key, FunctionWithExceptions3<K, V, E1, E2, E3> supplier, Class<E1> exception1, Class<E2> exception2, Class<E3> exception3) throws E1, E2, E3 {
+		return CheckSupplier.check(exception1, exception2, exception3, () -> computeIfAbsent(key, k -> UncheckFunction.<K, V, E1, E2, E3> uncheck(exception1, exception2, exception3, supplier).apply(k)));
+	}
+
+	/**
+	 * Adds a new object to the cache, if its key was unbound.
+	 * In that case, it calls a supplier to provide the new object to add.
+	 * 
+	 * @param key the key of the cached value
+	 * @param supplier the supplier that produces the value to put in cache
+	 * @param exception1 a first kind of exceptions that might be thrown by the supplier
+	 * @param exception2 a second kind of exceptions that might be thrown by the supplier
+	 * @param exception3 a third kind of exceptions that might be thrown by the supplier
+	 * @param exception4 a fourth kind of exceptions that might be thrown by the supplier
+	 * @return the current (old or computed) value in cache for {@code key} at the end of the method
+	 * @throws E1 if the supplier throws this exception
+	 * @throws E2 if the supplier throws this exception
+	 * @throws E3 if the supplier throws this exception
+	 * @throws E4 if the supplier throws this exception
+	 */
+	public <E1 extends Throwable, E2 extends Throwable, E3 extends Throwable, E4 extends Throwable> V computeIfAbsent(K key, FunctionWithExceptions4<K, V, E1, E2, E3, E4> supplier, Class<E1> exception1, Class<E2> exception2, Class<E3> exception3, Class<E4> exception4) throws E1, E2, E3, E4 {
+		return CheckSupplier.check(exception1, exception2, exception3, exception4, () -> computeIfAbsent(key, k -> UncheckFunction.<K, V, E1, E2, E3, E4> uncheck(exception1, exception2, exception3, exception4, supplier).apply(k)));
 	}
 }
