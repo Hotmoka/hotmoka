@@ -192,6 +192,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 		}
 	}
 
+    // TODO: this cache should be moved into the StoreCache, but only after the latter has become a store-local object, not shared among stores
     private final LRUCache<TransactionReference, TransactionResponse> getResponseCache = new LRUCache<>(100, 1_000);
 
     @Override

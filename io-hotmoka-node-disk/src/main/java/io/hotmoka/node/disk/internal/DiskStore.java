@@ -212,10 +212,8 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
     	var response = deltaResponses.get(reference);
     	if (response != null)
     		return response;
-    	else if (previousForResponses.isEmpty())
-    		throw new UnknownReferenceException(reference);
     	else
-    		return previousForResponses.get().getResponse(reference);
+    		return previousForResponses.orElseThrow(() -> new UnknownReferenceException(reference)).getResponse(reference);
     }
 
 	@Override
@@ -223,10 +221,8 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
 		TransactionReference[] history = deltaHistories.get(object);
 		if (history != null)
 			return Stream.of(history);
-		else if (previousForHistories.isEmpty())
-			throw new UnknownReferenceException(object);
 		else
-			return previousForHistories.get().getHistory(object);
+			return previousForHistories.orElseThrow(() -> new UnknownReferenceException(object)).getHistory(object);
 	}
 
 	@Override
@@ -239,10 +235,8 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
 		var request = deltaRequests.get(reference);
     	if (request != null)
     		return request;
-    	else if (previousForRequests.isEmpty())
-    		throw new UnknownReferenceException(reference);
     	else
-    		return previousForRequests.get().getRequest(reference);
+    		return previousForRequests.orElseThrow(() -> new UnknownReferenceException(reference)).getRequest(reference);
 	}
 
 	@Override
