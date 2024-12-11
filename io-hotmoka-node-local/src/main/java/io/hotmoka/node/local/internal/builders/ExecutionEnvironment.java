@@ -167,15 +167,12 @@ public abstract class ExecutionEnvironment {
 	}
 
 	protected final ConsensusConfig<?,?> extractConsensus() throws StoreException, InterruptedException {
-		Optional<StorageReference> maybeManifest = getManifest();
-		if (maybeManifest.isEmpty())
-			throw new StoreException("Cannot extract the consensus if the manifest is not set yet");
+		StorageReference manifest = getManifest().orElseThrow(() -> new StoreException("Cannot extract the consensus if the manifest is not set yet"));
 
 		try {
 			// enough gas for a simple get method
 			BigInteger _100_000 = BigInteger.valueOf(100_000L);
-	
-			StorageReference manifest = maybeManifest.get();
+
 			TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
 
 			// we cannot call getValidators(), getVersions() and getGasStation() since we are here exactly because the caches are not set yet
@@ -492,8 +489,7 @@ public abstract class ExecutionEnvironment {
 	}
 
 	protected final StorageReference getReferenceField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
-		StorageValue value = getLastUpdateToField(object, field).getValue();
-		if (value instanceof StorageReference reference)
+		if (getLastUpdateToField(object, field).getValue() instanceof StorageReference reference)
 			return reference;
 		else
 			throw new FieldNotFoundException(field);
@@ -537,8 +533,7 @@ public abstract class ExecutionEnvironment {
 	}
 
 	protected final BigInteger getBigIntegerField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
-		StorageValue value = getLastUpdateToField(object, field).getValue();
-		if (value instanceof BigIntegerValue biv)
+		if (getLastUpdateToField(object, field).getValue() instanceof BigIntegerValue biv)
 			return biv.getValue();
 		else
 			throw new FieldNotFoundException(field);
@@ -755,8 +750,7 @@ public abstract class ExecutionEnvironment {
 	}
 
 	private String getStringField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
-		StorageValue value = getLastUpdateToField(object, field).getValue();
-		if (value instanceof StringValue sv)
+		if (getLastUpdateToField(object, field).getValue() instanceof StringValue sv)
 			return sv.getValue();
 		else
 			throw new FieldNotFoundException(field);

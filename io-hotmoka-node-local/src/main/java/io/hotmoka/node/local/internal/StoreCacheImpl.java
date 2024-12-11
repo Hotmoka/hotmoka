@@ -32,7 +32,7 @@ import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
 
 /**
- * 
+ * Implementation of a cache of a store or store transformation.
  */
 public class StoreCacheImpl implements StoreCache {
 
@@ -69,7 +69,7 @@ public class StoreCacheImpl implements StoreCache {
 	private final LRUCache<TransactionReference, EngineClassLoader> classLoaders;
 
 	/**
-	 * Cached recent transactions whose requests that have had their signature checked.
+	 * Cached recent transactions whose requests have had their signature checked.
 	 */
 	private final LRUCache<TransactionReference, Boolean> checkedSignatures;
 
