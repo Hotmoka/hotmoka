@@ -18,9 +18,7 @@ package io.hotmoka.node.mokamint.internal;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.security.InvalidKeyException;
 import java.security.KeyPair;
-import java.security.SignatureException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Arrays;
@@ -65,7 +63,7 @@ import io.mokamint.node.api.Block;
 import io.mokamint.node.api.NonGenesisBlock;
 import io.mokamint.node.api.Transaction;
 import io.mokamint.node.local.AbstractLocalNode;
-import io.mokamint.node.local.AlreadyInitializedException;
+import io.mokamint.node.local.ApplicationTimeoutException;
 import io.mokamint.node.local.api.LocalNode;
 import io.mokamint.node.local.api.LocalNodeConfig;
 import io.mokamint.nonce.api.Deadline;
@@ -119,11 +117,9 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 	 * @param keyPair the keys of the Mokamint node, used to sign the blocks that it mines
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 * @throws NodeException if the operation cannot be completed correctly
-	 * @throws TimeoutException if some operation timed out
-	 * @throws InvalidKeyException if the {@code keyPair} is invalid
-	 * @throws SignatureException if the genesis block cannot be signed with {@code keyPair}
+	 * @throws ApplicationTimeoutException if the application of the Mokamint node is unresponsive
 	 */
-	public MokamintNodeImpl(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair, boolean init, boolean createGenesis) throws InvalidKeyException, SignatureException, NodeException, InterruptedException, TimeoutException {
+	public MokamintNodeImpl(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair, boolean init, boolean createGenesis) throws NodeException, InterruptedException, ApplicationTimeoutException {
 		super(config, init);
 
 		try {
@@ -139,7 +135,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 				}
 			};
 		}
-		catch (AlreadyInitializedException | io.mokamint.node.api.NodeException e) {
+		catch (io.mokamint.node.api.NodeException e) {
 			// if the application is not working properly or is not answering in time, we consider it as a Hotmoka node exception,
 			// since the application is actually part of this kind of Hotmoka nodes
 			throw new NodeException(e);
