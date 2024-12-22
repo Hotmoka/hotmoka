@@ -90,7 +90,7 @@ public final class StorageReferenceImpl extends AbstractStorageValue implements 
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof StorageReference sr && sr.getTransaction().equals(transaction) && sr.getProgressive().equals(progressive);
+		return other instanceof StorageReference sr && sr.getProgressive().equals(progressive) && sr.getTransaction().equals(transaction);
 	}
 
 	@Override

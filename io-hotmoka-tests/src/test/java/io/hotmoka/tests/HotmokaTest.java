@@ -104,6 +104,7 @@ import io.mokamint.miner.api.Miner;
 import io.mokamint.miner.local.LocalMiners;
 import io.mokamint.node.Peers;
 import io.mokamint.node.api.PeerRejectedException;
+import io.mokamint.node.local.ApplicationTimeoutException;
 import io.mokamint.node.local.LocalNodeConfigBuilders;
 import io.mokamint.node.service.PublicNodeServices;
 import io.mokamint.nonce.Prologs;
@@ -341,7 +342,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	 * moka start-mokamint --keys CYcdCR4S1zVojhFsB7cxpYsudqBhvRMoXRhFCtwcnUg9.pem --keys-of-plot 5BYtHQ3XaygM7yjJ4vaaftA5AJAC56GNkLrDj4yQ46Wh.pem --plot plot.plot --mokamint-port 8031 --port 8002
 	 */
 	@SuppressWarnings("unused")
-	private static Node mkMokamintNodeConnectedToPeer() throws NodeException, InterruptedException, InvalidKeyException, SignatureException, TimeoutException {
+	private static Node mkMokamintNodeConnectedToPeer() throws NodeException, InterruptedException, InvalidKeyException, SignatureException, ApplicationTimeoutException, TimeoutException {
 		try {
 			consensus = fillConsensusConfig(ValidatorsConsensusConfigBuilders.defaults()).build();
 
@@ -398,7 +399,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkMokamintNetwork(int howManyNodes) throws NodeException, InterruptedException, TimeoutException, TransactionRejectedException, TransactionException, CodeExecutionException {
+	private static Node mkMokamintNetwork(int howManyNodes) throws NodeException, InterruptedException, ApplicationTimeoutException, TransactionRejectedException, TransactionException, CodeExecutionException, TimeoutException {
 		if (howManyNodes < 1)
 			throw new IllegalArgumentException("A network needs at least a node");
 
@@ -489,7 +490,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 			return nodes.get(0);
 		}
-		catch (IOException | NoSuchAlgorithmException | io.mokamint.node.api.NodeException | DeploymentException | InvalidKeyException | SignatureException e) {
+		catch (IOException | NoSuchAlgorithmException | io.mokamint.node.api.NodeException | DeploymentException | InvalidKeyException e) {
 			throw new NodeException(e);
 		}
 	}

@@ -477,7 +477,7 @@ public abstract class ExecutionEnvironment {
 		if (getResponse(reference.getTransaction()) instanceof TransactionResponseWithUpdates trwu) {
 			return trwu.getUpdates().filter(update -> update instanceof ClassTag && update.getObject().equals(reference))
 					.map(update -> (ClassTag) update)
-					.findFirst()
+					.findFirst() // TODO: hotspot
 					.orElseThrow(() -> new UnknownReferenceException("Object " + reference + " does not exist"));
 		}
 		else
@@ -499,11 +499,14 @@ public abstract class ExecutionEnvironment {
 		Stream<TransactionReference> history = getHistory(object);
 
 		try {
-			FunctionWithExceptions2<TransactionReference, Optional<UpdateOfField>, StoreException, UnknownReferenceException> getLastUpdate = transaction -> getLastUpdate(object, field, transaction);
-			return CheckSupplier.check(StoreException.class, UnknownReferenceException.class, () -> history.map(UncheckFunction.uncheck(StoreException.class, UnknownReferenceException.class, getLastUpdate))
-				.flatMap(Optional::stream)
-				.findFirst())
-				.orElseThrow(() -> new FieldNotFoundException(field));
+			// YoutKit suggests that this is a hotspot if streams are used instead of iterative programming
+			for (var transaction: history.toArray(TransactionReference[]::new)) {
+				var lastUpdate = getLastUpdate(object, field, transaction);
+				if (lastUpdate.isPresent())
+					return lastUpdate.get();
+			}
+
+			throw new FieldNotFoundException(field);
 		}
 		catch (UnknownReferenceException e) {
 			throw new StoreException("Object " + object + " has a history containing a reference not in store");
@@ -707,7 +710,7 @@ public abstract class ExecutionEnvironment {
 					.filter(update -> update instanceof UpdateOfField)
 					.map(update -> (UpdateOfField) update)
 					.filter(update -> update.getObject().equals(object) && update.getField().equals(field))
-					.findFirst();
+					.findFirst(); // TODO: hotspot
 		else
 			throw new StoreException("Transaction reference " + reference + " does not contain updates");
 	}
