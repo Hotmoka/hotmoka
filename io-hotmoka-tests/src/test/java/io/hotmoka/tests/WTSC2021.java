@@ -28,7 +28,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -90,6 +89,7 @@ class WTSC2021 extends HotmokaTest {
 	private final AtomicInteger ticket = new AtomicInteger();
 	private final static AtomicInteger transfers = new AtomicInteger();
 	private final static AtomicInteger transactions = new AtomicInteger();
+	private final static AtomicInteger failed = new AtomicInteger();
 	private static long totalTime;
 
 	@RepeatedTest(10)
@@ -157,7 +157,8 @@ class WTSC2021 extends HotmokaTest {
 			}
 
 			private void failure(Exception exception) {
-				LOGGER.log(Level.SEVERE, "Unexpected exception", exception);
+				int howManyFailedAlready = failed.incrementAndGet();
+				LOGGER.warning("Worker #" + num + " failed, which is normal for nodes with probabilistic finality (" + (NUMBER_OF_ACCOUNTS - howManyFailedAlready) + " remaining workers): " + exception.getMessage());
 			}
 		}
 
