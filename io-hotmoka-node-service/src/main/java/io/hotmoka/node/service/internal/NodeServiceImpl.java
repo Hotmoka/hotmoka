@@ -453,7 +453,8 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 
 		@Override
 	    public void onOpen(Session session, EndpointConfig config) {
-			addMessageHandler(session, (GetNodeInfoMessage message) -> getServer().onGetNodeInfo(message, session));
+			var server = getServer();
+			addMessageHandler(session, (GetNodeInfoMessage message) -> server.onGetNodeInfo(message, session));
 	    }
 
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
@@ -471,7 +472,8 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 
 		@Override
 	    public void onOpen(Session session, EndpointConfig config) {
-			addMessageHandler(session, (GetConsensusConfigMessage message) -> getServer().onGetConsensusConfig(message, session));
+			var server = getServer();
+			addMessageHandler(session, (GetConsensusConfigMessage message) -> server.onGetConsensusConfig(message, session));
 	    }
 
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
@@ -489,7 +491,8 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 
 		@Override
 	    public void onOpen(Session session, EndpointConfig config) {
-			addMessageHandler(session, (GetTakamakaCodeMessage message) -> getServer().onGetTakamakaCode(message, session));
+			var server = getServer();
+			addMessageHandler(session, (GetTakamakaCodeMessage message) -> server.onGetTakamakaCode(message, session));
 	    }
 
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
@@ -507,7 +510,8 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 
 		@Override
 	    public void onOpen(Session session, EndpointConfig config) {
-			addMessageHandler(session, (GetManifestMessage message) -> getServer().onGetManifest(message, session));
+			var server = getServer();
+			addMessageHandler(session, (GetManifestMessage message) -> server.onGetManifest(message, session));
 	    }
 
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
@@ -525,7 +529,8 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 
 		@Override
 	    public void onOpen(Session session, EndpointConfig config) {
-			addMessageHandler(session, (GetClassTagMessage message) -> getServer().onGetClassTag(message, session));
+			var server = getServer();
+			addMessageHandler(session, (GetClassTagMessage message) -> server.onGetClassTag(message, session));
 	    }
 
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
@@ -543,7 +548,8 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 
 		@Override
 	    public void onOpen(Session session, EndpointConfig config) {
-			addMessageHandler(session, (GetStateMessage message) -> getServer().onGetState(message, session));
+			var server = getServer();
+			addMessageHandler(session, (GetStateMessage message) -> server.onGetState(message, session));
 	    }
 
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
@@ -561,7 +567,8 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 
 		@Override
 	    public void onOpen(Session session, EndpointConfig config) {
-			addMessageHandler(session, (GetRequestMessage message) -> getServer().onGetRequest(message, session));
+			var server = getServer();
+			addMessageHandler(session, (GetRequestMessage message) -> server.onGetRequest(message, session));
 	    }
 
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
@@ -579,7 +586,8 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 
 		@Override
 	    public void onOpen(Session session, EndpointConfig config) {
-			addMessageHandler(session, (GetResponseMessage message) -> getServer().onGetResponse(message, session));
+			var server = getServer();
+			addMessageHandler(session, (GetResponseMessage message) -> server.onGetResponse(message, session));
 	    }
 
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
@@ -597,7 +605,8 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 
 		@Override
 	    public void onOpen(Session session, EndpointConfig config) {
-			addMessageHandler(session, (GetPolledResponseMessage message) -> getServer().onGetPolledResponse(message, session));
+			var server = getServer();
+			addMessageHandler(session, (GetPolledResponseMessage message) -> server.onGetPolledResponse(message, session));
 	    }
 
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
@@ -615,7 +624,8 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 
 		@Override
 	    public void onOpen(Session session, EndpointConfig config) {
-			addMessageHandler(session, (RunInstanceMethodCallTransactionMessage message) -> getServer().onRunInstanceMethodCallTransaction(message, session));
+			var server = getServer();
+			addMessageHandler(session, (RunInstanceMethodCallTransactionMessage message) -> server.onRunInstanceMethodCallTransaction(message, session));
 	    }
 
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
@@ -633,7 +643,8 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 
 		@Override
 	    public void onOpen(Session session, EndpointConfig config) {
-			addMessageHandler(session, (RunStaticMethodCallTransactionMessage message) -> getServer().onRunStaticMethodCallTransaction(message, session));
+			var server = getServer();
+			addMessageHandler(session, (RunStaticMethodCallTransactionMessage message) -> server.onRunStaticMethodCallTransaction(message, session));
 	    }
 
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
@@ -651,7 +662,8 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 
 		@Override
 	    public void onOpen(Session session, EndpointConfig config) {
-			addMessageHandler(session, (AddInstanceMethodCallTransactionMessage message) -> getServer().onAddInstanceMethodCallTransaction(message, session));
+			var server = getServer();
+			addMessageHandler(session, (AddInstanceMethodCallTransactionMessage message) -> server.onAddInstanceMethodCallTransaction(message, session));
 	    }
 
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
@@ -669,7 +681,8 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 
 		@Override
 	    public void onOpen(Session session, EndpointConfig config) {
-			addMessageHandler(session, (AddStaticMethodCallTransactionMessage message) -> getServer().onAddStaticMethodCallTransaction(message, session));
+			var server = getServer();
+			addMessageHandler(session, (AddStaticMethodCallTransactionMessage message) -> server.onAddStaticMethodCallTransaction(message, session));
 	    }
 
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
@@ -687,7 +700,8 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 
 		@Override
 	    public void onOpen(Session session, EndpointConfig config) {
-			addMessageHandler(session, (AddConstructorCallTransactionMessage message) -> getServer().onAddConstructorCallTransaction(message, session));
+			var server = getServer();
+			addMessageHandler(session, (AddConstructorCallTransactionMessage message) -> server.onAddConstructorCallTransaction(message, session));
 	    }
 
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
@@ -705,7 +719,8 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 
 		@Override
 	    public void onOpen(Session session, EndpointConfig config) {
-			addMessageHandler(session, (AddJarStoreTransactionMessage message) -> getServer().onAddJarStoreTransaction(message, session));
+			var server = getServer();
+			addMessageHandler(session, (AddJarStoreTransactionMessage message) -> server.onAddJarStoreTransaction(message, session));
 	    }
 
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
@@ -723,7 +738,8 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 
 		@Override
 	    public void onOpen(Session session, EndpointConfig config) {
-			addMessageHandler(session, (AddGameteCreationTransactionMessage message) -> getServer().onAddGameteCreationTransaction(message, session));
+			var server = getServer();
+			addMessageHandler(session, (AddGameteCreationTransactionMessage message) -> server.onAddGameteCreationTransaction(message, session));
 	    }
 
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
@@ -741,7 +757,8 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 
 		@Override
 	    public void onOpen(Session session, EndpointConfig config) {
-			addMessageHandler(session, (AddJarStoreInitialTransactionMessage message) -> getServer().onAddJarStoreInitialTransaction(message, session));
+			var server = getServer();
+			addMessageHandler(session, (AddJarStoreInitialTransactionMessage message) -> server.onAddJarStoreInitialTransaction(message, session));
 	    }
 
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
@@ -759,7 +776,8 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 
 		@Override
 	    public void onOpen(Session session, EndpointConfig config) {
-			addMessageHandler(session, (AddInitializationTransactionMessage message) -> getServer().onAddInitializationTransaction(message, session));
+			var server = getServer();
+			addMessageHandler(session, (AddInitializationTransactionMessage message) -> server.onAddInitializationTransaction(message, session));
 	    }
 
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
@@ -777,7 +795,8 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 
 		@Override
 	    public void onOpen(Session session, EndpointConfig config) {
-			addMessageHandler(session, (PostConstructorCallTransactionMessage message) -> getServer().onPostConstructorCallTransaction(message, session));
+			var server = getServer();
+			addMessageHandler(session, (PostConstructorCallTransactionMessage message) -> server.onPostConstructorCallTransaction(message, session));
 	    }
 
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
@@ -795,7 +814,8 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 
 		@Override
 	    public void onOpen(Session session, EndpointConfig config) {
-			addMessageHandler(session, (PostInstanceMethodCallTransactionMessage message) -> getServer().onPostInstanceMethodCallTransaction(message, session));
+			var server = getServer();
+			addMessageHandler(session, (PostInstanceMethodCallTransactionMessage message) -> server.onPostInstanceMethodCallTransaction(message, session));
 	    }
 
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
@@ -813,7 +833,8 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 
 		@Override
 	    public void onOpen(Session session, EndpointConfig config) {
-			addMessageHandler(session, (PostStaticMethodCallTransactionMessage message) -> getServer().onPostStaticMethodCallTransaction(message, session));
+			var server = getServer();
+			addMessageHandler(session, (PostStaticMethodCallTransactionMessage message) -> server.onPostStaticMethodCallTransaction(message, session));
 	    }
 
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
@@ -831,7 +852,8 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 
 		@Override
 	    public void onOpen(Session session, EndpointConfig config) {
-			addMessageHandler(session, (PostJarStoreTransactionMessage message) -> getServer().onPostJarStoreTransaction(message, session));
+			var server = getServer();
+			addMessageHandler(session, (PostJarStoreTransactionMessage message) -> server.onPostJarStoreTransaction(message, session));
 	    }
 
 		private static ServerEndpointConfig config(NodeServiceImpl server) {

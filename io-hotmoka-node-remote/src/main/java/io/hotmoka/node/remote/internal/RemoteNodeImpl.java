@@ -1056,15 +1056,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendAddConstructorCallTransaction(request, id);
-		try {
-			return waitForResult(id, this::processAddConstructorCallTransactionSuccess, this::processAddConstructorCallTransactionExceptions);
-		}
-		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | TransactionRejectedException | TransactionException | CodeExecutionException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			throw unexpectedException(e);
-		}
+		return waitForResult(id, AddConstructorCallTransactionResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, TransactionRejectedException.class, TransactionException.class, CodeExecutionException.class);
 	}
 
 	/**
@@ -1081,18 +1073,6 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		catch (IOException e) {
 			throw new NodeException(e);
 		}
-	}
-
-	private StorageReference processAddConstructorCallTransactionSuccess(RpcMessage message) {
-		return message instanceof AddConstructorCallTransactionResultMessage acctrm ? acctrm.get() : null;
-	}
-
-	private boolean processAddConstructorCallTransactionExceptions(ExceptionMessage message) {
-		var clazz = message.getExceptionClass();
-		return TransactionRejectedException.class.isAssignableFrom(clazz) ||
-			TransactionException.class.isAssignableFrom(clazz) ||
-			CodeExecutionException.class.isAssignableFrom(clazz) ||
-			processStandardExceptions(message);
 	}
 
 	/**

@@ -20,6 +20,7 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.websockets.beans.api.ResultMessage;
 
 /**
  * The network message corresponding to the result of the {@link Node#postStaticMethodCallTransaction(StaticMethodCallTransactionRequest)} method.

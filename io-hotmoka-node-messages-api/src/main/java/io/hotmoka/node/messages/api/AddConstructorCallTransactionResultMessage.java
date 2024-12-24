@@ -20,6 +20,7 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.websockets.beans.api.ResultMessage;
 
 /**
  * The network message corresponding to the result of the {@link Node#addConstructorCallTransaction(ConstructorCallTransactionRequest)} method.
