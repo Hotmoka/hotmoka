@@ -46,7 +46,6 @@ import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
@@ -310,41 +309,12 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		super.notifyResult(message);
 	}
 
-	/**
-	 * Determines if the given exception message deals with an exception that all
-	 * methods of a node are expected to throw. These are
-	 * {@code java.lang.TimeoutException}, {@code java.lang.InterruptedException}
-	 * and {@link NodeException}.
-	 * 
-	 * @param message the message
-	 * @return true if and only if that condition holds
-	 */
-	private boolean processStandardExceptions(ExceptionMessage message) {
-		var clazz = message.getExceptionClass();
-		return TimeoutException.class.isAssignableFrom(clazz) ||
-			InterruptedException.class.isAssignableFrom(clazz) ||
-			NodeException.class.isAssignableFrom(clazz);
-	}
-
-	private RuntimeException unexpectedException(Exception e) {
-		LOGGER.log(Level.SEVERE, logPrefix + "unexpected exception", e);
-		return new RuntimeException("Unexpected exception", e);
-	}
-
 	@Override
 	public NodeInfo getNodeInfo() throws NodeException, TimeoutException, InterruptedException {
 		ensureIsOpen();
 		var id = nextId();
 		sendGetNodeInfo(id);
-		try {
-			return waitForResult(id, this::processGetNodeInfoSuccess, this::processStandardExceptions);
-		}
-		catch (RuntimeException | TimeoutException | InterruptedException | NodeException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			throw unexpectedException(e);
-		}
+		return waitForResult(id, GetNodeInfoResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class);
 	}
 
 	/**
@@ -354,16 +324,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	 * @throws NodeException if the message could not be sent
 	 */
 	protected void sendGetNodeInfo(String id) throws NodeException {
-		try {
-			sendObjectAsync(getSession(GET_NODE_INFO_ENDPOINT), GetNodeInfoMessages.of(id));
-		}
-		catch (IOException e) {
-			throw new NodeException(e);
-		}
-	}
-
-	private NodeInfo processGetNodeInfoSuccess(RpcMessage message) {
-		return message instanceof GetNodeInfoResultMessage gnirm ? gnirm.get() : null;
+		sendObjectAsync(getSession(GET_NODE_INFO_ENDPOINT), GetNodeInfoMessages.of(id), NodeException::new);
 	}
 
 	/**
@@ -386,15 +347,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendGetConsensusConfig(id);
-		try {
-			return waitForResult(id, this::processGetConsensusConfigSuccess, this::processStandardExceptions);
-		}
-		catch (RuntimeException | TimeoutException | InterruptedException | NodeException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			throw unexpectedException(e);
-		}
+		return waitForResult(id, GetConsensusConfigResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class);
 	}
 
 	/**
@@ -404,16 +357,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	 * @throws NodeException if the message could not be sent
 	 */
 	protected void sendGetConsensusConfig(String id) throws NodeException {
-		try {
-			sendObjectAsync(getSession(GET_CONSENSUS_CONFIG_ENDPOINT), GetConsensusConfigMessages.of(id));
-		}
-		catch (IOException e) {
-			throw new NodeException(e);
-		}
-	}
-
-	private ConsensusConfig<?,?> processGetConsensusConfigSuccess(RpcMessage message) {
-		return message instanceof GetConsensusConfigResultMessage gccrm ? gccrm.get() : null;
+		sendObjectAsync(getSession(GET_CONSENSUS_CONFIG_ENDPOINT), GetConsensusConfigMessages.of(id), NodeException::new);
 	}
 
 	/**
@@ -436,15 +380,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendGetTakamakaCode(id);
-		try {
-			return waitForResult(id, this::processGetTakamakaCodeSuccess, this::processStandardExceptions);
-		}
-		catch (RuntimeException | TimeoutException | InterruptedException | NodeException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			throw unexpectedException(e);
-		}
+		return waitForResult(id, GetTakamakaCodeResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class);
 	}
 
 	/**
@@ -454,16 +390,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	 * @throws NodeException if the message could not be sent
 	 */
 	protected void sendGetTakamakaCode(String id) throws NodeException {
-		try {
-			sendObjectAsync(getSession(GET_TAKAMAKA_CODE_ENDPOINT), GetTakamakaCodeMessages.of(id));
-		}
-		catch (IOException e) {
-			throw new NodeException(e);
-		}
-	}
-
-	private TransactionReference processGetTakamakaCodeSuccess(RpcMessage message) {
-		return message instanceof GetTakamakaCodeResultMessage gtcrm ? gtcrm.get() : null;
+		sendObjectAsync(getSession(GET_TAKAMAKA_CODE_ENDPOINT), GetTakamakaCodeMessages.of(id), NodeException::new);
 	}
 
 	/**
@@ -486,15 +413,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendGetManifest(id);
-		try {
-			return waitForResult(id, this::processGetManifestSuccess, this::processStandardExceptions);
-		}
-		catch (RuntimeException | TimeoutException | InterruptedException | NodeException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			throw unexpectedException(e);
-		}
+		return waitForResult(id, GetManifestResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class);
 	}
 
 	/**
@@ -504,16 +423,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	 * @throws NodeException if the message could not be sent
 	 */
 	protected void sendGetManifest(String id) throws NodeException {
-		try {
-			sendObjectAsync(getSession(GET_MANIFEST_ENDPOINT), GetManifestMessages.of(id));
-		}
-		catch (IOException e) {
-			throw new NodeException(e);
-		}
-	}
-
-	private StorageReference processGetManifestSuccess(RpcMessage message) {
-		return message instanceof GetManifestResultMessage gmrm ? gmrm.get() : null;
+		sendObjectAsync(getSession(GET_MANIFEST_ENDPOINT), GetManifestMessages.of(id), NodeException::new);
 	}
 
 	/**
@@ -536,15 +446,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendGetClassTag(reference, id);
-		try {
-			return waitForResult(id, this::processGetClassTagSuccess, this::processGetClassTagExceptions);
-		}
-		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | UnknownReferenceException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			throw unexpectedException(e);
-		}
+		return waitForResult(id, GetClassTagResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, UnknownReferenceException.class);
 	}
 
 	/**
@@ -555,22 +457,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	 * @throws NodeException if the message could not be sent
 	 */
 	protected void sendGetClassTag(StorageReference reference, String id) throws NodeException {
-		try {
-			sendObjectAsync(getSession(GET_CLASS_TAG_ENDPOINT), GetClassTagMessages.of(reference, id));
-		}
-		catch (IOException e) {
-			throw new NodeException(e);
-		}
-	}
-
-	private ClassTag processGetClassTagSuccess(RpcMessage message) {
-		return message instanceof GetClassTagResultMessage gctrm ? gctrm.get() : null;
-	}
-
-	private boolean processGetClassTagExceptions(ExceptionMessage message) {
-		var clazz = message.getExceptionClass();
-		return UnknownReferenceException.class.isAssignableFrom(clazz) ||
-			processStandardExceptions(message);
+		sendObjectAsync(getSession(GET_CLASS_TAG_ENDPOINT), GetClassTagMessages.of(reference, id), NodeException::new);
 	}
 
 	/**
@@ -593,15 +480,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendGetState(reference, id);
-		try {
-			return waitForResult(id, this::processGetStateSuccess, this::processGetStateExceptions);
-		}
-		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | UnknownReferenceException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			throw unexpectedException(e);
-		}
+		return waitForResult(id, GetStateResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, UnknownReferenceException.class);
 	}
 
 	/**
@@ -612,22 +491,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	 * @throws NodeException if the message could not be sent
 	 */
 	protected void sendGetState(StorageReference reference, String id) throws NodeException {
-		try {
-			sendObjectAsync(getSession(GET_STATE_ENDPOINT), GetStateMessages.of(reference, id));
-		}
-		catch (IOException e) {
-			throw new NodeException(e);
-		}
-	}
-
-	private Stream<Update> processGetStateSuccess(RpcMessage message) {
-		return message instanceof GetStateResultMessage gsrm ? gsrm.get() : null;
-	}
-
-	private boolean processGetStateExceptions(ExceptionMessage message) {
-		var clazz = message.getExceptionClass();
-		return UnknownReferenceException.class.isAssignableFrom(clazz) ||
-			processStandardExceptions(message);
+		sendObjectAsync(getSession(GET_STATE_ENDPOINT), GetStateMessages.of(reference, id), NodeException::new);
 	}
 
 	/**
@@ -650,15 +514,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendGetRequest(reference, id);
-		try {
-			return waitForResult(id, this::processGetRequestSuccess, this::processGetRequestExceptions);
-		}
-		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | UnknownReferenceException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			throw unexpectedException(e);
-		}
+		return waitForResult(id, GetRequestResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, UnknownReferenceException.class);
 	}
 
 	/**
@@ -669,22 +525,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	 * @throws NodeException if the message could not be sent
 	 */
 	protected void sendGetRequest(TransactionReference reference, String id) throws NodeException {
-		try {
-			sendObjectAsync(getSession(GET_REQUEST_ENDPOINT), GetRequestMessages.of(reference, id));
-		}
-		catch (IOException e) {
-			throw new NodeException(e);
-		}
-	}
-
-	private TransactionRequest<?> processGetRequestSuccess(RpcMessage message) {
-		return message instanceof GetRequestResultMessage grrm ? grrm.get() : null;
-	}
-
-	private boolean processGetRequestExceptions(ExceptionMessage message) {
-		var clazz = message.getExceptionClass();
-		return UnknownReferenceException.class.isAssignableFrom(clazz) ||
-			processStandardExceptions(message);
+		sendObjectAsync(getSession(GET_REQUEST_ENDPOINT), GetRequestMessages.of(reference, id), NodeException::new);
 	}
 
 	/**
@@ -707,15 +548,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendGetResponse(reference, id);
-		try {
-			return waitForResult(id, this::processGetResponseSuccess, this::processGetResponseExceptions);
-		}
-		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | UnknownReferenceException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			throw unexpectedException(e);
-		}
+		return waitForResult(id, GetResponseResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, UnknownReferenceException.class);
 	}
 
 	/**
@@ -726,21 +559,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	 * @throws NodeException if the message could not be sent
 	 */
 	protected void sendGetResponse(TransactionReference reference, String id) throws NodeException {
-		try {
-			sendObjectAsync(getSession(GET_RESPONSE_ENDPOINT), GetResponseMessages.of(reference, id));
-		}
-		catch (IOException e) {
-			throw new NodeException(e);
-		}
-	}
-
-	private TransactionResponse processGetResponseSuccess(RpcMessage message) {
-		return message instanceof GetResponseResultMessage grrm ? grrm.get() : null;
-	}
-
-	private boolean processGetResponseExceptions(ExceptionMessage message) {
-		return UnknownReferenceException.class.isAssignableFrom((Class<? extends Exception>) message.getExceptionClass())
-			|| processStandardExceptions(message);
+		sendObjectAsync(getSession(GET_RESPONSE_ENDPOINT), GetResponseMessages.of(reference, id), NodeException::new);
 	}
 
 	/**
@@ -763,15 +582,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendGetPolledResponse(reference, id);
-		try {
-			return waitForResult(id, this::processGetPolledResponseSuccess, this::processGetPolledResponseExceptions);
-		}
-		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | TransactionRejectedException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			throw unexpectedException(e);
-		}
+		return waitForResult(id, GetPolledResponseResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, TransactionRejectedException.class);
 	}
 
 	/**
@@ -782,22 +593,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	 * @throws NodeException if the message could not be sent
 	 */
 	protected void sendGetPolledResponse(TransactionReference reference, String id) throws NodeException {
-		try {
-			sendObjectAsync(getSession(GET_POLLED_RESPONSE_ENDPOINT), GetPolledResponseMessages.of(reference, id));
-		}
-		catch (IOException e) {
-			throw new NodeException(e);
-		}
-	}
-
-	private TransactionResponse processGetPolledResponseSuccess(RpcMessage message) {
-		return message instanceof GetPolledResponseResultMessage gprrm ? gprrm.get() : null;
-	}
-
-	private boolean processGetPolledResponseExceptions(ExceptionMessage message) {
-		var clazz = message.getExceptionClass();
-		return TransactionRejectedException.class.isAssignableFrom(clazz) ||
-			processStandardExceptions(message);
+		sendObjectAsync(getSession(GET_POLLED_RESPONSE_ENDPOINT), GetPolledResponseMessages.of(reference, id), NodeException::new);
 	}
 
 	/**
@@ -820,15 +616,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendRunInstanceMethodCallTransaction(request, id);
-		try {
-			return waitForResult(id, this::processRunInstanceMethodCallTransactionSuccess, this::processRunInstanceMethodCallTransactionExceptions);
-		}
-		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | TransactionRejectedException | TransactionException | CodeExecutionException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			throw unexpectedException(e);
-		}
+		return waitForResult(id, RunInstanceMethodCallTransactionResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, TransactionRejectedException.class, TransactionException.class, CodeExecutionException.class);
 	}
 
 	/**
@@ -839,24 +627,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	 * @throws NodeException if the message could not be sent
 	 */
 	protected void sendRunInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, String id) throws NodeException {
-		try {
-			sendObjectAsync(getSession(RUN_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT), RunInstanceMethodCallTransactionMessages.of(request, id));
-		}
-		catch (IOException e) {
-			throw new NodeException(e);
-		}
-	}
-
-	private Optional<StorageValue> processRunInstanceMethodCallTransactionSuccess(RpcMessage message) {
-		return message instanceof RunInstanceMethodCallTransactionResultMessage rimctrm ? rimctrm.get() : null;
-	}
-
-	private boolean processRunInstanceMethodCallTransactionExceptions(ExceptionMessage message) {
-		var clazz = message.getExceptionClass();
-		return TransactionRejectedException.class.isAssignableFrom(clazz) ||
-			TransactionException.class.isAssignableFrom(clazz) ||
-			CodeExecutionException.class.isAssignableFrom(clazz) ||
-			processStandardExceptions(message);
+		sendObjectAsync(getSession(RUN_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT), RunInstanceMethodCallTransactionMessages.of(request, id), NodeException::new);
 	}
 
 	/**
@@ -879,15 +650,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendRunStaticMethodCallTransaction(request, id);
-		try {
-			return waitForResult(id, this::processRunStaticMethodCallTransactionSuccess, this::processRunStaticMethodCallTransactionExceptions);
-		}
-		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | TransactionRejectedException | TransactionException | CodeExecutionException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			throw unexpectedException(e);
-		}
+		return waitForResult(id, RunStaticMethodCallTransactionResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, TransactionRejectedException.class, TransactionException.class, CodeExecutionException.class);
 	}
 
 	/**
@@ -898,24 +661,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	 * @throws NodeException if the message could not be sent
 	 */
 	protected void sendRunStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, String id) throws NodeException {
-		try {
-			sendObjectAsync(getSession(RUN_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT), RunStaticMethodCallTransactionMessages.of(request, id));
-		}
-		catch (IOException e) {
-			throw new NodeException(e);
-		}
-	}
-
-	private Optional<StorageValue> processRunStaticMethodCallTransactionSuccess(RpcMessage message) {
-		return message instanceof RunStaticMethodCallTransactionResultMessage rimctrm ? rimctrm.get() : null;
-	}
-
-	private boolean processRunStaticMethodCallTransactionExceptions(ExceptionMessage message) {
-		var clazz = message.getExceptionClass();
-		return TransactionRejectedException.class.isAssignableFrom(clazz) ||
-			TransactionException.class.isAssignableFrom(clazz) ||
-			CodeExecutionException.class.isAssignableFrom(clazz) ||
-			processStandardExceptions(message);
+		sendObjectAsync(getSession(RUN_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT), RunStaticMethodCallTransactionMessages.of(request, id), NodeException::new);
 	}
 
 	/**
@@ -938,15 +684,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendAddInstanceMethodCallTransaction(request, id);
-		try {
-			return waitForResult(id, this::processAddInstanceMethodCallTransactionSuccess, this::processAddInstanceMethodCallTransactionExceptions);
-		}
-		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | TransactionRejectedException | TransactionException | CodeExecutionException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			throw unexpectedException(e);
-		}
+		return waitForResult(id, AddInstanceMethodCallTransactionResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, TransactionRejectedException.class, TransactionException.class, CodeExecutionException.class);
 	}
 
 	/**
@@ -957,24 +695,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	 * @throws NodeException if the message could not be sent
 	 */
 	protected void sendAddInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, String id) throws NodeException {
-		try {
-			sendObjectAsync(getSession(ADD_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT), AddInstanceMethodCallTransactionMessages.of(request, id));
-		}
-		catch (IOException e) {
-			throw new NodeException(e);
-		}
-	}
-
-	private Optional<StorageValue> processAddInstanceMethodCallTransactionSuccess(RpcMessage message) {
-		return message instanceof AddInstanceMethodCallTransactionResultMessage aimctrm ? aimctrm.get() : null;
-	}
-
-	private boolean processAddInstanceMethodCallTransactionExceptions(ExceptionMessage message) {
-		var clazz = message.getExceptionClass();
-		return TransactionRejectedException.class.isAssignableFrom(clazz) ||
-			TransactionException.class.isAssignableFrom(clazz) ||
-			CodeExecutionException.class.isAssignableFrom(clazz) ||
-			processStandardExceptions(message);
+		sendObjectAsync(getSession(ADD_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT), AddInstanceMethodCallTransactionMessages.of(request, id), NodeException::new);
 	}
 
 	/**
@@ -997,15 +718,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendAddStaticMethodCallTransaction(request, id);
-		try {
-			return waitForResult(id, this::processAddStaticMethodCallTransactionSuccess, this::processAddStaticMethodCallTransactionExceptions);
-		}
-		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | TransactionRejectedException | TransactionException | CodeExecutionException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			throw unexpectedException(e);
-		}
+		return waitForResult(id, AddStaticMethodCallTransactionResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, TransactionRejectedException.class, TransactionException.class, CodeExecutionException.class);
 	}
 
 	/**
@@ -1016,24 +729,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	 * @throws NodeException if the message could not be sent
 	 */
 	protected void sendAddStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, String id) throws NodeException {
-		try {
-			sendObjectAsync(getSession(ADD_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT), AddStaticMethodCallTransactionMessages.of(request, id));
-		}
-		catch (IOException e) {
-			throw new NodeException(e);
-		}
-	}
-
-	private Optional<StorageValue> processAddStaticMethodCallTransactionSuccess(RpcMessage message) {
-		return message instanceof AddStaticMethodCallTransactionResultMessage aimctrm ? aimctrm.get() : null;
-	}
-
-	private boolean processAddStaticMethodCallTransactionExceptions(ExceptionMessage message) {
-		var clazz = message.getExceptionClass();
-		return TransactionRejectedException.class.isAssignableFrom(clazz) ||
-			TransactionException.class.isAssignableFrom(clazz) ||
-			CodeExecutionException.class.isAssignableFrom(clazz) ||
-			processStandardExceptions(message);
+		sendObjectAsync(getSession(ADD_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT), AddStaticMethodCallTransactionMessages.of(request, id), NodeException::new);
 	}
 
 	/**
@@ -1067,12 +763,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	 * @throws NodeException if the message could not be sent
 	 */
 	protected void sendAddConstructorCallTransaction(ConstructorCallTransactionRequest request, String id) throws NodeException {
-		try {
-			sendObjectAsync(getSession(ADD_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT), AddConstructorCallTransactionMessages.of(request, id));
-		}
-		catch (IOException e) {
-			throw new NodeException(e);
-		}
+		sendObjectAsync(getSession(ADD_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT), AddConstructorCallTransactionMessages.of(request, id), NodeException::new);
 	}
 
 	/**
@@ -1095,15 +786,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendAddJarStoreTransaction(request, id);
-		try {
-			return waitForResult(id, this::processAddJarStoreTransactionSuccess, this::processAddJarStoreTransactionExceptions);
-		}
-		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | TransactionRejectedException | TransactionException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			throw unexpectedException(e);
-		}
+		return waitForResult(id, AddJarStoreTransactionResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, TransactionRejectedException.class, TransactionException.class);
 	}
 
 	/**
@@ -1114,23 +797,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	 * @throws NodeException if the message could not be sent
 	 */
 	protected void sendAddJarStoreTransaction(JarStoreTransactionRequest request, String id) throws NodeException {
-		try {
-			sendObjectAsync(getSession(ADD_JAR_STORE_TRANSACTION_ENDPOINT), AddJarStoreTransactionMessages.of(request, id));
-		}
-		catch (IOException e) {
-			throw new NodeException(e);
-		}
-	}
-
-	private TransactionReference processAddJarStoreTransactionSuccess(RpcMessage message) {
-		return message instanceof AddJarStoreTransactionResultMessage ajstrm ? ajstrm.get() : null;
-	}
-
-	private boolean processAddJarStoreTransactionExceptions(ExceptionMessage message) {
-		var clazz = message.getExceptionClass();
-		return TransactionRejectedException.class.isAssignableFrom(clazz) ||
-			TransactionException.class.isAssignableFrom(clazz) ||
-			processStandardExceptions(message);
+		sendObjectAsync(getSession(ADD_JAR_STORE_TRANSACTION_ENDPOINT), AddJarStoreTransactionMessages.of(request, id), NodeException::new);
 	}
 
 	/**
@@ -1153,15 +820,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendAddGameteCreationTransaction(request, id);
-		try {
-			return waitForResult(id, this::processAddGameteCreationTransactionSuccess, this::processAddGameteCreationTransactionExceptions);
-		}
-		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | TransactionRejectedException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			throw unexpectedException(e);
-		}
+		return waitForResult(id, AddGameteCreationTransactionResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, TransactionRejectedException.class);
 	}
 
 	/**
@@ -1172,22 +831,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	 * @throws NodeException if the message could not be sent
 	 */
 	protected void sendAddGameteCreationTransaction(GameteCreationTransactionRequest request, String id) throws NodeException {
-		try {
-			sendObjectAsync(getSession(ADD_GAMETE_CREATION_TRANSACTION_ENDPOINT), AddGameteCreationTransactionMessages.of(request, id));
-		}
-		catch (IOException e) {
-			throw new NodeException(e);
-		}
-	}
-
-	private StorageReference processAddGameteCreationTransactionSuccess(RpcMessage message) {
-		return message instanceof AddGameteCreationTransactionResultMessage gctrm ? gctrm.get() : null;
-	}
-
-	private boolean processAddGameteCreationTransactionExceptions(ExceptionMessage message) {
-		var clazz = message.getExceptionClass();
-		return TransactionRejectedException.class.isAssignableFrom(clazz) ||
-			processStandardExceptions(message);
+		sendObjectAsync(getSession(ADD_GAMETE_CREATION_TRANSACTION_ENDPOINT), AddGameteCreationTransactionMessages.of(request, id), NodeException::new);
 	}
 
 	/**
@@ -1210,15 +854,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendAddJarStoreInitialTransaction(request, id);
-		try {
-			return waitForResult(id, this::processAddJarStoreInitialTransactionSuccess, this::processAddJarStoreInitialTransactionExceptions);
-		}
-		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | TransactionRejectedException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			throw unexpectedException(e);
-		}
+		return waitForResult(id, AddJarStoreInitialTransactionResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, TransactionRejectedException.class);
 	}
 
 	/**
@@ -1229,22 +865,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	 * @throws NodeException if the message could not be sent
 	 */
 	protected void sendAddJarStoreInitialTransaction(JarStoreInitialTransactionRequest request, String id) throws NodeException {
-		try {
-			sendObjectAsync(getSession(ADD_JAR_STORE_INITIAL_TRANSACTION_ENDPOINT), AddJarStoreInitialTransactionMessages.of(request, id));
-		}
-		catch (IOException e) {
-			throw new NodeException(e);
-		}
-	}
-
-	private TransactionReference processAddJarStoreInitialTransactionSuccess(RpcMessage message) {
-		return message instanceof AddJarStoreInitialTransactionResultMessage ajstrm ? ajstrm.get() : null;
-	}
-
-	private boolean processAddJarStoreInitialTransactionExceptions(ExceptionMessage message) {
-		var clazz = message.getExceptionClass();
-		return TransactionRejectedException.class.isAssignableFrom(clazz) ||
-			processStandardExceptions(message);
+		sendObjectAsync(getSession(ADD_JAR_STORE_INITIAL_TRANSACTION_ENDPOINT), AddJarStoreInitialTransactionMessages.of(request, id), NodeException::new);
 	}
 
 	/**
@@ -1267,15 +888,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendAddInitializationTransaction(request, id);
-		try {
-			waitForResult(id, this::processAddInitializationTransactionSuccess, this::processAddInitializationTransactionExceptions);
-		}
-		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | TransactionRejectedException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			throw unexpectedException(e);
-		}
+		waitForResult(id, AddInitializationTransactionResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, TransactionRejectedException.class);
 	}
 
 	/**
@@ -1286,22 +899,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	 * @throws NodeException if the message could not be sent
 	 */
 	protected void sendAddInitializationTransaction(InitializationTransactionRequest request, String id) throws NodeException {
-		try {
-			sendObjectAsync(getSession(ADD_INITIALIZATION_TRANSACTION_ENDPOINT), AddInitializationTransactionMessages.of(request, id));
-		}
-		catch (IOException e) {
-			throw new NodeException(e);
-		}
-	}
-
-	private Boolean processAddInitializationTransactionSuccess(RpcMessage message) {
-		return message instanceof AddInitializationTransactionResultMessage ? Boolean.TRUE : null;
-	}
-
-	private boolean processAddInitializationTransactionExceptions(ExceptionMessage message) {
-		var clazz = message.getExceptionClass();
-		return TransactionRejectedException.class.isAssignableFrom(clazz) ||
-			processStandardExceptions(message);
+		sendObjectAsync(getSession(ADD_INITIALIZATION_TRANSACTION_ENDPOINT), AddInitializationTransactionMessages.of(request, id), NodeException::new);
 	}
 
 	/**
@@ -1324,15 +922,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendPostConstructorCallTransaction(request, id);
-		try {
-			return waitForResult(id, this::processPostConstructorCallTransactionSuccess, this::processPostConstructorCallTransactionExceptions);
-		}
-		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | TransactionRejectedException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			throw unexpectedException(e);
-		}
+		return CodeFutures.ofConstructor(waitForResult(id, PostConstructorCallTransactionResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, TransactionRejectedException.class), this);
 	}
 
 	/**
@@ -1343,22 +933,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	 * @throws NodeException if the message could not be sent
 	 */
 	protected void sendPostConstructorCallTransaction(ConstructorCallTransactionRequest request, String id) throws NodeException {
-		try {
-			sendObjectAsync(getSession(POST_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT), PostConstructorCallTransactionMessages.of(request, id));
-		}
-		catch (IOException e) {
-			throw new NodeException(e);
-		}
-	}
-
-	private ConstructorFuture processPostConstructorCallTransactionSuccess(RpcMessage message) {
-		return message instanceof PostConstructorCallTransactionResultMessage pcctrm ? CodeFutures.ofConstructor(pcctrm.get(), this) : null;
-	}
-
-	private boolean processPostConstructorCallTransactionExceptions(ExceptionMessage message) {
-		var clazz = message.getExceptionClass();
-		return TransactionRejectedException.class.isAssignableFrom(clazz) ||
-			processStandardExceptions(message);
+		sendObjectAsync(getSession(POST_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT), PostConstructorCallTransactionMessages.of(request, id), NodeException::new);
 	}
 
 	/**
@@ -1381,15 +956,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendPostInstanceMethodCallTransaction(request, id);
-		try {
-			return waitForResult(id, this::processPostInstanceMethodCallTransactionSuccess, this::processPostInstanceMethodCallTransactionExceptions);
-		}
-		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | TransactionRejectedException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			throw unexpectedException(e);
-		}
+		return CodeFutures.ofMethod(waitForResult(id, PostInstanceMethodCallTransactionResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, TransactionRejectedException.class), this);
 	}
 
 	/**
@@ -1400,22 +967,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	 * @throws NodeException if the message could not be sent
 	 */
 	protected void sendPostInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, String id) throws NodeException {
-		try {
-			sendObjectAsync(getSession(POST_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT), PostInstanceMethodCallTransactionMessages.of(request, id));
-		}
-		catch (IOException e) {
-			throw new NodeException(e);
-		}
-	}
-
-	private MethodFuture processPostInstanceMethodCallTransactionSuccess(RpcMessage message) {
-		return message instanceof PostInstanceMethodCallTransactionResultMessage pimctrm ? CodeFutures.ofMethod(pimctrm.get(), this) : null;
-	}
-
-	private boolean processPostInstanceMethodCallTransactionExceptions(ExceptionMessage message) {
-		var clazz = message.getExceptionClass();
-		return TransactionRejectedException.class.isAssignableFrom(clazz) ||
-			processStandardExceptions(message);
+		sendObjectAsync(getSession(POST_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT), PostInstanceMethodCallTransactionMessages.of(request, id), NodeException::new);
 	}
 
 	/**
@@ -1438,15 +990,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendPostStaticMethodCallTransaction(request, id);
-		try {
-			return waitForResult(id, this::processPostStaticMethodCallTransactionSuccess, this::processPostStaticMethodCallTransactionExceptions);
-		}
-		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | TransactionRejectedException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			throw unexpectedException(e);
-		}
+		return CodeFutures.ofMethod(waitForResult(id, PostStaticMethodCallTransactionResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, TransactionRejectedException.class), this);
 	}
 
 	/**
@@ -1457,22 +1001,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	 * @throws NodeException if the message could not be sent
 	 */
 	protected void sendPostStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, String id) throws NodeException {
-		try {
-			sendObjectAsync(getSession(POST_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT), PostStaticMethodCallTransactionMessages.of(request, id));
-		}
-		catch (IOException e) {
-			throw new NodeException(e);
-		}
-	}
-
-	private MethodFuture processPostStaticMethodCallTransactionSuccess(RpcMessage message) {
-		return message instanceof PostStaticMethodCallTransactionResultMessage psmctrm ? CodeFutures.ofMethod(psmctrm.get(), this) : null;
-	}
-
-	private boolean processPostStaticMethodCallTransactionExceptions(ExceptionMessage message) {
-		var clazz = message.getExceptionClass();
-		return TransactionRejectedException.class.isAssignableFrom(clazz) ||
-			processStandardExceptions(message);
+		sendObjectAsync(getSession(POST_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT), PostStaticMethodCallTransactionMessages.of(request, id), NodeException::new);
 	}
 
 	/**
@@ -1495,15 +1024,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendPostJarStoreTransaction(request, id);
-		try {
-			return waitForResult(id, this::processPostJarStoreTransactionSuccess, this::processPostJarStoreTransactionExceptions);
-		}
-		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | TransactionRejectedException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			throw unexpectedException(e);
-		}
+		return JarFutures.of(waitForResult(id, PostJarStoreTransactionResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, TransactionRejectedException.class), this);
 	}
 
 	/**
@@ -1514,22 +1035,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	 * @throws NodeException if the message could not be sent
 	 */
 	protected void sendPostJarStoreTransaction(JarStoreTransactionRequest request, String id) throws NodeException {
-		try {
-			sendObjectAsync(getSession(POST_JAR_STORE_TRANSACTION_ENDPOINT), PostJarStoreTransactionMessages.of(request, id));
-		}
-		catch (IOException e) {
-			throw new NodeException(e);
-		}
-	}
-
-	private JarFuture processPostJarStoreTransactionSuccess(RpcMessage message) {
-		return message instanceof PostJarStoreTransactionResultMessage pjstrm ? JarFutures.of(pjstrm.get(), this) : null;
-	}
-
-	private boolean processPostJarStoreTransactionExceptions(ExceptionMessage message) {
-		var clazz = message.getExceptionClass();
-		return TransactionRejectedException.class.isAssignableFrom(clazz) ||
-			processStandardExceptions(message);
+		sendObjectAsync(getSession(POST_JAR_STORE_TRANSACTION_ENDPOINT), PostJarStoreTransactionMessages.of(request, id), NodeException::new);
 	}
 
 	/**

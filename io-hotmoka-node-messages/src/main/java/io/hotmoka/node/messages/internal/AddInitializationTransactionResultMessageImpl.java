@@ -19,12 +19,12 @@ package io.hotmoka.node.messages.internal;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.requests.InitializationTransactionRequest;
 import io.hotmoka.node.messages.api.AddInitializationTransactionResultMessage;
-import io.hotmoka.websockets.beans.AbstractRpcMessage;
+import io.hotmoka.websockets.beans.AbstractVoidResultMessage;
 
 /**
  * Implementation of the network message corresponding to the result of the {@link Node#addInitializationTransaction(InitializationTransactionRequest)} method.
  */
-public class AddInitializationTransactionResultMessageImpl extends AbstractRpcMessage implements AddInitializationTransactionResultMessage {
+public class AddInitializationTransactionResultMessageImpl extends AbstractVoidResultMessage implements AddInitializationTransactionResultMessage {
 
 	/**
 	 * Creates the message.

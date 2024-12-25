@@ -19,11 +19,11 @@ package io.hotmoka.node.messages.api;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.requests.InitializationTransactionRequest;
-import io.hotmoka.websockets.beans.api.RpcMessage;
+import io.hotmoka.websockets.beans.api.VoidResultMessage;
 
 /**
  * The network message corresponding to the result of the {@link Node#addInitializationTransaction(InitializationTransactionRequest)} method.
  */
 @Immutable
-public interface AddInitializationTransactionResultMessage extends RpcMessage {
+public interface AddInitializationTransactionResultMessage extends VoidResultMessage {
 }
