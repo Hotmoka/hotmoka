@@ -148,10 +148,9 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 	 * 
 	 * @param node the Hotmoka node
 	 * @param port the port where the service should be opened
-	 * @throws DeploymentException if the service cannot be deployed
-	 * @throws IOException if an I/O error occurs
+	 * @throws NodeException if the service cannot be deployed
 	 */
-    public NodeServiceImpl(Node node, int port) throws DeploymentException, IOException {
+    public NodeServiceImpl(Node node, int port) throws NodeException {
     	this.node = node;
 		this.logPrefix = "node service(ws://localhost:" + port + "): ";
 
@@ -160,29 +159,25 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 			this.eventSubscription = node.subscribeToEvents(null, this::publishEvent);
 
 			startContainer("", port,
-				GetNodeInfoEndpoint.config(this), GetConsensusConfigEndpoint.config(this), GetTakamakaCodeEndpoint.config(this),
-				GetManifestEndpoint.config(this), GetClassTagEndpoint.config(this), GetStateEndpoint.config(this),
-				GetRequestEndpoint.config(this), GetResponseEndpoint.config(this), GetPolledResponseEndpoint.config(this),
-				AddGameteCreationTransactionEndpoint.config(this), AddJarStoreInitialTransactionEndpoint.config(this),
-				AddInitializationTransactionEndpoint.config(this),
-				AddJarStoreTransactionEndpoint.config(this), AddConstructorCallTransactionEndpoint.config(this),
-				AddInstanceMethodCallTransactionEndpoint.config(this), AddStaticMethodCallTransactionEndpoint.config(this),
-				PostConstructorCallTransactionEndpoint.config(this), PostJarStoreTransactionEndpoint.config(this),
-				PostInstanceMethodCallTransactionEndpoint.config(this), PostStaticMethodCallTransactionEndpoint.config(this),
-				RunInstanceMethodCallTransactionEndpoint.config(this), RunStaticMethodCallTransactionEndpoint.config(this),
-				EventEndpoint.config(this)
+					GetNodeInfoEndpoint.config(this), GetConsensusConfigEndpoint.config(this), GetTakamakaCodeEndpoint.config(this),
+					GetManifestEndpoint.config(this), GetClassTagEndpoint.config(this), GetStateEndpoint.config(this),
+					GetRequestEndpoint.config(this), GetResponseEndpoint.config(this), GetPolledResponseEndpoint.config(this),
+					AddGameteCreationTransactionEndpoint.config(this), AddJarStoreInitialTransactionEndpoint.config(this),
+					AddInitializationTransactionEndpoint.config(this),
+					AddJarStoreTransactionEndpoint.config(this), AddConstructorCallTransactionEndpoint.config(this),
+					AddInstanceMethodCallTransactionEndpoint.config(this), AddStaticMethodCallTransactionEndpoint.config(this),
+					PostConstructorCallTransactionEndpoint.config(this), PostJarStoreTransactionEndpoint.config(this),
+					PostInstanceMethodCallTransactionEndpoint.config(this), PostStaticMethodCallTransactionEndpoint.config(this),
+					RunInstanceMethodCallTransactionEndpoint.config(this), RunStaticMethodCallTransactionEndpoint.config(this),
+					EventEndpoint.config(this)
 			);
 
 			// if the node gets closed, then this service will be closed as well
 			node.addOnCloseHandler(this_close);
 		}
-		catch (NodeException e) {
+		catch (DeploymentException | IOException e) {
 			close();
-			throw new DeploymentException("Cannot subscribe to the events of the node", e);
-		}
-		catch (Exception e) {
-			close();
-			throw e;
+			throw new NodeException(e);
 		}
 
     	LOGGER.info(logPrefix + "published");

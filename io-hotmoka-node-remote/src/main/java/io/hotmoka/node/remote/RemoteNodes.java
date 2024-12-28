@@ -16,12 +16,11 @@ limitations under the License.
 
 package io.hotmoka.node.remote;
 
-import java.io.IOException;
 import java.net.URI;
 
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.node.remote.internal.RemoteNodeImpl;
-import jakarta.websocket.DeploymentException;
 
 /**
  * Providers of nodes that forward their calls to a remote network service.
@@ -37,10 +36,9 @@ public abstract class RemoteNodes {
 	 * @param timeout the time (in milliseconds) allowed for a call to the network service;
 	 *                beyond that threshold, a timeout exception is thrown
      * @return the remote node
-	 * @throws DeploymentException if the remote node could not be deployed
-	 * @throws IOException if the remote node could not be created
+	 * @throws NodeException if the remote node could not be deployed
      */
-	public static RemoteNode of(URI uri, int timeout) throws IOException, DeploymentException {
+	public static RemoteNode of(URI uri, int timeout) throws NodeException {
         return new RemoteNodeImpl(uri, timeout);
     }
 }

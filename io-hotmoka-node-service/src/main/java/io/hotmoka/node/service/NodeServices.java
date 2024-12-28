@@ -16,12 +16,10 @@ limitations under the License.
 
 package io.hotmoka.node.service;
 
-import java.io.IOException;
-
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.service.api.NodeService;
 import io.hotmoka.node.service.internal.NodeServiceImpl;
-import jakarta.websocket.DeploymentException;
 
 /**
  * Providers of services of Hotmoka nodes, that publish their API as a web service.
@@ -36,10 +34,9 @@ public abstract class NodeServices {
 	 * @param node the Hotmoka node
 	 * @param port the port where the service should be opened
 	 * @return the network service
-	 * @throws DeploymentException if the service cannot be deployed
-	 * @throws IOException if an I/O error occurs
+	 * @throws NodeException if the service cannot be deployed
 	 */
-	public static NodeService of(Node node, int port) throws DeploymentException, IOException {
+	public static NodeService of(Node node, int port) throws NodeException {
 		return new NodeServiceImpl(node, port);
 	}
 }

@@ -204,37 +204,41 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	 * @param uri the URI of the network service that gets bound to the remote node
 	 * @param timeout the time (in milliseconds) allowed for a call to the network service;
 	 *                beyond that threshold, a timeout exception is thrown
-	 * @throws DeploymentException if the remote node could not be deployed
-	 * @throws IOException if the remote node could not be created
+	 * @throws NodeException if the remote node could not be deployed
      */
-    public RemoteNodeImpl(URI uri, int timeout) throws IOException, DeploymentException {
+    public RemoteNodeImpl(URI uri, int timeout) throws NodeException {
     	super(timeout);
 
     	this.logPrefix = "node remote(" + uri + "): ";
 
-    	addSession(GET_NODE_INFO_ENDPOINT, uri, GetNodeInfoEndpoint::new);
-    	addSession(GET_CONSENSUS_CONFIG_ENDPOINT, uri, GetConsensusConfigEndpoint::new);
-    	addSession(GET_TAKAMAKA_CODE_ENDPOINT, uri, GetTakamakaCodeEndpoint::new);
-    	addSession(GET_MANIFEST_ENDPOINT, uri, GetManifestEndpoint::new);
-    	addSession(GET_CLASS_TAG_ENDPOINT, uri, GetClassTagEndpoint::new);
-    	addSession(GET_STATE_ENDPOINT, uri, GetStateEndpoint::new);
-    	addSession(GET_REQUEST_ENDPOINT, uri, GetRequestEndpoint::new);
-    	addSession(GET_RESPONSE_ENDPOINT, uri, GetResponseEndpoint::new);
-    	addSession(GET_POLLED_RESPONSE_ENDPOINT, uri, GetPolledResponseEndpoint::new);
-    	addSession(ADD_GAMETE_CREATION_TRANSACTION_ENDPOINT, uri, AddGameteCreationTransactionEndpoint::new);
-    	addSession(ADD_JAR_STORE_INITIAL_TRANSACTION_ENDPOINT, uri, AddJarStoreInitialTransactionEndpoint::new);
-    	addSession(ADD_INITIALIZATION_TRANSACTION_ENDPOINT, uri, AddInitializationTransactionEndpoint::new);
-    	addSession(ADD_JAR_STORE_TRANSACTION_ENDPOINT, uri, AddJarStoreTransactionEndpoint::new);
-    	addSession(ADD_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT, uri, AddConstructorCallTransactionEndpoint::new);
-    	addSession(ADD_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT, uri, AddInstanceMethodCallTransactionEndpoint::new);
-    	addSession(ADD_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT, uri, AddStaticMethodCallTransactionEndpoint::new);
-    	addSession(POST_JAR_STORE_TRANSACTION_ENDPOINT, uri, PostJarStoreTransactionEndpoint::new);
-    	addSession(POST_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT, uri, PostConstructorCallTransactionEndpoint::new);
-    	addSession(POST_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT, uri, PostInstanceMethodCallTransactionEndpoint::new);
-    	addSession(POST_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT, uri, PostStaticMethodCallTransactionEndpoint::new);
-    	addSession(RUN_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT, uri, RunInstanceMethodCallTransactionEndpoint::new);
-    	addSession(RUN_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT, uri, RunStaticMethodCallTransactionEndpoint::new);
-    	addSession(EVENTS_ENDPOINT, uri, EventsEndpoint::new);
+    	try {
+    		addSession(GET_NODE_INFO_ENDPOINT, uri, GetNodeInfoEndpoint::new);
+    		addSession(GET_CONSENSUS_CONFIG_ENDPOINT, uri, GetConsensusConfigEndpoint::new);
+    		addSession(GET_TAKAMAKA_CODE_ENDPOINT, uri, GetTakamakaCodeEndpoint::new);
+    		addSession(GET_MANIFEST_ENDPOINT, uri, GetManifestEndpoint::new);
+    		addSession(GET_CLASS_TAG_ENDPOINT, uri, GetClassTagEndpoint::new);
+    		addSession(GET_STATE_ENDPOINT, uri, GetStateEndpoint::new);
+    		addSession(GET_REQUEST_ENDPOINT, uri, GetRequestEndpoint::new);
+    		addSession(GET_RESPONSE_ENDPOINT, uri, GetResponseEndpoint::new);
+    		addSession(GET_POLLED_RESPONSE_ENDPOINT, uri, GetPolledResponseEndpoint::new);
+    		addSession(ADD_GAMETE_CREATION_TRANSACTION_ENDPOINT, uri, AddGameteCreationTransactionEndpoint::new);
+    		addSession(ADD_JAR_STORE_INITIAL_TRANSACTION_ENDPOINT, uri, AddJarStoreInitialTransactionEndpoint::new);
+    		addSession(ADD_INITIALIZATION_TRANSACTION_ENDPOINT, uri, AddInitializationTransactionEndpoint::new);
+    		addSession(ADD_JAR_STORE_TRANSACTION_ENDPOINT, uri, AddJarStoreTransactionEndpoint::new);
+    		addSession(ADD_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT, uri, AddConstructorCallTransactionEndpoint::new);
+    		addSession(ADD_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT, uri, AddInstanceMethodCallTransactionEndpoint::new);
+    		addSession(ADD_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT, uri, AddStaticMethodCallTransactionEndpoint::new);
+    		addSession(POST_JAR_STORE_TRANSACTION_ENDPOINT, uri, PostJarStoreTransactionEndpoint::new);
+    		addSession(POST_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT, uri, PostConstructorCallTransactionEndpoint::new);
+    		addSession(POST_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT, uri, PostInstanceMethodCallTransactionEndpoint::new);
+    		addSession(POST_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT, uri, PostStaticMethodCallTransactionEndpoint::new);
+    		addSession(RUN_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT, uri, RunInstanceMethodCallTransactionEndpoint::new);
+    		addSession(RUN_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT, uri, RunStaticMethodCallTransactionEndpoint::new);
+    		addSession(EVENTS_ENDPOINT, uri, EventsEndpoint::new);
+    	}
+    	catch (DeploymentException | IOException e) {
+    		throw new NodeException(e);
+    	}
 
     	LOGGER.info(logPrefix + "connected");
     }

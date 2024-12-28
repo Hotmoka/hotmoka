@@ -112,8 +112,8 @@ import io.mokamint.plotter.PlotAndKeyPairs;
 import io.mokamint.plotter.Plots;
 import io.mokamint.plotter.api.Plot;
 import io.mokamint.plotter.api.PlotAndKeyPair;
+import io.mokamint.plotter.api.WrongKeyException;
 import io.takamaka.code.constants.Constants;
-import jakarta.websocket.DeploymentException;
 
 @ExtendWith(HotmokaTest.NodeHandler.class)
 public abstract class HotmokaTest extends AbstractLoggedTests {
@@ -340,9 +340,10 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	 * This scenario assumes that there is an external, non-initialized node, published for instance like that:
 	 * 
 	 * moka start-mokamint --keys CYcdCR4S1zVojhFsB7cxpYsudqBhvRMoXRhFCtwcnUg9.pem --keys-of-plot 5BYtHQ3XaygM7yjJ4vaaftA5AJAC56GNkLrDj4yQ46Wh.pem --plot plot.plot --mokamint-port 8031 --port 8002
+	 * @throws WrongKeyException 
 	 */
 	@SuppressWarnings("unused")
-	private static Node mkMokamintNodeConnectedToPeer() throws NodeException, InterruptedException, InvalidKeyException, SignatureException, ApplicationTimeoutException, TimeoutException {
+	private static Node mkMokamintNodeConnectedToPeer() throws NodeException, InterruptedException, InvalidKeyException, SignatureException, ApplicationTimeoutException, TimeoutException, WrongKeyException {
 		try {
 			consensus = fillConsensusConfig(ValidatorsConsensusConfigBuilders.defaults()).build();
 
@@ -393,13 +394,13 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			nodes.add(node);
 			return node;
 		}
-		catch (IOException | NoSuchAlgorithmException | io.mokamint.node.api.NodeException | DeploymentException e) {
+		catch (IOException | NoSuchAlgorithmException | io.mokamint.node.api.NodeException e) {
 			throw new NodeException(e);
 		}
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkMokamintNetwork(int howManyNodes) throws NodeException, InterruptedException, ApplicationTimeoutException, TransactionRejectedException, TransactionException, CodeExecutionException, TimeoutException {
+	private static Node mkMokamintNetwork(int howManyNodes) throws NodeException, InterruptedException, ApplicationTimeoutException, TransactionRejectedException, TransactionException, CodeExecutionException, TimeoutException, WrongKeyException {
 		if (howManyNodes < 1)
 			throw new IllegalArgumentException("A network needs at least a node");
 
@@ -490,7 +491,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 			return nodes.get(0);
 		}
-		catch (IOException | NoSuchAlgorithmException | io.mokamint.node.api.NodeException | DeploymentException | InvalidKeyException e) {
+		catch (IOException | NoSuchAlgorithmException | io.mokamint.node.api.NodeException | InvalidKeyException e) {
 			throw new NodeException(e);
 		}
 	}
@@ -517,13 +518,13 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkRemoteNode(Node exposed) throws IOException, DeploymentException {
+	private static Node mkRemoteNode(Node exposed) throws NodeException {
 		NodeServices.of(exposed, 8000); // it will be closed when exposed will be closed
 		return RemoteNodes.of(URI.create("ws://localhost:8000"), 100_000);
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkRemoteNode(String uri) throws IOException, DeploymentException {
+	private static Node mkRemoteNode(String uri) throws NodeException {
 		return RemoteNodes.of(URI.create(uri), 100_000);
 	}
 

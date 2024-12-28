@@ -42,6 +42,7 @@ module io.hotmoka.moka {
 	requires io.mokamint.plotter;
 	requires io.mokamint.miner.local;
 	requires io.mokamint.node.service;
+	requires jakarta.websocket.client;
 	requires info.picocli;
 	requires java.logging;
 }

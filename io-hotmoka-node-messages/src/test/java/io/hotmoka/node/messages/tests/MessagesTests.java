@@ -622,5 +622,4 @@ public class MessagesTests extends AbstractLoggedTests {
 		var actual = new EventMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);
 	}
-
 }
