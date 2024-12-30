@@ -318,7 +318,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendGetNodeInfo(id);
-		return waitForResult(id, GetNodeInfoResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class);
+		return waitForResult(id, GetNodeInfoResultMessage.class, TimeoutException.class, NodeException.class);
 	}
 
 	/**
@@ -351,7 +351,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendGetConsensusConfig(id);
-		return waitForResult(id, GetConsensusConfigResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class);
+		return waitForResult(id, GetConsensusConfigResultMessage.class, TimeoutException.class, NodeException.class);
 	}
 
 	/**
@@ -384,7 +384,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendGetTakamakaCode(id);
-		return waitForResult(id, GetTakamakaCodeResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class);
+		return waitForResult(id, GetTakamakaCodeResultMessage.class, TimeoutException.class, NodeException.class);
 	}
 
 	/**
@@ -417,7 +417,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendGetManifest(id);
-		return waitForResult(id, GetManifestResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class);
+		return waitForResult(id, GetManifestResultMessage.class, TimeoutException.class, NodeException.class);
 	}
 
 	/**
@@ -450,7 +450,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendGetClassTag(reference, id);
-		return waitForResult(id, GetClassTagResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, UnknownReferenceException.class);
+		return waitForResult(id, GetClassTagResultMessage.class, TimeoutException.class, NodeException.class, UnknownReferenceException.class);
 	}
 
 	/**
@@ -484,7 +484,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendGetState(reference, id);
-		return waitForResult(id, GetStateResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, UnknownReferenceException.class);
+		return waitForResult(id, GetStateResultMessage.class, TimeoutException.class, NodeException.class, UnknownReferenceException.class);
 	}
 
 	/**
@@ -518,7 +518,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendGetRequest(reference, id);
-		return waitForResult(id, GetRequestResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, UnknownReferenceException.class);
+		return waitForResult(id, GetRequestResultMessage.class, TimeoutException.class, NodeException.class, UnknownReferenceException.class);
 	}
 
 	/**
@@ -552,7 +552,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendGetResponse(reference, id);
-		return waitForResult(id, GetResponseResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, UnknownReferenceException.class);
+		return waitForResult(id, GetResponseResultMessage.class, TimeoutException.class, NodeException.class, UnknownReferenceException.class);
 	}
 
 	/**
@@ -586,7 +586,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendGetPolledResponse(reference, id);
-		return waitForResult(id, GetPolledResponseResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, TransactionRejectedException.class);
+		return waitForResult(id, GetPolledResponseResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class);
 	}
 
 	/**
@@ -620,7 +620,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendRunInstanceMethodCallTransaction(request, id);
-		return waitForResult(id, RunInstanceMethodCallTransactionResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, TransactionRejectedException.class, TransactionException.class, CodeExecutionException.class);
+		return waitForResult(id, RunInstanceMethodCallTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class, TransactionException.class, CodeExecutionException.class);
 	}
 
 	/**
@@ -654,7 +654,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendRunStaticMethodCallTransaction(request, id);
-		return waitForResult(id, RunStaticMethodCallTransactionResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, TransactionRejectedException.class, TransactionException.class, CodeExecutionException.class);
+		return waitForResult(id, RunStaticMethodCallTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class, TransactionException.class, CodeExecutionException.class);
 	}
 
 	/**
@@ -688,7 +688,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendAddInstanceMethodCallTransaction(request, id);
-		return waitForResult(id, AddInstanceMethodCallTransactionResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, TransactionRejectedException.class, TransactionException.class, CodeExecutionException.class);
+		return waitForResult(id, AddInstanceMethodCallTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class, TransactionException.class, CodeExecutionException.class);
 	}
 
 	/**
@@ -722,7 +722,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendAddStaticMethodCallTransaction(request, id);
-		return waitForResult(id, AddStaticMethodCallTransactionResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, TransactionRejectedException.class, TransactionException.class, CodeExecutionException.class);
+		return waitForResult(id, AddStaticMethodCallTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class, TransactionException.class, CodeExecutionException.class);
 	}
 
 	/**
@@ -756,7 +756,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendAddConstructorCallTransaction(request, id);
-		return waitForResult(id, AddConstructorCallTransactionResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, TransactionRejectedException.class, TransactionException.class, CodeExecutionException.class);
+		return waitForResult(id, AddConstructorCallTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class, TransactionException.class, CodeExecutionException.class);
 	}
 
 	/**
@@ -790,7 +790,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendAddJarStoreTransaction(request, id);
-		return waitForResult(id, AddJarStoreTransactionResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, TransactionRejectedException.class, TransactionException.class);
+		return waitForResult(id, AddJarStoreTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class, TransactionException.class);
 	}
 
 	/**
@@ -824,7 +824,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendAddGameteCreationTransaction(request, id);
-		return waitForResult(id, AddGameteCreationTransactionResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, TransactionRejectedException.class);
+		return waitForResult(id, AddGameteCreationTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class);
 	}
 
 	/**
@@ -858,7 +858,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendAddJarStoreInitialTransaction(request, id);
-		return waitForResult(id, AddJarStoreInitialTransactionResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, TransactionRejectedException.class);
+		return waitForResult(id, AddJarStoreInitialTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class);
 	}
 
 	/**
@@ -892,7 +892,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendAddInitializationTransaction(request, id);
-		waitForResult(id, AddInitializationTransactionResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, TransactionRejectedException.class);
+		waitForResult(id, AddInitializationTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class);
 	}
 
 	/**
@@ -926,7 +926,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendPostConstructorCallTransaction(request, id);
-		return CodeFutures.ofConstructor(waitForResult(id, PostConstructorCallTransactionResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, TransactionRejectedException.class), this);
+		return CodeFutures.ofConstructor(waitForResult(id, PostConstructorCallTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class), this);
 	}
 
 	/**
@@ -960,7 +960,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendPostInstanceMethodCallTransaction(request, id);
-		return CodeFutures.ofMethod(waitForResult(id, PostInstanceMethodCallTransactionResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, TransactionRejectedException.class), this);
+		return CodeFutures.ofMethod(waitForResult(id, PostInstanceMethodCallTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class), this);
 	}
 
 	/**
@@ -994,7 +994,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendPostStaticMethodCallTransaction(request, id);
-		return CodeFutures.ofMethod(waitForResult(id, PostStaticMethodCallTransactionResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, TransactionRejectedException.class), this);
+		return CodeFutures.ofMethod(waitForResult(id, PostStaticMethodCallTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class), this);
 	}
 
 	/**
@@ -1028,7 +1028,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		ensureIsOpen();
 		var id = nextId();
 		sendPostJarStoreTransaction(request, id);
-		return JarFutures.of(waitForResult(id, PostJarStoreTransactionResultMessage.class, TimeoutException.class, InterruptedException.class, NodeException.class, TransactionRejectedException.class), this);
+		return JarFutures.of(waitForResult(id, PostJarStoreTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class), this);
 	}
 
 	/**

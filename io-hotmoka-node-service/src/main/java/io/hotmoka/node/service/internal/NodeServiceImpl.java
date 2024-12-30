@@ -436,7 +436,15 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 	 * @throws IOException if there was an I/O problem
 	 */
 	private void sendExceptionAsync(Session session, Exception e, String id) throws IOException {
-		sendObjectAsync(session, ExceptionMessages.of(e, id));
+		if (e instanceof InterruptedException) {
+			// if the serviced node gets interrupted, then the external vision of the node
+			// is that of a node that is not working properly
+			sendObjectAsync(session, ExceptionMessages.of(new NodeException("The service has been interrupted"), id));
+			// we take note that we have been interrupted
+			Thread.currentThread().interrupt();
+		}
+		else
+			sendObjectAsync(session, ExceptionMessages.of(e, id));
 	}
 
 	protected void onGetNodeInfo(GetNodeInfoMessage message, Session session) {
