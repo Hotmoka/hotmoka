@@ -22,6 +22,8 @@ import java.io.InputStreamReader;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeoutException;
@@ -210,10 +212,10 @@ public class TendermintPoster {
 	 * Yields the URL of the Tendermint process.
 	 * 
 	 * @return the URL
-	 * @throws MalformedURLException if the URL is not well formed
+	 * @throws URISyntaxException if the URL is not well formed
 	 */
 	URL url() throws MalformedURLException {
-		return new URL("http://127.0.0.1:" + tendermintPort);
+		return URI.create("http://127.0.0.1:" + tendermintPort).toURL();
 	}
 
 	private static TendermintValidator intoTendermintValidator(TendermintValidatorPriority validatorPriority) {

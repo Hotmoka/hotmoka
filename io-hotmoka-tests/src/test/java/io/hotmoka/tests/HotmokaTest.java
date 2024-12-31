@@ -103,6 +103,7 @@ import io.hotmoka.verification.VerificationException;
 import io.mokamint.miner.api.Miner;
 import io.mokamint.miner.local.LocalMiners;
 import io.mokamint.node.Peers;
+import io.mokamint.node.api.PeerException;
 import io.mokamint.node.api.PeerRejectedException;
 import io.mokamint.node.local.ApplicationTimeoutException;
 import io.mokamint.node.local.LocalNodeConfigBuilders;
@@ -381,20 +382,15 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 			URI uri2 = URI.create("ws://localhost:8031");
 
-			try {
-				if (node.getMokamintNode().add(Peers.of(uri2)).isPresent())
-					System.out.println("Added " + uri2 + " as a peer of " + uri1);
-				else
-					System.out.println("Could not add " + uri2 + " as a peer of " + uri1);
-			}
-			catch (PeerRejectedException e) {
-				System.out.println("Could not add " + uri2 + " as a peer of " + uri1 + ": it has been rejected");
-			}
+			if (node.getMokamintNode().add(Peers.of(uri2)).isPresent())
+				System.out.println("Added " + uri2 + " as a peer of " + uri1);
+			else
+				throw new NodeException("Could not add " + uri2 + " as a peer of " + uri1);
 
 			nodes.add(node);
 			return node;
 		}
-		catch (IOException | NoSuchAlgorithmException | io.mokamint.node.api.NodeException e) {
+		catch (IOException | NoSuchAlgorithmException | PeerException | io.mokamint.node.api.NodeException | PeerRejectedException e) {
 			throw new NodeException(e);
 		}
 	}
@@ -476,22 +472,15 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 					System.out.println("Initializing Hotmoka node " + nodeNum);
 					initializeNodeIfNeeded(node);
 				}
-				else {
-					try {
-						if (firstNode.getMokamintNode().add(Peers.of(uri)).isPresent())
-							System.out.println("Added " + uri + " as a peer of " + firstUri);
-						else
-							System.out.println("Could not add " + uri + " as a peer of " + firstUri);
-					}
-					catch (PeerRejectedException e) {
-						System.out.println("Could not add " + uri + " as a peer of " + firstUri + ": " + e.getMessage());
-					}
-				}
+				else if (firstNode.getMokamintNode().add(Peers.of(uri)).isPresent())
+					System.out.println("Added " + uri + " as a peer of " + firstUri);
+				else
+					throw new NodeException("Could not add " + uri + " as a peer of " + firstUri);
 			}
 
 			return nodes.get(0);
 		}
-		catch (IOException | NoSuchAlgorithmException | io.mokamint.node.api.NodeException | InvalidKeyException e) {
+		catch (IOException | NoSuchAlgorithmException | io.mokamint.node.api.NodeException | InvalidKeyException | PeerRejectedException | PeerException e) {
 			throw new NodeException(e);
 		}
 	}
