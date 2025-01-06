@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.whitelisting.internal.database.version0.java.util;
 
 import io.hotmoka.whitelisting.HasDeterministicTerminatingEqualsAndHashCode;
+import io.hotmoka.whitelisting.MustBeSafeLibraryCollection;
 
 public interface Collection<E> {
 	int size();
@@ -27,11 +28,13 @@ public interface Collection<E> {
 	<T> T[] toArray(java.util.function.IntFunction<T[]> generator);
 	boolean add(@HasDeterministicTerminatingEqualsAndHashCode E e);
 	boolean remove(@HasDeterministicTerminatingEqualsAndHashCode java.lang.Object o);
-	boolean containsAll(java.util.Collection<?> c);
-	boolean addAll(java.util.Collection<? extends E> c);
-	boolean removeAll(java.util.Collection<?> c);
 	boolean removeIf(java.util.function.Predicate<? super E> filter);
-	boolean retainAll(java.util.Collection<?> c);
 	void clear();
 	java.util.stream.Stream<E> stream();
+	// we do not allow any collection as parameter, because we don't know
+	// if their elements have deterministic equals() and hashCode()
+	boolean containsAll(@MustBeSafeLibraryCollection java.util.Collection<?> c);
+	boolean addAll(@MustBeSafeLibraryCollection java.util.Collection<? extends E> c);
+	boolean removeAll(@MustBeSafeLibraryCollection java.util.Collection<?> c);
+	boolean retainAll(@MustBeSafeLibraryCollection java.util.Collection<?> c);
 }

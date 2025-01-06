@@ -19,8 +19,8 @@ package io.hotmoka.whitelisting.api;
 /**
  * An exception thrown when the verification version of the node is not supported.
  */
+@SuppressWarnings("serial")
 public class UnsupportedVerificationVersionException extends Exception {
-	private static final long serialVersionUID = -1232455923178336022L;
 
 	/**
 	 * The unsupported verification version.

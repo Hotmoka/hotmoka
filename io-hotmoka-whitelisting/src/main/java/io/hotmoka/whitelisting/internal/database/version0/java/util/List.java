@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.whitelisting.internal.database.version0.java.util;
 
 import io.hotmoka.whitelisting.HasDeterministicTerminatingEqualsAndHashCode;
+import io.hotmoka.whitelisting.MustBeSafeLibraryCollection;
 
 public interface List<E> {
 	E get(int index);
@@ -43,5 +44,5 @@ public interface List<E> {
 	static <E> java.util.List<E> of(@HasDeterministicTerminatingEqualsAndHashCode E e1, @HasDeterministicTerminatingEqualsAndHashCode E e2, @HasDeterministicTerminatingEqualsAndHashCode E e3, @HasDeterministicTerminatingEqualsAndHashCode E e4, @HasDeterministicTerminatingEqualsAndHashCode E e5, @HasDeterministicTerminatingEqualsAndHashCode E e6, @HasDeterministicTerminatingEqualsAndHashCode E e7, @HasDeterministicTerminatingEqualsAndHashCode E e8) { return null; }
 	static <E> java.util.List<E> of(@HasDeterministicTerminatingEqualsAndHashCode E e1, @HasDeterministicTerminatingEqualsAndHashCode E e2, @HasDeterministicTerminatingEqualsAndHashCode E e3, @HasDeterministicTerminatingEqualsAndHashCode E e4, @HasDeterministicTerminatingEqualsAndHashCode E e5, @HasDeterministicTerminatingEqualsAndHashCode E e6, @HasDeterministicTerminatingEqualsAndHashCode E e7, @HasDeterministicTerminatingEqualsAndHashCode E e8, @HasDeterministicTerminatingEqualsAndHashCode E e9) { return null; }
 	static <E> java.util.List<E> of(@HasDeterministicTerminatingEqualsAndHashCode E e1, @HasDeterministicTerminatingEqualsAndHashCode E e2, @HasDeterministicTerminatingEqualsAndHashCode E e3, @HasDeterministicTerminatingEqualsAndHashCode E e4, @HasDeterministicTerminatingEqualsAndHashCode E e5, @HasDeterministicTerminatingEqualsAndHashCode E e6, @HasDeterministicTerminatingEqualsAndHashCode E e7, @HasDeterministicTerminatingEqualsAndHashCode E e8, @HasDeterministicTerminatingEqualsAndHashCode E e9, @HasDeterministicTerminatingEqualsAndHashCode E e10) { return null; }
-	static <E> java.util.List<E> copyOf(java.util.Collection<? extends E> coll) { return null; }
+	static <E> java.util.List<E> copyOf(@MustBeSafeLibraryCollection java.util.Collection<? extends E> coll) { return null; }
 }

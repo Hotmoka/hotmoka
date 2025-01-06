@@ -16,6 +16,9 @@ limitations under the License.
 
 package io.hotmoka.whitelisting.internal.database.version0.java.util;
 
+/**
+ * White-listed only if created with seed.
+ */
 public abstract class Random {
 
 	public Random(long seed) {}

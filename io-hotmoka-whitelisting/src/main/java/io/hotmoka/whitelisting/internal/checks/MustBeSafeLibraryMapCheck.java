@@ -16,21 +16,29 @@ limitations under the License.
 
 package io.hotmoka.whitelisting.internal.checks;
 
+import java.util.HashMap;
+
 import io.hotmoka.whitelisting.api.WhiteListingPredicate;
 import io.hotmoka.whitelisting.api.WhiteListingWizard;
 
 /**
- * A white-listing predicate stating that value is false.
+ * A check that the class of a value is exactly one of the allowed map classes from the library
+ * (not a user subclass then).
  */
-public class MustBeFalseCheck implements WhiteListingPredicate {
+public class MustBeSafeLibraryMapCheck implements WhiteListingPredicate {
 
 	@Override
 	public boolean test(Object value, WhiteListingWizard wizard) {
-		return Boolean.FALSE.equals(value);
+		return value == null || isSafeLibraryMap(value.getClass());
+	}
+
+	private static boolean isSafeLibraryMap(Class<?> clazz) {
+		System.out.println(clazz.getName());
+		return clazz == HashMap.class;
 	}
 
 	@Override
 	public String messageIfFailed(String methodName) {
-		return "the actual parameter of " + methodName + " must be false";
+		return "cannot prove that this object is a safe library map";
 	}
 }

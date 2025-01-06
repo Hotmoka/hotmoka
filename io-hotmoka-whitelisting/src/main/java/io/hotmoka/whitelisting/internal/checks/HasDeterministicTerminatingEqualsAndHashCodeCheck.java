@@ -73,23 +73,23 @@ public class HasDeterministicTerminatingEqualsAndHashCodeCheck implements WhiteL
 
 	private static Optional<Method> getHashCodeFor(Class<?> clazz) {
 		return Stream.of(clazz.getMethods())
-				.filter(method -> !Modifier.isAbstract(method.getModifiers())
+				.filter(method -> "hashCode".equals(method.getName())
+						&& !Modifier.isAbstract(method.getModifiers())
 						&& Modifier.isPublic(method.getModifiers())
 						&& !Modifier.isStatic(method.getModifiers())
 						&& method.getParameters().length == 0
-						&& "hashCode".equals(method.getName())
 						&& method.getReturnType() == int.class)
 				.findFirst();
 	}
 
 	private static Optional<Method> getEqualsFor(Class<?> clazz) {
 		return Stream.of(clazz.getMethods())
-				.filter(method -> !Modifier.isAbstract(method.getModifiers())
+				.filter(method -> "equals".equals(method.getName())
+						&& !Modifier.isAbstract(method.getModifiers())
 						&& Modifier.isPublic(method.getModifiers())
 						&& !Modifier.isStatic(method.getModifiers())
 						&& method.getParameters().length == 1
 						&& method.getParameterTypes()[0] == Object.class
-						&& "equals".equals(method.getName())
 						&& method.getReturnType() == boolean.class)
 				.findFirst();
 	}

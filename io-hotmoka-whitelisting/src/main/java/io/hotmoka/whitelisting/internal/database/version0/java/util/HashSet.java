@@ -18,7 +18,7 @@ package io.hotmoka.whitelisting.internal.database.version0.java.util;
 
 public class HashSet<E> {
 	public HashSet() {}
-	public HashSet(java.util.Collection<? extends E> c) {}
+	public HashSet(/*@MustBeSafeLibraryCollection*/ java.util.Collection<? extends E> c) {} // TODO: the annotation generates wrong bytecode
 	public HashSet(int initialCapacity, float loadFactor) {}
 	public HashSet(int initialCapacity) {}
 }

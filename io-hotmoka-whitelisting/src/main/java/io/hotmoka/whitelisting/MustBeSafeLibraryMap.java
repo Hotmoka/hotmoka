@@ -14,29 +14,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.whitelisting.api;
+package io.hotmoka.whitelisting;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import io.hotmoka.whitelisting.api.WhiteListingProofObligation;
+import io.hotmoka.whitelisting.internal.checks.MustBeSafeLibraryMapCheck;
+
 /**
- * An annotation that is meant to decorate an argument of a method
- * or constructor of a white-listed method and specifies some property that
- * the argument must satisfy, for the method to be white-listed.
+ * States that an object of a white-listed method must be a safe library map,
+ * exactly, hence not a user-defined map class.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.ANNOTATION_TYPE)
+@Target(value={ ElementType.METHOD, ElementType.PARAMETER })
+@Inherited
 @Documented
-public @interface WhiteListingProofObligation {
-
-	/**
-	 * Yields the class of the predicate that can be used to check
-	 * if a value satisfies this proof obligation.
-	 * 
-	 * @return the class of the predicate
-	 */
-	Class<? extends WhiteListingPredicate> check();
+@WhiteListingProofObligation(check = MustBeSafeLibraryMapCheck.class)
+public @interface MustBeSafeLibraryMap {
 }

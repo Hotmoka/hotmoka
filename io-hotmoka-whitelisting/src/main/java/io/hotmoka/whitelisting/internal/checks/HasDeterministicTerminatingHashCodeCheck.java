@@ -33,17 +33,15 @@ public class HasDeterministicTerminatingHashCodeCheck implements WhiteListingPre
 
 	@Override
 	public boolean test(Object value, WhiteListingWizard wizard) {
-		return value == null || hashCodelsIsDeterministicAndTerminating(value.getClass(), wizard);
+		return value == null || hashCodeIsDeterministicAndTerminating(value.getClass(), wizard);
 	}
 
-	private static boolean hashCodelsIsDeterministicAndTerminating(Class<?> clazz, WhiteListingWizard wizard) {
-		Optional<Method> hashCode = getHashCodeFor(clazz);
-		return hashCode.isPresent() && isInWhiteListingDatabaseWithoutProofObligations(hashCode.get(), wizard);
+	private static boolean hashCodeIsDeterministicAndTerminating(Class<?> clazz, WhiteListingWizard wizard) {
+		return getHashCodeFor(clazz).map(hashCode -> isInWhiteListingDatabaseWithoutProofObligations(hashCode, wizard)).orElse(false);
 	}
 
 	private static boolean isInWhiteListingDatabaseWithoutProofObligations(Method method, WhiteListingWizard wizard) {
-		Optional<Method> model = wizard.whiteListingModelOf(method);
-		return model.isPresent() && hasNoProofObligations(model.get());
+		return wizard.whiteListingModelOf(method).map(HasDeterministicTerminatingHashCodeCheck::hasNoProofObligations).orElse(false);
 	}
 
 	private static boolean hasNoProofObligations(Method model) {
@@ -56,11 +54,11 @@ public class HasDeterministicTerminatingHashCodeCheck implements WhiteListingPre
 
 	private static Optional<Method> getHashCodeFor(Class<?> clazz) {
 		return Stream.of(clazz.getMethods())
-				.filter(method -> !Modifier.isAbstract(method.getModifiers())
+				.filter(method -> "hashCode".equals(method.getName())
+						&& !Modifier.isAbstract(method.getModifiers())
 						&& Modifier.isPublic(method.getModifiers())
 						&& !Modifier.isStatic(method.getModifiers())
 						&& method.getParameters().length == 0
-						&& "hashCode".equals(method.getName())
 						&& method.getReturnType() == int.class)
 				.findFirst();
 	}

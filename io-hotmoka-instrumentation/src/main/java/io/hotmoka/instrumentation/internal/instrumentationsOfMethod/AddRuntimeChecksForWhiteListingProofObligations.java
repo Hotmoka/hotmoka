@@ -392,7 +392,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 		il.append(invoke);
 		il.append(InstructionFactory.createReturn(verifierReturnType));
 
-		Type[] argsAsArray = args.toArray(Type[]::new);
+		var argsAsArray = args.toArray(Type[]::new);
 		var addedVerifier = new MethodGen(PRIVATE_SYNTHETIC_STATIC, verifierReturnType, argsAsArray, null, verifierName, className, il, cpg);
 		addMethod(addedVerifier, false);
 

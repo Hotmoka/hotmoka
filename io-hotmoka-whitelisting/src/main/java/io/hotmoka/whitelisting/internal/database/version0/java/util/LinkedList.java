@@ -20,7 +20,7 @@ import io.hotmoka.whitelisting.HasDeterministicTerminatingEqualsAndHashCode;
 
 public abstract class LinkedList<E> {
 	public LinkedList() {}
-	public LinkedList(java.util.Collection<? extends E> c) {}
+	public LinkedList(/*@MustBeSafeLibraryCollection*/ java.util.Collection<? extends E> c) {}
 	public abstract E getFirst();
 	public abstract E getLast();
 	public abstract E removeFirst();

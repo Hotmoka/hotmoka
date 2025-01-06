@@ -45,8 +45,7 @@ public class HasDeterministicTerminatingEqualsCheck implements WhiteListingPredi
 	}
 
 	private static boolean isInWhiteListingDatabaseWithoutProofObligations(Method method, WhiteListingWizard wizard) {
-		Optional<Method> model = wizard.whiteListingModelOf(method);
-		return model.isPresent() && hasNoProofObligations(model.get());
+		return wizard.whiteListingModelOf(method).map(HasDeterministicTerminatingEqualsCheck::hasNoProofObligations).orElse(false);
 	}
 
 	private static boolean hasNoProofObligations(Method model) {
@@ -59,12 +58,12 @@ public class HasDeterministicTerminatingEqualsCheck implements WhiteListingPredi
 
 	private static Optional<Method> getEqualsFor(Class<?> clazz) {
 		return Stream.of(clazz.getMethods())
-				.filter(method -> !Modifier.isAbstract(method.getModifiers())
+				.filter(method -> "equals".equals(method.getName())
+						&& !Modifier.isAbstract(method.getModifiers())
 						&& Modifier.isPublic(method.getModifiers())
 						&& !Modifier.isStatic(method.getModifiers())
 						&& method.getParameters().length == 1
 						&& method.getParameterTypes()[0] == Object.class
-						&& "equals".equals(method.getName())
 						&& method.getReturnType() == boolean.class)
 				.findFirst();
 	}

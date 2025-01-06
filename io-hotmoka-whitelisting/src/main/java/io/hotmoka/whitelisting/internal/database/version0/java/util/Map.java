@@ -17,17 +17,18 @@ limitations under the License.
 package io.hotmoka.whitelisting.internal.database.version0.java.util;
 
 import io.hotmoka.whitelisting.HasDeterministicTerminatingEqualsAndHashCode;
+import io.hotmoka.whitelisting.MustBeSafeLibraryMap;
 
 public interface Map<K, V> {
 	int size();
 	boolean isEmpty();
 	V put(@HasDeterministicTerminatingEqualsAndHashCode K key, V value);
-	java.util.Set<K> keySet();
+	@MustBeSafeLibraryMap java.util.Set<K> keySet();
 	boolean containsKey(@HasDeterministicTerminatingEqualsAndHashCode java.lang.Object key);
 	boolean containsValue(java.lang.Object value);
 	V get(@HasDeterministicTerminatingEqualsAndHashCode java.lang.Object key);
 	V remove(@HasDeterministicTerminatingEqualsAndHashCode java.lang.Object key);
-	void putAll(java.util.Map<? extends K, ? extends V> m);
+	void putAll(@MustBeSafeLibraryMap java.util.Map<? extends K, ? extends V> m);
 	void clear();
 	V getOrDefault(@HasDeterministicTerminatingEqualsAndHashCode java.lang.Object key, V defaultValue);
 	void forEach(java.util.function.BiConsumer<? super K, ? super V> action);
@@ -53,5 +54,5 @@ public interface Map<K, V> {
 	static <K, V> java.util.Map<K, V> of(@HasDeterministicTerminatingEqualsAndHashCode K k1, V v1, @HasDeterministicTerminatingEqualsAndHashCode K k2, V v2, @HasDeterministicTerminatingEqualsAndHashCode K k3, V v3, @HasDeterministicTerminatingEqualsAndHashCode K k4, V v4, @HasDeterministicTerminatingEqualsAndHashCode K k5, V v5, @HasDeterministicTerminatingEqualsAndHashCode K k6, V v6, @HasDeterministicTerminatingEqualsAndHashCode K k7, V v7, @HasDeterministicTerminatingEqualsAndHashCode K k8, V v8, @HasDeterministicTerminatingEqualsAndHashCode K k9, V v9, @HasDeterministicTerminatingEqualsAndHashCode K k10, V v10) { return null; }
 	static <K, V> java.util.Map<K, V> ofEntries(java.util.Map.Entry<? extends K, ? extends V>[] entries) { return null; }
 	static <K, V> java.util.Map.Entry<K, V> entry(@HasDeterministicTerminatingEqualsAndHashCode K k, V v) { return null; }
-	static <K, V> java.util.Map<K, V> copyOf(java.util.Map<? extends K, ? extends V> map) { return null; }
+	static <K, V> java.util.Map<K, V> copyOf(@MustBeSafeLibraryMap java.util.Map<? extends K, ? extends V> map) { return null; }
 }
