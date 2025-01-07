@@ -32,7 +32,8 @@ public class HashSetTests {
 		for (Object key: keys)
 			set.add(key);
 
-		Set<Object> copy = new HashSet<>(set);
+		Set<Object> copy = new HashSet<>();
+		copy.addAll(set);
 		return toString(copy);
 	}
 
@@ -42,7 +43,8 @@ public class HashSetTests {
 		for (Object key: keys)
 			set.add(key);
 
-		Set<Object> copy = new HashSet<>(set);
+		Set<Object> copy = new HashSet<>();
+		copy.addAll(set);
 		return toString(copy);
 	}
 
@@ -52,7 +54,8 @@ public class HashSetTests {
 		for (Object key: keys)
 			set.add(key);
 
-		Set<Object> copy = new HashSet<>(set);
+		Set<Object> copy = new HashSet<>();
+		copy.addAll(set);
 		return toString(copy);
 	}
 

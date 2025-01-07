@@ -234,6 +234,8 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 	 * @throws ClassNotFoundException 
 	 */
 	private InvokeInstruction addWhiteListVerificationMethod(INVOKEDYNAMIC invokedynamic, Executable model) throws ClassNotFoundException {
+		// TODO: this does not work for annotations added to a constructor, since it moves the invokespecial
+		// of the constructor into the verification method, which is illegal
 		String verifierName = getNewNameForPrivateMethod(InstrumentationConstants.EXTRA_VERIFIER);
 		var il = new InstructionList();
 		List<Type> args = new ArrayList<>();
@@ -305,10 +307,12 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 
 	private boolean canBeStaticallyDicharged(Class<? extends Annotation> annotationType, InstructionHandle ih, int slots) {
 		// ih contains an InvokeInstruction distinct from INVOKEDYNAMIC
-		return annotationType == MustBeFalse.class &&
-			pushers.getPushers(ih, slots, method.getInstructionList(), cpg)
+		if (annotationType == MustBeFalse.class)
+			return pushers.getPushers(ih, slots, method.getInstructionList(), cpg)
 				.map(InstructionHandle::getInstruction)
 				.allMatch(ins -> ins instanceof ICONST iconst && iconst.getValue().equals(0));
+		else
+			return false;
 	}
 
 	private boolean isCallToConcatenationMetaFactory(INVOKEDYNAMIC invokedynamic) {
