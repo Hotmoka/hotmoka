@@ -29,7 +29,7 @@ public interface Optional<T> {
 	<U> java.util.Optional<U> map(java.util.function.Function<? super T, ? extends U> mapper);
 	<U> java.util.Optional<U> flatMap(java.util.function.Function<? super T, ? extends java.util.Optional<? extends U>> mapper);
 	java.util.Optional<T> or(java.util.function.Supplier<? extends java.util.Optional<? extends T>> supplier);
-	java.util.stream.Stream<T> stream();
+	//java.util.stream.Stream<T> stream();
 	T orElse(T other);
 	T orElseGet(java.util.function.Supplier<? extends T> supplier);
 	T orElseThrow();

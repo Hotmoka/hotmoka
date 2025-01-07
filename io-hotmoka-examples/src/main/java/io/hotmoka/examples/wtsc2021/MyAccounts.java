@@ -17,10 +17,9 @@ limitations under the License.
 package io.hotmoka.examples.wtsc2021;
 
 import java.math.BigInteger;
-import java.util.Comparator;
 
-import io.takamaka.code.lang.ExternallyOwnedAccounts;
 import io.takamaka.code.lang.ExternallyOwnedAccount;
+import io.takamaka.code.lang.ExternallyOwnedAccounts;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.View;
@@ -60,6 +59,6 @@ public class MyAccounts extends ExternallyOwnedAccounts {
 	 * @return the richest account, or {@code null} is this container is empty
 	 */
 	public @View ExternallyOwnedAccount richest() {
-		return isEmpty() ? null : stream().max(Comparator.comparing(ExternallyOwnedAccount::balance)).get();
+		return isEmpty() ? null : stream().max((a1, a2) -> a1.balance().compareTo(a2.balance())).get();
 	}
 }

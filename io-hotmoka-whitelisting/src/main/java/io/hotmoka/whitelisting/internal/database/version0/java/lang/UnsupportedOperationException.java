@@ -23,10 +23,4 @@ public class UnsupportedOperationException {
 
 	public UnsupportedOperationException(java.lang.String message) {
 	}
-
-	public UnsupportedOperationException(java.lang.Throwable cause) {
-	}
-
-	public UnsupportedOperationException(java.lang.String message, java.lang.Throwable cause) {
-	}
 }

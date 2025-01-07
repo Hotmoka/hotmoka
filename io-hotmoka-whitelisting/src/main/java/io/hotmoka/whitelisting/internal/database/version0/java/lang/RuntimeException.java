@@ -23,10 +23,4 @@ public class RuntimeException {
 
 	public RuntimeException(java.lang.String message) {
 	}
-
-	public RuntimeException(java.lang.Throwable cause) {
-	}
-
-	public RuntimeException(java.lang.String message, java.lang.Throwable cause) {
-	}
 }

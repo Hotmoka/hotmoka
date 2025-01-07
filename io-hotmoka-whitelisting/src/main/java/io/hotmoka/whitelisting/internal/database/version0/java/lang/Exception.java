@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.whitelisting.internal.database.version0.java.lang;
 
-public class Exception {
+public abstract class Exception {
 
 	public Exception() {
 	}
@@ -24,9 +24,9 @@ public class Exception {
 	public Exception(java.lang.String message) {
 	}
 
-	public Exception(java.lang.Throwable cause) {
+	/*public Exception(java.lang.Throwable cause) {
 	}
 
 	public Exception(java.lang.String message, java.lang.Throwable cause) {
-	}
+	}*/
 }
