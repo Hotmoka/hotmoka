@@ -17,5 +17,12 @@ limitations under the License.
 package io.hotmoka.whitelisting.internal.database.version0.java.util;
 
 public interface Arrays {
-	boolean equals(byte[] a, byte[] a2);
+	boolean equals(byte[] a1, byte[] a2);
+	boolean equals(boolean[] a1, boolean[] a2);
+	boolean equals(char[] a1, char[] a2);
+	boolean equals(int[] a1, int[] a2);
+	boolean equals(float[] a1, float[] a2);
+	boolean equals(long[] a1, long[] a2);
+	boolean equals(double[] a1, double[] a2);
+	boolean equals(short[] a1, short[] a2);
 }
