@@ -23,6 +23,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -49,6 +50,7 @@ import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.LDC;
 import org.apache.bcel.generic.MethodGen;
+import org.apache.bcel.generic.NEW;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
@@ -58,6 +60,7 @@ import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
 import io.hotmoka.whitelisting.HasDeterministicTerminatingToString;
 import io.hotmoka.whitelisting.MustBeFalse;
+import io.hotmoka.whitelisting.MustBeSafeLibraryMap;
 import io.hotmoka.whitelisting.WhiteListingClassLoaders;
 import io.hotmoka.whitelisting.WhitelistingConstants;
 import io.hotmoka.whitelisting.api.WhiteListingProofObligation;
@@ -305,14 +308,27 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 			Stream.of(method.getParameterAnnotations()).flatMap(Stream::of).map(Annotation::annotationType).anyMatch(annotation -> annotation.isAnnotationPresent(WhiteListingProofObligation.class));
 	}
 
+	private final static ObjectType HASH_MAP_OT = new ObjectType(HashMap.class.getName());
+
 	private boolean canBeStaticallyDicharged(Class<? extends Annotation> annotationType, InstructionHandle ih, int slots) {
 		// ih contains an InvokeInstruction distinct from INVOKEDYNAMIC
 		if (annotationType == MustBeFalse.class)
 			return pushers.getPushers(ih, slots, method.getInstructionList(), cpg)
 				.map(InstructionHandle::getInstruction)
 				.allMatch(ins -> ins instanceof ICONST iconst && iconst.getValue().equals(0));
+		/*else if (annotationType == MustBeSafeLibraryMap.class) {
+			pushers.getPushers(ih, slots, method.getInstructionList(), cpg)
+			.map(InstructionHandle::getInstruction).forEach(System.out::println);
+			return pushers.getPushers(ih, slots, method.getInstructionList(), cpg)
+				.map(InstructionHandle::getInstruction)
+				.allMatch(ins -> ins instanceof NEW _new && isSafeLibraryMap(_new.getType(cpg)));
+		}*/
 		else
 			return false;
+	}
+
+	private static boolean isSafeLibraryMap(Type type) {
+		return type.equals(HASH_MAP_OT);
 	}
 
 	private boolean isCallToConcatenationMetaFactory(INVOKEDYNAMIC invokedynamic) {

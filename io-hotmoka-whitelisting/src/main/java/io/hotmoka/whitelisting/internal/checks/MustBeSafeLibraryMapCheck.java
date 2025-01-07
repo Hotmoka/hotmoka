@@ -32,8 +32,7 @@ public class MustBeSafeLibraryMapCheck implements WhiteListingPredicate {
 		return value == null || isSafeLibraryMap(value.getClass());
 	}
 
-	private static boolean isSafeLibraryMap(Class<?> clazz) {
-		System.out.println(clazz.getName());
+	public static boolean isSafeLibraryMap(Class<?> clazz) {
 		return clazz == HashMap.class;
 	}
 

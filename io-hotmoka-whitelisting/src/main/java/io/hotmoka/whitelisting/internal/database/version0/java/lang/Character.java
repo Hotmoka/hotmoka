@@ -21,4 +21,5 @@ public interface Character {
 	boolean equals(java.lang.Object other);
 	int hashCode();
 	java.lang.String toString();
+	char charValue();
 }
