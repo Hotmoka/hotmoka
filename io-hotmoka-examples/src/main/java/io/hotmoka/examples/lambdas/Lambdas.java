@@ -19,15 +19,14 @@ package io.hotmoka.examples.lambdas;
 import java.math.BigInteger;
 import java.util.Objects;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.takamaka.code.lang.ExternallyOwnedAccount;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
-import io.takamaka.code.util.StorageList;
 import io.takamaka.code.util.StorageLinkedList;
+import io.takamaka.code.util.StorageList;
 
 /**
  * A test about lambda expressions that call @Entry methods.
@@ -79,9 +78,15 @@ public class Lambdas extends ExternallyOwnedAccount {
 		investors.stream().forEachOrdered(investor -> investor.receive(MINIMUM_INVESTMENT));
 	}
 
+	private static class WrappedInt {
+		private int i;
+	}
+
 	public int testMethodReferenceToEntry() {
 		other = new Lambdas(BigInteger.TEN, publicKey);
-		return Stream.of(BigInteger.TEN, BigInteger.ONE).map(other::through).mapToInt(BigInteger::intValue).sum();
+		WrappedInt wi = new WrappedInt();
+		Stream.of(BigInteger.TEN, BigInteger.ONE).map(other::through).mapToInt(BigInteger::intValue).forEachOrdered(i -> wi.i += i);
+		return wi.i;
 	}
 
 	public void testMethodReferenceToEntryOfOtherClass() {
@@ -91,14 +96,18 @@ public class Lambdas extends ExternallyOwnedAccount {
 
 	public int testMethodReferenceToEntrySameContract() {
 		other = new Lambdas(BigInteger.TEN, publicKey);
-		return Stream.of(BigInteger.TEN, BigInteger.ONE).map(this::through).mapToInt(BigInteger::intValue).sum();
+		WrappedInt wi = new WrappedInt();
+		Stream.of(BigInteger.TEN, BigInteger.ONE).map(this::through).mapToInt(BigInteger::intValue).forEachOrdered(i -> wi.i += i);
+		return wi.i;
 	}
 
 	public int testConstructorReferenceToEntry() {
-		return Stream.of(BigInteger.TEN, BigInteger.ONE)
+		WrappedInt wi = new WrappedInt();
+		Stream.of(BigInteger.TEN, BigInteger.ONE)
 			.map(Lambdas::new)
 			.map(Lambdas::getAmount)
-			.mapToInt(BigInteger::intValue).sum();
+			.mapToInt(BigInteger::intValue).forEachOrdered(i -> wi.i += i);
+		return wi.i;
 	}
 
 	public @FromContract void testConstructorReferenceToEntryPopResult() {
@@ -131,11 +140,17 @@ public class Lambdas extends ExternallyOwnedAccount {
 		fun.apply(BigInteger.ONE).receive(4);
 	}
 
+	private static class WrappedString {
+		private String s = "";
+	}
+
 	public int whiteListChecks(Object o1, Object o2, Object o3) {
-		return Stream.of(o1, o2, o3)
+		WrappedString ws = new WrappedString();
+		Stream.of(o1, o2, o3)
 			.map(Objects::toString) // the parameter of this lambda must be checked at run time
-			.collect(Collectors.joining())
-			.length();
+			.forEachOrdered(s -> ws.s += s);
+
+		return ws.s.length();
 	}
 
 	public String concatenation(String s1, Object s2, Lambdas s3, long s4, int s5) {

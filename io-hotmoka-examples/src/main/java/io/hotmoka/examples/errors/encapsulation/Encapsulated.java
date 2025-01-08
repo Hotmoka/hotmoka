@@ -81,7 +81,7 @@ public class Encapsulated extends Storage {
 		}
 
 		@Override
-		public <A> A[] toArray(IntFunction<A[]> generator) {
+		public T[] toArray(IntFunction<T[]> generator) {
 			return backing.toArray(generator);
 		}
 

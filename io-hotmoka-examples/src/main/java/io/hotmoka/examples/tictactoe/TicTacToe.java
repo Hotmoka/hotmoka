@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.examples.tictactoe;
 
 import static io.takamaka.code.lang.Takamaka.require;
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.IntStream.rangeClosed;
 
 import java.math.BigInteger;
@@ -136,8 +135,6 @@ public class TicTacToe extends Contract {
 
 	@Override
 	public @View String toString() {
-		return rangeClosed(1, 3)
-			.mapToObj(y -> rangeClosed(1, 3).mapToObj(x -> at(x, y).toString()).collect(joining("|")))
-			.collect(joining("\n-----\n"));
+		return at(1, 1) + "|" + at(2, 1) + "|" + at(3, 1) + "\n-----\n" + at(1, 2) + "|" + at(2, 2) + "|" + at(3, 2) + "\n-----\n" + at(1, 3) + "|" + at(2, 3) + "|" + at(3, 3);
 	}
 }

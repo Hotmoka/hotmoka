@@ -36,7 +36,15 @@ public class ArrayTests {
 		for (int i = 0; i < 50; i++)
 			while (array.setIfAbsent(random.nextInt(100), BigInteger.valueOf(i)) != null);
 
-		return array.stream().filter(Objects::nonNull).mapToInt(BigInteger::intValue).sum();
+		class WrappedInt {
+			int i;
+		}
+
+		WrappedInt wi = new WrappedInt();
+
+		array.stream().filter(Objects::nonNull).mapToInt(BigInteger::intValue).forEachOrdered(i -> wi.i += i);
+
+		return wi.i;
 	}
 
 	public static @View long countNullsAfterRandomInitialization() {
@@ -46,8 +54,16 @@ public class ArrayTests {
 		for (int i = 0; i < 50; i++)
 			while (array.setIfAbsent(random.nextInt(100), BigInteger.valueOf(i)) != null);
 
+		class WrappedLong {
+			long l;
+		}
+
+		WrappedLong wl = new WrappedLong();
+
 		// 50 elements of the array should still be null
-		return array.stream().filter(Objects::isNull).count();
+		array.stream().filter(Objects::isNull).forEachOrdered(__ -> wl.l++);
+
+		return wl.l;
 	}
 
 	public static @View int testUpdateWithDefault1() {
@@ -60,7 +76,15 @@ public class ArrayTests {
 		for (int i = 0; i < array.length; i++)
 			array.update(i, BigInteger.ZERO, BigInteger.ONE::add);
 
-		return array.stream().mapToInt(BigInteger::intValue).sum();
+		class WrappedInt {
+			int i;
+		}
+
+		WrappedInt wi = new WrappedInt();
+
+		array.stream().mapToInt(BigInteger::intValue).forEachOrdered(i -> wi.i += i);;
+
+		return wi.i;
 	}
 
 	public static @View int testUpdateWithDefault2() {
@@ -70,7 +94,15 @@ public class ArrayTests {
 		for (int i = 0; i < 50; i++)
 			array.update(random.nextInt(100), BigInteger.ZERO, BigInteger.valueOf(i)::add);
 
-		return array.stream().filter(Objects::nonNull).mapToInt(BigInteger::intValue).sum();
+		class WrappedInt {
+			int i;
+		}
+
+		WrappedInt wi = new WrappedInt();
+
+		array.stream().filter(Objects::nonNull).mapToInt(BigInteger::intValue).forEachOrdered(i -> wi.i += i);
+
+		return wi.i;
 	}
 
 	public static @View int testGetOrDefault() {
@@ -105,6 +137,14 @@ public class ArrayTests {
 		for (int i = 0; i < array.length; i++)
 			array.set(i, (byte) (array.get(i) + 1));
 
-		return array.stream().sum();
+		class WrappedInt {
+			int i;
+		}
+
+		WrappedInt wi = new WrappedInt();
+
+		array.stream().forEachOrdered(b -> wi.i += b);
+
+		return wi.i;
 	}
 }

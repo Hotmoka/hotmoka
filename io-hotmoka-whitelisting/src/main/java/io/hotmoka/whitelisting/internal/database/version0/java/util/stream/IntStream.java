@@ -24,7 +24,6 @@ public interface IntStream {
 	java.util.stream.IntStream of(int t);
 	java.util.stream.IntStream of(int... values);
 	<U> java.util.stream.Stream<U> mapToObj(java.util.function.IntFunction<? extends U> mapper);
-	int sum();
 	void forEachOrdered(java.util.function.IntConsumer action);
 	boolean allMatch(java.util.function.IntPredicate predicate);
 }

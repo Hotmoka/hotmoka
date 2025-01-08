@@ -21,6 +21,7 @@ import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
 import java.util.Objects;
+import java.util.stream.IntStream;
 
 import io.takamaka.code.lang.View;
 import io.takamaka.code.util.StorageMap;
@@ -37,7 +38,18 @@ public class MapTests {
 		for (BigInteger key = ZERO; key.intValue() < 100; key = key.add(ONE))
 			map.put(key, key);
 
-		return map.stream().map(Entry::getValue).mapToInt(BigInteger::intValue).sum();
+		return sum(map.stream().map(Entry::getValue).mapToInt(BigInteger::intValue));
+	}
+
+	private static int sum(IntStream stream) {
+		class WrappedInt {
+			int i;
+		}
+
+		WrappedInt wi = new WrappedInt();
+		stream.forEachOrdered(i -> wi.i += i);
+
+		return wi.i;
 	}
 
 	public static @View int testUpdate1() {
@@ -48,7 +60,7 @@ public class MapTests {
 		// we add one to the value bound to each key
 		map.keyList().forEach(key -> map.update(key, ONE::add));
 
-		return map.stream().map(Entry::getValue).mapToInt(BigInteger::intValue).sum();
+		return sum(map.stream().map(Entry::getValue).mapToInt(BigInteger::intValue));
 	}
 
 	public static @View int testUpdate2() {
@@ -59,7 +71,7 @@ public class MapTests {
 		// we add one to the value bound to each key
 		map.keys().forEachOrdered(key -> map.update(key, ONE::add));
 
-		return map.stream().map(Entry::getValue).mapToInt(BigInteger::intValue).sum();
+		return sum(map.stream().map(Entry::getValue).mapToInt(BigInteger::intValue));
 	}
 
 	public static @View long testNullValues() {
@@ -67,6 +79,14 @@ public class MapTests {
 		for (BigInteger key = ZERO; key.intValue() < 100; key = key.add(ONE))
 			map.put(key, null);
 
-		return map.stream().map(Entry::getValue).filter(Objects::isNull).count();
+		class WrappedLong {
+			int l;
+		}
+
+		WrappedLong wl = new WrappedLong();
+
+		map.stream().map(Entry::getValue).filter(Objects::isNull).forEachOrdered(__ -> wl.l++);
+
+		return wl.l;
 	}
 }

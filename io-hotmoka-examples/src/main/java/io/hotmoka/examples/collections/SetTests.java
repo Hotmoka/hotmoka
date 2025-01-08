@@ -28,15 +28,19 @@ import io.takamaka.code.util.StorageTreeSet;
 public class SetTests {
 
 	public static @View boolean testRandomInitialization() {
-		StorageTreeSet<BigInteger> set = new StorageTreeSet<>();
-		Random random = new Random(12345L);
+		var set = new StorageTreeSet<BigInteger>();
+		var random = new Random(12345L);
 
 		// set will contain 100 distinct numbers between 0 and 200
 		while (set.size() < 100)
 			set.add(BigInteger.valueOf(random.nextInt(200)));
 
-		BigInteger[] elements = set.stream().toArray(BigInteger[]::new);
-		for (int pos = 0; pos < elements.length; pos++)
+		var elements = new BigInteger[set.size()];
+		int pos = 0;
+		for (BigInteger element: set)
+			elements[pos++] = element;
+
+		for (pos = 0; pos < elements.length; pos++)
 			for (int next = pos + 1; next < elements.length; next++)
 				if (elements[pos].equals(elements[next]))
 					return false;

@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.examples.errors.illegalcalltononwhitelistedmethod3;
 
 import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class C {
@@ -27,8 +26,10 @@ public class C {
 	}
 
 	private static String test(Object... args) {
-		return Stream.of(args)
+		Stream.of(args)
 			.map(Objects::toString) // this will be KO but only at run time
-			.collect(Collectors.joining());
+			.forEachOrdered(s -> {});
+
+		return "done";
 	}
 }
