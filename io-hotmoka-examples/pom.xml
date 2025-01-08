@@ -63,6 +63,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
+        <version>3.4.2</version>
         <configuration>
           <archive>
 		    <addMavenDescriptor>false</addMavenDescriptor>
@@ -497,12 +498,6 @@
             </configuration>
           </execution>
 
-		  <execution><id>illegalcalltononwhitelistedmethod10</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>illegalcalltononwhitelistedmethod10</classifier>
-              <includes><include>io/hotmoka/examples/errors/illegalcalltononwhitelistedmethod10/**</include></includes>
-            </configuration>
-          </execution>
-
 		  <execution><id>illegalexceptionhandler1</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>illegalexceptionhandler1</classifier>
               <includes><include>io/hotmoka/examples/errors/illegalexceptionhandler1/**</include></includes>
@@ -680,12 +675,6 @@
 		  <execution><id>legalcall4</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>legalcall4</classifier>
               <includes><include>io/hotmoka/examples/errors/legalcall4/**</include></includes>
-            </configuration>
-          </execution>
-
-		  <execution><id>legalcall5</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>legalcall5</classifier>
-              <includes><include>io/hotmoka/examples/errors/legalcall5/**</include></includes>
             </configuration>
           </execution>
 

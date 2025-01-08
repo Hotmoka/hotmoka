@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.whitelisting.internal.database.version0.java.util.stream;
 
 public interface Stream<T> {
+	<R> java.util.stream.Stream<R> empty();
 	<R> java.util.stream.Stream<R> of(R t);
 	<R> java.util.stream.Stream<R> of(R[] values);
 	<R> java.util.stream.Stream<R> ofNullable(R t);
@@ -29,10 +30,13 @@ public interface Stream<T> {
 	java.util.stream.Stream<T> filter(java.util.function.Predicate<? super T> predicate);
 	java.util.stream.Stream<T> skip(long n);
 	java.util.stream.Stream<T> limit(long maxSize);
+	java.util.stream.Stream<T> takeWhile(java.util.function.Predicate<? super T> predicate);
 	java.util.Optional<T> min(java.util.Comparator<? super T> comparator);
 	java.util.Optional<T> max(java.util.Comparator<? super T> comparator);
 	T reduce(T unit, java.util.function.BinaryOperator<T> accumulator);
 	java.util.Optional<T> reduce(java.util.function.BinaryOperator<T> accumulator);
 	<U> U reduce(U unit, java.util.function.BiFunction<U, ? super T, U> combiner, java.util.function.BinaryOperator<U> accumulator);
 	<U> java.util.stream.Stream<U> iterate(U seed, java.util.function.UnaryOperator<U> f);
+	<U> java.util.stream.Stream<U> iterate(U seed, java.util.function.Predicate<? super U> hasNext, java.util.function.UnaryOperator<U> next);
+	<U> java.util.stream.Stream<U> generate(java.util.function.Supplier<? extends U> supplier);
 }

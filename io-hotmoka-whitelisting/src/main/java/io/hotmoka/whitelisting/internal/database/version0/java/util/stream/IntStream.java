@@ -17,12 +17,17 @@ limitations under the License.
 package io.hotmoka.whitelisting.internal.database.version0.java.util.stream;
 
 public interface IntStream {
+	java.util.stream.IntStream empty();
 	java.util.stream.IntStream iterate(int seed, java.util.function.IntUnaryOperator next);
 	java.util.stream.IntStream iterate(int seed, java.util.function.IntPredicate condition, java.util.function.IntUnaryOperator next);
 	java.util.stream.IntStream range(int startInclusive, int endExclusive);
 	java.util.stream.IntStream rangeClosed(int startInclusive, int endInclusive);
+	java.util.stream.IntStream generate(java.util.function.IntSupplier supplier);
 	java.util.stream.IntStream of(int t);
 	java.util.stream.IntStream of(int... values);
+	java.util.stream.IntStream takeWhile(java.util.function.IntPredicate predicate);
+	java.util.stream.IntStream map(java.util.function.IntUnaryOperator mapper);
+	java.util.stream.IntStream filter(java.util.function.IntPredicate predicate);
 	<U> java.util.stream.Stream<U> mapToObj(java.util.function.IntFunction<? extends U> mapper);
 	void forEachOrdered(java.util.function.IntConsumer action);
 	boolean allMatch(java.util.function.IntPredicate predicate);

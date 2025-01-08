@@ -23,9 +23,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.bcel.Const;
@@ -39,7 +37,6 @@ import org.apache.bcel.classfile.ConstantMethodref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.ConstantUtf8;
 import org.apache.bcel.generic.FieldInstruction;
-import org.apache.bcel.generic.ICONST;
 import org.apache.bcel.generic.INVOKEDYNAMIC;
 import org.apache.bcel.generic.INVOKESPECIAL;
 import org.apache.bcel.generic.INVOKESTATIC;
@@ -58,7 +55,6 @@ import io.hotmoka.instrumentation.internal.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
 import io.hotmoka.whitelisting.HasDeterministicTerminatingToString;
-import io.hotmoka.whitelisting.MustBeFalse;
 import io.hotmoka.whitelisting.WhiteListingClassLoaders;
 import io.hotmoka.whitelisting.WhitelistingConstants;
 import io.hotmoka.whitelisting.api.WhiteListingProofObligation;
@@ -133,46 +129,10 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 	private String keyFor(InstructionHandle ih) throws ClassNotFoundException {
 		InvokeInstruction ins = (InvokeInstruction) ih.getInstruction();
 
-		String key;
 		if (ins instanceof INVOKEDYNAMIC)
-			key = ins.getName() + " #" + ((ConstantInvokeDynamic) cpg.getConstant(ins.getIndex())).getBootstrapMethodAttrIndex();
-		else {
-			key = ins.getName() + " " + ins.getReferenceType(cpg) + "." + ins.getMethodName(cpg) + ins.getSignature(cpg);
-			// we add a mask that specifies the white-listing proof obligations that can be discharged, since
-			// we can use the same verifier only if two instructions need verification of the same proof obligations
-			Executable model = verifiedClass.whiteListingModelOf(ins);
-			if (hasProofObligations(model)) {
-				int slots = ins.consumeStack(cpg);
-				StringBuilder mask = new StringBuilder();
-
-				if (!(ins instanceof INVOKESTATIC)) {
-					int slotsCopy = slots;
-					mask.append(Stream.of(model.getAnnotations())
-							.map(Annotation::annotationType)
-							.filter(annotationType -> annotationType.isAnnotationPresent(WhiteListingProofObligation.class))
-							.map(annotationType -> canBeStaticallyDicharged(annotationType, ih, slotsCopy) ? "0" : "1")
-							.collect(Collectors.joining()));
-					slots--;
-				}
-
-				Annotation[][] anns = model.getParameterAnnotations();
-				int par = 0;
-				for (Type argType: ins.getArgumentTypes(cpg)) {
-					int slotsCopy = slots;
-					mask.append(Stream.of(anns[par])
-							.map(Annotation::annotationType)
-							.filter(annotationType -> annotationType.isAnnotationPresent(WhiteListingProofObligation.class))
-							.map(annotationType -> canBeStaticallyDicharged(annotationType, ih, slotsCopy) ? "0" : "1")
-							.collect(Collectors.joining()));
-					par++;
-					slots -= argType.getSize();
-				}
-
-				key = mask + ": " + key;
-			}
-		}
-
-		return key;
+			return ins.getName() + " #" + ((ConstantInvokeDynamic) cpg.getConstant(ins.getIndex())).getBootstrapMethodAttrIndex();
+		else
+			return ins.getName() + " " + ins.getReferenceType(cpg) + "." + ins.getMethodName(cpg) + ins.getSignature(cpg);
 	}
 
 	private InvokeInstruction addWhiteListVerificationMethodForINVOKEDYNAMICForStringConcatenation(INVOKEDYNAMIC invokedynamic) throws ClassNotFoundException {
@@ -306,29 +266,6 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 			Stream.of(method.getParameterAnnotations()).flatMap(Stream::of).map(Annotation::annotationType).anyMatch(annotation -> annotation.isAnnotationPresent(WhiteListingProofObligation.class));
 	}
 
-	private final static ObjectType HASH_MAP_OT = new ObjectType(HashMap.class.getName());
-
-	private boolean canBeStaticallyDicharged(Class<? extends Annotation> annotationType, InstructionHandle ih, int slots) {
-		// ih contains an InvokeInstruction distinct from INVOKEDYNAMIC
-		if (annotationType == MustBeFalse.class)
-			return pushers.getPushers(ih, slots, method.getInstructionList(), cpg)
-				.map(InstructionHandle::getInstruction)
-				.allMatch(ins -> ins instanceof ICONST iconst && iconst.getValue().equals(0));
-		/*else if (annotationType == MustBeSafeLibraryMap.class) {
-			pushers.getPushers(ih, slots, method.getInstructionList(), cpg)
-			.map(InstructionHandle::getInstruction).forEach(System.out::println);
-			return pushers.getPushers(ih, slots, method.getInstructionList(), cpg)
-				.map(InstructionHandle::getInstruction)
-				.allMatch(ins -> ins instanceof NEW _new && isSafeLibraryMap(_new.getType(cpg)));
-		}*/
-		else
-			return false;
-	}
-
-	private static boolean isSafeLibraryMap(Type type) {
-		return type.equals(HASH_MAP_OT);
-	}
-
 	private boolean isCallToConcatenationMetaFactory(INVOKEDYNAMIC invokedynamic) {
 		BootstrapMethod bootstrap = bootstraps.getBootstrapFor(invokedynamic);
 		Constant constant = cpg.getConstant(bootstrap.getBootstrapMethodRef());
@@ -428,15 +365,13 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 			// with their code and implementing the check method in dangerous ways
 			if (annotationType.getPackage() == WhiteListingClassLoaders.class.getPackage()) {
 				WhiteListingProofObligation wlpo = annotationType.getAnnotation(WhiteListingProofObligation.class);
-				if (wlpo != null)
-					// we check if the annotation could not be statically discharged
-					if (ih == null || key.charAt(annotationsCursor++) == '1') {
-						il.append(InstructionFactory.createDup(argType.getSize()));
-						boxIfNeeded(il, argType);
-						il.append(new LDC(cpg.addClass(wlpo.check().getName())));
-						il.append(factory.createConstant(methodName));
-						il.append(factory.createInvoke(WhitelistingConstants.RUNTIME_NAME, "checkWhiteListingPredicate", Type.VOID, CHECK_WHITE_LISTING_PREDICATE_ARGS, Const.INVOKESTATIC));
-					}
+				if (wlpo != null) {
+					il.append(InstructionFactory.createDup(argType.getSize()));
+					boxIfNeeded(il, argType);
+					il.append(new LDC(cpg.addClass(wlpo.check().getName())));
+					il.append(factory.createConstant(methodName));
+					il.append(factory.createInvoke(WhitelistingConstants.RUNTIME_NAME, "checkWhiteListingPredicate", Type.VOID, CHECK_WHITE_LISTING_PREDICATE_ARGS, Const.INVOKESTATIC));
+				}
 			}
 		}
 
