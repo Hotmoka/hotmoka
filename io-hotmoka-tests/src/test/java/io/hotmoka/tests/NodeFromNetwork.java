@@ -39,6 +39,7 @@ import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.JarFuture;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
@@ -50,13 +51,12 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.remote.RemoteNodes;
 import io.hotmoka.node.service.NodeServices;
 import io.hotmoka.verification.VerificationException;
 
 public class NodeFromNetwork extends HotmokaTest {
-    private final static ClassType HASH_MAP_TESTS = StorageTypes.classNamed("io.hotmoka.examples.javacollections.HashMapTests");
+    private final static ClassType ARRAY_TESTS = StorageTypes.classNamed("io.hotmoka.examples.collections.ArrayTests");
     private final static TransactionReference INEXISTENT_TRANSACTION_REFERENCE = TransactionReferences.of("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef");
     private final static StorageReference INEXISTENT_STORAGE_REFERENCE = StorageValues.reference(INEXISTENT_TRANSACTION_REFERENCE, BigInteger.valueOf(42));
     private final static int PORT = 8102;
@@ -293,12 +293,13 @@ public class NodeFromNetwork extends HotmokaTest {
     void testRemoteRunStaticMethodCallTransaction() throws Exception {
     	try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
     		TransactionReference jar = addJarStoreTransaction(privateKey(0), account(0),
-    			_500_000, ONE, takamakaCode(), bytesOf("javacollections.jar"), takamakaCode());
+    			_500_000, ONE, takamakaCode(), bytesOf("collections.jar"), takamakaCode());
 
-    		var toString = (StringValue) remote.runStaticMethodCallTransaction
-       			(TransactionRequests.staticViewMethodCall(account(0), _100_000, jar, MethodSignatures.ofNonVoid(HASH_MAP_TESTS, "testToString1", StorageTypes.STRING))).get();
+    		var randomValue = remote.runStaticMethodCallTransaction
+       			(TransactionRequests.staticViewMethodCall(account(0), _500_000, jar, MethodSignatures.ofNonVoid(ARRAY_TESTS, "testRandomInitialization", StorageTypes.INT)))
+       			.get().asInt(__ -> new NodeException());
 
-    		assertEquals("[how, are, hello, you, ?]", toString.getValue());
+    		assertEquals(1225, randomValue);
     	}
     }
 

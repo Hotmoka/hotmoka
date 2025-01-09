@@ -90,24 +90,6 @@
             </configuration>
           </execution>
 
-		  <execution><id>loop1</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>loop1</classifier>
-              <includes><include>io/hotmoka/examples/errors/loop1/**</include></includes>
-            </configuration>
-          </execution>
-
-		  <execution><id>loop2</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>loop2</classifier>
-              <includes><include>io/hotmoka/examples/errors/loop2/**</include></includes>
-            </configuration>
-          </execution>
-
-		  <execution><id>loop3</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>loop3</classifier>
-              <includes><include>io/hotmoka/examples/errors/loop3/**</include></includes>
-            </configuration>
-          </execution>
-
 		  <execution><id>allocations</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>allocations</classifier>
               <includes><include>io/hotmoka/examples/allocations/**</include></includes>
@@ -207,12 +189,6 @@
 		  <execution><id>crowdfunding</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>crowdfunding</classifier>
               <includes><include>io/hotmoka/examples/crowdfunding/**</include></includes>
-            </configuration>
-          </execution>
-
-		  <execution><id>javacollections</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>javacollections</classifier>
-              <includes><include>io/hotmoka/examples/javacollections/**</include></includes>
             </configuration>
           </execution>
 
@@ -657,24 +633,6 @@
 		  <execution><id>legalcall1</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>legalcall1</classifier>
               <includes><include>io/hotmoka/examples/errors/legalcall1/**</include></includes>
-            </configuration>
-          </execution>
-
-		  <execution><id>legalcall2</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>legalcall2</classifier>
-              <includes><include>io/hotmoka/examples/errors/legalcall2/**</include></includes>
-            </configuration>
-          </execution>
-
-		  <execution><id>legalcall3</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>legalcall3</classifier>
-              <includes><include>io/hotmoka/examples/errors/legalcall3/**</include></includes>
-            </configuration>
-          </execution>
-
-		  <execution><id>legalcall4</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>legalcall4</classifier>
-              <includes><include>io/hotmoka/examples/errors/legalcall4/**</include></includes>
             </configuration>
           </execution>
 

@@ -20,8 +20,6 @@ import static io.hotmoka.helpers.Coin.panarea;
 
 import java.math.BigInteger;
 import java.security.PrivateKey;
-import java.util.NoSuchElementException;
-import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -30,7 +28,6 @@ import org.junit.jupiter.api.Test;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.values.StorageReference;
 
@@ -45,7 +42,7 @@ class WrongChainId extends HotmokaTest {
 	}
 
 	@Test @DisplayName("constructor call with wrong chain identifier fails")
-	void createAbstractFailImpl() throws NoSuchElementException, NodeException, TimeoutException, InterruptedException {
+	void createAbstractFailImpl() throws Exception {
 		PrivateKey key = privateKey(0);
 		StorageReference caller = account(0);
 

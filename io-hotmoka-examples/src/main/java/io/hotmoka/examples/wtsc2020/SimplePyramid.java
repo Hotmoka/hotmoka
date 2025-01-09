@@ -19,16 +19,16 @@ package io.hotmoka.examples.wtsc2020;
 import static io.takamaka.code.lang.Takamaka.require;
 
 import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.Map;
 
 import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.View;
-import io.takamaka.code.util.StorageList;
 import io.takamaka.code.util.StorageLinkedList;
+import io.takamaka.code.util.StorageList;
+import io.takamaka.code.util.StorageMap;
+import io.takamaka.code.util.StorageTreeMap;
 
 /**
  * A contract for a pyramid investment scheme:
@@ -65,43 +65,53 @@ public class SimplePyramid extends Contract {
 	}
 
 	public @View String mostFrequentInvestorClass() {
-		Map<String, Integer> frequencies = new HashMap<>();
+		StorageMap<String, Integer> frequencies = new StorageTreeMap<>();
 		for (PayableContract investor: investors) {
 			String className = investor.getClass().getName();
 			frequencies.putIfAbsent(className, 0);
 			frequencies.put(className, frequencies.get(className) + 1);
 		}
 
-		int max = -1;
-		String result = null;
-		for (String candidate: frequencies.keySet()) {
-			int frequency = frequencies.get(candidate);
-			if (frequency > max) {
-				max = frequency;
-				result = candidate;
-			}
-		}
+		class Data {
+			int max = -1;
+			String result = null;
+		};
 
-		return result;
+		var data = new Data();
+
+		frequencies.keys().forEachOrdered(candidate -> {
+			int frequency = frequencies.get(candidate);
+			if (frequency > data.max) {
+				data.max = frequency;
+				data.result = candidate;
+			}
+		});
+
+		return data.result;
 	}
 
 	public @View PayableContract mostFrequentInvestor() {
-		Map<PayableContract, Integer> frequencies = new HashMap<>();
+		StorageMap<PayableContract, Integer> frequencies = new StorageTreeMap<>();
 		for (PayableContract investor: investors) {
 			frequencies.putIfAbsent(investor, 0);
 			frequencies.put(investor, frequencies.get(investor) + 1);
 		}
 
-		int max = -1;
-		PayableContract result = null;
-		for (PayableContract candidate: frequencies.keySet()) {
-			int frequency = frequencies.get(candidate);
-			if (frequency > max) {
-				max = frequency;
-				result = candidate;
-			}
-		}
+		class Data {
+			int max = -1;
+			PayableContract result = null;
+		};
 
-		return result;
+		var data = new Data();
+
+		frequencies.keys().forEachOrdered(candidate -> {
+			int frequency = frequencies.get(candidate);
+			if (frequency > data.max) {
+				data.max = frequency;
+				data.result = candidate;
+			}
+		});
+
+		return data.result;
 	}
 }

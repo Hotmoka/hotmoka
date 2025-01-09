@@ -24,7 +24,6 @@ import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.util.Random;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -94,8 +93,7 @@ class WTSC2021 extends HotmokaTest {
 
 	@RepeatedTest(10)
 	@DisplayName(NUMBER_OF_TRANSFERS + " random transfers between accounts")
-	void randomTransfers(RepetitionInfo repetitionInfo) throws InterruptedException, TransactionException, CodeExecutionException, TransactionRejectedException, ExecutionException, NodeException, TimeoutException {
-
+	void randomTransfers(RepetitionInfo repetitionInfo) throws Exception {
 		var remaining = new AtomicInteger(NUMBER_OF_ACCOUNTS);
 
 		// we need a lock despite using an AtomicInteger, just to guarantee that
