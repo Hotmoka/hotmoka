@@ -16,12 +16,12 @@ limitations under the License.
 
 package io.hotmoka.examples.errors.legalcall3;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class C {
 	public static boolean test() {
-		List<String> list = new ArrayList<>();
+		List<String> list = new LinkedList<>();
 		list.add("hello");
 		list.add("how");
 		list.add("are");

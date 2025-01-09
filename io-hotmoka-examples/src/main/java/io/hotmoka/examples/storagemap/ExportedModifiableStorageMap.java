@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.examples.storagemap;
 
 import java.util.Iterator;
-import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
@@ -166,11 +165,6 @@ public class ExportedModifiableStorageMap<K,V> extends Storage implements Storag
 	@Override
 	public Stream<Entry<K, V>> stream() {
 		return parent.stream();
-	}
-
-	@Override
-	public List<K> keyList() {
-		return parent.keyList();
 	}
 
 	@Override

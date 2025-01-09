@@ -16,8 +16,8 @@ limitations under the License.
 
 package io.hotmoka.examples.errors.legalcall2;
 
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
 
 import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.Storage;
@@ -27,7 +27,7 @@ public class C extends Storage {
 	private String s = "";
 
 	public void test() {
-		Collection<String> list = new ArrayList<>();
+		Collection<String> list = new LinkedList<>();
 		list.add("hello");
 		list.add("how");
 		list.add("are");

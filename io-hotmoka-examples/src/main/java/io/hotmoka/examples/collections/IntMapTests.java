@@ -50,17 +50,6 @@ public class IntMapTests {
 		return wi.i;
 	}
 
-	public static @View int testUpdate1() {
-		StorageIntMap<BigInteger> map = new StorageTreeIntMap<>();
-		for (int key = 0; key < 100; key++)
-			map.put(key, BigInteger.valueOf(key));
-
-		// we add one to the value bound to each key
-		map.keyList().forEach(key -> map.update(key, ONE::add));
-
-		return sum(map.stream().map(Entry::getValue).mapToInt(BigInteger::intValue));
-	}
-
 	public static @View int testUpdate2() {
 		StorageIntMap<BigInteger> map = new StorageTreeIntMap<>();
 		for (int key = 0; key < 100; key++)

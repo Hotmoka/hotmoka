@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.examples.errors.loop2;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -26,8 +26,8 @@ import java.util.List;
 public class Loop {
 
 	public static void loop() {
-		List<Object> l = new ArrayList<>();
-		List<Object> ll = new ArrayList<>();
+		List<Object> l = new LinkedList<>();
+		List<Object> ll = new LinkedList<>();
 		ll.add(l);
 		l.add(ll);
 		l.equals(ll); // this diverges

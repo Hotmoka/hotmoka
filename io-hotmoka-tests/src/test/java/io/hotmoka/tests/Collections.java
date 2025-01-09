@@ -87,16 +87,10 @@ class Collections extends HotmokaTest {
 		assertEquals(4950, sum.getValue());
 	}
 
-	@Test @DisplayName("MapTests.testUpdate1() == 5050")
-	void geometricSumAfterUpdate() throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
-		var sum = (IntValue) runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_TESTS, "testUpdate1", INT));
-		assertEquals(5050, sum.getValue());
-	}
-
 	@Test @DisplayName("MapTests.testUpdate2() == 5050")
 	void geometricSumAfterUpdateWithStream() throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
-		var sum = (IntValue) runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_TESTS, "testUpdate2", INT));
-		assertEquals(5050, sum.getValue());
+		var sum = runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_TESTS, "testUpdate2", INT)).asInt(__ -> new NodeException());
+		assertEquals(5050, sum);
 	}
 
 	@Test @DisplayName("MapTests.testNullValues() == 100L")
@@ -111,16 +105,10 @@ class Collections extends HotmokaTest {
 		assertEquals(4950, sum.getValue());
 	}
 
-	@Test @DisplayName("IntMapTests.testUpdate1() == 5050")
-	void geometricSumAfterUpdateIntKeys() throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
-		var sum = (IntValue) runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(INT_MAP_TESTS, "testUpdate1", INT));
-		assertEquals(5050, sum.getValue());
-	}
-
 	@Test @DisplayName("IntMapTests.testUpdate2() == 5050")
 	void geometricSumAfterUpdateIntKeysWithStream() throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
-		var sum = (IntValue) runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(INT_MAP_TESTS, "testUpdate2", INT));
-		assertEquals(5050, sum.getValue());
+		var sum = runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(INT_MAP_TESTS, "testUpdate2", INT)).asInt(__ -> new NodeException());
+		assertEquals(5050, sum);
 	}
 
 	@Test @DisplayName("IntMapTests.testNullValues() == 100L()")
