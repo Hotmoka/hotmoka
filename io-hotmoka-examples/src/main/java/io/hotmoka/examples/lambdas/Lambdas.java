@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.examples.lambdas;
 
 import java.math.BigInteger;
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -147,7 +146,7 @@ public class Lambdas extends ExternallyOwnedAccount {
 	public int whiteListChecks(Object o1, Object o2, Object o3) {
 		WrappedString ws = new WrappedString();
 		Stream.of(o1, o2, o3)
-			.map(Objects::toString) // the parameter of this lambda must be checked at run time
+			.map(String::valueOf) // the parameter of this lambda must be checked at run time
 			.forEachOrdered(s -> ws.s += s);
 
 		return ws.s.length();

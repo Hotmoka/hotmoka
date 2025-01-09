@@ -19,12 +19,11 @@ package io.hotmoka.examples.basic;
 import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
-import io.takamaka.code.util.StorageList;
 import io.takamaka.code.util.StorageLinkedList;
 
 @Exported
 public class WithList extends Storage {
-	private final StorageList<Object> list = new StorageLinkedList<>();
+	private final StorageLinkedList<Object> list = new StorageLinkedList<>();
 
 	public WithList() {
 		list.add("hello");

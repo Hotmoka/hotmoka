@@ -39,8 +39,8 @@ public class HasDeterministicTerminatingToStringCheck implements WhiteListingPre
 	private static boolean toStringIsDeterministicAndTerminating(Class<?> clazz, WhiteListingWizard wizard) {
 		Optional<Method> toString = getToStringFor(clazz);
 		return toString.isPresent() &&
-				(isInWhiteListingDatabaseWithoutProofObligations(toString.get(), wizard)
-						|| toStringIsInObjectAndHashCodeIsDeterministicAndTerminating(toString.get(), clazz, wizard));
+				(isInWhiteListingDatabaseWithoutProofObligations(toString.get(), wizard));
+		//|| toStringIsInObjectAndHashCodeIsDeterministicAndTerminating(toString.get(), clazz, wizard));
 	}
 
 	private static boolean isInWhiteListingDatabaseWithoutProofObligations(Method method, WhiteListingWizard wizard) {
@@ -66,7 +66,7 @@ public class HasDeterministicTerminatingToStringCheck implements WhiteListingPre
 				.findFirst();
 	}
 
-	private static Optional<Method> getHashCodeFor(Class<?> clazz) {
+	/*private static Optional<Method> getHashCodeFor(Class<?> clazz) {
 		return Stream.of(clazz.getMethods())
 				.filter(method -> "hashCode".equals(method.getName())
 						&& !Modifier.isAbstract(method.getModifiers())
@@ -75,11 +75,11 @@ public class HasDeterministicTerminatingToStringCheck implements WhiteListingPre
 						&& method.getParameters().length == 0
 						&& method.getReturnType() == int.class)
 				.findFirst();
-	}
+	}*/
 
-	private static boolean toStringIsInObjectAndHashCodeIsDeterministicAndTerminating(Method toString, Class<?> clazz, WhiteListingWizard wizard) {
+	/*private static boolean toStringIsInObjectAndHashCodeIsDeterministicAndTerminating(Method toString, Class<?> clazz, WhiteListingWizard wizard) {
 		return toString.getDeclaringClass() == Object.class && getHashCodeFor(clazz).map(hashCode -> isInWhiteListingDatabaseWithoutProofObligations(hashCode, wizard)).orElse(false);
-	}
+	}*/
 
 	@Override
 	public String messageIfFailed(String methodName) {

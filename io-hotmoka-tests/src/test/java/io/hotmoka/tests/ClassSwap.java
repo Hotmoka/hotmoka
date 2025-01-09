@@ -21,10 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.InvalidKeyException;
 import java.security.PrivateKey;
-import java.security.SignatureException;
-import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -33,10 +30,6 @@ import org.junit.jupiter.api.Test;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
-import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -85,7 +78,7 @@ class ClassSwap extends HotmokaTest {
 	}
 
 	@Test @DisplayName("c13 new/get works in its classpath")
-	void testC13() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void testC13() throws Exception {
 		StorageReference c13 = addConstructorCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC13, CONSTRUCTOR_C);
 		var get = (IntValue) addInstanceNonVoidMethodCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC13, GET, c13);
 
@@ -93,7 +86,7 @@ class ClassSwap extends HotmokaTest {
 	}
 
 	@Test @DisplayName("c17 new/get works in its classpath")
-	void testC17() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void testC17() throws Exception {
 		StorageReference c17 = addConstructorCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC17, CONSTRUCTOR_C);
 		var get = (IntValue) addInstanceNonVoidMethodCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC17, GET, c17);
 
@@ -101,7 +94,7 @@ class ClassSwap extends HotmokaTest {
 	}
 
 	@Test @DisplayName("c13 new/get fails if classpath changed")
-	void testC13SwapC17() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, TimeoutException, InterruptedException, TransactionException, CodeExecutionException, TransactionRejectedException, NodeException {
+	void testC13SwapC17() throws Exception {
 		StorageReference c13 = addConstructorCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC13, CONSTRUCTOR_C);
 
 		// the following call should fail since c13 was created from another jar

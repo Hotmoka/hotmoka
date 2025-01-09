@@ -25,7 +25,6 @@ import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.util.NoSuchElementException;
 import java.util.Random;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -88,7 +87,7 @@ public class Bombing extends HotmokaTest {
 
 	@Test
 	@DisplayName(NUMBER_OF_TRANSFERS + " random transfers between accounts")
-	void randomTransfers() throws InterruptedException, TransactionException, CodeExecutionException, TransactionRejectedException, ExecutionException, NoSuchElementException, NodeException, TimeoutException {
+	void randomTransfers() throws Exception {
 		long start = System.currentTimeMillis();
 		var customThreadPool = new ForkJoinPool(NUMBER_OF_ACCOUNTS);
 		customThreadPool.submit(() -> IntStream.range(0, NUMBER_OF_ACCOUNTS).parallel().forEach(this::run)).get();
