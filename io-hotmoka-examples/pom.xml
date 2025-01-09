@@ -96,18 +96,6 @@
             </configuration>
           </execution>
 
-		  <execution><id>interfaceoverridesobject1</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>interfaceoverridesobject1</classifier>
-              <includes><include>io/hotmoka/examples/interfaceoverridesobject1/**</include></includes>
-            </configuration>
-          </execution>
-
-		  <execution><id>interfaceoverridesobject2</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>interfaceoverridesobject2</classifier>
-              <includes><include>io/hotmoka/examples/interfaceoverridesobject2/**</include></includes>
-            </configuration>
-          </execution>
-
 		  <execution><id>methodonthis</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>methodonthis</classifier>
               <includes><include>io/hotmoka/examples/methodonthis/**</include></includes>

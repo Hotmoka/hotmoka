@@ -18,6 +18,8 @@ package io.hotmoka.examples.errors.exceptions;
 
 import java.util.Optional;
 
+import io.takamaka.code.lang.ExternallyOwnedAccount;
+
 public class C {
 
 	public static void foo1() {
@@ -25,8 +27,8 @@ public class C {
 		Optional.of(null);
 	}
 
-	public static void foo2(Object o) {
+	public static void foo2(ExternallyOwnedAccount o) {
 		// the following goes into an exception if o is null, but inside the Takamaka code
-		o.hashCode();
+		o.balance();
 	}
 }

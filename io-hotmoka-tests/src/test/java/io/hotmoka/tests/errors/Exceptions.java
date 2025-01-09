@@ -18,12 +18,7 @@ package io.hotmoka.tests.errors;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.IOException;
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
-import java.security.SignatureException;
-import java.util.NoSuchElementException;
-import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -32,9 +27,7 @@ import org.junit.jupiter.api.Test;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.tests.HotmokaTest;
 
@@ -46,12 +39,12 @@ class Exceptions extends HotmokaTest {
 	}
 
 	@Test @DisplayName("install jar")
-	void installJar() throws TransactionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
+	void installJar() throws Exception {
 		addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("exceptions.jar"), takamakaCode());
 	}
 
 	@Test @DisplayName("install jar then calls foo1() and fails without program line")
-	void callFoo1() throws TransactionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
+	void callFoo1() throws Exception {
 		TransactionReference exceptions = addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("exceptions.jar"), takamakaCode());
 
 		try {
@@ -60,21 +53,21 @@ class Exceptions extends HotmokaTest {
 		catch (Exception e) {
 			assertTrue(e instanceof TransactionException);
 			assertTrue(e.getMessage().startsWith(NullPointerException.class.getName()));
-			assertTrue(e.getMessage().endsWith("@C.java:25"));
+			assertTrue(e.getMessage().endsWith("@C.java:27"));
 		}
 	}
 
 	@Test @DisplayName("install jar then calls foo2() and fails without program line")
-	void callFoo2() throws TransactionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
+	void callFoo2() throws Exception {
 		TransactionReference exceptions = addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("exceptions.jar"), takamakaCode());
 
 		try {
-			addStaticVoidMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, exceptions, MethodSignatures.ofVoid("io.hotmoka.examples.errors.exceptions.C", "foo2", StorageTypes.OBJECT), StorageValues.NULL);
+			addStaticVoidMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, exceptions, MethodSignatures.ofVoid("io.hotmoka.examples.errors.exceptions.C", "foo2", StorageTypes.EOA), StorageValues.NULL);
 		}
 		catch (Exception e) {
 			assertTrue(e instanceof TransactionException);
 			assertTrue(e.getMessage().startsWith(NullPointerException.class.getName()));
-			assertTrue(e.getMessage().endsWith("@C.java:30"));
+			assertTrue(e.getMessage().endsWith("@C.java:32"));
 		}
 	}
 }

@@ -130,7 +130,7 @@ public class TicTacToe extends Contract {
 	}
 
 	private boolean isDraw() {
-		return rangeClosed(0, 8).mapToObj(board::get).noneMatch(EMPTY::equals);
+		return rangeClosed(0, 8).mapToObj(board::get).noneMatch(tile -> tile == EMPTY);
 	}
 
 	@Override

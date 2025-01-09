@@ -103,14 +103,14 @@ class Basic extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new InternationalTime(13,25,40).toString().equals(\"13:25:40\")")
-	void testToStringInternationTime() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void testToStringInternationTime() throws Exception {
 		StorageReference internationalTime = addConstructorCallTransaction
 			(key, master, _200_000, ONE, classpath, CONSTRUCTOR_INTERNATIONAL_TIME, StorageValues.intOf(13), StorageValues.intOf(25), StorageValues.intOf(40));
 		assertEquals(StorageValues.stringOf("13:25:40"), runInstanceNonVoidMethodCallTransaction(master, _200_000, classpath, TIME_TO_STRING, internationalTime));
 	}
 
 	@Test @DisplayName("new Wrapper(new InternationalTime(13,25,40)).toString().equals(\"wrapper(13:25:40,null,null,0)\")")
-	void testToStringWrapperInternationTime1() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void testToStringWrapperInternationTime1() throws Exception {
 		StorageReference internationalTime = addConstructorCallTransaction
 			(key, master, _200_000, ONE, classpath, CONSTRUCTOR_INTERNATIONAL_TIME,
 			StorageValues.intOf(13), StorageValues.intOf(25), StorageValues.intOf(40));
@@ -120,7 +120,7 @@ class Basic extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new Wrapper(new InternationalTime(13,25,40),\"hello\",13011973,12345L).toString().equals(\"wrapper(13:25:40,hello,13011973,12345)\")")
-	void testToStringWrapperInternationTime2() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void testToStringWrapperInternationTime2() throws Exception {
 		StorageReference internationalTime = addConstructorCallTransaction
 			(key, master, _200_000, ONE, classpath, CONSTRUCTOR_INTERNATIONAL_TIME,
 			StorageValues.intOf(13), StorageValues.intOf(25), StorageValues.intOf(40));
@@ -132,12 +132,12 @@ class Basic extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new Sub(1973)")
-	void callPayableConstructor() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void callPayableConstructor() throws Exception {
 		addConstructorCallTransaction(key, master, _200_000, ONE, classpath, ConstructorSignatures.of("io.hotmoka.examples.basic.Sub", INT), StorageValues.intOf(1973));
 	}
 
 	@Test @DisplayName("new Sub().m1() succeeds in calling an entry from same contract")
-	void callEntryFromSameContract() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void callEntryFromSameContract() throws Exception {
 		StorageReference sub = addConstructorCallTransaction
 			(key, master, _50_000, ONE, classpath, ConstructorSignatures.of("io.hotmoka.examples.basic.Sub"));
 
@@ -145,7 +145,7 @@ class Basic extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new Sub().ms() throws TransactionException since NoSuchMethodException")
-	void callStaticAsInstance() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void callStaticAsInstance() throws Exception {
 		StorageReference sub = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, ConstructorSignatures.of("io.hotmoka.examples.basic.Sub"));
 
 		throwsTransactionExceptionWithCause(NoSuchMethodException.class, () ->
@@ -154,7 +154,7 @@ class Basic extends HotmokaTest {
 	}
 
 	@Test @DisplayName("Sub.ms()")
-	void callStaticAsStatic() throws CodeExecutionException, TransactionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
+	void callStaticAsStatic() throws Exception {
 		runStaticVoidMethodCallTransaction(master, _200_000, classpath, SUB_MS);
 	}
 

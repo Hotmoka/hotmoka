@@ -35,24 +35,6 @@ public class Pair<U, V> extends Storage {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-
-        Pair<?, ?> pair = (Pair<?, ?>) o;
-        if (!first.equals(pair.first))
-            return false;
-        return second.equals(pair.second);
-    }
-
-    @Override
-    public @View int hashCode() {
-        return first.hashCode() ^ second.hashCode();
-    }
-
-    @Override
     public @View String toString() {
         return "(" + first + ", " + second + ")";
     }

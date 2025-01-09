@@ -17,9 +17,6 @@ limitations under the License.
 package io.hotmoka.tests;
 
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
-import java.security.SignatureException;
-import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,10 +25,6 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.StorageTypes;
-import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
 
 /**
  * A test for the memory allocation bytecodes.
@@ -49,7 +42,7 @@ class Allocations extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new Allocations()")
-	void createAllocations() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void createAllocations() throws Exception {
 		addConstructorCallTransaction(privateKey(0), account(0), _10_000_000, BigInteger.ONE, jar(), ConstructorSignatures.of(StorageTypes.classNamed("io.hotmoka.examples.allocations.Allocations")));
 	}
 }
