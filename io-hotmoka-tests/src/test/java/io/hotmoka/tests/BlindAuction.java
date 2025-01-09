@@ -24,14 +24,11 @@ import static java.lang.Thread.sleep;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
 import java.security.MessageDigest;
-import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -43,11 +40,7 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.ConstructorFuture;
-import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.signatures.VoidMethodSignature;
@@ -129,7 +122,7 @@ class BlindAuction extends HotmokaTest {
 	}
 
 	@Test @DisplayName("three players put bids before end of bidding time")
-	void bids() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void bids() throws Exception {
 		ConstructorFuture auction = postConstructorCallTransaction
 			(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_BLIND_AUCTION, StorageValues.intOf(BIDDING_TIME), StorageValues.intOf(REVEAL_TIME));
 
@@ -148,7 +141,7 @@ class BlindAuction extends HotmokaTest {
 	}
 
 	@Test @DisplayName("three players put bids but bidding time expires")
-	void biddingTimeExpires() throws TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, InterruptedException, TimeoutException {
+	void biddingTimeExpires() throws Exception {
 		ConstructorFuture auction = postConstructorCallTransaction
 			(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_BLIND_AUCTION, StorageValues.intOf(4000), StorageValues.intOf(REVEAL_TIME));
 
@@ -188,12 +181,12 @@ class BlindAuction extends HotmokaTest {
 			this.salt = salt;
 		}
 
-		private StorageReference intoStore() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+		private StorageReference intoStore() throws Exception {
 			return addConstructorCallTransaction
         		(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_REVEALED_BID, StorageValues.bigIntegerOf(value), StorageValues.booleanOf(fake), bytes32);
 		}
 
-		private void createBytes32() throws TransactionRejectedException, InvalidKeyException, SignatureException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+		private void createBytes32() throws Exception {
 			this.bytes32 = addConstructorCallTransaction
 				(privateKey(player), account(player), _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_BYTES32_SNAPSHOT,
 					byteOf(salt[0]), byteOf(salt[1]), byteOf(salt[2]), byteOf(salt[3]),
@@ -208,7 +201,7 @@ class BlindAuction extends HotmokaTest {
 	}
 
 	@Test @DisplayName("three players put bids before end of bidding time then reveal")
-	void bidsThenReveal() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void bidsThenReveal() throws Exception {
 		final long start = System.currentTimeMillis();
 		ConstructorFuture auction = postConstructorCallTransaction
 			(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_BLIND_AUCTION, StorageValues.intOf(BIDDING_TIME), StorageValues.intOf(REVEAL_TIME));
@@ -285,7 +278,7 @@ class BlindAuction extends HotmokaTest {
 		LOGGER.info("waking up");
 	}
 
-	private StorageReference codeAsBytes32(int player, BigInteger value, boolean fake, byte[] salt) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	private StorageReference codeAsBytes32(int player, BigInteger value, boolean fake, byte[] salt) throws Exception {
 		digest.reset();
 		digest.update(value.toByteArray());
 		digest.update(fake ? (byte) 0 : (byte) 1);
@@ -294,7 +287,7 @@ class BlindAuction extends HotmokaTest {
 		return createBytes32(player, hash);
 	}
 
-	private StorageReference createBytes32(int player, byte[] hash) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	private StorageReference createBytes32(int player, byte[] hash) throws Exception {
 		return addConstructorCallTransaction
 			(privateKey(player), account(player), _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_BYTES32_SNAPSHOT,
 				byteOf(hash[0]), byteOf(hash[1]), byteOf(hash[2]), byteOf(hash[3]),

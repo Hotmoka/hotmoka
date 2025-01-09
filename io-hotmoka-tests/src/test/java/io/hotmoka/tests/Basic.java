@@ -25,10 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
 import java.security.PrivateKey;
-import java.security.SignatureException;
-import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -42,7 +39,6 @@ import io.hotmoka.node.SideEffectsInViewMethodException;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
@@ -173,7 +169,7 @@ class Basic extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new Sub(1973) with gas but without enough coins to pay the @Entry")
-	void callerHasNotEnoughFundsForPayableEntry() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void callerHasNotEnoughFundsForPayableEntry() throws Exception {
 		addInstanceVoidMethodCallTransaction(key, master, _200_000, ONE, classpath, RECEIVE_INT, account(1), StorageValues.intOf(200000));
 
 		throwsTransactionExceptionWithCause(Constants.INSUFFICIENT_FUNDS_ERROR_NAME, () ->
@@ -182,13 +178,13 @@ class Basic extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new Sub(1973) with gas and enough coins to pay the @Entry")
-	void callerHasEnoughFundsForPayableEntry() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void callerHasEnoughFundsForPayableEntry() throws Exception {
 		addInstanceVoidMethodCallTransaction(key, master, _200_000, ONE, classpath, RECEIVE_INT, account(1), StorageValues.intOf(200000));
 		addConstructorCallTransaction(privateKey(1), account(1), _100_000, ONE, classpath, ConstructorSignatures.of("io.hotmoka.examples.basic.Sub", INT), StorageValues.intOf(1973));
 	}
 
 	@Test @DisplayName("new Sub(1973).print(new InternationalTime(13,25,40))")
-	void callInstanceMethod() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void callInstanceMethod() throws Exception {
 		addInstanceVoidMethodCallTransaction(key, master, _200_000, ONE, classpath, RECEIVE_INT, account(1), StorageValues.intOf(200000));
 		StorageReference internationalTime = addConstructorCallTransaction
 			(key, master, _200_000, ONE, classpath, CONSTRUCTOR_INTERNATIONAL_TIME,
@@ -200,7 +196,7 @@ class Basic extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new Sub(1973).m4(13).equals(\"Sub.m4 receives 13 coins from an externally owned account with public balance\")")
-	void callPayableEntryWithInt() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void callPayableEntryWithInt() throws Exception {
 		addInstanceVoidMethodCallTransaction(key, master, _200_000, ONE, classpath, RECEIVE_INT, account(1), StorageValues.intOf(200000));
 		StorageReference sub = addConstructorCallTransaction
 			(privateKey(1), account(1), _100_000, ONE, classpath, ConstructorSignatures.of("io.hotmoka.examples.basic.Sub", INT), StorageValues.intOf(1973));
@@ -209,7 +205,7 @@ class Basic extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new Sub(1973).m4_1(13L).equals(\"Sub.m4_1 receives 13 coins from an externally owned account with public balance\")")
-	void callPayableEntryWithLong() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void callPayableEntryWithLong() throws Exception {
 		addInstanceVoidMethodCallTransaction(key, master, _200_000, ONE, classpath, RECEIVE_INT, account(1), StorageValues.intOf(2000000));
 		StorageReference sub = addConstructorCallTransaction
 			(privateKey(1), account(1), _200_000, ONE, classpath, ConstructorSignatures.of("io.hotmoka.examples.basic.Sub", INT), StorageValues.intOf(1973));
@@ -219,7 +215,7 @@ class Basic extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new Sub(1973).m4_2(BigInteger.valueOf(13)).equals(\"Sub.m4_2 receives 13 coins from an externally owned account with public balance\")")
-	void callPayableEntryWithBigInteger() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void callPayableEntryWithBigInteger() throws Exception {
 		addInstanceVoidMethodCallTransaction(key, master, _200_000, ONE, classpath, RECEIVE_INT, account(1), StorageValues.intOf(200000));
 		StorageReference sub = addConstructorCallTransaction(privateKey(1), account(1), _100_000, ONE, classpath, ConstructorSignatures.of("io.hotmoka.examples.basic.Sub", INT), StorageValues.intOf(1973));
 		assertEquals(StorageValues.stringOf("Sub.m4_2 receives 13 coins from an externally owned account"),
@@ -229,7 +225,7 @@ class Basic extends HotmokaTest {
 	}
 
 	@Test @DisplayName("a1 = new Alias(); a2 = new Alias(); a1.test(a1, a2)=false")
-	void aliasBetweenStorage1() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void aliasBetweenStorage1() throws Exception {
 		StorageReference a1 = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, CONSTRUCTOR_ALIAS);
 		StorageReference a2 = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, CONSTRUCTOR_ALIAS);
 		assertEquals(StorageValues.FALSE, runInstanceNonVoidMethodCallTransaction
@@ -237,14 +233,14 @@ class Basic extends HotmokaTest {
 	}
 
 	@Test @DisplayName("a1 = new Alias(); a1.test(a1, a1)=true")
-	void aliasBetweenStorage2() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void aliasBetweenStorage2() throws Exception {
 		StorageReference a1 = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, CONSTRUCTOR_ALIAS);
 		assertEquals(StorageValues.TRUE, runInstanceNonVoidMethodCallTransaction
 			(master, _50_000, classpath, MethodSignatures.ofNonVoid(ALIAS, "test", StorageTypes.BOOLEAN, ALIAS, ALIAS), a1, a1, a1));
 	}
 
 	@Test @DisplayName("a1 = new Alias(); s1 = \"hello\"; s2 = \"hello\"; a1.test(s1, s2)=false")
-	void aliasBetweenString() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void aliasBetweenString() throws Exception {
 		StorageReference a1 = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, CONSTRUCTOR_ALIAS);
 		StringValue s1 = StorageValues.stringOf("hello");
 		StringValue s2 = StorageValues.stringOf("hello");
@@ -253,7 +249,7 @@ class Basic extends HotmokaTest {
 	}
 
 	@Test @DisplayName("a1 = new Alias(); s1 = \"hello\"; a1.test(s1, s1)=false")
-	void aliasBetweenString2() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void aliasBetweenString2() throws Exception {
 		StorageReference a1 = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, CONSTRUCTOR_ALIAS);
 		StringValue s1 = StorageValues.stringOf("hello");
 		assertEquals(StorageValues.FALSE, runInstanceNonVoidMethodCallTransaction
@@ -261,7 +257,7 @@ class Basic extends HotmokaTest {
 	}
 
 	@Test @DisplayName("a1 = new Alias(); bi1 = BigInteger.valueOf(13L); bi2 = BigInteger.valueOf(13L); a1.test(bi1, bi2)=false")
-	void aliasBetweenBigInteger1() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void aliasBetweenBigInteger1() throws Exception {
 		StorageReference a1 = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, CONSTRUCTOR_ALIAS);
 		BigIntegerValue bi1 = StorageValues.bigIntegerOf(BigInteger.valueOf(13L));
 		BigIntegerValue bi2 = StorageValues.bigIntegerOf(BigInteger.valueOf(13L));
@@ -270,7 +266,7 @@ class Basic extends HotmokaTest {
 	}
 
 	@Test @DisplayName("a1 = new Alias(); bi1 = BigInteger.valueOf(13L); a1.test(bi1, bi2)=false")
-	void aliasBetweenBigInteger2() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void aliasBetweenBigInteger2() throws Exception {
 		StorageReference a1 = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, CONSTRUCTOR_ALIAS);
 		BigIntegerValue bi1 = StorageValues.bigIntegerOf(BigInteger.valueOf(13L));
 		assertEquals(StorageValues.FALSE, runInstanceNonVoidMethodCallTransaction
@@ -278,7 +274,7 @@ class Basic extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new Simple(13).foo1() throws TransactionException since SideEffectsInViewMethodException")
-	void viewMethodViolation1() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void viewMethodViolation1() throws Exception {
 		StorageReference s = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, ConstructorSignatures.of(SIMPLE, INT), StorageValues.intOf(13));
 
 		throwsTransactionExceptionWithCause(SideEffectsInViewMethodException.class, () ->
@@ -287,7 +283,7 @@ class Basic extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new Simple(13).foo2() throws TransactionException since SideEffectsInViewMethodException")
-	void viewMethodViolation2() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void viewMethodViolation2() throws Exception {
 		StorageReference s = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, ConstructorSignatures.of(SIMPLE, INT), StorageValues.intOf(13));
 
 		throwsTransactionExceptionWithCause(SideEffectsInViewMethodException.class, () ->
@@ -296,7 +292,7 @@ class Basic extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new Simple(13).foo3() == 13")
-	void viewMethodOk1() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void viewMethodOk1() throws Exception {
 		StorageReference s = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, ConstructorSignatures.of(SIMPLE, INT), StorageValues.intOf(13));
 
 		assertEquals(StorageValues.intOf(13),
@@ -304,7 +300,7 @@ class Basic extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new Simple(13).foo4() == 13")
-	void viewMethodOk2() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void viewMethodOk2() throws Exception {
 		StorageReference s = addConstructorCallTransaction
 			(key, master, _50_000, ONE, classpath, ConstructorSignatures.of(SIMPLE, StorageTypes.INT), StorageValues.intOf(13));
 
@@ -313,20 +309,20 @@ class Basic extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new Simple(13).foo5() == 13")
-	void viewMethodOk3() throws CodeExecutionException, TransactionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
+	void viewMethodOk3() throws Exception {
 		assertEquals(StorageValues.intOf(14),
 			runStaticNonVoidMethodCallTransaction(master, _50_000, classpath, MethodSignatures.ofNonVoid(SIMPLE, "foo5", INT)));
 	}
 
 	@Test @DisplayName("new WithList().toString().equals(\"[hello,how,are,you]\")")
-	void listCreation() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void listCreation() throws Exception {
 		StorageReference wl = addConstructorCallTransaction(key, master, _200_000, ONE, classpath, ConstructorSignatures.of(WITH_LIST));
 		assertEquals(StorageValues.stringOf("[hello,how,are,you]"),
 			runInstanceNonVoidMethodCallTransaction(master, _200_000, classpath, MethodSignatures.ofNonVoid(WITH_LIST, "toString", StorageTypes.STRING), wl));
 	}
 
 	@Test @DisplayName("new WithList().illegal() throws TransactionException since UpdatesExtractionException")
-	void updatesExtractionException() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void updatesExtractionException() throws Exception {
 		StorageReference wl = addConstructorCallTransaction(key, master, _200_000, ONE, classpath, ConstructorSignatures.of(WITH_LIST));
 		
 		throwsTransactionExceptionWithCause(UpdatesExtractionException.class, () ->
@@ -335,25 +331,25 @@ class Basic extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new FromContractFilter().foo1() called by an ExternallyOwnedAccount")
-	void fromContractFilterOk1() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void fromContractFilterOk1() throws Exception {
 		StorageReference ef = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, ConstructorSignatures.of(FROM_CONTRACT_FILTER));
 		runInstanceVoidMethodCallTransaction(master, _50_000, classpath, MethodSignatures.ofVoid(FROM_CONTRACT_FILTER, "foo1"), ef);
 	}
 
 	@Test @DisplayName("new FromContractFilter().foo2() called by an ExternallyOwnedAccount")
-	void fromContractFilterOk2() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void fromContractFilterOk2() throws Exception {
 		StorageReference ef = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, ConstructorSignatures.of(FROM_CONTRACT_FILTER));
 		runInstanceVoidMethodCallTransaction(master, _50_000, classpath, MethodSignatures.ofVoid(FROM_CONTRACT_FILTER, "foo2"), ef);
 	}
 
 	@Test @DisplayName("new FromContractFilter().foo3() called by an ExternallyOwnedAccount")
-	void fromContractFilterOk3() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void fromContractFilterOk3() throws Exception {
 		StorageReference ef = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, ConstructorSignatures.of(FROM_CONTRACT_FILTER));
 		runInstanceVoidMethodCallTransaction(master, _50_000, classpath, MethodSignatures.ofVoid(FROM_CONTRACT_FILTER, "foo3"), ef);
 	}
 
 	@Test @DisplayName("new FromContractFilter().foo4() called by an ExternallyOwnedAccount throws TransactionException since ClassCastException")
-	void fromContractFilterFails() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void fromContractFilterFails() throws Exception {
 		StorageReference ef = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, ConstructorSignatures.of(FROM_CONTRACT_FILTER));
 
 		throwsTransactionExceptionWithCause(ClassCastException.class, () ->
@@ -362,7 +358,7 @@ class Basic extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new FromContractFilter().foo5() throws CodeExecutionException since MyCheckedException")
-	void fromContractFilterFailsWithThrowsExceptions() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void fromContractFilterFailsWithThrowsExceptions() throws Exception {
 		StorageReference ef = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, ConstructorSignatures.of(FROM_CONTRACT_FILTER));
 
 		try {
@@ -377,7 +373,7 @@ class Basic extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new FromContractFilter().foo6() fails")
-	void fromContractFilterFailsWithoutThrowsExceptions() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void fromContractFilterFailsWithoutThrowsExceptions() throws Exception {
 		StorageReference ef = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, ConstructorSignatures.of(FROM_CONTRACT_FILTER));
 
 		Assertions.assertThrows(TransactionException.class, () ->
