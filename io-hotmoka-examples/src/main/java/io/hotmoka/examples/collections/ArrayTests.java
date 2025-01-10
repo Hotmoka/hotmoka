@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.examples.collections;
 
 import java.math.BigInteger;
-import java.util.Objects;
 import java.util.Random;
 
 import io.takamaka.code.lang.View;
@@ -42,7 +41,7 @@ public class ArrayTests {
 
 		WrappedInt wi = new WrappedInt();
 
-		array.stream().filter(Objects::nonNull).mapToInt(BigInteger::intValue).forEachOrdered(i -> wi.i += i);
+		array.stream().filter(bi -> bi != null).mapToInt(BigInteger::intValue).forEachOrdered(i -> wi.i += i);
 
 		return wi.i;
 	}
@@ -61,7 +60,7 @@ public class ArrayTests {
 		WrappedLong wl = new WrappedLong();
 
 		// 50 elements of the array should still be null
-		array.stream().filter(Objects::isNull).forEachOrdered(__ -> wl.l++);
+		array.stream().filter(bi -> bi == null).forEachOrdered(__ -> wl.l++);
 
 		return wl.l;
 	}
@@ -100,7 +99,7 @@ public class ArrayTests {
 
 		WrappedInt wi = new WrappedInt();
 
-		array.stream().filter(Objects::nonNull).mapToInt(BigInteger::intValue).forEachOrdered(i -> wi.i += i);
+		array.stream().filter(bi -> bi != null).mapToInt(BigInteger::intValue).forEachOrdered(i -> wi.i += i);
 
 		return wi.i;
 	}

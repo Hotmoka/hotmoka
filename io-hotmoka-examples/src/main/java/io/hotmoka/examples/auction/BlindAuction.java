@@ -23,7 +23,6 @@ import static io.takamaka.code.lang.Takamaka.require;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.function.Supplier;
 
 import io.takamaka.code.lang.Exported;
@@ -32,10 +31,10 @@ import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.util.Bytes32Snapshot;
+import io.takamaka.code.util.StorageLinkedList;
 import io.takamaka.code.util.StorageList;
 import io.takamaka.code.util.StorageMap;
 import io.takamaka.code.util.StorageTreeMap;
-import io.takamaka.code.util.StorageLinkedList;
 
 /**
  * A contract for a simple auction. This class is derived from the Solidity code shown at
@@ -84,7 +83,17 @@ public class BlindAuction extends Auction {
         	digest.update(revealed.value.toByteArray());
         	digest.update(revealed.fake ? (byte) 0 : (byte) 1);
         	digest.update(revealed.salt.toArray());
-        	return Arrays.equals(hash.toArray(), digest.digest());
+        	byte[] arr1 = hash.toArray();
+        	byte[] arr2 = digest.digest();
+
+        	if (arr1.length != arr2.length)
+        		return false;
+
+        	for (int pos = 0; pos < arr1.length; pos++)
+        		if (arr1[pos] != arr2[pos])
+        			return false;
+
+        	return true;
         }
 	}
 

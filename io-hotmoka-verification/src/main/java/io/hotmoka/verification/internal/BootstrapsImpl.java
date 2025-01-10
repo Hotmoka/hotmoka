@@ -187,11 +187,9 @@ public class BootstrapsImpl implements Bootstraps {
 	@Override
 	public Optional<? extends Executable> getTargetOf(BootstrapMethod bootstrap) throws ClassNotFoundException {
 		Constant constant = cpg.getConstant(bootstrap.getBootstrapMethodRef());
-		if (constant instanceof ConstantMethodHandle) {
-			ConstantMethodHandle mh = (ConstantMethodHandle) constant;
+		if (constant instanceof ConstantMethodHandle mh) {
 			Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
-			if (constant2 instanceof ConstantMethodref) {
-				ConstantMethodref mr = (ConstantMethodref) constant2;
+			if (constant2 instanceof ConstantMethodref mr) {
 				int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
 				String className = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
 				ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());

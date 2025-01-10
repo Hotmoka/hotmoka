@@ -20,7 +20,6 @@ import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
-import java.util.Objects;
 import java.util.stream.IntStream;
 
 import io.takamaka.code.lang.View;
@@ -74,7 +73,7 @@ public class MapTests {
 
 		WrappedLong wl = new WrappedLong();
 
-		map.stream().map(Entry::getValue).filter(Objects::isNull).forEachOrdered(__ -> wl.l++);
+		map.stream().map(Entry::getValue).filter(bi -> bi == null).forEachOrdered(__ -> wl.l++);
 
 		return wl.l;
 	}

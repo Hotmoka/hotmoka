@@ -23,14 +23,11 @@ public abstract class BigInteger {
 	public static java.math.BigInteger ZERO;
 
 	public BigInteger(java.lang.String val) {}
-	public BigInteger(java.lang.String val, int radix) {}
 
 	public abstract int signum();
 	public abstract java.math.BigInteger valueOf(long val);
 	public abstract boolean equals(java.lang.Object other);
-	public abstract int hashCode();
 	public abstract java.lang.String toString();
-	public abstract java.lang.String toString(int radix);
 	public abstract byte[] toByteArray();
 	public abstract int compareTo(java.math.BigInteger other);
 	public abstract java.math.BigInteger add(java.math.BigInteger val);

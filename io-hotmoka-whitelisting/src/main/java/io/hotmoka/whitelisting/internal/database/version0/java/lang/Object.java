@@ -21,5 +21,5 @@ import io.hotmoka.whitelisting.HasDeterministicTerminatingToString;
 public abstract class Object {
 	public Object() {}
 	//public abstract java.lang.Class<?> getClass(); // this needs a special treatment in the code since it's final in Object
-	//public abstract @HasDeterministicTerminatingToString java.lang.String toString();
+	public abstract @HasDeterministicTerminatingToString java.lang.String toString();
 }

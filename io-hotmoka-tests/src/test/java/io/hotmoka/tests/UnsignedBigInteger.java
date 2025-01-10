@@ -24,7 +24,6 @@ import static io.hotmoka.node.StorageTypes.INT;
 import static io.hotmoka.node.StorageTypes.LONG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
@@ -63,7 +62,6 @@ class UnsignedBigInteger extends HotmokaTest {
     private static final ClassType UBI = StorageTypes.UNSIGNED_BIG_INTEGER;
     private static final ConstructorSignature CONSTRUCTOR_UBI_BI = ConstructorSignatures.of(UBI, StorageTypes.BIG_INTEGER);
     private static final ConstructorSignature CONSTRUCTOR_UBI_STR = ConstructorSignatures.of(UBI, StorageTypes.STRING);
-    private static final ConstructorSignature CONSTRUCTOR_UBI_STR_INT = ConstructorSignatures.of(UBI, StorageTypes.STRING, INT);
 
     /**
      * The classpath of the classes being tested.
@@ -98,9 +96,6 @@ class UnsignedBigInteger extends HotmokaTest {
 
         // UnsignedBigInteger( String=10 )
         addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("10"));
-
-        // UnsignedBigInteger( String=20, int radix=10 )
-        addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR_INT, StorageValues.stringOf("20"), StorageValues.intOf(10));
 
         // UnsignedBigInteger( BigInteger=-10 ) --> Exception
         throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
@@ -417,37 +412,6 @@ class UnsignedBigInteger extends HotmokaTest {
         assertTrue(result_equals2.getValue());
     }
 
-    @Test @DisplayName("Test of hashCode method: 800.hashCode == 800.hashCode(), 800.hashCode != 799.hashCode()")
-    void hashCodeTest() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
-        StorageReference ubi_800 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("800"));
-        StorageReference ubi_799 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("799"));
-        StorageReference ubi__800 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("800"));
-
-        var hashcode_ubi1 = (IntValue) runInstanceNonVoidMethodCallTransaction(
-                creator,
-                _100_000, classpath,
-                MethodSignatures.ofNonVoid(UBI, "hashCode", INT),
-                ubi_800);
-        // 800.hashCode()
-
-        var hashcode_ubi2 = (IntValue) runInstanceNonVoidMethodCallTransaction(
-                creator,
-                _100_000, classpath,
-                MethodSignatures.ofNonVoid(UBI, "hashCode", INT),
-                ubi_799);
-        // 799.hashCode()
-
-        var hashcode_ubi3 = (IntValue) runInstanceNonVoidMethodCallTransaction(
-                creator,
-                _100_000, classpath,
-                MethodSignatures.ofNonVoid(UBI, "hashCode", INT),
-                ubi__800);
-        // 800'.hashCode()
-
-        assertEquals(hashcode_ubi1.getValue(), hashcode_ubi3.getValue()); // 800.hashCode == 800'.hashCode()
-        assertNotEquals(hashcode_ubi1.getValue(), hashcode_ubi2.getValue()); // 800.hashCode != 799.hashCode()
-    }
-
     @Test @DisplayName("Test of toBigInteger method: 1001.toBigInteger() == BigInteger@1001")
     void toBigIntegerTest() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
         StorageReference ubi_1001 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("1001"));
@@ -474,20 +438,6 @@ class UnsignedBigInteger extends HotmokaTest {
         // 1001.toString()
 
         assertEquals(string1.getValue(), "1001"); // 1001.toString() == '1001'
-    }
-
-    @Test @DisplayName("Test of toString method: 1001.toString(16) == '3e9'")
-    void toString2Test() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
-        StorageReference ubi_1001 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("1001"));
-
-        var string2 = (StringValue) runInstanceNonVoidMethodCallTransaction(
-                creator,
-                _100_000, classpath,
-                MethodSignatures.ofNonVoid(UBI, "toString", StorageTypes.STRING, INT),
-                ubi_1001, StorageValues.intOf(16));
-        // 1001.toString(16)
-
-        assertEquals(string2.getValue(), "3e9"); // 1001.toString(16) == '3e9'
     }
 
     @Test @DisplayName("Test of valueOf method: long@99.valueOf().equals(99) == true")
