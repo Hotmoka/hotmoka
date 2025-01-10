@@ -579,7 +579,8 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		 * @throws ClassNotFoundException if some class cannot be found in the Takamaka program
 		 */
 		private void preProcess(MethodGen method) throws ClassNotFoundException {
-			new AddRuntimeChecksForWhiteListingProofObligations(this, method);
+			if (!verifiedClass.isDuringInitialization()) // TODO: and the class is annotated as @WhiteListedDuringInitialization
+				new AddRuntimeChecksForWhiteListingProofObligations(this, method);
 		}
 
 		/**

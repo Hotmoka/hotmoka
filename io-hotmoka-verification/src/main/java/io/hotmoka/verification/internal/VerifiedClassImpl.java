@@ -78,6 +78,11 @@ public class VerifiedClassImpl implements VerifiedClass {
 	public final Resolver resolver;
 
 	/**
+	 * True if and only if the class has been verified during the initialization of the node.
+	 */
+	private final boolean duringInitialization;
+
+	/**
 	 * Builds and verifies a class from the given class file.
 	 * 
 	 * @param clazz the parsed class file
@@ -98,9 +103,10 @@ public class VerifiedClassImpl implements VerifiedClass {
 		this.bootstraps = new BootstrapsImpl(this, methods);
 		this.pushers = new PushersImpl(this);
 		this.resolver = new Resolver(this);
+		this.duringInitialization = duringInitialization;
 
 		if (!skipsVerification)
-			new Verification(issueHandler, methods, duringInitialization, versionsManager);
+			new Verification(issueHandler, methods, versionsManager);
 	}
 
 	@Override
@@ -141,6 +147,10 @@ public class VerifiedClassImpl implements VerifiedClass {
 	@Override
 	public JavaClass toJavaClass() {
 		return clazz.getJavaClass();
+	}
+
+	public boolean isDuringInitialization() {
+		return duringInitialization;
 	}
 
 	/**
@@ -254,18 +264,17 @@ public class VerifiedClassImpl implements VerifiedClass {
 		 * Performs the static verification of this class.
 		 * 
 		 * @param issueHandler the handler to call when an issue is found
-		 * @param duringInitialization true if and only if verification is performed during the initialization of the node
 		 * @param versionsManager the manager of the versions of the verification module
 		 * @throws VerificationException if some verification error occurs
 		 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 		 */
-		private Verification(Consumer<AbstractErrorImpl> issueHandler, MethodGen[] methods, boolean duringInitialization, VersionsManager versionsManager) throws VerificationException, ClassNotFoundException {
+		private Verification(Consumer<AbstractErrorImpl> issueHandler, MethodGen[] methods, VersionsManager versionsManager) throws VerificationException, ClassNotFoundException {
 			this.issueHandler = issueHandler;
 			this.versionsManager = versionsManager;
 			ConstantPoolGen cpg = getConstantPool();
 			this.methods = methods;
 			this.lines = Stream.of(methods).collect(Collectors.toMap(method -> method, method -> method.getLineNumberTable(cpg)));
-			this.duringInitialization = duringInitialization;
+			this.duringInitialization = VerifiedClassImpl.this.duringInitialization;
 
 			applyAllChecksToTheClass();
 			applyAllChecksToTheMethodsOfTheClass();

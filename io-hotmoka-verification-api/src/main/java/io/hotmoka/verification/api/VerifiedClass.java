@@ -97,4 +97,11 @@ public interface VerifiedClass extends Comparable<VerifiedClass> {
 	 * @return the Java class
 	 */
 	JavaClass toJavaClass();
+
+	/**
+	 * Determines if this class has been verified during the initialization of the node.
+	 * 
+	 * @return true if and only if that condition holds
+	 */
+	boolean isDuringInitialization();
 }

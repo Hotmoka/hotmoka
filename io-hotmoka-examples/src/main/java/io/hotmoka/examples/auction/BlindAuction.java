@@ -21,7 +21,6 @@ import static io.takamaka.code.lang.Takamaka.now;
 import static io.takamaka.code.lang.Takamaka.require;
 
 import java.math.BigInteger;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.function.Supplier;
 
@@ -30,6 +29,7 @@ import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
+import io.takamaka.code.security.SHA256Digest;
 import io.takamaka.code.util.Bytes32Snapshot;
 import io.takamaka.code.util.StorageLinkedList;
 import io.takamaka.code.util.StorageList;
@@ -79,7 +79,7 @@ public class BlindAuction extends Auction {
          * @param digest the hasher
          * @return true if and only if the hashes match
          */
-        private boolean matches(RevealedBid revealed, MessageDigest digest) {
+        private boolean matches(RevealedBid revealed, SHA256Digest digest) {
         	digest.update(revealed.value.toByteArray());
         	digest.update(revealed.fake ? (byte) 0 : (byte) 1);
         	digest.update(revealed.salt.toArray());
@@ -194,7 +194,7 @@ public class BlindAuction extends Auction {
         require(revealed != null, () -> "The revealed bid cannot be null");
 
         // any other hashing algorithm will do, as long as both bidder and auction contract use the same
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        var digest = new SHA256Digest();
         // by removing the head of the list, it makes it impossible for the caller to re-claim the same deposits
         bidder.receive(refundFor(bidder, bids.removeFirst(), revealed, digest));
     }
@@ -222,7 +222,7 @@ public class BlindAuction extends Auction {
      * @param digest the hashing algorithm
      * @return the amount to refund
      */
-    private BigInteger refundFor(PayableContract bidder, Bid bid, RevealedBid revealed, MessageDigest digest) {
+    private BigInteger refundFor(PayableContract bidder, Bid bid, RevealedBid revealed, SHA256Digest digest) {
     	if (!bid.matches(revealed, digest))
     		// the bid was not actually revealed: no refund
     		return BigInteger.ZERO;
