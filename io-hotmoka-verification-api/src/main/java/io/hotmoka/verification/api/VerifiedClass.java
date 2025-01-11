@@ -104,4 +104,11 @@ public interface VerifiedClass extends Comparable<VerifiedClass> {
 	 * @return true if and only if that condition holds
 	 */
 	boolean isDuringInitialization();
+
+	/**
+	 * Determines if this class is annotated as white-listed during the initialization of the node.
+	 * 
+	 * @return true if and only if that condition holds
+	 */
+	boolean isWhiteListedDuringInitialization();
 }

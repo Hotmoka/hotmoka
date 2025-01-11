@@ -26,6 +26,15 @@ import org.apache.bcel.generic.Type;
 public interface Annotations {
 
 	/**
+	 * Determines if the given class is annotated as white listed during initialization.
+	 * 
+	 * @param className the name of the class
+	 * @return true if and only if that condition holds
+	 * @throws ClassNotFoundException if {@code className} cannot be found in the Takamaka program
+	 */
+	boolean isWhiteListedDuringInitialization(String className) throws SecurityException, ClassNotFoundException;
+
+	/**
 	 * Determines if the given constructor or method is annotated as payable.
 	 * 
 	 * @param className the class of the constructor or method

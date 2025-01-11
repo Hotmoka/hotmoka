@@ -63,6 +63,10 @@ public class AnnotationsImpl implements Annotations {
 			|| getAnnotation(className, methodName, expandFormals(formals), returnType, Constants.PAYABLE_NAME).isPresent();
 	}
 
+	public final boolean isWhiteListedDuringInitialization(String className) throws SecurityException, ClassNotFoundException {
+		return getAnnotationOfClass(className, Constants.WHITE_LISTED_DURING_INITIALIZATION_NAME).isPresent();
+	}
+
 	@Override
 	public final boolean isRedPayable(String className, String methodName, Type[] formals, Type returnType) throws SecurityException, ClassNotFoundException {
 		return getAnnotation(className, methodName, formals, returnType, Constants.RED_PAYABLE_NAME).isPresent()
@@ -153,6 +157,22 @@ public class AnnotationsImpl implements Annotations {
 				.flatMap(constructor -> Stream.of(constructor.getAnnotations()))
 				.filter(annotation -> annotation.annotationType().getName().equals(annotationName))
 				.findFirst();
+	}
+
+	private Optional<Annotation> getAnnotationOfClass(String className, String annotationName) throws ClassNotFoundException {
+		Class<?> clazz = jar.classLoader.loadClass(className);
+		Optional<Annotation> explicit = Stream.of(clazz.getAnnotations())
+				.filter(annotation -> annotation.annotationType().getName().equals(annotationName))
+				.findFirst();
+
+		if (explicit.isPresent())
+			return explicit;
+
+		Class<?> superclass;
+		if ((superclass = clazz.getSuperclass()) != null)
+			return getAnnotationOfClass(superclass.getName(), annotationName);
+
+		return Optional.empty();
 	}
 
 	private Optional<Annotation> getAnnotationOfMethod(String className, String methodName, Type[] formals, Type returnType, String annotationName) throws ClassNotFoundException {

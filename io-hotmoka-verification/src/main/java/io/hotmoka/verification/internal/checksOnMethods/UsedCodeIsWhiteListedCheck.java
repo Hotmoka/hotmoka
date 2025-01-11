@@ -47,7 +47,7 @@ public class UsedCodeIsWhiteListedCheck extends CheckOnMethods {
 	public UsedCodeIsWhiteListedCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws ClassNotFoundException {
 		super(builder, method);
 
-		if (!duringInitialization) // TODO: && is annotated as WhiteListedDuringInitialization
+		if (!duringInitialization || !annotations.isWhiteListedDuringInitialization(className))
 			check(ClassNotFoundException.class, () -> instructions().forEach(uncheck(ClassNotFoundException.class, this::checkSingleInstruction)));
 	}
 
