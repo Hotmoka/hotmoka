@@ -16,10 +16,7 @@ limitations under the License.
 
 package io.hotmoka.whitelisting.internal.database.version0.java.lang;
 
-import io.hotmoka.whitelisting.HasDeterministicTerminatingToString;
-
 public abstract class Object {
 	public Object() {}
 	//public abstract java.lang.Class<?> getClass(); // this needs a special treatment in the code since it's final in Object
-	public abstract @HasDeterministicTerminatingToString java.lang.String toString();
 }

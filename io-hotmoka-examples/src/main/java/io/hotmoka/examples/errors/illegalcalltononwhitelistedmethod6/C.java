@@ -16,8 +16,9 @@ limitations under the License.
 
 package io.hotmoka.examples.errors.illegalcalltononwhitelistedmethod6;
 
-import java.util.Objects;
 import java.util.stream.Stream;
+
+import io.takamaka.code.lang.StringSupport;
 
 public class C {
 
@@ -27,11 +28,11 @@ public class C {
 
 	private static String test(Object... args) {
 		Stream.of(args)
-			.map(Objects::toString) // this will be KO but only at run time
+			.map(arg -> StringSupport.concat(arg)) // this will be KO but only at run time
 			.forEachOrdered(s -> {});
 
 		Stream.of(args)
-			.map(Objects::toString) // this will be KO but only at run time
+			.map(arg -> StringSupport.concat(arg)) // this will be KO but only at run time
 			.forEachOrdered(s -> {});
 
 		return "done";

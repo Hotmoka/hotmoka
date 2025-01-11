@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.examples.basicdependency;
 
+import io.takamaka.code.lang.StringSupport;
 import io.takamaka.code.lang.View;
 
 public class InternationalTime extends Time {
@@ -33,8 +34,7 @@ public class InternationalTime extends Time {
 
 	@Override
 	public @View String toString() {
-		return twoDigits(secondsFromStartOfDay / 3600) + ':' + twoDigits((secondsFromStartOfDay / 60) % 60)
-			+ ':' + twoDigits(secondsFromStartOfDay % 60);
+		return StringSupport.concat(twoDigits(secondsFromStartOfDay / 3600), ':', twoDigits((secondsFromStartOfDay / 60) % 60), ':', twoDigits(secondsFromStartOfDay % 60));
 	}
 
 	@Override

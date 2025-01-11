@@ -18,6 +18,7 @@ package io.hotmoka.examples.basicdependency;
 
 import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.Storage;
+import io.takamaka.code.lang.StringSupport;
 import io.takamaka.code.lang.View;
 
 @Exported
@@ -36,7 +37,7 @@ public abstract class Time extends Storage implements Comparable<Time> {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof Time && ((Time) other).secondsFromStartOfDay == secondsFromStartOfDay;
+		return other instanceof Time time && time.secondsFromStartOfDay == secondsFromStartOfDay;
 	}
 
 	@Override
@@ -51,9 +52,9 @@ public abstract class Time extends Storage implements Comparable<Time> {
 
 	protected final String twoDigits(int i) {
 		if (i < 10)
-			return "0" + i;
+			return StringSupport.concat("0", i);
 		else
-			return String.valueOf(i);
+			return StringSupport.concat(i);
 	}
 
 	@Override @View

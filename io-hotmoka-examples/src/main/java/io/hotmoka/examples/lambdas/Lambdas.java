@@ -24,6 +24,7 @@ import io.takamaka.code.lang.ExternallyOwnedAccount;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
+import io.takamaka.code.lang.StringSupport;
 import io.takamaka.code.util.StorageLinkedList;
 import io.takamaka.code.util.StorageList;
 
@@ -146,13 +147,12 @@ public class Lambdas extends ExternallyOwnedAccount {
 	public int whiteListChecks(Object o1, Object o2, Object o3) {
 		WrappedString ws = new WrappedString();
 		Stream.of(o1, o2, o3)
-			.map(String::valueOf) // the parameter of this lambda must be checked at run time
-			.forEachOrdered(s -> ws.s += s);
+			.forEachOrdered(s -> ws.s = StringSupport.concat(ws.s, s));
 
 		return ws.s.length();
 	}
 
 	public String concatenation(String s1, Object s2, Lambdas s3, long s4, int s5) {
-		return s1 + s2 + s3 + s4 + s5; // this generates (from Java 8) optimized code with invokedynamic
+		return StringSupport.concat(s1, s2, s3, s4, s5); // this generates (from Java 8) optimized code with invokedynamic
 	}
 }

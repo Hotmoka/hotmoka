@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.examples.basicdependency;
 
 import io.takamaka.code.lang.Storage;
+import io.takamaka.code.lang.StringSupport;
 import io.takamaka.code.lang.View;
 
 public class AmericanTime extends Time {
@@ -73,8 +74,7 @@ public class AmericanTime extends Time {
 		else if (hours > 12)
 			hours -= 12;
 
-		return twoDigits(hours) + ':' + twoDigits((secondsFromStartOfDay / 60) % 60)
-			+ ':' + twoDigits(secondsFromStartOfDay % 60) + period;
+		return StringSupport.concat(twoDigits(hours), ':', twoDigits((secondsFromStartOfDay / 60) % 60), ':', twoDigits(secondsFromStartOfDay % 60), period);
 	}
 
 	@Override

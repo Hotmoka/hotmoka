@@ -16,9 +16,6 @@ limitations under the License.
 
 package io.hotmoka.whitelisting.internal.database.version0.java.util;
 
-import io.hotmoka.whitelisting.HasDeterministicTerminatingToString;
-
 public interface Objects {
 	<T> T requireNonNull(T obj);
-	java.lang.String toString(@HasDeterministicTerminatingToString java.lang.Object o);
 }

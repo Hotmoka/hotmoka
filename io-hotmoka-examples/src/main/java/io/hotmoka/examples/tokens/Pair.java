@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.examples.tokens;
 
 import io.takamaka.code.lang.Storage;
+import io.takamaka.code.lang.StringSupport;
 import io.takamaka.code.lang.View;
 
 /**
@@ -36,7 +37,7 @@ public class Pair<U, V> extends Storage {
 
     @Override
     public @View String toString() {
-        return "(" + first + ", " + second + ")";
+        return StringSupport.concat("(", first, ", ", second, ")");
     }
 
     public static <U, V> Pair <U, V> of(U a, V b) {

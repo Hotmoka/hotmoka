@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.examples.errors.illegaltypeforstoragefield4;
 
 import io.takamaka.code.lang.Storage;
+import io.takamaka.code.lang.StringSupport;
 
 public class C extends Storage {
 	// the content of this field will be checked at run time, to verify that it is a storage value
@@ -28,6 +29,6 @@ public class C extends Storage {
 
 	@Override
 	public String toString() {
-		return String.valueOf(f);
+		return StringSupport.concat(f);
 	}
 }

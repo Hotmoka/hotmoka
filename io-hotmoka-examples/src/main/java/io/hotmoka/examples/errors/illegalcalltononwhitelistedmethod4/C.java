@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.examples.errors.illegalcalltononwhitelistedmethod4;
 
+import io.takamaka.code.lang.StringSupport;
+
 public class C {
 
 	public static String foo() {
@@ -23,6 +25,6 @@ public class C {
 	}
 
 	private static String test(Object arg) {
-		return String.valueOf(arg); // KO at run time, since it calls toString() on Object
+		return StringSupport.concat(arg); // KO at run time, since it calls toString() on Object
 	}
 }

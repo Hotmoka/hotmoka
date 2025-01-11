@@ -26,6 +26,7 @@ import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
+import io.takamaka.code.lang.StringSupport;
 import io.takamaka.code.lang.View;
 import io.takamaka.code.util.StorageTreeArray;
 
@@ -101,7 +102,7 @@ public class TicTacToe extends Contract {
 			if (circlePlayer == null) {
 				require(crossPlayer != player, "you cannot play against yourself");
 				long previousBet = balance().subtract(BigInteger.valueOf(amount)).longValue();
-				require(amount >= previousBet, () -> "you must bet at least " + previousBet + " coins");
+				require(amount >= previousBet, () -> StringSupport.concat("you must bet at least ", previousBet, " coins"));
 				circlePlayer = player;
 			}
 			else
@@ -135,6 +136,6 @@ public class TicTacToe extends Contract {
 
 	@Override
 	public @View String toString() {
-		return at(1, 1) + "|" + at(2, 1) + "|" + at(3, 1) + "\n-----\n" + at(1, 2) + "|" + at(2, 2) + "|" + at(3, 2) + "\n-----\n" + at(1, 3) + "|" + at(2, 3) + "|" + at(3, 3);
+		return StringSupport.concat(at(1, 1), "|", at(2, 1), "|", at(3, 1), "\n-----\n", at(1, 2), "|", at(2, 2), "|", at(3, 2), "\n-----\n", at(1, 3), "|", at(2, 3), "|", at(3, 3));
 	}
 }

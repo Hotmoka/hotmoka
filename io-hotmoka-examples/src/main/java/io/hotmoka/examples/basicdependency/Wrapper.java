@@ -19,6 +19,7 @@ package io.hotmoka.examples.basicdependency;
 import java.math.BigInteger;
 
 import io.takamaka.code.lang.Storage;
+import io.takamaka.code.lang.StringSupport;
 import io.takamaka.code.lang.View;
 
 public class Wrapper extends Storage {
@@ -40,6 +41,6 @@ public class Wrapper extends Storage {
 
 	@Override @View
 	public String toString() {
-		return "wrapper(" + time + "," + s + "," + bi + "," + l + ")";
+		return StringSupport.concat("wrapper(", time, ",", s, ",", bi, ",", l, ")");
 	}
 }

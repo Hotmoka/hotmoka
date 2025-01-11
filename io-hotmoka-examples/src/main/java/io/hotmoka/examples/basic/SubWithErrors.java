@@ -20,6 +20,7 @@ import java.math.BigInteger;
 
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
+import io.takamaka.code.lang.StringSupport;
 
 public class SubWithErrors extends Super {
 
@@ -51,17 +52,17 @@ public class SubWithErrors extends Super {
 
 	@Override @Payable @FromContract
 	public String m4(int amount) {
-		return "Sub.m4 receives " + amount + " coins from " + caller();
+		return StringSupport.concat("Sub.m4 receives ", amount, " coins from ", caller());
 	}
 
 	@Override @Payable @FromContract
 	public String m4_1(long amount) {
-		return "Sub.m4_1 receives " + amount + " coins from " + caller();
+		return StringSupport.concat("Sub.m4_1 receives ", amount, " coins from ", caller());
 	}
 
 	@Override @Payable @FromContract
 	public String m4_2(BigInteger amount) {
-		return "Sub.m4_2 receives " + amount + " coins from " + caller();
+		return StringSupport.concat("Sub.m4_2 receives ", amount, " coins from ", caller());
 	}
 
 	public void m5() {

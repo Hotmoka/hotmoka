@@ -29,6 +29,7 @@ import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
+import io.takamaka.code.lang.StringSupport;
 import io.takamaka.code.security.SHA256Digest;
 import io.takamaka.code.util.Bytes32Snapshot;
 import io.takamaka.code.util.StorageLinkedList;
@@ -262,11 +263,11 @@ public class BlindAuction extends Auction {
 
     private static void onlyBefore(long when) {
     	long diff = now() - when;
-		require(diff <= 0, diff + " ms too late");
+		require(diff <= 0, StringSupport.concat(diff, " ms too late"));
 	}
 
 	private static void onlyAfter(long when) {
 		long diff = now() - when;
-		require(diff >= 0, -diff + " ms too early");
+		require(diff >= 0, StringSupport.concat(-diff, " ms too early"));
 	}
 }
