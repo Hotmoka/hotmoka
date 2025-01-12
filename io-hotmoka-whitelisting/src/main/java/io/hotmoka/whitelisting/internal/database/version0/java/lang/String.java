@@ -16,13 +16,13 @@ limitations under the License.
 
 package io.hotmoka.whitelisting.internal.database.version0.java.lang;
 
+/**
+ * White-listed methods of String. Other methods, with
+ * non-constant complexity, are inside {@link io.takamaka.code.lang.StringSupport}.
+ */
 public abstract class String {
-	public String(java.lang.String original) {}
-	public String(byte[] bytes, java.nio.charset.Charset charSet) {}
 	public abstract int length();
 	public abstract boolean isEmpty();
-	public abstract boolean equals(java.lang.Object other);
-	public abstract int compareTo(java.lang.String other);
 	public abstract java.lang.String toString();
 	public abstract java.lang.String valueOf(long l);
 	public abstract java.lang.String valueOf(int i);
@@ -32,13 +32,5 @@ public abstract class String {
 	public abstract java.lang.String valueOf(float f);
 	public abstract java.lang.String valueOf(boolean b);
 	public abstract java.lang.String valueOf(byte b);
-	public abstract java.lang.String concat(java.lang.String other);
-	public abstract boolean endsWith(java.lang.String suffix);
-	public abstract boolean startsWith(java.lang.String prefix);
-	public abstract java.lang.String toLowerCase();
-	public abstract java.lang.String toUpperCase();
-	public abstract int indexOf(int c);
-	public abstract java.lang.String substring(int begin, int end);
-	public abstract java.lang.String substring(int begin);
 	public abstract char charAt(int pos);
 }

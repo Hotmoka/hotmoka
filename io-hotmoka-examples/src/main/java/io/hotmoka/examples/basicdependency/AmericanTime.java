@@ -53,7 +53,7 @@ public class AmericanTime extends Time {
 		if (hours == 12)
 			hours = 0;
 
-		if (period.s.equals("AM"))
+		if (StringSupport.equals(period.s, "AM"))
 			return hours;
 		else
 			return hours + 12;

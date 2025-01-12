@@ -19,6 +19,7 @@ package io.hotmoka.examples.collections;
 import java.math.BigInteger;
 
 import io.takamaka.code.lang.Storage;
+import io.takamaka.code.lang.StringSupport;
 import io.takamaka.code.lang.View;
 import io.takamaka.code.util.StorageMap;
 import io.takamaka.code.util.StorageTreeMap;
@@ -44,7 +45,7 @@ public class MapHolder extends Storage {
 
 		@Override
 		public int compareTo(State other) {
-			return s.compareTo(other.s);
+			return StringSupport.compareTo(s, other.s);
 		}
 	}
 

@@ -20,7 +20,6 @@ limitations under the License.
  */
 module io.hotmoka.whitelisting {
 	exports io.hotmoka.whitelisting;
-	opens io.hotmoka.whitelisting.internal.checks; // its needs to be accessed by reflection
 
 	requires transitive io.hotmoka.whitelisting.api;
 	requires java.logging;

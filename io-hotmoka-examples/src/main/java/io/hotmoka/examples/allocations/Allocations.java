@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.examples.allocations;
 
 import io.takamaka.code.lang.Storage;
+import io.takamaka.code.lang.StringSupport;
 
 public class Allocations extends Storage {
 	public int f;
@@ -24,7 +25,7 @@ public class Allocations extends Storage {
 	public Allocations() {
 		this.f = 17;
 
-		new String("hello");
+		StringSupport.clone("hello");
 		new Allocations(13);
 		Allocations[] a1 = new Allocations[f];
 		int[] a2 = new int[f];
