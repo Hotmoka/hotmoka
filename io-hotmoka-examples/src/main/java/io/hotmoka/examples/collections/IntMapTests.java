@@ -22,6 +22,7 @@ import java.math.BigInteger;
 import java.util.stream.IntStream;
 
 import io.takamaka.code.lang.View;
+import io.takamaka.code.math.BigIntegerSupport;
 import io.takamaka.code.util.StorageIntMap;
 import io.takamaka.code.util.StorageTreeIntMap;
 import io.takamaka.code.util.StorageIntMapView.Entry;
@@ -56,13 +57,13 @@ public class IntMapTests {
 			map.put(key, BigInteger.valueOf(key));
 
 		// we add one to the value bound to each key
-		map.keys().forEachOrdered(key -> map.update(key, ONE::add));
+		map.keys().forEachOrdered(key -> map.update(key, bi -> BigIntegerSupport.add(bi, ONE)));
 
 		return sum(map.stream().map(Entry::getValue).mapToInt(BigInteger::intValue));
 	}
 
 	public static @View long testNullValues() {
-		StorageIntMap<BigInteger> map = new StorageTreeIntMap<>();
+		var map = new StorageTreeIntMap<BigInteger>();
 		for (int key = 0; key < 100; key++)
 			map.put(key, null);
 
@@ -70,7 +71,7 @@ public class IntMapTests {
 			int l;
 		}
 
-		WrappedLong wl = new WrappedLong();
+		var wl = new WrappedLong();
 
 		map.stream().map(Entry::getValue).filter(value -> value == null).forEachOrdered(_l -> wl.l++);
 

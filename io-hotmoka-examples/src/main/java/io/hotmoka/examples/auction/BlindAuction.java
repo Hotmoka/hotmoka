@@ -231,7 +231,7 @@ public class BlindAuction extends Auction {
     	else if (!revealed.fake && BigIntegerSupport.compareTo(bid.deposit, revealed.value) >= 0 && placeBid(bidder, revealed.value))
     		// the bid was correctly revealed and is the best up to now: only the difference between promised and provided is refunded;
     		// the rest might be refunded later if a better bid will be revealed
-    		return bid.deposit.subtract(revealed.value);
+    		return BigIntegerSupport.subtract(bid.deposit, revealed.value);
     	else
     		// the bid was correctly revealed and is not the best one: it is fully refunded
     		return bid.deposit;

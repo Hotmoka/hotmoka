@@ -24,8 +24,4 @@ public abstract class BigInteger {
 
 	public abstract int signum();
 	public abstract java.math.BigInteger valueOf(long val);
-	public abstract java.math.BigInteger add(java.math.BigInteger val);
-	public abstract java.math.BigInteger subtract(java.math.BigInteger val);
-	public abstract java.math.BigInteger multiply(java.math.BigInteger val);
-	public abstract java.math.BigInteger divide(java.math.BigInteger val);
 }

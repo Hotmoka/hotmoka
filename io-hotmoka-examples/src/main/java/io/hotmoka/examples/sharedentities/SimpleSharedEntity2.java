@@ -206,14 +206,14 @@ public class SimpleSharedEntity2<S extends PayableContract, O extends SharedEnti
 		return offers.stream()
 			.filter(offer -> offer.seller == shareholder && offer.isOngoing())
 			.map(offer -> offer.sharesOnSale)
-			.reduce(ZERO, BigInteger::add);
+			.reduce(ZERO, BigIntegerSupport::add);
 	}
 
     @Override
 	public @FromContract(PayableContract.class) @Payable void place(BigInteger amount, O offer) {
 		require(offer.seller == caller(), "only the seller can place its own offer");
 		require(shares.containsKey(offer.seller), "the seller is not a shareholder");
-		require(BigIntegerSupport.compareTo(sharesOf(offer.seller).subtract(sharesOnSaleOf(offer.seller)), offer.sharesOnSale) >= 0, "the seller has not enough shares to sell");
+		require(BigIntegerSupport.compareTo(BigIntegerSupport.subtract(sharesOf(offer.seller), sharesOnSaleOf(offer.seller)), offer.sharesOnSale) >= 0, "the seller has not enough shares to sell");
 		cleanUpOffers(null);
 		offers.add(offer);
 		snapshotOfOffers = offers.snapshot();
@@ -252,11 +252,11 @@ public class SimpleSharedEntity2<S extends PayableContract, O extends SharedEnti
 				event(new ShareholderAdded<>(shareholder));
 				return ZERO;
 			},
-			added::add);
+			bi -> BigIntegerSupport.add(bi, added));
 	}
 
 	private void removeShares(S shareholder, BigInteger removed) {
-		shares.update(shareholder, shares -> shares.subtract(removed));
+		shares.update(shareholder, shares -> BigIntegerSupport.subtract(shares, removed));
 		if (shares.get(shareholder).signum() == 0) {
 			shares.remove(shareholder);
 			event(new ShareholderRemoved<>(shareholder));

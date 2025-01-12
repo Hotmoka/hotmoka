@@ -57,15 +57,15 @@ public class SimplePyramidWithBalance extends Contract {
 
 	public @Payable @FromContract(PayableContract.class) void invest(BigInteger amount) {
 		require(BigIntegerSupport.compareTo(amount, MINIMUM_INVESTMENT) >= 0, () -> StringSupport.concat("you must invest at least ", MINIMUM_INVESTMENT));
-		pyramidBalance = pyramidBalance.add(amount);
+		pyramidBalance = BigIntegerSupport.add(pyramidBalance, amount);
 		investors.add((PayableContract) caller());
 
 		if (investors.size() == previousLayerSize * 4 - 1) {
 			// pay out previous layer: note that currentLayer's size is even here
-			investors.stream().skip(previousLayerSize - 1).limit(previousLayerSize).forEachOrdered(investor -> balances.update(investor, ZERO, MINIMUM_INVESTMENT::add));
+			investors.stream().skip(previousLayerSize - 1).limit(previousLayerSize).forEachOrdered(investor -> balances.update(investor, ZERO, bi -> BigIntegerSupport.add(bi, MINIMUM_INVESTMENT)));
 			// spread remaining money among all participants
-			BigInteger eachInvestorGets = pyramidBalance.subtract(MINIMUM_INVESTMENT.multiply(BigInteger.valueOf(previousLayerSize))).divide(BigInteger.valueOf(investors.size()));
-			investors.forEach(investor -> balances.update(investor, ZERO, eachInvestorGets::add));
+			BigInteger eachInvestorGets = BigIntegerSupport.divide(BigIntegerSupport.subtract(pyramidBalance, BigIntegerSupport.multiply(MINIMUM_INVESTMENT, BigInteger.valueOf(previousLayerSize))), BigInteger.valueOf(investors.size()));
+			investors.forEach(investor -> balances.update(investor, ZERO, bi -> BigIntegerSupport.add(bi, eachInvestorGets)));
 			pyramidBalance = ZERO;
 			previousLayerSize *= 2;
 		}

@@ -23,6 +23,7 @@ import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.RedPayable;
+import io.takamaka.code.math.BigIntegerSupport;
 import io.takamaka.code.util.StorageLinkedList;
 import io.takamaka.code.util.StorageList;
 
@@ -41,7 +42,7 @@ public class Distributor extends Contract {
 	public @Payable @FromContract void distributeGreen(BigInteger amount) {
 		int size = payees.size();
 		if (size > 0) {
-			BigInteger eachGets = amount.divide(BigInteger.valueOf(size));
+			BigInteger eachGets = BigIntegerSupport.divide(amount, BigInteger.valueOf(size));
 			payees.forEach(payee -> payee.receive(eachGets));
 			owner.receive(balance());
 		}
@@ -50,7 +51,7 @@ public class Distributor extends Contract {
 	public @RedPayable @FromContract void distributeRed(BigInteger amount) {
 		int size = payees.size();
 		if (size > 0) {
-			BigInteger eachGets = amount.divide(BigInteger.valueOf(size));
+			BigInteger eachGets = BigIntegerSupport.divide(amount, BigInteger.valueOf(size));
 			payees.forEach(payee -> payee.receiveRed(eachGets));
 			owner.receiveRed(balanceRed());
 		}

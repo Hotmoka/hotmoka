@@ -28,6 +28,7 @@ import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.StringSupport;
 import io.takamaka.code.lang.View;
+import io.takamaka.code.math.BigIntegerSupport;
 import io.takamaka.code.util.StorageTreeArray;
 
 /**
@@ -101,7 +102,7 @@ public class TicTacToe extends Contract {
 		else
 			if (circlePlayer == null) {
 				require(crossPlayer != player, "you cannot play against yourself");
-				long previousBet = balance().subtract(BigInteger.valueOf(amount)).longValue();
+				long previousBet = BigIntegerSupport.subtract(balance(), BigInteger.valueOf(amount)).longValue();
 				require(amount >= previousBet, () -> StringSupport.concat("you must bet at least ", previousBet, " coins"));
 				circlePlayer = player;
 			}
@@ -111,7 +112,7 @@ public class TicTacToe extends Contract {
 		set(x, y, turn);
 		if (isGameOver(x, y)) {
 			// 90% goes to the winner
-			player.receive(balance().multiply(BigInteger.valueOf(9L)).divide(BigInteger.valueOf(10L)));
+			player.receive(BigIntegerSupport.divide(BigIntegerSupport.multiply(balance(), BigInteger.valueOf(9L)), BigInteger.valueOf(10L)));
 			// the rest to the creator of the game
 			creator.receive(balance());
 		}

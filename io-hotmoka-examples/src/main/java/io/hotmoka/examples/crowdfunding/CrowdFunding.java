@@ -37,7 +37,7 @@ public class CrowdFunding extends Contract {
 	public @Payable @FromContract void contribute(BigInteger amount, int campaignID) {
 		Campaign campaign = campaigns.get(campaignID);
 		campaign.funders.add(new Funder(caller(), amount));
-		campaign.amount = campaign.amount.add(amount);
+		campaign.amount = BigIntegerSupport.add(campaign.amount, amount);
 	}
 
 	public boolean checkGoalReached(int campaignID) {

@@ -20,6 +20,7 @@ import java.math.BigInteger;
 import java.util.Random;
 
 import io.takamaka.code.lang.View;
+import io.takamaka.code.math.BigIntegerSupport;
 import io.takamaka.code.util.StorageTreeArray;
 import io.takamaka.code.util.StorageTreeByteArray;
 
@@ -73,7 +74,7 @@ public class ArrayTests {
 			while (array.setIfAbsent(random.nextInt(array.length), BigInteger.valueOf(i)) != null);
 
 		for (int i = 0; i < array.length; i++)
-			array.update(i, BigInteger.ZERO, BigInteger.ONE::add);
+			array.update(i, BigInteger.ZERO, bi -> BigIntegerSupport.add(bi, BigInteger.ONE));
 
 		class WrappedInt {
 			int i;
@@ -90,8 +91,10 @@ public class ArrayTests {
 		StorageTreeArray<BigInteger> array = new StorageTreeArray<>(100);
 		Random random = new Random(12345L);
 
-		for (int i = 0; i < 50; i++)
-			array.update(random.nextInt(100), BigInteger.ZERO, BigInteger.valueOf(i)::add);
+		for (int i = 0; i < 50; i++) {
+			var bi = BigInteger.valueOf(i);
+			array.update(random.nextInt(100), BigInteger.ZERO, bi2 -> BigIntegerSupport.add(bi, bi2));
+		}
 
 		class WrappedInt {
 			int i;
@@ -113,14 +116,14 @@ public class ArrayTests {
 
 		BigInteger sum = BigInteger.ZERO;
 		for (int i = 0; i < array.length; i++)
-			sum = sum.add(array.getOrDefault(i, BigInteger.ZERO));
+			sum = BigIntegerSupport.add(sum, array.getOrDefault(i, BigInteger.ZERO));
 
 		return sum.intValue();
 	}
 
 	public static @View int testByteArrayThenIncrease() {
-		StorageTreeByteArray array = new StorageTreeByteArray(100);
-		Random random = new Random(12345L);
+		var array = new StorageTreeByteArray(100);
+		var random = new Random(12345L);
 
 		for (byte i = 1; i <= 50; i++) {
 			int index;
