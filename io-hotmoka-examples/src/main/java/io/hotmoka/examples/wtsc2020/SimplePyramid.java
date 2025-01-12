@@ -26,6 +26,7 @@ import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.StringSupport;
 import io.takamaka.code.lang.View;
+import io.takamaka.code.math.BigIntegerSupport;
 import io.takamaka.code.util.StorageLinkedList;
 import io.takamaka.code.util.StorageList;
 import io.takamaka.code.util.StorageMap;
@@ -47,12 +48,12 @@ public class SimplePyramid extends Contract {
 	private int previousLayerSize = 1;
 
 	public @Payable @FromContract(PayableContract.class) SimplePyramid(BigInteger amount) {
-		require(amount.compareTo(MINIMUM_INVESTMENT) >= 0, () -> StringSupport.concat("you must invest at least ", MINIMUM_INVESTMENT));
+		require(BigIntegerSupport.compareTo(amount, MINIMUM_INVESTMENT) >= 0, () -> StringSupport.concat("you must invest at least ", MINIMUM_INVESTMENT));
 		investors.add((PayableContract) caller());
 	}
 
 	public @Payable @FromContract(PayableContract.class) void invest(BigInteger amount) {
-		require(amount.compareTo(MINIMUM_INVESTMENT) >= 0, () -> StringSupport.concat("you must invest at least ", MINIMUM_INVESTMENT));
+		require(BigIntegerSupport.compareTo(amount, MINIMUM_INVESTMENT) >= 0, () -> StringSupport.concat("you must invest at least ", MINIMUM_INVESTMENT));
 		investors.add((PayableContract) caller());
 
 		if (investors.size() == previousLayerSize * 4 - 1) {

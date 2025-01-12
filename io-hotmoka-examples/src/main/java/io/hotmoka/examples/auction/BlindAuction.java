@@ -30,6 +30,7 @@ import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.StringSupport;
+import io.takamaka.code.math.BigIntegerSupport;
 import io.takamaka.code.security.SHA256Digest;
 import io.takamaka.code.util.Bytes32Snapshot;
 import io.takamaka.code.util.StorageLinkedList;
@@ -81,7 +82,7 @@ public class BlindAuction extends Auction {
          * @return true if and only if the hashes match
          */
         private boolean matches(RevealedBid revealed, SHA256Digest digest) {
-        	digest.update(revealed.value.toByteArray());
+        	digest.update(BigIntegerSupport.toByteArray(revealed.value));
         	digest.update(revealed.fake ? (byte) 0 : (byte) 1);
         	digest.update(revealed.salt.toArray());
         	byte[] arr1 = hash.toArray();
@@ -227,7 +228,7 @@ public class BlindAuction extends Auction {
     	if (!bid.matches(revealed, digest))
     		// the bid was not actually revealed: no refund
     		return BigInteger.ZERO;
-    	else if (!revealed.fake && bid.deposit.compareTo(revealed.value) >= 0 && placeBid(bidder, revealed.value))
+    	else if (!revealed.fake && BigIntegerSupport.compareTo(bid.deposit, revealed.value) >= 0 && placeBid(bidder, revealed.value))
     		// the bid was correctly revealed and is the best up to now: only the difference between promised and provided is refunded;
     		// the rest might be refunded later if a better bid will be revealed
     		return bid.deposit.subtract(revealed.value);
@@ -244,7 +245,7 @@ public class BlindAuction extends Auction {
      * @return true if and only if this is the best bid, up to now
      */
     private boolean placeBid(PayableContract bidder, BigInteger value) {
-        if (highestBid != null && value.compareTo(highestBid) <= 0)
+        if (highestBid != null && BigIntegerSupport.compareTo(value, highestBid) <= 0)
         	// this is not the best bid seen so far
             return false;
 

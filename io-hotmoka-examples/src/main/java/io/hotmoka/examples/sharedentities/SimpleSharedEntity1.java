@@ -27,6 +27,7 @@ import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.View;
+import io.takamaka.code.math.BigIntegerSupport;
 import io.takamaka.code.util.StorageMapView;
 import io.takamaka.code.util.StorageSet;
 import io.takamaka.code.util.StorageSetView;
@@ -174,7 +175,7 @@ public class SimpleSharedEntity1<O extends SharedEntity1.Offer> extends PayableC
 		PayableContract seller = (PayableContract) caller();
 		require(offer.seller == seller, "only the seller can place its own offer");
 		require(shares.containsKey(seller), "the seller is not a shareholder");
-		require(sharesOf(seller).subtract(sharesOnSaleOf(seller)).compareTo(offer.sharesOnSale) >= 0, "the seller has not enough shares to sell");
+		require(BigIntegerSupport.compareTo(sharesOf(seller).subtract(sharesOnSaleOf(seller)), offer.sharesOnSale) >= 0, "the seller has not enough shares to sell");
 		cleanUpOffers(null);
 		offers.add(offer);
 		snapshotOfOffers = offers.snapshot();
@@ -185,7 +186,7 @@ public class SimpleSharedEntity1<O extends SharedEntity1.Offer> extends PayableC
 	public @FromContract(PayableContract.class) @Payable void accept(BigInteger amount, O offer) {
 		require(offers.contains(offer), "unknown offer");
 		require(offer.isOngoing(), "the sale offer is not ongoing anymore");
-		require(offer.cost.compareTo(amount) <= 0, "not enough money to accept the offer");
+		require(BigIntegerSupport.compareTo(offer.cost, amount) <= 0, "not enough money to accept the offer");
 		PayableContract buyer = (PayableContract) caller();
 		cleanUpOffers(offer);
 		removeShares(offer.seller, offer.sharesOnSale);

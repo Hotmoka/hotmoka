@@ -23,6 +23,7 @@ import io.takamaka.code.lang.ExternallyOwnedAccounts;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.View;
+import io.takamaka.code.math.BigIntegerSupport;
 
 public class MyAccounts extends ExternallyOwnedAccounts {
 	
@@ -59,6 +60,6 @@ public class MyAccounts extends ExternallyOwnedAccounts {
 	 * @return the richest account, or {@code null} is this container is empty
 	 */
 	public @View ExternallyOwnedAccount richest() {
-		return isEmpty() ? null : stream().max((a1, a2) -> a1.balance().compareTo(a2.balance())).get();
+		return isEmpty() ? null : stream().max((a1, a2) -> BigIntegerSupport.compareTo(a1.balance(), a2.balance())).get();
 	}
 }

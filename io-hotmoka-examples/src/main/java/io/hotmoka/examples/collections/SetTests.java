@@ -20,6 +20,7 @@ import java.math.BigInteger;
 import java.util.Random;
 
 import io.takamaka.code.lang.View;
+import io.takamaka.code.math.BigIntegerSupport;
 import io.takamaka.code.util.StorageTreeSet;
 
 /**
@@ -42,7 +43,7 @@ public class SetTests {
 
 		for (pos = 0; pos < elements.length; pos++)
 			for (int next = pos + 1; next < elements.length; next++)
-				if (elements[pos].equals(elements[next]))
+				if (BigIntegerSupport.equals(elements[pos], elements[next]))
 					return false;
 
 		return true; // we expect this

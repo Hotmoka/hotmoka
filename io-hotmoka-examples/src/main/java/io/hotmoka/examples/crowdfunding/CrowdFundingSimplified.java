@@ -23,6 +23,7 @@ import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
+import io.takamaka.code.math.BigIntegerSupport;
 import io.takamaka.code.util.StorageList;
 import io.takamaka.code.util.StorageLinkedList;
 
@@ -37,7 +38,7 @@ public class CrowdFundingSimplified extends Contract {
 	}
 
 	public boolean checkGoalReached(Campaign campaign) {
-		if (campaign.amount.compareTo(campaign.fundingGoal) < 0)
+		if (BigIntegerSupport.compareTo(campaign.amount, campaign.fundingGoal) < 0)
 			return false;
 		else {
 			BigInteger amount = campaign.amount;

@@ -22,8 +22,9 @@ import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
-import io.takamaka.code.util.StorageList;
+import io.takamaka.code.math.BigIntegerSupport;
 import io.takamaka.code.util.StorageLinkedList;
+import io.takamaka.code.util.StorageList;
 
 public class CrowdFunding extends Contract {
 	private final StorageList<Campaign> campaigns = new StorageLinkedList<>();
@@ -41,7 +42,7 @@ public class CrowdFunding extends Contract {
 
 	public boolean checkGoalReached(int campaignID) {
 		Campaign campaign = campaigns.get(campaignID);
-		if (campaign.amount.compareTo(campaign.fundingGoal) < 0)
+		if (BigIntegerSupport.compareTo(campaign.amount, campaign.fundingGoal) < 0)
 			return false;
 		else {
 			BigInteger amount = campaign.amount;

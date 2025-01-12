@@ -25,6 +25,7 @@ import java.math.BigInteger;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
+import io.takamaka.code.math.BigIntegerSupport;
 
 /**
  * A contract for a simple auction. This class is derived from the Solidity code shown at
@@ -72,7 +73,7 @@ public class SimpleAuction extends Auction {
 	public @Payable @FromContract(PayableContract.class) void bid(BigInteger amount) {
         // reject the call if the bidding period is over or if the bid is not higher than previous
         require(now() < auctionEnd, "Auction already ended");
-        require(amount.compareTo(highestBid) > 0, "There already is a higher bid");
+        require(BigIntegerSupport.compareTo(amount, highestBid) > 0, "There already is a higher bid");
 
         // refund the previous highest bidder
         if (highestBidder != null)

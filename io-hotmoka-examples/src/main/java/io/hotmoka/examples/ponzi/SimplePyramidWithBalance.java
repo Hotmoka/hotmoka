@@ -26,6 +26,7 @@ import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.StringSupport;
+import io.takamaka.code.math.BigIntegerSupport;
 import io.takamaka.code.util.StorageList;
 import io.takamaka.code.util.StorageMap;
 import io.takamaka.code.util.StorageTreeMap;
@@ -49,13 +50,13 @@ public class SimplePyramidWithBalance extends Contract {
 	private BigInteger pyramidBalance;
 
 	public @Payable @FromContract(PayableContract.class) SimplePyramidWithBalance(BigInteger amount) {
-		require(amount.compareTo(MINIMUM_INVESTMENT) >= 0, () -> StringSupport.concat("you must invest at least ", MINIMUM_INVESTMENT));
+		require(BigIntegerSupport.compareTo(amount, MINIMUM_INVESTMENT) >= 0, () -> StringSupport.concat("you must invest at least ", MINIMUM_INVESTMENT));
 		investors.add((PayableContract) caller());
 		pyramidBalance = amount;
 	}
 
 	public @Payable @FromContract(PayableContract.class) void invest(BigInteger amount) {
-		require(amount.compareTo(MINIMUM_INVESTMENT) >= 0, () -> StringSupport.concat("you must invest at least ", MINIMUM_INVESTMENT));
+		require(BigIntegerSupport.compareTo(amount, MINIMUM_INVESTMENT) >= 0, () -> StringSupport.concat("you must invest at least ", MINIMUM_INVESTMENT));
 		pyramidBalance = pyramidBalance.add(amount);
 		investors.add((PayableContract) caller());
 
