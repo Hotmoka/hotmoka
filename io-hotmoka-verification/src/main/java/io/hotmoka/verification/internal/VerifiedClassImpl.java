@@ -29,7 +29,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.bcel.classfile.AnnotationEntry;
 import org.apache.bcel.classfile.Attribute;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.LineNumberTable;
@@ -84,11 +83,6 @@ public class VerifiedClassImpl implements VerifiedClass {
 	private final boolean duringInitialization;
 
 	/**
-	 * True if and only if this class is annotated as white listed during initialization.
-	 */
-	private final boolean isWhiteListedDuringInitialization;
-
-	/**
 	 * Builds and verifies a class from the given class file.
 	 * 
 	 * @param clazz the parsed class file
@@ -110,7 +104,6 @@ public class VerifiedClassImpl implements VerifiedClass {
 		this.pushers = new PushersImpl(this);
 		this.resolver = new Resolver(this);
 		this.duringInitialization = duringInitialization;
-		this.isWhiteListedDuringInitialization = Stream.of(clazz.getAnnotationEntries()).map(AnnotationEntry::getAnnotationType).anyMatch("Lio/takamaka/code/lang/WhiteListedDuringInitialization;"::equals); // TODO
 
 		if (!skipsVerification)
 			new Verification(issueHandler, methods, versionsManager);
@@ -159,11 +152,6 @@ public class VerifiedClassImpl implements VerifiedClass {
 	@Override
 	public boolean isDuringInitialization() {
 		return duringInitialization;
-	}
-
-	@Override
-	public boolean isWhiteListedDuringInitialization() {
-		return isWhiteListedDuringInitialization;
 	}
 
 	/**

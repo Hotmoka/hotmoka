@@ -54,7 +54,6 @@ import io.hotmoka.instrumentation.internal.instrumentationsOfClass.AddOldAndIfAl
 import io.hotmoka.instrumentation.internal.instrumentationsOfClass.DesugarBootstrapsInvokingEntries;
 import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.AddExtraArgsToCallsToFromContract;
 import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.AddGasUpdates;
-import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.AddRuntimeChecksForWhiteListingProofObligations;
 import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.InstrumentMethodsOfSupportClasses;
 import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.ReplaceFieldAccessesWithAccessors;
 import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.SetCallerAndBalanceAtTheBeginningOfFromContracts;
@@ -562,25 +561,10 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 		 */
 		private void methodLevelInstrumentations() throws ClassNotFoundException {
-			for (var method: new ArrayList<>(methods))
-				preProcess(method);
-
 			new DesugarBootstrapsInvokingEntries(this);
 
 			for (var method: new ArrayList<>(methods))
 				postProcess(method);
-		}
-
-		/**
-		 * Pre-processing instrumentation of a single method of the class. This is
-		 * performed before instrumentation of the bootstraps.
-		 * 
-		 * @param method the method to instrument
-		 * @throws ClassNotFoundException if some class cannot be found in the Takamaka program
-		 */
-		private void preProcess(MethodGen method) throws ClassNotFoundException {
-			if (!verifiedClass.isDuringInitialization() || !verifiedClass.isWhiteListedDuringInitialization())
-				new AddRuntimeChecksForWhiteListingProofObligations(this, method);
 		}
 
 		/**
