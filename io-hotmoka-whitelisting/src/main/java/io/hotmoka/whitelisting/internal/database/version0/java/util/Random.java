@@ -20,11 +20,9 @@ package io.hotmoka.whitelisting.internal.database.version0.java.util;
  * White-listed only if created with seed.
  */
 public abstract class Random {
-
 	public Random(long seed) {}
 
 	public abstract void setSeed(long seed);
-	public abstract void nextBytes(byte[] bytes);
 	public abstract int nextInt();
 	public abstract int nextInt(int bound);
 	public abstract long nextLong();

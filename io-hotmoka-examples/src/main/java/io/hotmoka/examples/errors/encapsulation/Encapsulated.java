@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.examples.errors.encapsulation;
 
 import java.util.Iterator;
+import java.util.function.Consumer;
 import java.util.function.IntFunction;
 import java.util.stream.Stream;
 
@@ -128,6 +129,11 @@ public class Encapsulated extends Storage {
 		@Override
 		public StorageListView<T> snapshot() {
 			return backing.snapshot();
+		}
+
+		@Override
+		public void forEach(Consumer<? super T> action) {
+			backing.forEach(action);
 		}
 	}
 
