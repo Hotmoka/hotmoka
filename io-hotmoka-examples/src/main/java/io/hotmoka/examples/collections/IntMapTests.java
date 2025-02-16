@@ -19,10 +19,10 @@ package io.hotmoka.examples.collections;
 import static java.math.BigInteger.ONE;
 
 import java.math.BigInteger;
-import java.util.stream.Stream;
 
 import io.takamaka.code.lang.View;
 import io.takamaka.code.math.BigIntegerSupport;
+import io.takamaka.code.util.StorageIntMap;
 import io.takamaka.code.util.StorageTreeIntMap;
 
 /**
@@ -35,16 +35,16 @@ public class IntMapTests {
 		for (int key = 0; key < 100; key++)
 			map.put(key, BigInteger.valueOf(key));
 
-		return sum(map.values());
+		return sum(map);
 	}
 
-	private static int sum(Stream<BigInteger> stream) {
+	private static int sum(StorageIntMap<BigInteger> map) {
 		class WrappedInt {
 			int i;
 		}
 
 		var wi = new WrappedInt();
-		stream.forEachOrdered(i -> wi.i += i.intValue());
+		map.forEachValue(i -> wi.i += i.intValue());
 
 		return wi.i;
 	}
@@ -58,7 +58,7 @@ public class IntMapTests {
 		for (int key = 0; key < 100; key++)
 			map.update(key, bi -> BigIntegerSupport.add(bi, ONE));
 
-		return sum(map.values());
+		return sum(map);
 	}
 
 	public static @View long testNullValues() {
@@ -72,7 +72,7 @@ public class IntMapTests {
 
 		var wl = new WrappedLong();
 
-		map.values().filter(value -> value == null).forEachOrdered(_l -> wl.l++);
+		map.forEachValue(value -> { if (value == null) wl.l++; } );
 
 		return wl.l;
 	}

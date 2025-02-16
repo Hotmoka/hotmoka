@@ -16,15 +16,20 @@ limitations under the License.
 
 package io.hotmoka.examples.sharedentities;
 
-import io.takamaka.code.lang.*;
-import io.takamaka.code.util.StorageMapView;
-import io.takamaka.code.util.StorageSetView;
-
-import java.math.BigInteger;
-import java.util.stream.Stream;
-
 import static io.takamaka.code.lang.Takamaka.now;
 import static io.takamaka.code.lang.Takamaka.require;
+
+import java.math.BigInteger;
+
+import io.takamaka.code.lang.Event;
+import io.takamaka.code.lang.Exported;
+import io.takamaka.code.lang.FromContract;
+import io.takamaka.code.lang.Payable;
+import io.takamaka.code.lang.PayableContract;
+import io.takamaka.code.lang.Storage;
+import io.takamaka.code.lang.View;
+import io.takamaka.code.util.StorageMapView;
+import io.takamaka.code.util.StorageSetView;
 
 /**
  * A shared entity. Shareholders hold, sell and buy shares of a shared entity.
@@ -51,13 +56,6 @@ public interface SharedEntity2<S extends PayableContract, O extends SharedEntity
 	 * @return the shares
 	 */
 	@View StorageMapView<S, BigInteger> getShares();
-
-	/**
-	 * Yields the shareholders.
-	 * 
-	 * @return the shareholders
-	 */
-	Stream<S> getShareholders();
 
 	/**
 	 * Determine if the given object is a shareholder of this entity.

@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.examples.errors.legalcalltofromcontract1;
 
-import java.util.stream.Stream;
+import java.util.function.Consumer;
 
 import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.FromContract;
@@ -28,10 +28,13 @@ public class C extends Contract {
 	public void m() {
 		String[] arr = { "hello", "how", "are", "you" };
 		C c = new C();
-		Stream.of(arr)
-			.forEachOrdered(s -> {
-				if (s.length() > 3)
-					Stream.of(arr).forEachOrdered(c::entry);
-			});
+		for (String s: arr)
+			if (s.length() > 3)
+				process(arr, c::entry);
+	}
+
+	private static void process(String[] arr, Consumer<String> consumer) {
+		for (String ss: arr)
+			consumer.accept(ss);
 	}
 }

@@ -55,7 +55,12 @@ public class SimplePyramid extends Contract {
 
 		if (investors.size() == previousLayerSize * 4 - 1) {
 			// pay out previous layer: note that the current layer's size is even here
-			investors.stream().skip(previousLayerSize - 1).limit(previousLayerSize).forEachOrdered(investor -> investor.receive(MINIMUM_INVESTMENT));
+			var it = investors.iterator();
+			for (int i = 1; i <= previousLayerSize - 1 && it.hasNext(); i++)
+				it.next(); // we skip previousLayerSize - 1 investors
+			for (int i = 1; i <= previousLayerSize && it.hasNext(); i++)
+				it.next().receive(MINIMUM_INVESTMENT);
+
 			// spread remaining money among all participants
 			BigInteger eachInvestorGets = BigIntegerSupport.divide(balance(), BigInteger.valueOf(investors.size()));
 			investors.forEach(investor -> investor.receive(eachInvestorGets));

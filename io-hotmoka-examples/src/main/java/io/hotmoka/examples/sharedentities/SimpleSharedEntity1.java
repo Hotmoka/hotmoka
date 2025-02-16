@@ -21,7 +21,6 @@ import static io.takamaka.code.lang.Takamaka.require;
 import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
-import java.util.stream.Stream;
 
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
@@ -153,21 +152,19 @@ public class SimpleSharedEntity1<O extends SharedEntity1.Offer> extends PayableC
     }
 
     @Override
-	public final Stream<PayableContract> getShareholders() {
-		return snapshotOfShares.keys();
-	}
-
-    @Override
 	public final @View BigInteger sharesOf(PayableContract shareholder) {
 		return shares.getOrDefault(shareholder, ZERO);
 	}
 
     @Override
 	public final @View BigInteger sharesOnSaleOf(PayableContract shareholder) {
-		return offers.stream()
-			.filter(offer -> offer.seller == shareholder && offer.isOngoing())
-			.map(offer -> offer.sharesOnSale)
-			.reduce(ZERO, BigIntegerSupport::add);
+    	BigInteger sum = ZERO;
+
+    	for (O offer: offers)
+    		if (offer.seller == shareholder && offer.isOngoing())
+    			sum = BigIntegerSupport.add(sum, offer.sharesOnSale);
+
+    	return sum;
 	}
 
     @Override
@@ -202,9 +199,9 @@ public class SimpleSharedEntity1<O extends SharedEntity1.Offer> extends PayableC
 	 * @param offerToRemove an offer whose first occurrence must be removed
 	 */
 	private void cleanUpOffers(O offerToRemove) {
-		offers.stream()
-			.filter(offer -> offer == offerToRemove || !offer.isOngoing())
-			.forEachOrdered(offers::remove);
+		for (O offer: offers)
+			if (offer == offerToRemove || !offer.isOngoing())
+				offers.remove(offer);
 	}
 
 	private void addShares(PayableContract shareholder, BigInteger added) {

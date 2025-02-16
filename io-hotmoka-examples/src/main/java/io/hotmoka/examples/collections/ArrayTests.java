@@ -31,7 +31,7 @@ public class ArrayTests {
 
 	public static @View int testRandomInitialization() {
 		var array = new StorageTreeArray<BigInteger>(100);
-		Random random = new Random(12345L);
+		var random = new Random(12345L);
 
 		for (int i = 0; i < 50; i++)
 			while (array.setIfAbsent(random.nextInt(100), BigInteger.valueOf(i)) != null);
@@ -46,7 +46,7 @@ public class ArrayTests {
 
 	public static @View long countNullsAfterRandomInitialization() {
 		var array = new StorageTreeArray<BigInteger>(100);
-		Random random = new Random(12345L);
+		var random = new Random(12345L);
 
 		for (int i = 0; i < 50; i++)
 			while (array.setIfAbsent(random.nextInt(100), BigInteger.valueOf(i)) != null);
@@ -58,7 +58,7 @@ public class ArrayTests {
 		WrappedLong wl = new WrappedLong();
 
 		// 50 elements of the array should still be null
-		array.stream().filter(bi -> bi == null).forEachOrdered(__ -> wl.l++);
+		array.forEach(bi -> { if (bi == null) wl.l++; });
 
 		return wl.l;
 	}

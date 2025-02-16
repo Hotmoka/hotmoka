@@ -19,13 +19,12 @@ package io.hotmoka.examples.errors.encapsulation;
 import java.util.Iterator;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
-import java.util.stream.Stream;
 
 import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
-import io.takamaka.code.util.StorageList;
 import io.takamaka.code.util.StorageLinkedList;
+import io.takamaka.code.util.StorageList;
 import io.takamaka.code.util.StorageListView;
 
 /**
@@ -74,11 +73,6 @@ public class Encapsulated extends Storage {
 		@Override
 		public int size() {
 			return backing.size();
-		}
-
-		@Override
-		public Stream<T> stream() {
-			return backing.stream();
 		}
 
 		@Override

@@ -20,7 +20,6 @@ import static io.takamaka.code.lang.Takamaka.now;
 import static io.takamaka.code.lang.Takamaka.require;
 
 import java.math.BigInteger;
-import java.util.stream.Stream;
 
 import io.takamaka.code.lang.Event;
 import io.takamaka.code.lang.Exported;
@@ -54,13 +53,6 @@ public interface SharedEntity1<O extends SharedEntity1.Offer> {
 	 * @return the shares
 	 */
 	@View StorageMapView<PayableContract, BigInteger> getShares();
-
-	/**
-	 * Yields the shareholders.
-	 * 
-	 * @return the shareholders
-	 */
-	Stream<PayableContract> getShareholders();
 
 	/**
 	 * Determine if the given object is a shareholder of this entity.

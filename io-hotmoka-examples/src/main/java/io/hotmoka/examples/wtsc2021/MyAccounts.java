@@ -60,6 +60,17 @@ public class MyAccounts extends ExternallyOwnedAccounts {
 	 * @return the richest account, or {@code null} is this container is empty
 	 */
 	public @View ExternallyOwnedAccount richest() {
-		return isEmpty() ? null : stream().max((a1, a2) -> BigIntegerSupport.compareTo(a1.balance(), a2.balance())).get();
+		class Richest {
+			private ExternallyOwnedAccount account;
+		}
+
+		var richest = new Richest();
+
+		forEach(account -> {
+			if (richest.account == null || BigIntegerSupport.compareTo(richest.account.balance(), account.balance()) < 0)
+				richest.account = account;
+		});
+
+		return richest.account;
 	}
 }

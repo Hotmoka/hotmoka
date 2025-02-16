@@ -17,8 +17,8 @@ limitations under the License.
 package io.hotmoka.examples.lambdas;
 
 import java.math.BigInteger;
+import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 import io.takamaka.code.lang.ExternallyOwnedAccount;
 import io.takamaka.code.lang.FromContract;
@@ -58,28 +58,24 @@ public class Lambdas extends ExternallyOwnedAccount {
 	}
 
 	public @Payable @FromContract(PayableContract.class) void invest(BigInteger amount) {
-		Lambdas other = new Lambdas(BigInteger.TEN, publicKey);
-		Lambdas other2 = new Lambdas(BigInteger.TEN, publicKey);
+		var other = new Lambdas(BigInteger.TEN, publicKey);
+		var other2 = new Lambdas(BigInteger.TEN, publicKey);
 		investors.add((PayableContract) caller());
-		investors.stream().forEachOrdered(investor -> other.entry2(other2::entry3));
-		investors.stream().forEachOrdered(investor -> other.entry4(Lambdas::new));
+		investors.forEach(investor -> other.entry2(other2::entry3));
+		investors.forEach(investor -> other.entry4(Lambdas::new));
 	}
 
 	public void testLambdaWithoutThis() {
-		BigInteger one = BigInteger.ONE;
-		investors.stream().forEachOrdered(investor -> investor.receive(one));
+		var one = BigInteger.ONE;
+		investors.forEach(investor -> investor.receive(one));
 	}
 
 	public void testLambdaWithoutThisGetStatic() {
-		investors.stream().forEachOrdered(investor -> investor.receive(BigInteger.ONE));
+		investors.forEach(investor -> investor.receive(BigInteger.ONE));
 	}
 
 	public void testLambdaWithThis() {
-		investors.stream().forEachOrdered(investor -> investor.receive(MINIMUM_INVESTMENT));
-	}
-
-	private static class WrappedInt {
-		private int i;
+		investors.forEach(investor -> investor.receive(MINIMUM_INVESTMENT));
 	}
 
 	public int testMethodReferenceToEntry() {
@@ -89,7 +85,7 @@ public class Lambdas extends ExternallyOwnedAccount {
 
 	public void testMethodReferenceToEntryOfOtherClass() {
 		PayableContract investor = investors.first();
-		Stream.of(BigInteger.TEN, BigInteger.ONE).forEachOrdered(investor::receive);
+		process(new BigInteger[] { BigInteger.TEN, BigInteger.ONE }, investor::receive);
 	}
 
 	public int testMethodReferenceToEntrySameContract() {
@@ -107,18 +103,25 @@ public class Lambdas extends ExternallyOwnedAccount {
 	}
 
 	public int testConstructorReferenceToEntry() {
-		WrappedInt wi = new WrappedInt();
-		Stream.of(BigInteger.TEN, BigInteger.ONE)
-			.map(Lambdas::new)
-			.map(Lambdas::getAmount)
-			.forEachOrdered(i -> wi.i += i.intValue());
+		return process(Lambdas::new, Lambdas::getAmount);
+	}
 
-		return wi.i;
+	private static int process(Function<BigInteger, Lambdas> fun1, Function<Lambdas, BigInteger> fun2) {
+		BigInteger[] array = { BigInteger.TEN, BigInteger.ONE };
+		int sum = 0;
+		for (var bi: array)
+			sum += fun2.apply(fun1.apply(bi)).intValue();
+
+		return sum;
 	}
 
 	public @FromContract void testConstructorReferenceToEntryPopResult() {
-		Stream.of(BigInteger.TEN, BigInteger.ONE)
-			.forEachOrdered(Lambdas::new);
+		process(new BigInteger[] { BigInteger.TEN, BigInteger.ONE}, Lambdas::new);
+	}
+
+	private static <T> void process(T[] arr, Consumer<T> consumer) {
+		for (T bi: arr)
+			consumer.accept(bi);
 	}
 
 	private BigInteger getAmount() {
@@ -152,8 +155,7 @@ public class Lambdas extends ExternallyOwnedAccount {
 
 	public int whiteListChecks(Object o1, Object o2, Object o3) {
 		WrappedString ws = new WrappedString();
-		Stream.of(o1, o2, o3)
-			.forEachOrdered(s -> ws.s = StringSupport.concat(ws.s, s));
+		process(new Object[] { o1, o2, o3 }, s -> ws.s = StringSupport.concat(ws.s, s));
 
 		return ws.s.length();
 	}

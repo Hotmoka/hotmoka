@@ -18,18 +18,17 @@ package io.hotmoka.examples.voting;
 
 import static io.takamaka.code.lang.Takamaka.require;
 
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 
 import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Storage;
+import io.takamaka.code.util.StorageLinkedList;
 import io.takamaka.code.util.StorageList;
+import io.takamaka.code.util.StorageListView;
 import io.takamaka.code.util.StorageMap;
 import io.takamaka.code.util.StorageTreeMap;
-import io.takamaka.code.util.StorageLinkedList;
-import io.takamaka.code.util.StorageListView;
 
 public class Ballot extends Contract {
 	private final Contract chairperson;
@@ -41,7 +40,7 @@ public class Ballot extends Contract {
 		VotingPaper votingPaper = new VotingPaper();
 		votingPaper.giveRightToVote(); // the chairperson has right to vote
 		papers.put(chairperson, votingPaper);
-		proposalNames.stream().map(Proposal::new).forEachOrdered(proposals::add);
+		proposalNames.forEach(name -> proposals.add(new Proposal(name)));
 	}
 
 	public @FromContract void giveRightToVote(Contract to) {
@@ -70,7 +69,21 @@ public class Ballot extends Contract {
     }
 
 	public String winnerName() {
-		return proposals.stream().min(Comparator.comparingInt(proposal -> proposal.voteCount)).get().name;
+		class WinnerName {
+			private String name = "no winner";
+			private int min = -1;
+		}
+
+		var wn = new WinnerName();
+
+		proposals.forEach(proposal -> {
+			if (wn.min == -1 || proposal.voteCount < wn.min) {
+				wn.name = proposal.name;
+				wn.min = proposal.voteCount;
+			}
+		});
+
+		return wn.name;
 	}
 
 	private class VotingPaper extends Storage {

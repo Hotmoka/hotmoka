@@ -17,10 +17,10 @@ limitations under the License.
 package io.hotmoka.examples.storagemap;
 
 import java.util.Iterator;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
-import java.util.stream.Stream;
 
 import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.Storage;
@@ -163,21 +163,6 @@ public class ExportedModifiableStorageMap<K,V> extends Storage implements Storag
 	}
 
 	@Override
-	public Stream<Entry<K, V>> stream() {
-		return parent.stream();
-	}
-
-	@Override
-	public Stream<K> keys() {
-		return parent.keys();
-	}
-
-	@Override
-	public Stream<V> values() {
-		return parent.values();
-	}
-
-	@Override
 	public StorageMapView<K,V> view() {
 		return this;
 	}
@@ -195,5 +180,20 @@ public class ExportedModifiableStorageMap<K,V> extends Storage implements Storag
 	@Override
 	public void clear() {
 		parent.clear();
+	}
+
+	@Override
+	public void forEach(Consumer<? super Entry<K, V>> action) {
+		parent.forEach(action);
+	}
+
+	@Override
+	public void forEachKey(Consumer<? super K> action) {
+		parent.forEachKey(action);
+	}
+
+	@Override
+	public void forEachValue(Consumer<? super V> action) {
+		parent.forEachValue(action);
 	}
 }
