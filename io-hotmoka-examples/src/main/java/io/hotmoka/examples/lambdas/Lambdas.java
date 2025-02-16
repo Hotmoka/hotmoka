@@ -84,9 +84,7 @@ public class Lambdas extends ExternallyOwnedAccount {
 
 	public int testMethodReferenceToEntry() {
 		other = new Lambdas(BigInteger.TEN, publicKey);
-		WrappedInt wi = new WrappedInt();
-		Stream.of(BigInteger.TEN, BigInteger.ONE).map(other::through).mapToInt(BigInteger::intValue).forEachOrdered(i -> wi.i += i);
-		return wi.i;
+		return apply(other::through);
 	}
 
 	public void testMethodReferenceToEntryOfOtherClass() {
@@ -96,9 +94,16 @@ public class Lambdas extends ExternallyOwnedAccount {
 
 	public int testMethodReferenceToEntrySameContract() {
 		other = new Lambdas(BigInteger.TEN, publicKey);
-		WrappedInt wi = new WrappedInt();
-		Stream.of(BigInteger.TEN, BigInteger.ONE).map(this::through).mapToInt(BigInteger::intValue).forEachOrdered(i -> wi.i += i);
-		return wi.i;
+		return apply(this::through);
+	}
+
+	private static int apply(Function<BigInteger, BigInteger> fun) {
+		int i = 0;
+		BigInteger[] array = { BigInteger.TEN, BigInteger.ONE };
+		for (BigInteger bi: array)
+			i += fun.apply(bi).intValue();
+
+		return i;
 	}
 
 	public int testConstructorReferenceToEntry() {
@@ -106,7 +111,8 @@ public class Lambdas extends ExternallyOwnedAccount {
 		Stream.of(BigInteger.TEN, BigInteger.ONE)
 			.map(Lambdas::new)
 			.map(Lambdas::getAmount)
-			.mapToInt(BigInteger::intValue).forEachOrdered(i -> wi.i += i);
+			.forEachOrdered(i -> wi.i += i.intValue());
+
 		return wi.i;
 	}
 

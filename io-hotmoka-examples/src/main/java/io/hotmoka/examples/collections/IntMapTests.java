@@ -19,13 +19,11 @@ package io.hotmoka.examples.collections;
 import static java.math.BigInteger.ONE;
 
 import java.math.BigInteger;
-import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import io.takamaka.code.lang.View;
 import io.takamaka.code.math.BigIntegerSupport;
-import io.takamaka.code.util.StorageIntMap;
 import io.takamaka.code.util.StorageTreeIntMap;
-import io.takamaka.code.util.StorageIntMapView.Entry;
 
 /**
  * This class defines methods that test the storage map with integer keys implementation.
@@ -33,33 +31,34 @@ import io.takamaka.code.util.StorageIntMapView.Entry;
 public class IntMapTests {
 
 	public static @View int testIteration1() {
-		StorageIntMap<BigInteger> map = new StorageTreeIntMap<>();
+		var map = new StorageTreeIntMap<BigInteger>();
 		for (int key = 0; key < 100; key++)
 			map.put(key, BigInteger.valueOf(key));
 
-		return sum(map.stream().map(Entry::getValue).mapToInt(BigInteger::intValue));
+		return sum(map.values());
 	}
 
-	private static int sum(IntStream stream) {
+	private static int sum(Stream<BigInteger> stream) {
 		class WrappedInt {
 			int i;
 		}
 
-		WrappedInt wi = new WrappedInt();
-		stream.forEachOrdered(i -> wi.i += i);
+		var wi = new WrappedInt();
+		stream.forEachOrdered(i -> wi.i += i.intValue());
 
 		return wi.i;
 	}
 
 	public static @View int testUpdate2() {
-		StorageIntMap<BigInteger> map = new StorageTreeIntMap<>();
+		var map = new StorageTreeIntMap<BigInteger>();
 		for (int key = 0; key < 100; key++)
 			map.put(key, BigInteger.valueOf(key));
 
 		// we add one to the value bound to each key
-		map.keys().forEachOrdered(key -> map.update(key, bi -> BigIntegerSupport.add(bi, ONE)));
+		for (int key = 0; key < 100; key++)
+			map.update(key, bi -> BigIntegerSupport.add(bi, ONE));
 
-		return sum(map.stream().map(Entry::getValue).mapToInt(BigInteger::intValue));
+		return sum(map.values());
 	}
 
 	public static @View long testNullValues() {
@@ -73,7 +72,7 @@ public class IntMapTests {
 
 		var wl = new WrappedLong();
 
-		map.stream().map(Entry::getValue).filter(value -> value == null).forEachOrdered(_l -> wl.l++);
+		map.values().filter(value -> value == null).forEachOrdered(_l -> wl.l++);
 
 		return wl.l;
 	}

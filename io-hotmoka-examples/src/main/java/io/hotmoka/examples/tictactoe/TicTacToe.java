@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.examples.tictactoe;
 
 import static io.takamaka.code.lang.Takamaka.require;
-import static java.util.stream.IntStream.rangeClosed;
 
 import java.math.BigInteger;
 
@@ -124,15 +123,27 @@ public class TicTacToe extends Contract {
 	}
 
 	private boolean isGameOver(int x, int y) {
-		return gameOver =
-			rangeClosed(1, 3).allMatch(_y -> at(x, _y) == turn) || // column x
-			rangeClosed(1, 3).allMatch(_x -> at(_x, y) == turn) || // row y
-			(x == y && rangeClosed(1, 3).allMatch(_x -> at(_x, _x) == turn)) || // first diagonal
-			(x + y == 4 && rangeClosed(1, 3).allMatch(_x -> at(_x, 4 - _x) == turn)); // second diagonal
+		if (at(x, 1) == turn && at(x, 2) == turn && at(x, 3) == turn) // column x
+			return gameOver = true;
+
+		if (at(1, y) == turn && at(2, y) == turn && at(3, y) == turn) // row y
+			return gameOver = true;
+
+		if (x == y && at(1, 1) == turn && at (2, 2) == turn && at(3, 3) == turn) // first diagonal
+			return gameOver = true;
+
+		if (x + y == 4 && at(1, 3) == turn && at(2, 2) == turn && at(3, 1) == turn) // second diagonal
+			return gameOver = true;
+
+		return gameOver = false;
 	}
 
 	private boolean isDraw() {
-		return rangeClosed(0, 8).mapToObj(board::get).noneMatch(tile -> tile == EMPTY);
+		for (var tile: board)
+			if (tile == EMPTY)
+				return false;
+
+		return true;
 	}
 
 	@Override

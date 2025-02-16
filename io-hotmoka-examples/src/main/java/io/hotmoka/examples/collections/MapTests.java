@@ -20,7 +20,7 @@ import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
-import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import io.takamaka.code.lang.View;
 import io.takamaka.code.math.BigIntegerSupport;
@@ -37,16 +37,16 @@ public class MapTests {
 		for (BigInteger key = ZERO; key.intValue() < 100; key = BigIntegerSupport.add(key, ONE))
 			map.put(key, key);
 
-		return sum(map.stream().map(Entry::getValue).mapToInt(BigInteger::intValue));
+		return sum(map.values());
 	}
 
-	private static int sum(IntStream stream) {
+	private static int sum(Stream<BigInteger> stream) {
 		class WrappedInt {
 			int i;
 		}
 
 		WrappedInt wi = new WrappedInt();
-		stream.forEachOrdered(i -> wi.i += i);
+		stream.forEachOrdered(i -> wi.i += i.intValue());
 
 		return wi.i;
 	}
@@ -59,7 +59,7 @@ public class MapTests {
 		// we add one to the value bound to each key
 		map.keys().forEachOrdered(key -> map.update(key, bi -> BigIntegerSupport.add(bi, ONE)));
 
-		return sum(map.stream().map(Entry::getValue).mapToInt(BigInteger::intValue));
+		return sum(map.values());
 	}
 
 	public static @View long testNullValues() {

@@ -30,25 +30,22 @@ import io.takamaka.code.util.StorageTreeByteArray;
 public class ArrayTests {
 
 	public static @View int testRandomInitialization() {
-		StorageTreeArray<BigInteger> array = new StorageTreeArray<>(100);
+		var array = new StorageTreeArray<BigInteger>(100);
 		Random random = new Random(12345L);
 
 		for (int i = 0; i < 50; i++)
 			while (array.setIfAbsent(random.nextInt(100), BigInteger.valueOf(i)) != null);
 
-		class WrappedInt {
-			int i;
-		}
+		int sum = 0;
+		for (var bi: array)
+			if (bi != null)
+				sum += bi.intValue();
 
-		WrappedInt wi = new WrappedInt();
-
-		array.stream().filter(bi -> bi != null).mapToInt(BigInteger::intValue).forEachOrdered(i -> wi.i += i);
-
-		return wi.i;
+		return sum;
 	}
 
 	public static @View long countNullsAfterRandomInitialization() {
-		StorageTreeArray<BigInteger> array = new StorageTreeArray<>(100);
+		var array = new StorageTreeArray<BigInteger>(100);
 		Random random = new Random(12345L);
 
 		for (int i = 0; i < 50; i++)
@@ -67,7 +64,7 @@ public class ArrayTests {
 	}
 
 	public static @View int testUpdateWithDefault1() {
-		StorageTreeArray<BigInteger> array = new StorageTreeArray<>(100);
+		var array = new StorageTreeArray<BigInteger>(100);
 		Random random = new Random(12345L);
 
 		for (int i = 0; i < 50; i++)
@@ -76,19 +73,15 @@ public class ArrayTests {
 		for (int i = 0; i < array.length; i++)
 			array.update(i, BigInteger.ZERO, bi -> BigIntegerSupport.add(bi, BigInteger.ONE));
 
-		class WrappedInt {
-			int i;
-		}
+		int sum = 0;
+		for (var bi: array)
+			sum += bi.intValue();
 
-		WrappedInt wi = new WrappedInt();
-
-		array.stream().mapToInt(BigInteger::intValue).forEachOrdered(i -> wi.i += i);;
-
-		return wi.i;
+		return sum;
 	}
 
 	public static @View int testUpdateWithDefault2() {
-		StorageTreeArray<BigInteger> array = new StorageTreeArray<>(100);
+		var array = new StorageTreeArray<BigInteger>(100);
 		Random random = new Random(12345L);
 
 		for (int i = 0; i < 50; i++) {
@@ -96,25 +89,22 @@ public class ArrayTests {
 			array.update(random.nextInt(100), BigInteger.ZERO, bi2 -> BigIntegerSupport.add(bi, bi2));
 		}
 
-		class WrappedInt {
-			int i;
-		}
+		int sum = 0;
+		for (var bi: array)
+			if (bi != null)
+				sum += bi.intValue();
 
-		WrappedInt wi = new WrappedInt();
-
-		array.stream().filter(bi -> bi != null).mapToInt(BigInteger::intValue).forEachOrdered(i -> wi.i += i);
-
-		return wi.i;
+		return sum;
 	}
 
 	public static @View int testGetOrDefault() {
-		StorageTreeArray<BigInteger> array = new StorageTreeArray<>(100);
-		Random random = new Random(12345L);
+		var array = new StorageTreeArray<BigInteger>(100);
+		var random = new Random(12345L);
 
 		for (int i = 0; i < 50; i++)
 			while (array.setIfAbsent(random.nextInt(array.length), BigInteger.valueOf(i)) != null);
 
-		BigInteger sum = BigInteger.ZERO;
+		var sum = BigInteger.ZERO;
 		for (int i = 0; i < array.length; i++)
 			sum = BigIntegerSupport.add(sum, array.getOrDefault(i, BigInteger.ZERO));
 
@@ -139,14 +129,10 @@ public class ArrayTests {
 		for (int i = 0; i < array.length; i++)
 			array.set(i, (byte) (array.get(i) + 1));
 
-		class WrappedInt {
-			int i;
-		}
+		int sum = 0;
+		for (byte b: array)
+			sum += b;
 
-		WrappedInt wi = new WrappedInt();
-
-		array.stream().forEachOrdered(b -> wi.i += b);
-
-		return wi.i;
+		return sum;
 	}
 }

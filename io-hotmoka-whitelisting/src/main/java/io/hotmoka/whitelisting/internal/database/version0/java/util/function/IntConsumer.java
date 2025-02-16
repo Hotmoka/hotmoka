@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2025 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,6 +16,6 @@ limitations under the License.
 
 package io.hotmoka.whitelisting.internal.database.version0.java.util.function;
 
-public interface Consumer<T> {
-	void accept(T t);
+public interface IntConsumer {
+	void accept(int i);
 }

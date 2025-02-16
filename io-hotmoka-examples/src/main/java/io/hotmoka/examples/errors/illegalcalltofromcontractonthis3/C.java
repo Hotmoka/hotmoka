@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.examples.errors.illegalcalltofromcontractonthis3;
 
-import java.util.stream.IntStream;
+import java.util.function.IntConsumer;
 
 import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.FromContract;
@@ -26,6 +26,11 @@ public class C extends Contract {
 	public @FromContract void entry(int i) {}
 
 	public void m() {
-		IntStream.iterate(0, i -> i < 5, i -> i + 1).forEachOrdered(this::entry); // OK, this passes this as caller
+		iterate(this::entry); // OK, this passes this as caller
+	}
+
+	private static void iterate(IntConsumer ic) {
+		for (int i = 0; i < 5; i++)
+			ic.accept(i);
 	}
 }
