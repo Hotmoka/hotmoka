@@ -28,10 +28,10 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StringValue;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -68,10 +68,12 @@ class AbstractFail extends HotmokaTest {
 	void createAbstractFailImplThenCallAbstractMethod() throws Exception {
 		StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _100_000, panarea(1), jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, StorageValues.intOf(42));
 
-		StorageReference result = (StorageReference) addInstanceNonVoidMethodCallTransaction
-			(privateKey(0), account(0), _100_000, panarea(1), jar(), MethodSignatures.ofNonVoid(ABSTRACT_FAIL, "method", ABSTRACT_FAIL), abstractfail);
+		var abstractFailMethod = MethodSignatures.ofNonVoid(ABSTRACT_FAIL, "method", ABSTRACT_FAIL);
+		StorageReference result = addInstanceNonVoidMethodCallTransaction
+			(privateKey(0), account(0), _100_000, panarea(1), jar(), abstractFailMethod, abstractfail).asReturnedReference(abstractFailMethod, NodeException::new);
 
-		String className = ((StringValue) runInstanceNonVoidMethodCallTransaction(account(0), _100_000, jar(), MethodSignatures.ofNonVoid(Constants.STORAGE_NAME, "getClassName", StorageTypes.STRING), result)).getValue();
+		var getClassName = MethodSignatures.ofNonVoid(Constants.STORAGE_NAME, "getClassName", StorageTypes.STRING);
+		String className = runInstanceNonVoidMethodCallTransaction(account(0), _100_000, jar(), getClassName, result).asReturnedString(getClassName, NodeException::new);
 
 		assertEquals("io.hotmoka.examples.abstractfail.AbstractFailImpl", className);
 	}
