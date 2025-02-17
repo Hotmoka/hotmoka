@@ -599,7 +599,7 @@ public abstract class Runtime {
 	}
 
 	/**
-	 * Charges 17 units of gas for CPU usage fo)r the current transaction.
+	 * Charges 17 units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge17() {
 		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(17L));

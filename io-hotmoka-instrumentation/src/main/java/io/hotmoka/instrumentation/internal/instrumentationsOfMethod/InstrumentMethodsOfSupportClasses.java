@@ -16,8 +16,6 @@ limitations under the License.
 
 package io.hotmoka.instrumentation.internal.instrumentationsOfMethod;
 
-import java.math.BigInteger;
-
 import org.apache.bcel.Const;
 import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.InstructionConst;
@@ -38,9 +36,7 @@ import io.takamaka.code.constants.Constants;
  */
 public class InstrumentMethodsOfSupportClasses extends MethodLevelInstrumentation {
 	private final static ObjectType STORAGE_OT = new ObjectType(Constants.STORAGE_NAME);
-	private final static ObjectType CONTRACT_OT = new ObjectType(Constants.CONTRACT_NAME);
 	private final static ObjectType EVENT_OT = new ObjectType(Constants.EVENT_NAME);
-	private final static ObjectType BIGINTEGER_OT = new ObjectType(BigInteger.class.getName());
 
 	/**
 	 * Builds the instrumentation.
@@ -108,28 +104,6 @@ public class InstrumentMethodsOfSupportClasses extends MethodLevelInstrumentatio
 				var il = new InstructionList();
 				il.append(factory.createInvoke(WhitelistingConstants.RUNTIME_NAME, "isSystemCall", Type.BOOLEAN, Type.NO_ARGS, Const.INVOKESTATIC));
 				il.append(InstructionConst.IRETURN);
-				method.setInstructionList(il);
-			}
-		}
-		else if (className.equals(Constants.EOA_NAME)) {
-			if ("mint".equals(method.getName())) {
-				var il = new InstructionList();
-				il.append(InstructionConst.ALOAD_0);
-				il.append(factory.createInvoke(Constants.STORAGE_NAME, "caller", CONTRACT_OT, Type.NO_ARGS, Const.INVOKEVIRTUAL));
-				il.append(InstructionConst.ALOAD_0);
-				il.append(InstructionConst.ALOAD_1);
-				il.append(factory.createInvoke(WhitelistingConstants.RUNTIME_NAME, "mint", Type.VOID, new Type[] { Type.OBJECT, Type.OBJECT, BIGINTEGER_OT }, Const.INVOKESTATIC));
-				il.append(InstructionConst.RETURN);
-				method.setInstructionList(il);
-			}
-			else if ("burn".equals(method.getName())) {
-				var il = new InstructionList();
-				il.append(InstructionConst.ALOAD_0);
-				il.append(factory.createInvoke(Constants.STORAGE_NAME, "caller", CONTRACT_OT, Type.NO_ARGS, Const.INVOKEVIRTUAL));
-				il.append(InstructionConst.ALOAD_0);
-				il.append(InstructionConst.ALOAD_1);
-				il.append(factory.createInvoke(WhitelistingConstants.RUNTIME_NAME, "burn", Type.VOID, new Type[] { Type.OBJECT, Type.OBJECT, BIGINTEGER_OT }, Const.INVOKESTATIC));
-				il.append(InstructionConst.RETURN);
 				method.setInstructionList(il);
 			}
 		}
