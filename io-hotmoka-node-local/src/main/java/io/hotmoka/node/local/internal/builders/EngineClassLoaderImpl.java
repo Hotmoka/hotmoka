@@ -90,21 +90,6 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	private final Method payableFromContractBigInteger;
 
 	/**
-	 * Method {@link io.takamaka.code.lang.Contract#redPayable(io.takamaka.code.lang.RedGreenContract, int)}.
-	 */
-	private final Method redPayableInt;
-
-	/**
-	 * Method {@link io.takamaka.code.lang.Contract#redPayable(io.takamaka.code.lang.RedGreenContract, long)}.
-	 */
-	private final Method redPayableLong;
-
-	/**
-	 * Method {@link io.takamaka.code.lang.Contract#redPayable(io.takamaka.code.lang.RedGreenContract, BigInteger)}.
-	 */
-	private final Method redPayableBigInteger;
-
-	/**
 	 * Field {@link io.takamaka.code.lang.ExternallyOwnedAccount#nonce}.
 	 */
 	private final Field externallyOwnedAccountNonce;
@@ -128,11 +113,6 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * Field {@link io.takamaka.code.lang.Contract#balance}.
 	 */
 	private final Field balanceField;
-
-	/**
-	 * Field {@link io.takamaka.code.lang.Contract#redBalance}.
-	 */
-	private final Field redBalanceField;
 
 	/**
 	 * The lengths (in bytes) of the instrumented jars of the classpath and its dependencies
@@ -192,14 +172,6 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			this.payableFromContractLong.setAccessible(true); // it was private
 			this.payableFromContractBigInteger = contract.getDeclaredMethod("payableFromContract", contract, BigInteger.class);
 			this.payableFromContractBigInteger.setAccessible(true); // it was private
-			this.redPayableInt = contract.getDeclaredMethod("redPayable", contract, int.class);
-			this.redPayableInt.setAccessible(true); // it was private
-			this.redPayableLong = contract.getDeclaredMethod("redPayable", contract, long.class);
-			this.redPayableLong.setAccessible(true); // it was private
-			this.redPayableBigInteger = contract.getDeclaredMethod("redPayable", contract, BigInteger.class);
-			this.redPayableBigInteger.setAccessible(true); // it was private
-			this.redBalanceField = contract.getDeclaredField("balanceRed");
-			this.redBalanceField.setAccessible(true); // it was private
 			this.externallyOwnedAccountNonce = getExternallyOwnedAccount().getDeclaredField("nonce");
 			this.externallyOwnedAccountNonce.setAccessible(true); // it was private
 			this.abstractValidatorsCurrentSupply = getAbstractValidators().getDeclaredField("currentSupply");
@@ -449,19 +421,6 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
-	public final BigInteger getRedBalanceOf(Object object) {
-		try {
-			return (BigInteger) redBalanceField.get(object);
-		}
-		catch (IllegalArgumentException e) {
-			throw e;
-		}
-		catch (IllegalAccessException e) {
-			throw new IllegalArgumentException("cannot read the red balance field of a contract object of class " + object.getClass().getName(), e);
-		}
-	}
-
-	@Override
 	public final void setBalanceOf(Object object, BigInteger value) {
 		try {
 			balanceField.set(object, value);
@@ -507,19 +466,6 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		}
 		catch (IllegalAccessException e) {
 			throw new IllegalArgumentException("Cannot access the current supply field of a validators object of class " + clazz.getName(), e);
-		}
-	}
-
-	@Override
-	public final void setRedBalanceOf(Object object, BigInteger value) {
-		try {
-			redBalanceField.set(object, value);
-		}
-		catch (IllegalArgumentException e) {
-			throw e;
-		}
-		catch (IllegalAccessException e) {
-			throw new IllegalArgumentException("Cannot write the red balance field of a contract object of class " + object.getClass().getName(), e);
 		}
 	}
 
@@ -575,31 +521,6 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	/**
-	 * Called at the beginning of the instrumentation of a red payable {@code @@FromContract} method or constructor.
-	 * It forwards the call to {@code io.takamaka.code.lang.RedGreenContract.redPayable()}.
-	 * 
-	 * @param callee the contract whose method or constructor is called
-	 * @param caller the caller of the method or constructor
-	 * @param amount the amount of coins
-	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
-	 */
-	public final void redPayableFromContract(Object callee, Object caller, BigInteger amount) throws Throwable {
-		try {
-			redPayableBigInteger.invoke(callee, caller, amount);
-		}
-		catch (IllegalArgumentException e) {
-			throw e;
-		}
-		catch (IllegalAccessException e) {
-			throw new IllegalArgumentException("cannot call RedGreenContract.redPayableFromContract()", e);
-		}
-		catch (InvocationTargetException e) {
-			// an exception inside RedGreenContract.redPayableFromContract() itself: we forward it
-			throw e.getCause();
-		}
-	}
-
-	/**
 	 * Called at the beginning of the instrumentation of a payable {@code @@FromContract} method or constructor.
 	 * It forwards the call to {@code io.takamaka.code.lang.Contract.payableFromContract()}.
 	 * 
@@ -625,31 +546,6 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	/**
-	 * Called at the beginning of the instrumentation of a red payable {@code @@FromContract} method or constructor.
-	 * It forwards the call to {@code io.takamaka.code.lang.RedGreenContract.redPayable()}.
-	 * 
-	 * @param callee the contract whose entry is called
-	 * @param caller the caller of the entry
-	 * @param amount the amount of coins
-	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
-	 */
-	public final void redPayableFromContract(Object callee, Object caller, int amount) throws Throwable {
-		try {
-			redPayableInt.invoke(callee, caller, amount);
-		}
-		catch (IllegalArgumentException e) {
-			throw e;
-		}
-		catch (IllegalAccessException e) {
-			throw new IllegalArgumentException("cannot call RedGreenContract.redPayableEntry()", e);
-		}
-		catch (InvocationTargetException e) {
-			// an exception inside RedGreenContract.redPayableEntry(): we forward it
-			throw e.getCause();
-		}
-	}
-
-	/**
 	 * Called at the beginning of the instrumentation of a payable {@code @@FromContract} method or constructor.
 	 * It forwards the call to {@code io.takamaka.code.lang.Contract.payableFromContract()}.
 	 * 
@@ -670,31 +566,6 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		}
 		catch (InvocationTargetException e) {
 			// an exception inside Contract.payableFromContract() itself: we forward it
-			throw e.getCause();
-		}
-	}
-
-	/**
-	 * Called at the beginning of the instrumentation of a red payable {@code @@FromContract} method or constructor.
-	 * It forwards the call to {@code io.takamaka.code.lang.RedGreenContract.redPayable()}.
-	 * 
-	 * @param callee the contract whose method or constructor is called
-	 * @param caller the caller of the method or constructor
-	 * @param amount the amount of coins
-	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
-	 */
-	public final void redPayableFromContract(Object callee, Object caller, long amount) throws Throwable {
-		try {
-			redPayableLong.invoke(callee, caller, amount);
-		}
-		catch (IllegalArgumentException e) {
-			throw e;
-		}
-		catch (IllegalAccessException e) {
-			throw new IllegalArgumentException("cannot call RedGreenContract.redPayable()", e);
-		}
-		catch (InvocationTargetException e) {
-			// an exception inside RedGreenContract.redPayable() itself: we forward it
 			throw e.getCause();
 		}
 	}

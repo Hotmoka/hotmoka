@@ -57,9 +57,6 @@ public class InitDisk extends AbstractCommand {
 	@Option(names = { "--chain-id" }, description = "the chain identifier of the network", defaultValue = "")
 	private String chainId;
 
-	@Option(names = { "--initial-red-supply" }, description = "the initial supply of red coins of the node, which goes to the gamete", defaultValue = "0")
-    private BigInteger initialRedSupply;
-
 	@Option(names = { "--key-of-gamete" }, description = "the Base58-encoded public key of the gamete account")
     private String keyOfGamete;
 
@@ -126,7 +123,6 @@ public class InitDisk extends AbstractCommand {
 				.setChainId(chainId)
 				.setInitialSupply(initialSupply)
 				.setFinalSupply(initialSupply.add(deltaSupply))
-				.setInitialRedSupply(initialRedSupply)
 				.setPublicKeyOfGamete(signature.publicKeyFromEncoding(Base58.decode(keyOfGamete)))
 				.build();
 

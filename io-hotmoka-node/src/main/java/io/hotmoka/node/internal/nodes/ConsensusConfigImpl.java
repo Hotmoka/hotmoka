@@ -163,11 +163,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 	public final BigInteger finalSupply;
 
 	/**
-	 * The initial supply of red coins in the node.
-	 */
-	public final BigInteger initialRedSupply;
-
-	/**
 	 * The amount of coin to pay to start a new poll amount the validators,
 	 * for instance in order to change a consensus parameter.
 	 */
@@ -201,7 +196,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		this.ticketForNewPoll = builder.ticketForNewPoll;
 		this.initialSupply = builder.initialSupply;
 		this.finalSupply = builder.finalSupply;
-		this.initialRedSupply = builder.initialRedSupply;
 		this.publicKeyOfGamete = builder.publicKeyOfGamete;
 		this.publicKeyOfGameteBase64 = builder.publicKeyOfGameteBase64;
 		this.signatureForRequests = builder.signatureForRequests;
@@ -227,7 +221,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 			ticketForNewPoll.equals(occi.ticketForNewPoll) &&
 			initialSupply.equals(occi.initialSupply) &&
 			finalSupply.equals(occi.finalSupply) &&
-			initialRedSupply.equals(occi.initialRedSupply) &&
 			publicKeyOfGamete.equals(occi.publicKeyOfGamete) &&
 			signatureForRequests.equals(occi.signatureForRequests);
 	}
@@ -315,9 +308,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		sb.append("# the final supply of coins in the node; once the current supply reaches\n");
 		sb.append("# this final amount, it remains constant\n");
 		sb.append("final_supply = \"" + finalSupply + "\"\n");
-		sb.append("\n");
-		sb.append("# the initial supply of red coins in the node\n");
-		sb.append("initial_red_supply = \"" + initialRedSupply + "\"\n");
 		sb.append("\n");
 		sb.append("# the amount of coin to pay to start a new poll amount the validators,\n");
 		sb.append("# for instance in order to change a consensus parameter\n");
@@ -420,11 +410,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 	}
 
 	@Override
-	public BigInteger getInitialRedSupply() {
-		return initialRedSupply;
-	}
-
-	@Override
 	public BigInteger getTicketForNewPoll() {
 		return ticketForNewPoll;
 	}
@@ -461,7 +446,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		private long verificationVersion = 0L;
 		private BigInteger initialSupply = BigInteger.ZERO;
 		private BigInteger finalSupply = BigInteger.ZERO;
-		private BigInteger initialRedSupply = BigInteger.ZERO;
 		private PublicKey publicKeyOfGamete;
 		private String publicKeyOfGameteBase64;
 		private BigInteger ticketForNewPoll = BigInteger.valueOf(100);
@@ -516,7 +500,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 			setVerificationVersion(config.getVerificationVersion());
 			setInitialSupply(config.getInitialSupply());
 			setFinalSupply(config.getFinalSupply());
-			setInitialRedSupply(config.getInitialRedSupply());
 			this.publicKeyOfGamete = config.getPublicKeyOfGamete();
 			this.publicKeyOfGameteBase64 = config.getPublicKeyOfGameteBase64();
 			setTicketForNewPoll(config.getTicketForNewPoll());
@@ -602,10 +585,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 			var finalSupply = toml.getString("final_supply");
 			if (finalSupply != null)
 				setFinalSupply(new BigInteger(finalSupply));
-
-			var initialRedSupply = toml.getString("initial_red_supply");
-			if (initialRedSupply != null)
-				setInitialRedSupply(new BigInteger(initialRedSupply));
 
 			var ticketForNewPoll = toml.getString("ticket_for_new_poll");
 			if (ticketForNewPoll != null)
@@ -760,17 +739,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 				throw new IllegalArgumentException("The initial supply must be non-negative");
 
 			this.initialSupply = initialSupply;
-			return getThis();
-		}
-
-		@Override
-		public B setInitialRedSupply(BigInteger initialRedSupply) {
-			Objects.requireNonNull(initialRedSupply, "The initial red supply cannot be null");
-
-			if (initialRedSupply.signum() < 0)
-				throw new IllegalArgumentException("The initial red supply must be non-negative");
-
-			this.initialRedSupply = initialRedSupply;
 			return getThis();
 		}
 

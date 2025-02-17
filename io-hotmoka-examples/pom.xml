@@ -192,9 +192,9 @@
             </configuration>
           </execution>
 
-		  <execution><id>redgreendistributor</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>redgreendistributor</classifier>
-              <includes><include>io/hotmoka/examples/redgreendistributor/**</include></includes>
+		  <execution><id>distributor</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>distributor</classifier>
+              <includes><include>io/hotmoka/examples/distributor/**</include></includes>
             </configuration>
           </execution>
 
@@ -600,18 +600,6 @@
             </configuration>
           </execution>
 
-		  <execution><id>inconsistentredpayable1</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>inconsistentredpayable1</classifier>
-              <includes><include>io/hotmoka/examples/errors/inconsistentredpayable1/**</include></includes>
-            </configuration>
-          </execution>
-
-		  <execution><id>inconsistentredpayable2</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>inconsistentredpayable2</classifier>
-              <includes><include>io/hotmoka/examples/errors/inconsistentredpayable2/**</include></includes>
-            </configuration>
-          </execution>
-
 		  <execution><id>inconsistentthrowsexceptions1</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>inconsistentthrowsexceptions1</classifier>
               <includes><include>io/hotmoka/examples/errors/inconsistentthrowsexceptions1/**</include></includes>
@@ -684,36 +672,6 @@
             </configuration>
           </execution>
 	
-		  <execution><id>payablewithredpayable</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>payablewithredpayable</classifier>
-              <includes><include>io/hotmoka/examples/errors/payablewithredpayable/**</include></includes>
-            </configuration>
-          </execution>
-
-		  <execution><id>redpayablewithoutamount1</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>redpayablewithoutamount1</classifier>
-              <includes><include>io/hotmoka/examples/errors/redpayablewithoutamount1/**</include></includes>
-            </configuration>
-          </execution>
-
-		  <execution><id>redpayablewithoutamount2</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>redpayablewithoutamount2</classifier>
-              <includes><include>io/hotmoka/examples/errors/redpayablewithoutamount2/**</include></includes>
-            </configuration>
-          </execution>
-
-		  <execution><id>redpayablewithoutfromcontract1</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>redpayablewithoutfromcontract1</classifier>
-              <includes><include>io/hotmoka/examples/errors/redpayablewithoutfromcontract1/**</include></includes>
-            </configuration>
-          </execution>
-
-		  <execution><id>redpayablewithoutfromcontract2</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>redpayablewithoutfromcontract2</classifier>
-              <includes><include>io/hotmoka/examples/errors/redpayablewithoutfromcontract2/**</include></includes>
-            </configuration>
-          </execution>
-
 		  <execution><id>throwsexceptionsonnonpublic1</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>throwsexceptionsonnonpublic1</classifier>
               <includes><include>io/hotmoka/examples/errors/throwsexceptionsonnonpublic1/**</include></includes>

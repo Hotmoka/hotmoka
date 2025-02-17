@@ -50,7 +50,6 @@ import io.hotmoka.exceptions.UncheckPredicate;
 import io.hotmoka.verification.errors.IllegalCallToFromContractError;
 import io.hotmoka.verification.errors.IllegalCallToFromContractOnThisError;
 import io.hotmoka.verification.errors.IllegalCallToPayableConstructorOnThis;
-import io.hotmoka.verification.errors.IllegalCallToRedPayableConstructorOnThis;
 import io.hotmoka.verification.internal.CheckOnClasses;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
 
@@ -125,18 +124,6 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 					instructionsOf(method)
 						.filter(UncheckPredicate.uncheck(ClassNotFoundException.class, ih -> callsPayableFromContractConstructorOnThis(ih, method.getInstructionList())))
 						.map(ih -> new IllegalCallToPayableConstructorOnThis(inferSourceFile(), method.getName(), lineOf(method, ih)))
-						.forEachOrdered(this::issue)
-					);
-	
-			// from contract red-payable constructors called on this can only be called from red-payable constructors
-			getMethods()
-				.filter(method -> !method.isStatic())
-				.filter(method -> method.getName().equals(Const.CONSTRUCTOR_NAME))
-				.filter(uncheck(ClassNotFoundException.class, method -> !annotations.isRedPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType())))
-				.forEachOrdered(method ->
-					instructionsOf(method)
-						.filter(UncheckPredicate.uncheck(ClassNotFoundException.class, ih -> callsRedPayableFromContractConstructorOnThis(ih, method.getInstructionList())))
-						.map(ih -> new IllegalCallToRedPayableConstructorOnThis(inferSourceFile(), method.getName(), lineOf(method, ih)))
 						.forEachOrdered(this::issue)
 					);
 		});
@@ -235,30 +222,6 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 					Type returnType = invokespecial.getReturnType(cpg);
 					boolean callsPayableFromContract = annotations.isFromContract(classNameOfReceiver, methodName, argumentTypes, returnType) &&
 						annotations.isPayable(classNameOfReceiver, methodName, argumentTypes, returnType);
-
-					return callsPayableFromContract &&
-						pushers.getPushers(ih, slots + 1, il, cpg)
-							.map(InstructionHandle::getInstruction)
-							.allMatch(ins -> ins instanceof LoadInstruction li && li.getIndex() == 0);	
-				}
-			}
-		}
-
-		return false;
-	}
-
-	private boolean callsRedPayableFromContractConstructorOnThis(InstructionHandle ih, InstructionList il) throws ClassNotFoundException {
-		Instruction instruction = ih.getInstruction();
-		if (instruction instanceof INVOKESPECIAL invokespecial) {
-			String methodName = invokespecial.getMethodName(cpg);
-			if (Const.CONSTRUCTOR_NAME.equals(methodName)) {
-				Type[] argumentTypes = invokespecial.getArgumentTypes(cpg);
-				if (invokespecial.getReferenceType(cpg) instanceof ObjectType receiver) {
-					int slots = Stream.of(argumentTypes).mapToInt(Type::getSize).sum();
-					String classNameOfReceiver = receiver.getClassName();
-					Type returnType = invokespecial.getReturnType(cpg);
-					boolean callsPayableFromContract = annotations.isFromContract(classNameOfReceiver, methodName, argumentTypes, returnType) &&
-						annotations.isRedPayable(classNameOfReceiver, methodName, argumentTypes, returnType);
 
 					return callsPayableFromContract &&
 						pushers.getPushers(ih, slots + 1, il, cpg)

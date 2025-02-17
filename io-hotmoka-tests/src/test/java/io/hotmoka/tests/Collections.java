@@ -23,10 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
 import java.security.PrivateKey;
-import java.security.SignatureException;
-import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,14 +33,9 @@ import org.junit.jupiter.api.Test;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
-import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.types.ClassType;
-import io.hotmoka.node.api.values.BooleanValue;
-import io.hotmoka.node.api.values.IntValue;
-import io.hotmoka.node.api.values.LongValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 
@@ -82,157 +74,157 @@ class Collections extends HotmokaTest {
 	}
 
 	@Test @DisplayName("MapTests.testIteration1() == 4950")
-	void geometricSum() throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
-		var sum = (IntValue) runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_TESTS, "testIteration1", INT));
-		assertEquals(4950, sum.getValue());
+	void geometricSum() throws Exception {
+		var testIteration1 = MethodSignatures.ofNonVoid(MAP_TESTS, "testIteration1", INT);
+		assertEquals(4950, runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), testIteration1).asReturnedInt(testIteration1, NodeException::new));
 	}
 
 	@Test @DisplayName("MapTests.testUpdate2() == 5050")
-	void geometricSumAfterUpdateWithStream() throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
-		var sum = runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_TESTS, "testUpdate2", INT)).asInt(__ -> new NodeException());
-		assertEquals(5050, sum);
+	void geometricSumAfterUpdateWithStream() throws Exception {
+		var testUpdate2 = MethodSignatures.ofNonVoid(MAP_TESTS, "testUpdate2", INT);
+		assertEquals(5050, runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), testUpdate2).asReturnedInt(testUpdate2, NodeException::new));
 	}
 
 	@Test @DisplayName("MapTests.testNullValues() == 100L")
-	void nullValuesInMap() throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
-		var count = (LongValue) runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_TESTS, "testNullValues", LONG));
-		assertEquals(100L, count.getValue());
+	void nullValuesInMap() throws Exception {
+		var method = MethodSignatures.ofNonVoid(MAP_TESTS, "testNullValues", LONG);
+		assertEquals(100L, runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), method).asReturnedLong(method, NodeException::new));
 	}
 
 	@Test @DisplayName("IntMapTests.testIteration1() == 4950")
-	void geometricSumIntKeys() throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
-		var sum = (IntValue) runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(INT_MAP_TESTS, "testIteration1", INT));
-		assertEquals(4950, sum.getValue());
+	void geometricSumIntKeys() throws Exception {
+		var testIteration1 = MethodSignatures.ofNonVoid(INT_MAP_TESTS, "testIteration1", INT);
+		assertEquals(4950, runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), testIteration1).asReturnedInt(testIteration1, NodeException::new));
 	}
 
 	@Test @DisplayName("IntMapTests.testUpdate2() == 5050")
-	void geometricSumAfterUpdateIntKeysWithStream() throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
-		var sum = runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(INT_MAP_TESTS, "testUpdate2", INT)).asInt(__ -> new NodeException());
-		assertEquals(5050, sum);
+	void geometricSumAfterUpdateIntKeysWithStream() throws Exception {
+		var method = MethodSignatures.ofNonVoid(INT_MAP_TESTS, "testUpdate2", INT);
+		assertEquals(5050, runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), method).asReturnedInt(method, NodeException::new));
 	}
 
 	@Test @DisplayName("IntMapTests.testNullValues() == 100L()")
-	void nullValuesInMapIntKeys() throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
-		var count = (LongValue) runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(INT_MAP_TESTS, "testNullValues", LONG));
-		assertEquals(100L, count.getValue());
+	void nullValuesInMapIntKeys() throws Exception {
+		var testNullValues = MethodSignatures.ofNonVoid(INT_MAP_TESTS, "testNullValues", LONG);
+		assertEquals(100L, runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), testNullValues).asReturnedLong(testNullValues, NodeException::new));
 	}
 
 	@Test @DisplayName("ArrayTests.testRandomInitialization() == 1225")
-	void randomArray() throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
-		var sum = (IntValue) runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(ARRAY_TESTS, "testRandomInitialization", INT));
-		assertEquals(1225, sum.getValue());
+	void randomArray() throws Exception {
+		var testRandomInitialization = MethodSignatures.ofNonVoid(ARRAY_TESTS, "testRandomInitialization", INT);
+		assertEquals(1225, runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), testRandomInitialization).asReturnedInt(testRandomInitialization, NodeException::new));
 	}
 
 	@Test @DisplayName("ArrayTests.countNullsAfterRandomInitialization() == 50L")
-	void randomArrayCountNulls() throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
-		var count = (LongValue) runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(ARRAY_TESTS, "countNullsAfterRandomInitialization", LONG));
-		assertEquals(50L, count.getValue());
+	void randomArrayCountNulls() throws Exception {
+		NonVoidMethodSignature countNullsAfterRandomInitialization = MethodSignatures.ofNonVoid(ARRAY_TESTS, "countNullsAfterRandomInitialization", LONG);
+		assertEquals(50L, runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), countNullsAfterRandomInitialization).asReturnedLong(countNullsAfterRandomInitialization, NodeException::new));
 	}
 
 	@Test @DisplayName("ArrayTests.testUpdateWithDefault1() == 1325")
-	void randomArrayThenUpdate1() throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
-		var sum = (IntValue) runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(ARRAY_TESTS, "testUpdateWithDefault1", INT));
-		assertEquals(1325, sum.getValue());
+	void randomArrayThenUpdate1() throws Exception {
+		var testUpdateWithDefault1 = MethodSignatures.ofNonVoid(ARRAY_TESTS, "testUpdateWithDefault1", INT);
+		assertEquals(1325, runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), testUpdateWithDefault1).asReturnedInt(testUpdateWithDefault1, NodeException::new));
 	}
 
 	@Test @DisplayName("ArrayTests.testByteArrayThenIncrease() == 1375")
-	void randomArrayThenIncrease() throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
-		var sum = (IntValue) runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(ARRAY_TESTS, "testByteArrayThenIncrease", INT));
-		assertEquals(1375, sum.getValue());
+	void randomArrayThenIncrease() throws Exception {
+		var testByteArrayThenIncrease = MethodSignatures.ofNonVoid(ARRAY_TESTS, "testByteArrayThenIncrease", INT);
+		assertEquals(1375, runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), testByteArrayThenIncrease).asReturnedInt(testByteArrayThenIncrease, NodeException::new));
 	}
 
 	@Test @DisplayName("ArrayTests.testUpdateWithDefault2() == 1225")
-	void randomArrayThenUpdate2() throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
-		var sum = (IntValue) runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(ARRAY_TESTS, "testUpdateWithDefault2", INT));
-		assertEquals(1225, sum.getValue());
+	void randomArrayThenUpdate2() throws Exception {
+		var testUpdateWithDefault2 = MethodSignatures.ofNonVoid(ARRAY_TESTS, "testUpdateWithDefault2", INT);
+		assertEquals(1225, runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), testUpdateWithDefault2).asReturnedInt(testUpdateWithDefault2, NodeException::new));
 	}
 
 	@Test @DisplayName("ArrayTests.testGetOrDefault() == 1225")
-	void randomArrayTheGetOrDefault() throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
-		var sum = (IntValue) runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(ARRAY_TESTS, "testGetOrDefault", INT));
-		assertEquals(1225, sum.getValue());
+	void randomArrayTheGetOrDefault() throws Exception {
+		var testGetOrDefault = MethodSignatures.ofNonVoid(ARRAY_TESTS, "testGetOrDefault", INT);
+		assertEquals(1225, runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), testGetOrDefault).asReturnedInt(testGetOrDefault, NodeException::new));
 	}
 
 	@Test @DisplayName("SetTests.testRandomInitialization() == true")
-	void randomRandomSetInitialization() throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
-		var count = (BooleanValue) runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(SET_TESTS, "testRandomInitialization", BOOLEAN));
-		assertTrue(count.getValue());
+	void randomRandomSetInitialization() throws Exception {
+		var testRandomInitialization = MethodSignatures.ofNonVoid(SET_TESTS, "testRandomInitialization", BOOLEAN);
+		assertTrue(runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), testRandomInitialization).asReturnedBoolean(testRandomInitialization, NodeException::new));
 	}
 
 	@Test @DisplayName("new MapHolder()")
-	void mapHolder() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void mapHolder() throws Exception {
 		addConstructorCallTransaction(key, eoa, _10_000_000, BigInteger.ONE, jar(), ConstructorSignatures.of(MAP_HOLDER));
 	}
 
 	@Test @DisplayName("new MapHolder().get0() == RUNNING")
-	void mapHolderGet0() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void mapHolderGet0() throws Exception {
 		StorageReference mapHolder = addConstructorCallTransaction(key, eoa, _10_000_000, BigInteger.ONE, jar(), ConstructorSignatures.of(MAP_HOLDER));
 		StorageValue state = runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "get0", STATE), mapHolder);
-		var result = (BooleanValue) runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "isRunning", BOOLEAN, StorageTypes.OBJECT), mapHolder, state);
-		assertTrue(result.getValue());
+		var isRunning = MethodSignatures.ofNonVoid(MAP_HOLDER, "isRunning", BOOLEAN, StorageTypes.OBJECT);
+		assertTrue(runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), isRunning, mapHolder, state).asReturnedBoolean(isRunning, NodeException::new));
 	}
 
 	@Test @DisplayName("new MapHolder().get1() == SLEEPING")
-	void mapHolderGet1() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void mapHolderGet1() throws Exception {
 		StorageReference mapHolder = addConstructorCallTransaction(key, eoa, _10_000_000, BigInteger.ONE, jar(), ConstructorSignatures.of(MAP_HOLDER));
 		StorageValue state = runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "get1", STATE), mapHolder);
-		var result = (BooleanValue) runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "isSleeping", BOOLEAN, StorageTypes.OBJECT), mapHolder, state);
-		assertTrue(result.getValue());
+		var isSleeping = MethodSignatures.ofNonVoid(MAP_HOLDER, "isSleeping", BOOLEAN, StorageTypes.OBJECT);
+		assertTrue(runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), isSleeping, mapHolder, state).asReturnedBoolean(isSleeping, NodeException::new));
 	}
 
 	@Test @DisplayName("new MapHolder().get10() == WAITING")
-	void mapHolderGet10() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void mapHolderGet10() throws Exception {
 		StorageReference mapHolder = addConstructorCallTransaction(key, eoa, _10_000_000, BigInteger.ONE, jar(), ConstructorSignatures.of(MAP_HOLDER));
 		StorageValue state = runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "get10", STATE), mapHolder);
-		var result = (BooleanValue) runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "isWaiting", BOOLEAN, StorageTypes.OBJECT), mapHolder, state);
-		assertTrue(result.getValue());
+		var isWaiting = MethodSignatures.ofNonVoid(MAP_HOLDER, "isWaiting", BOOLEAN, StorageTypes.OBJECT);
+		assertTrue(runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), isWaiting, mapHolder, state).asReturnedBoolean(isWaiting, NodeException::new));
 	}
 
 	@Test @DisplayName("new MapHolder().get0() == RUNNING with State")
-	void mapHolderGet0State() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void mapHolderGet0State() throws Exception {
 		StorageReference mapHolder = addConstructorCallTransaction(key, eoa, _10_000_000, BigInteger.ONE, jar(), ConstructorSignatures.of(MAP_HOLDER));
 		StorageValue state = runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "get0", STATE), mapHolder);
-		var result = (BooleanValue) runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "isRunning2", BOOLEAN, STATE), mapHolder, state);
-		assertTrue(result.getValue());
+		var isRunning2 = MethodSignatures.ofNonVoid(MAP_HOLDER, "isRunning2", BOOLEAN, STATE);
+		assertTrue(runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), isRunning2, mapHolder, state).asReturnedBoolean(isRunning2, NodeException::new));
 	}
 
 	@Test @DisplayName("new MapHolder().get1() == SLEEPING with State")
-	void mapHolderGet1State() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void mapHolderGet1State() throws Exception {
 		StorageReference mapHolder = addConstructorCallTransaction(key, eoa, _10_000_000, BigInteger.ONE, jar(), ConstructorSignatures.of(MAP_HOLDER));
 		StorageValue state = runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "get1", STATE), mapHolder);
-		var result = (BooleanValue) runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "isSleeping2", BOOLEAN, STATE), mapHolder, state);
-		assertTrue(result.getValue());
+		var isSleeping2 = MethodSignatures.ofNonVoid(MAP_HOLDER, "isSleeping2", BOOLEAN, STATE);
+		assertTrue(runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), isSleeping2, mapHolder, state).asReturnedBoolean(isSleeping2, NodeException::new));
 	}
 
 	@Test @DisplayName("new MapHolder().get10() == WAITING with State")
-	void mapHolderGet10State() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void mapHolderGet10State() throws Exception {
 		StorageReference mapHolder = addConstructorCallTransaction(key, eoa, _10_000_000, BigInteger.ONE, jar(), ConstructorSignatures.of(MAP_HOLDER));
 		StorageValue state = runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "get10", STATE), mapHolder);
-		var result = (BooleanValue) runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "isWaiting2", BOOLEAN, STATE), mapHolder, state);
-		assertTrue(result.getValue());
+		var isWaiting2 = MethodSignatures.ofNonVoid(MAP_HOLDER, "isWaiting2", BOOLEAN, STATE);
+		assertTrue(runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), isWaiting2, mapHolder, state).asReturnedBoolean(isWaiting2, NodeException::new));
 	}
 
 	@Test @DisplayName("new MapHolder().get0() == RUNNING with Comparable")
-	void mapHolderGet0Comparable() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void mapHolderGet0Comparable() throws Exception {
 		StorageReference mapHolder = addConstructorCallTransaction(key, eoa, _10_000_000, BigInteger.ONE, jar(), ConstructorSignatures.of(MAP_HOLDER));
 		StorageValue state = runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "get0", STATE), mapHolder);
-		var result = (BooleanValue) runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "isRunning3", BOOLEAN, COMPARABLE), mapHolder, state);
-		assertTrue(result.getValue());
+		NonVoidMethodSignature isRunning3 = MethodSignatures.ofNonVoid(MAP_HOLDER, "isRunning3", BOOLEAN, COMPARABLE);
+		assertTrue(runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), isRunning3, mapHolder, state).asReturnedBoolean(isRunning3, NodeException::new));
 	}
 
 	@Test @DisplayName("new MapHolder().get1() == SLEEPING with Comparable")
-	void mapHolderGet1Comparable() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void mapHolderGet1Comparable() throws Exception {
 		StorageReference mapHolder = addConstructorCallTransaction(key, eoa, _10_000_000, BigInteger.ONE, jar(), ConstructorSignatures.of(MAP_HOLDER));
 		StorageValue state = runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "get1", STATE), mapHolder);
-		var result = (BooleanValue) runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "isSleeping3", BOOLEAN, COMPARABLE), mapHolder, state);
-		assertTrue(result.getValue());
+		var isSleeping3 = MethodSignatures.ofNonVoid(MAP_HOLDER, "isSleeping3", BOOLEAN, COMPARABLE);
+		assertTrue(runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), isSleeping3, mapHolder, state).asReturnedBoolean(isSleeping3, NodeException::new));
 	}
 
 	@Test @DisplayName("new MapHolder().get10() == WAITING with Comparable")
-	void mapHolderGet10Comparable() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void mapHolderGet10Comparable() throws Exception {
 		StorageReference mapHolder = addConstructorCallTransaction(key, eoa, _10_000_000, BigInteger.ONE, jar(), ConstructorSignatures.of(MAP_HOLDER));
 		StorageValue state = runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "get10", STATE), mapHolder);
-		var result = (BooleanValue) runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "isWaiting3", BOOLEAN, COMPARABLE), mapHolder, state);
-		assertTrue(result.getValue());
+		var isWaiting3 = MethodSignatures.ofNonVoid(MAP_HOLDER, "isWaiting3", BOOLEAN, COMPARABLE);
+		assertTrue(runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), isWaiting3, mapHolder, state).asReturnedBoolean(isWaiting3, NodeException::new));
 	}
 }

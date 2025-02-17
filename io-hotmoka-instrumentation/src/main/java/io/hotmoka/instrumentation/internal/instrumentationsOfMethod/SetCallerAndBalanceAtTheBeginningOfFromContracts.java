@@ -78,28 +78,26 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 			Optional<Class<?>> ann = annotations.getFromContractArgument(className, name, args, returnType);
 			if (ann.isPresent()) {
 				boolean isPayable = annotations.isPayable(className, name, args, returnType);
-				boolean isRedPayable = annotations.isRedPayable(className, name, args, returnType);
-				instrumentFromContract(method, ann.get(), isPayable, isRedPayable);
+				instrumentFromContract(method, ann.get(), isPayable);
 			};
 		}
 	}
 
 	/**
-	 * Instruments an entry, by setting the caller and transferring funds for payable entries.
+	 * Instruments a from contract method, by setting the caller and transferring funds for payable entries.
 	 * 
 	 * @param method the entry
 	 * @param callerContract the class of the caller contract
 	 * @param isPayable true if and only if the entry is payable
-	 * @param isRedPayable true if and only if the entry is red payable
 	 * @throws ClassNotFoundException if some class of the Takamaka program could not be found
 	 */
-	private void instrumentFromContract(MethodGen method, Class<?> callerContract, boolean isPayable, boolean isRedPayable) throws ClassNotFoundException {
+	private void instrumentFromContract(MethodGen method, Class<?> callerContract, boolean isPayable) throws ClassNotFoundException {
 		// slotForCaller is the local variable used for the extra "caller" parameter;
 		int slotForCaller = addExtraParameters(method);
 		if (!method.isAbstract()) {
 			// we shift one slot upwards all local variables from slotForCaller, inclusive
 			shiftUp(method, slotForCaller);
-			setCallerAndBalance(method, callerContract, slotForCaller, isPayable, isRedPayable);
+			setCallerAndBalance(method, callerContract, slotForCaller, isPayable);
 		}
 	}
 
@@ -127,10 +125,9 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 	 * @param callerContract the class of the caller contract
 	 * @param slotForCaller the local variable for the caller implicit argument
 	 * @param isPayable true if and only if the entry is payable
-	 * @param isRedPayable true if and only if the entry is red payable
 	 * @throws ClassNotFoundException 
 	 */
-	private void setCallerAndBalance(MethodGen method, Class<?> callerContract, int slotForCaller, boolean isPayable, boolean isRedPayable) throws ClassNotFoundException {
+	private void setCallerAndBalance(MethodGen method, Class<?> callerContract, int slotForCaller, boolean isPayable) throws ClassNotFoundException {
 		InstructionList il = method.getInstructionList();
 		InstructionHandle start = il.getStart();
 
@@ -141,7 +138,6 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 		boolean isConstructorOfInstanceInnerClass;
 		boolean superconstructorIsFromContract;
 		boolean superconstructorIsPayable;
-		boolean superconstructorIsRedPayable;
 
 		if (method.getName().equals(Const.CONSTRUCTOR_NAME)) {
 			isConstructorOfInstanceInnerClass = isConstructorOfInstanceInnerClass();
@@ -158,19 +154,17 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 			}
 			superconstructorIsFromContract = annotations.isFromContract(classNameOfSuperConstructor, Const.CONSTRUCTOR_NAME, argumentTypes, Type.VOID);
 			superconstructorIsPayable = annotations.isPayable(classNameOfSuperConstructor, Const.CONSTRUCTOR_NAME, argumentTypes, Type.VOID);
-			superconstructorIsRedPayable = annotations.isRedPayable(classNameOfSuperConstructor, Const.CONSTRUCTOR_NAME, argumentTypes, Type.VOID);
 			where = callToSuperConstructor.getNext();
 		}
 		else {
 			isConstructorOfInstanceInnerClass = false;
 			superconstructorIsFromContract = false;
 			superconstructorIsPayable = false;
-			superconstructorIsRedPayable = false;
 			where = start;
 		}
 
-		if (isPayable || isRedPayable) {
-			if (superconstructorIsPayable || superconstructorIsRedPayable) {
+		if (isPayable) {
+			if (superconstructorIsPayable) {
 				if (callerContract != classLoader.getContract()) {
 					il.insert(start, InstructionFactory.createLoad(CONTRACT_OT, slotForCaller));
 					il.insert(start, factory.createCast(CONTRACT_OT, Type.getType(callerContract)));
@@ -214,13 +208,12 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 	private boolean isConstructorOfInstanceInnerClass() {
 		int dollarPos = className.lastIndexOf('$');
 		Type[] methodArgs;
-		ObjectType t;
 
 		// constructors of inner classes c have a first implicit parameter whose type t is the parent class
 		// and they start with aload_0 aload_1 putfield c.f:t
 		if (dollarPos > 0
-			&& (methodArgs = method.getArgumentTypes()).length > 0 && methodArgs[0] instanceof ObjectType
-			&& (t = (ObjectType) methodArgs[0]).getClassName().equals(className.substring(0, dollarPos))) {
+			&& (methodArgs = method.getArgumentTypes()).length > 0 && methodArgs[0] instanceof ObjectType t
+			&& t.getClassName().equals(className.substring(0, dollarPos))) {
 
 			InstructionList il = method.getInstructionList();
 			if (il != null && il.getLength() >= 3) {

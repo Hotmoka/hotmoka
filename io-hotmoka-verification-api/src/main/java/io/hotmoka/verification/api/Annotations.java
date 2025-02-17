@@ -47,18 +47,6 @@ public interface Annotations {
 	boolean isPayable(String className, String methodName, Type[] formals, Type returnType) throws ClassNotFoundException;
 
 	/**
-	 * Determines if the given constructor or method is annotated as red payable.
-	 * 
-	 * @param className the class of the constructor or method
-	 * @param methodName the name of the constructor or method
-	 * @param formals the types of the formal arguments of the method
-	 * @param returnType the return type of the method
-	 * @return true if and only if that condition holds
-	 * @throws ClassNotFoundException if {@code className} cannot be found in the Takamaka program
-	 */
-	boolean isRedPayable(String className, String methodName, Type[] formals, Type returnType) throws ClassNotFoundException;
-
-	/**
 	 * Determines if the given constructor or method is annotated as {@code @@ThrowsExceptions}.
 	 * 
 	 * @param className the class of the constructor or method

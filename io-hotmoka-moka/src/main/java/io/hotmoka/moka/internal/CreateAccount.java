@@ -62,9 +62,6 @@ public class CreateAccount extends AbstractCommand {
 	@Option(names = { "--password-of-payer" }, description = "the password of the payer account, if it is not the faucet; if not specified, it will be asked interactively")
     private String passwordOfPayer;
 
-	@Option(names = { "--balance-red" }, description = "the initial red balance of the account", defaultValue = "0")
-    private BigInteger balanceRed;
-
 	@Option(names = { "--signature" }, description = "the name of the signature algorithm to use for the new account {sha256dsa,ed25519,qtesla1,qtesla3,default}", defaultValue = "default")
 	private String signature;
 
@@ -126,9 +123,9 @@ public class CreateAccount extends AbstractCommand {
 			
 			try {
 				if (createTendermintValidator)
-					return accountCreationHelper.tendermintValidatorPaidByFaucet(publicKey, balance, balanceRed, this::printCosts);
+					return accountCreationHelper.tendermintValidatorPaidByFaucet(publicKey, balance, this::printCosts);
 				else
-					return accountCreationHelper.paidByFaucet(signatureAlgorithmOfNewAccount, publicKey, balance,  balanceRed, this::printCosts);
+					return accountCreationHelper.paidByFaucet(signatureAlgorithmOfNewAccount, publicKey, balance,  this::printCosts);
 			}
 			catch (TransactionRejectedException e) {
 				if (e.getMessage().contains("invalid request signature"))
@@ -144,11 +141,11 @@ public class CreateAccount extends AbstractCommand {
 			KeyPair keysOfPayer = readKeys(payer, node, passwordOfPayer);
 			if (createTendermintValidator)
 				return accountCreationHelper.tendermintValidatorPaidBy
-					(payer.getReference(), keysOfPayer, publicKey, balance, balanceRed, this::askForConfirmation, this::printCosts);
+					(payer.getReference(), keysOfPayer, publicKey, balance, this::askForConfirmation, this::printCosts);
 			else
 				return accountCreationHelper.paidBy
 					(payer.getReference(), keysOfPayer, signatureAlgorithmOfNewAccount, publicKey,
-					balance, balanceRed, false, this::askForConfirmation, this::printCosts);
+					balance, false, this::askForConfirmation, this::printCosts);
 		}
 
 		private void askForConfirmation(BigInteger gas) {

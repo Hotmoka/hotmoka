@@ -52,9 +52,6 @@ public class Send extends AbstractCommand {
 	@Option(names = { "--password-of-payer" }, description = "the password of the payer account, if it is not the faucet; if not specified, it will be asked interactively")
     private String passwordOfPayer;
 
-	@Option(names = { "--amount-red" }, description = "the amount of red coins sent to the contract", defaultValue = "0")
-    private BigInteger amountRed;
-
 	@Option(names = { "--uri" }, description = "the URI of the node", defaultValue = "ws://localhost:8001")
     private URI uri;
 
@@ -112,7 +109,7 @@ public class Send extends AbstractCommand {
 			var sendCoinsHelper = SendCoinsHelpers.of(node);
 			var payer = StorageValues.reference(Send.this.payer);
 			KeyPair keysOfPayer = readKeys(Accounts.of(payer), node, passwordOfPayer);
-			sendCoinsHelper.sendFromPayer(payer, keysOfPayer, StorageValues.reference(destination), amount, amountRed, this::askForConfirmation, this::printCosts);
+			sendCoinsHelper.sendFromPayer(payer, keysOfPayer, StorageValues.reference(destination), amount, this::askForConfirmation, this::printCosts);
 		}
 
 		private StorageReference sendCoinsToPublicKey() throws Exception {
@@ -122,14 +119,14 @@ public class Send extends AbstractCommand {
 			var signatureAlgorithmForNewAccount = SignatureAlgorithms.ed25519();
 			return accountCreationHelper.paidBy(payer, keysOfPayer, signatureAlgorithmForNewAccount,
 				signatureAlgorithmForNewAccount.publicKeyFromEncoding(Base58.decode(destination)),
-				amount, amountRed, anonymous, this::askForConfirmation, this::printCosts);
+				amount, anonymous, this::askForConfirmation, this::printCosts);
 		}
 
 		private void sendCoinsFromFaucet() throws Exception {
 			var sendCoinsHelper = SendCoinsHelpers.of(node);
 			
 			try {
-				sendCoinsHelper.sendFromFaucet(StorageValues.reference(destination), amount, amountRed, this::askForConfirmation, this::printCosts);
+				sendCoinsHelper.sendFromFaucet(StorageValues.reference(destination), amount, this::askForConfirmation, this::printCosts);
 			}
 			catch (TransactionRejectedException e) {
 				if (e.getMessage().contains("invalid request signature"))

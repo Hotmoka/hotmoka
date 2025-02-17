@@ -80,14 +80,14 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 
 	@Override
 	public void sendFromPayer(StorageReference payer, KeyPair keysOfPayer,
-			StorageReference destination, BigInteger amount, BigInteger amountRed,
+			StorageReference destination, BigInteger amount,
 			Consumer<BigInteger> gasHandler, Consumer<TransactionRequest<?>[]> requestsHandler)
 			throws TransactionRejectedException, TransactionException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
 
 		var signature = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
 		Signer<SignedTransactionRequest<?>> signer = signature.getSigner(keysOfPayer.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 		BigInteger gas = gasForTransactionWhosePayerHasSignature(signature.getName(), node);
-		BigInteger totalGas = amountRed.signum() > 0 ? gas.add(gas) : gas;
+		BigInteger totalGas = gas;
 		gasHandler.accept(totalGas);
 
 		var request1 = TransactionRequests.instanceMethodCall
@@ -101,19 +101,6 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 		try {
 			node.addInstanceMethodCallTransaction(request1);
 			requestsHandler.accept(new TransactionRequest<?>[] { request1 });
-
-			if (amountRed.signum() > 0) {
-				var request2 = TransactionRequests.instanceMethodCall
-						(signer,
-								payer, nonceHelper.getNonceOf(payer),
-								chainId, gas, gasHelper.getGasPrice(), takamakaCode,
-								MethodSignatures.RECEIVE_RED_BIG_INTEGER,
-								destination,
-								StorageValues.bigIntegerOf(amountRed));
-
-				node.addInstanceMethodCallTransaction(request2);
-				requestsHandler.accept(new TransactionRequest<?>[] { request2 });
-			}
 		}
 		catch (CodeExecutionException e) {
 			// receive() does not throw exceptions
@@ -122,7 +109,7 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 	}
 
 	@Override
-	public void sendFromFaucet(StorageReference destination, BigInteger amount, BigInteger amountRed,
+	public void sendFromFaucet(StorageReference destination, BigInteger amount,
 			Consumer<BigInteger> gasHandler, Consumer<TransactionRequest<?>[]> requestsHandler)
 			throws TransactionRejectedException, TransactionException, NodeException, InterruptedException, TimeoutException {
 
@@ -140,9 +127,9 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 					(signature.getSigner(signature.getKeyPair().getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
 							gamete, nonceHelper.getNonceOf(gamete),
 							chainId, _100_000, gasHelper.getGasPrice(), takamakaCode,
-							MethodSignatures.ofVoid(GAMETE, "faucet", PAYABLE_CONTRACT, BIG_INTEGER, BIG_INTEGER),
+							MethodSignatures.ofVoid(GAMETE, "faucet", PAYABLE_CONTRACT, BIG_INTEGER),
 							gamete,
-							destination, StorageValues.bigIntegerOf(amount), StorageValues.bigIntegerOf(amountRed));
+							destination, StorageValues.bigIntegerOf(amount));
 
 			node.addInstanceMethodCallTransaction(request);
 			requestsHandler.accept(new TransactionRequest<?>[] { request });

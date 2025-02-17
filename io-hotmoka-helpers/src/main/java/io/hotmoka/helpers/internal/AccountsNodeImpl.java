@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.helpers.internal;
 
-import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
@@ -82,9 +81,7 @@ public class AccountsNodeImpl extends AbstractNodeDecorator<Node> implements Acc
 	 *                          it will be used to sign requests for initializing the accounts;
 	 *                          the account must have enough coins to initialize the required accounts
 	 * @param classpath the classpath where {@code containerClassName} must be resolved
-	 * @param greenRed true if both green and red balances must be initialized; if false, only the green balance is initialized
-	 * @param funds the initial funds of the accounts that are created; if {@code greenRed} is true,
-	 *              they must be understood in pairs, each pair for the green and red initial funds of each account (green before red)
+	 * @param funds the initial funds of the accounts that are created
 	 * @throws TransactionRejectedException if some transaction that creates the accounts is rejected
 	 * @throws TransactionException if some transaction that creates the accounts fails
 	 * @throws SignatureException if some request could not be signed
@@ -95,11 +92,11 @@ public class AccountsNodeImpl extends AbstractNodeDecorator<Node> implements Acc
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws UnknownReferenceException if the payer is unknown
 	 */
-	public static AccountsNodeImpl mk(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, TransactionReference classpath, boolean greenRed, BigInteger... funds)
+	public static AccountsNodeImpl mk(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, TransactionReference classpath, BigInteger... funds)
 			throws TransactionRejectedException, TransactionException, InvalidKeyException, SignatureException, NodeException, UnknownReferenceException, TimeoutException, InterruptedException {
 
 		try {
-			return new AccountsNodeImpl(parent, payer, privateKeyOfPayer, Constants.EXTERNALLY_OWNED_ACCOUNTS_NAME, classpath, greenRed, funds);
+			return new AccountsNodeImpl(parent, payer, privateKeyOfPayer, Constants.EXTERNALLY_OWNED_ACCOUNTS_NAME, classpath, funds);
 		}
 		catch (CodeExecutionException e) {
 			// the container class is fixed, hence this exception cannot occur
@@ -119,9 +116,7 @@ public class AccountsNodeImpl extends AbstractNodeDecorator<Node> implements Acc
 	 * @param containerClassName the fully-qualified name of the class that must be used to contain the accounts;
 	 *                           this must be {@code io.takamaka.code.lang.Accounts} or subclass
 	 * @param classpath the classpath where {@code containerClassName} must be resolved
-	 * @param greenRed true if both green and red balances must be initialized; if false, only the green balance is initialized
-	 * @param funds the initial funds of the accounts that are created; if {@code greenRed} is true,
-	 *              they must be understood in pairs, each pair for the green and red initial funds of each account (green before red)
+	 * @param funds the initial funds of the accounts that are created
 	 * @throws TransactionRejectedException if some transaction that creates the accounts is rejected
 	 * @throws TransactionException if some transaction that creates the accounts fails
 	 * @throws CodeExecutionException if some transaction that creates the accounts throws an exception
@@ -133,12 +128,12 @@ public class AccountsNodeImpl extends AbstractNodeDecorator<Node> implements Acc
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws UnknownReferenceException if the payer is unknown
 	 */
-	public AccountsNodeImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, String containerClassName, TransactionReference classpath, boolean greenRed, BigInteger... funds)
+	public AccountsNodeImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, String containerClassName, TransactionReference classpath, BigInteger... funds)
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NodeException, UnknownReferenceException, TimeoutException, InterruptedException {
 
 		super(parent);
 
-		this.accounts = new StorageReference[greenRed ? funds.length / 2 : funds.length];
+		this.accounts = new StorageReference[funds.length];
 		this.privateKeys = new PrivateKey[accounts.length];
 
 		var signature = SignatureHelpers.of(this).signatureAlgorithmFor(payer);
@@ -164,14 +159,11 @@ public class AccountsNodeImpl extends AbstractNodeDecorator<Node> implements Acc
 
 		var gasHelper = GasHelpers.of(this);
 		BigInteger sum = ZERO;
-		BigInteger sumRed = ZERO;
 		var publicKeys = new StringBuilder();
 		var balances = new StringBuilder();
-		var redBalances = new StringBuilder();
-		int k = greenRed ? 2 : 1;
 
 		// TODO: deal with large strings, in particular for long public keys
-		for (int i = 0; i < funds.length / k; i++) {
+		for (int i = 0; i < funds.length; i++) {
 			KeyPair keys = signature.getKeyPair();
 			privateKeys[i] = keys.getPrivate();
 			String publicKey;
@@ -185,38 +177,22 @@ public class AccountsNodeImpl extends AbstractNodeDecorator<Node> implements Acc
 			}
 
 			publicKeys.append(i == 0 ? publicKey : (' ' + publicKey));
-			BigInteger fund = funds[i * k];
+			BigInteger fund = funds[i];
 			sum = sum.add(fund);
 			balances.append(i == 0 ? fund.toString() : (' ' + fund.toString()));
-
-			if (greenRed) {
-				fund = funds[i * 2 + 1];
-				sumRed = sumRed.add(fund);
-				redBalances.append(i == 0 ? fund.toString() : (' ' + fund.toString()));
-			}
 		}
 
 		// we provide an amount of gas that grows linearly with the number of accounts that get created, and set the green balances of the accounts
-		BigInteger gas = _200_000.multiply(BigInteger.valueOf(funds.length / k));
+		BigInteger gas = _200_000.multiply(BigInteger.valueOf(funds.length));
 
 		this.container = addConstructorCallTransaction(TransactionRequests.constructorCall
 				(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getSafeGasPrice(), classpath,
 						ConstructorSignatures.of(containerClassName, StorageTypes.BIG_INTEGER, StorageTypes.STRING, StorageTypes.STRING),
 						StorageValues.bigIntegerOf(sum), StorageValues.stringOf(balances.toString()), StorageValues.stringOf(publicKeys.toString())));
 
-		if (greenRed) {
-			nonce = nonce.add(ONE);
-
-			// we set the red balances of the accounts now
-			addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall
-					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getSafeGasPrice(), classpath,
-							MethodSignatures.ofVoid(StorageTypes.ACCOUNTS, "addRedBalances", StorageTypes.BIG_INTEGER, StorageTypes.STRING),
-							this.container, StorageValues.bigIntegerOf(sumRed), StorageValues.stringOf(redBalances.toString())));
-		}
-
 		var get = MethodSignatures.ofNonVoid(StorageTypes.ACCOUNTS, "get", StorageTypes.EOA, StorageTypes.INT);
 
-		for (int i = 0; i < funds.length / k; i++)
+		for (int i = 0; i < funds.length; i++)
 			this.accounts[i] = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(payer, _100_000, classpath, get, container, StorageValues.intOf(i)))
 				.orElseThrow(() -> new NodeException(get + " should not return void"))
 				.asReference(value -> new NodeException(get + " should return a reference, not a " + value.getClass().getName()));

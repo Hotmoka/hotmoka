@@ -165,15 +165,6 @@ public interface ConsensusConfigBuilder<C extends ConsensusConfig<C,B>, B extend
 	B setInitialSupply(BigInteger initialSupply);
 
 	/**
-	 * Sets the initial supply of red coins of the node.
-	 * It defaults to 0.
-	 * 
-	 * @param initialRedSupply the initial supply of red coins of the node
-	 * @return this builder
-	 */
-	B setInitialRedSupply(BigInteger initialRedSupply);
-
-	/**
 	 * Sets the public key for the gamete account. It defaults to a public key
 	 * with empty entropy and empty password.
 	 * 

@@ -44,7 +44,6 @@ public interface SendCoinsHelper {
 	 * @param keysOfPayer the keys of the {@code payer}
 	 * @param destination the destination account
 	 * @param amount the balance to transfer
-	 * @param amountRed the red balance to transfer
 	 * @param gasHandler a handler called with the total gas used for this operation. This can be useful for logging
 	 * @param requestsHandler a handler called with the paid requests used for this operation. This can be useful for logging or computing costs
 	 * @throws TransactionRejectedException if some transaction gets rejected
@@ -56,7 +55,7 @@ public interface SendCoinsHelper {
 	 * @throws NodeException if the node is not able to complete the operation
 	 * @throws UnknownReferenceException if the node is not properly initialized
 	 */
-	void sendFromPayer(StorageReference payer, KeyPair keysOfPayer, StorageReference destination, BigInteger amount, BigInteger amountRed,
+	void sendFromPayer(StorageReference payer, KeyPair keysOfPayer, StorageReference destination, BigInteger amount,
 			Consumer<BigInteger> gasHandler, Consumer<TransactionRequest<?>[]> requestsHandler)
 			throws TransactionRejectedException, TransactionException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException;
 
@@ -65,7 +64,6 @@ public interface SendCoinsHelper {
 	 * 
 	 * @param destination the destination account
 	 * @param amount the balance to transfer
-	 * @param amountRed the red balance to transfer
 	 * @param gasHandler a handler called with the total gas used for this operation. This can be useful for logging
 	 * @param requestsHandler a handler called with the paid requests used for this operation. This can be useful for logging or computing costs
 	 * @throws TransactionRejectedException if some transaction was rejected
@@ -74,6 +72,6 @@ public interface SendCoinsHelper {
 	 * @throws InterruptedException if the current thread gets interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 */
-	void sendFromFaucet(StorageReference destination, BigInteger amount, BigInteger amountRed, Consumer<BigInteger> gasHandler, Consumer<TransactionRequest<?>[]> requestsHandler)
+	void sendFromFaucet(StorageReference destination, BigInteger amount, Consumer<BigInteger> gasHandler, Consumer<TransactionRequest<?>[]> requestsHandler)
 			throws TransactionRejectedException, TransactionException, NodeException, InterruptedException, TimeoutException;
 }

@@ -146,17 +146,16 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	    				.allowUnsignedFaucet(true) // good for testing
 	    				.ignoreGasPrice(true) // good for testing
 	    				.setInitialSupply(Coin.level7(10000000)) // enough for all tests
-	    				.setInitialRedSupply(Coin.level7(10000000)) // enough for all tests
 	    				.setPublicKeyOfGamete(keys.getPublic())
 	    				.build();
 	    		privateKeyOfGamete = keys.getPrivate();
 
 	    		Node wrapped;
-	    		node = wrapped = mkDiskNode();
+	    		//node = wrapped = mkDiskNode();
 	    		//node = wrapped = mkMokamintNodeConnectedToPeer();
 	    		//node = wrapped = mkMokamintNetwork(4);
 	    		//node = wrapped = mkTendermintNode();
-	    		//node = mkRemoteNode(wrapped = mkDiskNode());
+	    		node = mkRemoteNode(wrapped = mkDiskNode());
 	    		//node = mkRemoteNode(wrapped = mkMokamintNetwork(1));
 	    		//node = mkRemoteNode(wrapped = mkTendermintNode());
 	    		//node = wrapped = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
@@ -187,10 +186,9 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	    		Signer<SignedTransactionRequest<?>> signerOfGamete = signature.getSigner(privateKeyOfGamete, SignedTransactionRequest::toByteArrayWithoutSignature);
 	    		node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall
 	    				(signerOfGamete, gamete, nonce, chainId, _100_000, BigInteger.ONE, takamakaCode,
-	    						MethodSignatures.ofVoid(StorageTypes.GAMETE, "setMaxFaucet", StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER), gamete,
-	    						StorageValues.bigIntegerOf(aLot), StorageValues.bigIntegerOf(aLot)));
+   						MethodSignatures.ofVoid(StorageTypes.GAMETE, "setMaxFaucet", StorageTypes.BIG_INTEGER), gamete, StorageValues.bigIntegerOf(aLot)));
 
-	    		var local = AccountsNodes.ofGreenRed(node, gamete, privateKeyOfGamete, aLot, aLot);
+	    		var local = AccountsNodes.of(node, gamete, privateKeyOfGamete, aLot);
 	    		localGamete = local.account(0);
 	    		privateKeyOfLocalGamete = local.privateKey(0);
 
@@ -524,7 +522,6 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 					.ignoreGasPrice(true) // good for testing
 					.setInitialSupply(Coin.level7(10000000)) // enough for all tests
 					.setFinalSupply(Coin.level7(10000000).multiply(BigInteger.TWO))
-					.setInitialRedSupply(Coin.level7(10000000)) // enough for all tests
 					.setPublicKeyOfGamete(consensus.getPublicKeyOfGamete());
 		}
 		catch (NoSuchAlgorithmException | InvalidKeyException e) {
@@ -550,10 +547,6 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	protected final void setAccounts(String containerClassName, TransactionReference classpath, Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException, NodeException, NoSuchElementException, TimeoutException, InterruptedException, UnknownReferenceException {
 		setAccounts(containerClassName, classpath, coins.toArray(BigInteger[]::new));
-	}
-
-	protected final void setGreenRedAccounts(BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, NoSuchElementException, ClassNotFoundException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
-		nodeWithAccountsView = AccountsNodes.ofGreenRed(node, localGamete, privateKeyOfLocalGamete, coins);
 	}
 
 	protected static void setJar(String jar) throws TransactionRejectedException, TransactionException, IOException, NodeException, TimeoutException, InterruptedException {

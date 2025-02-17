@@ -68,12 +68,6 @@ public class AnnotationsImpl implements Annotations {
 	}
 
 	@Override
-	public final boolean isRedPayable(String className, String methodName, Type[] formals, Type returnType) throws SecurityException, ClassNotFoundException {
-		return getAnnotation(className, methodName, formals, returnType, Constants.RED_PAYABLE_NAME).isPresent()
-			|| getAnnotation(className, methodName, expandFormals(formals), returnType, Constants.RED_PAYABLE_NAME).isPresent();
-	}
-
-	@Override
 	public final boolean isThrowsExceptions(String className, String methodName, Type[] formals, Type returnType) throws SecurityException, ClassNotFoundException {
 		return getAnnotation(className, methodName, formals, returnType, Constants.THROWS_EXCEPTIONS_NAME).isPresent()
 			|| getAnnotation(className, methodName, expandFormals(formals), returnType, Constants.THROWS_EXCEPTIONS_NAME).isPresent();

@@ -52,7 +52,6 @@ public interface AccountCreationHelper {
 	 * @param signatureAlgorithm the signature algorithm for the new account
 	 * @param publicKey the public key of the new account
 	 * @param balance the balance of the new account
-	 * @param balanceRed the red balance of the new account
 	 * @param requestsHandler a handler called with the paid requests used for this operation. This can be useful for logging or computing costs
 	 * @return the storage reference of the account
 	 * @throws TransactionRejectedException if some transaction was rejected
@@ -65,7 +64,7 @@ public interface AccountCreationHelper {
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 */
 	StorageReference paidByFaucet(SignatureAlgorithm signatureAlgorithm, PublicKey publicKey,
-			BigInteger balance, BigInteger balanceRed, Consumer<TransactionRequest<?>[]> requestsHandler)
+			BigInteger balance, Consumer<TransactionRequest<?>[]> requestsHandler)
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NodeException, InterruptedException, TimeoutException;
 
 	/**
@@ -76,7 +75,6 @@ public interface AccountCreationHelper {
 	 * @param signatureAlgorithm the signature algorithm for the new account
 	 * @param publicKey the public key of the new account
 	 * @param balance the balance of the new account
-	 * @param balanceRed the red balance of the new account
 	 * @param addToLedger adds the new account to the ledger of the manifest, bound to its {@code publicKey}; if an account already
 	 *                    exists for {@code publicKey}, that account gets funded with {@code balance} and {@code balanceRed} coins and returned
 	 * @param gasHandler a handler called with the total gas used for this operation. This can be useful for logging
@@ -93,7 +91,7 @@ public interface AccountCreationHelper {
 	 * @throws UnknownReferenceException if {@code payer} cannot be found in the node	
 	 */
 	StorageReference paidBy(StorageReference payer, KeyPair keysOfPayer,
-			SignatureAlgorithm signatureAlgorithm, PublicKey publicKey, BigInteger balance, BigInteger balanceRed,
+			SignatureAlgorithm signatureAlgorithm, PublicKey publicKey, BigInteger balance,
 			boolean addToLedger,
 			Consumer<BigInteger> gasHandler,
 			Consumer<TransactionRequest<?>[]> requestsHandler)
@@ -105,7 +103,6 @@ public interface AccountCreationHelper {
 	 * 
 	 * @param publicKey the public key of the new validator
 	 * @param balance the balance of the new validator
-	 * @param balanceRed the red balance of the new validator
 	 * @param requestsHandler a handler called with the paid requests used for this operation. This can be useful for logging or computing costs
 	 * @return the storage reference of the validator
 	 * @throws TransactionRejectedException if some transaction was rejected
@@ -116,8 +113,7 @@ public interface AccountCreationHelper {
 	 * @throws InterruptedException if the current thread gets interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 */
-	StorageReference tendermintValidatorPaidByFaucet(PublicKey publicKey,
-			BigInteger balance, BigInteger balanceRed, Consumer<TransactionRequest<?>[]> requestsHandler)
+	StorageReference tendermintValidatorPaidByFaucet(PublicKey publicKey, BigInteger balance, Consumer<TransactionRequest<?>[]> requestsHandler)
 			throws TransactionRejectedException, TransactionException, InvalidKeyException, SignatureException, NodeException, InterruptedException, TimeoutException;
 
 	/**
@@ -127,7 +123,6 @@ public interface AccountCreationHelper {
 	 * @param keysOfPayer the keys of the {@code payer}
 	 * @param publicKey the public key of the new validator
 	 * @param balance the balance of the new validator
-	 * @param balanceRed the red balance of the new validator
 	 * @param gasHandler a handler called with the total gas used for this operation. This can be useful for logging
 	 * @param requestsHandler a handler called with the paid requests used for this operation. This can be useful for logging or computing costs
 	 * @return the storage reference of the new validator
@@ -141,8 +136,7 @@ public interface AccountCreationHelper {
 	 * @throws NodeException if the node is not able to complete the operation
 	 * @throws UnknownReferenceException if {@code payer} cannot be found in the node
 	 */
-	StorageReference tendermintValidatorPaidBy(StorageReference payer, KeyPair keysOfPayer, PublicKey publicKey, BigInteger balance, BigInteger balanceRed,
-			Consumer<BigInteger> gasHandler,
+	StorageReference tendermintValidatorPaidBy(StorageReference payer, KeyPair keysOfPayer, PublicKey publicKey, BigInteger balance, Consumer<BigInteger> gasHandler,
 			Consumer<TransactionRequest<?>[]> requestsHandler)
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException,
 				NodeException, TimeoutException, InterruptedException, UnknownReferenceException;

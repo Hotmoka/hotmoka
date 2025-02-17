@@ -121,28 +121,6 @@ public abstract class Runtime {
 	}
 
 	/**
-	 * Called at the beginning of the instrumentation of a red payable entry method or constructor.
-	 * It forwards the call to {@code io.takamaka.code.lang.Storage.entry()} and then to
-	 * {@code io.takamaka.code.lang.RedGreenContract.redPayable()}.
-	 * 
-	 * @param callee the contract whose entry is called
-	 * @param caller the caller of the entry
-	 * @param dummy may be used to signal something to the callee
-	 * @param amount the amount of coins
-	 * @throws any possible exception thrown inside or {@code io.takamaka.code.lang.Storage.entry()}
-	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
-	 */
-	public static void redPayableFromContract(Object callee, Object caller, Dummy dummy, BigInteger amount) throws Throwable {
-		EngineClassLoaderImpl classLoader = getResponseCreator().getClassLoader();
-		classLoader.fromContract(callee, caller);
-		if (dummy == Dummy.METHOD_ON_THIS)
-			// the callee pays itself
-			classLoader.redPayableFromContract(callee, callee, amount);
-		else
-			classLoader.redPayableFromContract(callee, caller, amount);
-	}
-
-	/**
 	 * Called at the beginning of the instrumentation of a payable entry method or constructor.
 	 * It forwards the call to {@code io.takamaka.code.lang.Storage.entry()} and then
 	 * to {@code io.takamaka.code.lang.Contract.payableEntry()}.
@@ -165,28 +143,6 @@ public abstract class Runtime {
 	}
 
 	/**
-	 * Called at the beginning of the instrumentation of a red payable entry method or constructor.
-	 * It forwards the call to {@code io.takamaka.code.lang.Storage.entry()} and then to
-	 * {@code io.takamaka.code.lang.RedGreenContract.redPayable()}.
-	 * 
-	 * @param callee the contract whose entry is called
-	 * @param caller the caller of the entry
-	 * @param dummy may be used to signal something to the callee
-	 * @param amount the amount of coins
-	 * @throws any possible exception thrown inside or {@code io.takamaka.code.lang.Storage.entry()}
-	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
-	 */
-	public static void redPayableFromContract(Object callee, Object caller, Dummy dummy, int amount) throws Throwable {
-		EngineClassLoaderImpl classLoader = getResponseCreator().getClassLoader();
-		classLoader.fromContract(callee, caller);
-		if (dummy == Dummy.METHOD_ON_THIS)
-			// the callee pays itself
-			classLoader.redPayableFromContract(callee, callee, amount);
-		else
-			classLoader.redPayableFromContract(callee, caller, amount);
-	}
-
-	/**
 	 * Called at the beginning of the instrumentation of a payable entry method or constructor.
 	 * It forwards the call to {@code io.takamaka.code.lang.Storage.entry()} and then to
 	 * {@code io.takamaka.code.lang.Contract.payableEntry()}.
@@ -206,28 +162,6 @@ public abstract class Runtime {
 			classLoader.payableFromContract(callee, callee, amount);
 		else
 			classLoader.payableFromContract(callee, caller, amount);
-	}
-
-	/**
-	 * Called at the beginning of the instrumentation of a red payable entry method or constructor.
-	 * It forwards the call to {@code io.takamaka.code.lang.Storage.entry()} and then to
-	 * {@code io.takamaka.code.lang.RedGreenContract.redPayableEntry()}.
-	 * 
-	 * @param callee the contract whose entry is called
-	 * @param caller the caller of the entry
-	 * @param dummy may be used to signal something to the callee
-	 * @param amount the amount of coins
-	 * @throws any possible exception thrown inside or {@code io.takamaka.code.lang.Storage.entry()}
-	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
-	 */
-	public static void redPayableFromContract(Object callee, Object caller, Dummy dummy, long amount) throws Throwable {
-		EngineClassLoaderImpl classLoader = getResponseCreator().getClassLoader();
-		classLoader.fromContract(callee, caller);
-		if (dummy == Dummy.METHOD_ON_THIS)
-			// the callee pays itself
-			classLoader.redPayableFromContract(callee, callee, amount);
-		else
-			classLoader.redPayableFromContract(callee, caller, amount);
 	}
 
 	/**

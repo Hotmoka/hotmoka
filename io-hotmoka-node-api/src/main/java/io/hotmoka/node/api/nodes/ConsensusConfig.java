@@ -176,13 +176,6 @@ public interface ConsensusConfig<C extends ConsensusConfig<C,B>, B extends Conse
 	BigInteger getFinalSupply();
 
 	/**
-	 * Yields the initial supply of red coins in the node.
-	 * 
-	 * @return the initial supply of red coins in the node
-	 */
-	BigInteger getInitialRedSupply();
-
-	/**
 	 * Yields the amount of coin to pay to start a new poll amount the voters,
 	 * for instance in order to change a consensus parameter.
 	 * 

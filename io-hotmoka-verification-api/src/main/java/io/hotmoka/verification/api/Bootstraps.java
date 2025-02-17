@@ -40,15 +40,6 @@ public interface Bootstraps {
 	boolean lambdaIsEntry(BootstrapMethod bootstrap) throws ClassNotFoundException;
 
 	/**
-	 * Determines if the given bootstrap method is a method reference to a red payable method or constructor.
-	 * 
-	 * @param bootstrap the bootstrap method
-	 * @return true if and only if that condition holds
-	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
-	 */
-	boolean lambdaIsRedPayable(BootstrapMethod bootstrap) throws ClassNotFoundException;
-
-	/**
 	 * Yields the bootstrap methods in this class.
 	 * 
 	 * @return the bootstrap methods

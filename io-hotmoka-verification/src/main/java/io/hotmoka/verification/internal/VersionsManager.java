@@ -35,11 +35,7 @@ import io.hotmoka.verification.internal.checksOnMethods.IsNotStaticInitializerCh
 import io.hotmoka.verification.internal.checksOnMethods.IsNotSynchronizedCheck;
 import io.hotmoka.verification.internal.checksOnMethods.PayableCodeIsConsistentWithClassHierarchyCheck;
 import io.hotmoka.verification.internal.checksOnMethods.PayableCodeIsFromContractCheck;
-import io.hotmoka.verification.internal.checksOnMethods.PayableCodeIsNotRedPayableCheck;
 import io.hotmoka.verification.internal.checksOnMethods.PayableCodeReceivesAmountCheck;
-import io.hotmoka.verification.internal.checksOnMethods.RedPayableCodeIsConsistentWithClassHierarchyCheck;
-import io.hotmoka.verification.internal.checksOnMethods.RedPayableCodeIsFromContractOfRedGreenContractCheck;
-import io.hotmoka.verification.internal.checksOnMethods.RedPayableCodeReceivesAmountCheck;
 import io.hotmoka.verification.internal.checksOnMethods.ThrowsExceptionsCodeIsPublicCheck;
 import io.hotmoka.verification.internal.checksOnMethods.ThrowsExceptionsIsConsistentWithClassHierarchyCheck;
 import io.hotmoka.verification.internal.checksOnMethods.UsedCodeIsWhiteListedCheck;
@@ -89,15 +85,11 @@ final class VersionsManager {
 	void applyAllMethodChecks(VerifiedClassImpl.Verification context, MethodGen method) throws ClassNotFoundException {
 		if (verificationVersion == 0L) {
 			new PayableCodeReceivesAmountCheck(context, method);
-			new RedPayableCodeReceivesAmountCheck(context, method);
 			new ThrowsExceptionsCodeIsPublicCheck(context, method);
 			new PayableCodeIsFromContractCheck(context, method);
-			new RedPayableCodeIsFromContractOfRedGreenContractCheck(context, method);
 			new FromContractCodeIsInstanceAndInStorageClassCheck(context, method);
 			new FromContractCodeIsConsistentWithClassHierarchyCheck(context, method);
 			new PayableCodeIsConsistentWithClassHierarchyCheck(context, method);
-			new RedPayableCodeIsConsistentWithClassHierarchyCheck(context, method);
-			new PayableCodeIsNotRedPayableCheck(context, method);
 			new ThrowsExceptionsIsConsistentWithClassHierarchyCheck(context, method);
 			new IsNotStaticInitializerCheck(context, method);
 			new IsNotNativeCheck(context, method);

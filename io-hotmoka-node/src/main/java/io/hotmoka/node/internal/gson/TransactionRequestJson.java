@@ -49,7 +49,6 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 	private final String type;
 	private final TransactionReferences.Json classpath;
 	private final BigInteger initialAmount;
-	private final BigInteger redInitialAmount;
 	private final String publicKey;
 	private final StorageValues.Json manifest;
 	private final String jar; // Base64-encoded bytes
@@ -70,7 +69,6 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 			this.type = GameteCreationTransactionRequest.class.getSimpleName();
 			this.classpath = new TransactionReferences.Json(gctr.getClasspath());
 			this.initialAmount = gctr.getInitialAmount();
-			this.redInitialAmount = gctr.getRedInitialAmount();
 			this.publicKey = gctr.getPublicKey();
 			this.manifest = null;
 			this.jar = null;
@@ -90,7 +88,6 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 			this.type = InitializationTransactionRequest.class.getSimpleName();
 			this.classpath = new TransactionReferences.Json(itr.getClasspath());
 			this.initialAmount = null;
-			this.redInitialAmount = null;
 			this.publicKey = null;
 			this.manifest = new StorageValues.Json(itr.getManifest());
 			this.jar = null;
@@ -110,7 +107,6 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 			this.type = JarStoreInitialTransactionRequest.class.getSimpleName();
 			this.classpath = null;
 			this.initialAmount = null;
-			this.redInitialAmount = null;
 			this.publicKey = null;
 			this.manifest = null;
 			this.jar = Base64.toBase64String(jitr.getJar());
@@ -130,7 +126,6 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 			this.type = JarStoreTransactionRequest.class.getSimpleName();
 			this.classpath = new TransactionReferences.Json(jtr.getClasspath());
 			this.initialAmount = null;
-			this.redInitialAmount = null;
 			this.publicKey = null;
 			this.manifest = null;
 			this.jar = Base64.toBase64String(jtr.getJar());
@@ -150,7 +145,6 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 			this.type = ConstructorCallTransactionRequest.class.getSimpleName();
 			this.classpath = new TransactionReferences.Json(cctr.getClasspath());
 			this.initialAmount = null;
-			this.redInitialAmount = null;
 			this.publicKey = null;
 			this.manifest = null;
 			this.jar = null;
@@ -170,7 +164,6 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 			this.type = StaticMethodCallTransactionRequest.class.getSimpleName();
 			this.classpath = new TransactionReferences.Json(smctr.getClasspath());
 			this.initialAmount = null;
-			this.redInitialAmount = null;
 			this.publicKey = null;
 			this.manifest = null;
 			this.jar = null;
@@ -190,7 +183,6 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 			this.type = InstanceMethodCallTransactionRequest.class.getSimpleName();
 			this.classpath = new TransactionReferences.Json(imctr.getClasspath());
 			this.initialAmount = null;
-			this.redInitialAmount = null;
 			this.publicKey = null;
 			this.manifest = null;
 			this.jar = null;
@@ -210,7 +202,6 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 			this.type = InstanceSystemMethodCallTransactionRequest.class.getSimpleName();
 			this.classpath = new TransactionReferences.Json(ismctr.getClasspath());
 			this.initialAmount = null;
-			this.redInitialAmount = null;
 			this.publicKey = null;
 			this.manifest = null;
 			this.jar = null;
@@ -234,7 +225,7 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 	public TransactionRequest<?> unmap() throws InconsistentJsonException {
 		try {
 			if (GameteCreationTransactionRequest.class.getSimpleName().equals(type))
-				return TransactionRequests.gameteCreation(classpath.unmap(), initialAmount, redInitialAmount, publicKey);
+				return TransactionRequests.gameteCreation(classpath.unmap(), initialAmount, publicKey);
 			else if (InitializationTransactionRequest.class.getSimpleName().equals(type))
 				return TransactionRequests.initialization(classpath.unmap(), unmapIntoStorageReference(manifest));
 			else if (JarStoreInitialTransactionRequest.class.getSimpleName().equals(type))

@@ -45,13 +45,6 @@ public interface GameteCreationTransactionRequest extends InitialTransactionRequ
 	BigInteger getInitialAmount();
 
 	/**
-	 * Yields the amount of red coins provided to the gamete.
-	 * 
-	 * @return the amount of red coins provided to the gamete
-	 */
-	BigInteger getRedInitialAmount();
-
-	/**
 	 * Yields the Base64-encoded public key that will be assigned to the gamete.
 	 * 
 	 * @return the Base64-encoded public key that will be assigned to the gamete

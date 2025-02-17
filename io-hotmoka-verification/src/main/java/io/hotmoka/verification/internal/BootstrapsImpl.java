@@ -146,29 +146,6 @@ public class BootstrapsImpl implements Bootstraps {
 	}
 
 	@Override
-	public boolean lambdaIsRedPayable(BootstrapMethod bootstrap) throws ClassNotFoundException {
-		if (bootstrap.getNumBootstrapArguments() == 3) {
-			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
-			if (constant instanceof ConstantMethodHandle) {
-				ConstantMethodHandle mh = (ConstantMethodHandle) constant;
-				Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
-				if (constant2 instanceof ConstantMethodref) {
-					ConstantMethodref mr = (ConstantMethodref) constant2;
-					int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
-					String className = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
-					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
-					String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
-					String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-
-					return verifiedClass.jar.annotations.isRedPayable(className, methodName, Type.getArgumentTypes(methodSignature), Type.getReturnType(methodSignature));
-				}
-			}
-		}
-
-		return false;
-	}
-
-	@Override
 	public Stream<BootstrapMethod> getBootstraps() {
 		return Stream.of(bootstrapMethods);
 	}
@@ -187,17 +164,14 @@ public class BootstrapsImpl implements Bootstraps {
 	@Override
 	public Optional<? extends Executable> getTargetOf(BootstrapMethod bootstrap) throws ClassNotFoundException {
 		Constant constant = cpg.getConstant(bootstrap.getBootstrapMethodRef());
-		if (constant instanceof ConstantMethodHandle mh) {
-			Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
-			if (constant2 instanceof ConstantMethodref mr) {
-				int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
-				String className = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
-				ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
-				String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
-				String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-	
-				return getTargetOfCallSite(bootstrap, className, methodName, methodSignature);
-			}
+		if (constant instanceof ConstantMethodHandle mh && cpg.getConstant(mh.getReferenceIndex()) instanceof ConstantMethodref mr) {
+			int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
+			String className = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
+			ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
+			String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
+			String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
+
+			return getTargetOfCallSite(bootstrap, className, methodName, methodSignature);
 		}
 	
 		return Optional.empty();

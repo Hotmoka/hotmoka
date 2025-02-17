@@ -286,11 +286,6 @@ public abstract class ExecutionEnvironment {
 					.orElseThrow(() -> new StoreException(MethodSignatures.GET_INITIAL_SUPPLY + " should not return void"))
 					.asBigInteger(value -> new StoreException(MethodSignatures.GET_INITIAL_SUPPLY + " should return a BigInteger, not a " + value.getClass().getName()));
 	
-			BigInteger initialRedSupply = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_RED_SUPPLY, validators))
-					.orElseThrow(() -> new StoreException(MethodSignatures.GET_INITIAL_RED_SUPPLY + " should not return void"))
-					.asBigInteger(value -> new StoreException(MethodSignatures.GET_INITIAL_RED_SUPPLY + " should return a BigInteger, not a " + value.getClass().getName()));
-	
 			BigInteger finalSupply = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_FINAL_SUPPLY, validators))
 					.orElseThrow(() -> new StoreException(MethodSignatures.GET_FINAL_SUPPLY + " should not return void"))
@@ -337,7 +332,6 @@ public abstract class ExecutionEnvironment {
 					.setTicketForNewPoll(ticketForNewPoll)
 					.setInitialSupply(initialSupply)
 					.setFinalSupply(finalSupply)
-					.setInitialRedSupply(initialRedSupply)
 					.setPublicKeyOfGamete(signatureAlgorithm.publicKeyFromEncoding(Base64.fromBase64String(publicKeyOfGamete)))
 					.setPercentStaked(percentStaked)
 					.setBuyerSurcharge(buyerSurcharge)
@@ -555,10 +549,6 @@ public abstract class ExecutionEnvironment {
 		}
 	}
 
-	protected final BigInteger getTotalBalance(StorageReference contract) throws UnknownReferenceException, FieldNotFoundException, StoreException {
-		return getBalance(contract).add(getRedBalance(contract));
-	}
-
 	protected final BigInteger getNonce(StorageReference account) throws UnknownReferenceException, FieldNotFoundException, StoreException {
 		return getBigIntegerField(account, FieldSignatures.EOA_NONCE_FIELD);
 	}
@@ -744,12 +734,8 @@ public abstract class ExecutionEnvironment {
 			return Optional.empty(); // void methods return no value
 	}
 
-	private BigInteger getBalance(StorageReference contract) throws UnknownReferenceException, FieldNotFoundException, StoreException {
+	protected final BigInteger getBalance(StorageReference contract) throws UnknownReferenceException, FieldNotFoundException, StoreException {
 		return getBigIntegerField(contract, FieldSignatures.BALANCE_FIELD);
-	}
-
-	private BigInteger getRedBalance(StorageReference contract) throws UnknownReferenceException, FieldNotFoundException, StoreException {
-		return getBigIntegerField(contract, FieldSignatures.RED_BALANCE_FIELD);
 	}
 
 	private String getStringField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {

@@ -110,9 +110,5 @@ public class ShowAccount extends AbstractCommand {
 			TransactionRequests.instanceViewMethodCall(reference, _100_000, takamakaCode, MethodSignatures.BALANCE, reference))
 			.orElseThrow(() -> new CommandException(MethodSignatures.BALANCE + " should not return void"))).getValue();
 		System.out.println("balance: " + balance);
-		BigInteger balanceRed = ((BigIntegerValue) node.runInstanceMethodCallTransaction(
-			TransactionRequests.instanceViewMethodCall(reference, _100_000, takamakaCode, MethodSignatures.BALANCE_RED, reference))
-			.orElseThrow(() -> new CommandException(MethodSignatures.BALANCE_RED + " should not return void"))).getValue();
-		System.out.println("balance red: " + balanceRed);
 	}
 }

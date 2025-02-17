@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.examples.redgreendistributor;
+package io.hotmoka.examples.distributor;
 
 import java.math.BigInteger;
 
@@ -22,7 +22,6 @@ import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
-import io.takamaka.code.lang.RedPayable;
 import io.takamaka.code.math.BigIntegerSupport;
 import io.takamaka.code.util.StorageLinkedList;
 import io.takamaka.code.util.StorageList;
@@ -39,21 +38,12 @@ public class Distributor extends Contract {
 		payees.add((PayableContract) caller());
 	}
 
-	public @Payable @FromContract void distributeGreen(BigInteger amount) {
+	public @Payable @FromContract void distribute(BigInteger amount) {
 		int size = payees.size();
 		if (size > 0) {
 			BigInteger eachGets = BigIntegerSupport.divide(amount, BigInteger.valueOf(size));
 			payees.forEach(payee -> payee.receive(eachGets));
 			owner.receive(balance());
-		}
-	}
-
-	public @RedPayable @FromContract void distributeRed(BigInteger amount) {
-		int size = payees.size();
-		if (size > 0) {
-			BigInteger eachGets = BigIntegerSupport.divide(amount, BigInteger.valueOf(size));
-			payees.forEach(payee -> payee.receiveRed(eachGets));
-			owner.receiveRed(balanceRed());
 		}
 	}
 }

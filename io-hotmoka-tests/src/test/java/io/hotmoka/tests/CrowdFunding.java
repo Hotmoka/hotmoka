@@ -24,9 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
-import java.security.SignatureException;
-import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,10 +34,6 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.BooleanValue;
@@ -95,7 +88,7 @@ class CrowdFunding extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new CrowdFunding().newCampaign(beneficiary, 50) == 0")
-	void createCampaign() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void createCampaign() throws Exception {
 		IntValue id = (IntValue) addInstanceNonVoidMethodCallTransaction
 			(privateKey(0), account0, _100_000, ONE, jar(),
 			MethodSignatures.ofNonVoid(CROWD_FUNDING, "newCampaign", INT, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
@@ -105,7 +98,7 @@ class CrowdFunding extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new CrowdFunding().newCampaign(beneficiary, 50) twice == 1")
-	void createTwoCampaigns() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void createTwoCampaigns() throws Exception {
 		addInstanceNonVoidMethodCallTransaction
 			(privateKey(0), account0, _100_000, ONE, jar(),
 			MethodSignatures.ofNonVoid(CROWD_FUNDING, "newCampaign", INT, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
@@ -120,7 +113,7 @@ class CrowdFunding extends HotmokaTest {
 	}
 
 	@Test @DisplayName("contributions are not enough then checkGoalReached yields false")
-	void contributionsAreNotEnough() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void contributionsAreNotEnough() throws Exception {
 		IntValue id = (IntValue) addInstanceNonVoidMethodCallTransaction
 			(privateKey(0), account0, _100_000, ONE, jar(),
 			MethodSignatures.ofNonVoid(CROWD_FUNDING, "newCampaign", INT, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
@@ -145,7 +138,7 @@ class CrowdFunding extends HotmokaTest {
 	}
 
 	@Test @DisplayName("contributions are enough then checkGoalReached yields false")
-	void contributionsAreEnough() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void contributionsAreEnough() throws Exception {
 		IntValue id = (IntValue) addInstanceNonVoidMethodCallTransaction
 			(privateKey(0), account0, _100_000, ONE, jar(),
 			MethodSignatures.ofNonVoid(CROWD_FUNDING, "newCampaign", INT, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),

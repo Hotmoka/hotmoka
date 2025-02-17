@@ -110,8 +110,6 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 		case UpdateOfBigIntegerImpl.SELECTOR_BALANCE: return Updates.ofBigInteger(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.BALANCE_FIELD, context.readBigInteger());
 		case UpdateOfBigIntegerImpl.SELECTOR_GAS_PRICE: return Updates.ofBigInteger(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.GENERIC_GAS_STATION_GAS_PRICE_FIELD, context.readBigInteger());
 		case UpdateOfBigIntegerImpl.SELECTOR_UBI_VALUE: return Updates.ofBigInteger(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.UNSIGNED_BIG_INTEGER_VALUE_FIELD, context.readBigInteger());
-		case UpdateOfBigIntegerImpl.SELECTOR_RED_BALANCE: return Updates.ofBigInteger(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.RED_BALANCE_FIELD, context.readBigInteger());
-		case UpdateOfBigIntegerImpl.SELECTOR_RED_BALANCE_TO_ZERO: return Updates.ofBigInteger(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.RED_BALANCE_FIELD, BigInteger.ZERO);
 		case UpdateOfBigIntegerImpl.SELECTOR_BALANCE_TO_ZERO: return Updates.ofBigInteger(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.BALANCE_FIELD, BigInteger.ZERO);
 		case UpdateOfBigIntegerImpl.SELECTOR_NONCE_TO_ZERO: return Updates.ofBigInteger(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.EOA_NONCE_FIELD, BigInteger.ZERO);
 		case UpdateOfBigIntegerImpl.SELECTOR_NONCE: return Updates.ofBigInteger(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.EOA_NONCE_FIELD, context.readBigInteger());

@@ -62,7 +62,6 @@ public class GameteCreationResponseBuilder extends AbstractInitialResponseBuilde
 				try {
 					Object gamete = classLoader.getGamete().getDeclaredConstructor(String.class).newInstance(request.getPublicKey());
 					classLoader.setBalanceOf(gamete, request.getInitialAmount());
-					classLoader.setRedBalanceOf(gamete, request.getRedInitialAmount());
 					return TransactionResponses.gameteCreation(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
 				}
 				catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | UpdatesExtractionException | StoreException e) {

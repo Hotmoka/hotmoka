@@ -112,11 +112,6 @@ public abstract class FieldSignatures {
 	public final static FieldSignature BALANCE_FIELD = FieldSignatureImpl.BALANCE_FIELD;
 
 	/**
-	 * The field that holds the red balance in contracts.
-	 */
-	public final static FieldSignature RED_BALANCE_FIELD = FieldSignatureImpl.RED_BALANCE_FIELD;
-
-	/**
 	 * The field that holds the nonce in externally owned accounts.
 	 */
 	public final static FieldSignature EOA_NONCE_FIELD = FieldSignatureImpl.EOA_NONCE_FIELD;

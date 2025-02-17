@@ -19,10 +19,7 @@ package io.hotmoka.tests;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.security.InvalidKeyException;
 import java.security.KeyPair;
-import java.util.NoSuchElementException;
-import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -30,7 +27,6 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.remote.api.RemoteNode;
 
@@ -45,13 +41,13 @@ class CreateAccountForFree extends HotmokaTest {
 	}
 
 	@Test @DisplayName("create account")
-	void createAccount() throws TransactionRejectedException, InvalidKeyException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
+	void createAccount() throws Exception {
 		KeyPair keys = signature().getKeyPair();
 		String publicKey = Base64.toBase64String(signature().encodingOf(keys.getPublic()));
 
 		if (!(node instanceof RemoteNode)) {
 			// all other nodes are expected to reject this, since the node is already initialized
-			TransactionRejectedException e = assertThrows(TransactionRejectedException.class, () -> node.addGameteCreationTransaction(TransactionRequests.gameteCreation(takamakaCode(), _50_000, _50_000, publicKey)));
+			TransactionRejectedException e = assertThrows(TransactionRejectedException.class, () -> node.addGameteCreationTransaction(TransactionRequests.gameteCreation(takamakaCode(), _50_000, publicKey)));
 			assertTrue(e.getMessage().contains("Cannot run an initial transaction request in an already initialized node"));
 		}
 	}

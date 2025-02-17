@@ -63,9 +63,6 @@ public class InitMokamint extends AbstractCommand {
 	@Option(names = { "--delta-supply" }, description = "the amount of coins that can be minted during the life of the node, after which inflation becomes 0", defaultValue = DELTA_SUPPLY_DEFAULT)
     private String deltaSupply;
 
-	@Option(names = { "--initial-red-supply" }, description = "the initial supply of red coins of the node, which goes to the gamete", defaultValue = "0")
-    private BigInteger initialRedSupply;
-
 	@Option(names = { "--key-of-gamete" }, description = "the Base58-encoded public key of the gamete account")
     private String keyOfGamete;
 
@@ -165,7 +162,6 @@ public class InitMokamint extends AbstractCommand {
 				.setInitialInflation(inflation)
 				.setInitialSupply(initialSupply)
 				.setFinalSupply(initialSupply.add(deltaSupply))
-				.setInitialRedSupply(initialRedSupply)
 				.setPublicKeyOfGamete(signature.publicKeyFromEncoding(Base58.decode(keyOfGamete)))
 				.build();
 

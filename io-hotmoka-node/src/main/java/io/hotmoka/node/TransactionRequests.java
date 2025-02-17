@@ -73,13 +73,12 @@ public abstract class TransactionRequests {
 	 * 
 	 * @param classpath the reference to the jar containing the basic Takamaka classes. This must
 	 *                  have been already installed by a previous transaction
-	 * @param initialAmount the amount of green coins provided to the gamete
-	 * @param redInitialAmount the amount of red coins provided to the gamete
+	 * @param initialAmount the amount of oins provided to the gamete
 	 * @param publicKey the Base64-encoded public key that will be assigned to the gamete
 	 * @return the request
 	 */
-	public static GameteCreationTransactionRequest gameteCreation(TransactionReference classpath, BigInteger initialAmount, BigInteger redInitialAmount, String publicKey) {
-		return new GameteCreationTransactionRequestImpl(classpath, initialAmount, redInitialAmount, publicKey);
+	public static GameteCreationTransactionRequest gameteCreation(TransactionReference classpath, BigInteger initialAmount, String publicKey) {
+		return new GameteCreationTransactionRequestImpl(classpath, initialAmount, publicKey);
 	}
 
 	/**

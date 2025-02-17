@@ -193,11 +193,6 @@ public abstract class MethodSignatures {
 	public final static NonVoidMethodSignature BALANCE = AbstractMethodSignature.BALANCE;
 
 	/**
-	 * The method {@code balanceRed} of a contract.
-	 */
-	public final static NonVoidMethodSignature BALANCE_RED = AbstractMethodSignature.BALANCE_RED;
-
-	/**
 	 * The method {@code publicKey} of an account.
 	 */
 	public final static NonVoidMethodSignature PUBLIC_KEY = AbstractMethodSignature.PUBLIC_KEY;
@@ -256,11 +251,6 @@ public abstract class MethodSignatures {
 	 * The method {@code getMaxFaucet} of the gamete.
 	 */
 	public final static NonVoidMethodSignature GET_MAX_FAUCET = AbstractMethodSignature.GET_MAX_FAUCET;
-
-	/**
-	 * The method {@code getMaxRedFaucet} of the gamete.
-	 */
-	public final static NonVoidMethodSignature GET_MAX_RED_FAUCET = AbstractMethodSignature.GET_MAX_RED_FAUCET;
 
 	/**
 	 * The method {@code allowsUnsignedFaucet} of the manifest.
@@ -378,11 +368,6 @@ public abstract class MethodSignatures {
 	public final static NonVoidMethodSignature GET_INITIAL_SUPPLY = AbstractMethodSignature.GET_INITIAL_SUPPLY;
 
 	/**
-	 * The method {@code getInitialRedSupply} of the validators object.
-	 */
-	public final static NonVoidMethodSignature GET_INITIAL_RED_SUPPLY = AbstractMethodSignature.GET_INITIAL_RED_SUPPLY;
-
-	/**
 	 * The method {@code getFinalSupply} of the validators object.
 	 */
 	public final static NonVoidMethodSignature GET_FINAL_SUPPLY = AbstractMethodSignature.GET_FINAL_SUPPLY;
@@ -401,11 +386,6 @@ public abstract class MethodSignatures {
 	 * The method {@code receive} of a payable contract, with a big integer argument.
 	 */
 	public final static VoidMethodSignature RECEIVE_BIG_INTEGER = AbstractMethodSignature.RECEIVE_BIG_INTEGER;
-
-	/**
-	 * The method {@code receiveRed} of a payable contract, with a big integer argument.
-	 */
-	public final static VoidMethodSignature RECEIVE_RED_BIG_INTEGER = AbstractMethodSignature.RECEIVE_RED_BIG_INTEGER;
 
 	/**
 	 * The method {@code receive} of a payable contract, with an {@code int} argument.

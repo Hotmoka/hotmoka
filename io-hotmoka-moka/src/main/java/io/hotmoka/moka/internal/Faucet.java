@@ -54,9 +54,6 @@ public class Faucet extends AbstractCommand {
 	@Option(names = { "--password-of-gamete" }, description = "the password of the gamete account; if not specified, it will be asked interactively")
     private String passwordOfGamete;
 
-	@Option(names = { "--max-red" }, description = "the maximal amount of red coins sent at each call to the faucet of the node", defaultValue = "0")
-    private BigInteger maxRed;
-
 	@Option(names = { "--interactive" }, description = "run in interactive mode", defaultValue = "true") 
 	private boolean interactive;
 
@@ -96,8 +93,8 @@ public class Faucet extends AbstractCommand {
 				(SignatureHelpers.of(node).signatureAlgorithmFor(gamete).getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
 				gamete, NonceHelpers.of(node).getNonceOf(gamete),
 				manifestHelper.getChainId(), _100_000, GasHelpers.of(node).getGasPrice(), takamakaCode,
-				MethodSignatures.ofVoid(GAMETE, "setMaxFaucet", BIG_INTEGER, BIG_INTEGER), gamete,
-				StorageValues.bigIntegerOf(max), StorageValues.bigIntegerOf(maxRed)));
+				MethodSignatures.ofVoid(GAMETE, "setMaxFaucet", BIG_INTEGER), gamete,
+				StorageValues.bigIntegerOf(max)));
 		}
 	}
 }

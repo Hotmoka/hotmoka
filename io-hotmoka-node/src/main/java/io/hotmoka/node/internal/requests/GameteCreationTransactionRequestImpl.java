@@ -48,11 +48,6 @@ public class GameteCreationTransactionRequestImpl extends TransactionRequestImpl
 	private final BigInteger initialAmount;
 
 	/**
-	 * The amount of red coins provided to the gamete.
-	 */
-	private final BigInteger redInitialAmount;
-
-	/**
 	 * The Base64-encoded public key that will be assigned to the gamete.
 	 */
 	private final String publicKey;
@@ -63,20 +58,15 @@ public class GameteCreationTransactionRequestImpl extends TransactionRequestImpl
 	 * @param classpath the reference to the jar containing the basic Takamaka classes. This must
 	 *                  have been already installed by a previous transaction
 	 * @param initialAmount the amount of green coins provided to the gamete
-	 * @param redInitialAmount the amount of red coins provided to the gamete
 	 * @param publicKey the Base64-encoded public key that will be assigned to the gamete
 	 */
-	public GameteCreationTransactionRequestImpl(TransactionReference classpath, BigInteger initialAmount, BigInteger redInitialAmount, String publicKey) {
+	public GameteCreationTransactionRequestImpl(TransactionReference classpath, BigInteger initialAmount, String publicKey) {
 		this.classpath = Objects.requireNonNull(classpath, "classpath cannot be null");
 		this.initialAmount = Objects.requireNonNull(initialAmount, "initialAmount cannot be null");
-		this.redInitialAmount = Objects.requireNonNull(redInitialAmount, "redInitialAmount cannot be null");
 		this.publicKey = Objects.requireNonNull(publicKey, "publicKey cannot be null");
 
 		if (initialAmount.signum() < 0)
 			throw new IllegalArgumentException("initialAmount cannot be negative");
-
-		if (redInitialAmount.signum() < 0)
-			throw new IllegalArgumentException("redInitialAmount cannot be negative");
 	}
 
 	@Override
@@ -90,11 +80,6 @@ public class GameteCreationTransactionRequestImpl extends TransactionRequestImpl
 	}
 
 	@Override
-	public final BigInteger getRedInitialAmount() {
-		return redInitialAmount;
-	}
-
-	@Override
 	public final String getPublicKey() {
 		return publicKey;
 	}
@@ -104,7 +89,6 @@ public class GameteCreationTransactionRequestImpl extends TransactionRequestImpl
         return getClass().getSimpleName() + ":\n"
         	+ "  class path: " + classpath + "\n"
         	+ "  initialAmount: " + initialAmount + "\n"
-        	+ "  redInitialAmount: " + redInitialAmount + "\n"
         	+ "  publicKey: " + publicKey;
 	}
 
@@ -112,12 +96,12 @@ public class GameteCreationTransactionRequestImpl extends TransactionRequestImpl
 	public boolean equals(Object other) {
 		return other instanceof GameteCreationTransactionRequest gctr &&
 			classpath.equals(gctr.getClasspath()) && initialAmount.equals(gctr.getInitialAmount()) &&
-			redInitialAmount.equals(gctr.getRedInitialAmount()) && publicKey.equals(gctr.getPublicKey());
+			publicKey.equals(gctr.getPublicKey());
 	}
 
 	@Override
 	public int hashCode() {
-		return classpath.hashCode() ^ initialAmount.hashCode() ^ redInitialAmount.hashCode() ^ publicKey.hashCode();
+		return classpath.hashCode() ^ initialAmount.hashCode() ^ publicKey.hashCode();
 	}
 
 	@Override
@@ -125,7 +109,6 @@ public class GameteCreationTransactionRequestImpl extends TransactionRequestImpl
 		context.writeByte(SELECTOR);
 		classpath.into(context);
 		context.writeBigInteger(initialAmount);
-		context.writeBigInteger(redInitialAmount);
 		context.writeStringUnshared(publicKey);
 	}
 
@@ -140,9 +123,8 @@ public class GameteCreationTransactionRequestImpl extends TransactionRequestImpl
 	public static GameteCreationTransactionRequestImpl from(UnmarshallingContext context) throws IOException {
 		var classpath = TransactionReferences.from(context);
 		var initialAmount = context.readBigInteger();
-		var redInitialAmount = context.readBigInteger();
 		var publicKey = context.readStringUnshared();
 
-		return new GameteCreationTransactionRequestImpl(classpath, initialAmount, redInitialAmount, publicKey);
+		return new GameteCreationTransactionRequestImpl(classpath, initialAmount, publicKey);
 	}
 }

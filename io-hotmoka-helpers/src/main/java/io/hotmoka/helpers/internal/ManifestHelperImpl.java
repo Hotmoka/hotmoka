@@ -217,26 +217,12 @@ public class ManifestHelperImpl implements ManifestHelper {
 
 			builder.append("   │  ├─ balance: ").append(balanceOfGamete).append("\n");
 
-			BigInteger redBalanceOfGamete = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.BALANCE_RED, gamete))
-				.orElseThrow(() -> new NodeException(MethodSignatures.BALANCE_RED + " should not return void"))
-				.asReturnedBigInteger(MethodSignatures.BALANCE_RED, NodeException::new);
-
-			builder.append("   │  ├─ redBalance: ").append(redBalanceOfGamete).append("\n");
-
 			BigInteger maxFaucet = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_FAUCET, gamete))
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_MAX_FAUCET + " should not return void"))
 				.asReturnedBigInteger(MethodSignatures.GET_MAX_FAUCET, NodeException::new);
 
-			builder.append("   │  ├─ maxFaucet: ").append(maxFaucet).append("\n");
-
-			BigInteger maxRedFaucet = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_RED_FAUCET, gamete))
-				.orElseThrow(() -> new NodeException(MethodSignatures.GET_MAX_RED_FAUCET + " should not return void"))
-				.asReturnedBigInteger(MethodSignatures.GET_MAX_RED_FAUCET, NodeException::new);
-
-			builder.append("   │  └─ maxRedFaucet: ").append(maxRedFaucet).append("\n");
+			builder.append("   │  └─ maxFaucet: ").append(maxFaucet).append("\n");
 
 			builder.append("   ├─ gasStation: ").append(gasStation).append("\n");
 
@@ -484,13 +470,6 @@ public class ManifestHelperImpl implements ManifestHelper {
 				.asReturnedBigInteger(MethodSignatures.GET_FINAL_SUPPLY, NodeException::new);
 
 			builder.append("   │  ├─ finalSupply: ").append(finalSupply).append("\n");
-
-			BigInteger initialRedSupply = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_RED_SUPPLY, validators))
-				.orElseThrow(() -> new NodeException(MethodSignatures.GET_INITIAL_RED_SUPPLY + " should not return void"))
-				.asReturnedBigInteger(MethodSignatures.GET_INITIAL_RED_SUPPLY, NodeException::new);
-
-			builder.append("   │  ├─ initialRedSupply: ").append(initialRedSupply).append("\n");
 
 			long initialInflation = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_INFLATION, validators))
