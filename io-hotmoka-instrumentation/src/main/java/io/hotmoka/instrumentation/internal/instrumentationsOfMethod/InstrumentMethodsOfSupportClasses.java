@@ -20,6 +20,7 @@ import java.math.BigInteger;
 import java.util.concurrent.Callable;
 
 import org.apache.bcel.Const;
+import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.InstructionConst;
 import org.apache.bcel.generic.InstructionFactory;
 import org.apache.bcel.generic.InstructionList;
@@ -81,6 +82,22 @@ public class InstrumentMethodsOfSupportClasses extends MethodLevelInstrumentatio
 				var il = new InstructionList();
 				il.append(InstructionConst.ALOAD_0);
 				il.append(factory.createInvoke(WhitelistingConstants.RUNTIME_NAME, "event", Type.VOID, new Type[] { ObjectType.OBJECT }, Const.INVOKESTATIC));
+				il.append(InstructionConst.RETURN);
+				method.setInstructionList(il);
+			}
+			if ("charge".equals(method.getName()) && (args = method.getArgumentTypes()).length == 1 && BasicType.LONG.equals(args[0])) {
+				System.out.println("charge");
+				var il = new InstructionList();
+				il.append(InstructionFactory.createLoad(BasicType.LONG, 0));
+				il.append(factory.createInvoke(WhitelistingConstants.RUNTIME_NAME, "charge", Type.VOID, args, Const.INVOKESTATIC));
+				il.append(InstructionConst.RETURN);
+				method.setInstructionList(il);
+			}
+			if ("chargeForRAM".equals(method.getName()) && (args = method.getArgumentTypes()).length == 1 && BasicType.LONG.equals(args[0])) {
+				System.out.println("chargeForRAM");
+				var il = new InstructionList();
+				il.append(InstructionFactory.createLoad(BasicType.LONG, 0));
+				il.append(factory.createInvoke(WhitelistingConstants.RUNTIME_NAME, "chargeForRAM", Type.VOID, args, Const.INVOKESTATIC));
 				il.append(InstructionConst.RETURN);
 				method.setInstructionList(il);
 			}
