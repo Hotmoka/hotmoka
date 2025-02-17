@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.node.local.internal.builders;
 
 import java.math.BigInteger;
-import java.util.concurrent.Callable;
 
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.InitialTransactionRequest;
@@ -64,13 +63,6 @@ public abstract class InitialResponseBuilderImpl<Request extends InitialTransact
 		@Override
 		public final void event(Object event) {
 			// initial transactions do not generate events
-		}
-
-		@Override
-		public final <T> T withGas(BigInteger amount, Callable<T> what) throws Exception {
-			// initial transactions consume no gas; this implementation is needed
-			// if (in the future) code run in initial transactions tries to run tasks with a limited amount of gas
-			return what.call();
 		}
 	}
 }

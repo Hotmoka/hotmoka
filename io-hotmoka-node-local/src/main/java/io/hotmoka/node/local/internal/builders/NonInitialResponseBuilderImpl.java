@@ -21,9 +21,7 @@ import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
-import java.util.LinkedList;
 import java.util.Optional;
-import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -95,13 +93,6 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * The deserialized validators contract, if the node is already initialized.
 		 */
 		private Optional<Object> deserializedValidators;
-
-		/**
-		 * A stack of available gas. When a sub-computation is started
-		 * with a subset of the available gas, the latter is taken away from
-		 * the current available gas and pushed on top of this stack.
-		 */
-		private final LinkedList<BigInteger> oldGas = new LinkedList<>();
 
 		/**
 		 * The remaining amount of gas for the current transaction, not yet consumed.
@@ -577,20 +568,6 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		protected final void resetBalanceOfPayerToInitialValueMinusAllPromisedGas() {
 			classLoader.setBalanceOf(deserializedCaller, greenBalanceOfPayerInCaseOfTransactionException);
 			classLoader.setRedBalanceOf(deserializedCaller, redBalanceOfPayerInCaseOfTransactionException);
-		}
-
-		@Override
-		public final <T> T withGas(BigInteger amount, Callable<T> what) throws Exception {
-			chargeGasForCPU(amount);
-			oldGas.addFirst(gas);
-			gas = amount;
-		
-			try {
-				return what.call();
-			}
-			finally {
-				gas = gas.add(oldGas.removeFirst());
-			}
 		}
 
 		/**

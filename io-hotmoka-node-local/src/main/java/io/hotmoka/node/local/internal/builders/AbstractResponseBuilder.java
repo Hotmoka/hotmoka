@@ -22,7 +22,6 @@ import java.math.BigInteger;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
-import io.hotmoka.node.OutOfGasError;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
@@ -202,20 +201,6 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * @param event the event
 		 */
 		public abstract void event(Object event);
-
-		/**
-		 * Runs a given piece of code with a subset of the available gas.
-		 * It first charges the given amount of gas. Then runs the code
-		 * with the charged gas only. At its end, the remaining gas is added
-		 * to the available gas to continue the computation.
-		 * 
-		 * @param amount the amount of gas provided to the code
-		 * @param what the code to run
-		 * @return the result of the execution of the code
-		 * @throws OutOfGasError if there is not enough gas
-		 * @throws Exception if the code runs into this exception
-		 */
-		public abstract <T> T withGas(BigInteger amount, Callable<T> what) throws Exception;
 
 		/**
 		 * Decreases the available gas by the given amount, for CPU execution.

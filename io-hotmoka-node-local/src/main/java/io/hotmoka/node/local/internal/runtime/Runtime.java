@@ -18,11 +18,9 @@ package io.hotmoka.node.local.internal.runtime;
 
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
-import java.util.concurrent.Callable;
 
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.NonWhiteListedCallException;
-import io.hotmoka.node.OutOfGasError;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.local.DeserializationException;
 import io.hotmoka.node.local.api.EngineClassLoader;
@@ -242,22 +240,6 @@ public abstract class Runtime {
 	 */
 	public static void event(Object event) {
 		getResponseCreator().event(event);
-	}
-
-	/**
-	 * Runs a given piece of code with a subset of the available gas.
-	 * It first charges the given amount of gas. Then runs the code
-	 * with the charged gas only. At its end, the remaining gas is added
-	 * to the available gas to continue the computation.
-	 * 
-	 * @param amount the amount of gas provided to the code
-	 * @param what the code to run
-	 * @return the result of the execution of {@code what}
-	 * @throws OutOfGasError if there is not enough gas
-	 * @throws Exception if the code runs into this exception
-	 */
-	public static <T> T withGas(BigInteger amount, Callable<T> what) throws Exception {
-		return getResponseCreator().withGas(amount, what);
 	}
 
 	/**

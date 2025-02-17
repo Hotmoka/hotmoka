@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.instrumentation.internal.instrumentationsOfMethod;
 
 import java.math.BigInteger;
-import java.util.concurrent.Callable;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.generic.BasicType;
@@ -86,7 +85,6 @@ public class InstrumentMethodsOfSupportClasses extends MethodLevelInstrumentatio
 				method.setInstructionList(il);
 			}
 			if ("charge".equals(method.getName()) && (args = method.getArgumentTypes()).length == 1 && BasicType.LONG.equals(args[0])) {
-				System.out.println("charge");
 				var il = new InstructionList();
 				il.append(InstructionFactory.createLoad(BasicType.LONG, 0));
 				il.append(factory.createInvoke(WhitelistingConstants.RUNTIME_NAME, "charge", Type.VOID, args, Const.INVOKESTATIC));
@@ -94,20 +92,10 @@ public class InstrumentMethodsOfSupportClasses extends MethodLevelInstrumentatio
 				method.setInstructionList(il);
 			}
 			if ("chargeForRAM".equals(method.getName()) && (args = method.getArgumentTypes()).length == 1 && BasicType.LONG.equals(args[0])) {
-				System.out.println("chargeForRAM");
 				var il = new InstructionList();
 				il.append(InstructionFactory.createLoad(BasicType.LONG, 0));
 				il.append(factory.createInvoke(WhitelistingConstants.RUNTIME_NAME, "chargeForRAM", Type.VOID, args, Const.INVOKESTATIC));
 				il.append(InstructionConst.RETURN);
-				method.setInstructionList(il);
-			}
-			else if ("withGas".equals(method.getName()) && (args = method.getArgumentTypes()).length == 2 && BIGINTEGER_OT.equals(args[0])
-					&& new ObjectType(Callable.class.getName()).equals(args[1])) {
-				var il = new InstructionList();
-				il.append(InstructionConst.ALOAD_0);
-				il.append(InstructionConst.ALOAD_1);
-				il.append(factory.createInvoke(WhitelistingConstants.RUNTIME_NAME, "withGas", Type.OBJECT, args, Const.INVOKESTATIC));
-				il.append(InstructionConst.ARETURN);
 				method.setInstructionList(il);
 			}
 			else if ("now".equals(method.getName()) && method.getArgumentTypes().length == 0) {
