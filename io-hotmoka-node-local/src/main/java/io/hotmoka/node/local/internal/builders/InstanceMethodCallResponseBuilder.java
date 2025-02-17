@@ -244,16 +244,6 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 			consumer.accept(deserializedReceiver);
 		}
 
-		@Override
-		protected void ensureWhiteListingOf(Method executable, Object[] actuals) throws ClassNotFoundException {
-			super.ensureWhiteListingOf(executable, actuals);
-
-			// we check the annotations on the receiver as well
-			Optional<Method> model = classLoader.getWhiteListingWizard().whiteListingModelOf(executable);
-			if (model.isPresent() && !Modifier.isStatic(executable.getModifiers()))
-				checkWhiteListingProofObligations(model.get().getName(), deserializedReceiver, model.get().getAnnotations());
-		}
-
 		/**
 		 * For system calls to the rewarding methods of the validators.
 		 */

@@ -16,9 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.local.internal.builders;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Executable;
-import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +29,6 @@ import java.util.stream.Stream;
 import io.hotmoka.exceptions.CheckRunnable;
 import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.exceptions.functions.ConsumerWithExceptions2;
-import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -48,8 +45,6 @@ import io.hotmoka.node.local.DeserializationException;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.whitelisting.Dummy;
 import io.hotmoka.whitelisting.api.WhiteListingClassLoader;
-import io.hotmoka.whitelisting.api.WhiteListingPredicate;
-import io.hotmoka.whitelisting.api.WhiteListingProofObligation;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -129,30 +124,6 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		@Override
 		public final void event(Object event) {
 			events.add(Objects.requireNonNull(event));
-		}
-
-		/**
-		 * Checks run-time proof obligations for the given value. This is used to verify
-		 * that some white-listing annotations hold when a value is passed to a white-listed
-		 * method that requires some conditions on the passed value.
-		 * 
-		 * @param methodName the name of the method, into which the value is passed
-		 * @param value the value for which the obligation must be proved
-		 * @param annotations the annotations that specify what to check on the value
-		 * @throws NonWhiteListedCallException if some annotation is not satisfied by the {@code value}
-		 */
-		protected final void checkWhiteListingProofObligations(String methodName, Object value, Annotation[] annotations) {
-			Stream.of(annotations)
-				.map(Annotation::annotationType)
-				.map(annotationType -> annotationType.getAnnotation(WhiteListingProofObligation.class))
-				.filter(Objects::nonNull)
-				.map(WhiteListingProofObligation::check)
-				.map(this::createWhiteListingPredicateFrom)
-				.filter(predicate -> !predicate.test(value, classLoader.getWhiteListingWizard()))
-				.map(predicate -> predicate.messageIfFailed(methodName))
-				.map(NonWhiteListedCallException::new)
-				.findFirst()
-				.ifPresent(exception -> { throw exception; });
 		}
 
 		/**
@@ -290,21 +261,6 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 				.filter(actual -> actual instanceof StorageReference)
 				.map(actual -> (StorageReference) actual)
 				.forEachOrdered(UncheckConsumer.uncheck(TransactionRejectedException.class, StoreException.class, enforceExported)));
-		}
-
-		/**
-		 * Yields an instance of the given white-listing predicate.
-		 * 
-		 * @param clazz the class of the predicate
-		 * @return an instance of that class
-		 */
-		private WhiteListingPredicate createWhiteListingPredicateFrom(Class<? extends WhiteListingPredicate> clazz) {
-			try {
-				return clazz.getConstructor().newInstance();
-			}
-			catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-				throw new IllegalStateException(e);
-			}
 		}
 
 		/**

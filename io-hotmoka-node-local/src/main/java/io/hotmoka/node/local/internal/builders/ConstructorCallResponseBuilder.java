@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.local.internal.builders;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
@@ -197,10 +196,6 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 			Optional<Constructor<?>> model = classLoader.getWhiteListingWizard().whiteListingModelOf(executable);
 			if (model.isEmpty())
 				throw new NonWhiteListedCallException("illegal call to non-white-listed constructor of " + request.getStaticTarget().getDefiningClass());
-
-			Annotation[][] anns = model.get().getParameterAnnotations();
-			for (int pos = 0; pos < anns.length; pos++)
-				checkWhiteListingProofObligations(model.get().getName(), actuals[pos], anns[pos]);
 		}
 
 		@Override

@@ -35,7 +35,6 @@ import org.apache.bcel.classfile.LineNumberTable;
 import org.apache.bcel.generic.ClassGen;
 import org.apache.bcel.generic.ConstantPoolGen;
 import org.apache.bcel.generic.FieldInstruction;
-import org.apache.bcel.generic.INVOKESPECIAL;
 import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.MethodGen;
 
@@ -44,7 +43,6 @@ import io.hotmoka.verification.api.Bootstraps;
 import io.hotmoka.verification.api.Pushers;
 import io.hotmoka.verification.api.VerifiedClass;
 import io.hotmoka.verification.api.VerifiedJar;
-import io.hotmoka.whitelisting.api.WhiteListingProofObligation;
 
 /**
  * A class that passed the static Takamaka verification tests.
@@ -176,8 +174,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 	 * Looks for a white-listing model of the given method or constructor. That is a constructor declaration
 	 * that justifies why the method or constructor is white-listed. It can be the method or constructor itself, if it
 	 * belongs to a class installed in blockchain, or otherwise a method or constructor of a white-listing
-	 * class, if it belongs to some Java run-time support class. If the instruction is a special call
-	 * to a method of a superclass, it checks that white-listing annotations on the receiver are not fooled.
+	 * class, if it belongs to some Java run-time support class.
 	 * 
 	 * @param executable the method or constructor whose model is looked for
 	 * @param invoke the call to the method or constructor
@@ -186,43 +183,9 @@ public class VerifiedClassImpl implements VerifiedClass {
 	 */
 	Optional<? extends Executable> whiteListingModelOf(Executable executable, InvokeInstruction invoke) throws ClassNotFoundException {
 		if (executable instanceof Constructor<?>)
-			return checkINVOKESPECIAL(invoke, jar.classLoader.getWhiteListingWizard().whiteListingModelOf((Constructor<?>) executable));
+			return jar.classLoader.getWhiteListingWizard().whiteListingModelOf((Constructor<?>) executable);
 		else
-			return checkINVOKESPECIAL(invoke, jar.classLoader.getWhiteListingWizard().whiteListingModelOf((Method) executable));
-	}
-
-	/**
-	 * If the given invoke instruction is an {@code invokespecial} and the given model
-	 * has a white-listing annotation on its receiver, checks if the model
-	 * of the resolved target of the invoke is still in the code installed in blockchain.
-	 * This check is important in order to forbid calls such as super.hashCode() to the hashCode()
-	 * method of Object, that would be non-deterministic.
-	 * 
-	 * @param invoke the invoke instruction
-	 * @param model the white-listing model of the invoke
-	 * @return the optional containing the model, or the empty optional if the check fails
-	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
-	 */
-	private Optional<? extends Executable> checkINVOKESPECIAL(InvokeInstruction invoke, Optional<? extends Executable> model) throws ClassNotFoundException {
-		if (invoke instanceof INVOKESPECIAL &&
-			model.isPresent() &&
-			hasWhiteListingProofObligationOnReceiver(model.get()) &&
-			resolver.resolvedExecutableFor(invoke).get().getDeclaringClass() == Object.class)
-			return Optional.empty();
-		else
-			return model;
-	}
-
-	/**
-	 * Determines if the given method or constructor has a white-listing proof obligation
-	 * on its receiver.
-	 * 
-	 * @param executable the method or constructor
-	 * @return true if and only if that condition holds
-	 */
-	private static boolean hasWhiteListingProofObligationOnReceiver(Executable executable) {
-		return Stream.of(executable.getAnnotations())
-			.anyMatch(annotation -> annotation.annotationType().getAnnotation(WhiteListingProofObligation.class) != null);
+			return jar.classLoader.getWhiteListingWizard().whiteListingModelOf((Method) executable);
 	}
 
 	/**

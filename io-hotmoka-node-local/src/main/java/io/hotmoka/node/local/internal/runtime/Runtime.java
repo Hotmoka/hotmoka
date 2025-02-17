@@ -16,11 +16,9 @@ limitations under the License.
 
 package io.hotmoka.node.local.internal.runtime;
 
-import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 
 import io.hotmoka.node.FieldSignatures;
-import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.local.DeserializationException;
 import io.hotmoka.node.local.api.EngineClassLoader;
@@ -28,7 +26,6 @@ import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.builders.AbstractResponseBuilder;
 import io.hotmoka.node.local.internal.builders.EngineClassLoaderImpl;
 import io.hotmoka.whitelisting.Dummy;
-import io.hotmoka.whitelisting.api.WhiteListingPredicate;
 
 /**
  * A class that contains utility methods called by instrumented
@@ -302,24 +299,6 @@ public abstract class Runtime {
 	 */
 	public static Object getNextStorageReference() {
 		return getResponseCreator().getNextStorageReference();
-	}
-
-	/**
-	 * Checks if the given white-listing predicate is satisfied by the given value.
-	 * 
-	 * @param value the value to check against the predicate
-	 * @param predicateClass the class of the predicate to check
-	 * @param methodName the name of the method or constructor to which {@code value} is passed as parameter
-	 */
-	public static void checkWhiteListingPredicate(Object value, Class<? extends WhiteListingPredicate> predicateClass, String methodName) {
-		try {
-			WhiteListingPredicate predicate = predicateClass.getConstructor().newInstance();
-			if (!predicate.test(value, getResponseCreator().getClassLoader().getWhiteListingWizard()))
-				throw new NonWhiteListedCallException(predicate.messageIfFailed(methodName));
-		}
-		catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-			throw new IllegalStateException(e);
-		}
 	}
 
 	/**

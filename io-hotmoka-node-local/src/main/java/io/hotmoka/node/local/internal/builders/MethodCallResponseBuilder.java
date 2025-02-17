@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.local.internal.builders;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.util.Optional;
@@ -82,12 +81,6 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 			Optional<Method> model = classLoader.getWhiteListingWizard().whiteListingModelOf(executable);
 			if (model.isEmpty())
 				throw new NonWhiteListedCallException("illegal call to non-white-listed method " + request.getStaticTarget().getDefiningClass() + "." + request.getStaticTarget().getMethodName());
-
-			Annotation[][] anns = model.get().getParameterAnnotations();
-			String methodName = model.get().getName();
-
-			for (int pos = 0; pos < actuals.length; pos++)
-				checkWhiteListingProofObligations(methodName, actuals[pos], anns[pos]);
 		}
 
 		/**
