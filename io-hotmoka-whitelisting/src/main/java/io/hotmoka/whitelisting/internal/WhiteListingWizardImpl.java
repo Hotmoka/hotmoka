@@ -27,7 +27,7 @@ import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 import io.hotmoka.whitelisting.api.WhiteListingWizard;
 
 /**
- * A sealed implementation of a white-listing wizard.
+ * An implementation of a white-listing wizard.
  */
 class WhiteListingWizardImpl implements WhiteListingWizard {
 	private final static String WHITE_LISTED_ROOT = WhiteListingWizardImpl.class.getPackage().getName() + ".database";
@@ -58,7 +58,7 @@ class WhiteListingWizardImpl implements WhiteListingWizard {
 	@Override
 	public Optional<Field> whiteListingModelOf(Field field) {
 		// if the class defining the field has been loaded by this class loader,
-		// then it comes from store of the node and the field is white-listed
+		// then it comes from the store of the node and the field is white-listed
 		if (field.getDeclaringClass().getClassLoader() == classLoader)
 			return Optional.of(field);
 		else
@@ -163,7 +163,7 @@ class WhiteListingWizardImpl implements WhiteListingWizard {
 				return Optional.of(Object.class.getMethod("getClass"));
 			}
 			catch (NoSuchMethodException e) {
-				// this will never happen
+				// this will never happen, since Object.getClass() exists
 				throw new RuntimeException(e);
 			}
 	

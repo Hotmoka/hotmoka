@@ -30,7 +30,7 @@ public final class WhiteListingClassLoaders {
 	private WhiteListingClassLoaders() {}
 
 	/**
-	 * Yields a resolving class loader that loads classes from the given jars, provided as byte arrays.
+	 * Yields a white-listing class loader that loads classes from the given jars, provided as byte arrays.
 	 * 
 	 * @param jars the jars, as byte arrays
 	 * @param verificationVersion the version of the verification module that must be used; this affects the

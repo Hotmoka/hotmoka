@@ -17,10 +17,10 @@ limitations under the License.
 package io.hotmoka.whitelisting;
 
 /**
- * This class is used only in the instrumentation of an entry method or constructor,
+ * This class is used only in the instrumentation of from contract methods or constructors,
  * as an extra type added at the end of its signature: {@code m(formals)} becomes
  * {@code m(formals, Contract, Dummy)}, where the {@code io.takamaka.code.lang.Contract}
- * is the caller of the entry. The goal is to avoid signature clashes
+ * is the caller. The goal is to avoid signature clashes
  * because of the instrumentation: since this class is not white-listed, it cannot
  * be used by the programmer and the instrumentation cannot lead to signature clashes.
  * Moreover, the value passed for this extra parameter can be used to signal something to the callee.

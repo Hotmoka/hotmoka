@@ -80,6 +80,7 @@ public interface WhiteListingClassLoader {
 
 	/**
 	 * Yields the constructor resolved from the given static description.
+	 * No look-up is performed beyond the starting class.
 	 * 
 	 * @param className the name of the class declaring the constructor
 	 * @param args the arguments of the constructor
@@ -90,6 +91,7 @@ public interface WhiteListingClassLoader {
 
 	/**
 	 * Yields the constructor resolved from the given static description.
+	 * No look-up is performed beyond the starting class.
 	 * 
 	 * @param clazz the class declaring the constructor
 	 * @param args the arguments of the constructor

@@ -117,15 +117,13 @@ public class WhiteListingClassLoaderImpl extends ClassLoader implements WhiteLis
 
 	@Override
 	public final Optional<Field> resolveField(Class<?> clazz, String name, Class<?> type) {
-		while (clazz != null) {
-			Optional<Field> result = Stream.of(clazz.getDeclaredFields())
+		for (Class<?> cursor = clazz; cursor != null; cursor = cursor.getSuperclass()) {
+			Optional<Field> result = Stream.of(cursor.getDeclaredFields())
 					.filter(field -> field.getType() == type && field.getName().equals(name))
 					.findFirst();
 
 			if (result.isPresent())
 				return result;
-
-			clazz = clazz.getSuperclass();
 		}
 
 		return Optional.empty();
