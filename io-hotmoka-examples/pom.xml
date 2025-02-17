@@ -408,6 +408,12 @@
             </configuration>
           </execution>
 
+		  <execution><id>illegalcalltononwhitelistedconstructor3</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>illegalcalltononwhitelistedconstructor3</classifier>
+              <includes><include>io/hotmoka/examples/errors/illegalcalltononwhitelistedconstructor3/**</include></includes>
+            </configuration>
+          </execution>
+
 		  <execution><id>illegalcalltononwhitelistedmethod1</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>illegalcalltononwhitelistedmethod1</classifier>
               <includes><include>io/hotmoka/examples/errors/illegalcalltononwhitelistedmethod1/**</include></includes>

@@ -27,7 +27,7 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.tests.HotmokaTest;
 
-class IllegalCallToNonWhiteListedMethod13 extends HotmokaTest {
+class IllegalCallToNonWhiteListedMethod10 extends HotmokaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
