@@ -43,11 +43,4 @@ public interface VerifiedJar {
 	 * @return the class loader
 	 */
 	TakamakaClassLoader getClassLoader();
-
-	/**
-	 * Yields the utility object that can be used to check the annotations in the methods in this jar.
-	 * 
-	 * @return the utility object
-	 */
-	Annotations getAnnotations();
 }

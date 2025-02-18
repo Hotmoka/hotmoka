@@ -16,23 +16,23 @@ limitations under the License.
 
 package io.hotmoka.verification;
 
-import io.hotmoka.verification.api.BcelToClass;
+import io.hotmoka.verification.api.AnnotationUtility;
 import io.hotmoka.verification.api.VerifiedJar;
-import io.hotmoka.verification.internal.BcelToClassImpl;
+import io.hotmoka.verification.internal.AnnotationUtilityImpl;
 
 /**
- * A provider of transformers of BCEL types into classes.
+ * A provider of utilities for dealing with annotations.
  */
-public final class BcelToClasses {
+public final class AnnotationUtilities {
 
-	private BcelToClasses() {}
+	private AnnotationUtilities() {}
 
 	/**
-	 * Yields a utility that transforms a BCEL type into its corresponding class tag.
+	 * Yields a utility that deals with annotations.
 	 *
-	 * @param jar the jar for which the transformation is performed
+	 * @param jar the jar for which the utility is used
 	 */
-	public static BcelToClass of(VerifiedJar jar) {
-		return new BcelToClassImpl(jar);
+	public static AnnotationUtility of(VerifiedJar jar) {
+		return new AnnotationUtilityImpl(jar);
 	}
 }

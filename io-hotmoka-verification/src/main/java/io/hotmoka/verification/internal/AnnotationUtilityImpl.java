@@ -33,8 +33,9 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
 import io.hotmoka.verification.BcelToClasses;
-import io.hotmoka.verification.api.Annotations;
+import io.hotmoka.verification.api.AnnotationUtility;
 import io.hotmoka.verification.api.BcelToClass;
+import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.verification.api.VerifiedJar;
 import io.hotmoka.whitelisting.WhitelistingConstants;
 import io.takamaka.code.constants.Constants;
@@ -42,14 +43,14 @@ import io.takamaka.code.constants.Constants;
 /**
  * A utility to check the annotations of the methods in a given jar.
  */
-public class AnnotationsImpl implements Annotations {
+public class AnnotationUtilityImpl implements AnnotationUtility {
 	private final static ObjectType CONTRACT_OT = new ObjectType(Constants.CONTRACT_NAME);
 	private final static ObjectType DUMMY_OT = new ObjectType(WhitelistingConstants.DUMMY_NAME);
 
 	/**
-	 * The jar whose annotations are considered.
+	 * The class loader of the jar whose annotations are considered.
 	 */
-	private final VerifiedJar jar;
+	private final TakamakaClassLoader classLoader;
 
 	/**
 	 * The utility used to transform BCEL types into classes.
@@ -61,8 +62,8 @@ public class AnnotationsImpl implements Annotations {
 	 * 
 	 * @param jar the jar whose annotations are considered
 	 */
-	public AnnotationsImpl(VerifiedJar jar) {
-		this.jar = jar;
+	public AnnotationUtilityImpl(VerifiedJar jar) {
+		this.classLoader = jar.getClassLoader();
 		this.bcelToClass = BcelToClasses.of(jar);
 	}
 
@@ -127,7 +128,7 @@ public class AnnotationsImpl implements Annotations {
 			throw new RuntimeException(e);
 		}
 
-		return contractClass != null ? contractClass : jar.getClassLoader().getContract();
+		return contractClass != null ? contractClass : classLoader.getContract();
 	}
 
 	/**
@@ -155,7 +156,7 @@ public class AnnotationsImpl implements Annotations {
 			Stream.of(formals).map(uncheck(bcelToClass::of)).toArray(Class[]::new)
 		);
 
-		return Stream.of(jar.getClassLoader().loadClass(className).getDeclaredConstructors())
+		return Stream.of(classLoader.loadClass(className).getDeclaredConstructors())
 				.filter(constructor -> Arrays.equals(constructor.getParameterTypes(), formalsClass))
 				.flatMap(constructor -> Stream.of(constructor.getAnnotations()))
 				.filter(annotation -> annotation.annotationType().getName().equals(annotationName))
@@ -163,7 +164,7 @@ public class AnnotationsImpl implements Annotations {
 	}
 
 	private Optional<Annotation> getAnnotationOfClass(String className, String annotationName) throws ClassNotFoundException {
-		Class<?> clazz = jar.getClassLoader().loadClass(className);
+		Class<?> clazz = classLoader.loadClass(className);
 		Optional<Annotation> explicit = Stream.of(clazz.getAnnotations())
 				.filter(annotation -> annotation.annotationType().getName().equals(annotationName))
 				.findFirst();
@@ -184,7 +185,7 @@ public class AnnotationsImpl implements Annotations {
 			Stream.of(formals).map(uncheck(bcelToClass::of)).toArray(Class[]::new)
 		);
 
-		Class<?> clazz = jar.getClassLoader().loadClass(className);
+		Class<?> clazz = classLoader.loadClass(className);
 		Optional<Method> definition = Stream.of(clazz.getDeclaredMethods())
 			.filter(m -> m.getName().equals(methodName) && m.getReturnType() == returnTypeClass && Arrays.equals(m.getParameterTypes(), formalsClass))
 			.findFirst();

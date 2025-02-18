@@ -23,7 +23,7 @@ import org.apache.bcel.generic.Type;
 /**
  * A utility to check the annotations of the methods in a given jar.
  */
-public interface Annotations {
+public interface AnnotationUtility {
 
 	/**
 	 * Determines if the given class is annotated as white listed during initialization.

@@ -30,6 +30,13 @@ import org.apache.bcel.generic.MethodGen;
 public interface Bootstraps {
 
 	/**
+	 * Yields the bootstrap methods in this container.
+	 * 
+	 * @return the bootstrap methods
+	 */
+	Stream<BootstrapMethod> getBootstraps();
+
+	/**
 	 * Determines if the given bootstrap method is a from contract method or constructor reference.
 	 * 
 	 * @param bootstrap the bootstrap method
@@ -37,13 +44,6 @@ public interface Bootstraps {
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 	 */
 	boolean lambdaIsFromContract(BootstrapMethod bootstrap) throws ClassNotFoundException;
-
-	/**
-	 * Yields the bootstrap methods in this container.
-	 * 
-	 * @return the bootstrap methods
-	 */
-	Stream<BootstrapMethod> getBootstraps();
 
 	/**
 	 * Yields the bootstrap methods in this container that lead to a from contract

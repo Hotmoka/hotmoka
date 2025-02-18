@@ -37,12 +37,15 @@ import org.apache.bcel.generic.ReturnInstruction;
 
 import io.hotmoka.verification.api.Pushers;
 
+/**
+ * A utility to infer the pushers of stack values.
+ */
 public class PushersImpl implements Pushers {
 
 	/**
 	 * Creates a utility class that yields the pushers of values on the stack.
 	 */
-	PushersImpl() {}
+	public PushersImpl() {}
 
 	@Override
 	public Stream<InstructionHandle> getPushers(InstructionHandle ih, int slots, InstructionList il, ConstantPoolGen cpg) {

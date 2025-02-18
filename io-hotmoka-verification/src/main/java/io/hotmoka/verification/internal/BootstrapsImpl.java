@@ -53,7 +53,9 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
 import io.hotmoka.exceptions.CheckSupplier;
+import io.hotmoka.verification.AnnotationUtilities;
 import io.hotmoka.verification.BcelToClasses;
+import io.hotmoka.verification.api.AnnotationUtility;
 import io.hotmoka.verification.api.BcelToClass;
 import io.hotmoka.verification.api.Bootstraps;
 
@@ -72,6 +74,11 @@ public class BootstrapsImpl implements Bootstraps {
 	 * A utility to transform BCEL types into classes.
 	 */
 	private final BcelToClass bcelToClass;
+
+	/**
+	 * The utility used to deal with the annotations in the class.
+	 */
+	private final AnnotationUtility annotations;
 
 	/**
 	 * The constant pool of the class whose bootstraps are considered.
@@ -105,7 +112,8 @@ public class BootstrapsImpl implements Bootstraps {
 
 	BootstrapsImpl(VerifiedClassImpl clazz, MethodGen[] methods) throws ClassNotFoundException {
 		this.verifiedClass = clazz;
-		this.bcelToClass = BcelToClasses.of(clazz.jar);
+		this.bcelToClass = BcelToClasses.of(clazz.getJar());
+		this.annotations = AnnotationUtilities.of(clazz.getJar());
 		this.cpg = clazz.getConstantPool();
 		this.bootstrapMethods = computeBootstraps();
 		collectBootstrapsLeadingToFromContract(methods);
@@ -120,6 +128,7 @@ public class BootstrapsImpl implements Bootstraps {
 	BootstrapsImpl(BootstrapsImpl parent) {
 		this.verifiedClass = parent.verifiedClass;
 		this.bcelToClass = parent.bcelToClass;
+		this.annotations = parent.annotations;
 		this.cpg = parent.cpg;
 		this.bootstrapMethods = new BootstrapMethod[parent.bootstrapMethods.length];
 		for (int pos = 0; pos < parent.bootstrapMethods.length; pos++) {
@@ -146,7 +155,7 @@ public class BootstrapsImpl implements Bootstraps {
 					String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
 					String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
 
-					return verifiedClass.jar.annotations.isFromContract(className, methodName, Type.getArgumentTypes(methodSignature), Type.getReturnType(methodSignature));
+					return annotations.isFromContract(className, methodName, Type.getArgumentTypes(methodSignature), Type.getReturnType(methodSignature));
 				}
 			}
 		}
@@ -315,9 +324,10 @@ public class BootstrapsImpl implements Bootstraps {
 		// (that is, a lambda can call another lambda); we use a working set that starts
 		// with the @Entry methods
 		var ws = new LinkedList<MethodGen>();
+		var className = verifiedClass.getClassName();
 		check(ClassNotFoundException.class, () ->
 			Stream.of(methods)
-				.filter(uncheck(ClassNotFoundException.class, method -> verifiedClass.jar.annotations.isFromContract(verifiedClass.getClassName(), method.getName(), method.getArgumentTypes(), method.getReturnType())))
+				.filter(uncheck(ClassNotFoundException.class, method -> annotations.isFromContract(className, method.getName(), method.getArgumentTypes(), method.getReturnType())))
 				.forEach(ws::add)
 		);
 
@@ -375,8 +385,7 @@ public class BootstrapsImpl implements Bootstraps {
 			return bootstrapMethodsLeadingToFromContractAsSet.contains(getBootstrapFor(invokedynamic));
 		else if (instruction instanceof InvokeInstruction invoke && !(invoke instanceof INVOKESTATIC))
 			return invoke.getReferenceType(cpg) instanceof ObjectType ot &&
-				verifiedClass.jar.annotations.isFromContract
-					(ot.getClassName(), invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));
+				annotations.isFromContract(ot.getClassName(), invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));
 		else
 			return false;
 	}

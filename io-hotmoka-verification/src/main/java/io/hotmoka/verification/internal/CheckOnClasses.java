@@ -37,8 +37,9 @@ import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.MethodGen;
 
+import io.hotmoka.verification.AnnotationUtilities;
 import io.hotmoka.verification.BcelToClasses;
-import io.hotmoka.verification.api.Annotations;
+import io.hotmoka.verification.api.AnnotationUtility;
 import io.hotmoka.verification.api.BcelToClass;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 
@@ -51,7 +52,7 @@ public abstract class CheckOnClasses {
 	protected final BootstrapsImpl bootstraps;
 	protected final PushersImpl pushers;
 	protected final Resolver resolver;
-	protected final Annotations annotations;
+	protected final AnnotationUtility annotations;
 	protected final BcelToClass bcelToClass;
 	protected final boolean duringInitialization;
 	protected final String className;
@@ -64,7 +65,7 @@ public abstract class CheckOnClasses {
 		this.bootstraps = verifiedClass.bootstraps;
 		this.pushers = verifiedClass.pushers;
 		this.resolver = verifiedClass.resolver;
-		this.annotations = verifiedClass.jar.annotations;
+		this.annotations = AnnotationUtilities.of(verifiedClass.jar);
 		this.bcelToClass = BcelToClasses.of(verifiedClass.jar);
 		this.className = verifiedClass.getClassName();
 		this.cpg = verifiedClass.getConstantPool();

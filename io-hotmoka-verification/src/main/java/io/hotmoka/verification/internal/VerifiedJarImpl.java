@@ -32,7 +32,6 @@ import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.util.ClassLoaderRepository;
 
 import io.hotmoka.verification.VerificationException;
-import io.hotmoka.verification.api.Annotations;
 import io.hotmoka.verification.api.Error;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.verification.api.VerifiedClass;
@@ -49,11 +48,6 @@ public class VerifiedJarImpl implements VerifiedJar {
 	 * The class loader used to load this jar.
 	 */
 	public final TakamakaClassLoader classLoader;
-
-	/**
-	 * The utility that knows about the annotations of the methods in this jar.
-	 */
-	public final AnnotationsImpl annotations;
 
 	/**
 	 * The class of the jar that passed verification.
@@ -80,7 +74,6 @@ public class VerifiedJarImpl implements VerifiedJar {
 	 */
 	public VerifiedJarImpl(byte[] origin, TakamakaClassLoader classLoader, boolean duringInitialization, boolean skipsVerification) throws IOException, ClassNotFoundException, UnsupportedVerificationVersionException {
 		this.classLoader = classLoader;
-		this.annotations = new AnnotationsImpl(this);
 
 		// we set the BCEL repository so that it matches the class path made up of the jar to
 		// instrument and its dependencies. This is important since class instrumentation will use
@@ -104,11 +97,6 @@ public class VerifiedJarImpl implements VerifiedJar {
 	@Override
 	public TakamakaClassLoader getClassLoader() {
 		return classLoader;
-	}
-
-	@Override
-	public Annotations getAnnotations() {
-		return annotations;
 	}
 
 	/**

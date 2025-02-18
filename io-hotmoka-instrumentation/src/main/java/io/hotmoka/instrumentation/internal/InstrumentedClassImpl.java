@@ -57,8 +57,9 @@ import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.AddGasUpdate
 import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.InstrumentMethodsOfSupportClasses;
 import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.ReplaceFieldAccessesWithAccessors;
 import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.SetCallerAndBalanceAtTheBeginningOfFromContracts;
+import io.hotmoka.verification.AnnotationUtilities;
 import io.hotmoka.verification.BcelToClasses;
-import io.hotmoka.verification.api.Annotations;
+import io.hotmoka.verification.api.AnnotationUtility;
 import io.hotmoka.verification.api.BcelToClass;
 import io.hotmoka.verification.api.Bootstraps;
 import io.hotmoka.verification.api.Pushers;
@@ -128,7 +129,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		/**
 		 * The annotation wizard of the class being instrumented.
 		 */
-		private final Annotations annotations;
+		private final AnnotationUtility annotations;
 
 		/**
 		 * The class generator of the verified class.
@@ -226,7 +227,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		private Builder(VerifiedClass clazz, GasCostModel gasCostModel) throws ClassNotFoundException {
 			this.verifiedClass = clazz;
 			this.bcelToClass = BcelToClasses.of(verifiedClass.getJar());
-			this.annotations = verifiedClass.getJar().getAnnotations();
+			this.annotations = AnnotationUtilities.of(verifiedClass.getJar());
 			this.classGen = new ClassGen(clazz.toJavaClass());
 			this.bootstraps = verifiedClass.getBootstraps();
 			setBootstraps();
@@ -322,7 +323,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			/**
 			 * The annotation wizard of the class being instrumented.
 			 */
-			protected final Annotations annotations = Builder.this.annotations;
+			protected final AnnotationUtility annotations = Builder.this.annotations;
 
 			/**
 			 * The gas cost model used for the instrumentation.
