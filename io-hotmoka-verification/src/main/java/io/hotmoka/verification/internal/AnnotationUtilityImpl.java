@@ -20,7 +20,6 @@ import static io.hotmoka.exceptions.CheckSupplier.check;
 import static io.hotmoka.exceptions.UncheckFunction.uncheck;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -74,22 +73,22 @@ public class AnnotationUtilityImpl implements AnnotationUtility {
 	}
 
 	public final boolean isWhiteListedDuringInitialization(String className) throws ClassNotFoundException {
-		return getAnnotationOfClass(className, Constants.WHITE_LISTED_DURING_INITIALIZATION_NAME).isPresent();
+		return classIsAnnotatedAs(className, Constants.WHITE_LISTED_DURING_INITIALIZATION_NAME);
 	}
 
 	@Override
-	public final boolean isThrowsExceptions(String className, String methodName, Type[] formals, Type returnType) throws SecurityException, ClassNotFoundException {
+	public final boolean isThrowsExceptions(String className, String methodName, Type[] formals, Type returnType) throws ClassNotFoundException {
 		return getAnnotation(className, methodName, formals, returnType, Constants.THROWS_EXCEPTIONS_NAME).isPresent()
 			|| getAnnotation(className, methodName, expandFormals(formals), returnType, Constants.THROWS_EXCEPTIONS_NAME).isPresent();
 	}
 
 	@Override
-	public final boolean isFromContract(String className, String methodName, Type[] formals, Type returnType) throws SecurityException, ClassNotFoundException {
+	public final boolean isFromContract(String className, String methodName, Type[] formals, Type returnType) throws ClassNotFoundException {
 		return getFromContractArgument(className, methodName, formals, returnType).isPresent();
 	}
 
 	@Override
-	public final Optional<Class<?>> getFromContractArgument(String className, String methodName, Type[] formals, Type returnType) throws SecurityException, ClassNotFoundException {
+	public final Optional<Class<?>> getFromContractArgument(String className, String methodName, Type[] formals, Type returnType) throws ClassNotFoundException {
 		Optional<Annotation> annotation = getAnnotation(className, methodName, formals, returnType, Constants.FROM_CONTRACT_NAME);
 		if (annotation.isEmpty())
 			// the method might have been already instrumented, since it comes from
@@ -100,7 +99,7 @@ public class AnnotationUtilityImpl implements AnnotationUtility {
 	}
 
 	/**
-	 * Adds, to the given formal arguments, the extra two used in instrumented entries.
+	 * Adds, to the given formal arguments, the extra two used in instrumented {@@FromComtract} code.
 	 * 
 	 * @param formals the original formals
 	 * @return the expanded formals
@@ -113,26 +112,24 @@ public class AnnotationUtilityImpl implements AnnotationUtility {
 		return formalsExpanded;
 	}
 
-	private Class<?> extractContractClass(Annotation entry) {
+	private Class<?> extractContractClass(Annotation fromContract) {
 		// we call, by reflection, its value() method, to find the type of the calling contract
 
 		Class<?> contractClass;
 		try {
-			Method value = entry.getClass().getMethod("value");
-			contractClass = (Class<?>) value.invoke(entry);
+			Method value = fromContract.getClass().getMethod("value");
+			contractClass = (Class<?>) value.invoke(fromContract);
 		}
-		catch (NoSuchMethodException | IllegalAccessException e) {
-			return null;
-		}
-		catch (InvocationTargetException e) {
-			throw new RuntimeException(e);
+		catch (ReflectiveOperationException e) {
+			throw new RuntimeException(e); // this should never happen
 		}
 
+		// it defaults to Contract
 		return contractClass != null ? contractClass : classLoader.getContract();
 	}
 
 	/**
-	 * Gets the given annotation from the given constructor or method. For methods, looks
+	 * Gets the given annotation from the given constructor or method. For methods, it looks
 	 * in the given class and, if no such method is found there, looks also in the superclass.
 	 * If no annotation is found in the superclass, it looks in the super-interfaces as well.
 	 * 
@@ -152,9 +149,7 @@ public class AnnotationUtilityImpl implements AnnotationUtility {
 	}
 
 	private Optional<Annotation> getAnnotationOfConstructor(String className, Type[] formals, String annotationName) throws ClassNotFoundException {
-		Class<?>[] formalsClass = check(ClassNotFoundException.class, () ->
-			Stream.of(formals).map(uncheck(bcelToClass::of)).toArray(Class[]::new)
-		);
+		Class<?>[] formalsClass = bcelToClass.of(formals);
 
 		return Stream.of(classLoader.loadClass(className).getDeclaredConstructors())
 				.filter(constructor -> Arrays.equals(constructor.getParameterTypes(), formalsClass))
@@ -163,28 +158,19 @@ public class AnnotationUtilityImpl implements AnnotationUtility {
 				.findFirst();
 	}
 
-	private Optional<Annotation> getAnnotationOfClass(String className, String annotationName) throws ClassNotFoundException {
+	private boolean classIsAnnotatedAs(String className, String annotationName) throws ClassNotFoundException {
 		Class<?> clazz = classLoader.loadClass(className);
-		Optional<Annotation> explicit = Stream.of(clazz.getAnnotations())
-				.filter(annotation -> annotation.annotationType().getName().equals(annotationName))
-				.findFirst();
-
-		if (explicit.isPresent())
-			return explicit;
+		boolean explicitly = Stream.of(clazz.getAnnotations())
+			.map(annotation -> annotation.annotationType().getName())
+			.anyMatch(annotationName::equals);
 
 		Class<?> superclass;
-		if ((superclass = clazz.getSuperclass()) != null)
-			return getAnnotationOfClass(superclass.getName(), annotationName);
-
-		return Optional.empty();
+		return explicitly || ((superclass = clazz.getSuperclass()) != null && classIsAnnotatedAs(superclass.getName(), annotationName));
 	}
 
 	private Optional<Annotation> getAnnotationOfMethod(String className, String methodName, Type[] formals, Type returnType, String annotationName) throws ClassNotFoundException {
 		Class<?> returnTypeClass = bcelToClass.of(returnType);
-		Class<?>[] formalsClass = check(ClassNotFoundException.class, () ->
-			Stream.of(formals).map(uncheck(bcelToClass::of)).toArray(Class[]::new)
-		);
-
+		Class<?>[] formalsClass = bcelToClass.of(formals);
 		Class<?> clazz = classLoader.loadClass(className);
 		Optional<Method> definition = Stream.of(clazz.getDeclaredMethods())
 			.filter(m -> m.getName().equals(methodName) && m.getReturnType() == returnTypeClass && Arrays.equals(m.getParameterTypes(), formalsClass))
@@ -200,7 +186,7 @@ public class AnnotationUtilityImpl implements AnnotationUtility {
 				return explicit;
 
 			Class<?> superclass;
-			if ((superclass = clazz.getSuperclass()) != null && method.isBridge() && method.isSynthetic() && !Modifier.isPrivate(method.getModifiers()))
+			if ((superclass = clazz.getSuperclass()) != null && method.isBridge() && method.isSynthetic() && !Modifier.isPrivate(method.getModifiers())) // TODO: check this
 				// bridge synthetic methods are created by compilers to override a method of the superclass,
 				// but they do not put the same annotations as in the superclass while it should be the case
 				return getAnnotationOfMethod(superclass.getName(), methodName, formals, returnType, annotationName);
@@ -212,8 +198,7 @@ public class AnnotationUtilityImpl implements AnnotationUtility {
 			Stream.concat(Stream.of(clazz.getSuperclass()), Stream.of(clazz.getInterfaces()))
 				.filter(Objects::nonNull) // since the superclass might be null
 				.map(uncheck(where -> getAnnotationOfMethod(where.getName(), methodName, formals, returnType, annotationName)))
-				.filter(Optional::isPresent)
-				.map(Optional::get)
+				.flatMap(Optional::stream)
 				.findFirst()
 			);
 	}

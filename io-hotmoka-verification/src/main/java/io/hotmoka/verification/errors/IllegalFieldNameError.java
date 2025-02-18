@@ -27,7 +27,7 @@ public class IllegalFieldNameError extends AbstractErrorImpl {
 	/**
 	 * Builds the error.
 	 * 
-	 * @param where the description of the program point were the error occurs.
+	 * @param where the description of the program point where the error occurs
 	 * @param fieldName the name of the field where the error occurs
 	 */
 	public IllegalFieldNameError(String where, String fieldName) {

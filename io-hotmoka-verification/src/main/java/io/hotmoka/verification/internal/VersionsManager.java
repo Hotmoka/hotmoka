@@ -76,7 +76,7 @@ final class VersionsManager {
 	}
 
 	/**
-	 * Applies the checks on Java methods that must for the version of the verification module, in their order.
+	 * Applies the checks on Java methods for the version of the verification module, in their order.
 	 * 
 	 * @param context the context of the checks
 	 * @param method the method to check

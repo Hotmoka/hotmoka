@@ -19,7 +19,6 @@ package io.hotmoka.verification.internal.checksOnClass;
 import static io.hotmoka.exceptions.CheckRunnable.check;
 import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.util.stream.Stream;
@@ -42,32 +41,18 @@ public class StorageClassesHaveFieldsOfStorageTypeCheck extends CheckOnClasses {
 				Stream.of(clazz.getDeclaredFields())
 					.filter(field -> !Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers()))
 					.filter(uncheck(ClassNotFoundException.class, field -> !isTypeAllowedForStorageFields(field.getType())))
-					.map(field -> new IllegalTypeForStorageFieldError(inferSourceFile(), field.getName(), field.getType().isEnum()))
+					.map(field -> new IllegalTypeForStorageFieldError(inferSourceFile(), field.getName()))
 					.forEachOrdered(this::issue)
 			);
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	private boolean isTypeAllowedForStorageFields(Class<?> type) throws ClassNotFoundException {
 		// we allow Object since it can be the erasure of a generic type: the runtime of Takamaka
 		// will check later if the actual type of the object in this field is allowed;
 		// we also allow interfaces since they cannot extend Storage and only at run time it will
 		// be possible to determine if the content is a storage value
 		return type.isPrimitive() || type == Object.class || type.isInterface() || type == String.class || type == BigInteger.class
-			|| (type.isEnum() && !hasInstanceFields((Class<? extends Enum<?>>) type))
 			|| (!type.isArray() && classLoader.isStorage(type.getName()));
-	}
-
-	/**
-	 * Determines if the given enumeration type has at least an instance, non-transient field.
-	 * 
-	 * @param clazz the class
-	 * @return true only if that condition holds
-	 */
-	private static boolean hasInstanceFields(Class<? extends Enum<?>> clazz) {
-		return Stream.of(clazz.getDeclaredFields())
-			.map(Field::getModifiers)
-			.anyMatch(modifiers -> !Modifier.isStatic(modifiers) && !Modifier.isTransient(modifiers));
 	}
 }

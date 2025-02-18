@@ -26,7 +26,7 @@ public class IllegalPackageNameError extends AbstractErrorImpl {
 	/**
 	 * Builds the error.
 	 * 
-	 * @param where the description of the program point were the error occurs.
+	 * @param where the description of the program point where the error occurs
 	 */
 	public IllegalPackageNameError(String where) {
 		super(where, "package name is not allowed");

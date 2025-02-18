@@ -19,11 +19,7 @@ package io.hotmoka.tests;
 import static java.math.BigInteger.ONE;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import java.security.InvalidKeyException;
 import java.security.KeyPair;
-import java.security.SignatureException;
-import java.util.NoSuchElementException;
-import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,10 +30,7 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.values.StorageReference;
 import io.takamaka.code.constants.Constants;
@@ -50,11 +43,11 @@ public class Faucet extends HotmokaTest {
 	}
 
 	@Test
-	void fundNewAccount() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
+	void fundNewAccount() throws Exception {
 		if (consensus == null || !consensus.allowsUnsignedFaucet())
 			return;
 
-		var gamete = (StorageReference) runInstanceNonVoidMethodCallTransaction(manifest(), _50_000, takamakaCode(), MethodSignatures.GET_GAMETE, manifest());
+		var gamete = runInstanceNonVoidMethodCallTransaction(manifest(), _50_000, takamakaCode(), MethodSignatures.GET_GAMETE, manifest()).asReturnedReference(MethodSignatures.GET_GAMETE, NodeException::new);
 
 		// we generate the key pair of the new account created by the faucet
 		var signature = signature();
@@ -74,8 +67,8 @@ public class Faucet extends HotmokaTest {
 	}
 
 	@Test
-	void callToFaucetFailsIfCallerIsNotTheGamete() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
-		var gamete = (StorageReference) runInstanceNonVoidMethodCallTransaction(manifest(), _50_000, takamakaCode(), MethodSignatures.GET_GAMETE, manifest());
+	void callToFaucetFailsIfCallerIsNotTheGamete() throws Exception {
+		var gamete = runInstanceNonVoidMethodCallTransaction(manifest(), _50_000, takamakaCode(), MethodSignatures.GET_GAMETE, manifest()).asReturnedReference(MethodSignatures.GET_GAMETE, NodeException::new);
 
 		// we generate the key pair of the new account created by the faucet
 		KeyPair keys = signature().getKeyPair();

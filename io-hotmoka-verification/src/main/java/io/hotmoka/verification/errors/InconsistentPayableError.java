@@ -27,7 +27,7 @@ public class InconsistentPayableError extends AbstractErrorImpl {
 	/**
 	 * Builds the error.
 	 * 
-	 * @param where the description of the program point were the error occurs.
+	 * @param where the description of the program point where the error occurs
 	 * @param methodName the name of the method where the error occurs
 	 * @param classWhereItWasDefined the name of the class where the same method was defined
 	 */

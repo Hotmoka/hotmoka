@@ -23,10 +23,7 @@ import static io.hotmoka.node.StorageTypes.BOOLEAN;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.security.InvalidKeyException;
 import java.security.PrivateKey;
-import java.security.SignatureException;
-import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,10 +34,7 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
@@ -94,7 +88,7 @@ class ExampleCoinPausable extends HotmokaTest {
     }
 
     @Test @DisplayName("new ExampleCoinPausable()")
-    void createExampleCoinCapped() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+    void createExampleCoinCapped() throws Exception {
         addConstructorCallTransaction(
                 creator_prv_key, // an object that signs with the payer's private key
                 creator, // payer of the transaction
@@ -106,7 +100,7 @@ class ExampleCoinPausable extends HotmokaTest {
     }
 
     @Test @DisplayName("Test of ERC20Pausable paused method: example_token.paused()")
-    void paused() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+    void paused() throws Exception {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCP);
 
         BooleanValue paused = (BooleanValue) runInstanceNonVoidMethodCallTransaction(
@@ -120,7 +114,7 @@ class ExampleCoinPausable extends HotmokaTest {
     }
 
     @Test @DisplayName("Test of ERC20Pausable _pause method: example_token.pause(...)")
-    void _pause() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+    void _pause() throws Exception {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCP);
 
         addInstanceVoidMethodCallTransaction(
@@ -141,7 +135,7 @@ class ExampleCoinPausable extends HotmokaTest {
     }
 
     @Test @DisplayName("Test of ERC20Pausable _pause method with the generation of an Exception")
-    void _pauseException() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+    void _pauseException() throws Exception {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCP);
 
         addInstanceVoidMethodCallTransaction(
@@ -162,7 +156,7 @@ class ExampleCoinPausable extends HotmokaTest {
     }
 
     @Test @DisplayName("Test of ERC20Pausable _unpause method: example_token.unpause(...)")
-    void _unpause() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+    void _unpause() throws Exception {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCP);
 
         addInstanceVoidMethodCallTransaction(
@@ -197,7 +191,7 @@ class ExampleCoinPausable extends HotmokaTest {
     }
 
     @Test @DisplayName("Test of ERC20Pausable _unpause method with the generation of an Exception")
-    void _unpauseException() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+    void _unpauseException() throws Exception {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCP);
 
         throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
@@ -211,7 +205,7 @@ class ExampleCoinPausable extends HotmokaTest {
     }
 
     @Test @DisplayName("Test of ERC20 transfer method when the contract is not in the paused state")
-    void transfer() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+    void transfer() throws Exception {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCP);
         StorageReference ubi_check = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("199999999999999999995000"));
         StorageReference ubi_5000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("5000"));
@@ -224,7 +218,9 @@ class ExampleCoinPausable extends HotmokaTest {
                 example_token, investor1, ubi_5000);
         // balances = [creator:199999999999999999995000, investor1:500, investor2:0]
 
-        StorageReference creator_balance = (StorageReference) runInstanceNonVoidMethodCallTransaction(creator, _100_000, jar(), MethodSignatures.ofNonVoid(EXCP, "balanceOf", UBI, StorageTypes.CONTRACT), example_token, creator);
+        var balanceOf = MethodSignatures.ofNonVoid(EXCP, "balanceOf", UBI, StorageTypes.CONTRACT);
+
+        var creator_balance = runInstanceNonVoidMethodCallTransaction(creator, _100_000, jar(), balanceOf, example_token, creator).asReturnedReference(balanceOf, NodeException::new);
         // creator_balance = balances[creator] = 199999999999999999995000
         BooleanValue equals_result1 = (BooleanValue) runInstanceNonVoidMethodCallTransaction(
                 creator,
@@ -234,7 +230,7 @@ class ExampleCoinPausable extends HotmokaTest {
                 ubi_check);
         // equals_result1 = creator_balance.equals(200'000*10^18-5000) = true
 
-        StorageReference investor1_balance = (StorageReference) runInstanceNonVoidMethodCallTransaction(creator, _100_000, jar(), MethodSignatures.ofNonVoid(EXCP, "balanceOf", UBI, StorageTypes.CONTRACT), example_token, investor1);
+        var investor1_balance = runInstanceNonVoidMethodCallTransaction(creator, _100_000, jar(), balanceOf, example_token, investor1).asReturnedReference(balanceOf, NodeException::new);
         // investor1_balance = balances[investor1] = 5000
         BooleanValue equals_result2 = (BooleanValue) runInstanceNonVoidMethodCallTransaction(
                 creator,
@@ -244,7 +240,7 @@ class ExampleCoinPausable extends HotmokaTest {
                 ubi_5000);
         // equals_result2 = investor1_balance.equals(5000) = true
 
-        StorageReference investor2_balance = (StorageReference) runInstanceNonVoidMethodCallTransaction(creator, _100_000, jar(), MethodSignatures.ofNonVoid(EXCP, "balanceOf", UBI, StorageTypes.CONTRACT), example_token, investor2);
+        var investor2_balance = runInstanceNonVoidMethodCallTransaction(creator, _100_000, jar(), balanceOf, example_token, investor2).asReturnedReference(balanceOf, NodeException::new);
         // investor2_balance = balances[investor2] = 0
         BooleanValue equals_result3 = (BooleanValue) runInstanceNonVoidMethodCallTransaction(
                 creator,
@@ -258,7 +254,7 @@ class ExampleCoinPausable extends HotmokaTest {
     }
 
     @Test @DisplayName("Test of ERC20 transfer method with the generation of an Exception when the contract is in the paused state")
-    void transferException() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+    void transferException() throws Exception {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCP);
         StorageReference ubi_5000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("5000"));
 

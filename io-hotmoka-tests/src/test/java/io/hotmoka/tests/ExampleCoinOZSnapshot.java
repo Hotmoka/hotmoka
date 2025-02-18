@@ -24,9 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
 import java.security.PrivateKey;
-import java.security.SignatureException;
 import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -38,10 +36,7 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
@@ -98,7 +93,7 @@ class ExampleCoinOZSnapshot extends HotmokaTest {
     }
 
     @Test @DisplayName("new ExampleCoinOZSnapshot()")
-    void createExampleCoinOZSnapshot() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+    void createExampleCoinOZSnapshot() throws Exception {
         addConstructorCallTransaction(
                 creator_prv_key, // an object that signs with the payer's private key
                 creator, // payer of the transaction
@@ -110,7 +105,7 @@ class ExampleCoinOZSnapshot extends HotmokaTest {
     }
 
     @Test @DisplayName("Test of ERC20OZSnapshot _snapshot method: example_token.yieldSnapshot() == 1")
-    void yieldSnapshot() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+    void yieldSnapshot() throws Exception {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCOZS);
 
         StorageReference current_snapshot_id = (StorageReference) addInstanceNonVoidMethodCallTransaction(
@@ -145,7 +140,7 @@ class ExampleCoinOZSnapshot extends HotmokaTest {
      * According to the ERC20OZSnapshot specification, snapshot 0 does not exist.
      */
     @Test @DisplayName("Full test of ERC20OZSnapshot #1, Exception: snapshot 0 does not exist")
-    void fullTest1_Exception() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+    void fullTest1_Exception() throws Exception {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCOZS);
         StorageReference ubi_0 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("1"));
 
@@ -175,7 +170,7 @@ class ExampleCoinOZSnapshot extends HotmokaTest {
      * @throws NodeException 
      */
     @Test @DisplayName("Full test of ERC20OZSnapshot #2")
-    void fullTest2() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+    void fullTest2() throws Exception {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCOZS);
         StorageReference ubi_5000 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("5000"));
 
@@ -227,7 +222,7 @@ class ExampleCoinOZSnapshot extends HotmokaTest {
      * @throws NodeException 
      */
     @Test @DisplayName("Full test of ERC20OZSnapshot #3")
-    void fullTest3() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+    void fullTest3() throws Exception {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCOZS);
         StorageReference ubi_5000 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("5000"));
         StorageReference ubi_4000 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("4000"));
@@ -293,7 +288,7 @@ class ExampleCoinOZSnapshot extends HotmokaTest {
      * @throws NodeException 
      */
     @Test @DisplayName("Full test of ERC20OZSnapshot #4")
-    void fullTest4() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+    void fullTest4() throws Exception {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCOZS);
         StorageReference ubi_5000 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("5000"));
         StorageReference ubi_3000 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("3000"));
@@ -386,7 +381,7 @@ class ExampleCoinOZSnapshot extends HotmokaTest {
      * @throws NodeException 
      */
     @Test @DisplayName("Full test of ERC20OZSnapshot #5")
-    void fullTest5() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+    void fullTest5() throws Exception {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCOZS);
         StorageReference ubi_5000 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("5000"));
         StorageReference ubi_3000 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("3000"));
@@ -522,7 +517,7 @@ class ExampleCoinOZSnapshot extends HotmokaTest {
      * @throws NodeException 
      */
     @Test @DisplayName("Full test of ERC20OZSnapshot #6")
-    void fullTest6() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+    void fullTest6() throws Exception {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCOZS);
         StorageReference ubi_5000 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("5000"));
         StorageReference ubi_1000 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("1000"));

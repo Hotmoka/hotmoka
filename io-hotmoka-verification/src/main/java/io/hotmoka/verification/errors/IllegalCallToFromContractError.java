@@ -27,12 +27,12 @@ public class IllegalCallToFromContractError extends AbstractErrorImpl {
 	/**
 	 * Builds the error.
 	 * 
-	 * @param where the description of the program point were the error occurs.
+	 * @param where the description of the program point where the error occurs
 	 * @param methodName the name of the method where the error occurs
 	 * @param fromContractMethodName the name of the {@code @@FromContract} method
 	 * @param line the program line where the error occurs
 	 */
 	public IllegalCallToFromContractError(String where, String methodName, String fromContractMethodName, int line) {
-		super(where, methodName, line, "\"" + fromContractMethodName + "\" is @FromContract, hence can only be called from an instance method or constructor of a contract");
+		super(where, methodName, line, "\"" + fromContractMethodName + "\" is @FromContract, hence it can only be called from an instance method or constructor of a contract");
 	}
 }

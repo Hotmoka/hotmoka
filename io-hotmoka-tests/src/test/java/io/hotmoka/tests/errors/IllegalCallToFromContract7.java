@@ -32,7 +32,7 @@ class IllegalCallToFromContract7 extends HotmokaTest {
 
 	@Test @DisplayName("install jar")
 	void installJar() {
-		throwsVerificationExceptionWithMessageContaining("is @FromContract, hence can only be called from an instance method or constructor of a contract", () -> 
+		throwsVerificationExceptionWithMessageContaining("is @FromContract, hence it can only be called from an instance method or constructor of a contract", () -> 
 			addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("illegalcalltofromcontract7.jar"), takamakaCode()));
 	}
 }

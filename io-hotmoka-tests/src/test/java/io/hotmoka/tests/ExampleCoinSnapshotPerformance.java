@@ -27,14 +27,10 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
+//import java.security.InvalidKeyException;
 import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.SignatureException;
-import java.util.NoSuchElementException;
 import java.util.Random;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -57,11 +53,7 @@ import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.NonInitialTransactionResponse;
@@ -124,7 +116,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
 	}
 
 	@ParameterizedTest @DisplayName("performance test") @MethodSource("contexts")
-	void performanceTest(Context context) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, IOException, NoSuchElementException, ClassNotFoundException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
+	void performanceTest(Context context) throws Exception {
 		if (accept(context))
 			context.runTest();
 	}
@@ -135,7 +127,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
 	 * @param context the context
 	 * @return true if the test context is accepted, otherwise it must be skipped
 	 */
-	private boolean accept(Context context) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	private boolean accept(Context context) throws Exception {
 		String type = node.getNodeInfo().getType();
 		boolean isSlow = type.contains("TendermintNode") || type.contains("MokamintNode");
 		return !isSlow || context.numberOfInvestors <= 100; // the others take too much with Tendermint
@@ -222,7 +214,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     		this.YIELD_SNAPSHOT = MethodSignatures.ofNonVoid(COIN, "yieldSnapshot", StorageTypes.UNSIGNED_BIG_INTEGER);
     	}
 
-    	private void runTest() throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException, NoSuchElementException, ClassNotFoundException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
+    	private void runTest() throws Exception {
     		init();
 			createCreator(); // the creator is created apart, since it has a different class
 
@@ -250,7 +242,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     	/**
     	 * Initializes the state for this test context.
     	 */
-    	private void init() throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, ClassNotFoundException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
+    	private void init() throws Exception {
     		System.out.printf("Performance test with %s... ", this);
     		// the last extra account is used only to create the creator of the token
     		nodeWithAccounts = mkAccounts(Stream.generate(() -> level3(1)).limit(numberOfInvestors + 1));
@@ -258,7 +250,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     	    privateKeysOfInvestors = nodeWithAccounts.privateKeys().limit(numberOfInvestors).toArray(PrivateKey[]::new);
     	}
 
-    	private void createCreator() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+    	private void createCreator() throws Exception {
     		KeyPair keys = signature().getKeyPair();
     	    privateKeyOfCreator = keys.getPrivate();
     		String publicKey = Base64.toBase64String(signature().encodingOf(keys.getPublic()));
@@ -268,21 +260,21 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     		creator = node.addConstructorCallTransaction(request);
     	}
 
-    	private void distributeInitialTokens() throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, UnknownReferenceException, NodeException, TimeoutException, InterruptedException {
+    	private void distributeInitialTokens() throws Exception {
     		var request = TransactionRequests.instanceMethodCall(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, ONE, chainId(), _100_000.multiply(BigInteger.valueOf(numberOfInvestors)), ZERO, jar(),
     			MethodSignatures.ofVoid(CREATOR, "distribute", StorageTypes.ACCOUNTS, StorageTypes.IERC20, StorageTypes.INT), creator, nodeWithAccounts.container(), coin, StorageValues.intOf(50_000));
     	    node.addInstanceMethodCallTransaction(request);
     	    trace(TransactionReferences.of(hasher.hash(request)));
     	}
 
-    	private void createCoin() throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, UnknownReferenceException, NodeException, TimeoutException, InterruptedException {
+    	private void createCoin() throws Exception {
     		var request = TransactionRequests.constructorCall
     	    	(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, ZERO, chainId(), _500_000, panarea(1), jar(), ConstructorSignatures.of(COIN));
     	    coin = node.addConstructorCallTransaction(request);
     	    trace(TransactionReferences.of(hasher.hash(request)));
     	}
 
-    	private void letDaysPass() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NoSuchElementException, NodeException, InterruptedException, TimeoutException, UnknownReferenceException {
+    	private void letDaysPass() throws Exception {
     		for (int day = 1; day <= NUMBER_OF_DAYS; day++)
     			if (PERFORM_SNAPSHOTS)
     				assertSame(nextDay(), day); // the snapshot identifier starts from 1
@@ -295,7 +287,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     	 * 
     	 * @return the id of the snapshot performed at the end of the day
     	 */
-    	private int nextDay() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NoSuchElementException, NodeException, InterruptedException, TimeoutException, UnknownReferenceException {
+    	private int nextDay() throws Exception {
     		IntStream.range(0, investors.length).forEach(this::actionsOfAccount);
     		return PERFORM_SNAPSHOTS ? convertUBItoInt(createSnapshot()) : 0;
     	}
@@ -330,7 +322,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     				break;
     			}
     		}
-    		catch (InvalidKeyException | SignatureException | TransactionRejectedException | TransactionException | CodeExecutionException | NodeException | UnknownReferenceException | InterruptedException | TimeoutException e) {
+    		catch (Exception e) {
     			throw new RuntimeException(e);
     		}
     	}
@@ -338,7 +330,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     	/**
 		 * Transition that performs the transfer on ERC20
 		 */
-		private void transfer(StorageReference sender, PrivateKey privateKeyOfSender, StorageReference receiver, int howMuch) throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NoSuchElementException, NodeException, InterruptedException, TimeoutException, UnknownReferenceException {
+		private void transfer(StorageReference sender, PrivateKey privateKeyOfSender, StorageReference receiver, int howMuch) throws Exception {
 			var request = TransactionRequests.instanceMethodCall
 				(signature().getSigner(privateKeyOfSender, SignedTransactionRequest::toByteArrayWithoutSignature), sender, nonceHelper.getNonceOf(sender), chainId(), _10_000_000, ZERO, jar(),
 				TRANSFER, coin, receiver, StorageValues.intOf(howMuch));
@@ -347,7 +339,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
 			numberOfTransfers.getAndIncrement();
 		}
 
-		private void burn(StorageReference victim, int howMuch) throws InvalidKeyException, SignatureException, NoSuchElementException, TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException, TimeoutException, UnknownReferenceException {
+		private void burn(StorageReference victim, int howMuch) throws Exception {
     		var request = TransactionRequests.instanceMethodCall
     			(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, nonceHelper.getNonceOf(creator), chainId(), _10_000_000, ZERO, jar(), BURN, coin, victim, StorageValues.intOf(howMuch));
             node.addInstanceMethodCallTransaction(request);
@@ -355,7 +347,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
             numberOfBurns.getAndIncrement();
 		}
 
-    	private void mint(StorageReference beneficiary, int howMuch) throws InvalidKeyException, SignatureException, NoSuchElementException, TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException, TimeoutException, UnknownReferenceException {
+    	private void mint(StorageReference beneficiary, int howMuch) throws Exception {
     		var request = TransactionRequests.instanceMethodCall
     			(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, nonceHelper.getNonceOf(creator), chainId(), _10_000_000, ZERO, jar(), MINT, coin, beneficiary, StorageValues.intOf(howMuch));
             node.addInstanceMethodCallTransaction(request);
@@ -363,7 +355,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
             numberOfMints.getAndIncrement();
 		}
 
-    	private int convertUBItoInt(StorageReference ubi) throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
+    	private int convertUBItoInt(StorageReference ubi) throws Exception {
     		var request = TransactionRequests.instanceViewMethodCall(creator, _50_000, jar(), TO_BIG_INTEGER, ubi);
     		return node.runInstanceMethodCallTransaction(request)
     			.orElseThrow(NodeException::new)
@@ -371,7 +363,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
         		.intValue();
         }
 
-        private StorageReference createSnapshot() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NoSuchElementException, NodeException, InterruptedException, TimeoutException, UnknownReferenceException {
+        private StorageReference createSnapshot() throws Exception {
         	var request = TransactionRequests.instanceMethodCall
         		(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, nonceHelper.getNonceOf(creator), chainId(), _500_000, ZERO, jar(), YIELD_SNAPSHOT, coin);
             StorageReference result = node.addInstanceMethodCallTransaction(request)
@@ -384,7 +376,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
 
         private final Object tracingLock = new Object();
 
-        private void trace(TransactionReference reference) throws TransactionRejectedException, UnknownReferenceException, NodeException, TimeoutException, InterruptedException {
+        private void trace(TransactionReference reference) throws Exception {
         	TransactionResponse response = node.getResponse(reference);
 
         	synchronized (tracingLock) {

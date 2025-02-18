@@ -27,7 +27,7 @@ public class IllegalBootstrapMethodError extends AbstractErrorImpl {
 	/**
 	 * Builds the error.
 	 * 
-	 * @param where the description of the program point were the error occurs.
+	 * @param where the description of the program point where the error occurs
 	 */
 	public IllegalBootstrapMethodError(String where) {
 		super(where, "Illegal bootstrap method");

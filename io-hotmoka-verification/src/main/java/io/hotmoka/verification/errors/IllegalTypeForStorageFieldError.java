@@ -26,12 +26,10 @@ public class IllegalTypeForStorageFieldError extends AbstractErrorImpl {
 	/**
 	 * Builds the error.
 	 * 
-	 * @param where the description of the program point were the error occurs.
+	 * @param where the description of the program point where the error occurs
 	 * @param fieldName the name of the field where the error occurs
-	 * @param fieldIsEnum true if and only if the field is an element of an {@code enum}
 	 */
-	public IllegalTypeForStorageFieldError(String where, String fieldName, boolean fieldIsEnum) {
-		super(where, fieldName, "type not allowed for a field of a storage class"
-			+ (fieldIsEnum ? ": it is an enumeration with instance non-transient fields" : ""));
+	public IllegalTypeForStorageFieldError(String where, String fieldName) {
+		super(where, fieldName, "type not allowed for a field of a storage class");
 	}
 }

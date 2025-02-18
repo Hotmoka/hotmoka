@@ -32,14 +32,14 @@ public abstract class AbstractErrorImpl implements io.hotmoka.verification.api.E
 
 	private final static Comparator<io.hotmoka.verification.api.Error> comparator =
 		comparing(io.hotmoka.verification.api.Error::getWhere)
-			.thenComparing(issue -> issue.getClass().getName())
+			.thenComparing(error -> error.getClass().getName())
 			.thenComparing(io.hotmoka.verification.api.Error::getMessage);
 
 	/**
 	 * Creates an error at the given class.
 	 * 
-	 * @param where a string that lets the user identify the class where the issue occurs
-	 * @param message the message of the issue
+	 * @param where a string that lets the user identify the class where the error occurs
+	 * @param message the message of the error
 	 */
 	protected AbstractErrorImpl(String where, String message) {
 		this.where = where;
@@ -49,9 +49,9 @@ public abstract class AbstractErrorImpl implements io.hotmoka.verification.api.E
 	/**
 	 * Creates an error at the given program field.
 	 * 
-	 * @param where a string that lets the user identify the class where the issue occurs
-	 * @param fieldName the name of the field where the issue occurs
-	 * @param message the message of the issue
+	 * @param where a string that lets the user identify the class where the error occurs
+	 * @param fieldName the name of the field where the error occurs
+	 * @param message the message of the error
 	 */
 	protected AbstractErrorImpl(String where, String fieldName, String message) {
 		this.where = where + " field " + fieldName;
@@ -61,10 +61,10 @@ public abstract class AbstractErrorImpl implements io.hotmoka.verification.api.E
 	/**
 	 * Creates an error at the given program line.
 	 * 
-	 * @param where a string that lets the user identify the class where the issue occurs
-	 * @param methodName the name of the method where the issue occurs
-	 * @param line the line where the issue occurs. Use -1 if the issue is related to the method as a whole
-	 * @param message the message of the issue
+	 * @param where a string that lets the user identify the class where the error occurs
+	 * @param methodName the name of the method where the error occurs
+	 * @param line the line where the error occurs. Use -1 if the error is related to the method as a whole
+	 * @param message the message of the error
 	 */
 	protected AbstractErrorImpl(String where, String methodName, int line, String message) {
 		this.where = where + (line >= 0 ? (":" + line) : (" method " + methodName));

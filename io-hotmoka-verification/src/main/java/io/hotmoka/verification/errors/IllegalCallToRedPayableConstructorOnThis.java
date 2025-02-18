@@ -27,7 +27,7 @@ public class IllegalCallToRedPayableConstructorOnThis extends AbstractErrorImpl 
 	/**
 	 * Builds the error.
 	 * 
-	 * @param where the description of the program point were the error occurs.
+	 * @param where the description of the program point where the error occurs
 	 * @param methodName the name of the method where the error occurs
 	 * @param line the program line where the error occurs
 	 */
