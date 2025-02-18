@@ -21,7 +21,6 @@ import static io.hotmoka.exceptions.UncheckConsumer.uncheck;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Optional;
@@ -34,7 +33,6 @@ import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.LineNumberTable;
 import org.apache.bcel.generic.ClassGen;
 import org.apache.bcel.generic.ConstantPoolGen;
-import org.apache.bcel.generic.FieldInstruction;
 import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.MethodGen;
 
@@ -76,11 +74,6 @@ public class VerifiedClassImpl implements VerifiedClass {
 	public final Resolver resolver;
 
 	/**
-	 * True if and only if the class has been verified during the initialization of the node.
-	 */
-	private final boolean duringInitialization;
-
-	/**
 	 * Builds and verifies a class from the given class file.
 	 * 
 	 * @param clazz the parsed class file
@@ -99,12 +92,11 @@ public class VerifiedClassImpl implements VerifiedClass {
 		String className = getClassName();
 		var methods = Stream.of(clazz.getMethods()).map(method -> new MethodGen(method, className, cpg)).toArray(MethodGen[]::new);
 		this.bootstraps = new BootstrapsImpl(this, methods);
-		this.pushers = new PushersImpl(this);
+		this.pushers = new PushersImpl();
 		this.resolver = new Resolver(this);
-		this.duringInitialization = duringInitialization;
 
 		if (!skipsVerification)
-			new Verification(issueHandler, methods, versionsManager);
+			new Verification(issueHandler, methods, duringInitialization, versionsManager);
 	}
 
 	@Override
@@ -118,23 +110,13 @@ public class VerifiedClassImpl implements VerifiedClass {
 	}
 
 	@Override
-	public Field whiteListingModelOf(FieldInstruction fi) throws ClassNotFoundException {
-		return jar.classLoader.getWhiteListingWizard().whiteListingModelOf(resolver.resolvedFieldFor(fi).get()).get();
-	}
-
-	@Override
-	public Executable whiteListingModelOf(InvokeInstruction invoke) throws ClassNotFoundException {
-		return whiteListingModelOf(resolver.resolvedExecutableFor(invoke).get(), invoke).get();
-	}
-
-	@Override
 	public VerifiedJar getJar() {
 		return jar;
 	}
 
 	@Override
 	public Bootstraps getBootstraps() {
-		return new BootstrapsImpl(bootstraps);
+		return new BootstrapsImpl(bootstraps); // TODO: do we really need to make a copy?
 	}
 
 	@Override
@@ -145,11 +127,6 @@ public class VerifiedClassImpl implements VerifiedClass {
 	@Override
 	public JavaClass toJavaClass() {
 		return clazz.getJavaClass();
-	}
-
-	@Override
-	public boolean isDuringInitialization() {
-		return duringInitialization;
 	}
 
 	/**
@@ -228,17 +205,19 @@ public class VerifiedClassImpl implements VerifiedClass {
 		 * Performs the static verification of this class.
 		 * 
 		 * @param issueHandler the handler to call when an issue is found
+		 * @param methods the methods of the class
+		 * @param duringInitialization true if and only if verification is performed during the initialization of the Hotmoka node
 		 * @param versionsManager the manager of the versions of the verification module
 		 * @throws VerificationException if some verification error occurs
 		 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 		 */
-		private Verification(Consumer<AbstractErrorImpl> issueHandler, MethodGen[] methods, VersionsManager versionsManager) throws VerificationException, ClassNotFoundException {
+		private Verification(Consumer<AbstractErrorImpl> issueHandler, MethodGen[] methods, boolean duringInitialization, VersionsManager versionsManager) throws VerificationException, ClassNotFoundException {
 			this.issueHandler = issueHandler;
 			this.versionsManager = versionsManager;
 			ConstantPoolGen cpg = getConstantPool();
 			this.methods = methods;
 			this.lines = Stream.of(methods).collect(Collectors.toMap(method -> method, method -> method.getLineNumberTable(cpg)));
-			this.duringInitialization = VerifiedClassImpl.this.duringInitialization;
+			this.duringInitialization = duringInitialization;
 
 			applyAllChecksToTheClass();
 			applyAllChecksToTheMethodsOfTheClass();

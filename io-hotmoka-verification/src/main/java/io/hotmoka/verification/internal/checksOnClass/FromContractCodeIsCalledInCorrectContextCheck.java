@@ -185,7 +185,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 		Instruction instruction = ih.getInstruction();
 		
 		if (instruction instanceof INVOKEDYNAMIC)
-			return bootstraps.lambdaIsEntry(bootstraps.getBootstrapFor((INVOKEDYNAMIC) instruction));
+			return bootstraps.lambdaIsFromContract(bootstraps.getBootstrapFor((INVOKEDYNAMIC) instruction));
 		else if (instruction instanceof InvokeInstruction invoke && !(invoke instanceof INVOKESTATIC))
 			return invoke.getReferenceType(cpg) instanceof ObjectType receiver
 				&& annotations.isFromContract(receiver.getClassName(), invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));

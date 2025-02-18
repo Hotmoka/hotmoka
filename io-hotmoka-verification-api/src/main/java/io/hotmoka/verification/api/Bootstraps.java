@@ -25,34 +25,33 @@ import org.apache.bcel.generic.INVOKEDYNAMIC;
 import org.apache.bcel.generic.MethodGen;
 
 /**
- * An object that provides utility methods about the lambda bootstraps
- * contained in a class.
+ * A container of the lambda bootstraps in a class.
  */
 public interface Bootstraps {
 
 	/**
-	 * Determines if the given bootstrap method is a method reference to an entry.
+	 * Determines if the given bootstrap method is a from contract method or constructor reference.
 	 * 
 	 * @param bootstrap the bootstrap method
 	 * @return true if and only if that condition holds
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 	 */
-	boolean lambdaIsEntry(BootstrapMethod bootstrap) throws ClassNotFoundException;
+	boolean lambdaIsFromContract(BootstrapMethod bootstrap) throws ClassNotFoundException;
 
 	/**
-	 * Yields the bootstrap methods in this class.
+	 * Yields the bootstrap methods in this container.
 	 * 
 	 * @return the bootstrap methods
 	 */
 	Stream<BootstrapMethod> getBootstraps();
 
 	/**
-	 * Yields the subset of the bootstrap methods of this class that lead to an entry,
-	 * possibly indirectly.
+	 * Yields the bootstrap methods in this container that lead to a from contract
+	 * method or constructor, possibly indirectly.
 	 * 
-	 * @return the bootstrap methods that lead to an entry
+	 * @return the bootstrap methods that lead to a from contract method or constructor
 	 */
-	Stream<BootstrapMethod> getBootstrapsLeadingToEntries();
+	Stream<BootstrapMethod> getBootstrapsLeadingToFromContract();
 
 	/**
 	 * Yields the bootstrap method associated with the given instruction.
@@ -73,9 +72,9 @@ public interface Bootstraps {
 	Optional<? extends Executable> getTargetOf(BootstrapMethod bootstrap) throws ClassNotFoundException;
 
 	/**
-	 * Determines if the given lambda method is a part of an {@code @@Entry} method,
+	 * Determines if the given lambda method is a part of a {@code @@FromContract} method,
 	 * that the compiler moved into a synthetic method implementing the code of a lambda expression.
-	 * As such, it can be considered as part of the {@code @@Entry} method itself.
+	 * As such, it can be considered as part of the {@code @@FromContract} method itself.
 	 * 
 	 * @param lambda the lambda method
 	 * @return true if and only if that condition holds

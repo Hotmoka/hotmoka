@@ -58,12 +58,12 @@ public class AnnotationsImpl implements Annotations {
 	}
 
 	@Override
-	public final boolean isPayable(String className, String methodName, Type[] formals, Type returnType) throws SecurityException, ClassNotFoundException {
+	public final boolean isPayable(String className, String methodName, Type[] formals, Type returnType) throws ClassNotFoundException {
 		return getAnnotation(className, methodName, formals, returnType, Constants.PAYABLE_NAME).isPresent()
 			|| getAnnotation(className, methodName, expandFormals(formals), returnType, Constants.PAYABLE_NAME).isPresent();
 	}
 
-	public final boolean isWhiteListedDuringInitialization(String className) throws SecurityException, ClassNotFoundException {
+	public final boolean isWhiteListedDuringInitialization(String className) throws ClassNotFoundException {
 		return getAnnotationOfClass(className, Constants.WHITE_LISTED_DURING_INITIALIZATION_NAME).isPresent();
 	}
 

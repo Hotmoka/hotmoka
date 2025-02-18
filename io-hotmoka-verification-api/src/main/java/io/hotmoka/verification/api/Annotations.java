@@ -32,7 +32,7 @@ public interface Annotations {
 	 * @return true if and only if that condition holds
 	 * @throws ClassNotFoundException if {@code className} cannot be found in the Takamaka program
 	 */
-	boolean isWhiteListedDuringInitialization(String className) throws SecurityException, ClassNotFoundException;
+	boolean isWhiteListedDuringInitialization(String className) throws ClassNotFoundException;
 
 	/**
 	 * Determines if the given constructor or method is annotated as payable.

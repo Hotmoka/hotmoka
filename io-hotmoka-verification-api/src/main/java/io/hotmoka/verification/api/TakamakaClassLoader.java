@@ -78,7 +78,7 @@ public interface TakamakaClassLoader extends WhiteListingClassLoader {
 	boolean isValidatorsUpdateEvent(String className) throws ClassNotFoundException;
 
 	/**
-	 * Checks if a class is an instance of another class.
+	 * Checks if a class is an instance of a given class.
 	 * 
 	 * @param className the class
 	 * @param superclassName the potential superclass of {@code className}

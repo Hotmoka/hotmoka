@@ -155,8 +155,9 @@ public class Reverification {
 
 		// the dependencies have passed reverification successfully, but the transaction needs reverification
 		VerifiedJar vj = recomputeVerifiedJarFor(transaction, reverifiedDependencies);
-		if (vj.hasErrors())
-			return List.of(transformIntoFailed(response, transaction, vj.getFirstError().get().getMessage()));
+		var firstError = vj.getErrors().findFirst();
+		if (firstError.isPresent())
+			return List.of(transformIntoFailed(response, transaction, firstError.get().getMessage()));
 		else
 			return union(reverifiedDependencies, updateVersion(response, transaction));
 	}

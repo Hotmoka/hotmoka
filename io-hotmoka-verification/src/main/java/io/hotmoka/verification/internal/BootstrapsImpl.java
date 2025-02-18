@@ -80,19 +80,19 @@ public class BootstrapsImpl implements Bootstraps {
 	 * The bootstrap methods of the class that lead to an entry, possibly indirectly.
 	 * We fix their order to avoid non-determinism.
 	 */
-	private final List<BootstrapMethod> bootstrapMethodsLeadingToEntries = new ArrayList<>();
+	private final List<BootstrapMethod> bootstrapMethodsLeadingToFromContract = new ArrayList<>();
 
 	/**
-	 * The same as {@link #bootstrapMethodsLeadingToEntries}, but as a set, for efficient containment check.
+	 * The same as {@link #bootstrapMethodsLeadingToFromContract}, but as a set, for efficient containment check.
 	 */
-	private final Set<BootstrapMethod> bootstrapMethodsLeadingToEntriesAsSet = new HashSet<>();
+	private final Set<BootstrapMethod> bootstrapMethodsLeadingToFromContractAsSet = new HashSet<>();
 
 	/**
-	 * The set of lambdas that are reachable from the entries of the class. They can
-	 * be considered as part of the code of the entries. The order in this set is not fixed
+	 * The set of lambdas that are reachable from the from contract code of the class. They can
+	 * be considered as part of the code of the from contract. The order in this set is not fixed
 	 * but this is OK since this set is only used for containment checks.
 	 */
-	private final Set<MethodGen> lambdasPartOfEntries = new HashSet<>();
+	private final Set<MethodGen> lambdasPartOfFromContract = new HashSet<>();
 
 	private final static BootstrapMethod[] NO_BOOTSTRAPS = new BootstrapMethod[0];
 
@@ -100,8 +100,8 @@ public class BootstrapsImpl implements Bootstraps {
 		this.verifiedClass = clazz;
 		this.cpg = clazz.getConstantPool();
 		this.bootstrapMethods = computeBootstraps();
-		collectBootstrapsLeadingToEntries(methods);
-		collectLambdasOfEntries(methods);
+		collectBootstrapsLeadingToFromContract(methods);
+		collectLambdasOfFromContract(methods);
 	}
 
 	/**
@@ -117,15 +117,15 @@ public class BootstrapsImpl implements Bootstraps {
 			BootstrapMethod clone = this.bootstrapMethods[pos] = original.bootstrapMethods[pos].copy();
 			// the array of arguments is shared by copy(), hence we clone it explicitly
 			clone.setBootstrapArguments(original.bootstrapMethods[pos].getBootstrapArguments().clone());
-			if (original.bootstrapMethodsLeadingToEntriesAsSet.contains(original.bootstrapMethods[pos])) {
-				this.bootstrapMethodsLeadingToEntriesAsSet.add(clone);
-				this.bootstrapMethodsLeadingToEntries.add(clone);
+			if (original.bootstrapMethodsLeadingToFromContractAsSet.contains(original.bootstrapMethods[pos])) {
+				this.bootstrapMethodsLeadingToFromContractAsSet.add(clone);
+				this.bootstrapMethodsLeadingToFromContract.add(clone);
 			}
 		}
 	}
 
 	@Override
-	public boolean lambdaIsEntry(BootstrapMethod bootstrap) throws ClassNotFoundException {
+	public boolean lambdaIsFromContract(BootstrapMethod bootstrap) throws ClassNotFoundException {
 		if (bootstrap.getNumBootstrapArguments() == 3) {
 			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
 			if (constant instanceof ConstantMethodHandle cmh) {
@@ -151,8 +151,8 @@ public class BootstrapsImpl implements Bootstraps {
 	}
 
 	@Override
-	public Stream<BootstrapMethod> getBootstrapsLeadingToEntries() {
-		return bootstrapMethodsLeadingToEntries.stream();
+	public Stream<BootstrapMethod> getBootstrapsLeadingToFromContract() {
+		return bootstrapMethodsLeadingToFromContract.stream();
 	}
 
 	@Override
@@ -179,7 +179,7 @@ public class BootstrapsImpl implements Bootstraps {
 
 	@Override
 	public boolean isPartOfFromContract(MethodGen lambda) {
-		return lambdasPartOfEntries.contains(lambda);
+		return lambdasPartOfFromContract.contains(lambda);
 	}
 
 	/**
@@ -222,9 +222,7 @@ public class BootstrapsImpl implements Bootstraps {
 				"(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;".equals(methodSignature)) {
 	
 			// this is the standard factory used to create call sites
-			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
-			if (constant instanceof ConstantMethodHandle) {
-				ConstantMethodHandle mh = (ConstantMethodHandle) constant;
+			if (cpg.getConstant(bootstrap.getBootstrapArguments()[1]) instanceof ConstantMethodHandle mh) {
 				Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
 				if (constant2 instanceof ConstantMethodref) {
 					ConstantMethodref mr = (ConstantMethodref) constant2;
@@ -266,7 +264,7 @@ public class BootstrapsImpl implements Bootstraps {
 				return Optional.of(Objects.class.getMethod("toString", Object.class));
 			}
 			catch (NoSuchMethodException | SecurityException e) {
-				throw new RuntimeException("unexpected exception", e);
+				throw new RuntimeException(e);
 			}
 		}
 	
@@ -282,28 +280,28 @@ public class BootstrapsImpl implements Bootstraps {
 		return bootstraps.isPresent() ? bootstraps.get().getBootstrapMethods() : NO_BOOTSTRAPS;
 	}
 
-	private void collectBootstrapsLeadingToEntries(MethodGen[] methods) throws ClassNotFoundException {
+	private void collectBootstrapsLeadingToFromContract(MethodGen[] methods) throws ClassNotFoundException {
 		int initialSize;
 		do {
-			initialSize = bootstrapMethodsLeadingToEntries.size();
+			initialSize = bootstrapMethodsLeadingToFromContract.size();
 			check(ClassNotFoundException.class, () -> getBootstraps()
-				.filter(uncheck(ClassNotFoundException.class, bootstrap -> lambdaIsEntry(bootstrap) || lambdaCallsEntry(bootstrap, methods)))
-				.forEach(this::addToBootstrapMethodsLeadingToEntries));
+				.filter(uncheck(ClassNotFoundException.class, bootstrap -> lambdaIsFromContract(bootstrap) || lambdaCallsEntry(bootstrap, methods)))
+				.forEach(this::addToBootstrapMethodsLeadingToFromContract));
 		}
-		while (bootstrapMethodsLeadingToEntries.size() > initialSize);
+		while (bootstrapMethodsLeadingToFromContract.size() > initialSize);
 	}
 
-	private boolean addToBootstrapMethodsLeadingToEntries(BootstrapMethod bm) {
-		return bootstrapMethodsLeadingToEntriesAsSet.add(bm) && bootstrapMethodsLeadingToEntries.add(bm);
+	private boolean addToBootstrapMethodsLeadingToFromContract(BootstrapMethod bm) {
+		return bootstrapMethodsLeadingToFromContractAsSet.add(bm) && bootstrapMethodsLeadingToFromContract.add(bm);
 	}
 
 	/**
-	 * Collects the lambdas that are called from an {@code @@Entry} method.
+	 * Collects the lambdas that are called from a {@code @@FromContract} method.
 	 * 
 	 * @param methods the methods of the class under verification
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 	 */
-	private void collectLambdasOfEntries(MethodGen[] methods) throws ClassNotFoundException {
+	private void collectLambdasOfFromContract(MethodGen[] methods) throws ClassNotFoundException {
 		// we collect all lambdas reachable from the @Entry methods, possibly indirectly
 		// (that is, a lambda can call another lambda); we use a working set that starts
 		// with the @Entry methods
@@ -327,7 +325,7 @@ public class BootstrapsImpl implements Bootstraps {
 					.filter(Optional::isPresent)
 					.map(Optional::get)
 					.filter(lambda -> lambda.isPrivate() && lambda.isSynthetic())
-					.filter(lambdasPartOfEntries::add)
+					.filter(lambdasPartOfFromContract::add)
 					.forEach(ws::addLast);
 			}
 		}
@@ -347,7 +345,7 @@ public class BootstrapsImpl implements Bootstraps {
 			InstructionList instructions = lambda.get().getInstructionList();
 			if (instructions != null)
 				return CheckSupplier.check(ClassNotFoundException.class, () ->
-					StreamSupport.stream(instructions.spliterator(), false).anyMatch(uncheck(ClassNotFoundException.class, this::leadsToEntry))
+					StreamSupport.stream(instructions.spliterator(), false).anyMatch(uncheck(ClassNotFoundException.class, this::leadsToFromContract))
 				);
 		}
 
@@ -355,17 +353,17 @@ public class BootstrapsImpl implements Bootstraps {
 	}
 
 	/**
-	 * Determines if the given instruction calls an {@code @@Entry}, possibly indirectly.
+	 * Determines if the given instruction calls a {@code @@FromContract}, possibly indirectly.
 	 * 
 	 * @param ih the instruction
 	 * @return true if that condition holds
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 	 */
-	private boolean leadsToEntry(InstructionHandle ih) throws ClassNotFoundException {
+	private boolean leadsToFromContract(InstructionHandle ih) throws ClassNotFoundException {
 		Instruction instruction = ih.getInstruction();
 	
 		if (instruction instanceof INVOKEDYNAMIC invokedynamic)
-			return bootstrapMethodsLeadingToEntriesAsSet.contains(getBootstrapFor(invokedynamic));
+			return bootstrapMethodsLeadingToFromContractAsSet.contains(getBootstrapFor(invokedynamic));
 		else if (instruction instanceof InvokeInstruction invoke && !(invoke instanceof INVOKESTATIC))
 			return invoke.getReferenceType(cpg) instanceof ObjectType ot &&
 				verifiedClass.jar.annotations.isFromContract

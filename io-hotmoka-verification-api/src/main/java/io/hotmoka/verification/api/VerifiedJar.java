@@ -16,44 +16,26 @@ limitations under the License.
 
 package io.hotmoka.verification.api;
 
-import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
- * A jar that has undergone static verification, before being installed into blockchain.
+ * A jar that has undergone static verification, before being installed into a Hotmoka node.
  */
 public interface VerifiedJar {
-
-	/**
-	 * Determines if the verification of at least one class of the jar failed with an error.
-	 * 
-	 * @return true if and only if that condition holds
-	 */
-	boolean hasErrors();
-
-	/**
-	 * Yields the first error that occurred during the verification of the origin jar,
-	 * in ascending order.
-	 * 
-	 * @return the first error
-	 */
-	Optional<Error> getFirstError();
 
 	/**
 	 * Yields the stream of the classes of the jar that passed verification.
 	 * 
 	 * @return the classes, in increasing order
 	 */
-	Stream<VerifiedClass> classes();
+	Stream<VerifiedClass> getClasses();
 
 	/**
-	 * Performs the given action on each error generated during the verification of the classes of the jar,
-	 * in increasing order.
+	 * Yields the errors generated during the verification of this jar, if any, in order.
 	 * 
-	 * @param action the action
+	 * @return the errors
 	 */
-	void forEachError(Consumer<Error> action);
+	Stream<Error> getErrors();
 
 	/**
 	 * Yields the class loader used to load this jar.

@@ -63,8 +63,8 @@ public class Instrument extends AbstractCommand {
 
 		var classLoader = TakamakaClassLoaders.of(classpath, version);
 		var verifiedJar = VerifiedJars.of(bytesOfOrigin, classLoader, init, skipVerification);
-		verifiedJar.forEachError(System.err::println);
-		if (verifiedJar.hasErrors())
+		verifiedJar.getErrors().forEachOrdered(System.err::println);
+		if (verifiedJar.getErrors().count() > 0)
 			throw new CommandException("Verification failed because of errors, no instrumented jar was generated");
 		else {
 			Path parent = destination.getParent();

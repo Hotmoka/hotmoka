@@ -19,11 +19,9 @@ package io.hotmoka.verification.internal;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -100,27 +98,12 @@ public class VerifiedJarImpl implements VerifiedJar {
 	}
 
 	@Override
-	public final boolean hasErrors() {
-		return !errors.isEmpty();
+	public Stream<Error> getErrors() {
+		return errors.stream();
 	}
 
 	@Override
-	public void forEachError(Consumer<Error> action) {
-		errors.forEach(action);
-	}
-
-	@Override
-	public Optional<io.hotmoka.verification.api.Error> getFirstError() {
-		try {
-			return Optional.of(errors.first());
-		}
-		catch (NoSuchElementException e) {
-			return Optional.empty();
-		}
-	}
-
-	@Override
-	public Stream<VerifiedClass> classes() {
+	public Stream<VerifiedClass> getClasses() {
 		return classes.stream();
 	}
 

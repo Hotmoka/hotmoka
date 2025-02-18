@@ -40,12 +40,9 @@ import io.hotmoka.verification.api.Pushers;
 public class PushersImpl implements Pushers {
 
 	/**
-	 * Creates a utility class that yields the pushers of values on the stack,
-	 * for the code in a given class.
-	 * 
-	 * @param clazz the class for whose code this utility works
+	 * Creates a utility class that yields the pushers of values on the stack.
 	 */
-	PushersImpl(VerifiedClassImpl clazz) {}
+	PushersImpl() {}
 
 	@Override
 	public Stream<InstructionHandle> getPushers(InstructionHandle ih, int slots, InstructionList il, ConstantPoolGen cpg) {

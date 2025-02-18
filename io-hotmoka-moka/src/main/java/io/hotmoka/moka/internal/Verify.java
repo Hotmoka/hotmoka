@@ -55,8 +55,8 @@ public class Verify extends AbstractCommand {
 
 		var classLoader = TakamakaClassLoaders.of(classpath, version);
 		var verifiedJar = VerifiedJars.of(bytesOfOrigin, classLoader, init, false);
-		verifiedJar.forEachError(System.err::println);
-		if (verifiedJar.hasErrors())
+		verifiedJar.getErrors().forEachOrdered(System.err::println);
+		if (verifiedJar.getErrors().count() > 0)
 			throw new CommandException("Verification failed because of errors");
 		else
 			System.out.println("Verification succeeded");

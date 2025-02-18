@@ -59,12 +59,13 @@ public class InstrumentedJarImpl implements InstrumentedJar {
 	 * @throws VerificationException if {@code verifiedJar} has some error
 	 */
 	public InstrumentedJarImpl(VerifiedJar verifiedJar, GasCostModel gasCostModel) throws ClassNotFoundException, VerificationException {
-		if (verifiedJar.hasErrors())
-			throw new VerificationException(verifiedJar.getFirstError().get());
+		var firstError = verifiedJar.getErrors().findFirst();
+		if (firstError.isPresent())
+			throw new VerificationException(firstError.get());
 
 		// we cannot proceed in parallel since the BCEL library is not thread-safe
 		this.classes = check(ClassNotFoundException.class, () ->
-			verifiedJar.classes()
+			verifiedJar.getClasses()
 				.map(uncheck(ClassNotFoundException.class, clazz -> InstrumentedClasses.of(clazz, gasCostModel)))
 				.collect(Collectors.toCollection(TreeSet::new))
 		);
