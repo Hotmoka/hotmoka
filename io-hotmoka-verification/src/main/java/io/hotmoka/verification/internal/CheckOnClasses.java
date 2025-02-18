@@ -37,6 +37,7 @@ import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.MethodGen;
 
+import io.hotmoka.verification.BcelToClasses;
 import io.hotmoka.verification.api.Annotations;
 import io.hotmoka.verification.api.BcelToClass;
 import io.hotmoka.verification.api.TakamakaClassLoader;
@@ -64,7 +65,7 @@ public abstract class CheckOnClasses {
 		this.pushers = verifiedClass.pushers;
 		this.resolver = verifiedClass.resolver;
 		this.annotations = verifiedClass.jar.annotations;
-		this.bcelToClass = verifiedClass.jar.bcelToClass;
+		this.bcelToClass = BcelToClasses.of(verifiedClass.jar);
 		this.className = verifiedClass.getClassName();
 		this.cpg = verifiedClass.getConstantPool();
 		this.duringInitialization = builder.duringInitialization;

@@ -32,6 +32,8 @@ import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 
+import io.hotmoka.verification.BcelToClasses;
+import io.hotmoka.verification.api.BcelToClass;
 import io.hotmoka.verification.api.Bootstraps;
 import io.hotmoka.whitelisting.Dummy;
 
@@ -46,6 +48,11 @@ public class Resolver {
 	private final VerifiedClassImpl verifiedClass;
 
 	/**
+	 * A utility to transform BCEL types into classes.
+	 */
+	private final BcelToClass bcelToClass;
+
+	/**
 	 * The constant pool of the class for which resolution is performed.
 	 */
 	private final ConstantPoolGen cpg;
@@ -57,6 +64,7 @@ public class Resolver {
 	 */
 	Resolver(VerifiedClassImpl clazz) {
 		this.verifiedClass = clazz;
+		this.bcelToClass = BcelToClasses.of(clazz.jar);
 		this.cpg = clazz.getConstantPool();
 	}
 
@@ -72,7 +80,7 @@ public class Resolver {
 		ReferenceType holder = fi.getReferenceType(cpg);
 		if (holder instanceof ObjectType ot) {
 			String name = fi.getFieldName(cpg);
-			Class<?> type = verifiedClass.jar.bcelToClass.of(fi.getFieldType(cpg));
+			Class<?> type = bcelToClass.of(fi.getFieldType(cpg));
 			return verifiedClass.jar.classLoader.resolveField(ot.getClassName(), name, type);
 		}
 	
@@ -97,12 +105,12 @@ public class Resolver {
 		ReferenceType receiver = invoke.getReferenceType(cpg);
 		// it is possible to call a method on an array: in that case, the callee is a method of java.lang.Object
 		String receiverClassName = receiver instanceof ObjectType ot ? ot.getClassName() : "java.lang.Object";
-		Class<?>[] args = verifiedClass.jar.bcelToClass.of(invoke.getArgumentTypes(cpg));
+		Class<?>[] args = bcelToClass.of(invoke.getArgumentTypes(cpg));
 
 		if (invoke instanceof INVOKESPECIAL && Const.CONSTRUCTOR_NAME.equals(methodName))
 			return resolveConstructorWithPossiblyExpandedArgs(receiverClassName, args);
 		else {
-			Class<?> returnType = verifiedClass.jar.bcelToClass.of(invoke.getReturnType(cpg));
+			Class<?> returnType = bcelToClass.of(invoke.getReturnType(cpg));
 
 			if (invoke instanceof INVOKEINTERFACE)
 				return resolveInterfaceMethodWithPossiblyExpandedArgs(receiverClassName, methodName, args, returnType);

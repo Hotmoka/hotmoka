@@ -57,7 +57,9 @@ import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.AddGasUpdate
 import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.InstrumentMethodsOfSupportClasses;
 import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.ReplaceFieldAccessesWithAccessors;
 import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.SetCallerAndBalanceAtTheBeginningOfFromContracts;
+import io.hotmoka.verification.BcelToClasses;
 import io.hotmoka.verification.api.Annotations;
+import io.hotmoka.verification.api.BcelToClass;
 import io.hotmoka.verification.api.Bootstraps;
 import io.hotmoka.verification.api.Pushers;
 import io.hotmoka.verification.api.TakamakaClassLoader;
@@ -117,6 +119,16 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		 * The class that is being instrumented.
 		 */
 		private final VerifiedClass verifiedClass;
+
+		/**
+		 * A utility to transform BCEL types into classes.
+		 */
+		private final BcelToClass bcelToClass;
+
+		/**
+		 * The annotation wizard of the class being instrumented.
+		 */
+		private final Annotations annotations;
 
 		/**
 		 * The class generator of the verified class.
@@ -213,6 +225,8 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		 */
 		private Builder(VerifiedClass clazz, GasCostModel gasCostModel) throws ClassNotFoundException {
 			this.verifiedClass = clazz;
+			this.bcelToClass = BcelToClasses.of(verifiedClass.getJar());
+			this.annotations = verifiedClass.getJar().getAnnotations();
 			this.classGen = new ClassGen(clazz.toJavaClass());
 			this.bootstraps = verifiedClass.getBootstraps();
 			setBootstraps();
@@ -301,9 +315,14 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			protected final VerifiedClass verifiedClass = Builder.this.verifiedClass;
 
 			/**
+			 * A utility to transform BCEL types into classes.
+			 */
+			protected final BcelToClass bcelToClass = Builder.this.bcelToClass;
+
+			/**
 			 * The annotation wizard of the class being instrumented.
 			 */
-			protected final Annotations annotations = verifiedClass.getJar().getAnnotations();
+			protected final Annotations annotations = Builder.this.annotations;
 
 			/**
 			 * The gas cost model used for the instrumentation.

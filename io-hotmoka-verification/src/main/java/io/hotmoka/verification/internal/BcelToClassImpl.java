@@ -27,6 +27,8 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
 import io.hotmoka.verification.api.BcelToClass;
+import io.hotmoka.verification.api.TakamakaClassLoader;
+import io.hotmoka.verification.api.VerifiedJar;
 
 /**
  * A utility that transforms a BCEL type into its corresponding class tag.
@@ -34,17 +36,17 @@ import io.hotmoka.verification.api.BcelToClass;
 public class BcelToClassImpl implements BcelToClass {
 
 	/**
-	 * The jar with whose class loader the transformation is performed.
+	 * The class loader for loading the classes during the transformation.
 	 */
-	private final VerifiedJarImpl jar;
+	private final TakamakaClassLoader classLoader;
 
 	/**
 	 * Builds the utility object.
 	 * 
-	 * @param jar the jar for whose class loader the transformation is performed
+	 * @param jar the jar for which the transformation is performed
 	 */
-	BcelToClassImpl(VerifiedJarImpl jar) {
-		this.jar = jar;
+	public BcelToClassImpl(VerifiedJar jar) {
+		this.classLoader = jar.getClassLoader();
 	}
 
 	@Override
@@ -68,10 +70,10 @@ public class BcelToClassImpl implements BcelToClass {
 		else if (type == BasicType.VOID)
 			return void.class;
 		else if (type instanceof ObjectType)
-			return jar.classLoader.loadClass(type.toString());
+			return classLoader.loadClass(type.toString());
 		else { // array
 			Class<?> elementsClass = of(((ArrayType) type).getElementType());
-			// trick: we build an array of 0 elements just to access its class token
+			// we build an array of 0 elements just to access its class token
 			return java.lang.reflect.Array.newInstance(elementsClass, 0).getClass();
 		}
 	}

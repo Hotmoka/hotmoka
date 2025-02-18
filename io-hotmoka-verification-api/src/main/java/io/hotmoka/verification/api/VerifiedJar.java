@@ -50,12 +50,4 @@ public interface VerifiedJar {
 	 * @return the utility object
 	 */
 	Annotations getAnnotations();
-
-	/**
-	 * Yields the utility object that can be used to transform BCEL types into their corresponding
-	 * Java class tag, by using the class loader of this jar.
-	 * 
-	 * @return the utility object
-	 */
-	BcelToClass getBcelToClass();
 }

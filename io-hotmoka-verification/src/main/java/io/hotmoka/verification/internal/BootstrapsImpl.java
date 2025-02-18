@@ -53,6 +53,8 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
 import io.hotmoka.exceptions.CheckSupplier;
+import io.hotmoka.verification.BcelToClasses;
+import io.hotmoka.verification.api.BcelToClass;
 import io.hotmoka.verification.api.Bootstraps;
 
 /**
@@ -65,6 +67,11 @@ public class BootstrapsImpl implements Bootstraps {
 	 * The class whose bootstraps are considered.
 	 */
 	private final VerifiedClassImpl verifiedClass;
+
+	/**
+	 * A utility to transform BCEL types into classes.
+	 */
+	private final BcelToClass bcelToClass;
 
 	/**
 	 * The constant pool of the class whose bootstraps are considered.
@@ -98,6 +105,7 @@ public class BootstrapsImpl implements Bootstraps {
 
 	BootstrapsImpl(VerifiedClassImpl clazz, MethodGen[] methods) throws ClassNotFoundException {
 		this.verifiedClass = clazz;
+		this.bcelToClass = BcelToClasses.of(clazz.jar);
 		this.cpg = clazz.getConstantPool();
 		this.bootstrapMethods = computeBootstraps();
 		collectBootstrapsLeadingToFromContract(methods);
@@ -107,17 +115,18 @@ public class BootstrapsImpl implements Bootstraps {
 	/**
 	 * Creates a deep clone of the given bootstrap methods.
 	 * 
-	 * @param original the object to clone
+	 * @param parent the object to clone
 	 */
-	BootstrapsImpl(BootstrapsImpl original) {
-		this.verifiedClass = original.verifiedClass;
-		this.cpg = original.cpg;
-		this.bootstrapMethods = new BootstrapMethod[original.bootstrapMethods.length];
-		for (int pos = 0; pos < original.bootstrapMethods.length; pos++) {
-			BootstrapMethod clone = this.bootstrapMethods[pos] = original.bootstrapMethods[pos].copy();
+	BootstrapsImpl(BootstrapsImpl parent) {
+		this.verifiedClass = parent.verifiedClass;
+		this.bcelToClass = parent.bcelToClass;
+		this.cpg = parent.cpg;
+		this.bootstrapMethods = new BootstrapMethod[parent.bootstrapMethods.length];
+		for (int pos = 0; pos < parent.bootstrapMethods.length; pos++) {
+			BootstrapMethod clone = this.bootstrapMethods[pos] = parent.bootstrapMethods[pos].copy();
 			// the array of arguments is shared by copy(), hence we clone it explicitly
-			clone.setBootstrapArguments(original.bootstrapMethods[pos].getBootstrapArguments().clone());
-			if (original.bootstrapMethodsLeadingToFromContractAsSet.contains(original.bootstrapMethods[pos])) {
+			clone.setBootstrapArguments(parent.bootstrapMethods[pos].getBootstrapArguments().clone());
+			if (parent.bootstrapMethodsLeadingToFromContractAsSet.contains(parent.bootstrapMethods[pos])) {
 				this.bootstrapMethodsLeadingToFromContractAsSet.add(clone);
 				this.bootstrapMethodsLeadingToFromContract.add(clone);
 			}
@@ -231,8 +240,8 @@ public class BootstrapsImpl implements Bootstraps {
 					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
 					String methodName2 = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
 					String methodSignature2 = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-					Class<?>[] args = verifiedClass.jar.bcelToClass.of(Type.getArgumentTypes(methodSignature2));
-					Class<?> returnType = verifiedClass.jar.bcelToClass.of(Type.getReturnType(methodSignature2));
+					Class<?>[] args = bcelToClass.of(Type.getArgumentTypes(methodSignature2));
+					Class<?> returnType = bcelToClass.of(Type.getReturnType(methodSignature2));
 	
 					if (Const.CONSTRUCTOR_NAME.equals(methodName2))
 						return verifiedClass.resolver.resolveConstructorWithPossiblyExpandedArgs(className2, args);
@@ -246,8 +255,8 @@ public class BootstrapsImpl implements Bootstraps {
 					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
 					String methodName2 = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
 					String methodSignature2 = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-					Class<?>[] args = verifiedClass.jar.bcelToClass.of(Type.getArgumentTypes(methodSignature2));
-					Class<?> returnType = verifiedClass.jar.bcelToClass.of(Type.getReturnType(methodSignature2));
+					Class<?>[] args = bcelToClass.of(Type.getArgumentTypes(methodSignature2));
+					Class<?> returnType = bcelToClass.of(Type.getReturnType(methodSignature2));
 
 					return verifiedClass.resolver.resolveInterfaceMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
 				}

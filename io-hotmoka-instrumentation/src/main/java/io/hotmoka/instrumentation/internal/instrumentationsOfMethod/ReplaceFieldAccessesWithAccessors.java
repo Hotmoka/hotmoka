@@ -86,7 +86,7 @@ public class ReplaceFieldAccessesWithAccessors extends MethodLevelInstrumentatio
 			// we do not consider field accesses added by instrumentation in class Storage
 			return !receiverClassName.equals(Constants.STORAGE_NAME)
 				&& classLoader.isStorage(receiverClassName)
-				&& classLoader.isLazilyLoaded(fieldType = verifiedClass.getJar().getBcelToClass().of(fi.getFieldType(cpg)))
+				&& classLoader.isLazilyLoaded(fieldType = bcelToClass.of(fi.getFieldType(cpg)))
 				&& !modifiersSatisfy(receiverClassName, fi.getFieldName(cpg), fieldType,
 						instruction instanceof GETFIELD ? Modifier::isTransient : (modifiers -> Modifier.isTransient(modifiers) || Modifier.isFinal(modifiers)));
 		}
@@ -106,7 +106,7 @@ public class ReplaceFieldAccessesWithAccessors extends MethodLevelInstrumentatio
 		Type fieldType = fieldInstruction.getFieldType(cpg);
 		String fieldName = fieldInstruction.getFieldName(cpg);
 		String className = referencedClass.getClassName();
-		Optional<Field> resolvedField = classLoader.resolveField(className, fieldName, verifiedClass.getJar().getBcelToClass().of(fieldType));
+		Optional<Field> resolvedField = classLoader.resolveField(className, fieldName, bcelToClass.of(fieldType));
 		String resolvedClassName = resolvedField.get().getDeclaringClass().getName();
 
 		if (fieldInstruction instanceof GETFIELD)
