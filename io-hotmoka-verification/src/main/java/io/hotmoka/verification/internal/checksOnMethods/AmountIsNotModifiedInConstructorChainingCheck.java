@@ -40,6 +40,7 @@ import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
+import io.hotmoka.verification.Pushers;
 import io.hotmoka.verification.errors.IllegalModificationOfAmountInConstructorChaining;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
@@ -48,9 +49,9 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  * A checks that {@code @@Payable} or {@code @@RedPayable} constructor-chaining calls pass exactly
  * the same amount passed to the caller.
  */
-public class AmountIsNotModifiedInConstructorChaining extends CheckOnMethods {
+public class AmountIsNotModifiedInConstructorChainingCheck extends CheckOnMethods {
 
-	public AmountIsNotModifiedInConstructorChaining(VerifiedClassImpl.Verification builder, MethodGen method) throws ClassNotFoundException {
+	public AmountIsNotModifiedInConstructorChainingCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws ClassNotFoundException {
 		super(builder, method);
 
 		if (Const.CONSTRUCTOR_NAME.equals(methodName) && methodArgs.length > 0 && annotations.isPayable(className, methodName, methodArgs, methodReturnType)) {
@@ -77,7 +78,7 @@ public class AmountIsNotModifiedInConstructorChaining extends CheckOnMethods {
 		Type[] argumentTypes = invoke.getArgumentTypes(cpg);
 		int slots = Stream.of(argumentTypes).mapToInt(Type::getSize).sum();
 
-		boolean doesNotUseSameLocal = pushers.getPushers(ih, slots, method.getInstructionList(), cpg)
+		boolean doesNotUseSameLocal = Pushers.of(ih, slots, method)
 			.map(InstructionHandle::getInstruction)
 			.anyMatch(ins -> !(ins instanceof LoadInstruction) || ((LoadInstruction) ins).getIndex() != 1);	
 
@@ -143,7 +144,7 @@ public class AmountIsNotModifiedInConstructorChaining extends CheckOnMethods {
 						annotations.isPayable(classNameOfReceiver, methodName, argumentTypes, returnType);
 
 					return callsPayableFromContract &&
-						pushers.getPushers(ih, slots + 1, method.getInstructionList(), cpg)
+						Pushers.of(ih, slots + 1, method)
 							.map(InstructionHandle::getInstruction)
 							.allMatch(ins -> ins instanceof LoadInstruction load && load.getIndex() == 0);	
 				}

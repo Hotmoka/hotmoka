@@ -62,7 +62,6 @@ import io.hotmoka.verification.BcelToClasses;
 import io.hotmoka.verification.api.AnnotationUtility;
 import io.hotmoka.verification.api.BcelToClass;
 import io.hotmoka.verification.api.Bootstraps;
-import io.hotmoka.verification.api.Pushers;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.verification.api.VerifiedClass;
 import it.univr.bcel.StackMapReplacer;
@@ -157,12 +156,6 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		private final Bootstraps bootstraps;
 
 		/**
-		 * The utility object that allows one to determine the pushers of values in the stack,
-		 * for the code of the class under instrumentation.
-		 */
-		private final Pushers pushers;
-
-		/**
 		 * The object that can be used to build complex instructions.
 		 */
 		private final InstructionFactory factory;
@@ -231,7 +224,6 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			this.classGen = new ClassGen(clazz.toJavaClass());
 			this.bootstraps = verifiedClass.getBootstraps();
 			setBootstraps();
-			this.pushers = verifiedClass.getPushers();
 			this.gasCostModel = gasCostModel;
 			this.classLoader = clazz.getJar().getClassLoader();
 			this.cpg = classGen.getConstantPool();
@@ -344,12 +336,6 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			 * The utility that knows about the bootstrap methods of the class being instrumented.
 			 */
 			protected final Bootstraps bootstraps = Builder.this.bootstraps;
-
-			/**
-			 * The utility object that allows one to determine the pushers of values in the stack,
-			 * for the code of the class under instrumentation.
-			 */
-			protected final Pushers pushers = Builder.this.pushers;
 
 			/**
 			 * The object that can be used to build complex instructions.

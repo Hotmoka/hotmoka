@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -33,22 +34,50 @@ import org.apache.bcel.generic.GotoInstruction;
 import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionHandle;
 import org.apache.bcel.generic.InstructionList;
+import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ReturnInstruction;
 
-import io.hotmoka.verification.api.Pushers;
-
 /**
- * A utility to infer the pushers of stack values.
+ * The implementation of the computation of the pushers of a stack value.
  */
-public class PushersImpl implements Pushers {
+public class PushersImpl implements Supplier<Stream<InstructionHandle>> {
+
+	/**
+	 * The start instruction of the look-up.
+	 */
+	private final InstructionHandle ih;
+
+	/**
+	 * The difference in stack height.
+	 */
+	private final int slots;
+
+	/**
+	 * The list of instructions where {@link #ih} occurs.
+	 */
+	private final InstructionList il;
+
+	/**
+	 * The constant pool generator of the class for which this object works.
+	 */
+	private final ConstantPoolGen cpg;
 
 	/**
 	 * Creates a utility class that yields the pushers of values on the stack.
+	 * 
+	 * @param ih the start instruction of the look-up
+	 * @param slots the difference in stack height
+	 * @param method the method where {@code ih} occurs
 	 */
-	public PushersImpl() {}
+	public PushersImpl(InstructionHandle ih, int slots, MethodGen method) {
+		this.ih = ih;
+		this.slots = slots;
+		this.il = method.getInstructionList();
+		this.cpg = method.getConstantPool();
+	}
 
 	@Override
-	public Stream<InstructionHandle> getPushers(InstructionHandle ih, int slots, InstructionList il, ConstantPoolGen cpg) {
+	public Stream<InstructionHandle> get() {
 		Iterable<InstructionHandle> iterable = () -> new MyIterator(ih, slots, il, cpg);
 		return StreamSupport.stream(iterable.spliterator(), false);
 	}

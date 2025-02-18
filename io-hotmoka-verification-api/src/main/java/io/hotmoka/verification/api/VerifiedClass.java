@@ -33,6 +33,13 @@ public interface VerifiedClass extends Comparable<VerifiedClass> {
 	String FORBIDDEN_PREFIX = "§";
 
 	/**
+	 * Yields the fully-qualified name of this class.
+	 * 
+	 * @return the fully-qualified name
+	 */
+	String getClassName();
+
+	/**
 	 * Yields the jar this class belongs to.
 	 * 
 	 * @return the jar
@@ -40,27 +47,11 @@ public interface VerifiedClass extends Comparable<VerifiedClass> {
 	VerifiedJar getJar();
 
 	/**
-	 * Yields the container of the bootstrap methods of this class.
-	 * It yields a deep copy since it is a modifiable object.
+	 * Yields the bootstrap methods of this class.
 	 * 
-	 * @return the container
+	 * @return the bootstrap methods
 	 */
 	Bootstraps getBootstraps();
-
-	/**
-	 * Yields the utility that allows one to compute the pushers of values on the stack
-	 * for the code in this class.
-	 * 
-	 * @return the utility object
-	 */
-	Pushers getPushers();
-
-	/**
-	 * Yields the fully-qualified name of this class.
-	 * 
-	 * @return the fully-qualified name
-	 */
-	String getClassName();
 
 	/**
 	 * Builds a Java class from this object.

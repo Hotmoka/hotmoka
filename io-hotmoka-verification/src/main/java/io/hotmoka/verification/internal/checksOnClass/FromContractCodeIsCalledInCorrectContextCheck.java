@@ -47,6 +47,7 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
 import io.hotmoka.exceptions.UncheckPredicate;
+import io.hotmoka.verification.Pushers;
 import io.hotmoka.verification.errors.IllegalCallToFromContractError;
 import io.hotmoka.verification.errors.IllegalCallToFromContractOnThisError;
 import io.hotmoka.verification.errors.IllegalCallToPayableConstructorOnThis;
@@ -88,7 +89,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 				.filter(method -> !isContract)
 				.forEachOrdered(method ->
 					instructionsOf(method)
-						.filter(uncheck(ClassNotFoundException.class, ih -> callsFromContract(ih) && (method.isStatic() || !callsFromContractOnThis(ih, method.getInstructionList()))))
+						.filter(uncheck(ClassNotFoundException.class, ih -> callsFromContract(ih) && (method.isStatic() || !callsFromContractOnThis(ih, method, method.getInstructionList()))))
 						.map(ih -> new IllegalCallToFromContractError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
 						.forEachOrdered(this::issue)
 				);
@@ -99,7 +100,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 				.filter(method -> !method.isStatic())
 				.forEachOrdered(method ->
 					instructionsOf(method)
-						.filter(UncheckPredicate.uncheck(ClassNotFoundException.class, ih -> callsFromContractOnThis(ih, method.getInstructionList())))
+						.filter(UncheckPredicate.uncheck(ClassNotFoundException.class, ih -> callsFromContractOnThis(ih, method, method.getInstructionList())))
 						.map(ih -> new IllegalCallToFromContractError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
 						.forEachOrdered(this::issue)
 				);
@@ -110,7 +111,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 				.forEachOrdered(uncheck(ClassNotFoundException.class, method -> {
 					boolean isInsideFromContract = bootstraps.isPartOfFromContract(method) || annotations.isFromContract(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
 					instructionsOf(method)
-						.filter(uncheck(ClassNotFoundException.class, ih -> !isInsideFromContract && callsFromContractOnThis(ih, method.getInstructionList())))
+						.filter(uncheck(ClassNotFoundException.class, ih -> !isInsideFromContract && callsFromContractOnThis(ih, method, method.getInstructionList())))
 						.map(ih -> new IllegalCallToFromContractOnThisError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
 						.forEachOrdered(this::issue);
 				}));
@@ -122,7 +123,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 				.filter(uncheck(ClassNotFoundException.class, method -> !annotations.isPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType())))
 				.forEachOrdered(method ->
 					instructionsOf(method)
-						.filter(UncheckPredicate.uncheck(ClassNotFoundException.class, ih -> callsPayableFromContractConstructorOnThis(ih, method.getInstructionList())))
+						.filter(UncheckPredicate.uncheck(ClassNotFoundException.class, ih -> callsPayableFromContractConstructorOnThis(ih, method, method.getInstructionList())))
 						.map(ih -> new IllegalCallToPayableConstructorOnThis(inferSourceFile(), method.getName(), lineOf(method, ih)))
 						.forEachOrdered(this::issue)
 					);
@@ -193,7 +194,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 			return false;
 	}
 
-	private boolean callsFromContractOnThis(InstructionHandle ih, InstructionList il) throws ClassNotFoundException {
+	private boolean callsFromContractOnThis(InstructionHandle ih, MethodGen method, InstructionList il) throws ClassNotFoundException {
 		Instruction instruction = ih.getInstruction();
 		if (instruction instanceof InvokeInstruction invoke && !(invoke instanceof INVOKESTATIC) && !(invoke instanceof INVOKEDYNAMIC)) {
 			Type[] args = invoke.getArgumentTypes(cpg);
@@ -202,7 +203,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 				(receiver.getClassName(), invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));
 
 			return callsFromContract &&
-				pushers.getPushers(ih, slots + 1, il, cpg)
+				Pushers.of(ih, slots + 1, method)
 					.map(InstructionHandle::getInstruction)
 					.allMatch(ins -> ins instanceof LoadInstruction li && li.getIndex() == 0);	
 		}
@@ -210,9 +211,8 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 		return false;
 	}
 
-	private boolean callsPayableFromContractConstructorOnThis(InstructionHandle ih, InstructionList il) throws ClassNotFoundException {
-		Instruction instruction = ih.getInstruction();
-		if (instruction instanceof INVOKESPECIAL invokespecial) {
+	private boolean callsPayableFromContractConstructorOnThis(InstructionHandle ih, MethodGen method, InstructionList il) throws ClassNotFoundException {
+		if (ih.getInstruction() instanceof INVOKESPECIAL invokespecial) {
 			String methodName = invokespecial.getMethodName(cpg);
 			if (Const.CONSTRUCTOR_NAME.equals(methodName)) {
 				Type[] argumentTypes = invokespecial.getArgumentTypes(cpg);
@@ -224,7 +224,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 						annotations.isPayable(classNameOfReceiver, methodName, argumentTypes, returnType);
 
 					return callsPayableFromContract &&
-						pushers.getPushers(ih, slots + 1, il, cpg)
+						Pushers.of(ih, slots + 1, method)
 							.map(InstructionHandle::getInstruction)
 							.allMatch(ins -> ins instanceof LoadInstruction li && li.getIndex() == 0);	
 				}

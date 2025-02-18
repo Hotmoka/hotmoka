@@ -38,7 +38,6 @@ import org.apache.bcel.generic.MethodGen;
 
 import io.hotmoka.verification.VerificationException;
 import io.hotmoka.verification.api.Bootstraps;
-import io.hotmoka.verification.api.Pushers;
 import io.hotmoka.verification.api.VerifiedClass;
 import io.hotmoka.verification.api.VerifiedJar;
 
@@ -63,12 +62,6 @@ public class VerifiedClassImpl implements VerifiedClass {
 	public final BootstrapsImpl bootstraps;
 
 	/**
-	 * The utility object that allows one to follow the stack pushers of values in the stack
-	 * of the code of this class.
-	 */
-	public final PushersImpl pushers;
-
-	/**
 	 * The utility that can be used to resolve targets of calls and field accesses in this class.
 	 */
 	public final Resolver resolver;
@@ -85,14 +78,13 @@ public class VerifiedClassImpl implements VerifiedClass {
 	 * @throws VerificationException if the class could not be verified
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 	 */
-	VerifiedClassImpl(JavaClass clazz, VerifiedJarImpl jar, VersionsManager versionsManager, Consumer<AbstractErrorImpl> issueHandler, boolean duringInitialization, boolean skipsVerification) throws VerificationException, ClassNotFoundException {
+	public VerifiedClassImpl(JavaClass clazz, VerifiedJarImpl jar, VersionsManager versionsManager, Consumer<AbstractErrorImpl> issueHandler, boolean duringInitialization, boolean skipsVerification) throws VerificationException, ClassNotFoundException {
 		this.clazz = new ClassGen(clazz);
 		this.jar = jar;
 		ConstantPoolGen cpg = getConstantPool();
 		String className = getClassName();
 		var methods = Stream.of(clazz.getMethods()).map(method -> new MethodGen(method, className, cpg)).toArray(MethodGen[]::new);
 		this.bootstraps = new BootstrapsImpl(this, methods);
-		this.pushers = new PushersImpl();
 		this.resolver = new Resolver(this);
 
 		if (!skipsVerification)
@@ -117,11 +109,6 @@ public class VerifiedClassImpl implements VerifiedClass {
 	@Override
 	public Bootstraps getBootstraps() {
 		return new BootstrapsImpl(bootstraps); // TODO: do we really need to make a copy?
-	}
-
-	@Override
-	public Pushers getPushers() {
-		return pushers;
 	}
 
 	@Override

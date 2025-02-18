@@ -23,7 +23,7 @@ import io.hotmoka.verification.internal.checksOnClass.FromContractCodeIsCalledIn
 import io.hotmoka.verification.internal.checksOnClass.NamesDontStartWithForbiddenPrefix;
 import io.hotmoka.verification.internal.checksOnClass.PackagesAreLegalCheck;
 import io.hotmoka.verification.internal.checksOnClass.StorageClassesHaveFieldsOfStorageTypeCheck;
-import io.hotmoka.verification.internal.checksOnMethods.AmountIsNotModifiedInConstructorChaining;
+import io.hotmoka.verification.internal.checksOnMethods.AmountIsNotModifiedInConstructorChainingCheck;
 import io.hotmoka.verification.internal.checksOnMethods.BytecodesAreLegalCheck;
 import io.hotmoka.verification.internal.checksOnMethods.CallerIsUsedOnThisAndInFromContractCheck;
 import io.hotmoka.verification.internal.checksOnMethods.ExceptionHandlersAreForCheckedExceptionsCheck;
@@ -99,7 +99,7 @@ final class VersionsManager {
 			new CallerIsUsedOnThisAndInFromContractCheck(context, method);
 			new ExceptionHandlersAreForCheckedExceptionsCheck(context, method);
 			new UsedCodeIsWhiteListedCheck(context, method);
-			new AmountIsNotModifiedInConstructorChaining(context, method);
+			new AmountIsNotModifiedInConstructorChainingCheck(context, method);
 		}
 	}
 }

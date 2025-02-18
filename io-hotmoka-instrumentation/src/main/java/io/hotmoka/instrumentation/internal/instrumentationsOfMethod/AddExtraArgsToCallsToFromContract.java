@@ -42,6 +42,7 @@ import org.apache.bcel.generic.Type;
 import io.hotmoka.instrumentation.internal.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
+import io.hotmoka.verification.Pushers;
 import io.hotmoka.whitelisting.WhitelistingConstants;
 import io.takamaka.code.constants.Constants;
 
@@ -72,7 +73,7 @@ public class AddExtraArgsToCallsToFromContract extends MethodLevelInstrumentatio
 			);
 
 			for (InstructionHandle ih: callsToFromContract)
-				passExtraArgsToCallToFromContract(il, ih, method.getName());
+				passExtraArgsToCallToFromContract(method, il, ih, method.getName());
 		}
 	}
 
@@ -85,7 +86,7 @@ public class AddExtraArgsToCallsToFromContract extends MethodLevelInstrumentatio
 	 * @param callee the name of the method where the calls are being looked for
 	 * @throws ClassNotFoundException if some class cannot be found in the Takamaka program
 	 */
-	private void passExtraArgsToCallToFromContract(InstructionList il, InstructionHandle ih, String callee) throws ClassNotFoundException {
+	private void passExtraArgsToCallToFromContract(MethodGen method, InstructionList il, InstructionHandle ih, String callee) throws ClassNotFoundException {
 		var invoke = (InvokeInstruction) ih.getInstruction();
 		var args = invoke.getArgumentTypes(cpg);
 		String methodName = invoke.getMethodName(cpg);
@@ -130,7 +131,7 @@ public class AddExtraArgsToCallsToFromContract extends MethodLevelInstrumentatio
 			expandedArgs[args.length] = CONTRACT_OT;
 			expandedArgs[args.length + 1] = DUMMY_OT;
 
-			boolean onThis = pushers.getPushers(ih, slots + 1, il, cpg)
+			boolean onThis = Pushers.of(ih, slots + 1, method)
 				.map(InstructionHandle::getInstruction)
 				.allMatch(ins -> ins instanceof LoadInstruction && ((LoadInstruction) ins).getIndex() == 0);
 

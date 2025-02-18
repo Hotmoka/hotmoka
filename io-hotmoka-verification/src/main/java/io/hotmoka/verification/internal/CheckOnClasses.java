@@ -50,7 +50,6 @@ public abstract class CheckOnClasses {
 	private final VerifiedClassImpl.Verification builder;
 	protected final TakamakaClassLoader classLoader;
 	protected final BootstrapsImpl bootstraps;
-	protected final PushersImpl pushers;
 	protected final Resolver resolver;
 	protected final AnnotationUtility annotations;
 	protected final BcelToClass bcelToClass;
@@ -63,7 +62,6 @@ public abstract class CheckOnClasses {
 		VerifiedClassImpl verifiedClass = builder.getVerifiedClass();
 		this.classLoader = verifiedClass.jar.classLoader;
 		this.bootstraps = verifiedClass.bootstraps;
-		this.pushers = verifiedClass.pushers;
 		this.resolver = verifiedClass.resolver;
 		this.annotations = AnnotationUtilities.of(verifiedClass.jar);
 		this.bcelToClass = BcelToClasses.of(verifiedClass.jar);
