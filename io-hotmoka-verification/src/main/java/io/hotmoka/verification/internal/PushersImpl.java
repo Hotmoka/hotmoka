@@ -87,6 +87,33 @@ public class PushersImpl implements Supplier<Stream<InstructionHandle>> {
 	 * implement a lazy {@link PushersImpl#getPushers(InstructionHandle, int, InstructionList, ConstantPoolGen)}.
 	 */
 	private static class MyIterator implements Iterator<InstructionHandle> {
+
+		private static class HeightAtBytecode {
+			public final InstructionHandle ih;
+			public final int stackHeightBeforeBytecode;
+
+			public HeightAtBytecode(InstructionHandle ih, int stackHeightBeforeBytecode) {
+				this.ih = ih;
+				this.stackHeightBeforeBytecode = stackHeightBeforeBytecode;
+			}
+
+			@Override
+			public String toString() {
+				return ih + " with " + stackHeightBeforeBytecode + " stack elements";
+			}
+
+			@Override
+			public boolean equals(Object other) {
+				return other instanceof HeightAtBytecode hab && hab.ih == ih
+					&& hab.stackHeightBeforeBytecode == stackHeightBeforeBytecode;
+			}
+
+			@Override
+			public int hashCode() {
+				return ih.getPosition() ^ stackHeightBeforeBytecode;
+			}
+		}
+
 		private final InstructionList il;
 		private final ConstantPoolGen cpg;
 		private final List<HeightAtBytecode> workingSet = new ArrayList<>();

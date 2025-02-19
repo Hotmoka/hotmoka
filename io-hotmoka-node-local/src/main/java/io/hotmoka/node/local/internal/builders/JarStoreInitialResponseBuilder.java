@@ -29,7 +29,6 @@ import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.verification.VerificationException;
 import io.hotmoka.verification.VerifiedJars;
-import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 
 /**
  * Builds the creator of response for a transaction that installs a jar in the node, during its initialization.
@@ -61,7 +60,7 @@ public class JarStoreInitialResponseBuilder extends AbstractInitialResponseBuild
 		return new ResponseCreator() {
 
 			@Override
-			protected JarStoreInitialTransactionResponse body() throws TransactionRejectedException, ClassNotFoundException, UnsupportedVerificationVersionException, VerificationException {
+			protected JarStoreInitialTransactionResponse body() throws TransactionRejectedException, ClassNotFoundException, VerificationException {
 				checkConsistency();
 
 				try {

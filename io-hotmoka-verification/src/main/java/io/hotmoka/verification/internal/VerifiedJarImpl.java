@@ -70,9 +70,8 @@ public class VerifiedJarImpl implements VerifiedJar {
 	 * @param skipsVerification true if and only if the static verification of the classes of the jar must be skipped
 	 * @throws IOException if an I/O error occurred while accessing the classes
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
-	 * @throws UnsupportedVerificationVersionException if the verification version is not available
 	 */
-	public VerifiedJarImpl(byte[] origin, TakamakaClassLoader classLoader, boolean duringInitialization, boolean skipsVerification) throws IOException, ClassNotFoundException, UnsupportedVerificationVersionException {
+	public VerifiedJarImpl(byte[] origin, TakamakaClassLoader classLoader, boolean duringInitialization, boolean skipsVerification) throws IOException, ClassNotFoundException {
 		this.classLoader = classLoader;
 
 		// we set the BCEL repository so that it matches the class path made up of the jar to
@@ -127,21 +126,31 @@ public class VerifiedJarImpl implements VerifiedJar {
 		 * @param duringInitialization true if and only if the verification is performed during the initialization of the node
 		 * @param skipsVerification true if and only if the static verification of the classes of the jar must be skipped
 		 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
-		 * @throws UnsupportedVerificationVersionException if the verification version is not available
 		 * @throws IOException if an I/O error occurred while accessing the classes
 		 */
-		private Initializer(byte[] origin, boolean duringInitialization, boolean skipsVerification) throws IOException, ClassNotFoundException, UnsupportedVerificationVersionException {
+		private Initializer(byte[] origin, boolean duringInitialization, boolean skipsVerification) throws IOException, ClassNotFoundException {
 			this.duringInitialization = duringInitialization;
-			this.versionsManager = new VersionsManager(classLoader.getVerificationVersion());
+
+			try {
+				this.versionsManager = new VersionsManager(classLoader.getVerificationVersion());
+			}
+			catch (UnsupportedVerificationVersionException e) {
+				// the class loader was already constructed with this verification version, hence
+				// it must be available, or otherwise there is a programming bug
+				throw new RuntimeException(e);
+			}
+
 			this.skipsVerification = skipsVerification;
 
 			// parsing and verification of the class files
 			try (var zis = new ZipInputStream(new ByteArrayInputStream(origin))) {
 				// we cannot proceed in parallel since the BCEL library is not thread-safe
 				ZipEntry entry;
-    			while ((entry = zis.getNextEntry()) != null)
-    				if (entry.getName().endsWith(".class") && !entry.getName().equals("module-info.class"))
+    			while ((entry = zis.getNextEntry()) != null) {
+    				String name = entry.getName();
+    				if (name.endsWith(".class") && !"module-info.class".equals(name))
     					buildVerifiedClass(entry, zis).ifPresent(classes::add);
+    			}
 			}
 		}
 

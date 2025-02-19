@@ -35,6 +35,8 @@ import org.apache.bcel.generic.ReferenceType;
 import io.hotmoka.verification.BcelToClasses;
 import io.hotmoka.verification.api.BcelToClass;
 import io.hotmoka.verification.api.Bootstraps;
+import io.hotmoka.verification.api.TakamakaClassLoader;
+import io.hotmoka.verification.api.VerifiedJar;
 import io.hotmoka.whitelisting.Dummy;
 
 /**
@@ -46,6 +48,11 @@ public class Resolver {
 	 * The class for which resolution is performed.
 	 */
 	private final VerifiedClassImpl verifiedClass;
+
+	/**
+	 * The class loader used to load {@code verifiedClass}.
+	 */
+	private final TakamakaClassLoader classLoader;
 
 	/**
 	 * A utility to transform BCEL types into classes.
@@ -64,7 +71,9 @@ public class Resolver {
 	 */
 	Resolver(VerifiedClassImpl clazz) {
 		this.verifiedClass = clazz;
-		this.bcelToClass = BcelToClasses.of(clazz.jar);
+		VerifiedJar jar = clazz.getJar();
+		this.classLoader = jar.getClassLoader();
+		this.bcelToClass = BcelToClasses.of(jar);
 		this.cpg = clazz.getConstantPool();
 	}
 
@@ -81,7 +90,7 @@ public class Resolver {
 		if (holder instanceof ObjectType ot) {
 			String name = fi.getFieldName(cpg);
 			Class<?> type = bcelToClass.of(fi.getFieldType(cpg));
-			return verifiedClass.jar.classLoader.resolveField(ot.getClassName(), name, type);
+			return classLoader.resolveField(ot.getClassName(), name, type);
 		}
 	
 		return Optional.empty();
@@ -121,62 +130,61 @@ public class Resolver {
 
 	/**
 	 * Yields the resolved constructor in the given class with the given arguments.
-	 * If the constructor is an {@code @@Entry} of a class already instrumented, it will yield its version with
-	 * the instrumentation arguments added at its end.
+	 * If the constructor is a {@code @@FromContract} of a class already instrumented,
+	 * it will yield its version with the instrumentation arguments added at its end.
 	 * 
 	 * @param className the name of the class where the constructor is looked for
 	 * @param args the arguments types of the constructor
 	 * @return the constructor, if any
-	 * @throws ClassNotFoundException if {@code className} cannot be found in the Takamaka program
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 	 */
 	Optional<Constructor<?>> resolveConstructorWithPossiblyExpandedArgs(String className, Class<?>[] args) throws ClassNotFoundException {
-		Optional<Constructor<?>> result = verifiedClass.jar.classLoader.resolveConstructor(className, args);
+		Optional<Constructor<?>> result = classLoader.resolveConstructor(className, args);
 		// we try to add the instrumentation arguments. This is important when
-		// a bootstrap calls an entry of a jar already installed (and instrumented)
-		// in blockchain. In that case, it will find the target only with these
+		// a bootstrap calls a from contract of a jar already installed (and instrumented)
+		// in the node. In that case, it will find the target only with these
 		// extra arguments added during instrumentation
-		return result.isPresent() ? result : verifiedClass.jar.classLoader.resolveConstructor(className, expandArgsForFromContract(args));
+		return result.isPresent() ? result : classLoader.resolveConstructor(className, expandArgsForFromContract(args));
 	}
 
 	/**
 	 * Yields the resolved method from the given class with the given name, arguments and return type.
-	 * If the method is a {@code @@FromContract} of a class already instrumented, it will yield its version with
-	 * the instrumentation arguments added at its end.
+	 * If the method is a {@code @@FromContract} of a class already instrumented, it will yield
+	 * its version with the instrumentation arguments added at its end.
 	 * 
 	 * @param className the name of the class from where the method is looked for
 	 * @param methodName the name of the method
 	 * @param args the arguments types of the method
 	 * @param returnType the return type of the method
 	 * @return the method, if any
-	 * @throws ClassNotFoundException if {@code className} cannot be found in the Takamaka program
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 	 */
 	Optional<Method> resolveMethodWithPossiblyExpandedArgs(String className, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
-		Optional<Method> result = verifiedClass.jar.classLoader.resolveMethod(className, methodName, args, returnType);
-		return result.isPresent() ? result : verifiedClass.jar.classLoader.resolveMethod(className, methodName, expandArgsForFromContract(args), returnType);
+		Optional<Method> result = classLoader.resolveMethod(className, methodName, args, returnType);
+		return result.isPresent() ? result : classLoader.resolveMethod(className, methodName, expandArgsForFromContract(args), returnType);
 	}
 
 	/**
 	 * Yields the resolved method from the given class with the given name, arguments and return type,
-	 * as it would be resolved for a call to an interface method.
-	 * If the method is a {@code @@FromContract} of a class already instrumented, it will yield its version with
-	 * the instrumentation arguments added at its end.
+	 * as it would be resolved for a call to an interface method. If the method is a {@code @@FromContract}
+	 * of a class already instrumented, it will yield its version with the instrumentation arguments added at its end.
 	 * 
 	 * @param className the name of the class from where the method is looked for
 	 * @param methodName the name of the method
 	 * @param args the arguments types of the method
 	 * @param returnType the return type of the method
 	 * @return the method, if any
-	 * @throws ClassNotFoundException if {@code className} cannot be found in the Takamaka program
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 	 */
 	Optional<Method> resolveInterfaceMethodWithPossiblyExpandedArgs(String className, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
-		Optional<Method> result = verifiedClass.jar.classLoader.resolveInterfaceMethod(className, methodName, args, returnType);
-		return result.isPresent() ? result : verifiedClass.jar.classLoader.resolveInterfaceMethod(className, methodName, expandArgsForFromContract(args), returnType);
+		Optional<Method> result = classLoader.resolveInterfaceMethod(className, methodName, args, returnType);
+		return result.isPresent() ? result : classLoader.resolveInterfaceMethod(className, methodName, expandArgsForFromContract(args), returnType);
 	}
 
 	private Class<?>[] expandArgsForFromContract(Class<?>[] args) {
 		Class<?>[] expandedArgs = new Class<?>[args.length + 2];
 		System.arraycopy(args, 0, expandedArgs, 0, args.length);
-		expandedArgs[args.length] = verifiedClass.jar.classLoader.getContract();
+		expandedArgs[args.length] = classLoader.getContract();
 		expandedArgs[args.length + 1] = Dummy.class;
 		return expandedArgs;
 	}

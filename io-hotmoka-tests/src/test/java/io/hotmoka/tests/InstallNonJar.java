@@ -18,6 +18,7 @@ package io.hotmoka.tests;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -25,22 +26,20 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.TransactionException;
 
 /**
- * A test for node initialization.
+ * A test for an attempt of installing something that is not a jar.
  */
-class Initialization extends HotmokaTest {
+class InstallNonJar extends HotmokaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
 		setAccounts(_1_000_000);
 	}
 
-	@Test @DisplayName("an initial transaction fails in an initialized node")
-	void initialFailsInInitialized() {
-		// the node is already initialized, since a non-initial transaction has been used to create
-		// the account with _1_000_000. Hence an attempt to run an initial transaction will fail
-		assertThrows(TransactionRejectedException.class, () -> addJarStoreInitialTransaction(Files.readAllBytes(Paths.get("jars/c13.jar")), takamakaCode()));
+	@Test @DisplayName("tries to install something that is not a jar")
+	void installsNonJar() {
+		assertThrows(TransactionException.class, () -> addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), Files.readAllBytes(Paths.get("jars/fake.jar")), takamakaCode()));
 	}
 }

@@ -62,7 +62,7 @@ public abstract class CheckOnClasses {
 		VerifiedClassImpl verifiedClass = builder.getVerifiedClass();
 		this.classLoader = verifiedClass.jar.classLoader;
 		this.bootstraps = verifiedClass.bootstraps;
-		this.resolver = verifiedClass.resolver;
+		this.resolver = verifiedClass.getResolver();
 		this.annotations = AnnotationUtilities.of(verifiedClass.jar);
 		this.bcelToClass = BcelToClasses.of(verifiedClass.jar);
 		this.className = verifiedClass.getClassName();

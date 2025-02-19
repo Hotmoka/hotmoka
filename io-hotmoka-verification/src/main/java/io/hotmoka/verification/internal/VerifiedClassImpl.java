@@ -64,13 +64,13 @@ public class VerifiedClassImpl implements VerifiedClass {
 	/**
 	 * The utility that can be used to resolve targets of calls and field accesses in this class.
 	 */
-	public final Resolver resolver;
+	private final Resolver resolver;
 
 	/**
 	 * Builds and verifies a class from the given class file.
 	 * 
 	 * @param clazz the parsed class file
-	 * @param jar the jar this class belongs to
+	 * @param jar the jar where this class will be added at the end
 	 * @param versionsManager the manager of the versions of the verification module
 	 * @param issueHandler the handler that is notified of every verification error or warning
 	 * @param duringInitialization true if and only if the class is verified during the initialization of the node
@@ -114,6 +114,15 @@ public class VerifiedClassImpl implements VerifiedClass {
 	@Override
 	public JavaClass toJavaClass() {
 		return clazz.getJavaClass();
+	}
+
+	/**
+	 * Yields the utility that can be used to resolve targets of calls and field accesses in this class.
+	 * 
+	 * @return the utility
+	 */
+	public Resolver getResolver() {
+		return resolver;
 	}
 
 	/**

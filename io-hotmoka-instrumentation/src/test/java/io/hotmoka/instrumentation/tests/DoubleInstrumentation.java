@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.instrumentation.tests;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
@@ -28,8 +27,6 @@ import io.hotmoka.instrumentation.GasCostModels;
 import io.hotmoka.instrumentation.InstrumentedJars;
 import io.hotmoka.testing.AbstractLoggedTests;
 import io.hotmoka.verification.TakamakaClassLoaders;
-import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
-import io.hotmoka.verification.VerificationException;
 import io.hotmoka.verification.VerifiedJars;
 import io.takamaka.code.constants.Constants;
 
@@ -41,7 +38,7 @@ import io.takamaka.code.constants.Constants;
 class DoubleInstrumentation extends AbstractLoggedTests {
 
 	@Test
-	void translateTwice() throws IOException, ClassNotFoundException, VerificationException, UnsupportedVerificationVersionException {
+	void translateTwice() throws Exception {
 		var origin = Paths.get("src","test","resources", "io-hotmoka-examples-lambdas.jar");
 		// the classpath consists of the Takamaka runtime, that we can find in the Maven repository
 		var classpath = Maven.resolver().resolve("io.hotmoka:io-takamaka-code:" + Constants.TAKAMAKA_VERSION).withoutTransitivity().asSingleFile().toPath();

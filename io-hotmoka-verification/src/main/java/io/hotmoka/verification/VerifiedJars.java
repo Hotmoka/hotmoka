@@ -21,7 +21,6 @@ import java.io.IOException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.verification.api.VerifiedJar;
 import io.hotmoka.verification.internal.VerifiedJarImpl;
-import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 
 /**
  * A provider of jars that have undergone static verification, before being installed into blockchain.
@@ -43,9 +42,8 @@ public final class VerifiedJars {
 	 * @return the verified jar
 	 * @throws IOException if an I/O error occurred while accessing the classes
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
-	 * @throws UnsupportedVerificationVersionException if the verification version is not available
 	 */
-	public static VerifiedJar of(byte[] jar, TakamakaClassLoader classLoader, boolean duringInitialization, boolean skipsVerification) throws IOException, ClassNotFoundException, UnsupportedVerificationVersionException {
+	public static VerifiedJar of(byte[] jar, TakamakaClassLoader classLoader, boolean duringInitialization, boolean skipsVerification) throws IOException, ClassNotFoundException {
 		return new VerifiedJarImpl(jar, classLoader, duringInitialization, skipsVerification);
 	}
 }

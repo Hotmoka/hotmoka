@@ -80,6 +80,6 @@ public class BcelToClassImpl implements BcelToClass {
 
 	@Override
 	public final Class<?>[] of(Type[] types) throws ClassNotFoundException {
-		return check(ClassNotFoundException.class, () -> Stream.of(types).map(uncheck(this::of))).toArray(Class<?>[]::new);
+		return check(ClassNotFoundException.class, () -> Stream.of(types).map(uncheck(ClassNotFoundException.class, this::of))).toArray(Class<?>[]::new);
 	}
 }

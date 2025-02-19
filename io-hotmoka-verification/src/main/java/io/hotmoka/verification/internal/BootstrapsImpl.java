@@ -242,8 +242,7 @@ public class BootstrapsImpl implements Bootstraps {
 			// this is the standard factory used to create call sites
 			if (cpg.getConstant(bootstrap.getBootstrapArguments()[1]) instanceof ConstantMethodHandle mh) {
 				Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
-				if (constant2 instanceof ConstantMethodref) {
-					ConstantMethodref mr = (ConstantMethodref) constant2;
+				if (constant2 instanceof ConstantMethodref mr) {
 					int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
 					String className2 = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
 					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
@@ -253,12 +252,11 @@ public class BootstrapsImpl implements Bootstraps {
 					Class<?> returnType = bcelToClass.of(Type.getReturnType(methodSignature2));
 	
 					if (Const.CONSTRUCTOR_NAME.equals(methodName2))
-						return verifiedClass.resolver.resolveConstructorWithPossiblyExpandedArgs(className2, args);
+						return verifiedClass.getResolver().resolveConstructorWithPossiblyExpandedArgs(className2, args);
 					else
-						return verifiedClass.resolver.resolveMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
+						return verifiedClass.getResolver().resolveMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
 				}
-				else if (constant2 instanceof ConstantInterfaceMethodref) {
-					ConstantInterfaceMethodref mr = (ConstantInterfaceMethodref) constant2;
+				else if (constant2 instanceof ConstantInterfaceMethodref mr) {
 					int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
 					String className2 = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
 					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
@@ -267,7 +265,7 @@ public class BootstrapsImpl implements Bootstraps {
 					Class<?>[] args = bcelToClass.of(Type.getArgumentTypes(methodSignature2));
 					Class<?> returnType = bcelToClass.of(Type.getReturnType(methodSignature2));
 
-					return verifiedClass.resolver.resolveInterfaceMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
+					return verifiedClass.getResolver().resolveInterfaceMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
 				}
 			}
 		}
