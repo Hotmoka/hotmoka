@@ -18,12 +18,9 @@ package io.hotmoka.tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.concurrent.TimeoutException;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.local.AbstractLocalNode;
 
 /**
@@ -32,7 +29,7 @@ import io.hotmoka.node.local.AbstractLocalNode;
 class GetNodeInfo extends HotmokaTest {
 
 	@Test @DisplayName("getNodeInfoworks")
-	void getNodeInfo() throws NodeException, TimeoutException, InterruptedException {
+	void getNodeInfo() throws Exception {
 		var nodeInfo = node.getNodeInfo();
 		assertEquals(AbstractLocalNode.HOTMOKA_VERSION, nodeInfo.getVersion());
 	}

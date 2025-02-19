@@ -21,6 +21,7 @@ import static io.hotmoka.exceptions.UncheckFunction.uncheck;
 
 import java.util.Optional;
 
+import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.errors.IllegalBootstrapMethodError;
 import io.hotmoka.verification.internal.CheckOnClasses;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
@@ -30,12 +31,12 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class BootstrapsAreLegalCheck extends CheckOnClasses {
 
-	public BootstrapsAreLegalCheck(VerifiedClassImpl.Verification builder) throws ClassNotFoundException {
+	public BootstrapsAreLegalCheck(VerifiedClassImpl.Verification builder) throws IllegalJarException {
 		super(builder);
 
-		check(ClassNotFoundException.class, () ->
+		check(IllegalJarException.class, () ->
 			bootstraps.getBootstraps()
-				.map(uncheck(bootstraps::getTargetOf))
+				.map(uncheck(IllegalJarException.class, bootstraps::getTargetOf))
 				.filter(Optional::isEmpty)
 				.findFirst()
 				.ifPresent(target -> issue(new IllegalBootstrapMethodError(inferSourceFile())))

@@ -19,10 +19,6 @@ package io.hotmoka.tests;
 import static java.math.BigInteger.ONE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.security.InvalidKeyException;
-import java.security.SignatureException;
-import java.util.concurrent.TimeoutException;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -31,10 +27,6 @@ import org.junit.jupiter.api.Test;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
-import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
@@ -56,35 +48,35 @@ class FromContracts extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new FromContracts().entry1() yields the eoa that calls the transaction")
-	void callFromContract1() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void callFromContract1() throws Exception {
 		StorageReference entries = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), ConstructorSignatures.of(FROM_CONTRACTS));
 		StorageValue result = addInstanceNonVoidMethodCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), MethodSignatures.ofNonVoid(FROM_CONTRACTS, "entry1", StorageTypes.CONTRACT), entries);
 		assertEquals(account(0), result);
 	}
 
 	@Test @DisplayName("new FromContracts().entry2() yields the FromContracts object itself")
-	void callFromContract2() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void callFromContract2() throws Exception {
 		StorageReference entries = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), ConstructorSignatures.of(FROM_CONTRACTS));
 		StorageValue result = addInstanceNonVoidMethodCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), MethodSignatures.ofNonVoid(FROM_CONTRACTS, "entry2", StorageTypes.CONTRACT), entries);
 		assertEquals(entries, result);
 	}
 
 	@Test @DisplayName("new FromContracts().entry3() yields the FromContracts object itself")
-	void callFromContract3() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void callFromContract3() throws Exception {
 		StorageReference entries = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), ConstructorSignatures.of(FROM_CONTRACTS));
 		StorageValue result = addInstanceNonVoidMethodCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), MethodSignatures.ofNonVoid(FROM_CONTRACTS, "entry3", StorageTypes.CONTRACT), entries);
 		assertEquals(entries, result);
 	}
 
 	@Test @DisplayName("new FromContracts().entry4() yields the FromContracts object itself")
-	void callFromContract4() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void callFromContract4() throws Exception {
 		StorageReference entries = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), ConstructorSignatures.of(FROM_CONTRACTS));
 		StorageValue result = addInstanceNonVoidMethodCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), MethodSignatures.ofNonVoid(FROM_CONTRACTS, "entry4", StorageTypes.CONTRACT), entries);
 		assertEquals(entries, result);
 	}
 
 	@Test @DisplayName("new FromContracts().entry5() yields the eoa that calls the transaction")
-	void callFromContract5() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void callFromContract5() throws Exception {
 		StorageReference entries = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), ConstructorSignatures.of(FROM_CONTRACTS));
 		StorageValue result = addInstanceNonVoidMethodCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), MethodSignatures.ofNonVoid(FROM_CONTRACTS, "entry5", StorageTypes.CONTRACT), entries);
 		assertEquals(account(0), result);

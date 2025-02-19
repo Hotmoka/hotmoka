@@ -143,24 +143,34 @@ public class BootstrapsImpl implements Bootstraps {
 
 	@Override
 	public boolean lambdaIsFromContract(BootstrapMethod bootstrap) throws IllegalJarException {
-		if (bootstrap.getNumBootstrapArguments() == 3) {
-			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
-			if (constant instanceof ConstantMethodHandle cmh) {
-				Constant constant2 = cpg.getConstant(cmh.getReferenceIndex());
-				if (constant2 instanceof ConstantMethodref cmr) {
-					int classNameIndex = ((ConstantClass) cpg.getConstant(cmr.getClassIndex())).getNameIndex();
-					String className = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
-					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(cmr.getNameAndTypeIndex());
-					String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
-					String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
+		if (bootstrap.getNumBootstrapArguments() == 3 && cpg.getConstant(bootstrap.getBootstrapArguments()[1]) instanceof ConstantMethodHandle cmh
+				&& cpg.getConstant(cmh.getReferenceIndex()) instanceof ConstantMethodref cmr) {
 
-					try {
-						return annotations.isFromContract(className, methodName, Type.getArgumentTypes(methodSignature), Type.getReturnType(methodSignature));
-					}
-					catch (ClassNotFoundException e) {
-						throw new IllegalJarException(e);
-					}
-				}
+			if (!(cpg.getConstant(cmr.getClassIndex()) instanceof ConstantClass cc))
+				throw new IllegalJarException("Illegal constant");
+
+			if (!(cpg.getConstant(cc.getNameIndex()) instanceof ConstantUtf8 cu8))
+				throw new IllegalJarException("Illegal constant");
+
+			String className = cu8.getBytes().replace('/', '.');
+
+			if (!(cpg.getConstant(cmr.getNameAndTypeIndex()) instanceof ConstantNameAndType nt))
+				throw new IllegalJarException("Illegal constant");
+
+			if (!(cpg.getConstant(nt.getNameIndex()) instanceof ConstantUtf8 cu8_2))
+				throw new IllegalJarException("Illegal constant");
+
+			if (!(cpg.getConstant(nt.getSignatureIndex()) instanceof ConstantUtf8 cu8_3))
+				throw new IllegalJarException("Illegal constant");
+
+			String methodName = cu8_2.getBytes();
+			String methodSignature = cu8_3.getBytes();
+
+			try {
+				return annotations.isFromContract(className, methodName, Type.getArgumentTypes(methodSignature), Type.getReturnType(methodSignature));
+			}
+			catch (ClassNotFoundException e) {
+				throw new IllegalJarException(e);
 			}
 		}
 
@@ -185,22 +195,32 @@ public class BootstrapsImpl implements Bootstraps {
 
 	@Override
 	public Optional<? extends Executable> getTargetOf(BootstrapMethod bootstrap) throws IllegalJarException {
-		Constant constant = cpg.getConstant(bootstrap.getBootstrapMethodRef());
-		if (constant instanceof ConstantMethodHandle mh && cpg.getConstant(mh.getReferenceIndex()) instanceof ConstantMethodref mr) {
-			int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
-			String className = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
-			ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
-			String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
-			String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
+		if (cpg.getConstant(bootstrap.getBootstrapMethodRef()) instanceof ConstantMethodHandle mh && cpg.getConstant(mh.getReferenceIndex()) instanceof ConstantMethodref mr) {
+			if (!(cpg.getConstant(mr.getClassIndex()) instanceof ConstantClass cc))
+				throw new IllegalJarException("Illegal constant");
 
-			try {
-				return getTargetOfCallSite(bootstrap, className, methodName, methodSignature);
-			}
-			catch (ClassNotFoundException e) {
-				throw new IllegalJarException(e);
-			}
+			int classNameIndex = cc.getNameIndex();
+			if (!(cpg.getConstant(classNameIndex) instanceof ConstantUtf8 cu8))
+				throw new IllegalJarException("Illegal constant");
+
+			String className = cu8.getBytes().replace('/', '.');
+
+			if (!(cpg.getConstant(mr.getNameAndTypeIndex()) instanceof ConstantNameAndType nt))
+				throw new IllegalJarException("Illegal constant");
+
+			if (!(cpg.getConstant(nt.getNameIndex()) instanceof ConstantUtf8 cu8_2))
+				throw new IllegalJarException("Illegal constant");
+
+			String methodName = cu8_2.getBytes();
+
+			if (!(cpg.getConstant(nt.getSignatureIndex()) instanceof ConstantUtf8 cu8_3))
+				throw new IllegalJarException("Illegal constant");
+
+			String methodSignature = cu8_3.getBytes();
+
+			return getTargetOfCallSite(bootstrap, className, methodName, methodSignature);
 		}
-	
+
 		return Optional.empty();
 	}
 
@@ -215,80 +235,95 @@ public class BootstrapsImpl implements Bootstraps {
 	 * 
 	 * @param bootstrap the bootstrap
 	 * @param methods the methods of the class under verification
-	 * @return the lambda bridge method
+	 * @return the lambda bridge method, if any
+	 * @throws IllegalJarException if the jar of the bootstrap is illegal
 	 */
-	private Optional<MethodGen> getLambdaFor(BootstrapMethod bootstrap, MethodGen[] methods) {
-		if (bootstrap.getNumBootstrapArguments() == 3) {
-			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
-			if (constant instanceof ConstantMethodHandle) {
-				ConstantMethodHandle mh = (ConstantMethodHandle) constant;
-				Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
-				if (constant2 instanceof ConstantMethodref) {
-					ConstantMethodref mr = (ConstantMethodref) constant2;
-					int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
-					String className = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
-					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
-					String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
-					String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-	
-					// a lambda bridge can only be present in the same class that calls it
-					if (className.equals(verifiedClass.getClassName()))
-						return Stream.of(methods)
-							.filter(method -> method.getName().equals(methodName) && method.getSignature().equals(methodSignature))
-							.findFirst();
-				}
-			}
+	private Optional<MethodGen> getLambdaFor(BootstrapMethod bootstrap, MethodGen[] methods) throws IllegalJarException {
+		if (bootstrap.getNumBootstrapArguments() == 3 && cpg.getConstant(bootstrap.getBootstrapArguments()[1]) instanceof ConstantMethodHandle mh
+				&& cpg.getConstant(mh.getReferenceIndex()) instanceof ConstantMethodref mr) {
+
+			if (!(cpg.getConstant(mr.getClassIndex()) instanceof ConstantClass cc))
+				throw new IllegalJarException("Illegal constant");
+
+			if (!(cpg.getConstant(cc.getNameIndex()) instanceof ConstantUtf8 cu8))
+				throw new IllegalJarException("Illegal constant");
+
+			String className = cu8.getBytes().replace('/', '.');
+
+			if (!(cpg.getConstant(mr.getNameAndTypeIndex()) instanceof ConstantNameAndType nt))
+				throw new IllegalJarException("Illegal constant");
+
+			if (!(cpg.getConstant(nt.getNameIndex()) instanceof ConstantUtf8 cu8_2))
+				throw new IllegalJarException("Illegal constant");
+
+			String methodName = cu8_2.getBytes();
+
+			if (!(cpg.getConstant(nt.getSignatureIndex()) instanceof ConstantUtf8 cu8_3))
+				throw new IllegalJarException("Illegal constant");
+
+			String methodSignature = cu8_3.getBytes();
+
+			// a lambda bridge can only be present in the same class that calls it
+			if (className.equals(verifiedClass.getClassName()))
+				return Stream.of(methods)
+						.filter(method -> method.getName().equals(methodName) && method.getSignature().equals(methodSignature))
+						.findFirst();
 		}
-	
+
 		return Optional.empty();
 	}
 
-	private Optional<? extends Executable> getTargetOfCallSite(BootstrapMethod bootstrap, String className, String methodName, String methodSignature) throws ClassNotFoundException {
+	private Optional<? extends Executable> getTargetOfCallSite(BootstrapMethod bootstrap, String className, String methodName, String methodSignature) throws IllegalJarException {
+		// TODO: can this be used to call unexpected methods?
 		if ("java.lang.invoke.LambdaMetafactory".equals(className) &&
 				"metafactory".equals(methodName) &&
 				"(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;".equals(methodSignature)) {
 	
 			// this is the standard factory used to create call sites
-			if (cpg.getConstant(bootstrap.getBootstrapArguments()[1]) instanceof ConstantMethodHandle mh) {
-				Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
-				if (constant2 instanceof ConstantMethodref mr) {
-					int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
-					String className2 = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
-					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
-					String methodName2 = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
-					String methodSignature2 = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-					Class<?>[] args = bcelToClass.of(Type.getArgumentTypes(methodSignature2));
-					Class<?> returnType = bcelToClass.of(Type.getReturnType(methodSignature2));
-	
-					if (Const.CONSTRUCTOR_NAME.equals(methodName2))
-						return verifiedClass.getResolver().resolveConstructorWithPossiblyExpandedArgs(className2, args);
-					else
-						return verifiedClass.getResolver().resolveMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
-				}
-				else if (constant2 instanceof ConstantInterfaceMethodref mr) {
-					int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
-					String className2 = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
-					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
-					String methodName2 = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
-					String methodSignature2 = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-					Class<?>[] args = bcelToClass.of(Type.getArgumentTypes(methodSignature2));
-					Class<?> returnType = bcelToClass.of(Type.getReturnType(methodSignature2));
+			try {
+				if (cpg.getConstant(bootstrap.getBootstrapArguments()[1]) instanceof ConstantMethodHandle mh) {
+					Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
+					if (constant2 instanceof ConstantMethodref mr) {
+						int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
+						String className2 = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
+						ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
+						String methodName2 = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
+						String methodSignature2 = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
+						Class<?>[] args = bcelToClass.of(Type.getArgumentTypes(methodSignature2));
+						Class<?> returnType = bcelToClass.of(Type.getReturnType(methodSignature2));
 
-					return verifiedClass.getResolver().resolveInterfaceMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
+						if (Const.CONSTRUCTOR_NAME.equals(methodName2))
+							return verifiedClass.getResolver().resolveConstructorWithPossiblyExpandedArgs(className2, args);
+						else
+							return verifiedClass.getResolver().resolveMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
+					}
+					else if (constant2 instanceof ConstantInterfaceMethodref mr) {
+						int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
+						String className2 = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
+						ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
+						String methodName2 = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
+						String methodSignature2 = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
+						Class<?>[] args = bcelToClass.of(Type.getArgumentTypes(methodSignature2));
+						Class<?> returnType = bcelToClass.of(Type.getReturnType(methodSignature2));
+
+						return verifiedClass.getResolver().resolveInterfaceMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
+					}
 				}
 			}
+			catch (ClassNotFoundException e) {
+				throw new IllegalJarException(e);
+			}
 		}
-		else if ("java.lang.invoke.StringConcatFactory".equals(className) &&
+		else if ("java.lang.invoke.StringConcatFactory".equals(className) && // TODO: can this be used to call unexpected methods?
 				"makeConcatWithConstants".equals(methodName) &&
 				"(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;".equals(methodSignature)) {
 	
 			// this factory is used to create call sites that lead to string concatenation of every
-			// possible argument type. Generically, we yield the Objects.toString(Object) method, since
-			// all parameters must be checked in order for the call to be white-listed
+			// possible argument type. We yield the Objects.toString(Object) method
 			try {
 				return Optional.of(Objects.class.getMethod("toString", Object.class));
 			}
-			catch (NoSuchMethodException | SecurityException e) {
+			catch (NoSuchMethodException | SecurityException e) { // impossible: Object.toString() exists
 				throw new RuntimeException(e);
 			}
 		}
@@ -302,7 +337,7 @@ public class BootstrapsImpl implements Bootstraps {
 			.map(attribute -> (BootstrapMethods) attribute)
 			.findFirst();
 
-		return bootstraps.isPresent() ? bootstraps.get().getBootstrapMethods() : NO_BOOTSTRAPS;
+		return bootstraps.map(BootstrapMethods::getBootstrapMethods).orElse(NO_BOOTSTRAPS);
 	}
 
 	private void collectBootstrapsLeadingToFromContract(MethodGen[] methods) throws IllegalJarException {
@@ -345,20 +380,15 @@ public class BootstrapsImpl implements Bootstraps {
 
 		while (!ws.isEmpty()) {
 			MethodGen current = ws.removeFirst();
-
 			InstructionList instructionsList = current.getInstructionList();
-			if (instructionsList != null) {
-				Stream.of(instructionsList.getInstructions())
-					.filter(ins -> ins instanceof INVOKEDYNAMIC)
-					.map(ins -> (INVOKEDYNAMIC) ins)
-					.map(this::getBootstrapFor)
-					.map(bootstrap -> getLambdaFor(bootstrap, methods))
-					.filter(Optional::isPresent)
-					.map(Optional::get)
-					.filter(lambda -> lambda.isPrivate() && lambda.isSynthetic())
-					.filter(lambdasPartOfFromContract::add)
-					.forEach(ws::addLast);
-			}
+
+			if (instructionsList != null)
+				for (Instruction ins: instructionsList.getInstructions())
+					if (ins instanceof INVOKEDYNAMIC invokedynamic)
+						getLambdaFor(getBootstrapFor(invokedynamic), methods).ifPresent(lambda -> {
+							if (lambda.isPrivate() && lambda.isSynthetic() && lambdasPartOfFromContract.add(lambda))
+								ws.addLast(lambda);
+						});
 		}
 	}
 
