@@ -16,9 +16,6 @@ limitations under the License.
 
 package io.hotmoka.verification.internal;
 
-import static io.hotmoka.exceptions.CheckRunnable.check;
-import static io.hotmoka.exceptions.UncheckConsumer.uncheck;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
@@ -38,6 +35,7 @@ import org.apache.bcel.generic.MethodGen;
 
 import io.hotmoka.verification.VerificationException;
 import io.hotmoka.verification.api.Bootstraps;
+import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.api.VerifiedClass;
 import io.hotmoka.verification.api.VerifiedJar;
 
@@ -75,10 +73,11 @@ public class VerifiedClassImpl implements VerifiedClass {
 	 * @param issueHandler the handler that is notified of every verification error or warning
 	 * @param duringInitialization true if and only if the class is verified during the initialization of the node
 	 * @param skipsVerification true if and only if the static verification of the class must be skipped
-	 * @throws VerificationException if the class could not be verified
+	 * @throws IllegalJarException if {@code jar} is illegal, because incomplete or containing an illegal bytecode
+	 * @throws VerificationException if the Takamaka verification of the class failed
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 	 */
-	public VerifiedClassImpl(JavaClass clazz, VerifiedJarImpl jar, VersionsManager versionsManager, Consumer<AbstractErrorImpl> issueHandler, boolean duringInitialization, boolean skipsVerification) throws VerificationException, ClassNotFoundException {
+	public VerifiedClassImpl(JavaClass clazz, VerifiedJarImpl jar, VersionsManager versionsManager, Consumer<AbstractErrorImpl> issueHandler, boolean duringInitialization, boolean skipsVerification) throws VerificationException, IllegalJarException {
 		this.clazz = new ClassGen(clazz);
 		this.jar = jar;
 		ConstantPoolGen cpg = getConstantPool();
@@ -152,13 +151,12 @@ public class VerifiedClassImpl implements VerifiedClass {
 	 * @param executable the method or constructor whose model is looked for
 	 * @param invoke the call to the method or constructor
 	 * @return the model of its white-listing, if it exists
-	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 	 */
-	Optional<? extends Executable> whiteListingModelOf(Executable executable, InvokeInstruction invoke) throws ClassNotFoundException {
+	Optional<? extends Executable> whiteListingModelOf(Executable executable, InvokeInstruction invoke) {
 		if (executable instanceof Constructor<?>)
-			return jar.classLoader.getWhiteListingWizard().whiteListingModelOf((Constructor<?>) executable);
+			return jar.getClassLoader().getWhiteListingWizard().whiteListingModelOf((Constructor<?>) executable);
 		else
-			return jar.classLoader.getWhiteListingWizard().whiteListingModelOf((Method) executable);
+			return jar.getClassLoader().getWhiteListingWizard().whiteListingModelOf((Method) executable);
 	}
 
 	/**
@@ -205,9 +203,9 @@ public class VerifiedClassImpl implements VerifiedClass {
 		 * @param duringInitialization true if and only if verification is performed during the initialization of the Hotmoka node
 		 * @param versionsManager the manager of the versions of the verification module
 		 * @throws VerificationException if some verification error occurs
-		 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
+		 * @throws IllegalJarException if the jar under verification is illegal
 		 */
-		private Verification(Consumer<AbstractErrorImpl> issueHandler, MethodGen[] methods, boolean duringInitialization, VersionsManager versionsManager) throws VerificationException, ClassNotFoundException {
+		private Verification(Consumer<AbstractErrorImpl> issueHandler, MethodGen[] methods, boolean duringInitialization, VersionsManager versionsManager) throws VerificationException, IllegalJarException {
 			this.issueHandler = issueHandler;
 			this.versionsManager = versionsManager;
 			ConstantPoolGen cpg = getConstantPool();
@@ -215,19 +213,25 @@ public class VerifiedClassImpl implements VerifiedClass {
 			this.lines = Stream.of(methods).collect(Collectors.toMap(method -> method, method -> method.getLineNumberTable(cpg)));
 			this.duringInitialization = duringInitialization;
 
-			applyAllChecksToTheClass();
-			applyAllChecksToTheMethodsOfTheClass();
+			try { // TODO: throw IllegalJarException directly in the callees
+				applyAllChecksToTheClass();
+				applyAllChecksToTheMethodsOfTheClass();
+			}
+			catch (ClassNotFoundException e) {
+				throw new IllegalJarException(e);
+			}
 
 			if (hasErrors)
 				throw new VerificationException();
 		}
 
-		private void applyAllChecksToTheClass() throws ClassNotFoundException {
+		private void applyAllChecksToTheClass() throws IllegalJarException, ClassNotFoundException { // TODO: remove exception
 			versionsManager.applyAllClassChecks(this);
 		}
 
-		private void applyAllChecksToTheMethodsOfTheClass() throws ClassNotFoundException {
-			check(ClassNotFoundException.class, () -> Stream.of(methods).forEachOrdered(uncheck(ClassNotFoundException.class, method -> versionsManager.applyAllMethodChecks(this, method))));
+		private void applyAllChecksToTheMethodsOfTheClass() throws IllegalJarException, ClassNotFoundException {  // TODO: remove exception
+			for (var method: methods)
+				versionsManager.applyAllMethodChecks(this, method);
 		}
 
 		/**

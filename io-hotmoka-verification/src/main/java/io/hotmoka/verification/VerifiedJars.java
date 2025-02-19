@@ -18,6 +18,7 @@ package io.hotmoka.verification;
 
 import java.io.IOException;
 
+import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.verification.api.VerifiedJar;
 import io.hotmoka.verification.internal.VerifiedJarImpl;
@@ -41,9 +42,9 @@ public final class VerifiedJars {
 	 * @param skipsVerification true if and only if the static verification of the classes of the jar must be skipped
 	 * @return the verified jar
 	 * @throws IOException if an I/O error occurred while accessing the classes
-	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
+	 * @throws IllegalJarException if {@code jar} is illegal
 	 */
-	public static VerifiedJar of(byte[] jar, TakamakaClassLoader classLoader, boolean duringInitialization, boolean skipsVerification) throws IOException, ClassNotFoundException {
+	public static VerifiedJar of(byte[] jar, TakamakaClassLoader classLoader, boolean duringInitialization, boolean skipsVerification) throws IOException, IllegalJarException {
 		return new VerifiedJarImpl(jar, classLoader, duringInitialization, skipsVerification);
 	}
 }

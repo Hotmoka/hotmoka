@@ -45,6 +45,7 @@ import org.apache.bcel.generic.Type;
 import io.hotmoka.instrumentation.internal.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.ClassLevelInstrumentation;
+import io.hotmoka.verification.api.IllegalJarException;
 import it.univr.bcel.StackMapReplacer;
 
 /**
@@ -61,14 +62,14 @@ public class DesugarBootstrapsInvokingEntries extends ClassLevelInstrumentation 
 	 * 
 	 * @param builder the builder of the class being instrumented
 	 */
-	public DesugarBootstrapsInvokingEntries(InstrumentedClassImpl.Builder builder) throws ClassNotFoundException {
+	public DesugarBootstrapsInvokingEntries(InstrumentedClassImpl.Builder builder) throws IllegalJarException {
 		builder.super();
-		check(ClassNotFoundException.class, () ->
-			bootstraps.getBootstrapsLeadingToFromContract().forEachOrdered(uncheck(ClassNotFoundException.class, this::desugarBootstrapCallingEntry))
+		check(IllegalJarException.class, () ->
+			bootstraps.getBootstrapsLeadingToFromContract().forEachOrdered(uncheck(IllegalJarException.class, this::desugarBootstrapCallingEntry))
 		);
 	}
 
-	private void desugarBootstrapCallingEntry(BootstrapMethod bootstrap) throws ClassNotFoundException {
+	private void desugarBootstrapCallingEntry(BootstrapMethod bootstrap) throws IllegalJarException {
 		if (bootstraps.lambdaIsFromContract(bootstrap))
 			desugarLambdaEntry(bootstrap);
 		else

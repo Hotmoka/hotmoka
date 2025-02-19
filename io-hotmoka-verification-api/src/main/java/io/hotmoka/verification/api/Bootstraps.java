@@ -41,9 +41,9 @@ public interface Bootstraps {
 	 * 
 	 * @param bootstrap the bootstrap method
 	 * @return true if and only if that condition holds
-	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
+	 * @throws IllegalJarException if some class of the Takamaka program cannot be found
 	 */
-	boolean lambdaIsFromContract(BootstrapMethod bootstrap) throws ClassNotFoundException;
+	boolean lambdaIsFromContract(BootstrapMethod bootstrap) throws IllegalJarException;
 
 	/**
 	 * Yields the bootstrap methods in this container that lead to a from contract
@@ -67,9 +67,9 @@ public interface Bootstraps {
 	 * 
 	 * @param bootstrap the bootstrap
 	 * @return the target called method or constructor
-	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
+	 * @throws IllegalJarException if some class of the Takamaka program cannot be loaded
 	 */
-	Optional<? extends Executable> getTargetOf(BootstrapMethod bootstrap) throws ClassNotFoundException;
+	Optional<? extends Executable> getTargetOf(BootstrapMethod bootstrap) throws IllegalJarException;
 
 	/**
 	 * Determines if the given lambda method is a part of a {@code @@FromContract} method,

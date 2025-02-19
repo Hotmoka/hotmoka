@@ -33,6 +33,7 @@ import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 
+import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.errors.IllegalAccessToNonWhiteListedFieldError;
 import io.hotmoka.verification.errors.IllegalCallToNonWhiteListedConstructorError;
 import io.hotmoka.verification.errors.IllegalCallToNonWhiteListedMethodError;
@@ -44,14 +45,19 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class UsedCodeIsWhiteListedCheck extends CheckOnMethods {
 
-	public UsedCodeIsWhiteListedCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws ClassNotFoundException {
+	public UsedCodeIsWhiteListedCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
 		super(builder, method);
 
-		if (!duringInitialization || !annotations.isWhiteListedDuringInitialization(className))
-			check(ClassNotFoundException.class, () -> instructions().forEach(uncheck(ClassNotFoundException.class, this::checkSingleInstruction)));
+		try {
+			if (!duringInitialization || !annotations.isWhiteListedDuringInitialization(className))
+				check(IllegalJarException.class, () -> instructions().forEach(uncheck(IllegalJarException.class, this::checkSingleInstruction)));
+		}
+		catch (ClassNotFoundException e) {
+			throw new IllegalJarException(e);
+		}
 	}
 
-	private void checkSingleInstruction(InstructionHandle ih) throws ClassNotFoundException {
+	private void checkSingleInstruction(InstructionHandle ih) throws IllegalJarException {
 		Instruction ins = ih.getInstruction();
 		if (ins instanceof FieldInstruction fi) {
 			if (!hasWhiteListingModel(fi))

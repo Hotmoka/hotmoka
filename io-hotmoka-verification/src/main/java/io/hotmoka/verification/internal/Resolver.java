@@ -35,6 +35,7 @@ import org.apache.bcel.generic.ReferenceType;
 import io.hotmoka.verification.BcelToClasses;
 import io.hotmoka.verification.api.BcelToClass;
 import io.hotmoka.verification.api.Bootstraps;
+import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.verification.api.VerifiedJar;
 import io.hotmoka.whitelisting.Dummy;
@@ -83,14 +84,20 @@ public class Resolver {
 	 * 
 	 * @param fi the instruction
 	 * @return the signature, if any
-	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
+	 * @throws IllegalJarException if some class of the Takamaka program cannot be found
 	 */
-	public Optional<Field> resolvedFieldFor(FieldInstruction fi) throws ClassNotFoundException {
+	public Optional<Field> resolvedFieldFor(FieldInstruction fi) throws IllegalJarException {
 		ReferenceType holder = fi.getReferenceType(cpg);
 		if (holder instanceof ObjectType ot) {
 			String name = fi.getFieldName(cpg);
-			Class<?> type = bcelToClass.of(fi.getFieldType(cpg));
-			return classLoader.resolveField(ot.getClassName(), name, type);
+
+			try {
+				Class<?> type = bcelToClass.of(fi.getFieldType(cpg));
+				return classLoader.resolveField(ot.getClassName(), name, type);
+			}
+			catch (ClassNotFoundException e) {
+				throw new IllegalJarException(e);
+			}
 		}
 	
 		return Optional.empty();
@@ -102,9 +109,9 @@ public class Resolver {
 	 * 
 	 * @param invoke the instruction
 	 * @return the signature
-	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
+	 * @throws IllegalJarException if some class of the Takamaka program cannot be found
 	 */
-	public Optional<? extends Executable> resolvedExecutableFor(InvokeInstruction invoke) throws ClassNotFoundException {
+	public Optional<? extends Executable> resolvedExecutableFor(InvokeInstruction invoke) throws IllegalJarException {
 		if (invoke instanceof INVOKEDYNAMIC invokedynamic) {
 			Bootstraps bootstraps = verifiedClass.bootstraps;
 			return bootstraps.getTargetOf(bootstraps.getBootstrapFor(invokedynamic));
@@ -114,17 +121,23 @@ public class Resolver {
 		ReferenceType receiver = invoke.getReferenceType(cpg);
 		// it is possible to call a method on an array: in that case, the callee is a method of java.lang.Object
 		String receiverClassName = receiver instanceof ObjectType ot ? ot.getClassName() : "java.lang.Object";
-		Class<?>[] args = bcelToClass.of(invoke.getArgumentTypes(cpg));
 
-		if (invoke instanceof INVOKESPECIAL && Const.CONSTRUCTOR_NAME.equals(methodName))
-			return resolveConstructorWithPossiblyExpandedArgs(receiverClassName, args);
-		else {
-			Class<?> returnType = bcelToClass.of(invoke.getReturnType(cpg));
+		try {
+			Class<?>[] args = bcelToClass.of(invoke.getArgumentTypes(cpg));
 
-			if (invoke instanceof INVOKEINTERFACE)
-				return resolveInterfaceMethodWithPossiblyExpandedArgs(receiverClassName, methodName, args, returnType);
-			else
-				return resolveMethodWithPossiblyExpandedArgs(receiverClassName, methodName, args, returnType);
+			if (invoke instanceof INVOKESPECIAL && Const.CONSTRUCTOR_NAME.equals(methodName))
+				return resolveConstructorWithPossiblyExpandedArgs(receiverClassName, args);
+			else {
+				Class<?> returnType = bcelToClass.of(invoke.getReturnType(cpg));
+
+				if (invoke instanceof INVOKEINTERFACE)
+					return resolveInterfaceMethodWithPossiblyExpandedArgs(receiverClassName, methodName, args, returnType);
+				else
+					return resolveMethodWithPossiblyExpandedArgs(receiverClassName, methodName, args, returnType);
+			}
+		}
+		catch (ClassNotFoundException e) {
+			throw new IllegalJarException(e);
 		}
 	}
 

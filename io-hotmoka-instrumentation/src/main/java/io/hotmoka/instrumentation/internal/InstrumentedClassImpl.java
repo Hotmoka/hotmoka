@@ -62,6 +62,7 @@ import io.hotmoka.verification.BcelToClasses;
 import io.hotmoka.verification.api.AnnotationUtility;
 import io.hotmoka.verification.api.BcelToClass;
 import io.hotmoka.verification.api.Bootstraps;
+import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.verification.api.VerifiedClass;
 import it.univr.bcel.StackMapReplacer;
@@ -89,9 +90,9 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 	 * 
 	 * @param clazz the class to instrument
 	 * @param gasCostModel the gas cost model used for the instrumentation
-	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
+	 * @throws IllegalJarException if the jar under instrumentation is illegal
 	 */
-	public InstrumentedClassImpl(VerifiedClass clazz, GasCostModel gasCostModel) throws ClassNotFoundException {
+	public InstrumentedClassImpl(VerifiedClass clazz, GasCostModel gasCostModel) throws IllegalJarException {
 		this.javaClass = new Builder(clazz, gasCostModel).classGen.getJavaClass();
 	}
 
@@ -215,9 +216,9 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		 * 
 		 * @param clazz the class to instrument
 		 * @param gasCostModel the gas cost model used for the instrumentation
-		 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
+		 * @throws IllegalJarException if the jar under instrumentation is illegal
 		 */
-		private Builder(VerifiedClass clazz, GasCostModel gasCostModel) throws ClassNotFoundException {
+		private Builder(VerifiedClass clazz, GasCostModel gasCostModel) throws IllegalJarException {
 			this.verifiedClass = clazz;
 			this.bcelToClass = BcelToClasses.of(verifiedClass.getJar());
 			this.annotations = AnnotationUtilities.of(verifiedClass.getJar());
@@ -232,10 +233,23 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 				.map(method -> new MethodGen(method, className, cpg))
 				.collect(Collectors.toList());
 			this.factory = new InstructionFactory(cpg);
-			this.isStorage = classLoader.isStorage(className);
-			this.isContract = classLoader.isContract(className);
 
-			partitionFieldsOfStorageClasses();
+			try {
+				this.isStorage = classLoader.isStorage(className);
+				this.isContract = classLoader.isContract(className);
+			}
+			catch (ClassNotFoundException e) {
+				// this should never happen since the class is in the jar of the class loader
+				throw new RuntimeException(e);
+			}
+
+			try {
+				partitionFieldsOfStorageClasses(); // TODO: change exception in the callee
+			}
+			catch (ClassNotFoundException e) {
+				throw new IllegalJarException(e);
+			}
+
 			methodLevelInstrumentations();
 			classLevelInstrumentations();
 			replaceMethods();
@@ -566,7 +580,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		 * Performs method-level instrumentations.
 		 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 		 */
-		private void methodLevelInstrumentations() throws ClassNotFoundException {
+		private void methodLevelInstrumentations() throws IllegalJarException {
 			new DesugarBootstrapsInvokingEntries(this);
 
 			for (var method: new ArrayList<>(methods))
@@ -578,14 +592,20 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		 * performed after instrumentation of the bootstraps.
 		 * 
 		 * @param method the method to instrument
-		 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be found
+		 * @throws IllegalJarException if the jar under instrumentation is illegal
 		 */
-		private void postProcess(MethodGen method) throws ClassNotFoundException {
+		private void postProcess(MethodGen method) throws IllegalJarException {
 			new InstrumentMethodsOfSupportClasses(this, method);
-			new ReplaceFieldAccessesWithAccessors(this, method);
-			new AddExtraArgsToCallsToFromContract(this, method);
-			new SetCallerAndBalanceAtTheBeginningOfFromContracts(this, method);
-			new AddGasUpdates(this, method);
+
+			try { // TODO: throws this directly in the callees
+				new ReplaceFieldAccessesWithAccessors(this, method);
+				new AddExtraArgsToCallsToFromContract(this, method);
+				new SetCallerAndBalanceAtTheBeginningOfFromContracts(this, method);
+				new AddGasUpdates(this, method);
+			}
+			catch (ClassNotFoundException e) {
+				throw new IllegalJarException(e);
+			}
 		}
 
 		private boolean isNotStaticAndNotTransient(Field field) {

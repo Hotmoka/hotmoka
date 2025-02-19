@@ -18,6 +18,7 @@ package io.hotmoka.verification.internal;
 
 import org.apache.bcel.generic.MethodGen;
 
+import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.internal.checksOnClass.BootstrapsAreLegalCheck;
 import io.hotmoka.verification.internal.checksOnClass.FromContractCodeIsCalledInCorrectContextCheck;
 import io.hotmoka.verification.internal.checksOnClass.NamesDontStartWithForbiddenPrefix;
@@ -64,8 +65,9 @@ final class VersionsManager {
 	 * 
 	 * @param builder the context of the checks
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
+	 * @throws IllegalJarException if the jar under verification is illegal
 	 */
-	void applyAllClassChecks(VerifiedClassImpl.Verification builder) throws ClassNotFoundException {
+	void applyAllClassChecks(VerifiedClassImpl.Verification builder) throws ClassNotFoundException, IllegalJarException { // TODO: remove exception
 		if (verificationVersion == 0L) {
 			new PackagesAreLegalCheck(builder);
 			new NamesDontStartWithForbiddenPrefix(builder);
@@ -81,8 +83,9 @@ final class VersionsManager {
 	 * @param context the context of the checks
 	 * @param method the method to check
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
+	 * @throws IllegalJarException if the jar under verification is illegal
 	 */
-	void applyAllMethodChecks(VerifiedClassImpl.Verification context, MethodGen method) throws ClassNotFoundException {
+	void applyAllMethodChecks(VerifiedClassImpl.Verification context, MethodGen method) throws ClassNotFoundException, IllegalJarException { // TODO: remove exception
 		if (verificationVersion == 0L) {
 			new PayableCodeReceivesAmountCheck(context, method);
 			new ThrowsExceptionsCodeIsPublicCheck(context, method);

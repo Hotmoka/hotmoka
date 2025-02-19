@@ -33,6 +33,7 @@ import org.apache.bcel.util.ClassLoaderRepository;
 
 import io.hotmoka.verification.VerificationException;
 import io.hotmoka.verification.api.Error;
+import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.verification.api.VerifiedClass;
 import io.hotmoka.verification.api.VerifiedJar;
@@ -69,9 +70,9 @@ public class VerifiedJarImpl implements VerifiedJar {
 	 * @param duringInitialization true if and only if verification occurs during the node initialization
 	 * @param skipsVerification true if and only if the static verification of the classes of the jar must be skipped
 	 * @throws IOException if an I/O error occurred while accessing the classes
-	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
+	 * @throws IllegalJarException if the jar under verification is illegal
 	 */
-	public VerifiedJarImpl(byte[] origin, TakamakaClassLoader classLoader, boolean duringInitialization, boolean skipsVerification) throws IOException, ClassNotFoundException {
+	public VerifiedJarImpl(byte[] origin, TakamakaClassLoader classLoader, boolean duringInitialization, boolean skipsVerification) throws IOException, IllegalJarException {
 		this.classLoader = classLoader;
 
 		// we set the BCEL repository so that it matches the class path made up of the jar to
@@ -125,10 +126,10 @@ public class VerifiedJarImpl implements VerifiedJar {
 		 * @param origin the jar file to verify, as an array of bytes
 		 * @param duringInitialization true if and only if the verification is performed during the initialization of the node
 		 * @param skipsVerification true if and only if the static verification of the classes of the jar must be skipped
-		 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
+		 * @throws IllegalJarException if the jar under verification is illegal
 		 * @throws IOException if an I/O error occurred while accessing the classes
 		 */
-		private Initializer(byte[] origin, boolean duringInitialization, boolean skipsVerification) throws IOException, ClassNotFoundException {
+		private Initializer(byte[] origin, boolean duringInitialization, boolean skipsVerification) throws IOException, IllegalJarException {
 			this.duringInitialization = duringInitialization;
 
 			try {
@@ -160,10 +161,11 @@ public class VerifiedJarImpl implements VerifiedJar {
 		 * @param entry the entry
 		 * @param input the stream of the jar in the entry
 		 * @return the BCEL class, if the class for {@code entry} did verify
+		 * @throws IllegalJarException of the jar under verification is illegal
 		 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 		 * @throws IOException if the entry cannot be accessed correctly
 		 */
-		private Optional<VerifiedClass> buildVerifiedClass(ZipEntry entry, InputStream input) throws ClassNotFoundException, ClassFormatException, IOException {
+		private Optional<VerifiedClass> buildVerifiedClass(ZipEntry entry, InputStream input) throws IllegalJarException, ClassFormatException, IOException {
 			try {
 				// generates a RAM image of the class file, by using the BCEL library for bytecode manipulation
 				return Optional.of(new VerifiedClassImpl(new ClassParser(input, entry.getName()).parse(), VerifiedJarImpl.this, versionsManager, errors::add, duringInitialization, skipsVerification));

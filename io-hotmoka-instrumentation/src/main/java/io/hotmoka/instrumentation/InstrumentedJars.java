@@ -20,6 +20,7 @@ import io.hotmoka.instrumentation.api.GasCostModel;
 import io.hotmoka.instrumentation.api.InstrumentedJar;
 import io.hotmoka.instrumentation.internal.InstrumentedJarImpl;
 import io.hotmoka.verification.VerificationException;
+import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.api.VerifiedJar;
 
 /**
@@ -36,10 +37,10 @@ public final class InstrumentedJars {
 	 * @param verifiedJar the already verified jar
 	 * @param gasCostModel the gas cost model used for the instrumentation
 	 * @return the instrumented jar
-	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
+	 * @throws IllegalJarException if {@code verifiedJar} is illegal
 	 * @throws VerificationException if {@code verifiedJar} has some error
 	 */
-	public static InstrumentedJar of(VerifiedJar verifiedJar, GasCostModel gasCostModel) throws ClassNotFoundException, VerificationException {
+	public static InstrumentedJar of(VerifiedJar verifiedJar, GasCostModel gasCostModel) throws IllegalJarException, VerificationException {
 		return new InstrumentedJarImpl(verifiedJar, gasCostModel);
 	}
 }

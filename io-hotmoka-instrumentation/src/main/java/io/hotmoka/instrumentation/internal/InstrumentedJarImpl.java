@@ -35,6 +35,7 @@ import io.hotmoka.instrumentation.api.GasCostModel;
 import io.hotmoka.instrumentation.api.InstrumentedClass;
 import io.hotmoka.instrumentation.api.InstrumentedJar;
 import io.hotmoka.verification.VerificationException;
+import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.api.VerifiedJar;
 
 /**
@@ -55,18 +56,18 @@ public class InstrumentedJarImpl implements InstrumentedJar {
 	 * 
 	 * @param verifiedJar the jar that contains the classes already verified
 	 * @param gasCostModel the gas cost model used for the instrumentation
-	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
+	 * @throws IllegalJarException if {@code verifiedJar} is illegal
 	 * @throws VerificationException if {@code verifiedJar} has some error
 	 */
-	public InstrumentedJarImpl(VerifiedJar verifiedJar, GasCostModel gasCostModel) throws ClassNotFoundException, VerificationException {
+	public InstrumentedJarImpl(VerifiedJar verifiedJar, GasCostModel gasCostModel) throws IllegalJarException, VerificationException {
 		var firstError = verifiedJar.getErrors().findFirst();
 		if (firstError.isPresent())
 			throw new VerificationException(firstError.get());
 
 		// we cannot proceed in parallel since the BCEL library is not thread-safe
-		this.classes = check(ClassNotFoundException.class, () ->
+		this.classes = check(IllegalJarException.class, () ->
 			verifiedJar.getClasses()
-				.map(uncheck(ClassNotFoundException.class, clazz -> InstrumentedClasses.of(clazz, gasCostModel)))
+				.map(uncheck(IllegalJarException.class, clazz -> InstrumentedClasses.of(clazz, gasCostModel)))
 				.collect(Collectors.toCollection(TreeSet::new))
 		);
 	}

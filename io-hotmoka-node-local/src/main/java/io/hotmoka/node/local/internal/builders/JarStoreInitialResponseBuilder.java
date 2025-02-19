@@ -29,6 +29,7 @@ import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.verification.VerificationException;
 import io.hotmoka.verification.VerifiedJars;
+import io.hotmoka.verification.api.IllegalJarException;
 
 /**
  * Builds the creator of response for a transaction that installs a jar in the node, during its initialization.
@@ -69,6 +70,9 @@ public class JarStoreInitialResponseBuilder extends AbstractInitialResponseBuild
 				}
 				catch (IOException t) {
 					throw new RuntimeException("unexpected exception", t);
+				}
+				catch (IllegalJarException e) { // TODO: levae this thrown
+					throw new ClassNotFoundException();
 				}
 			}
 		}

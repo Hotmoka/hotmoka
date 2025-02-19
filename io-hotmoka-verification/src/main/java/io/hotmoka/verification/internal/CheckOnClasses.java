@@ -41,6 +41,7 @@ import io.hotmoka.verification.AnnotationUtilities;
 import io.hotmoka.verification.BcelToClasses;
 import io.hotmoka.verification.api.AnnotationUtility;
 import io.hotmoka.verification.api.BcelToClass;
+import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 
 /**
@@ -75,12 +76,12 @@ public abstract class CheckOnClasses {
 		builder.setHasErrors();
 	}
 
-	protected final boolean hasWhiteListingModel(FieldInstruction fi) throws ClassNotFoundException {
+	protected final boolean hasWhiteListingModel(FieldInstruction fi) throws IllegalJarException {
 		Optional<Field> field = resolver.resolvedFieldFor(fi);
 		return field.isPresent() && classLoader.getWhiteListingWizard().whiteListingModelOf(field.get()).isPresent();
 	}
 
-	protected final boolean hasWhiteListingModel(InvokeInstruction invoke) throws ClassNotFoundException {
+	protected final boolean hasWhiteListingModel(InvokeInstruction invoke) throws IllegalJarException {
 		Optional<? extends Executable> executable = resolver.resolvedExecutableFor(invoke);
 		return executable.isPresent() && builder.getVerifiedClass().whiteListingModelOf(executable.get(), invoke).isPresent();
 	}
