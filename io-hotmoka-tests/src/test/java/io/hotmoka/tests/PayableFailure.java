@@ -20,9 +20,6 @@ import static java.math.BigInteger.ZERO;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
-import java.security.SignatureException;
-import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,12 +30,8 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.types.ClassType;
-import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
 
 /**
@@ -59,25 +52,25 @@ class PayableFailure extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new C().foo(null) goes into exception")
-	void callFoo() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void callFoo() throws Exception {
 		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _50_000, ZERO, jar(), ConstructorSignatures.of(C));
 
 		throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "parameter cannot be null", () ->
 			addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _50_000, ZERO, jar(), MethodSignatures.ofVoid(C, "foo", C), c, StorageValues.NULL));
 
-		BigInteger balance = ((BigIntegerValue) runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.BALANCE, account(0))).getValue();
+		BigInteger balance = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.BALANCE, account(0)).asReturnedBigInteger(MethodSignatures.BALANCE, NodeException::new);
 		assertEquals(_1_000_000, balance);
 	}
 
 	@Test @DisplayName("new C().goo(1000, null) goes into exception and 1000 remains in the balance of the caller")
-	void callGoo() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void callGoo() throws Exception {
 		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _50_000, ZERO, jar(), ConstructorSignatures.of(C));
 
 		// sends 1000 as payment for a transaction that fails
 		throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "parameter cannot be null", () ->
 			addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _50_000, ZERO, jar(), MethodSignatures.ofVoid(C, "goo", StorageTypes.LONG, C), c, StorageValues.longOf(1000), StorageValues.NULL));
 
-		BigInteger balance = ((BigIntegerValue) runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.BALANCE, account(0))).getValue();
+		BigInteger balance = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.BALANCE, account(0)).asReturnedBigInteger(MethodSignatures.BALANCE, NodeException::new);
 
 		// 1000 is back in the balance of the caller
 		assertEquals(_1_000_000, balance);

@@ -19,9 +19,6 @@ package io.hotmoka.tests;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
-import java.security.SignatureException;
-import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,12 +29,8 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.types.ClassType;
-import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
 
 /**
@@ -58,32 +51,38 @@ class MethodOnThis extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new Bridge().foo(100) then Bridge has balance 0 and its Sub field has balance 100")
-	void testBalances() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void testBalances() throws Exception {
 		StorageReference bridge = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), ConstructorSignatures.of(BRIDGE));
 		addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(),
 			MethodSignatures.ofVoid(BRIDGE, "foo", StorageTypes.INT), bridge, StorageValues.intOf(100));
 		
-		BigIntegerValue balanceOfBridge = (BigIntegerValue) runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.ofNonVoid(BRIDGE, "getBalance", StorageTypes.BIG_INTEGER), bridge);
-		BigIntegerValue initialBalanceOfBridge = (BigIntegerValue) runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.ofNonVoid(BRIDGE, "getInitialBalance", StorageTypes.BIG_INTEGER), bridge);
-		BigIntegerValue balanceOfSub = (BigIntegerValue) runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.ofNonVoid(BRIDGE, "getBalanceOfSub", StorageTypes.BIG_INTEGER), bridge);
+		var getBalance = MethodSignatures.ofNonVoid(BRIDGE, "getBalance", StorageTypes.BIG_INTEGER);
+		BigInteger balanceOfBridge = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), getBalance, bridge).asReturnedBigInteger(getBalance, NodeException::new);
+		var getInitialBalance = MethodSignatures.ofNonVoid(BRIDGE, "getInitialBalance", StorageTypes.BIG_INTEGER);
+		BigInteger initialBalanceOfBridge = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), getInitialBalance, bridge).asReturnedBigInteger(getInitialBalance, NodeException::new);
+		var getBalanceOfSub = MethodSignatures.ofNonVoid(BRIDGE, "getBalanceOfSub", StorageTypes.BIG_INTEGER);
+		BigInteger balanceOfSub = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), getBalanceOfSub, bridge).asReturnedBigInteger(getBalanceOfSub, NodeException::new);
 
-		assertEquals(BigInteger.ZERO, balanceOfBridge.getValue());
-		assertEquals(BigInteger.valueOf(100L), initialBalanceOfBridge.getValue());
-		assertEquals(BigInteger.valueOf(100L), balanceOfSub.getValue());
+		assertEquals(BigInteger.ZERO, balanceOfBridge);
+		assertEquals(BigInteger.valueOf(100L), initialBalanceOfBridge);
+		assertEquals(BigInteger.valueOf(100L), balanceOfSub);
 	}
 
 	@Test @DisplayName("new Bridge2().foo(100) then Bridge2 has balance 0 and its Sub2 field has balance 100")
-	void testBalances2() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void testBalances2() throws Exception {
 		StorageReference bridge = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), ConstructorSignatures.of(BRIDGE2));
 		addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(),
 			MethodSignatures.ofVoid(BRIDGE2, "foo", StorageTypes.INT), bridge, StorageValues.intOf(100));
 		
-		BigIntegerValue balanceOfBridge = (BigIntegerValue) runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.ofNonVoid(BRIDGE2, "getBalance", StorageTypes.BIG_INTEGER), bridge);
-		BigIntegerValue initialBalanceOfBridge = (BigIntegerValue) runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.ofNonVoid(BRIDGE2, "getInitialBalance", StorageTypes.BIG_INTEGER), bridge);
-		BigIntegerValue balanceOfSub = (BigIntegerValue) runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.ofNonVoid(BRIDGE2, "getBalanceOfSub", StorageTypes.BIG_INTEGER), bridge);
+		var getBalance = MethodSignatures.ofNonVoid(BRIDGE2, "getBalance", StorageTypes.BIG_INTEGER);
+		BigInteger balanceOfBridge = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), getBalance, bridge).asReturnedBigInteger(getBalance, NodeException::new);
+		var getInitialBalance = MethodSignatures.ofNonVoid(BRIDGE2, "getInitialBalance", StorageTypes.BIG_INTEGER);
+		BigInteger initialBalanceOfBridge = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), getInitialBalance, bridge).asReturnedBigInteger(getInitialBalance, NodeException::new);
+		var getBalanceOfSub = MethodSignatures.ofNonVoid(BRIDGE2, "getBalanceOfSub", StorageTypes.BIG_INTEGER);
+		BigInteger balanceOfSub = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), getBalanceOfSub, bridge).asReturnedBigInteger(getBalanceOfSub, NodeException::new);
 
-		assertEquals(BigInteger.ZERO, balanceOfBridge.getValue());
-		assertEquals(BigInteger.valueOf(100L), initialBalanceOfBridge.getValue());
-		assertEquals(BigInteger.valueOf(100L), balanceOfSub.getValue());
+		assertEquals(BigInteger.ZERO, balanceOfBridge);
+		assertEquals(BigInteger.valueOf(100L), initialBalanceOfBridge);
+		assertEquals(BigInteger.valueOf(100L), balanceOfSub);
 	}
 }

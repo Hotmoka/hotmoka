@@ -278,17 +278,36 @@ public class BootstrapsImpl implements Bootstraps {
 		if ("java.lang.invoke.LambdaMetafactory".equals(className) &&
 				"metafactory".equals(methodName) &&
 				"(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;".equals(methodSignature)) {
-	
+
 			// this is the standard factory used to create call sites
-			try {
-				if (cpg.getConstant(bootstrap.getBootstrapArguments()[1]) instanceof ConstantMethodHandle mh) {
-					Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
-					if (constant2 instanceof ConstantMethodref mr) {
-						int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
-						String className2 = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
-						ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
-						String methodName2 = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
-						String methodSignature2 = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
+			if (cpg.getConstant(bootstrap.getBootstrapArguments()[1]) instanceof ConstantMethodHandle mh) {
+				Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
+
+				if (constant2 instanceof ConstantMethodref mr) {
+					if (!(cpg.getConstant(mr.getClassIndex()) instanceof ConstantClass cc))
+						throw new IllegalJarException("Illegal constant");
+
+					int classNameIndex = cc.getNameIndex();
+
+					if (!(cpg.getConstant(classNameIndex) instanceof ConstantUtf8 cu8))
+						throw new IllegalJarException("Illegal constant");
+
+					String className2 = cu8.getBytes().replace('/', '.');
+
+					if (!(cpg.getConstant(mr.getNameAndTypeIndex()) instanceof ConstantNameAndType nt))
+						throw new IllegalJarException("Illegal constant");
+
+					if (!(cpg.getConstant(nt.getNameIndex()) instanceof ConstantUtf8 cu8_2))
+						throw new IllegalJarException("Illegal constant");
+
+					String methodName2 = cu8_2.getBytes();
+
+					if (!(cpg.getConstant(nt.getSignatureIndex()) instanceof ConstantUtf8 cu8_3))
+						throw new IllegalJarException("Illegal constant");
+
+					String methodSignature2 = cu8_3.getBytes();
+
+					try {
 						Class<?>[] args = bcelToClass.of(Type.getArgumentTypes(methodSignature2));
 						Class<?> returnType = bcelToClass.of(Type.getReturnType(methodSignature2));
 
@@ -297,27 +316,50 @@ public class BootstrapsImpl implements Bootstraps {
 						else
 							return verifiedClass.getResolver().resolveMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
 					}
-					else if (constant2 instanceof ConstantInterfaceMethodref mr) {
-						int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
-						String className2 = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
-						ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
-						String methodName2 = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
-						String methodSignature2 = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
+					catch (ClassNotFoundException e) {
+						throw new IllegalJarException(e);
+					}
+				}
+				else if (constant2 instanceof ConstantInterfaceMethodref mr) {
+					if (!(cpg.getConstant(mr.getClassIndex()) instanceof ConstantClass cc))
+						throw new IllegalJarException("Illegal constant");
+
+					int classNameIndex = cc.getNameIndex();
+
+					if (!(cpg.getConstant(classNameIndex) instanceof ConstantUtf8 cu8))
+						throw new IllegalJarException("Illegal constant");
+
+					String className2 = cu8.getBytes().replace('/', '.');
+
+					if (!(cpg.getConstant(mr.getNameAndTypeIndex()) instanceof ConstantNameAndType nt))
+						throw new IllegalJarException("Illegal constant");
+
+					if (!(cpg.getConstant(nt.getNameIndex()) instanceof ConstantUtf8 cu8_2))
+						throw new IllegalJarException("Illegal constant");
+
+					String methodName2 = cu8_2.getBytes();
+
+					if (!(cpg.getConstant(nt.getSignatureIndex()) instanceof ConstantUtf8 cu8_3))
+						throw new IllegalJarException("Illegal constant");
+
+					String methodSignature2 = cu8_3.getBytes();
+
+					try {
 						Class<?>[] args = bcelToClass.of(Type.getArgumentTypes(methodSignature2));
 						Class<?> returnType = bcelToClass.of(Type.getReturnType(methodSignature2));
 
 						return verifiedClass.getResolver().resolveInterfaceMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
 					}
+					catch (ClassNotFoundException e) {
+						throw new IllegalJarException(e);
+					}
 				}
-			}
-			catch (ClassNotFoundException e) {
-				throw new IllegalJarException(e);
 			}
 		}
 		else if ("java.lang.invoke.StringConcatFactory".equals(className) && // TODO: can this be used to call unexpected methods?
 				"makeConcatWithConstants".equals(methodName) &&
 				"(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;".equals(methodSignature)) {
-	
+
 			// this factory is used to create call sites that lead to string concatenation of every
 			// possible argument type. We yield the Objects.toString(Object) method
 			try {
@@ -327,7 +369,7 @@ public class BootstrapsImpl implements Bootstraps {
 				throw new RuntimeException(e);
 			}
 		}
-	
+
 		return Optional.empty();
 	}
 

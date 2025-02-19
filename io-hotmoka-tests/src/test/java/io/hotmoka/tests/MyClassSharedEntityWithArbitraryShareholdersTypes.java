@@ -24,9 +24,6 @@ import static io.hotmoka.node.StorageTypes.LONG;
 import static io.hotmoka.node.StorageTypes.SHARED_ENTITY;
 
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
-import java.security.SignatureException;
-import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,10 +34,6 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
@@ -79,7 +72,7 @@ class MyClassSharedEntityWithArbitraryShareholdersTypes extends HotmokaTest {
 
     @Test
     @DisplayName("acceptance with different shareholder classes works in MyClassSharedEntity1")
-    void MyClassSharedEntity1DifferentShareholderClassesWorks() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
+    void MyClassSharedEntity1DifferentShareholderClassesWorks() throws Exception {
         // create the MyClass contract from the seller
         StorageReference sellerContractMyClass = addConstructorCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath, MY_CLASS_CONSTRUCTOR);
 
@@ -107,7 +100,7 @@ class MyClassSharedEntityWithArbitraryShareholdersTypes extends HotmokaTest {
 
     @Test
     @DisplayName("acceptance with different shareholder classes fails in MyClassSharedEntity2")
-    void MyClassSharedEntity2DifferentShareholderClassesFails() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
+    void MyClassSharedEntity2DifferentShareholderClassesFails() throws Exception {
         // create the MyClass contract from the seller
         StorageReference sellerContractMyClass = addConstructorCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath, MY_CLASS_CONSTRUCTOR);
 
