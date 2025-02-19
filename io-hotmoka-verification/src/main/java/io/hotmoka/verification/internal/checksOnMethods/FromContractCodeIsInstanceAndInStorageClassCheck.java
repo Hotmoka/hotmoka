@@ -20,6 +20,7 @@ import java.util.Optional;
 
 import org.apache.bcel.generic.MethodGen;
 
+import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.errors.FromContractNotInStorageError;
 import io.hotmoka.verification.errors.IllegalFromContractArgumentError;
 import io.hotmoka.verification.internal.CheckOnMethods;
@@ -30,17 +31,42 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class FromContractCodeIsInstanceAndInStorageClassCheck extends CheckOnMethods {
 
-	public FromContractCodeIsInstanceAndInStorageClassCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws ClassNotFoundException {
+	public FromContractCodeIsInstanceAndInStorageClassCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
 		super(builder, method);
 
-		Optional<Class<?>> ann = annotations.getFromContractArgument(className, methodName, methodArgs, methodReturnType);
-		
-		if (ann.isPresent()) {
-			if (!classLoader.getContract().isAssignableFrom(ann.get()))
+		Optional<Class<?>> fromContractArgument;
+
+		try {
+			fromContractArgument = annotations.getFromContractArgument(className, methodName, methodArgs, methodReturnType);
+		}
+		catch (ClassNotFoundException e) {
+			throw new IllegalJarException(e);
+		}
+
+		if (fromContractArgument.isPresent()) {
+			if (!classLoader.getContract().isAssignableFrom(fromContractArgument.get()))
 				issue(new IllegalFromContractArgumentError(inferSourceFile(), methodName));
 
-			if (method.isStatic() || (!classLoader.isInterface(className) && !classLoader.isStorage(className)))
+			if (method.isStatic())
 				issue(new FromContractNotInStorageError(inferSourceFile(), methodName));
+
+			boolean isInterface;
+
+			try {
+				isInterface = classLoader.isInterface(className);
+			}
+			catch (ClassNotFoundException e) {
+				// className is in the jar, so it must be found by the class loader
+				throw new RuntimeException(e);
+			}
+
+			try {
+				if (!isInterface && !classLoader.isStorage(className))
+					issue(new FromContractNotInStorageError(inferSourceFile(), methodName));
+			}
+			catch (ClassNotFoundException e) {
+				throw new IllegalJarException(e);
+			}
 		};
 	}
 }

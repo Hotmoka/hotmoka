@@ -41,27 +41,38 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
 import io.hotmoka.verification.Pushers;
+import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.errors.IllegalModificationOfAmountInConstructorChaining;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
 
 /**
- * A checks that {@code @@Payable} or {@code @@RedPayable} constructor-chaining calls pass exactly
- * the same amount passed to the caller.
+ * A checks that {@code @@Payable} constructor-chaining calls pass exactly the same amount passed to the caller.
  */
 public class AmountIsNotModifiedInConstructorChainingCheck extends CheckOnMethods {
 
-	public AmountIsNotModifiedInConstructorChainingCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws ClassNotFoundException {
+	public AmountIsNotModifiedInConstructorChainingCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
 		super(builder, method);
 
-		if (Const.CONSTRUCTOR_NAME.equals(methodName) && methodArgs.length > 0 && annotations.isPayable(className, methodName, methodArgs, methodReturnType)) {
-			check(ClassNotFoundException.class, () ->
+		if (Const.CONSTRUCTOR_NAME.equals(methodName) && methodArgs.length > 0) {
+			boolean isPayable;
+
+			try {
+				isPayable = annotations.isPayable(className, methodName, methodArgs, methodReturnType);
+			}
+			catch (ClassNotFoundException e) {
+				throw new IllegalJarException(e);
+			}
+
+			if (isPayable) {
+				check(IllegalJarException.class, () ->
 				instructions()
-					.filter(uncheck(ClassNotFoundException.class, this::callsPayableFromContractConstructorOnThis))
+					.filter(uncheck(IllegalJarException.class, this::callsPayableFromContractConstructorOnThis))
 					.filter(this::amountMightBeChanged)
 					.map(ih -> new IllegalModificationOfAmountInConstructorChaining(inferSourceFile(), method.getName(), lineOf(method, ih)))
 					.forEachOrdered(this::issue)
-			);
+				);
+			}
 		}
 	}
 
@@ -131,25 +142,30 @@ public class AmountIsNotModifiedInConstructorChainingCheck extends CheckOnMethod
     	return instructions().filter(ih -> ih.getInstruction() == i).findFirst();
     }
 
-    private boolean callsPayableFromContractConstructorOnThis(InstructionHandle ih) throws ClassNotFoundException {
-		if (ih.getInstruction() instanceof INVOKESPECIAL invoke) {
-			String methodName = invoke.getMethodName(cpg);
-			if (Const.CONSTRUCTOR_NAME.equals(methodName)) {
-				if (invoke.getReferenceType(cpg) instanceof ObjectType receiver) {
-					Type[] argumentTypes = invoke.getArgumentTypes(cpg);
-					int slots = Stream.of(argumentTypes).mapToInt(Type::getSize).sum();
-					String classNameOfReceiver = receiver.getClassName();
-					Type returnType = invoke.getReturnType(cpg);
-					boolean callsPayableFromContract = annotations.isFromContract(classNameOfReceiver, methodName, argumentTypes, returnType) &&
-						annotations.isPayable(classNameOfReceiver, methodName, argumentTypes, returnType);
+    private boolean callsPayableFromContractConstructorOnThis(InstructionHandle ih) throws IllegalJarException {
+    	if (ih.getInstruction() instanceof INVOKESPECIAL invoke) {
+    		String methodName = invoke.getMethodName(cpg);
+    		if (Const.CONSTRUCTOR_NAME.equals(methodName) && invoke.getReferenceType(cpg) instanceof ObjectType receiver) {
+    			Type[] argumentTypes = invoke.getArgumentTypes(cpg);
+    			int slots = Stream.of(argumentTypes).mapToInt(Type::getSize).sum();
+    			String classNameOfReceiver = receiver.getClassName();
+    			Type returnType = invoke.getReturnType(cpg);
+    			boolean callsPayableFromContract;
 
-					return callsPayableFromContract &&
-						Pushers.of(ih, slots + 1, method)
-							.map(InstructionHandle::getInstruction)
-							.allMatch(ins -> ins instanceof LoadInstruction load && load.getIndex() == 0);	
-				}
-			}
-		}
+    			try {
+    				callsPayableFromContract = annotations.isFromContract(classNameOfReceiver, methodName, argumentTypes, returnType) &&
+    						annotations.isPayable(classNameOfReceiver, methodName, argumentTypes, returnType);
+    			}
+    			catch (ClassNotFoundException e) {
+    				throw new IllegalJarException(e);
+    			}
+
+    			return callsPayableFromContract &&
+    					Pushers.of(ih, slots + 1, method)
+    					.map(InstructionHandle::getInstruction)
+    					.allMatch(ins -> ins instanceof LoadInstruction load && load.getIndex() == 0);	
+    		}
+    	}
 
 		return false;
 	}

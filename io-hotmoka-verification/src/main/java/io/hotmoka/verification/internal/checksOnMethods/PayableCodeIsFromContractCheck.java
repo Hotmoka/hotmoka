@@ -18,6 +18,7 @@ package io.hotmoka.verification.internal.checksOnMethods;
 
 import org.apache.bcel.generic.MethodGen;
 
+import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.errors.PayableNotInContractError;
 import io.hotmoka.verification.errors.PayableWithoutFromContractError;
 import io.hotmoka.verification.internal.CheckOnMethods;
@@ -28,15 +29,20 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class PayableCodeIsFromContractCheck extends CheckOnMethods {
 
-	public PayableCodeIsFromContractCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws ClassNotFoundException {
+	public PayableCodeIsFromContractCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
 		super(builder, method);
 
-		if (annotations.isPayable(className, methodName, methodArgs, methodReturnType)) {
-			if (!annotations.isFromContract(className, methodName, methodArgs, methodReturnType))
-				issue(new PayableWithoutFromContractError(inferSourceFile(), methodName));
+		try {
+			if (annotations.isPayable(className, methodName, methodArgs, methodReturnType)) {
+				if (!annotations.isFromContract(className, methodName, methodArgs, methodReturnType))
+					issue(new PayableWithoutFromContractError(inferSourceFile(), methodName));
 
-			if (!classLoader.isContract(className) && !classLoader.isInterface(className))
-				issue(new PayableNotInContractError(inferSourceFile(), methodName));
+				if (!classLoader.isContract(className) && !classLoader.isInterface(className))
+					issue(new PayableNotInContractError(inferSourceFile(), methodName));
+			}
+		}
+		catch (ClassNotFoundException e) {
+			throw new IllegalJarException(e);
 		}
 	}
 }

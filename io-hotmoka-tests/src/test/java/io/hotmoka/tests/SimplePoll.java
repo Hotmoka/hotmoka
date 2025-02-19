@@ -23,9 +23,6 @@ import static java.math.BigInteger.ZERO;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
-import java.security.SignatureException;
-import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -37,10 +34,7 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.signatures.VoidMethodSignature;
@@ -89,24 +83,23 @@ class SimplePoll extends HotmokaTest {
 		external = account(4);
 	}
 
-	StorageReference addSimpleSharedEntity(BigInteger share0, BigInteger share1, BigInteger share2, BigInteger share3) 
-			throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	StorageReference addSimpleSharedEntity(BigInteger share0, BigInteger share1, BigInteger share2, BigInteger share3) throws Exception {
 		return addConstructorCallTransaction(privateKey(0), stakeholder0, _10_000_000, ONE, jar(),
 				SIMPLE_SHARED_ENTITY_CONSTRUCTOR, stakeholder0, stakeholder1, stakeholder2, stakeholder3,
 				StorageValues.bigIntegerOf(share0), StorageValues.bigIntegerOf(share1), StorageValues.bigIntegerOf(share2), StorageValues.bigIntegerOf(share3));
 	}
 
-	StorageReference addSimplePoll(StorageReference sharedEntity, StorageReference action) throws InvalidKeyException, SignatureException, TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
+	StorageReference addSimplePoll(StorageReference sharedEntity, StorageReference action) throws Exception {
 		return addConstructorCallTransaction(privateKey(0), stakeholder0, _10_000_000, ONE, jar(), SIMPLE_POLL_ENTITY_CONSTRUCTOR, sharedEntity, action);
 	}
 
-	StorageReference addAction() throws InvalidKeyException, SignatureException, TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
+	StorageReference addAction() throws Exception {
 		return addConstructorCallTransaction(privateKey(0), stakeholder0, _10_000_000, ONE, jar(), ACTION_CONSTRUCTOR);
 	}
 
 	@Test
 	@DisplayName("new SimplePoll where there are not enough votes able to close it")
-	void NotOverSimplePollWithNotEnoughVotes() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void NotOverSimplePollWithNotEnoughVotes() throws Exception {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
@@ -119,7 +112,7 @@ class SimplePoll extends HotmokaTest {
 	
 	@Test
 	@DisplayName("new SimplePoll where no one has voted yet")
-	void NotOverSimplePoll() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void NotOverSimplePoll() throws Exception {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity( BigInteger.valueOf(10), ONE, ONE, ONE);
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
@@ -133,8 +126,7 @@ class SimplePoll extends HotmokaTest {
 	
 	@Test
 	@DisplayName("new SimplePoll where a contract external to the shared entity tries to vote")
-	void SimplePollVoteFailureByExternalContract() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
-		
+	void SimplePollVoteFailureByExternalContract() throws Exception {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
@@ -150,8 +142,7 @@ class SimplePoll extends HotmokaTest {
 	
 	@Test
 	@DisplayName("new SimplePoll where someone attempts to close it before it's over")
-	void NotOverSimplePollWithCloseAttempt() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
-		
+	void NotOverSimplePollWithCloseAttempt() throws Exception {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
@@ -166,8 +157,7 @@ class SimplePoll extends HotmokaTest {
 	
 	@Test
 	@DisplayName("new SimplePoll where someone attempts to vote twice")
-	void SimplePollWithDoubleVoteAttempt() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
-
+	void SimplePollWithDoubleVoteAttempt() throws Exception {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
@@ -179,7 +169,7 @@ class SimplePoll extends HotmokaTest {
 
 	@Test
 	@DisplayName("new SimplePoll where someone attempts to vote with more voting power than the maximum")
-	void SimplePollWithVoteAttemptWithMorePowerThanAllowed() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void SimplePollWithVoteAttemptWithMorePowerThanAllowed() throws Exception {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
@@ -189,7 +179,7 @@ class SimplePoll extends HotmokaTest {
 
 	@Test
 	@DisplayName("new SimplePoll() where all the 4 participants (having the same voting power) vote with their maximum voting power")
-	void SuccessfulSimplePollWhereAllStakeHoldersVote() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void SuccessfulSimplePollWhereAllStakeHoldersVote() throws Exception {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
@@ -210,7 +200,7 @@ class SimplePoll extends HotmokaTest {
 	
 	@Test
 	@DisplayName("new SimplePoll() where more than half of the participants (having the same voting power) vote with their maximum voting power")
-	void SuccessfulSimplePollWhereMoreThan50PercentStakeholdersVote() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void SuccessfulSimplePollWhereMoreThan50PercentStakeholdersVote() throws Exception {
 		
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
@@ -231,7 +221,7 @@ class SimplePoll extends HotmokaTest {
 	
 	@Test
 	@DisplayName("new SimplePoll where one of the participants, holding a huge amount of voting power (more than 50% of the total) votes with maximum power")
-	void SuccessfulSimplePollWhereOneOfTheStakeHoldersHasWayMorePower() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void SuccessfulSimplePollWhereOneOfTheStakeHoldersHasWayMorePower() throws Exception {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity( BigInteger.valueOf(10), ONE, ONE, ONE);
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
@@ -249,7 +239,7 @@ class SimplePoll extends HotmokaTest {
 	
 	@Test
 	@DisplayName("new SimplePoll where one of the participants, holding a huge amount of voting power (more than 50% of the total), votes with less than the maximum power")
-	void SuccessfulSimplePollWhereOneOfTheStakeHoldersHasWayMorePowerButVotesWithLessThanMaximum() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void SuccessfulSimplePollWhereOneOfTheStakeHoldersHasWayMorePowerButVotesWithLessThanMaximum() throws Exception {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity( BigInteger.valueOf(10), ONE, ONE, ONE);
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
@@ -267,8 +257,8 @@ class SimplePoll extends HotmokaTest {
 	
 	@Test
 	@DisplayName("new SimplePoll where everyone votes but one of the participants, holding a huge amount of voting power (more than 50% of the total), votes zero")
-	void FailingSimplePollWhereOneOfTheStakeHoldersHasWayMorePowerButVotesWithZero() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
-		StorageReference simpleSharedEntity = addSimpleSharedEntity( BigInteger.valueOf(10), ONE, ONE, ONE);
+	void FailingSimplePollWhereOneOfTheStakeHoldersHasWayMorePowerButVotesWithZero() throws Exception {
+		StorageReference simpleSharedEntity = addSimpleSharedEntity(BigInteger.valueOf(10), ONE, ONE, ONE);
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
 		
@@ -289,8 +279,8 @@ class SimplePoll extends HotmokaTest {
 	
 	@Test
 	@DisplayName("new SimplePoll where everyone has the same voting power but votes zero")
-	void FailingSimplePollWhereEveryoneVotesWithZero() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
-		StorageReference simpleSharedEntity = addSimpleSharedEntity( ONE, ONE, ONE, ONE);
+	void FailingSimplePollWhereEveryoneVotesWithZero() throws Exception {
+		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
 		
@@ -310,9 +300,8 @@ class SimplePoll extends HotmokaTest {
 	
 	@Test
 	@DisplayName("new SimplePoll where everyone has voted except for one of the participants, holding a huge amount of voting power (more than 50% of the total)")
-	void NotOverSimplePollBeacuseTheStakeholderWithWayMoreVotingPowerHasNotVotedYet() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
-		
-		StorageReference simpleSharedEntity = addSimpleSharedEntity( BigInteger.valueOf(10), ONE, ONE, ONE);
+	void NotOverSimplePollBeacuseTheStakeholderWithWayMoreVotingPowerHasNotVotedYet() throws Exception {
+		StorageReference simpleSharedEntity = addSimpleSharedEntity(BigInteger.valueOf(10), ONE, ONE, ONE);
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
 

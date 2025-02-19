@@ -79,7 +79,7 @@ class SharedEntity extends HotmokaTest {
 
     @Test
     @DisplayName("a seller cannot sell more shares than it owns")
-    void cannotSellMoreSharesThanOwned() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
+    void cannotSellMoreSharesThanOwned() throws Exception {
         // create the shared entity contract
         StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _500_000, panarea(1), classpath_takamaka_code,
         		SIMPLE_SHARED_ENTITY_CONSTRUCTOR, seller, StorageValues.bigIntegerOf(2));
@@ -98,7 +98,7 @@ class SharedEntity extends HotmokaTest {
 
     @Test
     @DisplayName("a contract cannot place an offer on behalf of somebody else")
-    void placeOnBehalfOfAnotherIsRejected() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
+    void placeOnBehalfOfAnotherIsRejected() throws Exception {
         // create a shared entity contract
         StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _500_000, panarea(1), classpath_takamaka_code,
         		SIMPLE_SHARED_ENTITY_CONSTRUCTOR, seller, StorageValues.bigIntegerOf(2));

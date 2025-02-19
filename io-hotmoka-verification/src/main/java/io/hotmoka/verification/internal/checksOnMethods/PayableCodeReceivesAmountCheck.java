@@ -22,6 +22,7 @@ import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
+import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.errors.PayableWithoutAmountError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
@@ -31,11 +32,16 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class PayableCodeReceivesAmountCheck extends CheckOnMethods {
 
-	public PayableCodeReceivesAmountCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws ClassNotFoundException {
+	public PayableCodeReceivesAmountCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
 		super(builder, method);
 
-		if (annotations.isPayable(className, methodName, methodArgs, methodReturnType) && !startsWithAmount())
-			issue(new PayableWithoutAmountError(inferSourceFile(), methodName));
+		try {
+			if (annotations.isPayable(className, methodName, methodArgs, methodReturnType) && !startsWithAmount())
+				issue(new PayableWithoutAmountError(inferSourceFile(), methodName));
+		}
+		catch (ClassNotFoundException e) {
+			throw new IllegalJarException(e);
+		}
 	}
 
 	private final static ObjectType BIG_INTEGER_OT = new ObjectType(BigInteger.class.getName());

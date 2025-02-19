@@ -23,6 +23,7 @@ import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
+import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.errors.IllegalTypeForStorageFieldError;
 import io.hotmoka.verification.internal.CheckOnClasses;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
@@ -32,27 +33,50 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class StorageClassesHaveFieldsOfStorageTypeCheck extends CheckOnClasses {
 
-	public StorageClassesHaveFieldsOfStorageTypeCheck(VerifiedClassImpl.Verification builder) throws ClassNotFoundException {
+	public StorageClassesHaveFieldsOfStorageTypeCheck(VerifiedClassImpl.Verification builder) throws IllegalJarException {
 		super(builder);
 
-		if (classLoader.isStorage(className)) {
-			Class<?> clazz = classLoader.loadClass(className);
-			check(ClassNotFoundException.class, () ->
+		boolean isStorage;
+
+		try {
+			isStorage = classLoader.isStorage(className);
+		}
+		catch (ClassNotFoundException e) {
+			throw new IllegalJarException(e);
+		}
+
+		if (isStorage) {
+			Class<?> clazz;
+
+			try {
+				clazz = classLoader.loadClass(className);
+			}
+			catch (ClassNotFoundException e) {
+				// the class under verification is part of the jar hence it must be found by the class loader
+				throw new RuntimeException(e);
+			}
+
+			check(IllegalJarException.class, () ->
 				Stream.of(clazz.getDeclaredFields())
 					.filter(field -> !Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers()))
-					.filter(uncheck(ClassNotFoundException.class, field -> !isTypeAllowedForStorageFields(field.getType())))
+					.filter(uncheck(IllegalJarException.class, field -> !isTypeAllowedForStorageFields(field.getType())))
 					.map(field -> new IllegalTypeForStorageFieldError(inferSourceFile(), field.getName()))
 					.forEachOrdered(this::issue)
 			);
 		}
 	}
 
-	private boolean isTypeAllowedForStorageFields(Class<?> type) throws ClassNotFoundException {
+	private boolean isTypeAllowedForStorageFields(Class<?> type) throws IllegalJarException {
 		// we allow Object since it can be the erasure of a generic type: the runtime of Takamaka
 		// will check later if the actual type of the object in this field is allowed;
 		// we also allow interfaces since they cannot extend Storage and only at run time it will
 		// be possible to determine if the content is a storage value
-		return type.isPrimitive() || type == Object.class || type.isInterface() || type == String.class || type == BigInteger.class
-			|| (!type.isArray() && classLoader.isStorage(type.getName()));
+		try {
+			return type.isPrimitive() || type == Object.class || type.isInterface() || type == String.class || type == BigInteger.class
+				|| (!type.isArray() && classLoader.isStorage(type.getName()));
+		}
+		catch (ClassNotFoundException e) {
+			throw new IllegalJarException(e);
+		}
 	}
 }

@@ -23,13 +23,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
-import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -43,12 +39,7 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.Subscription;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.signatures.VoidMethodSignature;
 import io.hotmoka.node.api.types.ClassType;
@@ -95,12 +86,12 @@ class RemotePurchase extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new Purchase(20)")
-	void evenDeposit() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void evenDeposit() throws Exception {
 		addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(18)")
-	void buyerCheats() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void buyerCheats() throws Exception {
 		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
@@ -109,7 +100,7 @@ class RemotePurchase extends HotmokaTest {
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(18); no event is generated")
-	void buyerCheatsNoEvent() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException, ExecutionException, NodeException, TimeoutException {
+	void buyerCheatsNoEvent() throws Exception {
 		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
 
 		var ok = new CompletableFuture<Boolean>();
@@ -132,13 +123,13 @@ class RemotePurchase extends HotmokaTest {
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20)")
-	void buyerHonest() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void buyerHonest() throws Exception {
 		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
 		addInstanceVoidMethodCallTransaction(privateKey(1), buyer, _50_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, StorageValues.intOf(20));
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20); a purchase event is generated")
-	void buyerHonestConfirmationEvent() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException, ExecutionException, TimeoutException, NoSuchElementException, NodeException, UnknownReferenceException {
+	void buyerHonestConfirmationEvent() throws Exception {
 		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
 
 		var received = new CompletableFuture<StorageReference>();
@@ -155,7 +146,7 @@ class RemotePurchase extends HotmokaTest {
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20); a purchase event is generated, subscription without key")
-	void buyerHonestConfirmationEventNoKey() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException, NodeException, TimeoutException {
+	void buyerHonestConfirmationEventNoKey() throws Exception {
 		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
 
 		List<StorageReference> received = new ArrayList<>();
@@ -169,20 +160,16 @@ class RemotePurchase extends HotmokaTest {
 			Thread.sleep(10_000);
 		}
 
-		assertTrue(received.stream().anyMatch(this::isPurchaseConfirmedName));
-	}
+		boolean anyMatch = false;
+		for (var event: received)
+			if (PURCHASE_CONFIRMED_NAME.equals(node.getClassTag(event).getClazz().getName()))
+				anyMatch = true;
 
-	private boolean isPurchaseConfirmedName(StorageReference event) {
-		try {
-			return PURCHASE_CONFIRMED_NAME.equals(node.getClassTag(event).getClazz().getName());
-		}
-		catch (NodeException | UnknownReferenceException | TimeoutException | InterruptedException e) {
-			throw new RuntimeException(e);
-		}
+		assertTrue(anyMatch);
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20); subscription is closed and no purchase event is handled")
-	void buyerHonestConfirmationEventSubscriptionClosed() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void buyerHonestConfirmationEventSubscriptionClosed() throws Exception {
 		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
 
 		AtomicBoolean ok = new AtomicBoolean(true);
@@ -198,7 +185,7 @@ class RemotePurchase extends HotmokaTest {
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmReceived()")
-	void confirmReceptionBeforePaying() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void confirmReceptionBeforePaying() throws Exception {
 		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
@@ -207,7 +194,7 @@ class RemotePurchase extends HotmokaTest {
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20) and then purchase.confirmReceived()")
-	void buyerPaysAndConfirmReception() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void buyerPaysAndConfirmReception() throws Exception {
 		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
 		addInstanceVoidMethodCallTransaction(privateKey(1), buyer, _50_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, StorageValues.intOf(20));
 		addInstanceVoidMethodCallTransaction(privateKey(1), buyer, _50_000, BigInteger.ONE, jar(), CONFIRM_RECEIVED, purchase);

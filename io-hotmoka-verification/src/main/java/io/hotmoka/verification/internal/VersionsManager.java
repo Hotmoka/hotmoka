@@ -64,10 +64,9 @@ final class VersionsManager {
 	 * Applies the checks on Java classes for the version of the verification module, in their order.
 	 * 
 	 * @param builder the context of the checks
-	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 	 * @throws IllegalJarException if the jar under verification is illegal
 	 */
-	void applyAllClassChecks(VerifiedClassImpl.Verification builder) throws ClassNotFoundException, IllegalJarException { // TODO: remove exception
+	void applyAllClassChecks(VerifiedClassImpl.Verification builder) throws IllegalJarException {
 		if (verificationVersion == 0L) {
 			new PackagesAreLegalCheck(builder);
 			new NamesDontStartWithForbiddenPrefix(builder);
@@ -82,7 +81,6 @@ final class VersionsManager {
 	 * 
 	 * @param context the context of the checks
 	 * @param method the method to check
-	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 	 * @throws IllegalJarException if the jar under verification is illegal
 	 */
 	void applyAllMethodChecks(VerifiedClassImpl.Verification context, MethodGen method) throws ClassNotFoundException, IllegalJarException { // TODO: remove exception

@@ -28,7 +28,7 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class IsNotStaticInitializerCheck extends CheckOnMethods {
 
-	public IsNotStaticInitializerCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws SecurityException, ClassNotFoundException {
+	public IsNotStaticInitializerCheck(VerifiedClassImpl.Verification builder, MethodGen method) {
 		super(builder, method);
 
 		if (Const.STATIC_INITIALIZER_NAME.equals(methodName))

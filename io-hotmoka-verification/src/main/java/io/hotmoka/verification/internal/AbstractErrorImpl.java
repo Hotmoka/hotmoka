@@ -21,7 +21,7 @@ import static java.util.Comparator.comparing;
 import java.util.Comparator;
 
 /**
- * Partial implementation of a blocking error generated
+ * Partial implementation of an error generated
  * during the verification of the class files of a Takamaka program.
  * If an error occurs, then instrumentation cannot proceed and will be aborted.
  * Errors are first ordered by where they occur, then by class name and finally by message.

@@ -16,17 +16,15 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnMethods;
 
-import static io.hotmoka.exceptions.CheckSupplier.check;
-import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
-
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.generic.MethodGen;
 
+import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.errors.InconsistentFromContractError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
@@ -38,28 +36,48 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class FromContractCodeIsConsistentWithClassHierarchyCheck extends CheckOnMethods {
 
-	public FromContractCodeIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws ClassNotFoundException {
+	public FromContractCodeIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
 		super(builder, method);
 
 		if (!Const.CONSTRUCTOR_NAME.equals(methodName) && !method.isPrivate()) {
-			Optional<Class<?>> contractTypeForEntry = annotations.getFromContractArgument(className, methodName, methodArgs, methodReturnType);
-			isIdenticallyFromContractInSupertypesOf(classLoader.loadClass(className), contractTypeForEntry);
+			Optional<Class<?>> contractTypeForEntry;
+			
+			try {
+				contractTypeForEntry = annotations.getFromContractArgument(className, methodName, methodArgs, methodReturnType);
+			}
+			catch (ClassNotFoundException e) {
+				throw new IllegalJarException(e);
+			}
+
+			Class<?> clazz;
+
+			try {
+				clazz = classLoader.loadClass(className);
+			}
+			catch (ClassNotFoundException e) {
+				// className is part of the jar in the class loader, hence it must exist
+				throw new RuntimeException(e);
+			}
+
+			isIdenticallyFromContractInSupertypesOf(clazz, contractTypeForEntry);
 		}
 	}
 
-	private void isIdenticallyFromContractInSupertypesOf(Class<?> clazz, Optional<Class<?>> contractTypeForEntry) throws ClassNotFoundException {
-		Class<?> rt = bcelToClass.of(methodReturnType);
-		Class<?>[] args = bcelToClass.of(methodArgs);
+	private void isIdenticallyFromContractInSupertypesOf(Class<?> clazz, Optional<Class<?>> contractTypeForEntry) throws IllegalJarException {
+		try {
+			Class<?> rt = bcelToClass.of(methodReturnType);
+			Class<?>[] args = bcelToClass.of(methodArgs);
 
-		if (check(ClassNotFoundException.class, () ->
-			Stream.of(clazz.getDeclaredMethods())
-				.filter(m -> !Modifier.isPrivate(m.getModifiers())
-						&& m.getName().equals(methodName) && m.getReturnType() == rt
-						&& Arrays.equals(m.getParameterTypes(), args))
-				.anyMatch(uncheck(ClassNotFoundException.class, m -> !compatibleFromContracts(contractTypeForEntry, annotations.getFromContractArgument(clazz.getName(), methodName, methodArgs, methodReturnType))))
-			))
-			issue(new InconsistentFromContractError(inferSourceFile(), methodName, clazz.getName()));
-
+			for (Method method: clazz.getDeclaredMethods()) {
+				if (!Modifier.isPrivate(method.getModifiers()) && method.getName().equals(methodName) && method.getReturnType() == rt && Arrays.equals(method.getParameterTypes(), args))
+					if (!compatibleFromContracts(contractTypeForEntry, annotations.getFromContractArgument(clazz.getName(), methodName, methodArgs, methodReturnType)))
+						issue(new InconsistentFromContractError(inferSourceFile(), methodName, clazz.getName()));
+			}
+		}
+		catch (ClassNotFoundException e) {
+			throw new IllegalJarException(e);
+		}
+			
 		Class<?> superclass = clazz.getSuperclass();
 		if (superclass != null)
 			isIdenticallyFromContractInSupertypesOf(superclass, contractTypeForEntry);

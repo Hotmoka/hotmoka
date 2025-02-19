@@ -75,7 +75,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 			isStorage = classLoader.isStorage(className);
 		}
 		catch (ClassNotFoundException e) {
-			// the class was in class path, so this is impossible
+			// the class was in the class path, so this is impossible
 			throw new RuntimeException(e);
 		}
 
@@ -119,8 +119,8 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 			// from contract code called on this can only be called by @FromContract code 
 			getMethods()
 				.filter(method -> !method.isStatic())
-				.forEachOrdered(uncheck(ClassNotFoundException.class, method -> { // TODO: check exception types
-					boolean isInsideFromContract = bootstraps.isPartOfFromContract(method) || annotations.isFromContract(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
+				.forEachOrdered(uncheck(IllegalJarException.class, method -> {
+					boolean isInsideFromContract = bootstraps.isPartOfFromContract(method) || isFromContract(method);
 					instructionsOf(method)
 						.filter(uncheck(IllegalJarException.class, ih -> !isInsideFromContract && callsFromContractOnThis(ih, method, method.getInstructionList())))
 						.map(ih -> new IllegalCallToFromContractOnThisError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
@@ -131,14 +131,32 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 			getMethods()
 				.filter(method -> !method.isStatic())
 				.filter(method -> method.getName().equals(Const.CONSTRUCTOR_NAME))
-				.filter(uncheck(ClassNotFoundException.class, method -> !annotations.isPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType())))
+				.filter(uncheck(IllegalJarException.class, method -> !isPayable(method)))
 				.forEachOrdered(method ->
 					instructionsOf(method)
-						.filter(UncheckPredicate.uncheck(ClassNotFoundException.class, ih -> callsPayableFromContractConstructorOnThis(ih, method, method.getInstructionList())))
+						.filter(UncheckPredicate.uncheck(IllegalJarException.class, ih -> callsPayableFromContractConstructorOnThis(ih, method, method.getInstructionList())))
 						.map(ih -> new IllegalCallToPayableConstructorOnThis(inferSourceFile(), method.getName(), lineOf(method, ih)))
 						.forEachOrdered(this::issue)
 					);
 		});
+	}
+
+	private boolean isFromContract(MethodGen method) throws IllegalJarException {
+		try {
+			return annotations.isFromContract(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
+		}
+		catch (ClassNotFoundException e) {
+			throw new IllegalJarException(e);
+		}
+	}
+
+	private boolean isPayable(MethodGen method) throws IllegalJarException {
+		try {
+			return annotations.isPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
+		}
+		catch (ClassNotFoundException e) {
+			throw new IllegalJarException(e);
+		}
 	}
 
 	private void computeLambdasUnreachableFromStaticMethods(Set<MethodGen> lambdasUnreachableFromStaticMethods) {
@@ -220,7 +238,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 
 			try {
 				boolean callsFromContract = invoke.getReferenceType(cpg) instanceof ObjectType receiver && annotations.isFromContract
-						(receiver.getClassName(), invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));
+					(receiver.getClassName(), invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));
 
 				return callsFromContract &&
 						Pushers.of(ih, slots + 1, method)
@@ -235,7 +253,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 		return false;
 	}
 
-	private boolean callsPayableFromContractConstructorOnThis(InstructionHandle ih, MethodGen method, InstructionList il) throws ClassNotFoundException {
+	private boolean callsPayableFromContractConstructorOnThis(InstructionHandle ih, MethodGen method, InstructionList il) throws IllegalJarException {
 		if (ih.getInstruction() instanceof INVOKESPECIAL invokespecial) {
 			String methodName = invokespecial.getMethodName(cpg);
 			if (Const.CONSTRUCTOR_NAME.equals(methodName)) {
@@ -244,8 +262,15 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 					int slots = Stream.of(argumentTypes).mapToInt(Type::getSize).sum();
 					String classNameOfReceiver = receiver.getClassName();
 					Type returnType = invokespecial.getReturnType(cpg);
-					boolean callsPayableFromContract = annotations.isFromContract(classNameOfReceiver, methodName, argumentTypes, returnType) &&
-						annotations.isPayable(classNameOfReceiver, methodName, argumentTypes, returnType);
+					boolean callsPayableFromContract;
+
+					try {
+						callsPayableFromContract = annotations.isFromContract(classNameOfReceiver, methodName, argumentTypes, returnType) &&
+								annotations.isPayable(classNameOfReceiver, methodName, argumentTypes, returnType);
+					}
+					catch (ClassNotFoundException e) {
+						throw new IllegalJarException(e);
+					}
 
 					return callsPayableFromContract &&
 						Pushers.of(ih, slots + 1, method)

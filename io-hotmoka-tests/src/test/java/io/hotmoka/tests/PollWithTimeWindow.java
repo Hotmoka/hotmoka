@@ -23,10 +23,7 @@ import static java.math.BigInteger.ZERO;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
-import java.security.SignatureException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
 import org.junit.jupiter.api.Assertions;
@@ -39,10 +36,8 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.signatures.VoidMethodSignature;
@@ -94,24 +89,23 @@ class PollWithTimeWindow extends HotmokaTest {
 		LOGGER.info("waking up");
 	}
 
-	private StorageReference addSimpleSharedEntity(BigInteger share0, BigInteger share1, BigInteger share2, BigInteger share3) 
-			throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	private StorageReference addSimpleSharedEntity(BigInteger share0, BigInteger share1, BigInteger share2, BigInteger share3) throws Exception {
 		return addConstructorCallTransaction(privateKey(0), stakeholder0, _1_000_000, ONE, jar(),
 			SIMPLE_SHARED_ENTITY_CONSTRUCTOR, stakeholder0, stakeholder1, stakeholder2, stakeholder3,
 			StorageValues.bigIntegerOf(share0), StorageValues.bigIntegerOf(share1), StorageValues.bigIntegerOf(share2), StorageValues.bigIntegerOf(share3));
 	}
 
-	private StorageReference addPollWithTimeWindow(StorageReference sharedEntity, StorageReference action, long start, long duration) throws InvalidKeyException, SignatureException, TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
+	private StorageReference addPollWithTimeWindow(StorageReference sharedEntity, StorageReference action, long start, long duration) throws Exception {
 		return addConstructorCallTransaction(privateKey(0), stakeholder0, _1_000_000, ONE, jar(), POLL_WITH_TIME_WINDOW_CONSTRUCTOR, sharedEntity, action, StorageValues.longOf(start), StorageValues.longOf(duration));
 	}
 
-	private StorageReference addAction() throws InvalidKeyException, SignatureException, TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
+	private StorageReference addAction() throws Exception {
 		return addConstructorCallTransaction(privateKey(0), stakeholder0, _1_000_000, ONE, jar(), ACTION_CONSTRUCTOR);
 	}
 
 	@Test
 	@DisplayName("new PollWithTimeWindow() where time window is valid and all the 4 participants (having the same voting power) vote with their maximum voting power")
-	void successfulPollWithValidWindowWhereAllStakeHoldersVote() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void successfulPollWithValidWindowWhereAllStakeHoldersVote() throws Exception {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
 
@@ -138,7 +132,7 @@ class PollWithTimeWindow extends HotmokaTest {
 	
 	@Test
 	@DisplayName("new PollWithTimeWindow() with close attempts before the window expired")
-	void pollWithCloseAttemptsBeforeWindowExpired() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException, NodeException, TimeoutException {
+	void pollWithCloseAttemptsBeforeWindowExpired() throws Exception {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
 		// the Tendermint and Mokamint blockchains are slower
@@ -180,7 +174,7 @@ class PollWithTimeWindow extends HotmokaTest {
 	
 	@Test
 	@DisplayName("new PollWithTimeWindow() where time window is valid and all the 4 participants (having the same voting power) vote before and after start time with their maximum voting power")
-	void successfulPollWithValidWindowWhereAllStakeHoldersVoteBeforeAndAfterStartTime() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException, NodeException, TimeoutException {
+	void successfulPollWithValidWindowWhereAllStakeHoldersVoteBeforeAndAfterStartTime() throws Exception {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
 		// the Tendermint and Mokamint blockchains are slower
@@ -215,7 +209,7 @@ class PollWithTimeWindow extends HotmokaTest {
 	
 	@Test
 	@DisplayName("new PollWithTimeWindow() where a participant votes when the time window is expired")
-	void voteWithExpiredTimeWindow() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException, NodeException, TimeoutException {
+	void voteWithExpiredTimeWindow() throws Exception {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
 		long start = 200L;
@@ -241,7 +235,7 @@ class PollWithTimeWindow extends HotmokaTest {
 	
 	@Test
 	@DisplayName("new PollWithTimeWindow() where one of the participants, holding a huge amount of voting power (more than 50% of the total) does not vote and the time window expired")
-	void weightVoteWithExpiredTimeWindow() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException, NodeException, TimeoutException {
+	void weightVoteWithExpiredTimeWindow() throws Exception {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(BigInteger.valueOf(10), ONE, ONE, ONE);
 		StorageReference action = addAction();
 		long start = 0;
@@ -275,7 +269,7 @@ class PollWithTimeWindow extends HotmokaTest {
 	
 	@Test
 	@DisplayName("new PollWithTimeWindow() with time parameters that lead to a numerical overflow")
-	void pollWithTimeWindowNumericalOverflow() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void pollWithTimeWindowNumericalOverflow() throws Exception {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(BigInteger.valueOf(10), ONE, ONE, ONE);
 		StorageReference action = addAction();
 		
@@ -285,7 +279,7 @@ class PollWithTimeWindow extends HotmokaTest {
 
 	@Test
 	@DisplayName("new PollWithTimeWindow() with negative time parameters")
-	void failureToCreatePollWithNegativeParameters() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void failureToCreatePollWithNegativeParameters() throws Exception {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(BigInteger.valueOf(10), ONE, ONE, ONE);
 		StorageReference action = addAction();
 

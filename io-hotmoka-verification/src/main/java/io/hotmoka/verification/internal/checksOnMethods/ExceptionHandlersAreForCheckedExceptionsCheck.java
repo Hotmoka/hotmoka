@@ -23,6 +23,7 @@ import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
+import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.errors.UncheckedExceptionHandlerError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
@@ -32,7 +33,7 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class ExceptionHandlersAreForCheckedExceptionsCheck extends CheckOnMethods {
 
-	public ExceptionHandlersAreForCheckedExceptionsCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws ClassNotFoundException {
+	public ExceptionHandlersAreForCheckedExceptionsCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
 		super(builder, method);
 
 		for (CodeExceptionGen exc: method.getExceptionHandlers()) {
@@ -46,7 +47,8 @@ public class ExceptionHandlersAreForCheckedExceptionsCheck extends CheckOnMethod
 
 	/**
 	 * enum's are sometimes compiled with synthetic methods that catch NoSuchFieldError.
-	 * These handlers must be allowed in Takamaka code.
+	 * These handlers must be allowed in Takamaka code. This is safe since no Takamaka exception
+	 * (such as out of gas exception) is caught by a NoSuchFieldError.
 	 * 
 	 * @param exceptionName the name of the caught exception
 	 * @return true if the exception is NoSuchFieldError thrown inside the
@@ -55,27 +57,33 @@ public class ExceptionHandlersAreForCheckedExceptionsCheck extends CheckOnMethod
 	private boolean specialCatchInsideEnumInitializer(String exceptionName) {
 		return ((isEnum() && method.isSynthetic())
 			|| (Const.STATIC_INITIALIZER_NAME.equals(methodName) && isSynthetic()))
-			&& exceptionName.equals("java.lang.NoSuchFieldError");
+			&& NoSuchFieldError.class.getName().equals(exceptionName);
 	}
 
 	/**
 	 * A switch on an enum is sometimes compiled with a method that catch NoSuchFieldError.
 	 * These handlers must be allowed in Takamaka code. The method is not even marked as synthetic
-	 * by most compilers.
+	 * by most compilers. This is safe since no Takamaka exception
+	 * (such as out of gas exception) is caught by a NoSuchFieldError.
 	 * 
 	 * @param exceptionName the name of the caught exception
 	 * @return true if the exception is NoSuchFieldError thrown inside the
 	 *         method for a switch on an enumeration
 	 */
 	private boolean specialCatchInsideSwitchOnEnum(String exceptionName) {
-		return !method.isPublic() && exceptionName.equals("java.lang.NoSuchFieldError")
-			&& methodName.startsWith("$SWITCH_TABLE$")
-			&& methodReturnType instanceof ArrayType && ((ArrayType) methodReturnType).getBasicType() == Type.INT;
+		return !method.isPublic() && NoSuchFieldError.class.getName().equals(exceptionName)
+			&& "$SWITCH_TABLE$".equals(methodName)
+			&& methodReturnType instanceof ArrayType at && at.getBasicType() == Type.INT;
 	}
 
-	private boolean canCatchUncheckedExceptions(String exceptionName) throws ClassNotFoundException {
-		Class<?> clazz = classLoader.loadClass(exceptionName);
-		return RuntimeException.class.isAssignableFrom(clazz) || clazz.isAssignableFrom(RuntimeException.class) ||
-			java.lang.Error.class.isAssignableFrom(clazz) || clazz.isAssignableFrom(java.lang.Error.class);
+	private boolean canCatchUncheckedExceptions(String exceptionName) throws IllegalJarException {
+		try {
+			Class<?> clazz = classLoader.loadClass(exceptionName);
+			return RuntimeException.class.isAssignableFrom(clazz) || clazz.isAssignableFrom(RuntimeException.class) ||
+					java.lang.Error.class.isAssignableFrom(clazz) || clazz.isAssignableFrom(java.lang.Error.class);
+		}
+		catch (ClassNotFoundException e) {
+			throw new IllegalJarException(e);
+		}
 	}
 }

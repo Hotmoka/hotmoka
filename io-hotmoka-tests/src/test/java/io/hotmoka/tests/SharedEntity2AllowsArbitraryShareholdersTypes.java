@@ -22,9 +22,6 @@ import static io.hotmoka.helpers.Coin.stromboli;
 import static io.hotmoka.node.StorageTypes.LONG;
 
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
-import java.security.SignatureException;
-import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,10 +32,7 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
@@ -77,7 +71,7 @@ class SharedEntity2AllowsArbitraryShareholdersTypes extends HotmokaTest {
 
     @Test
     @DisplayName("acceptance with different shareholder classes works")
-    void acceptanceWithDifferentShareholderClassesWorks() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
+    void acceptanceWithDifferentShareholderClassesWorks() throws Exception {
         // create the MyClass contract from the seller
         StorageReference sellerContractMyClass = addConstructorCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath, MY_CLASS_CONSTRUCTOR);
 
@@ -86,9 +80,10 @@ class SharedEntity2AllowsArbitraryShareholdersTypes extends HotmokaTest {
                 SIMPLE_SHARED_ENTITY_2_CONSTRUCTOR, sellerContractMyClass, StorageValues.bigIntegerOf(10));
 
         // create an offer by the seller using his contract
-        var offer = (StorageReference) addInstanceNonVoidMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath,
-                MethodSignatures.ofNonVoid(MY_CLASS, "createOffer2", OFFER_2, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, LONG),
-                sellerContractMyClass, StorageValues.bigIntegerOf(2), StorageValues.bigIntegerOf(2), StorageValues.longOf(1893456000));
+        var createOffer2 = MethodSignatures.ofNonVoid(MY_CLASS, "createOffer2", OFFER_2, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, LONG);
+		var offer = addInstanceNonVoidMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath,
+			createOffer2, sellerContractMyClass, StorageValues.bigIntegerOf(2), StorageValues.bigIntegerOf(2), StorageValues.longOf(1893456000))
+				.asReturnedReference(createOffer2, NodeException::new);
 
         // the seller places his offer using his contract
         addInstanceVoidMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath,

@@ -72,6 +72,7 @@ public class AnnotationUtilityImpl implements AnnotationUtility {
 			|| getAnnotation(className, methodName, expandFormals(formals), returnType, Constants.PAYABLE_NAME).isPresent();
 	}
 
+	@Override
 	public final boolean isWhiteListedDuringInitialization(String className) throws ClassNotFoundException {
 		return classIsAnnotatedAs(className, Constants.WHITE_LISTED_DURING_INITIALIZATION_NAME);
 	}
@@ -114,18 +115,15 @@ public class AnnotationUtilityImpl implements AnnotationUtility {
 
 	private Class<?> extractContractClass(Annotation fromContract) {
 		// we call, by reflection, its value() method, to find the type of the calling contract
-
-		Class<?> contractClass;
 		try {
 			Method value = fromContract.getClass().getMethod("value");
-			contractClass = (Class<?>) value.invoke(fromContract);
+			Class<?> contractClass = (Class<?>) value.invoke(fromContract);
+			// it defaults to Contract
+			return contractClass != null ? contractClass : classLoader.getContract();
 		}
 		catch (ReflectiveOperationException e) {
 			throw new RuntimeException(e); // this should never happen
 		}
-
-		// it defaults to Contract
-		return contractClass != null ? contractClass : classLoader.getContract();
 	}
 
 	/**

@@ -26,6 +26,7 @@ import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.NOP;
 import org.apache.bcel.generic.ObjectType;
 
+import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.errors.CallerNotOnThisError;
 import io.hotmoka.verification.errors.CallerOutsideFromContractError;
 import io.hotmoka.verification.internal.CheckOnMethods;
@@ -38,14 +39,23 @@ import io.takamaka.code.constants.Constants;
  */
 public class CallerIsUsedOnThisAndInFromContractCheck extends CheckOnMethods {
 
-	public CallerIsUsedOnThisAndInFromContractCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws ClassNotFoundException {
+	public CallerIsUsedOnThisAndInFromContractCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
 		super(builder, method);
 
-		boolean isFromContract = annotations.isFromContract(className, methodName, methodArgs, methodReturnType) || bootstraps.isPartOfFromContract(method);
+		boolean isFromAnnotatedAsContract;
 
-		check(ClassNotFoundException.class, () ->
+		try {
+			isFromAnnotatedAsContract = annotations.isFromContract(className, methodName, methodArgs, methodReturnType);
+		}
+		catch (ClassNotFoundException e) {
+			throw new IllegalJarException(e);
+		}
+
+		boolean isFromContract = isFromAnnotatedAsContract || bootstraps.isPartOfFromContract(method);
+
+		check(IllegalJarException.class, () ->
 			instructions()
-				.filter(uncheck(ClassNotFoundException.class, this::isCallToStorageCaller))
+				.filter(uncheck(IllegalJarException.class, this::isCallToStorageCaller))
 				.forEach(ih -> {
 					if (!isFromContract)
 						issue(new CallerOutsideFromContractError(inferSourceFile(), methodName, lineOf(ih)));
@@ -68,11 +78,16 @@ public class CallerIsUsedOnThisAndInFromContractCheck extends CheckOnMethods {
 	 */
 	private final static String TAKAMAKA_CALLER_SIG = "()L" + Constants.CONTRACT_NAME.replace('.', '/') + ";";
 
-	private boolean isCallToStorageCaller(InstructionHandle ih) throws ClassNotFoundException {
-		return ih.getInstruction() instanceof InvokeInstruction invoke
-			&& "caller".equals(invoke.getMethodName(cpg))
-			&& TAKAMAKA_CALLER_SIG.equals(invoke.getSignature(cpg))
-			&& invoke.getReferenceType(cpg) instanceof ObjectType receiver
-			&& classLoader.isStorage(receiver.getClassName());
+	private boolean isCallToStorageCaller(InstructionHandle ih) throws IllegalJarException {
+		try {
+			return ih.getInstruction() instanceof InvokeInstruction invoke
+				&& "caller".equals(invoke.getMethodName(cpg))
+				&& TAKAMAKA_CALLER_SIG.equals(invoke.getSignature(cpg))
+				&& invoke.getReferenceType(cpg) instanceof ObjectType receiver
+				&& classLoader.isStorage(receiver.getClassName());
+		}
+		catch (ClassNotFoundException e) {
+			throw new IllegalJarException(e);
+		}
 	}
 }
