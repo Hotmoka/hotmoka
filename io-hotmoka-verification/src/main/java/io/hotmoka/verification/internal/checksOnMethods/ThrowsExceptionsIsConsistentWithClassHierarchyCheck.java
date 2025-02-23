@@ -16,16 +16,13 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnMethods;
 
-import static io.hotmoka.exceptions.CheckSupplier.check;
-import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
-
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
-import java.util.stream.Stream;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.generic.MethodGen;
 
+import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.errors.InconsistentThrowsExceptionsError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
@@ -36,33 +33,33 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class ThrowsExceptionsIsConsistentWithClassHierarchyCheck extends CheckOnMethods {
 
-	public ThrowsExceptionsIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws ClassNotFoundException {
+	public ThrowsExceptionsIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
 		super(builder, method);
 
 		if (!methodName.equals(Const.CONSTRUCTOR_NAME) && method.isPublic()) {
-			boolean wasThrowsExceptions = annotations.isThrowsExceptions(className, methodName, methodArgs, methodReturnType);
-			isIdenticallyThrowsExceptionsInSupertypesOf(classLoader.loadClass(className), wasThrowsExceptions);
+			try {
+				boolean wasThrowsExceptions = methodIsThrowsExceptionsIn(className);
+				Class<?> rt = bcelToClass.of(methodReturnType);
+				Class<?>[] args = bcelToClass.of(methodArgs);
+				isIdenticallyThrowsExceptionsInSupertypesOf(clazz, wasThrowsExceptions, rt, args);
+			}
+			catch (ClassNotFoundException e) {
+				throw new IllegalJarException(e);
+			}
 		}
 	}
 
-	private void isIdenticallyThrowsExceptionsInSupertypesOf(Class<?> clazz, boolean wasThrowsExceptions) throws ClassNotFoundException {
-		Class<?> rt = bcelToClass.of(methodReturnType);
-		Class<?>[] args = bcelToClass.of(methodArgs);
-
-		if (check(ClassNotFoundException.class, () ->
-			Stream.of(clazz.getDeclaredMethods())
-				.filter(m -> !Modifier.isPrivate(m.getModifiers())
-						&& m.getName().equals(methodName) && m.getReturnType() == rt
-						&& Arrays.equals(m.getParameterTypes(), args))
-				.anyMatch(uncheck(ClassNotFoundException.class, m -> wasThrowsExceptions != annotations.isThrowsExceptions(clazz.getName(), methodName, methodArgs, methodReturnType)))
-		))
-			issue(new InconsistentThrowsExceptionsError(inferSourceFile(), methodName, clazz.getName()));
-	
+	private void isIdenticallyThrowsExceptionsInSupertypesOf(Class<?> clazz, boolean wasThrowsExceptions, Class<?> rt, Class<?>[] args) throws IllegalJarException {
+		for (var method: clazz.getDeclaredMethods())
+			if (!Modifier.isPrivate(method.getModifiers()) && method.getName().equals(methodName) && method.getReturnType() == rt && Arrays.equals(method.getParameterTypes(), args)
+					&& wasThrowsExceptions != methodIsThrowsExceptionsIn(clazz.getName()))
+				issue(new InconsistentThrowsExceptionsError(inferSourceFile(), methodName, clazz.getName()));
+				
 		Class<?> superclass = clazz.getSuperclass();
 		if (superclass != null)
-			isIdenticallyThrowsExceptionsInSupertypesOf(superclass, wasThrowsExceptions);
+			isIdenticallyThrowsExceptionsInSupertypesOf(superclass, wasThrowsExceptions, rt, args);
 	
 		for (Class<?> interf: clazz.getInterfaces())
-			isIdenticallyThrowsExceptionsInSupertypesOf(interf, wasThrowsExceptions);
+			isIdenticallyThrowsExceptionsInSupertypesOf(interf, wasThrowsExceptions, rt, args);
 	}
 }

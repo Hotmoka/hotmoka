@@ -130,7 +130,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 			// from contract payable constructors called on this can only be called from payable constructors
 			getMethods()
 				.filter(method -> !method.isStatic())
-				.filter(method -> method.getName().equals(Const.CONSTRUCTOR_NAME))
+				.filter(method -> Const.CONSTRUCTOR_NAME.equals(method.getName()))
 				.filter(uncheck(IllegalJarException.class, method -> !isPayable(method)))
 				.forEachOrdered(method ->
 					instructionsOf(method)

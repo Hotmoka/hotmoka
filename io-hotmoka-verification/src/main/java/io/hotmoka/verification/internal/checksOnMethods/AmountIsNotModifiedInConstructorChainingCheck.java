@@ -54,25 +54,14 @@ public class AmountIsNotModifiedInConstructorChainingCheck extends CheckOnMethod
 	public AmountIsNotModifiedInConstructorChainingCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
 		super(builder, method);
 
-		if (Const.CONSTRUCTOR_NAME.equals(methodName) && methodArgs.length > 0) {
-			boolean isPayable;
-
-			try {
-				isPayable = annotations.isPayable(className, methodName, methodArgs, methodReturnType);
-			}
-			catch (ClassNotFoundException e) {
-				throw new IllegalJarException(e);
-			}
-
-			if (isPayable) {
-				check(IllegalJarException.class, () ->
+		if (Const.CONSTRUCTOR_NAME.equals(methodName) && methodArgs.length > 0 && methodIsPayableIn(className)) {
+			check(IllegalJarException.class, () ->
 				instructions()
-					.filter(uncheck(IllegalJarException.class, this::callsPayableFromContractConstructorOnThis))
-					.filter(this::amountMightBeChanged)
-					.map(ih -> new IllegalModificationOfAmountInConstructorChaining(inferSourceFile(), method.getName(), lineOf(method, ih)))
-					.forEachOrdered(this::issue)
-				);
-			}
+				.filter(uncheck(IllegalJarException.class, this::callsPayableFromContractConstructorOnThis))
+				.filter(this::amountMightBeChanged)
+				.map(ih -> new IllegalModificationOfAmountInConstructorChaining(inferSourceFile(), method.getName(), lineOf(method, ih)))
+				.forEachOrdered(this::issue)
+			);
 		}
 	}
 
@@ -91,7 +80,7 @@ public class AmountIsNotModifiedInConstructorChainingCheck extends CheckOnMethod
 
 		boolean doesNotUseSameLocal = Pushers.of(ih, slots, method)
 			.map(InstructionHandle::getInstruction)
-			.anyMatch(ins -> !(ins instanceof LoadInstruction) || ((LoadInstruction) ins).getIndex() != 1);	
+			.anyMatch(ins -> !(ins instanceof LoadInstruction load) || load.getIndex() != 1);	
 
 		return doesNotUseSameLocal || mightUpdateLocal(ih, 1);
 	}

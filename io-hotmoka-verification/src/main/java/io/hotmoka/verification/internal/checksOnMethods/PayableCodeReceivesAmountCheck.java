@@ -35,13 +35,8 @@ public class PayableCodeReceivesAmountCheck extends CheckOnMethods {
 	public PayableCodeReceivesAmountCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
 		super(builder, method);
 
-		try {
-			if (annotations.isPayable(className, methodName, methodArgs, methodReturnType) && !startsWithAmount())
-				issue(new PayableWithoutAmountError(inferSourceFile(), methodName));
-		}
-		catch (ClassNotFoundException e) {
-			throw new IllegalJarException(e);
-		}
+		if (methodIsPayableIn(className) && !startsWithAmount())
+			issue(new PayableWithoutAmountError(inferSourceFile(), methodName));
 	}
 
 	private final static ObjectType BIG_INTEGER_OT = new ObjectType(BigInteger.class.getName());
@@ -49,8 +44,9 @@ public class PayableCodeReceivesAmountCheck extends CheckOnMethods {
 	private boolean startsWithAmount() {
 		// for constructors of instance inner classes, we must skip the instrumented extra parameter holding the parent object
 		int amountArgPos = isConstructorOfInnerNonStaticClass ? 1 : 0;
+		Type argType;
 
 		return methodArgs.length > amountArgPos &&
-			(methodArgs[amountArgPos] == Type.INT || methodArgs[amountArgPos] == Type.LONG || BIG_INTEGER_OT.equals(methodArgs[amountArgPos]));
+			((argType = methodArgs[amountArgPos]) == Type.INT || argType == Type.LONG || BIG_INTEGER_OT.equals(argType));
 	}
 }

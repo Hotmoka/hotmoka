@@ -31,12 +31,7 @@ public class ThrowsExceptionsCodeIsPublicCheck extends CheckOnMethods {
 	public ThrowsExceptionsCodeIsPublicCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
 		super(builder, method);
 
-		try {
-			if (!method.isPublic() && annotations.isThrowsExceptions(className, method.getName(), method.getArgumentTypes(), method.getReturnType()))
-				issue(new ThrowsExceptionsOnNonPublicError(inferSourceFile(), method.getName()));
-		}
-		catch (ClassNotFoundException e) {
-			throw new IllegalJarException(e);
-		}
+		if (!method.isPublic() && methodIsThrowsExceptionsIn(className))
+			issue(new ThrowsExceptionsOnNonPublicError(inferSourceFile(), method.getName()));
 	}
 }

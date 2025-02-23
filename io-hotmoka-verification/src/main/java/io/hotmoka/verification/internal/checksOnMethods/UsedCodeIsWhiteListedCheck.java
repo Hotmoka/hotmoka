@@ -77,7 +77,7 @@ public class UsedCodeIsWhiteListedCheck extends CheckOnMethods {
 				else {
 					// the call seems not resolvable
 					ReferenceType receiverType = invoke.getReferenceType(cpg);
-					String receiverClassName = receiverType instanceof ObjectType ? ((ObjectType) receiverType).getClassName() : "java.lang.Object";
+					String receiverClassName = receiverType instanceof ObjectType ot ? ot.getClassName() : "java.lang.Object";
 					String methodName = invoke.getMethodName(cpg);
 
 					if (invoke instanceof INVOKESPECIAL && Const.CONSTRUCTOR_NAME.equals(methodName))

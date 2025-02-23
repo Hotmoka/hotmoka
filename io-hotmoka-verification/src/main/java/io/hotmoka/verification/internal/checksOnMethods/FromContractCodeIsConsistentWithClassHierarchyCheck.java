@@ -49,16 +49,6 @@ public class FromContractCodeIsConsistentWithClassHierarchyCheck extends CheckOn
 				throw new IllegalJarException(e);
 			}
 
-			Class<?> clazz;
-
-			try {
-				clazz = classLoader.loadClass(className);
-			}
-			catch (ClassNotFoundException e) {
-				// className is part of the jar in the class loader, hence it must exist
-				throw new RuntimeException(e);
-			}
-
 			isIdenticallyFromContractInSupertypesOf(clazz, contractTypeForEntry);
 		}
 	}

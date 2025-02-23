@@ -50,6 +50,7 @@ import io.hotmoka.verification.api.TakamakaClassLoader;
 public abstract class CheckOnClasses {
 	private final VerifiedClassImpl.Verification builder;
 	protected final TakamakaClassLoader classLoader;
+	protected final Class<?> clazz;
 	protected final BootstrapsImpl bootstraps;
 	protected final Resolver resolver;
 	protected final AnnotationUtility annotations;
@@ -61,12 +62,21 @@ public abstract class CheckOnClasses {
 	protected CheckOnClasses(VerifiedClassImpl.Verification builder) {
 		this.builder = builder;
 		VerifiedClassImpl verifiedClass = builder.getVerifiedClass();
-		this.classLoader = verifiedClass.jar.classLoader;
+		this.classLoader = verifiedClass.jar.getClassLoader();
+		this.className = verifiedClass.getClassName();
+
+		try {
+			this.clazz = classLoader.loadClass(className);
+		}
+		catch (ClassNotFoundException e) {
+			// the class was loaded with this class loader, therefore this exception should never occur
+			throw new RuntimeException(e);
+		}
+
 		this.bootstraps = verifiedClass.bootstraps;
 		this.resolver = verifiedClass.getResolver();
 		this.annotations = AnnotationUtilities.of(verifiedClass.jar);
 		this.bcelToClass = BcelToClasses.of(verifiedClass.jar);
-		this.className = verifiedClass.getClassName();
 		this.cpg = verifiedClass.getConstantPool();
 		this.duringInitialization = builder.duringInitialization;
 	}

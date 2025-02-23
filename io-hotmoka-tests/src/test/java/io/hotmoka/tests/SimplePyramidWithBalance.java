@@ -16,13 +16,11 @@ limitations under the License.
 
 package io.hotmoka.tests;
 
+import static io.hotmoka.node.MethodSignatures.BALANCE;
 import static java.math.BigInteger.ZERO;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
-import java.security.SignatureException;
-import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,10 +31,7 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.signatures.VoidMethodSignature;
 import io.hotmoka.node.api.types.ClassType;
@@ -65,21 +60,21 @@ class SimplePyramidWithBalance extends HotmokaTest {
 	}
 
 	@Test @DisplayName("two investors do not get investment back yet")
-	void twoInvestors() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void twoInvestors() throws Exception {
 		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _100_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 		addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _100_000, ZERO, jar(), WITHDRAW, pyramid);
-		var balance0 = (BigIntegerValue) runInstanceNonVoidMethodCallTransaction(account(0), _100_000, jar(), MethodSignatures.BALANCE, account(0));
-		assertTrue(balance0.getValue().compareTo(BigInteger.valueOf(190_000)) <= 0);
+		var balance0 = runInstanceNonVoidMethodCallTransaction(account(0), _100_000, jar(), BALANCE, account(0)).asReturnedBigInteger(BALANCE, NodeException::new);
+		assertTrue(balance0.compareTo(BigInteger.valueOf(190_000)) <= 0);
 	}
 
 	@Test @DisplayName("with three investors the first gets its investment back")
-	void threeInvestors() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void threeInvestors() throws Exception {
 		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _100_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 		addInstanceVoidMethodCallTransaction(privateKey(2), account(2), _100_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 		addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _100_000, ZERO, jar(), WITHDRAW, pyramid);
-		var balance0 = (BigIntegerValue) runInstanceNonVoidMethodCallTransaction(account(0), _100_000, jar(), MethodSignatures.BALANCE, account(0));
-		assertTrue(balance0.getValue().compareTo(BigInteger.valueOf(201_000)) > 0);
+		var balance0 = runInstanceNonVoidMethodCallTransaction(account(0), _100_000, jar(), BALANCE, account(0)).asReturnedBigInteger(BALANCE, NodeException::new);
+		assertTrue(balance0.compareTo(BigInteger.valueOf(201_000)) > 0);
 	}
 }

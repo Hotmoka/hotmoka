@@ -16,17 +16,13 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnMethods;
 
-import static io.hotmoka.exceptions.CheckSupplier.check;
-import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
-
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
-import java.util.stream.Stream;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.generic.MethodGen;
 
+import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.errors.InconsistentPayableError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
@@ -37,32 +33,33 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class PayableCodeIsConsistentWithClassHierarchyCheck extends CheckOnMethods {
 
-	public PayableCodeIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws ClassNotFoundException {
+	public PayableCodeIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
 		super(builder, method);
 
 		if (!methodName.equals(Const.CONSTRUCTOR_NAME) && !method.isPrivate()) {
-			boolean wasPayable = annotations.isPayable(className, methodName, methodArgs, methodReturnType);
-			isIdenticallyPayableInSupertypesOf(classLoader.loadClass(className), wasPayable);
+			try {
+				Class<?> rt = bcelToClass.of(methodReturnType);
+				Class<?>[] args = bcelToClass.of(methodArgs);
+				boolean wasPayable = methodIsPayableIn(className);
+				isIdenticallyPayableInSupertypesOf(clazz, wasPayable, rt, args);
+			}
+			catch (ClassNotFoundException e) {
+				throw new IllegalJarException(e);
+			}
 		}
 	}
 
-	private void isIdenticallyPayableInSupertypesOf(Class<?> clazz, boolean wasPayable) throws ClassNotFoundException {
-		Class<?> rt = bcelToClass.of(methodReturnType);
-		Class<?>[] args = bcelToClass.of(methodArgs);
-		Stream<Method> methods = Stream.of(clazz.getDeclaredMethods())
-			.filter(m -> !Modifier.isPrivate(m.getModifiers())
-						&& m.getName().equals(methodName) && m.getReturnType() == rt
-						&& Arrays.equals(m.getParameterTypes(), args));
-
-		if (check(ClassNotFoundException.class, () ->
-			methods.anyMatch(uncheck(ClassNotFoundException.class, m -> wasPayable != annotations.isPayable(clazz.getName(), methodName, methodArgs, methodReturnType)))))
-			issue(new InconsistentPayableError(inferSourceFile(), methodName, clazz.getName()));
+	private void isIdenticallyPayableInSupertypesOf(Class<?> clazz, boolean wasPayable, Class<?> rt, Class<?>[] args) throws IllegalJarException {
+		for (var method: clazz.getDeclaredMethods())
+			if (!Modifier.isPrivate(method.getModifiers()) && method.getName().equals(methodName) && method.getReturnType() == rt && Arrays.equals(method.getParameterTypes(), args)
+					&& wasPayable != methodIsPayableIn(clazz.getName()))
+				issue(new InconsistentPayableError(inferSourceFile(), methodName, clazz.getName()));
 	
 		Class<?> superclass = clazz.getSuperclass();
 		if (superclass != null)
-			isIdenticallyPayableInSupertypesOf(superclass, wasPayable);
+			isIdenticallyPayableInSupertypesOf(superclass, wasPayable, rt, args);
 	
 		for (Class<?> interf: clazz.getInterfaces())
-			isIdenticallyPayableInSupertypesOf(interf, wasPayable);
+			isIdenticallyPayableInSupertypesOf(interf, wasPayable, rt, args);
 	}
 }

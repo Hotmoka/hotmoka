@@ -83,7 +83,7 @@ final class VersionsManager {
 	 * @param method the method to check
 	 * @throws IllegalJarException if the jar under verification is illegal
 	 */
-	void applyAllMethodChecks(VerifiedClassImpl.Verification context, MethodGen method) throws ClassNotFoundException, IllegalJarException { // TODO: remove exception
+	void applyAllMethodChecks(VerifiedClassImpl.Verification context, MethodGen method) throws IllegalJarException {
 		if (verificationVersion == 0L) {
 			new PayableCodeReceivesAmountCheck(context, method);
 			new ThrowsExceptionsCodeIsPublicCheck(context, method);

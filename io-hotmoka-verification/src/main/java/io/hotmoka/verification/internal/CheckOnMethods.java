@@ -28,6 +28,8 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.PUTFIELD;
 import org.apache.bcel.generic.Type;
 
+import io.hotmoka.verification.api.IllegalJarException;
+
 /**
  * A verification check on a specific method of a class.
  */
@@ -52,6 +54,24 @@ public abstract class CheckOnMethods extends CheckOnClasses {
 		this.methodArgs = method.getArgumentTypes();
 		this.methodReturnType = method.getReturnType();
 		this.isConstructorOfInnerNonStaticClass = isConstructorOfInstanceInnerClass();
+	}
+
+	protected final boolean methodIsPayableIn(String className) throws IllegalJarException {
+		try {
+			return annotations.isPayable(className, methodName, methodArgs, methodReturnType);
+		}
+		catch (ClassNotFoundException e) {
+			throw new IllegalJarException(e);
+		}
+	}
+
+	protected final boolean methodIsThrowsExceptionsIn(String className) throws IllegalJarException {
+		try {
+			return annotations.isThrowsExceptions(className, methodName, methodArgs, methodReturnType);
+		}
+		catch (ClassNotFoundException e) {
+			throw new IllegalJarException(e);
+		}
 	}
 
 	private boolean isConstructorOfInstanceInnerClass() {

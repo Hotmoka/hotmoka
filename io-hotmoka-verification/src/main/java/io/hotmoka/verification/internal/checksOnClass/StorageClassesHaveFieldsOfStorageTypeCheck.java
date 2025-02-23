@@ -16,12 +16,8 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnClass;
 
-import static io.hotmoka.exceptions.CheckRunnable.check;
-import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
-
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
-import java.util.stream.Stream;
 
 import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.errors.IllegalTypeForStorageFieldError;
@@ -45,25 +41,10 @@ public class StorageClassesHaveFieldsOfStorageTypeCheck extends CheckOnClasses {
 			throw new IllegalJarException(e);
 		}
 
-		if (isStorage) {
-			Class<?> clazz;
-
-			try {
-				clazz = classLoader.loadClass(className);
-			}
-			catch (ClassNotFoundException e) {
-				// the class under verification is part of the jar hence it must be found by the class loader
-				throw new RuntimeException(e);
-			}
-
-			check(IllegalJarException.class, () ->
-				Stream.of(clazz.getDeclaredFields())
-					.filter(field -> !Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers()))
-					.filter(uncheck(IllegalJarException.class, field -> !isTypeAllowedForStorageFields(field.getType())))
-					.map(field -> new IllegalTypeForStorageFieldError(inferSourceFile(), field.getName()))
-					.forEachOrdered(this::issue)
-			);
-		}
+		if (isStorage)
+			for (var field: clazz.getDeclaredFields())
+				if (!Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers()) && !isTypeAllowedForStorageFields(field.getType()))
+					issue(new IllegalTypeForStorageFieldError(inferSourceFile(), field.getName()));
 	}
 
 	private boolean isTypeAllowedForStorageFields(Class<?> type) throws IllegalJarException {

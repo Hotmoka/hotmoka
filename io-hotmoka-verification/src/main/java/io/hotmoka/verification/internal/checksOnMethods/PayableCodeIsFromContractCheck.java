@@ -32,17 +32,17 @@ public class PayableCodeIsFromContractCheck extends CheckOnMethods {
 	public PayableCodeIsFromContractCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
 		super(builder, method);
 
-		try {
-			if (annotations.isPayable(className, methodName, methodArgs, methodReturnType)) {
+		if (methodIsPayableIn(className)) {
+			try {
 				if (!annotations.isFromContract(className, methodName, methodArgs, methodReturnType))
 					issue(new PayableWithoutFromContractError(inferSourceFile(), methodName));
 
 				if (!classLoader.isContract(className) && !classLoader.isInterface(className))
 					issue(new PayableNotInContractError(inferSourceFile(), methodName));
 			}
-		}
-		catch (ClassNotFoundException e) {
-			throw new IllegalJarException(e);
+			catch (ClassNotFoundException e) {
+				throw new IllegalJarException(e);
+			}
 		}
 	}
 }
