@@ -18,6 +18,7 @@ package io.hotmoka.verification.internal;
 
 import java.util.Optional;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.generic.Instruction;
@@ -134,7 +135,7 @@ public abstract class CheckOnMethods extends CheckOnClasses {
 	 * @return the instructions
 	 */
 	protected final Stream<InstructionHandle> instructions() {
-		return instructionsOf(method);
+		return StreamSupport.stream(instructionsOf(method).spliterator(), false);
 	}
 
 	/**
