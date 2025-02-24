@@ -26,6 +26,7 @@ import org.apache.bcel.generic.PUTSTATIC;
 import org.apache.bcel.generic.RET;
 import org.apache.bcel.generic.StoreInstruction;
 
+import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.errors.IllegalJsrInstructionError;
 import io.hotmoka.verification.errors.IllegalPutstaticInstructionError;
 import io.hotmoka.verification.errors.IllegalRetInstructionError;
@@ -42,7 +43,7 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class BytecodesAreLegalCheck extends CheckOnMethods {
 
-	public BytecodesAreLegalCheck(VerifiedClassImpl.Verification builder, MethodGen method) {
+	public BytecodesAreLegalCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
 		super(builder, method);
 
 		instructions().forEach(this::checkIfItIsIllegal);

@@ -36,17 +36,8 @@ public class PayableCodeIsConsistentWithClassHierarchyCheck extends CheckOnMetho
 	public PayableCodeIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
 		super(builder, method);
 
-		if (!methodName.equals(Const.CONSTRUCTOR_NAME) && !method.isPrivate()) {
-			try {
-				Class<?> rt = bcelToClass.of(methodReturnType);
-				Class<?>[] args = bcelToClass.of(methodArgs);
-				boolean wasPayable = methodIsPayableIn(className);
-				isIdenticallyPayableInSupertypesOf(clazz, wasPayable, rt, args);
-			}
-			catch (ClassNotFoundException e) {
-				throw new IllegalJarException(e);
-			}
-		}
+		if (!methodName.equals(Const.CONSTRUCTOR_NAME) && !method.isPrivate())
+			isIdenticallyPayableInSupertypesOf(clazz, methodIsPayableIn(className), methodReturnTypeClass, methodArgsClasses);
 	}
 
 	private void isIdenticallyPayableInSupertypesOf(Class<?> clazz, boolean wasPayable, Class<?> rt, Class<?>[] args) throws IllegalJarException {

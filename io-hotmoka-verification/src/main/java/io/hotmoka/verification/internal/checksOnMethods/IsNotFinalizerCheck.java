@@ -19,6 +19,7 @@ package io.hotmoka.verification.internal.checksOnMethods;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.Type;
 
+import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.errors.IllegalFinalizerError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
@@ -28,7 +29,7 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class IsNotFinalizerCheck extends CheckOnMethods {
 
-	public IsNotFinalizerCheck(VerifiedClassImpl.Verification builder, MethodGen method) {
+	public IsNotFinalizerCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
 		super(builder, method);
 
 		if (!method.isPrivate() && "finalize".equals(method.getName()) && method.getReturnType() == Type.VOID && method.getArgumentTypes().length == 0)

@@ -42,16 +42,7 @@ public class CallerIsUsedOnThisAndInFromContractCheck extends CheckOnMethods {
 	public CallerIsUsedOnThisAndInFromContractCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
 		super(builder, method);
 
-		boolean isFromAnnotatedAsContract;
-
-		try {
-			isFromAnnotatedAsContract = annotations.isFromContract(className, methodName, methodArgs, methodReturnType);
-		}
-		catch (ClassNotFoundException e) {
-			throw new IllegalJarException(e);
-		}
-
-		boolean isFromContract = isFromAnnotatedAsContract || bootstraps.isPartOfFromContract(method);
+		boolean isFromContract = methodIsFromContractIn(className) || bootstraps.isPartOfFromContract(method);
 
 		check(IllegalJarException.class, () ->
 			instructions()

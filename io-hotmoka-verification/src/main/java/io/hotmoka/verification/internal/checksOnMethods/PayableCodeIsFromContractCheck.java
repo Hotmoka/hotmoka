@@ -33,16 +33,11 @@ public class PayableCodeIsFromContractCheck extends CheckOnMethods {
 		super(builder, method);
 
 		if (methodIsPayableIn(className)) {
-			try {
-				if (!annotations.isFromContract(className, methodName, methodArgs, methodReturnType))
-					issue(new PayableWithoutFromContractError(inferSourceFile(), methodName));
+			if (!methodIsFromContractIn(className))
+				issue(new PayableWithoutFromContractError(inferSourceFile(), methodName));
 
-				if (!classLoader.isContract(className) && !classLoader.isInterface(className))
-					issue(new PayableNotInContractError(inferSourceFile(), methodName));
-			}
-			catch (ClassNotFoundException e) {
-				throw new IllegalJarException(e);
-			}
+			if (!isContract && !isInterface)
+				issue(new PayableNotInContractError(inferSourceFile(), methodName));
 		}
 	}
 }

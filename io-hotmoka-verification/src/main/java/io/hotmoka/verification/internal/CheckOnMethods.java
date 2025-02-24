@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.verification.internal;
 
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.apache.bcel.Const;
@@ -39,28 +40,49 @@ public abstract class CheckOnMethods extends CheckOnClasses {
 	protected final Type[] methodArgs;
 	protected final Type methodReturnType;
 	protected final boolean isConstructorOfInnerNonStaticClass;
+	protected final Class<?> methodReturnTypeClass;
+	protected final Class<?>[] methodArgsClasses;
 
 	/**
 	 * Builds the verification check.
 	 * 
 	 * @param builder the verification context
 	 * @param method the method to verify
+	 * @throws IllegalJarException if the jar under verification is illegal
 	 */
-	protected CheckOnMethods(VerifiedClassImpl.Verification builder, MethodGen method) {
+	protected CheckOnMethods(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
 		super(builder);
 
 		this.method = method;
 		this.methodName = method.getName();
 		this.methodArgs = method.getArgumentTypes();
 		this.methodReturnType = method.getReturnType();
+
+		try {
+			this.methodReturnTypeClass = bcelToClass.of(methodReturnType);
+			this.methodArgsClasses = bcelToClass.of(methodArgs);
+		}
+		catch (ClassNotFoundException e) { // they submitted a jar with an incomplete classpath
+			throw new IllegalJarException(e);
+		}
+
 		this.isConstructorOfInnerNonStaticClass = isConstructorOfInstanceInnerClass();
+	}
+
+	protected final boolean methodIsFromContractIn(String className) throws IllegalJarException {
+		try {
+			return annotations.isFromContract(className, methodName, methodArgs, methodReturnType);
+		}
+		catch (ClassNotFoundException e) { // they submitted a jar with an incomplete classpath
+			throw new IllegalJarException(e);
+		}
 	}
 
 	protected final boolean methodIsPayableIn(String className) throws IllegalJarException {
 		try {
 			return annotations.isPayable(className, methodName, methodArgs, methodReturnType);
 		}
-		catch (ClassNotFoundException e) {
+		catch (ClassNotFoundException e) { // they submitted a jar with an incomplete classpath
 			throw new IllegalJarException(e);
 		}
 	}
@@ -69,7 +91,16 @@ public abstract class CheckOnMethods extends CheckOnClasses {
 		try {
 			return annotations.isThrowsExceptions(className, methodName, methodArgs, methodReturnType);
 		}
-		catch (ClassNotFoundException e) {
+		catch (ClassNotFoundException e) { // they submitted a jar with an incomplete classpath
+			throw new IllegalJarException(e);
+		}
+	}
+
+	protected final Optional<Class<?>> getMethodFromContractArgumentIn(String className) throws IllegalJarException {
+		try {
+			return annotations.getFromContractArgument(className, methodName, methodArgs, methodReturnType);
+		}
+		catch (ClassNotFoundException e) { // they submitted a jar with an incomplete classpath
 			throw new IllegalJarException(e);
 		}
 	}

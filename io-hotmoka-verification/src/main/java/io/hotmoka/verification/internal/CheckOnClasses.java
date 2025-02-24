@@ -58,8 +58,11 @@ public abstract class CheckOnClasses {
 	protected final boolean duringInitialization;
 	protected final String className;
 	protected final ConstantPoolGen cpg;
+	protected final boolean isContract;
+	protected final boolean isStorage;
+	protected final boolean isInterface;
 
-	protected CheckOnClasses(VerifiedClassImpl.Verification builder) {
+	protected CheckOnClasses(VerifiedClassImpl.Verification builder) throws IllegalJarException {
 		this.builder = builder;
 		VerifiedClassImpl verifiedClass = builder.getVerifiedClass();
 		this.classLoader = verifiedClass.jar.getClassLoader();
@@ -67,10 +70,20 @@ public abstract class CheckOnClasses {
 
 		try {
 			this.clazz = classLoader.loadClass(className);
+			this.isInterface = classLoader.isInterface(className);
 		}
 		catch (ClassNotFoundException e) {
 			// the class was loaded with this class loader, therefore this exception should never occur
 			throw new RuntimeException(e);
+		}
+
+		try {
+			this.isContract = classLoader.isContract(className);
+			this.isStorage = classLoader.isStorage(className);
+		}
+		catch (ClassNotFoundException e) {
+			// this might be due to an incomplete jar classpath
+			throw new IllegalJarException(e);
 		}
 
 		this.bootstraps = verifiedClass.bootstraps;

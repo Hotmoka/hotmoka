@@ -39,34 +39,15 @@ public class FromContractCodeIsConsistentWithClassHierarchyCheck extends CheckOn
 	public FromContractCodeIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
 		super(builder, method);
 
-		if (!Const.CONSTRUCTOR_NAME.equals(methodName) && !method.isPrivate()) {
-			Optional<Class<?>> contractTypeForEntry;
-			
-			try {
-				contractTypeForEntry = annotations.getFromContractArgument(className, methodName, methodArgs, methodReturnType);
-			}
-			catch (ClassNotFoundException e) {
-				throw new IllegalJarException(e);
-			}
-
-			isIdenticallyFromContractInSupertypesOf(clazz, contractTypeForEntry);
-		}
+		if (!Const.CONSTRUCTOR_NAME.equals(methodName) && !method.isPrivate())
+			isIdenticallyFromContractInSupertypesOf(clazz, getMethodFromContractArgumentIn(className));
 	}
 
 	private void isIdenticallyFromContractInSupertypesOf(Class<?> clazz, Optional<Class<?>> contractTypeForEntry) throws IllegalJarException {
-		try {
-			Class<?> rt = bcelToClass.of(methodReturnType);
-			Class<?>[] args = bcelToClass.of(methodArgs);
-
-			for (Method method: clazz.getDeclaredMethods()) {
-				if (!Modifier.isPrivate(method.getModifiers()) && method.getName().equals(methodName) && method.getReturnType() == rt && Arrays.equals(method.getParameterTypes(), args))
-					if (!compatibleFromContracts(contractTypeForEntry, annotations.getFromContractArgument(clazz.getName(), methodName, methodArgs, methodReturnType)))
-						issue(new InconsistentFromContractError(inferSourceFile(), methodName, clazz.getName()));
-			}
-		}
-		catch (ClassNotFoundException e) {
-			throw new IllegalJarException(e);
-		}
+		for (Method method: clazz.getDeclaredMethods())
+			if (!Modifier.isPrivate(method.getModifiers()) && method.getName().equals(methodName) && method.getReturnType() == methodReturnTypeClass && Arrays.equals(method.getParameterTypes(), methodArgsClasses)
+					&& !compatibleFromContracts(contractTypeForEntry, getMethodFromContractArgumentIn(clazz.getName())))
+				issue(new InconsistentFromContractError(inferSourceFile(), methodName, clazz.getName()));
 			
 		Class<?> superclass = clazz.getSuperclass();
 		if (superclass != null)

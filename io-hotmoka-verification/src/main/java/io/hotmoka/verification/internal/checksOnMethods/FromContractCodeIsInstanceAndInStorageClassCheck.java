@@ -34,14 +34,7 @@ public class FromContractCodeIsInstanceAndInStorageClassCheck extends CheckOnMet
 	public FromContractCodeIsInstanceAndInStorageClassCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
 		super(builder, method);
 
-		Optional<Class<?>> fromContractArgument;
-
-		try {
-			fromContractArgument = annotations.getFromContractArgument(className, methodName, methodArgs, methodReturnType);
-		}
-		catch (ClassNotFoundException e) {
-			throw new IllegalJarException(e);
-		}
+		Optional<Class<?>> fromContractArgument = getMethodFromContractArgumentIn(className);
 
 		if (fromContractArgument.isPresent()) {
 			if (!classLoader.getContract().isAssignableFrom(fromContractArgument.get()))
@@ -50,23 +43,8 @@ public class FromContractCodeIsInstanceAndInStorageClassCheck extends CheckOnMet
 			if (method.isStatic())
 				issue(new FromContractNotInStorageError(inferSourceFile(), methodName));
 
-			boolean isInterface;
-
-			try {
-				isInterface = classLoader.isInterface(className);
-			}
-			catch (ClassNotFoundException e) {
-				// className is in the jar, so it must be found by the class loader
-				throw new RuntimeException(e);
-			}
-
-			try {
-				if (!isInterface && !classLoader.isStorage(className))
-					issue(new FromContractNotInStorageError(inferSourceFile(), methodName));
-			}
-			catch (ClassNotFoundException e) {
-				throw new IllegalJarException(e);
-			}
+			if (!isInterface && !isStorage)
+				issue(new FromContractNotInStorageError(inferSourceFile(), methodName));
 		};
 	}
 }

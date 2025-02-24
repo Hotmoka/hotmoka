@@ -32,15 +32,6 @@ public class StorageClassesHaveFieldsOfStorageTypeCheck extends CheckOnClasses {
 	public StorageClassesHaveFieldsOfStorageTypeCheck(VerifiedClassImpl.Verification builder) throws IllegalJarException {
 		super(builder);
 
-		boolean isStorage;
-
-		try {
-			isStorage = classLoader.isStorage(className);
-		}
-		catch (ClassNotFoundException e) {
-			throw new IllegalJarException(e);
-		}
-
 		if (isStorage)
 			for (var field: clazz.getDeclaredFields())
 				if (!Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers()) && !isTypeAllowedForStorageFields(field.getType()))

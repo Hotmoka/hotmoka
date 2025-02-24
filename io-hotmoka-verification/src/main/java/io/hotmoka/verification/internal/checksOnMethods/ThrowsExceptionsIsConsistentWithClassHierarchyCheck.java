@@ -36,17 +36,8 @@ public class ThrowsExceptionsIsConsistentWithClassHierarchyCheck extends CheckOn
 	public ThrowsExceptionsIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
 		super(builder, method);
 
-		if (!methodName.equals(Const.CONSTRUCTOR_NAME) && method.isPublic()) {
-			try {
-				boolean wasThrowsExceptions = methodIsThrowsExceptionsIn(className);
-				Class<?> rt = bcelToClass.of(methodReturnType);
-				Class<?>[] args = bcelToClass.of(methodArgs);
-				isIdenticallyThrowsExceptionsInSupertypesOf(clazz, wasThrowsExceptions, rt, args);
-			}
-			catch (ClassNotFoundException e) {
-				throw new IllegalJarException(e);
-			}
-		}
+		if (!methodName.equals(Const.CONSTRUCTOR_NAME) && method.isPublic())
+			isIdenticallyThrowsExceptionsInSupertypesOf(clazz, methodIsThrowsExceptionsIn(className), methodReturnTypeClass, methodArgsClasses);
 	}
 
 	private void isIdenticallyThrowsExceptionsInSupertypesOf(Class<?> clazz, boolean wasThrowsExceptions, Class<?> rt, Class<?>[] args) throws IllegalJarException {
