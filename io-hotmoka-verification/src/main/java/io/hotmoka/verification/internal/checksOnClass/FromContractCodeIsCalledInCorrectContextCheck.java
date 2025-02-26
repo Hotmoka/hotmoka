@@ -21,11 +21,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.BootstrapMethod;
-import org.apache.bcel.classfile.Constant;
 import org.apache.bcel.classfile.ConstantMethodHandle;
 import org.apache.bcel.classfile.ConstantMethodref;
 import org.apache.bcel.classfile.ConstantNameAndType;
@@ -165,17 +163,10 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 	}
 
 	private void addLambdasReachableFromStatic(MethodGen method, Set<MethodGen> lambdasReachableFromStaticMethods) {
-		InstructionList instructions = method.getInstructionList();
-		if (instructions != null)
-			StreamSupport.stream(instructions.spliterator(), false)
-				.map(InstructionHandle::getInstruction)
-				.filter(instruction -> instruction instanceof INVOKEDYNAMIC)
-				.map(instruction -> (INVOKEDYNAMIC) instruction)
-				.map(bootstraps::getBootstrapFor)
-				.map(this::getLambdaFor)
-				.filter(Optional::isPresent)
-				.map(Optional::get)
-				.forEach(lambdasReachableFromStaticMethods::add);
+		for (var ih: instructionsOf(method))
+			if (ih.getInstruction() instanceof INVOKEDYNAMIC invokedynamic)
+				getLambdaFor(bootstraps.getBootstrapFor(invokedynamic))
+					.ifPresent(lambdasReachableFromStaticMethods::add);
 	}
 
 	/**
@@ -203,14 +194,13 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 	}
 
 	private boolean callsFromContractOnThis(InstructionHandle ih, MethodGen method, InstructionList il) throws IllegalJarException {
-		Instruction instruction = ih.getInstruction();
-		if (instruction instanceof InvokeInstruction invoke && !(invoke instanceof INVOKESTATIC) && !(invoke instanceof INVOKEDYNAMIC)) {
+		if (ih.getInstruction() instanceof InvokeInstruction invoke && !(invoke instanceof INVOKESTATIC) && !(invoke instanceof INVOKEDYNAMIC)) {
 			Type[] args = invoke.getArgumentTypes(cpg);
 			int slots = Stream.of(args).mapToInt(Type::getSize).sum();
 
 			try {
 				boolean callsFromContract = invoke.getReferenceType(cpg) instanceof ObjectType receiver && annotations.isFromContract
-					(receiver.getClassName(), invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));
+					(receiver.getClassName(), invoke.getMethodName(cpg), args, invoke.getReturnType(cpg));
 
 				return callsFromContract &&
 						Pushers.of(ih, slots + 1, method)
@@ -267,16 +257,23 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 
 		if (instruction instanceof INVOKEDYNAMIC invokedynamic) {
 			BootstrapMethod bootstrap = bootstraps.getBootstrapFor(invokedynamic);
-			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
-			if (!(constant instanceof ConstantMethodHandle mh))
+
+			int[] bootstrapArgs = bootstrap.getBootstrapArguments();
+			if (bootstrapArgs.length <= 1 || !(cpg.getConstant(bootstrapArgs[1]) instanceof ConstantMethodHandle mh))
 				throw new IllegalJarException("Illegal constant");
 
-			Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
-			ConstantMethodref mr = (ConstantMethodref) constant2;
-			ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
-			return ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
+			if (!(cpg.getConstant(mh.getReferenceIndex()) instanceof ConstantMethodref mr))
+				throw new IllegalJarException("Illegal constant");
+
+			if (!(cpg.getConstant(mr.getNameAndTypeIndex()) instanceof ConstantNameAndType nt))
+				throw new IllegalJarException("Illegal constant");
+
+			if (!(cpg.getConstant(nt.getNameIndex()) instanceof ConstantUtf8 cu8))
+				throw new IllegalJarException("Illegal constant");
+
+			return cu8.getBytes();
 		}
-		else // this method is called only on invoke instructions
+		else // this method is called only on invoke instructions // TODO: avoid cast in the future
 			return ((InvokeInstruction) instruction).getMethodName(cpg);
 	}
 }

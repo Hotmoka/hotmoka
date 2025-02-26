@@ -40,6 +40,7 @@ import io.hotmoka.verification.AnnotationUtilities;
 import io.hotmoka.verification.BcelToClasses;
 import io.hotmoka.verification.api.AnnotationUtility;
 import io.hotmoka.verification.api.BcelToClass;
+import io.hotmoka.verification.api.Bootstraps;
 import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 
@@ -50,7 +51,7 @@ public abstract class CheckOnClasses {
 	private final VerifiedClassImpl.Verification builder;
 	protected final TakamakaClassLoader classLoader;
 	protected final Class<?> clazz;
-	protected final BootstrapsImpl bootstraps;
+	protected final Bootstraps bootstraps;
 	protected final Resolver resolver;
 	protected final AnnotationUtility annotations;
 	protected final BcelToClass bcelToClass;

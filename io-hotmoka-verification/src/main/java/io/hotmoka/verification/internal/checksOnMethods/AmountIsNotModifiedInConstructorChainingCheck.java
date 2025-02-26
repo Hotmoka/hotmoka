@@ -16,9 +16,6 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnMethods;
 
-import static io.hotmoka.exceptions.CheckRunnable.check;
-import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -54,15 +51,10 @@ public class AmountIsNotModifiedInConstructorChainingCheck extends CheckOnMethod
 	public AmountIsNotModifiedInConstructorChainingCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
 		super(builder, method);
 
-		if (Const.CONSTRUCTOR_NAME.equals(methodName) && methodArgs.length > 0 && methodIsPayableIn(className)) {
-			check(IllegalJarException.class, () ->
-				instructions()
-				.filter(uncheck(IllegalJarException.class, this::callsPayableFromContractConstructorOnThis))
-				.filter(this::amountMightBeChanged)
-				.map(ih -> new IllegalModificationOfAmountInConstructorChaining(inferSourceFile(), method.getName(), lineOf(method, ih)))
-				.forEachOrdered(this::issue)
-			);
-		}
+		if (Const.CONSTRUCTOR_NAME.equals(methodName) && methodArgs.length > 0 && methodIsPayableIn(className))
+			for (var ih: instructionsOf(method))
+				if (callsPayableFromContractConstructorOnThis(ih) && amountMightBeChanged(ih))
+					issue(new IllegalModificationOfAmountInConstructorChaining(inferSourceFile(), method.getName(), lineOf(method, ih)));
 	}
 
 	/**
@@ -71,12 +63,12 @@ public class AmountIsNotModifiedInConstructorChainingCheck extends CheckOnMethod
 	 * 
 	 * @param ih the instruction, that calls the constructor of the superclass
 	 * @return true if that condition holds
+	 * @throws IllegalJarException if the jar under verification is illegal
 	 */
-	private boolean amountMightBeChanged(InstructionHandle ih) {
+	private boolean amountMightBeChanged(InstructionHandle ih) throws IllegalJarException {
 		Instruction instruction = ih.getInstruction();
-		var invoke = (InvokeInstruction) instruction;
-		Type[] argumentTypes = invoke.getArgumentTypes(cpg);
-		int slots = Stream.of(argumentTypes).mapToInt(Type::getSize).sum();
+		var invoke = (InvokeInstruction) instruction; // this is called only when ih contains an invoke instruction TODO: avoid this
+		int slots = Stream.of(invoke.getArgumentTypes(cpg)).mapToInt(Type::getSize).sum();
 
 		boolean doesNotUseSameLocal = Pushers.of(ih, slots, method)
 			.map(InstructionHandle::getInstruction)
@@ -85,7 +77,7 @@ public class AmountIsNotModifiedInConstructorChainingCheck extends CheckOnMethod
 		return doesNotUseSameLocal || mightUpdateLocal(ih, 1);
 	}
 
-	private boolean mightUpdateLocal(InstructionHandle ih, int local) {
+	private boolean mightUpdateLocal(InstructionHandle ih, int local) throws IllegalJarException {
 		Set<InstructionHandle> seen = new HashSet<>();
 		List<InstructionHandle> workingSet = new ArrayList<>();
 		workingSet.add(ih);
@@ -107,11 +99,11 @@ public class AmountIsNotModifiedInConstructorChainingCheck extends CheckOnMethod
 			// we proceed with the instructions that jump at currentIh
 			InstructionTargeter[] targeters = currentIh.getTargeters();
 			if (Stream.of(targeters).anyMatch(targeter -> targeter instanceof CodeExceptionGen))
-				throw new IllegalStateException("Cannot follow stack pushers");
+				throw new IllegalJarException("Cannot follow stack pushers");
 
 			for (var targeter: targeters)
 				if (targeter instanceof BranchInstruction branch) {
-					InstructionHandle added = findInstruction(branch).orElseThrow(() -> new IllegalStateException("Cannot follow stack pushers"));
+					InstructionHandle added = findInstruction(branch).orElseThrow(() -> new IllegalJarException("Cannot follow the stack pushers"));
 					if (seen.add(added))
 						workingSet.add(added);
 				}
