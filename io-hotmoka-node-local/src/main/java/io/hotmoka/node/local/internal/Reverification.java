@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.local.internal;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -183,10 +182,8 @@ public class Reverification {
 
 			// ... and the instrumented jars of its dependencies: since we have already considered the case
 			// when a dependency is failed, we can conclude that they must all have an instrumented jar
-			reverifiedDependencies.stream()
-				.map(dependency -> (TransactionResponseWithInstrumentedJar) dependency)
-				.map(TransactionResponseWithInstrumentedJar::getInstrumentedJar)
-				.forEachOrdered(jars::add);
+			for (var dependency: reverifiedDependencies)
+				jars.add(((TransactionResponseWithInstrumentedJar) dependency).getInstrumentedJar());
 
 			// consensus might be null if the node is restarting, during the recomputation of its consensus itself
 			if (consensus != null && jars.stream().mapToLong(bytes -> bytes.length).sum() > consensus.getMaxCumulativeSizeOfDependencies())
@@ -196,7 +193,7 @@ public class Reverification {
 				var tcl = TakamakaClassLoaders.of(jars.stream(), consensus != null ? consensus.getVerificationVersion() : 0);
 				return VerifiedJars.of(jar, tcl, gjstr instanceof InitialTransactionRequest, consensus != null && consensus.skipsVerification());
 			}
-			catch (ClassNotFoundException | IllegalJarException | IOException | UnsupportedVerificationVersionException e) {
+			catch (IllegalJarException | UnsupportedVerificationVersionException e) {
 				throw new StoreException(e);
 			}
 		}

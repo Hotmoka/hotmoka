@@ -54,6 +54,7 @@ import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.Reverification;
 import io.hotmoka.verification.TakamakaClassLoaders;
+import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 import io.hotmoka.whitelisting.api.WhiteListingWizard;
@@ -221,7 +222,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		catch (UnsupportedVerificationVersionException e) {
 			throw new StoreException(e);
 		}
-		catch (ClassNotFoundException e) {
+		catch (IllegalJarException e) {
 			throw new TransactionRejectedException(e, consensus);
 		}
 	}

@@ -124,8 +124,8 @@ public abstract class CheckOnMethods extends CheckOnClasses {
 				&& methodArgs.length > 0 && methodArgs[0] instanceof ObjectType ot
 				&& ot.getClassName().equals(className.substring(0, dollarPos))) {
 
-			InstructionList il = method.getInstructionList();
-			if (il != null && il.getLength() >= 3) {
+			InstructionList il = instructionsOf(method);
+			if (il.getLength() >= 3) {
 				Instruction[] instructions = il.getInstructions();
 
 				return instructions[0] instanceof LoadInstruction li0 && li0.getIndex() == 0

@@ -30,6 +30,7 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 
 /**
@@ -80,6 +81,10 @@ public class SignatureHelperImpl implements SignatureHelper {
 			throw new NodeException("Reference " + account + " has a class that cannot be found in its classpath", e);
 		}
 		catch (NoSuchAlgorithmException e) {
+			throw new NodeException(e);
+		}
+		catch (IllegalJarException e) {
+			// the jar, if already installed in the node, must be legal, since it has been already installed there
 			throw new NodeException(e);
 		}
 	}

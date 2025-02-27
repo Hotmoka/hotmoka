@@ -78,7 +78,7 @@ public class PushersImpl implements Supplier<Stream<InstructionHandle>> {
 
 	@Override
 	public Stream<InstructionHandle> get() {
-		Iterable<InstructionHandle> iterable = () -> new MyIterator(ih, slots, il, cpg);
+		Iterable<InstructionHandle> iterable = () -> new MyIterator(ih, slots);
 		return StreamSupport.stream(iterable.spliterator(), false);
 	}
 
@@ -86,7 +86,7 @@ public class PushersImpl implements Supplier<Stream<InstructionHandle>> {
 	 * This iterator provides the results on demand. This is very important in order to
 	 * implement a lazy {@link PushersImpl#getPushers(InstructionHandle, int, InstructionList, ConstantPoolGen)}.
 	 */
-	private static class MyIterator implements Iterator<InstructionHandle> {
+	private class MyIterator implements Iterator<InstructionHandle> {
 
 		private static class HeightAtBytecode {
 			public final InstructionHandle ih;
@@ -114,24 +114,19 @@ public class PushersImpl implements Supplier<Stream<InstructionHandle>> {
 			}
 		}
 
-		private final InstructionList il;
-		private final ConstantPoolGen cpg;
 		private final List<HeightAtBytecode> workingSet = new ArrayList<>();
 		private final Set<HeightAtBytecode> seen = new HashSet<>();
 		private final List<InstructionHandle> results = new ArrayList<>();
 		private final Set<InstructionHandle> seenResults = new HashSet<>();
 
-		private MyIterator(InstructionHandle ih, int slots, InstructionList il, ConstantPoolGen cpg) {
-			this.il = il;
-			this.cpg = cpg;
-
-			HeightAtBytecode start = new HeightAtBytecode(ih, slots);
+		private MyIterator(InstructionHandle ih, int slots) {
+			var start = new HeightAtBytecode(ih, slots);
 			workingSet.add(start);
 			seen.add(start);
 			propagate();
 		}
 
-		private void propagate() {
+		private void propagate() { // TODO: define maximal effort in propagation
 			while (results.isEmpty() && !workingSet.isEmpty()) {
 				HeightAtBytecode current = workingSet.remove(workingSet.size() - 1);
 				InstructionHandle currentIh = current.ih;
@@ -149,7 +144,7 @@ public class PushersImpl implements Supplier<Stream<InstructionHandle>> {
 					if (targeter instanceof CodeExceptionGen)
 						throw new IllegalStateException("Cannot find stack pushers"); // TODO: this should be checked
 					else if (targeter instanceof BranchInstruction bi)
-						predecessors.add(findInstruction(il, bi).orElseThrow(() -> new IllegalStateException("Cannot find stack pushers"))); // TODO: this should be checked
+						predecessors.add(findInstruction(bi).orElseThrow(() -> new IllegalStateException("Cannot find stack pushers"))); // TODO: this should be checked
 				});
 
 				predecessors.forEach(p -> process(p, current.stackHeightBeforeBytecode));
@@ -166,7 +161,7 @@ public class PushersImpl implements Supplier<Stream<InstructionHandle>> {
 			}
 			else {
 				stackHeightBefore += ins.consumeStack(cpg);
-				HeightAtBytecode added = new HeightAtBytecode(ih, stackHeightBefore);
+				var added = new HeightAtBytecode(ih, stackHeightBefore);
 
 				if (seen.add(added))
 					workingSet.add(added);
@@ -179,7 +174,7 @@ public class PushersImpl implements Supplier<Stream<InstructionHandle>> {
 		 * @param i instruction to search for
 		 * @return instruction the instruction handle
 		 */
-		private Optional<InstructionHandle> findInstruction(InstructionList il, Instruction i) {
+		private Optional<InstructionHandle> findInstruction(Instruction i) {
 			Stream<InstructionHandle> instructions = il == null ? Stream.empty() : StreamSupport.stream(il.spliterator(), false);
 			return instructions.filter(ih -> ih.getInstruction() == i).findFirst();
 		}

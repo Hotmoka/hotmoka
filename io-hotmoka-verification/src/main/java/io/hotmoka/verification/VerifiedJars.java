@@ -16,8 +16,6 @@ limitations under the License.
 
 package io.hotmoka.verification;
 
-import java.io.IOException;
-
 import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.verification.api.VerifiedJar;
@@ -41,10 +39,9 @@ public final class VerifiedJars {
 	 * @param duringInitialization true if and only if verification occurs during the initialization of the node
 	 * @param skipsVerification true if and only if the static verification of the classes of the jar must be skipped
 	 * @return the verified jar
-	 * @throws IOException if an I/O error occurred while accessing the classes
 	 * @throws IllegalJarException if {@code jar} is illegal
 	 */
-	public static VerifiedJar of(byte[] jar, TakamakaClassLoader classLoader, boolean duringInitialization, boolean skipsVerification) throws IOException, IllegalJarException {
+	public static VerifiedJar of(byte[] jar, TakamakaClassLoader classLoader, boolean duringInitialization, boolean skipsVerification) throws IllegalJarException {
 		return new VerifiedJarImpl(jar, classLoader, duringInitialization, skipsVerification);
 	}
 }

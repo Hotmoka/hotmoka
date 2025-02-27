@@ -16,8 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.local.internal.builders;
 
-import java.io.IOException;
-
 import io.hotmoka.instrumentation.InstrumentedJars;
 import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -68,10 +66,7 @@ public class JarStoreInitialResponseBuilder extends AbstractInitialResponseBuild
 					var instrumentedJar = InstrumentedJars.of(VerifiedJars.of(request.getJar(), classLoader, true, consensus.skipsVerification()), consensus.getGasCostModel());
 					return TransactionResponses.jarStoreInitial(instrumentedJar.toBytes(), request.getDependencies(), consensus.getVerificationVersion());
 				}
-				catch (IOException t) {
-					throw new RuntimeException("unexpected exception", t);
-				}
-				catch (IllegalJarException e) { // TODO: levae this thrown
+				catch (IllegalJarException e) { // TODO: leave this thrown
 					throw new ClassNotFoundException();
 				}
 			}

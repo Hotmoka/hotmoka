@@ -23,6 +23,7 @@ import java.math.BigInteger;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.whitelisting.WhiteListingClassLoaders;
 import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
@@ -121,25 +122,33 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	 * @param jars the jars
 	 * @param verificationVersion the version of the verification module that must b e used; this affects the
 	 *                            set of white-listing annotations used by the class loader
-	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
+	 * @throws UnsupportedVerificationVersionException if the annotations for the required verification
+	 *                                                 version cannot be found in the white-listing database
+	 * @throws IllegalJarException if some jar is illegal, for instance, their class path does not include the Takamaka runtime
 	 */
-	public TakamakaClassLoaderImpl(Stream<byte[]> jars, long verificationVersion) throws UnsupportedVerificationVersionException, ClassNotFoundException {
+	public TakamakaClassLoaderImpl(Stream<byte[]> jars, long verificationVersion) throws UnsupportedVerificationVersionException, IllegalJarException {
 		this.parent = WhiteListingClassLoaders.of(jars, verificationVersion);
-		this.contract = loadClass(Constants.CONTRACT_NAME);
-		this.externallyOwnedAccount = loadClass(Constants.EOA_NAME);
-		this.abstractValidators = loadClass(Constants.ABSTRACT_VALIDATORS_NAME);
-		this.gamete = loadClass(Constants.GAMETE_NAME);
-		this.account = loadClass(Constants.ACCOUNT_NAME);
-		this.accountED25519 = loadClass(Constants.ACCOUNT_ED25519_NAME);
-		this.accountQTESLA1 = loadClass(Constants.ACCOUNT_QTESLA1_NAME);
-		this.accountQTESLA3 = loadClass(Constants.ACCOUNT_QTESLA3_NAME);
-		this.accountSHA256DSA = loadClass(Constants.ACCOUNT_SHA256DSA_NAME);
-		this.manifest = loadClass(Constants.MANIFEST_NAME);
-		this.storage = loadClass(Constants.STORAGE_NAME);
-		this.consensusUpdateEvent = loadClass(Constants.CONSENSUS_UPDATE_NAME);
-		this.gasPriceUpdateEvent = loadClass(Constants.GAS_PRICE_UPDATE_NAME);
-		this.inflationUpdateEvent = loadClass(Constants.INFLATION_UPDATE_NAME);
-		this.validatorsUpdateEvent = loadClass(Constants.VALIDATORS_UPDATE_NAME);
+
+		try {
+			this.contract = loadClass(Constants.CONTRACT_NAME);
+			this.externallyOwnedAccount = loadClass(Constants.EOA_NAME);
+			this.abstractValidators = loadClass(Constants.ABSTRACT_VALIDATORS_NAME);
+			this.gamete = loadClass(Constants.GAMETE_NAME);
+			this.account = loadClass(Constants.ACCOUNT_NAME);
+			this.accountED25519 = loadClass(Constants.ACCOUNT_ED25519_NAME);
+			this.accountQTESLA1 = loadClass(Constants.ACCOUNT_QTESLA1_NAME);
+			this.accountQTESLA3 = loadClass(Constants.ACCOUNT_QTESLA3_NAME);
+			this.accountSHA256DSA = loadClass(Constants.ACCOUNT_SHA256DSA_NAME);
+			this.manifest = loadClass(Constants.MANIFEST_NAME);
+			this.storage = loadClass(Constants.STORAGE_NAME);
+			this.consensusUpdateEvent = loadClass(Constants.CONSENSUS_UPDATE_NAME);
+			this.gasPriceUpdateEvent = loadClass(Constants.GAS_PRICE_UPDATE_NAME);
+			this.inflationUpdateEvent = loadClass(Constants.INFLATION_UPDATE_NAME);
+			this.validatorsUpdateEvent = loadClass(Constants.VALIDATORS_UPDATE_NAME);
+		}
+		catch (ClassNotFoundException e) {
+			throw new IllegalJarException(e);
+		}
 	}
 
 	@Override
@@ -194,7 +203,7 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 
 	@Override
 	public final boolean isLazilyLoaded(Class<?> type) {
-		return !type.isPrimitive() && type != String.class && type != BigInteger.class && !type.isEnum();
+		return !type.isPrimitive() && type != String.class && type != BigInteger.class;
 	}
 
 	@Override

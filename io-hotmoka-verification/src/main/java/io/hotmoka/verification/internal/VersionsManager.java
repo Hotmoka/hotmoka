@@ -54,6 +54,7 @@ final class VersionsManager {
 	public final long verificationVersion;
 
 	VersionsManager(long verificationVersion) throws UnsupportedVerificationVersionException {
+		// currently, the only existing verification version is 0
 		if (verificationVersion != 0L)
 			throw new UnsupportedVerificationVersionException(verificationVersion);
 
