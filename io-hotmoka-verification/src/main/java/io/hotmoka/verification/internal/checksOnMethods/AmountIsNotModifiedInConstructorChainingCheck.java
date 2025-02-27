@@ -70,11 +70,27 @@ public class AmountIsNotModifiedInConstructorChainingCheck extends CheckOnMethod
 		var invoke = (InvokeInstruction) instruction; // this is called only when ih contains an invoke instruction TODO: avoid this
 		int slots = Stream.of(invoke.getArgumentTypes(cpg)).mapToInt(Type::getSize).sum();
 
-		boolean doesNotUseSameLocal = Pushers.of(ih, slots, method)
-			.map(InstructionHandle::getInstruction)
-			.anyMatch(ins -> !(ins instanceof LoadInstruction load) || load.getIndex() != 1);	
+		return !pusherIsLoad1(ih, slots) || mightUpdateLocal(ih, 1);
+	}
 
-		return doesNotUseSameLocal || mightUpdateLocal(ih, 1);
+	private boolean pusherIsLoad1(InstructionHandle ih, int slots) throws IllegalJarException {
+		var it = Pushers.iterator(ih, slots, method);
+
+		while (it.hasNext())
+			if (!(it.next().getInstruction() instanceof LoadInstruction load) || load.getIndex() != 1)
+				return false;
+
+		return true;
+	}
+
+	private boolean pusherIsLoad0(InstructionHandle ih, int slots) throws IllegalJarException {
+		var it = Pushers.iterator(ih, slots, method);
+
+		while (it.hasNext())
+			if (!(it.next().getInstruction() instanceof LoadInstruction load) || load.getIndex() != 0)
+				return false;
+
+		return true;
 	}
 
 	private boolean mightUpdateLocal(InstructionHandle ih, int local) throws IllegalJarException {
@@ -141,10 +157,7 @@ public class AmountIsNotModifiedInConstructorChainingCheck extends CheckOnMethod
     				throw new IllegalJarException(e);
     			}
 
-    			return callsPayableFromContract &&
-    					Pushers.of(ih, slots + 1, method)
-    					.map(InstructionHandle::getInstruction)
-    					.allMatch(ins -> ins instanceof LoadInstruction load && load.getIndex() == 0);	
+    			return callsPayableFromContract && pusherIsLoad0(ih, slots + 1);
     		}
     	}
 

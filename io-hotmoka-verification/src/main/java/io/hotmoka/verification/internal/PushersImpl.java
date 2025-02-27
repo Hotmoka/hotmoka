@@ -18,11 +18,9 @@ package io.hotmoka.verification.internal;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -37,10 +35,13 @@ import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ReturnInstruction;
 
+import io.hotmoka.verification.api.IllegalJarException;
+import io.hotmoka.verification.api.PushersIterator;
+
 /**
  * The implementation of the computation of the pushers of a stack value.
  */
-public class PushersImpl implements Supplier<Stream<InstructionHandle>> {
+public class PushersImpl {
 
 	/**
 	 * The start instruction of the look-up.
@@ -76,17 +77,15 @@ public class PushersImpl implements Supplier<Stream<InstructionHandle>> {
 		this.cpg = method.getConstantPool();
 	}
 
-	@Override
-	public Stream<InstructionHandle> get() {
-		Iterable<InstructionHandle> iterable = () -> new MyIterator(ih, slots);
-		return StreamSupport.stream(iterable.spliterator(), false);
+	public PushersIterator iterator() throws IllegalJarException {
+		return new MyIterator(ih, slots);
 	}
 
 	/**
 	 * This iterator provides the results on demand. This is very important in order to
 	 * implement a lazy {@link PushersImpl#getPushers(InstructionHandle, int, InstructionList, ConstantPoolGen)}.
 	 */
-	private class MyIterator implements Iterator<InstructionHandle> {
+	private class MyIterator implements PushersIterator {
 
 		private static class HeightAtBytecode {
 			public final InstructionHandle ih;
@@ -119,14 +118,14 @@ public class PushersImpl implements Supplier<Stream<InstructionHandle>> {
 		private final List<InstructionHandle> results = new ArrayList<>();
 		private final Set<InstructionHandle> seenResults = new HashSet<>();
 
-		private MyIterator(InstructionHandle ih, int slots) {
+		private MyIterator(InstructionHandle ih, int slots) throws IllegalJarException {
 			var start = new HeightAtBytecode(ih, slots);
 			workingSet.add(start);
 			seen.add(start);
 			propagate();
 		}
 
-		private void propagate() { // TODO: define maximal effort in propagation
+		private void propagate() throws IllegalJarException { // TODO: define maximal effort in propagation
 			while (results.isEmpty() && !workingSet.isEmpty()) {
 				HeightAtBytecode current = workingSet.remove(workingSet.size() - 1);
 				InstructionHandle currentIh = current.ih;
@@ -140,12 +139,11 @@ public class PushersImpl implements Supplier<Stream<InstructionHandle>> {
 				}
 
 				// we proceed with the instructions that jump at currentIh
-				Stream.of(currentIh.getTargeters()).forEach(targeter -> {
+				for (var targeter: currentIh.getTargeters())
 					if (targeter instanceof CodeExceptionGen)
-						throw new IllegalStateException("Cannot find stack pushers"); // TODO: this should be checked
+						throw new IllegalJarException("Cannot find stack pushers");
 					else if (targeter instanceof BranchInstruction bi)
-						predecessors.add(findInstruction(bi).orElseThrow(() -> new IllegalStateException("Cannot find stack pushers"))); // TODO: this should be checked
-				});
+						predecessors.add(findInstruction(bi).orElseThrow(() -> new IllegalJarException("Cannot find stack pushers")));
 
 				predecessors.forEach(p -> process(p, current.stackHeightBeforeBytecode));
 			}
@@ -185,7 +183,7 @@ public class PushersImpl implements Supplier<Stream<InstructionHandle>> {
 		}
 
 		@Override
-		public InstructionHandle next() {
+		public InstructionHandle next() throws IllegalJarException {
 			InstructionHandle next = results.remove(results.size() - 1);
 			propagate();
 			return next;

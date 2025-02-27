@@ -16,11 +16,11 @@ limitations under the License.
 
 package io.hotmoka.verification;
 
-import java.util.stream.Stream;
-
 import org.apache.bcel.generic.InstructionHandle;
 import org.apache.bcel.generic.MethodGen;
 
+import io.hotmoka.verification.api.IllegalJarException;
+import io.hotmoka.verification.api.PushersIterator;
 import io.hotmoka.verification.internal.PushersImpl;
 
 /**
@@ -31,14 +31,15 @@ public final class Pushers {
 	private Pushers() {}
 
 	/**
-	 * Yields the pushers of a value on the stack.
+	 * Yields an iterator over the pushers of a value on the stack.
 	 *
 	 * @param ih the start instruction of the look-up
 	 * @param slots the difference in stack height
 	 * @param method the method where {@code ih} occurs
-	 * @return the pushers
+	 * @return the iterator
+	 * @throws IllegalJarException if the jar where pushers are considered is illegal or too complex
 	 */
-	public static Stream<InstructionHandle> of(InstructionHandle ih, int slots, MethodGen method) {
-		return new PushersImpl(ih, slots, method).get();
+	public static PushersIterator iterator(InstructionHandle ih, int slots, MethodGen method) throws IllegalJarException {
+		return new PushersImpl(ih, slots, method).iterator();
 	}
 }

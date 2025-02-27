@@ -198,10 +198,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 				boolean callsFromContract = invoke.getReferenceType(cpg) instanceof ObjectType receiver && annotations.isFromContract
 					(receiver.getClassName(), invoke.getMethodName(cpg), args, invoke.getReturnType(cpg));
 
-				return callsFromContract &&
-						Pushers.of(ih, slots + 1, method)
-						.map(InstructionHandle::getInstruction)
-						.allMatch(ins -> ins instanceof LoadInstruction li && li.getIndex() == 0);
+				return callsFromContract && pusherIsLoad0(ih, slots + 1, method);
 			}
 			catch (ClassNotFoundException e) {
 				throw new IllegalJarException(e);
@@ -209,6 +206,16 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 		}
 
 		return false;
+	}
+
+	private boolean pusherIsLoad0(InstructionHandle ih, int slots, MethodGen method) throws IllegalJarException {
+		var it = Pushers.iterator(ih, slots, method);
+
+		while (it.hasNext())
+			if (!(it.next().getInstruction() instanceof LoadInstruction load) || load.getIndex() != 0)
+				return false;
+
+		return true;
 	}
 
 	private boolean callsPayableFromContractConstructorOnThis(InstructionHandle ih, MethodGen method, InstructionList il) throws IllegalJarException {
@@ -230,10 +237,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 						throw new IllegalJarException(e);
 					}
 
-					return callsPayableFromContract &&
-						Pushers.of(ih, slots + 1, method)
-							.map(InstructionHandle::getInstruction)
-							.allMatch(ins -> ins instanceof LoadInstruction li && li.getIndex() == 0);	
+					return callsPayableFromContract && pusherIsLoad0(ih, slots + 1, method);
 				}
 			}
 		}

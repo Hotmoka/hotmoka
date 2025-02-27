@@ -62,8 +62,9 @@ public class AddExtraArgsToCallsToFromContract extends MethodLevelInstrumentatio
 	 * @param builder the builder of the class being instrumented
 	 * @param method the method being instrumented
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
+	 * @throws IllegalJarException if the jar under instrumentation is illegal
 	 */
-	public AddExtraArgsToCallsToFromContract(InstrumentedClassImpl.Builder builder, MethodGen method) throws ClassNotFoundException {
+	public AddExtraArgsToCallsToFromContract(InstrumentedClassImpl.Builder builder, MethodGen method) throws ClassNotFoundException, IllegalJarException {
 		builder.super(method);
 
 		if (!method.isAbstract()) {
@@ -86,8 +87,9 @@ public class AddExtraArgsToCallsToFromContract extends MethodLevelInstrumentatio
 	 * @param ih the call to the entry
 	 * @param callee the name of the method where the calls are being looked for
 	 * @throws ClassNotFoundException if some class cannot be found in the Takamaka program
+	 * @throws IllegalJarException if the jar under instrumentation is illegal
 	 */
-	private void passExtraArgsToCallToFromContract(MethodGen method, InstructionList il, InstructionHandle ih, String callee) throws ClassNotFoundException {
+	private void passExtraArgsToCallToFromContract(MethodGen method, InstructionList il, InstructionHandle ih, String callee) throws ClassNotFoundException, IllegalJarException {
 		var invoke = (InvokeInstruction) ih.getInstruction();
 		var args = invoke.getArgumentTypes(cpg);
 		String methodName = invoke.getMethodName(cpg);
@@ -132,9 +134,7 @@ public class AddExtraArgsToCallsToFromContract extends MethodLevelInstrumentatio
 			expandedArgs[args.length] = CONTRACT_OT;
 			expandedArgs[args.length + 1] = DUMMY_OT;
 
-			boolean onThis = Pushers.of(ih, slots + 1, method)
-				.map(InstructionHandle::getInstruction)
-				.allMatch(ins -> ins instanceof LoadInstruction && ((LoadInstruction) ins).getIndex() == 0);
+			boolean onThis = pusherIsLoad0(ih, slots + 1, method);
 
 			if (onThis) {
 				// the call is on "this": it inherits our caller
@@ -165,6 +165,16 @@ public class AddExtraArgsToCallsToFromContract extends MethodLevelInstrumentatio
 				il.append(ih, InstructionConst.ACONST_NULL); // we pass null as Dummy
 			}
 		}
+	}
+
+	private boolean pusherIsLoad0(InstructionHandle ih, int slots, MethodGen method) throws IllegalJarException {
+		var it = Pushers.iterator(ih, slots, method);
+
+		while (it.hasNext())
+			if (!(it.next().getInstruction() instanceof LoadInstruction load) || load.getIndex() != 0)
+				return false;
+
+		return true;
 	}
 
 	/**
