@@ -16,13 +16,13 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-import io.hotmoka.verification.internal.AbstractErrorImpl;
+import io.hotmoka.verification.internal.AbstractError;
 
 /**
  * An error issued when a redefining method uses {@code @@FromContract}}
  * inconsistently with the redefined method.
  */
-public class InconsistentFromContractError extends AbstractErrorImpl {
+public class InconsistentFromContractError extends AbstractError {
 
 	/**
 	 * Builds the error.

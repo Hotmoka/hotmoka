@@ -54,7 +54,7 @@ public class AmountIsNotModifiedInConstructorChainingCheck extends CheckOnMethod
 		if (Const.CONSTRUCTOR_NAME.equals(methodName) && methodArgs.length > 0 && methodIsPayableIn(className))
 			for (var ih: instructionsOf(method))
 				if (callsPayableFromContractConstructorOnThis(ih) && amountMightBeChanged(ih))
-					issue(new IllegalModificationOfAmountInConstructorChaining(inferSourceFile(), method.getName(), lineOf(method, ih)));
+					issue(new IllegalModificationOfAmountInConstructorChaining(inferSourceFile(), method.getName(), lineOf(ih)));
 	}
 
 	/**

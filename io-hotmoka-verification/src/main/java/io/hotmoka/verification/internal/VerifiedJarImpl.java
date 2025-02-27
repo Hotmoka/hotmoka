@@ -48,7 +48,7 @@ public class VerifiedJarImpl implements VerifiedJar {
 	/**
 	 * The class loader used to load this jar.
 	 */
-	public final TakamakaClassLoader classLoader;
+	private final TakamakaClassLoader classLoader;
 
 	/**
 	 * The class of the jar that passed verification.
@@ -110,7 +110,7 @@ public class VerifiedJarImpl implements VerifiedJar {
 		private final boolean duringInitialization;
 
 		/**
-		 * True if and only if the static verification of the classses in the jar must be skipped.
+		 * True if and only if the static verification of the classes in the jar must be skipped.
 		 */
 		private final boolean skipsVerification;
 
@@ -158,21 +158,24 @@ public class VerifiedJarImpl implements VerifiedJar {
 
 		/**
 		 * Yields a verified BCEL class from the given entry of the jar file.
+		 * If verification fails for that class, an empty result is returned
+		 * and the verification errors are accumulated inside the verified jar.
 		 * 
 		 * @param entry the entry
 		 * @param input the stream of the jar in the entry
 		 * @return the BCEL class, if the class for {@code entry} did verify
 		 * @throws IllegalJarException of the jar under verification is illegal
-		 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
-		 * @throws IOException if the entry cannot be accessed correctly
 		 */
-		private Optional<VerifiedClass> buildVerifiedClass(ZipEntry entry, InputStream input) throws IllegalJarException, ClassFormatException, IOException {
+		private Optional<VerifiedClass> buildVerifiedClass(ZipEntry entry, InputStream input) throws IllegalJarException {
 			try {
 				// generates a RAM image of the class file, by using the BCEL library for bytecode manipulation
 				return Optional.of(new VerifiedClassImpl(new ClassParser(input, entry.getName()).parse(), VerifiedJarImpl.this, versionsManager, errors::add, duringInitialization, skipsVerification));
 			}
 			catch (VerificationException e) {
 				return Optional.empty();
+			}
+			catch (ClassFormatException | IOException e) {
+				throw new IllegalJarException(e);
 			}
 		}
 	}

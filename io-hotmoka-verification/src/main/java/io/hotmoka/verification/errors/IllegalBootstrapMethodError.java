@@ -16,13 +16,13 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-import io.hotmoka.verification.internal.AbstractErrorImpl;
+import io.hotmoka.verification.internal.AbstractError;
 
 /**
  * An error issued when the code contains a bootstrap method
  * of a form not allowed in Takamaka code.
  */
-public class IllegalBootstrapMethodError extends AbstractErrorImpl {
+public class IllegalBootstrapMethodError extends AbstractError {
 
 	/**
 	 * Builds the error.

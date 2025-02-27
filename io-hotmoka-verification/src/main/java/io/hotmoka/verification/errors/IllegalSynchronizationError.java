@@ -16,12 +16,12 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-import io.hotmoka.verification.internal.AbstractErrorImpl;
+import io.hotmoka.verification.internal.AbstractError;
 
 /**
  * An error issued when a {@code synchronized} is used in Takamaka code.
  */
-public class IllegalSynchronizationError extends AbstractErrorImpl {
+public class IllegalSynchronizationError extends AbstractError {
 
 	/**
 	 * Builds the error.

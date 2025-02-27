@@ -16,13 +16,13 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-import io.hotmoka.verification.internal.AbstractErrorImpl;
+import io.hotmoka.verification.internal.AbstractError;
 
 /**
  * An error issued when a method has a name not allowed in Takamaka,
  * for instance starting with an instrumentation prefix.
  */
-public class IllegalMethodNameError extends AbstractErrorImpl {
+public class IllegalMethodNameError extends AbstractError {
 
 	/**
 	 * Builds the error.

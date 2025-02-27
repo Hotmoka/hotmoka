@@ -16,12 +16,12 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-import io.hotmoka.verification.internal.AbstractErrorImpl;
+import io.hotmoka.verification.internal.AbstractError;
 
 /**
  * An error issued when the paid amount is modified across constructor chaining.
  */
-public class IllegalModificationOfAmountInConstructorChaining extends AbstractErrorImpl {
+public class IllegalModificationOfAmountInConstructorChaining extends AbstractError {
 
 	/**
 	 * Builds the error.

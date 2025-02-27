@@ -27,7 +27,7 @@ import java.util.Objects;
  * If an error occurs, then instrumentation cannot proceed and will be aborted.
  * Errors are first ordered by where they occur, then by class name and finally by message.
  */
-public abstract class AbstractErrorImpl implements io.hotmoka.verification.api.Error {
+public abstract class AbstractError implements io.hotmoka.verification.api.Error {
 	private final String where;
 	private final String message;
 
@@ -42,7 +42,7 @@ public abstract class AbstractErrorImpl implements io.hotmoka.verification.api.E
 	 * @param where a string that lets the user identify the class where the error occurs
 	 * @param message the message of the error
 	 */
-	protected AbstractErrorImpl(String where, String message) {
+	protected AbstractError(String where, String message) {
 		this.where = Objects.requireNonNull(where);
 		this.message = Objects.requireNonNull(message);
 	}
@@ -54,7 +54,7 @@ public abstract class AbstractErrorImpl implements io.hotmoka.verification.api.E
 	 * @param fieldName the name of the field where the error occurs
 	 * @param message the message of the error
 	 */
-	protected AbstractErrorImpl(String where, String fieldName, String message) {
+	protected AbstractError(String where, String fieldName, String message) {
 		this.where = Objects.requireNonNull(where) + " field " + Objects.requireNonNull(fieldName);
 		this.message = Objects.requireNonNull(message);;
 	}
@@ -67,7 +67,7 @@ public abstract class AbstractErrorImpl implements io.hotmoka.verification.api.E
 	 * @param line the line where the error occurs. Use -1 if the error is related to the method as a whole
 	 * @param message the message of the error
 	 */
-	protected AbstractErrorImpl(String where, String methodName, int line, String message) {
+	protected AbstractError(String where, String methodName, int line, String message) {
 		this.where = Objects.requireNonNull(where) + (line >= 0 ? (":" + line) : (" method " + Objects.requireNonNull(methodName)));
 		this.message = Objects.requireNonNull(message);;
 	}

@@ -16,12 +16,12 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-import io.hotmoka.verification.internal.AbstractErrorImpl;
+import io.hotmoka.verification.internal.AbstractError;
 
 /**
  * An error issued when the code attempts to modify a static field.
  */
-public class IllegalPutstaticInstructionError extends AbstractErrorImpl {
+public class IllegalPutstaticInstructionError extends AbstractError {
 
 	/**
 	 * Builds the error.

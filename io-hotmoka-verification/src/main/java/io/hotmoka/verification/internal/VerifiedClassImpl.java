@@ -77,7 +77,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 	 * @throws VerificationException if the Takamaka verification of the class failed
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 	 */
-	public VerifiedClassImpl(JavaClass clazz, VerifiedJarImpl jar, VersionsManager versionsManager, Consumer<AbstractErrorImpl> issueHandler, boolean duringInitialization, boolean skipsVerification) throws VerificationException, IllegalJarException {
+	public VerifiedClassImpl(JavaClass clazz, VerifiedJarImpl jar, VersionsManager versionsManager, Consumer<AbstractError> issueHandler, boolean duringInitialization, boolean skipsVerification) throws VerificationException, IllegalJarException {
 		this.clazz = new ClassGen(clazz);
 		this.jar = jar;
 		ConstantPoolGen cpg = getConstantPool();
@@ -166,14 +166,9 @@ public class VerifiedClassImpl implements VerifiedClass {
 	public class Verification {
 
 		/**
-		 * The manager of the versions of the verification module.
-		 */
-		final VersionsManager versionsManager;
-
-		/**
 		 * The handler that must be notified of issues found in the class.
 		 */
-		final Consumer<AbstractErrorImpl> issueHandler;
+		final Consumer<AbstractError> issueHandler;
 
 		/**
 		 * True if and only if the code verification occurs during blockchain initialization.
@@ -205,31 +200,25 @@ public class VerifiedClassImpl implements VerifiedClass {
 		 * @throws VerificationException if some verification error occurs
 		 * @throws IllegalJarException if the jar under verification is illegal
 		 */
-		private Verification(Consumer<AbstractErrorImpl> issueHandler, MethodGen[] methods, boolean duringInitialization, VersionsManager versionsManager) throws VerificationException, IllegalJarException {
+		private Verification(Consumer<AbstractError> issueHandler, MethodGen[] methods, boolean duringInitialization, VersionsManager versionsManager) throws VerificationException, IllegalJarException {
 			this.issueHandler = issueHandler;
-			this.versionsManager = versionsManager;
 			ConstantPoolGen cpg = getConstantPool();
 			this.methods = methods;
 			this.lines = Stream.of(methods).collect(Collectors.toMap(method -> method, method -> method.getLineNumberTable(cpg)));
 			this.duringInitialization = duringInitialization;
 
-			try { // TODO: throw IllegalJarException directly in the callees
-				applyAllChecksToTheClass();
-				applyAllChecksToTheMethodsOfTheClass();
-			}
-			catch (ClassNotFoundException e) {
-				throw new IllegalJarException(e);
-			}
+			applyAllChecksToTheClass(versionsManager);
+			applyAllChecksToTheMethodsOfTheClass(versionsManager);
 
 			if (hasErrors)
 				throw new VerificationException();
 		}
 
-		private void applyAllChecksToTheClass() throws IllegalJarException, ClassNotFoundException { // TODO: remove exception
+		private void applyAllChecksToTheClass(VersionsManager versionsManager) throws IllegalJarException {
 			versionsManager.applyAllClassChecks(this);
 		}
 
-		private void applyAllChecksToTheMethodsOfTheClass() throws IllegalJarException, ClassNotFoundException {  // TODO: remove exception
+		private void applyAllChecksToTheMethodsOfTheClass(VersionsManager versionsManager) throws IllegalJarException {
 			for (var method: methods)
 				versionsManager.applyAllMethodChecks(this, method);
 		}

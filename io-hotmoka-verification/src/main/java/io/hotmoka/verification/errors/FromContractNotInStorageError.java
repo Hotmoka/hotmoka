@@ -16,13 +16,13 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-import io.hotmoka.verification.internal.AbstractErrorImpl;
+import io.hotmoka.verification.internal.AbstractError;
 
 /**
  * An error issued when {@code @@FromContract} is applied to a constructor or method
  * of a class that is not storage.
  */
-public class FromContractNotInStorageError extends AbstractErrorImpl {
+public class FromContractNotInStorageError extends AbstractError {
 
 	/**
 	 * Builds the error.

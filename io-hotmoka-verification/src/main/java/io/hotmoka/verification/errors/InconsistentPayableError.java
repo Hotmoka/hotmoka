@@ -16,13 +16,13 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-import io.hotmoka.verification.internal.AbstractErrorImpl;
+import io.hotmoka.verification.internal.AbstractError;
 
 /**
  * An error issued when a redefining method uses {@code @@Payable}}
  * inconsistently with the redefined method.
  */
-public class InconsistentPayableError extends AbstractErrorImpl {
+public class InconsistentPayableError extends AbstractError {
 
 	/**
 	 * Builds the error.

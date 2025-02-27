@@ -16,12 +16,12 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-import io.hotmoka.verification.internal.AbstractErrorImpl;
+import io.hotmoka.verification.internal.AbstractError;
 
 /**
  * An error issued if a non-white-listed method is called.
  */
-public class IllegalCallToNonWhiteListedMethodError extends AbstractErrorImpl {
+public class IllegalCallToNonWhiteListedMethodError extends AbstractError {
 
 	/**
 	 * Builds the error.
