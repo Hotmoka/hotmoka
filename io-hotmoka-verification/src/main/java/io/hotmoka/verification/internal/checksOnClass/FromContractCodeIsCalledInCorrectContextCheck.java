@@ -17,9 +17,7 @@ limitations under the License.
 package io.hotmoka.verification.internal.checksOnClass;
 
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.bcel.Const;
@@ -131,30 +129,28 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 		}
 	}
 
-	private void computeLambdasUnreachableFromStaticMethods(Set<MethodGen> lambdasUnreachableFromStaticMethods) {
+	private void computeLambdasUnreachableFromStaticMethods(Set<MethodGen> lambdasUnreachableFromStaticMethods) throws IllegalJarException {
 		Set<MethodGen> lambdasReachableFromStaticMethods = new HashSet<>();
 
 		// we initially compute the set of all lambdas
-		Set<MethodGen> lambdas = bootstraps.getBootstraps()
-			.map(this::getLambdaFor)
-			.filter(Optional::isPresent)
-			.map(Optional::get)
-			.collect(Collectors.toSet());
+		Set<MethodGen> lambdas = new HashSet<>();
+		
+		for (var bootstrap: bootstraps.getBootstraps().toArray(BootstrapMethod[]::new))
+			getLambdaFor(bootstrap).ifPresent(lambdas::add);
 
 		// then we consider all lambdas that might be called, directly, from a static method
 		// that is not a lambda: they must be considered as reachable from a static method
-		getMethods()
-			.filter(MethodGen::isStatic)
-			.filter(method -> !lambdas.contains(method))
-			.forEach(method -> addLambdasReachableFromStatic(method, lambdasReachableFromStaticMethods));
+		for (var method: getMethods().toArray(MethodGen[]::new))
+			if (method.isStatic() && !lambdas.contains(method))
+				addLambdasReachableFromStatic(method, lambdasReachableFromStaticMethods);
 
 		// then we iterate on the same lambdas that have been found to be reachable from
 		// the static methods and process them, recursively
 		int initialSize;
 		do {
 			initialSize = lambdasReachableFromStaticMethods.size();
-			new HashSet<>(lambdasReachableFromStaticMethods)
-				.forEach(method -> addLambdasReachableFromStatic(method, lambdasReachableFromStaticMethods));
+			for (var method: new HashSet<>(lambdasReachableFromStaticMethods))
+				addLambdasReachableFromStatic(method, lambdasReachableFromStaticMethods);
 		}
 		while (lambdasReachableFromStaticMethods.size() > initialSize);
 
@@ -162,7 +158,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 		lambdasUnreachableFromStaticMethods.removeAll(lambdasReachableFromStaticMethods);
 	}
 
-	private void addLambdasReachableFromStatic(MethodGen method, Set<MethodGen> lambdasReachableFromStaticMethods) {
+	private void addLambdasReachableFromStatic(MethodGen method, Set<MethodGen> lambdasReachableFromStaticMethods) throws IllegalJarException {
 		for (var ih: instructionsOf(method))
 			if (ih.getInstruction() instanceof INVOKEDYNAMIC invokedynamic)
 				getLambdaFor(bootstraps.getBootstrapFor(invokedynamic))

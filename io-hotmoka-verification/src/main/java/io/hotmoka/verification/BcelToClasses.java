@@ -17,7 +17,7 @@ limitations under the License.
 package io.hotmoka.verification;
 
 import io.hotmoka.verification.api.BcelToClass;
-import io.hotmoka.verification.api.VerifiedJar;
+import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.verification.internal.BcelToClassImpl;
 
 /**
@@ -32,7 +32,7 @@ public final class BcelToClasses {
 	 *
 	 * @param jar the jar for which the transformation is performed
 	 */
-	public static BcelToClass of(VerifiedJar jar) {
-		return new BcelToClassImpl(jar);
+	public static BcelToClass of(TakamakaClassLoader classLoader) {
+		return new BcelToClassImpl(classLoader);
 	}
 }

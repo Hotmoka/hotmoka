@@ -25,7 +25,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -220,13 +219,13 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		 */
 		private Builder(VerifiedClass clazz, GasCostModel gasCostModel) throws IllegalJarException {
 			this.verifiedClass = clazz;
-			this.bcelToClass = BcelToClasses.of(verifiedClass.getJar());
+			this.classLoader = clazz.getJar().getClassLoader();
+			this.bcelToClass = BcelToClasses.of(classLoader);
 			this.annotations = AnnotationUtilities.of(verifiedClass.getJar());
 			this.classGen = new ClassGen(clazz.toJavaClass());
-			this.bootstraps = verifiedClass.getBootstraps();
+			this.bootstraps = verifiedClass.getBootstraps().copy();
 			setBootstraps();
 			this.gasCostModel = gasCostModel;
-			this.classLoader = clazz.getJar().getClassLoader();
 			this.cpg = classGen.getConstantPool();
 			String className = classGen.getClassName();
 			this.methods = Stream.of(classGen.getMethods())
@@ -260,17 +259,14 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		 * has been created in the constructor.
 		 */
 		private void setBootstraps() {
-			Optional<BootstrapMethods> bootstraps = Stream.of(classGen.getAttributes())
-				.filter(attribute -> attribute instanceof BootstrapMethods)
-				.map(attribute -> (BootstrapMethods) attribute)
-				.findFirst();
-
-			if (bootstraps.isPresent()) {
-				classGen.removeAttribute(bootstraps.get());
-				BootstrapMethods newAttribute = new BootstrapMethods(bootstraps.get());
-				newAttribute.setBootstrapMethods(this.bootstraps.getBootstraps().toArray(BootstrapMethod[]::new));
-				classGen.addAttribute(newAttribute);
-			}
+			for (var attribute: classGen.getAttributes())
+				if (attribute instanceof BootstrapMethods bootstrapMethods) {
+					classGen.removeAttribute(bootstrapMethods);
+					BootstrapMethods newAttribute = new BootstrapMethods(bootstrapMethods);
+					newAttribute.setBootstrapMethods(bootstraps.getBootstraps().toArray(BootstrapMethod[]::new));
+					classGen.addAttribute(newAttribute);
+					return;
+				}
 		}
 
 		/**

@@ -106,9 +106,9 @@ public class BootstrapsImpl implements Bootstraps {
 
 	private final static BootstrapMethod[] NO_BOOTSTRAPS = new BootstrapMethod[0];
 
-	BootstrapsImpl(VerifiedClassImpl clazz, MethodGen[] methods) throws IllegalJarException {
+	public BootstrapsImpl(VerifiedClassImpl clazz, MethodGen[] methods) throws IllegalJarException {
 		this.verifiedClass = clazz;
-		this.bcelToClass = BcelToClasses.of(clazz.getJar());
+		this.bcelToClass = BcelToClasses.of(clazz.getJar().getClassLoader());
 		this.annotations = AnnotationUtilities.of(clazz.getJar());
 		this.cpg = clazz.getConstantPool();
 		this.bootstrapMethods = computeBootstraps();
@@ -121,7 +121,7 @@ public class BootstrapsImpl implements Bootstraps {
 	 * 
 	 * @param parent the object to clone
 	 */
-	BootstrapsImpl(BootstrapsImpl parent) {
+	private BootstrapsImpl(BootstrapsImpl parent) {
 		this.verifiedClass = parent.verifiedClass;
 		this.bcelToClass = parent.bcelToClass;
 		this.annotations = parent.annotations;
@@ -136,6 +136,11 @@ public class BootstrapsImpl implements Bootstraps {
 				this.bootstrapMethodsLeadingToFromContract.add(clone);
 			}
 		}
+	}
+
+	@Override
+	public Bootstraps copy() {
+		return new BootstrapsImpl(this);
 	}
 
 	@Override
@@ -185,14 +190,22 @@ public class BootstrapsImpl implements Bootstraps {
 	}
 
 	@Override
-	public BootstrapMethod getBootstrapFor(INVOKEDYNAMIC invokedynamic) {
-		ConstantInvokeDynamic cid = (ConstantInvokeDynamic) cpg.getConstant(invokedynamic.getIndex());
-		return bootstrapMethods[cid.getBootstrapMethodAttrIndex()];
+	public BootstrapMethod getBootstrapFor(INVOKEDYNAMIC invokedynamic) throws IllegalJarException {
+		if (!(cpg.getConstant(invokedynamic.getIndex()) instanceof ConstantInvokeDynamic cid))
+			throw new IllegalJarException("Illegal constant");
+
+		int index = cid.getBootstrapMethodAttrIndex();
+		if (index < 0 || index >= bootstrapMethods.length)
+			throw new IllegalJarException("Illegal bootstrap method index: " + index);
+
+		return bootstrapMethods[index];
 	}
 
 	@Override
 	public Optional<? extends Executable> getTargetOf(BootstrapMethod bootstrap) throws IllegalJarException {
-		if (cpg.getConstant(bootstrap.getBootstrapMethodRef()) instanceof ConstantMethodHandle mh && cpg.getConstant(mh.getReferenceIndex()) instanceof ConstantMethodref mr) {
+		if (cpg.getConstant(bootstrap.getBootstrapMethodRef()) instanceof ConstantMethodHandle mh
+				&& cpg.getConstant(mh.getReferenceIndex()) instanceof ConstantMethodref mr) {
+
 			if (!(cpg.getConstant(mr.getClassIndex()) instanceof ConstantClass cc))
 				throw new IllegalJarException("Illegal constant");
 
@@ -271,13 +284,16 @@ public class BootstrapsImpl implements Bootstraps {
 	}
 
 	private Optional<? extends Executable> getTargetOfCallSite(BootstrapMethod bootstrap, String className, String methodName, String methodSignature) throws IllegalJarException {
-		// TODO: can this be used to call unexpected methods?
 		if ("java.lang.invoke.LambdaMetafactory".equals(className) &&
 				"metafactory".equals(methodName) &&
 				"(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;".equals(methodSignature)) {
 
 			// this is the standard factory used to create call sites
-			if (cpg.getConstant(bootstrap.getBootstrapArguments()[1]) instanceof ConstantMethodHandle mh) {
+			int[] bootstrapArgs = bootstrap.getBootstrapArguments();
+			if (bootstrapArgs.length <= 1)
+				throw new IllegalJarException("Illegal bootstrap arguments count: " + bootstrapArgs.length);
+
+			if (cpg.getConstant(bootstrapArgs[1]) instanceof ConstantMethodHandle mh) {
 				Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
 
 				if (constant2 instanceof ConstantMethodref mr) {
@@ -353,7 +369,7 @@ public class BootstrapsImpl implements Bootstraps {
 				}
 			}
 		}
-		else if ("java.lang.invoke.StringConcatFactory".equals(className) && // TODO: can this be used to call unexpected methods?
+		else if ("java.lang.invoke.StringConcatFactory".equals(className) &&
 				"makeConcatWithConstants".equals(methodName) &&
 				"(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;".equals(methodSignature)) {
 
@@ -371,16 +387,16 @@ public class BootstrapsImpl implements Bootstraps {
 	}
 
 	private BootstrapMethod[] computeBootstraps() {
-		Optional<BootstrapMethods> bootstraps = Stream.of(verifiedClass.getAttributes())
-			.filter(attribute -> attribute instanceof BootstrapMethods)
-			.map(attribute -> (BootstrapMethods) attribute)
-			.findFirst();
+		for (var attribute: verifiedClass.getAttributes())
+			if (attribute instanceof BootstrapMethods bootstrapMethods)
+				return bootstrapMethods.getBootstrapMethods();
 
-		return bootstraps.map(BootstrapMethods::getBootstrapMethods).orElse(NO_BOOTSTRAPS);
+		return NO_BOOTSTRAPS;
 	}
 
 	private void collectBootstrapsLeadingToFromContract(MethodGen[] methods) throws IllegalJarException {
 		int initialSize;
+
 		do {
 			initialSize = bootstrapMethodsLeadingToFromContract.size();
 			for (var bootstrap: bootstrapMethods)
@@ -391,6 +407,7 @@ public class BootstrapsImpl implements Bootstraps {
 	}
 
 	private boolean addToBootstrapMethodsLeadingToFromContract(BootstrapMethod bm) {
+		// it gets added to the list (right) only if not already seen in the set (left)
 		return bootstrapMethodsLeadingToFromContractAsSet.add(bm) && bootstrapMethodsLeadingToFromContract.add(bm);
 	}
 
@@ -401,9 +418,10 @@ public class BootstrapsImpl implements Bootstraps {
 	 * @throws IllegalJarException if some class of the Takamaka program cannot be found
 	 */
 	private void collectLambdasOfFromContract(MethodGen[] methods) throws IllegalJarException {
+		// the number of iterations in bounded by methods.length
+
 		// we collect all lambdas reachable from the @FromContract methods, possibly indirectly
-		// (that is, a lambda can call another lambda); we use a working set that starts
-		// with the @FromContract methods
+		// (that is, a lambda can call another lambda); we use a working set that starts with the @FromContract methods
 		var ws = new LinkedList<MethodGen>();
 		var className = verifiedClass.getClassName();
 

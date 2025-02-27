@@ -19,6 +19,7 @@ package io.hotmoka.verification.internal;
 import static java.util.Comparator.comparing;
 
 import java.util.Comparator;
+import java.util.Objects;
 
 /**
  * Partial implementation of an error generated
@@ -42,8 +43,8 @@ public abstract class AbstractErrorImpl implements io.hotmoka.verification.api.E
 	 * @param message the message of the error
 	 */
 	protected AbstractErrorImpl(String where, String message) {
-		this.where = where;
-		this.message = message;
+		this.where = Objects.requireNonNull(where);
+		this.message = Objects.requireNonNull(message);
 	}
 
 	/**
@@ -54,8 +55,8 @@ public abstract class AbstractErrorImpl implements io.hotmoka.verification.api.E
 	 * @param message the message of the error
 	 */
 	protected AbstractErrorImpl(String where, String fieldName, String message) {
-		this.where = where + " field " + fieldName;
-		this.message = message;
+		this.where = Objects.requireNonNull(where) + " field " + Objects.requireNonNull(fieldName);
+		this.message = Objects.requireNonNull(message);;
 	}
 
 	/**
@@ -67,8 +68,8 @@ public abstract class AbstractErrorImpl implements io.hotmoka.verification.api.E
 	 * @param message the message of the error
 	 */
 	protected AbstractErrorImpl(String where, String methodName, int line, String message) {
-		this.where = where + (line >= 0 ? (":" + line) : (" method " + methodName));
-		this.message = message;
+		this.where = Objects.requireNonNull(where) + (line >= 0 ? (":" + line) : (" method " + Objects.requireNonNull(methodName)));
+		this.message = Objects.requireNonNull(message);;
 	}
 
 	@Override

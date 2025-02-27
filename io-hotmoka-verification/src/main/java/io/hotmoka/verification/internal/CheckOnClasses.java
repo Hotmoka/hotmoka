@@ -66,7 +66,7 @@ public abstract class CheckOnClasses {
 	protected CheckOnClasses(VerifiedClassImpl.Verification builder) throws IllegalJarException {
 		this.builder = builder;
 		VerifiedClassImpl verifiedClass = builder.getVerifiedClass();
-		this.classLoader = verifiedClass.jar.getClassLoader();
+		this.classLoader = verifiedClass.getJar().getClassLoader();
 		this.className = verifiedClass.getClassName();
 
 		try {
@@ -78,7 +78,7 @@ public abstract class CheckOnClasses {
 			throw new RuntimeException(e);
 		}
 
-		this.annotations = AnnotationUtilities.of(verifiedClass.jar);
+		this.annotations = AnnotationUtilities.of(verifiedClass.getJar());
 
 		try {
 			this.isContract = classLoader.isContract(className);
@@ -90,9 +90,9 @@ public abstract class CheckOnClasses {
 			throw new IllegalJarException(e);
 		}
 
-		this.bootstraps = verifiedClass.bootstraps;
+		this.bootstraps = verifiedClass.getBootstraps();
 		this.resolver = verifiedClass.getResolver();
-		this.bcelToClass = BcelToClasses.of(verifiedClass.jar);
+		this.bcelToClass = BcelToClasses.of(classLoader);
 		this.cpg = verifiedClass.getConstantPool();
 		this.duringInitialization = builder.duringInitialization;
 	}
@@ -179,18 +179,40 @@ public abstract class CheckOnClasses {
 	 * 
 	 * @param bootstrap the bootstrap
 	 * @return the lambda bridge method
+	 * @throws IllegalJarException if the jar under verification is illegal
 	 */
-	protected final Optional<MethodGen> getLambdaFor(BootstrapMethod bootstrap) {
+	protected final Optional<MethodGen> getLambdaFor(BootstrapMethod bootstrap) throws IllegalJarException {
 		if (bootstrap.getNumBootstrapArguments() == 3) {
-			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
+			int[] bootstrapArguments = bootstrap.getBootstrapArguments();
+			if (bootstrapArguments.length <= 1)
+				throw new IllegalJarException("Illegal bootstrap arguments length: " + bootstrapArguments.length);
+
+			Constant constant = cpg.getConstant(bootstrapArguments[1]);
 			if (constant instanceof ConstantMethodHandle cmh) {
 				Constant constant2 = cpg.getConstant(cmh.getReferenceIndex());
 				if (constant2 instanceof ConstantMethodref cmr) {
-					int classNameIndex = ((ConstantClass) cpg.getConstant(cmr.getClassIndex())).getNameIndex();
-					String className = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
-					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(cmr.getNameAndTypeIndex());
-					String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
-					String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
+					if (!(cpg.getConstant(cmr.getClassIndex()) instanceof ConstantClass cc))
+						throw new IllegalJarException("Illegal constant");
+
+					int classNameIndex = cc.getNameIndex();
+
+					if (!(cpg.getConstant(classNameIndex) instanceof ConstantUtf8 cu8))
+						throw new IllegalJarException("Illegal constant");
+
+					String className = cu8.getBytes().replace('/', '.');
+
+					if (!(cpg.getConstant(cmr.getNameAndTypeIndex()) instanceof ConstantNameAndType nt))
+						throw new IllegalJarException("Illegal constant");
+
+					if (!(cpg.getConstant(nt.getNameIndex()) instanceof ConstantUtf8 cu8_2))
+						throw new IllegalJarException("Illegal constant");
+
+					String methodName = cu8_2.getBytes();
+
+					if (!(cpg.getConstant(nt.getSignatureIndex()) instanceof ConstantUtf8 cu8_3))
+						throw new IllegalJarException("Illegal constant");
+
+					String methodSignature = cu8_3.getBytes();
 
 					// a lambda bridge can only be present in the same class that calls it
 					if (className.equals(this.className))

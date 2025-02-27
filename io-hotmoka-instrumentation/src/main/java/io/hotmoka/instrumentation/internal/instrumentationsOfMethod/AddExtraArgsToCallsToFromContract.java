@@ -43,6 +43,7 @@ import io.hotmoka.instrumentation.internal.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
 import io.hotmoka.verification.Pushers;
+import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.whitelisting.WhitelistingConstants;
 import io.takamaka.code.constants.Constants;
 
@@ -185,7 +186,12 @@ public class AddExtraArgsToCallsToFromContract extends MethodLevelInstrumentatio
 	 */
 	private boolean isCallToFromContract(Instruction instruction) throws ClassNotFoundException {
 		if (instruction instanceof INVOKEDYNAMIC invokedynamic)
-			return bootstrapMethodsThatWillRequireExtraThis.contains(bootstraps.getBootstrapFor(invokedynamic));
+			try {
+				return bootstrapMethodsThatWillRequireExtraThis.contains(bootstraps.getBootstrapFor(invokedynamic));
+			}
+			catch (IllegalJarException e) { // TODO: throw this directly
+				throw new ClassNotFoundException();
+			}
 		else if (instruction instanceof InvokeInstruction invoke) {
 			var receiver = invoke.getReferenceType(cpg);
 			// we do not consider calls added by instrumentation

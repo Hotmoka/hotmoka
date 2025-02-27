@@ -37,6 +37,13 @@ public interface Bootstraps {
 	Stream<BootstrapMethod> getBootstraps();
 
 	/**
+	 * Yields a deep copy of this object.
+	 * 
+	 * @return the deep copy; modifications to its attributes will not affect the original object
+	 */
+	Bootstraps copy();
+
+	/**
 	 * Determines if the given bootstrap method is a from contract method or constructor reference.
 	 * 
 	 * @param bootstrap the bootstrap method
@@ -58,8 +65,9 @@ public interface Bootstraps {
 	 * 
 	 * @param invokedynamic the instruction
 	 * @return the bootstrap method
+	 * @return IllegalJarException if the jar under verification is illegal
 	 */
-	BootstrapMethod getBootstrapFor(INVOKEDYNAMIC invokedynamic);
+	BootstrapMethod getBootstrapFor(INVOKEDYNAMIC invokedynamic) throws IllegalJarException;
 
 	/**
 	 * Yields the target method or constructor called by the given bootstrap. It can also be outside

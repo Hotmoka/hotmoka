@@ -74,7 +74,7 @@ public class Resolver {
 		this.verifiedClass = clazz;
 		VerifiedJar jar = clazz.getJar();
 		this.classLoader = jar.getClassLoader();
-		this.bcelToClass = BcelToClasses.of(jar);
+		this.bcelToClass = BcelToClasses.of(classLoader);
 		this.cpg = clazz.getConstantPool();
 	}
 
@@ -112,7 +112,7 @@ public class Resolver {
 	 */
 	public Optional<? extends Executable> resolvedExecutableFor(InvokeInstruction invoke) throws IllegalJarException {
 		if (invoke instanceof INVOKEDYNAMIC invokedynamic) {
-			Bootstraps bootstraps = verifiedClass.bootstraps;
+			Bootstraps bootstraps = verifiedClass.getBootstraps();
 			return bootstraps.getTargetOf(bootstraps.getBootstrapFor(invokedynamic));
 		}
 

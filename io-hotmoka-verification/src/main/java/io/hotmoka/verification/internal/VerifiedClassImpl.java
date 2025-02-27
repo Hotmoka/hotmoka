@@ -52,12 +52,12 @@ public class VerifiedClassImpl implements VerifiedClass {
 	/**
 	 * The jar this class belongs to.
 	 */
-	public final VerifiedJarImpl jar;
+	private final VerifiedJarImpl jar;
 
 	/**
 	 * The utility object that knows about the lambda bootstraps contained in this class.
 	 */
-	public final BootstrapsImpl bootstraps;
+	private final BootstrapsImpl bootstraps;
 
 	/**
 	 * The utility that can be used to resolve targets of calls and field accesses in this class.
@@ -107,7 +107,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 
 	@Override
 	public Bootstraps getBootstraps() {
-		return new BootstrapsImpl(bootstraps); // TODO: do we really need to make a copy?
+		return bootstraps;
 	}
 
 	@Override

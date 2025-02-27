@@ -47,7 +47,7 @@ public interface VerifiedClass extends Comparable<VerifiedClass> {
 	VerifiedJar getJar();
 
 	/**
-	 * Yields the bootstrap methods of this class.
+	 * Yields the the bootstrap methods of this class.
 	 * 
 	 * @return the bootstrap methods
 	 */

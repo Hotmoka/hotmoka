@@ -59,7 +59,7 @@ public class AnnotationUtilityImpl implements AnnotationUtility {
 	 */
 	public AnnotationUtilityImpl(VerifiedJar jar) {
 		this.classLoader = jar.getClassLoader();
-		this.bcelToClass = BcelToClasses.of(jar);
+		this.bcelToClass = BcelToClasses.of(classLoader);
 	}
 
 	@Override
@@ -118,7 +118,7 @@ public class AnnotationUtilityImpl implements AnnotationUtility {
 			return contractClass != null ? contractClass : classLoader.getContract();
 		}
 		catch (ReflectiveOperationException e) {
-			throw new RuntimeException(e); // this should never happen
+			throw new RuntimeException(e); // this should never happen since the value() method should exist
 		}
 	}
 
@@ -173,33 +173,30 @@ public class AnnotationUtilityImpl implements AnnotationUtility {
 
 		if (definition.isPresent()) {
 			Method method = definition.get();
-			Optional<Annotation> explicit = Stream.of(method.getAnnotations())
-				.filter(annotation -> annotation.annotationType().getName().equals(annotationName))
-				.findFirst();
 
-			if (explicit.isPresent())
-				return explicit;
+			for (var annotation: method.getAnnotations())
+				if (annotation.annotationType().getName().equals(annotationName))
+					return Optional.of(annotation);
 
 			Class<?> superclass = clazz.getSuperclass();
-			if (superclass != null && method.isBridge() && method.isSynthetic() && !Modifier.isPrivate(method.getModifiers())) // TODO: check this
+			if (superclass != null && method.isBridge() && method.isSynthetic() && !Modifier.isPrivate(method.getModifiers()))
 				// bridge synthetic methods are created by compilers to override a method of the superclass,
 				// but they do not put the same annotations as in the superclass while it should be the case
 				return getAnnotationOfMethod(superclass.getName(), methodName, formals, returnType, annotationName);
-
-			return Optional.empty();
 		}
+		else {
+			Class<?> superclass = clazz.getSuperclass();
+			if (superclass != null) {
+				Optional<Annotation> result = getAnnotationOfMethod(superclass.getName(), methodName, formals, returnType, annotationName);
+				if (result.isPresent())
+					return result;
+			}
 
-		Class<?> superclass = clazz.getSuperclass();
-		if (superclass != null) {
-			Optional<Annotation> result = getAnnotationOfMethod(superclass.getName(), methodName, formals, returnType, annotationName);
-			if (result.isPresent())
-				return result;
-		}
-
-		for (var superinterface: clazz.getInterfaces()) {
-			Optional<Annotation> result = getAnnotationOfMethod(superinterface.getName(), methodName, formals, returnType, annotationName);
-			if (result.isPresent())
-				return result;
+			for (var superinterface: clazz.getInterfaces()) {
+				Optional<Annotation> result = getAnnotationOfMethod(superinterface.getName(), methodName, formals, returnType, annotationName);
+				if (result.isPresent())
+					return result;
+			}
 		}
 
 		return Optional.empty();
