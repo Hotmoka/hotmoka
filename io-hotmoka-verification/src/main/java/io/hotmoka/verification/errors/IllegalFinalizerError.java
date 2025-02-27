@@ -28,8 +28,9 @@ public class IllegalFinalizerError extends AbstractErrorImpl {
 	 * 
 	 * @param where the description of the program point where the error occurs
 	 * @param methodName the name of the method where the error occurs
+	 * @param line the line of the method where the error occurs
 	 */
-	public IllegalFinalizerError(String where, String methodName) {
-		super(where, methodName, -1, "finalizers are not allowed");
+	public IllegalFinalizerError(String where, String methodName, int line) {
+		super(where, methodName, line, "finalizers are not allowed");
 	}
 }

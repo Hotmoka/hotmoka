@@ -16,11 +16,6 @@ limitations under the License.
 
 package io.hotmoka.verification.internal;
 
-import static io.hotmoka.exceptions.CheckSupplier.check;
-import static io.hotmoka.exceptions.UncheckFunction.uncheck;
-
-import java.util.stream.Stream;
-
 import org.apache.bcel.generic.ArrayType;
 import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.ObjectType;
@@ -80,6 +75,10 @@ public class BcelToClassImpl implements BcelToClass {
 
 	@Override
 	public final Class<?>[] of(Type[] types) throws ClassNotFoundException {
-		return check(ClassNotFoundException.class, () -> Stream.of(types).map(uncheck(ClassNotFoundException.class, this::of))).toArray(Class<?>[]::new);
+		Class<?>[] result = new Class<?>[types.length];
+		for (int pos = 0; pos < types.length; pos++)
+			result[pos] = of(types[pos]);
+
+		return result;
 	}
 }

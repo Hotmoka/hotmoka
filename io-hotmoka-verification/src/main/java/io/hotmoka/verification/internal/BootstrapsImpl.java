@@ -16,9 +16,6 @@ limitations under the License.
 
 package io.hotmoka.verification.internal;
 
-import static io.hotmoka.exceptions.CheckRunnable.check;
-import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
-
 import java.lang.reflect.Executable;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -386,9 +383,9 @@ public class BootstrapsImpl implements Bootstraps {
 		int initialSize;
 		do {
 			initialSize = bootstrapMethodsLeadingToFromContract.size();
-			check(IllegalJarException.class, () -> getBootstraps()
-				.filter(uncheck(IllegalJarException.class, bootstrap -> lambdaIsFromContract(bootstrap) || lambdaCallsFromContract(bootstrap, methods)))
-				.forEach(this::addToBootstrapMethodsLeadingToFromContract));
+			for (var bootstrap: bootstrapMethods)
+				if (lambdaIsFromContract(bootstrap) || lambdaCallsFromContract(bootstrap, methods))
+					addToBootstrapMethodsLeadingToFromContract(bootstrap);
 		}
 		while (bootstrapMethodsLeadingToFromContract.size() > initialSize);
 	}

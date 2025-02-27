@@ -30,11 +30,6 @@
       <artifactId>io-hotmoka-whitelisting</artifactId>
       <version>${hotmoka.version}</version>
     </dependency>
-    <dependency>
-      <groupId>io.hotmoka.exceptions</groupId>
-      <artifactId>io-hotmoka-exceptions</artifactId>
-      <version>${io.hotmoka.exceptions.version}</version>
-    </dependency>
 	<dependency>
       <groupId>org.jboss.shrinkwrap.resolver</groupId>
       <artifactId>shrinkwrap-resolver-api-maven</artifactId>

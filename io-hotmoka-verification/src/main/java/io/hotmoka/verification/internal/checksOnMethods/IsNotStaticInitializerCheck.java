@@ -33,6 +33,6 @@ public class IsNotStaticInitializerCheck extends CheckOnMethods {
 		super(builder, method);
 
 		if (Const.STATIC_INITIALIZER_NAME.equals(methodName))
-			issue(new IllegalStaticInitializationError(inferSourceFile(), methodName, lineOf(instructions().findFirst().get())));
+			issue(new IllegalStaticInitializationError(inferSourceFile(), methodName, getLineNumber()));
 	}
 }

@@ -61,6 +61,7 @@ public abstract class CheckOnClasses {
 	protected final boolean isContract;
 	protected final boolean isStorage;
 	protected final boolean isInterface;
+	protected final boolean isWhiteListedDuringInitialization;
 
 	protected CheckOnClasses(VerifiedClassImpl.Verification builder) throws IllegalJarException {
 		this.builder = builder;
@@ -77,9 +78,12 @@ public abstract class CheckOnClasses {
 			throw new RuntimeException(e);
 		}
 
+		this.annotations = AnnotationUtilities.of(verifiedClass.jar);
+
 		try {
 			this.isContract = classLoader.isContract(className);
 			this.isStorage = classLoader.isStorage(className);
+			this.isWhiteListedDuringInitialization = annotations.isWhiteListedDuringInitialization(className);
 		}
 		catch (ClassNotFoundException e) {
 			// this might be due to an incomplete jar classpath
@@ -88,7 +92,6 @@ public abstract class CheckOnClasses {
 
 		this.bootstraps = verifiedClass.bootstraps;
 		this.resolver = verifiedClass.getResolver();
-		this.annotations = AnnotationUtilities.of(verifiedClass.jar);
 		this.bcelToClass = BcelToClasses.of(verifiedClass.jar);
 		this.cpg = verifiedClass.getConstantPool();
 		this.duringInitialization = builder.duringInitialization;
@@ -159,15 +162,6 @@ public abstract class CheckOnClasses {
 	 */
 	protected final int lineOf(MethodGen method, InstructionHandle ih) {
 		return lineOf(method, ih.getPosition());
-	}
-
-	/**
-	 * Determines if this class is an enumeration.
-	 * 
-	 * @return true if and only if that condition holds
-	 */
-	protected final boolean isEnum() {
-		return builder.getClassGen().isEnum();
 	}
 
 	/**

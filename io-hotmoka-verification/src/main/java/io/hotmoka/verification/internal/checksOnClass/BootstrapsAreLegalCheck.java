@@ -16,10 +16,7 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnClass;
 
-import static io.hotmoka.exceptions.CheckRunnable.check;
-import static io.hotmoka.exceptions.UncheckFunction.uncheck;
-
-import java.util.Optional;
+import org.apache.bcel.classfile.BootstrapMethod;
 
 import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.errors.IllegalBootstrapMethodError;
@@ -34,12 +31,8 @@ public class BootstrapsAreLegalCheck extends CheckOnClasses {
 	public BootstrapsAreLegalCheck(VerifiedClassImpl.Verification builder) throws IllegalJarException {
 		super(builder);
 
-		check(IllegalJarException.class, () ->
-			bootstraps.getBootstraps()
-				.map(uncheck(IllegalJarException.class, bootstraps::getTargetOf))
-				.filter(Optional::isEmpty)
-				.findFirst()
-				.ifPresent(target -> issue(new IllegalBootstrapMethodError(inferSourceFile())))
-		);
+		for (var bootstrap: bootstraps.getBootstraps().toArray(BootstrapMethod[]::new))
+			if (bootstraps.getTargetOf(bootstrap).isEmpty())
+				issue(new IllegalBootstrapMethodError(inferSourceFile()));
 	}
 }

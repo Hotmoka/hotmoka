@@ -87,8 +87,7 @@ public class Resolver {
 	 * @throws IllegalJarException if some class of the Takamaka program cannot be found
 	 */
 	public Optional<Field> resolvedFieldFor(FieldInstruction fi) throws IllegalJarException {
-		ReferenceType holder = fi.getReferenceType(cpg);
-		if (holder instanceof ObjectType ot) {
+		if (fi.getReferenceType(cpg) instanceof ObjectType ot) {
 			String name = fi.getFieldName(cpg);
 
 			try {

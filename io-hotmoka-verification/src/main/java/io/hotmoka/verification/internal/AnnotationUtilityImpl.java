@@ -16,14 +16,10 @@ limitations under the License.
 
 package io.hotmoka.verification.internal;
 
-import static io.hotmoka.exceptions.CheckSupplier.check;
-import static io.hotmoka.exceptions.UncheckFunction.uncheck;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -170,6 +166,7 @@ public class AnnotationUtilityImpl implements AnnotationUtility {
 		Class<?> returnTypeClass = bcelToClass.of(returnType);
 		Class<?>[] formalsClass = bcelToClass.of(formals);
 		Class<?> clazz = classLoader.loadClass(className);
+
 		Optional<Method> definition = Stream.of(clazz.getDeclaredMethods())
 			.filter(m -> m.getName().equals(methodName) && m.getReturnType() == returnTypeClass && Arrays.equals(m.getParameterTypes(), formalsClass))
 			.findFirst();
@@ -183,21 +180,28 @@ public class AnnotationUtilityImpl implements AnnotationUtility {
 			if (explicit.isPresent())
 				return explicit;
 
-			Class<?> superclass;
-			if ((superclass = clazz.getSuperclass()) != null && method.isBridge() && method.isSynthetic() && !Modifier.isPrivate(method.getModifiers())) // TODO: check this
+			Class<?> superclass = clazz.getSuperclass();
+			if (superclass != null && method.isBridge() && method.isSynthetic() && !Modifier.isPrivate(method.getModifiers())) // TODO: check this
 				// bridge synthetic methods are created by compilers to override a method of the superclass,
 				// but they do not put the same annotations as in the superclass while it should be the case
 				return getAnnotationOfMethod(superclass.getName(), methodName, formals, returnType, annotationName);
 
 			return Optional.empty();
 		}
-	
-		return check(ClassNotFoundException.class, () ->
-			Stream.concat(Stream.of(clazz.getSuperclass()), Stream.of(clazz.getInterfaces()))
-				.filter(Objects::nonNull) // since the superclass might be null
-				.map(uncheck(where -> getAnnotationOfMethod(where.getName(), methodName, formals, returnType, annotationName)))
-				.flatMap(Optional::stream)
-				.findFirst()
-			);
+
+		Class<?> superclass = clazz.getSuperclass();
+		if (superclass != null) {
+			Optional<Annotation> result = getAnnotationOfMethod(superclass.getName(), methodName, formals, returnType, annotationName);
+			if (result.isPresent())
+				return result;
+		}
+
+		for (var superinterface: clazz.getInterfaces()) {
+			Optional<Annotation> result = getAnnotationOfMethod(superinterface.getName(), methodName, formals, returnType, annotationName);
+			if (result.isPresent())
+				return result;
+		}
+
+		return Optional.empty();
 	}
 }

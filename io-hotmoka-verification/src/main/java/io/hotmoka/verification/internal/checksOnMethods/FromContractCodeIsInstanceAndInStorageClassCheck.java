@@ -16,8 +16,6 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnMethods;
 
-import java.util.Optional;
-
 import org.apache.bcel.generic.MethodGen;
 
 import io.hotmoka.verification.api.IllegalJarException;
@@ -34,10 +32,8 @@ public class FromContractCodeIsInstanceAndInStorageClassCheck extends CheckOnMet
 	public FromContractCodeIsInstanceAndInStorageClassCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
 		super(builder, method);
 
-		Optional<Class<?>> fromContractArgument = getMethodFromContractArgumentIn(className);
-
-		if (fromContractArgument.isPresent()) {
-			if (!classLoader.getContract().isAssignableFrom(fromContractArgument.get()))
+		getMethodFromContractArgumentIn(className).ifPresent(fromContractArgument -> {
+			if (!classLoader.getContract().isAssignableFrom(fromContractArgument))
 				issue(new IllegalFromContractArgumentError(inferSourceFile(), methodName));
 
 			if (method.isStatic())
@@ -45,6 +41,6 @@ public class FromContractCodeIsInstanceAndInStorageClassCheck extends CheckOnMet
 
 			if (!isInterface && !isStorage)
 				issue(new FromContractNotInStorageError(inferSourceFile(), methodName));
-		};
+		});
 	}
 }

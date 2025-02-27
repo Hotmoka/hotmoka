@@ -16,9 +16,6 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnMethods;
 
-import static io.hotmoka.exceptions.CheckRunnable.check;
-import static io.hotmoka.exceptions.UncheckConsumer.uncheck;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.util.Optional;
@@ -48,17 +45,14 @@ public class UsedCodeIsWhiteListedCheck extends CheckOnMethods {
 	public UsedCodeIsWhiteListedCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
 		super(builder, method);
 
-		try {
-			if (!duringInitialization || !annotations.isWhiteListedDuringInitialization(className))
-				check(IllegalJarException.class, () -> instructions().forEach(uncheck(IllegalJarException.class, this::checkSingleInstruction)));
-		}
-		catch (ClassNotFoundException e) {
-			throw new IllegalJarException(e);
-		}
+		if (!duringInitialization || !isWhiteListedDuringInitialization)
+			for (var ih: instructionsOf(method))
+				checkSingleInstruction(ih);
 	}
 
 	private void checkSingleInstruction(InstructionHandle ih) throws IllegalJarException {
 		Instruction ins = ih.getInstruction();
+
 		if (ins instanceof FieldInstruction fi) {
 			if (!hasWhiteListingModel(fi))
 				issue(new IllegalAccessToNonWhiteListedFieldError(inferSourceFile(), methodName, lineOf(ih), fi.getLoadClassType(cpg).getClassName(), fi.getFieldName(cpg)));

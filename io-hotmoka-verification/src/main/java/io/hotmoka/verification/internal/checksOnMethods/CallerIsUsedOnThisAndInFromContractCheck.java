@@ -16,9 +16,6 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnMethods;
 
-import static io.hotmoka.exceptions.CheckRunnable.check;
-import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
-
 import org.apache.bcel.generic.InstructionHandle;
 import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.LoadInstruction;
@@ -44,17 +41,14 @@ public class CallerIsUsedOnThisAndInFromContractCheck extends CheckOnMethods {
 
 		boolean isFromContract = methodIsFromContractIn(className) || bootstraps.isPartOfFromContract(method);
 
-		check(IllegalJarException.class, () ->
-			instructions()
-				.filter(uncheck(IllegalJarException.class, this::isCallToStorageCaller))
-				.forEach(ih -> {
-					if (!isFromContract)
-						issue(new CallerOutsideFromContractError(inferSourceFile(), methodName, lineOf(ih)));
+		for (var ih: instructionsOf(method))
+			if (isCallToStorageCaller(ih)) {
+				if (!isFromContract)
+					issue(new CallerOutsideFromContractError(inferSourceFile(), methodName, lineOf(ih)));
 
-					if (!previousIsLoad0(ih))
-						issue(new CallerNotOnThisError(inferSourceFile(), methodName, lineOf(ih)));
-				})
-		);
+				if (!previousIsLoad0(ih))
+					issue(new CallerNotOnThisError(inferSourceFile(), methodName, lineOf(ih)));
+			}
 	}
 
 	private boolean previousIsLoad0(InstructionHandle ih) {

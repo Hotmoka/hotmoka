@@ -33,6 +33,6 @@ public class IsNotFinalizerCheck extends CheckOnMethods {
 		super(builder, method);
 
 		if (!method.isPrivate() && "finalize".equals(method.getName()) && method.getReturnType() == Type.VOID && method.getArgumentTypes().length == 0)
-			issue(new IllegalFinalizerError(inferSourceFile(), methodName));
+			issue(new IllegalFinalizerError(inferSourceFile(), methodName, getLineNumber()));
 	}
 }

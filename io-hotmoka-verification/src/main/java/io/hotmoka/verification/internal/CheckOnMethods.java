@@ -70,6 +70,15 @@ public abstract class CheckOnMethods extends CheckOnClasses {
 		this.isConstructorOfInnerNonStaticClass = isConstructorOfInstanceInnerClass();
 	}
 
+	/**
+	 * Yields the line number where the method under verification starts, if available.
+	 * 
+	 * @return the line number; yields -1 if the line number is not available
+	 */
+	protected final int getLineNumber() {
+		return instructions().findFirst().map(this::lineOf).orElse(-1);
+	}
+
 	protected final boolean methodIsFromContractIn(String className) throws IllegalJarException {
 		try {
 			return annotations.isFromContract(className, methodName, methodArgs, methodReturnType);
