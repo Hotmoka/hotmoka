@@ -242,13 +242,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 				throw new RuntimeException(e);
 			}
 
-			try {
-				partitionFieldsOfStorageClasses(); // TODO: change exception in the callee
-			}
-			catch (ClassNotFoundException e) {
-				throw new IllegalJarException(e);
-			}
-
+			partitionFieldsIfStorageClass();
 			methodLevelInstrumentations();
 			classLevelInstrumentations();
 			replaceMethods();
@@ -272,12 +266,17 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		/**
 		 * Partitions the fields of a storage class into eager and lazy.
 		 * If the class is not storage, it does not do anything.
-		 * 
-		 * @throws ClassNotFoundException if {@code classGen} cannot be found in the Takamaka program
 		 */
-		private void partitionFieldsOfStorageClasses() throws ClassNotFoundException {
-			if (isStorage)
-				collectNonTransientInstanceFieldsOf(classLoader.loadClass(classGen.getClassName()), true);
+		private void partitionFieldsIfStorageClass() {
+			if (isStorage) {
+				try {
+					collectNonTransientInstanceFieldsOf(classLoader.loadClass(classGen.getClassName()), true);
+				}
+				catch (ClassNotFoundException e) {
+					// this should never happen since the class is in the jar of the classloader
+					throw new RuntimeException(e);
+				}
+			}
 		}
 
 		/**
@@ -285,7 +284,10 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		 * putting the instrumented ones instead of the original ones.
 		 */
 		private void replaceMethods() {
+			// first we remove all original methods
 			classGen.setMethods(new Method[0]);
+
+			// then we add the new methods
 			for (var method: methods) {
 				method.setMaxLocals();
 				method.setMaxStack();
@@ -300,7 +302,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 
 		private void removeUselessAttributes(MethodGen method) {
 			for (var attribute: method.getAttributes())
-				if (attribute instanceof Signature)
+				if (attribute instanceof Signature) // Takamaka does not use this
 					method.removeAttribute(attribute);
 
 			method.removeLocalVariables();
@@ -597,11 +599,12 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 				new ReplaceFieldAccessesWithAccessors(this, method);
 				new AddExtraArgsToCallsToFromContract(this, method);
 				new SetCallerAndBalanceAtTheBeginningOfFromContracts(this, method);
-				new AddGasUpdates(this, method);
 			}
 			catch (ClassNotFoundException e) {
 				throw new IllegalJarException(e);
 			}
+
+			new AddGasUpdates(this, method);
 		}
 
 		private boolean isNotStaticAndNotTransient(Field field) {

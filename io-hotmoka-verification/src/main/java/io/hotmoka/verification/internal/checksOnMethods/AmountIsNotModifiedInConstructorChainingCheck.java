@@ -52,9 +52,11 @@ public class AmountIsNotModifiedInConstructorChainingCheck extends CheckOnMethod
 		super(builder, method);
 
 		if (Const.CONSTRUCTOR_NAME.equals(methodName) && methodArgs.length > 0 && methodIsPayableIn(className))
-			for (var ih: instructionsOf(method))
-				if (callsPayableFromContractConstructorOnThis(ih) && amountMightBeChanged(ih))
+			for (var ih: instructionsOf(method)) {
+				var maybeInvoke = getInvokeToPayableFromContractConstructorOnThis(ih);
+				if (maybeInvoke.isPresent() && amountMightBeChanged(ih, maybeInvoke.get()))
 					issue(new IllegalModificationOfAmountInConstructorChaining(inferSourceFile(), method.getName(), lineOf(ih)));
+			}
 	}
 
 	/**
@@ -62,14 +64,12 @@ public class AmountIsNotModifiedInConstructorChainingCheck extends CheckOnMethod
 	 * with a first argument that cannot be proved to be the same amount variable as in the caller, unchanged.
 	 * 
 	 * @param ih the instruction, that calls the constructor of the superclass
+	 * @param invoke the invoke instruction inside {@code ih}
 	 * @return true if that condition holds
 	 * @throws IllegalJarException if the jar under verification is illegal
 	 */
-	private boolean amountMightBeChanged(InstructionHandle ih) throws IllegalJarException {
-		Instruction instruction = ih.getInstruction();
-		var invoke = (InvokeInstruction) instruction; // this is called only when ih contains an invoke instruction TODO: avoid this
+	private boolean amountMightBeChanged(InstructionHandle ih, InvokeInstruction invoke) throws IllegalJarException {
 		int slots = Stream.of(invoke.getArgumentTypes(cpg)).mapToInt(Type::getSize).sum();
-
 		return !pusherIsLoad1(ih, slots) || mightUpdateLocal(ih, 1);
 	}
 
@@ -139,7 +139,7 @@ public class AmountIsNotModifiedInConstructorChainingCheck extends CheckOnMethod
     	return instructions().filter(ih -> ih.getInstruction() == i).findFirst();
     }
 
-    private boolean callsPayableFromContractConstructorOnThis(InstructionHandle ih) throws IllegalJarException {
+    private Optional<InvokeInstruction> getInvokeToPayableFromContractConstructorOnThis(InstructionHandle ih) throws IllegalJarException {
     	if (ih.getInstruction() instanceof INVOKESPECIAL invoke) {
     		String methodName = invoke.getMethodName(cpg);
     		if (Const.CONSTRUCTOR_NAME.equals(methodName) && invoke.getReferenceType(cpg) instanceof ObjectType receiver) {
@@ -157,10 +157,11 @@ public class AmountIsNotModifiedInConstructorChainingCheck extends CheckOnMethod
     				throw new IllegalJarException(e);
     			}
 
-    			return callsPayableFromContract && pusherIsLoad0(ih, slots + 1);
+    			if (callsPayableFromContract && pusherIsLoad0(ih, slots + 1))
+    				return Optional.of(invoke);
     		}
     	}
 
-		return false;
+		return Optional.empty();
 	}
 }

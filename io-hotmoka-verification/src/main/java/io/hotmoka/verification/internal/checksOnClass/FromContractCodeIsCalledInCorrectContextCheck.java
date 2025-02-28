@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.verification.internal.checksOnClass;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -31,7 +32,6 @@ import org.apache.bcel.generic.INVOKESPECIAL;
 import org.apache.bcel.generic.INVOKESTATIC;
 import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionHandle;
-import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.LoadInstruction;
 import org.apache.bcel.generic.MethodGen;
@@ -56,58 +56,59 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 	public FromContractCodeIsCalledInCorrectContextCheck(VerifiedClassImpl.Verification builder) throws IllegalJarException {
 		super(builder);
 
+		var methods = getMethods().toArray(MethodGen[]::new);
+
 		// the set of lambda that are unreachable from static methods that are not lambdas themselves: they can call from contract code
-		Set<MethodGen> lambdasUnreachableFromStaticMethods = new HashSet<>();
-
-		if (isStorage)
-			computeLambdasUnreachableFromStaticMethods(lambdasUnreachableFromStaticMethods);
-
-		MethodGen[] methods = getMethods().toArray(MethodGen[]::new);
+		Set<MethodGen> lambdasUnreachableFromStaticMethods = isStorage ? computeLambdasUnreachableFromStaticMethods(methods) : new HashSet<>();
 
 		// from contract code cannot be called from a static context:
 		// we do not consider as static those lambdas that are apparently static, just because the compiler
 		// has optimized them into a static lambda, but are actually always called from non-static calling points
 		for (var method: methods)
 			if (method.isStatic() && !lambdasUnreachableFromStaticMethods.contains(method))
-				for (var ih: instructionsOf(method))
-					if (callsFromContract(ih))
-						issue(new IllegalCallToFromContractError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)));
+				for (var ih: instructionsOf(method)) {
+					var maybeInvoke = getInvokeToFromContract(ih);
+					if (maybeInvoke.isPresent())
+						issue(new IllegalCallToFromContractError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(maybeInvoke.get()), lineOf(method, ih)));
+				}
 
-		// from contract code called not on this can only be called from a contract
-		for (var method: methods)
-			if (!isContract)
-				for (var ih: instructionsOf(method))
-					if (callsFromContract(ih) && (method.isStatic() || !callsFromContractOnThis(ih, method, method.getInstructionList())))
-						issue(new IllegalCallToFromContractError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)));
+		// from contract code not called on this can only be called from a contract
+		if (!isContract)
+			for (var method: methods)
+				for (var ih: instructionsOf(method)) {
+					var maybeInvoke = getInvokeToFromContract(ih);
+					if (maybeInvoke.isPresent() && (method.isStatic() || getInvokeToFromContractOnThis(ih, method).isEmpty()))
+						issue(new IllegalCallToFromContractError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(maybeInvoke.get()), lineOf(method, ih)));
+				}
 
-		// from contract code called not on this can only be called from a contract
-		for (var method: methods)
-			if (!isContract)
-				for (var ih: instructionsOf(method))
-					if (callsFromContract(ih) && (method.isStatic() || !callsFromContractOnThis(ih, method, method.getInstructionList())))
-						issue(new IllegalCallToFromContractError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)));
+		// from contract code called on this can only be called from a storage object
+		if (!isStorage)
+			for (var method: methods)
+				if (!method.isStatic())
+					for (var ih: instructionsOf(method)) {
+						var maybeInvoke = getInvokeToFromContractOnThis(ih, method);
+						if (maybeInvoke.isPresent())
+							issue(new IllegalCallToFromContractError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(maybeInvoke.get()), lineOf(method, ih)));
+					}
 
-		for (var method: methods)
-			if (!isStorage && !method.isStatic())
-				for (var ih: instructionsOf(method))
-					if (callsFromContractOnThis(ih, method, method.getInstructionList()))
-						issue(new IllegalCallToFromContractError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)));
-
-		// from contract code called on this can only be called by @FromContract code
+		// from contract code called on this can only be called inside @FromContract code
 		for (var method: methods)
 			if (!method.isStatic()) {
 				boolean isInsideFromContract = bootstraps.isPartOfFromContract(method) || isFromContract(method);
 
-				for (var ih: instructionsOf(method))
-					if (!isInsideFromContract && callsFromContractOnThis(ih, method, method.getInstructionList()))
-						issue(new IllegalCallToFromContractOnThisError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)));
+				if (!isInsideFromContract)
+					for (var ih: instructionsOf(method)) {
+						var maybeInvoke = getInvokeToFromContractOnThis(ih, method);
+						if (maybeInvoke.isPresent())
+							issue(new IllegalCallToFromContractOnThisError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(maybeInvoke.get()), lineOf(method, ih)));
+					}
 			}
 
 		// from contract payable constructors called on this can only be called from payable constructors
 		for (var method: methods)
 			if (!method.isStatic() && Const.CONSTRUCTOR_NAME.equals(method.getName()) && !isPayable(method))
 				for (var ih: instructionsOf(method))
-					if (callsPayableFromContractConstructorOnThis(ih, method, method.getInstructionList()))
+					if (callsPayableFromContractConstructorOnThis(ih, method))
 						issue(new IllegalCallToPayableConstructorOnThis(inferSourceFile(), method.getName(), lineOf(method, ih)));
 	}
 
@@ -129,19 +130,17 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 		}
 	}
 
-	private void computeLambdasUnreachableFromStaticMethods(Set<MethodGen> lambdasUnreachableFromStaticMethods) throws IllegalJarException {
-		Set<MethodGen> lambdasReachableFromStaticMethods = new HashSet<>();
-
+	private Set<MethodGen> computeLambdasUnreachableFromStaticMethods(MethodGen[] methods) throws IllegalJarException {
 		// we initially compute the set of all lambdas
-		Set<MethodGen> lambdas = new HashSet<>();
-		
+		var result = new HashSet<MethodGen>();
 		for (var bootstrap: bootstraps.getBootstraps().toArray(BootstrapMethod[]::new))
-			getLambdaFor(bootstrap).ifPresent(lambdas::add);
+			getLambdaFor(bootstrap).ifPresent(result::add);
 
 		// then we consider all lambdas that might be called, directly, from a static method
 		// that is not a lambda: they must be considered as reachable from a static method
-		for (var method: getMethods().toArray(MethodGen[]::new))
-			if (method.isStatic() && !lambdas.contains(method))
+		var lambdasReachableFromStaticMethods = new HashSet<MethodGen>();
+		for (var method: methods)
+			if (method.isStatic() && !result.contains(method))
 				addLambdasReachableFromStatic(method, lambdasReachableFromStaticMethods);
 
 		// then we iterate on the same lambdas that have been found to be reachable from
@@ -154,8 +153,9 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 		}
 		while (lambdasReachableFromStaticMethods.size() > initialSize);
 
-		lambdasUnreachableFromStaticMethods.addAll(lambdas);
-		lambdasUnreachableFromStaticMethods.removeAll(lambdasReachableFromStaticMethods);
+		result.removeAll(lambdasReachableFromStaticMethods);
+
+		return result;
 	}
 
 	private void addLambdasReachableFromStatic(MethodGen method, Set<MethodGen> lambdasReachableFromStaticMethods) throws IllegalJarException {
@@ -166,30 +166,34 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 	}
 
 	/**
-	 * Determines if the given instruction calls {@code @@FromContract} code.
+	 * Determines if the instruction at the given handle calls {@code @@FromContract} code
+	 * and, in such a case, returns it as an invoke instruction.
 	 * 
-	 * @param ih the instruction
-	 * @return true if and only if that condition holds
+	 * @param ih the instruction handle
+	 * @return the invoke instruction to a {@code @@FromContract} contained in {@code ih}, if any
 	 * @throws IllegalJarException if the jar under verification is illegal
 	 */
-	private boolean callsFromContract(InstructionHandle ih) throws IllegalJarException {
+	private Optional<InvokeInstruction> getInvokeToFromContract(InstructionHandle ih) throws IllegalJarException {
 		Instruction instruction = ih.getInstruction();
 
-		if (instruction instanceof INVOKEDYNAMIC invokedynamic)
-			return bootstraps.lambdaIsFromContract(bootstraps.getBootstrapFor(invokedynamic));
+		if (instruction instanceof INVOKEDYNAMIC invokedynamic) {
+			if (bootstraps.lambdaIsFromContract(bootstraps.getBootstrapFor(invokedynamic)))
+				return Optional.of(invokedynamic);
+		}
 		else if (instruction instanceof InvokeInstruction invoke && !(invoke instanceof INVOKESTATIC) && invoke.getReferenceType(cpg) instanceof ObjectType receiver) {
 			try {
-				return annotations.isFromContract(receiver.getClassName(), invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));
+				if (annotations.isFromContract(receiver.getClassName(), invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg)))
+					return Optional.of(invoke);
 			}
 			catch (ClassNotFoundException e) {
 				throw new IllegalJarException(e);
 			}
 		}
 
-		return false;
+		return Optional.empty();
 	}
 
-	private boolean callsFromContractOnThis(InstructionHandle ih, MethodGen method, InstructionList il) throws IllegalJarException {
+	private Optional<InvokeInstruction> getInvokeToFromContractOnThis(InstructionHandle ih, MethodGen method) throws IllegalJarException {
 		if (ih.getInstruction() instanceof InvokeInstruction invoke && !(invoke instanceof INVOKESTATIC) && !(invoke instanceof INVOKEDYNAMIC)) {
 			Type[] args = invoke.getArgumentTypes(cpg);
 			int slots = Stream.of(args).mapToInt(Type::getSize).sum();
@@ -198,14 +202,15 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 				boolean callsFromContract = invoke.getReferenceType(cpg) instanceof ObjectType receiver && annotations.isFromContract
 					(receiver.getClassName(), invoke.getMethodName(cpg), args, invoke.getReturnType(cpg));
 
-				return callsFromContract && pusherIsLoad0(ih, slots + 1, method);
+				if (callsFromContract && pusherIsLoad0(ih, slots + 1, method))
+					return Optional.of(invoke);
 			}
 			catch (ClassNotFoundException e) {
 				throw new IllegalJarException(e);
 			}
 		}
 
-		return false;
+		return Optional.empty();
 	}
 
 	private boolean pusherIsLoad0(InstructionHandle ih, int slots, MethodGen method) throws IllegalJarException {
@@ -218,7 +223,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 		return true;
 	}
 
-	private boolean callsPayableFromContractConstructorOnThis(InstructionHandle ih, MethodGen method, InstructionList il) throws IllegalJarException {
+	private boolean callsPayableFromContractConstructorOnThis(InstructionHandle ih, MethodGen method) throws IllegalJarException {
 		if (ih.getInstruction() instanceof INVOKESPECIAL invokespecial) {
 			String methodName = invokespecial.getMethodName(cpg);
 			if (Const.CONSTRUCTOR_NAME.equals(methodName)) {
@@ -252,10 +257,8 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 	 * @return the name of the from contract code
 	 * @throws IllegalJarException if the jar under analysis is illegal
 	 */
-	private String nameOfFromContractCalledDirectly(InstructionHandle ih) throws IllegalJarException {
-		Instruction instruction = ih.getInstruction();
-
-		if (instruction instanceof INVOKEDYNAMIC invokedynamic) {
+	private String nameOfFromContractCalledDirectly(InvokeInstruction invoke) throws IllegalJarException {
+		if (invoke instanceof INVOKEDYNAMIC invokedynamic) {
 			BootstrapMethod bootstrap = bootstraps.getBootstrapFor(invokedynamic);
 
 			int[] bootstrapArgs = bootstrap.getBootstrapArguments();
@@ -273,7 +276,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 
 			return cu8.getBytes();
 		}
-		else // this method is called only on invoke instructions // TODO: avoid cast in the future
-			return ((InvokeInstruction) instruction).getMethodName(cpg);
+		else
+			return invoke.getMethodName(cpg);
 	}
 }

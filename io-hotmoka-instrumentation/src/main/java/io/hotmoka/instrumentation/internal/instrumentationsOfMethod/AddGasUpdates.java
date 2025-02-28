@@ -57,6 +57,7 @@ import org.apache.bcel.generic.Type;
 import io.hotmoka.instrumentation.internal.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
+import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.whitelisting.WhitelistingConstants;
 
 /**
@@ -76,9 +77,9 @@ public class AddGasUpdates extends MethodLevelInstrumentation {
 	 * 
 	 * @param builder the builder of the class being instrumented
 	 * @param method the method being instrumented
-	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
+	 * @throws IllegalJarException if the jar under instrumentation is not legal
 	 */
-	public AddGasUpdates(InstrumentedClassImpl.Builder builder, MethodGen method) throws ClassNotFoundException {
+	public AddGasUpdates(InstrumentedClassImpl.Builder builder, MethodGen method) throws IllegalJarException {
 		builder.super(method);
 
 		if (!method.isAbstract()) {
@@ -113,7 +114,7 @@ public class AddGasUpdates extends MethodLevelInstrumentation {
 						targeter -> targeter instanceof BranchInstruction || targeter instanceof CodeExceptionGen);
 	}
 
-	private void addRamGasUpdate(InstructionHandle ih, InstructionList il, CodeExceptionGen[] ceg) throws ClassNotFoundException {
+	private void addRamGasUpdate(InstructionHandle ih, InstructionList il, CodeExceptionGen[] ceg) throws IllegalJarException {
 		Instruction bytecode = ih.getInstruction();
 
 		if (bytecode instanceof InvokeInstruction invoke) {
@@ -268,10 +269,16 @@ public class AddGasUpdates extends MethodLevelInstrumentation {
 		}
 	}
 
-	private int numberOfInstanceFieldsOf(ObjectType type) throws ClassNotFoundException {
+	private int numberOfInstanceFieldsOf(ObjectType type) throws IllegalJarException {
 		int size = 0;
-		for (Class<?> clazz = classLoader.loadClass(type.getClassName()); clazz != Object.class; clazz = clazz.getSuperclass())
-			size += Stream.of(clazz.getDeclaredFields()).filter(field -> !Modifier.isStatic(field.getModifiers())).count();
+
+		try {
+			for (Class<?> clazz = classLoader.loadClass(type.getClassName()); clazz != Object.class; clazz = clazz.getSuperclass())
+				size += Stream.of(clazz.getDeclaredFields()).filter(field -> !Modifier.isStatic(field.getModifiers())).count();
+		}
+		catch (ClassNotFoundException e) {
+			throw new IllegalJarException(e);
+		}
 
 		return size;
 	}
