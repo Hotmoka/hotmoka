@@ -119,7 +119,7 @@ class StorageMap extends HotmokaTest {
 		addInstanceVoidMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT, map, eoa, ONE);
 		BigInteger get = runInstanceNonVoidMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_GET, map, eoa).asReturnedBigInteger(STORAGE_MAP_GET, NodeException::new);
 
-		assertEquals(ONE, get);
+		assertEquals(BigInteger.ONE, get);
 	}
 
 	@Test @DisplayName("mkEmptyExportedStorageMap().put(k1,v) then get(k2) yields null")
