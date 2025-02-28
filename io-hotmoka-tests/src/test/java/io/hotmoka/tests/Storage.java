@@ -21,10 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
 import java.security.PrivateKey;
-import java.security.SignatureException;
-import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,10 +32,7 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.signatures.VoidMethodSignature;
@@ -80,33 +74,33 @@ class Storage extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new SimpleStorage().get() is an int")
-	void neverInitializedStorageYieldsInt() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void neverInitializedStorageYieldsInt() throws Exception {
 		StorageReference storage = addConstructorCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
 		StorageValue value = runInstanceNonVoidMethodCallTransaction(eoa, _50_000, jar(), GET, storage);
 		assertTrue(value instanceof IntValue);
 	}
 
 	@Test @DisplayName("new SimpleStorage().get() == 0")
-	void neverInitializedStorageYields0() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void neverInitializedStorageYields0() throws Exception {
 		StorageReference storage = addConstructorCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
-		var value = (IntValue) runInstanceNonVoidMethodCallTransaction(eoa, _50_000, jar(), GET, storage);
-		assertEquals(value.getValue(), 0);
+		var value = runInstanceNonVoidMethodCallTransaction(eoa, _50_000, jar(), GET, storage).asReturnedInt(GET, NodeException::new);
+		assertEquals(0, value);
 	}
 
 	@Test @DisplayName("new SimpleStorage().set(13) then get() == 13")
-	void set13ThenGet13() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void set13ThenGet13() throws Exception {
 		StorageReference storage = addConstructorCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
 		addInstanceVoidMethodCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), SET, storage, StorageValues.intOf(13));
-		var value = (IntValue) runInstanceNonVoidMethodCallTransaction(eoa, _50_000, jar(), GET, storage);
-		assertEquals(value.getValue(), 13);
+		var value = runInstanceNonVoidMethodCallTransaction(eoa, _50_000, jar(), GET, storage).asReturnedInt(GET, NodeException::new);
+		assertEquals(13, value);
 	}
 
 	@Test @DisplayName("new SimpleStorage().set(13) then set(17) then get() == 17")
-	void set13set17ThenGet17() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	void set13set17ThenGet17() throws Exception {
 		StorageReference storage = addConstructorCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
 		addInstanceVoidMethodCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), SET, storage, StorageValues.intOf(13));
 		addInstanceVoidMethodCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), SET, storage, StorageValues.intOf(17));
-		var value = (IntValue) runInstanceNonVoidMethodCallTransaction(eoa, _50_000, jar(), GET, storage);
-		assertEquals(value.getValue(), 17);
+		var value = runInstanceNonVoidMethodCallTransaction(eoa, _50_000, jar(), GET, storage).asReturnedInt(GET, NodeException::new);
+		assertEquals(17, value);
 	}
 }

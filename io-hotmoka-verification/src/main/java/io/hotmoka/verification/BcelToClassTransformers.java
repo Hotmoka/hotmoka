@@ -16,23 +16,24 @@ limitations under the License.
 
 package io.hotmoka.verification;
 
-import io.hotmoka.verification.api.BcelToClass;
+import io.hotmoka.verification.api.BcelToClassTransformer;
 import io.hotmoka.verification.api.TakamakaClassLoader;
-import io.hotmoka.verification.internal.BcelToClassImpl;
+import io.hotmoka.verification.internal.BcelToClassTransformerImpl;
 
 /**
  * A provider of transformers of BCEL types into classes.
  */
-public final class BcelToClasses {
+public final class BcelToClassTransformers {
 
-	private BcelToClasses() {}
+	private BcelToClassTransformers() {}
 
 	/**
 	 * Yields a utility that transforms a BCEL type into its corresponding class tag.
 	 *
-	 * @param jar the jar for which the transformation is performed
+	 * @param classLoader the classloader to be used to load the class tags
+	 * @return the utility
 	 */
-	public static BcelToClass of(TakamakaClassLoader classLoader) {
-		return new BcelToClassImpl(classLoader);
+	public static BcelToClassTransformer of(TakamakaClassLoader classLoader) {
+		return new BcelToClassTransformerImpl(classLoader);
 	}
 }

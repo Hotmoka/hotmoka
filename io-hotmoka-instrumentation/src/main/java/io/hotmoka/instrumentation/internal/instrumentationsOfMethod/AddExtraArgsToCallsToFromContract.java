@@ -42,7 +42,7 @@ import org.apache.bcel.generic.Type;
 import io.hotmoka.instrumentation.internal.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
-import io.hotmoka.verification.Pushers;
+import io.hotmoka.verification.PushersIterators;
 import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.whitelisting.WhitelistingConstants;
 import io.takamaka.code.constants.Constants;
@@ -168,7 +168,7 @@ public class AddExtraArgsToCallsToFromContract extends MethodLevelInstrumentatio
 	}
 
 	private boolean pusherIsLoad0(InstructionHandle ih, int slots, MethodGen method) throws IllegalJarException {
-		var it = Pushers.iterator(ih, slots, method);
+		var it = PushersIterators.of(ih, slots, method);
 
 		while (it.hasNext())
 			if (!(it.next().getInstruction() instanceof LoadInstruction load) || load.getIndex() != 0)

@@ -38,7 +38,7 @@ import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
-import io.hotmoka.verification.Pushers;
+import io.hotmoka.verification.PushersIterators;
 import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.errors.IllegalCallToFromContractError;
 import io.hotmoka.verification.errors.IllegalCallToFromContractOnThisError;
@@ -209,7 +209,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 	}
 
 	private boolean pusherIsLoad0(InstructionHandle ih, int slots, MethodGen method) throws IllegalJarException {
-		var it = Pushers.iterator(ih, slots, method);
+		var it = PushersIterators.of(ih, slots, method);
 
 		while (it.hasNext())
 			if (!(it.next().getInstruction() instanceof LoadInstruction load) || load.getIndex() != 0)

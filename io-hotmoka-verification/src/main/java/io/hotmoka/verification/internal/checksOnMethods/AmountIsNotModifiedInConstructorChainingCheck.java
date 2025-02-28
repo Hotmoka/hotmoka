@@ -37,7 +37,7 @@ import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
-import io.hotmoka.verification.Pushers;
+import io.hotmoka.verification.PushersIterators;
 import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.errors.IllegalModificationOfAmountInConstructorChaining;
 import io.hotmoka.verification.internal.CheckOnMethods;
@@ -74,7 +74,7 @@ public class AmountIsNotModifiedInConstructorChainingCheck extends CheckOnMethod
 	}
 
 	private boolean pusherIsLoad1(InstructionHandle ih, int slots) throws IllegalJarException {
-		var it = Pushers.iterator(ih, slots, method);
+		var it = PushersIterators.of(ih, slots, method);
 
 		while (it.hasNext())
 			if (!(it.next().getInstruction() instanceof LoadInstruction load) || load.getIndex() != 1)
@@ -84,7 +84,7 @@ public class AmountIsNotModifiedInConstructorChainingCheck extends CheckOnMethod
 	}
 
 	private boolean pusherIsLoad0(InstructionHandle ih, int slots) throws IllegalJarException {
-		var it = Pushers.iterator(ih, slots, method);
+		var it = PushersIterators.of(ih, slots, method);
 
 		while (it.hasNext())
 			if (!(it.next().getInstruction() instanceof LoadInstruction load) || load.getIndex() != 0)

@@ -21,13 +21,13 @@ import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
-import io.hotmoka.verification.api.BcelToClass;
+import io.hotmoka.verification.api.BcelToClassTransformer;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 
 /**
  * A utility that transforms a BCEL type into its corresponding class tag.
  */
-public class BcelToClassImpl implements BcelToClass {
+public class BcelToClassTransformerImpl implements BcelToClassTransformer {
 
 	/**
 	 * The class loader for loading the classes during the transformation.
@@ -39,7 +39,7 @@ public class BcelToClassImpl implements BcelToClass {
 	 * 
 	 * @param jar the jar for which the transformation is performed
 	 */
-	public BcelToClassImpl(TakamakaClassLoader classLoader) {
+	public BcelToClassTransformerImpl(TakamakaClassLoader classLoader) {
 		this.classLoader = classLoader;
 	}
 

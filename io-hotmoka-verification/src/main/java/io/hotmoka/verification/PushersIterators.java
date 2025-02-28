@@ -21,14 +21,14 @@ import org.apache.bcel.generic.MethodGen;
 
 import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.api.PushersIterator;
-import io.hotmoka.verification.internal.PushersImpl;
+import io.hotmoka.verification.internal.PushersIteratorImpl;
 
 /**
- * A provider of the pushers of a stack value.
+ * A provider of iterators over the pushers of a stack value.
  */
-public final class Pushers {
+public final class PushersIterators {
 
-	private Pushers() {}
+	private PushersIterators() {}
 
 	/**
 	 * Yields an iterator over the pushers of a value on the stack.
@@ -39,7 +39,7 @@ public final class Pushers {
 	 * @return the iterator
 	 * @throws IllegalJarException if the jar where pushers are considered is illegal or too complex
 	 */
-	public static PushersIterator iterator(InstructionHandle ih, int slots, MethodGen method) throws IllegalJarException {
-		return new PushersImpl(ih, slots, method).iterator();
+	public static PushersIterator of(InstructionHandle ih, int slots, MethodGen method) throws IllegalJarException {
+		return new PushersIteratorImpl(ih, slots, method);
 	}
 }

@@ -19,9 +19,6 @@ package io.hotmoka.tests;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
-import java.security.SignatureException;
-import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,11 +27,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
-import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.values.IntValue;
 
 /**
  * A test to check if class loaders correctly deal with a static method that calls another static method.
@@ -52,10 +45,9 @@ class StaticFromStatic extends HotmokaTest {
 	}
 
 	@Test @DisplayName("StaticFromStatic.foo() == 42")
-	void callFoo() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
-		var result = (IntValue) addStaticNonVoidMethodCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(),
-			MethodSignatures.ofNonVoid("io.hotmoka.examples.staticfromstatic.StaticFromStatic", "foo", StorageTypes.INT));
-
-		assertEquals(42, result.getValue());
+	void callFoo() throws Exception {
+		var foo = MethodSignatures.ofNonVoid("io.hotmoka.examples.staticfromstatic.StaticFromStatic", "foo", StorageTypes.INT);
+		var result = addStaticNonVoidMethodCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), foo).asReturnedInt(foo, NodeException::new);
+		assertEquals(42, result);
 	}
 }

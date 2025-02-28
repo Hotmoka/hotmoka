@@ -31,6 +31,7 @@ public final class AnnotationUtilities {
 	 * Yields a utility that deals with annotations.
 	 *
 	 * @param jar the jar for which the utility is used
+	 * @return the utility
 	 */
 	public static AnnotationUtility of(VerifiedJar jar) {
 		return new AnnotationUtilityImpl(jar);

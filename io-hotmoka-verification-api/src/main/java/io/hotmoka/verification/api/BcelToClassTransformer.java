@@ -21,7 +21,7 @@ import org.apache.bcel.generic.Type;
 /**
  * A utility that transforms a BCEL type into its corresponding class tag.
  */
-public interface BcelToClass {
+public interface BcelToClassTransformer {
 
 	/**
 	 * Computes the Java class tag for the given BCEL type.

@@ -57,9 +57,9 @@ import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.InstrumentMe
 import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.ReplaceFieldAccessesWithAccessors;
 import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.SetCallerAndBalanceAtTheBeginningOfFromContracts;
 import io.hotmoka.verification.AnnotationUtilities;
-import io.hotmoka.verification.BcelToClasses;
+import io.hotmoka.verification.BcelToClassTransformers;
 import io.hotmoka.verification.api.AnnotationUtility;
-import io.hotmoka.verification.api.BcelToClass;
+import io.hotmoka.verification.api.BcelToClassTransformer;
 import io.hotmoka.verification.api.Bootstraps;
 import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
@@ -123,7 +123,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		/**
 		 * A utility to transform BCEL types into classes.
 		 */
-		private final BcelToClass bcelToClass;
+		private final BcelToClassTransformer bcelToClass;
 
 		/**
 		 * The annotation wizard of the class being instrumented.
@@ -220,7 +220,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		private Builder(VerifiedClass clazz, GasCostModel gasCostModel) throws IllegalJarException {
 			this.verifiedClass = clazz;
 			this.classLoader = clazz.getJar().getClassLoader();
-			this.bcelToClass = BcelToClasses.of(classLoader);
+			this.bcelToClass = BcelToClassTransformers.of(classLoader);
 			this.annotations = AnnotationUtilities.of(verifiedClass.getJar());
 			this.classGen = new ClassGen(clazz.toJavaClass());
 			this.bootstraps = verifiedClass.getBootstraps().copy();
@@ -320,7 +320,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			/**
 			 * A utility to transform BCEL types into classes.
 			 */
-			protected final BcelToClass bcelToClass = Builder.this.bcelToClass;
+			protected final BcelToClassTransformer bcelToClass = Builder.this.bcelToClass;
 
 			/**
 			 * The annotation wizard of the class being instrumented.

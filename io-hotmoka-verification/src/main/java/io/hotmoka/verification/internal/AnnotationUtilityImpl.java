@@ -27,9 +27,9 @@ import org.apache.bcel.Const;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
-import io.hotmoka.verification.BcelToClasses;
+import io.hotmoka.verification.BcelToClassTransformers;
 import io.hotmoka.verification.api.AnnotationUtility;
-import io.hotmoka.verification.api.BcelToClass;
+import io.hotmoka.verification.api.BcelToClassTransformer;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.verification.api.VerifiedJar;
 import io.hotmoka.whitelisting.WhitelistingConstants;
@@ -50,7 +50,7 @@ public class AnnotationUtilityImpl implements AnnotationUtility {
 	/**
 	 * The utility used to transform BCEL types into classes.
 	 */
-	private final BcelToClass bcelToClass;
+	private final BcelToClassTransformer bcelToClass;
 
 	/**
 	 * Builds the utility object.
@@ -59,7 +59,7 @@ public class AnnotationUtilityImpl implements AnnotationUtility {
 	 */
 	public AnnotationUtilityImpl(VerifiedJar jar) {
 		this.classLoader = jar.getClassLoader();
-		this.bcelToClass = BcelToClasses.of(classLoader);
+		this.bcelToClass = BcelToClassTransformers.of(classLoader);
 	}
 
 	@Override

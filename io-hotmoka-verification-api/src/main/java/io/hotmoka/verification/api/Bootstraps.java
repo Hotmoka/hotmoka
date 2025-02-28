@@ -65,7 +65,7 @@ public interface Bootstraps {
 	 * 
 	 * @param invokedynamic the instruction
 	 * @return the bootstrap method
-	 * @return IllegalJarException if the jar under verification is illegal
+	 * @throws IllegalJarException if the jar under verification is illegal
 	 */
 	BootstrapMethod getBootstrapFor(INVOKEDYNAMIC invokedynamic) throws IllegalJarException;
 

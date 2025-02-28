@@ -20,7 +20,7 @@ import org.apache.bcel.generic.InstructionHandle;
 
 /**
  * An iterator over the pushers of the value of a stack element. This interface does not
- * extend the standard iterator interface, since its next() method can throw a checked exception.
+ * extend the standard iterator interface, since its {@link #next()} method can throw a checked exception.
  */
 public interface PushersIterator {
 

@@ -32,8 +32,8 @@ import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 
-import io.hotmoka.verification.BcelToClasses;
-import io.hotmoka.verification.api.BcelToClass;
+import io.hotmoka.verification.BcelToClassTransformers;
+import io.hotmoka.verification.api.BcelToClassTransformer;
 import io.hotmoka.verification.api.Bootstraps;
 import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
@@ -58,7 +58,7 @@ public class Resolver {
 	/**
 	 * A utility to transform BCEL types into classes.
 	 */
-	private final BcelToClass bcelToClass;
+	private final BcelToClassTransformer bcelToClass;
 
 	/**
 	 * The constant pool of the class for which resolution is performed.
@@ -74,7 +74,7 @@ public class Resolver {
 		this.verifiedClass = clazz;
 		VerifiedJar jar = clazz.getJar();
 		this.classLoader = jar.getClassLoader();
-		this.bcelToClass = BcelToClasses.of(classLoader);
+		this.bcelToClass = BcelToClassTransformers.of(classLoader);
 		this.cpg = clazz.getConstantPool();
 	}
 

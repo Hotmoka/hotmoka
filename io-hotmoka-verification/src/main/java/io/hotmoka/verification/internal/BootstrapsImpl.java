@@ -49,9 +49,9 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
 import io.hotmoka.verification.AnnotationUtilities;
-import io.hotmoka.verification.BcelToClasses;
+import io.hotmoka.verification.BcelToClassTransformers;
 import io.hotmoka.verification.api.AnnotationUtility;
-import io.hotmoka.verification.api.BcelToClass;
+import io.hotmoka.verification.api.BcelToClassTransformer;
 import io.hotmoka.verification.api.Bootstraps;
 import io.hotmoka.verification.api.IllegalJarException;
 
@@ -69,7 +69,7 @@ public class BootstrapsImpl implements Bootstraps {
 	/**
 	 * A utility to transform BCEL types into classes.
 	 */
-	private final BcelToClass bcelToClass;
+	private final BcelToClassTransformer bcelToClass;
 
 	/**
 	 * The utility used to deal with the annotations in the class.
@@ -108,7 +108,7 @@ public class BootstrapsImpl implements Bootstraps {
 
 	public BootstrapsImpl(VerifiedClassImpl clazz, MethodGen[] methods) throws IllegalJarException {
 		this.verifiedClass = clazz;
-		this.bcelToClass = BcelToClasses.of(clazz.getJar().getClassLoader());
+		this.bcelToClass = BcelToClassTransformers.of(clazz.getJar().getClassLoader());
 		this.annotations = AnnotationUtilities.of(clazz.getJar());
 		this.cpg = clazz.getConstantPool();
 		this.bootstrapMethods = computeBootstraps();
