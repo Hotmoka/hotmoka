@@ -21,9 +21,9 @@ import java.nio.file.Path;
 import java.util.stream.Stream;
 
 /**
- * An instrumented (and hence verified) jar file. This means for instance that storage classes
- * have been modified in order to account for persistence and contracts jave been
- * modified in order to implement calls from contracts.
+ * An instrumented (and hence verified) jar file. This means for instance that
+ * storage classes have been instrumented by adding the serialization support and
+ * contracts are instrumented in order to deal with payable calls.
  */
 public interface InstrumentedJar {
 

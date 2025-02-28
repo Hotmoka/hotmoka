@@ -21,7 +21,7 @@ import org.apache.bcel.classfile.JavaClass;
 /**
  * An instrumented class file. For instance, storage classes are instrumented
  * by adding the serialization support; contracts are instrumented in order
- * to deal with calls from contracts. Instrumented classes are ordered by name.
+ * to deal with payable calls. Instrumented classes are ordered by name.
  */
 public interface InstrumentedClass extends Comparable<InstrumentedClass> {
 

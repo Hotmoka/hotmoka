@@ -16,13 +16,9 @@ limitations under the License.
 
 package io.hotmoka.instrumentation.internal.instrumentationsOfMethod;
 
-import static io.hotmoka.exceptions.CheckSupplier.check;
-import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
-
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantInvokeDynamic;
@@ -61,21 +57,23 @@ public class AddExtraArgsToCallsToFromContract extends MethodLevelInstrumentatio
 	 * 
 	 * @param builder the builder of the class being instrumented
 	 * @param method the method being instrumented
-	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 	 * @throws IllegalJarException if the jar under instrumentation is illegal
 	 */
-	public AddExtraArgsToCallsToFromContract(InstrumentedClassImpl.Builder builder, MethodGen method) throws ClassNotFoundException, IllegalJarException {
+	public AddExtraArgsToCallsToFromContract(InstrumentedClassImpl.Builder builder, MethodGen method) throws IllegalJarException {
 		builder.super(method);
 
 		if (!method.isAbstract()) {
 			InstructionList il = method.getInstructionList();
-			List<InstructionHandle> callsToFromContract = check(ClassNotFoundException.class, () ->
-				StreamSupport.stream(il.spliterator(), false)
-					.filter(uncheck(ClassNotFoundException.class, ih -> isCallToFromContract(ih.getInstruction()))).collect(Collectors.toList())
-			);
+
+			// we need a support list since the instrumentation will modify the il we are iterating upom
+			// and a deep copy would be too expensive
+			List<InstructionHandle> callsToFromContract = new ArrayList<>();
+			for (var ih: il)
+				if (isCallToFromContract(ih.getInstruction()))
+					callsToFromContract.add(ih);
 
 			for (InstructionHandle ih: callsToFromContract)
-				passExtraArgsToCallToFromContract(method, il, ih, method.getName());
+				passExtraArgsToCallToFromContract(il, ih);
 		}
 	}
 
@@ -85,11 +83,9 @@ public class AddExtraArgsToCallsToFromContract extends MethodLevelInstrumentatio
 	 * 
 	 * @param il the instructions of the method being instrumented
 	 * @param ih the call to the entry
-	 * @param callee the name of the method where the calls are being looked for
-	 * @throws ClassNotFoundException if some class cannot be found in the Takamaka program
 	 * @throws IllegalJarException if the jar under instrumentation is illegal
 	 */
-	private void passExtraArgsToCallToFromContract(MethodGen method, InstructionList il, InstructionHandle ih, String callee) throws ClassNotFoundException, IllegalJarException {
+	private void passExtraArgsToCallToFromContract(InstructionList il, InstructionHandle ih) throws IllegalJarException {
 		var invoke = (InvokeInstruction) ih.getInstruction();
 		var args = invoke.getArgumentTypes(cpg);
 		String methodName = invoke.getMethodName(cpg);
@@ -139,7 +135,16 @@ public class AddExtraArgsToCallsToFromContract extends MethodLevelInstrumentatio
 			if (onThis) {
 				// the call is on "this": it inherits our caller
 				var ourArgs = method.getArgumentTypes();
-				if (annotations.isFromContract(className, method.getName(), ourArgs, method.getReturnType())) {
+				boolean isFromContract;
+
+				try {
+					isFromContract = annotations.isFromContract(className, method.getName(), ourArgs, method.getReturnType());
+				}
+				catch (ClassNotFoundException e) {
+					throw new IllegalJarException(e);
+				}
+
+				if (isFromContract) {
 					int ourArgsSlots = Stream.of(ourArgs).mapToInt(Type::getSize).sum();
 					// the call is inside a @FromContract: its last one minus argument is the caller: we pass it
 					ih.setInstruction(new LoadCaller(ourArgsSlots + 1));
@@ -192,22 +197,22 @@ public class AddExtraArgsToCallsToFromContract extends MethodLevelInstrumentatio
 	 * 
 	 * @param instruction the instruction
 	 * @return true if and only if that condition holds
-	 * @throws ClassNotFoundException if some class cannot be found in the Takamaka program
+	 * @throws IllegalJarException if the jar under instrumentation is illegal
 	 */
-	private boolean isCallToFromContract(Instruction instruction) throws ClassNotFoundException {
+	private boolean isCallToFromContract(Instruction instruction) throws IllegalJarException {
 		if (instruction instanceof INVOKEDYNAMIC invokedynamic)
-			try {
-				return bootstrapMethodsThatWillRequireExtraThis.contains(bootstraps.getBootstrapFor(invokedynamic));
-			}
-			catch (IllegalJarException e) { // TODO: throw this directly
-				throw new ClassNotFoundException();
-			}
+			return bootstrapMethodsThatWillRequireExtraThis.contains(bootstraps.getBootstrapFor(invokedynamic));
 		else if (instruction instanceof InvokeInstruction invoke) {
 			var receiver = invoke.getReferenceType(cpg);
 			// we do not consider calls added by instrumentation
-			if (receiver instanceof ObjectType ot && !receiver.equals(RUNTIME_OT))
-				return annotations.isFromContract(ot.getClassName(),
-					invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));
+			if (receiver instanceof ObjectType ot && !receiver.equals(RUNTIME_OT)) {
+				try {
+					return annotations.isFromContract(ot.getClassName(), invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));
+				}
+				catch (ClassNotFoundException e) {
+					throw new IllegalJarException(e);
+				}
+			}
 		}
 
 		return false;

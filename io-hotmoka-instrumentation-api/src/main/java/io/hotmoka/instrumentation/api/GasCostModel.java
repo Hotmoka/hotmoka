@@ -139,7 +139,7 @@ public interface GasCostModel {
 	int cpuCostOfInstruction();
 
 	/**
-	 * Yields the CPU gas cost for installing in store a jar consisting of the given bytes.
+	 * Yields the CPU gas cost for installing in store a jar consisting of the given number of bytes.
 	 * 
 	 * @param numBytes the number of bytes of the jar
 	 * @return the cost
@@ -147,7 +147,7 @@ public interface GasCostModel {
 	BigInteger cpuCostForInstallingJar(int numBytes);
 
 	/**
-	 * Yields the CPU gas cost for loading from store a jar consisting of the given bytes.
+	 * Yields the CPU gas cost for loading from store a jar consisting of the given number of bytes.
 	 * 
 	 * @param numBytes the number of bytes of the jar
 	 * @return the cost

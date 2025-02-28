@@ -78,8 +78,7 @@ public class ReplaceFieldAccessesWithAccessors extends MethodLevelInstrumentatio
 	private boolean isAccessToLazilyLoadedFieldInStorageClass(InstructionHandle ih) throws ClassNotFoundException {
 		Instruction instruction = ih.getInstruction();
 
-		if (instruction instanceof GETFIELD || instruction instanceof PUTFIELD) {
-			var fi = (FieldInstruction) instruction;
+		if (instruction instanceof FieldInstruction fi && (instruction instanceof GETFIELD || instruction instanceof PUTFIELD)) {
 			var receiverType = (ObjectType) fi.getReferenceType(cpg);
 			String receiverClassName = receiverType.getClassName();
 			Class<?> fieldType;

@@ -22,7 +22,7 @@ import io.hotmoka.instrumentation.internal.StandardGasCostModel;
 /**
  * A supplier of gas cost models.
  */
-public final class GasCostModels {
+public abstract class GasCostModels {
 
 	private GasCostModels() {}
 

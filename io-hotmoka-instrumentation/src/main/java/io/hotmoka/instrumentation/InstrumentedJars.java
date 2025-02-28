@@ -38,7 +38,7 @@ public final class InstrumentedJars {
 	 * @param gasCostModel the gas cost model used for the instrumentation
 	 * @return the instrumented jar
 	 * @throws IllegalJarException if {@code verifiedJar} is illegal
-	 * @throws VerificationException if {@code verifiedJar} has some error
+	 * @throws VerificationException if {@code verifiedJar} has some verification error
 	 */
 	public static InstrumentedJar of(VerifiedJar verifiedJar, GasCostModel gasCostModel) throws IllegalJarException, VerificationException {
 		return new InstrumentedJarImpl(verifiedJar, gasCostModel);

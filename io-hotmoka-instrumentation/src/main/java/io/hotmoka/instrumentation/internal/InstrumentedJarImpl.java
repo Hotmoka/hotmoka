@@ -16,9 +16,6 @@ limitations under the License.
 
 package io.hotmoka.instrumentation.internal;
 
-import static io.hotmoka.exceptions.CheckSupplier.check;
-import static io.hotmoka.exceptions.UncheckFunction.uncheck;
-
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -27,7 +24,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.instrumentation.InstrumentedClasses;
@@ -36,6 +32,7 @@ import io.hotmoka.instrumentation.api.InstrumentedClass;
 import io.hotmoka.instrumentation.api.InstrumentedJar;
 import io.hotmoka.verification.VerificationException;
 import io.hotmoka.verification.api.IllegalJarException;
+import io.hotmoka.verification.api.VerifiedClass;
 import io.hotmoka.verification.api.VerifiedJar;
 
 /**
@@ -64,12 +61,10 @@ public class InstrumentedJarImpl implements InstrumentedJar {
 		if (firstError.isPresent())
 			throw new VerificationException(firstError.get());
 
+		this.classes = new TreeSet<>();
 		// we cannot proceed in parallel since the BCEL library is not thread-safe
-		this.classes = check(IllegalJarException.class, () ->
-			verifiedJar.getClasses()
-				.map(uncheck(IllegalJarException.class, clazz -> InstrumentedClasses.of(clazz, gasCostModel)))
-				.collect(Collectors.toCollection(TreeSet::new))
-		);
+		for (var verifiedClass: verifiedJar.getClasses().toArray(VerifiedClass[]::new))
+			this.classes.add(InstrumentedClasses.of(verifiedClass, gasCostModel));
 	}
 
 	@Override

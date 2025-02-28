@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.generic.ATHROW;
@@ -49,6 +48,7 @@ import io.hotmoka.instrumentation.internal.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
 import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.AddExtraArgsToCallsToFromContract.LoadCaller;
+import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.whitelisting.WhitelistingConstants;
 
 /**
@@ -67,11 +67,12 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 	 * @param builder the builder of the class being instrumented
 	 * @param method the method being instrumented
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
+	 * @throws IllegalJarException if the jar under instrumentation is illegal
 	 */
-	public SetCallerAndBalanceAtTheBeginningOfFromContracts(InstrumentedClassImpl.Builder builder, MethodGen method) throws ClassNotFoundException {
+	public SetCallerAndBalanceAtTheBeginningOfFromContracts(InstrumentedClassImpl.Builder builder, MethodGen method) throws ClassNotFoundException, IllegalJarException {
 		builder.super(method);
 
-		if (isStorage || classLoader.isInterface(className)) {
+		if (isStorage || isInterface) {
 			String name = method.getName();
 			Type[] args = method.getArgumentTypes();
 			Type returnType = method.getReturnType();
@@ -90,8 +91,9 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 	 * @param callerContract the class of the caller contract
 	 * @param isPayable true if and only if the entry is payable
 	 * @throws ClassNotFoundException if some class of the Takamaka program could not be found
+	 * @throws IllegalJarException  if the jar under instrumentation is illegal
 	 */
-	private void instrumentFromContract(MethodGen method, Class<?> callerContract, boolean isPayable) throws ClassNotFoundException {
+	private void instrumentFromContract(MethodGen method, Class<?> callerContract, boolean isPayable) throws ClassNotFoundException, IllegalJarException {
 		// slotForCaller is the local variable used for the extra "caller" parameter;
 		int slotForCaller = addExtraParameters(method);
 		if (!method.isAbstract()) {
@@ -125,9 +127,10 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 	 * @param callerContract the class of the caller contract
 	 * @param slotForCaller the local variable for the caller implicit argument
 	 * @param isPayable true if and only if the entry is payable
-	 * @throws ClassNotFoundException 
+	 * @throws ClassNotFoundException
+	 * @throws IllegalJarException if the jar under instrumentation is illegal
 	 */
-	private void setCallerAndBalance(MethodGen method, Class<?> callerContract, int slotForCaller, boolean isPayable) throws ClassNotFoundException {
+	private void setCallerAndBalance(MethodGen method, Class<?> callerContract, int slotForCaller, boolean isPayable) throws ClassNotFoundException, IllegalJarException {
 		InstructionList il = method.getInstructionList();
 		InstructionHandle start = il.getStart();
 
@@ -244,8 +247,9 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 	 * @param slotForCaller the local where the caller contract is passed to the entry
 	 * @param isConstructorOfInstanceInnerClass true if and only if the {@code constructor} belongs to an instance inner class
 	 * @return the instruction before which the code that sets caller and balance can be placed
+	 * @throws IllegalJarException if the jar under instrumentation is illegal
 	 */
-	private InstructionHandle callToSuperConstructor(InstructionList il, MethodGen constructor, int slotForCaller, boolean isConstructorOfInstanceInnerClass) {
+	private InstructionHandle callToSuperConstructor(InstructionList il, MethodGen constructor, int slotForCaller, boolean isConstructorOfInstanceInnerClass) throws IllegalJarException {
 		InstructionHandle start = il.getStart();
 
 		// we skip the initial aload_0 aload_1 putfield this$0
@@ -261,11 +265,11 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 		// this method fails and rejects the code: such non-standard code is not supported by Takamaka
 		Instruction startInstruction = start.getInstruction();
 		if (startInstruction instanceof LoadInstruction li && li.getIndex() == 0) {
-			Set<InstructionHandle> callsForConstructorChaining = new HashSet<>();
-			HeightAtBytecode seed = new HeightAtBytecode(start.getNext(), 1);
-			Set<HeightAtBytecode> seen = new HashSet<>();
+			var callsForConstructorChaining = new HashSet<InstructionHandle>();
+			var seed = new HeightAtBytecode(start.getNext(), 1);
+			var seen = new HashSet<HeightAtBytecode>();
 			seen.add(seed);
-			List<HeightAtBytecode> workingSet = new ArrayList<>();
+			var workingSet = new ArrayList<HeightAtBytecode>();
 			workingSet.add(seed);
 
 			do {
@@ -277,7 +281,7 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 					int modifiedLocal = si.getIndex();
 					int size = si.getType(cpg).getSize();
 					if (modifiedLocal == slotForCaller || (size == 2 && modifiedLocal == slotForCaller - 1))
-						throw new IllegalStateException("Unexpected modification of local " + slotForCaller
+						throw new IllegalJarException("Unexpected modification of local " + slotForCaller
 								+ " before initialization of " + className);
 				}
 
@@ -291,7 +295,7 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 							&& invokespecial.getMethodName(cpg).equals(Const.CONSTRUCTOR_NAME))
 						callsForConstructorChaining.add(current.ih);
 					else
-						throw new IllegalStateException("Unexpected consumer of local 0 " + bytecode + " before initialization of " + className);
+						throw new IllegalJarException("Unexpected consumer of local 0 " + bytecode + " before initialization of " + className);
 				}
 				else if (bytecode instanceof GotoInstruction gi) {
 					var added = new HeightAtBytecode(gi.getTarget(), stackHeightAfterBytecode);
@@ -307,7 +311,7 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 						workingSet.add(added);
 				}
 				else if (bytecode instanceof BranchInstruction || bytecode instanceof ATHROW || bytecode instanceof RETURN || bytecode instanceof RET)
-					throw new IllegalStateException("Unexpected instruction " + bytecode + " before initialization of " + className);
+					throw new IllegalJarException("Unexpected instruction " + bytecode + " before initialization of " + className);
 				else {
 					var added = new HeightAtBytecode(current.ih.getNext(), stackHeightAfterBytecode);
 					if (seen.add(added))
@@ -319,10 +323,10 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 			if (callsForConstructorChaining.size() == 1)
 				return callsForConstructorChaining.iterator().next();
 			else
-				throw new IllegalStateException("Cannot identify single call to constructor chaining inside a constructor ot " + className);
+				throw new IllegalJarException("Cannot identify single call to constructor chaining inside a constructor ot " + className);
 		}
 		else
-			throw new IllegalStateException("Constructor of " + className + " does not start with aload 0");
+			throw new IllegalJarException("Constructor of " + className + " does not start with aload 0");
 	}
 
 	/**

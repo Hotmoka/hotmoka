@@ -166,6 +166,11 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		private final boolean isStorage;
 
 		/**
+		 * True if and only if the class being instrumented is an interface;
+		 */
+		private final boolean isInterface;
+
+		/**
 		 * True if and only if the class being instrumented is a contract class.
 		 */
 		private final boolean isContract;
@@ -236,6 +241,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			try {
 				this.isStorage = classLoader.isStorage(className);
 				this.isContract = classLoader.isContract(className);
+				this.isInterface = classLoader.isInterface(className);
 			}
 			catch (ClassNotFoundException e) {
 				// this should never happen since the class is in the jar of the class loader
@@ -358,6 +364,11 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			 * True if and only if the class being instrumented is a storage class.
 			 */
 			protected final boolean isStorage = Builder.this.isStorage;
+
+			/**
+			 * True if and only if the class being instrumented is an interface.
+			 */
+			protected final boolean isInterface = Builder.this.isInterface;
 
 			/**
 			 * True if and only if the class being instrumented is a contract class.

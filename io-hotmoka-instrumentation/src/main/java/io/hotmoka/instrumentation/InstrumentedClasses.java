@@ -35,7 +35,7 @@ public final class InstrumentedClasses {
 	 * @param clazz the verified class to instrument
 	 * @param gasCostModel the gas cost model used for the instrumentation
 	 * @return the instrumented class
-	 * @throws IllegalJarException if the jar under instrumentation is illegal
+	 * @throws IllegalJarException if the jar under instrumentation, containing this class, is illegal
 	 */
 	public static InstrumentedClass of(VerifiedClass clazz, GasCostModel gasCostModel) throws IllegalJarException {
 		return new InstrumentedClassImpl(clazz, gasCostModel);

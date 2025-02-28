@@ -21,86 +21,88 @@ import static io.hotmoka.verification.api.VerifiedClass.FORBIDDEN_PREFIX;
 /**
  * A collector of constants useful during code instrumentation.
  */
-public interface InstrumentationConstants {
+public abstract class InstrumentationConstants {
+
+	private InstrumentationConstants() {}
 
 	/**
 	 * The prefix of the name of the field used in instrumented storage classes
 	 * to determine if a lazy field has been assigned.
 	 */
-	String IF_ALREADY_LOADED_PREFIX = FORBIDDEN_PREFIX + "ifAlreadyLoaded_";
+	public final static String IF_ALREADY_LOADED_PREFIX = FORBIDDEN_PREFIX + "ifAlreadyLoaded_";
 
 	/**
 	 * The prefix of the name of the method used in instrumented storage classes
 	 * to ensure that a lazy field has been loaded.
 	 */
-	String ENSURE_LOADED_PREFIX = FORBIDDEN_PREFIX + "ensureLoaded_";
+	public final static String ENSURE_LOADED_PREFIX = FORBIDDEN_PREFIX + "ensureLoaded_";
 
 	/**
 	 * The prefix of the name of the method used in instrumented storage classes
 	 * to read a lazy field.
 	 */
-	String GETTER_PREFIX = FORBIDDEN_PREFIX + "get_";
+	public final static String GETTER_PREFIX = FORBIDDEN_PREFIX + "get_";
 
 	/**
 	 * The prefix of the name of the method used in instrumented storage classes
 	 * to set a lazy field.
 	 */
-	String SETTER_PREFIX = FORBIDDEN_PREFIX + "set_";
+	public final static String SETTER_PREFIX = FORBIDDEN_PREFIX + "set_";
 
 	/**
 	 * The name of the method of {@code io.takamaka.code.lang.Storage} used to access the caller of entries.
 	 */
-	String CALLER = "caller";
+	public final static String CALLER = "caller";
 
 	/**
 	 * The name of the method of {@code io.hotmoka.local.internal.runtime.Runtime}
 	 * used to retrieve the last update for a non-final lazy field.
 	 */
-	String DESERIALIZE_LAST_UPDATE_FOR = "deserializeLastLazyUpdateFor";
+	public final static String DESERIALIZE_LAST_UPDATE_FOR = "deserializeLastLazyUpdateFor";
 
 	/**
 	 * The name of the method of {@code io.hotmoka.local.internal.runtime.Runtime}
 	 * used to retrieve the last update for a final lazy field.
 	 */
-	String DESERIALIZE_LAST_UPDATE_FOR_FINAL = "deserializeLastLazyUpdateForFinal";
+	public final static String DESERIALIZE_LAST_UPDATE_FOR_FINAL = "deserializeLastLazyUpdateForFinal";
 
 	/**
 	 * The prefix of the name of extra lambdas added during instrumentation.
 	 */
-	String EXTRA_LAMBDA = FORBIDDEN_PREFIX + "lambda";
+	public final static String EXTRA_LAMBDA = FORBIDDEN_PREFIX + "lambda";
 
 	/**
 	 * The prefix of the name of extra methods used to simulate multidimensional
 	 * array creations and keep track of the gas consumed for RAM consumption.
 	 */
-	String EXTRA_ALLOCATOR = FORBIDDEN_PREFIX + "newarray";
+	public final static String EXTRA_ALLOCATOR = FORBIDDEN_PREFIX + "newarray";
 
 	/**
 	 * The prefix of the name of extra methods used to check white-listing annotations at run time.
 	 */
-	String EXTRA_VERIFIER = FORBIDDEN_PREFIX + "verifier";
+	public final static String EXTRA_VERIFIER = FORBIDDEN_PREFIX + "verifier";
 
 	/**
 	 * The name of the method of {@code io.hotmoka.local.internal.runtime.Runtime}
 	 * that sets the caller and transfers money at the beginning of a payable {@code @@FromContract}.
 	 */
-	String PAYABLE_FROM_CONTRACT = "payableFromContract";
+	public final static String PAYABLE_FROM_CONTRACT = "payableFromContract";
 
 	/**
 	 * The name of the method of {@code io.hotmoka.local.internal.runtime.Runtime}
 	 * that sets the caller and transfers money at the beginning of a red payable {@code @@FromContract}.
 	 */
-	String RED_PAYABLE_FROM_CONTRACT = "redPayableFromContract";
+	public final static String RED_PAYABLE_FROM_CONTRACT = "redPayableFromContract";
 
 	/**
 	 * The name of the method of {@code io.hotmoka.local.internal.runtime.Runtime}
 	 * that sets the caller at the beginning of a {@code @@FromContract}.
 	 */
-	String FROM_CONTRACT = "fromContract";
+	public final static String FROM_CONTRACT = "fromContract";
 
 	/**
 	 * The number of optimized methods for gas charge in the
 	 * {@code io.hotmoka.local.internal.runtime.Runtime} class.
 	 */
-	long MAX_OPTIMIZED_CHARGE = 20;
+	public final static long MAX_OPTIMIZED_CHARGE = 20;
 }
