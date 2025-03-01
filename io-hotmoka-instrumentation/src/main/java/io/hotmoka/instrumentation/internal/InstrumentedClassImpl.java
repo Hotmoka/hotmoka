@@ -605,10 +605,10 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		 */
 		private void postProcess(MethodGen method) throws IllegalJarException {
 			new InstrumentMethodsOfSupportClasses(this, method);
+			new ReplaceFieldAccessesWithAccessors(this, method);
+			new AddExtraArgsToCallsToFromContract(this, method);
 
 			try { // TODO: throws this directly in the callees
-				new ReplaceFieldAccessesWithAccessors(this, method);
-				new AddExtraArgsToCallsToFromContract(this, method);
 				new SetCallerAndBalanceAtTheBeginningOfFromContracts(this, method);
 			}
 			catch (ClassNotFoundException e) {

@@ -16,35 +16,30 @@ limitations under the License.
 
 package io.hotmoka.instrumentation.internal.instrumentationsOfMethod;
 
-import static io.hotmoka.exceptions.CheckRunnable.check;
-import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.generic.FieldInstruction;
 import org.apache.bcel.generic.GETFIELD;
 import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionHandle;
-import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.PUTFIELD;
 import org.apache.bcel.generic.Type;
 
-import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.instrumentation.api.InstrumentationFields;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
+import io.hotmoka.verification.api.IllegalJarException;
 import io.takamaka.code.constants.Constants;
 
 /**
- * Replaces accesses to fields of storage classes with calls to accessor methods.
+ * Replaces accesses to fields of storage classes with calls to their accessor method.
  */
 public class ReplaceFieldAccessesWithAccessors extends MethodLevelInstrumentation {
 
@@ -53,41 +48,44 @@ public class ReplaceFieldAccessesWithAccessors extends MethodLevelInstrumentatio
 	 * 
 	 * @param builder the builder of the class being instrumented
 	 * @param method the method being instrumented
-	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
+	 * @throws IllegalJarException if the jar under instrumentation is illegal
 	 */
-	public ReplaceFieldAccessesWithAccessors(InstrumentedClassImpl.Builder builder, MethodGen method) throws ClassNotFoundException {
+	public ReplaceFieldAccessesWithAccessors(InstrumentedClassImpl.Builder builder, MethodGen method) throws IllegalJarException {
 		builder.super(method);
 
-		if (!method.isAbstract()) {
-			InstructionList il = method.getInstructionList();
-			check(ClassNotFoundException.class, () ->
-				StreamSupport.stream(il.spliterator(), false).filter(uncheck(ClassNotFoundException.class, this::isAccessToLazilyLoadedFieldInStorageClass))
-					.forEach(UncheckConsumer.uncheck(ClassNotFoundException.class, ih -> ih.setInstruction(accessorCorrespondingTo((FieldInstruction) ih.getInstruction()))))
-			);
-		}
+		if (!method.isAbstract())
+			for (var ih: method.getInstructionList())
+				if (isAccessToLazilyLoadedFieldInStorageClass(ih))
+					ih.setInstruction(accessorCorrespondingTo((FieldInstruction) ih.getInstruction()));
 	}
 
 	/**
-	 * Determines if the given instruction is an access to a field of a storage
-	 * class that is lazily loaded.
+	 * Determines if the given instruction is an access to a field of a storage class that is lazily loaded.
 	 * 
 	 * @param ih the instruction
 	 * @return true if and only if that condition holds
-	 * @throws ClassNotFoundException if the storage class cannot be found in the Takamaka program
+	 * @throws IllegalJarException if the jar under instrumentation is illegal
 	 */
-	private boolean isAccessToLazilyLoadedFieldInStorageClass(InstructionHandle ih) throws ClassNotFoundException {
-		Instruction instruction = ih.getInstruction();
+	private boolean isAccessToLazilyLoadedFieldInStorageClass(InstructionHandle ih) throws IllegalJarException {
+		var instruction = ih.getInstruction();
 
 		if (instruction instanceof FieldInstruction fi && (instruction instanceof GETFIELD || instruction instanceof PUTFIELD)) {
-			var receiverType = (ObjectType) fi.getReferenceType(cpg);
+			if (!(fi.getReferenceType(cpg) instanceof ObjectType receiverType))
+				throw new IllegalJarException("Attempt to read a field of a non-object reference");
+
 			String receiverClassName = receiverType.getClassName();
 			Class<?> fieldType;
-			// we do not consider field accesses added by instrumentation in class Storage
-			return !receiverClassName.equals(Constants.STORAGE_NAME)
-				&& classLoader.isStorage(receiverClassName)
-				&& classLoader.isLazilyLoaded(fieldType = bcelToClass.of(fi.getFieldType(cpg)))
-				&& !modifiersSatisfy(receiverClassName, fi.getFieldName(cpg), fieldType,
-						instruction instanceof GETFIELD ? Modifier::isTransient : (modifiers -> Modifier.isTransient(modifiers) || Modifier.isFinal(modifiers)));
+			try {
+				// we do not consider field accesses added by instrumentation in class Storage
+				return !receiverClassName.equals(Constants.STORAGE_NAME)
+						&& classLoader.isStorage(receiverClassName)
+						&& classLoader.isLazilyLoaded(fieldType = bcelToClass.of(fi.getFieldType(cpg)))
+						&& !modifiersSatisfy(receiverClassName, fi.getFieldName(cpg), fieldType,
+								instruction instanceof GETFIELD ? Modifier::isTransient : (modifiers -> Modifier.isTransient(modifiers) || Modifier.isFinal(modifiers)));
+			}
+			catch (ClassNotFoundException e) {
+				throw new IllegalJarException(e);
+			}
 		}
 		else
 			return false;
@@ -98,19 +96,30 @@ public class ReplaceFieldAccessesWithAccessors extends MethodLevelInstrumentatio
 	 * 
 	 * @param fieldInstruction the field access instruction
 	 * @return the corresponding accessor call instruction
-	 * @throws ClassNotFoundException 
+	 * @throws IllegalJarException if the jar under instrumentation is illegal
 	 */
-	private Instruction accessorCorrespondingTo(FieldInstruction fieldInstruction) throws ClassNotFoundException {
-		ObjectType referencedClass = (ObjectType) fieldInstruction.getReferenceType(cpg);
+	private Instruction accessorCorrespondingTo(FieldInstruction fieldInstruction) throws IllegalJarException {
+		if (!(fieldInstruction.getReferenceType(cpg) instanceof ObjectType referencedClass))
+			throw new IllegalJarException("Attempt to read a field of a non-object reference");
+
 		Type fieldType = fieldInstruction.getFieldType(cpg);
 		String fieldName = fieldInstruction.getFieldName(cpg);
 		String className = referencedClass.getClassName();
-		Optional<Field> resolvedField = classLoader.resolveField(className, fieldName, bcelToClass.of(fieldType));
-		String resolvedClassName = resolvedField.get().getDeclaringClass().getName();
+		Field resolvedField;
+
+		try {
+			resolvedField = classLoader.resolveField(className, fieldName, bcelToClass.of(fieldType))
+				.orElseThrow(() -> new IllegalJarException("Access to unknown field"));
+		}
+		catch (ClassNotFoundException e) {
+			throw new IllegalJarException(e);
+		}
+
+		String resolvedClassName = resolvedField.getDeclaringClass().getName();
 
 		if (fieldInstruction instanceof GETFIELD)
 			return factory.createInvoke(className, getterNameFor(resolvedClassName, fieldName), fieldType, Type.NO_ARGS, Const.INVOKEVIRTUAL);
-		else // PUTFIELD
+		else // we know this is a PUTFIELD, for the way this method is called
 			return factory.createInvoke(className, setterNameFor(resolvedClassName, fieldName), Type.VOID, new Type[] { fieldType }, Const.INVOKEVIRTUAL);
 	}
 
@@ -122,17 +131,27 @@ public class ReplaceFieldAccessesWithAccessors extends MethodLevelInstrumentatio
 	 * @param fieldType the type of the field
 	 * @param condition the condition on the modifiers of the field
 	 * @return true if and only if that condition holds
-	 * @throws ClassNotFoundException if {@code cassName} cannot be found in the Takamaka program
+	 * @throws IllegalJarException if the jar under instrumentation is illegal
 	 */
-	private boolean modifiersSatisfy(String className, String fieldName, Class<?> fieldType, Predicate<Integer> condition) throws ClassNotFoundException {
-		Class<?> clazz = classLoader.loadClass(className);
-		Class<?> previous;
+	private boolean modifiersSatisfy(String className, String fieldName, Class<?> fieldType, Predicate<Integer> condition) throws IllegalJarException {
+		Class<?> clazz, previous;
+		
+		try {
+			clazz = classLoader.loadClass(className);
+		}
+		catch (ClassNotFoundException e) {
+			throw new IllegalJarException(e);
+		}
+
+		Class<?> storage = classLoader.getStorage();
 
 		do {
-			// these two fields are added by instrumentation hence not found by reflection: they are transient
-			if (clazz == classLoader.getStorage() &&
-					(fieldName.equals(InstrumentationFields.STORAGE_REFERENCE_FIELD_NAME) || fieldName.equals(InstrumentationFields.IN_STORAGE)))
-				return true;
+			// these two fields are added by instrumentation hence not found by reflection: they are transient, the first is final, the second is not final
+			if (clazz == storage)
+				if (InstrumentationFields.STORAGE_REFERENCE_FIELD_NAME.equals(fieldName))
+					return condition.test(Modifier.TRANSIENT | Modifier.FINAL);
+				else if (InstrumentationFields.IN_STORAGE.equals(fieldName))
+					return condition.test(Modifier.TRANSIENT);
 
 			Optional<Field> match = Stream.of(clazz.getDeclaredFields())
 					.filter(field -> field.getName().equals(fieldName) && fieldType == field.getType())
@@ -144,7 +163,7 @@ public class ReplaceFieldAccessesWithAccessors extends MethodLevelInstrumentatio
 			previous = clazz;
 			clazz = clazz.getSuperclass();
 		}
-		while (previous != classLoader.getStorage());
+		while (previous != storage);
 
 		return false;
 	}

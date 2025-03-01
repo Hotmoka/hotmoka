@@ -59,9 +59,9 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 		var methods = getMethods().toArray(MethodGen[]::new);
 
 		// the set of lambda that are unreachable from static methods that are not lambdas themselves: they can call from contract code
-		Set<MethodGen> lambdasUnreachableFromStaticMethods = isStorage ? computeLambdasUnreachableFromStaticMethods(methods) : new HashSet<>();
+		Set<MethodGen> lambdasUnreachableFromStaticMethods = computeLambdasUnreachableFromStaticMethods(methods);
 
-		// from contract code cannot be called from a static context:
+		// @FromContract code cannot be called from a static context:
 		// we do not consider as static those lambdas that are apparently static, just because the compiler
 		// has optimized them into a static lambda, but are actually always called from non-static calling points
 		for (var method: methods)
@@ -72,7 +72,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 						issue(new IllegalCallToFromContractError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(maybeInvoke.get()), lineOf(method, ih)));
 				}
 
-		// from contract code not called on this can only be called from a contract
+		// @FromContract code not called on this can only be called from a contract
 		if (!isContract)
 			for (var method: methods)
 				for (var ih: instructionsOf(method)) {
@@ -81,7 +81,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 						issue(new IllegalCallToFromContractError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(maybeInvoke.get()), lineOf(method, ih)));
 				}
 
-		// from contract code called on this can only be called from a storage object
+		// @FromContract code called on this can only be called from a storage object
 		if (!isStorage)
 			for (var method: methods)
 				if (!method.isStatic())
@@ -91,7 +91,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 							issue(new IllegalCallToFromContractError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(maybeInvoke.get()), lineOf(method, ih)));
 					}
 
-		// from contract code called on this can only be called inside @FromContract code
+		// @FromContract code called on this can only be called inside @FromContract code
 		for (var method: methods)
 			if (!method.isStatic()) {
 				boolean isInsideFromContract = bootstraps.isPartOfFromContract(method) || isFromContract(method);
@@ -104,7 +104,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 					}
 			}
 
-		// from contract payable constructors called on this can only be called from payable constructors
+		// @FromContract payable constructors called on this can only be called from payable constructors
 		for (var method: methods)
 			if (!method.isStatic() && Const.CONSTRUCTOR_NAME.equals(method.getName()) && !isPayable(method))
 				for (var ih: instructionsOf(method))
