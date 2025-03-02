@@ -102,8 +102,6 @@ public class AddEnsureLoadedMethods extends ClassLevelInstrumentation {
 		il.insert(_return, factory.createPutField(className, fieldName, type));
 		il.insert(_return, factory.createPutField(className, InstrumentationFields.OLD_PREFIX + fieldName, type));
 
-		var ensureLoaded = new MethodGen(PRIVATE_SYNTHETIC, BasicType.VOID, Type.NO_ARGS, null,
-				InstrumentationConstants.ENSURE_LOADED_PREFIX + fieldName, className, il, cpg);
-		addMethod(ensureLoaded, true);
+		addMethod(new MethodGen(PRIVATE_SYNTHETIC, BasicType.VOID, Type.NO_ARGS, null, InstrumentationConstants.ENSURE_LOADED_PREFIX + fieldName, className, il, cpg));
 	}
 }

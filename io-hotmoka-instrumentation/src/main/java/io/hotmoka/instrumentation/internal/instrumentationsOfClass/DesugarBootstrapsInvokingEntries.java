@@ -157,12 +157,10 @@ public class DesugarBootstrapsInvokingEntries extends ClassLevelInstrumentation 
 			local += arg.getSize();
 		}
 
-		il.append(factory.createInvoke(entryClassName, entryName, entryReturnType, entryArgs,
-			invokeCorrespondingToBootstrapInvocationType(invokeKind)));
+		il.append(factory.createInvoke(entryClassName, entryName, entryReturnType, entryArgs, invokeCorrespondingToBootstrapInvocationType(invokeKind)));
 		il.append(InstructionFactory.createReturn(lambdaReturnType));
 
-		MethodGen addedLambda = new MethodGen(PRIVATE_SYNTHETIC, lambdaReturnType, lambdaArgs, null, lambdaName, className, il, cpg);
-		addMethod(addedLambda, false);
+		addMethod(new MethodGen(PRIVATE_SYNTHETIC, lambdaReturnType, lambdaArgs, null, lambdaName, className, il, cpg));
 		bootstrapMethodsThatWillRequireExtraThis.add(bootstrap);
 	}
 
@@ -172,14 +170,15 @@ public class DesugarBootstrapsInvokingEntries extends ClassLevelInstrumentation 
 			// we increase the indexes of the local variables used in the method
 			for (InstructionHandle ih: method.getInstructionList()) {
 				Instruction ins = ih.getInstruction();
-				if (ins instanceof LocalVariableInstruction) {
-					int index = ((LocalVariableInstruction) ins).getIndex();
-					if (ins instanceof IINC)
-						ih.setInstruction(new IINC(index + 1, ((IINC) ins).getIncrement()));
-					else if (ins instanceof LoadInstruction)
-						ih.setInstruction(InstructionFactory.createLoad(((LoadInstruction) ins).getType(cpg), index + 1));
-					else if (ins instanceof StoreInstruction)
-						ih.setInstruction(InstructionFactory.createStore(((StoreInstruction) ins).getType(cpg), index + 1));
+				if (ins instanceof LocalVariableInstruction lvi) {
+					int index = lvi.getIndex();
+
+					if (ins instanceof IINC iinc)
+						ih.setInstruction(new IINC(index + 1, iinc.getIncrement()));
+					else if (ins instanceof LoadInstruction load)
+						ih.setInstruction(InstructionFactory.createLoad(load.getType(cpg), index + 1));
+					else if (ins instanceof StoreInstruction store)
+						ih.setInstruction(InstructionFactory.createStore(store.getType(cpg), index + 1));
 				}
 			}
 

@@ -415,12 +415,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			 */
 			protected final Map<String, InvokeInstruction> whiteListingCache = Builder.this.whiteListingCache;
 
-			protected final void addMethod(MethodGen methodGen, boolean needsStackMap) {
-				methodGen.getInstructionList().setPositions();
-				methodGen.setMaxLocals();
-				methodGen.setMaxStack();
-				if (needsStackMap)
-					StackMapReplacer.of(methodGen);
+			protected final void addMethod(MethodGen methodGen) {
 				methods.add(methodGen);
 			}
 

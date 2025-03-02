@@ -74,7 +74,7 @@ public class AddConstructorForDeserializationFromStore extends ClassLevelInstrum
 			int nextLocal = addCallToSuper(il);
 			addInitializationOfEagerFields(il, nextLocal);
 
-			if (className.equals(Constants.STORAGE_NAME)) {
+			if (Constants.STORAGE_NAME.equals(className)) {
 				// the Storage class needs to initialize its two synthetic transient fields
 				il.append(InstructionFactory.createThis());
 				il.append(factory.createConstant(true));
@@ -86,14 +86,12 @@ public class AddConstructorForDeserializationFromStore extends ClassLevelInstrum
 
 			il.append(InstructionConst.RETURN);
 
-			MethodGen constructor = new MethodGen(PUBLIC_SYNTHETIC, BasicType.VOID, args.toArray(Type.NO_ARGS), null, Const.CONSTRUCTOR_NAME, className, il, cpg);
-			addMethod(constructor, false);
+			addMethod(new MethodGen(PUBLIC_SYNTHETIC, BasicType.VOID, args.toArray(Type.NO_ARGS), null, Const.CONSTRUCTOR_NAME, className, il, cpg));
 		}
 	}
 
 	/**
-	 * Adds a call from the deserialization constructor of a storage class to the
-	 * deserialization constructor of the superclass.
+	 * Adds a call from the deserialization constructor of a storage class to the deserialization constructor of the superclass.
 	 * 
 	 * @param il the instructions where the call must be added
 	 * @return the number of local variables used to accomodate the arguments passed to the constructor of the superclass
@@ -103,7 +101,7 @@ public class AddConstructorForDeserializationFromStore extends ClassLevelInstrum
 		il.append(InstructionFactory.createThis());
 
 		// the Storage class does not pass the storage reference upwards
-		if (!className.equals(Constants.STORAGE_NAME)) {
+		if (!Constants.STORAGE_NAME.equals(className)) {
 			il.append(InstructionConst.ALOAD_1);
 			argsForSuperclasses.add(ObjectType.OBJECT);
 		}
@@ -121,12 +119,12 @@ public class AddConstructorForDeserializationFromStore extends ClassLevelInstrum
 			}
 		}
 
-		PushLoad pushLoad = new PushLoad();
+		var pushLoad = new PushLoad();
 		// we push the value of all eager fields but in superclasses only
 		eagerNonTransientInstanceFields.stream().limit(eagerNonTransientInstanceFields.size() - 1)
 			.flatMap(SortedSet::stream).map(Field::getType).map(Type::getType).forEachOrdered(pushLoad);
 
-		if (!className.equals(Constants.STORAGE_NAME)) {
+		if (!Constants.STORAGE_NAME.equals(className)) {
 			// we pass null for the dummy argument
 			il.append(InstructionConst.ACONST_NULL);
 			argsForSuperclasses.add(new ObjectType(WhitelistingConstants.DUMMY_NAME));
@@ -145,7 +143,7 @@ public class AddConstructorForDeserializationFromStore extends ClassLevelInstrum
 	 * @param nextLocal the local variables where the parameters start, that must be stored in the fields
 	 */
 	private void addInitializationOfEagerFields(InstructionList il, int nextLocal) {
-		Consumer<Field> putField = new Consumer<>() {
+		var putField = new Consumer<Field>() {
 			private int local = nextLocal;
 
 			@Override

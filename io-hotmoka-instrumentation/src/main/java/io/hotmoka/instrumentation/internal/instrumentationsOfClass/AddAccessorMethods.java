@@ -76,8 +76,7 @@ public class AddAccessorMethods extends ClassLevelInstrumentation {
 		il.append(factory.createPutField(className, field.getName(), type));
 		il.append(InstructionConst.RETURN);
 
-		var setter = new MethodGen(PUBLIC_SYNTHETIC_FINAL, BasicType.VOID, new Type[] { type }, null, setterNameFor(className, field.getName()), className, il, cpg);
-		addMethod(setter, false);
+		addMethod(new MethodGen(PUBLIC_SYNTHETIC_FINAL, BasicType.VOID, new Type[] { type }, null, setterNameFor(className, field.getName()), className, il, cpg));
 	}
 
 	/**
@@ -94,7 +93,6 @@ public class AddAccessorMethods extends ClassLevelInstrumentation {
 		il.append(factory.createGetField(className, field.getName(), type));
 		il.append(InstructionFactory.createReturn(type));
 
-		var getter = new MethodGen(PUBLIC_SYNTHETIC_FINAL, type, Type.NO_ARGS, null, getterNameFor(className, field.getName()), className, il, cpg);
-		addMethod(getter, false);
+		addMethod(new MethodGen(PUBLIC_SYNTHETIC_FINAL, type, Type.NO_ARGS, null, getterNameFor(className, field.getName()), className, il, cpg));
 	}
 }

@@ -173,8 +173,7 @@ public class AddGasUpdates extends MethodLevelInstrumentation {
 			allocatorIl.insert(InstructionFactory.createBranchInstruction(Const.IFLT, creation));
 			allocatorIl.insert(InstructionConst.ILOAD_0);
 
-			var allocator = new MethodGen(PRIVATE_SYNTHETIC_STATIC, createdType, ONE_INT_ARGS, null, allocatorName, className, allocatorIl, cpg);
-			addMethod(allocator, true);
+			addMethod(new MethodGen(PRIVATE_SYNTHETIC_STATIC, createdType, ONE_INT_ARGS, null, allocatorName, className, allocatorIl, cpg));
 
 			// the original multianewarray gets replaced with a call to the allocation method
 			ih.setInstruction(factory.createInvoke(className, allocatorName, createdType, ONE_INT_ARGS, Const.INVOKESTATIC));
@@ -261,8 +260,7 @@ public class AddGasUpdates extends MethodLevelInstrumentation {
 			allocatorIl.insert(fallBack2, factory.createInvoke(WhitelistingConstants.RUNTIME_NAME, "chargeForRAM", Type.VOID, ONE_BIGINTEGER_ARGS, Const.INVOKESTATIC));
 			allocatorIl.insert(fallBack2, InstructionFactory.createBranchInstruction(Const.GOTO, creation));
 
-			var allocator = new MethodGen(PRIVATE_SYNTHETIC_STATIC, createdType, args, null, allocatorName, className, allocatorIl, cpg);
-			addMethod(allocator, true);
+			addMethod(new MethodGen(PRIVATE_SYNTHETIC_STATIC, createdType, args, null, allocatorName, className, allocatorIl, cpg));
 
 			// the original multianewarray gets replaced with a call to the allocation method
 			ih.setInstruction(factory.createInvoke(className, allocatorName, createdType, args, Const.INVOKESTATIC));
