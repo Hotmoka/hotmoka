@@ -17,7 +17,7 @@ limitations under the License.
 package io.hotmoka.verification;
 
 import io.hotmoka.verification.api.AnnotationUtility;
-import io.hotmoka.verification.api.VerifiedJar;
+import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.verification.internal.AnnotationUtilityImpl;
 
 /**
@@ -30,10 +30,10 @@ public final class AnnotationUtilities {
 	/**
 	 * Yields a utility that deals with annotations.
 	 *
-	 * @param jar the jar for which the utility is used
+	 * @param classLoader the class loader used to load the classes whose annotations are checked
 	 * @return the utility
 	 */
-	public static AnnotationUtility of(VerifiedJar jar) {
-		return new AnnotationUtilityImpl(jar);
+	public static AnnotationUtility of(TakamakaClassLoader classLoader) {
+		return new AnnotationUtilityImpl(classLoader);
 	}
 }

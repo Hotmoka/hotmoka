@@ -78,7 +78,7 @@ public abstract class CheckOnClasses {
 			throw new RuntimeException(e);
 		}
 
-		this.annotations = AnnotationUtilities.of(verifiedClass.getJar());
+		this.annotations = AnnotationUtilities.of(classLoader);
 
 		try {
 			this.isContract = classLoader.isContract(className);

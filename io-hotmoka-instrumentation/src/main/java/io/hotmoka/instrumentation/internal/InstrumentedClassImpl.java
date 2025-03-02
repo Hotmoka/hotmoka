@@ -20,11 +20,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -41,7 +39,6 @@ import org.apache.bcel.classfile.Signature;
 import org.apache.bcel.generic.ClassGen;
 import org.apache.bcel.generic.ConstantPoolGen;
 import org.apache.bcel.generic.InstructionFactory;
-import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.MethodGen;
 
 import io.hotmoka.instrumentation.api.GasCostModel;
@@ -199,21 +196,10 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		private final TakamakaClassLoader classLoader;
 
 		/**
-		 * The bootstrap methods that have been instrumented since they must receive an
-		 * extra parameter, since they call an entry and need the calling contract for that.
+		 * The bootstrap methods that have been instrumented since they needed to receive an
+		 * extra parameter, since they call a {@code @@FromContract} code and need the calling contract for that.
 		 */
 		private final Set<BootstrapMethod> bootstrapMethodsThatWillRequireExtraThis = new HashSet<>();
-
-		/**
-		 * A map from a description of invoke instructions that lead into a white-listed method
-		 * with proof obligations into the replacement instruction
-		 * that has been already computed for them. This is used to avoid recomputing
-		 * the replacement for invoke instructions that occur more times inside the same
-		 * class. This is not just an optimization, since, for invokedynamic, their bootstrap
-		 * might be modified, hence the repeated construction of their checking method
-		 * would lead into exception.
-		 */
-		private final Map<String, InvokeInstruction> whiteListingCache = new HashMap<>();
 
 		/**
 		 * Performs the instrumentation of a single class.
@@ -226,9 +212,9 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			this.verifiedClass = clazz;
 			this.classLoader = clazz.getJar().getClassLoader();
 			this.bcelToClass = BcelToClassTransformers.of(classLoader);
-			this.annotations = AnnotationUtilities.of(verifiedClass.getJar());
+			this.annotations = AnnotationUtilities.of(classLoader);
 			this.classGen = new ClassGen(clazz.toJavaClass());
-			this.bootstraps = verifiedClass.getBootstraps().copy();
+			this.bootstraps = verifiedClass.getBootstraps().copy(); // we copy since we might edit them later
 			setBootstraps();
 			this.gasCostModel = gasCostModel;
 			this.cpg = classGen.getConstantPool();
@@ -244,7 +230,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 				this.isInterface = classLoader.isInterface(className);
 			}
 			catch (ClassNotFoundException e) {
-				// this should never happen since the class is in the jar of the class loader
+				// this should never happen since the class is in the jar of the classloader
 				throw new RuntimeException(e);
 			}
 
@@ -256,17 +242,23 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		}
 
 		/**
-		 * Sets the bootstrap description of the class to the clone that
-		 * has been created in the constructor.
+		 * Sets the bootstrap description of the class to the clone that has been created in the constructor.
+		 * 
+		 * @throws IllegalJarException if the jar under instrumentation is illegal
 		 */
-		private void setBootstraps() {
+		private void setBootstraps() throws IllegalJarException {
+			boolean found = false;
+
 			for (var attribute: classGen.getAttributes())
 				if (attribute instanceof BootstrapMethods bootstrapMethods) {
+					if (found)
+						throw new IllegalJarException("Class " + verifiedClass.getClassName() + " contains more than one bootstrap method attribute");
+
+					found = true;
 					classGen.removeAttribute(bootstrapMethods);
 					BootstrapMethods newAttribute = new BootstrapMethods(bootstrapMethods);
 					newAttribute.setBootstrapMethods(bootstraps.getBootstraps().toArray(BootstrapMethod[]::new));
 					classGen.addAttribute(newAttribute);
-					return;
 				}
 		}
 
@@ -288,7 +280,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 
 		/**
 		 * Replaces the methods of the class under instrumentation,
-		 * putting the instrumented ones instead of the original ones.
+		 * by putting the instrumented ones instead of the original ones.
 		 */
 		private void replaceMethods() {
 			// first we remove all original methods
@@ -312,6 +304,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 				if (attribute instanceof Signature) // Takamaka does not use this
 					method.removeAttribute(attribute);
 
+			// nor these
 			method.removeLocalVariables();
 			method.removeLocalVariableTypeTable();
 		}
@@ -388,15 +381,14 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			protected final LinkedList<SortedSet<Field>> eagerNonTransientInstanceFields = Builder.this.eagerNonTransientInstanceFields;
 
 			/**
-			 * The non-transient instance fields of reference type,
-			 * defined in the class being instrumented (superclasses are not
-			 * considered). This set is non-empty for storage classes only.
+			 * The non-transient instance fields of reference type, defined in the class being instrumented
+			 * (superclasses are not considered). This set is non-empty for storage classes only.
 			 */
 			protected final SortedSet<Field> lazyNonTransientInstanceFields = Builder.this.lazyNonTransientInstanceFields;
 
 			/**
-			 * The bootstrap methods that have been instrumented since they must receive an
-			 * extra parameter, since they call an entry and need the calling contract for that.
+			 * The bootstrap methods that have been instrumented since they needed to receive an
+			 * extra parameter, since they call a {@code @@FromContract} code and need the calling contract for that.
 			 */
 			protected final Set<BootstrapMethod> bootstrapMethodsThatWillRequireExtraThis = Builder.this.bootstrapMethodsThatWillRequireExtraThis;
 
@@ -404,17 +396,6 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			 * The class loader that loaded the class under instrumentation and those of the program it belongs to.
 			 */
 			protected final TakamakaClassLoader classLoader = Builder.this.classLoader;
-
-			/**
-			 * A map from a description of invoke instructions that lead into a white-listed method
-			 * with proof obligations into the replacement instruction
-			 * that has been already computed for them. This is used to avoid recomputing
-			 * the replacement for invoke instructions that occur more times inside the same
-			 * class. This is not just an optimization, since, for invokedynamic, their bootstrap
-			 * might be modified, hence the repeated construction of their checking method
-			 * would lead into exception.
-			 */
-			protected final Map<String, InvokeInstruction> whiteListingCache = Builder.this.whiteListingCache;
 
 			protected final void addMethod(MethodGen methodGen) {
 				methods.add(methodGen);
@@ -459,11 +440,9 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 				// first we check if an equal constant method handle was already in the constant pool
 				int size = cpg.getSize(), index;
 				for (index = 0; index < size; index++)
-					if (cpg.getConstant(index) instanceof ConstantMethodHandle) {
-						ConstantMethodHandle c = (ConstantMethodHandle) cpg.getConstant(index);
-						if (c.getReferenceIndex() == mh.getReferenceIndex() && c.getReferenceKind() == mh.getReferenceKind())
-							return index; // found
-					}
+					if (cpg.getConstant(index) instanceof ConstantMethodHandle cmh
+							&& cmh.getReferenceIndex() == mh.getReferenceIndex() && cmh.getReferenceKind() == mh.getReferenceKind())
+						return index; // found
 
 				// otherwise, we first add an integer that was not already there
 				int counter = 0;
@@ -498,8 +477,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 
 			/**
 			 * Yields the name for a method that starts with the given prefix, followed
-			 * by a numerical index. It guarantees that the name is not yet used for
-			 * existing methods.
+			 * by a numerical index. It guarantees that the name is not yet used for existing methods.
 			 *
 			 * @param prefix the prefix
 			 * @return the name
@@ -578,23 +556,13 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		 * @throws IllegalJarException if the jar under instrumentation is illegal
 		 */
 		private void methodLevelInstrumentations() throws IllegalJarException {
-			for (var method: new ArrayList<>(methods))
-				postProcess(method);
-		}
-
-		/**
-		 * Post-processing instrumentation of a single method of the class. This is
-		 * performed after instrumentation of the bootstraps.
-		 * 
-		 * @param method the method to instrument
-		 * @throws IllegalJarException if the jar under instrumentation is illegal
-		 */
-		private void postProcess(MethodGen method) throws IllegalJarException {
-			new InstrumentMethodsOfSupportClasses(this, method);
-			new ReplaceFieldAccessesWithAccessors(this, method);
-			new AddExtraArgsToCallsToFromContract(this, method);
-			new SetCallerAndBalanceAtTheBeginningOfFromContracts(this, method);
-			new AddGasUpdates(this, method);
+			for (var method: new ArrayList<>(methods)) { // we copy since the instrumentation might modify the set of methods itself
+				new InstrumentMethodsOfSupportClasses(this, method);
+				new ReplaceFieldAccessesWithAccessors(this, method);
+				new AddExtraArgsToCallsToFromContract(this, method);
+				new SetCallerAndBalanceAtTheBeginningOfFromContracts(this, method);
+				new AddGasUpdates(this, method);
+			}
 		}
 
 		private boolean isNotStaticAndNotTransient(Field field) {

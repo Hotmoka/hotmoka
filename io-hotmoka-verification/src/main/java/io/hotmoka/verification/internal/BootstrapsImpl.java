@@ -54,6 +54,7 @@ import io.hotmoka.verification.api.AnnotationUtility;
 import io.hotmoka.verification.api.BcelToClassTransformer;
 import io.hotmoka.verification.api.Bootstraps;
 import io.hotmoka.verification.api.IllegalJarException;
+import io.hotmoka.verification.api.TakamakaClassLoader;
 
 /**
  * An object that provides utility methods about the lambda bootstraps
@@ -108,8 +109,9 @@ public class BootstrapsImpl implements Bootstraps {
 
 	public BootstrapsImpl(VerifiedClassImpl clazz, MethodGen[] methods) throws IllegalJarException {
 		this.verifiedClass = clazz;
-		this.bcelToClass = BcelToClassTransformers.of(clazz.getJar().getClassLoader());
-		this.annotations = AnnotationUtilities.of(clazz.getJar());
+		TakamakaClassLoader classLoader = clazz.getJar().getClassLoader();
+		this.bcelToClass = BcelToClassTransformers.of(classLoader);
+		this.annotations = AnnotationUtilities.of(classLoader);
 		this.cpg = clazz.getConstantPool();
 		this.bootstrapMethods = computeBootstraps();
 		collectBootstrapsLeadingToFromContract(methods);

@@ -31,7 +31,6 @@ import io.hotmoka.verification.BcelToClassTransformers;
 import io.hotmoka.verification.api.AnnotationUtility;
 import io.hotmoka.verification.api.BcelToClassTransformer;
 import io.hotmoka.verification.api.TakamakaClassLoader;
-import io.hotmoka.verification.api.VerifiedJar;
 import io.hotmoka.whitelisting.WhitelistingConstants;
 import io.takamaka.code.constants.Constants;
 
@@ -55,10 +54,10 @@ public class AnnotationUtilityImpl implements AnnotationUtility {
 	/**
 	 * Builds the utility object.
 	 * 
-	 * @param jar the jar whose annotations are considered
+	 * @param classLoader the class loader used to load the classes whose annotations are checked
 	 */
-	public AnnotationUtilityImpl(VerifiedJar jar) {
-		this.classLoader = jar.getClassLoader();
+	public AnnotationUtilityImpl(TakamakaClassLoader classLoader) {
+		this.classLoader = classLoader;
 		this.bcelToClass = BcelToClassTransformers.of(classLoader);
 	}
 

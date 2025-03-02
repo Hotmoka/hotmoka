@@ -119,21 +119,54 @@ public class DesugarBootstrapsInvokingFromContract extends ClassLevelInstrumenta
 
 	private void desugarLambdaFromContract(BootstrapMethod bootstrap) throws IllegalJarException {
 		int[] args = bootstrap.getBootstrapArguments();
-		ConstantMethodHandle mh = (ConstantMethodHandle) cpg.getConstant(args[1]);
+		if (args.length <= 2)
+			throw new IllegalJarException("Too few bootstrap arguments");
+
+		if (!(cpg.getConstant(args[1]) instanceof ConstantMethodHandle mh))
+			throw new IllegalJarException("Illegal constant");
+
 		int invokeKind = mh.getReferenceKind();
-		ConstantMethodref mr = (ConstantMethodref) cpg.getConstant(mh.getReferenceIndex());
-		int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
-		String entryClassName = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
-		ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
-		String entryName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
-		String entrySignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-		Type[] entryArgs = Type.getArgumentTypes(entrySignature);
-		Type entryReturnType = Type.getReturnType(entrySignature);
-		String implementedInterfaceMethosSignature = ((ConstantUtf8) cpg
-				.getConstant(((ConstantMethodType) cpg.getConstant(args[2])).getDescriptorIndex())).getBytes();
+
+		if (!(cpg.getConstant(mh.getReferenceIndex()) instanceof ConstantMethodref mr))
+			throw new IllegalJarException("Illegal constant");
+
+		if (!(cpg.getConstant(mr.getClassIndex()) instanceof ConstantClass cc))
+			throw new IllegalJarException("Illegal constant");
+
+		int classNameIndex = cc.getNameIndex();
+
+		if (!(cpg.getConstant(classNameIndex) instanceof ConstantUtf8 cu8))
+			throw new IllegalJarException("Illegal constant");
+
+		String nameOfClassWhereFromContractOccurs = cu8.getBytes().replace('/', '.');
+
+		if (!(cpg.getConstant(mr.getNameAndTypeIndex()) instanceof ConstantNameAndType nt))
+			throw new IllegalJarException("Illegal constant");
+
+		if (!(cpg.getConstant(nt.getNameIndex()) instanceof ConstantUtf8 cu8_2))
+			throw new IllegalJarException("Illegal constant");
+
+		String fromContractName = cu8_2.getBytes();
+
+		if (!(cpg.getConstant(nt.getSignatureIndex()) instanceof ConstantUtf8 cu8_3))
+			throw new IllegalJarException("Illegal constant");
+
+		String fromContractSignature = cu8_3.getBytes();
+
+		Type[] fromContractArgs = Type.getArgumentTypes(fromContractSignature);
+		Type fromContractReturnType = Type.getReturnType(fromContractSignature);
+
+		if (!(cpg.getConstant(args[2]) instanceof ConstantMethodType cmt))
+			throw new IllegalJarException("Illegal constant");
+
+		if (!(cpg.getConstant(cmt.getDescriptorIndex()) instanceof ConstantUtf8 cu8_4))
+			throw new IllegalJarException("Illegal constant");
+
+		String implementedInterfaceMethosSignature = cu8_4.getBytes();
+
 		Type lambdaReturnType = Type.getReturnType(implementedInterfaceMethosSignature);
 
-		// we replace the target code: it was an invokeX C.entry(pars):r and we transform it
+		// we replace the target code: it was an invokeX C.fromContractCode(pars):r and we transform it
 		// into invokespecial className.lambda(C, pars):r where the name "lambda" is
 		// not used in className. The extra parameter className is not added for
 		// constructor references, since they create the new object themselves
@@ -141,11 +174,11 @@ public class DesugarBootstrapsInvokingFromContract extends ClassLevelInstrumenta
 
 		Type[] lambdaArgs;
 		if (invokeKind == Const.REF_newInvokeSpecial)
-			lambdaArgs = entryArgs;
+			lambdaArgs = fromContractArgs;
 		else {
-			lambdaArgs = new Type[entryArgs.length + 1];
-			System.arraycopy(entryArgs, 0, lambdaArgs, 1, entryArgs.length);
-			lambdaArgs[0] = new ObjectType(entryClassName);
+			lambdaArgs = new Type[fromContractArgs.length + 1];
+			System.arraycopy(fromContractArgs, 0, lambdaArgs, 1, fromContractArgs.length);
+			lambdaArgs[0] = new ObjectType(nameOfClassWhereFromContractOccurs);
 		}
 
 		String lambdaSignature = Type.getMethodSignature(lambdaReturnType, lambdaArgs);
@@ -154,23 +187,23 @@ public class DesugarBootstrapsInvokingFromContract extends ClassLevelInstrumenta
 		args[1] = addMethodHandleToConstantPool(new ConstantMethodHandle(Const.REF_invokeSpecial,
 			cpg.addMethodref(className, lambdaName, lambdaSignature)));
 
-		// we create the target code: it is a new private synthetic instance method inside className,
+		// create the target code: it is a new private synthetic instance method inside className,
 		// called lambdaName and with signature lambdaSignature; its code loads all its
-		// explicit parameters on the stack then calls the entry and returns its value (if any)
+		// explicit parameters on the stack then calls the @FromContract code and returns its value (if any)
 		InstructionList il = new InstructionList();
 		if (invokeKind == Const.REF_newInvokeSpecial) {
-			il.append(factory.createNew(entryClassName));
+			il.append(factory.createNew(nameOfClassWhereFromContractOccurs));
 			if (lambdaReturnType != Type.VOID)
 				il.append(InstructionConst.DUP);
 		}
 
 		int local = 1;
-		for (Type arg : lambdaArgs) {
+		for (Type arg: lambdaArgs) {
 			il.append(InstructionFactory.createLoad(arg, local));
 			local += arg.getSize();
 		}
 
-		il.append(factory.createInvoke(entryClassName, entryName, entryReturnType, entryArgs, invokeCorrespondingToBootstrapInvocationType(invokeKind)));
+		il.append(factory.createInvoke(nameOfClassWhereFromContractOccurs, fromContractName, fromContractReturnType, fromContractArgs, invokeCorrespondingToBootstrapInvocationType(invokeKind)));
 		il.append(InstructionFactory.createReturn(lambdaReturnType));
 
 		addMethod(new MethodGen(PRIVATE_SYNTHETIC, lambdaReturnType, lambdaArgs, null, lambdaName, className, il, cpg));
