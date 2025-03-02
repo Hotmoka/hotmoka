@@ -84,7 +84,7 @@ public class InstrumentedJarImpl implements InstrumentedJar {
 		}
 		catch (IOException e) {
 			// this should not happen with a ByteArrayOutputStream
-			throw new RuntimeException("Unexpected exception", e);
+			throw new RuntimeException(e);
 		}
 
 		return byteArray.toByteArray();

@@ -117,7 +117,7 @@ public class DesugarBootstrapsInvokingFromContract extends ClassLevelInstrumenta
 		}
 	}
 
-	private void desugarLambdaFromContract(BootstrapMethod bootstrap) {
+	private void desugarLambdaFromContract(BootstrapMethod bootstrap) throws IllegalJarException {
 		int[] args = bootstrap.getBootstrapArguments();
 		ConstantMethodHandle mh = (ConstantMethodHandle) cpg.getConstant(args[1]);
 		int invokeKind = mh.getReferenceKind();

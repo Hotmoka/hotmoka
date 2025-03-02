@@ -21,7 +21,7 @@ import java.math.BigInteger;
 import io.hotmoka.instrumentation.api.GasCostModel;
 
 /**
- * A specification of the cost of gas.
+ * The standard specification of the cost of gas.
  */
 public class StandardGasCostModel implements GasCostModel {
 
@@ -57,12 +57,12 @@ public class StandardGasCostModel implements GasCostModel {
 
 	@Override
 	public BigInteger ramCostForInstallingJar(int numBytes) {
-		return BigInteger.valueOf(numBytes / 40);
+		return BigInteger.valueOf(numBytes / 20);
 	}
 
 	@Override
 	public BigInteger ramCostForLoadingJar(int numBytes) {
-		return BigInteger.valueOf(numBytes / 200);
+		return BigInteger.valueOf(numBytes / 100);
 	}
 
 	@Override
@@ -102,12 +102,12 @@ public class StandardGasCostModel implements GasCostModel {
 
 	@Override
 	public BigInteger cpuCostForInstallingJar(int numBytes) {
-		return BigInteger.valueOf(numBytes / 400);
+		return BigInteger.valueOf(numBytes / 100);
 	}
 
 	@Override
 	public BigInteger cpuCostForLoadingJar(int numBytes) {
-		return BigInteger.valueOf(numBytes / 1000);
+		return BigInteger.valueOf(numBytes / 200);
 	}
 
 	@Override

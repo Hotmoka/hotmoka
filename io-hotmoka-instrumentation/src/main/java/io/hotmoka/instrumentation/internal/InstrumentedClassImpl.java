@@ -430,7 +430,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 				return InstrumentationConstants.SETTER_PREFIX + className.replace('.', '_') + '_' + fieldName;
 			}
 
-			protected final short invokeCorrespondingToBootstrapInvocationType(int invokeKind) {
+			protected final short invokeCorrespondingToBootstrapInvocationType(int invokeKind) throws IllegalJarException {
 				switch (invokeKind) {
 				case Const.REF_invokeVirtual:
 					return Const.INVOKEVIRTUAL;
@@ -442,7 +442,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 				case Const.REF_invokeStatic:
 					return Const.INVOKESTATIC;
 				default:
-					throw new IllegalStateException("Unexpected lambda invocation kind " + invokeKind);
+					throw new IllegalJarException("Unknown lambda invocation kind " + invokeKind);
 				}
 			}
 
@@ -514,15 +514,6 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 				while (getMethods().map(MethodGen::getName).anyMatch(newName::equals));
 
 				return newName;
-			}
-
-			/**
-			 * Sets the name of the superclass of this class.
-			 * 
-			 * @param name the new name of the superclass of this clas
-			 */
-			protected final void setSuperclassName(String name) {
-				classGen.setSuperclassName(name);
 			}
 
 			/**

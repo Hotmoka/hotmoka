@@ -50,7 +50,7 @@ public abstract class InstrumentationConstants {
 	public final static String SETTER_PREFIX = FORBIDDEN_PREFIX + "set_";
 
 	/**
-	 * The name of the method of {@code io.takamaka.code.lang.Storage} used to access the caller of entries.
+	 * The name of the method of {@code io.takamaka.code.lang.Storage} used to access the caller of {@code @@FromContract} code.
 	 */
 	public final static String CALLER = "caller";
 
@@ -76,11 +76,6 @@ public abstract class InstrumentationConstants {
 	 * array creations and keep track of the gas consumed for RAM consumption.
 	 */
 	public final static String EXTRA_ALLOCATOR = FORBIDDEN_PREFIX + "newarray";
-
-	/**
-	 * The prefix of the name of extra methods used to check white-listing annotations at run time.
-	 */
-	public final static String EXTRA_VERIFIER = FORBIDDEN_PREFIX + "verifier";
 
 	/**
 	 * The name of the method of {@code io.hotmoka.local.internal.runtime.Runtime}
