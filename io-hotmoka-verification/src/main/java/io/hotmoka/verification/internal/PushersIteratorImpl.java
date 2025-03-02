@@ -99,6 +99,9 @@ public class PushersIteratorImpl implements PushersIterator {
 	 * @throws IllegalJarException if the jar of the code where the pushers are computed is illegal or too complex
 	 */
 	public PushersIteratorImpl(InstructionHandle ih, int slots, MethodGen method) throws IllegalJarException {
+		if (slots < 0)
+			throw new IllegalArgumentException("slots cannot be negative");
+
 		this.il = method.getInstructionList();
 		this.cpg = method.getConstantPool();
 		var start = new HeightAtBytecode(ih, slots);
@@ -115,7 +118,10 @@ public class PushersIteratorImpl implements PushersIterator {
 		private final InstructionHandle ih;
 		private final int stackHeightBeforeBytecode;
 
-		private HeightAtBytecode(InstructionHandle ih, int stackHeightBeforeBytecode) {
+		private HeightAtBytecode(InstructionHandle ih, int stackHeightBeforeBytecode) throws IllegalJarException {
+			if (stackHeightBeforeBytecode < 0)
+				throw new IllegalJarException("Illegal negative stack height");
+
 			this.ih = ih;
 			this.stackHeightBeforeBytecode = stackHeightBeforeBytecode;
 		}
