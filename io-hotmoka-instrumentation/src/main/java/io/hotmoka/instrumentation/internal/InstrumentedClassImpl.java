@@ -50,7 +50,7 @@ import io.hotmoka.instrumentation.internal.instrumentationsOfClass.AddAccessorMe
 import io.hotmoka.instrumentation.internal.instrumentationsOfClass.AddConstructorForDeserializationFromStore;
 import io.hotmoka.instrumentation.internal.instrumentationsOfClass.AddEnsureLoadedMethods;
 import io.hotmoka.instrumentation.internal.instrumentationsOfClass.AddOldAndIfAlreadyLoadedFields;
-import io.hotmoka.instrumentation.internal.instrumentationsOfClass.DesugarBootstrapsInvokingEntries;
+import io.hotmoka.instrumentation.internal.instrumentationsOfClass.DesugarBootstrapsInvokingFromContract;
 import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.AddExtraArgsToCallsToFromContract;
 import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.AddGasUpdates;
 import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.InstrumentMethodsOfSupportClasses;
@@ -249,6 +249,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			}
 
 			partitionFieldsIfStorageClass();
+			new DesugarBootstrapsInvokingFromContract(this);
 			methodLevelInstrumentations();
 			classLevelInstrumentations();
 			replaceMethods();
@@ -582,11 +583,10 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 
 		/**
 		 * Performs method-level instrumentations.
-		 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
+		 * 
+		 * @throws IllegalJarException if the jar under instrumentation is illegal
 		 */
 		private void methodLevelInstrumentations() throws IllegalJarException {
-			new DesugarBootstrapsInvokingEntries(this);
-
 			for (var method: new ArrayList<>(methods))
 				postProcess(method);
 		}
@@ -602,14 +602,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			new InstrumentMethodsOfSupportClasses(this, method);
 			new ReplaceFieldAccessesWithAccessors(this, method);
 			new AddExtraArgsToCallsToFromContract(this, method);
-
-			try { // TODO: throws this directly in the callees
-				new SetCallerAndBalanceAtTheBeginningOfFromContracts(this, method);
-			}
-			catch (ClassNotFoundException e) {
-				throw new IllegalJarException(e);
-			}
-
+			new SetCallerAndBalanceAtTheBeginningOfFromContracts(this, method);
 			new AddGasUpdates(this, method);
 		}
 

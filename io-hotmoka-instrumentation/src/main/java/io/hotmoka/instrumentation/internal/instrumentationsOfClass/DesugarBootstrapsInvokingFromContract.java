@@ -16,9 +16,6 @@ limitations under the License.
 
 package io.hotmoka.instrumentation.internal.instrumentationsOfClass;
 
-import static io.hotmoka.exceptions.CheckRunnable.check;
-import static io.hotmoka.exceptions.UncheckConsumer.uncheck;
-
 import java.util.Optional;
 
 import org.apache.bcel.Const;
@@ -30,7 +27,6 @@ import org.apache.bcel.classfile.ConstantMethodref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.ConstantUtf8;
 import org.apache.bcel.generic.IINC;
-import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionConst;
 import org.apache.bcel.generic.InstructionFactory;
 import org.apache.bcel.generic.InstructionHandle;
@@ -46,15 +42,15 @@ import io.hotmoka.instrumentation.internal.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.ClassLevelInstrumentation;
 import io.hotmoka.verification.api.IllegalJarException;
-import it.univr.bcel.StackMapReplacer;
 
 /**
- * An instrumentation that desugars bootstrap methods that invoke an entry as their target code.
- * They are the compilation of method references to entries. Since entries
- * receive extra parameters, we transform those bootstrap methods by calling
- * brand new target code, that calls the entry with a normal invoke instruction.
+ * An instrumentation that desugars bootstrap methods that invoke {@code @@FromContract} code.
+ * They are the compilation of method references to {@code @@FromContract} code. Since
+ * {@code @@FromContract} code receives extra parameters, we transform those bootstrap methods
+ * by calling brand new target code, that calls the {@code @@FromContract} code with
+ * a normal invoke instruction.
  */
-public class DesugarBootstrapsInvokingEntries extends ClassLevelInstrumentation {
+public class DesugarBootstrapsInvokingFromContract extends ClassLevelInstrumentation {
 	private final static short PRIVATE_SYNTHETIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC;
 
 	/**
@@ -62,34 +58,51 @@ public class DesugarBootstrapsInvokingEntries extends ClassLevelInstrumentation 
 	 * 
 	 * @param builder the builder of the class being instrumented
 	 */
-	public DesugarBootstrapsInvokingEntries(InstrumentedClassImpl.Builder builder) throws IllegalJarException {
+	public DesugarBootstrapsInvokingFromContract(InstrumentedClassImpl.Builder builder) throws IllegalJarException {
 		builder.super();
-		check(IllegalJarException.class, () ->
-			bootstraps.getBootstrapsLeadingToFromContract().forEachOrdered(uncheck(IllegalJarException.class, this::desugarBootstrapCallingEntry))
-		);
+
+		for (var bootstrap: bootstraps.getBootstrapsLeadingToFromContract().toArray(BootstrapMethod[]::new))
+			desugarBootstrapCallingFromContract(bootstrap);
 	}
 
-	private void desugarBootstrapCallingEntry(BootstrapMethod bootstrap) throws IllegalJarException {
+	private void desugarBootstrapCallingFromContract(BootstrapMethod bootstrap) throws IllegalJarException {
 		if (bootstraps.lambdaIsFromContract(bootstrap))
-			desugarLambdaEntry(bootstrap);
+			desugarLambdaFromContract(bootstrap);
 		else
-			desugarLambdaCallingEntry(bootstrap);
+			desugarLambdaCallingFromContract(bootstrap);
 	}
 
-	private void desugarLambdaCallingEntry(BootstrapMethod bootstrap) {
+	private void desugarLambdaCallingFromContract(BootstrapMethod bootstrap) throws IllegalJarException {
 		int[] args = bootstrap.getBootstrapArguments();
-		var mh = (ConstantMethodHandle) cpg.getConstant(args[1]);
+		if (args.length <= 1)
+			throw new IllegalJarException("Not enough bootstrap arguments");
+
+		if (!(cpg.getConstant(args[1]) instanceof ConstantMethodHandle mh))
+			throw new IllegalJarException("Illegal constant");
+
 		int invokeKind = mh.getReferenceKind();
 
 		if (invokeKind == Const.REF_invokeStatic) {
-			// we instrument bootstrap methods that call a static lambda that calls an entry:
-			// the problem is that the instrumentation of the entry will need local 0 (this)
+			// we instrument bootstrap methods that call a static lambda that calls a @FromContract:
+			// the problem is that the instrumentation of the @FromContract will need local 0 (this)
 			// to pass the calling contract, consequently it must be made into an instance method
 
-			ConstantMethodref mr = (ConstantMethodref) cpg.getConstant(mh.getReferenceIndex());
-			ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
-			String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
-			String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
+			if (!(cpg.getConstant(mh.getReferenceIndex()) instanceof ConstantMethodref mr))
+				throw new IllegalJarException("Illegal constant");
+
+			if (!(cpg.getConstant(mr.getNameAndTypeIndex()) instanceof ConstantNameAndType nt))
+				throw new IllegalJarException("Illegal constant");
+
+			if (!(cpg.getConstant(nt.getNameIndex()) instanceof ConstantUtf8 cu8))
+				throw new IllegalJarException("Illegal constant");
+
+			String methodName = cu8.getBytes();
+
+			if (!(cpg.getConstant(nt.getSignatureIndex()) instanceof ConstantUtf8 cu8_2))
+				throw new IllegalJarException("Illegal constant");
+
+			String methodSignature = cu8_2.getBytes();
+
 			Optional<MethodGen> old = getMethods()
 				.filter(method -> method.getName().equals(methodName)
 						&& method.getSignature().equals(methodSignature) && method.isPrivate())
@@ -104,7 +117,7 @@ public class DesugarBootstrapsInvokingEntries extends ClassLevelInstrumentation 
 		}
 	}
 
-	private void desugarLambdaEntry(BootstrapMethod bootstrap) {
+	private void desugarLambdaFromContract(BootstrapMethod bootstrap) {
 		int[] args = bootstrap.getBootstrapArguments();
 		ConstantMethodHandle mh = (ConstantMethodHandle) cpg.getConstant(args[1]);
 		int invokeKind = mh.getReferenceKind();
@@ -166,23 +179,20 @@ public class DesugarBootstrapsInvokingEntries extends ClassLevelInstrumentation 
 
 	private void makeFromStaticToInstance(MethodGen method) {
 		method.isStatic(false);
+
 		if (!method.isAbstract()) {
 			// we increase the indexes of the local variables used in the method
-			for (InstructionHandle ih: method.getInstructionList()) {
-				Instruction ins = ih.getInstruction();
-				if (ins instanceof LocalVariableInstruction lvi) {
+			for (InstructionHandle ih: method.getInstructionList())
+				if (ih.getInstruction() instanceof LocalVariableInstruction lvi) {
 					int index = lvi.getIndex();
 
-					if (ins instanceof IINC iinc)
+					if (lvi instanceof IINC iinc)
 						ih.setInstruction(new IINC(index + 1, iinc.getIncrement()));
-					else if (ins instanceof LoadInstruction load)
+					else if (lvi instanceof LoadInstruction load)
 						ih.setInstruction(InstructionFactory.createLoad(load.getType(cpg), index + 1));
-					else if (ins instanceof StoreInstruction store)
+					else if (lvi instanceof StoreInstruction store)
 						ih.setInstruction(InstructionFactory.createStore(store.getType(cpg), index + 1));
 				}
-			}
-
-			StackMapReplacer.of(method);
 		}
 	}
 }

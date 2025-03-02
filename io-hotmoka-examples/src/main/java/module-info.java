@@ -16,4 +16,5 @@ limitations under the License.
 
 module io.hotmoka.examples {
 	requires io.takamaka.code;
+	requires io.hotmoka.whitelisting;
 }

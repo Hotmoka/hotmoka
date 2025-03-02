@@ -36,11 +36,6 @@
       <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
-      <groupId>io.hotmoka.exceptions</groupId>
-      <artifactId>io-hotmoka-exceptions</artifactId>
-      <version>${io.hotmoka.exceptions.version}</version>
-    </dependency>
-    <dependency>
 	  <groupId>it.univr.bcel</groupId>
   	  <artifactId>it-univr-bcel</artifactId>
       <version>1.2.1</version>

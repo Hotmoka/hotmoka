@@ -66,34 +66,38 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 	 * 
 	 * @param builder the builder of the class being instrumented
 	 * @param method the method being instrumented
-	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 	 * @throws IllegalJarException if the jar under instrumentation is illegal
 	 */
-	public SetCallerAndBalanceAtTheBeginningOfFromContracts(InstrumentedClassImpl.Builder builder, MethodGen method) throws ClassNotFoundException, IllegalJarException {
+	public SetCallerAndBalanceAtTheBeginningOfFromContracts(InstrumentedClassImpl.Builder builder, MethodGen method) throws IllegalJarException {
 		builder.super(method);
 
 		if (isStorage || isInterface) {
 			String name = method.getName();
 			Type[] args = method.getArgumentTypes();
 			Type returnType = method.getReturnType();
-			Optional<Class<?>> ann = annotations.getFromContractArgument(className, name, args, returnType);
-			if (ann.isPresent()) {
-				boolean isPayable = annotations.isPayable(className, name, args, returnType);
-				instrumentFromContract(method, ann.get(), isPayable);
-			};
+
+			try {
+				Optional<Class<?>> ann = annotations.getFromContractArgument(className, name, args, returnType);
+				if (ann.isPresent()) {
+					boolean isPayable = annotations.isPayable(className, name, args, returnType);
+					instrumentFromContract(method, ann.get(), isPayable);
+				};
+			}
+			catch (ClassNotFoundException e) {
+				throw new IllegalJarException(e);
+			}
 		}
 	}
 
 	/**
-	 * Instruments a from contract method, by setting the caller and transferring funds for payable entries.
+	 * Instruments a {@code @@FromContract} method, by setting the caller and transferring funds for payable {@code @@FromContract}s.
 	 * 
-	 * @param method the entry
+	 * @param method the {@code @@FromContract} method or constructor
 	 * @param callerContract the class of the caller contract
-	 * @param isPayable true if and only if the entry is payable
-	 * @throws ClassNotFoundException if some class of the Takamaka program could not be found
-	 * @throws IllegalJarException  if the jar under instrumentation is illegal
+	 * @param isPayable true if and only if the {@code @@FromContract} method or constructor is payable
+	 * @throws IllegalJarException if the jar under instrumentation is illegal
 	 */
-	private void instrumentFromContract(MethodGen method, Class<?> callerContract, boolean isPayable) throws ClassNotFoundException, IllegalJarException {
+	private void instrumentFromContract(MethodGen method, Class<?> callerContract, boolean isPayable) throws IllegalJarException {
 		// slotForCaller is the local variable used for the extra "caller" parameter;
 		int slotForCaller = addExtraParameters(method);
 		if (!method.isAbstract()) {
@@ -121,16 +125,15 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 	}
 
 	/**
-	 * Instruments an entry by calling the runtime method that sets caller and balance.
+	 * Instruments a {@Code @@FromContract} method or constructor by calling the runtime method that sets caller and balance.
 	 * 
-	 * @param method the entry
+	 * @param method the {@Code @@FromContract} method or constructor
 	 * @param callerContract the class of the caller contract
 	 * @param slotForCaller the local variable for the caller implicit argument
-	 * @param isPayable true if and only if the entry is payable
-	 * @throws ClassNotFoundException
+	 * @param isPayable true if and only if {@code method} is payable
 	 * @throws IllegalJarException if the jar under instrumentation is illegal
 	 */
-	private void setCallerAndBalance(MethodGen method, Class<?> callerContract, int slotForCaller, boolean isPayable) throws ClassNotFoundException, IllegalJarException {
+	private void setCallerAndBalance(MethodGen method, Class<?> callerContract, int slotForCaller, boolean isPayable) throws IllegalJarException {
 		InstructionList il = method.getInstructionList();
 		InstructionHandle start = il.getStart();
 
@@ -142,10 +145,12 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 		boolean superconstructorIsFromContract;
 		boolean superconstructorIsPayable;
 
-		if (method.getName().equals(Const.CONSTRUCTOR_NAME)) {
+		if (Const.CONSTRUCTOR_NAME.equals(method.getName())) {
 			isConstructorOfInstanceInnerClass = isConstructorOfInstanceInnerClass();
 			InstructionHandle callToSuperConstructor = callToSuperConstructor(il, method, slotForCaller, isConstructorOfInstanceInnerClass);
-			var invokespecial = (INVOKESPECIAL) callToSuperConstructor.getInstruction();
+			if (!(callToSuperConstructor.getInstruction() instanceof INVOKESPECIAL invokespecial))
+				throw new IllegalJarException("Expected invokespecial to call a superclass' constructor");
+
 			// if the superconstructor is @FromContract, then it will take care of setting the caller for us
 			String classNameOfSuperConstructor = invokespecial.getClassName(cpg);
 			Type[] argumentTypes = invokespecial.getArgumentTypes(cpg);
@@ -155,9 +160,18 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 				System.arraycopy(argumentTypes, 0, copy, 0, copy.length);
 				argumentTypes = copy;
 			}
-			superconstructorIsFromContract = annotations.isFromContract(classNameOfSuperConstructor, Const.CONSTRUCTOR_NAME, argumentTypes, Type.VOID);
-			superconstructorIsPayable = annotations.isPayable(classNameOfSuperConstructor, Const.CONSTRUCTOR_NAME, argumentTypes, Type.VOID);
+
+			try {
+				superconstructorIsFromContract = annotations.isFromContract(classNameOfSuperConstructor, Const.CONSTRUCTOR_NAME, argumentTypes, Type.VOID);
+				superconstructorIsPayable = annotations.isPayable(classNameOfSuperConstructor, Const.CONSTRUCTOR_NAME, argumentTypes, Type.VOID);
+			}
+			catch (ClassNotFoundException e) {
+				throw new IllegalJarException(e);
+			}
+
 			where = callToSuperConstructor.getNext();
+			if (where == null)
+				throw new IllegalJarException("Unexpected end of method");
 		}
 		else {
 			isConstructorOfInstanceInnerClass = false;
@@ -336,7 +350,7 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 	 * @return the local variable used for the first extra parameter
 	 */
 	private int addExtraParameters(MethodGen method) {
-		List<Type> args = new ArrayList<>();
+		var args = new ArrayList<Type>();
 		int slotsForParameters = 0;
 		for (Type arg: method.getArgumentTypes()) {
 			args.add(arg);

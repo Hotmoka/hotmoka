@@ -19,6 +19,11 @@
       <artifactId>io-takamaka-code</artifactId>
       <version>${io.takamaka.code.version}</version>
     </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-whitelisting</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
   </dependencies>
 
   <profiles>
@@ -75,6 +80,12 @@
           <execution><id>illegalpackagename1</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>illegalpackagename1</classifier>
               <includes><include>io/takamaka/code/illegalpackagename1/**</include></includes>
+            </configuration>
+          </execution>
+
+		  <execution><id>illegaluseofdummy</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>illegaluseofdummy</classifier>
+              <includes><include>io/hotmoka/examples/errors/illegaluseofdummy/**</include></includes>
             </configuration>
           </execution>
 

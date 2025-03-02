@@ -21,7 +21,7 @@ import org.apache.bcel.generic.MethodGen;
 import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.internal.checksOnClass.BootstrapsAreLegalCheck;
 import io.hotmoka.verification.internal.checksOnClass.FromContractCodeIsCalledInCorrectContextCheck;
-import io.hotmoka.verification.internal.checksOnClass.NamesDontStartWithForbiddenPrefix;
+import io.hotmoka.verification.internal.checksOnClass.InstrumentationNamesAreNotUsedCheck;
 import io.hotmoka.verification.internal.checksOnClass.PackagesAreLegalCheck;
 import io.hotmoka.verification.internal.checksOnClass.StorageClassesHaveFieldsOfStorageTypeCheck;
 import io.hotmoka.verification.internal.checksOnMethods.AmountIsNotModifiedInConstructorChainingCheck;
@@ -70,7 +70,7 @@ final class VersionsManager {
 	void applyAllClassChecks(VerifiedClassImpl.Verification builder) throws IllegalJarException {
 		if (verificationVersion == 0L) {
 			new PackagesAreLegalCheck(builder);
-			new NamesDontStartWithForbiddenPrefix(builder);
+			new InstrumentationNamesAreNotUsedCheck(builder);
 			new BootstrapsAreLegalCheck(builder);
 			new StorageClassesHaveFieldsOfStorageTypeCheck(builder);
 			new FromContractCodeIsCalledInCorrectContextCheck(builder);

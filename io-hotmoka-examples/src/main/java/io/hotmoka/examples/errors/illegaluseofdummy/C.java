@@ -14,14 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-/**
- * This module implements the instrumentation of Takamaka code before being installed in a Hotmoka node.
- */
-module io.hotmoka.instrumentation {
-	exports io.hotmoka.instrumentation;
-	requires transitive io.hotmoka.instrumentation.api;
-	requires transitive io.hotmoka.verification;
-	requires io.hotmoka.whitelisting;
-	requires io.takamaka.code.constants;
-	requires it.univr.bcel;
+package io.hotmoka.examples.errors.illegaluseofdummy;
+
+import io.hotmoka.whitelisting.Dummy;
+
+public class C {
+
+	//// the use of DUmmy is forbidden, to avoid clashes with the instrumented code
+	public C(Dummy dummy) {
+	}
 }

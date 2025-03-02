@@ -62,20 +62,21 @@ public class AddEnsureLoadedMethods extends ClassLevelInstrumentation {
 	 */
 	private void addEnsureLoadedMethodFor(Field field) {
 		boolean fieldIsFinal = Modifier.isFinal(field.getModifiers());
+		var fieldType = Type.getType(field.getType());
+		String fieldName = field.getName();
 
 		// final fields cannot remain as such, since the ensureMethod will update them
 		// and it is not a constructor. Java < 9 will not check this constraint but
 		// newer versions of Java would reject the code without this change
 		if (fieldIsFinal) {
 			org.apache.bcel.classfile.Field oldField = getFields()
-				.filter(f -> f.getName().equals(field.getName()) && f.getType().equals(Type.getType(field.getType())))
-				.findFirst().get();
-			FieldGen newField = new FieldGen(oldField, cpg);
+				.filter(f -> f.getName().equals(fieldName) && f.getType().equals(fieldType))
+				.findFirst().get(); // if this does not exist, there is a bug in the code
+			var newField = new FieldGen(oldField, cpg);
 			newField.setAccessFlags(oldField.getAccessFlags() ^ Const.ACC_FINAL);
 			replaceField(oldField, newField.getField());
 		}
 
-		var type = Type.getType(field.getType());
 		var il = new InstructionList();
 		InstructionHandle _return = il.append(InstructionConst.RETURN);
 		il.insert(_return, InstructionFactory.createThis());
@@ -83,7 +84,6 @@ public class AddEnsureLoadedMethods extends ClassLevelInstrumentation {
 		il.insert(_return, factory.createInvoke(WhitelistingConstants.RUNTIME_NAME, "inStorageOf", Type.BOOLEAN, new Type[] { Type.OBJECT }, Const.INVOKESTATIC));
 		il.insert(_return, InstructionFactory.createBranchInstruction(Const.IFEQ, _return));
 		il.insert(_return, InstructionFactory.createThis());
-		String fieldName = field.getName();
 		il.insert(_return, factory.createGetField(className, InstrumentationConstants.IF_ALREADY_LOADED_PREFIX + fieldName, BasicType.BOOLEAN));
 		il.insert(_return, InstructionFactory.createBranchInstruction(Const.IFNE, _return));
 		il.insert(_return, InstructionFactory.createThis());
@@ -97,10 +97,10 @@ public class AddEnsureLoadedMethods extends ClassLevelInstrumentation {
 		il.insert(_return, factory.createInvoke(WhitelistingConstants.RUNTIME_NAME,
 			fieldIsFinal ? InstrumentationConstants.DESERIALIZE_LAST_UPDATE_FOR_FINAL : InstrumentationConstants.DESERIALIZE_LAST_UPDATE_FOR,
 			ObjectType.OBJECT, DESERIALIZE_LAST_UPDATE_ARGS, Const.INVOKESTATIC));
-		il.insert(_return, factory.createCast(ObjectType.OBJECT, type));
+		il.insert(_return, factory.createCast(ObjectType.OBJECT, fieldType));
 		il.insert(_return, InstructionConst.DUP2);
-		il.insert(_return, factory.createPutField(className, fieldName, type));
-		il.insert(_return, factory.createPutField(className, InstrumentationFields.OLD_PREFIX + fieldName, type));
+		il.insert(_return, factory.createPutField(className, fieldName, fieldType));
+		il.insert(_return, factory.createPutField(className, InstrumentationFields.OLD_PREFIX + fieldName, fieldType));
 
 		addMethod(new MethodGen(PRIVATE_SYNTHETIC, BasicType.VOID, Type.NO_ARGS, null, InstrumentationConstants.ENSURE_LOADED_PREFIX + fieldName, className, il, cpg));
 	}
