@@ -45,7 +45,7 @@ import io.takamaka.code.constants.Constants;
 
 /**
  * Passes the trailing implicit parameters to calls to methods annotated as {@code @@FromContract}.
- * They are the caller and the payer of the callee and {@code null} (as a dummy argument).
+ * They are the caller, the payer of the callee and {@code null} (as a dummy argument).
  */
 public class AddExtraArgsToCallsToFromContract extends MethodLevelInstrumentation {
 	private final static ObjectType CONTRACT_OT = new ObjectType(Constants.CONTRACT_NAME);
@@ -65,7 +65,7 @@ public class AddExtraArgsToCallsToFromContract extends MethodLevelInstrumentatio
 		if (!method.isAbstract()) {
 			InstructionList il = method.getInstructionList();
 
-			// we need a support list since the instrumentation will modify the il we are iterating upom
+			// we need a support list since the instrumentation will modify the il we are iterating upon
 			// and a deep copy would be too expensive
 			List<InstructionHandle> callsToFromContract = new ArrayList<>();
 			for (var ih: il)
@@ -86,14 +86,15 @@ public class AddExtraArgsToCallsToFromContract extends MethodLevelInstrumentatio
 	 * @throws IllegalJarException if the jar under instrumentation is illegal
 	 */
 	private void passExtraArgsToCallToFromContract(InstructionList il, InstructionHandle ih) throws IllegalJarException {
-		var invoke = (InvokeInstruction) ih.getInstruction();
+		var invoke = (InvokeInstruction) ih.getInstruction(); // true since ih comes from callsToFromContract above
 		var args = invoke.getArgumentTypes(cpg);
 		String methodName = invoke.getMethodName(cpg);
 		var returnType = invoke.getReturnType(cpg);
 		int slots = Stream.of(args).mapToInt(Type::getSize).sum();
 		
 		if (invoke instanceof INVOKEDYNAMIC invokedynamic) {
-			var cid = (ConstantInvokeDynamic) cpg.getConstant(invokedynamic.getIndex());
+			if (!(cpg.getConstant(invokedynamic.getIndex()) instanceof ConstantInvokeDynamic cid))
+				throw new IllegalJarException("Illegal constant");
 
 			// this is an invokedynamic that calls a @FromContract: we must capture the calling contract
 			var expandedArgs = new Type[args.length + 1];
@@ -146,7 +147,7 @@ public class AddExtraArgsToCallsToFromContract extends MethodLevelInstrumentatio
 
 				if (isFromContract) {
 					int ourArgsSlots = Stream.of(ourArgs).mapToInt(Type::getSize).sum();
-					// the call is inside a @FromContract: its last one minus argument is the caller: we pass it
+					// the call is inside a @FromContract: its last minus one argument is the caller: we pass it
 					ih.setInstruction(new LoadCaller(ourArgsSlots + 1));
 				}
 				else {
@@ -184,7 +185,7 @@ public class AddExtraArgsToCallsToFromContract extends MethodLevelInstrumentatio
 
 	/**
 	 * An ALOAD instruction that is used to load the calling contract.
-	 * This allows us to distinguish the instruction from a normal ALOAD.
+	 * This allows us later to distinguish the instruction from a normal ALOAD.
 	 */
 	static class LoadCaller extends ALOAD {
 		private LoadCaller(int n) {
@@ -202,20 +203,19 @@ public class AddExtraArgsToCallsToFromContract extends MethodLevelInstrumentatio
 	private boolean isCallToFromContract(Instruction instruction) throws IllegalJarException {
 		if (instruction instanceof INVOKEDYNAMIC invokedynamic)
 			return bootstrapMethodsThatWillRequireExtraThis.contains(bootstraps.getBootstrapFor(invokedynamic));
-		else if (instruction instanceof InvokeInstruction invoke) {
-			var receiver = invoke.getReferenceType(cpg);
-			// we do not consider calls added by instrumentation
-			if (receiver instanceof ObjectType ot && !receiver.equals(RUNTIME_OT)) {
-				try {
-					return annotations.isFromContract(ot.getClassName(), invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));
-				}
-				catch (ClassNotFoundException e) {
-					throw new IllegalJarException(e);
-				}
+		else if (instruction instanceof InvokeInstruction invoke &&
+				// we do not consider calls added by instrumentation
+				invoke.getReferenceType(cpg) instanceof ObjectType ot && !RUNTIME_OT.equals(ot)) {
+
+			try {
+				return annotations.isFromContract(ot.getClassName(), invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));
+			}
+			catch (ClassNotFoundException e) {
+				throw new IllegalJarException(e);
 			}
 		}
-
-		return false;
+		else
+			return false;
 	}
 
 	/**
@@ -231,11 +231,9 @@ public class AddExtraArgsToCallsToFromContract extends MethodLevelInstrumentatio
 		// first we check if an equal constant method handle was already in the constant pool
 		int size = cpg.getSize(), index;
 		for (index = 0; index < size; index++)
-			if (cpg.getConstant(index) instanceof ConstantInvokeDynamic cid2) {
-				if (cid2.getBootstrapMethodAttrIndex() == cid.getBootstrapMethodAttrIndex()
-						&& cid2.getNameAndTypeIndex() == cid.getNameAndTypeIndex())
-					return index; // found
-			}
+			if (cpg.getConstant(index) instanceof ConstantInvokeDynamic cid2
+					&& cid2.getBootstrapMethodAttrIndex() == cid.getBootstrapMethodAttrIndex() && cid2.getNameAndTypeIndex() == cid.getNameAndTypeIndex())
+				return index; // found
 
 		// otherwise, we first add an integer that was not already there
 		int counter = 0;
@@ -244,7 +242,7 @@ public class AddExtraArgsToCallsToFromContract extends MethodLevelInstrumentatio
 		}
 		while (cpg.getSize() == size);
 
-		// and then replace the integer constant with the method handle constant
+		// and finally replace the integer constant with the method handle constant
 		cpg.setConstant(index, cid);
 
 		return index;

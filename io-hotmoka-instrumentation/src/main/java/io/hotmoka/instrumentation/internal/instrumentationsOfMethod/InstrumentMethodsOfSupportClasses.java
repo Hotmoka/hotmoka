@@ -49,7 +49,7 @@ public class InstrumentMethodsOfSupportClasses extends MethodLevelInstrumentatio
 
 		Type[] args;
 
-		if (className.equals(Constants.STORAGE_NAME)) {
+		if (Constants.STORAGE_NAME.equals(className)) {
 			if ("compareByStorageReference".equals(method.getName()) && (args = method.getArgumentTypes()).length == 1 && STORAGE_OT.equals(args[0])) {
 				var il = new InstructionList();
 				il.append(InstructionConst.ALOAD_0);
@@ -72,7 +72,7 @@ public class InstrumentMethodsOfSupportClasses extends MethodLevelInstrumentatio
 				method.setInstructionList(il);
 			}
 		}
-		else if (className.equals(Constants.TAKAMAKA_NAME)) {
+		else if (Constants.TAKAMAKA_NAME.equals(className)) {
 			if ("event".equals(method.getName()) && (args = method.getArgumentTypes()).length == 1 && EVENT_OT.equals(args[0])) {
 				var il = new InstructionList();
 				il.append(InstructionConst.ALOAD_0);

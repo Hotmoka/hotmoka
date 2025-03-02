@@ -104,9 +104,9 @@ public class DesugarBootstrapsInvokingFromContract extends ClassLevelInstrumenta
 			String methodSignature = cu8_2.getBytes();
 
 			Optional<MethodGen> old = getMethods()
-				.filter(method -> method.getName().equals(methodName)
-						&& method.getSignature().equals(methodSignature) && method.isPrivate())
+				.filter(method -> method.getName().equals(methodName) && method.getSignature().equals(methodSignature) && method.isPrivate())
 				.findFirst();
+
 			old.ifPresent(method -> {
 				// we can modify the method handle since the lambda is becoming an instance
 				// method and all calls must be made through invokespecial

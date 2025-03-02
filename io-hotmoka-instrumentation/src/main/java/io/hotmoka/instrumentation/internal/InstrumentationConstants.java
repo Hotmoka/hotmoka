@@ -90,12 +90,6 @@ public abstract class InstrumentationConstants {
 
 	/**
 	 * The name of the method of {@code io.hotmoka.local.internal.runtime.Runtime}
-	 * that sets the caller and transfers money at the beginning of a red payable {@code @@FromContract}.
-	 */
-	public final static String RED_PAYABLE_FROM_CONTRACT = "redPayableFromContract";
-
-	/**
-	 * The name of the method of {@code io.hotmoka.local.internal.runtime.Runtime}
 	 * that sets the caller at the beginning of a {@code @@FromContract}.
 	 */
 	public final static String FROM_CONTRACT = "fromContract";

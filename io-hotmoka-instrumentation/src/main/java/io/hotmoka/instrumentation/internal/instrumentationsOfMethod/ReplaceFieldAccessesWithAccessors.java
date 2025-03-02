@@ -35,7 +35,6 @@ import org.apache.bcel.generic.Type;
 import io.hotmoka.instrumentation.api.InstrumentationFields;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
-import io.hotmoka.verification.api.IllegalJarException;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -48,47 +47,49 @@ public class ReplaceFieldAccessesWithAccessors extends MethodLevelInstrumentatio
 	 * 
 	 * @param builder the builder of the class being instrumented
 	 * @param method the method being instrumented
-	 * @throws IllegalJarException if the jar under instrumentation is illegal
 	 */
-	public ReplaceFieldAccessesWithAccessors(InstrumentedClassImpl.Builder builder, MethodGen method) throws IllegalJarException {
+	public ReplaceFieldAccessesWithAccessors(InstrumentedClassImpl.Builder builder, MethodGen method) {
 		builder.super(method);
 
 		if (!method.isAbstract())
 			for (var ih: method.getInstructionList())
-				if (isAccessToLazilyLoadedFieldInStorageClass(ih))
-					ih.setInstruction(accessorCorrespondingTo((FieldInstruction) ih.getInstruction()));
+				getFieldInstructionAccessingLazilyLoadedFieldInStorageClass(ih)
+					.map(this::accessorCorrespondingTo)
+					.ifPresent(ih::setInstruction);
 	}
 
 	/**
-	 * Determines if the given instruction is an access to a field of a storage class that is lazily loaded.
+	 * Determines if the given handle holds an instruction that accesses a field of a storage class that is lazily loaded.
 	 * 
-	 * @param ih the instruction
-	 * @return true if and only if that condition holds
-	 * @throws IllegalJarException if the jar under instrumentation is illegal
+	 * @param ih the instruction handle
+	 * @return the instruction in {@code ih}, if it accesses a lazily loaded field of a storage class
 	 */
-	private boolean isAccessToLazilyLoadedFieldInStorageClass(InstructionHandle ih) throws IllegalJarException {
+	private Optional<FieldInstruction> getFieldInstructionAccessingLazilyLoadedFieldInStorageClass(InstructionHandle ih) {
 		var instruction = ih.getInstruction();
 
 		if (instruction instanceof FieldInstruction fi && (instruction instanceof GETFIELD || instruction instanceof PUTFIELD)) {
 			if (!(fi.getReferenceType(cpg) instanceof ObjectType receiverType))
-				throw new IllegalJarException("Attempt to read a field of a non-object reference");
+				// impossible since the field access was white-listed hence resolved
+				throw new RuntimeException("Attempt to read a field of a non-object reference");
 
 			String receiverClassName = receiverType.getClassName();
 			Class<?> fieldType;
 			try {
 				// we do not consider field accesses added by instrumentation in class Storage
-				return !receiverClassName.equals(Constants.STORAGE_NAME)
+				if (!Constants.STORAGE_NAME.equals(receiverClassName)
 						&& classLoader.isStorage(receiverClassName)
 						&& classLoader.isLazilyLoaded(fieldType = bcelToClass.of(fi.getFieldType(cpg)))
 						&& !modifiersSatisfy(receiverClassName, fi.getFieldName(cpg), fieldType,
-								instruction instanceof GETFIELD ? Modifier::isTransient : (modifiers -> Modifier.isTransient(modifiers) || Modifier.isFinal(modifiers)));
+								instruction instanceof GETFIELD ? Modifier::isTransient : (modifiers -> Modifier.isTransient(modifiers) || Modifier.isFinal(modifiers))))
+					return Optional.of(fi);
 			}
 			catch (ClassNotFoundException e) {
-				throw new IllegalJarException(e);
+				// impossible since the field access was white-listed hence resolved
+				throw new RuntimeException(e);
 			}
 		}
-		else
-			return false;
+
+		return Optional.empty();
 	}
 
 	/**
@@ -96,23 +97,20 @@ public class ReplaceFieldAccessesWithAccessors extends MethodLevelInstrumentatio
 	 * 
 	 * @param fieldInstruction the field access instruction
 	 * @return the corresponding accessor call instruction
-	 * @throws IllegalJarException if the jar under instrumentation is illegal
 	 */
-	private Instruction accessorCorrespondingTo(FieldInstruction fieldInstruction) throws IllegalJarException {
-		if (!(fieldInstruction.getReferenceType(cpg) instanceof ObjectType referencedClass))
-			throw new IllegalJarException("Attempt to read a field of a non-object reference");
-
+	private Instruction accessorCorrespondingTo(FieldInstruction fieldInstruction) {
+		ObjectType referencedClass = (ObjectType) fieldInstruction.getReferenceType(cpg); // cast already checked above
 		Type fieldType = fieldInstruction.getFieldType(cpg);
 		String fieldName = fieldInstruction.getFieldName(cpg);
 		String className = referencedClass.getClassName();
 		Field resolvedField;
 
 		try {
-			resolvedField = classLoader.resolveField(className, fieldName, bcelToClass.of(fieldType))
-				.orElseThrow(() -> new IllegalJarException("Access to unknown field"));
+			resolvedField = classLoader.resolveField(className, fieldName, bcelToClass.of(fieldType)).get();
 		}
 		catch (ClassNotFoundException e) {
-			throw new IllegalJarException(e);
+			// the field access has been verified to be white-listed, hence the field must be resolved successfully
+			throw new RuntimeException(e);
 		}
 
 		String resolvedClassName = resolvedField.getDeclaringClass().getName();
@@ -131,16 +129,16 @@ public class ReplaceFieldAccessesWithAccessors extends MethodLevelInstrumentatio
 	 * @param fieldType the type of the field
 	 * @param condition the condition on the modifiers of the field
 	 * @return true if and only if that condition holds
-	 * @throws IllegalJarException if the jar under instrumentation is illegal
 	 */
-	private boolean modifiersSatisfy(String className, String fieldName, Class<?> fieldType, Predicate<Integer> condition) throws IllegalJarException {
+	private boolean modifiersSatisfy(String className, String fieldName, Class<?> fieldType, Predicate<Integer> condition) {
 		Class<?> clazz, previous;
 		
 		try {
 			clazz = classLoader.loadClass(className);
 		}
 		catch (ClassNotFoundException e) {
-			throw new IllegalJarException(e);
+			// the field was white-listed, hence resolvable, therefore this should never happen
+			throw new RuntimeException(e);
 		}
 
 		Class<?> storage = classLoader.getStorage();
@@ -165,6 +163,7 @@ public class ReplaceFieldAccessesWithAccessors extends MethodLevelInstrumentatio
 		}
 		while (previous != storage);
 
-		return false;
+		// the field was white-listed, hence resolvable, therefore this should never happen
+		throw new RuntimeException("Field " + className + "." + fieldName + " not found");
 	}
 }

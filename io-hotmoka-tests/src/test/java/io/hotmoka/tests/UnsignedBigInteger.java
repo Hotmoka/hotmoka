@@ -27,10 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
 import java.security.PrivateKey;
-import java.security.SignatureException;
-import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -40,19 +37,13 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
-import io.hotmoka.node.api.values.BigIntegerValue;
-import io.hotmoka.node.api.values.BooleanValue;
 import io.hotmoka.node.api.values.IntValue;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StringValue;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -62,6 +53,7 @@ class UnsignedBigInteger extends HotmokaTest {
     private static final ClassType UBI = StorageTypes.UNSIGNED_BIG_INTEGER;
     private static final ConstructorSignature CONSTRUCTOR_UBI_BI = ConstructorSignatures.of(UBI, StorageTypes.BIG_INTEGER);
     private static final ConstructorSignature CONSTRUCTOR_UBI_STR = ConstructorSignatures.of(UBI, StorageTypes.STRING);
+    private static final NonVoidMethodSignature EQUALS = MethodSignatures.ofNonVoid(UBI, "equals", BOOLEAN, StorageTypes.OBJECT);
 
     /**
      * The classpath of the classes being tested.
@@ -109,19 +101,19 @@ class UnsignedBigInteger extends HotmokaTest {
         StorageReference ubi_11 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("11"));
         StorageReference ubi_111 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("111"));
 
-        var ubi_sum = (StorageReference) addInstanceNonVoidMethodCallTransaction(
+        var add = MethodSignatures.ofNonVoid(UBI, "add", UBI, UBI);
+        var ubi_sum = addInstanceNonVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), classpath,
-                MethodSignatures.ofNonVoid(UBI, "add", UBI, UBI),
-                ubi_100, ubi_11);
+                add,
+                ubi_100, ubi_11).asReturnedReference(add, NodeException::new);
         // ubi_sum = 100.add(11) = 111
 
-        NonVoidMethodSignature equals = MethodSignatures.ofNonVoid(UBI, "equals", BOOLEAN, StorageTypes.OBJECT);
 		var equals_result = runInstanceNonVoidMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                equals,
-                ubi_sum, ubi_111).asReturnedBoolean(equals, __ -> new NodeException());
+                EQUALS,
+                ubi_sum, ubi_111).asReturnedBoolean(EQUALS, NodeException::new);
         // equals_result = ubi_sum.equals(111) = true
 
         assertTrue(equals_result);
@@ -133,21 +125,22 @@ class UnsignedBigInteger extends HotmokaTest {
         StorageReference ubi_1 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("1"));
         StorageReference ubi_99 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("99"));
 
-        StorageReference ubi_sub = (StorageReference) addInstanceNonVoidMethodCallTransaction(
+        var subtract = MethodSignatures.ofNonVoid(UBI, "subtract", UBI, UBI);
+		StorageReference ubi_sub = addInstanceNonVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), classpath,
-                MethodSignatures.ofNonVoid(UBI, "subtract", UBI, UBI),
-                ubi_100, ubi_1);
+                subtract,
+                ubi_100, ubi_1).asReturnedReference(subtract, NodeException::new);
         // ubi_sub = 100.subtract(1) = 99
 
-        BooleanValue equals_result = (BooleanValue) runInstanceNonVoidMethodCallTransaction(
+		boolean equals_result = runInstanceNonVoidMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                MethodSignatures.ofNonVoid(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
-                ubi_sub, ubi_99);
+                EQUALS,
+                ubi_sub, ubi_99).asReturnedBoolean(EQUALS, NodeException::new);
         // equals_result = ubi_sub.equals(99) = true
 
-        assertTrue(equals_result.getValue());
+        assertTrue(equals_result);
     }
 
     @Test @DisplayName("Test of subtract method with the generation of an Exception: 100.subtract(101, 'Test Exception')")
@@ -171,21 +164,22 @@ class UnsignedBigInteger extends HotmokaTest {
         StorageReference ubi_9 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("9"));
         StorageReference ubi_900 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("900"));
 
-        StorageReference ubi_mul = (StorageReference) addInstanceNonVoidMethodCallTransaction(
+        var multiply = MethodSignatures.ofNonVoid(UBI, "multiply", UBI, UBI);
+		StorageReference ubi_mul = addInstanceNonVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), classpath,
-                MethodSignatures.ofNonVoid(UBI, "multiply", UBI, UBI),
-                ubi_100, ubi_9);
+                multiply,
+                ubi_100, ubi_9).asReturnedReference(multiply, NodeException::new);
         // ubi_mul = 100.multiply(9) = 900
 
-        BooleanValue equals_result = (BooleanValue) runInstanceNonVoidMethodCallTransaction(
+        boolean equals_result = runInstanceNonVoidMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                MethodSignatures.ofNonVoid(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
-                ubi_mul, ubi_900);
+                EQUALS,
+                ubi_mul, ubi_900).asReturnedBoolean(EQUALS, NodeException::new);
         // equals_result = ubi_mul.equals(900) = true
 
-        assertTrue(equals_result.getValue());
+        assertTrue(equals_result);
     }
 
     @Test @DisplayName("Test of divide method: 900.divide(8).equals(112) == true ")
@@ -194,21 +188,22 @@ class UnsignedBigInteger extends HotmokaTest {
         StorageReference ubi_8 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("8"));
         StorageReference ubi_112 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("112"));
 
-        StorageReference ubi_div = (StorageReference) addInstanceNonVoidMethodCallTransaction(
+        var divide = MethodSignatures.ofNonVoid(UBI, "divide", UBI, UBI);
+		StorageReference ubi_div = addInstanceNonVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), classpath,
-                MethodSignatures.ofNonVoid(UBI, "divide", UBI, UBI),
-                ubi_900, ubi_8);
+                divide,
+                ubi_900, ubi_8).asReturnedReference(divide, NodeException::new);
         // ubi_div = 900.divide(8) = 112,5 --> 112 (perfectly matches division with uint256 on Solidity)
 
-        BooleanValue equals_result = (BooleanValue) runInstanceNonVoidMethodCallTransaction(
+		boolean equals_result = runInstanceNonVoidMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                MethodSignatures.ofNonVoid(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
-                ubi_div, ubi_112);
+                EQUALS,
+                ubi_div, ubi_112).asReturnedBoolean(EQUALS, NodeException::new);
         // equals_result = ubi_div.equals(112) = true
 
-        assertTrue(equals_result.getValue());
+        assertTrue(equals_result);
     }
 
     @Test @DisplayName("Test of divide method: 900.divide(11).equals(81) == true ")
@@ -217,21 +212,22 @@ class UnsignedBigInteger extends HotmokaTest {
         StorageReference ubi_11 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("11"));
         StorageReference ubi_81 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("81"));
 
-        var ubi_div = (StorageReference) addInstanceNonVoidMethodCallTransaction(
+        var divide = MethodSignatures.ofNonVoid(UBI, "divide", UBI, UBI);
+		var ubi_div = addInstanceNonVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), classpath,
-                MethodSignatures.ofNonVoid(UBI, "divide", UBI, UBI),
-                ubi_900, ubi_11);
+                divide,
+                ubi_900, ubi_11).asReturnedReference(divide, NodeException::new);
         // ubi_div = 900.divide(11) = 81,818181818 --> 81 (perfectly matches division with uint256 on Solidity)
 
-        var equals_result = (BooleanValue) runInstanceNonVoidMethodCallTransaction(
+        boolean equals_result = runInstanceNonVoidMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                MethodSignatures.ofNonVoid(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
-                ubi_div, ubi_81);
+                EQUALS,
+                ubi_div, ubi_81).asReturnedBoolean(EQUALS, NodeException::new);
         // equals_result = ubi_div.equals(81) = true
 
-        assertTrue(equals_result.getValue());
+        assertTrue(equals_result);
     }
 
     @Test @DisplayName("Test of divide method with the generation of an Exception: 900.divide(0, 'Test Exception /0')")
@@ -255,21 +251,22 @@ class UnsignedBigInteger extends HotmokaTest {
         StorageReference ubi_13 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("13"));
         StorageReference ubi_7 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("7"));
 
-        StorageReference ubi_mod = (StorageReference) addInstanceNonVoidMethodCallTransaction(
+        var mod = MethodSignatures.ofNonVoid(UBI, "mod", UBI, UBI);
+		StorageReference ubi_mod = addInstanceNonVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), classpath,
-                MethodSignatures.ofNonVoid(UBI, "mod", UBI, UBI),
-                ubi_800, ubi_13);
+                mod,
+                ubi_800, ubi_13).asReturnedReference(mod, NodeException::new);
         // ubi_mod = 800.mod(13) = 7
 
-        BooleanValue equals_result = (BooleanValue) runInstanceNonVoidMethodCallTransaction(
+        boolean equals_result = runInstanceNonVoidMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                MethodSignatures.ofNonVoid(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
-                ubi_mod, ubi_7);
+                EQUALS,
+                ubi_mod, ubi_7).asReturnedBoolean(EQUALS, NodeException::new);
         // equals_result = ubi_mod.equals(7) = true
 
-        assertTrue(equals_result.getValue());
+        assertTrue(equals_result);
     }
 
     @Test @DisplayName("Test of mod method with the generation of an Exception: 800.mod(0, 'Test Exception /0')")
@@ -288,177 +285,184 @@ class UnsignedBigInteger extends HotmokaTest {
     }
 
     @Test @DisplayName("Test of pow method: 8.pow(7).equals(2097152) == true")
-    void pow() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+    void pow() throws Exception {
         StorageReference ubi_8 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("8"));
         StorageReference ubi_2097152 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("2097152"));
         IntValue int_2 = StorageValues.intOf(7);
 
-        var ubi_pow = (StorageReference) addInstanceNonVoidMethodCallTransaction(
+        var pow = MethodSignatures.ofNonVoid(UBI, "pow", UBI, INT);
+		var ubi_pow = addInstanceNonVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), classpath,
-                MethodSignatures.ofNonVoid(UBI, "pow", UBI, INT),
-                ubi_8, int_2);
+                pow,
+                ubi_8, int_2).asReturnedReference(pow, NodeException::new);
         // ubi_pow = 8.pow(7) = 2097152
 
-        var equals_result = (BooleanValue) runInstanceNonVoidMethodCallTransaction(
+        boolean equals_result = runInstanceNonVoidMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                MethodSignatures.ofNonVoid(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
-                ubi_pow, ubi_2097152);
+                EQUALS,
+                ubi_pow, ubi_2097152).asReturnedBoolean(EQUALS, NodeException::new);
         // equals_result = ubi_pow.equals(2097152) = true
 
-        assertTrue(equals_result.getValue());
+        assertTrue(equals_result);
     }
 
     @Test @DisplayName("Test of max method: 800.max(799).equals(800) == true")
-    void max() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+    void max() throws Exception {
         StorageReference ubi_800 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("800"));
         StorageReference ubi_799 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("799"));
         StorageReference ubi__800 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("800"));
 
-        StorageReference ubi_max = (StorageReference) addInstanceNonVoidMethodCallTransaction(
+        var max = MethodSignatures.ofNonVoid(UBI, "max", UBI, UBI);
+		StorageReference ubi_max = addInstanceNonVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), classpath,
-                MethodSignatures.ofNonVoid(UBI, "max", UBI, UBI),
-                ubi_800, ubi_799);
+                max,
+                ubi_800, ubi_799).asReturnedReference(max, NodeException::new);
         // ubi_max = 800.max(799) = 800
 
-        BooleanValue equals_result = (BooleanValue) runInstanceNonVoidMethodCallTransaction(
+        boolean equals_result = runInstanceNonVoidMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                MethodSignatures.ofNonVoid(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
-                ubi_max, ubi__800);
+                EQUALS,
+                ubi_max, ubi__800).asReturnedBoolean(EQUALS, NodeException::new);
         // equals_result = ubi_max.equals(800) = true
 
-        assertTrue(equals_result.getValue());
+        assertTrue(equals_result);
     }
 
     @Test @DisplayName("Test of min method: 800.min(799).equals(799) == true")
-    void min() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+    void min() throws Exception {
         StorageReference ubi_800 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("800"));
         StorageReference ubi_799 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("799"));
         StorageReference ubi__799 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("799"));
 
-        StorageReference ubi_min = (StorageReference) addInstanceNonVoidMethodCallTransaction(
+        var min = MethodSignatures.ofNonVoid(UBI, "min", UBI, UBI);
+		StorageReference ubi_min = addInstanceNonVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), classpath,
-                MethodSignatures.ofNonVoid(UBI, "min", UBI, UBI),
-                ubi_800, ubi_799);
+                min,
+                ubi_800, ubi_799).asReturnedReference(min, NodeException::new);
         // ubi_min = 800.min(799) = 799
 
-        BooleanValue equals_result = (BooleanValue) runInstanceNonVoidMethodCallTransaction(
+        boolean equals_result = runInstanceNonVoidMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                MethodSignatures.ofNonVoid(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
-                ubi_min, ubi__799);
+                EQUALS,
+                ubi_min, ubi__799).asReturnedBoolean(EQUALS, NodeException::new);
         // equals_result = ubi_min.equals(799) = true
 
-        assertTrue(equals_result.getValue());
+        assertTrue(equals_result);
     }
 
     @Test @DisplayName("Test of compareTo method: 800.compareTo(799) == 1, 799.compareTo(800) == -1, 800.compareTo(800) == 0")
-    void compareToTest() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+    void compareToTest() throws Exception {
         StorageReference ubi_800 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("800"));
         StorageReference ubi_799 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("799"));
         StorageReference ubi__800 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("800"));
 
-        IntValue result_compare1 = (IntValue) runInstanceNonVoidMethodCallTransaction(
+        var compareTo = MethodSignatures.ofNonVoid(UBI, "compareTo", INT, UBI);
+        int result_compare1 = runInstanceNonVoidMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                MethodSignatures.ofNonVoid(UBI, "compareTo", INT, UBI),
-                ubi_800, ubi_799);
+                compareTo,
+                ubi_800, ubi_799).asReturnedInt(compareTo, NodeException::new);
         // result_compare1 = 800.compareTo(799) = 1
 
-        IntValue result_compare2 = (IntValue) runInstanceNonVoidMethodCallTransaction(
+        int result_compare2 = runInstanceNonVoidMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                MethodSignatures.ofNonVoid(UBI, "compareTo", INT, UBI),
-                ubi_799, ubi_800);
+                compareTo,
+                ubi_799, ubi_800).asReturnedInt(compareTo, NodeException::new);
         // result_compare2 = 799.compareTo(800) = -1
 
-        IntValue result_compare3 = (IntValue) runInstanceNonVoidMethodCallTransaction(
+        int result_compare3 = runInstanceNonVoidMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                MethodSignatures.ofNonVoid(UBI, "compareTo", INT, UBI),
-                ubi_800, ubi__800);
+                compareTo,
+                ubi_800, ubi__800).asReturnedInt(compareTo, NodeException::new);
         // result_compare3 = 800.compareTo(800') = 0
 
-        assertEquals(result_compare1.getValue(), 1);
-        assertEquals(result_compare2.getValue(), -1);
-        assertEquals(result_compare3.getValue(), 0);
+        assertEquals(result_compare1, 1);
+        assertEquals(result_compare2, -1);
+        assertEquals(result_compare3, 0);
     }
 
     @Test @DisplayName("Test of equals method: 800.compareTo(799) == false, 800.compareTo(800) == true")
-    void equalsTest() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+    void equalsTest() throws Exception {
         StorageReference ubi_800 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("800"));
         StorageReference ubi_799 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("799"));
         StorageReference ubi__800 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("800"));
 
-        BooleanValue result_equals1 = (BooleanValue) runInstanceNonVoidMethodCallTransaction(
+        boolean result_equals1 = runInstanceNonVoidMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                MethodSignatures.ofNonVoid(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
-                ubi_800, ubi_799);
+                EQUALS,
+                ubi_800, ubi_799).asReturnedBoolean(EQUALS, NodeException::new);;
         // result_equals1 = 800.compareTo(799) = false
 
-        BooleanValue result_equals2 = (BooleanValue) runInstanceNonVoidMethodCallTransaction(
+        boolean result_equals2 = runInstanceNonVoidMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                MethodSignatures.ofNonVoid(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
-                ubi_800, ubi__800);
+                EQUALS,
+                ubi_800, ubi__800).asReturnedBoolean(EQUALS, NodeException::new);
         // result_equals2 = 800.compareTo(800') = true
 
-        assertFalse(result_equals1.getValue());
-        assertTrue(result_equals2.getValue());
+        assertFalse(result_equals1);
+        assertTrue(result_equals2);
     }
 
     @Test @DisplayName("Test of toBigInteger method: 1001.toBigInteger() == BigInteger@1001")
-    void toBigIntegerTest() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+    void toBigIntegerTest() throws Exception {
         StorageReference ubi_1001 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("1001"));
 
-        BigIntegerValue bi1 = (BigIntegerValue) runInstanceNonVoidMethodCallTransaction(
+        var toBigInteger = MethodSignatures.ofNonVoid(UBI, "toBigInteger", StorageTypes.BIG_INTEGER);
+		BigInteger bi1 = runInstanceNonVoidMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                MethodSignatures.ofNonVoid(UBI, "toBigInteger", StorageTypes.BIG_INTEGER),
-                ubi_1001);
+                toBigInteger,
+                ubi_1001).asReturnedBigInteger(toBigInteger, NodeException::new);
         // 1001.toBigInteger()
 
-        assertEquals(bi1.getValue(), BigInteger.valueOf(1001)); // 1001.toBigInteger() == BigInteger@1001
+        assertEquals(bi1, BigInteger.valueOf(1001)); // 1001.toBigInteger() == BigInteger@1001
     }
 
     @Test @DisplayName("Test of toString method: 1001.toString() == '1001'")
-    void toStringTest() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+    void toStringTest() throws Exception {
         StorageReference ubi_1001 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("1001"));
 
-        StringValue string1 = (StringValue) runInstanceNonVoidMethodCallTransaction(
+        var toString = MethodSignatures.ofNonVoid(UBI, "toString", StorageTypes.STRING);
+		String string1 = runInstanceNonVoidMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                MethodSignatures.ofNonVoid(UBI, "toString", StorageTypes.STRING),
-                ubi_1001);
+                toString,
+                ubi_1001).asReturnedString(toString, NodeException::new);
         // 1001.toString()
 
-        assertEquals(string1.getValue(), "1001"); // 1001.toString() == '1001'
+        assertEquals(string1, "1001"); // 1001.toString() == '1001'
     }
 
     @Test @DisplayName("Test of valueOf method: long@99.valueOf().equals(99) == true")
-    void valueOfTest() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+    void valueOfTest() throws Exception {
         StorageReference ubi_99 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("99"));
 
-        StorageReference ubi_result = (StorageReference) addStaticNonVoidMethodCallTransaction(
+        var valueOf = MethodSignatures.ofNonVoid(UBI, "valueOf", UBI, LONG);
+		StorageReference ubi_result = addStaticNonVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), classpath,
-                MethodSignatures.ofNonVoid(UBI, "valueOf", UBI, LONG),
-                StorageValues.longOf(99));
+                valueOf,
+                StorageValues.longOf(99)).asReturnedReference(valueOf, NodeException::new);
         // ubi_result = long@99.valueOf() = 99
 
-        BooleanValue equals_result = (BooleanValue) runInstanceNonVoidMethodCallTransaction(
+        boolean equals_result = runInstanceNonVoidMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                MethodSignatures.ofNonVoid(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
-                ubi_result, ubi_99);
+                EQUALS,
+                ubi_result, ubi_99).asReturnedBoolean(EQUALS, NodeException::new);;
         // equals_result = ubi_result.equals(99) = true
 
-        assertTrue(equals_result.getValue());
+        assertTrue(equals_result);
     }
 
     @Test @DisplayName("Test of valueOf method with the generation of an Exception: long@-99.valueOf()")

@@ -101,17 +101,17 @@ public class AddGasUpdates extends MethodLevelInstrumentation {
 	 * @return the set of dominators, ordered in increasing position
 	 */
 	private SortedSet<InstructionHandle> computeDominators(MethodGen method) {
-		return StreamSupport.stream(method.getInstructionList().spliterator(), false).filter(this::isDominator)
-				.collect(Collectors.toCollection(() -> new TreeSet<>(
-						Comparator.comparing(InstructionHandle::getPosition))));
+		return StreamSupport.stream(method.getInstructionList().spliterator(), false)
+			.filter(this::isDominator)
+			.collect(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(InstructionHandle::getPosition))));
 	}
 
 	private boolean isDominator(InstructionHandle ih) {
 		InstructionHandle prev = ih.getPrev();
 		// the first instruction is a dominator
 		return prev == null || prev.getInstruction() instanceof BranchInstruction
-				|| prev.getInstruction() instanceof ExceptionThrower || Stream.of(ih.getTargeters()).anyMatch(
-						targeter -> targeter instanceof BranchInstruction || targeter instanceof CodeExceptionGen);
+			|| prev.getInstruction() instanceof ExceptionThrower
+			|| Stream.of(ih.getTargeters()).anyMatch(targeter -> targeter instanceof BranchInstruction || targeter instanceof CodeExceptionGen);
 	}
 
 	private void addRamGasUpdate(InstructionHandle ih, InstructionList il, CodeExceptionGen[] ceg) throws IllegalJarException {
@@ -126,7 +126,7 @@ public class AddGasUpdates extends MethodLevelInstrumentation {
 				if (invoke instanceof INVOKEVIRTUAL || invoke instanceof INVOKESPECIAL || invoke instanceof INVOKEINTERFACE)
 					size++;
 
-				// non risk of overflow, since there are at most 256 arguments in a method
+				// no risk of overflow, since there are at most 256 arguments in a method
 				size *= gasCostModel.ramCostOfActivationSlot();
 				size += gasCostModel.ramCostOfActivationRecord();
 
@@ -144,7 +144,7 @@ public class AddGasUpdates extends MethodLevelInstrumentation {
 			// of the elements of the created array type for ANEWARRAY
 			Type createdType = bytecode instanceof NEWARRAY na ?
 				na.getType() :
-				new ArrayType(((ANEWARRAY) bytecode).getType(cpg), 1);
+				new ArrayType(((ANEWARRAY) bytecode).getType(cpg), 1); // cast holds by exclusion
 			String allocatorName = getNewNameForPrivateMethod(InstrumentationConstants.EXTRA_ALLOCATOR);
 			String bigInteger = BigInteger.class.getName();
 			InvokeInstruction valueOf = factory.createInvoke(bigInteger, "valueOf", BIGINTEGER_OT, ONE_LONG_ARGS, Const.INVOKESTATIC);
@@ -169,13 +169,13 @@ public class AddGasUpdates extends MethodLevelInstrumentation {
 			allocatorIl.append(bytecode);
 			allocatorIl.append(InstructionConst.ARETURN);
 
-			// if the size of the array is negative, non gas is charged and the array creation bytecode will throw an exception
+			// if the size of the array is negative, no gas is charged and the array creation bytecode will throw an exception
 			allocatorIl.insert(InstructionFactory.createBranchInstruction(Const.IFLT, creation));
 			allocatorIl.insert(InstructionConst.ILOAD_0);
 
 			addMethod(new MethodGen(PRIVATE_SYNTHETIC_STATIC, createdType, ONE_INT_ARGS, null, allocatorName, className, allocatorIl, cpg));
 
-			// the original multianewarray gets replaced with a call to the allocation method
+			// the original array creation bytecode gets replaced with a call to the allocation method
 			ih.setInstruction(factory.createInvoke(className, allocatorName, createdType, ONE_INT_ARGS, Const.INVOKESTATIC));
 		}
 		else if (bytecode instanceof MULTIANEWARRAY multianewarray) {
@@ -183,7 +183,7 @@ public class AddGasUpdates extends MethodLevelInstrumentation {
 			// this bytecode might only create some dimensions of the created array type 
 			int createdDimensions = multianewarray.getDimensions();
 			if (createdDimensions <= 0)
-				throw new IllegalArgumentException("multianewarray with non-positive created dimensions");
+				throw new IllegalJarException("multianewarray with non-positive created dimensions");
 
 			Type[] args = IntStream.range(0, createdDimensions)
 				.mapToObj(dim -> Type.INT)

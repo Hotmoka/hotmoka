@@ -71,7 +71,7 @@ public class AddEnsureLoadedMethods extends ClassLevelInstrumentation {
 		if (fieldIsFinal) {
 			org.apache.bcel.classfile.Field oldField = getFields()
 				.filter(f -> f.getName().equals(fieldName) && f.getType().equals(fieldType))
-				.findFirst().get(); // if this does not exist, there is a bug in the code
+				.findFirst().get(); // if this does not exist, there is a bug in the code since field was a non-transient field of the class
 			var newField = new FieldGen(oldField, cpg);
 			newField.setAccessFlags(oldField.getAccessFlags() ^ Const.ACC_FINAL);
 			replaceField(oldField, newField.getField());

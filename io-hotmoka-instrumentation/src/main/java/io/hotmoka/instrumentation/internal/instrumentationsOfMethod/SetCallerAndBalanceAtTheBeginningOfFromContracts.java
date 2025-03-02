@@ -62,6 +62,14 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 	private final static Type[] FROM_CONTRACT_ARGS = { OBJECT_OT, OBJECT_OT };
 
 	/**
+	 * The maximal number of bytecodes that can be considered during the lookup.
+	 * This is important to bound the execution time of this lookup algorithm.
+	 * For normal programs, it's enough to consider only a few bytecodes to find the pushers
+	 * of a stack element, hence this limit is not so relevant.
+	 */
+	private final static int MAX_BYTECODES = 1000;
+
+	/**
 	 * Builds the instrumentation.
 	 * 
 	 * @param builder the builder of the class being instrumented
@@ -90,7 +98,7 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 	}
 
 	/**
-	 * Instruments a {@code @@FromContract} method, by setting the caller and transferring funds for payable {@code @@FromContract}s.
+	 * Instruments a {@code @@FromContract} method or constructor, by setting the caller and transferring funds for payable {@code @@FromContract}s.
 	 * 
 	 * @param method the {@code @@FromContract} method or constructor
 	 * @param callerContract the class of the caller contract
@@ -110,7 +118,7 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 	private void shiftUp(MethodGen method, int slotForCaller) {
 		for (InstructionHandle ih: method.getInstructionList()) {
 			Instruction ins = ih.getInstruction();
-			if (ins instanceof LocalVariableInstruction lvi && !(ins instanceof LoadCaller)) {
+			if (ins instanceof LocalVariableInstruction lvi && !(lvi instanceof LoadCaller)) {
 				int local = lvi.getIndex();
 				if (local >= slotForCaller) {
 					if (ins instanceof IINC iinc)
@@ -125,9 +133,9 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 	}
 
 	/**
-	 * Instruments a {@Code @@FromContract} method or constructor by calling the runtime method that sets caller and balance.
+	 * Instruments a {@code @@FromContract} method or constructor by calling the runtime method that sets caller and balance.
 	 * 
-	 * @param method the {@Code @@FromContract} method or constructor
+	 * @param method the {@code @@FromContract} method or constructor
 	 * @param callerContract the class of the caller contract
 	 * @param slotForCaller the local variable for the caller implicit argument
 	 * @param isPayable true if and only if {@code method} is payable
@@ -147,14 +155,14 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 
 		if (Const.CONSTRUCTOR_NAME.equals(method.getName())) {
 			isConstructorOfInstanceInnerClass = isConstructorOfInstanceInnerClass();
-			InstructionHandle callToSuperConstructor = callToSuperConstructor(il, method, slotForCaller, isConstructorOfInstanceInnerClass);
+			InstructionHandle callToSuperConstructor = callToSuperConstructor(method, il, slotForCaller, isConstructorOfInstanceInnerClass);
 			if (!(callToSuperConstructor.getInstruction() instanceof INVOKESPECIAL invokespecial))
 				throw new IllegalJarException("Expected invokespecial to call a superclass' constructor");
 
 			// if the superconstructor is @FromContract, then it will take care of setting the caller for us
 			String classNameOfSuperConstructor = invokespecial.getClassName(cpg);
 			Type[] argumentTypes = invokespecial.getArgumentTypes(cpg);
-			if (argumentTypes.length > 0 && argumentTypes[argumentTypes.length - 1].equals(DUMMY_OT)) {
+			if (argumentTypes.length > 0 && DUMMY_OT.equals(argumentTypes[argumentTypes.length - 1])) {
 				// the target has been already instrumented, we removed the extra arguments
 				var copy = new Type[argumentTypes.length - 2];
 				System.arraycopy(argumentTypes, 0, copy, 0, copy.length);
@@ -202,8 +210,7 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 				il.insert(start, InstructionFactory.createLoad(amountType, isConstructorOfInstanceInnerClass ? 2 : 1));
 				Type[] payableFromContractArgs = new Type[] { OBJECT_OT, OBJECT_OT, DUMMY_OT, amountType };
 				il.insert(where, factory.createInvoke(WhitelistingConstants.RUNTIME_NAME,
-					isPayable ? InstrumentationConstants.PAYABLE_FROM_CONTRACT : InstrumentationConstants.RED_PAYABLE_FROM_CONTRACT,
-					Type.VOID, payableFromContractArgs, Const.INVOKESTATIC));
+					InstrumentationConstants.PAYABLE_FROM_CONTRACT, Type.VOID, payableFromContractArgs, Const.INVOKESTATIC));
 			}
 		}
 		else if (!superconstructorIsFromContract) {
@@ -213,7 +220,8 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 			if (callerContract != classLoader.getContract())
 				il.insert(start, factory.createCast(CONTRACT_OT, Type.getType(callerContract)));
 
-			il.insert(where, factory.createInvoke(WhitelistingConstants.RUNTIME_NAME, InstrumentationConstants.FROM_CONTRACT, Type.VOID, FROM_CONTRACT_ARGS, Const.INVOKESTATIC));
+			il.insert(where, factory.createInvoke(WhitelistingConstants.RUNTIME_NAME,
+				InstrumentationConstants.FROM_CONTRACT, Type.VOID, FROM_CONTRACT_ARGS, Const.INVOKESTATIC));
 		}
 		else if (callerContract != classLoader.getContract()) {
 			il.insert(start, InstructionFactory.createLoad(CONTRACT_OT, slotForCaller));
@@ -247,28 +255,32 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 	}
 
 	/**
-	 * From contract constructors {@link io.takamaka.code.lang.Storage#fromContract(io.takamaka.code.lang.Contract)} or
+	 * From contract code call {@link io.takamaka.code.lang.Storage#fromContract(io.takamaka.code.lang.Contract)} or
 	 * {@link io.takamaka.code.lang.Contract#payableFromContract(io.takamaka.code.lang.Contract, BigInteger)} at their
-	 * beginning, to set the caller and the balance of the called entry. In general,
+	 * beginning, to set the caller and the balance of the called code. In general,
 	 * such call can be placed at the very beginning of the code. The only problem
 	 * is related to constructors, that require (by JVM constraints)
 	 * their code to start with a call to a
 	 * constructor of their superclass. In that case, this method finds that call:
 	 * after that, we can add the call that sets caller and balance.
 	 * 
-	 * @param il the list of instructions of the entry
-	 * @param constructor the from contract constructor
-	 * @param slotForCaller the local where the caller contract is passed to the entry
-	 * @param isConstructorOfInstanceInnerClass true if and only if the {@code constructor} belongs to an instance inner class
+	 * @param constructor the {@code @@FromContract} constructor
+	 * @param il the list of instructions of the {@code constructor}
+	 * @param slotForCaller the local where the caller is passed to {@code constructor}
+	 * @param isConstructorOfInstanceInnerClass true if and only if {@code constructor} belongs to an instance inner class
 	 * @return the instruction before which the code that sets caller and balance can be placed
 	 * @throws IllegalJarException if the jar under instrumentation is illegal
 	 */
-	private InstructionHandle callToSuperConstructor(InstructionList il, MethodGen constructor, int slotForCaller, boolean isConstructorOfInstanceInnerClass) throws IllegalJarException {
+	private InstructionHandle callToSuperConstructor(MethodGen constructor, InstructionList il, int slotForCaller, boolean isConstructorOfInstanceInnerClass) throws IllegalJarException {
 		InstructionHandle start = il.getStart();
 
 		// we skip the initial aload_0 aload_1 putfield this$0
-		if (isConstructorOfInstanceInnerClass)
+		if (isConstructorOfInstanceInnerClass) {
+			if (il.getLength() <= 3)
+				throw new IllegalJarException("Unexpectely short constructor code");
+
 			start = il.getInstructionHandles()[3];
+		}
 
 		// we have to identify the call to the constructor of the superclass:
 		// the code of a constructor normally starts with an aload_0 whose value is consumed
@@ -279,7 +291,7 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 		// this method fails and rejects the code: such non-standard code is not supported by Takamaka
 		Instruction startInstruction = start.getInstruction();
 		if (startInstruction instanceof LoadInstruction li && li.getIndex() == 0) {
-			var callsForConstructorChaining = new HashSet<InstructionHandle>();
+			InstructionHandle callsForConstructorChaining = null;
 			var seed = new HeightAtBytecode(start.getNext(), 1);
 			var seen = new HashSet<HeightAtBytecode>();
 			seen.add(seed);
@@ -288,15 +300,14 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 
 			do {
 				HeightAtBytecode current = workingSet.remove(workingSet.size() - 1);
-				int stackHeightAfterBytecode = current.stackHeightBeforeBytecode;
+				int stackHeightAfterBytecode = current.stackHeightAfterBytecode;
 				Instruction bytecode = current.ih.getInstruction();
 
 				if (bytecode instanceof StoreInstruction si) {
 					int modifiedLocal = si.getIndex();
 					int size = si.getType(cpg).getSize();
 					if (modifiedLocal == slotForCaller || (size == 2 && modifiedLocal == slotForCaller - 1))
-						throw new IllegalJarException("Unexpected modification of local " + slotForCaller
-								+ " before initialization of " + className);
+						throw new IllegalJarException("Unexpected modification of local " + slotForCaller + " before the initialization of " + className);
 				}
 
 				stackHeightAfterBytecode += bytecode.produceStack(cpg);
@@ -306,8 +317,12 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 					// found a consumer of the aload_0: is it really a call to a constructor of the superclass or of the same class?
 					if (bytecode instanceof INVOKESPECIAL invokespecial
 							&& (invokespecial.getClassName(cpg).equals(getSuperclassName()) || invokespecial.getClassName(cpg).equals(className))
-							&& invokespecial.getMethodName(cpg).equals(Const.CONSTRUCTOR_NAME))
-						callsForConstructorChaining.add(current.ih);
+							&& Const.CONSTRUCTOR_NAME.equals(invokespecial.getMethodName(cpg))) {
+						if (callsForConstructorChaining == null)
+							callsForConstructorChaining = current.ih;
+						else
+							throw new IllegalJarException("Cannot identify a unique call to constructor chaining inside a constructor ot " + className);
+					}
 					else
 						throw new IllegalJarException("Unexpected consumer of local 0 " + bytecode + " before initialization of " + className);
 				}
@@ -320,6 +335,7 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 					var added = new HeightAtBytecode(current.ih.getNext(), stackHeightAfterBytecode);
 					if (seen.add(added))
 						workingSet.add(added);
+
 					added = new HeightAtBytecode(ii.getTarget(), stackHeightAfterBytecode);
 					if (seen.add(added))
 						workingSet.add(added);
@@ -331,13 +347,16 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 					if (seen.add(added))
 						workingSet.add(added);
 				}
+
+				if (seen.size() > MAX_BYTECODES)
+					throw new IllegalJarException("The lookup for the call to the superconstructor is too complex: I give up");
 			}
 			while (!workingSet.isEmpty());
 
-			if (callsForConstructorChaining.size() == 1)
-				return callsForConstructorChaining.iterator().next();
+			if (callsForConstructorChaining != null)
+				return callsForConstructorChaining;
 			else
-				throw new IllegalJarException("Cannot identify single call to constructor chaining inside a constructor ot " + className);
+				throw new IllegalJarException("Cannot identify any call to constructor chaining inside a constructor ot " + className);
 		}
 		else
 			throw new IllegalJarException("Constructor of " + className + " does not start with aload 0");
@@ -376,27 +395,33 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 
 	private static class HeightAtBytecode {
 		private final InstructionHandle ih;
-		private final int stackHeightBeforeBytecode;
+		private final int stackHeightAfterBytecode;
 
-		private HeightAtBytecode(InstructionHandle ih, int stackHeightBeforeBytecode) {
+		private HeightAtBytecode(InstructionHandle ih, int stackHeightAfterBytecode) throws IllegalJarException {
+			if (ih == null)
+				throw new IllegalJarException("Unexpected end of code");
+
+			if (stackHeightAfterBytecode < 0)
+				throw new IllegalJarException("Unexpected negative stack height");
+
 			this.ih = ih;
-			this.stackHeightBeforeBytecode = stackHeightBeforeBytecode;
+			this.stackHeightAfterBytecode = stackHeightAfterBytecode;
 		}
 
 		@Override
 		public String toString() {
-			return ih + " with " + stackHeightBeforeBytecode + " stack elements";
+			return ih + " with " + stackHeightAfterBytecode + " stack elements";
 		}
 
 		@Override
 		public boolean equals(Object other) {
 			return other instanceof HeightAtBytecode hab && hab.ih == ih
-				&& hab.stackHeightBeforeBytecode == stackHeightBeforeBytecode;
+				&& hab.stackHeightAfterBytecode == stackHeightAfterBytecode;
 		}
 
 		@Override
 		public int hashCode() {
-			return ih.getPosition() ^ stackHeightBeforeBytecode;
+			return ih.getPosition() ^ stackHeightAfterBytecode;
 		}
 	}
 }
