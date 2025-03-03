@@ -213,9 +213,10 @@ public class DesugarBootstrapsInvokingFromContract extends ClassLevelInstrumenta
 	private void makeFromStaticToInstance(MethodGen method) {
 		method.isStatic(false);
 
-		if (!method.isAbstract()) {
+		var il = method.getInstructionList();
+		if (il != null) {
 			// we increase the indexes of the local variables used in the method
-			for (InstructionHandle ih: method.getInstructionList())
+			for (InstructionHandle ih: il)
 				if (ih.getInstruction() instanceof LocalVariableInstruction lvi) {
 					int index = lvi.getIndex();
 

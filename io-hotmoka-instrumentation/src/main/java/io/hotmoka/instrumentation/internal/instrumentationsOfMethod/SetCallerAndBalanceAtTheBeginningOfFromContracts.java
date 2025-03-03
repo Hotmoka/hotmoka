@@ -277,7 +277,7 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 		// we skip the initial aload_0 aload_1 putfield this$0
 		if (isConstructorOfInstanceInnerClass) {
 			if (il.getLength() <= 3)
-				throw new IllegalJarException("Unexpectely short constructor code");
+				throw new IllegalJarException("Unexpectedly short constructor code");
 
 			start = il.getInstructionHandles()[3];
 		}

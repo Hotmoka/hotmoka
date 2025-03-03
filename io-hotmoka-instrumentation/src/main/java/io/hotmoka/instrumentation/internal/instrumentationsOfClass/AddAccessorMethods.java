@@ -76,6 +76,7 @@ public class AddAccessorMethods extends ClassLevelInstrumentation {
 		il.append(factory.createPutField(className, field.getName(), type));
 		il.append(InstructionConst.RETURN);
 
+		// the code has been verified, hence there is no name clash with this field
 		addMethod(new MethodGen(PUBLIC_SYNTHETIC_FINAL, BasicType.VOID, new Type[] { type }, null, setterNameFor(className, field.getName()), className, il, cpg));
 	}
 
@@ -93,6 +94,7 @@ public class AddAccessorMethods extends ClassLevelInstrumentation {
 		il.append(factory.createGetField(className, field.getName(), type));
 		il.append(InstructionFactory.createReturn(type));
 
+		// the code has been verified, hence there is no name clash with this field
 		addMethod(new MethodGen(PUBLIC_SYNTHETIC_FINAL, type, Type.NO_ARGS, null, getterNameFor(className, field.getName()), className, il, cpg));
 	}
 }

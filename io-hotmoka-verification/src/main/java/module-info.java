@@ -24,4 +24,5 @@ module io.hotmoka.verification {
 	requires transitive io.hotmoka.verification.api;
 	requires io.takamaka.code.constants;
 	requires io.hotmoka.whitelisting;
+	requires org.apache.bcel;
 }

@@ -23,7 +23,7 @@
     <dependency>
       <groupId>org.apache.bcel</groupId>
       <artifactId>bcel</artifactId>
-      <version>6.7.0</version>
+      <version>${bcel.version}</version>
 	</dependency>
   </dependencies>
 

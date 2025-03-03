@@ -230,8 +230,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 				this.isInterface = classLoader.isInterface(className);
 			}
 			catch (ClassNotFoundException e) {
-				// this should never happen since the class is in the jar of the classloader
-				throw new RuntimeException(e);
+				throw new IllegalJarException(e);
 			}
 
 			partitionFieldsIfStorageClass();
@@ -265,15 +264,15 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		/**
 		 * Partitions the fields of a storage class into eager and lazy.
 		 * If the class is not storage, it does not do anything.
+		 * @throws IllegalJarException if the jar under instrumentation is illegal
 		 */
-		private void partitionFieldsIfStorageClass() {
+		private void partitionFieldsIfStorageClass() throws IllegalJarException {
 			if (isStorage) {
 				try {
 					collectNonTransientInstanceFieldsOf(classLoader.loadClass(classGen.getClassName()), true);
 				}
 				catch (ClassNotFoundException e) {
-					// this should never happen since the class is in the jar of the classloader
-					throw new RuntimeException(e);
+					throw new IllegalJarException(e);
 				}
 			}
 		}

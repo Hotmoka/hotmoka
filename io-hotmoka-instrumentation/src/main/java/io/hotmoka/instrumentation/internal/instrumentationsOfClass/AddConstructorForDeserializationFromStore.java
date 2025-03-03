@@ -121,8 +121,12 @@ public class AddConstructorForDeserializationFromStore extends ClassLevelInstrum
 
 		var pushLoad = new PushLoad();
 		// we push the value of all eager fields but in superclasses only
-		eagerNonTransientInstanceFields.stream().limit(eagerNonTransientInstanceFields.size() - 1)
-			.flatMap(SortedSet::stream).map(Field::getType).map(Type::getType).forEachOrdered(pushLoad);
+		eagerNonTransientInstanceFields.stream()
+			.limit(eagerNonTransientInstanceFields.size() - 1)
+			.flatMap(SortedSet::stream)
+			.map(Field::getType)
+			.map(Type::getType)
+			.forEachOrdered(pushLoad);
 
 		if (!Constants.STORAGE_NAME.equals(className)) {
 			// we pass null for the dummy argument

@@ -21,10 +21,10 @@
       <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
-	  <groupId>it.univr.bcel</groupId>
-  	  <artifactId>it-univr-bcel</artifactId>
-      <version>1.2.1</version>
-    </dependency>
+      <groupId>org.apache.bcel</groupId>
+      <artifactId>bcel</artifactId>
+      <version>${bcel.version}</version>
+	</dependency>
   </dependencies>
 
   <profiles>

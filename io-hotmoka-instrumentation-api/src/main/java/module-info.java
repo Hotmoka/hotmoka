@@ -20,5 +20,5 @@ limitations under the License.
 module io.hotmoka.instrumentation.api {
 	exports io.hotmoka.instrumentation.api;
 	requires io.hotmoka.verification.api;
-	requires transitive it.univr.bcel;
+	requires transitive org.apache.bcel;
 }

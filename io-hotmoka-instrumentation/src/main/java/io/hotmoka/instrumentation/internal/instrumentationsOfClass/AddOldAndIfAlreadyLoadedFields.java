@@ -55,6 +55,7 @@ public class AddOldAndIfAlreadyLoadedFields extends ClassLevelInstrumentation {
 	 * @param field the field of the storage class
 	 */
 	private void addOldFieldFor(Field field) {
+		// no name clash since the code has been verified
 		addField(new FieldGen(PRIVATE_SYNTHETIC_TRANSIENT, Type.getType(field.getType()), InstrumentationFields.OLD_PREFIX + field.getName(), cpg).getField());
 	}
 
@@ -64,6 +65,7 @@ public class AddOldAndIfAlreadyLoadedFields extends ClassLevelInstrumentation {
 	 * @param field the field of the storage class
 	 */
 	private void addIfAlreadyLoadedFieldFor(Field field) {
+		// no name clash since the code has been verified
 		addField(new FieldGen(PRIVATE_SYNTHETIC_TRANSIENT, BasicType.BOOLEAN, InstrumentationConstants.IF_ALREADY_LOADED_PREFIX + field.getName(), cpg).getField());
 	}
 }
