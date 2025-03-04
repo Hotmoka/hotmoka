@@ -17,15 +17,15 @@ limitations under the License.
 package io.hotmoka.patricia.api;
 
 /**
- * An abstraction of a store that persists the nodes of a Patricia tree.
+ * An abstraction of a key/value persistent store of a Patricia tree.
  */
 public interface KeyValueStore {
 
 	/**
-	 * Persists an association of a key to a value in this store.
+	 * Persists a key/value association in this store.
 	 * It replaces it if it was already present.
 	 * 
-	 * @param key the key; this might be missing in this store, in which case nothing happens
+	 * @param key the key
 	 * @param value the value
 	 * @throws KeyValueStoreException if this key/value store is not able to complete the operation
 	 */

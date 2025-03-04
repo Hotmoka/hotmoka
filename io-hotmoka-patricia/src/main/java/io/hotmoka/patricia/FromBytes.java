@@ -32,5 +32,5 @@ public interface FromBytes<Value> {
 	 * @return the value unmarshalled from the bytes
 	 * @throws IOException if unmarshalling fails
 	 */
-	Value get(byte [] bytes) throws IOException;
+	Value get(byte[] bytes) throws IOException;
 }

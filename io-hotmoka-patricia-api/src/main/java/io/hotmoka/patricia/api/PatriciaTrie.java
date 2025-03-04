@@ -18,13 +18,16 @@ package io.hotmoka.patricia.api;
 
 import java.util.Optional;
 
+import io.hotmoka.annotations.Immutable;
+
 /**
  * A Merkle-Patricia trie.
  * 
  * @param <Key> the type of the keys of the trie
  * @param <Value> the type of the values of the trie
- * @param <T> the type of this trie
+ * @param <T> the type of the trie itself
  */
+@Immutable
 public interface PatriciaTrie<Key, Value, T extends PatriciaTrie<Key, Value, T>> {
 
 	/**

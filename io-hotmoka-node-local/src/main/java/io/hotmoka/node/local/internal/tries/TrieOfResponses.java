@@ -75,6 +75,16 @@ public class TrieOfResponses extends AbstractPatriciaTrie<TransactionReference, 
 	}
 
 	@Override
+	protected void malloc() throws TrieException {
+		super.malloc();
+	}
+
+	@Override
+	protected void free() throws TrieException {
+		super.free();
+	}
+
+	@Override
 	public Optional<TransactionResponse> get(TransactionReference key) throws TrieException {
 		Optional<TransactionResponse> maybeResponse = super.get(key);
 		if (maybeResponse.isPresent())

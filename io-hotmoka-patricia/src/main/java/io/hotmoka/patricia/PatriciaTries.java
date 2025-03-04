@@ -33,9 +33,9 @@ public final class PatriciaTries {
 
 	/**
 	 * Yields a Merkle-Patricia trie supported by the underlying store,
-	 * using the given hashing algorithm to hash nodes, keys and the values.
+	 * using the given hashing algorithms to hash nodes, keys and the values.
 	 * 
-	 * @param store the store used to store the nodes of the tree, as a mapping from nodes' hashes
+	 * @param store the store used to store the nodes of the trie, as a mapping from nodes' hashes
 	 *              to the marshalled representation of the nodes
 	 * @param root the root of the trie
 	 * @param hasherForKeys the hasher for the keys

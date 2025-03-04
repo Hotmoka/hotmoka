@@ -37,7 +37,7 @@ public class PatriciaTrieImpl<Key, Value> extends AbstractPatriciaTrie<Key, Valu
 	 * Creates a new Merkle-Patricia trie supported by the given underlying store,
 	 * using the given hashing algorithms to hash nodes and values.
 	 * 
-	 * @param store the store used to store the nodes of the tree, as a mapping from nodes' hashes
+	 * @param store the store used to store the nodes of the trie, as a mapping from nodes' hashes
 	 *              to the marshalled representation of the nodes
 	 * @param root the root of the trie
 	 * @param hasherForKeys the hasher for the keys
@@ -61,7 +61,7 @@ public class PatriciaTrieImpl<Key, Value> extends AbstractPatriciaTrie<Key, Valu
 	 * @param cloned the trie to clone
 	 * @param root the root to use in the cloned trie
 	 * @throws TrieException if the creation cannot be completed correctly
-	 * @throws UnknownKeyException 
+	 * @throws UnknownKeyException if {@code root} is unknown in the store of the trie
 	 */
 	private PatriciaTrieImpl(PatriciaTrieImpl<Key, Value> cloned, byte[] root) throws TrieException, UnknownKeyException {
 		super(cloned, root);

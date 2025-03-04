@@ -54,6 +54,16 @@ public class TrieOfRequests extends AbstractPatriciaTrie<TransactionReference, T
 	}
 
 	@Override
+	protected void malloc() throws TrieException {
+		super.malloc();
+	}
+
+	@Override
+	protected void free() throws TrieException {
+		super.free();
+	}
+
+	@Override
 	public TrieOfRequests checkoutAt(byte[] root) throws TrieException, UnknownKeyException {
 		return new TrieOfRequests(this, root);
 	}

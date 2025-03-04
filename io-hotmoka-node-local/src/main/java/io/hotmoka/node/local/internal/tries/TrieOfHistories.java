@@ -51,6 +51,16 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 			sha256(), new byte[32], TrieOfHistories::historyToBytes, TrieOfHistories::bytesToHistory);
 	}
 
+	@Override
+	protected void malloc() throws TrieException {
+		super.malloc();
+	}
+
+	@Override
+	protected void free() throws TrieException {
+		super.free();
+	}
+
 	private static byte[] historyToBytes(Stream<TransactionReference> history) {
 		TransactionReference[] toConcat = history.toArray(TransactionReference[]::new);
 		int requestHashLength = TransactionReference.REQUEST_HASH_LENGTH;

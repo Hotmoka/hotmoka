@@ -55,6 +55,16 @@ public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue, TrieOfI
 	}
 
 	@Override
+	protected void malloc() throws TrieException {
+		super.malloc();
+	}
+
+	@Override
+	protected void free() throws TrieException {
+		super.free();
+	}
+
+	@Override
 	public TrieOfInfo checkoutAt(byte[] root) throws TrieException, UnknownKeyException {
 		return new TrieOfInfo(this, root);
 	}
