@@ -30,7 +30,6 @@ import io.hotmoka.node.api.updates.UpdateOfBoolean;
 import io.hotmoka.node.api.updates.UpdateOfByte;
 import io.hotmoka.node.api.updates.UpdateOfChar;
 import io.hotmoka.node.api.updates.UpdateOfDouble;
-import io.hotmoka.node.api.updates.UpdateOfEnum;
 import io.hotmoka.node.api.updates.UpdateOfFloat;
 import io.hotmoka.node.api.updates.UpdateOfInt;
 import io.hotmoka.node.api.updates.UpdateOfLong;
@@ -49,7 +48,6 @@ import io.hotmoka.node.internal.updates.UpdateOfBooleanImpl;
 import io.hotmoka.node.internal.updates.UpdateOfByteImpl;
 import io.hotmoka.node.internal.updates.UpdateOfCharImpl;
 import io.hotmoka.node.internal.updates.UpdateOfDoubleImpl;
-import io.hotmoka.node.internal.updates.UpdateOfEnumImpl;
 import io.hotmoka.node.internal.updates.UpdateOfFloatImpl;
 import io.hotmoka.node.internal.updates.UpdateOfIntImpl;
 import io.hotmoka.node.internal.updates.UpdateOfLongImpl;
@@ -195,20 +193,6 @@ public abstract class Updates {
 	 */
 	public static UpdateOfString ofString(StorageReference object, FieldSignature field, String value) {
 		return new UpdateOfStringImpl(object, field, value);
-	}
-
-	/**
-	 * Yields an update of an enumeration field.
-	 * 
-	 * @param object the storage reference of the object whose field is modified
-	 * @param field the field that is modified
-	 * @param enumClassName the name of the enumeration class whose element is being assigned to the field
-	 * @param name the name of the enumeration value put as new value of the field
-	 * @param eager true if and only if the update is eager
-	 * @return the update
-	 */
-	public static UpdateOfEnum ofEnum(StorageReference object, FieldSignature field, String enumClassName, String name, boolean eager) {
-		return new UpdateOfEnumImpl(object, field, enumClassName, name, eager);
 	}
 
 	/**

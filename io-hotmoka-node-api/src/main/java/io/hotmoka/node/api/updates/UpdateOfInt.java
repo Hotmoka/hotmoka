@@ -20,7 +20,7 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.node.api.values.IntValue;
 
 /**
- * An update of a field of type {@code boolean}.
+ * An update of a field of type {@code int}.
  */
 @Immutable
 public interface UpdateOfInt extends UpdateOfField {

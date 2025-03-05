@@ -23,7 +23,6 @@ import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.api.updates.Update;
-import io.hotmoka.node.api.updates.UpdateOfEnum;
 import io.hotmoka.node.api.updates.UpdateOfField;
 import io.hotmoka.node.api.updates.UpdateToNull;
 import io.hotmoka.node.api.values.BigIntegerValue;
@@ -31,7 +30,6 @@ import io.hotmoka.node.api.values.BooleanValue;
 import io.hotmoka.node.api.values.ByteValue;
 import io.hotmoka.node.api.values.CharValue;
 import io.hotmoka.node.api.values.DoubleValue;
-import io.hotmoka.node.api.values.EnumValue;
 import io.hotmoka.node.api.values.FloatValue;
 import io.hotmoka.node.api.values.IntValue;
 import io.hotmoka.node.api.values.LongValue;
@@ -74,8 +72,7 @@ public abstract class UpdateJson implements JsonRepresentation<Update> {
 	private final TransactionReferences.Json jar;
 
 	/**
-	 * True if and only if the update is eager: this exists only for updates of fields
-	 * of enumeration type or for updates to {@code null}.
+	 * True if and only if the update is eager: this exists only for updates to {@code null}.
 	 */
 	private final Boolean eager;
 
@@ -93,9 +90,7 @@ public abstract class UpdateJson implements JsonRepresentation<Update> {
 			this.field = new FieldSignatures.Json(uof.getField());
 			this.value = new StorageValues.Json(uof.getValue());
 
-			if (update instanceof UpdateOfEnum uoe)
-				this.eager = uoe.isEager();
-			else if (update instanceof UpdateToNull utn)
+			if (update instanceof UpdateToNull utn)
 				this.eager = utn.isEager();
 			else
 				this.eager = null;
@@ -131,8 +126,6 @@ public abstract class UpdateJson implements JsonRepresentation<Update> {
 			return Updates.ofChar(object, field, cv.getValue());
 		else if (value instanceof DoubleValue dv)
 			return Updates.ofDouble(object, field, dv.getValue());
-		else if (value instanceof EnumValue ev)
-			return Updates.ofEnum(object, field, ev.getEnumClassName(), ev.getName(), eager);
 		else if (value instanceof FloatValue fv)
 			return Updates.ofFloat(object, field, fv.getValue());
 		else if (value instanceof IntValue iv)

@@ -28,7 +28,7 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.responses.MethodCallTransactionExceptionResponse;
 import io.hotmoka.node.api.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
-import io.hotmoka.node.api.responses.MethodCallTransactionSuccessfulResponse;
+import io.hotmoka.node.api.responses.NonVoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageValue;
 
@@ -75,7 +75,7 @@ public class MethodFutureImpl implements MethodFuture {
 	}
 
 	private final StorageValue getOutcome(MethodCallTransactionResponse response) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		if (response instanceof MethodCallTransactionSuccessfulResponse mctsr)
+		if (response instanceof NonVoidMethodCallTransactionSuccessfulResponse mctsr)
 			return mctsr.getResult();
 		else if (response instanceof MethodCallTransactionExceptionResponse mcter)
 			throw new CodeExecutionException(mcter.getClassNameOfCause(), mcter.getMessageOfCause(), mcter.getWhere());

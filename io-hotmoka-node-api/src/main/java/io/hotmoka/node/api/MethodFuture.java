@@ -22,7 +22,7 @@ import io.hotmoka.node.api.values.StorageValue;
 
 /**
  * The future of a transaction that executes a method in a node.
- * It yields an optional value, since void method return non value.
+ * It yields an optional value, since {@code void} method return non value.
  */
 public interface MethodFuture extends CodeFuture<Optional<StorageValue>> {
 }

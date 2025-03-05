@@ -53,7 +53,7 @@ public interface NonInitialTransactionRequest<R extends NonInitialTransactionRes
 	BigInteger getGasPrice();
 
 	/**
-	 * Yields the class path that specifies where the {@code caller} should be interpreted.
+	 * Yields the class path that specifies where the caller should be interpreted.
 	 * 
 	 * @return the class path
 	 */

@@ -69,7 +69,7 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.MethodCallTransactionExceptionResponse;
 import io.hotmoka.node.api.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
-import io.hotmoka.node.api.responses.MethodCallTransactionSuccessfulResponse;
+import io.hotmoka.node.api.responses.NonVoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponseWithUpdates;
 import io.hotmoka.node.api.signatures.FieldSignature;
@@ -724,7 +724,7 @@ public abstract class ExecutionEnvironment {
 	}
 
 	private Optional<StorageValue> getOutcome(MethodCallTransactionResponse response) throws CodeExecutionException, TransactionException {
-		if (response instanceof MethodCallTransactionSuccessfulResponse mctsr)
+		if (response instanceof NonVoidMethodCallTransactionSuccessfulResponse mctsr)
 			return Optional.of(mctsr.getResult());
 		else if (response instanceof MethodCallTransactionExceptionResponse mcter)
 			throw new CodeExecutionException(mcter.getClassNameOfCause(), mcter.getMessageOfCause(), mcter.getWhere());

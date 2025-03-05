@@ -19,7 +19,7 @@ package io.hotmoka.node.api.responses;
 import io.hotmoka.annotations.Immutable;
 
 /**
- * A response for a transaction that should call a method in blockchain.
+ * A response for a transaction that should call a method in a node.
  */
 @Immutable
 public interface MethodCallTransactionResponse extends CodeExecutionTransactionResponse {

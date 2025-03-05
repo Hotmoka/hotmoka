@@ -20,7 +20,7 @@ import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * The information to control an account of a Hotmoka node.
- * One needs the entropy from which the key pair can be reconstructed and
+ * It contains the entropy from which the key pair can be reconstructed and
  * the storage reference of the account in the store of the node.
  */
 public interface Account extends io.hotmoka.crypto.api.Account<StorageReference> {

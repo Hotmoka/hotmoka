@@ -68,7 +68,7 @@ public interface ConsensusConfigBuilder<C extends ConsensusConfig<C,B>, B extend
 	B allowUnsignedFaucet(boolean allowsUnsignedFaucet);
 
 	/**
-	 * Specifies to signature algorithm to use to sign the requests sent to the node.
+	 * Specifies the signature algorithm to use to sign the requests sent to the node.
 	 * It defaults to ed25519;
 	 * 
 	 * @param signature the signature algorithm
@@ -105,7 +105,7 @@ public interface ConsensusConfigBuilder<C extends ConsensusConfig<C,B>, B extend
 	B setTargetGasAtReward(BigInteger targetGasAtReward);
 
 	/**
-	 * Sets how quick the gas consumed at previous rewards is forgotten:
+	 * Sets how quickly the gas consumed at previous rewards is forgotten:
 	 * 0 means never, 1_000_000 means immediately.
 	 * Hence a smaller level means that the latest rewards are heavier
 	 * in the determination of the gas price.
@@ -184,7 +184,7 @@ public interface ConsensusConfigBuilder<C extends ConsensusConfig<C,B>, B extend
 	B setFinalSupply(BigInteger finalSupply);
 
 	/**
-	 * Sets the amount of coins that must be payed to start a new poll amount
+	 * Sets the amount of coins that must be paid to start a new poll amount
 	 * to validators, for instance to change a consensus parameter.
 	 * It defaults to 100.
 	 * 

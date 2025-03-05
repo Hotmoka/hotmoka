@@ -22,7 +22,7 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 
 /**
- * A request to initialize a node. It sets the manifest of a node.
+ * A request to initialize a node. It sets the manifest of the node.
  * After the manifest has been set, no more initial transactions can be executed,
  * hence the node is considered initialized. The manifest cannot be set twice.
  */
@@ -30,8 +30,8 @@ import io.hotmoka.node.api.values.StorageReference;
 public interface InitializationTransactionRequest extends InitialTransactionRequest<InitializationTransactionResponse> {
 
 	/**
-	 * Yields the reference to the jar containing the basic Takamaka classes. This must
-	 * have been already installed by a previous transaction.
+	 * Yields the classpath of the transactions, that will be set as jar reaching the basic Takamaka classes.
+	 * This must have been already installed by a previous transaction.
 	 * 
 	 * @return the reference
 	 */

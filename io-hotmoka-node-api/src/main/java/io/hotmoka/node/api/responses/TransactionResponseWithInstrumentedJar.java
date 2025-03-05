@@ -21,7 +21,7 @@ import java.util.stream.Stream;
 import io.hotmoka.node.api.transactions.TransactionReference;
 
 /**
- * A response for a transaction that successfully installed a jar in the blockchain.
+ * A response for a transaction that successfully installed a jar in a node.
  */
 public interface TransactionResponseWithInstrumentedJar extends TransactionResponse {
 
@@ -40,7 +40,7 @@ public interface TransactionResponseWithInstrumentedJar extends TransactionRespo
 	int getInstrumentedJarLength();
 
 	/**
-	 * Yields the dependencies of the jar, previously installed in blockchain.
+	 * Yields the dependencies of the jar, previously installed in the store of the node.
 	 * 
 	 * @return the dependencies
 	 */

@@ -20,7 +20,7 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.node.api.values.StorageReference;
 
 /**
- * A response for a transaction that installs a jar in a yet non-initialized blockchain.
+ * A response for a transaction that created a gamete in a yet non-initialized blockchain.
  */
 @Immutable
 public interface GameteCreationTransactionResponse extends InitialTransactionResponse, TransactionResponseWithUpdates {

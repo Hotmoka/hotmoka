@@ -27,7 +27,6 @@ import io.hotmoka.node.api.values.BooleanValue;
 import io.hotmoka.node.api.values.ByteValue;
 import io.hotmoka.node.api.values.CharValue;
 import io.hotmoka.node.api.values.DoubleValue;
-import io.hotmoka.node.api.values.EnumValue;
 import io.hotmoka.node.api.values.FloatValue;
 import io.hotmoka.node.api.values.IntValue;
 import io.hotmoka.node.api.values.LongValue;
@@ -45,7 +44,6 @@ import io.hotmoka.node.internal.values.BooleanValueImpl;
 import io.hotmoka.node.internal.values.ByteValueImpl;
 import io.hotmoka.node.internal.values.CharValueImpl;
 import io.hotmoka.node.internal.values.DoubleValueImpl;
-import io.hotmoka.node.internal.values.EnumValueImpl;
 import io.hotmoka.node.internal.values.FloatValueImpl;
 import io.hotmoka.node.internal.values.IntValueImpl;
 import io.hotmoka.node.internal.values.LongValueImpl;
@@ -184,17 +182,6 @@ public abstract class StorageValues {
 	 */
 	public static StringValue stringOf(String value) {
 		return new StringValueImpl(value);
-	}
-
-	/**
-	 * Yields the storage value corresponding to the given enumeration element.
-	 * 
-	 * @param enumClassName the name of the class of the enumeration
-	 * @param name the name of the enumeration element
-	 * @return the corresponding enumeration element value
-	 */
-	public static EnumValue enumElementOf(String enumClassName, String name) {
-		return new EnumValueImpl(enumClassName, name);
 	}
 
 	/**

@@ -30,7 +30,7 @@ public interface TransactionReference extends Marshallable, Serializable, Compar
 	/**
 	 * The length of the hash of a transaction reference.
 	 */
-	public final static int REQUEST_HASH_LENGTH = 32;
+	public final static int REQUEST_HASH_LENGTH = 32; // TODO: maybe this can be generalized?
 
 	/**
 	 * Yields the hash of the request.

@@ -29,7 +29,7 @@ public interface BasicType extends StorageType {
 	 * 
 	 * @return the ordinal number, from 0 to 8, according to the order:
 	 *         {@code boolean}, {@code byte}, {@code char},
-	 *         {@code short}, {@code int}, {@code long}, {@code flota}, {@code double}
+	 *         {@code short}, {@code int}, {@code long}, {@code float}, {@code double}
 	 */
 	byte ordinal();
 }

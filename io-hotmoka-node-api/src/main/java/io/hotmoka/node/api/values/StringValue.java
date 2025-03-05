@@ -19,7 +19,7 @@ package io.hotmoka.node.api.values;
 import io.hotmoka.annotations.Immutable;
 
 /**
- * A string stored in blockchain.
+ * A string stored in the store of a Hotmoka node.
  */
 @Immutable
 public interface StringValue extends StorageValue {

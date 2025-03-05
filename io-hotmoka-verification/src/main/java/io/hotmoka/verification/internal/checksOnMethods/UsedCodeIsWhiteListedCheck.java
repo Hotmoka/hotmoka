@@ -72,12 +72,12 @@ public class UsedCodeIsWhiteListedCheck extends CheckOnMethods {
 					// the call seems not resolvable
 					ReferenceType receiverType = invoke.getReferenceType(cpg);
 					String receiverClassName = receiverType instanceof ObjectType ot ? ot.getClassName() : "java.lang.Object";
-					String methodName = invoke.getMethodName(cpg);
+					String calledMethodName = invoke.getMethodName(cpg);
 
-					if (invoke instanceof INVOKESPECIAL && Const.CONSTRUCTOR_NAME.equals(methodName))
+					if (invoke instanceof INVOKESPECIAL && Const.CONSTRUCTOR_NAME.equals(calledMethodName))
 						issue(new IllegalCallToNonWhiteListedConstructorError(inferSourceFile(), methodName, lineOf(ih), receiverClassName));
 					else
-						issue(new IllegalCallToNonWhiteListedMethodError(inferSourceFile(), methodName, lineOf(ih), receiverClassName, methodName));
+						issue(new IllegalCallToNonWhiteListedMethodError(inferSourceFile(), methodName, lineOf(ih), receiverClassName, calledMethodName));
 				}
 			}
 		}

@@ -19,7 +19,8 @@ package io.hotmoka.node.api;
 import java.util.Objects;
 
 /**
- * An exception stating that the execution of a method of a node failed to complete correctly.
+ * An exception stating that a Hotmoka node was not able to perform an operation.
+ * This is not a bug in the code of the node, but a misbehavior or limit of the node.
  */
 @SuppressWarnings("serial")
 public class NodeException extends Exception {

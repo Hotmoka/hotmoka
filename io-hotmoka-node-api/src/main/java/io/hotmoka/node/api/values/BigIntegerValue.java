@@ -21,7 +21,7 @@ import java.math.BigInteger;
 import io.hotmoka.annotations.Immutable;
 
 /**
- * A big integer stored in blockchain.
+ * A big integer stored in the store of a Hotmoka node.
  */
 @Immutable
 public interface BigIntegerValue extends StorageValue {

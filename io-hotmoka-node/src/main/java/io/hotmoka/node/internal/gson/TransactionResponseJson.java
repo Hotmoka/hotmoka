@@ -35,7 +35,7 @@ import io.hotmoka.node.api.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.node.api.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.node.api.responses.MethodCallTransactionExceptionResponse;
 import io.hotmoka.node.api.responses.MethodCallTransactionFailedResponse;
-import io.hotmoka.node.api.responses.MethodCallTransactionSuccessfulResponse;
+import io.hotmoka.node.api.responses.NonVoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -246,8 +246,8 @@ public abstract class TransactionResponseJson implements JsonRepresentation<Tran
 			this.newObject = null;
 			this.result = null;
 		}
-		else if (response instanceof MethodCallTransactionSuccessfulResponse mctsr) {
-			this.type = MethodCallTransactionSuccessfulResponse.class.getSimpleName();
+		else if (response instanceof NonVoidMethodCallTransactionSuccessfulResponse mctsr) {
+			this.type = NonVoidMethodCallTransactionSuccessfulResponse.class.getSimpleName();
 			this.gamete = null;
 			this.updates = mctsr.getUpdates().map(Updates.Json::new).toArray(Updates.Json[]::new);;
 			this.instrumentedJar = null;
@@ -308,7 +308,7 @@ public abstract class TransactionResponseJson implements JsonRepresentation<Tran
 			return TransactionResponses.methodCallException(classNameOfCause, messageOfCause, where, convertedUpdates(), convertedEvents(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 		else if (MethodCallTransactionFailedResponse.class.getSimpleName().equals(type))
 			return TransactionResponses.methodCallFailed(classNameOfCause, messageOfCause, where, convertedUpdates(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
-		else if (MethodCallTransactionSuccessfulResponse.class.getSimpleName().equals(type))
+		else if (NonVoidMethodCallTransactionSuccessfulResponse.class.getSimpleName().equals(type))
 			return TransactionResponses.methodCallSuccessful(result.unmap(), convertedUpdates(), convertedEvents(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 		else if (VoidMethodCallTransactionSuccessfulResponse.class.getSimpleName().equals(type))
 			return TransactionResponses.voidMethodCallSuccessful(convertedUpdates(), convertedEvents(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);

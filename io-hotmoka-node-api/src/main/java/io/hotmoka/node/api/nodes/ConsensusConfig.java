@@ -71,6 +71,8 @@ public interface ConsensusConfig<C extends ConsensusConfig<C,B>, B extends Conse
 	 */
 	long getMaxCumulativeSizeOfDependencies();
 
+	// TODO: probably add the maximal size of an installed jar
+
 	/**
 	 * Yields true if and only if the use of the faucet of the gamete is allowed without a valid signature.
 	 * 
@@ -133,13 +135,13 @@ public interface ConsensusConfig<C extends ConsensusConfig<C,B>, B extends Conse
 	BigInteger getTargetGasAtReward();
 
 	/**
-	 * Yields how quick the gas consumed at previous rewards is forgotten:
+	 * Yields how quickly the gas consumed at previous rewards is forgotten:
 	 * 0 means never, 1_000_000 means immediately.
 	 * Hence a smaller level means that the latest rewards are heavier
 	 * in the determination of the gas price.
 	 * A value of 0 means that the gas price is constant.
 	 * 
-	 * @return how quick the gas consumed at previous rewards is forgotten:
+	 * @return how quickly the gas consumed at previous rewards is forgotten:
 	 *         0 means never, 1_000_000 means immediately
 	 */
 	long getOblivion();
@@ -176,10 +178,10 @@ public interface ConsensusConfig<C extends ConsensusConfig<C,B>, B extends Conse
 	BigInteger getFinalSupply();
 
 	/**
-	 * Yields the amount of coin to pay to start a new poll amount the voters,
+	 * Yields the amount of coins to pay to start a new poll amount the voters,
 	 * for instance in order to change a consensus parameter.
 	 * 
-	 * @return the amount of coin to pay to start a new poll
+	 * @return the amount of coins to pay to start a new poll
 	 */
 	BigInteger getTicketForNewPoll();
 

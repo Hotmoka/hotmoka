@@ -19,7 +19,7 @@ package io.hotmoka.node.api.responses;
 import io.hotmoka.annotations.Immutable;
 
 /**
- * A response for a failed transaction that should have called a method in blockchain.
+ * A response for a failed transaction that should have called a method in a node.
  */
 @Immutable
 public interface MethodCallTransactionFailedResponse extends MethodCallTransactionResponse, FailedTransactionResponse {

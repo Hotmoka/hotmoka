@@ -196,33 +196,8 @@ public class UpdatesExtractor {
 					updates.add(Updates.ofString(storageReference, field, s));
 				else if (newValue instanceof BigInteger bi)
 					updates.add(Updates.ofBigInteger(storageReference, field, bi));
-				else if (newValue instanceof Enum<?> e) {
-					var clazz = e.getClass();
-					if (hasInstanceFields(clazz))
-						throw new UpdatesExtractionException("Field " + field + " of a storage object cannot hold an enumeration of class " + clazz.getName() + ": it has instance non-transient fields");
-
-					updates.add(Updates.ofEnum(storageReference, field, clazz.getName(), e.name(), false));
-				}
 				else
-					throw new UpdatesExtractionException("Field " + field + " of a storage object cannot hold a " + newValue.getClass().getName()); // TODO: OK
-			}
-
-			/**
-			 * Determines if the given enumeration type has at least an instance, non-transient field.
-			 * 
-			 * @param clazz the class
-			 * @return true only if that condition holds
-			 * @throws StoreException if the operation cannot be completed
-			 */
-			private static boolean hasInstanceFields(Class<?> clazz) throws StoreException {
-				try {
-					return Stream.of(clazz.getDeclaredFields())
-							.map(Field::getModifiers)
-							.anyMatch(modifiers -> !Modifier.isStatic(modifiers) && !Modifier.isTransient(modifiers));
-				}
-				catch (SecurityException e) {
-					throw new StoreException(e);
-				}
+					throw new UpdatesExtractionException("Field " + field + " of a storage object cannot hold a " + newValue.getClass().getName());
 			}
 
 			/**
@@ -340,22 +315,6 @@ public class UpdatesExtractor {
 					updates.add(Updates.toNull(storageReference, field, true));
 				else
 					updates.add(Updates.ofBigInteger(storageReference, field, bi));
-			}
-
-			/**
-			 * Takes note that a field of enumeration type has changed its value and consequently adds it to the set of updates.
-			 * 
-			 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object or one of its superclasses
-			 * @param fieldName the name of the field
-			 * @param fieldClassName the name of the type of the field
-			 * @param element the value set to the field
-			 */
-			private void addUpdateFor(String fieldDefiningClass, String fieldName, String fieldClassName, Enum<?> element) {
-				FieldSignature field = FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.classNamed(fieldClassName));
-				if (element == null)
-					updates.add(Updates.toNull(storageReference, field, true));
-				else
-					updates.add(Updates.ofEnum(storageReference, field, element.getClass().getName(), element.name(), true));
 			}
 
 			/**

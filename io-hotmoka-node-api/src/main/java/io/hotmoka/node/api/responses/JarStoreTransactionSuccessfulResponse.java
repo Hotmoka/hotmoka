@@ -19,7 +19,7 @@ package io.hotmoka.node.api.responses;
 import io.hotmoka.annotations.Immutable;
 
 /**
- * A response for a successful transaction that installs a jar in a blockchain.
+ * A response for a successful transaction that installed a jar in a node.
  */
 @Immutable
 public interface JarStoreTransactionSuccessfulResponse extends JarStoreTransactionResponse, TransactionResponseWithInstrumentedJar {

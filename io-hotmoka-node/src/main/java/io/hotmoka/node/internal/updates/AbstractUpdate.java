@@ -119,8 +119,6 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 		case UpdateOfByteImpl.SELECTOR: return Updates.ofByte(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.from(context), context.readByte());
 		case UpdateOfCharImpl.SELECTOR: return Updates.ofChar(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.from(context), context.readChar());
 		case UpdateOfDoubleImpl.SELECTOR: return Updates.ofDouble(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.from(context), context.readDouble());
-		case UpdateOfEnumImpl.SELECTOR_EAGER: return Updates.ofEnum(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.from(context), context.readStringUnshared(), context.readStringUnshared(), true);
-		case UpdateOfEnumImpl.SELECTOR_LAZY: return Updates.ofEnum(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.from(context), context.readStringUnshared(), context.readStringUnshared(), false);
 		case UpdateOfFloatImpl.SELECTOR: return Updates.ofFloat(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.from(context), context.readFloat());
 		case UpdateOfIntImpl.SELECTOR: return Updates.ofInt(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.from(context), context.readInt());
 		case UpdateOfIntImpl.SELECTOR_SMALL: return Updates.ofInt(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.from(context), context.readShort());

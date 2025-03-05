@@ -17,16 +17,12 @@ limitations under the License.
 package io.hotmoka.node.local.internal.builders;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 import io.hotmoka.exceptions.CheckSupplier;
 import io.hotmoka.exceptions.UncheckFunction;
@@ -42,7 +38,6 @@ import io.hotmoka.node.api.values.BooleanValue;
 import io.hotmoka.node.api.values.ByteValue;
 import io.hotmoka.node.api.values.CharValue;
 import io.hotmoka.node.api.values.DoubleValue;
-import io.hotmoka.node.api.values.EnumValue;
 import io.hotmoka.node.api.values.FloatValue;
 import io.hotmoka.node.api.values.IntValue;
 import io.hotmoka.node.api.values.LongValue;
@@ -164,32 +159,6 @@ public class Deserializer {
 		else if (value instanceof BigIntegerValue biv)
 			// we clone the value, so that the alias behavior of values coming from outside the node is fixed
 			return new BigInteger(biv.getValue().toByteArray());
-		else if (value instanceof EnumValue ev) {
-			try {
-				// below, we cannot use:
-				// return Enum.valueOf((Class<? extends Enum>) classLoader.loadClass(ev.enumClassName), ev.name);
-				// since that method internally calls by reflection the valueOf() method of the enum,
-				// which is instrumented and hence will crash; we need a long alternative instead:
-				Class<?> enumClass = classLoader.loadClass(ev.getEnumClassName());
-				Optional<Field> fieldOfElement = Stream.of(enumClass.getDeclaredFields())
-					.filter(field -> Modifier.isPublic(field.getModifiers()) && Modifier.isStatic(field.getModifiers()))
-					.filter(field -> field.getName().equals(ev.getName()))
-					.filter(field -> field.getType() == enumClass)
-					.findFirst();
-
-				Field field = fieldOfElement.orElseThrow(() -> new DeserializationException("Cannot find enum constant " + ev.getName()));
-				// the field is public, but the class might not be public
-				field.setAccessible(true);
-
-				return field.get(null);
-			}
-			catch (SecurityException | IllegalArgumentException | IllegalAccessException | ExceptionInInitializerError e) {
-				throw new StoreException(e);
-			}
-			catch (ClassNotFoundException e) {
-				throw new DeserializationException(e);
-			}
-		}
 		else if (value == null)
 			throw new DeserializationException("Unexpected null storage value");
 		else

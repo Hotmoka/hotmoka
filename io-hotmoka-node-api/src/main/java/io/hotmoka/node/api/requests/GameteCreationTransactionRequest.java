@@ -30,8 +30,8 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 public interface GameteCreationTransactionRequest extends InitialTransactionRequest<GameteCreationTransactionResponse> {
 
 	/**
-	 * Yields the reference to the jar containing the basic Takamaka classes. This must
-	 * have been already installed by a previous transaction.
+	 * Yields the classpath of the transactions, that should somehow reach the basic Takamaka classes.
+	 * This must have been already installed by a previous transaction.
 	 * 
 	 * @return the reference
 	 */

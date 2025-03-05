@@ -25,7 +25,6 @@ import io.hotmoka.node.api.values.BooleanValue;
 import io.hotmoka.node.api.values.ByteValue;
 import io.hotmoka.node.api.values.CharValue;
 import io.hotmoka.node.api.values.DoubleValue;
-import io.hotmoka.node.api.values.EnumValue;
 import io.hotmoka.node.api.values.FloatValue;
 import io.hotmoka.node.api.values.IntValue;
 import io.hotmoka.node.api.values.LongValue;
@@ -46,8 +45,6 @@ public abstract class StorageValueJson implements JsonRepresentation<StorageValu
 	private Byte byteValue;
 	private Character charValue;
 	private Double doubleValue;
-	private String enumClass;
-	private String name;
 	private Float floatValue;
 	private Integer intValue;
 	private Long longValue;
@@ -68,10 +65,6 @@ public abstract class StorageValueJson implements JsonRepresentation<StorageValu
 			charValue = cv.getValue();
 		else if (value instanceof DoubleValue dv)
 			doubleValue = dv.getValue();
-		else if (value instanceof EnumValue ev) {
-			enumClass = ev.getEnumClassName();
-			name = ev.getName();
-		}
 		else if (value instanceof FloatValue fv)
 			floatValue = fv.getValue();
 		else if (value instanceof IntValue iv)
@@ -106,8 +99,6 @@ public abstract class StorageValueJson implements JsonRepresentation<StorageValu
 			return StorageValues.charOf(charValue);
 		else if (doubleValue != null)
 			return StorageValues.doubleOf(doubleValue);
-		else if (enumClass != null && name != null)
-			return StorageValues.enumElementOf(enumClass, name);
 		else if (floatValue != null)
 			return StorageValues.floatOf(floatValue);
 		else if (intValue != null)

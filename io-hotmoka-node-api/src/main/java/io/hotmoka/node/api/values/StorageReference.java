@@ -25,7 +25,7 @@ import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.node.api.transactions.TransactionReference;
 
 /**
- * A reference to an object of class type that can be stored in the blockchain.
+ * A reference to an object of class type that can be stored in the the store of a Hotmoka node.
  * It knows the transaction that created the object. Objects created during the
  * same transaction are disambiguated by a progressive number.
  */
@@ -44,13 +44,13 @@ public interface StorageReference extends StorageValue, Serializable {
 	 * during the same transaction.
 	 * 
 	 * @return the progressive number of the object among those that have been created
-	 * during the same transaction
+	 *         during the same transaction
 	 */
 	BigInteger getProgressive();
 
 	/**
 	 * Transforms this object into a byte array, without the selector that, instead,
-	 * gets added by {@code StorageReference#toByteArray()}.
+	 * gets added by {@code io.hotmoka.marshalling.api.Marshallable#toByteArray()}.
 	 * 
 	 * @return the byte array resulting from marshalling this object
 	 */
@@ -58,7 +58,7 @@ public interface StorageReference extends StorageValue, Serializable {
 
 	/**
 	 * Marshals this object into the given context, without the selector that, instead,
-	 * gets added by {@link StorageReference#into(MarshallingContext)}.
+	 * gets added by {@link io.hotmoka.marshalling.api.Marshallable#into(MarshallingContext)}.
 	 * 
 	 * @param context the context
 	 * @throws IOException if the object cannot be marshalled

@@ -106,7 +106,7 @@ class RemotePurchase extends HotmokaTest {
 		var ok = new CompletableFuture<Boolean>();
 
 		// the code of the smart contract uses events having the same contract as key
-		try (Subscription subscription = node.subscribeToEvents(purchase, (key, event) -> ok.complete(false))) {
+		try (Subscription subscription = node.subscribeToEvents(purchase, (__, event) -> ok.complete(false))) {
 			throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
 				addInstanceVoidMethodCallTransaction(privateKey(1), buyer, _50_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, StorageValues.intOf(18))
 			);
@@ -175,7 +175,7 @@ class RemotePurchase extends HotmokaTest {
 		AtomicBoolean ok = new AtomicBoolean(true);
 
 		// the use null to subscribe to all events
-		try (Subscription subscription = node.subscribeToEvents(null, (key, event) -> ok.set(false))) {			
+		try (Subscription subscription = node.subscribeToEvents(null, (__, event) -> ok.set(false))) {			
 		}
 
 		// the subscription is closed now, hence the event generated below will not set ok to false

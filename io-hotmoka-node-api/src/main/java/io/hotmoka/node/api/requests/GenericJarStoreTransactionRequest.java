@@ -47,8 +47,7 @@ public interface GenericJarStoreTransactionRequest<R extends GenericJarStoreTran
 	/**
 	 * Yields the dependencies of the jar to install.
 	 * 
-	 * @return the dependencies, as an ordered stream. The order should be the same
-	 *         as in the arguments provided to the constructor of the request
+	 * @return the dependencies, as an ordered stream
 	 */
 	Stream<TransactionReference> getDependencies();
 

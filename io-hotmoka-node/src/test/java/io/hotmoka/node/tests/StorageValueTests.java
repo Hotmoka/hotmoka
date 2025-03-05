@@ -77,15 +77,6 @@ public class StorageValueTests extends AbstractLoggedTests {
 	}
 
 	@Test
-	@DisplayName("enum storage values are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForEnumStorageValue() throws EncodeException, DecodeException {
-		var value1 = StorageValues.enumElementOf("io.hotmoka.Season", "SPRING");
-		String encoded = new StorageValues.Encoder().encode(value1);
-		var value2 = new StorageValues.Decoder().decode(encoded);
-		assertEquals(value1, value2);
-	}
-
-	@Test
 	@DisplayName("float storage values are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForFloatStorageValue() throws EncodeException, DecodeException {
 		var value1 = StorageValues.floatOf(3.1415f);

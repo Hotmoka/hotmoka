@@ -28,7 +28,7 @@ import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.Updates;
-import io.hotmoka.node.api.responses.MethodCallTransactionSuccessfulResponse;
+import io.hotmoka.node.api.responses.NonVoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
@@ -39,7 +39,7 @@ import io.hotmoka.node.api.values.StorageValue;
  * without generating exceptions. The method does not return {@code void}.
  */
 @Immutable
-public class MethodCallTransactionSuccessfulResponseImpl extends MethodCallTransactionResponseImpl implements MethodCallTransactionSuccessfulResponse {
+public class MethodCallTransactionSuccessfulResponseImpl extends MethodCallTransactionResponseImpl implements NonVoidMethodCallTransactionSuccessfulResponse {
 	final static byte SELECTOR = 9;
 	final static byte SELECTOR_NO_EVENTS = 10;
 	final static byte SELECTOR_ONE_EVENT = 11;
@@ -79,7 +79,7 @@ public class MethodCallTransactionSuccessfulResponseImpl extends MethodCallTrans
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof MethodCallTransactionSuccessfulResponse mctsr && super.equals(other)
+		return other instanceof NonVoidMethodCallTransactionSuccessfulResponse mctsr && super.equals(other)
 			&& result.equals(mctsr.getResult()) && Arrays.equals(events, mctsr.getEvents().toArray(StorageReference[]::new));
 	}
 

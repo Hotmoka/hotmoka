@@ -19,10 +19,9 @@ package io.hotmoka.node.api;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 
 /**
- * An exception raised when a transaction cannot even be started.
- * Typically, this means that the payer of the transaction cannot be identified
- * or it has not enough money to pay for a failed transaction or that its signature
- * is invalid.
+ * An exception raised when a transaction cannot even be started. Typically,
+ * this means that the payer of the transaction cannot be identified or it has
+ * not enough money to pay for a failed transaction or that its signature is invalid.
  */
 @SuppressWarnings("serial")
 public class TransactionRejectedException extends Exception {

@@ -21,9 +21,8 @@ import io.hotmoka.marshalling.api.Marshallable;
 import io.hotmoka.node.api.values.StorageReference;
 
 /**
- * An update states that a property of an object has been
- * modified to a given value. Updates are stored in blockchain and
- * describe the state of storage objects.
+ * An update states that a property of an object has been modified to a given value.
+ * Updates are stored in the store of a Hotmoka node and describe the state of storage objects.
  */
 @Immutable
 public interface Update extends Marshallable, Comparable<Update> {
@@ -37,7 +36,7 @@ public interface Update extends Marshallable, Comparable<Update> {
 
 	/**
 	 * Determines if the information expressed by this update is set immediately
-	 * when a storage object is deserialized from blockchain. Otherwise, the
+	 * (ie, it is <i>eager</i>) when a storage object is deserialized from blockchain. Otherwise, the
 	 * information will only be set on-demand.
 	 * 
 	 * @return true if and only if the information is eager

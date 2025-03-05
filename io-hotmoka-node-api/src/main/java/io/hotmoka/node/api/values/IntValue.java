@@ -19,7 +19,7 @@ package io.hotmoka.node.api.values;
 import io.hotmoka.annotations.Immutable;
 
 /**
- * An {@code int} value stored in the store of a node.
+ * An {@code int} value stored in the store of a Hotmoka node.
  */
 @Immutable
 public interface IntValue extends StorageValue {

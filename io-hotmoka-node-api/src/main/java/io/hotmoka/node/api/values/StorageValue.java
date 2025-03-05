@@ -23,8 +23,8 @@ import io.hotmoka.marshalling.api.Marshallable;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 
 /**
- * A value that can be stored in blockchain, passed as argument or returned
- * between the outside world and the blockchain.
+ * A value that can be stored in the store of a Hotmoka node, passed as argument
+ * or returned between the outside world and the node.
  */
 public interface StorageValue extends Marshallable, Comparable<StorageValue> {
 

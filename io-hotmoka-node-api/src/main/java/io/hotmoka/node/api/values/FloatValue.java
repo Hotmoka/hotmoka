@@ -19,7 +19,7 @@ package io.hotmoka.node.api.values;
 import io.hotmoka.annotations.Immutable;
 
 /**
- * A {@code float} value stored in blockchain.
+ * A {@code float} value stored in the store of a Hotmoka node.
  */
 @Immutable
 public interface FloatValue extends StorageValue {

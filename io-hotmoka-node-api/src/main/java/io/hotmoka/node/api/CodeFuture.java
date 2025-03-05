@@ -37,7 +37,7 @@ public interface CodeFuture<V> {
 	/**
      * Waits if necessary for the transaction to complete, and then retrieves its result.
      *
-     * @return the computed result of the transaction; this is empty only for calls to void methods
+     * @return the computed result of the transaction
      * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
      * @throws CodeExecutionException if the transaction could be executed but led to an exception in the user Takamaka code,
      *                                that is allowed to be thrown by the constructor

@@ -70,14 +70,8 @@ public abstract class AbstractStorageValue extends AbstractMarshallable implemen
 			return StorageValues.bigIntegerOf(new BigInteger(s));
 		else if (StorageTypes.STRING.equals(type))
 			return StorageValues.stringOf(s);
-		else if (type instanceof ClassType)
-			if (s.contains("#"))
-				return StorageValues.reference(s);
-			else {
-				int lastDot = s.lastIndexOf('.');
-				if (lastDot > 0)
-					return StorageValues.enumElementOf(s.substring(0, lastDot), s.substring(lastDot + 1));
-			}
+		else if (type instanceof ClassType && s.contains("#"))
+			return StorageValues.reference(s);
 
 		throw new IllegalArgumentException("Cannot transform " + s + " into a storage value");
 	}
@@ -98,7 +92,6 @@ public abstract class AbstractStorageValue extends AbstractMarshallable implemen
 		case ByteValueImpl.SELECTOR: return StorageValues.byteOf(context.readByte());
 		case CharValueImpl.SELECTOR: return StorageValues.charOf(context.readChar());
 		case DoubleValueImpl.SELECTOR: return StorageValues.doubleOf(context.readDouble());
-		case EnumValueImpl.SELECTOR: return StorageValues.enumElementOf(context.readStringUnshared(), context.readStringUnshared());
 		case FloatValueImpl.SELECTOR: return StorageValues.floatOf(context.readFloat());
 		case IntValueImpl.SELECTOR: return StorageValues.intOf(context.readInt());
 		case LongValueImpl.SELECTOR: return StorageValues.longOf(context.readLong());

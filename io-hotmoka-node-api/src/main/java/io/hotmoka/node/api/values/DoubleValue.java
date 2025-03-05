@@ -19,7 +19,7 @@ package io.hotmoka.node.api.values;
 import io.hotmoka.annotations.Immutable;
 
 /**
- * A {@code double} value stored in blockchain.
+ * A {@code double} value stored in the store of a Hotmoka node.
  */
 @Immutable
 public interface DoubleValue extends StorageValue {

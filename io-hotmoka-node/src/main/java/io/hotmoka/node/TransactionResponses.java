@@ -31,7 +31,7 @@ import io.hotmoka.node.api.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.node.api.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.node.api.responses.MethodCallTransactionExceptionResponse;
 import io.hotmoka.node.api.responses.MethodCallTransactionFailedResponse;
-import io.hotmoka.node.api.responses.MethodCallTransactionSuccessfulResponse;
+import io.hotmoka.node.api.responses.NonVoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -187,7 +187,7 @@ public abstract class TransactionResponses {
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 * @return the response
 	 */
-	public static MethodCallTransactionSuccessfulResponse methodCallSuccessful(StorageValue result, Stream<Update> updates, Stream<StorageReference> events, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
+	public static NonVoidMethodCallTransactionSuccessfulResponse methodCallSuccessful(StorageValue result, Stream<Update> updates, Stream<StorageReference> events, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
 		return new MethodCallTransactionSuccessfulResponseImpl(result, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 	}
 

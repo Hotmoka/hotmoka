@@ -156,8 +156,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 
 	/**
 	 * Yields the response generated for the request for the given transaction.
-	 * If this node has some form of commit, then this method can only succeed
-	 * or yield a {@link TransactionRejectedException} only
+	 * If this node has some form of commit, then this method can only succeed only
 	 * when the transaction has been definitely committed in this node.
 	 * Nodes are allowed to keep in store all, some or none of the responses
 	 * that they computed during their lifetime.
@@ -182,7 +181,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * 
 	 * @param reference the reference of the transaction
 	 * @return the response computed for {@code request}
-	 * @throws TransactionRejectedException if the request failed to be committed, because of this exception
+	 * @throws TransactionRejectedException if the request failed to be committed
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws TimeoutException if the polling delay has expired but the request did not get committed
 	 * @throws InterruptedException if the current thread has been interrupted while waiting for the response
@@ -193,7 +192,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * Expands the store of this node with a transaction that
 	 * installs a jar in it. It has no caller and requires no gas. The goal is to install, in the
 	 * node, some basic jars that are likely needed as dependencies by future jars.
-	 * For instance, the jar containing the basic contract classes.
+	 * For instance, the jar containing the basic Takamaka classes.
 	 * This installation have special privileges, such as that of installing
 	 * packages in {@code io.takamaka.code.lang.*}.
 	 * 
@@ -208,7 +207,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 
 	/**
 	 * Expands the store of this node with a transaction that creates a gamete, that is,
-	 * a red/green externally owned contract with the given initial amount of coins,
+	 * an externally owned contract with the given initial amount of coins,
 	 * of class {@code io.takamaka.code.lang.Gamete}.
 	 * This transaction has no caller and requires no gas.
 	 * 
@@ -248,7 +247,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException, NodeException, TimeoutException, InterruptedException;
 
 	/**
-	 * Expands this node's store with a transaction that runs a constructor of a class.
+	 * Expands the store of this node with a transaction that runs a constructor of a class.
 	 * 
 	 * @param request the request of the transaction
 	 * @return the created object, if the constructor was successfully executed, without exception
@@ -256,7 +255,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @throws CodeExecutionException if the transaction could be executed and the node has been expanded with a failed transaction,
 	 *                                because of an exception in the user code, that is allowed to be thrown by the constructor
 	 * @throws TransactionException if the transaction could be executed and the node has been expanded with a failed transaction,
-	 *                              because of an exception outside the user code in blockchain, or not allowed to be thrown by the constructor
+	 *                              because of an exception outside the user code in the node, or not allowed to be thrown by the constructor
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
@@ -264,7 +263,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException;
 
 	/**
-	 * Expands this node's store with a transaction that runs an instance method of an object already in this node's store.
+	 * Expands the store of this node with a transaction that runs an instance method of an object already in this node's store.
 	 * 
 	 * @param request the transaction request
 	 * @return the result of the call, if the method was successfully executed, without exception. If the method is
@@ -273,7 +272,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @throws CodeExecutionException if the transaction could be executed and the node has been expanded with a failed transaction,
 	 *                                because of an exception in the user code, that is allowed to be thrown by the method
 	 * @throws TransactionException if the transaction could be executed and the node has been expanded with a failed transaction,
-	 *                              because of an exception outside the user code in blockchain, or not allowed to be thrown by the method
+	 *                              because of an exception outside the user code in the node, or not allowed to be thrown by the method
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
@@ -281,7 +280,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	Optional<StorageValue> addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException;
 
 	/**
-	 * Expands this node's store with a transaction that runs a static method of a class in this node.
+	 * Expands the store of this node with a transaction that runs a static method of a class in this node.
 	 * 
 	 * @param request the transaction request
 	 * @return the result of the call, if the method was successfully executed, without exception. This is empty

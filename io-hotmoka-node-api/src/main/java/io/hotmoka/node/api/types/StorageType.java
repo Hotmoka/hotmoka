@@ -20,7 +20,7 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.api.Marshallable;
 
 /**
- * The types that can be used in storage objects in blockchain.
+ * A type that can be used in the store of a Hotmoka node.
  */
 @Immutable
 public interface StorageType extends Marshallable, Comparable<StorageType> {
@@ -37,7 +37,7 @@ public interface StorageType extends Marshallable, Comparable<StorageType> {
 	 * then class types ordered wrt class name.
 	 * 
 	 * @param other the other type
-	 * @return -1 if {@code this} comes first, 1 if {@code other} comes first, 0 if they are equal
+	 * @return negative if {@code this} comes first, positive if {@code other} comes first, 0 if they are equal
 	 */
 	@Override
 	int compareTo(StorageType other);

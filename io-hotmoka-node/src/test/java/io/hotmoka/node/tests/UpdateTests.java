@@ -94,15 +94,6 @@ public class UpdateTests extends AbstractLoggedTests {
 	}
 
 	@Test
-	@DisplayName("updates of enum are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForUpdateOfEnum() throws EncodeException, DecodeException {
-		var update1 = Updates.ofEnum(object, field, "io.hotmoka.MyEnum", "ELEMENT", true);
-		String encoded = new Updates.Encoder().encode(update1);
-		var update2 = new Updates.Decoder().decode(encoded);
-		assertEquals(update1, update2);
-	}
-
-	@Test
 	@DisplayName("updates of float are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForUpdateOfFloat() throws EncodeException, DecodeException {
 		var update1 = Updates.ofFloat(object, field, 3.1415f);

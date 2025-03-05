@@ -19,7 +19,7 @@ package io.hotmoka.node.api.responses;
 import io.hotmoka.annotations.Immutable;
 
 /**
- * A response for a successful transaction that calls a method in the store of the node.
+ * A response for a successful transaction that calls a method in the store of a node.
  * The method is annotated as {@code io.takamaka.code.lang.ThrowsExceptions}.
  * It has been called without problems but it threw an exception.
  */

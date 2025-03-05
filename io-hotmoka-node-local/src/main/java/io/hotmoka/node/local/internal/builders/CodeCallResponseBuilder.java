@@ -233,8 +233,6 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 				return StorageValues.shortOf(s);
 			else if (object instanceof String s)
 				return StorageValues.stringOf(s);
-			else if (object instanceof Enum<?> e)
-				return StorageValues.enumElementOf(e.getClass().getName(), e.name());
 			else if (object == null)
 				return StorageValues.NULL;
 			else
