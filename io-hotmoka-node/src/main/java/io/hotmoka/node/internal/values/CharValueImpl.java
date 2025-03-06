@@ -26,7 +26,7 @@ import io.hotmoka.node.api.values.CharValue;
 import io.hotmoka.node.api.values.StorageValue;
 
 /**
- * Implementation of a {@code char} value stored in blockchain.
+ * Implementation of a {@code char} value stored in a Hotmoka node.
  */
 @Immutable
 public final class CharValueImpl extends AbstractStorageValue implements CharValue {

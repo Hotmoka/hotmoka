@@ -45,7 +45,11 @@ class StorageReferenceUnmarshaller extends AbstractObjectUnmarshaller<StorageRef
 
 		if (selector == 255) {
 			var reference = StorageValues.reference(TransactionReferences.from(context), context.readBigInteger());
-			memory.put(memory.size(), reference);
+
+			int size = memory.size();
+			if (size < Integer.MAX_VALUE)
+				memory.put(size, reference);
+
 			return reference;
 		}
 		else if (selector == 254)

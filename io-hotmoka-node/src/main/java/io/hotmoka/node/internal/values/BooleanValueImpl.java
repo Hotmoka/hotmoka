@@ -26,7 +26,7 @@ import io.hotmoka.node.api.values.BooleanValue;
 import io.hotmoka.node.api.values.StorageValue;
 
 /**
- * Implementation of a {@code boolean} value stored in blockchain.
+ * Implementation of a {@code boolean} value stored in a Hotmoka node.
  */
 @Immutable
 public final class BooleanValueImpl extends AbstractStorageValue implements BooleanValue {

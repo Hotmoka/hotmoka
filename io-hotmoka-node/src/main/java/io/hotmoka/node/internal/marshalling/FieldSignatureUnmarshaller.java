@@ -45,14 +45,16 @@ class FieldSignatureUnmarshaller extends AbstractObjectUnmarshaller<FieldSignatu
 			selector = 256 + selector;
 
 		if (selector == 255) {
-			try {
-				var field = FieldSignatures.of((ClassType) StorageTypes.from(context), context.readStringUnshared(), StorageTypes.from(context));
-				memory.put(memory.size(), field);
-				return field;
-			}
-			catch (ClassCastException e) {
-				throw new IOException("Failed field unmarshalling", e);
-			}
+			if (!(StorageTypes.from(context) instanceof ClassType clazz))
+				throw new IOException("Expected a class type as container of a field");
+
+			var field = FieldSignatures.of(clazz, context.readStringUnshared(), StorageTypes.from(context));
+
+			int size = memory.size();
+			if (size < Integer.MAX_VALUE)
+				memory.put(size, field);
+
+			return field;
 		}
 		else if (selector == 254)
 			return memory.get(context.readInt());

@@ -18,6 +18,7 @@ package io.hotmoka.node.internal.types;
 
 import java.io.IOException;
 import java.util.Objects;
+import java.util.function.Function;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -27,7 +28,7 @@ import io.hotmoka.node.api.types.StorageType;
 import io.takamaka.code.constants.Constants;
 
 /**
- * A class type that can be used for stored objects in blockchain.
+ * A class type that can be used for storage objects in a Hotmoka node.
  */
 @Immutable
 public final class ClassTypeImpl extends AbstractStorageType implements ClassType {
@@ -38,17 +39,20 @@ public final class ClassTypeImpl extends AbstractStorageType implements ClassTyp
 	private final String name;
 
 	/**
-	 * Builds a class type that can be used for storage objects in blockchain.
+	 * Builds a class type that can be used for storage objects in a Hotmoka node.
 	 * 
+	 * @param <E> the type of the exception thrown if {@code name} is illegal for a class type
 	 * @param name the name of the class
+	 * @param onIllegalName the exception generator used if {@code name} is illegal for a class type
+	 * @throws E if {@code name} is illegal for a class type
 	 */
-	private ClassTypeImpl(String name) {
+	private <E extends Exception> ClassTypeImpl(String name, Function<String, ? extends E> onIllegalName) throws E {
 		if ("boolean".equals(name) || "byte".equals(name) || "char".equals(name) || "short".equals(name) ||
 				"int".equals(name) || "long".equals(name) || "float".equals(name) || "double".equals(name))
-			throw new IllegalArgumentException("Refusing to create a class type whose name is that of a basic type: " + name);
+			throw onIllegalName.apply("Refusing to create a class type whose name is that of the basic type " + name);
 
 		if ("void".equals(name))
-			throw new IllegalArgumentException("Refusing to create a class type named void");
+			throw onIllegalName.apply("Refusing to create a class type named void");
 
 		this.name = Objects.requireNonNull(name, "name cannot be null");
 	}
@@ -56,10 +60,13 @@ public final class ClassTypeImpl extends AbstractStorageType implements ClassTyp
 	/**
 	 * Yields the class type for a class with the given name.
 	 * 
+	 * @param <E> the type of the exception thrown if {@code name} is illegal for a class type
 	 * @param className the name of the class
+	 * @param onIllegalName the exception generator used if {@code name} is illegal for a class type
 	 * @return the class type
+	 * @throws E if {@code name} is illegal for a class type
 	 */
-	public static ClassType named(String className) {
+	public static <E extends Exception> ClassType named(String className, Function<String, ? extends E> onIllegalName) throws E {
 		switch (className) {
 		case "java.math.BigInteger": return BIG_INTEGER;
 		case "java.lang.Object": return OBJECT;
@@ -117,7 +124,7 @@ public final class ClassTypeImpl extends AbstractStorageType implements ClassTyp
 		case Constants.POLL_NAME: return POLL;
 		case Constants.SHARED_ENTITY_NAME: return SHARED_ENTITY;
 		case Constants.SHARED_ENTITY_OFFER_NAME: return SHARED_ENTITY_OFFER;
-		default: return new ClassTypeImpl(className);
+		default: return new ClassTypeImpl(className, onIllegalName);
 		}
 	}
 
@@ -126,12 +133,13 @@ public final class ClassTypeImpl extends AbstractStorageType implements ClassTyp
 	 * 
 	 * @param selector the selector, already unmarshalled from the context
 	 * @param context the unmarshalling context
-	 * @return the class type, if any; this is {@code null} if the selector is illegal
+	 * @return the class type; this is {@code null} only if the selector is illegal
+	 * @throws IOException if unmarshalling fails
      */
 	static ClassType withSelector(byte selector, UnmarshallingContext context) throws IOException {
 		switch (selector) {
 		case SELECTOR:
-			return named(context.readStringShared());
+			return named(context.readStringShared(), IOException::new);
 		case SELECTOR_BIGINTEGER:
 			return BIG_INTEGER;
 		case SELECTOR_ERC20:
@@ -187,13 +195,13 @@ public final class ClassTypeImpl extends AbstractStorageType implements ClassTyp
 		case SELECTOR_EVENT:
 			return EVENT;
 		case SELECTOR_IO_TAKAMAKA_CODE:
-			return named(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME + context.readStringShared());
+			return named(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME + context.readStringShared(), IOException::new);
 		case ClassTypeImpl.SELECTOR_IO_TAKAMAKA_CODE_LANG:
-			return named(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + context.readStringShared());
+			return named(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + context.readStringShared(), IOException::new);
 		case ClassTypeImpl.SELECTOR_IO_TAKAMAKA_CODE_UTIL:
-			return named(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME + context.readStringShared());
+			return named(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME + context.readStringShared(), IOException::new);
 		case ClassTypeImpl.SELECTOR_IO_TAKAMAKA_CODE_TOKENS:
-			return named(Constants.IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME + context.readStringShared());
+			return named(Constants.IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME + context.readStringShared(), IOException::new);
 		default:
 			return null;
 		}
@@ -218,7 +226,7 @@ public final class ClassTypeImpl extends AbstractStorageType implements ClassTyp
 	public int compareTo(StorageType other) {
 		if (other instanceof ClassType ct)
 			return name.compareTo(ct.getName());
-		else // other instanceof BasicTypeImpl
+		else // other instanceof BasicType
 			return 1;
 	}
 
@@ -314,293 +322,292 @@ public final class ClassTypeImpl extends AbstractStorageType implements ClassTyp
 	/**
 	 * The frequently used class type for {@link java.lang.Object}.
 	 */
-	public final static ClassType OBJECT = new ClassTypeImpl(Object.class.getName());
+	public final static ClassType OBJECT = new ClassTypeImpl(Object.class.getName(), IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link java.lang.String}.
 	 */
-	public final static ClassType STRING = new ClassTypeImpl(String.class.getName());
+	public final static ClassType STRING = new ClassTypeImpl(String.class.getName(), IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link java.math.BigInteger}.
 	 */
-	public final static ClassType BIG_INTEGER = new ClassTypeImpl("java.math.BigInteger");
+	public final static ClassType BIG_INTEGER = new ClassTypeImpl("java.math.BigInteger", IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.math.UnsignedBigInteger}.
 	 */
-	public final static ClassType UNSIGNED_BIG_INTEGER = new ClassTypeImpl(Constants.UNSIGNED_BIG_INTEGER_NAME);
+	public final static ClassType UNSIGNED_BIG_INTEGER = new ClassTypeImpl(Constants.UNSIGNED_BIG_INTEGER_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.tokens.ERC20}.
 	 */
-	public final static ClassType ERC20 = new ClassTypeImpl(Constants.ERC20_NAME);
+	public final static ClassType ERC20 = new ClassTypeImpl(Constants.ERC20_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.governance.GasPriceUpdate}.
 	 */
-	public final static ClassType GAS_PRICE_UPDATE = new ClassTypeImpl(Constants.GAS_PRICE_UPDATE_NAME);
+	public final static ClassType GAS_PRICE_UPDATE = new ClassTypeImpl(Constants.GAS_PRICE_UPDATE_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.ExternallyOwnedAccount}.
 	 */
-	public final static ClassType EOA = new ClassTypeImpl(Constants.EOA_NAME);
+	public final static ClassType EOA = new ClassTypeImpl(Constants.EOA_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.ExternallyOwnedAccountED25519}.
 	 */
-	public final static ClassType EOA_ED25519 = new ClassTypeImpl(Constants.EOA_ED25519_NAME);
+	public final static ClassType EOA_ED25519 = new ClassTypeImpl(Constants.EOA_ED25519_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.ExternallyOwnedAccountEHA256DSA}.
 	 */
-	public final static ClassType EOA_SHA256DSA = new ClassTypeImpl(Constants.EOA_SHA256DSA_NAME);
+	public final static ClassType EOA_SHA256DSA = new ClassTypeImpl(Constants.EOA_SHA256DSA_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.ExternallyOwnedAccountQTESLA1}.
 	 */
-	public final static ClassType EOA_QTESLA1 = new ClassTypeImpl(Constants.EOA_QTESLA1_NAME);
+	public final static ClassType EOA_QTESLA1 = new ClassTypeImpl(Constants.EOA_QTESLA1_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.ExternallyOwnedAccountQTESLA3}.
 	 */
-	public final static ClassType EOA_QTESLA3 = new ClassTypeImpl(Constants.EOA_QTESLA3_NAME);
+	public final static ClassType EOA_QTESLA3 = new ClassTypeImpl(Constants.EOA_QTESLA3_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Contract}.
 	 */
-	public final static ClassType CONTRACT = new ClassTypeImpl(Constants.CONTRACT_NAME);
+	public final static ClassType CONTRACT = new ClassTypeImpl(Constants.CONTRACT_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Gamete}.
 	 */
-	public final static ClassType GAMETE = new ClassTypeImpl(Constants.GAMETE_NAME);
+	public final static ClassType GAMETE = new ClassTypeImpl(Constants.GAMETE_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Account}.
 	 */
-	public final static ClassType ACCOUNT = new ClassTypeImpl(Constants.ACCOUNT_NAME);
+	public final static ClassType ACCOUNT = new ClassTypeImpl(Constants.ACCOUNT_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Accounts}.
 	 */
-	public final static ClassType ACCOUNTS = new ClassTypeImpl(Constants.ACCOUNTS_NAME);
+	public final static ClassType ACCOUNTS = new ClassTypeImpl(Constants.ACCOUNTS_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.tokens.IERC20}.
 	 */
-	public final static ClassType IERC20 = new ClassTypeImpl(Constants.IERC20_NAME);
+	public final static ClassType IERC20 = new ClassTypeImpl(Constants.IERC20_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.governance.Manifest}.
 	 */
-	public final static ClassType MANIFEST = new ClassTypeImpl(Constants.MANIFEST_NAME);
+	public final static ClassType MANIFEST = new ClassTypeImpl(Constants.MANIFEST_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.governance.Validator}.
 	 */
-	public final static ClassType VALIDATOR = new ClassTypeImpl(Constants.VALIDATOR_NAME);
+	public final static ClassType VALIDATOR = new ClassTypeImpl(Constants.VALIDATOR_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.governance.Validators}.
 	 */
-	public final static ClassType VALIDATORS = new ClassTypeImpl(Constants.VALIDATORS_NAME);
+	public final static ClassType VALIDATORS = new ClassTypeImpl(Constants.VALIDATORS_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.governance.AbstractValidators}.
 	 */
-	public final static ClassType ABSTRACT_VALIDATORS = new ClassTypeImpl(Constants.ABSTRACT_VALIDATORS_NAME);
+	public final static ClassType ABSTRACT_VALIDATORS = new ClassTypeImpl(Constants.ABSTRACT_VALIDATORS_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.governance.Versions}.
 	 */
-	public final static ClassType VERSIONS = new ClassTypeImpl(Constants.VERSIONS_NAME);
+	public final static ClassType VERSIONS = new ClassTypeImpl(Constants.VERSIONS_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.governance.AccountsLedger}.
 	 */
-	public final static ClassType ACCOUNTS_LEDGER = new ClassTypeImpl(Constants.ACCOUNTS_LEDGER_NAME);
+	public final static ClassType ACCOUNTS_LEDGER = new ClassTypeImpl(Constants.ACCOUNTS_LEDGER_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.governance.GasStation}.
 	 */
-	public final static ClassType GAS_STATION = new ClassTypeImpl(Constants.GAS_STATION_NAME);
+	public final static ClassType GAS_STATION = new ClassTypeImpl(Constants.GAS_STATION_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.governance.GenericGasStation}.
 	 */
-	public final static ClassType GENERIC_GAS_STATION = new ClassTypeImpl(Constants.GENERIC_GAS_STATION_NAME);
+	public final static ClassType GENERIC_GAS_STATION = new ClassTypeImpl(Constants.GENERIC_GAS_STATION_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.governance.tendermint.TendermintValidators}.
 	 */
-	public final static ClassType TENDERMINT_VALIDATORS = new ClassTypeImpl(Constants.TENDERMINT_VALIDATORS_NAME);
+	public final static ClassType TENDERMINT_VALIDATORS = new ClassTypeImpl(Constants.TENDERMINT_VALIDATORS_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.governance.tendermint.TendermintED25519Validator}.
 	 */
-	public final static ClassType TENDERMINT_ED25519_VALIDATOR = new ClassTypeImpl(Constants.TENDERMINT_ED25519_VALIDATOR_NAME);
+	public final static ClassType TENDERMINT_ED25519_VALIDATOR = new ClassTypeImpl(Constants.TENDERMINT_ED25519_VALIDATOR_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Storage}.
 	 */
-	public final static ClassType STORAGE = new ClassTypeImpl(Constants.STORAGE_NAME);
+	public final static ClassType STORAGE = new ClassTypeImpl(Constants.STORAGE_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Takamaka}.
 	 */
-	public final static ClassType TAKAMAKA = new ClassTypeImpl(Constants.TAKAMAKA_NAME);
+	public final static ClassType TAKAMAKA = new ClassTypeImpl(Constants.TAKAMAKA_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Event}.
 	 */
-	public final static ClassType EVENT = new ClassTypeImpl(Constants.EVENT_NAME);
+	public final static ClassType EVENT = new ClassTypeImpl(Constants.EVENT_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.PayableContract}.
 	 */
-	public final static ClassType PAYABLE_CONTRACT = new ClassTypeImpl(Constants.PAYABLE_CONTRACT_NAME);
+	public final static ClassType PAYABLE_CONTRACT = new ClassTypeImpl(Constants.PAYABLE_CONTRACT_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@code io.takamaka.code.lang.FromContract}.
 	 */
-	public final static ClassType FROM_CONTRACT = new ClassTypeImpl(Constants.FROM_CONTRACT_NAME);
+	public final static ClassType FROM_CONTRACT = new ClassTypeImpl(Constants.FROM_CONTRACT_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.View}.
 	 */
-	public final static ClassType VIEW = new ClassTypeImpl(Constants.VIEW_NAME);
+	public final static ClassType VIEW = new ClassTypeImpl(Constants.VIEW_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Payable}.
 	 */
-	public final static ClassType PAYABLE = new ClassTypeImpl(Constants.PAYABLE_NAME);
+	public final static ClassType PAYABLE = new ClassTypeImpl(Constants.PAYABLE_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.ThrowsExceptions}.
 	 */
-	public final static ClassType THROWS_EXCEPTIONS = new ClassTypeImpl(Constants.THROWS_EXCEPTIONS_NAME);
+	public final static ClassType THROWS_EXCEPTIONS = new ClassTypeImpl(Constants.THROWS_EXCEPTIONS_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.Bytes32}.
 	 */
-	public final static ClassType BYTES32 = new ClassTypeImpl("io.takamaka.code.util.Bytes32");
+	public final static ClassType BYTES32 = new ClassTypeImpl("io.takamaka.code.util.Bytes32", IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.Bytes32Snapshot}.
 	 */
-	public final static ClassType BYTES32_SNAPSHOT = new ClassTypeImpl("io.takamaka.code.util.Bytes32Snapshot");
+	public final static ClassType BYTES32_SNAPSHOT = new ClassTypeImpl("io.takamaka.code.util.Bytes32Snapshot", IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageArray}.
 	 */
-	public final static ClassType STORAGE_ARRAY = new ClassTypeImpl(Constants.STORAGE_ARRAY_NAME);
+	public final static ClassType STORAGE_ARRAY = new ClassTypeImpl(Constants.STORAGE_ARRAY_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageListView}.
 	 */
-	public final static ClassType STORAGE_LIST_VIEW = new ClassTypeImpl(Constants.STORAGE_LIST_VIEW_NAME);
+	public final static ClassType STORAGE_LIST_VIEW = new ClassTypeImpl(Constants.STORAGE_LIST_VIEW_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageLinkedList}.
 	 */
-	public final static ClassType STORAGE_LINKED_LIST = new ClassTypeImpl(Constants.STORAGE_LINKED_LIST_NAME);
+	public final static ClassType STORAGE_LINKED_LIST = new ClassTypeImpl(Constants.STORAGE_LINKED_LIST_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageMapView}.
 	 */
-	public final static ClassType STORAGE_MAP_VIEW = new ClassTypeImpl(Constants.STORAGE_MAP_VIEW_NAME);
+	public final static ClassType STORAGE_MAP_VIEW = new ClassTypeImpl(Constants.STORAGE_MAP_VIEW_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeMap}.
 	 */
-	public final static ClassType STORAGE_TREE_MAP = new ClassTypeImpl(Constants.STORAGE_TREE_MAP_NAME);
+	public final static ClassType STORAGE_TREE_MAP = new ClassTypeImpl(Constants.STORAGE_TREE_MAP_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeArray}.
 	 */
-	public final static ClassType STORAGE_TREE_ARRAY = new ClassTypeImpl(Constants.STORAGE_TREE_ARRAY_NAME);
+	public final static ClassType STORAGE_TREE_ARRAY = new ClassTypeImpl(Constants.STORAGE_TREE_ARRAY_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeArray.Node}.
 	 */
-	public final static ClassType STORAGE_TREE_ARRAY_NODE = new ClassTypeImpl(Constants.STORAGE_TREE_ARRAY_NODE_NAME);
+	public final static ClassType STORAGE_TREE_ARRAY_NODE = new ClassTypeImpl(Constants.STORAGE_TREE_ARRAY_NODE_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeIntMap}.
 	 */
-	public final static ClassType STORAGE_TREE_INTMAP = new ClassTypeImpl(Constants.STORAGE_TREE_INTMAP_NAME);
+	public final static ClassType STORAGE_TREE_INTMAP = new ClassTypeImpl(Constants.STORAGE_TREE_INTMAP_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeSet}.
 	 */
-	public final static ClassType STORAGE_TREE_SET = new ClassTypeImpl(Constants.STORAGE_TREE_SET_NAME);
+	public final static ClassType STORAGE_TREE_SET = new ClassTypeImpl(Constants.STORAGE_TREE_SET_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeMap.BlackNode}.
 	 */
-	public final static ClassType STORAGE_TREE_MAP_BLACK_NODE = new ClassTypeImpl(Constants.STORAGE_TREE_MAP_BLACK_NODE_NAME);
+	public final static ClassType STORAGE_TREE_MAP_BLACK_NODE = new ClassTypeImpl(Constants.STORAGE_TREE_MAP_BLACK_NODE_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeMap.RedNode}.
 	 */
-	public final static ClassType STORAGE_TREE_MAP_RED_NODE = new ClassTypeImpl(Constants.STORAGE_TREE_MAP_RED_NODE_NAME);
+	public final static ClassType STORAGE_TREE_MAP_RED_NODE = new ClassTypeImpl(Constants.STORAGE_TREE_MAP_RED_NODE_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageSetView}.
 	 */
-	public final static ClassType STORAGE_SET_VIEW = new ClassTypeImpl(Constants.STORAGE_SET_VIEW_NAME);
+	public final static ClassType STORAGE_SET_VIEW = new ClassTypeImpl(Constants.STORAGE_SET_VIEW_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageMap}.
 	 */
-	public final static ClassType STORAGE_MAP = new ClassTypeImpl(Constants.STORAGE_MAP_NAME);
+	public final static ClassType STORAGE_MAP = new ClassTypeImpl(Constants.STORAGE_MAP_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageLinkedList.Node}.
 	 */
-	public final static ClassType STORAGE_LINKED_LIST_NODE = new ClassTypeImpl(Constants.STORAGE_LINKED_LIST_NODE_NAME);
+	public final static ClassType STORAGE_LINKED_LIST_NODE = new ClassTypeImpl(Constants.STORAGE_LINKED_LIST_NODE_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeMap.Node}.
 	 */
-	public final static ClassType STORAGE_TREE_MAP_NODE = new ClassTypeImpl(Constants.STORAGE_TREE_MAP_NODE_NAME);
+	public final static ClassType STORAGE_TREE_MAP_NODE = new ClassTypeImpl(Constants.STORAGE_TREE_MAP_NODE_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeIntMap.Node}.
 	 */
-	public final static ClassType STORAGE_TREE_INTMAP_NODE = new ClassTypeImpl(Constants.STORAGE_TREE_INTMAP_NODE_NAME);
+	public final static ClassType STORAGE_TREE_INTMAP_NODE = new ClassTypeImpl(Constants.STORAGE_TREE_INTMAP_NODE_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.governance.GenericValidators}.
 	 */
-	public final static ClassType GENERIC_VALIDATORS = new ClassTypeImpl(Constants.GENERIC_VALIDATORS_NAME);
+	public final static ClassType GENERIC_VALIDATORS = new ClassTypeImpl(Constants.GENERIC_VALIDATORS_NAME, IllegalArgumentException::new);
 	
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.dao.Poll}.
 	 */
-	public final static ClassType POLL = new ClassTypeImpl(Constants.POLL_NAME);
+	public final static ClassType POLL = new ClassTypeImpl(Constants.POLL_NAME, IllegalArgumentException::new);
 	
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.dao.SharedEntity}.
 	 */
-	public static final ClassType SHARED_ENTITY =  new ClassTypeImpl(Constants.SHARED_ENTITY_NAME);
+	public static final ClassType SHARED_ENTITY =  new ClassTypeImpl(Constants.SHARED_ENTITY_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.dao.SharedEntity.Offer}.
 	 */
-	public static final ClassType SHARED_ENTITY_OFFER =  new ClassTypeImpl(Constants.SHARED_ENTITY_OFFER_NAME);
+	public static final ClassType SHARED_ENTITY_OFFER =  new ClassTypeImpl(Constants.SHARED_ENTITY_OFFER_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.dao.SharedEntityView}.
 	 */
-	public static final ClassType SHARED_ENTITY_VIEW =  new ClassTypeImpl(Constants.SHARED_ENTITY_VIEW_NAME);
+	public static final ClassType SHARED_ENTITY_VIEW =  new ClassTypeImpl(Constants.SHARED_ENTITY_VIEW_NAME, IllegalArgumentException::new);
 	
 	private final static byte SELECTOR = 8;  // we start at 8 to distinguish the class types from the basic types
 	private final static byte SELECTOR_IO_TAKAMAKA_CODE = 9;
 	private final static byte SELECTOR_IO_TAKAMAKA_CODE_LANG = 10;
 	private final static byte SELECTOR_IO_TAKAMAKA_CODE_UTIL = 11;
-	private final static byte SELECTOR_IO_TAKAMAKA_CODE_TOKENS = 34;
 	private final static byte SELECTOR_STORAGE_LIST = 12;
 	private final static byte SELECTOR_STORAGE_TREE_MAP_NODE = 13;
 	private final static byte SELECTOR_STORAGE_LINKED_LIST_NODE = 14;
@@ -610,6 +617,7 @@ public final class ClassTypeImpl extends AbstractStorageType implements ClassTyp
 	private final static byte SELECTOR_ACCOUNT = 18;
 	private final static byte SELECTOR_MANIFEST = 19;
 	private final static byte SELECTOR_CONTRACT = 20;
+	private final static byte SELECTOR_GAS_STATION = 21;
 	private final static byte SELECTOR_OBJECT = 22;
 	private final static byte SELECTOR_STORAGE = 23;
 	private final static byte SELECTOR_GENERIC_GAS_STATION = 24;
@@ -622,10 +630,10 @@ public final class ClassTypeImpl extends AbstractStorageType implements ClassTyp
 	private final static byte SELECTOR_STORAGE_TREE_MAP_RED_NODE = 31;
 	private final static byte SELECTOR_UNSIGNED_BIG_INTEGER = 32;
 	private final static byte SELECTOR_ERC20 = 33;
+	private final static byte SELECTOR_IO_TAKAMAKA_CODE_TOKENS = 34;
 	private final static byte SELECTOR_IERC20 = 35;
 	private final static byte SELECTOR_STORAGE_TREE_ARRAY = 36;
 	private final static byte SELECTOR_STORAGE_TREE_ARRAY_NODE = 37;
 	private final static byte SELECTOR_STORAGE_TREE_INTMAP_NODE = 38;
 	private final static byte SELECTOR_STORAGE_TREE_SET = 39;
-	private final static byte SELECTOR_GAS_STATION = 40;
 }

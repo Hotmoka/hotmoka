@@ -75,7 +75,7 @@ public class BasicTypeImpl extends AbstractStorageType implements BasicType {
 	 * Yields the basic type with the given selector, if any.
 	 * 
 	 * @param selector the selector
-	 * @return the basic type; this is {@code null} if no basic type uses the given selector
+	 * @return the basic type, if any; this is {@code null} if no basic type uses the given selector
 	 */
 	static BasicType withSelector(byte selector) {
 		switch (selector) {

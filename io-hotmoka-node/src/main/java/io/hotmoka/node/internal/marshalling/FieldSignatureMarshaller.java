@@ -48,10 +48,8 @@ class FieldSignatureMarshaller extends AbstractObjectMarshaller<FieldSignature> 
 		}
 		else {
 			int next = memory.size();
-			if (next == Integer.MAX_VALUE) // irrealistic
-				throw new IllegalStateException("Too many field signatures in the same context");
-
-			memory.put(field, next);
+			if (next < Integer.MAX_VALUE)
+				memory.put(field, next);
 
 			context.writeByte(255);
 			field.getDefiningClass().into(context);

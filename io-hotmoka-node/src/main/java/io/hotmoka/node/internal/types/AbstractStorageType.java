@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.internal.types;
 
 import java.io.IOException;
+import java.util.function.Function;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.AbstractMarshallable;
@@ -37,10 +38,12 @@ public abstract class AbstractStorageType extends AbstractMarshallable implement
 	/**
 	 * Yields the storage type with the given name.
 	 * 
+	 * @param <E> the type of the exception thrown if {@code name} is illegal for a storage type
 	 * @param name the name of the type
 	 * @return the storage type
+	 * @throws E if {@code name} is illegal for a storage type
 	 */
-	public static StorageType named(String name) {
+	public static <E extends Exception> StorageType named(String name, Function<String, ? extends E> onIllegalName) throws E {
 		switch (name) {
 		case "boolean":
 	        return BasicTypeImpl.BOOLEAN;
@@ -59,7 +62,7 @@ public abstract class AbstractStorageType extends AbstractMarshallable implement
 	    case "double":
 	        return BasicTypeImpl.DOUBLE;
 	    default:
-	    	return ClassTypeImpl.named(name);
+	    	return ClassTypeImpl.named(name, onIllegalName);
 		}
 	}
 
@@ -86,8 +89,11 @@ public abstract class AbstractStorageType extends AbstractMarshallable implement
 			return BasicTypeImpl.FLOAT;
 		else if (clazz == double.class)
 			return BasicTypeImpl.DOUBLE;
+		else if (clazz.isArray())
+			throw new IllegalArgumentException("Arrays are not storage types"); // TODO: throw general exception instead
 		else
-			return ClassTypeImpl.named(clazz.getName());
+			// the name already belongs to a class, hence it should never throw an exception below
+			return ClassTypeImpl.named(clazz.getName(), IllegalArgumentException::new);
 	}
 
 	/**
@@ -105,9 +111,9 @@ public abstract class AbstractStorageType extends AbstractMarshallable implement
 			return result;
 
 		result = ClassTypeImpl.withSelector(selector, context);
-		if (result != null)
-			return result;
+		if (result == null)
+			throw new IOException("Unknown storage type selector " + selector);
 
-		throw new IOException("Unexpected type selector: " + selector);
+		return result;
 	}
 }

@@ -26,7 +26,7 @@ import io.hotmoka.node.api.values.FloatValue;
 import io.hotmoka.node.api.values.StorageValue;
 
 /**
- * Implementation of a {@code float} value stored in blockchain.
+ * Implementation of a {@code float} value stored in a Hotmoka node.
  */
 @Immutable
 public final class FloatValueImpl extends AbstractStorageValue implements FloatValue {

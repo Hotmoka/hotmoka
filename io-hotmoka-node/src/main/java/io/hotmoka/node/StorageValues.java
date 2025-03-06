@@ -18,6 +18,7 @@ package io.hotmoka.node;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.function.Function;
 
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -209,13 +210,15 @@ public abstract class StorageValues {
 	/**
 	 * Yields a storage value from the given string and of the given type.
 	 * 
-	 * @param s the string; use {@code "null"} for null; use the fully-qualified
-	 *        representation for enum's (such as "com.mycompany.MyEnum.CONSTANT")
+	 * @param s the string; use "null" (without quotes) for {@code null}
 	 * @param type the type of the storage value
+	 * @param exceptionCreator the creator of the exception thrown if the conversion is impossible;
+	 *                         it receives a string that describes the error
 	 * @return the resulting storage value
+	 * @throws E if {@code s} cannot be converted into {@code type}
 	 */
-	public static StorageValue of(String s, StorageType type) {
-		return AbstractStorageValue.of(s, type);
+	public static <E extends Exception> StorageValue of(String s, StorageType type, Function<String, ? extends E> exceptionCreator) throws E {
+		return AbstractStorageValue.of(s, type, exceptionCreator);
 	}
 
 	/**

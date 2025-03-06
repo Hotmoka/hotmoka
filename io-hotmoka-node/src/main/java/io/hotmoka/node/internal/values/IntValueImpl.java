@@ -26,11 +26,11 @@ import io.hotmoka.node.api.values.IntValue;
 import io.hotmoka.node.api.values.StorageValue;
 
 /**
- * An {@code int} value stored in the store of a node.
+ * An {@code int} value stored in the store of a Hotmoka node.
  */
 @Immutable
 public final class IntValueImpl extends AbstractStorageValue implements IntValue {
-	static final byte SELECTOR = 14;
+	static final byte SELECTOR = 13;
 
 	/**
 	 * The value.

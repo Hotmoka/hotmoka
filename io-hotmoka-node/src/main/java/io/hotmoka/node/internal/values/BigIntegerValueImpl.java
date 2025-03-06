@@ -28,7 +28,7 @@ import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageValue;
 
 /**
- * Implementation of a big integer stored in blockchain.
+ * Implementation of a big integer stored in a Hotmoka node.
  */
 @Immutable
 public final class BigIntegerValueImpl extends AbstractStorageValue implements BigIntegerValue {
@@ -40,7 +40,7 @@ public final class BigIntegerValueImpl extends AbstractStorageValue implements B
 	private final BigInteger value;
 
 	/**
-	 * Builds a big integer that can be stored in blockchain.
+	 * Builds a big integer that can be stored in a Hotmoka node.
 	 * 
 	 * @param value the big integer
 	 */

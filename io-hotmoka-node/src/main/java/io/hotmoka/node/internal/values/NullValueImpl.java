@@ -24,7 +24,7 @@ import io.hotmoka.node.api.values.NullValue;
 import io.hotmoka.node.api.values.StorageValue;
 
 /**
- * Implemenytation of the {@code null} value stored in blockchain.
+ * Implementation of the {@code null} value stored in a Hotmoka node.
  */
 @Immutable
 public final class NullValueImpl extends AbstractStorageValue implements NullValue {

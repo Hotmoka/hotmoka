@@ -43,7 +43,7 @@ public abstract class StorageTypes {
 	 * @return the storage type
 	 */
 	public static StorageType named(String name) {
-		return AbstractStorageType.named(name);
+		return AbstractStorageType.named(name, IllegalArgumentException::new); // throw general exception instead
 	}
 
 	/**
@@ -53,7 +53,7 @@ public abstract class StorageTypes {
 	 * @return the class type
 	 */
 	public static ClassType classNamed(String className) {
-		return ClassTypeImpl.named(className);
+		return ClassTypeImpl.named(className, IllegalArgumentException::new); // throw general exception instead
 	}
 
 	/**
@@ -67,13 +67,14 @@ public abstract class StorageTypes {
 	}
 
 	/**
-	 * Yields the class type corresponding to the given class.
+	 * Yields the storage class type corresponding to the given class.
 	 * 
 	 * @param clazz the class
 	 * @return the class type
 	 */
 	public static ClassType classOf(Class<?> clazz) {
-		return ClassTypeImpl.named(clazz.getName());
+		// the class type exists, hence its name must be legal and the exception should never occur
+		return ClassTypeImpl.named(clazz.getName(), RuntimeException::new);
 	}
 
 	/**

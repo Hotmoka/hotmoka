@@ -32,7 +32,7 @@ import io.hotmoka.node.api.values.StringValue;
 @Immutable
 public final class StringValueImpl extends AbstractStorageValue implements StringValue {
 	static final byte SELECTOR = 10;
-	static final byte SELECTOR_EMPTY_STRING = 13;
+	static final byte SELECTOR_EMPTY_STRING = 12;
 
 	/**
 	 * The string.

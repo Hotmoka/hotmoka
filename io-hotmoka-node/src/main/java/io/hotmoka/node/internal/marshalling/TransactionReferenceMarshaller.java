@@ -48,10 +48,8 @@ class TransactionReferenceMarshaller extends AbstractObjectMarshaller<Transactio
 		}
 		else {
 			int next = memory.size();
-			if (next == Integer.MAX_VALUE) // irrealistic
-				throw new IllegalStateException("Too many transaction references in the same context");
-
-			memory.put(transaction, next);
+			if (next < Integer.MAX_VALUE)
+				memory.put(transaction, next);
 
 			context.writeByte(255);
 			context.writeBytes(transaction.getHash());

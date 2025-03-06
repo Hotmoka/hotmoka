@@ -34,7 +34,7 @@ import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.internal.marshalling.NodeMarshallingContext;
 
 /**
- * A reference to an object of class type that can be stored in the blockchain.
+ * A reference to an object of class type that can be stored in a Hotmoka node.
  * It knows the transaction that created the object. Objects created during the
  * same transaction are disambiguated by a progressive number.
  */
@@ -131,7 +131,7 @@ public final class StorageReferenceImpl extends AbstractStorageValue implements 
 		}
 		catch (IOException e) {
 			// impossible for a ByteArrayOutputStream
-			throw new RuntimeException("Unexpected exception", e);
+			throw new RuntimeException(e);
 		}
 	}
 

@@ -34,20 +34,22 @@ import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.internal.marshalling.NodeMarshallingContext;
 
 /**
- * Partial implementation of a value that can be stored in the blockchain,
- * passed as argument to an entry or returned from an entry.
+ * Partial implementation of a value that can be stored in the store of a Hotmoka node,
+ * passed as argument or returned between the outside world and the node.
  */
 public abstract class AbstractStorageValue extends AbstractMarshallable implements StorageValue {
 
 	/**
 	 * Yields a storage value from the given string and of the given type.
 	 * 
-	 * @param s the string; use "null" (without quotes) for null; use the fully-qualified
-	 *        representation for enum's (such as "com.mycompany.MyEnum.CONSTANT")
+	 * @param s the string; use "null" (without quotes) for {@code null}
 	 * @param type the type of the storage value
+	 * @param exceptionCreator the creator of the exception thrown if the conversion is impossible;
+	 *                         it receives a string that describes the error
 	 * @return the resulting storage value
+	 * @throws E if {@code s} cannot be converted into {@code type}
 	 */
-	public static StorageValue of(String s, StorageType type) {
+	public static <E extends Exception> StorageValue of(String s, StorageType type, Function<String, ? extends E> exceptionCreator) throws E {
 		if (type == StorageTypes.BOOLEAN)
 			return StorageValues.booleanOf(Boolean.parseBoolean(s));
 		else if (type == StorageTypes.BYTE)
@@ -72,8 +74,8 @@ public abstract class AbstractStorageValue extends AbstractMarshallable implemen
 			return StorageValues.stringOf(s);
 		else if (type instanceof ClassType && s.contains("#"))
 			return StorageValues.reference(s);
-
-		throw new IllegalArgumentException("Cannot transform " + s + " into a storage value");
+		else
+			throw exceptionCreator.apply("Cannot transform " + s + " into a storage value");
 	}
 
 	/**
@@ -100,7 +102,7 @@ public abstract class AbstractStorageValue extends AbstractMarshallable implemen
 		case StorageReferenceImpl.SELECTOR: return StorageValues.referenceWithoutSelectorFrom(context);
 		case StringValueImpl.SELECTOR_EMPTY_STRING: return StorageValues.stringOf("");
 		case StringValueImpl.SELECTOR: return StorageValues.stringOf(context.readStringUnshared());
-		default:
+		default: // small integers receive an optimized representation
 			if (selector < 0)
 				return StorageValues.intOf((selector + 256) - IntValueImpl.SELECTOR - 1);
 			else

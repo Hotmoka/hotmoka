@@ -26,7 +26,7 @@ import io.hotmoka.node.api.values.LongValue;
 import io.hotmoka.node.api.values.StorageValue;
 
 /**
- * Implementation of a {@code long} value stored in blockchain.
+ * Implementation of a {@code long} value stored in a Hotmoka node.
  */
 @Immutable
 public final class LongValueImpl extends AbstractStorageValue implements LongValue {

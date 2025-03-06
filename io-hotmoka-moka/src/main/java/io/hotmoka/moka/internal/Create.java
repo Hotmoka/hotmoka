@@ -150,7 +150,7 @@ public class Create extends AbstractCommand {
 			if (result.length > 0) {
 				int pos = 0;
 				for (String actualAsString: args)
-					result[pos] = StorageValues.of(actualAsString, formals[pos++]);
+					result[pos] = StorageValues.of(actualAsString, formals[pos++], IllegalArgumentException::new);
 			}
 
 			return result;

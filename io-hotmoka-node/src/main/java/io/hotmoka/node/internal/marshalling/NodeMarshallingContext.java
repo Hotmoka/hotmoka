@@ -22,19 +22,20 @@ import java.io.OutputStream;
 import io.hotmoka.marshalling.AbstractMarshallingContext;
 
 /**
- * A context used during bean marshalling into bytes. It shares node's API
- * subcomponents in such a way to get a more compact representation.
+ * A context used during bean marshalling into bytes. It shares a node's API
+ * subcomponents in such a way to get a more compact representation, by sharing
+ * repeated subcomponents.
  */
 public class NodeMarshallingContext extends AbstractMarshallingContext {
 
 	/**
 	 * Creates the context.
 	 * 
-	 * @param oos the stream where bytes are marshalled.
+	 * @param os the stream where bytes are marshalled.
 	 * @throws IOException if the context cannot be created
 	 */
-	public NodeMarshallingContext(OutputStream oos) throws IOException {
-		super(oos);
+	public NodeMarshallingContext(OutputStream os) throws IOException {
+		super(os);
 		
 		registerObjectMarshaller(new TransactionReferenceMarshaller());
 		registerObjectMarshaller(new StorageReferenceMarshaller());

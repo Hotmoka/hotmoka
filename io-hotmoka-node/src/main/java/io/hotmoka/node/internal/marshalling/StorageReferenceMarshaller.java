@@ -48,10 +48,8 @@ class StorageReferenceMarshaller extends AbstractObjectMarshaller<StorageReferen
 		}
 		else {
 			int next = memory.size();
-			if (next == Integer.MAX_VALUE) // irrealistic
-				throw new IllegalStateException("too many storage references in the same context");
-
-			memory.put(reference, next);
+			if (next < Integer.MAX_VALUE)
+				memory.put(reference, next);
 
 			context.writeByte(255);
 			reference.getTransaction().into(context);

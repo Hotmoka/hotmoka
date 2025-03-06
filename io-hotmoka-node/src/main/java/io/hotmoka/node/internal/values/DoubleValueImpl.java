@@ -26,7 +26,7 @@ import io.hotmoka.node.api.values.DoubleValue;
 import io.hotmoka.node.api.values.StorageValue;
 
 /**
- * Implementation of a {@code double} value stored in blockchain.
+ * Implementation of a {@code double} value stored in a Hotmoka node.
  */
 @Immutable
 public final class DoubleValueImpl extends AbstractStorageValue implements DoubleValue {

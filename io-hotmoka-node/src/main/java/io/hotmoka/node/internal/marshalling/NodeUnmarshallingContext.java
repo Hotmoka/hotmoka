@@ -21,7 +21,7 @@ import java.io.InputStream;
 import io.hotmoka.marshalling.AbstractUnmarshallingContext;
 
 /**
- * A context used during bytes unmarshalling into node's API.
+ * A context used during bytes unmarshalling into a node's API beans.
  * It understands the optimized marshalling obtained through
  * a {@link NodeMarshallingContext}.
  */

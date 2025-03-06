@@ -45,7 +45,11 @@ class TransactionReferenceUnmarshaller extends AbstractObjectUnmarshaller<Transa
 		if (selector == 255) {
 			byte[] bytes = context.readBytes(TransactionReference.REQUEST_HASH_LENGTH, "Cannot read a transaction reference");
 			var reference = TransactionReferences.of(bytes);
-			memory.put(memory.size(), reference);
+
+			int size = memory.size();
+			if (size < Integer.MAX_VALUE)
+				memory.put(size, reference);
+
 			return reference;
 		}
 		else if (selector == 254)

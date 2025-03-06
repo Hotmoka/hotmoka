@@ -26,7 +26,7 @@ import io.hotmoka.node.api.values.ByteValue;
 import io.hotmoka.node.api.values.StorageValue;
 
 /**
- * Implementation of a {@code byte} value stored in blockchain.
+ * Implementation of a {@code byte} value stored in a Hotmoka node.
  */
 @Immutable
 public final class ByteValueImpl extends AbstractStorageValue implements ByteValue {

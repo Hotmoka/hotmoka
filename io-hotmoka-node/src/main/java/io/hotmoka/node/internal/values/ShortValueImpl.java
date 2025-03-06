@@ -26,7 +26,7 @@ import io.hotmoka.node.api.values.ShortValue;
 import io.hotmoka.node.api.values.StorageValue;
 
 /**
- * Implementation of a {@code short} value stored in blockchain.
+ * Implementation of a {@code short} value stored in a Hotmoka node.
  */
 @Immutable
 public final class ShortValueImpl extends AbstractStorageValue implements ShortValue {
