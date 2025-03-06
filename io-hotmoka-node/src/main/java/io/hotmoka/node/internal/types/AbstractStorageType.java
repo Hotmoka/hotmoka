@@ -23,6 +23,8 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.api.types.StorageType;
+import io.hotmoka.node.internal.gson.StorageTypeJson;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * Shared code of the storage types.
@@ -33,6 +35,20 @@ public abstract class AbstractStorageType extends AbstractMarshallable implement
 	@Override
 	public final String getName() {
 		return toString();
+	}
+
+	/**
+	 * Creates a storage type corresponding to the given JSON description.
+	 * 
+	 * @param json the JSON description
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public static StorageType from(StorageTypeJson json) throws InconsistentJsonException {
+		var name = json.getName();
+		if (name == null)
+			throw new InconsistentJsonException("name cannot be null");
+
+		return named(name, InconsistentJsonException::new);
 	}
 
 	/**

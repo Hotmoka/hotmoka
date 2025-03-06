@@ -18,7 +18,6 @@ package io.hotmoka.node.internal.gson;
 
 import java.math.BigInteger;
 
-import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.BooleanValue;
@@ -33,6 +32,7 @@ import io.hotmoka.node.api.values.ShortValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.api.values.StringValue;
+import io.hotmoka.node.internal.values.AbstractStorageValue;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
@@ -40,80 +40,95 @@ import io.hotmoka.websockets.beans.api.JsonRepresentation;
  * The JSON representation of a {@link StorageValue}.
  */
 public abstract class StorageValueJson implements JsonRepresentation<StorageValue> {
-	private BigInteger bigIntegerValue;
-	private Boolean booleanValue;
-	private Byte byteValue;
-	private Character charValue;
-	private Double doubleValue;
-	private Float floatValue;
-	private Integer intValue;
-	private Long longValue;
-	private Boolean nullValue;
-	private Short shortValue;
-	private TransactionReferences.Json transaction;
-	private BigInteger progressive;
-	private String stringValue;
+	private final BigInteger bigIntegerValue;
+	private final Boolean booleanValue;
+	private final Byte byteValue;
+	private final Character charValue;
+	private final Double doubleValue;
+	private final Float floatValue;
+	private final Integer intValue;
+	private final Long longValue;
+	private final Boolean nullValue;
+	private final Short shortValue;
+	private final TransactionReferences.Json transaction;
+	private final BigInteger progressive;
+	private final String stringValue;
+
+	public BigInteger getBigIntegerValue() {
+		return bigIntegerValue;
+	}
+
+	public Boolean getBooleanValue() {
+		return booleanValue;
+	}
+
+	public Byte getByteValue() {
+		return byteValue;
+	}
+
+	public Character getCharValue() {
+		return charValue;
+	}
+
+	public Double getDoubleValue() {
+		return doubleValue;
+	}
+
+	public Float getFloatValue() {
+		return floatValue;
+	}
+
+	public Integer getIntValue() {
+		return intValue;
+	}
+
+	public Long getLongValue() {
+		return longValue;
+	}
+
+	public boolean isNullValue() {
+		return Boolean.TRUE.equals(nullValue);
+	}
+
+	public Short getShortValue() {
+		return shortValue;
+	}
+
+	public TransactionReferences.Json getTransaction() {
+		return transaction;
+	}
+
+	public BigInteger getProgressive() {
+		return progressive;
+	}
+
+	public String getStringValue() {
+		return stringValue;
+	}
 
 	protected StorageValueJson(StorageValue value) {
-		if (value instanceof BigIntegerValue biv)
-			bigIntegerValue = biv.getValue();
-		else if (value instanceof BooleanValue bv)
-			booleanValue = bv.getValue();
-		else if (value instanceof ByteValue bv)
-			byteValue = bv.getValue();
-		else if (value instanceof CharValue cv)
-			charValue = cv.getValue();
-		else if (value instanceof DoubleValue dv)
-			doubleValue = dv.getValue();
-		else if (value instanceof FloatValue fv)
-			floatValue = fv.getValue();
-		else if (value instanceof IntValue iv)
-			intValue = iv.getValue();
-		else if (value instanceof LongValue lv)
-			longValue = lv.getValue();
-		else if (value instanceof NullValue)
-			nullValue = true;
-		else if (value instanceof ShortValue sv)
-			shortValue = sv.getValue();
-		else if (value instanceof StorageReference sr) {
-			transaction = new TransactionReferences.Json(sr.getTransaction());
-			progressive = sr.getProgressive();
-		}
-		else if (value instanceof StringValue sv)
-			stringValue = sv.getValue();
-		else if (value == null)
-			throw new RuntimeException("Unexpected null storage value");
-		else
+		bigIntegerValue = value instanceof BigIntegerValue biv ? biv.getValue() : null;
+		booleanValue = value instanceof BooleanValue bv ? bv.getValue() : null;
+		byteValue = value instanceof ByteValue bv ? bv.getValue() : null;
+		charValue = value instanceof CharValue cv ? cv.getValue() : null;
+		doubleValue = value instanceof DoubleValue dv ? dv.getValue() : null;
+		floatValue = value instanceof FloatValue fv ? fv.getValue() : null;
+		intValue = value instanceof IntValue iv ? iv.getValue() : null;
+		longValue = value instanceof LongValue lv ? lv.getValue() : null;
+		nullValue = value instanceof NullValue ? Boolean.TRUE : null;
+		shortValue = value instanceof ShortValue sv ? sv.getValue() : null;
+		transaction = value instanceof StorageReference sr ? new TransactionReferences.Json(sr.getTransaction()) : null;
+		progressive = value instanceof StorageReference sr ? sr.getProgressive() : null;
+		stringValue = value instanceof StringValue sv ? sv.getValue() : null;
+
+		if (bigIntegerValue == null && booleanValue == null && byteValue == null && charValue == null &&
+				doubleValue == null && floatValue == null && intValue == null && longValue == null &&
+				nullValue == null && shortValue == null && transaction == null && progressive == null && stringValue == null)
 			throw new RuntimeException("Unexpected storage value of class " + value.getClass().getName());
 	}
 
 	@Override
 	public StorageValue unmap() throws InconsistentJsonException {
-		if (bigIntegerValue != null)
-			return StorageValues.bigIntegerOf(bigIntegerValue);
-		else if (booleanValue != null)
-			return StorageValues.booleanOf(booleanValue);
-		else if (byteValue != null)
-			return StorageValues.byteOf(byteValue);
-		else if (charValue != null)
-			return StorageValues.charOf(charValue);
-		else if (doubleValue != null)
-			return StorageValues.doubleOf(doubleValue);
-		else if (floatValue != null)
-			return StorageValues.floatOf(floatValue);
-		else if (intValue != null)
-			return StorageValues.intOf(intValue);
-		else if (longValue != null)
-			return StorageValues.longOf(longValue);
-		else if (nullValue != null)
-			return StorageValues.NULL;
-		else if (shortValue != null)
-			return StorageValues.shortOf(shortValue);
-		else if (transaction != null && progressive != null)
-			return StorageValues.reference(transaction.unmap(), progressive);
-		else if (stringValue != null)
-			return StorageValues.stringOf(stringValue);
-		else
-			throw new InconsistentJsonException("Illegal storage value JSON");
+		return AbstractStorageValue.from(this);
 	}
 }

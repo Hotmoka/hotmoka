@@ -31,7 +31,7 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StringValue;
 
 /**
- * The implementation of an update of a field of type {@link java.lang.String}.
+ * The implementation of an update of a field of type string.
  */
 @Immutable
 public final class UpdateOfStringImpl extends UpdateOfFieldImpl implements UpdateOfString {
@@ -44,7 +44,7 @@ public final class UpdateOfStringImpl extends UpdateOfFieldImpl implements Updat
 	private final String value;
 
 	/**
-	 * Builds an update of a {@link java.lang.String} field.
+	 * Builds an update of a string field.
 	 * 
 	 * @param object the storage reference of the object whose field is modified
 	 * @param field the field that is modified
@@ -89,7 +89,7 @@ public final class UpdateOfStringImpl extends UpdateOfFieldImpl implements Updat
 	@Override
 	public boolean isEager() {
 		// a lazy String could also be stored into a lazy Object or Serializable or Comparable or CharSequence field
-		return field.getType().equals(StorageTypes.STRING);
+		return StorageTypes.STRING.equals(field.getType());
 	}
 
 	@Override

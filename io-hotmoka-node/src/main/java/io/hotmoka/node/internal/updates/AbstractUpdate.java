@@ -33,7 +33,20 @@ import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.updates.Update;
+import io.hotmoka.node.api.values.BigIntegerValue;
+import io.hotmoka.node.api.values.BooleanValue;
+import io.hotmoka.node.api.values.ByteValue;
+import io.hotmoka.node.api.values.CharValue;
+import io.hotmoka.node.api.values.DoubleValue;
+import io.hotmoka.node.api.values.FloatValue;
+import io.hotmoka.node.api.values.IntValue;
+import io.hotmoka.node.api.values.LongValue;
+import io.hotmoka.node.api.values.NullValue;
+import io.hotmoka.node.api.values.ShortValue;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StringValue;
+import io.hotmoka.node.internal.gson.UpdateJson;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * Shared implementation of an update.
@@ -53,6 +66,66 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 	 */
 	protected AbstractUpdate(StorageReference object) {
 		this.object = Objects.requireNonNull(object, "object cannot be null");
+	}
+
+	/**
+	 * Creates an update corresponding to the given JSON description.
+	 * 
+	 * @param json the JSON description
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public static Update from(UpdateJson json) throws InconsistentJsonException {
+		var object = json.getObject();
+		if (object == null)
+			throw new InconsistentJsonException("object cannot be null");
+
+		if (!(object.unmap() instanceof StorageReference sr))
+			throw new InconsistentJsonException("A storage reference was expected as object");
+
+		var clazz = json.getClazz();
+		if (clazz != null) {
+			var jar = json.getJar();
+			if (jar == null)
+				throw new InconsistentJsonException("jar cannot be null if clazz is non-null");
+
+			return Updates.classTag(sr, StorageTypes.classNamed(clazz), jar.unmap());
+		}
+
+		var field1 = json.getField();
+		var value1 = json.getValue();
+
+		if (field1 == null || value1 == null)
+			throw new InconsistentJsonException("A field update must have non-null field and value");
+
+		var field = field1.unmap();
+		var value = value1.unmap();
+
+		if (value instanceof BigIntegerValue biv)
+			return Updates.ofBigInteger(sr, field, biv.getValue());
+		else if (value instanceof BooleanValue bv)
+			return Updates.ofBoolean(sr, field, bv.getValue());
+		else if (value instanceof ByteValue bv)
+			return Updates.ofByte(sr, field, bv.getValue());
+		else if (value instanceof CharValue cv)
+			return Updates.ofChar(sr, field, cv.getValue());
+		else if (value instanceof DoubleValue dv)
+			return Updates.ofDouble(sr, field, dv.getValue());
+		else if (value instanceof FloatValue fv)
+			return Updates.ofFloat(sr, field, fv.getValue());
+		else if (value instanceof IntValue iv)
+			return Updates.ofInt(sr, field, iv.getValue());
+		else if (value instanceof LongValue lv)
+			return Updates.ofLong(sr, field, lv.getValue());
+		else if (value instanceof ShortValue sv)
+			return Updates.ofShort(sr, field, sv.getValue());
+		else if (value instanceof StorageReference sr2)
+			return Updates.ofStorage(sr, field, sr2);
+		else if (value instanceof StringValue sv)
+			return Updates.ofString(sr, field, sv.getValue());
+		else if (value instanceof NullValue)
+			return Updates.toNull(sr, field, json.isEager());
+		else
+			throw new InconsistentJsonException("Illegal update JSON");
 	}
 
 	@Override
@@ -100,12 +173,12 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 		var selector = context.readByte();
 		switch (selector) {
 		case ClassTagImpl.SELECTOR: {
-			try {
-				return Updates.classTag(StorageValues.referenceWithoutSelectorFrom(context), (ClassType) StorageTypes.from(context), TransactionReferences.from(context));
-			}
-			catch (ClassCastException e) {
-				throw new IOException("Failed unmarshalling a class tag", e);
-			}
+			var sr = StorageValues.referenceWithoutSelectorFrom(context);
+
+			if (!(StorageTypes.from(context) instanceof ClassType clazz))
+				throw new IOException("An object having a class tag must have class type");
+
+			return Updates.classTag(sr, clazz, TransactionReferences.from(context));
 		}
 		case UpdateOfBigIntegerImpl.SELECTOR_BALANCE: return Updates.ofBigInteger(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.BALANCE_FIELD, context.readBigInteger());
 		case UpdateOfBigIntegerImpl.SELECTOR_GAS_PRICE: return Updates.ofBigInteger(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.GENERIC_GAS_STATION_GAS_PRICE_FIELD, context.readBigInteger());

@@ -31,7 +31,9 @@ import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
+import io.hotmoka.node.internal.gson.StorageValueJson;
 import io.hotmoka.node.internal.marshalling.NodeMarshallingContext;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * Partial implementation of a value that can be stored in the store of a Hotmoka node,
@@ -108,6 +110,61 @@ public abstract class AbstractStorageValue extends AbstractMarshallable implemen
 			else
 				return StorageValues.intOf(selector - IntValueImpl.SELECTOR - 1);
 		}
+	}
+
+	public static StorageValue from(StorageValueJson json) throws InconsistentJsonException {
+		var bigIntegerValue = json.getBigIntegerValue();
+		if (bigIntegerValue != null)
+			return StorageValues.bigIntegerOf(bigIntegerValue);
+
+		var booleanValue = json.getBooleanValue();
+		if (booleanValue != null)
+			return StorageValues.booleanOf(booleanValue);
+
+		var byteValue = json.getByteValue();
+		if (byteValue != null)
+			return StorageValues.byteOf(byteValue);
+
+		var charValue = json.getCharValue();
+		if (charValue != null)
+			return StorageValues.charOf(charValue);
+
+		var doubleValue = json.getDoubleValue();
+		if (doubleValue != null)
+			return StorageValues.doubleOf(doubleValue);
+
+		var floatValue = json.getFloatValue();
+		if (floatValue != null)
+			return StorageValues.floatOf(floatValue);
+
+		var intValue = json.getIntValue();
+		if (intValue != null)
+			return StorageValues.intOf(intValue);
+
+		var longValue = json.getLongValue();
+		if (longValue != null)
+			return StorageValues.longOf(longValue);
+
+		if (json.isNullValue())
+			return StorageValues.NULL;
+
+		var shortValue = json.getShortValue();
+		if (shortValue != null)
+			return StorageValues.shortOf(shortValue);
+
+		var transaction = json.getTransaction();
+		var progressive = json.getProgressive();
+
+		if (transaction != null && progressive != null)
+			return StorageValues.reference(transaction.unmap(), progressive);
+		else if (transaction != null || progressive != null)
+			throw new InconsistentJsonException("None or both transaction and progressive must be present in JSON");
+
+		var stringValue = json.getStringValue();
+		if (stringValue != null)
+			return StorageValues.stringOf(stringValue);
+
+		throw new InconsistentJsonException("Illegal storage value JSON");
 	}
 
 	@Override

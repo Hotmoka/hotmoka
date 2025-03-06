@@ -16,8 +16,9 @@ limitations under the License.
 
 package io.hotmoka.node.internal.gson;
 
-import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.api.types.StorageType;
+import io.hotmoka.node.internal.types.AbstractStorageType;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**
@@ -30,8 +31,12 @@ public abstract class StorageTypeJson implements JsonRepresentation<StorageType>
 		this.name = type.toString();
 	}
 
+	public String getName() {
+		return name;
+	}
+
 	@Override
-	public StorageType unmap() {
-		return StorageTypes.named(name);
+	public StorageType unmap() throws InconsistentJsonException {
+		return AbstractStorageType.from(this);
 	}
 }

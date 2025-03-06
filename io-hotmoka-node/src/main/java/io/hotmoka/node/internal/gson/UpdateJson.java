@@ -17,31 +17,18 @@ limitations under the License.
 package io.hotmoka.node.internal.gson;
 
 import io.hotmoka.node.FieldSignatures;
-import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
-import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.updates.UpdateOfField;
 import io.hotmoka.node.api.updates.UpdateToNull;
-import io.hotmoka.node.api.values.BigIntegerValue;
-import io.hotmoka.node.api.values.BooleanValue;
-import io.hotmoka.node.api.values.ByteValue;
-import io.hotmoka.node.api.values.CharValue;
-import io.hotmoka.node.api.values.DoubleValue;
-import io.hotmoka.node.api.values.FloatValue;
-import io.hotmoka.node.api.values.IntValue;
-import io.hotmoka.node.api.values.LongValue;
-import io.hotmoka.node.api.values.NullValue;
-import io.hotmoka.node.api.values.ShortValue;
-import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StringValue;
+import io.hotmoka.node.internal.updates.AbstractUpdate;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**
- * The JSON representation of a {@link Update}.
+ * The JSON representation of an {@link Update}.
  */
 public abstract class UpdateJson implements JsonRepresentation<Update> {
 
@@ -102,45 +89,32 @@ public abstract class UpdateJson implements JsonRepresentation<Update> {
 			throw new IllegalArgumentException("Unexpected update of class " + update.getClass().getName());
 	}
 
+	public StorageValues.Json getObject() {
+		return object;
+	}
+
+	public FieldSignatures.Json getField() {
+		return field;
+	}
+
+	public StorageValues.Json getValue() {
+		return value;
+	}
+
+	public String getClazz() {
+		return clazz;
+	}
+
+	public TransactionReferences.Json getJar() {
+		return jar;
+	}
+
+	public boolean isEager() {
+		return Boolean.TRUE.equals(eager);
+	}
+
 	@Override
 	public Update unmap() throws InconsistentJsonException {
-		StorageReference object;
-		if (this.object.unmap() instanceof StorageReference objectSr)
-			object = objectSr;
-		else
-			throw new InconsistentJsonException("A storage reference was expected as object");
-
-		if (clazz != null)
-			return Updates.classTag(object, StorageTypes.classNamed(clazz), jar.unmap());
-
-		var field = this.field.unmap();
-		var value = this.value.unmap();
-
-		if (value instanceof BigIntegerValue biv)
-			return Updates.ofBigInteger(object, field, biv.getValue());
-		else if (value instanceof BooleanValue bv)
-			return Updates.ofBoolean(object, field, bv.getValue());
-		else if (value instanceof ByteValue bv)
-			return Updates.ofByte(object, field, bv.getValue());
-		else if (value instanceof CharValue cv)
-			return Updates.ofChar(object, field, cv.getValue());
-		else if (value instanceof DoubleValue dv)
-			return Updates.ofDouble(object, field, dv.getValue());
-		else if (value instanceof FloatValue fv)
-			return Updates.ofFloat(object, field, fv.getValue());
-		else if (value instanceof IntValue iv)
-			return Updates.ofInt(object, field, iv.getValue());
-		else if (value instanceof LongValue lv)
-			return Updates.ofLong(object, field, lv.getValue());
-		else if (value instanceof ShortValue sv)
-			return Updates.ofShort(object, field, sv.getValue());
-		else if (value instanceof StorageReference sr)
-			return Updates.ofStorage(object, field, sr);
-		else if (value instanceof StringValue sv)
-			return Updates.ofString(object, field, sv.getValue());
-		else if (value instanceof NullValue)
-			return Updates.toNull(object, field, eager);
-		else
-			throw new InconsistentJsonException("Illegal update JSON");
+		return AbstractUpdate.from(this);
 	}
 }

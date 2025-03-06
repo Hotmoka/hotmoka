@@ -74,7 +74,7 @@ public abstract class StorageTypes {
 	 */
 	public static ClassType classOf(Class<?> clazz) {
 		// the class type exists, hence its name must be legal and the exception should never occur
-		return ClassTypeImpl.named(clazz.getName(), RuntimeException::new);
+		return ClassTypeImpl.named(clazz.getName(), RuntimeException::new); // TODO: throw exception if it is an array
 	}
 
 	/**

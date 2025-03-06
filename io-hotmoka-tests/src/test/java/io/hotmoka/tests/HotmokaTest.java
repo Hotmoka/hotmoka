@@ -198,7 +198,8 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	    @Override
 	    public void close() throws Exception {
-	    	node.close(); // better close as well, since it might be a remote node
+	    	if (node != null)
+	    		node.close(); // better close as well, since it might be a remote node
 
 	    	for (var node: nodes)
 	    		node.close();
