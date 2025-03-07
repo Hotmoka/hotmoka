@@ -28,7 +28,8 @@ import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.types.ClassType;
 
 /**
- * An unmarshaller for field signatures.
+ * An unmarshaller for field signatures, that understands the optimization
+ * introduced by a {@link FieldSignatureMarshaller}.
  */
 class FieldSignatureUnmarshaller extends AbstractObjectUnmarshaller<FieldSignature> {
 

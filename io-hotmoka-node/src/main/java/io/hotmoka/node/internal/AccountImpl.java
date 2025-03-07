@@ -18,6 +18,7 @@ package io.hotmoka.node.internal;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.function.Function;
 
 import io.hotmoka.crypto.AbstractAccount;
 import io.hotmoka.crypto.api.Entropy;
@@ -82,25 +83,35 @@ public class AccountImpl extends AbstractAccount<StorageReference> implements Ac
 	 * Creates the information to control an account in a Hotmoka node.
 	 * The entropy of the account is recovered from its PEM file.
 	 * 
+	 * @param <E> the type of the exception thrown if {@code reference} is illegal as a storage reference
+	 *            or it is not legal for an account
 	 * @param reference the reference to the account, as a string. This is limited to have 0 as progressive,
 	 *                  in order to reduce the information needed to represent an account as BIP39 words
+	 * @param onIllegalReference the creator of the exception thrown if {@code reference} is illegal
+	 *                           as a storage reference or it is not legal for an account
 	 * @throws IOException if the PEM file cannot be read
+	 * @throws E if {@code reference} is illegal as a storage reference or it is not legal for an account
 	 */
-	public AccountImpl(String reference) throws IOException {
-		this(StorageValues.reference(reference));
+	public <E extends Exception> AccountImpl(String reference, Function<String, ? extends E> onIllegalReference) throws IOException, E {
+		this(StorageValues.reference(reference, onIllegalReference));
 	}
 
 	/**
 	 * Creates the information to control an account in a Hotmoka node.
 	 * The entropy of the account is recovered from its PEM file.
 	 * 
+	 * @param <E> the type of the exception thrown if {@code reference} is illegal as a storage reference
+	 *            or it is not legal for an account
 	 * @param reference the reference to the account, as a string. This is limited to have 0 as progressive,
 	 *                  in order to reduce the information needed to represent an account as BIP39 words
 	 * @param dir the directory where the PEM file must be looked for
+	 * @param onIllegalReference the creator of the exception thrown if {@code reference} is illegal
+	 *                           as a storage reference or it is not legal for an account
 	 * @throws IOException if the PEM file cannot be read
+	 * @throws E if {@code reference} is illegal as a storage reference or it is not legal for an account
 	 */
-	public AccountImpl(String reference, String dir) throws IOException {
-		this(StorageValues.reference(reference), dir);
+	public <E extends Exception> AccountImpl(String reference, String dir, Function<String, ? extends E> onIllegalReference) throws IOException, E {
+		this(StorageValues.reference(reference, onIllegalReference), dir);
 	}
 
 	/**
@@ -111,7 +122,8 @@ public class AccountImpl extends AbstractAccount<StorageReference> implements Ac
 	 * @param reference the byte representation of the reference
 	 */
 	public AccountImpl(Entropy entropy, byte[] reference) {
-		this(entropy, StorageValues.reference(TransactionReferences.of(reference), BigInteger.ZERO));
+		// TODO: exception should be checked
+		this(entropy, StorageValues.reference(TransactionReferences.of(reference, IllegalArgumentException::new), BigInteger.ZERO, IllegalArgumentException::new));
 	}
 
     @Override

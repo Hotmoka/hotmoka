@@ -27,7 +27,8 @@ import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.values.StorageReference;
 
 /**
- * An unmarshaller for storage references.
+ * An unmarshaller for storage references, that understands the optimization
+ * introduced by a {@link StorageReferenceMarshaller}.
  */
 class StorageReferenceUnmarshaller extends AbstractObjectUnmarshaller<StorageReference> {
 
@@ -44,7 +45,7 @@ class StorageReferenceUnmarshaller extends AbstractObjectUnmarshaller<StorageRef
 			selector = 256 + selector;
 
 		if (selector == 255) {
-			var reference = StorageValues.reference(TransactionReferences.from(context), context.readBigInteger());
+			var reference = StorageValues.reference(TransactionReferences.from(context), context.readBigInteger(), IOException::new);
 
 			int size = memory.size();
 			if (size < Integer.MAX_VALUE)

@@ -26,9 +26,15 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 
 /**
  * Knowledge about how a transaction reference can be marshalled.
+ * It uses a memory that associates a progressive integer to each transaction reference, so that
+ * repeated references gets marshalled only once and later represented by their progressive.
  */
 class TransactionReferenceMarshaller extends AbstractObjectMarshaller<TransactionReference> {
-	
+
+	/**
+	 * The memory that associates a progressive integer to each transaction reference, so that
+	 * repeated references gets marshalled only once and later represented by their progressive.
+	 */
 	private final Map<TransactionReference, Integer> memory = new HashMap<>();
 
 	TransactionReferenceMarshaller() {

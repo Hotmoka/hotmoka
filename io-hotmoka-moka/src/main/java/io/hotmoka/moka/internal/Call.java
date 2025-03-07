@@ -127,9 +127,9 @@ public class Call extends AbstractCommand {
 		private Run() throws Exception {
 			try (Node node = this.node = RemoteNodes.of(uri, 10_000)) {
 				if ("the classpath of the receiver".equals(Call.this.classpath))
-					this.classpath = node.getClassTag(StorageValues.reference(Call.this.receiver)).getJar();
+					this.classpath = node.getClassTag(StorageValues.reference(Call.this.receiver, s -> new CommandException("The receiver " + Call.this.receiver + " is not a valid storage reference: " + s))).getJar();
 				else
-					this.classpath = TransactionReferences.of(Call.this.classpath);
+					this.classpath = TransactionReferences.of(Call.this.classpath, s -> new CommandException("The classpath " + Call.this.classpath + " is not a valid transaction reference: " + s));
 
 				this.classloader = ClassLoaderHelpers.of(node).classloaderFor(classpath);
 				this.receiver = computeReceiver();
@@ -141,7 +141,7 @@ public class Call extends AbstractCommand {
 
 				if (!isView) {
 					passwordOfPayer = ensurePassword(passwordOfPayer, "the payer account", interactive, false);
-					this.payer = StorageValues.reference(Call.this.payer);
+					this.payer = StorageValues.reference(Call.this.payer, s -> new CommandException("The payer " + Call.this.payer + " is not a valid storage reference: " + s));
 				}
 				else
 					this.payer = null;
@@ -196,7 +196,7 @@ public class Call extends AbstractCommand {
 				return null;
 			}
 			catch (ClassNotFoundException e) {
-				return StorageValues.reference(Call.this.receiver);
+				return StorageValues.reference(Call.this.receiver, s -> new IllegalArgumentException("The receiver " + Call.this.receiver + " is neither a class name nor a valid storage reference: " + s));
 			}
 		}
 

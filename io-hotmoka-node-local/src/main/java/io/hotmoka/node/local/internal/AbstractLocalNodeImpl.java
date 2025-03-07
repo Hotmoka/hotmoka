@@ -423,7 +423,8 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		S store = enterHead();
 
 		try (var scope = mkScope()) {
-			var reference = TransactionReferences.of(hasher.hash(request));
+			// the hasher generates hashes of the correct length
+			var reference = TransactionReferences.of(hasher.hash(request), IllegalArgumentException::new);
 			String referenceAsString = reference.toString();
 			LOGGER.info(referenceAsString + ": running start (" + request.getClass().getSimpleName() + " -> " + trim(request.getStaticTarget().getMethodName()) + ')');
 			Optional<StorageValue> result = store.beginViewTransformation().runInstanceMethodCallTransaction(request, reference);
@@ -443,7 +444,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		S store = enterHead();
 
 		try (var scope = mkScope()) {
-			var reference = TransactionReferences.of(hasher.hash(request));
+			var reference = TransactionReferences.of(hasher.hash(request), IllegalArgumentException::new);
 			String referenceAsString = reference.toString();
 			LOGGER.info(referenceAsString + ": running start (" + request.getClass().getSimpleName() + " -> " + trim(request.getStaticTarget().getMethodName()) + ')');
 			Optional<StorageValue> result = store.beginViewTransformation().runStaticMethodCallTransaction(request, reference);
@@ -513,7 +514,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	protected final void signalRejected(TransactionRequest<?> request, TransactionRejectedException e) {
-		var reference = TransactionReferences.of(hasher.hash(request));
+		var reference = TransactionReferences.of(hasher.hash(request), IllegalArgumentException::new);
 		recentlyRejectedTransactionsMessages.put(reference, e.getMessage());
 		signalCompleted(reference);
 	}
@@ -617,7 +618,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 * @throws TransactionRejectedException if the request was already present in the store
 	 */
 	private TransactionReference post(TransactionRequest<?> request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
-		var reference = TransactionReferences.of(hasher.hash(request));
+		var reference = TransactionReferences.of(hasher.hash(request), IllegalArgumentException::new);
 		if (request instanceof MethodCallTransactionRequest mctr)
 			LOGGER.info(reference + ": posting (" + request.getClass().getSimpleName() + " -> " + trim(mctr.getStaticTarget().getMethodName()) + ')');
 		else if (request instanceof ConstructorCallTransactionRequest cctr)

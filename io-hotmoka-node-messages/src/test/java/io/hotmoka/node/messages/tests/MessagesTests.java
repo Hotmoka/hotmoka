@@ -99,8 +99,8 @@ import jakarta.websocket.DecodeException;
 import jakarta.websocket.EncodeException;
 
 public class MessagesTests extends AbstractLoggedTests {
-	private final static TransactionReference TRANSACTION_REFERENCE = TransactionReferences.of("12345678901234567890abcdeabcdeff12345678901234567890abcdeabcdeff");
-	private final static StorageReference OBJECT = StorageValues.reference(TRANSACTION_REFERENCE, BigInteger.ONE);
+	private final static TransactionReference TRANSACTION_REFERENCE = TransactionReferences.of("12345678901234567890abcdeabcdeff12345678901234567890abcdeabcdeff", RuntimeException::new);
+	private final static StorageReference OBJECT = StorageValues.reference(TRANSACTION_REFERENCE, BigInteger.ONE, RuntimeException::new);
 
 	@Test
 	@DisplayName("getNodeInfo messages are correctly encoded into Json and decoded from Json")
@@ -154,7 +154,7 @@ public class MessagesTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("getTakamakaCodeResult messages are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForGetTakamakaCodeResult() throws EncodeException, DecodeException {
-		var expected = GetTakamakaCodeResultMessages.of(TransactionReferences.of("12345678901234567890abcdeabcdeff12345678901234567890abcdeabcdeff"), "id");
+		var expected = GetTakamakaCodeResultMessages.of(TransactionReferences.of("12345678901234567890abcdeabcdeff12345678901234567890abcdeabcdeff", IllegalArgumentException::new), "id");
 		String encoded = new GetTakamakaCodeResultMessages.Encoder().encode(expected);
 		var actual = new GetTakamakaCodeResultMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);
@@ -617,7 +617,7 @@ public class MessagesTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("event messages are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForEvent() throws EncodeException, DecodeException {
-		var expected = EventMessages.of(OBJECT, StorageValues.reference(TRANSACTION_REFERENCE, BigInteger.TWO));
+		var expected = EventMessages.of(OBJECT, StorageValues.reference(TRANSACTION_REFERENCE, BigInteger.TWO, RuntimeException::new));
 		String encoded = new EventMessages.Encoder().encode(expected);
 		var actual = new EventMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);

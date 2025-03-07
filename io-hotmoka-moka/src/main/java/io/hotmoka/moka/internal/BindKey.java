@@ -57,7 +57,7 @@ public class BindKey extends AbstractCommand {
 			storageReference = getReferenceFromAccountLedger();
 		else {	
 			checkStorageReference(reference);
-			storageReference = StorageValues.reference(reference);
+			storageReference = StorageValues.reference(reference, CommandException::new);
 		}
 
 		var account = Accounts.of(Entropies.load(Paths.get(key + ".pem")), storageReference);

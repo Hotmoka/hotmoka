@@ -19,6 +19,7 @@ package io.hotmoka.node.internal.references;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.function.Function;
 
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.HexConversionException;
@@ -26,47 +27,77 @@ import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.internal.gson.TransactionReferenceJson;
 import io.hotmoka.node.internal.marshalling.NodeMarshallingContext;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
- * Implementation of a transaction reference that refers to a transaction in the store of a node.
+ * Implementation of a transaction reference: it refers to a transaction in the store of a node.
  */
 public final class TransactionReferenceImpl extends AbstractMarshallable implements TransactionReference {
 	private static final long serialVersionUID = 1157696417214320999L;
 
 	/**
 	 * The hash of the request that generated the transaction.
+	 * This is {@link TransactionReference#REQUEST_HASH_LENGTH} bytes long.
 	 */
 	private final byte[] hash;
 
 	/**
 	 * Builds a transaction reference.
 	 * 
-	 * @param hash the hash of the transaction, as the hexadecimal representation of its bytes
+	 * @param <E> the type of the exception thrown if {@code hash} is an illegal transaction hash
+	 * @param hash the hash of the transaction, as the hexadecimal representation of its {@link TransactionReference#REQUEST_HASH_LENGTH} bytes
+	 * @throws E if {@code hash} in not a legal transaction hash
 	 */
-	public TransactionReferenceImpl(String hash) {
+	public <E extends Exception> TransactionReferenceImpl(String hash, Function<String, ? extends E> onIllegalHash) throws E {
 		// each byte is represented by two successive characters
 		if (hash.length() != REQUEST_HASH_LENGTH * 2)
-			throw new IllegalArgumentException("Illegal transaction reference: it should be " + REQUEST_HASH_LENGTH + " bytes long");
+			throw onIllegalHash.apply("Illegal transaction reference: it should be " + REQUEST_HASH_LENGTH + " bytes long");
 
 		try {
 			this.hash = Hex.fromHexString(hash);
 		}
 		catch (HexConversionException e) {
-			throw new IllegalArgumentException(e);
+			throw onIllegalHash.apply("Illegal hexadecimal string: " + e.getMessage());
 		}
 	}
 
 	/**
-	 * Builds a transaction reference.
+	 * Builds a transaction reference with the given hash.
 	 * 
-	 * @param hash the hash of the transaction, as a byte array
+	 * @param <E> the type of the exception thrown if {@code hash} is an illegal transaction hash
+	 * @param hash the hash of the transaction, as a byte array of length {@link TransactionReference#REQUEST_HASH_LENGTH}
+	 * @throws E if {@code hash} in not a legal transaction hash
 	 */
-	public TransactionReferenceImpl(byte[] hash) {
+	public <E extends Exception> TransactionReferenceImpl(byte[] hash, Function<String, ? extends E> onIllegalHash) throws E {
 		if (hash.length != REQUEST_HASH_LENGTH)
-			throw new IllegalArgumentException("Illegal transaction reference: it should be " + REQUEST_HASH_LENGTH + " bytes long");
+			throw onIllegalHash.apply("Illegal transaction reference: it should be " + REQUEST_HASH_LENGTH + " bytes long");
 
 		this.hash = hash.clone();
+	}
+
+	/**
+	 * Creates a transaction reference from the given JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public TransactionReferenceImpl(TransactionReferenceJson json) throws InconsistentJsonException {
+		var hash = json.getHash();
+		if (hash == null)
+			throw new InconsistentJsonException(hash);
+
+		// each byte is represented by two successive characters
+		if (hash.length() != REQUEST_HASH_LENGTH * 2)
+			throw new InconsistentJsonException("Illegal transaction reference: it should be " + REQUEST_HASH_LENGTH + " bytes long");
+
+		try {
+			this.hash = Hex.fromHexString(hash);
+		}
+		catch (HexConversionException e) {
+			throw new InconsistentJsonException(e);
+		}
 	}
 
 	/**

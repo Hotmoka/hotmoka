@@ -575,7 +575,7 @@ public abstract class ExecutionEnvironment {
 	}
 
 	protected final boolean signatureIsValid(SignedTransactionRequest<?> request, SignatureAlgorithm signatureAlgorithm) throws StoreException, UnknownReferenceException, FieldNotFoundException {
-		var reference = TransactionReferences.of(getHasher().hash(request));
+		var reference = TransactionReferences.of(getHasher().hash(request), IllegalArgumentException::new);
 		FunctionWithExceptions3<TransactionReference, Boolean, StoreException, UnknownReferenceException, FieldNotFoundException> verifySignature = _reference -> verifySignature(signatureAlgorithm, request);
 		return CheckSupplier.check(StoreException.class, UnknownReferenceException.class, FieldNotFoundException.class, () ->
 			signatureIsValid(reference, UncheckFunction.uncheck(StoreException.class, UnknownReferenceException.class, FieldNotFoundException.class, verifySignature)));
@@ -619,7 +619,7 @@ public abstract class ExecutionEnvironment {
 	}
 
 	protected final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, StoreException, InterruptedException {
-		return runInstanceMethodCallTransaction(request, TransactionReferences.of(getHasher().hash(request)));
+		return runInstanceMethodCallTransaction(request, TransactionReferences.of(getHasher().hash(request), IllegalArgumentException::new));
 	}
 
 	protected final ExecutorService getExecutors() {

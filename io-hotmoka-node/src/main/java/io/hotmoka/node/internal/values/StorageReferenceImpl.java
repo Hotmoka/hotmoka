@@ -58,24 +58,44 @@ public final class StorageReferenceImpl extends AbstractStorageValue implements 
 	/**
 	 * Builds a storage reference from its transaction reference and progressive.
 	 * 
+	 * @param <E> the type of the exception to throw if the result would be an illegal storage reference
 	 * @param transaction the transaction that created the object
 	 * @param progressive the progressive number of the object among those that have been created
 	 *                    during the same transaction
+	 * @param onIllegalReference the creator of the exception thrown if the result would be an illegal storage reference
+	 * @throws E if the result would be an illegal storage reference
 	 */
-	public StorageReferenceImpl(TransactionReference transaction, BigInteger progressive) {
+	public <E extends Exception> StorageReferenceImpl(TransactionReference transaction, BigInteger progressive, Function<String, ? extends E> onIllegalReference) throws E {
 		this.transaction = Objects.requireNonNull(transaction, "transaction cannot be null");
 		this.progressive = Objects.requireNonNull(progressive, "progressive cannot be null");
 		if (progressive.signum() < 0)
-			throw new IllegalArgumentException("progressive cannot be negative");
+			throw onIllegalReference.apply("progressive cannot be negative");
 	}
 
 	/**
 	 * Builds a storage reference from its string representation.
 	 * 
+	 * @param <E> the type of exception thrown if {@code s} is an illegal representation for a storage reference
 	 * @param s the string representation
+	 * @param onIllegalReference the creator of the exception thrown if {@code s} is an illegal representation for a storage reference
+	 * @throws E if {@code s} is an illegal representation for a storage reference
 	 */
-	public StorageReferenceImpl(String s) {
-		this(TransactionReferences.of(s.split("#")[0]), new BigInteger(s.split("#")[1], 16));
+	public <E extends Exception> StorageReferenceImpl(String s, Function<String, ? extends E> onIllegalReference) throws E {
+		String[] splits = s.split("#");
+		if (splits.length != 2)
+			throw onIllegalReference.apply("A storage reference should have the form transaction#progressive");
+
+		this.transaction = TransactionReferences.of(splits[0], onIllegalReference);
+
+		try {
+			this.progressive = new BigInteger(splits[1], 16);
+		}
+		catch (NumberFormatException e) {
+			throw onIllegalReference.apply("The progressive part of a storage reference should be a positive hexadecimal number: " + e.getMessage());
+		}
+
+		if (progressive.signum() < 0)
+			throw onIllegalReference.apply("The progressive part of a storage reference should be a positive hexadecimal number");
 	}
 
 	@Override

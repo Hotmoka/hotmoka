@@ -22,7 +22,7 @@ import java.io.OutputStream;
 import io.hotmoka.marshalling.AbstractMarshallingContext;
 
 /**
- * A context used during bean marshalling into bytes. It shares a node's API
+ * A context used during bean marshalling into bytes. It shares the node's API
  * subcomponents in such a way to get a more compact representation, by sharing
  * repeated subcomponents.
  */

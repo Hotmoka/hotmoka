@@ -66,7 +66,7 @@ public class ShowAccount extends AbstractCommand {
 		if (keys)
 			password = ensurePassword(password, "the account", interactive, false);
 
-		var account = Accounts.of(reference);
+		var account = Accounts.of(reference, s -> new CommandException("The reference " + reference + " is not a valid storage reference for an account: " + s));
 		System.out.println("reference: " + account.getReference());
 		System.out.println("entropy: " + Base64.toBase64String(account.getEntropyAsBytes()));
 

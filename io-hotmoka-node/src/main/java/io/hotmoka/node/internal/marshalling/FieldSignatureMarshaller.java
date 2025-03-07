@@ -26,9 +26,15 @@ import io.hotmoka.node.api.signatures.FieldSignature;
 
 /**
  * Knowledge about how a field signature can be marshalled.
+ * It uses a memory that associates a progressive integer to each field signature, so that
+ * repeated signatures gets marshalled only once and later represented by their progressive.
  */
 class FieldSignatureMarshaller extends AbstractObjectMarshaller<FieldSignature> {
-	
+
+	/**
+	 * The memory that associates a progressive integer to each field signature, so that
+	 * repeated signatures gets marshalled only once and later represented by their progressive.
+	 */
 	private final Map<FieldSignature, Integer> memory = new HashMap<>();
 
 	FieldSignatureMarshaller() {

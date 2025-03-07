@@ -124,7 +124,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 					((StorageReference) serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			}
 			catch (Throwable t) {
-				var reference = TransactionReferences.of(environment.getHasher().hash(getRequest()));
+				var reference = TransactionReferences.of(environment.getHasher().hash(getRequest()), IllegalArgumentException::new);
 				LOGGER.warning(reference + ": failed with message: \"" + t.getMessage() + "\"");
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
 				resetBalanceOfPayerToInitialValueMinusAllPromisedGas();

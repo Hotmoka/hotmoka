@@ -137,7 +137,7 @@ public class CreateAccount extends AbstractCommand {
 
 		private StorageReference createAccountFromPayer() throws Exception {
 			checkStorageReference(payer);
-			var payer = Accounts.of(CreateAccount.this.payer);
+			var payer = Accounts.of(CreateAccount.this.payer, s -> new CommandException("The reference " + CreateAccount.this.payer + " is not a valid storage reference for an account: " + s));
 			KeyPair keysOfPayer = readKeys(payer, node, passwordOfPayer);
 			if (createTendermintValidator)
 				return accountCreationHelper.tendermintValidatorPaidBy

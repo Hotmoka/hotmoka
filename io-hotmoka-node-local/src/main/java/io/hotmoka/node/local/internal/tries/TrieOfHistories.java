@@ -81,7 +81,7 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 		for (int index = 0, pos = 0; pos < bytes.length; pos += requestHashLength, index++) {
 			var hash = new byte[requestHashLength];
 			System.arraycopy(bytes, pos, hash, 0, requestHashLength);
-			references[index] = TransactionReferences.of(hash);
+			references[index] = TransactionReferences.of(hash, IllegalArgumentException::new);
 		}
 		
 		return Stream.of(references);

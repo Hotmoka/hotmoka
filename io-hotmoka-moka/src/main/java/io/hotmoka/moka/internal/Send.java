@@ -107,14 +107,14 @@ public class Send extends AbstractCommand {
 
 		private void sendCoinsFromPayer() throws Exception {
 			var sendCoinsHelper = SendCoinsHelpers.of(node);
-			var payer = StorageValues.reference(Send.this.payer);
+			var payer = StorageValues.reference(Send.this.payer, CommandException::new);
 			KeyPair keysOfPayer = readKeys(Accounts.of(payer), node, passwordOfPayer);
-			sendCoinsHelper.sendFromPayer(payer, keysOfPayer, StorageValues.reference(destination), amount, this::askForConfirmation, this::printCosts);
+			sendCoinsHelper.sendFromPayer(payer, keysOfPayer, StorageValues.reference(destination, CommandException::new), amount, this::askForConfirmation, this::printCosts);
 		}
 
 		private StorageReference sendCoinsToPublicKey() throws Exception {
 			var accountCreationHelper = AccountCreationHelpers.of(node);
-			var payer = StorageValues.reference(Send.this.payer);
+			var payer = StorageValues.reference(Send.this.payer, CommandException::new);
 			KeyPair keysOfPayer = readKeys(Accounts.of(payer), node, passwordOfPayer);
 			var signatureAlgorithmForNewAccount = SignatureAlgorithms.ed25519();
 			return accountCreationHelper.paidBy(payer, keysOfPayer, signatureAlgorithmForNewAccount,
@@ -126,7 +126,7 @@ public class Send extends AbstractCommand {
 			var sendCoinsHelper = SendCoinsHelpers.of(node);
 			
 			try {
-				sendCoinsHelper.sendFromFaucet(StorageValues.reference(destination), amount, this::askForConfirmation, this::printCosts);
+				sendCoinsHelper.sendFromFaucet(StorageValues.reference(destination, CommandException::new), amount, this::askForConfirmation, this::printCosts);
 			}
 			catch (TransactionRejectedException e) {
 				if (e.getMessage().contains("invalid request signature"))

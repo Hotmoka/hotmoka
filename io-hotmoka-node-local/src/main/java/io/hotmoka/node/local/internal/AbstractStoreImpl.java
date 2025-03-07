@@ -122,7 +122,7 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 
 	@Override
 	public final void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException, StoreException {
-		var reference = TransactionReferences.of(getHasher().hash(request));
+		var reference = TransactionReferences.of(getHasher().hash(request), IllegalArgumentException::new);
 		String referenceAsString = reference.toString();
 
 		try {

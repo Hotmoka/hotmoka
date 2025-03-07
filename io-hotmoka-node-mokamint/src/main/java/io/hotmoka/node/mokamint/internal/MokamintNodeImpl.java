@@ -232,7 +232,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 					MokamintStore store = mkStore(si, Optional.ofNullable(lastCaches.get(si)));
 	
 					for (var tx: next.getTransactions().toArray(Transaction[]::new))
-						publish(TransactionReferences.of(getHasher().hash(intoHotmokaRequest(tx))), store);
+						publish(TransactionReferences.of(getHasher().hash(intoHotmokaRequest(tx)), IllegalArgumentException::new), store);
 				}
 				catch (ApplicationException | NodeException | io.mokamint.node.api.TransactionRejectedException | UnknownStateIdException e) {
 					LOGGER.log(Level.SEVERE, "failed to publish the transactions in block " + next.getHexHash(), e);

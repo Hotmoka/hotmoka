@@ -219,10 +219,10 @@ public abstract class AbstractCommand implements Runnable {
         	if (s == null)
         		return false;
 
-        	StorageValues.reference(s);
+        	StorageValues.reference(s, IllegalArgumentException::new);
             return true;
         }
-        catch (Throwable t) {
+        catch (IllegalArgumentException t) {
             return false;
         }
     }

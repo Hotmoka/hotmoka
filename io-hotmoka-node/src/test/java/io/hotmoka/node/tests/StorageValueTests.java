@@ -124,7 +124,7 @@ public class StorageValueTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("storage references are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForStorageReference() throws EncodeException, DecodeException {
-		var value1 = StorageValues.reference(TransactionReferences.of("cafebabe12345678cafebabe12345678cafebabe12345678cafebabe12345678"), BigInteger.valueOf(13));
+		var value1 = StorageValues.reference(TransactionReferences.of("cafebabe12345678cafebabe12345678cafebabe12345678cafebabe12345678", IllegalArgumentException::new), BigInteger.valueOf(13), IllegalArgumentException::new);
 		String encoded = new StorageValues.Encoder().encode(value1);
 		var value2 = new StorageValues.Decoder().decode(encoded);
 		assertEquals(value1, value2);

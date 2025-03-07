@@ -26,9 +26,15 @@ import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * Knowledge about how a storage reference can be marshalled.
+ * It uses a memory that associates a progressive integer to each storage reference, so that
+ * repeated references gets marshalled only once and later represented by their progressive.
  */
 class StorageReferenceMarshaller extends AbstractObjectMarshaller<StorageReference> {
 	
+	/**
+	 * The memory that associates a progressive integer to each storage reference, so that
+	 * repeated references gets marshalled only once and later represented by their progressive.
+	 */
 	private final Map<StorageReference, Integer> memory = new HashMap<>();
 
 	StorageReferenceMarshaller() {

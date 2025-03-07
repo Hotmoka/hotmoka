@@ -188,23 +188,29 @@ public abstract class StorageValues {
 	/**
 	 * Yields a storage reference from its transaction reference and progressive.
 	 * 
+	 * @param <E> the type of the exception to throw if the result would be an illegal storage reference
 	 * @param transaction the transaction that created the object
 	 * @param progressive the progressive number of the object among those that have been created
 	 *                    during the same transaction
+	 * @param onIllegalReference the creator of the exception thrown if the result would be an illegal storage reference
 	 * @return the storage reference
+	 * @throws E if the result would be an illegal storage reference
 	 */
-	public static StorageReference reference(TransactionReference transaction, BigInteger progressive) {
-		return new StorageReferenceImpl(transaction, progressive);
+	public static <E extends Exception> StorageReference reference(TransactionReference transaction, BigInteger progressive, Function<String, ? extends E> onIllegalReference) throws E {
+		return new StorageReferenceImpl(transaction, progressive, onIllegalReference);
 	}
 
 	/**
 	 * Yields a storage reference from its string representation.
 	 * 
+	 * @param <E> the type of exception thrown if {@code s} is an illegal representation for a storage reference
 	 * @param s the string representation
+	 * @param onIllegalReference the creator of the exception thrown if {@code s} is an illegal representation for a storage reference
 	 * @return the storage reference
+	 * @throws E if {@code s} is an illegal representation for a storage reference
 	 */
-	public static StorageReference reference(String s) {
-		return new StorageReferenceImpl(s);
+	public static <E extends Exception> StorageReference reference(String s, Function<String, ? extends E> onIllegalReference) throws E {
+		return new StorageReferenceImpl(s, onIllegalReference);
 	}
 
 	/**

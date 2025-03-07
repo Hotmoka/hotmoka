@@ -91,12 +91,13 @@ public class RotateKey extends AbstractCommand {
 
 		private Run() throws Exception {
 			try (var node = this.node = RemoteNodes.of(uri, 10_000)) {
-				if ("the classpath of the account".equals(RotateKey.this.classpath))
-					this.classpath = node.getClassTag(StorageValues.reference(RotateKey.this.account)).getJar();
-				else
-					this.classpath = TransactionReferences.of(RotateKey.this.classpath);
+				this.account = StorageValues.reference(RotateKey.this.account, s -> new CommandException("The account " + RotateKey.this.account + " is not a valid storage reference: " + s));
 
-				this.account = StorageValues.reference(RotateKey.this.account);
+				if ("the classpath of the account".equals(RotateKey.this.classpath))
+					this.classpath = node.getClassTag(account).getJar();
+				else
+					this.classpath = TransactionReferences.of(RotateKey.this.classpath, s -> new CommandException("The classpath " + RotateKey.this.classpath + " is not a valid transaction reference: " + s));
+
 				passwordOfAccount = ensurePassword(passwordOfAccount, "the account", interactive, false);
 				this.entropy = Entropies.random();
 				

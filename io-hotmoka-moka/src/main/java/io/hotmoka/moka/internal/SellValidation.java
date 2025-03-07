@@ -21,6 +21,7 @@ import java.net.URI;
 import java.security.KeyPair;
 import java.util.concurrent.TimeoutException;
 
+import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
@@ -117,7 +118,7 @@ public class SellValidation extends AbstractCommand {
 				var validators = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest))
 					.orElseThrow(() -> new CommandException(MethodSignatures.GET_VALIDATORS + " should not return void"));
-				var seller = StorageValues.reference(SellValidation.this.seller);
+				var seller = StorageValues.reference(SellValidation.this.seller, CommandException::new);
 				var algorithm = SignatureHelpers.of(node).signatureAlgorithmFor(seller);
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
@@ -136,7 +137,8 @@ public class SellValidation extends AbstractCommand {
 					// the reserved buyer is specified as well
 					request1 = TransactionRequests.constructorCall(signer, seller, nonceHelper.getNonceOf(seller), chainId, gasLimit, gasHelper.getSafeGasPrice(), takamakaCode,
 							ConstructorSignatures.of(StorageTypes.SHARED_ENTITY_OFFER, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG, StorageTypes.PAYABLE_CONTRACT),
-							seller, StorageValues.bigIntegerOf(power), StorageValues.bigIntegerOf(cost), StorageValues.longOf(duration), StorageValues.reference(buyer));
+							seller, StorageValues.bigIntegerOf(power), StorageValues.bigIntegerOf(cost), StorageValues.longOf(duration),
+							StorageValues.reference(buyer, s -> new CommandException("The buyer " + buyer + " is not a valid storage reference: " + s)));
 
 				StorageReference newOffer = node.addConstructorCallTransaction(request1);
 				

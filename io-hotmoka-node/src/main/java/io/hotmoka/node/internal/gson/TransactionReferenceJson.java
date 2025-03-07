@@ -17,9 +17,8 @@ limitations under the License.
 package io.hotmoka.node.internal.gson;
 
 import io.hotmoka.crypto.Hex;
-import io.hotmoka.crypto.HexConversionException;
-import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.internal.references.TransactionReferenceImpl;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
@@ -33,13 +32,12 @@ public abstract class TransactionReferenceJson implements JsonRepresentation<Tra
 		this.hash = Hex.toHexString(reference.getHash());
 	}
 
+	public String getHash() {
+		return hash;
+	}
+
 	@Override
 	public TransactionReference unmap() throws InconsistentJsonException {
-		try {
-			return TransactionReferences.of(Hex.fromHexString(hash));
-		}
-		catch (HexConversionException e) {
-			throw new InconsistentJsonException(e);
-		}
+		return new TransactionReferenceImpl(this);
 	}
 }

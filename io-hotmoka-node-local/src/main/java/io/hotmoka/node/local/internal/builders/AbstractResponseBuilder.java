@@ -262,7 +262,8 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		public final StorageReference getNextStorageReference() {
 			BigInteger result = nextProgressive;
 			nextProgressive = nextProgressive.add(BigInteger.ONE);
-			return StorageValues.reference(reference, result);
+			// nextProgressive is never negative 
+			return StorageValues.reference(reference, result, IllegalArgumentException::new);
 		}
 
 		/**

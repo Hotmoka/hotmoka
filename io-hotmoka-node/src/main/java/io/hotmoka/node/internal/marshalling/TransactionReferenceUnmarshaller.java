@@ -26,7 +26,8 @@ import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.transactions.TransactionReference;
 
 /**
- * An unmarshaller for transaction references.
+ * An unmarshaller for transaction references, that understands the optimization
+ * introduced by a {@link TransactionReferenceMarshaller}.
  */
 class TransactionReferenceUnmarshaller extends AbstractObjectUnmarshaller<TransactionReference> {
 
@@ -44,7 +45,7 @@ class TransactionReferenceUnmarshaller extends AbstractObjectUnmarshaller<Transa
 
 		if (selector == 255) {
 			byte[] bytes = context.readBytes(TransactionReference.REQUEST_HASH_LENGTH, "Cannot read a transaction reference");
-			var reference = TransactionReferences.of(bytes);
+			var reference = TransactionReferences.of(bytes, IllegalArgumentException::new);
 
 			int size = memory.size();
 			if (size < Integer.MAX_VALUE)

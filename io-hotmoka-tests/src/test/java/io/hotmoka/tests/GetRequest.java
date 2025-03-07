@@ -67,6 +67,6 @@ public class GetRequest extends HotmokaTest {
 		byte[] hash = abstractfail.getTransaction().getHash();
 		// we modify the first byte: the resulting transaction reference does not exist
 		hash[0]++;
-		assertThrows(UnknownReferenceException.class, () -> getRequest(TransactionReferences.of(hash)));
+		assertThrows(UnknownReferenceException.class, () -> getRequest(TransactionReferences.of(hash, IllegalArgumentException::new)));
 	}
 }

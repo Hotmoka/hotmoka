@@ -92,7 +92,7 @@ public class BuyValidation extends AbstractCommand {
 				var manifest = node.getManifest();
 				var validators = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest)).orElseThrow(() -> new CommandException("getValidators() should not return void"));
-				var buyer = StorageValues.reference(BuyValidation.this.buyer);
+				var buyer = StorageValues.reference(BuyValidation.this.buyer, CommandException::new);
 				var algorithm = SignatureHelpers.of(node).signatureAlgorithmFor(buyer);
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest)).orElseThrow(() -> new CommandException("getChainId() should not return void"))).getValue();
@@ -103,7 +103,7 @@ public class BuyValidation extends AbstractCommand {
 				int buyerSurcharge = ((IntValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getBuyerSurcharge", StorageTypes.INT), validators)).orElseThrow(() -> new CommandException("getBuyerSurcharge() should not return void"))).getValue();
 
-				StorageReference offer = StorageValues.reference(BuyValidation.this.offer);
+				StorageReference offer = StorageValues.reference(BuyValidation.this.offer, CommandException::new);
 
 				BigInteger cost = ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_OFFER, "getCost", StorageTypes.BIG_INTEGER), offer))

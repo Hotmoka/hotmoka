@@ -35,13 +35,15 @@ import jakarta.websocket.DecodeException;
 import jakarta.websocket.EncodeException;
 
 public class UpdateTests extends AbstractLoggedTests {
-	private final static StorageReference object = StorageValues.reference(TransactionReferences.of("cafebabedeadbeafcafebabedeadbeafcafebabedeadbeafcafebabedeadbeaf"), BigInteger.valueOf(13));
+	private final static StorageReference object = StorageValues.reference
+		(TransactionReferences.of("cafebabedeadbeafcafebabedeadbeafcafebabedeadbeafcafebabedeadbeaf", IllegalArgumentException::new),
+		 BigInteger.valueOf(13), IllegalArgumentException::new);
 	private final static FieldSignature field = FieldSignatures.of("io.hotmoka.MyClass", "f1", StorageTypes.named("io.hotmoka.OtherClass"));
 
 	@Test
 	@DisplayName("class tags are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForClassTag() throws EncodeException, DecodeException {
-		var jar = TransactionReferences.of("01234567deadbeafcafebabedeadbeafcafebabedeadbeafcafebabedeadbeaf");
+		var jar = TransactionReferences.of("01234567deadbeafcafebabedeadbeafcafebabedeadbeafcafebabedeadbeaf", IllegalArgumentException::new);
 		var classTag1 = Updates.classTag(object, StorageTypes.classNamed("MyGreatClass"), jar);
 		String encoded = new Updates.Encoder().encode(classTag1);
 		var classTag2 = new Updates.Decoder().decode(encoded);
@@ -132,7 +134,9 @@ public class UpdateTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("updates of storage are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForUpdateOfStorage() throws EncodeException, DecodeException {
-		var value = StorageValues.reference(TransactionReferences.of("01234567deadbeafcafebabedeadbeafcafebabedeadbeafcafebabedeadbeaf"), BigInteger.TWO);
+		var value = StorageValues.reference(
+			TransactionReferences.of("01234567deadbeafcafebabedeadbeafcafebabedeadbeafcafebabedeadbeaf", IllegalArgumentException::new),
+			BigInteger.TWO, IllegalArgumentException::new);
 		var update1 = Updates.ofStorage(object, field, value);
 		String encoded = new Updates.Encoder().encode(update1);
 		var update2 = new Updates.Decoder().decode(encoded);

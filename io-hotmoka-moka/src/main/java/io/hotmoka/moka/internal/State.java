@@ -43,7 +43,7 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class State extends AbstractCommand {
 
-	@Parameters(index = "0", description = "the reference to the object")
+	@Parameters(index = "0", description = "the storage reference of the object")
     private String object;
 
 	@Option(names = { "--uri" }, description = "the URI of the node", defaultValue = "ws://localhost:8001")
@@ -64,7 +64,7 @@ public class State extends AbstractCommand {
 
 		private Run() throws Exception {
 			checkStorageReference(object);
-			var reference = StorageValues.reference(object);
+			var reference = StorageValues.reference(object, CommandException::new);
 
 			try (var node = this.node = RemoteNodes.of(uri, 10_000)) {
 				this.updates = node.getState(reference).sorted().toArray(Update[]::new);

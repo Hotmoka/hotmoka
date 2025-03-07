@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node;
 
 import java.io.IOException;
+import java.util.function.Function;
 
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -35,21 +36,25 @@ public abstract class TransactionReferences {
 	/**
 	 * Yields a transaction reference with the given hash.
 	 * 
-	 * @param hash the hash of the transaction, as the hexadecimal representation of its bytes
+	 * @param <E> the type of the exception thrown if {@code hash} is an illegal transaction hash
+	 * @param hash the hash of the transaction, as the hexadecimal representation of its {@link TransactionReference#REQUEST_HASH_LENGTH} bytes
 	 * @return the transaction reference
+	 * @throws E if {@code hash} in not a legal transaction hash
 	 */
-	public static TransactionReference of(String hash) {
-		return new TransactionReferenceImpl(hash);
+	public static <E extends Exception> TransactionReference of(String hash, Function<String, ? extends E> onIllegalHash) throws E {
+		return new TransactionReferenceImpl(hash, onIllegalHash);
 	}
 
 	/**
 	 * Yields a transaction reference with the given hash.
 	 * 
-	 * @param hash the hash of the transaction, as a byte array
+	 * @param <E> the type of the exception thrown if {@code hash} is an illegal transaction hash
+	 * @param hash the hash of the transaction, as a byte array of length {@link TransactionReference#REQUEST_HASH_LENGTH}
 	 * @return the transaction reference
+	 * @throws E if {@code hash} in not a legal transaction hash
 	 */
-	public static TransactionReference of(byte[] hash) {
-		return new TransactionReferenceImpl(hash);
+	public static <E extends Exception> TransactionReference of(byte[] hash, Function<String, ? extends E> onIllegalHash) throws E {
+		return new TransactionReferenceImpl(hash, onIllegalHash);
 	}
 
 	/**

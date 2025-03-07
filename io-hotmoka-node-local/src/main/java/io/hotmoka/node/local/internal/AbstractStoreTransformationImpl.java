@@ -198,7 +198,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 					StorageValues.stringOf(behaving), StorageValues.stringOf(misbehaving),
 					StorageValues.bigIntegerOf(gasConsumed), StorageValues.bigIntegerOf(deliveredCount()));
 	
-				TransactionResponse response = responseBuilderFor(TransactionReferences.of(store.getHasher().hash(request)), request).getResponseCreation().getResponse();
+				TransactionResponse response = responseBuilderFor(TransactionReferences.of(store.getHasher().hash(request), IllegalArgumentException::new), request).getResponseCreation().getResponse();
 				// if there is only one update, it is the update of the nonce of the manifest: we prefer not to expand
 				// the store with the transaction, so that the state stabilizes, which might give
 				// to the node the chance of suspending the generation of new blocks
@@ -221,7 +221,8 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 
 	@Override
 	public final TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException, StoreException, InterruptedException {
-		var reference = TransactionReferences.of(store.getHasher().hash(request));
+		// the hasher should generate hashes of the correct length or otherwise there is a bug in the code
+		var reference = TransactionReferences.of(store.getHasher().hash(request), IllegalArgumentException::new);
 		String referenceAsString = reference.toString();
 	
 		try {

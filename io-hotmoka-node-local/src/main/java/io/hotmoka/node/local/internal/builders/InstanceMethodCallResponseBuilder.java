@@ -177,7 +177,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				}
 			}
 			catch (Throwable t) {
-				var reference = TransactionReferences.of(environment.getHasher().hash(getRequest()));
+				var reference = TransactionReferences.of(environment.getHasher().hash(getRequest()), IllegalArgumentException::new);
 				LOGGER.warning(reference + ": failed with message: \"" + t.getMessage() + "\"");
 				resetBalanceOfPayerToInitialValueMinusAllPromisedGas();
 

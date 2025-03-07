@@ -21,6 +21,7 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyPair;
+import java.util.ArrayList;
 import java.util.List;
 
 import io.hotmoka.helpers.GasHelpers;
@@ -31,9 +32,9 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.remote.RemoteNodes;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -82,17 +83,23 @@ public class Install extends AbstractCommand {
 				var takamakaCode = node.getTakamakaCode();
 				var manifest = node.getManifest();
 				checkStorageReference(payer);
-				var payer = StorageValues.reference(Install.this.payer);
-				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+				var payer = StorageValues.reference(Install.this.payer, CommandException::new);
+				String chainId = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
-					.orElseThrow(() -> new CommandException(MethodSignatures.GET_CHAIN_ID + " should not return void"))).getValue();
+					.orElseThrow(() -> new CommandException(MethodSignatures.GET_CHAIN_ID + " should not return void"))
+					.asReturnedString(MethodSignatures.GET_CHAIN_ID, NodeException::new);
 				var gasHelper = GasHelpers.of(node);
 				var nonceHelper = NonceHelpers.of(node);
 				var bytes = Files.readAllBytes(jar);
 				KeyPair keys = readKeys(Accounts.of(payer), node, passwordOfPayer);
 				TransactionReference[] dependencies;
-				if (libs != null)
-					dependencies = libs.stream().map(TransactionReferences::of).distinct().toArray(TransactionReference[]::new);
+				if (libs != null) {
+					var libsRefs = new ArrayList<TransactionReference>();
+					for (String lib: libs)
+						libsRefs.add(TransactionReferences.of(lib, s -> new CommandException("Library " + lib + " is not a valid transaction reference: " + s)));
+
+					dependencies = libsRefs.stream().distinct().toArray(TransactionReference[]::new);
+				}
 				else
 					dependencies = new TransactionReference[] { takamakaCode };
 
@@ -104,7 +111,7 @@ public class Install extends AbstractCommand {
 					gas = new BigInteger(gasLimit);
 
 				TransactionReference classpath = "takamakaCode".equals(Install.this.classpath) ?
-					takamakaCode : TransactionReferences.of(Install.this.classpath);
+					takamakaCode : TransactionReferences.of(Install.this.classpath, s -> new CommandException("The classpath " + Install.this.classpath + " is not a valid transaction reference: " + s));
 
 				askForConfirmation(gas);
 
