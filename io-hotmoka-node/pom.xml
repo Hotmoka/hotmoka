@@ -41,11 +41,6 @@
       <version>${io.takamaka.code.version}</version>
     </dependency>
     <dependency>
-      <groupId>io.hotmoka.exceptions</groupId>
-      <artifactId>io-hotmoka-exceptions</artifactId>
-      <version>${io.hotmoka.exceptions.version}</version>
-    </dependency>
-    <dependency>
       <groupId>io.hotmoka.marshalling</groupId>
       <artifactId>io-hotmoka-marshalling</artifactId>
       <version>${io.hotmoka.marshalling.version}</version>

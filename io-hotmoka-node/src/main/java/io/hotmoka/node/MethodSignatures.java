@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.node;
 
 import java.io.IOException;
-import java.util.stream.Stream;
 
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.api.signatures.MethodSignature;
@@ -53,46 +52,6 @@ public abstract class MethodSignatures {
 	}
 
 	/**
-	 * Yields the signature of a method, that returns a value.
-	 * 
-	 * @param definingClass the name of the class of the method
-	 * @param methodName the name of the method
-	 * @param returnType the type of the returned value
-	 * @param formals the formal arguments of the method
-	 * @return the signature of the method
-	 */
-	public static NonVoidMethodSignature ofNonVoid(String definingClass, String methodName, StorageType returnType, StorageType... formals) {
-		return new NonVoidMethodSignatureImpl(StorageTypes.classNamed(definingClass, IllegalArgumentException::new), methodName, returnType, formals); // TODO: generalize exception
-	}
-
-	/**
-	 * Yields the signature of a method, that returns a value.
-	 * 
-	 * @param definingClass the class of the method
-	 * @param methodName the name of the method
-	 * @param returnType the type of the returned value
-	 * @param formals the formal arguments of the method
-	 * @return the signature of the method
-	 */
-	public static NonVoidMethodSignature ofNonVoid(ClassType definingClass, String methodName, StorageType returnType, Stream<StorageType> formals) {
-		return new NonVoidMethodSignatureImpl(definingClass, methodName, returnType, formals.toArray(StorageType[]::new));
-	}
-
-	/**
-	 * Yields the signature of a method, that returns a value.
-	 * 
-	 * @param definingClass the name of the class of the method
-	 * @param methodName the name of the method
-	 * @param returnType the type of the returned value
-	 * @param formals the formal arguments of the method
-	 * @return the signature of the method
-	 */
-	public static NonVoidMethodSignature ofNonVoid(String definingClass, String methodName, StorageType returnType, Stream<StorageType> formals) {
-		return new NonVoidMethodSignatureImpl(StorageTypes.classNamed(definingClass, IllegalArgumentException::new), methodName, returnType, formals.toArray(StorageType[]::new));
-		// TODO: generalize exception
-	}
-
-	/**
 	 * Yields the signature of a method, that returns no value.
 	 * 
 	 * @param definingClass the class of the method
@@ -102,42 +61,6 @@ public abstract class MethodSignatures {
 	 */
 	public static VoidMethodSignature ofVoid(ClassType definingClass, String methodName, StorageType... formals) {
 		return new VoidMethodSignatureImpl(definingClass, methodName, formals);
-	}
-
-	/**
-	 * Yields the signature of a method, that returns no value.
-	 * 
-	 * @param definingClass the name of the class of the method
-	 * @param methodName the name of the method
-	 * @param formals the formal arguments of the method
-	 * @return the signature of the method
-	 */
-	public static VoidMethodSignature ofVoid(String definingClass, String methodName, StorageType... formals) {
-		return new VoidMethodSignatureImpl(StorageTypes.classNamed(definingClass, IllegalArgumentException::new), methodName, formals); // TODO: generalize exception
-	}
-
-	/**
-	 * Yields the signature of a method, that returns no value.
-	 * 
-	 * @param definingClass the class of the method
-	 * @param methodName the name of the method
-	 * @param formals the formal arguments of the method
-	 * @return the signature of the method
-	 */
-	public static VoidMethodSignature ofVoid(ClassType definingClass, String methodName, Stream<StorageType> formals) {
-		return new VoidMethodSignatureImpl(definingClass, methodName, formals.toArray(StorageType[]::new));
-	}
-
-	/**
-	 * Yields the signature of a method, that returns no value.
-	 * 
-	 * @param definingClass the name of the class of the method
-	 * @param methodName the name of the method
-	 * @param formals the formal arguments of the method
-	 * @return the signature of the method
-	 */
-	public static VoidMethodSignature ofVoid(String definingClass, String methodName, Stream<StorageType> formals) { // TODO: generalize exception
-		return new VoidMethodSignatureImpl(StorageTypes.classNamed(definingClass, IllegalArgumentException::new), methodName, formals.toArray(StorageType[]::new));
 	}
 
 	/**

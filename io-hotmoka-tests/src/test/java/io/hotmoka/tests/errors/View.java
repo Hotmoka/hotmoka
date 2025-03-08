@@ -17,9 +17,6 @@ limitations under the License.
 package io.hotmoka.tests.errors;
 
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
-import java.security.SignatureException;
-import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,14 +28,13 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.SideEffectsInViewMethodException;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.tests.HotmokaTest;
 
 class View extends HotmokaTest {
+
+	private final static ClassType C = StorageTypes.classNamed("io.hotmoka.examples.errors.view.C", IllegalArgumentException::new);
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
@@ -51,31 +47,31 @@ class View extends HotmokaTest {
 	}
 
 	@Test @DisplayName("install jar then call to View.no1() fails")
-	void callNo1() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
-		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), ConstructorSignatures.of("io.hotmoka.examples.errors.view.C"));
+	void callNo1() throws Exception {
+		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), ConstructorSignatures.of(C));
 
 		throwsTransactionExceptionWithCause(NoSuchMethodException.class, () -> 
 			runInstanceNonVoidMethodCallTransaction(account(0), _100_000, jar(),
-				MethodSignatures.ofNonVoid("io.hotmoka.examples.errors.view.C", "no1", StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
+				MethodSignatures.ofNonVoid(C, "no1", StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
 				c, StorageValues.intOf(13), StorageValues.intOf(17)));
 	}
 
 	@Test @DisplayName("install jar then call to View.no2() fails")
-	void callNo2() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
-		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), ConstructorSignatures.of("io.hotmoka.examples.errors.view.C"));
+	void callNo2() throws Exception {
+		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), ConstructorSignatures.of(C));
 
 		throwsTransactionExceptionWithCause(SideEffectsInViewMethodException.class, () -> 
 			runInstanceNonVoidMethodCallTransaction(account(0), _100_000, jar(),
-				MethodSignatures.ofNonVoid("io.hotmoka.examples.errors.view.C", "no2", StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
+				MethodSignatures.ofNonVoid(C, "no2", StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
 				c, StorageValues.intOf(13), StorageValues.intOf(17)));
 	}
 
 	@Test @DisplayName("install jar then call to View.yes() succeeds")
-	void callYes() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
-		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), ConstructorSignatures.of("io.hotmoka.examples.errors.view.C"));
+	void callYes() throws Exception {
+		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), ConstructorSignatures.of(C));
 
 		runInstanceNonVoidMethodCallTransaction(account(0), _100_000, jar(),
-			MethodSignatures.ofNonVoid("io.hotmoka.examples.errors.view.C", "yes", StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
+			MethodSignatures.ofNonVoid(C, "yes", StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
 			c, StorageValues.intOf(13), StorageValues.intOf(17));
 	}
 }

@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
+import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.IntValue;
 import io.hotmoka.node.api.values.StorageReference;
 
@@ -35,6 +36,8 @@ import io.hotmoka.node.api.values.StorageReference;
  * A test for the deserialization of a cyclic data structure.
  */
 class Cycle extends HotmokaTest {
+
+	private final static ClassType CYCLE = StorageTypes.classNamed("io.hotmoka.examples.cycle.Cycle", IllegalArgumentException::new);
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
@@ -48,11 +51,10 @@ class Cycle extends HotmokaTest {
 
 	@Test @DisplayName("new Cycle().foo() == 42")
 	void callFoo() throws Exception {
-		StorageReference cycle = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(),
-			ConstructorSignatures.of("io.hotmoka.examples.cycle.Cycle"));
+		StorageReference cycle = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), ConstructorSignatures.of(CYCLE));
 
 		var result = (IntValue) runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(),
-			MethodSignatures.ofNonVoid("io.hotmoka.examples.cycle.Cycle", "foo", StorageTypes.INT), cycle);
+			MethodSignatures.ofNonVoid(CYCLE, "foo", StorageTypes.INT), cycle);
 
 		assertEquals(42, result.getValue());
 	}

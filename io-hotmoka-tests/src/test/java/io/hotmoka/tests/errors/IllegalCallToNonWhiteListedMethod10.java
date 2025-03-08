@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.NonWhiteListedCallException;
+import io.hotmoka.node.StorageTypes;
 import io.hotmoka.tests.HotmokaTest;
 
 class IllegalCallToNonWhiteListedMethod10 extends HotmokaTest {
@@ -37,7 +38,7 @@ class IllegalCallToNonWhiteListedMethod10 extends HotmokaTest {
 	@Test @DisplayName("new Random()")
 	void testNonWhiteListedCall() {
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
-			addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, takamakaCode(), ConstructorSignatures.of(Random.class.getName()))
+			addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, takamakaCode(), ConstructorSignatures.of(StorageTypes.classFromClass(Random.class, IllegalArgumentException::new)))
 		);
 	}
 }

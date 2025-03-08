@@ -37,7 +37,7 @@ class IllegalCallToNonWhiteListedMethod11 extends HotmokaTest {
 	@Test @DisplayName("System.currentTimeMillis()")
 	void testNonWhiteListedCall() {
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
-			addStaticNonVoidMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, takamakaCode(), MethodSignatures.ofNonVoid(System.class.getName(), "currentTimeMillis", StorageTypes.LONG))
+			addStaticNonVoidMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, takamakaCode(), MethodSignatures.ofNonVoid(StorageTypes.classFromClass(System.class, IllegalArgumentException::new), "currentTimeMillis", StorageTypes.LONG))
 		);
 	}
 }

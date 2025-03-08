@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.node;
 
 import java.io.IOException;
-import java.util.function.Function;
 
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.api.signatures.FieldSignature;
@@ -45,23 +44,6 @@ public abstract class FieldSignatures {
 	 */
 	public static FieldSignature of(ClassType definingClass, String name, StorageType type) {
 		return new FieldSignatureImpl(definingClass, name, type);
-	}
-
-	/**
-	 * Yields the signature of a field.
-	 * 
-	 * @param <E> the type of the exception thrown if {@code definingClass} or {@code type} cannot be converted
-	 *            into storage types
-	 * @param definingClass the name of the class defining the field
-	 * @param name the name of the field
-	 * @param type the name of the type of the field
-	 * @param onIllegalType the generator of the exception thrown if {@code definingClass} or {@code type}
-	 *                      cannot be converted into storage types
-	 * @return the field signature
-	 * @throws E if {@code definingClass} or {@code type} cannot be converted into storage types
-	 */
-	public static <E extends Exception> FieldSignature of(String definingClass, String name, String type, Function<String, ? extends E> onIllegalType) throws E {
-		return new FieldSignatureImpl(definingClass, name, type, onIllegalType);
 	}
 
 	/**

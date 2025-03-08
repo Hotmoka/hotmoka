@@ -51,8 +51,8 @@ import io.hotmoka.node.api.values.StorageValue;
  */
 class StorageMap extends HotmokaTest {
 	private static final BigInteger _50_000 = BigInteger.valueOf(50_000);
-	private static final ConstructorSignature STORAGE_TREE_MAP_INIT = ConstructorSignatures.of("io.takamaka.code.util.StorageTreeMap");
-	private static final NonVoidMethodSignature MK_EMPTY_EXPORTED_STORAGE_MAP = MethodSignatures.ofNonVoid("io.hotmoka.examples.storagemap.ExportedStorageMapMaker", "mkEmptyExportedStorageMap", STORAGE_MAP);
+	private static final ConstructorSignature STORAGE_TREE_MAP_INIT = ConstructorSignatures.of(StorageTypes.classNamed("io.takamaka.code.util.StorageTreeMap", IllegalArgumentException::new));
+	private static final NonVoidMethodSignature MK_EMPTY_EXPORTED_STORAGE_MAP = MethodSignatures.ofNonVoid(StorageTypes.classNamed("io.hotmoka.examples.storagemap.ExportedStorageMapMaker", IllegalArgumentException::new), "mkEmptyExportedStorageMap", STORAGE_MAP);
 	private static final NonVoidMethodSignature STORAGE_MAP_ISEMPTY = MethodSignatures.ofNonVoid(STORAGE_MAP_VIEW, "isEmpty", BOOLEAN);
 	private static final NonVoidMethodSignature STORAGE_MAP_MIN = MethodSignatures.ofNonVoid(STORAGE_MAP_VIEW, "min", StorageTypes.OBJECT);
 	private static final NonVoidMethodSignature STORAGE_MAP_SIZE = MethodSignatures.ofNonVoid(STORAGE_MAP_VIEW, "size", INT);

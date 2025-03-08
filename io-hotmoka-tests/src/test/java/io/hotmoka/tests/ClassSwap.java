@@ -33,6 +33,7 @@ import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.IntValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.DeserializationException;
@@ -41,8 +42,9 @@ import io.hotmoka.node.local.DeserializationException;
  * A test for the creation of classes with the same name but from different jars.
  */
 class ClassSwap extends HotmokaTest {
-	private static final ConstructorSignature CONSTRUCTOR_C = ConstructorSignatures.of("C");
-	private static final NonVoidMethodSignature GET = MethodSignatures.ofNonVoid("C", "get", StorageTypes.INT);
+	private static final ClassType C = StorageTypes.classNamed("C", IllegalArgumentException::new);
+	private static final ConstructorSignature CONSTRUCTOR_C = ConstructorSignatures.of(C);
+	private static final NonVoidMethodSignature GET = MethodSignatures.ofNonVoid(C, "get", StorageTypes.INT);
 
 	/**
 	 * The only account of the blockchain.

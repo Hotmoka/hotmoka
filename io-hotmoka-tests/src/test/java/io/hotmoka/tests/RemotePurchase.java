@@ -54,7 +54,7 @@ class RemotePurchase extends HotmokaTest {
 	private static final String PURCHASE_CONFIRMED_NAME = PURCHASE + "$PurchaseConfirmed";
 	private static final VoidMethodSignature CONFIRM_RECEIVED = MethodSignatures.ofVoid(PURCHASE, "confirmReceived");
 	private static final VoidMethodSignature CONFIRM_PURCHASED = MethodSignatures.ofVoid(PURCHASE, "confirmPurchase", INT);
-	private static final ConstructorSignature CONSTRUCTOR_PURCHASE = ConstructorSignatures.of("io.hotmoka.examples.remotepurchase.Purchase", INT);
+	private static final ConstructorSignature CONSTRUCTOR_PURCHASE = ConstructorSignatures.of(PURCHASE, INT);
 
 	/**
 	 * The seller contract.

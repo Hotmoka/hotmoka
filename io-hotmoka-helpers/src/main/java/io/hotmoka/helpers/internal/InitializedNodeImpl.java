@@ -206,7 +206,7 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 			// we create the builder of zero validators
 			var request = TransactionRequests.constructorCall
 					(new byte[0], gamete, nonceOfGamete, "", _200_000, ZERO, takamakaCode,
-							ConstructorSignatures.of("io.takamaka.code.governance.GenericValidators$Builder", StorageTypes.STRING,
+							ConstructorSignatures.of(StorageTypes.classNamed("io.takamaka.code.governance.GenericValidators$Builder", IllegalArgumentException::new), StorageTypes.STRING,
 									StorageTypes.STRING, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG,
 									StorageTypes.INT, StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
 							StorageValues.stringOf(""), StorageValues.stringOf(""), StorageValues.bigIntegerOf(consensus.getTicketForNewPoll()), StorageValues.bigIntegerOf(consensus.getFinalSupply()),
@@ -228,7 +228,7 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 			// we create the builder of a generic gas station
 			var request = TransactionRequests.constructorCall
 					(new byte[0], gamete, nonceOfGamete, "", BigInteger.valueOf(100_000), ZERO, takamakaCode,
-							ConstructorSignatures.of("io.takamaka.code.governance.GenericGasStation$Builder",
+							ConstructorSignatures.of(StorageTypes.classNamed("io.takamaka.code.governance.GenericGasStation$Builder", IllegalArgumentException::new),
 									StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.BOOLEAN, StorageTypes.BIG_INTEGER, StorageTypes.LONG),
 							StorageValues.bigIntegerOf(consensus.getInitialGasPrice()), StorageValues.bigIntegerOf(consensus.getMaxGasPerTransaction()),
 							StorageValues.booleanOf(consensus.ignoresGasPrice()), StorageValues.bigIntegerOf(consensus.getTargetGasAtReward()),

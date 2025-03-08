@@ -45,6 +45,7 @@ import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.updates.Update;
@@ -101,6 +102,7 @@ import jakarta.websocket.EncodeException;
 public class MessagesTests extends AbstractLoggedTests {
 	private final static TransactionReference TRANSACTION_REFERENCE = TransactionReferences.of("12345678901234567890abcdeabcdeff12345678901234567890abcdeabcdeff", RuntimeException::new);
 	private final static StorageReference OBJECT = StorageValues.reference(TRANSACTION_REFERENCE, BigInteger.ONE, RuntimeException::new);
+	private final static NonVoidMethodSignature TARGET = MethodSignatures.ofNonVoid(StorageTypes.classNamed("my.class", IllegalArgumentException::new), "target", StorageTypes.STRING, StorageTypes.BOOLEAN, StorageTypes.FLOAT, StorageTypes.INT);
 
 	@Test
 	@DisplayName("getNodeInfo messages are correctly encoded into Json and decoded from Json")
@@ -292,11 +294,10 @@ public class MessagesTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("runInstanceMethodCallTransaction messages are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForRunInstanceMethodCallTransaction() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-		var method = MethodSignatures.ofNonVoid("my.class", "target", StorageTypes.STRING, StorageTypes.BOOLEAN, StorageTypes.FLOAT, StorageTypes.INT);
 		var ed25519 = SignatureAlgorithms.ed25519();
 		var keys = ed25519.getKeyPair();
 		var signer = ed25519.getSigner(keys.getPrivate(), InstanceMethodCallTransactionRequest::toByteArrayWithoutSignature);
-		var request = TransactionRequests.instanceMethodCall(signer, OBJECT, BigInteger.valueOf(13L), "my_chain", BigInteger.valueOf(1000L), BigInteger.valueOf(17L), TRANSACTION_REFERENCE, method, OBJECT, StorageValues.FALSE, StorageValues.floatOf(3.14f), StorageValues.intOf(2024));
+		var request = TransactionRequests.instanceMethodCall(signer, OBJECT, BigInteger.valueOf(13L), "my_chain", BigInteger.valueOf(1000L), BigInteger.valueOf(17L), TRANSACTION_REFERENCE, TARGET, OBJECT, StorageValues.FALSE, StorageValues.floatOf(3.14f), StorageValues.intOf(2024));
 		var expected = RunInstanceMethodCallTransactionMessages.of(request, "id");
 		String encoded = new RunInstanceMethodCallTransactionMessages.Encoder().encode(expected);
 		var actual = new RunInstanceMethodCallTransactionMessages.Decoder().decode(encoded);
@@ -324,11 +325,10 @@ public class MessagesTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("runStaticMethodCallTransaction messages are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForRunStaticMethodCallTransaction() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-		var method = MethodSignatures.ofNonVoid("my.class", "target", StorageTypes.STRING, StorageTypes.BOOLEAN, StorageTypes.FLOAT, StorageTypes.INT);
 		var ed25519 = SignatureAlgorithms.ed25519();
 		var keys = ed25519.getKeyPair();
 		var signer = ed25519.getSigner(keys.getPrivate(), StaticMethodCallTransactionRequest::toByteArrayWithoutSignature);
-		var request = TransactionRequests.staticMethodCall(signer, OBJECT, BigInteger.valueOf(13L), "my_chain", BigInteger.valueOf(1000L), BigInteger.valueOf(17L), TRANSACTION_REFERENCE, method, StorageValues.FALSE, StorageValues.floatOf(3.14f), StorageValues.intOf(2024));
+		var request = TransactionRequests.staticMethodCall(signer, OBJECT, BigInteger.valueOf(13L), "my_chain", BigInteger.valueOf(1000L), BigInteger.valueOf(17L), TRANSACTION_REFERENCE, TARGET, StorageValues.FALSE, StorageValues.floatOf(3.14f), StorageValues.intOf(2024));
 		var expected = RunStaticMethodCallTransactionMessages.of(request, "id");
 		String encoded = new RunStaticMethodCallTransactionMessages.Encoder().encode(expected);
 		var actual = new RunStaticMethodCallTransactionMessages.Decoder().decode(encoded);
@@ -356,11 +356,10 @@ public class MessagesTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("addInstanceMethodCallTransaction messages are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForAddInstanceMethodCallTransaction() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-		var method = MethodSignatures.ofNonVoid("my.class", "target", StorageTypes.STRING, StorageTypes.BOOLEAN, StorageTypes.FLOAT, StorageTypes.INT);
 		var ed25519 = SignatureAlgorithms.ed25519();
 		var keys = ed25519.getKeyPair();
 		var signer = ed25519.getSigner(keys.getPrivate(), InstanceMethodCallTransactionRequest::toByteArrayWithoutSignature);
-		var request = TransactionRequests.instanceMethodCall(signer, OBJECT, BigInteger.valueOf(13L), "my_chain", BigInteger.valueOf(1000L), BigInteger.valueOf(17L), TRANSACTION_REFERENCE, method, OBJECT, StorageValues.FALSE, StorageValues.floatOf(3.14f), StorageValues.intOf(2024));
+		var request = TransactionRequests.instanceMethodCall(signer, OBJECT, BigInteger.valueOf(13L), "my_chain", BigInteger.valueOf(1000L), BigInteger.valueOf(17L), TRANSACTION_REFERENCE, TARGET, OBJECT, StorageValues.FALSE, StorageValues.floatOf(3.14f), StorageValues.intOf(2024));
 		var expected = AddInstanceMethodCallTransactionMessages.of(request, "id");
 		String encoded = new AddInstanceMethodCallTransactionMessages.Encoder().encode(expected);
 		var actual = new AddInstanceMethodCallTransactionMessages.Decoder().decode(encoded);
@@ -388,11 +387,10 @@ public class MessagesTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("addStaticMethodCallTransaction messages are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForAddStaticMethodCallTransaction() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-		var method = MethodSignatures.ofNonVoid("my.class", "target", StorageTypes.STRING, StorageTypes.BOOLEAN, StorageTypes.FLOAT, StorageTypes.INT);
 		var ed25519 = SignatureAlgorithms.ed25519();
 		var keys = ed25519.getKeyPair();
 		var signer = ed25519.getSigner(keys.getPrivate(), StaticMethodCallTransactionRequest::toByteArrayWithoutSignature);
-		var request = TransactionRequests.staticMethodCall(signer, OBJECT, BigInteger.valueOf(13L), "my_chain", BigInteger.valueOf(1000L), BigInteger.valueOf(17L), TRANSACTION_REFERENCE, method, StorageValues.FALSE, StorageValues.floatOf(3.14f), StorageValues.intOf(2024));
+		var request = TransactionRequests.staticMethodCall(signer, OBJECT, BigInteger.valueOf(13L), "my_chain", BigInteger.valueOf(1000L), BigInteger.valueOf(17L), TRANSACTION_REFERENCE, TARGET, StorageValues.FALSE, StorageValues.floatOf(3.14f), StorageValues.intOf(2024));
 		var expected = AddStaticMethodCallTransactionMessages.of(request, "id");
 		String encoded = new AddStaticMethodCallTransactionMessages.Encoder().encode(expected);
 		var actual = new AddStaticMethodCallTransactionMessages.Decoder().decode(encoded);
@@ -420,7 +418,7 @@ public class MessagesTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("addConstructorCallTransaction messages are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForAddConstructorCallTransaction() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-		var constructor = ConstructorSignatures.of("my.class", StorageTypes.BOOLEAN, StorageTypes.FLOAT, StorageTypes.INT);
+		var constructor = ConstructorSignatures.of(StorageTypes.classNamed("my.class", IllegalArgumentException::new), StorageTypes.BOOLEAN, StorageTypes.FLOAT, StorageTypes.INT);
 		var ed25519 = SignatureAlgorithms.ed25519();
 		var keys = ed25519.getKeyPair();
 		var signer = ed25519.getSigner(keys.getPrivate(), ConstructorCallTransactionRequest::toByteArrayWithoutSignature);
@@ -525,7 +523,7 @@ public class MessagesTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("postConstructorCallTransaction messages are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForPostConstructorCallTransaction() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-		var constructor = ConstructorSignatures.of("my.class", StorageTypes.BOOLEAN, StorageTypes.FLOAT, StorageTypes.INT);
+		var constructor = ConstructorSignatures.of(StorageTypes.classNamed("my.class", IllegalArgumentException::new), StorageTypes.BOOLEAN, StorageTypes.FLOAT, StorageTypes.INT);
 		var ed25519 = SignatureAlgorithms.ed25519();
 		var keys = ed25519.getKeyPair();
 		var signer = ed25519.getSigner(keys.getPrivate(), ConstructorCallTransactionRequest::toByteArrayWithoutSignature);
@@ -548,11 +546,10 @@ public class MessagesTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("postInstanceMethodCallTransaction messages are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForPostInstanceMethodCallTransaction() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-		var method = MethodSignatures.ofNonVoid("my.class", "target", StorageTypes.STRING, StorageTypes.BOOLEAN, StorageTypes.FLOAT, StorageTypes.INT);
 		var ed25519 = SignatureAlgorithms.ed25519();
 		var keys = ed25519.getKeyPair();
 		var signer = ed25519.getSigner(keys.getPrivate(), InstanceMethodCallTransactionRequest::toByteArrayWithoutSignature);
-		var request = TransactionRequests.instanceMethodCall(signer, OBJECT, BigInteger.valueOf(13L), "my_chain", BigInteger.valueOf(1000L), BigInteger.valueOf(17L), TRANSACTION_REFERENCE, method, OBJECT, StorageValues.FALSE, StorageValues.floatOf(3.14f), StorageValues.intOf(2024));
+		var request = TransactionRequests.instanceMethodCall(signer, OBJECT, BigInteger.valueOf(13L), "my_chain", BigInteger.valueOf(1000L), BigInteger.valueOf(17L), TRANSACTION_REFERENCE, TARGET, OBJECT, StorageValues.FALSE, StorageValues.floatOf(3.14f), StorageValues.intOf(2024));
 		var expected = PostInstanceMethodCallTransactionMessages.of(request, "id");
 		String encoded = new PostInstanceMethodCallTransactionMessages.Encoder().encode(expected);
 		var actual = new PostInstanceMethodCallTransactionMessages.Decoder().decode(encoded);
@@ -571,11 +568,10 @@ public class MessagesTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("postStaticMethodCallTransaction messages are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForPostStaticMethodCallTransaction() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-		var method = MethodSignatures.ofNonVoid("my.class", "target", StorageTypes.STRING, StorageTypes.BOOLEAN, StorageTypes.FLOAT, StorageTypes.INT);
 		var ed25519 = SignatureAlgorithms.ed25519();
 		var keys = ed25519.getKeyPair();
 		var signer = ed25519.getSigner(keys.getPrivate(), StaticMethodCallTransactionRequest::toByteArrayWithoutSignature);
-		var request = TransactionRequests.staticMethodCall(signer, OBJECT, BigInteger.valueOf(13L), "my_chain", BigInteger.valueOf(1000L), BigInteger.valueOf(17L), TRANSACTION_REFERENCE, method, StorageValues.FALSE, StorageValues.floatOf(3.14f), StorageValues.intOf(2024));
+		var request = TransactionRequests.staticMethodCall(signer, OBJECT, BigInteger.valueOf(13L), "my_chain", BigInteger.valueOf(1000L), BigInteger.valueOf(17L), TRANSACTION_REFERENCE, TARGET, StorageValues.FALSE, StorageValues.floatOf(3.14f), StorageValues.intOf(2024));
 		var expected = PostStaticMethodCallTransactionMessages.of(request, "id");
 		String encoded = new PostStaticMethodCallTransactionMessages.Encoder().encode(expected);
 		var actual = new PostStaticMethodCallTransactionMessages.Decoder().decode(encoded);

@@ -44,7 +44,7 @@ import io.hotmoka.node.api.values.StorageReference;
  */
 class Lambdas extends HotmokaTest {
 	private static final ClassType LAMBDAS = StorageTypes.classNamed("io.hotmoka.examples.lambdas.Lambdas", IllegalArgumentException::new);
-	private static final ConstructorSignature CONSTRUCTOR_LAMBDAS = ConstructorSignatures.of("io.hotmoka.examples.lambdas.Lambdas", StorageTypes.BIG_INTEGER, StorageTypes.STRING);
+	private static final ConstructorSignature CONSTRUCTOR_LAMBDAS = ConstructorSignatures.of(LAMBDAS, StorageTypes.BIG_INTEGER, StorageTypes.STRING);
 
 	/**
 	 * The first object, that holds all funds initially.

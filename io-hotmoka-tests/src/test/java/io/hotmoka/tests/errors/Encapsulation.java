@@ -38,6 +38,7 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
+import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.updates.UpdateOfField;
 import io.hotmoka.node.api.values.IntValue;
 import io.hotmoka.node.api.values.StorageReference;
@@ -45,6 +46,8 @@ import io.hotmoka.tests.HotmokaTest;
 import io.takamaka.code.constants.Constants;
 
 class Encapsulation extends HotmokaTest {
+
+	private final static ClassType ENCAPSULATED = StorageTypes.classNamed("io.hotmoka.examples.errors.encapsulation.Encapsulated", IllegalArgumentException::new);
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
@@ -58,8 +61,7 @@ class Encapsulation extends HotmokaTest {
 
 	@Test @DisplayName("install jar then finds out the reference of list1, calls clear() on it and then size1() == 0")
 	void modifiesList1() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
-		StorageReference encapsulated = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, jar(),
-				ConstructorSignatures.of("io.hotmoka.examples.errors.encapsulation.Encapsulated"));
+		StorageReference encapsulated = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, jar(), ConstructorSignatures.of(ENCAPSULATED));
 
 		// we determine the storage reference of list1
 		var list1 = (StorageReference) node.getState(encapsulated)
@@ -72,11 +74,11 @@ class Encapsulation extends HotmokaTest {
 
 		// we call clear() on list1, directly! This works since list1 is exported
 		addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(),
-				MethodSignatures.ofVoid(Constants.STORAGE_LIST_NAME, "clear"),
+				MethodSignatures.ofVoid(StorageTypes.classNamed(Constants.STORAGE_LIST_NAME, IllegalArgumentException::new), "clear"),
 			list1);
 
 		var result = (IntValue) runInstanceNonVoidMethodCallTransaction(account(0), _100_000, jar(),
-			MethodSignatures.ofNonVoid("io.hotmoka.examples.errors.encapsulation.Encapsulated", "size1", StorageTypes.INT),
+			MethodSignatures.ofNonVoid(ENCAPSULATED, "size1", StorageTypes.INT),
 			encapsulated);
 
 		assertSame(0, result.getValue());
@@ -85,7 +87,7 @@ class Encapsulation extends HotmokaTest {
 	@Test @DisplayName("install jar then finds out the reference of list2, calls clear() on it and it fails")
 	void modifiesList2Fails() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
 		StorageReference encapsulated = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, jar(),
-				ConstructorSignatures.of("io.hotmoka.examples.errors.encapsulation.Encapsulated"));
+				ConstructorSignatures.of(ENCAPSULATED));
 
 		// we determine the storage reference of list2
 		var list2 = (StorageReference) node.getState(encapsulated)
@@ -98,7 +100,7 @@ class Encapsulation extends HotmokaTest {
 
 		// we call clear() on list2, directly! This will fail since list2 is not exported
 		TransactionRejectedException e = assertThrows(TransactionRejectedException.class, () -> addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(),
-			MethodSignatures.ofVoid(Constants.STORAGE_LIST_NAME, "clear"), list2));
+				MethodSignatures.ofVoid(StorageTypes.classNamed(Constants.STORAGE_LIST_NAME, IllegalArgumentException::new), "clear"), list2));
 		assertTrue(e.getMessage().contains("is not exported"));
 	}
 }

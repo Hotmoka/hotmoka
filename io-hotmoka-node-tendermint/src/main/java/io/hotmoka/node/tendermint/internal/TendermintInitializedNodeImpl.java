@@ -51,6 +51,7 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.tendermint.api.TendermintNode;
 
@@ -166,11 +167,11 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 
 		// we create the builder of the validators
 		var _200_000 = BigInteger.valueOf(200_000);
-		String builderClassName = StorageTypes.TENDERMINT_VALIDATORS + "$Builder";
+		ClassType builderClass = StorageTypes.classNamed(StorageTypes.TENDERMINT_VALIDATORS + "$Builder", IllegalArgumentException::new);
 
 		var request = TransactionRequests.constructorCall
 			(new byte[0], gamete, nonceOfGamete, "", _200_000, ZERO, takamakaCodeReference,
-					ConstructorSignatures.of(builderClassName, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG,
+					ConstructorSignatures.of(builderClass, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG,
 					StorageTypes.INT, StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
 			StorageValues.bigIntegerOf(consensus.getTicketForNewPoll()), StorageValues.bigIntegerOf(consensus.getFinalSupply()),
 			StorageValues.longOf(consensus.getInitialInflation()), StorageValues.intOf(consensus.getPercentStaked()), StorageValues.intOf(consensus.getBuyerSurcharge()),
@@ -181,7 +182,7 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 		StorageReference builder = node.addConstructorCallTransaction(request);
 
 		// we populate the builder with a Tendermint validator at a time; this guarantees that they are created with 0 as progressive identifier 
-		var addValidatorMethod = MethodSignatures.ofVoid(builderClassName, "addValidator", StorageTypes.STRING, StorageTypes.LONG);
+		var addValidatorMethod = MethodSignatures.ofVoid(builderClass, "addValidator", StorageTypes.STRING, StorageTypes.LONG);
 		for (TendermintValidator tv: tendermintValidators) {
 			String publicKeyBase64;
 

@@ -322,9 +322,9 @@ public class Call extends AbstractCommand {
 
 			Class<?> returnType = method.getReturnType();
 			if (returnType == void.class)
-				return MethodSignatures.ofVoid(clazz.getName(), methodName, formals);
+				return MethodSignatures.ofVoid(StorageTypes.classFromClass(clazz, CommandException::new), methodName, formals);
 			else
-				return MethodSignatures.ofNonVoid(clazz.getName(), methodName,
+				return MethodSignatures.ofNonVoid(StorageTypes.classFromClass(clazz, CommandException::new), methodName,
 						StorageTypes.fromClass(returnType, s -> new CommandException("The return type of " + method + " is not a storage type: " + s)),
 						formals);
 		}

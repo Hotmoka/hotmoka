@@ -38,7 +38,9 @@ public class UpdateTests extends AbstractLoggedTests {
 	private final static StorageReference object = StorageValues.reference
 		(TransactionReferences.of("cafebabedeadbeafcafebabedeadbeafcafebabedeadbeafcafebabedeadbeaf", IllegalArgumentException::new),
 		 BigInteger.valueOf(13), IllegalArgumentException::new);
-	private final static FieldSignature field = FieldSignatures.of("io.hotmoka.MyClass", "f1", "io.hotmoka.OtherClass", IllegalArgumentException::new);
+
+	private final static FieldSignature field = FieldSignatures.of
+		(StorageTypes.classNamed("io.hotmoka.MyClass", IllegalArgumentException::new), "f1", StorageTypes.classNamed("io.hotmoka.OtherClass", IllegalArgumentException::new));
 
 	@Test
 	@DisplayName("class tags are correctly encoded into Json and decoded from Json")

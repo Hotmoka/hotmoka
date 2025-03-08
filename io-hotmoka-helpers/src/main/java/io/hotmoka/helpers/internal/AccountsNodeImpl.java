@@ -187,7 +187,8 @@ public class AccountsNodeImpl extends AbstractNodeDecorator<Node> implements Acc
 
 		this.container = addConstructorCallTransaction(TransactionRequests.constructorCall
 				(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getSafeGasPrice(), classpath,
-						ConstructorSignatures.of(containerClassName, StorageTypes.BIG_INTEGER, StorageTypes.STRING, StorageTypes.STRING),
+						// TODO: check exception below
+						ConstructorSignatures.of(StorageTypes.classNamed(containerClassName, NodeException::new), StorageTypes.BIG_INTEGER, StorageTypes.STRING, StorageTypes.STRING),
 						StorageValues.bigIntegerOf(sum), StorageValues.stringOf(balances.toString()), StorageValues.stringOf(publicKeys.toString())));
 
 		var get = MethodSignatures.ofNonVoid(StorageTypes.ACCOUNTS, "get", StorageTypes.EOA, StorageTypes.INT);

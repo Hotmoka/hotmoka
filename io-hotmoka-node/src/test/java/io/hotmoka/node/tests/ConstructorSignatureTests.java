@@ -32,7 +32,7 @@ public class ConstructorSignatureTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("constructor signatures are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForConstructorSignature() throws EncodeException, DecodeException {
-		var constructor1 = ConstructorSignatures.of("io.hotmoka.MyClass", StorageTypes.classNamed("io.hotmoka.OtherClass", IllegalArgumentException::new),
+		var constructor1 = ConstructorSignatures.of(StorageTypes.classNamed("io.hotmoka.MyClass", IllegalArgumentException::new), StorageTypes.classNamed("io.hotmoka.OtherClass", IllegalArgumentException::new),
 			StorageTypes.CHAR, StorageTypes.DOUBLE, StorageTypes.classNamed("io.hotmoka.Something", IllegalArgumentException::new));
 		String encoded = new ConstructorSignatures.Encoder().encode(constructor1);
 		var constructor2 = new ConstructorSignatures.Decoder().decode(encoded);

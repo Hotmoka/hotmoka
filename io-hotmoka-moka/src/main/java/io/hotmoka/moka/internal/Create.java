@@ -164,7 +164,7 @@ public class Create extends AbstractCommand {
 			for (var parameter: parameters)
 				formals[pos++] = StorageTypes.fromClass(parameter.getType(), s -> new CommandException("The formal arguments of " + constructor + " are not storage types: " + s));
 
-			return ConstructorSignatures.of(className, formals);
+			return ConstructorSignatures.of(StorageTypes.classNamed(className, s -> new CommandException("The class " + className + " is not a storage type: " + s)), formals);
 		}
 
 		private Constructor<?> askForConstructor() throws ClassNotFoundException, CommandException {

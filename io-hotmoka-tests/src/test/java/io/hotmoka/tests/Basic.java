@@ -61,13 +61,15 @@ class Basic extends HotmokaTest {
 	private static final ClassType WITH_LIST = StorageTypes.classNamed("io.hotmoka.examples.basic.WithList", IllegalArgumentException::new);
 	private static final ClassType FROM_CONTRACT_FILTER = StorageTypes.classNamed("io.hotmoka.examples.basic.FromContractFilter", IllegalArgumentException::new);
 	private static final ConstructorSignature CONSTRUCTOR_ALIAS = ConstructorSignatures.of(ALIAS);
-	private static final VoidMethodSignature SUB_MS = MethodSignatures.ofVoid("io.hotmoka.examples.basic.Sub", "ms");
-	private static final VoidMethodSignature SUB_M5 = MethodSignatures.ofVoid("io.hotmoka.examples.basic.Sub", "m5");
-	private static final ConstructorSignature CONSTRUCTOR_WRAPPER_1 = ConstructorSignatures.of("io.hotmoka.examples.basicdependency.Wrapper", StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Time", IllegalArgumentException::new));
-	private static final ConstructorSignature CONSTRUCTOR_WRAPPER_2 = ConstructorSignatures.of("io.hotmoka.examples.basicdependency.Wrapper", StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Time", IllegalArgumentException::new), StorageTypes.STRING, StorageTypes.BIG_INTEGER, StorageTypes.LONG);
-	private static final ConstructorSignature CONSTRUCTOR_INTERNATIONAL_TIME = ConstructorSignatures.of("io.hotmoka.examples.basicdependency.InternationalTime", INT, INT, INT);
+	private static final ClassType SUB = StorageTypes.classNamed("io.hotmoka.examples.basic.Sub", IllegalArgumentException::new);
+	private static final ClassType WRAPPER = StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Wrapper", IllegalArgumentException::new);
+	private static final VoidMethodSignature SUB_MS = MethodSignatures.ofVoid(SUB, "ms");
+	private static final VoidMethodSignature SUB_M5 = MethodSignatures.ofVoid(SUB, "m5");
+	private static final ConstructorSignature CONSTRUCTOR_WRAPPER_1 = ConstructorSignatures.of(WRAPPER, StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Time", IllegalArgumentException::new));
+	private static final ConstructorSignature CONSTRUCTOR_WRAPPER_2 = ConstructorSignatures.of(WRAPPER, StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Time", IllegalArgumentException::new), StorageTypes.STRING, StorageTypes.BIG_INTEGER, StorageTypes.LONG);
+	private static final ConstructorSignature CONSTRUCTOR_INTERNATIONAL_TIME = ConstructorSignatures.of(StorageTypes.classNamed("io.hotmoka.examples.basicdependency.InternationalTime", IllegalArgumentException::new), INT, INT, INT);
 	private static final NonVoidMethodSignature TIME_TO_STRING = MethodSignatures.ofNonVoid(StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Time", IllegalArgumentException::new), "toString", StorageTypes.STRING);
-	private static final NonVoidMethodSignature WRAPPER_TO_STRING = MethodSignatures.ofNonVoid(StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Wrapper", IllegalArgumentException::new), "toString", StorageTypes.STRING);
+	private static final NonVoidMethodSignature WRAPPER_TO_STRING = MethodSignatures.ofNonVoid(WRAPPER, "toString", StorageTypes.STRING);
 	private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
 
 	/**
@@ -129,20 +131,18 @@ class Basic extends HotmokaTest {
 
 	@Test @DisplayName("new Sub(1973)")
 	void callPayableConstructor() throws Exception {
-		addConstructorCallTransaction(key, master, _200_000, ONE, classpath, ConstructorSignatures.of("io.hotmoka.examples.basic.Sub", INT), StorageValues.intOf(1973));
+		addConstructorCallTransaction(key, master, _200_000, ONE, classpath, ConstructorSignatures.of(SUB, INT), StorageValues.intOf(1973));
 	}
 
 	@Test @DisplayName("new Sub().m1() succeeds in calling an entry from same contract")
 	void callEntryFromSameContract() throws Exception {
-		StorageReference sub = addConstructorCallTransaction
-			(key, master, _50_000, ONE, classpath, ConstructorSignatures.of("io.hotmoka.examples.basic.Sub"));
-
-		runInstanceVoidMethodCallTransaction(master, _200_000, classpath, MethodSignatures.ofVoid("io.hotmoka.examples.basic.Sub", "m1"), sub);
+		StorageReference sub = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, ConstructorSignatures.of(SUB));
+		runInstanceVoidMethodCallTransaction(master, _200_000, classpath, MethodSignatures.ofVoid(SUB, "m1"), sub);
 	}
 
 	@Test @DisplayName("new Sub().ms() throws TransactionException since NoSuchMethodException")
 	void callStaticAsInstance() throws Exception {
-		StorageReference sub = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, ConstructorSignatures.of("io.hotmoka.examples.basic.Sub"));
+		StorageReference sub = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, ConstructorSignatures.of(SUB));
 
 		throwsTransactionExceptionWithCause(NoSuchMethodException.class, () ->
 			runInstanceVoidMethodCallTransaction(master, _200_000, classpath, SUB_MS, sub)
@@ -164,7 +164,7 @@ class Basic extends HotmokaTest {
 	@Test @DisplayName("new Sub(1973) without gas")
 	void callerHasNotEnoughFundsForGas() {
 		assertThrows(TransactionRejectedException.class, () ->
-			addConstructorCallTransaction(privateKey(1), account(1), _200_000, ONE, classpath, ConstructorSignatures.of("io.hotmoka.examples.basic.Sub", INT), StorageValues.intOf(1973))
+			addConstructorCallTransaction(privateKey(1), account(1), _200_000, ONE, classpath, ConstructorSignatures.of(SUB, INT), StorageValues.intOf(1973))
 		);
 	}
 
@@ -173,14 +173,14 @@ class Basic extends HotmokaTest {
 		addInstanceVoidMethodCallTransaction(key, master, _200_000, ONE, classpath, RECEIVE_INT, account(1), StorageValues.intOf(200000));
 
 		throwsTransactionExceptionWithCause(Constants.INSUFFICIENT_FUNDS_ERROR_NAME, () ->
-			addConstructorCallTransaction(privateKey(1), account(1), _200_000, ONE, classpath, ConstructorSignatures.of("io.hotmoka.examples.basic.Sub", INT), StorageValues.intOf(1973))
+			addConstructorCallTransaction(privateKey(1), account(1), _200_000, ONE, classpath, ConstructorSignatures.of(SUB, INT), StorageValues.intOf(1973))
 		);
 	}
 
 	@Test @DisplayName("new Sub(1973) with gas and enough coins to pay the @Entry")
 	void callerHasEnoughFundsForPayableEntry() throws Exception {
 		addInstanceVoidMethodCallTransaction(key, master, _200_000, ONE, classpath, RECEIVE_INT, account(1), StorageValues.intOf(200000));
-		addConstructorCallTransaction(privateKey(1), account(1), _100_000, ONE, classpath, ConstructorSignatures.of("io.hotmoka.examples.basic.Sub", INT), StorageValues.intOf(1973));
+		addConstructorCallTransaction(privateKey(1), account(1), _100_000, ONE, classpath, ConstructorSignatures.of(SUB, INT), StorageValues.intOf(1973));
 	}
 
 	@Test @DisplayName("new Sub(1973).print(new InternationalTime(13,25,40))")
@@ -190,10 +190,10 @@ class Basic extends HotmokaTest {
 			(key, master, _200_000, ONE, classpath, CONSTRUCTOR_INTERNATIONAL_TIME,
 			StorageValues.intOf(13), StorageValues.intOf(25), StorageValues.intOf(40));
 		StorageReference sub = addConstructorCallTransaction
-			(privateKey(1), account(1), _100_000, ONE, classpath, ConstructorSignatures.of("io.hotmoka.examples.basic.Sub", INT), StorageValues.intOf(1973));
+			(privateKey(1), account(1), _100_000, ONE, classpath, ConstructorSignatures.of(SUB, INT), StorageValues.intOf(1973));
 		addInstanceVoidMethodCallTransaction
 			(key, master, _200_000, ONE, classpath,
-			MethodSignatures.ofVoid("io.hotmoka.examples.basic.Sub", "print",
+			MethodSignatures.ofVoid(SUB, "print",
 				StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Time", IllegalArgumentException::new)), sub, internationalTime);
 	}
 
@@ -201,28 +201,28 @@ class Basic extends HotmokaTest {
 	void callPayableEntryWithInt() throws Exception {
 		addInstanceVoidMethodCallTransaction(key, master, _200_000, ONE, classpath, RECEIVE_INT, account(1), StorageValues.intOf(200000));
 		StorageReference sub = addConstructorCallTransaction
-			(privateKey(1), account(1), _100_000, ONE, classpath, ConstructorSignatures.of("io.hotmoka.examples.basic.Sub", INT), StorageValues.intOf(1973));
+			(privateKey(1), account(1), _100_000, ONE, classpath, ConstructorSignatures.of(SUB, INT), StorageValues.intOf(1973));
 		assertEquals(StorageValues.stringOf("Sub.m4 receives 13 coins from an externally owned account"), addInstanceNonVoidMethodCallTransaction
-			(key, master, _200_000, ONE, classpath, MethodSignatures.ofNonVoid("io.hotmoka.examples.basic.Sub", "m4", StorageTypes.STRING, INT), sub, StorageValues.intOf(13)));
+			(key, master, _200_000, ONE, classpath, MethodSignatures.ofNonVoid(SUB, "m4", StorageTypes.STRING, INT), sub, StorageValues.intOf(13)));
 	}
 
 	@Test @DisplayName("new Sub(1973).m4_1(13L).equals(\"Sub.m4_1 receives 13 coins from an externally owned account with public balance\")")
 	void callPayableEntryWithLong() throws Exception {
 		addInstanceVoidMethodCallTransaction(key, master, _200_000, ONE, classpath, RECEIVE_INT, account(1), StorageValues.intOf(2000000));
 		StorageReference sub = addConstructorCallTransaction
-			(privateKey(1), account(1), _200_000, ONE, classpath, ConstructorSignatures.of("io.hotmoka.examples.basic.Sub", INT), StorageValues.intOf(1973));
+			(privateKey(1), account(1), _200_000, ONE, classpath, ConstructorSignatures.of(SUB, INT), StorageValues.intOf(1973));
 		assertEquals(StorageValues.stringOf("Sub.m4_1 receives 13 coins from an externally owned account"),
 			addInstanceNonVoidMethodCallTransaction
-				(key, master, _200_000, ONE, classpath, MethodSignatures.ofNonVoid("io.hotmoka.examples.basic.Sub", "m4_1", StorageTypes.STRING, LONG), sub, StorageValues.longOf(13L)));
+				(key, master, _200_000, ONE, classpath, MethodSignatures.ofNonVoid(SUB, "m4_1", StorageTypes.STRING, LONG), sub, StorageValues.longOf(13L)));
 	}
 
 	@Test @DisplayName("new Sub(1973).m4_2(BigInteger.valueOf(13)).equals(\"Sub.m4_2 receives 13 coins from an externally owned account with public balance\")")
 	void callPayableEntryWithBigInteger() throws Exception {
 		addInstanceVoidMethodCallTransaction(key, master, _200_000, ONE, classpath, RECEIVE_INT, account(1), StorageValues.intOf(200000));
-		StorageReference sub = addConstructorCallTransaction(privateKey(1), account(1), _100_000, ONE, classpath, ConstructorSignatures.of("io.hotmoka.examples.basic.Sub", INT), StorageValues.intOf(1973));
+		StorageReference sub = addConstructorCallTransaction(privateKey(1), account(1), _100_000, ONE, classpath, ConstructorSignatures.of(SUB, INT), StorageValues.intOf(1973));
 		assertEquals(StorageValues.stringOf("Sub.m4_2 receives 13 coins from an externally owned account"),
 			addInstanceNonVoidMethodCallTransaction
-			(key, master, _200_000, ONE, classpath, MethodSignatures.ofNonVoid("io.hotmoka.examples.basic.Sub", "m4_2", StorageTypes.STRING, StorageTypes.BIG_INTEGER),
+			(key, master, _200_000, ONE, classpath, MethodSignatures.ofNonVoid(SUB, "m4_2", StorageTypes.STRING, StorageTypes.BIG_INTEGER),
 			sub, StorageValues.bigIntegerOf(BigInteger.valueOf(13L))));
 	}
 

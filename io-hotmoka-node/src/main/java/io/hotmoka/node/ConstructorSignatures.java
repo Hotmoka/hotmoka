@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.node;
 
 import java.io.IOException;
-import java.util.stream.Stream;
 
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
@@ -44,39 +43,6 @@ public abstract class ConstructorSignatures {
 	 */
 	public static ConstructorSignature of(ClassType definingClass, StorageType... formals) {
 		return new ConstructorSignatureImpl(definingClass, formals);
-	}
-
-	/**
-	 * Yields the signature of a constructor.
-	 * 
-	 * @param definingClass the name of the class defining the constructor
-	 * @param formals the formal arguments of the constructor
-	 * @return the signature of the constructor
-	 */
-	public static ConstructorSignature of(String definingClass, StorageType... formals) {
-		return new ConstructorSignatureImpl(StorageTypes.classNamed(definingClass, IllegalArgumentException::new), formals); // TODO: generalize exception
-	}
-
-	/**
-	 * Yields the signature of a constructor.
-	 * 
-	 * @param definingClass the class defining the constructor
-	 * @param formals the formal arguments of the constructor
-	 * @return the signature of the constructor
-	 */
-	public static ConstructorSignature of(ClassType definingClass, Stream<StorageType> formals) {
-		return new ConstructorSignatureImpl(definingClass, formals.toArray(StorageType[]::new));
-	}
-
-	/**
-	 * Yields the signature of a constructor.
-	 * 
-	 * @param definingClass the name of the class defining the constructor
-	 * @param formals the formal arguments of the constructor
-	 * @return the signature of the constructor
-	 */
-	public static ConstructorSignature of(String definingClass, Stream<StorageType> formals) {
-		return new ConstructorSignatureImpl(StorageTypes.classNamed(definingClass, IllegalArgumentException::new), formals.toArray(StorageType[]::new)); // TODO: generalize exception
 	}
 
 	/**

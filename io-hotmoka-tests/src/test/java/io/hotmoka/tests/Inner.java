@@ -33,22 +33,26 @@ import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
+import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * A test for inner classes.
  */
 class Inner extends HotmokaTest {
-	private static final ConstructorSignature TEST_INNER_CONSTRUCTOR = ConstructorSignatures.of("io.hotmoka.examples.inner.TestInner");
+	private static final ClassType TEST_INNER = StorageTypes.classNamed("io.hotmoka.examples.inner.TestInner", IllegalArgumentException::new);
+
+	private static final ClassType TEST_INNER_INSIDE = StorageTypes.classNamed("io.hotmoka.examples.inner.TestInner$Inside", IllegalArgumentException::new);
+
+	private static final ConstructorSignature TEST_INNER_CONSTRUCTOR = ConstructorSignatures.of(TEST_INNER);
 
 	// do not forget the implicit parameter holding the parent of the inner object
-	private static final ConstructorSignature TEST_INNER_INSIDE_CONSTRUCTOR = ConstructorSignatures.of("io.hotmoka.examples.inner.TestInner$Inside",
+	private static final ConstructorSignature TEST_INNER_INSIDE_CONSTRUCTOR = ConstructorSignatures.of(TEST_INNER_INSIDE,
 			StorageTypes.classNamed("io.hotmoka.examples.inner.TestInner", IllegalArgumentException::new), StorageTypes.LONG);
 
-	private static final NonVoidMethodSignature TEST_INNER_INSIDE_GETBALANCE = MethodSignatures.ofNonVoid("io.hotmoka.examples.inner.TestInner$Inside", "getBalance", StorageTypes.BIG_INTEGER);
+	private static final NonVoidMethodSignature TEST_INNER_INSIDE_GETBALANCE = MethodSignatures.ofNonVoid(TEST_INNER_INSIDE, "getBalance", StorageTypes.BIG_INTEGER);
 
-	private static final NonVoidMethodSignature TEST_INNER_INSIDE_GETPARENT = MethodSignatures.ofNonVoid("io.hotmoka.examples.inner.TestInner$Inside", "getParent",
-			StorageTypes.classNamed("io.hotmoka.examples.inner.TestInner", IllegalArgumentException::new));
+	private static final NonVoidMethodSignature TEST_INNER_INSIDE_GETPARENT = MethodSignatures.ofNonVoid(TEST_INNER_INSIDE, "getParent", TEST_INNER);
 
 	@BeforeAll
 	static void beforeAll() throws Exception {

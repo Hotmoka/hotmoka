@@ -32,7 +32,6 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
-import io.takamaka.code.constants.Constants;
 
 /**
  * A test for the remote purchase contract.
@@ -74,7 +73,7 @@ class AbstractFail extends HotmokaTest {
 		StorageReference result = addInstanceNonVoidMethodCallTransaction
 			(privateKey(0), account(0), _100_000, panarea(1), jar(), abstractFailMethod, abstractfail).asReturnedReference(abstractFailMethod, NodeException::new);
 
-		var getClassName = MethodSignatures.ofNonVoid(Constants.STORAGE_NAME, "getClassName", StorageTypes.STRING);
+		var getClassName = MethodSignatures.ofNonVoid(StorageTypes.STORAGE, "getClassName", StorageTypes.STRING);
 		String className = runInstanceNonVoidMethodCallTransaction(account(0), _100_000, jar(), getClassName, result).asReturnedString(getClassName, NodeException::new);
 
 		assertEquals("io.hotmoka.examples.abstractfail.AbstractFailImpl", className);
