@@ -38,13 +38,13 @@ public class UpdateTests extends AbstractLoggedTests {
 	private final static StorageReference object = StorageValues.reference
 		(TransactionReferences.of("cafebabedeadbeafcafebabedeadbeafcafebabedeadbeafcafebabedeadbeaf", IllegalArgumentException::new),
 		 BigInteger.valueOf(13), IllegalArgumentException::new);
-	private final static FieldSignature field = FieldSignatures.of("io.hotmoka.MyClass", "f1", StorageTypes.named("io.hotmoka.OtherClass"));
+	private final static FieldSignature field = FieldSignatures.of("io.hotmoka.MyClass", "f1", "io.hotmoka.OtherClass", IllegalArgumentException::new);
 
 	@Test
 	@DisplayName("class tags are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForClassTag() throws EncodeException, DecodeException {
 		var jar = TransactionReferences.of("01234567deadbeafcafebabedeadbeafcafebabedeadbeafcafebabedeadbeaf", IllegalArgumentException::new);
-		var classTag1 = Updates.classTag(object, StorageTypes.classNamed("MyGreatClass"), jar);
+		var classTag1 = Updates.classTag(object, StorageTypes.classNamed("MyGreatClass", IllegalArgumentException::new), jar);
 		String encoded = new Updates.Encoder().encode(classTag1);
 		var classTag2 = new Updates.Decoder().decode(encoded);
 		assertEquals(classTag1, classTag2);

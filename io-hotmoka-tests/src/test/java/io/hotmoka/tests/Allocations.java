@@ -43,6 +43,7 @@ class Allocations extends HotmokaTest {
 
 	@Test @DisplayName("new Allocations()")
 	void createAllocations() throws Exception {
-		addConstructorCallTransaction(privateKey(0), account(0), _10_000_000, BigInteger.ONE, jar(), ConstructorSignatures.of(StorageTypes.classNamed("io.hotmoka.examples.allocations.Allocations")));
+		addConstructorCallTransaction(privateKey(0), account(0), _10_000_000, BigInteger.ONE, jar(),
+			ConstructorSignatures.of(StorageTypes.classNamed("io.hotmoka.examples.allocations.Allocations", IllegalArgumentException::new)));
 	}
 }

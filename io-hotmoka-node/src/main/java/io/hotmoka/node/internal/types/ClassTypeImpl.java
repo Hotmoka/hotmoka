@@ -129,6 +129,25 @@ public final class ClassTypeImpl extends AbstractStorageType implements ClassTyp
 	}
 
 	/**
+	 * Yields the storage class type corresponding to the given class.
+	 * 
+	 * @param <E> the type of the exception thrown if {@code clazz} is illegal for a storage class type
+	 * @param clazz the class
+	 * @param onIllegalClass the exception generator used if {@code clazz} is illegal for a storage class type
+	 * @return the storage class type
+	 * @throws E if {@code clazz} is illegal for a storage class type
+	 */
+	public static <E extends Exception> ClassType fromClass(Class<?> clazz, Function<String, ? extends E> onIllegalClass) throws E {
+		if (clazz == boolean.class || clazz == byte.class || clazz == char.class || clazz == short.class
+				|| clazz == int.class || clazz == long.class || clazz == float.class || clazz == double.class)
+			throw onIllegalClass.apply("Primitive types are not storage class types");
+		else if (clazz.isArray())
+			throw onIllegalClass.apply("Arrays are not storage class types");
+		else
+			return ClassTypeImpl.named(clazz.getName(), onIllegalClass);
+	}
+
+	/**
 	 * Yields the class type with the given selector, unmarshalled from the given context.
 	 * 
 	 * @param selector the selector, already unmarshalled from the context

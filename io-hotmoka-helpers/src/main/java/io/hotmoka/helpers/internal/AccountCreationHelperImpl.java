@@ -112,7 +112,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		case "qtesla1":
 		case "qtesla3":
 			methodName = "faucet" + signature.toUpperCase();
-			eoaType = StorageTypes.classNamed(StorageTypes.EOA + signature.toUpperCase());
+			eoaType = StorageTypes.classNamed(StorageTypes.EOA + signature.toUpperCase(), IllegalArgumentException::new);
 			break;
 		default:
 			throw new NodeException("Unknown signature algorithm " + signature);
@@ -169,7 +169,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		case "sha256dsa":
 		case "qtesla1":
 		case "qtesla3":
-			eoaType = StorageTypes.classNamed(StorageTypes.EOA + signature.toUpperCase());
+			eoaType = StorageTypes.classNamed(StorageTypes.EOA + signature.toUpperCase(), IllegalArgumentException::new);
 			break;
 		default:
 			throw new IllegalArgumentException("unknown signature algorithm " + signature);

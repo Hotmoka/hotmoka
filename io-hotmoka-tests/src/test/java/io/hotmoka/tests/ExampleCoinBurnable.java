@@ -44,7 +44,7 @@ import io.takamaka.code.constants.Constants;
  * A test for the ExampleCoinBurnable contract (a ERC20Burnable contract).
  */
 class ExampleCoinBurnable extends HotmokaTest {
-    private static final ClassType EXCB = StorageTypes.classNamed("io.hotmoka.examples.tokens.ExampleCoinBurnable");
+    private static final ClassType EXCB = StorageTypes.classNamed("io.hotmoka.examples.tokens.ExampleCoinBurnable", IllegalArgumentException::new);
     private static final ClassType UBI = StorageTypes.UNSIGNED_BIG_INTEGER;
     private static final ConstructorSignature CONSTRUCTOR_EXCB = ConstructorSignatures.of(EXCB);
     private static final ConstructorSignature CONSTRUCTOR_UBI_STR = ConstructorSignatures.of(UBI, StorageTypes.STRING);

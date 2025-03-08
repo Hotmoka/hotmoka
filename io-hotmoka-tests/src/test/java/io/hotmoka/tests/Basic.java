@@ -56,18 +56,18 @@ import io.takamaka.code.constants.Constants;
  * A test for basic storage and contract Takamaka classes.
  */
 class Basic extends HotmokaTest {
-	private static final ClassType ALIAS = StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Alias");
-	private static final ClassType SIMPLE = StorageTypes.classNamed("io.hotmoka.examples.basic.Simple");
-	private static final ClassType WITH_LIST = StorageTypes.classNamed("io.hotmoka.examples.basic.WithList");
-	private static final ClassType FROM_CONTRACT_FILTER = StorageTypes.classNamed("io.hotmoka.examples.basic.FromContractFilter");
+	private static final ClassType ALIAS = StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Alias", IllegalArgumentException::new);
+	private static final ClassType SIMPLE = StorageTypes.classNamed("io.hotmoka.examples.basic.Simple", IllegalArgumentException::new);
+	private static final ClassType WITH_LIST = StorageTypes.classNamed("io.hotmoka.examples.basic.WithList", IllegalArgumentException::new);
+	private static final ClassType FROM_CONTRACT_FILTER = StorageTypes.classNamed("io.hotmoka.examples.basic.FromContractFilter", IllegalArgumentException::new);
 	private static final ConstructorSignature CONSTRUCTOR_ALIAS = ConstructorSignatures.of(ALIAS);
 	private static final VoidMethodSignature SUB_MS = MethodSignatures.ofVoid("io.hotmoka.examples.basic.Sub", "ms");
 	private static final VoidMethodSignature SUB_M5 = MethodSignatures.ofVoid("io.hotmoka.examples.basic.Sub", "m5");
-	private static final ConstructorSignature CONSTRUCTOR_WRAPPER_1 = ConstructorSignatures.of("io.hotmoka.examples.basicdependency.Wrapper", StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Time"));
-	private static final ConstructorSignature CONSTRUCTOR_WRAPPER_2 = ConstructorSignatures.of("io.hotmoka.examples.basicdependency.Wrapper", StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Time"), StorageTypes.STRING, StorageTypes.BIG_INTEGER, StorageTypes.LONG);
+	private static final ConstructorSignature CONSTRUCTOR_WRAPPER_1 = ConstructorSignatures.of("io.hotmoka.examples.basicdependency.Wrapper", StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Time", IllegalArgumentException::new));
+	private static final ConstructorSignature CONSTRUCTOR_WRAPPER_2 = ConstructorSignatures.of("io.hotmoka.examples.basicdependency.Wrapper", StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Time", IllegalArgumentException::new), StorageTypes.STRING, StorageTypes.BIG_INTEGER, StorageTypes.LONG);
 	private static final ConstructorSignature CONSTRUCTOR_INTERNATIONAL_TIME = ConstructorSignatures.of("io.hotmoka.examples.basicdependency.InternationalTime", INT, INT, INT);
-	private static final NonVoidMethodSignature TIME_TO_STRING = MethodSignatures.ofNonVoid(StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Time"), "toString", StorageTypes.STRING);
-	private static final NonVoidMethodSignature WRAPPER_TO_STRING = MethodSignatures.ofNonVoid(StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Wrapper"), "toString", StorageTypes.STRING);
+	private static final NonVoidMethodSignature TIME_TO_STRING = MethodSignatures.ofNonVoid(StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Time", IllegalArgumentException::new), "toString", StorageTypes.STRING);
+	private static final NonVoidMethodSignature WRAPPER_TO_STRING = MethodSignatures.ofNonVoid(StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Wrapper", IllegalArgumentException::new), "toString", StorageTypes.STRING);
 	private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
 
 	/**
@@ -115,7 +115,7 @@ class Basic extends HotmokaTest {
 			runInstanceNonVoidMethodCallTransaction(master, _200_000, classpath, WRAPPER_TO_STRING, wrapper));
 	}
 
-	@Test @DisplayName("new Wrapper(new InternationalTime(13,25,40),\"hello\",13011973,12345L).toString().equals(\"wrapper(13:25:40,hello,13011973,12345)\")")
+	@Test @DisplayName("new Wrapper(new InternationalTime(13,25,40),\"hello\",13011973,12345L).toString().equals(\"wrapper(13:25:40, IllegalArgumentException::new,hello,13011973,12345)\")")
 	void testToStringWrapperInternationTime2() throws Exception {
 		StorageReference internationalTime = addConstructorCallTransaction
 			(key, master, _200_000, ONE, classpath, CONSTRUCTOR_INTERNATIONAL_TIME,
@@ -192,7 +192,9 @@ class Basic extends HotmokaTest {
 		StorageReference sub = addConstructorCallTransaction
 			(privateKey(1), account(1), _100_000, ONE, classpath, ConstructorSignatures.of("io.hotmoka.examples.basic.Sub", INT), StorageValues.intOf(1973));
 		addInstanceVoidMethodCallTransaction
-			(key, master, _200_000, ONE, classpath, MethodSignatures.ofVoid("io.hotmoka.examples.basic.Sub", "print", StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Time")), sub, internationalTime);
+			(key, master, _200_000, ONE, classpath,
+			MethodSignatures.ofVoid("io.hotmoka.examples.basic.Sub", "print",
+				StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Time", IllegalArgumentException::new)), sub, internationalTime);
 	}
 
 	@Test @DisplayName("new Sub(1973).m4(13).equals(\"Sub.m4 receives 13 coins from an externally owned account with public balance\")")

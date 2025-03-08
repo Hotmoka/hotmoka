@@ -100,7 +100,7 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 		StorageReference builderOfGasStation = producerOfGasStationBuilder.apply(this, consensus, takamakaCodeReference);
 
 		BigInteger nonceOfGamete = getNonceOfGamete(parent, takamakaCodeReference);
-		var function = StorageTypes.classNamed(Function.class.getName());
+		var function = StorageTypes.fromClass(Function.class, IllegalArgumentException::new);
 
 		// we create the manifest, passing the storage array of validators in store and their powers
 		var request = TransactionRequests.constructorCall
@@ -153,7 +153,7 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 		StorageReference builderOfGasStation = createGenericGasStationBuilder(this, consensus, takamakaCodeReference);
 
 		BigInteger nonceOfGamete = getNonceOfGamete(parent, takamakaCodeReference);
-		var function = StorageTypes.classNamed(Function.class.getName());
+		var function = StorageTypes.fromClass(Function.class, IllegalArgumentException::new);
 
 		// we create the manifest, passing the storage array of validators in store and their powers
 		var request = TransactionRequests.constructorCall

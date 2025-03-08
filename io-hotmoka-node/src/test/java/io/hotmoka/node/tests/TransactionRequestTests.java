@@ -105,7 +105,7 @@ public class TransactionRequestTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("constructor call transaction requests are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForConstructorCallTransactionRequest() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-		var constructor = ConstructorSignatures.of("io.hotmoka.MyClass", StorageTypes.INT, StorageTypes.named("io.hotmoka.OtherClass"));
+		var constructor = ConstructorSignatures.of("io.hotmoka.MyClass", StorageTypes.INT, StorageTypes.classNamed("io.hotmoka.OtherClass", IllegalArgumentException::new));
 		var value1 = StorageValues.intOf(13);
 		var value2 = StorageValues.reference(reference2, BigInteger.ZERO, RuntimeException::new);
 		var request1 = TransactionRequests.constructorCall(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, constructor, value1, value2);
@@ -117,7 +117,7 @@ public class TransactionRequestTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("static method call transaction requests are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForStaticMethodCallTransactionRequest() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-		var method = MethodSignatures.ofNonVoid("io.hotmoka.MyClass", "moo", StorageTypes.BOOLEAN, StorageTypes.INT, StorageTypes.named("io.hotmoka.OtherClass"));
+		var method = MethodSignatures.ofNonVoid("io.hotmoka.MyClass", "moo", StorageTypes.BOOLEAN, StorageTypes.INT, StorageTypes.classNamed("io.hotmoka.OtherClass", IllegalArgumentException::new));
 		var value1 = StorageValues.intOf(13);
 		var value2 = StorageValues.reference(reference2, BigInteger.ZERO, RuntimeException::new);
 		var request1 = TransactionRequests.staticMethodCall(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, value1, value2);
@@ -129,7 +129,7 @@ public class TransactionRequestTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("instance method call transaction requests are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForInstanceMethodCallTransactionRequest() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-		var method = MethodSignatures.ofNonVoid("io.hotmoka.MyClass", "moo", StorageTypes.BOOLEAN, StorageTypes.INT, StorageTypes.named("io.hotmoka.OtherClass"));
+		var method = MethodSignatures.ofNonVoid("io.hotmoka.MyClass", "moo", StorageTypes.BOOLEAN, StorageTypes.INT, StorageTypes.classNamed("io.hotmoka.OtherClass", IllegalArgumentException::new));
 		var value1 = StorageValues.intOf(13);
 		var value2 = StorageValues.reference(reference2, BigInteger.ZERO, IllegalArgumentException::new);
 		var receiver = StorageValues.reference(reference2, BigInteger.valueOf(17), IllegalArgumentException::new);
@@ -142,7 +142,7 @@ public class TransactionRequestTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("instance system method call transaction requests are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForInstanceSystemMethodCallTransactionRequest() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-		var method = MethodSignatures.ofNonVoid("io.hotmoka.MyClass", "moo", StorageTypes.BOOLEAN, StorageTypes.INT, StorageTypes.named("io.hotmoka.OtherClass"));
+		var method = MethodSignatures.ofNonVoid("io.hotmoka.MyClass", "moo", StorageTypes.BOOLEAN, StorageTypes.INT, StorageTypes.classNamed("io.hotmoka.OtherClass", IllegalArgumentException::new));
 		var value1 = StorageValues.intOf(13);
 		var value2 = StorageValues.reference(reference2, BigInteger.ZERO, IllegalArgumentException::new);
 		var receiver = StorageValues.reference(reference2, BigInteger.valueOf(17), IllegalArgumentException::new);

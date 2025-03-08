@@ -54,7 +54,7 @@ public abstract class ConstructorSignatures {
 	 * @return the signature of the constructor
 	 */
 	public static ConstructorSignature of(String definingClass, StorageType... formals) {
-		return new ConstructorSignatureImpl(StorageTypes.classNamed(definingClass), formals);
+		return new ConstructorSignatureImpl(StorageTypes.classNamed(definingClass, IllegalArgumentException::new), formals); // TODO: generalize exception
 	}
 
 	/**
@@ -76,7 +76,7 @@ public abstract class ConstructorSignatures {
 	 * @return the signature of the constructor
 	 */
 	public static ConstructorSignature of(String definingClass, Stream<StorageType> formals) {
-		return new ConstructorSignatureImpl(StorageTypes.classNamed(definingClass), formals.toArray(StorageType[]::new));
+		return new ConstructorSignatureImpl(StorageTypes.classNamed(definingClass, IllegalArgumentException::new), formals.toArray(StorageType[]::new)); // TODO: generalize exception
 	}
 
 	/**

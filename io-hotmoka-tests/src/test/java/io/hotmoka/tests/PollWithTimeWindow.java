@@ -45,10 +45,10 @@ import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
 
 class PollWithTimeWindow extends HotmokaTest {
-	private static final ClassType SIMPLE_SHARED_ENTITY = StorageTypes.classNamed("io.takamaka.code.dao.SimpleSharedEntity");
-	private static final ClassType POLL_WITH_TIME_WINDOW = StorageTypes.classNamed("io.takamaka.code.dao.PollWithTimeWindow");
-	private static final ClassType ACTION_SIMPLE_POLL = StorageTypes.classNamed("io.takamaka.code.dao.SimplePoll$Action");
-	private static final ClassType ACTION = StorageTypes.classNamed("io.hotmoka.examples.polls.CheckRunPerformedAction");
+	private static final ClassType SIMPLE_SHARED_ENTITY = StorageTypes.classNamed("io.takamaka.code.dao.SimpleSharedEntity", IllegalArgumentException::new);
+	private static final ClassType POLL_WITH_TIME_WINDOW = StorageTypes.classNamed("io.takamaka.code.dao.PollWithTimeWindow", IllegalArgumentException::new);
+	private static final ClassType ACTION_SIMPLE_POLL = StorageTypes.classNamed("io.takamaka.code.dao.SimplePoll$Action", IllegalArgumentException::new);
+	private static final ClassType ACTION = StorageTypes.classNamed("io.hotmoka.examples.polls.CheckRunPerformedAction", IllegalArgumentException::new);
 
 	private static final ConstructorSignature SIMPLE_SHARED_ENTITY_CONSTRUCTOR = ConstructorSignatures.of(SIMPLE_SHARED_ENTITY, 
 		PAYABLE_CONTRACT, PAYABLE_CONTRACT, PAYABLE_CONTRACT, PAYABLE_CONTRACT, BIG_INTEGER, BIG_INTEGER, BIG_INTEGER, BIG_INTEGER);

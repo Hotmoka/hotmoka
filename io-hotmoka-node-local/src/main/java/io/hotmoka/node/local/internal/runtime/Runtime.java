@@ -68,7 +68,8 @@ public abstract class Runtime {
      */
 	public static Object deserializeLastLazyUpdateFor(Object object, String definingClass, String name, String fieldClassName) throws DeserializationException, StoreException {
 		AbstractResponseBuilder<?, ?>.ResponseCreator responseCreator = getResponseCreator();
-		return responseCreator.deserializeLastUpdateFor(responseCreator.getClassLoader().getStorageReferenceOf(object), FieldSignatures.of(definingClass, name, StorageTypes.classNamed(fieldClassName)));
+		// TODO: check exception below
+		return responseCreator.deserializeLastUpdateFor(responseCreator.getClassLoader().getStorageReferenceOf(object), FieldSignatures.of(StorageTypes.classNamed(definingClass, IllegalArgumentException::new), name, StorageTypes.classNamed(fieldClassName, IllegalArgumentException::new)));
 	}
 
 	/**
@@ -85,7 +86,8 @@ public abstract class Runtime {
      */
 	public static Object deserializeLastLazyUpdateForFinal(Object object, String definingClass, String name, String fieldClassName) throws DeserializationException, StoreException {
 		AbstractResponseBuilder<?,?>.ResponseCreator responseCreator = getResponseCreator();
-		return responseCreator.deserializeLastUpdateForFinal(responseCreator.getClassLoader().getStorageReferenceOf(object), FieldSignatures.of(definingClass, name, StorageTypes.classNamed(fieldClassName)));
+		// TODO: check exception below
+		return responseCreator.deserializeLastUpdateForFinal(responseCreator.getClassLoader().getStorageReferenceOf(object), FieldSignatures.of(StorageTypes.classNamed(definingClass, IllegalArgumentException::new), name, StorageTypes.classNamed(fieldClassName, IllegalArgumentException::new)));
 	}
 
 	/**

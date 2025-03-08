@@ -44,9 +44,9 @@ public class TransactionResponseTests extends AbstractLoggedTests {
 	private final static TransactionReference reference3 = TransactionReferences.of("b1234567cafebabe01234567cafebabe01234567cafebabe01234567cafebabe", IllegalArgumentException::new);
 	private final static StorageReference gamete = StorageValues.reference(reference, BigInteger.TWO, IllegalArgumentException::new);
 	private final static StorageReference result = StorageValues.reference(reference, BigInteger.valueOf(17), IllegalArgumentException::new);
-	private final static Update update1 = Updates.classTag(gamete, StorageTypes.classNamed("io.hotmoka.Gamete"), classpath);
-	private final static Update update2 = Updates.ofBigInteger(gamete, FieldSignatures.of(StorageTypes.classNamed("io.hotmoka.Gamete"), "f", StorageTypes.BIG_INTEGER), BigInteger.valueOf(1234));
-	private final static Update update3 = Updates.ofInt(gamete, FieldSignatures.of(StorageTypes.classNamed("io.hotmoka.Gamete"), "i", StorageTypes.INT), 42);
+	private final static Update update1 = Updates.classTag(gamete, StorageTypes.classNamed("io.hotmoka.Gamete", IllegalArgumentException::new), classpath);
+	private final static Update update2 = Updates.ofBigInteger(gamete, FieldSignatures.of(StorageTypes.classNamed("io.hotmoka.Gamete", IllegalArgumentException::new), "f", StorageTypes.BIG_INTEGER), BigInteger.valueOf(1234));
+	private final static Update update3 = Updates.ofInt(gamete, FieldSignatures.of(StorageTypes.classNamed("io.hotmoka.Gamete", IllegalArgumentException::new), "i", StorageTypes.INT), 42);
 	private final static StorageReference event1 = StorageValues.reference(reference2, BigInteger.TWO, IllegalArgumentException::new);
 	private final static StorageReference event2 = StorageValues.reference(reference3, BigInteger.TEN, IllegalArgumentException::new);
 	private final static StorageReference event3 = StorageValues.reference(reference3, BigInteger.ONE, IllegalArgumentException::new);

@@ -88,7 +88,7 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 			if (jar == null)
 				throw new InconsistentJsonException("jar cannot be null if clazz is non-null");
 
-			return Updates.classTag(sr, StorageTypes.classNamed(clazz), jar.unmap());
+			return Updates.classTag(sr, StorageTypes.classNamed(clazz, InconsistentJsonException::new), jar.unmap());
 		}
 
 		var field1 = json.getField();

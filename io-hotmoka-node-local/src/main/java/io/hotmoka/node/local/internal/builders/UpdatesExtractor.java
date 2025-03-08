@@ -34,6 +34,7 @@ import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.signatures.FieldSignature;
+import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.api.EngineClassLoader;
@@ -137,9 +138,9 @@ public class UpdatesExtractor {
 			private final boolean inStorage;
 
 			/**
-			 * Builds the scope to extract the updates to a given object.
+			 * Builds the scope to extract the updates to a given storage object.
 			 * 
-			 * @param object the object
+			 * @param object the storage object
 			 * @throws UpdatesExtractionException if the updates cannot be extracted, because for instance an illegal
 			 *                                    value has been stored into some field
 			 * @throws StoreException if the operation cannot be completed
@@ -150,10 +151,12 @@ public class UpdatesExtractor {
 				this.inStorage = classLoader.getInStorageOf(object);
 
 				if (!inStorage)
-					updates.add(Updates.classTag(storageReference, StorageTypes.classOf(clazz), classLoader.transactionThatInstalledJarFor(clazz)));
+					// storage objects can only have class type, hence the conversion must succeed
+					updates.add(Updates.classTag(storageReference, StorageTypes.classFromClass(clazz, IllegalArgumentException::new), classLoader.transactionThatInstalledJarFor(clazz)));
 
 				Class<?> previous = null;
-				while (previous != classLoader.getStorage()) {
+				var storage = classLoader.getStorage();
+				while (previous != storage) {
 					addUpdatesForFieldsDefinedInClass(clazz, object);
 					previous = clazz;
 					if (clazz == null)
@@ -175,8 +178,9 @@ public class UpdatesExtractor {
 			 *                                    value has been stored into some field
 			 * @throws StoreException if the operation cannot be completed
 			 */
-			private void addUpdateFor(String fieldDefiningClass, String fieldName, String fieldClassName, Object newValue) throws UpdatesExtractionException, StoreException {
-				var field = FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.classNamed(fieldClassName));
+			private void addUpdateFor(ClassType fieldDefiningClass, String fieldName, String fieldClassName, Object newValue) throws UpdatesExtractionException, StoreException {
+				// TODO: check exception below
+				var field = FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.classNamed(fieldClassName, IllegalArgumentException::new));
 
 				if (newValue == null)
 					// the field has been set to null
@@ -207,7 +211,7 @@ public class UpdatesExtractor {
 			 * @param fieldName the name of the field
 			 * @param s the value set to the field
 			 */
-			private void addUpdateFor(String fieldDefiningClass, String fieldName, boolean s) {
+			private void addUpdateFor(ClassType fieldDefiningClass, String fieldName, boolean s) {
 				updates.add(Updates.ofBoolean(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.BOOLEAN), s));
 			}
 
@@ -218,7 +222,7 @@ public class UpdatesExtractor {
 			 * @param fieldName the name of the field
 			 * @param s the value set to the field
 			 */
-			private void addUpdateFor(String fieldDefiningClass, String fieldName, byte s) {
+			private void addUpdateFor(ClassType fieldDefiningClass, String fieldName, byte s) {
 				updates.add(Updates.ofByte(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.BYTE), s));
 			}
 
@@ -229,7 +233,7 @@ public class UpdatesExtractor {
 			 * @param fieldName the name of the field
 			 * @param s the value set to the field
 			 */
-			private void addUpdateFor(String fieldDefiningClass, String fieldName, char s) {
+			private void addUpdateFor(ClassType fieldDefiningClass, String fieldName, char s) {
 				updates.add(Updates.ofChar(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.CHAR), s));
 			}
 
@@ -240,7 +244,7 @@ public class UpdatesExtractor {
 			 * @param fieldName the name of the field
 			 * @param s the value set to the field
 			 */
-			private void addUpdateFor(String fieldDefiningClass, String fieldName, double s) {
+			private void addUpdateFor(ClassType fieldDefiningClass, String fieldName, double s) {
 				updates.add(Updates.ofDouble(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.DOUBLE), s));
 			}
 
@@ -251,7 +255,7 @@ public class UpdatesExtractor {
 			 * @param fieldName the name of the field
 			 * @param s the value set to the field
 			 */
-			private void addUpdateFor(String fieldDefiningClass, String fieldName, float s) {
+			private void addUpdateFor(ClassType fieldDefiningClass, String fieldName, float s) {
 				updates.add(Updates.ofFloat(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.FLOAT), s));
 			}
 
@@ -262,7 +266,7 @@ public class UpdatesExtractor {
 			 * @param fieldName the name of the field
 			 * @param s the value set to the field
 			 */
-			private void addUpdateFor(String fieldDefiningClass, String fieldName, int s) {
+			private void addUpdateFor(ClassType fieldDefiningClass, String fieldName, int s) {
 				updates.add(Updates.ofInt(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.INT), s));
 			}
 
@@ -273,7 +277,7 @@ public class UpdatesExtractor {
 			 * @param fieldName the name of the field
 			 * @param s the value set to the field
 			 */
-			private void addUpdateFor(String fieldDefiningClass, String fieldName, long s) {
+			private void addUpdateFor(ClassType fieldDefiningClass, String fieldName, long s) {
 				updates.add(Updates.ofLong(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.LONG), s));
 			}
 
@@ -284,7 +288,7 @@ public class UpdatesExtractor {
 			 * @param fieldName the name of the field
 			 * @param s the value set to the field
 			 */
-			private void addUpdateFor(String fieldDefiningClass, String fieldName, short s) {
+			private void addUpdateFor(ClassType fieldDefiningClass, String fieldName, short s) {
 				updates.add(Updates.ofShort(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.SHORT), s));
 			}
 
@@ -295,7 +299,7 @@ public class UpdatesExtractor {
 			 * @param fieldName the name of the field
 			 * @param s the value set to the field
 			 */
-			private void addUpdateFor(String fieldDefiningClass, String fieldName, String s) {
+			private void addUpdateFor(ClassType fieldDefiningClass, String fieldName, String s) {
 				if (s == null)
 					updates.add(Updates.toNull(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.STRING), true));
 				else
@@ -309,7 +313,7 @@ public class UpdatesExtractor {
 			 * @param fieldName the name of the field
 			 * @param bi the value set to the field
 			 */
-			private void addUpdateFor(String fieldDefiningClass, String fieldName, BigInteger bi) {
+			private void addUpdateFor(ClassType fieldDefiningClass, String fieldName, BigInteger bi) {
 				FieldSignature field = FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.BIG_INTEGER);
 				if (bi == null)
 					updates.add(Updates.toNull(storageReference, field, true));
@@ -401,7 +405,8 @@ public class UpdatesExtractor {
 			 */
 			private void addUpdateFor(Field field, Object newValue) throws UpdatesExtractionException, StoreException {
 				Class<?> fieldType = field.getType();
-				String fieldDefiningClass = field.getDeclaringClass().getName();
+				// the field is defined in a storage object, hence the subsequent conversion cannot fail
+				ClassType fieldDefiningClass = StorageTypes.classFromClass(field.getDeclaringClass(), IllegalArgumentException::new);
 				String fieldName = field.getName();
 
 				if (fieldType == char.class)
@@ -424,13 +429,11 @@ public class UpdatesExtractor {
 					addUpdateFor(fieldDefiningClass, fieldName, (BigInteger) newValue);
 				else if (fieldType == String.class)
 					addUpdateFor(fieldDefiningClass, fieldName, (String) newValue);
-				else if (fieldType.isEnum())
-					addUpdateFor(fieldDefiningClass, fieldName, fieldType.getName(), (Enum<?>) newValue);
 				else if (classLoader.isLazilyLoaded(fieldType))
 					addUpdateFor(fieldDefiningClass, fieldName, fieldType.getName(), newValue);
 				else
-					// for instance, arrays: they should have been forbidden when verifying the installed jars
-					throw new StoreException("Unexpected type " + fieldType.getName() + " for a field of a storage object: " + fieldDefiningClass + '.' + fieldName);
+					// for example arrays: they should have been forbidden when verifying the installed jars
+					throw new StoreException("Unexpected type " + fieldType.getName() + " for a field of a storage object: " + fieldDefiningClass.getName() + '.' + fieldName);
 			}
 
 			/**

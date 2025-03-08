@@ -19,6 +19,7 @@ package io.hotmoka.node.internal.signatures;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Objects;
+import java.util.function.Function;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.AbstractMarshallable;
@@ -30,7 +31,8 @@ import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
-import io.takamaka.code.constants.Constants;
+import io.hotmoka.node.internal.gson.FieldSignatureJson;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * The signature of a field of a class.
@@ -42,11 +44,6 @@ public final class FieldSignatureImpl extends AbstractMarshallable implements Fi
 	 * The field that holds the balance in contracts.
 	 */
 	public final static FieldSignature BALANCE_FIELD = FieldSignatures.of(StorageTypes.CONTRACT, "balance", StorageTypes.BIG_INTEGER);
-
-	/**
-	 * The field that holds the red balance in contracts.
-	 */
-	public final static FieldSignature RED_BALANCE_FIELD = FieldSignatures.of(StorageTypes.CONTRACT, "balanceRed", StorageTypes.BIG_INTEGER);
 
 	/**
 	 * The field that holds the nonce in externally owned accounts.
@@ -61,13 +58,13 @@ public final class FieldSignatureImpl extends AbstractMarshallable implements Fi
 	/**
 	 * The field of the manifest that holds the contract of the validators of the node.
 	 */
-	public final static FieldSignature MANIFEST_VALIDATORS_FIELD = FieldSignatures.of(Constants.MANIFEST_NAME, "validators", StorageTypes.VALIDATORS);
+	public final static FieldSignature MANIFEST_VALIDATORS_FIELD = FieldSignatures.of(StorageTypes.MANIFEST, "validators", StorageTypes.VALIDATORS);
 
 	/**
 	 * The field of the manifest that holds the object that keeps track
 	 * of the versions of the modules of the node.
 	 */
-	public final static FieldSignature MANIFEST_VERSIONS_FIELD = FieldSignatures.of(Constants.MANIFEST_NAME, "versions", StorageTypes.VERSIONS);
+	public final static FieldSignature MANIFEST_VERSIONS_FIELD = FieldSignatures.of(StorageTypes.MANIFEST, "versions", StorageTypes.VERSIONS);
 
 	/**
 	 * The field of the manifest that holds the gas station.
@@ -77,7 +74,7 @@ public final class FieldSignatureImpl extends AbstractMarshallable implements Fi
 	/**
 	 * The field of the manifest that holds the gamete account of the node.
 	 */
-	public final static FieldSignature MANIFEST_GAMETE_FIELD = FieldSignatures.of(Constants.MANIFEST_NAME, "gamete", StorageTypes.GAMETE);
+	public final static FieldSignature MANIFEST_GAMETE_FIELD = FieldSignatures.of(StorageTypes.MANIFEST, "gamete", StorageTypes.GAMETE);
 
 	/**
 	 * The field that holds the creator of an event.
@@ -160,7 +157,7 @@ public final class FieldSignatureImpl extends AbstractMarshallable implements Fi
 	public final static FieldSignature STORAGE_TREE_MAP_NODE_VALUE_FIELD = FieldSignatures.of(StorageTypes.STORAGE_TREE_MAP_NODE, "value", StorageTypes.OBJECT);
 
 	/**
-	 * The class of the field.
+	 * The class defining the field.
 	 */
 	private final ClassType definingClass;
 
@@ -177,7 +174,7 @@ public final class FieldSignatureImpl extends AbstractMarshallable implements Fi
 	/**
 	 * Builds the signature of a field.
 	 * 
-	 * @param definingClass the class of the field
+	 * @param definingClass the class defining the field
 	 * @param name the name of the field
 	 * @param type the type of the field
 	 */
@@ -190,12 +187,41 @@ public final class FieldSignatureImpl extends AbstractMarshallable implements Fi
 	/**
 	 * Builds the signature of a field.
 	 * 
-	 * @param definingClass the name of the class of the field
+	 * @param <E> the type of the exception thrown if {@code definingClass} or {@code type} cannot be converted
+	 *            into storage types
+	 * @param definingClass the name of the class defining the field
 	 * @param name the name of the field
-	 * @param type the type of the field
+	 * @param type the name of the type of the field
+	 * @param onIllegalType the generator of the exception thrown if {@code definingClass} or {@code type}
+	 *                      cannot be converted into storage types
+	 * @throws E if {@code definingClass} or {@code type} cannot be converted into storage types
 	 */
-	public FieldSignatureImpl(String definingClass, String name, StorageType type) {
-		this(StorageTypes.classNamed(definingClass), name, type);
+	public <E extends Exception> FieldSignatureImpl(String definingClass, String name, String type, Function<String, ? extends E> onIllegalType) throws E {
+		this(StorageTypes.classNamed(definingClass, onIllegalType), name, StorageTypes.named(type, onIllegalType));
+	}
+
+	/**
+	 * Builds a field signature from its JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public FieldSignatureImpl(FieldSignatureJson json) throws InconsistentJsonException {
+		var definingClass = json.getDefiningClass();
+		if (definingClass == null)
+			throw new InconsistentJsonException("definingClass cannot be null");
+
+		var name = json.getName();
+		if (name == null)
+			throw new InconsistentJsonException("name cannot be null");
+
+		var type = json.getType();
+		if (type == null)
+			throw new InconsistentJsonException("type cannot be null");
+
+		this.definingClass = StorageTypes.classNamed(definingClass, InconsistentJsonException::new);
+		this.name = name;
+		this.type = StorageTypes.named(type, InconsistentJsonException::new);
 	}
 
 	@Override

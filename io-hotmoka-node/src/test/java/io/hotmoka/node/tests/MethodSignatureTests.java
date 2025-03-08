@@ -32,7 +32,7 @@ public class MethodSignatureTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("void method signatures are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForVoidMethodSignature() throws EncodeException, DecodeException {
-		var method1 = MethodSignatures.ofVoid("io.hotmoka.MyClass", "m", StorageTypes.named("io.hotmoka.OtherClass"), StorageTypes.CHAR, StorageTypes.DOUBLE, StorageTypes.named("io.hotmoka.Something"));
+		var method1 = MethodSignatures.ofVoid("io.hotmoka.MyClass", "m", StorageTypes.classNamed("io.hotmoka.OtherClass", IllegalArgumentException::new), StorageTypes.CHAR, StorageTypes.DOUBLE, StorageTypes.classNamed("io.hotmoka.Something", IllegalArgumentException::new));
 		String encoded = new MethodSignatures.Encoder().encode(method1);
 		var method2 = new MethodSignatures.Decoder().decode(encoded);
 		assertEquals(method1, method2);
@@ -41,7 +41,7 @@ public class MethodSignatureTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("non-void method signatures are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForNonVoidMethodSignature() throws EncodeException, DecodeException {
-		var method1 = MethodSignatures.ofNonVoid("io.hotmoka.MyClass", "m", StorageTypes.FLOAT, StorageTypes.named("io.hotmoka.OtherClass"), StorageTypes.CHAR, StorageTypes.DOUBLE, StorageTypes.named("io.hotmoka.Something"));
+		var method1 = MethodSignatures.ofNonVoid("io.hotmoka.MyClass", "m", StorageTypes.FLOAT, StorageTypes.classNamed("io.hotmoka.OtherClass", IllegalArgumentException::new), StorageTypes.CHAR, StorageTypes.DOUBLE, StorageTypes.classNamed("io.hotmoka.Something", IllegalArgumentException::new));
 		String encoded = new MethodSignatures.Encoder().encode(method1);
 		var method2 = new MethodSignatures.Decoder().decode(encoded);
 		assertEquals(method1, method2);

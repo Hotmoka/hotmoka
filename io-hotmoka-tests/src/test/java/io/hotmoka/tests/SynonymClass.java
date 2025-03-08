@@ -38,7 +38,7 @@ import io.hotmoka.node.api.values.StorageValue;
  * as a class of the same node.
  */
 class SynonymClass extends HotmokaTest {
-	private final static ClassType SA = StorageTypes.classNamed("io.hotmoka.crypto.SignatureAlgorithm");
+	private final static ClassType SA = StorageTypes.classNamed("io.hotmoka.crypto.SignatureAlgorithm", IllegalArgumentException::new);
 	private final static NonVoidMethodSignature EMPTY = MethodSignatures.ofNonVoid(SA, "empty", SA);
 	private final static BigInteger _20_000 = BigInteger.valueOf(20_000);
 

@@ -16,9 +16,9 @@ limitations under the License.
 
 package io.hotmoka.node.internal.gson;
 
-import io.hotmoka.node.FieldSignatures;
-import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.api.signatures.FieldSignature;
+import io.hotmoka.node.internal.signatures.FieldSignatureImpl;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**
@@ -35,8 +35,20 @@ public abstract class FieldSignatureJson implements JsonRepresentation<FieldSign
 		this.type = field.getType().getName();
 	}
 
+	public String getDefiningClass() {
+		return definingClass;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public String getType() {
+		return type;
+	}
+
 	@Override
-	public FieldSignature unmap() {
-		return FieldSignatures.of(StorageTypes.classNamed(definingClass), name, StorageTypes.named(type));
+	public FieldSignature unmap() throws InconsistentJsonException {
+		return new FieldSignatureImpl(this);
 	}
 }

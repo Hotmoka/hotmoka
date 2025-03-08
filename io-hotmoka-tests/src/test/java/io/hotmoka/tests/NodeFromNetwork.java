@@ -56,7 +56,7 @@ import io.hotmoka.node.service.NodeServices;
 import io.hotmoka.verification.VerificationException;
 
 public class NodeFromNetwork extends HotmokaTest {
-    private final static ClassType ARRAY_TESTS = StorageTypes.classNamed("io.hotmoka.examples.collections.ArrayTests");
+    private final static ClassType ARRAY_TESTS = StorageTypes.classNamed("io.hotmoka.examples.collections.ArrayTests", IllegalArgumentException::new);
     private final static TransactionReference INEXISTENT_TRANSACTION_REFERENCE = TransactionReferences.of("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", IllegalArgumentException::new);
     private final static StorageReference INEXISTENT_STORAGE_REFERENCE = StorageValues.reference(INEXISTENT_TRANSACTION_REFERENCE, BigInteger.valueOf(42), IllegalArgumentException::new);
     private final static int PORT = 8102;

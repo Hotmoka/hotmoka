@@ -43,10 +43,10 @@ import io.hotmoka.node.api.values.StorageReference;
  * shareholders' types, since generic types are erased at compilation time.
  */
 class SharedEntity1AllowsArbitraryShareholdersTypes extends HotmokaTest {
-    private static final ClassType MY_CLASS = StorageTypes.classNamed("io.hotmoka.examples.sharedentities.MyClass");
-    private static final ClassType SHARED_ENTITY_1 = StorageTypes.classNamed("io.hotmoka.examples.sharedentities.SharedEntity1");
-    private static final ClassType SIMPLE_SHARED_ENTITY_1 = StorageTypes.classNamed("io.hotmoka.examples.sharedentities.SimpleSharedEntity1");
-    private static final ClassType OFFER_1 = StorageTypes.classNamed(SHARED_ENTITY_1 + "$Offer");
+    private static final ClassType MY_CLASS = StorageTypes.classNamed("io.hotmoka.examples.sharedentities.MyClass", IllegalArgumentException::new);
+    private static final ClassType SHARED_ENTITY_1 = StorageTypes.classNamed("io.hotmoka.examples.sharedentities.SharedEntity1", IllegalArgumentException::new);
+    private static final ClassType SIMPLE_SHARED_ENTITY_1 = StorageTypes.classNamed("io.hotmoka.examples.sharedentities.SimpleSharedEntity1", IllegalArgumentException::new);
+    private static final ClassType OFFER_1 = StorageTypes.classNamed(SHARED_ENTITY_1 + "$Offer", IllegalArgumentException::new);
     private static final ConstructorSignature MY_CLASS_CONSTRUCTOR = ConstructorSignatures.of(MY_CLASS);
     private static final ConstructorSignature SIMPLE_SHARED_ENTITY_1_CONSTRUCTOR = ConstructorSignatures.of(SIMPLE_SHARED_ENTITY_1, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER);
     private static final BigInteger _200_000 = BigInteger.valueOf(200_000);

@@ -35,7 +35,7 @@ import io.hotmoka.node.api.values.StorageValue;
  * A test for from contract methods in a storage class.
  */
 class FromContractsInStorage extends HotmokaTest {
-	private final static ClassType FROM_CONTRACTS = StorageTypes.classNamed("io.hotmoka.examples.fromcontractsinstorage.FromContracts");
+	private final static ClassType FROM_CONTRACTS = StorageTypes.classNamed("io.hotmoka.examples.fromcontractsinstorage.FromContracts", IllegalArgumentException::new);
 
 	@BeforeAll
 	static void beforeAll() throws Exception {

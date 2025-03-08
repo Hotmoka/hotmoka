@@ -62,7 +62,7 @@ public abstract class MethodSignatures {
 	 * @return the signature of the method
 	 */
 	public static NonVoidMethodSignature ofNonVoid(String definingClass, String methodName, StorageType returnType, StorageType... formals) {
-		return new NonVoidMethodSignatureImpl(StorageTypes.classNamed(definingClass), methodName, returnType, formals);
+		return new NonVoidMethodSignatureImpl(StorageTypes.classNamed(definingClass, IllegalArgumentException::new), methodName, returnType, formals); // TODO: generalize exception
 	}
 
 	/**
@@ -88,7 +88,8 @@ public abstract class MethodSignatures {
 	 * @return the signature of the method
 	 */
 	public static NonVoidMethodSignature ofNonVoid(String definingClass, String methodName, StorageType returnType, Stream<StorageType> formals) {
-		return new NonVoidMethodSignatureImpl(StorageTypes.classNamed(definingClass), methodName, returnType, formals.toArray(StorageType[]::new));
+		return new NonVoidMethodSignatureImpl(StorageTypes.classNamed(definingClass, IllegalArgumentException::new), methodName, returnType, formals.toArray(StorageType[]::new));
+		// TODO: generalize exception
 	}
 
 	/**
@@ -112,7 +113,7 @@ public abstract class MethodSignatures {
 	 * @return the signature of the method
 	 */
 	public static VoidMethodSignature ofVoid(String definingClass, String methodName, StorageType... formals) {
-		return new VoidMethodSignatureImpl(StorageTypes.classNamed(definingClass), methodName, formals);
+		return new VoidMethodSignatureImpl(StorageTypes.classNamed(definingClass, IllegalArgumentException::new), methodName, formals); // TODO: generalize exception
 	}
 
 	/**
@@ -135,8 +136,8 @@ public abstract class MethodSignatures {
 	 * @param formals the formal arguments of the method
 	 * @return the signature of the method
 	 */
-	public static VoidMethodSignature ofVoid(String definingClass, String methodName, Stream<StorageType> formals) {
-		return new VoidMethodSignatureImpl(StorageTypes.classNamed(definingClass), methodName, formals.toArray(StorageType[]::new));
+	public static VoidMethodSignature ofVoid(String definingClass, String methodName, Stream<StorageType> formals) { // TODO: generalize exception
+		return new VoidMethodSignatureImpl(StorageTypes.classNamed(definingClass, IllegalArgumentException::new), methodName, formals.toArray(StorageType[]::new));
 	}
 
 	/**

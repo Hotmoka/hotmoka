@@ -16,13 +16,12 @@ limitations under the License.
 
 package io.hotmoka.node.internal.gson;
 
-import java.util.stream.Stream;
-
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.api.signatures.MethodSignature;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.types.StorageType;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**
@@ -42,10 +41,15 @@ public abstract class MethodSignatureJson implements JsonRepresentation<MethodSi
 	}
 
 	@Override
-	public MethodSignature unmap() {
+	public MethodSignature unmap() throws InconsistentJsonException {
+		var formalsAsTypes = new StorageType[formals.length];
+		int pos = 0;
+		for (var formal: formals)
+			formalsAsTypes[pos++] = StorageTypes.named(formal, InconsistentJsonException::new);
+
 		if (returnType == null)
-			return MethodSignatures.ofVoid(StorageTypes.classNamed(definingClass), name, Stream.of(formals).map(StorageTypes::named));
+			return MethodSignatures.ofVoid(StorageTypes.classNamed(definingClass, InconsistentJsonException::new), name, formalsAsTypes);
 		else
-			return MethodSignatures.ofNonVoid(StorageTypes.classNamed(definingClass), name, StorageTypes.named(returnType), Stream.of(formals).map(StorageTypes::named));
+			return MethodSignatures.ofNonVoid(StorageTypes.classNamed(definingClass, InconsistentJsonException::new), name, StorageTypes.named(returnType, InconsistentJsonException::new), formalsAsTypes);
 	}
 }

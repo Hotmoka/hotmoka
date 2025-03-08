@@ -43,7 +43,7 @@ import io.hotmoka.node.api.values.StorageReference;
  */
 class SimplePyramidWithBalance extends HotmokaTest {
 	private static final BigIntegerValue MINIMUM_INVESTMENT = StorageValues.bigIntegerOf(10_000);
-	private static final ClassType SIMPLE_PYRAMID = StorageTypes.classNamed("io.hotmoka.examples.ponzi.SimplePyramidWithBalance");
+	private static final ClassType SIMPLE_PYRAMID = StorageTypes.classNamed("io.hotmoka.examples.ponzi.SimplePyramidWithBalance", IllegalArgumentException::new);
 	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_PYRAMID = ConstructorSignatures.of(SIMPLE_PYRAMID, StorageTypes.BIG_INTEGER);
 	private static final VoidMethodSignature INVEST = MethodSignatures.ofVoid(SIMPLE_PYRAMID, "invest", StorageTypes.BIG_INTEGER);
 	private static final VoidMethodSignature WITHDRAW = MethodSignatures.ofVoid(SIMPLE_PYRAMID, "withdraw");

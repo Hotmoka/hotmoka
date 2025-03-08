@@ -40,4 +40,5 @@ module io.hotmoka.node.local {
 	requires io.takamaka.code.constants;
 	requires toml4j;
 	requires java.logging;
+	requires io.hotmoka.node.api;
 }

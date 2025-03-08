@@ -187,7 +187,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
         private final MethodSignature MINT;
         private final NonVoidMethodSignature YIELD_SNAPSHOT;
         private final static NonVoidMethodSignature TO_BIG_INTEGER = MethodSignatures.ofNonVoid(StorageTypes.UNSIGNED_BIG_INTEGER, "toBigInteger", StorageTypes.BIG_INTEGER);
-        private final static ClassType CREATOR = StorageTypes.classNamed("io.hotmoka.examples.tokens.ExampleCoinCreator");
+        private final static ClassType CREATOR = StorageTypes.classNamed("io.hotmoka.examples.tokens.ExampleCoinCreator", IllegalArgumentException::new);
         private final Random random = new Random(192846374);
         private final NonceHelper nonceHelper = NonceHelpers.of(node);
 		private StorageReference creator; // the creator (and owner) of the contract
@@ -207,7 +207,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     	private Context(String coinName, int numberOfInvestors) {
     		this.coinName = coinName;
     		this.numberOfInvestors = numberOfInvestors;
-    		this.COIN = StorageTypes.classNamed(coinName);
+    		this.COIN = StorageTypes.classNamed(coinName, IllegalArgumentException::new);
     		this.TRANSFER = MethodSignatures.ofNonVoid(COIN, "transfer", BOOLEAN, StorageTypes.CONTRACT, StorageTypes.INT);
     		this.BURN = MethodSignatures.ofVoid(COIN, "burn", StorageTypes.CONTRACT, StorageTypes.INT);
     		this.MINT = MethodSignatures.ofVoid(COIN, "mint", StorageTypes.CONTRACT, StorageTypes.INT);

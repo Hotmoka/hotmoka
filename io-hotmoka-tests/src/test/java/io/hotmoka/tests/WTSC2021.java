@@ -165,7 +165,7 @@ class WTSC2021 extends HotmokaTest {
 		customThreadPool.submit(() -> IntStream.range(0, NUMBER_OF_ACCOUNTS).parallel().mapToObj(Worker::new).forEach(Runnable::run)).get();
 
 		// we ask for the richest account
-		StorageValue richest = runInstanceNonVoidMethodCallTransaction(account(0), _1_000_000, jar(), MethodSignatures.ofNonVoid(StorageTypes.classNamed(MY_ACCOUNTS), "richest", StorageTypes.EOA), containerOfAccounts());
+		StorageValue richest = runInstanceNonVoidMethodCallTransaction(account(0), _1_000_000, jar(), MethodSignatures.ofNonVoid(StorageTypes.classNamed(MY_ACCOUNTS, IllegalArgumentException::new), "richest", StorageTypes.EOA), containerOfAccounts());
 
 		totalTime += System.currentTimeMillis() - start;
 

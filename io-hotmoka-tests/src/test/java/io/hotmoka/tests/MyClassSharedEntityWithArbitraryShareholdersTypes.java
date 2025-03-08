@@ -43,9 +43,9 @@ import io.hotmoka.node.api.values.StorageReference;
  * A test about subclassing of the shared entity contract with a specific class for the shareholders.
  */
 class MyClassSharedEntityWithArbitraryShareholdersTypes extends HotmokaTest {
-    private static final ClassType MY_CLASS = StorageTypes.classNamed("io.hotmoka.examples.sharedentities.MyClass");
-    private static final ClassType MY_CLASS_SHARED_ENTITY_1 = StorageTypes.classNamed("io.hotmoka.examples.sharedentities.MyClassSharedEntity1");
-    private static final ClassType MY_CLASS_SHARED_ENTITY_2 = StorageTypes.classNamed("io.hotmoka.examples.sharedentities.MyClassSharedEntity2");
+    private static final ClassType MY_CLASS = StorageTypes.classNamed("io.hotmoka.examples.sharedentities.MyClass", IllegalArgumentException::new);
+    private static final ClassType MY_CLASS_SHARED_ENTITY_1 = StorageTypes.classNamed("io.hotmoka.examples.sharedentities.MyClassSharedEntity1", IllegalArgumentException::new);
+    private static final ClassType MY_CLASS_SHARED_ENTITY_2 = StorageTypes.classNamed("io.hotmoka.examples.sharedentities.MyClassSharedEntity2", IllegalArgumentException::new);
     private static final ClassType OFFER = StorageTypes.SHARED_ENTITY_OFFER;
     private static final ConstructorSignature MY_CLASS_CONSTRUCTOR = ConstructorSignatures.of(MY_CLASS);
     private static final ConstructorSignature MY_CLASS_SHARED_ENTITY_1_CONSTRUCTOR = ConstructorSignatures.of(MY_CLASS_SHARED_ENTITY_1, MY_CLASS, BIG_INTEGER);

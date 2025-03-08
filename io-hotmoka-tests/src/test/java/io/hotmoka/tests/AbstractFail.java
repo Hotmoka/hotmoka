@@ -38,8 +38,10 @@ import io.takamaka.code.constants.Constants;
  * A test for the remote purchase contract.
  */
 class AbstractFail extends HotmokaTest {
-	private static final ClassType ABSTRACT_FAIL = StorageTypes.classNamed("io.hotmoka.examples.abstractfail.AbstractFail");
-	private static final ConstructorSignature ABSTRACT_FAIL_IMPL_CONSTRUCTOR = ConstructorSignatures.of(StorageTypes.classNamed("io.hotmoka.examples.abstractfail.AbstractFailImpl"), StorageTypes.INT);
+	private static final ClassType ABSTRACT_FAIL = StorageTypes.classNamed("io.hotmoka.examples.abstractfail.AbstractFail", IllegalArgumentException::new);
+	private static final ConstructorSignature ABSTRACT_FAIL_IMPL_CONSTRUCTOR = ConstructorSignatures.of
+		(StorageTypes.classNamed("io.hotmoka.examples.abstractfail.AbstractFailImpl", IllegalArgumentException::new),
+		StorageTypes.INT);
 
 	@BeforeAll
 	static void beforeAll() throws Exception {

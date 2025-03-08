@@ -85,10 +85,13 @@ public abstract class AbstractStorageType extends AbstractMarshallable implement
 	/**
 	 * Yields the storage type corresponding to the given class.
 	 * 
+	 * @param <E> the type of the exception thrown if {@code clazz} is illegal for a storage type
 	 * @param clazz the class
-	 * @return the storage type
+	 * @param onIllegalClass the exception generator used if {@code clazz} is illegal for a storage type
+	 * @return the class type
+	 * @throws E if {@code clazz} is illegal for a storage type
 	 */
-	public static StorageType fromClass(Class<?> clazz) {
+	public static <E extends Exception> StorageType fromClass(Class<?> clazz, Function<String, ? extends E> onIllegalClass) throws E {
 		if (clazz == boolean.class)
 			return BasicTypeImpl.BOOLEAN;
 		else if (clazz == byte.class)
@@ -106,10 +109,9 @@ public abstract class AbstractStorageType extends AbstractMarshallable implement
 		else if (clazz == double.class)
 			return BasicTypeImpl.DOUBLE;
 		else if (clazz.isArray())
-			throw new IllegalArgumentException("Arrays are not storage types"); // TODO: throw general exception instead
+			throw onIllegalClass.apply("Arrays are not storage types");
 		else
-			// the name already belongs to a class, hence it should never throw an exception below
-			return ClassTypeImpl.named(clazz.getName(), IllegalArgumentException::new);
+			return ClassTypeImpl.named(clazz.getName(), onIllegalClass);
 	}
 
 	/**

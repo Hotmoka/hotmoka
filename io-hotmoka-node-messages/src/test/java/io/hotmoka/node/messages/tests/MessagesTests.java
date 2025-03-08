@@ -190,7 +190,7 @@ public class MessagesTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("getClassTagResult messages are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForGetClassTagResult() throws EncodeException, DecodeException {
-		var expected = GetClassTagResultMessages.of(Updates.classTag(OBJECT, StorageTypes.classNamed("my.class"), OBJECT.getTransaction()), "id");
+		var expected = GetClassTagResultMessages.of(Updates.classTag(OBJECT, StorageTypes.classNamed("my.class", IllegalArgumentException::new), OBJECT.getTransaction()), "id");
 		String encoded = new GetClassTagResultMessages.Encoder().encode(expected);
 		var actual = new GetClassTagResultMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);
@@ -208,8 +208,8 @@ public class MessagesTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("getStateResult messages are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForGetStateResult() throws EncodeException, DecodeException {
-		ClassType clazz = StorageTypes.classNamed("io.my.Class");
-		Update classTag = Updates.classTag(OBJECT, StorageTypes.classNamed("my.class"), OBJECT.getTransaction());
+		ClassType clazz = StorageTypes.classNamed("io.my.Class", IllegalArgumentException::new);
+		Update classTag = Updates.classTag(OBJECT, StorageTypes.classNamed("my.class", IllegalArgumentException::new), OBJECT.getTransaction());
 		Update update1 = Updates.ofInt(OBJECT, FieldSignatures.of(clazz, "field1", StorageTypes.INT), 42);
 		Update update2 = Updates.ofBigInteger(OBJECT, FieldSignatures.of(clazz, "field2", StorageTypes.BIG_INTEGER), BigInteger.valueOf(13L));
 		Update update3 = Updates.ofString(OBJECT, FieldSignatures.of(clazz, "field3", StorageTypes.STRING), "hello");
@@ -251,7 +251,7 @@ public class MessagesTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("getResponseResult messages are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForGetResponseResult() throws EncodeException, DecodeException {
-		ClassType clazz = StorageTypes.classNamed("io.my.Class");
+		ClassType clazz = StorageTypes.classNamed("io.my.Class", IllegalArgumentException::new);
 		var update1 = Updates.ofInt(OBJECT, FieldSignatures.of(clazz, "field1", StorageTypes.INT), 42);
 		var update2 = Updates.ofBigInteger(OBJECT, FieldSignatures.of(clazz, "field2", StorageTypes.BIG_INTEGER), BigInteger.valueOf(13L));
 		var update3 = Updates.ofString(OBJECT, FieldSignatures.of(clazz, "field3", StorageTypes.STRING), "hello");
@@ -276,7 +276,7 @@ public class MessagesTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("getPolledResponseResult messages are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForGetPolledResponseResult() throws EncodeException, DecodeException {
-		ClassType clazz = StorageTypes.classNamed("io.my.Class");
+		ClassType clazz = StorageTypes.classNamed("io.my.Class", IllegalArgumentException::new);
 		var update1 = Updates.ofInt(OBJECT, FieldSignatures.of(clazz, "field1", StorageTypes.INT), 42);
 		var update2 = Updates.ofBigInteger(OBJECT, FieldSignatures.of(clazz, "field2", StorageTypes.BIG_INTEGER), BigInteger.valueOf(13L));
 		var update3 = Updates.ofString(OBJECT, FieldSignatures.of(clazz, "field3", StorageTypes.STRING), "hello");

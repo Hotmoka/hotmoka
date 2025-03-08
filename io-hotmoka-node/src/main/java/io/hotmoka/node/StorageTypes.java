@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node;
 
 import java.io.IOException;
+import java.util.function.Function;
 
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.api.types.BasicType;
@@ -39,42 +40,52 @@ public abstract class StorageTypes {
 	/**
 	 * Yields the storage type with the given name.
 	 * 
+	 * @param <E> the type of the exception thrown if {@code name} is illegal for a storage type
 	 * @param name the name of the type
 	 * @return the storage type
+	 * @throws E if {@code name} is illegal for a storage type
 	 */
-	public static StorageType named(String name) {
-		return AbstractStorageType.named(name, IllegalArgumentException::new); // throw general exception instead
+	public static <E extends Exception> StorageType named(String name, Function<String, ? extends E> onIllegalName) throws E {
+		return AbstractStorageType.named(name, onIllegalName);
 	}
 
 	/**
-	 * Yields the class type for a class with the given name.
+	 * Yields the storage class type for a class with the given name.
 	 * 
+	 * @param <E> the type of the exception thrown if {@code name} is illegal for a storage class type
 	 * @param className the name of the class
-	 * @return the class type
+	 * @param onIllegalName the exception generator used if {@code name} is illegal for a storage class type
+	 * @return the storage class type
+	 * @throws E if {@code name} is illegal for a storage class type
 	 */
-	public static ClassType classNamed(String className) {
-		return ClassTypeImpl.named(className, IllegalArgumentException::new); // throw general exception instead
+	public static <E extends Exception> ClassType classNamed(String className, Function<String, ? extends E> onIllegalName) throws E {
+		return ClassTypeImpl.named(className, onIllegalName);
 	}
 
 	/**
 	 * Yields the storage type corresponding to the given class.
 	 * 
+	 * @param <E> the type of the exception thrown if {@code clazz} is illegal for a storage type
 	 * @param clazz the class
-	 * @return the storage type
+	 * @param onIllegalClass the exception generator used if {@code clazz} is illegal for a storage type
+	 * @return the class type
+	 * @throws E if {@code clazz} is illegal for a storage type
 	 */
-	public static StorageType of(Class<?> clazz) {
-		return AbstractStorageType.fromClass(clazz);
+	public static <E extends Exception> StorageType fromClass(Class<?> clazz, Function<String, ? extends E> onIllegalClass) throws E {
+		return AbstractStorageType.fromClass(clazz, onIllegalClass);
 	}
 
 	/**
 	 * Yields the storage class type corresponding to the given class.
 	 * 
+	 * @param <E> the type of the exception thrown if {@code clazz} is illegal for a storage class type
 	 * @param clazz the class
-	 * @return the class type
+	 * @param onIllegalClass the exception generator used if {@code clazz} is illegal for a storage class type
+	 * @return the storage class type
+	 * @throws E if {@code clazz} is illegal for a storage class type
 	 */
-	public static ClassType classOf(Class<?> clazz) {
-		// the class type exists, hence its name must be legal and the exception should never occur
-		return ClassTypeImpl.named(clazz.getName(), RuntimeException::new); // TODO: throw exception if it is an array
+	public static <E extends Exception> ClassType classFromClass(Class<?> clazz, Function<String, ? extends E> onIllegalClass) throws E {
+		return ClassTypeImpl.fromClass(clazz, onIllegalClass);
 	}
 
 	/**

@@ -313,17 +313,20 @@ public class Call extends AbstractCommand {
 			return result;
 		}
 
-		private MethodSignature signatureOfMethod() {
-			var formals = Stream.of(method.getParameters())
-				.map(Parameter::getType)
-				.map(StorageTypes::of)
-				.toArray(StorageType[]::new);
+		private MethodSignature signatureOfMethod() throws CommandException {
+			Parameter[] parameters = method.getParameters();
+			var formals = new StorageType[parameters.length];
+			int pos = 0;
+			for (var parameter: parameters)
+				formals[pos++] = StorageTypes.fromClass(parameter.getType(), s -> new CommandException("The formal arguments of " + method + " are not storage types: " + s));
 
 			Class<?> returnType = method.getReturnType();
 			if (returnType == void.class)
 				return MethodSignatures.ofVoid(clazz.getName(), methodName, formals);
 			else
-				return MethodSignatures.ofNonVoid(clazz.getName(), methodName, StorageTypes.of(returnType), formals);
+				return MethodSignatures.ofNonVoid(clazz.getName(), methodName,
+						StorageTypes.fromClass(returnType, s -> new CommandException("The return type of " + method + " is not a storage type: " + s)),
+						formals);
 		}
 
 		private Method askForMethod() throws ClassNotFoundException, CommandException {

@@ -49,7 +49,7 @@ import io.takamaka.code.constants.Constants;
  * A test for the ExampleCoinOZSnapshot contract (a ERC20OZSnapshot contract).
  */
 class ExampleCoinOZSnapshot extends HotmokaTest {
-    private static final ClassType EXCOZS = StorageTypes.classNamed("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot");
+    private static final ClassType EXCOZS = StorageTypes.classNamed("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", IllegalArgumentException::new);
     private static final ClassType UBI = StorageTypes.UNSIGNED_BIG_INTEGER;
     private static final ConstructorSignature CONSTRUCTOR_EXCOZS = ConstructorSignatures.of(EXCOZS);
     private static final ConstructorSignature CONSTRUCTOR_UBI_STR = ConstructorSignatures.of(UBI, StorageTypes.STRING);

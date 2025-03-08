@@ -43,12 +43,12 @@ class Inner extends HotmokaTest {
 
 	// do not forget the implicit parameter holding the parent of the inner object
 	private static final ConstructorSignature TEST_INNER_INSIDE_CONSTRUCTOR = ConstructorSignatures.of("io.hotmoka.examples.inner.TestInner$Inside",
-			StorageTypes.classNamed("io.hotmoka.examples.inner.TestInner"), StorageTypes.LONG);
+			StorageTypes.classNamed("io.hotmoka.examples.inner.TestInner", IllegalArgumentException::new), StorageTypes.LONG);
 
 	private static final NonVoidMethodSignature TEST_INNER_INSIDE_GETBALANCE = MethodSignatures.ofNonVoid("io.hotmoka.examples.inner.TestInner$Inside", "getBalance", StorageTypes.BIG_INTEGER);
 
 	private static final NonVoidMethodSignature TEST_INNER_INSIDE_GETPARENT = MethodSignatures.ofNonVoid("io.hotmoka.examples.inner.TestInner$Inside", "getParent",
-			StorageTypes.classNamed("io.hotmoka.examples.inner.TestInner"));
+			StorageTypes.classNamed("io.hotmoka.examples.inner.TestInner", IllegalArgumentException::new));
 
 	@BeforeAll
 	static void beforeAll() throws Exception {

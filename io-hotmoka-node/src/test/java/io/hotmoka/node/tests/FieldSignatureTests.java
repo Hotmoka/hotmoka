@@ -22,7 +22,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.node.FieldSignatures;
-import io.hotmoka.node.StorageTypes;
 import io.hotmoka.testing.AbstractLoggedTests;
 import jakarta.websocket.DecodeException;
 import jakarta.websocket.EncodeException;
@@ -32,7 +31,7 @@ public class FieldSignatureTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("field signatures of class type are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForFieldSignatureOfClassType() throws EncodeException, DecodeException {
-		var field1 = FieldSignatures.of("io.hotmoka.MyClass", "f1", StorageTypes.named("io.hotmoka.OtherClass"));
+		var field1 = FieldSignatures.of("io.hotmoka.MyClass", "f1", "io.hotmoka.OtherClass", IllegalArgumentException::new);
 		String encoded = new FieldSignatures.Encoder().encode(field1);
 		var field2 = new FieldSignatures.Decoder().decode(encoded);
 		assertEquals(field1, field2);
@@ -41,7 +40,7 @@ public class FieldSignatureTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("field signatures of basic type are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForFieldSignatureOfBasicType() throws EncodeException, DecodeException {
-		var field1 = FieldSignatures.of("io.hotmoka.MyClass", "f1", StorageTypes.INT);
+		var field1 = FieldSignatures.of("io.hotmoka.MyClass", "f1", "int", IllegalArgumentException::new);
 		String encoded = new FieldSignatures.Encoder().encode(field1);
 		var field2 = new FieldSignatures.Decoder().decode(encoded);
 		assertEquals(field1, field2);

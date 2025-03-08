@@ -157,11 +157,12 @@ public class Create extends AbstractCommand {
 			return result;
 		}
 
-		private ConstructorSignature signatureOfConstructor() {
-			StorageType[] formals = Stream.of(constructor.getParameters())
-				.map(Parameter::getType)
-				.map(StorageTypes::of)
-				.toArray(StorageType[]::new);
+		private ConstructorSignature signatureOfConstructor() throws CommandException {
+			Parameter[] parameters = constructor.getParameters();
+			var formals = new StorageType[parameters.length];
+			int pos = 0;
+			for (var parameter: parameters)
+				formals[pos++] = StorageTypes.fromClass(parameter.getType(), s -> new CommandException("The formal arguments of " + constructor + " are not storage types: " + s));
 
 			return ConstructorSignatures.of(className, formals);
 		}

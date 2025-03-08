@@ -16,12 +16,11 @@ limitations under the License.
 
 package io.hotmoka.node.internal.gson;
 
-import java.util.stream.Stream;
-
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.types.StorageType;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**
@@ -37,7 +36,12 @@ public abstract class ConstructorSignatureJson implements JsonRepresentation<Con
 	}
 
 	@Override
-	public ConstructorSignature unmap() {
-		return ConstructorSignatures.of(StorageTypes.classNamed(definingClass), Stream.of(formals).map(StorageTypes::named));
+	public ConstructorSignature unmap() throws InconsistentJsonException {
+		var formalsAsTypes = new StorageType[formals.length];
+		int pos = 0;
+		for (var formal: formals)
+			formalsAsTypes[pos++] = StorageTypes.named(formal, InconsistentJsonException::new);
+
+		return ConstructorSignatures.of(StorageTypes.classNamed(definingClass, InconsistentJsonException::new), formalsAsTypes);
 	}
 }

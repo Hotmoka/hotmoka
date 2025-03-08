@@ -43,13 +43,13 @@ import io.hotmoka.node.api.values.StorageValue;
  * A test for the storage map Takamaka class.
  */
 class Collections extends HotmokaTest {
-	private static final ClassType MAP_TESTS = StorageTypes.classNamed("io.hotmoka.examples.collections.MapTests");
-	private static final ClassType INT_MAP_TESTS = StorageTypes.classNamed("io.hotmoka.examples.collections.IntMapTests");
-	private static final ClassType ARRAY_TESTS = StorageTypes.classNamed("io.hotmoka.examples.collections.ArrayTests");
-	private static final ClassType SET_TESTS = StorageTypes.classNamed("io.hotmoka.examples.collections.SetTests");
-	private static final ClassType MAP_HOLDER = StorageTypes.classNamed("io.hotmoka.examples.collections.MapHolder");
-	private static final ClassType STATE = StorageTypes.classNamed("io.hotmoka.examples.collections.MapHolder$State");
-	private static final ClassType COMPARABLE = StorageTypes.classNamed("java.lang.Comparable");
+	private static final ClassType MAP_TESTS = StorageTypes.classNamed("io.hotmoka.examples.collections.MapTests", IllegalArgumentException::new);
+	private static final ClassType INT_MAP_TESTS = StorageTypes.classNamed("io.hotmoka.examples.collections.IntMapTests", IllegalArgumentException::new);
+	private static final ClassType ARRAY_TESTS = StorageTypes.classNamed("io.hotmoka.examples.collections.ArrayTests", IllegalArgumentException::new);
+	private static final ClassType SET_TESTS = StorageTypes.classNamed("io.hotmoka.examples.collections.SetTests", IllegalArgumentException::new);
+	private static final ClassType MAP_HOLDER = StorageTypes.classNamed("io.hotmoka.examples.collections.MapHolder", IllegalArgumentException::new);
+	private static final ClassType STATE = StorageTypes.classNamed("io.hotmoka.examples.collections.MapHolder$State", IllegalArgumentException::new);
+	private static final ClassType COMPARABLE = StorageTypes.classNamed("java.lang.Comparable", IllegalArgumentException::new);
 
 	/**
 	 * The first object, that holds all funds initially.

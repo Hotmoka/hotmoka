@@ -44,7 +44,7 @@ import io.hotmoka.node.api.values.StorageReference;
  */
 class WTSC2020 extends HotmokaTest {
 	private static final BigIntegerValue MINIMUM_INVESTMENT = StorageValues.bigIntegerOf(_50_000);
-	private static final ClassType SIMPLE_PYRAMID = StorageTypes.classNamed("io.hotmoka.examples.wtsc2020.SimplePyramid");
+	private static final ClassType SIMPLE_PYRAMID = StorageTypes.classNamed("io.hotmoka.examples.wtsc2020.SimplePyramid", IllegalArgumentException::new);
 	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_PYRAMID = ConstructorSignatures.of(SIMPLE_PYRAMID, StorageTypes.BIG_INTEGER);
 	private static final VoidMethodSignature INVEST = MethodSignatures.ofVoid(SIMPLE_PYRAMID, "invest", StorageTypes.BIG_INTEGER);
 	private static final NonVoidMethodSignature MOST_FREQUENT_INVESTOR = MethodSignatures.ofNonVoid(SIMPLE_PYRAMID, "mostFrequentInvestor", StorageTypes.PAYABLE_CONTRACT);
