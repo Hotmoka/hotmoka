@@ -26,6 +26,8 @@ import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
+import io.hotmoka.node.internal.gson.ConstructorSignatureJson;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * The signature of a constructor of a class.
@@ -36,11 +38,39 @@ public final class ConstructorSignatureImpl extends AbstractCodeSignature implem
 	/**
 	 * Builds the signature of a constructor.
 	 * 
-	 * @param definingClass the class of the constructor
+	 * @param definingClass the class defining the constructor
 	 * @param formals the formal arguments of the constructor
 	 */
 	public ConstructorSignatureImpl(ClassType definingClass, StorageType... formals) {
 		super(definingClass, formals);
+	}
+
+	/**
+	 * Yields a constructor signature from the given JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public ConstructorSignatureImpl(ConstructorSignatureJson json) throws InconsistentJsonException {
+		super(getDefiningClassAsType(json), getFormalsAsTypes(json));
+	}
+
+	private static ClassType getDefiningClassAsType(ConstructorSignatureJson json) throws InconsistentJsonException {
+		String className = json.getDefiningClass();
+		if (className == null)
+			throw new InconsistentJsonException("definingClass cannot be null");
+
+		return StorageTypes.classNamed(className, InconsistentJsonException::new);
+	}
+
+	private static StorageType[] getFormalsAsTypes(ConstructorSignatureJson json) throws InconsistentJsonException {
+		var formals = json.getFormals().toArray(String[]::new);
+		var formalsAsTypes = new StorageType[formals.length];
+		int pos = 0;
+		for (var formal: formals)
+			formalsAsTypes[pos++] = StorageTypes.named(formal, InconsistentJsonException::new);
+
+		return formalsAsTypes;
 	}
 
 	@Override
@@ -67,16 +97,11 @@ public final class ConstructorSignatureImpl extends AbstractCodeSignature implem
 	 * @throws IOException if the constructor signature cannot be unmarshalled
 	 */
 	public static ConstructorSignature from(UnmarshallingContext context) throws IOException {
-		ClassType definingClass;
-
-		try {
-			definingClass = (ClassType) StorageTypes.from(context);
-		}
-		catch (ClassCastException e) {
-			throw new IOException("Failed to unmarshal a code signature", e);
-		}
+		if (!(StorageTypes.from(context) instanceof ClassType definingClass))
+			throw new IOException("The type defining a constructor must be a class type");
 
 		var formals = context.readLengthAndArray(StorageTypes::from, StorageType[]::new);
+
 		return ConstructorSignatures.of(definingClass, formals);
 	}
 

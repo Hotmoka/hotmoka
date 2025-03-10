@@ -49,4 +49,13 @@ public class MethodSignatureTests extends AbstractLoggedTests {
 		var method2 = new MethodSignatures.Decoder().decode(encoded);
 		assertEquals(method1, method2);
 	}
+
+	@Test
+	@DisplayName("non-void method signatures without formals are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForNonVoidMethodSignatureWithoutFormals() throws EncodeException, DecodeException {
+		var method1 = MethodSignatures.ofNonVoid(MY_CLASS, "m", StorageTypes.FLOAT);
+		String encoded = new MethodSignatures.Encoder().encode(method1);
+		var method2 = new MethodSignatures.Decoder().decode(encoded);
+		assertEquals(method1, method2);
+	}
 }

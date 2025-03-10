@@ -57,7 +57,7 @@ public final class NonVoidMethodSignatureImpl extends AbstractMethodSignature im
 
 	@Override
 	public String toString() {
-		return returnType + " " + getDefiningClass() + "." + getMethodName() + commaSeparatedFormals();
+		return returnType + " " + super.toString();
 	}
 
     @Override

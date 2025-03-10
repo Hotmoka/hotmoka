@@ -64,17 +64,13 @@ public abstract class AbstractCodeSignature extends AbstractMarshallable impleme
 		return definingClass;
 	}
 
-	/**
-	 * Yields the formal arguments of the method or constructor, ordered left to right.
-	 * 
-	 * @return the formal arguments
-	 */
+	@Override
 	public final Stream<StorageType> getFormals() {
 		return Stream.of(formals);
 	}
 
 	/**
-	 * Yields a comma-separated string of the formal arguments of the method or constructor, ordered left to right.
+	 * Yields a comma-separated string of the formal arguments of the method or constructor, ordered from left to right.
 	 * 
 	 * @return the string
 	 */
@@ -89,7 +85,8 @@ public abstract class AbstractCodeSignature extends AbstractMarshallable impleme
 		if (other instanceof AbstractCodeSignature acs)
 			return acs.definingClass.equals(definingClass) && Arrays.equals(acs.formals, formals); // optimization
 		else
-			return other instanceof CodeSignature cs && cs.getDefiningClass().equals(definingClass) && Arrays.equals(cs.getFormals().toArray(StorageType[]::new), formals);
+			return other instanceof CodeSignature cs && cs.getDefiningClass().equals(definingClass)
+				&& Arrays.equals(cs.getFormals().toArray(StorageType[]::new), formals);
 	}
 
 	@Override

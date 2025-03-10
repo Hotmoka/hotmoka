@@ -16,11 +16,13 @@ limitations under the License.
 
 package io.hotmoka.node.internal.gson;
 
-import io.hotmoka.node.MethodSignatures;
-import io.hotmoka.node.StorageTypes;
+import java.util.Optional;
+import java.util.stream.Stream;
+
 import io.hotmoka.node.api.signatures.MethodSignature;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.types.StorageType;
+import io.hotmoka.node.internal.signatures.AbstractMethodSignature;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
@@ -36,20 +38,44 @@ public abstract class MethodSignatureJson implements JsonRepresentation<MethodSi
 	protected MethodSignatureJson(MethodSignature method) {
 		this.definingClass = method.getDefiningClass().getName();
 		this.name = method.getMethodName();
-		this.formals = method.getFormals().map(StorageType::getName).toArray(String[]::new);
+
+		StorageType[] formals = method.getFormals().toArray(StorageType[]::new);
+		if (formals.length == 0)
+			// optimization, to compact the JSON
+			this.formals = null;
+		else {
+			this.formals = new String[formals.length];
+			for (int pos = 0; pos < formals.length; pos++)
+				this.formals[pos] = formals[pos].getName();
+		}
+
 		this.returnType = method instanceof NonVoidMethodSignature nvms ? nvms.getReturnType().getName() : null;
+	}
+
+	public String getDefiningClass() {
+		return definingClass;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public Stream<String> getFormals() {
+		return formals == null ? Stream.empty() : Stream.of(formals);
+	}
+
+	/**
+	 * Yields the return type of the method described by this JSON object.
+	 * This is empty if the method returns {@code void}.
+	 * 
+	 * @return the return type of the method represented by this JSON object, if any
+	 */
+	public Optional<String> getReturnType() {
+		return Optional.ofNullable(returnType);
 	}
 
 	@Override
 	public MethodSignature unmap() throws InconsistentJsonException {
-		var formalsAsTypes = new StorageType[formals.length];
-		int pos = 0;
-		for (var formal: formals)
-			formalsAsTypes[pos++] = StorageTypes.named(formal, InconsistentJsonException::new);
-
-		if (returnType == null)
-			return MethodSignatures.ofVoid(StorageTypes.classNamed(definingClass, InconsistentJsonException::new), name, formalsAsTypes);
-		else
-			return MethodSignatures.ofNonVoid(StorageTypes.classNamed(definingClass, InconsistentJsonException::new), name, StorageTypes.named(returnType, InconsistentJsonException::new), formalsAsTypes);
+		return AbstractMethodSignature.from(this);
 	}
 }

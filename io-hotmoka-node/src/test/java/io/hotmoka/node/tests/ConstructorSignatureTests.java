@@ -38,4 +38,13 @@ public class ConstructorSignatureTests extends AbstractLoggedTests {
 		var constructor2 = new ConstructorSignatures.Decoder().decode(encoded);
 		assertEquals(constructor1, constructor2);
 	}
+
+	@Test
+	@DisplayName("constructor signatures without formals are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForConstructorSignatureWithoutFormals() throws EncodeException, DecodeException {
+		var constructor1 = ConstructorSignatures.of(StorageTypes.classNamed("io.hotmoka.MyClass", IllegalArgumentException::new));
+		String encoded = new ConstructorSignatures.Encoder().encode(constructor1);
+		var constructor2 = new ConstructorSignatures.Decoder().decode(encoded);
+		assertEquals(constructor1, constructor2);
+	}
 }

@@ -36,7 +36,7 @@ public interface CodeSignature {
 	ClassType getDefiningClass();
 
 	/**
-	 * Yields the formal arguments of the method or constructor, ordered left to right.
+	 * Yields the formal arguments of the method or constructor, ordered from left to right.
 	 * 
 	 * @return the formal arguments
 	 */

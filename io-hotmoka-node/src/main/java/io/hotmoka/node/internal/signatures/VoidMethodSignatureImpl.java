@@ -43,7 +43,7 @@ public final class VoidMethodSignatureImpl extends AbstractMethodSignature imple
 
 	@Override
 	public String toString() {
-		return "void " + getDefiningClass() + "." + getMethodName() + commaSeparatedFormals();
+		return "void " + super.toString();
 	}
 
     @Override

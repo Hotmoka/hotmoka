@@ -16,10 +16,11 @@ limitations under the License.
 
 package io.hotmoka.node.internal.gson;
 
-import io.hotmoka.node.ConstructorSignatures;
-import io.hotmoka.node.StorageTypes;
+import java.util.stream.Stream;
+
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.types.StorageType;
+import io.hotmoka.node.internal.signatures.ConstructorSignatureImpl;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
@@ -32,16 +33,28 @@ public abstract class ConstructorSignatureJson implements JsonRepresentation<Con
 
 	protected ConstructorSignatureJson(ConstructorSignature constructor) {
 		this.definingClass = constructor.getDefiningClass().getName();
-		this.formals = constructor.getFormals().map(StorageType::getName).toArray(String[]::new);
+
+		StorageType[] formals = constructor.getFormals().toArray(StorageType[]::new);
+		if (formals.length == 0)
+			// optimization, to compact the JSON
+			this.formals = null;
+		else {
+			this.formals = new String[formals.length];
+			for (int pos = 0; pos < formals.length; pos++)
+				this.formals[pos] = formals[pos].getName();
+		}
+	}
+
+	public String getDefiningClass() {
+		return definingClass;
+	}
+
+	public Stream<String> getFormals() {
+		return formals == null ? Stream.empty() : Stream.of(formals);
 	}
 
 	@Override
 	public ConstructorSignature unmap() throws InconsistentJsonException {
-		var formalsAsTypes = new StorageType[formals.length];
-		int pos = 0;
-		for (var formal: formals)
-			formalsAsTypes[pos++] = StorageTypes.named(formal, InconsistentJsonException::new);
-
-		return ConstructorSignatures.of(StorageTypes.classNamed(definingClass, InconsistentJsonException::new), formalsAsTypes);
+		return new ConstructorSignatureImpl(this);
 	}
 }

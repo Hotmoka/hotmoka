@@ -18,6 +18,7 @@ package io.hotmoka.node.internal.signatures;
 
 import java.io.IOException;
 import java.util.Objects;
+import java.util.Optional;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -28,6 +29,8 @@ import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.signatures.VoidMethodSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
+import io.hotmoka.node.internal.gson.MethodSignatureJson;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * The signature of a method of a class.
@@ -51,6 +54,37 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 		super(definingClass, formals);
 
 		this.methodName = Objects.requireNonNull(methodName, "methodName cannot be null");
+	}
+
+	/**
+	 * Yields a method signature from the given JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @return the method signature
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public static MethodSignature from(MethodSignatureJson json) throws InconsistentJsonException {
+		var formals = json.getFormals().toArray(String[]::new);
+		var formalsAsTypes = new StorageType[formals.length];
+		int pos = 0;
+		for (var formal: formals)
+			formalsAsTypes[pos++] = StorageTypes.named(formal, InconsistentJsonException::new);
+
+		String definingClass = json.getDefiningClass();
+		if (definingClass == null)
+			throw new InconsistentJsonException("definingClass cannot be null");
+
+		String name = json.getName();
+		if (name == null)
+			throw new InconsistentJsonException("name cannot be null");
+
+		var definingClassType = StorageTypes.classNamed(definingClass, InconsistentJsonException::new);
+
+		Optional<String> returnType = json.getReturnType();
+		if (returnType.isPresent())
+			return MethodSignatures.ofNonVoid(definingClassType, name, StorageTypes.named(returnType.get(), InconsistentJsonException::new), formalsAsTypes);
+		else
+			return MethodSignatures.ofVoid(definingClassType, name, formalsAsTypes);
 	}
 
 	@Override
@@ -81,17 +115,10 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 	 * @throws IOException if the method signature cannot be unmarshalled
 	 */
 	public static MethodSignature from(UnmarshallingContext context) throws IOException {
-		ClassType definingClass;
-
-		try {
-			definingClass = (ClassType) StorageTypes.from(context);
-		}
-		catch (ClassCastException e) {
-			throw new IOException("Failed to unmarshal a code signature", e);
-		}
+		if (!(StorageTypes.from(context) instanceof ClassType definingClass))
+			throw new IOException("The type defining a method must be a class type");
 
 		var methodName = context.readStringUnshared();
-
 		int length = context.readCompactInt();
 
 		// we determine if the method is void or not, by looking at the parity of the number of formals
