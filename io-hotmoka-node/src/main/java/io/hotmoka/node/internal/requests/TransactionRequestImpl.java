@@ -18,20 +18,21 @@ package io.hotmoka.node.internal.requests;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.NodeMarshallingContexts;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.node.api.requests.InitializationTransactionRequest;
+import io.hotmoka.node.api.requests.JarStoreInitialTransactionRequest;
+import io.hotmoka.node.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
-import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.internal.gson.TransactionRequestJson;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
@@ -82,41 +83,32 @@ public abstract class TransactionRequestImpl<R extends TransactionResponse> exte
 	 * @throws InconsistentJsonException if {@code json} is inconsistent
 	 */
 	public static TransactionRequest<?> from(TransactionRequestJson json) throws InconsistentJsonException {
-		String type = json.getType();
-		if (type == null)
-			throw new InconsistentJsonException("type cannot be missing");
+		String type = Objects.requireNonNull(json.getType(), "type cannot be null", InconsistentJsonException::new);
 
-		if (GameteCreationTransactionRequest.class.getSimpleName().equals(type)) {
-			TransactionReferences.Json classpath = json.getClasspath();
-			if (classpath == null)
-				throw new InconsistentJsonException("classpath cannot be missing");
-
-			BigInteger initialAmount = json.getInitialAmount();
-			if (initialAmount == null)
-				throw new InconsistentJsonException("initialAmount cannot be missing");
-
-			String publicKey = json.getPublicKey();
-			if (publicKey == null)
-				throw new InconsistentJsonException("publicKey cannot be missing");
-
-			return new GameteCreationTransactionRequestImpl(classpath.unmap(), initialAmount, publicKey, InconsistentJsonException::new);
-		}
-		else if (InitializationTransactionRequest.class.getSimpleName().equals(type)) {
-			TransactionReferences.Json classpath = json.getClasspath();
-			if (classpath == null)
-				throw new InconsistentJsonException("classpath cannot be missing");
-
-			StorageValues.Json manifest = json.getManifest();
-			if (manifest == null)
-				throw new InconsistentJsonException("manifest cannot be missing");
-
-			if (!(manifest.unmap() instanceof StorageReference sr))
-				throw new InconsistentJsonException("The manifest must be a storage reference");
-
-			return new InitializationTransactionRequestImpl(classpath.unmap(), sr);
-		}
+		if (JarStoreTransactionRequest.class.getSimpleName().equals(type))
+			return new JarStoreTransactionRequestImpl(json);
+		else if (GameteCreationTransactionRequest.class.getSimpleName().equals(type))
+			return new GameteCreationTransactionRequestImpl(json);
+		else if (InitializationTransactionRequest.class.getSimpleName().equals(type))
+			return new InitializationTransactionRequestImpl(json);
+		else if (JarStoreInitialTransactionRequest.class.getSimpleName().equals(type))
+			return new JarStoreInitialTransactionRequestImpl(json);
 		else
 			throw new InconsistentJsonException("Unexpected request type " + type);
+	}
+
+	private static StorageValue[] convertedActuals(TransactionRequestJson json) throws InconsistentJsonException {
+		StorageValues.Json[] actuals = json.getActuals().toArray(StorageValues.Json[]::new);
+		var result = new StorageValue[actuals.length];
+		for (int pos = 0; pos < result.length; pos++) {
+			StorageValues.Json actual = actuals[pos];
+			if (actual == null)
+				throw new InconsistentJsonException("actuals cannot hold null elements");
+
+			result[pos] = actual.unmap();
+		}
+
+		return result;
 	}
 
 	@Override

@@ -485,7 +485,7 @@ public class MessagesTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("addJarStoreInitialTransaction messages are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForAddJarStoreInitialTransaction() throws EncodeException, DecodeException {
-		var request = TransactionRequests.jarStoreInitial("These are the bytes of a very large jar that must be installed in the Hotmoka node".getBytes());
+		var request = TransactionRequests.jarStoreInitial("These are the bytes of a very large jar that must be installed in the Hotmoka node".getBytes(), new TransactionReference[0], IllegalArgumentException::new);
 		var expected = AddJarStoreInitialTransactionMessages.of(request, "id");
 		String encoded = new AddJarStoreInitialTransactionMessages.Encoder().encode(expected);
 		var actual = new AddJarStoreInitialTransactionMessages.Decoder().decode(encoded);
@@ -504,7 +504,7 @@ public class MessagesTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("addInitializationTransaction messages are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForAddInitializationTransaction() throws EncodeException, DecodeException {
-		var request = TransactionRequests.initialization(TRANSACTION_REFERENCE, OBJECT);
+		var request = TransactionRequests.initialization(TRANSACTION_REFERENCE, OBJECT, IllegalArgumentException::new);
 		var expected = AddInitializationTransactionMessages.of(request, "id");
 		String encoded = new AddInitializationTransactionMessages.Encoder().encode(expected);
 		var actual = new AddInitializationTransactionMessages.Decoder().decode(encoded);

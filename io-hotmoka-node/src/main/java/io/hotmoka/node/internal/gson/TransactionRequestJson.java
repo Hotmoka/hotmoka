@@ -17,9 +17,9 @@ limitations under the License.
 package io.hotmoka.node.internal.gson;
 
 import java.math.BigInteger;
+import java.util.stream.Stream;
 
 import io.hotmoka.crypto.Base64;
-import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.node.ConstructorSignatures;
@@ -36,7 +36,6 @@ import io.hotmoka.node.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.node.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
-import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.internal.requests.TransactionRequestImpl;
@@ -230,6 +229,22 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 		return classpath;
 	}
 
+	public BigInteger getGasLimit() {
+		return gasLimit;
+	}
+
+	public BigInteger getGasPrice() {
+		return gasPrice;
+	}
+
+	public String getJar() {
+		return jar;
+	}
+
+	public BigInteger getNonce() {
+		return nonce;
+	}
+
 	public BigInteger getInitialAmount() {
 		return initialAmount;
 	}
@@ -238,8 +253,40 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 		return publicKey;
 	}
 
+	public Stream<TransactionReferences.Json> getDependencies() {
+		return dependencies == null ? Stream.empty() : Stream.of(dependencies);
+	}
+
 	public StorageValues.Json getManifest() {
 		return manifest;
+	}
+
+	public StorageValues.Json getCaller() {
+		return caller;
+	}
+
+	public StorageValues.Json getReceiver() {
+		return receiver;
+	}
+
+	public MethodSignatures.Json getMethod() {
+		return method;
+	}
+
+	public ConstructorSignatures.Json getConstructor() {
+		return constructor;
+	}
+
+	public Stream<StorageValues.Json> getActuals() {
+		return actuals == null ? Stream.empty() : Stream.of(actuals);
+	}
+
+	public String getChainId() {
+		return chainId;
+	}
+
+	public String getSignature() {
+		return signature;
 	}
 
 	@Override
@@ -250,9 +297,9 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 			else if (InitializationTransactionRequest.class.getSimpleName().equals(type))
 				return TransactionRequestImpl.from(this);
 			else if (JarStoreInitialTransactionRequest.class.getSimpleName().equals(type))
-				return TransactionRequests.jarStoreInitial(Base64.fromBase64String(jar), convertedDependencies());
+				return TransactionRequestImpl.from(this);
 			else if (JarStoreTransactionRequest.class.getSimpleName().equals(type))
-				return TransactionRequests.jarStore(Hex.fromHexString(signature), unmapIntoStorageReference(caller), nonce, chainId, gasLimit, gasPrice, classpath.unmap(), Base64.fromBase64String(jar), convertedDependencies());
+				return TransactionRequestImpl.from(this);
 			else if (ConstructorCallTransactionRequest.class.getSimpleName().equals(type))
 				return TransactionRequests.constructorCall(Hex.fromHexString(signature), unmapIntoStorageReference(caller), nonce, chainId, gasLimit, gasPrice, classpath.unmap(), constructor.unmap(), convertedActuals());
 			else if (StaticMethodCallTransactionRequest.class.getSimpleName().equals(type))
@@ -264,7 +311,7 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 			else
 				throw new InconsistentJsonException("Unexpected request type " + type);
 		}
-		catch (HexConversionException | Base64ConversionException e) {
+		catch (HexConversionException e) {
 			throw new InconsistentJsonException(e);
 		}
 	}
@@ -276,18 +323,15 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 			throw new InconsistentJsonException("Unexpected storage value");
 	}
 
-	private TransactionReference[] convertedDependencies() throws InconsistentJsonException {
-		var result = new TransactionReference[dependencies.length];
-		for (int pos = 0; pos < result.length; pos++)
-			result[pos] = dependencies[pos].unmap();
-
-		return result;
-	}
-
 	private StorageValue[] convertedActuals() throws InconsistentJsonException {
 		var result = new StorageValue[actuals.length];
-		for (int pos = 0; pos < result.length; pos++)
-			result[pos] = actuals[pos].unmap();
+		for (int pos = 0; pos < result.length; pos++) {
+			StorageValues.Json actual = actuals[pos];
+			if (actual == null)
+				throw new InconsistentJsonException("actuals cannot hold null elements");
+
+			result[pos] = actual.unmap();
+		}
 
 		return result;
 	}

@@ -32,7 +32,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <io.hotmoka.crypto.version>1.5.0</io.hotmoka.crypto.version>
     <io.hotmoka.websockets.version>1.6.1</io.hotmoka.websockets.version>
     <io.hotmoka.marshalling.version>1.4.5</io.hotmoka.marshalling.version>
-    <io.hotmoka.exceptions.version>1.5.0</io.hotmoka.exceptions.version>
+    <io.hotmoka.exceptions.version>1.5.1</io.hotmoka.exceptions.version>
     <io.hotmoka.testing.version>1.4.1</io.hotmoka.testing.version>
     <io.hotmoka.xodus.version>1.4.6</io.hotmoka.xodus.version>
     <io.hotmoka.closeables.version>1.5.0</io.hotmoka.closeables.version>

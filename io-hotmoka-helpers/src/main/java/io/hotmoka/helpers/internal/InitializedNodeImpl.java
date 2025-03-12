@@ -82,7 +82,7 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 		super(parent);
 
 		// we install the jar containing the basic Takamaka classes
-		TransactionReference takamakaCodeReference = parent.addJarStoreInitialTransaction(TransactionRequests.jarStoreInitial(Files.readAllBytes(takamakaCode)));
+		TransactionReference takamakaCodeReference = parent.addJarStoreInitialTransaction(TransactionRequests.jarStoreInitial(Files.readAllBytes(takamakaCode), new TransactionReference[0], IllegalArgumentException::new));
 
 		// we create a gamete with both red and green coins
 		this.gamete = parent.addGameteCreationTransaction(TransactionRequests.gameteCreation(takamakaCodeReference, consensus.getInitialSupply(), consensus.getPublicKeyOfGameteBase64(), IllegalArgumentException::new));
@@ -119,7 +119,7 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 		StorageReference manifest = parent.addConstructorCallTransaction(request);
 
 		// we install the manifest and initialize the node
-		parent.addInitializationTransaction(TransactionRequests.initialization(takamakaCodeReference, manifest));
+		parent.addInitializationTransaction(TransactionRequests.initialization(takamakaCodeReference, manifest, NodeException::new));
 	}
 
 	/**
@@ -141,7 +141,7 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 		super(parent);
 
 		// we install the jar containing the basic Takamaka classes
-		TransactionReference takamakaCodeReference = parent.addJarStoreInitialTransaction(TransactionRequests.jarStoreInitial(Files.readAllBytes(takamakaCode)));
+		TransactionReference takamakaCodeReference = parent.addJarStoreInitialTransaction(TransactionRequests.jarStoreInitial(Files.readAllBytes(takamakaCode), new TransactionReference[0], IllegalArgumentException::new));
 
 		// we create a gamete with both red and green coins
 		this.gamete = parent.addGameteCreationTransaction(TransactionRequests.gameteCreation(takamakaCodeReference, consensus.getInitialSupply(), consensus.getPublicKeyOfGameteBase64(), IllegalArgumentException::new));
@@ -180,7 +180,7 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 		}
 
 		// we install the manifest and initialize the node
-		parent.addInitializationTransaction(TransactionRequests.initialization(takamakaCodeReference, manifest));
+		parent.addInitializationTransaction(TransactionRequests.initialization(takamakaCodeReference, manifest, NodeException::new));
 	}
 
 	private BigInteger getNonceOfGamete(Node node, TransactionReference takamakaCode) throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException {

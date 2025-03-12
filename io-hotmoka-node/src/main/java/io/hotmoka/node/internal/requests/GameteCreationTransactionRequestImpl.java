@@ -18,11 +18,11 @@ package io.hotmoka.node.internal.requests;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.Objects;
-import java.util.function.Function;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.Base64;
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.TransactionReferences;
@@ -30,6 +30,8 @@ import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.node.api.responses.GameteCreationTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.internal.gson.TransactionRequestJson;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * A request for creating an initial gamete, that is, an account of class
@@ -67,13 +69,34 @@ public class GameteCreationTransactionRequestImpl extends TransactionRequestImpl
 	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
 	 * @throws E if some argument passed to this constructor is illegal
 	 */
-	public <E extends Exception> GameteCreationTransactionRequestImpl(TransactionReference classpath, BigInteger initialAmount, String publicKey, Function<String, ? extends E> onIllegalArgs) throws E {
-		this.classpath = Objects.requireNonNull(classpath, "classpath cannot be null");
-		this.initialAmount = Objects.requireNonNull(initialAmount, "initialAmount cannot be null");
-		this.publicKey = Base64.requireBase64(Objects.requireNonNull(publicKey, "publicKey cannot be null"), onIllegalArgs);
+	public <E extends Exception> GameteCreationTransactionRequestImpl(TransactionReference classpath, BigInteger initialAmount, String publicKey, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		if (classpath == null)
+			throw onIllegalArgs.apply("classpath cannot be null");
 
+		this.classpath = classpath;
+
+		if (initialAmount == null)
+			throw onIllegalArgs.apply("initialAmount cannot be null");
 		if (initialAmount.signum() < 0)
 			throw onIllegalArgs.apply("initialAmount cannot be negative");
+
+		this.initialAmount = initialAmount;
+
+		if (publicKey == null)
+			throw onIllegalArgs.apply("publicKey cannot be null");
+
+		this.publicKey = Base64.requireBase64(publicKey, onIllegalArgs);
+	}
+
+	/**
+	 * Builds a transaction request from its given JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public GameteCreationTransactionRequestImpl(TransactionRequestJson json) throws InconsistentJsonException {
+		this(Objects.requireNonNull(json.getClasspath(), "classpath cannot be null", InconsistentJsonException::new).unmap(),
+			json.getInitialAmount(), json.getPublicKey(), InconsistentJsonException::new);
 	}
 
 	@Override

@@ -20,9 +20,9 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
-import java.util.function.Function;
 
 import io.hotmoka.crypto.api.Signer;
+import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
@@ -61,12 +61,15 @@ public abstract class TransactionRequests {
 	/**
 	 * Yields a transaction request to install a jar in a yet non-initialized node.
 	 * 
+	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
 	 * @param jar the bytes of the jar to install
 	 * @param dependencies the dependencies of the jar, already installed in blockchain
+	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
 	 * @return the request
+	 * @throws E if some argument passed to this constructor is illegal
 	 */
-	public static JarStoreInitialTransactionRequest jarStoreInitial(byte[] jar, TransactionReference... dependencies) {
-		return new JarStoreInitialTransactionRequestImpl(jar, dependencies);
+	public static <E extends Exception> JarStoreInitialTransactionRequest jarStoreInitial(byte[] jar, TransactionReference[] dependencies, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		return new JarStoreInitialTransactionRequestImpl(jar, dependencies, onIllegalArgs);
 	}
 
 	/**
@@ -81,7 +84,7 @@ public abstract class TransactionRequests {
 	 * @return the request
 	 * @throws E if some argument passed to this constructor is illegal
 	 */
-	public static <E extends Exception> GameteCreationTransactionRequest gameteCreation(TransactionReference classpath, BigInteger initialAmount, String publicKey, Function<String, ? extends E> onIllegalArgs) throws E {
+	public static <E extends Exception> GameteCreationTransactionRequest gameteCreation(TransactionReference classpath, BigInteger initialAmount, String publicKey, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
 		return new GameteCreationTransactionRequestImpl(classpath, initialAmount, publicKey, onIllegalArgs);
 	}
 
@@ -89,18 +92,22 @@ public abstract class TransactionRequests {
 	 * Yields a transaction request to mark the node as initialized.
 	 * After this transaction, no more initial transactions can be executed.
 	 * 
+	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
 	 * @param classpath the reference to the jar containing the basic Takamaka classes. This must
 	 *                  have been already installed by a previous transaction
 	 * @param manifest the storage reference that must be set as manifest
+	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
 	 * @return the request
+	 * @throws E if some argument passed to this constructor is illegal
 	 */
-	public static InitializationTransactionRequest initialization(TransactionReference classpath, StorageReference manifest) {
-		return new InitializationTransactionRequestImpl(classpath, manifest);
+	public static <E extends Exception> InitializationTransactionRequest initialization(TransactionReference classpath, StorageReference manifest, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		return new InitializationTransactionRequestImpl(classpath, manifest, onIllegalArgs);
 	}
 
 	/**
 	 * Yields a transaction request to install a jar in an initialized node.
 	 * 
+	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
 	 * @param signature the signature of the request
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
@@ -110,10 +117,12 @@ public abstract class TransactionRequests {
 	 * @param classpath the class path where the {@code caller} is interpreted
 	 * @param jar the bytes of the jar to install
 	 * @param dependencies the dependencies of the jar, already installed in blockchain
+	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
 	 * @return the request
+	 * @throws E if some argument passed to this constructor is illegal
 	 */
-	public static JarStoreTransactionRequest jarStore(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) {
-		return new JarStoreTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, jar, dependencies);
+	public static <E extends Exception> JarStoreTransactionRequest jarStore(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference[] dependencies, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		return new JarStoreTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, jar, dependencies, onIllegalArgs);
 	}
 
 	/**

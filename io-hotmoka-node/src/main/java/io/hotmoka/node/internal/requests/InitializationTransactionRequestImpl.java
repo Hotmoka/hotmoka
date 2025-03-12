@@ -17,9 +17,10 @@ limitations under the License.
 package io.hotmoka.node.internal.requests;
 
 import java.io.IOException;
-import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.StorageValues;
@@ -29,6 +30,8 @@ import io.hotmoka.node.api.requests.InitializationTransactionRequest;
 import io.hotmoka.node.api.responses.InitializationTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.internal.gson.TransactionRequestJson;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * Implementation of a request to initialize a node. It sets the manifest of a node.
@@ -53,13 +56,29 @@ public class InitializationTransactionRequestImpl extends TransactionRequestImpl
 	/**
 	 * Builds the transaction request.
 	 * 
+	 * @param <E> the type of the exception thrown if some argument is illegal
 	 * @param classpath the reference to the jar containing the basic Takamaka classes. This must
 	 *                  have been already installed by a previous transaction
 	 * @param manifest the storage reference that must be set as manifest
+	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
 	 */
-	public InitializationTransactionRequestImpl(TransactionReference classpath, StorageReference manifest) {
-		this.classpath = Objects.requireNonNull(classpath, "classpath cannot be null");
-		this.manifest = Objects.requireNonNull(manifest, "manifest cannot be null");
+	public <E extends Exception> InitializationTransactionRequestImpl(TransactionReference classpath, StorageReference manifest, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		this.classpath = Objects.requireNonNull(classpath, "classpath cannot be null", onIllegalArgs);
+		this.manifest = Objects.requireNonNull(manifest, "manifest cannot be null", onIllegalArgs);
+	}
+
+	/**
+	 * Builds a transaction request from its JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public InitializationTransactionRequestImpl(TransactionRequestJson json) throws InconsistentJsonException {
+		this(Objects.requireNonNull(json.getClasspath(), "classpath cannot be null", InconsistentJsonException::new).unmap(),
+				Objects.requireNonNull(json.getManifest(), "manifest cannot be null", InconsistentJsonException::new).unmap().asReference
+				(value -> new InconsistentJsonException("manifest should be a storage reference, not a " + value.getClass().getName())),
+				InconsistentJsonException::new);
 	}
 
 	@Override
@@ -106,6 +125,6 @@ public class InitializationTransactionRequestImpl extends TransactionRequestImpl
 		var classpath = TransactionReferences.from(context);
 		var manifest = StorageValues.referenceWithoutSelectorFrom(context);
 
-		return TransactionRequests.initialization(classpath, manifest);
+		return TransactionRequests.initialization(classpath, manifest, IOException::new);
 	}
 }

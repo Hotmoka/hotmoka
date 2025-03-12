@@ -82,7 +82,7 @@ public class TransactionRequestTests extends AbstractLoggedTests {
 	@DisplayName("initialization transaction requests are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForInitializationTransactionRequest() throws EncodeException, DecodeException {
 		var manifest = StorageValues.reference(reference, BigInteger.ONE, IllegalArgumentException::new);
-		var request1 = TransactionRequests.initialization(classpath, manifest);
+		var request1 = TransactionRequests.initialization(classpath, manifest, IllegalArgumentException::new);
 		String encoded = new TransactionRequests.Encoder().encode(request1);
 		var request2 = new TransactionRequests.Decoder().decode(encoded);
 		assertEquals(request1, request2);
@@ -91,7 +91,7 @@ public class TransactionRequestTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("jar store initial transaction requests are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForJarStoreInitialTransactionRequest() throws EncodeException, DecodeException {
-		var request1 = TransactionRequests.jarStoreInitial(jar, reference, reference2, reference3);
+		var request1 = TransactionRequests.jarStoreInitial(jar, new TransactionReference[] { reference, reference2, reference3 }, IllegalArgumentException::new);
 		String encoded = new TransactionRequests.Encoder().encode(request1);
 		var request2 = new TransactionRequests.Decoder().decode(encoded);
 		assertEquals(request1, request2);

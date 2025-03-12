@@ -18,16 +18,20 @@ package io.hotmoka.node.internal.requests;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.crypto.Base64;
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.node.api.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.internal.gson.TransactionRequestJson;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * Implementation of a request for a transaction that installs a jar in a yet non-initialized node.
@@ -49,13 +53,37 @@ public class JarStoreInitialTransactionRequestImpl extends TransactionRequestImp
 	/**
 	 * Builds the transaction request.
 	 * 
+	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
 	 * @param jar the bytes of the jar to install
 	 * @param dependencies the dependencies of the jar, already installed in blockchain
+	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
+	 * @throws E if some argument passed to this constructor is illegal
 	 */
-	public JarStoreInitialTransactionRequestImpl(byte[] jar, TransactionReference... dependencies) {
-		this.jar = Objects.requireNonNull(jar, "jar cannot be null").clone();
-		this.dependencies = Objects.requireNonNull(dependencies, "dependencies cannot be null").clone();
-		Stream.of(dependencies).forEach(dependency -> Objects.requireNonNull(dependency, "dependencies cannot hold null"));
+	public <E extends Exception> JarStoreInitialTransactionRequestImpl(byte[] jar, TransactionReference[] dependencies, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		this.jar = Objects.requireNonNull(jar, "jar cannot be null", onIllegalArgs).clone();
+		this.dependencies = Objects.requireNonNull(dependencies, "dependencies cannot be null", onIllegalArgs).clone();
+		for (var dependency: dependencies)
+			Objects.requireNonNull(dependency, "dependencies cannot hold null elements", onIllegalArgs);
+	}
+
+	/**
+	 * Builds a transaction request from its JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public JarStoreInitialTransactionRequestImpl(TransactionRequestJson json) throws InconsistentJsonException {
+		this(Base64.fromBase64String(Objects.requireNonNull(json.getJar(), "jar cannot be null", InconsistentJsonException::new), InconsistentJsonException::new),
+			convertedDependencies(json), InconsistentJsonException::new);
+	}
+
+	private static TransactionReference[] convertedDependencies(TransactionRequestJson json) throws InconsistentJsonException {
+		TransactionReferences.Json[] dependencies = json.getDependencies().toArray(TransactionReferences.Json[]::new);
+		var result = new TransactionReference[dependencies.length];
+		for (int pos = 0; pos < result.length; pos++)
+			result[pos] = Objects.requireNonNull(dependencies[pos], "dependencies cannot hold null elements", InconsistentJsonException::new).unmap();
+
+		return result;
 	}
 
 	@Override
@@ -120,6 +148,6 @@ public class JarStoreInitialTransactionRequestImpl extends TransactionRequestImp
 		byte[] jar = context.readLengthAndBytes("jar length mismatch in request");
 		var dependencies = context.readLengthAndArray(TransactionReferences::from, TransactionReference[]::new);
 
-		return new JarStoreInitialTransactionRequestImpl(jar, dependencies);
+		return new JarStoreInitialTransactionRequestImpl(jar, dependencies, IOException::new);
 	}
 }

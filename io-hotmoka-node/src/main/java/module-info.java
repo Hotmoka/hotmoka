@@ -28,6 +28,7 @@ module io.hotmoka.node {
 	requires io.hotmoka.marshalling;
 	requires io.hotmoka.instrumentation.api;
 	requires io.hotmoka.instrumentation;
+	requires io.hotmoka.exceptions;
 	requires io.hotmoka.websockets.beans;
 	requires io.takamaka.code.constants;
 	requires toml4j;
