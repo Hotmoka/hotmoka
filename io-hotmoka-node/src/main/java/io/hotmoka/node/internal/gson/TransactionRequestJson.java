@@ -238,13 +238,17 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 		return publicKey;
 	}
 
+	public StorageValues.Json getManifest() {
+		return manifest;
+	}
+
 	@Override
 	public TransactionRequest<?> unmap() throws InconsistentJsonException {
 		try {
 			if (GameteCreationTransactionRequest.class.getSimpleName().equals(type))
 				return TransactionRequestImpl.from(this);
 			else if (InitializationTransactionRequest.class.getSimpleName().equals(type))
-				return TransactionRequests.initialization(classpath.unmap(), unmapIntoStorageReference(manifest));
+				return TransactionRequestImpl.from(this);
 			else if (JarStoreInitialTransactionRequest.class.getSimpleName().equals(type))
 				return TransactionRequests.jarStoreInitial(Base64.fromBase64String(jar), convertedDependencies());
 			else if (JarStoreTransactionRequest.class.getSimpleName().equals(type))

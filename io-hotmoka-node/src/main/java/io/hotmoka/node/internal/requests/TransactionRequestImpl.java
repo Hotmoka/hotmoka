@@ -25,10 +25,13 @@ import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.NodeMarshallingContexts;
+import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
+import io.hotmoka.node.api.requests.InitializationTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
+import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.internal.gson.TransactionRequestJson;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
@@ -97,6 +100,20 @@ public abstract class TransactionRequestImpl<R extends TransactionResponse> exte
 				throw new InconsistentJsonException("publicKey cannot be missing");
 
 			return new GameteCreationTransactionRequestImpl(classpath.unmap(), initialAmount, publicKey, InconsistentJsonException::new);
+		}
+		else if (InitializationTransactionRequest.class.getSimpleName().equals(type)) {
+			TransactionReferences.Json classpath = json.getClasspath();
+			if (classpath == null)
+				throw new InconsistentJsonException("classpath cannot be missing");
+
+			StorageValues.Json manifest = json.getManifest();
+			if (manifest == null)
+				throw new InconsistentJsonException("manifest cannot be missing");
+
+			if (!(manifest.unmap() instanceof StorageReference sr))
+				throw new InconsistentJsonException("The manifest must be a storage reference");
+
+			return new InitializationTransactionRequestImpl(classpath.unmap(), sr);
 		}
 		else
 			throw new InconsistentJsonException("Unexpected request type " + type);
