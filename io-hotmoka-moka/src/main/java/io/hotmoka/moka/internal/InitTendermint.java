@@ -160,7 +160,7 @@ public class InitTendermint extends AbstractCommand {
 				.setInitialInflation(inflation)
 				.setInitialSupply(initialSupply)
 				.setFinalSupply(initialSupply.add(deltaSupply))
-				.setPublicKeyOfGamete(signature.publicKeyFromEncoding(Base58.decode(keyOfGamete)))
+				.setPublicKeyOfGamete(signature.publicKeyFromEncoding(Base58.fromBase58String(keyOfGamete)))
 				.build();
 
 			try (var node = TendermintNodes.init(nodeConfig);
@@ -197,7 +197,7 @@ public class InitTendermint extends AbstractCommand {
 					String publicKeyBase64 = ((StringValue) initialized.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 						(manifest, _100_000, takamakaCode, MethodSignatures.PUBLIC_KEY, validator))
 						.orElseThrow(() -> new NodeException(MethodSignatures.PUBLIC_KEY + " should not return void"))).getValue();
-					String publicKeyBase58 = Base58.encode(Base64.fromBase64String(publicKeyBase64));
+					String publicKeyBase58 = Base58.toBase58String(Base64.fromBase64String(publicKeyBase64));
 					// the pem file, if it exists, is named with the public key, base58
 					try {
 						var path = Paths.get(publicKeyBase58 + ".pem");

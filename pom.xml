@@ -29,7 +29,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <io.takamaka.code.version>1.4.0</io.takamaka.code.version>
     <io.hotmoka.annotations.version>1.4.1</io.hotmoka.annotations.version>
     <io.hotmoka.cli.version>1.3.0</io.hotmoka.cli.version>
-    <io.hotmoka.crypto.version>1.4.3</io.hotmoka.crypto.version>
+    <io.hotmoka.crypto.version>1.5.0</io.hotmoka.crypto.version>
     <io.hotmoka.websockets.version>1.6.1</io.hotmoka.websockets.version>
     <io.hotmoka.marshalling.version>1.4.5</io.hotmoka.marshalling.version>
     <io.hotmoka.exceptions.version>1.5.0</io.hotmoka.exceptions.version>
@@ -271,7 +271,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
           <plugin>
             <groupId>org.sonatype.plugins</groupId>
             <artifactId>nexus-staging-maven-plugin</artifactId>
-            <version>1.6.13</version>
+            <version>1.7.0</version>
             <extensions>true</extensions>
             <configuration>
               <serverId>ossrh</serverId>

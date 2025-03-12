@@ -69,9 +69,9 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 			Optional<StorageReference> maybeManifest = getManifest();
 			if (maybeManifest.isPresent()) {
 				String publicKeyOfNodeBase58 = prolog.getPublicKeyForSigningBlocksBase58();
-				String publicKeyOfNodeBase64 = Base64.toBase64String(Base58.decode(publicKeyOfNodeBase58));
+				String publicKeyOfNodeBase64 = Base64.toBase64String(Base58.fromBase58String(publicKeyOfNodeBase58));
 				String publicKeyOfMinerBase58 = prolog.getPublicKeyForSigningDeadlinesBase58();
-				String publicKeyOfMinerBase64 = Base64.toBase64String(Base58.decode(publicKeyOfMinerBase58));
+				String publicKeyOfMinerBase64 = Base64.toBase64String(Base58.fromBase58String(publicKeyOfMinerBase58));
 
 				// we use the manifest as caller, since it is an externally-owned account
 				StorageReference manifest = maybeManifest.get();

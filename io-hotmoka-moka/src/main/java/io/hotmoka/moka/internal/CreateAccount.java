@@ -106,7 +106,7 @@ public class CreateAccount extends AbstractCommand {
 				}
 				else {
 					entropy = Entropies.load(Paths.get(keyOfNewAccount + ".pem"));
-					publicKey = signatureAlgorithmOfNewAccount.publicKeyFromEncoding(Base58.decode(keyOfNewAccount));
+					publicKey = signatureAlgorithmOfNewAccount.publicKeyFromEncoding(Base58.fromBase58String(keyOfNewAccount));
 				}
 
 				accountCreationHelper = AccountCreationHelpers.of(node);

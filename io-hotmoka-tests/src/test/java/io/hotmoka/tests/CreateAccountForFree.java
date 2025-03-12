@@ -47,7 +47,8 @@ class CreateAccountForFree extends HotmokaTest {
 
 		if (!(node instanceof RemoteNode)) {
 			// all other nodes are expected to reject this, since the node is already initialized
-			TransactionRejectedException e = assertThrows(TransactionRejectedException.class, () -> node.addGameteCreationTransaction(TransactionRequests.gameteCreation(takamakaCode(), _50_000, publicKey)));
+			TransactionRejectedException e = assertThrows(TransactionRejectedException.class,
+				() -> node.addGameteCreationTransaction(TransactionRequests.gameteCreation(takamakaCode(), _50_000, publicKey, IllegalArgumentException::new)));
 			assertTrue(e.getMessage().contains("Cannot run an initial transaction request in an already initialized node"));
 		}
 	}

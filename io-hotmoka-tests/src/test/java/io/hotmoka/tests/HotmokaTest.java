@@ -145,7 +145,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	    				.setSignatureForRequests(signature)
 	    				.allowUnsignedFaucet(true) // good for testing
 	    				.ignoreGasPrice(true) // good for testing
-	    				.setInitialSupply(Coin.level7(10000000)) // enough for all tests
+	    				.setInitialSupply(Coin.level7(10000000))// enough for all tests
 	    				.setPublicKeyOfGamete(keys.getPublic())
 	    				.build();
 	    		privateKeyOfGamete = keys.getPrivate();
@@ -429,7 +429,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 				var entropyForNode = Entropies.random();
 				KeyPair nodeKeys = entropyForNode.keys("", mokamintConfig.getSignatureForBlocks());
 				byte[] nodePublicKeyBytes = mokamintConfig.getSignatureForBlocks().encodingOf(nodeKeys.getPublic());
-				var nodePublicKeyBase58 = Base58.encode(nodePublicKeyBytes);
+				var nodePublicKeyBase58 = Base58.toBase58String(nodePublicKeyBytes);
 				var fileNameNodeKeys = Paths.get(nodePublicKeyBase58 + ".pem");
 				entropyForNode.dump(fileNameNodeKeys);
 				System.out.println("Keys of the Mokamint node " + nodeNum + " dumped in file " + fileNameNodeKeys);
@@ -437,7 +437,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 				var entropyForPlot = Entropies.random();
 				KeyPair plotKeys = entropyForPlot.keys("", mokamintConfig.getSignatureForDeadlines());
 				byte[] plotPublicKeyBytes = mokamintConfig.getSignatureForDeadlines().encodingOf(plotKeys.getPublic());
-				var plotPublicKeyBase58 = Base58.encode(plotPublicKeyBytes);
+				var plotPublicKeyBase58 = Base58.toBase58String(plotPublicKeyBytes);
 				var fileNamePlotKeys = Paths.get(plotPublicKeyBase58 + ".pem");
 				entropyForPlot.dump(fileNamePlotKeys);
 				System.out.println("Keys of the miner of the Mokamint node " + nodeNum + " dumped in file " + fileNamePlotKeys);

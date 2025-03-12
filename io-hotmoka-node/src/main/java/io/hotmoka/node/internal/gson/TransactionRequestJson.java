@@ -39,6 +39,7 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
+import io.hotmoka.node.internal.requests.TransactionRequestImpl;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
@@ -221,11 +222,27 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 			throw new IllegalArgumentException("Unexpected request of type " + request.getClass().getName());
 	}
 
+	public String getType() {
+		return type;
+	}
+
+	public TransactionReferences.Json getClasspath() {
+		return classpath;
+	}
+
+	public BigInteger getInitialAmount() {
+		return initialAmount;
+	}
+
+	public String getPublicKey() {
+		return publicKey;
+	}
+
 	@Override
 	public TransactionRequest<?> unmap() throws InconsistentJsonException {
 		try {
 			if (GameteCreationTransactionRequest.class.getSimpleName().equals(type))
-				return TransactionRequests.gameteCreation(classpath.unmap(), initialAmount, publicKey);
+				return TransactionRequestImpl.from(this);
 			else if (InitializationTransactionRequest.class.getSimpleName().equals(type))
 				return TransactionRequests.initialization(classpath.unmap(), unmapIntoStorageReference(manifest));
 			else if (JarStoreInitialTransactionRequest.class.getSimpleName().equals(type))

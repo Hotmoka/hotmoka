@@ -72,7 +72,7 @@ public class TransactionRequestTests extends AbstractLoggedTests {
 	@DisplayName("gamete creation transaction requests are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForGameteCreationTransactionRequest() throws EncodeException, DecodeException, NoSuchAlgorithmException {
 		String publicKey = Base64.toBase64String(SignatureAlgorithms.ed25519().getKeyPair().getPublic().getEncoded());
-		var request1 = TransactionRequests.gameteCreation(classpath, BigInteger.TWO, publicKey);
+		var request1 = TransactionRequests.gameteCreation(classpath, BigInteger.TWO, publicKey, IllegalArgumentException::new);
 		String encoded = new TransactionRequests.Encoder().encode(request1);
 		var request2 = new TransactionRequests.Decoder().decode(encoded);
 		assertEquals(request1, request2);

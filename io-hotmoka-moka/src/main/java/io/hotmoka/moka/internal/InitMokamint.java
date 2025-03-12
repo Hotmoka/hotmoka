@@ -162,7 +162,7 @@ public class InitMokamint extends AbstractCommand {
 				.setInitialInflation(inflation)
 				.setInitialSupply(initialSupply)
 				.setFinalSupply(initialSupply.add(deltaSupply))
-				.setPublicKeyOfGamete(signature.publicKeyFromEncoding(Base58.decode(keyOfGamete)))
+				.setPublicKeyOfGamete(signature.publicKeyFromEncoding(Base58.fromBase58String(keyOfGamete)))
 				.build();
 
 			var keysOfNode = Entropies.load(keysOfMokamintNode).keys(passwordOfKeysOfMokamintNode, mokamintConfig.getSignatureForBlocks());

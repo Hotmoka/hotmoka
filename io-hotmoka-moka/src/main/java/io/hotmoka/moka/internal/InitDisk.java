@@ -123,7 +123,7 @@ public class InitDisk extends AbstractCommand {
 				.setChainId(chainId)
 				.setInitialSupply(initialSupply)
 				.setFinalSupply(initialSupply.add(deltaSupply))
-				.setPublicKeyOfGamete(signature.publicKeyFromEncoding(Base58.decode(keyOfGamete)))
+				.setPublicKeyOfGamete(signature.publicKeyFromEncoding(Base58.fromBase58String(keyOfGamete)))
 				.build();
 
 			try (var node = this.node = DiskNodes.init(nodeConfig);

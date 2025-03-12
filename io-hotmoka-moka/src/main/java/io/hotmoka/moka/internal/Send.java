@@ -118,7 +118,7 @@ public class Send extends AbstractCommand {
 			KeyPair keysOfPayer = readKeys(Accounts.of(payer), node, passwordOfPayer);
 			var signatureAlgorithmForNewAccount = SignatureAlgorithms.ed25519();
 			return accountCreationHelper.paidBy(payer, keysOfPayer, signatureAlgorithmForNewAccount,
-				signatureAlgorithmForNewAccount.publicKeyFromEncoding(Base58.decode(destination)),
+				signatureAlgorithmForNewAccount.publicKeyFromEncoding(Base58.fromBase58String(destination)),
 				amount, anonymous, this::askForConfirmation, this::printCosts);
 		}
 

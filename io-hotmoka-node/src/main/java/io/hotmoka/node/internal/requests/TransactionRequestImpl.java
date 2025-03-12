@@ -18,14 +18,19 @@ package io.hotmoka.node.internal.requests;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.NodeMarshallingContexts;
+import io.hotmoka.node.TransactionReferences;
+import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
+import io.hotmoka.node.internal.gson.TransactionRequestJson;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * Shared implementation of a request of a transaction.
@@ -64,6 +69,37 @@ public abstract class TransactionRequestImpl<R extends TransactionResponse> exte
 		case InstanceSystemMethodCallTransactionRequestImpl.SELECTOR: return InstanceSystemMethodCallTransactionRequestImpl.from(context);
 		default: throw new IOException("Unexpected request selector: " + selector);
 		}
+	}
+
+	/**
+	 * Yields a transaction request from the given JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @return the resulting transaction request
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public static TransactionRequest<?> from(TransactionRequestJson json) throws InconsistentJsonException {
+		String type = json.getType();
+		if (type == null)
+			throw new InconsistentJsonException("type cannot be missing");
+
+		if (GameteCreationTransactionRequest.class.getSimpleName().equals(type)) {
+			TransactionReferences.Json classpath = json.getClasspath();
+			if (classpath == null)
+				throw new InconsistentJsonException("classpath cannot be missing");
+
+			BigInteger initialAmount = json.getInitialAmount();
+			if (initialAmount == null)
+				throw new InconsistentJsonException("initialAmount cannot be missing");
+
+			String publicKey = json.getPublicKey();
+			if (publicKey == null)
+				throw new InconsistentJsonException("publicKey cannot be missing");
+
+			return new GameteCreationTransactionRequestImpl(classpath.unmap(), initialAmount, publicKey, InconsistentJsonException::new);
+		}
+		else
+			throw new InconsistentJsonException("Unexpected request type " + type);
 	}
 
 	@Override

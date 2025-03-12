@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
+import java.util.function.Function;
 
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -71,14 +72,17 @@ public abstract class TransactionRequests {
 	/**
 	 * Yields a transaction request to create a gamete.
 	 * 
+	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
 	 * @param classpath the reference to the jar containing the basic Takamaka classes. This must
 	 *                  have been already installed by a previous transaction
-	 * @param initialAmount the amount of oins provided to the gamete
+	 * @param initialAmount the amount of green coins provided to the gamete
 	 * @param publicKey the Base64-encoded public key that will be assigned to the gamete
+	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
 	 * @return the request
+	 * @throws E if some argument passed to this constructor is illegal
 	 */
-	public static GameteCreationTransactionRequest gameteCreation(TransactionReference classpath, BigInteger initialAmount, String publicKey) {
-		return new GameteCreationTransactionRequestImpl(classpath, initialAmount, publicKey);
+	public static <E extends Exception> GameteCreationTransactionRequest gameteCreation(TransactionReference classpath, BigInteger initialAmount, String publicKey, Function<String, ? extends E> onIllegalArgs) throws E {
+		return new GameteCreationTransactionRequestImpl(classpath, initialAmount, publicKey, onIllegalArgs);
 	}
 
 	/**

@@ -31,7 +31,7 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.Account;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.api.values.BigIntegerValue;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.RemoteNodes;
 import picocli.CommandLine.Command;
@@ -89,10 +89,10 @@ public class ShowAccount extends AbstractCommand {
 		System.out.println("signature type: " + algorithm);
 		KeyPair keys = account.keys(password, algorithm);
 		byte[] privateKey = algorithm.encodingOf(keys.getPrivate());
-		System.out.println("private key Base58: " + Base58.encode(privateKey));
+		System.out.println("private key Base58: " + Base58.toBase58String(privateKey));
 		System.out.println("private key Base64: " + Base64.toBase64String(privateKey));
 		byte[] publicKey = algorithm.encodingOf(keys.getPublic());
-		System.out.println("public key Base58: " + Base58.encode(publicKey));
+		System.out.println("public key Base58: " + Base58.toBase58String(publicKey));
 		System.out.println("public key Base64: " + Base64.toBase64String(publicKey));
 		byte[] concatenated = new byte[privateKey.length + publicKey.length];
 		System.arraycopy(privateKey, 0, concatenated, 0, privateKey.length);
@@ -106,9 +106,10 @@ public class ShowAccount extends AbstractCommand {
 	private void showBalances(Account account, Node node) throws Exception {
 		var takamakaCode = node.getTakamakaCode();
 		StorageReference reference = account.getReference();
-		BigInteger balance = ((BigIntegerValue) node.runInstanceMethodCallTransaction(
+		BigInteger balance = node.runInstanceMethodCallTransaction(
 			TransactionRequests.instanceViewMethodCall(reference, _100_000, takamakaCode, MethodSignatures.BALANCE, reference))
-			.orElseThrow(() -> new CommandException(MethodSignatures.BALANCE + " should not return void"))).getValue();
+			.orElseThrow(() -> new NodeException(MethodSignatures.BALANCE + " should not return void"))
+			.asReturnedBigInteger(MethodSignatures.BALANCE, NodeException::new);
 		System.out.println("balance: " + balance);
 	}
 }

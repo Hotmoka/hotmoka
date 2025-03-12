@@ -71,7 +71,7 @@ public class BindKey extends AbstractCommand {
 			var takamakaCode = node.getTakamakaCode();
 
 			// we must translate the key from Base58 to Base64
-			String key = Base64.toBase64String(Base58.decode(this.key));
+			String key = Base64.toBase64String(Base58.fromBase58String(this.key));
 
 			// we look in the accounts ledger
 			var ledger = node.runInstanceMethodCallTransaction

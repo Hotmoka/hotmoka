@@ -56,14 +56,14 @@ public class CreateKey extends AbstractCommand {
 			var entropy = Entropies.random();
 			KeyPair keys = entropy.keys(passwordOfNewKey, signatureAlgorithmOfNewAccount);
 			byte[] publicKeyBytes = signatureAlgorithmOfNewAccount.encodingOf(keys.getPublic());
-			var publicKeyBase58 = Base58.encode(publicKeyBytes);
+			var publicKeyBase58 = Base58.toBase58String(publicKeyBytes);
 			System.out.println("A new key has been created.");
 			System.out.println("Public key Base58: " + publicKeyBase58);
 			System.out.println("Public key Base64: " + Base64.toBase64String(publicKeyBytes));
 
 			if (privateKey) {
 				byte[] privateKey = signatureAlgorithmOfNewAccount.encodingOf(keys.getPrivate());
-				System.out.println("Private key Base58: " + Base58.encode(privateKey));
+				System.out.println("Private key Base58: " + Base58.toBase58String(privateKey));
 				System.out.println("Private key Base64: " + Base64.toBase64String(privateKey));
 				var concatenated = new byte[privateKey.length + publicKeyBytes.length];
 				System.arraycopy(privateKey, 0, concatenated, 0, privateKey.length);

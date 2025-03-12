@@ -234,7 +234,7 @@ public class MessagesTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("getRequestResult messages are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForGetRequestResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
-		var request = TransactionRequests.gameteCreation(TRANSACTION_REFERENCE, BigInteger.valueOf(10_000_000L), Base64.toBase64String(SignatureAlgorithms.ed25519().getKeyPair().getPublic().getEncoded()));
+		var request = TransactionRequests.gameteCreation(TRANSACTION_REFERENCE, BigInteger.valueOf(10_000_000L), Base64.toBase64String(SignatureAlgorithms.ed25519().getKeyPair().getPublic().getEncoded()), IllegalArgumentException::new);
 		var expected = GetRequestResultMessages.of(request, "id");
 		String encoded = new GetRequestResultMessages.Encoder().encode(expected);
 		var actual = new GetRequestResultMessages.Decoder().decode(encoded);
@@ -466,7 +466,7 @@ public class MessagesTests extends AbstractLoggedTests {
 	public void encodeDecodeWorksForAddGameteCreationTransaction() throws EncodeException, DecodeException, NoSuchAlgorithmException {
 		var ed25519 = SignatureAlgorithms.ed25519();
 		var keys = ed25519.getKeyPair();
-		var request = TransactionRequests.gameteCreation(TRANSACTION_REFERENCE, BigInteger.valueOf(42424242L), Base64.toBase64String(keys.getPublic().getEncoded()));
+		var request = TransactionRequests.gameteCreation(TRANSACTION_REFERENCE, BigInteger.valueOf(42424242L), Base64.toBase64String(keys.getPublic().getEncoded()), IllegalArgumentException::new);
 		var expected = AddGameteCreationTransactionMessages.of(request, "id");
 		String encoded = new AddGameteCreationTransactionMessages.Encoder().encode(expected);
 		var actual = new AddGameteCreationTransactionMessages.Decoder().decode(encoded);
