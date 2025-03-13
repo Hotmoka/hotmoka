@@ -19,9 +19,7 @@ package io.hotmoka.node.tests;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.SignatureException;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -40,9 +38,8 @@ import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.testing.AbstractLoggedTests;
-import jakarta.websocket.DecodeException;
-import jakarta.websocket.EncodeException;
 
 public class TransactionRequestTests extends AbstractLoggedTests {
 	private final static TransactionReference classpath = TransactionReferences.of("cafebabe01234567cafebabe01234567cafebabe01234567cafebabe01234567", IllegalArgumentException::new);
@@ -70,7 +67,7 @@ public class TransactionRequestTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("gamete creation transaction requests are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForGameteCreationTransactionRequest() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+	public void encodeDecodeWorksForGameteCreationTransactionRequest() throws Exception {
 		String publicKey = Base64.toBase64String(SignatureAlgorithms.ed25519().getKeyPair().getPublic().getEncoded());
 		var request1 = TransactionRequests.gameteCreation(classpath, BigInteger.TWO, publicKey, IllegalArgumentException::new);
 		String encoded = new TransactionRequests.Encoder().encode(request1);
@@ -80,7 +77,7 @@ public class TransactionRequestTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("initialization transaction requests are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForInitializationTransactionRequest() throws EncodeException, DecodeException {
+	public void encodeDecodeWorksForInitializationTransactionRequest() throws Exception {
 		var manifest = StorageValues.reference(reference, BigInteger.ONE, IllegalArgumentException::new);
 		var request1 = TransactionRequests.initialization(classpath, manifest, IllegalArgumentException::new);
 		String encoded = new TransactionRequests.Encoder().encode(request1);
@@ -90,7 +87,7 @@ public class TransactionRequestTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("jar store initial transaction requests are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForJarStoreInitialTransactionRequest() throws EncodeException, DecodeException {
+	public void encodeDecodeWorksForJarStoreInitialTransactionRequest() throws Exception {
 		var request1 = TransactionRequests.jarStoreInitial(jar, new TransactionReference[] { reference, reference2, reference3 }, IllegalArgumentException::new);
 		String encoded = new TransactionRequests.Encoder().encode(request1);
 		var request2 = new TransactionRequests.Decoder().decode(encoded);
@@ -99,7 +96,7 @@ public class TransactionRequestTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("jar store transaction requests are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForJarStoreTransactionRequest() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+	public void encodeDecodeWorksForJarStoreTransactionRequest() throws Exception {
 		var request1 = TransactionRequests.jarStore(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, jar, reference, reference2, reference3);
 		String encoded = new TransactionRequests.Encoder().encode(request1);
 		var request2 = new TransactionRequests.Decoder().decode(encoded);
@@ -108,7 +105,7 @@ public class TransactionRequestTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("constructor call transaction requests are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForConstructorCallTransactionRequest() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+	public void encodeDecodeWorksForConstructorCallTransactionRequest() throws Exception {
 		var constructor = ConstructorSignatures.of(MY_CLASS, StorageTypes.INT, StorageTypes.classNamed("io.hotmoka.OtherClass", IllegalArgumentException::new));
 		var value1 = StorageValues.intOf(13);
 		var value2 = StorageValues.reference(reference2, BigInteger.ZERO, RuntimeException::new);
@@ -120,7 +117,7 @@ public class TransactionRequestTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("static method call transaction requests are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForStaticMethodCallTransactionRequest() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+	public void encodeDecodeWorksForStaticMethodCallTransactionRequest() throws Exception {
 		var value1 = StorageValues.intOf(13);
 		var value2 = StorageValues.reference(reference2, BigInteger.ZERO, RuntimeException::new);
 		var request1 = TransactionRequests.staticMethodCall(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, MOO, value1, value2);
@@ -131,7 +128,7 @@ public class TransactionRequestTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("instance method call transaction requests are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForInstanceMethodCallTransactionRequest() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+	public void encodeDecodeWorksForInstanceMethodCallTransactionRequest() throws Exception {
 		var value1 = StorageValues.intOf(13);
 		var value2 = StorageValues.reference(reference2, BigInteger.ZERO, IllegalArgumentException::new);
 		var receiver = StorageValues.reference(reference2, BigInteger.valueOf(17), IllegalArgumentException::new);
@@ -143,11 +140,11 @@ public class TransactionRequestTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("instance system method call transaction requests are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForInstanceSystemMethodCallTransactionRequest() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+	public void encodeDecodeWorksForInstanceSystemMethodCallTransactionRequest() throws Exception {
 		var value1 = StorageValues.intOf(13);
 		var value2 = StorageValues.reference(reference2, BigInteger.ZERO, IllegalArgumentException::new);
 		var receiver = StorageValues.reference(reference2, BigInteger.valueOf(17), IllegalArgumentException::new);
-		var request1 = TransactionRequests.instanceSystemMethodCall(caller, nonce, gasLimit, classpath, MOO, receiver, value1, value2);
+		var request1 = TransactionRequests.instanceSystemMethodCall(caller, nonce, gasLimit, classpath, MOO, receiver, new StorageValue[] { value1, value2 }, IllegalArgumentException::new);
 		String encoded = new TransactionRequests.Encoder().encode(request1);
 		var request2 = new TransactionRequests.Decoder().decode(encoded);
 		assertEquals(request1, request2);

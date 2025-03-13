@@ -75,10 +75,12 @@ public class InitializationTransactionRequestImpl extends TransactionRequestImpl
 	 * @throws InconsistentJsonException if {@code json} is inconsistent
 	 */
 	public InitializationTransactionRequestImpl(TransactionRequestJson json) throws InconsistentJsonException {
-		this(Objects.requireNonNull(json.getClasspath(), "classpath cannot be null", InconsistentJsonException::new).unmap(),
-				Objects.requireNonNull(json.getManifest(), "manifest cannot be null", InconsistentJsonException::new).unmap().asReference
+		this(
+			Objects.requireNonNull(json.getClasspath(), "classpath cannot be null", InconsistentJsonException::new).unmap(),
+			Objects.requireNonNull(json.getManifest(), "manifest cannot be null", InconsistentJsonException::new).unmap().asReference
 				(value -> new InconsistentJsonException("manifest should be a storage reference, not a " + value.getClass().getName())),
-				InconsistentJsonException::new);
+			InconsistentJsonException::new
+		);
 	}
 
 	@Override

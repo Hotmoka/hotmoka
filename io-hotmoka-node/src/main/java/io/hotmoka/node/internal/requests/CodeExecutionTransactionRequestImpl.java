@@ -20,17 +20,20 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.node.NodeMarshallingContexts;
+import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.requests.CodeExecutionTransactionRequest;
 import io.hotmoka.node.api.responses.CodeExecutionTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
+import io.hotmoka.node.internal.gson.TransactionRequestJson;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * A request for executing a constructor or a method.
@@ -58,8 +61,8 @@ public abstract class CodeExecutionTransactionRequestImpl<R extends CodeExecutio
 	protected CodeExecutionTransactionRequestImpl(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, StorageValue... actuals) {
 		super(caller, nonce, gasLimit, gasPrice, classpath);
 
-		this.actuals = Objects.requireNonNull(actuals, "actuals cannot be null");
-		Stream.of(actuals).forEach(actual -> Objects.requireNonNull(actual, "actuals cannot hold null"));
+		this.actuals = Objects.requireNonNull(actuals, "actuals cannot be null", NullPointerException::new);
+		Stream.of(actuals).forEach(actual -> Objects.requireNonNull(actual, "actuals cannot hold null", NullPointerException::new));
 	}
 
 	@Override
@@ -96,5 +99,14 @@ public abstract class CodeExecutionTransactionRequestImpl<R extends CodeExecutio
 			// impossible with a byte array output stream
 			throw new RuntimeException("Unexpected exception", e);
 		}
+	}
+
+	protected static StorageValue[] convertedActuals(TransactionRequestJson json) throws InconsistentJsonException {
+		StorageValues.Json[] actuals = json.getActuals().toArray(StorageValues.Json[]::new);
+		var result = new StorageValue[actuals.length];
+		for (int pos = 0; pos < result.length; pos++)
+			result[pos] = Objects.requireNonNull(actuals[pos], "actualscannot hold null elements", InconsistentJsonException::new).unmap();
+
+		return result;
 	}
 }

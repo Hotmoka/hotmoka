@@ -27,6 +27,7 @@ import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.TransactionReferences;
+import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.node.api.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -73,8 +74,11 @@ public class JarStoreInitialTransactionRequestImpl extends TransactionRequestImp
 	 * @throws InconsistentJsonException if {@code json} is inconsistent
 	 */
 	public JarStoreInitialTransactionRequestImpl(TransactionRequestJson json) throws InconsistentJsonException {
-		this(Base64.fromBase64String(Objects.requireNonNull(json.getJar(), "jar cannot be null", InconsistentJsonException::new), InconsistentJsonException::new),
-			convertedDependencies(json), InconsistentJsonException::new);
+		this(
+			Base64.fromBase64String(Objects.requireNonNull(json.getJar(), "jar cannot be null", InconsistentJsonException::new), InconsistentJsonException::new),
+			convertedDependencies(json),
+			InconsistentJsonException::new
+		);
 	}
 
 	private static TransactionReference[] convertedDependencies(TransactionRequestJson json) throws InconsistentJsonException {
@@ -148,6 +152,6 @@ public class JarStoreInitialTransactionRequestImpl extends TransactionRequestImp
 		byte[] jar = context.readLengthAndBytes("jar length mismatch in request");
 		var dependencies = context.readLengthAndArray(TransactionReferences::from, TransactionReference[]::new);
 
-		return new JarStoreInitialTransactionRequestImpl(jar, dependencies, IOException::new);
+		return TransactionRequests.jarStoreInitial(jar, dependencies, IOException::new);
 	}
 }

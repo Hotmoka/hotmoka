@@ -23,21 +23,25 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 import java.util.Arrays;
-import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.api.Signer;
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
+import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.api.signatures.MethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
+import io.hotmoka.node.internal.gson.TransactionRequestJson;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * Implementation of a request for calling a static method of a storage class in a node.
@@ -74,13 +78,14 @@ public class StaticMethodCallTransactionRequestImpl extends MethodCallTransactio
 	public StaticMethodCallTransactionRequestImpl(Signer<? super StaticMethodCallTransactionRequestImpl> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) throws InvalidKeyException, SignatureException {
 		super(caller, nonce, gasLimit, gasPrice, classpath, method, actuals);
 
-		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null");
+		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null", NullPointerException::new);
 		this.signature = signer.sign(this);
 	}
 
 	/**
 	 * Builds the transaction request.
 	 * 
+	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
 	 * @param signature the signature of the request
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
@@ -90,12 +95,14 @@ public class StaticMethodCallTransactionRequestImpl extends MethodCallTransactio
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param method the method that must be called
 	 * @param actuals the actual arguments passed to the method
+	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
 	 */
-	public StaticMethodCallTransactionRequestImpl(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) {
-		super(caller, nonce, gasLimit, gasPrice, classpath, method, actuals);
+	public <E extends Exception> StaticMethodCallTransactionRequestImpl(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue[] actuals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(caller, nonce, gasLimit, gasPrice, classpath, method, actuals); // TODO: pass onIllegalArgs
 
-		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null");
-		this.signature = Objects.requireNonNull(signature, "signature cannot be null").clone();
+		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null", onIllegalArgs);
+		this.signature = Objects.requireNonNull(signature, "signature cannot be null", onIllegalArgs).clone();
 	}
 
 	/**
@@ -110,7 +117,28 @@ public class StaticMethodCallTransactionRequestImpl extends MethodCallTransactio
 	 * @param actuals the actual arguments passed to the method
 	 */
 	public StaticMethodCallTransactionRequestImpl(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageValue... actuals) {
-		this(NO_SIG, caller, ZERO, "", gasLimit, ZERO, classpath, method, actuals);
+		this(NO_SIG, caller, ZERO, "", gasLimit, ZERO, classpath, method, actuals, IllegalArgumentException::new); // TODO
+	}
+
+	/**
+	 * Builds a transaction request from its given JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public StaticMethodCallTransactionRequestImpl(TransactionRequestJson json) throws InconsistentJsonException {
+		this(
+			Hex.fromHexString(Objects.requireNonNull(json.getSignature(), "signature cannot be null", InconsistentJsonException::new), InconsistentJsonException::new),
+			Objects.requireNonNull(json.getCaller(), "caller cannot be null", InconsistentJsonException::new).unmap().asReference(value -> new InconsistentJsonException("caller must be a storage reference, not a " + value.getClass().getSimpleName())),
+			json.getNonce(),
+			json.getChainId(),
+			json.getGasLimit(),
+			json.getGasPrice(),
+			Objects.requireNonNull(json.getClasspath(), "classpath cannot be null", InconsistentJsonException::new).unmap(),
+			Objects.requireNonNull(json.getMethod(), "method cannot be null", InconsistentJsonException::new).unmap(),
+			convertedActuals(json),
+			InconsistentJsonException::new
+		);
 	}
 
 	@Override
@@ -161,7 +189,7 @@ public class StaticMethodCallTransactionRequestImpl extends MethodCallTransactio
 	 * @return the request
 	 * @throws IOException if the request could not be unmarshalled
 	 */
-	public static StaticMethodCallTransactionRequestImpl from(UnmarshallingContext context) throws IOException {
+	public static StaticMethodCallTransactionRequest from(UnmarshallingContext context) throws IOException {
 		var chainId = context.readStringUnshared();
 		var caller = StorageValues.referenceWithoutSelectorFrom(context);
 		var gasLimit = context.readBigInteger();
@@ -172,6 +200,6 @@ public class StaticMethodCallTransactionRequestImpl extends MethodCallTransactio
 		var method = MethodSignatures.from(context);
 		byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 
-		return new StaticMethodCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, actuals);
+		return TransactionRequests.staticMethodCall(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, actuals, IOException::new);
 	}
 }

@@ -60,6 +60,7 @@ import io.hotmoka.node.api.responses.TransactionResponseWithUpdates;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.LocalNodeConfig;
@@ -194,9 +195,12 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 
 				var request = TransactionRequests.instanceSystemMethodCall
 					(manifest, nonce, _100_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD, validators,
-					StorageValues.bigIntegerOf(coins), StorageValues.bigIntegerOf(minted),
-					StorageValues.stringOf(behaving), StorageValues.stringOf(misbehaving),
-					StorageValues.bigIntegerOf(gasConsumed), StorageValues.bigIntegerOf(deliveredCount()));
+					new StorageValue[] {
+						StorageValues.bigIntegerOf(coins), StorageValues.bigIntegerOf(minted),
+						StorageValues.stringOf(behaving), StorageValues.stringOf(misbehaving),
+						StorageValues.bigIntegerOf(gasConsumed), StorageValues.bigIntegerOf(deliveredCount())
+					},
+					IllegalArgumentException::new);
 	
 				TransactionResponse response = responseBuilderFor(TransactionReferences.of(store.getHasher().hash(request), IllegalArgumentException::new), request).getResponseCreation().getResponse();
 				// if there is only one update, it is the update of the nonce of the manifest: we prefer not to expand

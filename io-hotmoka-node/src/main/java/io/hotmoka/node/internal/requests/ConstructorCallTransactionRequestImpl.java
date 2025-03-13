@@ -21,23 +21,27 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.api.Signer;
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
+import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.node.api.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
+import io.hotmoka.node.internal.gson.TransactionRequestJson;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * Implementation of a request for calling a constructor of a storage class in a node.
@@ -79,8 +83,8 @@ public class ConstructorCallTransactionRequestImpl extends CodeExecutionTransact
 	public ConstructorCallTransactionRequestImpl(Signer<? super ConstructorCallTransactionRequestImpl> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) throws InvalidKeyException, SignatureException {
 		super(caller, nonce, gasLimit, gasPrice, classpath, actuals);
 
-		this.constructor = Objects.requireNonNull(constructor, "constructor cannot be null");
-		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null");
+		this.constructor = Objects.requireNonNull(constructor, "constructor cannot be null", NullPointerException::new);
+		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null", NullPointerException::new);
 
 		if (constructor.getFormals().count() != actuals.length)
 			throw new IllegalArgumentException("Argument count mismatch between formals and actuals");
@@ -91,6 +95,7 @@ public class ConstructorCallTransactionRequestImpl extends CodeExecutionTransact
 	/**
 	 * Builds the transaction request.
 	 * 
+	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
 	 * @param signature the signature of the request
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
@@ -100,20 +105,43 @@ public class ConstructorCallTransactionRequestImpl extends CodeExecutionTransact
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param constructor the constructor that must be called
 	 * @param actuals the actual arguments passed to the constructor
+	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
+	 * @throws E if some argument passed to this constructor is illegal
 	 */
-	public ConstructorCallTransactionRequestImpl(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) {
-		super(caller, nonce, gasLimit, gasPrice, classpath, actuals);
+	public <E extends Exception> ConstructorCallTransactionRequestImpl(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue[] actuals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(caller, nonce, gasLimit, gasPrice, classpath, actuals); // TODO: pass onIllegalArgs
 
-		Objects.requireNonNull(constructor, "constructor cannot be null");
-		Objects.requireNonNull(chainId, "chainId cannot be null");
-		Objects.requireNonNull(signature, "signature cannot be null");
+		Objects.requireNonNull(constructor, "constructor cannot be null", onIllegalArgs);
+		Objects.requireNonNull(chainId, "chainId cannot be null", onIllegalArgs);
+		Objects.requireNonNull(signature, "signature cannot be null", onIllegalArgs);
 
 		if (constructor.getFormals().count() != actuals.length)
-			throw new IllegalArgumentException("argument count mismatch between formals and actuals");
+			throw onIllegalArgs.apply("Argument count mismatch between formals and actuals");
 
 		this.constructor = constructor;
 		this.chainId = chainId;
 		this.signature = signature;
+	}
+
+	/**
+	 * Builds a transaction request from its given JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public ConstructorCallTransactionRequestImpl(TransactionRequestJson json) throws InconsistentJsonException {
+		this(
+			Hex.fromHexString(Objects.requireNonNull(json.getSignature(), "signature cannot be null", InconsistentJsonException::new), InconsistentJsonException::new),
+			Objects.requireNonNull(json.getCaller(), "caller cannot be null", InconsistentJsonException::new).unmap().asReference(value -> new InconsistentJsonException("caller must be a storage reference, not a " + value.getClass().getSimpleName())),
+			json.getNonce(),
+			json.getChainId(),
+			json.getGasLimit(),
+			json.getGasPrice(),
+			Objects.requireNonNull(json.getClasspath(), "classpath cannot be null", InconsistentJsonException::new).unmap(),
+			Objects.requireNonNull(json.getConstructor(), "constructor cannot be null", InconsistentJsonException::new).unmap(),
+			convertedActuals(json),
+			InconsistentJsonException::new
+		);
 	}
 
 	@Override
@@ -174,7 +202,7 @@ public class ConstructorCallTransactionRequestImpl extends CodeExecutionTransact
 	 * @return the request
 	 * @throws IOException if the request cannot be unmarshalled
 	 */
-	public static ConstructorCallTransactionRequestImpl from(UnmarshallingContext context) throws IOException {
+	public static ConstructorCallTransactionRequest from(UnmarshallingContext context) throws IOException {
 		var chainId = context.readStringUnshared();
 		var caller = StorageValues.referenceWithoutSelectorFrom(context);
 		var gasLimit = context.readBigInteger();
@@ -185,6 +213,6 @@ public class ConstructorCallTransactionRequestImpl extends CodeExecutionTransact
 		var constructor = ConstructorSignatures.from(context);
 		byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 
-		return new ConstructorCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, constructor, actuals);
+		return TransactionRequests.constructorCall(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, constructor, actuals, IOException::new);
 	}
 }

@@ -35,6 +35,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.NodeMarshallingContexts;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
+import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.node.api.responses.JarStoreTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -134,16 +135,18 @@ public class JarStoreTransactionRequestImpl extends NonInitialTransactionRequest
 	 * @throws InconsistentJsonException if {@code json} is inconsistent
 	 */
 	public JarStoreTransactionRequestImpl(TransactionRequestJson json) throws InconsistentJsonException {
-		this(Hex.fromHexString(json.getSignature(), InconsistentJsonException::new),
-				Objects.requireNonNull(json.getCaller(), "caller cannot be null", InconsistentJsonException::new).unmap().asReference(value -> new InconsistentJsonException("caller must be a storage reference, not a " + value.getClass().getSimpleName())),
-				json.getNonce(),
-				json.getChainId(),
-				json.getGasLimit(),
-				json.getGasPrice(),
-				Objects.requireNonNull(json.getClasspath(), "classpath cannot be null", InconsistentJsonException::new).unmap(),
-				Base64.fromBase64String(Objects.requireNonNull(json.getJar(), "json cannot be null", InconsistentJsonException::new), InconsistentJsonException::new),
-				convertedDependencies(json),
-				InconsistentJsonException::new);
+		this(
+			Hex.fromHexString(json.getSignature(), InconsistentJsonException::new),
+			Objects.requireNonNull(json.getCaller(), "caller cannot be null", InconsistentJsonException::new).unmap().asReference(value -> new InconsistentJsonException("caller must be a storage reference, not a " + value.getClass().getSimpleName())),
+			json.getNonce(),
+			json.getChainId(),
+			json.getGasLimit(),
+			json.getGasPrice(),
+			Objects.requireNonNull(json.getClasspath(), "classpath cannot be null", InconsistentJsonException::new).unmap(),
+			Base64.fromBase64String(Objects.requireNonNull(json.getJar(), "json cannot be null", InconsistentJsonException::new), InconsistentJsonException::new),
+			convertedDependencies(json),
+			InconsistentJsonException::new
+		);
 	}
 
 	private static TransactionReference[] convertedDependencies(TransactionRequestJson json) throws InconsistentJsonException {
@@ -249,9 +252,9 @@ public class JarStoreTransactionRequestImpl extends NonInitialTransactionRequest
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the request
-	 * @throws IOException if the request could noy be unmarshalled
+	 * @throws IOException if the request could not be unmarshalled
 	 */
-	public static JarStoreTransactionRequestImpl from(UnmarshallingContext context) throws IOException {
+	public static JarStoreTransactionRequest from(UnmarshallingContext context) throws IOException {
 		var chainId = context.readStringUnshared();
 		var caller = StorageValues.referenceWithoutSelectorFrom(context);
 		var gasLimit = context.readBigInteger();
@@ -263,6 +266,6 @@ public class JarStoreTransactionRequestImpl extends NonInitialTransactionRequest
 		var dependencies = context.readLengthAndArray(TransactionReferences::from, TransactionReference[]::new);
 		byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 
-		return new JarStoreTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, jar, dependencies, IOException::new);
+		return TransactionRequests.jarStore(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, jar, dependencies, IOException::new);
 	}
 }

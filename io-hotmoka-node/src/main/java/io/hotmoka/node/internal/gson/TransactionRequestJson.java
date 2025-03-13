@@ -21,12 +21,10 @@ import java.util.stream.Stream;
 
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Hex;
-import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
-import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.node.api.requests.InitializationTransactionRequest;
@@ -36,8 +34,6 @@ import io.hotmoka.node.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.node.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
-import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.internal.requests.TransactionRequestImpl;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
@@ -291,48 +287,6 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 
 	@Override
 	public TransactionRequest<?> unmap() throws InconsistentJsonException {
-		try {
-			if (GameteCreationTransactionRequest.class.getSimpleName().equals(type))
-				return TransactionRequestImpl.from(this);
-			else if (InitializationTransactionRequest.class.getSimpleName().equals(type))
-				return TransactionRequestImpl.from(this);
-			else if (JarStoreInitialTransactionRequest.class.getSimpleName().equals(type))
-				return TransactionRequestImpl.from(this);
-			else if (JarStoreTransactionRequest.class.getSimpleName().equals(type))
-				return TransactionRequestImpl.from(this);
-			else if (ConstructorCallTransactionRequest.class.getSimpleName().equals(type))
-				return TransactionRequests.constructorCall(Hex.fromHexString(signature), unmapIntoStorageReference(caller), nonce, chainId, gasLimit, gasPrice, classpath.unmap(), constructor.unmap(), convertedActuals());
-			else if (StaticMethodCallTransactionRequest.class.getSimpleName().equals(type))
-				return TransactionRequests.staticMethodCall(Hex.fromHexString(signature), unmapIntoStorageReference(caller), nonce, chainId, gasLimit, gasPrice, classpath.unmap(), method.unmap(), convertedActuals());
-			else if (InstanceMethodCallTransactionRequest.class.getSimpleName().equals(type))
-				return TransactionRequests.instanceMethodCall(Hex.fromHexString(signature), unmapIntoStorageReference(caller), nonce, chainId, gasLimit, gasPrice, classpath.unmap(), method.unmap(), unmapIntoStorageReference(receiver), convertedActuals());
-			else if (InstanceSystemMethodCallTransactionRequest.class.getSimpleName().equals(type))
-				return TransactionRequests.instanceSystemMethodCall(unmapIntoStorageReference(caller), nonce, gasLimit, classpath.unmap(), method.unmap(), unmapIntoStorageReference(receiver), convertedActuals());
-			else
-				throw new InconsistentJsonException("Unexpected request type " + type);
-		}
-		catch (HexConversionException e) {
-			throw new InconsistentJsonException(e);
-		}
-	}
-
-	private static StorageReference unmapIntoStorageReference(StorageValues.Json json) throws InconsistentJsonException {
-		if (json.unmap() instanceof StorageReference sr)
-			return sr;
-		else
-			throw new InconsistentJsonException("Unexpected storage value");
-	}
-
-	private StorageValue[] convertedActuals() throws InconsistentJsonException {
-		var result = new StorageValue[actuals.length];
-		for (int pos = 0; pos < result.length; pos++) {
-			StorageValues.Json actual = actuals[pos];
-			if (actual == null)
-				throw new InconsistentJsonException("actuals cannot hold null elements");
-
-			result[pos] = actual.unmap();
-		}
-
-		return result;
+		return TransactionRequestImpl.from(this);
 	}
 }

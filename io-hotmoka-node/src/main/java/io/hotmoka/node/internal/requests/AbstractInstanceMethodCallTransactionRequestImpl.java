@@ -57,11 +57,7 @@ public abstract class AbstractInstanceMethodCallTransactionRequestImpl extends M
 		this.receiver = Objects.requireNonNull(receiver, "receiver cannot be null");
 	}
 
-	/**
-	 * Yields the receiver of the call.
-	 * 
-	 * @return the receiver of the call
-	 */
+	@Override
 	public StorageReference getReceiver() {
 		return receiver;
 	}

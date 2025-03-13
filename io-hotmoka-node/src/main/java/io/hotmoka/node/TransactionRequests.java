@@ -148,6 +148,7 @@ public abstract class TransactionRequests {
 	/**
 	 * yields a transaction request to call a constructor in a node.
 	 * 
+	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
 	 * @param signature the signature of the request
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
@@ -157,10 +158,12 @@ public abstract class TransactionRequests {
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param constructor the constructor that must be called
 	 * @param actuals the actual arguments passed to the constructor
+	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
 	 * @return the request
+	 * @throws E if some argument passed to this constructor is illegal
 	 */
-	public static ConstructorCallTransactionRequest constructorCall(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) {
-		return new ConstructorCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, constructor, actuals);
+	public static <E extends Exception> ConstructorCallTransactionRequest constructorCall(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue[] actuals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		return new ConstructorCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, constructor, actuals, onIllegalArgs);
 	}
 
 	/**
@@ -207,6 +210,7 @@ public abstract class TransactionRequests {
 	/**
 	 * Yields a transaction request to call an instance method in a node.
 	 * 
+	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
 	 * @param signature the signature of the request
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
@@ -217,10 +221,12 @@ public abstract class TransactionRequests {
 	 * @param method the method that must be called
 	 * @param receiver the receiver of the call
 	 * @param actuals the actual arguments passed to the method
+	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
 	 * @return the request
+	 * @throws E if some argument is illegal
 	 */
-	public static InstanceMethodCallTransactionRequest instanceMethodCall(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) {
-		return new InstanceMethodCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, receiver, actuals);
+	public static <E extends Exception> InstanceMethodCallTransactionRequest instanceMethodCall(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue[] actuals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		return new InstanceMethodCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, receiver, actuals, onIllegalArgs);
 	}
 
 	/**
@@ -245,6 +251,7 @@ public abstract class TransactionRequests {
 	 * hence it is only used for calls started by the same node.
 	 * Users cannot run a transaction from this request.
 	 * 
+	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
 	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
@@ -252,15 +259,18 @@ public abstract class TransactionRequests {
 	 * @param method the method that must be called
 	 * @param receiver the receiver of the call
 	 * @param actuals the actual arguments passed to the method
+	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
 	 * @return the request
+	 * @throws E if some argument passed to this constructor is illegal
 	 */
-	public static InstanceSystemMethodCallTransactionRequest instanceSystemMethodCall(StorageReference caller, BigInteger nonce, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) {
-		return new InstanceSystemMethodCallTransactionRequestImpl(caller, nonce, gasLimit, classpath, method, receiver, actuals);
+	public static <E extends Exception> InstanceSystemMethodCallTransactionRequest instanceSystemMethodCall(StorageReference caller, BigInteger nonce, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue[] actuals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		return new InstanceSystemMethodCallTransactionRequestImpl(caller, nonce, gasLimit, classpath, method, receiver, actuals, onIllegalArgs);
 	}
 
 	/**
 	 * Yields a transaction request to call a static method in a node.
 	 * 
+	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
 	 * @param signature the signature of the request
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
@@ -270,10 +280,12 @@ public abstract class TransactionRequests {
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param method the method that must be called
 	 * @param actuals the actual arguments passed to the method
+	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
 	 * @return the request
+	 * @throws E if some argument passed to this constructor is illegal
 	 */
-	public static StaticMethodCallTransactionRequest staticMethodCall(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) {
-		return new StaticMethodCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, actuals);
+	public static <E extends Exception> StaticMethodCallTransactionRequest staticMethodCall(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue[] actuals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		return new StaticMethodCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, actuals, onIllegalArgs);
 	}
 
 	/**

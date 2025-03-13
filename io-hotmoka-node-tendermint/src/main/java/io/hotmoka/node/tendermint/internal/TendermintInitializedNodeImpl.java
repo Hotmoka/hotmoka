@@ -53,6 +53,7 @@ import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.tendermint.api.TendermintNode;
 
 /**
@@ -173,9 +174,12 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 			(new byte[0], gamete, nonceOfGamete, "", _200_000, ZERO, takamakaCodeReference,
 					ConstructorSignatures.of(builderClass, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG,
 					StorageTypes.INT, StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
-			StorageValues.bigIntegerOf(consensus.getTicketForNewPoll()), StorageValues.bigIntegerOf(consensus.getFinalSupply()),
-			StorageValues.longOf(consensus.getInitialInflation()), StorageValues.intOf(consensus.getPercentStaked()), StorageValues.intOf(consensus.getBuyerSurcharge()),
-			StorageValues.intOf(consensus.getSlashingForMisbehaving()), StorageValues.intOf(consensus.getSlashingForNotBehaving()));
+			new StorageValue[] {
+				StorageValues.bigIntegerOf(consensus.getTicketForNewPoll()), StorageValues.bigIntegerOf(consensus.getFinalSupply()),
+				StorageValues.longOf(consensus.getInitialInflation()), StorageValues.intOf(consensus.getPercentStaked()), StorageValues.intOf(consensus.getBuyerSurcharge()),
+				StorageValues.intOf(consensus.getSlashingForMisbehaving()), StorageValues.intOf(consensus.getSlashingForNotBehaving())
+			},
+			IllegalArgumentException::new);
 
 		nonceOfGamete = nonceOfGamete.add(BigInteger.ONE);
 
@@ -200,7 +204,7 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 			long power = powerFromTendermintValidator(tv);
 			var addValidator = TransactionRequests.instanceMethodCall
 				(new byte[0], gamete, nonceOfGamete, "", _200_000, ZERO, takamakaCodeReference,
-				addValidatorMethod, builder, StorageValues.stringOf(publicKeyBase64), StorageValues.longOf(power));
+				addValidatorMethod, builder, new StorageValue[] { StorageValues.stringOf(publicKeyBase64), StorageValues.longOf(power) }, IllegalArgumentException::new);
 			node.addInstanceMethodCallTransaction(addValidator);
 			nonceOfGamete = nonceOfGamete.add(BigInteger.ONE);
 		}

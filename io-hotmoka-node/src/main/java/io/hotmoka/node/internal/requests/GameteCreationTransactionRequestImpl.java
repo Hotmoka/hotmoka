@@ -95,8 +95,12 @@ public class GameteCreationTransactionRequestImpl extends TransactionRequestImpl
 	 * @throws InconsistentJsonException if {@code json} is inconsistent
 	 */
 	public GameteCreationTransactionRequestImpl(TransactionRequestJson json) throws InconsistentJsonException {
-		this(Objects.requireNonNull(json.getClasspath(), "classpath cannot be null", InconsistentJsonException::new).unmap(),
-			json.getInitialAmount(), json.getPublicKey(), InconsistentJsonException::new);
+		this(
+			Objects.requireNonNull(json.getClasspath(), "classpath cannot be null", InconsistentJsonException::new).unmap(),
+			json.getInitialAmount(),
+			json.getPublicKey(),
+			InconsistentJsonException::new
+		);
 	}
 
 	@Override

@@ -20,17 +20,22 @@ import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.Marshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
+import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.requests.InstanceSystemMethodCallTransactionRequest;
 import io.hotmoka.node.api.signatures.MethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
+import io.hotmoka.node.internal.gson.TransactionRequestJson;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * Implementation of a request for calling an instance method of a storage object in a node.
@@ -44,6 +49,7 @@ public class InstanceSystemMethodCallTransactionRequestImpl extends AbstractInst
 	/**
 	 * Builds the transaction request.
 	 * 
+	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
 	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
@@ -51,9 +57,30 @@ public class InstanceSystemMethodCallTransactionRequestImpl extends AbstractInst
 	 * @param method the method that must be called
 	 * @param receiver the receiver of the call
 	 * @param actuals the actual arguments passed to the method
+	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
+	 * @throws E if some argument passed to this constructor is illegal
 	 */
-	public InstanceSystemMethodCallTransactionRequestImpl(StorageReference caller, BigInteger nonce, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) {
-		super(caller, nonce, gasLimit, BigInteger.ZERO, classpath, method, receiver, actuals);
+	public <E extends Exception> InstanceSystemMethodCallTransactionRequestImpl(StorageReference caller, BigInteger nonce, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue[] actuals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(caller, nonce, gasLimit, BigInteger.ZERO, classpath, method, receiver, actuals); // TODO: pass onIllegalArgs
+	}
+
+	/**
+	 * Builds a transaction request from its given JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public InstanceSystemMethodCallTransactionRequestImpl(TransactionRequestJson json) throws InconsistentJsonException {
+		this(
+			Objects.requireNonNull(json.getCaller(), "caller cannot be null", InconsistentJsonException::new).unmap().asReference(value -> new InconsistentJsonException("caller must be a storage reference, not a " + value.getClass().getSimpleName())),
+			json.getNonce(),
+			json.getGasLimit(),
+			Objects.requireNonNull(json.getClasspath(), "classpath cannot be null", InconsistentJsonException::new).unmap(),
+			Objects.requireNonNull(json.getMethod(), "method cannot be null", InconsistentJsonException::new).unmap(),
+			Objects.requireNonNull(json.getReceiver(), "receiver cannot be null", InconsistentJsonException::new).unmap().asReference(value -> new InconsistentJsonException("receiver must be a storage reference, not a " + value.getClass().getSimpleName())),
+			convertedActuals(json),
+			InconsistentJsonException::new
+		);
 	}
 
 	@Override
@@ -92,7 +119,7 @@ public class InstanceSystemMethodCallTransactionRequestImpl extends AbstractInst
 	 * @return the request
 	 * @throws IOException if the request could not be unmarshalled
 	 */
-	public static InstanceSystemMethodCallTransactionRequestImpl from(UnmarshallingContext context) throws IOException {
+	public static InstanceSystemMethodCallTransactionRequest from(UnmarshallingContext context) throws IOException {
 		var caller = StorageValues.referenceWithoutSelectorFrom(context);
 		var gasLimit = context.readBigInteger();
 		var classpath = TransactionReferences.from(context);
@@ -101,6 +128,6 @@ public class InstanceSystemMethodCallTransactionRequestImpl extends AbstractInst
 		var method = MethodSignatures.from(context);
 		var receiver = StorageValues.referenceWithoutSelectorFrom(context);
 
-		return new InstanceSystemMethodCallTransactionRequestImpl(caller, nonce, gasLimit, classpath, method, receiver, actuals);
+		return TransactionRequests.instanceSystemMethodCall(caller, nonce, gasLimit, classpath, method, receiver, actuals, IOException::new);
 	}
 }

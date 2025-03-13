@@ -34,6 +34,7 @@ import io.hotmoka.node.api.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.local.AbstractTrieBasedStoreTransformation;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.StoreCache;
@@ -114,8 +115,14 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 
 				var request = TransactionRequests.instanceSystemMethodCall
 					(manifest, nonce, _100_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD_MOKAMINT_NODE, validators,
-					StorageValues.bigIntegerOf(coinsForNode), StorageValues.bigIntegerOf(minted),
-					StorageValues.stringOf(publicKeyOfNodeBase64), StorageValues.bigIntegerOf(getGasConsumed()), StorageValues.bigIntegerOf(deliveredCount()));
+					new StorageValue[] {
+						StorageValues.bigIntegerOf(coinsForNode),
+						StorageValues.bigIntegerOf(minted),
+						StorageValues.stringOf(publicKeyOfNodeBase64),
+						StorageValues.bigIntegerOf(getGasConsumed()),
+						StorageValues.bigIntegerOf(deliveredCount())
+					},
+					IllegalArgumentException::new);
 
 				TransactionResponse response = deliverTransaction(request);
 	
@@ -129,7 +136,11 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 
 					request = TransactionRequests.instanceSystemMethodCall
 						(manifest, nonce, _100_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD_MOKAMINT_MINER, validators,
-						StorageValues.bigIntegerOf(coinsForMiner), StorageValues.stringOf(publicKeyOfMinerBase64));
+						new StorageValue[] {
+							StorageValues.bigIntegerOf(coinsForMiner),
+							StorageValues.stringOf(publicKeyOfMinerBase64)
+						},
+						IllegalArgumentException::new);
 
 					response = deliverTransaction(request);
 

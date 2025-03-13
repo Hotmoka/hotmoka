@@ -44,6 +44,7 @@ import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
 
 /**
  * A decorator of a node, that installs a jar and creates some initial accounts in it.
@@ -109,12 +110,15 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 					StorageTypes.INT, StorageTypes.LONG,
 					StorageTypes.BOOLEAN, StorageTypes.BOOLEAN,
 					StorageTypes.STRING, StorageTypes.GAMETE, StorageTypes.LONG, function, function),
-			StorageValues.stringOf(consensus.getGenesisTime().toInstant(ZoneOffset.UTC).toString()),
-			StorageValues.stringOf(consensus.getChainId()), StorageValues.intOf(consensus.getMaxErrorLength()), StorageValues.intOf(consensus.getMaxDependencies()),
-			StorageValues.longOf(consensus.getMaxCumulativeSizeOfDependencies()),
-			StorageValues.booleanOf(consensus.allowsUnsignedFaucet()), StorageValues.booleanOf(consensus.skipsVerification()),
-			StorageValues.stringOf(consensus.getSignatureForRequests().getName()), gamete, StorageValues.longOf(consensus.getVerificationVersion()),
-			builderOfValidators, builderOfGasStation);
+			new StorageValue[] {
+				StorageValues.stringOf(consensus.getGenesisTime().toInstant(ZoneOffset.UTC).toString()),
+				StorageValues.stringOf(consensus.getChainId()), StorageValues.intOf(consensus.getMaxErrorLength()), StorageValues.intOf(consensus.getMaxDependencies()),
+				StorageValues.longOf(consensus.getMaxCumulativeSizeOfDependencies()),
+				StorageValues.booleanOf(consensus.allowsUnsignedFaucet()), StorageValues.booleanOf(consensus.skipsVerification()),
+				StorageValues.stringOf(consensus.getSignatureForRequests().getName()), gamete, StorageValues.longOf(consensus.getVerificationVersion()),
+				builderOfValidators, builderOfGasStation
+			},
+			IllegalArgumentException::new);
 
 		StorageReference manifest = parent.addConstructorCallTransaction(request);
 
@@ -162,12 +166,15 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 					StorageTypes.INT, StorageTypes.LONG,
 					StorageTypes.BOOLEAN, StorageTypes.BOOLEAN,
 					StorageTypes.STRING, StorageTypes.GAMETE, StorageTypes.LONG, function, function),
-			StorageValues.stringOf(consensus.getGenesisTime().toString()),
-			StorageValues.stringOf(consensus.getChainId()), StorageValues.intOf(consensus.getMaxErrorLength()), StorageValues.intOf(consensus.getMaxDependencies()),
-			StorageValues.longOf(consensus.getMaxCumulativeSizeOfDependencies()),
-			StorageValues.booleanOf(consensus.allowsUnsignedFaucet()), StorageValues.booleanOf(consensus.skipsVerification()),
-			StorageValues.stringOf(consensus.getSignatureForRequests().getName()), gamete, StorageValues.longOf(consensus.getVerificationVersion()),
-			builderOfValidators, builderOfGasStation);
+			new StorageValue[] {
+				StorageValues.stringOf(consensus.getGenesisTime().toString()),
+				StorageValues.stringOf(consensus.getChainId()), StorageValues.intOf(consensus.getMaxErrorLength()), StorageValues.intOf(consensus.getMaxDependencies()),
+				StorageValues.longOf(consensus.getMaxCumulativeSizeOfDependencies()),
+				StorageValues.booleanOf(consensus.allowsUnsignedFaucet()), StorageValues.booleanOf(consensus.skipsVerification()),
+				StorageValues.stringOf(consensus.getSignatureForRequests().getName()), gamete, StorageValues.longOf(consensus.getVerificationVersion()),
+				builderOfValidators, builderOfGasStation
+			},
+			IllegalArgumentException::new);
 
 		StorageReference manifest;
 
@@ -209,9 +216,12 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 							ConstructorSignatures.of(StorageTypes.classNamed("io.takamaka.code.governance.GenericValidators$Builder", IllegalArgumentException::new), StorageTypes.STRING,
 									StorageTypes.STRING, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG,
 									StorageTypes.INT, StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
+					new StorageValue[] {
 							StorageValues.stringOf(""), StorageValues.stringOf(""), StorageValues.bigIntegerOf(consensus.getTicketForNewPoll()), StorageValues.bigIntegerOf(consensus.getFinalSupply()),
 							StorageValues.longOf(consensus.getInitialInflation()), StorageValues.intOf(0),
-							StorageValues.intOf(0), StorageValues.intOf(0), StorageValues.intOf(0));
+							StorageValues.intOf(0), StorageValues.intOf(0), StorageValues.intOf(0)
+					},
+					IllegalArgumentException::new);
 
 			return node.addConstructorCallTransaction(request);
 		}
@@ -230,9 +240,12 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 					(new byte[0], gamete, nonceOfGamete, "", BigInteger.valueOf(100_000), ZERO, takamakaCode,
 							ConstructorSignatures.of(StorageTypes.classNamed("io.takamaka.code.governance.GenericGasStation$Builder", IllegalArgumentException::new),
 									StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.BOOLEAN, StorageTypes.BIG_INTEGER, StorageTypes.LONG),
-							StorageValues.bigIntegerOf(consensus.getInitialGasPrice()), StorageValues.bigIntegerOf(consensus.getMaxGasPerTransaction()),
-							StorageValues.booleanOf(consensus.ignoresGasPrice()), StorageValues.bigIntegerOf(consensus.getTargetGasAtReward()),
-							StorageValues.longOf(consensus.getOblivion()));
+					new StorageValue[] {
+						StorageValues.bigIntegerOf(consensus.getInitialGasPrice()), StorageValues.bigIntegerOf(consensus.getMaxGasPerTransaction()),
+						StorageValues.booleanOf(consensus.ignoresGasPrice()), StorageValues.bigIntegerOf(consensus.getTargetGasAtReward()),
+						StorageValues.longOf(consensus.getOblivion())
+					},
+					IllegalArgumentException::new);
 
 			return node.addConstructorCallTransaction(request);
 		}
