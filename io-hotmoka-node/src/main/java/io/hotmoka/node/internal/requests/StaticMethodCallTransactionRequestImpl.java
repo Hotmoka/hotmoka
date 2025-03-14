@@ -75,8 +75,9 @@ public class StaticMethodCallTransactionRequestImpl extends MethodCallTransactio
 	 * @throws SignatureException if the signer cannot sign the request
 	 * @throws InvalidKeyException if the signer uses an invalid private key
 	 */
-	public StaticMethodCallTransactionRequestImpl(Signer<? super StaticMethodCallTransactionRequestImpl> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) throws InvalidKeyException, SignatureException {
-		super(caller, nonce, gasLimit, gasPrice, classpath, method, actuals);
+	// TODO: pass exception supplier
+	public StaticMethodCallTransactionRequestImpl(Signer<? super StaticMethodCallTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) throws InvalidKeyException, SignatureException {
+		super(caller, nonce, gasLimit, gasPrice, classpath, method, actuals, IllegalArgumentException::new);
 
 		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null", NullPointerException::new);
 		this.signature = signer.sign(this);
@@ -99,7 +100,7 @@ public class StaticMethodCallTransactionRequestImpl extends MethodCallTransactio
 	 * @throws E if some argument is illegal
 	 */
 	public <E extends Exception> StaticMethodCallTransactionRequestImpl(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue[] actuals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
-		super(caller, nonce, gasLimit, gasPrice, classpath, method, actuals); // TODO: pass onIllegalArgs
+		super(caller, nonce, gasLimit, gasPrice, classpath, method, actuals, onIllegalArgs);
 
 		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null", onIllegalArgs);
 		this.signature = Objects.requireNonNull(signature, "signature cannot be null", onIllegalArgs).clone();

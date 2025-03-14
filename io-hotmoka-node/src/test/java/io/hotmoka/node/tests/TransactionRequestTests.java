@@ -109,7 +109,7 @@ public class TransactionRequestTests extends AbstractLoggedTests {
 		var constructor = ConstructorSignatures.of(MY_CLASS, StorageTypes.INT, StorageTypes.classNamed("io.hotmoka.OtherClass", IllegalArgumentException::new));
 		var value1 = StorageValues.intOf(13);
 		var value2 = StorageValues.reference(reference2, BigInteger.ZERO, RuntimeException::new);
-		var request1 = TransactionRequests.constructorCall(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, constructor, value1, value2);
+		var request1 = TransactionRequests.constructorCall(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, constructor, new StorageValue[] { value1, value2 }, IllegalArgumentException::new);
 		String encoded = new TransactionRequests.Encoder().encode(request1);
 		var request2 = new TransactionRequests.Decoder().decode(encoded);
 		assertEquals(request1, request2);

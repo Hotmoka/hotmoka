@@ -53,6 +53,7 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
 
 /**
  * An object that helps with the creation of new accounts.
@@ -214,7 +215,8 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 				(signer, payer, nonceHelper.getNonceOf(payer),
 				chainId, gas1.add(gas2), gasHelper.getGasPrice(), takamakaCode,
 				ConstructorSignatures.of(eoaType, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
-				StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyEncoded));
+				new StorageValue[] { StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyEncoded) },
+				NodeException::new); // TODO: check exception
 			account = node.addConstructorCallTransaction((ConstructorCallTransactionRequest) request1);
 		}
 
@@ -309,7 +311,8 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 			(signer, payer, nonceHelper.getNonceOf(payer),
 			chainId, gas1.add(gas2), gasHelper.getGasPrice(), takamakaCode,
 			ConstructorSignatures.of(StorageTypes.TENDERMINT_ED25519_VALIDATOR, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
-			StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyEncoded));
+			new StorageValue[] { StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyEncoded) },
+			NodeException::new); // TODO: check exception
 		StorageReference validator = node.addConstructorCallTransaction(request1);
 
 		requestsHandler.accept(new TransactionRequest<?>[] { request1 });

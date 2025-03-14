@@ -49,6 +49,7 @@ import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -189,7 +190,8 @@ public class AccountsNodeImpl extends AbstractNodeDecorator<Node> implements Acc
 				(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getSafeGasPrice(), classpath,
 						// TODO: check exception below
 						ConstructorSignatures.of(StorageTypes.classNamed(containerClassName, NodeException::new), StorageTypes.BIG_INTEGER, StorageTypes.STRING, StorageTypes.STRING),
-						StorageValues.bigIntegerOf(sum), StorageValues.stringOf(balances.toString()), StorageValues.stringOf(publicKeys.toString())));
+						new StorageValue[] { StorageValues.bigIntegerOf(sum), StorageValues.stringOf(balances.toString()), StorageValues.stringOf(publicKeys.toString()) },
+						NodeException::new));
 
 		var get = MethodSignatures.ofNonVoid(StorageTypes.ACCOUNTS, "get", StorageTypes.EOA, StorageTypes.INT);
 

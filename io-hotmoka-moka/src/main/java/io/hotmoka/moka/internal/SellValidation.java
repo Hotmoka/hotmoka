@@ -41,6 +41,7 @@ import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.remote.RemoteNodes;
 import picocli.CommandLine.Command;
@@ -132,13 +133,15 @@ public class SellValidation extends AbstractCommand {
 				if (buyer == null)
 					request1 = TransactionRequests.constructorCall(signer, seller, nonceHelper.getNonceOf(seller), chainId, gasLimit, gasHelper.getSafeGasPrice(), takamakaCode,
 							ConstructorSignatures.of(StorageTypes.SHARED_ENTITY_OFFER, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG),
-							seller, StorageValues.bigIntegerOf(power), StorageValues.bigIntegerOf(cost), StorageValues.longOf(duration));
+							new StorageValue[] { seller, StorageValues.bigIntegerOf(power), StorageValues.bigIntegerOf(cost), StorageValues.longOf(duration) },
+							CommandException::new);
 				else
 					// the reserved buyer is specified as well
 					request1 = TransactionRequests.constructorCall(signer, seller, nonceHelper.getNonceOf(seller), chainId, gasLimit, gasHelper.getSafeGasPrice(), takamakaCode,
 							ConstructorSignatures.of(StorageTypes.SHARED_ENTITY_OFFER, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG, StorageTypes.PAYABLE_CONTRACT),
-							seller, StorageValues.bigIntegerOf(power), StorageValues.bigIntegerOf(cost), StorageValues.longOf(duration),
-							StorageValues.reference(buyer, s -> new CommandException("The buyer " + buyer + " is not a valid storage reference: " + s)));
+							new StorageValue[] { seller, StorageValues.bigIntegerOf(power), StorageValues.bigIntegerOf(cost), StorageValues.longOf(duration),
+							StorageValues.reference(buyer, s -> new CommandException("The buyer " + buyer + " is not a valid storage reference: " + s)) },
+							IllegalArgumentException::new);
 
 				StorageReference newOffer = node.addConstructorCallTransaction(request1);
 				

@@ -30,6 +30,7 @@ import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
 
 /**
  * A test for the wrong use of the chain identifier in a transaction.
@@ -47,8 +48,10 @@ class WrongChainId extends HotmokaTest {
 		StorageReference caller = account(0);
 
 		throwsTransactionRejectedWithCause("Incorrect chain id", () ->
-			node.addConstructorCallTransaction(TransactionRequests.constructorCall(signature().getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, BigInteger.ZERO, chainId() + "noise",
-				_100_000, panarea(1), takamakaCode(), ConstructorSignatures.EOA_CONSTRUCTOR, StorageValues.bigIntegerOf(_50_000), StorageValues.stringOf("ciao")))
+			node.addConstructorCallTransaction(TransactionRequests.constructorCall(signature().getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature),
+				caller, BigInteger.ZERO, chainId() + "noise",
+				_100_000, panarea(1), takamakaCode(), ConstructorSignatures.EOA_CONSTRUCTOR,
+				new StorageValue[] { StorageValues.bigIntegerOf(_50_000), StorageValues.stringOf("ciao") }, IllegalArgumentException::new))
 		);
 	}
 }

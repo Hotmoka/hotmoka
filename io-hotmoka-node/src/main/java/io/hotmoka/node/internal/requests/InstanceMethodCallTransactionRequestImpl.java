@@ -84,8 +84,9 @@ public class InstanceMethodCallTransactionRequestImpl extends AbstractInstanceMe
 	 * @throws SignatureException if the signer cannot sign the request
 	 * @throws InvalidKeyException if the signer uses an invalid private key
 	 */
-	public InstanceMethodCallTransactionRequestImpl(Signer<? super InstanceMethodCallTransactionRequestImpl> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws InvalidKeyException, SignatureException {
-		super(caller, nonce, gasLimit, gasPrice, classpath, method, receiver, actuals);
+	// TODO: pass exception supplier
+	public InstanceMethodCallTransactionRequestImpl(Signer<? super InstanceMethodCallTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws InvalidKeyException, SignatureException {
+		super(caller, nonce, gasLimit, gasPrice, classpath, method, receiver, actuals, IllegalArgumentException::new);
 
 		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null", NullPointerException::new);
 		this.signature = signer.sign(this);
@@ -109,7 +110,7 @@ public class InstanceMethodCallTransactionRequestImpl extends AbstractInstanceMe
 	 * @throws E if some argument is illegal
 	 */
 	public <E extends Exception> InstanceMethodCallTransactionRequestImpl(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue[] actuals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
-		super(caller, nonce, gasLimit, gasPrice, classpath, method, receiver, actuals); // TODO: pass onIllegalArgs
+		super(caller, nonce, gasLimit, gasPrice, classpath, method, receiver, actuals, onIllegalArgs);
 
 		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null", onIllegalArgs);
 		this.signature = Objects.requireNonNull(signature, "signature cannot be null", onIllegalArgs);

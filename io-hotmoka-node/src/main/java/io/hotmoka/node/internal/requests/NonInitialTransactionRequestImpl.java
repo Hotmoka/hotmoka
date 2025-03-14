@@ -18,9 +18,10 @@ package io.hotmoka.node.internal.requests;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.node.api.requests.NonInitialTransactionRequest;
 import io.hotmoka.node.api.responses.NonInitialTransactionResponse;
@@ -64,27 +65,30 @@ public abstract class NonInitialTransactionRequestImpl<R extends NonInitialTrans
 	/**
 	 * Builds the transaction request.
 	 * 
+	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
 	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
 	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
+	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
+	 * @throws E if some argument passed to this constructor is illegal
 	 */
-	protected NonInitialTransactionRequestImpl(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath) {
-		this.caller = Objects.requireNonNull(caller, "caller cannot be null");
-		this.gasLimit = Objects.requireNonNull(gasLimit, "gasLimit cannot be null");
-		this.gasPrice = Objects.requireNonNull(gasPrice, "gasPrice cannot be null");
-		this.classpath = Objects.requireNonNull(classpath, "classpath cannot be null");
-		this.nonce = Objects.requireNonNull(nonce, "nonce cannot be null");
+	protected <E extends Exception> NonInitialTransactionRequestImpl(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		this.caller = Objects.requireNonNull(caller, "caller cannot be null", onIllegalArgs);
+		this.gasLimit = Objects.requireNonNull(gasLimit, "gasLimit cannot be null", onIllegalArgs);
+		this.gasPrice = Objects.requireNonNull(gasPrice, "gasPrice cannot be null", onIllegalArgs);
+		this.classpath = Objects.requireNonNull(classpath, "classpath cannot be null", onIllegalArgs);
+		this.nonce = Objects.requireNonNull(nonce, "nonce cannot be null", onIllegalArgs);
 
 		if (gasLimit.signum() < 0)
-			throw new IllegalArgumentException("gasLimit cannot be negative");
+			throw onIllegalArgs.apply("gasLimit cannot be negative");
 
 		if (gasPrice.signum() < 0)
-			throw new IllegalArgumentException("gasPrice cannot be negative");
+			throw onIllegalArgs.apply("gasPrice cannot be negative");
 
 		if (nonce.signum() < 0)
-			throw new IllegalArgumentException("nonce cannot be negative");
+			throw onIllegalArgs.apply("nonce cannot be negative");
 	}
 
 	@Override

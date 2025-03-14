@@ -131,7 +131,8 @@ public class Create extends AbstractCommand {
 						gasHelper.getGasPrice(),
 						classpath,
 						signatureOfConstructor,
-						actualsAsStorageValues(signatureOfConstructor));
+						actualsAsStorageValues(signatureOfConstructor),
+						CommandException::new);
 
 				try {
 					StorageReference object = node.addConstructorCallTransaction(request);

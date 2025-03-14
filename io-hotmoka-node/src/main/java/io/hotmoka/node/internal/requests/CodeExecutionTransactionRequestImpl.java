@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.node.NodeMarshallingContexts;
@@ -51,18 +52,22 @@ public abstract class CodeExecutionTransactionRequestImpl<R extends CodeExecutio
 	/**
 	 * Builds the transaction request.
 	 * 
+	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
 	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
 	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param actuals the actual arguments passed to the method
+	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
+	 * @throws E if some argument passed to this constructor is illegal
 	 */
-	protected CodeExecutionTransactionRequestImpl(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, StorageValue... actuals) {
-		super(caller, nonce, gasLimit, gasPrice, classpath);
+	protected <E extends Exception> CodeExecutionTransactionRequestImpl(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, StorageValue[] actuals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(caller, nonce, gasLimit, gasPrice, classpath, onIllegalArgs);
 
-		this.actuals = Objects.requireNonNull(actuals, "actuals cannot be null", NullPointerException::new);
-		Stream.of(actuals).forEach(actual -> Objects.requireNonNull(actual, "actuals cannot hold null", NullPointerException::new));
+		this.actuals = Objects.requireNonNull(actuals, "actuals cannot be null", onIllegalArgs);
+		for (var actual: actuals)
+			Objects.requireNonNull(actual, "actuals cannot hold null elements", onIllegalArgs);
 	}
 
 	@Override

@@ -18,10 +18,11 @@ package io.hotmoka.node.internal.requests;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.node.api.requests.MethodCallTransactionRequest;
 import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
@@ -49,6 +50,7 @@ public abstract class MethodCallTransactionRequestImpl extends CodeExecutionTran
 	/**
 	 * Builds the transaction request.
 	 * 
+	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
 	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
@@ -56,14 +58,16 @@ public abstract class MethodCallTransactionRequestImpl extends CodeExecutionTran
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param method the method that must be called
 	 * @param actuals the actual arguments passed to the method
+	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
+	 * @throws E if some argument passed to this constructor is illegal
 	 */
-	protected MethodCallTransactionRequestImpl(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) {
-		super(caller, nonce, gasLimit, gasPrice, classpath, actuals);
+	protected <E extends Exception> MethodCallTransactionRequestImpl(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue[] actuals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(caller, nonce, gasLimit, gasPrice, classpath, actuals, onIllegalArgs);
 
-		this.method = Objects.requireNonNull(method, "method cannot be null");
+		this.method = Objects.requireNonNull(method, "method cannot be null", onIllegalArgs);
 
 		if (method.getFormals().count() != actuals.length)
-			throw new IllegalArgumentException("Argument count mismatch: " + method.getFormals().count() + " formals and " + actuals.length + " actuals");
+			throw onIllegalArgs.apply("Argument count mismatch: " + method.getFormals().count() + " formals vs " + actuals.length + " actuals");
 	}
 
 	@Override

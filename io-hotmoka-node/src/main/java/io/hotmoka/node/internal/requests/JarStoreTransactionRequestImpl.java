@@ -85,8 +85,9 @@ public class JarStoreTransactionRequestImpl extends NonInitialTransactionRequest
 	 * @throws SignatureException if the signer cannot sign the request
 	 * @throws InvalidKeyException if the signer uses an invalid private key
 	 */
-	public JarStoreTransactionRequestImpl(Signer<? super JarStoreTransactionRequestImpl> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) throws InvalidKeyException, SignatureException {
-		super(caller, nonce, gasLimit, gasPrice, classpath);
+	// TODO: pass exception supplier
+	public JarStoreTransactionRequestImpl(Signer<? super JarStoreTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) throws InvalidKeyException, SignatureException {
+		super(caller, nonce, gasLimit, gasPrice, classpath, IllegalArgumentException::new);
 
 		this.jar = Objects.requireNonNull(jar, "jar cannot be null", IllegalArgumentException::new).clone();
 
@@ -115,14 +116,13 @@ public class JarStoreTransactionRequestImpl extends NonInitialTransactionRequest
 	 * @throws E if some argument passed to this constructor is illegal
 	 */
 	public <E extends Exception> JarStoreTransactionRequestImpl(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference[] dependencies, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
-		// TODO: pass onIllegalArgs to super()
-		super(caller, nonce, gasLimit, gasPrice, classpath);
+		super(caller, nonce, gasLimit, gasPrice, classpath, onIllegalArgs);
 
 		this.jar = Objects.requireNonNull(jar, "jar cannot be null", onIllegalArgs).clone();
 
 		this.dependencies = Objects.requireNonNull(dependencies, "dependencies cannot be null", onIllegalArgs).clone();
 		for (var dependency: dependencies)
-			Objects.requireNonNull(dependency, "dependencies cannot hold null", onIllegalArgs);
+			Objects.requireNonNull(dependency, "dependencies cannot hold null elements", onIllegalArgs);
 
 		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null", onIllegalArgs);
 		this.signature = Objects.requireNonNull(signature, "signature cannot be null", onIllegalArgs).clone();

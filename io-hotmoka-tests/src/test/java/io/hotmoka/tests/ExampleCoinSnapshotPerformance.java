@@ -63,6 +63,7 @@ import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
 
 /**
  * A test that performs repeated transfers between accounts of an ERC20 token, performing snapshots at regular intervals.
@@ -255,8 +256,9 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     	    privateKeyOfCreator = keys.getPrivate();
     		String publicKey = Base64.toBase64String(signature().encodingOf(keys.getPublic()));
     		var request = TransactionRequests.constructorCall
-    			(signature().getSigner(nodeWithAccounts.privateKey(numberOfInvestors), SignedTransactionRequest::toByteArrayWithoutSignature), nodeWithAccounts.account(numberOfInvestors), ZERO, chainId(), _50_000, ZERO, jar(), ConstructorSignatures.of(CREATOR, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
-    			StorageValues.bigIntegerOf(level2(500)), StorageValues.stringOf(publicKey));
+    			(signature().getSigner(nodeWithAccounts.privateKey(numberOfInvestors), SignedTransactionRequest::toByteArrayWithoutSignature),
+    			nodeWithAccounts.account(numberOfInvestors), ZERO, chainId(), _50_000, ZERO, jar(), ConstructorSignatures.of(CREATOR, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
+    			new StorageValue[] { StorageValues.bigIntegerOf(level2(500)), StorageValues.stringOf(publicKey) }, IllegalArgumentException::new);
     		creator = node.addConstructorCallTransaction(request);
     	}
 
@@ -269,7 +271,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
 
     	private void createCoin() throws Exception {
     		var request = TransactionRequests.constructorCall
-    	    	(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, ZERO, chainId(), _500_000, panarea(1), jar(), ConstructorSignatures.of(COIN));
+    	    	(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, ZERO, chainId(), _500_000, panarea(1), jar(), ConstructorSignatures.of(COIN), new StorageValue[0], IllegalArgumentException::new);
     	    coin = node.addConstructorCallTransaction(request);
     	    trace(TransactionReferences.of(hasher.hash(request), IllegalArgumentException::new));
     	}

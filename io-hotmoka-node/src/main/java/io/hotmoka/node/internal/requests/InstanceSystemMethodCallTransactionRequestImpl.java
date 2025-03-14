@@ -61,7 +61,7 @@ public class InstanceSystemMethodCallTransactionRequestImpl extends AbstractInst
 	 * @throws E if some argument passed to this constructor is illegal
 	 */
 	public <E extends Exception> InstanceSystemMethodCallTransactionRequestImpl(StorageReference caller, BigInteger nonce, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue[] actuals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
-		super(caller, nonce, gasLimit, BigInteger.ZERO, classpath, method, receiver, actuals); // TODO: pass onIllegalArgs
+		super(caller, nonce, gasLimit, BigInteger.ZERO, classpath, method, receiver, actuals, onIllegalArgs);
 	}
 
 	/**

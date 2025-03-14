@@ -50,6 +50,7 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.messages.AddConstructorCallTransactionMessages;
 import io.hotmoka.node.messages.AddConstructorCallTransactionResultMessages;
 import io.hotmoka.node.messages.AddGameteCreationTransactionMessages;
@@ -422,7 +423,8 @@ public class MessagesTests extends AbstractLoggedTests {
 		var ed25519 = SignatureAlgorithms.ed25519();
 		var keys = ed25519.getKeyPair();
 		var signer = ed25519.getSigner(keys.getPrivate(), ConstructorCallTransactionRequest::toByteArrayWithoutSignature);
-		var request = TransactionRequests.constructorCall(signer, OBJECT, BigInteger.valueOf(13L), "my_chain", BigInteger.valueOf(1000L), BigInteger.valueOf(17L), TRANSACTION_REFERENCE, constructor, StorageValues.FALSE, StorageValues.floatOf(3.14f), StorageValues.intOf(2024));
+		var request = TransactionRequests.constructorCall(signer, OBJECT, BigInteger.valueOf(13L), "my_chain", BigInteger.valueOf(1000L), BigInteger.valueOf(17L), TRANSACTION_REFERENCE,
+			constructor, new StorageValue[] { StorageValues.FALSE, StorageValues.floatOf(3.14f), StorageValues.intOf(2024) }, IllegalArgumentException::new);
 		var expected = AddConstructorCallTransactionMessages.of(request, "id");
 		String encoded = new AddConstructorCallTransactionMessages.Encoder().encode(expected);
 		var actual = new AddConstructorCallTransactionMessages.Decoder().decode(encoded);
@@ -527,7 +529,8 @@ public class MessagesTests extends AbstractLoggedTests {
 		var ed25519 = SignatureAlgorithms.ed25519();
 		var keys = ed25519.getKeyPair();
 		var signer = ed25519.getSigner(keys.getPrivate(), ConstructorCallTransactionRequest::toByteArrayWithoutSignature);
-		var request = TransactionRequests.constructorCall(signer, OBJECT, BigInteger.valueOf(13L), "my_chain", BigInteger.valueOf(1000L), BigInteger.valueOf(17L), TRANSACTION_REFERENCE, constructor, StorageValues.FALSE, StorageValues.floatOf(3.14f), StorageValues.intOf(2024));
+		var request = TransactionRequests.constructorCall(signer, OBJECT, BigInteger.valueOf(13L), "my_chain", BigInteger.valueOf(1000L), BigInteger.valueOf(17L), TRANSACTION_REFERENCE,
+			constructor, new StorageValue[] { StorageValues.FALSE, StorageValues.floatOf(3.14f), StorageValues.intOf(2024) }, IllegalArgumentException::new);
 		var expected = PostConstructorCallTransactionMessages.of(request, "id");
 		String encoded = new PostConstructorCallTransactionMessages.Encoder().encode(expected);
 		var actual = new PostConstructorCallTransactionMessages.Decoder().decode(encoded);

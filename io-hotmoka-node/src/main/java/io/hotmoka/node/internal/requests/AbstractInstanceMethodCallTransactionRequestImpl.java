@@ -18,9 +18,10 @@ package io.hotmoka.node.internal.requests;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.node.api.requests.AbstractInstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.signatures.MethodSignature;
@@ -42,6 +43,7 @@ public abstract class AbstractInstanceMethodCallTransactionRequestImpl extends M
 	/**
 	 * Builds the transaction request.
 	 * 
+	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
 	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
@@ -50,11 +52,13 @@ public abstract class AbstractInstanceMethodCallTransactionRequestImpl extends M
 	 * @param method the method that must be called
 	 * @param receiver the receiver of the call
 	 * @param actuals the actual arguments passed to the method
+	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
+	 * @throws E if some argument passed to this constructor is illegal
 	 */
-	protected AbstractInstanceMethodCallTransactionRequestImpl(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) {
-		super(caller, nonce, gasLimit, gasPrice, classpath, method, actuals);
+	protected <E extends Exception> AbstractInstanceMethodCallTransactionRequestImpl(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue[] actuals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(caller, nonce, gasLimit, gasPrice, classpath, method, actuals, onIllegalArgs);
 
-		this.receiver = Objects.requireNonNull(receiver, "receiver cannot be null");
+		this.receiver = Objects.requireNonNull(receiver, "receiver cannot be null", onIllegalArgs);
 	}
 
 	@Override

@@ -68,6 +68,7 @@ public class ConstructorCallTransactionRequestImpl extends CodeExecutionTransact
 	/**
 	 * Builds the transaction request.
 	 * 
+	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
 	 * @param signer the signer of the request
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
@@ -77,17 +78,19 @@ public class ConstructorCallTransactionRequestImpl extends CodeExecutionTransact
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param constructor the constructor that must be called
 	 * @param actuals the actual arguments passed to the constructor
+	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
+	 * @throws E if some argument passed to this constructor is illegal
 	 * @throws SignatureException if the signer cannot sign the request
 	 * @throws InvalidKeyException if the signer uses an invalid private key
 	 */
-	public ConstructorCallTransactionRequestImpl(Signer<? super ConstructorCallTransactionRequestImpl> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) throws InvalidKeyException, SignatureException {
-		super(caller, nonce, gasLimit, gasPrice, classpath, actuals);
+	public <E extends Exception> ConstructorCallTransactionRequestImpl(Signer<? super ConstructorCallTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue[] actuals, ExceptionSupplier<? extends E> onIllegalArgs) throws E, InvalidKeyException, SignatureException {
+		super(caller, nonce, gasLimit, gasPrice, classpath, actuals, onIllegalArgs);
 
-		this.constructor = Objects.requireNonNull(constructor, "constructor cannot be null", NullPointerException::new);
-		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null", NullPointerException::new);
+		this.constructor = Objects.requireNonNull(constructor, "constructor cannot be null", onIllegalArgs);
+		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null", onIllegalArgs);
 
 		if (constructor.getFormals().count() != actuals.length)
-			throw new IllegalArgumentException("Argument count mismatch between formals and actuals");
+			throw onIllegalArgs.apply("Argument count mismatch: " + constructor.getFormals().count() + " formals vs " + actuals.length + " actuals");
 
 		this.signature = signer.sign(this);
 	}
@@ -109,7 +112,7 @@ public class ConstructorCallTransactionRequestImpl extends CodeExecutionTransact
 	 * @throws E if some argument passed to this constructor is illegal
 	 */
 	public <E extends Exception> ConstructorCallTransactionRequestImpl(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue[] actuals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
-		super(caller, nonce, gasLimit, gasPrice, classpath, actuals); // TODO: pass onIllegalArgs
+		super(caller, nonce, gasLimit, gasPrice, classpath, actuals, onIllegalArgs);
 
 		Objects.requireNonNull(constructor, "constructor cannot be null", onIllegalArgs);
 		Objects.requireNonNull(chainId, "chainId cannot be null", onIllegalArgs);
