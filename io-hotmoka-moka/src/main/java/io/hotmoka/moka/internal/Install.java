@@ -85,7 +85,7 @@ public class Install extends AbstractCommand {
 				checkStorageReference(payer);
 				var payer = StorageValues.reference(Install.this.payer, CommandException::new);
 				String chainId = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest, StorageValues.NO_VALUES, IllegalArgumentException::new))
 					.orElseThrow(() -> new CommandException(MethodSignatures.GET_CHAIN_ID + " should not return void"))
 					.asReturnedString(MethodSignatures.GET_CHAIN_ID, NodeException::new);
 				var gasHelper = GasHelpers.of(node);

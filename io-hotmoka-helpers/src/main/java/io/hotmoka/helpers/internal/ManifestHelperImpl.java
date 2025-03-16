@@ -79,27 +79,27 @@ public class ManifestHelperImpl implements ManifestHelper {
 
 		try {
 			this.validators = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest))
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest, StorageValues.NO_VALUES, IllegalArgumentException::new))
 					.orElseThrow(() -> new NodeException(MethodSignatures.GET_VALIDATORS + " should not return void"))
 					.asReturnedReference(MethodSignatures.GET_VALIDATORS, NodeException::new);
 			this.initialValidators = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_VALIDATORS, manifest))
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_VALIDATORS, manifest, StorageValues.NO_VALUES, IllegalArgumentException::new))
 					.orElseThrow(() -> new NodeException(MethodSignatures.GET_INITIAL_VALIDATORS + " should not return void"))
 					.asReturnedReference(MethodSignatures.GET_INITIAL_VALIDATORS, NodeException::new);
 			this.gasStation = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAS_STATION, manifest))
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAS_STATION, manifest, StorageValues.NO_VALUES, IllegalArgumentException::new))
 					.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAS_STATION + " should not return void"))
 					.asReturnedReference(MethodSignatures.GET_GAS_STATION, NodeException::new);
 			this.versions = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VERSIONS, manifest))
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VERSIONS, manifest, StorageValues.NO_VALUES, IllegalArgumentException::new))
 					.orElseThrow(() -> new NodeException(MethodSignatures.GET_VERSIONS + " should not return void"))
 					.asReturnedReference(MethodSignatures.GET_VERSIONS, NodeException::new);
 			this.accountsLedger = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_ACCOUNTS_LEDGER, manifest))
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_ACCOUNTS_LEDGER, manifest, StorageValues.NO_VALUES, IllegalArgumentException::new))
 					.orElseThrow(() -> new NodeException(MethodSignatures.GET_ACCOUNTS_LEDGER + " should not return void"))
 					.asReturnedReference(MethodSignatures.GET_ACCOUNTS_LEDGER, NodeException::new);
 			this.gamete = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest, StorageValues.NO_VALUES, IllegalArgumentException::new))
 					.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"))
 					.asReturnedReference(MethodSignatures.GET_GAMETE, NodeException::new);
 		}
@@ -159,7 +159,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 			builder.append("└─ manifest: ").append(manifest).append("\n");
 
 			String genesisTime = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(gamete, _100_000, takamakaCode, MethodSignatures.GET_GENESIS_TIME, manifest))
+				(gamete, _100_000, takamakaCode, MethodSignatures.GET_GENESIS_TIME, manifest, StorageValues.NO_VALUES, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_GENESIS_TIME + " should not return void"))
 				.asReturnedString(MethodSignatures.GET_GENESIS_TIME, NodeException::new);
 			builder.append("   ├─ genesisTime: ").append(genesisTime).append("\n");
@@ -167,42 +167,42 @@ public class ManifestHelperImpl implements ManifestHelper {
 			builder.append("   ├─ chainId: ").append(getChainId()).append("\n");
 
 			int maxErrorLength = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall // TODO: avoid casts
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_ERROR_LENGTH, manifest))
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_ERROR_LENGTH, manifest, StorageValues.NO_VALUES, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_MAX_ERROR_LENGTH + " should not return void"))
 				.asReturnedInt(MethodSignatures.GET_MAX_ERROR_LENGTH, NodeException::new);
 
 			builder.append("   ├─ maxErrorLength: ").append(maxErrorLength).append("\n");
 
 			int maxDependencies = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_DEPENDENCIES, manifest))
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_DEPENDENCIES, manifest, StorageValues.NO_VALUES, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_MAX_DEPENDENCIES + " should not return void"))
 				.asReturnedInt(MethodSignatures.GET_MAX_DEPENDENCIES, NodeException::new);
 
 			builder.append("   ├─ maxDependencies: ").append(maxDependencies).append("\n");
 
 			long maxCumulativeSizeOfDependencies = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES, manifest))
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES, manifest, StorageValues.NO_VALUES, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES + " should not return void"))
 				.asReturnedLong(MethodSignatures.GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES, NodeException::new);
 
 			builder.append("   ├─ maxCumulativeSizeOfDependencies: ").append(maxCumulativeSizeOfDependencies).append("\n");
 
 			boolean allowsUnsignedFaucet = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.ALLOWS_UNSIGNED_FAUCET, manifest))
+				(manifest, _100_000, takamakaCode, MethodSignatures.ALLOWS_UNSIGNED_FAUCET, manifest, StorageValues.NO_VALUES, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException(MethodSignatures.ALLOWS_UNSIGNED_FAUCET + " should not return void"))
 				.asReturnedBoolean(MethodSignatures.ALLOWS_UNSIGNED_FAUCET, NodeException::new);
 
 			builder.append("   ├─ allowsUnsignedFaucet: ").append(allowsUnsignedFaucet).append("\n");
 
 			boolean skipsVerification = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.SKIPS_VERIFICATION, manifest))
+				(manifest, _100_000, takamakaCode, MethodSignatures.SKIPS_VERIFICATION, manifest, StorageValues.NO_VALUES, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException(MethodSignatures.SKIPS_VERIFICATION + " should not return void"))
 				.asReturnedBoolean(MethodSignatures.SKIPS_VERIFICATION, NodeException::new);
 
 			builder.append("   ├─ skipsVerification: ").append(skipsVerification).append("\n");
 
 			String signature = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_SIGNATURE, manifest))
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_SIGNATURE, manifest, StorageValues.NO_VALUES, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_SIGNATURE + " should not return void"))
 				.asReturnedString(MethodSignatures.GET_SIGNATURE, NodeException::new);
 
@@ -211,14 +211,14 @@ public class ManifestHelperImpl implements ManifestHelper {
 			builder.append("   ├─ gamete: ").append(gamete).append("\n");
 
 			BigInteger balanceOfGamete = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.BALANCE, gamete))
+				(manifest, _100_000, takamakaCode, MethodSignatures.BALANCE, gamete, StorageValues.NO_VALUES, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException(MethodSignatures.BALANCE + " should not return void"))
 				.asReturnedBigInteger(MethodSignatures.BALANCE, NodeException::new);
 
 			builder.append("   │  ├─ balance: ").append(balanceOfGamete).append("\n");
 
 			BigInteger maxFaucet = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_FAUCET, gamete))
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_FAUCET, gamete, StorageValues.NO_VALUES, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_MAX_FAUCET + " should not return void"))
 				.asReturnedBigInteger(MethodSignatures.GET_MAX_FAUCET, NodeException::new);
 
@@ -227,42 +227,42 @@ public class ManifestHelperImpl implements ManifestHelper {
 			builder.append("   ├─ gasStation: ").append(gasStation).append("\n");
 
 			BigInteger initialGasPrice = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_GAS_PRICE, gasStation))
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_GAS_PRICE, gasStation, StorageValues.NO_VALUES, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_INITIAL_GAS_PRICE + " should not return void"))
 				.asReturnedBigInteger(MethodSignatures.GET_INITIAL_GAS_PRICE, NodeException::new);
 
 			builder.append("   │  ├─ initialGasPrice: ").append(initialGasPrice).append("\n");
 
 			BigInteger gasPrice = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAS_PRICE, gasStation))
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAS_PRICE, gasStation, StorageValues.NO_VALUES, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAS_PRICE + " should not return void"))
 				.asReturnedBigInteger(MethodSignatures.GET_GAS_PRICE, NodeException::new);
 
 			builder.append("   │  ├─ gasPrice: ").append(gasPrice).append("\n");
 
 			BigInteger maxGasPerTransaction = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_GAS_PER_TRANSACTION, gasStation))
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_GAS_PER_TRANSACTION, gasStation, StorageValues.NO_VALUES, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_MAX_GAS_PER_TRANSACTION + " should not return void"))
 				.asReturnedBigInteger(MethodSignatures.GET_MAX_GAS_PER_TRANSACTION, NodeException::new);
 
 			builder.append("   │  ├─ maxGasPerTransaction: ").append(maxGasPerTransaction).append("\n");
 
 			boolean ignoresGasPrice = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.IGNORES_GAS_PRICE, gasStation))
+				(manifest, _100_000, takamakaCode, MethodSignatures.IGNORES_GAS_PRICE, gasStation, StorageValues.NO_VALUES, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException(MethodSignatures.IGNORES_GAS_PRICE + " should not return void"))
 				.asReturnedBoolean(MethodSignatures.IGNORES_GAS_PRICE, NodeException::new);
 
 			builder.append("   │  ├─ ignoresGasPrice: ").append(ignoresGasPrice).append("\n");
 
 			BigInteger targetGasAtReward = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_TARGET_GAS_AT_REWARD, gasStation))
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_TARGET_GAS_AT_REWARD, gasStation, StorageValues.NO_VALUES, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_TARGET_GAS_AT_REWARD + " should not return void"))
 				.asReturnedBigInteger(MethodSignatures.GET_TARGET_GAS_AT_REWARD, NodeException::new);
 
 			builder.append("   │  ├─ targetGasAtReward: ").append(targetGasAtReward).append("\n");
 
 			long oblivion = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_OBLIVION, gasStation))
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_OBLIVION, gasStation, StorageValues.NO_VALUES, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_OBLIVION + " should not return void"))
 				.asReturnedLong(MethodSignatures.GET_OBLIVION, NodeException::new);
 
@@ -274,13 +274,13 @@ public class ManifestHelperImpl implements ManifestHelper {
 			{
 				var method = MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_VIEW, "getShares", StorageTypes.STORAGE_MAP_VIEW);
 				shares = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-						(manifest, _100_000, takamakaCode, method, validators))
+						(manifest, _100_000, takamakaCode, method, validators, StorageValues.NO_VALUES, IllegalArgumentException::new))
 						.orElseThrow(() -> new NodeException(method + " should not return void"))
 						.asReturnedReference(method, NodeException::new);
 			}
 
 			int numOfValidators = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SIZE, shares))
+					(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SIZE, shares, StorageValues.NO_VALUES, IllegalArgumentException::new))
 					.orElseThrow(() -> new NodeException(MethodSignatures.STORAGE_MAP_VIEW_SIZE + " should not return void"))
 					.asReturnedInt(MethodSignatures.STORAGE_MAP_VIEW_SIZE, NodeException::new);
 
@@ -288,13 +288,13 @@ public class ManifestHelperImpl implements ManifestHelper {
 			{
 				var method = MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY, "getOffers", StorageTypes.STORAGE_SET_VIEW);
 				offers = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-						(manifest, _100_000, takamakaCode, method, validators))
+						(manifest, _100_000, takamakaCode, method, validators, StorageValues.NO_VALUES, IllegalArgumentException::new))
 						.orElseThrow(() -> new NodeException(method + " should not return void"))
 						.asReturnedReference(method, NodeException::new);
 			}
 
 			int numOfOffers = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_SET_VIEW_SIZE, offers))
+					(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_SET_VIEW_SIZE, offers, StorageValues.NO_VALUES, IllegalArgumentException::new))
 					.orElseThrow(() -> new NodeException(MethodSignatures.STORAGE_SET_VIEW_SIZE + " should not return void"))
 					.asReturnedInt(MethodSignatures.STORAGE_SET_VIEW_SIZE, NodeException::new);
 
@@ -302,7 +302,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 			{
 				NonVoidMethodSignature method = MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getBuyerSurcharge", StorageTypes.INT);
 				buyerSurcharge = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-						(manifest, _100_000, takamakaCode, method, validators))
+						(manifest, _100_000, takamakaCode, method, validators, StorageValues.NO_VALUES, IllegalArgumentException::new))
 						.orElseThrow(() -> new NodeException(method + " should not return void"))
 						.asReturnedInt(method, NodeException::new);
 			}
@@ -312,7 +312,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 			int slashingForMisbehaving;
 			{
 				NonVoidMethodSignature method = MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getSlashingForMisbehaving", StorageTypes.INT);
-				slashingForMisbehaving = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, method, validators))
+				slashingForMisbehaving = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, method, validators, StorageValues.NO_VALUES, IllegalArgumentException::new))
 						.orElseThrow(() -> new NodeException("getSlashingForMisbehaving() should not return void"))
 						.asReturnedInt(method, NodeException::new);
 			}
@@ -320,13 +320,13 @@ public class ManifestHelperImpl implements ManifestHelper {
 			builder.append(String.format("   │  ├─ slashing for misbehaving validators: %d (ie. %.6f%%)\n", slashingForMisbehaving, slashingForMisbehaving / 1_000_000.0));
 
 			int slashingForNotBehaving = ((IntValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getSlashingForNotBehaving", StorageTypes.INT), validators))
+				(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getSlashingForNotBehaving", StorageTypes.INT), validators, StorageValues.NO_VALUES, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException("getSlashingForNotBehaving() should not return void"))).getValue();
 
 			builder.append(String.format("   │  ├─ slashing for not behaving validators: %d (ie. %.6f%%)\n", slashingForNotBehaving, slashingForNotBehaving / 1_000_000.0));
 
 			int percentStaked = ((IntValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getPercentStaked", StorageTypes.INT), validators))
+				(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getPercentStaked", StorageTypes.INT), validators, StorageValues.NO_VALUES, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException("getPercentStaked() should not return void"))).getValue();
 
 			builder.append(String.format("   │  ├─ percent of validators' reward that gets staked: %d (ie. %.6f%%)\n", percentStaked, percentStaked / 1_000_000.0));
@@ -336,25 +336,25 @@ public class ManifestHelperImpl implements ManifestHelper {
 			var validatorsArray = new StorageReference[numOfValidators];
 			for (int num = 0; num < numOfValidators; num++)
 				validatorsArray[num] = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SELECT, shares, StorageValues.intOf(num)))
+					(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SELECT, shares, new StorageValue[] { StorageValues.intOf(num) }, IllegalArgumentException::new))
 					.orElseThrow(() -> new NodeException(MethodSignatures.STORAGE_MAP_VIEW_SELECT + " should not return void"))
 					.asReturnedReference(MethodSignatures.STORAGE_SET_VIEW_SELECT, NodeException::new);
 
 			Map<StorageReference, SortedSet<StorageReference>> offersPerValidator = new HashMap<>();
 			for (int num = 0; num < numOfOffers; num++) {
 				var offer = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_SET_VIEW_SELECT, offers, StorageValues.intOf(num)))
+					(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_SET_VIEW_SELECT, offers, new StorageValue[] { StorageValues.intOf(num) }, IllegalArgumentException::new))
 					.orElseThrow(() -> new NodeException(MethodSignatures.STORAGE_SET_VIEW_SELECT + " should not return void"))
 					.asReturnedReference(MethodSignatures.STORAGE_SET_VIEW_SELECT, NodeException::new);
 				var seller = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_OFFER, "getSeller", StorageTypes.PAYABLE_CONTRACT), offer))
+					(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_OFFER, "getSeller", StorageTypes.PAYABLE_CONTRACT), offer, StorageValues.NO_VALUES, IllegalArgumentException::new))
 					.orElseThrow(() -> new NodeException("getSeller() should not return void"));
 
 				// the set of offers might contain expired offers since it gets updated lazily
 				boolean isOngoing;
 				{
 					NonVoidMethodSignature method = MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_OFFER, "isOngoing", StorageTypes.BOOLEAN);
-					isOngoing = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, method, offer))
+					isOngoing = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, method, offer, StorageValues.NO_VALUES, IllegalArgumentException::new))
 							.orElseThrow(() -> new NodeException("isOngoing() should not return void"))
 							.asReturnedBoolean(method, NodeException::new);
 				}
@@ -369,28 +369,28 @@ public class ManifestHelperImpl implements ManifestHelper {
 				builder.append("   │  ├─ validator #").append(num).append(": ").append(validator).append("\n");
 
 				String id = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.ID, validator))
+					(manifest, _100_000, takamakaCode, MethodSignatures.ID, validator, StorageValues.NO_VALUES, IllegalArgumentException::new))
 					.orElseThrow(() -> new NodeException(MethodSignatures.ID + " should not return void"))
 					.asReturnedString(MethodSignatures.ID, NodeException::new);
 
 				builder.append("   │  │  ├─ id: ").append(id).append("\n");
 
 				BigInteger balanceOfValidator = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.BALANCE, validator))
+					(manifest, _100_000, takamakaCode, MethodSignatures.BALANCE, validator, StorageValues.NO_VALUES, IllegalArgumentException::new))
 					.orElseThrow(() -> new NodeException(MethodSignatures.BALANCE + " should not return void"))
 					.asReturnedBigInteger(MethodSignatures.BALANCE, NodeException::new);
 
 				builder.append("   │  │  ├─ balance: ").append(balanceOfValidator).append("\n");
 
 				BigInteger stakedForValidator = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_STAKE, validators, validator))
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_STAKE, validators, new StorageValue[] { validator }, IllegalArgumentException::new))
 					.orElseThrow(() -> new NodeException(MethodSignatures.GET_STAKE + " should not return void"))
 					.asReturnedBigInteger(MethodSignatures.GET_STAKE, NodeException::new);
 
 				builder.append("   │  │  ├─ staked: ").append(stakedForValidator).append("\n");
 
 				BigInteger power = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_GET, shares, validator))
+					(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_GET, shares, new StorageValue[] { validator }, IllegalArgumentException::new))
 					.orElseThrow(() -> new NodeException(MethodSignatures.STORAGE_MAP_VIEW_GET + " should not return void"))
 					.asReturnedBigInteger(MethodSignatures.STORAGE_MAP_VIEW_GET, NodeException::new);
 
@@ -409,23 +409,23 @@ public class ManifestHelperImpl implements ManifestHelper {
 							builder.append("   │  │  ├─ sale offer #" + counter + ": ").append(offer).append("\n");
 
 						BigInteger powerOnSale = ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-							(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_OFFER, "getSharesOnSale", StorageTypes.BIG_INTEGER), offer))
+							(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_OFFER, "getSharesOnSale", StorageTypes.BIG_INTEGER), offer, StorageValues.NO_VALUES, IllegalArgumentException::new))
 							.orElseThrow(() -> new NodeException("getSharesOnSale() should not return void"))).getValue();
 						BigInteger cost = ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-							(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_OFFER, "getCost", StorageTypes.BIG_INTEGER), offer))
+							(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_OFFER, "getCost", StorageTypes.BIG_INTEGER), offer, StorageValues.NO_VALUES, IllegalArgumentException::new))
 							.orElseThrow(() -> new NodeException("getCost() should not return void"))).getValue();
 						BigInteger costWithSurchage = cost.multiply(BigInteger.valueOf(buyerSurcharge + 100_000_000)).divide(_100_000_000);
 
 						Date expiration;
 						{
 							var method = MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_OFFER, "getExpiration", StorageTypes.LONG);
-							expiration = new Date(node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, method, offer))
+							expiration = new Date(node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, method, offer, StorageValues.NO_VALUES, IllegalArgumentException::new))
 								.orElseThrow(() -> new NodeException(method + " should not return void"))
 								.asReturnedLong(method, NodeException::new));
 						}
 
 						StorageValue buyer = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-							(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_OFFER, "getBuyer", StorageTypes.PAYABLE_CONTRACT), offer))
+							(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_OFFER, "getBuyer", StorageTypes.PAYABLE_CONTRACT), offer, StorageValues.NO_VALUES, IllegalArgumentException::new))
 							.orElseThrow(() -> new NodeException("getBuyer() should not return void"));
 
 						if (isLast) {
@@ -451,68 +451,68 @@ public class ManifestHelperImpl implements ManifestHelper {
 			}
 
 			BigInteger initialSupply = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_SUPPLY, validators))
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_SUPPLY, validators, StorageValues.NO_VALUES, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_INITIAL_SUPPLY + " should not return void"))
 				.asReturnedBigInteger(MethodSignatures.GET_INITIAL_SUPPLY, NodeException::new);
 
 			builder.append("   │  ├─ initialSupply: ").append(initialSupply).append("\n");
 
 			BigInteger currentSupply = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_CURRENT_SUPPLY, validators))
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_CURRENT_SUPPLY, validators, StorageValues.NO_VALUES, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_CURRENT_SUPPLY + " should not return void"))
 				.asReturnedBigInteger(MethodSignatures.GET_CURRENT_SUPPLY, NodeException::new);
 
 			builder.append("   │  ├─ currentSupply: ").append(currentSupply).append("\n");
 
 			BigInteger finalSupply = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_FINAL_SUPPLY, validators))
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_FINAL_SUPPLY, validators, StorageValues.NO_VALUES, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_FINAL_SUPPLY + " should not return void"))
 				.asReturnedBigInteger(MethodSignatures.GET_FINAL_SUPPLY, NodeException::new);
 
 			builder.append("   │  ├─ finalSupply: ").append(finalSupply).append("\n");
 
 			long initialInflation = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_INFLATION, validators))
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_INFLATION, validators, StorageValues.NO_VALUES, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_INITIAL_INFLATION + " should not return void"))
 				.asReturnedLong(MethodSignatures.GET_INITIAL_INFLATION, NodeException::new);
 
 			builder.append(String.format("   │  ├─ initialInflation: %d (ie. %.6f%%)\n", initialInflation, initialInflation / 1_000_000.0));
 
 			long currentInflation = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_CURRENT_INFLATION, validators))
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_CURRENT_INFLATION, validators, StorageValues.NO_VALUES, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_CURRENT_INFLATION + " should not return void"))
 				.asReturnedLong(MethodSignatures.GET_CURRENT_INFLATION, NodeException::new);
 
 			builder.append(String.format("   │  ├─ currentInflation: %d (ie. %.6f%%)\n", currentInflation, currentInflation / 1_000_000.0));
 
 			BigInteger height = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_HEIGHT, validators))
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_HEIGHT, validators, StorageValues.NO_VALUES, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_HEIGHT + " should not return void"))
 				.asReturnedBigInteger(MethodSignatures.GET_HEIGHT, NodeException::new);
 
 			builder.append("   │  ├─ height: ").append(height).append("\n");
 
 			BigInteger numberOfTransactions = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_NUMBER_OF_TRANSACTIONS, validators))
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_NUMBER_OF_TRANSACTIONS, validators, StorageValues.NO_VALUES, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_NUMBER_OF_TRANSACTIONS + " should not return void"))
 				.asReturnedBigInteger(MethodSignatures.GET_NUMBER_OF_TRANSACTIONS, NodeException::new);
 
 			builder.append("   │  ├─ numberOfTransactions: ").append(numberOfTransactions).append("\n");
 
 			BigInteger ticketForNewPoll = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_TICKET_FOR_NEW_POLL, validators))
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_TICKET_FOR_NEW_POLL, validators, StorageValues.NO_VALUES, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_TICKET_FOR_NEW_POLL + " should not return void"))
 				.asReturnedBigInteger(MethodSignatures.GET_TICKET_FOR_NEW_POLL, NodeException::new);
 
 			builder.append("   │  ├─ ticketForNewPoll: ").append(ticketForNewPoll).append("\n");
 
 			StorageReference polls = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_POLLS, validators))
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_POLLS, validators, StorageValues.NO_VALUES, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_POLLS + " should not return void"))
 				.asReturnedReference(MethodSignatures.GET_POLLS, NodeException::new);
 
 			int numOfPolls = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_SET_VIEW_SIZE, polls))
+				(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_SET_VIEW_SIZE, polls, StorageValues.NO_VALUES, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException(MethodSignatures.STORAGE_SET_VIEW_SIZE + " should not return void"))
 				.asReturnedInt(MethodSignatures.STORAGE_SET_VIEW_SIZE, NodeException::new);
 
@@ -523,7 +523,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 
 			for (int num = 0; num < numOfPolls; num++) {
 				var poll = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_SET_VIEW_SELECT, polls, StorageValues.intOf(num)))
+					(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_SET_VIEW_SELECT, polls, new StorageValue[] { StorageValues.intOf(num) }, IllegalArgumentException::new))
 					.orElseThrow(() -> new NodeException(MethodSignatures.STORAGE_SET_VIEW_SELECT + " should not return void"))
 					.asReturnedReference(MethodSignatures.STORAGE_SET_VIEW_SELECT, NodeException::new);
 
@@ -535,7 +535,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 					builder.append("   │  ├─ poll #").append(num).append(": ").append(poll).append("\n");
 
 				String description = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.POLL, "getDescription", StorageTypes.STRING), poll))
+					(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.POLL, "getDescription", StorageTypes.STRING), poll, StorageValues.NO_VALUES, IllegalArgumentException::new))
 					.orElseThrow(() -> new NodeException("getDescription() should not return void"))).getValue();
 
 				if (isLast)
@@ -547,11 +547,11 @@ public class ManifestHelperImpl implements ManifestHelper {
 			builder.append("   ├─ initial validators: ").append(initialValidators).append("\n");
 
 			shares = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_VIEW, "getShares", StorageTypes.STORAGE_MAP_VIEW), initialValidators))
+				(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_VIEW, "getShares", StorageTypes.STORAGE_MAP_VIEW), initialValidators, StorageValues.NO_VALUES, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException("getShares() should not return void"));
 
 			int numOfInitialValidators = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SIZE, shares))
+				(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SIZE, shares, StorageValues.NO_VALUES, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException(MethodSignatures.STORAGE_MAP_VIEW_SIZE + " should not return void"))
 				.asReturnedInt(MethodSignatures.STORAGE_MAP_VIEW_SIZE, NodeException::new);
 
@@ -562,7 +562,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 
 			for (int num = 0; num < numOfInitialValidators; num++) {
 				var validator = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SELECT, shares, StorageValues.intOf(num)))
+					(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SELECT, shares, new StorageValue[] { StorageValues.intOf(num) }, IllegalArgumentException::new))
 					.orElseThrow(() -> new NodeException(MethodSignatures.STORAGE_MAP_VIEW_SELECT + " should not return void"))
 					.asReturnedReference(MethodSignatures.STORAGE_MAP_VIEW_SELECT, NodeException::new);
 
@@ -574,7 +574,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 					builder.append("   │  ├─ initial validator #").append(num).append(": ").append(validator).append("\n");
 
 				String id = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.ID, validator))
+					(manifest, _100_000, takamakaCode, MethodSignatures.ID, validator, StorageValues.NO_VALUES, IllegalArgumentException::new))
 					.orElseThrow(() -> new NodeException(MethodSignatures.ID + " should not return void"))
 					.asReturnedString(MethodSignatures.ID, NodeException::new);
 
@@ -584,7 +584,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 					builder.append("   │  │  ├─ id: ").append(id).append("\n");
 
 				BigInteger balanceOfValidator = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.BALANCE, validator))
+					(manifest, _100_000, takamakaCode, MethodSignatures.BALANCE, validator, StorageValues.NO_VALUES, IllegalArgumentException::new))
 					.orElseThrow(() -> new NodeException(MethodSignatures.BALANCE + " should not return void"))
 					.asReturnedBigInteger(MethodSignatures.BALANCE, NodeException::new);
 
@@ -594,7 +594,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 					builder.append("   │  │  ├─ balance: ").append(balanceOfValidator).append("\n");
 
 				BigInteger power = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_GET, shares, validator))
+					(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_GET, shares, new StorageValue[] { validator }, IllegalArgumentException::new))
 					.orElseThrow(() -> new NodeException(MethodSignatures.STORAGE_MAP_VIEW_GET + " should not return void"))
 					.asReturnedBigInteger(MethodSignatures.STORAGE_MAP_VIEW_GET, NodeException::new);
 
@@ -609,7 +609,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 			builder.append("   └─ versions: ").append(versions).append("\n");
 
 			long verificationVersion = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_VERIFICATION_VERSION, versions))
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_VERIFICATION_VERSION, versions, StorageValues.NO_VALUES, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_VERIFICATION_VERSION + " should not return void"))
 				.asReturnedLong(MethodSignatures.GET_VERIFICATION_VERSION, NodeException::new);
 

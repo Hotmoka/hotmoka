@@ -114,16 +114,12 @@ public class ConstructorCallTransactionRequestImpl extends CodeExecutionTransact
 	public <E extends Exception> ConstructorCallTransactionRequestImpl(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue[] actuals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
 		super(caller, nonce, gasLimit, gasPrice, classpath, actuals, onIllegalArgs);
 
-		Objects.requireNonNull(constructor, "constructor cannot be null", onIllegalArgs);
-		Objects.requireNonNull(chainId, "chainId cannot be null", onIllegalArgs);
-		Objects.requireNonNull(signature, "signature cannot be null", onIllegalArgs);
+		this.constructor = Objects.requireNonNull(constructor, "constructor cannot be null", onIllegalArgs);
+		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null", onIllegalArgs);
+		this.signature = Objects.requireNonNull(signature, "signature cannot be null", onIllegalArgs);
 
 		if (constructor.getFormals().count() != actuals.length)
 			throw onIllegalArgs.apply("Argument count mismatch between formals and actuals");
-
-		this.constructor = constructor;
-		this.chainId = chainId;
-		this.signature = signature;
 	}
 
 	/**

@@ -149,7 +149,7 @@ public class AccountsNodeImpl extends AbstractNodeDecorator<Node> implements Acc
 		BigInteger nonce;
 
 		try {
-			nonce = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(payer, _100_000, classpath, MethodSignatures.NONCE, payer))
+			nonce = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(payer, _100_000, classpath, MethodSignatures.NONCE, payer, StorageValues.NO_VALUES, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
 				.asReturnedBigInteger(MethodSignatures.NONCE, NodeException::new);
 		}
@@ -196,7 +196,7 @@ public class AccountsNodeImpl extends AbstractNodeDecorator<Node> implements Acc
 		var get = MethodSignatures.ofNonVoid(StorageTypes.ACCOUNTS, "get", StorageTypes.EOA, StorageTypes.INT);
 
 		for (int i = 0; i < funds.length; i++)
-			this.accounts[i] = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(payer, _100_000, classpath, get, container, StorageValues.intOf(i)))
+			this.accounts[i] = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(payer, _100_000, classpath, get, container, new StorageValue[] { StorageValues.intOf(i) }, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException(get + " should not return void"))
 				.asReference(value -> new NodeException(get + " should return a reference, not a " + value.getClass().getName()));
 	}

@@ -177,17 +177,17 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	    		takamakaCode = node.getTakamakaCode();
 
 	    		var gamete = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-	    				(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
+	    				(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest, StorageValues.NO_VALUES, NodeException::new))
 	    				.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"))
 	    				.asReturnedReference(MethodSignatures.GET_GAMETE, NodeException::new);
 
 	    		chainId = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-	    				(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
+	    				(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest, StorageValues.NO_VALUES, NodeException::new))
 	    				.orElseThrow(() -> new NodeException(MethodSignatures.GET_CHAIN_ID + " should not return void"))
 	    				.asReturnedString(MethodSignatures.GET_CHAIN_ID, NodeException::new);
 
 	    		BigInteger nonce = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-	    				(gamete, _100_000, takamakaCode, MethodSignatures.NONCE, gamete))
+	    				(gamete, _100_000, takamakaCode, MethodSignatures.NONCE, gamete, StorageValues.NO_VALUES, NodeException::new))
 	    				.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
 	    				.asReturnedBigInteger(MethodSignatures.NONCE, NodeException::new);
 
@@ -678,14 +678,14 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	 * Takes care of computing the next nonce.
 	 */
 	protected final StorageValue runInstanceNonVoidMethodCallTransaction(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, NonVoidMethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
-		return node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(caller, gasLimit, classpath, method, receiver, actuals)).orElseThrow(() -> new NodeException(method + " did not return any value"));
+		return node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(caller, gasLimit, classpath, method, receiver, actuals, IllegalArgumentException::new)).orElseThrow(() -> new NodeException(method + " did not return any value"));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
 	protected final void runInstanceVoidMethodCallTransaction(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, VoidMethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
-		node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(caller, gasLimit, classpath, method, receiver, actuals));
+		node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(caller, gasLimit, classpath, method, receiver, actuals, IllegalArgumentException::new));
 	}
 
 	/**
@@ -785,7 +785,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			else
 				// we ask the account: 100,000 units of gas should be enough to run the method
 				nonce = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(account, _100_000, node.getClassTag(account).getJar(), MethodSignatures.NONCE, account))
+					(account, _100_000, node.getClassTag(account).getJar(), MethodSignatures.NONCE, account, StorageValues.NO_VALUES, IllegalArgumentException::new))
 					.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
 					.asReturnedBigInteger(MethodSignatures.NONCE, NodeException::new);
 

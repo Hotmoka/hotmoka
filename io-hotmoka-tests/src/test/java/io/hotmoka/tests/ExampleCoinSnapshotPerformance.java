@@ -358,7 +358,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
 		}
 
     	private int convertUBItoInt(StorageReference ubi) throws Exception {
-    		var request = TransactionRequests.instanceViewMethodCall(creator, _50_000, jar(), TO_BIG_INTEGER, ubi);
+    		var request = TransactionRequests.instanceViewMethodCall(creator, _50_000, jar(), TO_BIG_INTEGER, ubi, StorageValues.NO_VALUES, IllegalArgumentException::new);
     		return node.runInstanceMethodCallTransaction(request)
     			.orElseThrow(NodeException::new)
         		.asReturnedBigInteger(TO_BIG_INTEGER, NodeException::new)

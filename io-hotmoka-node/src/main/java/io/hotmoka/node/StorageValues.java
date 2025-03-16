@@ -76,6 +76,11 @@ public abstract class StorageValues {
 	public final static NullValue NULL = NullValueImpl.NULL;
 
 	/**
+	 * An empty array of storage values.
+	 */
+	public final static StorageValue[] NO_VALUES = new StorageValue[0];
+
+	/**
 	 * Yields the storage value corresponding to the given boolean value.
 	 * 
 	 * @param value the boolean value

@@ -124,7 +124,7 @@ public class RotateKey extends AbstractCommand {
 			var takamakaCode = node.getTakamakaCode();
 			KeyPair keys = readKeys(Accounts.of(account), node, passwordOfAccount);
 			String chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest, StorageValues.NO_VALUES, IllegalArgumentException::new))
 				.orElseThrow(() -> new CommandException(MethodSignatures.GET_CHAIN_ID + " should not return void"))).getValue();
 			var signature = SignatureHelpers.of(node).signatureAlgorithmFor(account);
 			BigInteger nonce = NonceHelpers.of(node).getNonceOf(account);

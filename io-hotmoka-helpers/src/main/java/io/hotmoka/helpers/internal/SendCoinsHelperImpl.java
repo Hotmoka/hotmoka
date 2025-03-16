@@ -115,7 +115,7 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 
 		try {
 			var gamete = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest, StorageValues.NO_VALUES, IllegalArgumentException::new))
 					.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"))
 					.asReference(value -> new NodeException(MethodSignatures.GET_GAMETE + " should return a reference, not a " + value.getClass().getName()));
 

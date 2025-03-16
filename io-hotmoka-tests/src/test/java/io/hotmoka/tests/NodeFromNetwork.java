@@ -307,7 +307,7 @@ public class NodeFromNetwork extends HotmokaTest {
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to runInstanceMethodCallTransaction")
     void testRemoteRunInstanceMethodCallTransaction() throws Exception {
     	try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
-			var request = TransactionRequests.instanceViewMethodCall(account(0), _100_000, takamakaCode(), MethodSignatures.NONCE, account(0));
+			var request = TransactionRequests.instanceViewMethodCall(account(0), _100_000, takamakaCode(), MethodSignatures.NONCE, account(0), StorageValues.NO_VALUES, IllegalArgumentException::new);
 			assertEquals(ZERO, remote.runInstanceMethodCallTransaction(request).get().asBigInteger(__ -> new ClassCastException()));
         }
     }

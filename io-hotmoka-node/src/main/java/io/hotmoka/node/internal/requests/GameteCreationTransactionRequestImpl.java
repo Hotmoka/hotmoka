@@ -70,22 +70,12 @@ public class GameteCreationTransactionRequestImpl extends TransactionRequestImpl
 	 * @throws E if some argument passed to this constructor is illegal
 	 */
 	public <E extends Exception> GameteCreationTransactionRequestImpl(TransactionReference classpath, BigInteger initialAmount, String publicKey, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
-		if (classpath == null)
-			throw onIllegalArgs.apply("classpath cannot be null");
+		this.classpath = Objects.requireNonNull(classpath, "classpath cannot be null", onIllegalArgs);
+		this.initialAmount = Objects.requireNonNull(initialAmount, "initialAmount cannot be null", onIllegalArgs);
+		this.publicKey = Base64.requireBase64(Objects.requireNonNull(publicKey, "publicKey cannot be null", onIllegalArgs), onIllegalArgs);
 
-		this.classpath = classpath;
-
-		if (initialAmount == null)
-			throw onIllegalArgs.apply("initialAmount cannot be null");
 		if (initialAmount.signum() < 0)
 			throw onIllegalArgs.apply("initialAmount cannot be negative");
-
-		this.initialAmount = initialAmount;
-
-		if (publicKey == null)
-			throw onIllegalArgs.apply("publicKey cannot be null");
-
-		this.publicKey = Base64.requireBase64(publicKey, onIllegalArgs);
 	}
 
 	/**

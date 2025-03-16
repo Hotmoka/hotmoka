@@ -107,10 +107,10 @@ public abstract class CodeExecutionTransactionRequestImpl<R extends CodeExecutio
 	}
 
 	protected static StorageValue[] convertedActuals(TransactionRequestJson json) throws InconsistentJsonException {
-		StorageValues.Json[] actuals = json.getActuals().toArray(StorageValues.Json[]::new);
+		var actuals = json.getActuals().toArray(StorageValues.Json[]::new);
 		var result = new StorageValue[actuals.length];
 		for (int pos = 0; pos < result.length; pos++)
-			result[pos] = Objects.requireNonNull(actuals[pos], "actualscannot hold null elements", InconsistentJsonException::new).unmap();
+			result[pos] = Objects.requireNonNull(actuals[pos], "actuals cannot hold null elements", InconsistentJsonException::new).unmap();
 
 		return result;
 	}

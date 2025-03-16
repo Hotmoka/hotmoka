@@ -91,22 +91,25 @@ public class BuyValidation extends AbstractCommand {
 				var takamakaCode = node.getTakamakaCode();
 				var manifest = node.getManifest();
 				var validators = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest)).orElseThrow(() -> new CommandException("getValidators() should not return void"));
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest, StorageValues.NO_VALUES, IllegalArgumentException::new))
+					.orElseThrow(() -> new CommandException("getValidators() should not return void"));
 				var buyer = StorageValues.reference(BuyValidation.this.buyer, CommandException::new);
 				var algorithm = SignatureHelpers.of(node).signatureAlgorithmFor(buyer);
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest)).orElseThrow(() -> new CommandException("getChainId() should not return void"))).getValue();
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest, StorageValues.NO_VALUES, IllegalArgumentException::new))
+					.orElseThrow(() -> new CommandException("getChainId() should not return void"))).getValue();
 				KeyPair keys = readKeys(Accounts.of(buyer), node, passwordOfBuyer);
 				var signer = algorithm.getSigner(keys.getPrivate(), SignedTransactionRequest<?>::toByteArrayWithoutSignature);				
 				InstanceMethodCallTransactionRequest request;
 
 				int buyerSurcharge = ((IntValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getBuyerSurcharge", StorageTypes.INT), validators)).orElseThrow(() -> new CommandException("getBuyerSurcharge() should not return void"))).getValue();
+					(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getBuyerSurcharge", StorageTypes.INT), validators, StorageValues.NO_VALUES, IllegalArgumentException::new))
+					.orElseThrow(() -> new CommandException("getBuyerSurcharge() should not return void"))).getValue();
 
 				StorageReference offer = StorageValues.reference(BuyValidation.this.offer, CommandException::new);
 
 				BigInteger cost = ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_OFFER, "getCost", StorageTypes.BIG_INTEGER), offer))
+					(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_OFFER, "getCost", StorageTypes.BIG_INTEGER), offer, StorageValues.NO_VALUES, IllegalArgumentException::new))
 						.orElseThrow(() -> new CommandException("getCost() should not return void"))).getValue();
 				BigInteger costWithSurcharge = cost.multiply(BigInteger.valueOf(buyerSurcharge + 100_000_000L)).divide(_100_000_000);
 

@@ -192,7 +192,7 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 
 	private BigInteger getNonceOfGamete(Node node, TransactionReference takamakaCode) throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException {
 		var _1_000_000 = BigInteger.valueOf(1_000_000);
-		var getNonceRequest = TransactionRequests.instanceViewMethodCall(gamete, _1_000_000, takamakaCode, MethodSignatures.NONCE, gamete);
+		var getNonceRequest = TransactionRequests.instanceViewMethodCall(gamete, _1_000_000, takamakaCode, MethodSignatures.NONCE, gamete, StorageValues.NO_VALUES, IllegalArgumentException::new);
 
 		try {
 			return node.runInstanceMethodCallTransaction(getNonceRequest)
