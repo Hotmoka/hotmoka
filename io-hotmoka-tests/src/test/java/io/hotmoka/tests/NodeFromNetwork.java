@@ -201,7 +201,7 @@ public class NodeFromNetwork extends HotmokaTest {
     	try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
     		assertNotNull(remote.addJarStoreTransaction(TransactionRequests.jarStore
        			(signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0),
-				ZERO, chainId(), _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar"), takamakaCode())));
+				ZERO, chainId(), _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar"), new TransactionReference[] { takamakaCode() }, IllegalArgumentException::new)));
         }
     }
 
@@ -215,8 +215,9 @@ public class NodeFromNetwork extends HotmokaTest {
         	TransactionRejectedException e = assertThrows(TransactionRejectedException.class, () ->
         		remote.addJarStoreTransaction(TransactionRequests.jarStore
        				(signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0),
-					ZERO, chainId(), _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar")
-					// , takamakaCode() // <-- forgot that
+					ZERO, chainId(), _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar"),
+					TransactionReferences.EMPTY, // , takamakaCode() // <-- forgot that
+					IllegalArgumentException::new
 			)));
         	assertTrue(e.getMessage().contains(ClassNotFoundException.class.getName()));
         }
@@ -229,7 +230,8 @@ public class NodeFromNetwork extends HotmokaTest {
         	TransactionException e = assertThrows(TransactionException.class, () ->
         		remote.addJarStoreTransaction(TransactionRequests.jarStore
         			(signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0),
-        			ZERO, chainId(), _100_000, ONE, takamakaCode(), bytesOf("callernotonthis.jar"), takamakaCode())));
+        			ZERO, chainId(), _100_000, ONE, takamakaCode(), bytesOf("callernotonthis.jar"), new TransactionReference[] { takamakaCode() },
+        			IllegalArgumentException::new)));
 
         	assertTrue(e.getMessage().contains(VerificationException.class.getName()));
         	assertTrue(e.getMessage().contains("caller() can only be called on \"this\""));
@@ -242,7 +244,8 @@ public class NodeFromNetwork extends HotmokaTest {
     	try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
     		JarFuture future = remote.postJarStoreTransaction(TransactionRequests.jarStore
            			(signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0),
-    				ZERO, chainId(), _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar"), takamakaCode()));
+    				ZERO, chainId(), _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar"), new TransactionReference[] { takamakaCode() },
+    				IllegalArgumentException::new));
 
         	// we wait until the request has been processed
     		assertNotNull(future.get());
@@ -258,8 +261,9 @@ public class NodeFromNetwork extends HotmokaTest {
         	// the execution does not stop, nor throws anything
         	JarFuture future = remote.postJarStoreTransaction(TransactionRequests.jarStore
            		(signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0),
-    			ZERO, chainId(), _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar")
-        		// , takamakaCode() // <-- forgot that
+    			ZERO, chainId(), _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar"),
+    			TransactionReferences.EMPTY, // , takamakaCode() // <-- forgot that
+    			IllegalArgumentException::new
            	));
 
         	// we wait until the request has been processed; this will throw a TransactionRejectedException at the end,
@@ -278,7 +282,8 @@ public class NodeFromNetwork extends HotmokaTest {
         	// the execution does not stop, nor throws anything
         	JarFuture future = remote.postJarStoreTransaction(TransactionRequests.jarStore
            		(signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0),
-       			ZERO, chainId(), _500_000, ONE, takamakaCode(), bytesOf("callernotonthis.jar"), takamakaCode()));
+       			ZERO, chainId(), _500_000, ONE, takamakaCode(), bytesOf("callernotonthis.jar"), new TransactionReference[] { takamakaCode() },
+       			IllegalArgumentException::new));
 
         	// we wait until the request has been processed; this will throw a TransactionException at the end,
         	// since the request was accepted but its execution failed
@@ -296,7 +301,8 @@ public class NodeFromNetwork extends HotmokaTest {
     			_500_000, ONE, takamakaCode(), bytesOf("collections.jar"), takamakaCode());
 
     		var randomValue = remote.runStaticMethodCallTransaction
-       			(TransactionRequests.staticViewMethodCall(account(0), _500_000, jar, MethodSignatures.ofNonVoid(ARRAY_TESTS, "testRandomInitialization", StorageTypes.INT)))
+       			(TransactionRequests.staticViewMethodCall(account(0), _500_000, jar, MethodSignatures.ofNonVoid(ARRAY_TESTS, "testRandomInitialization", StorageTypes.INT),
+       					StorageValues.EMPTY, IllegalArgumentException::new))
        			.get().asInt(__ -> new NodeException());
 
     		assertEquals(1225, randomValue);
@@ -307,7 +313,7 @@ public class NodeFromNetwork extends HotmokaTest {
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to runInstanceMethodCallTransaction")
     void testRemoteRunInstanceMethodCallTransaction() throws Exception {
     	try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
-			var request = TransactionRequests.instanceViewMethodCall(account(0), _100_000, takamakaCode(), MethodSignatures.NONCE, account(0), StorageValues.NO_VALUES, IllegalArgumentException::new);
+			var request = TransactionRequests.instanceViewMethodCall(account(0), _100_000, takamakaCode(), MethodSignatures.NONCE, account(0), StorageValues.EMPTY, IllegalArgumentException::new);
 			assertEquals(ZERO, remote.runInstanceMethodCallTransaction(request).get().asBigInteger(__ -> new ClassCastException()));
         }
     }

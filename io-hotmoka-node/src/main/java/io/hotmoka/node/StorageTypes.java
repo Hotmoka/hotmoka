@@ -17,8 +17,8 @@ limitations under the License.
 package io.hotmoka.node;
 
 import java.io.IOException;
-import java.util.function.Function;
 
+import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.api.types.BasicType;
 import io.hotmoka.node.api.types.ClassType;
@@ -45,7 +45,7 @@ public abstract class StorageTypes {
 	 * @return the storage type
 	 * @throws E if {@code name} is illegal for a storage type
 	 */
-	public static <E extends Exception> StorageType named(String name, Function<String, ? extends E> onIllegalName) throws E {
+	public static <E extends Exception> StorageType named(String name, ExceptionSupplier<? extends E> onIllegalName) throws E {
 		return AbstractStorageType.named(name, onIllegalName);
 	}
 
@@ -58,7 +58,7 @@ public abstract class StorageTypes {
 	 * @return the storage class type
 	 * @throws E if {@code name} is illegal for a storage class type
 	 */
-	public static <E extends Exception> ClassType classNamed(String className, Function<String, ? extends E> onIllegalName) throws E {
+	public static <E extends Exception> ClassType classNamed(String className, ExceptionSupplier<? extends E> onIllegalName) throws E {
 		return ClassTypeImpl.named(className, onIllegalName);
 	}
 
@@ -71,7 +71,7 @@ public abstract class StorageTypes {
 	 * @return the class type
 	 * @throws E if {@code clazz} is illegal for a storage type
 	 */
-	public static <E extends Exception> StorageType fromClass(Class<?> clazz, Function<String, ? extends E> onIllegalClass) throws E {
+	public static <E extends Exception> StorageType fromClass(Class<?> clazz, ExceptionSupplier<? extends E> onIllegalClass) throws E {
 		return AbstractStorageType.fromClass(clazz, onIllegalClass);
 	}
 
@@ -84,7 +84,7 @@ public abstract class StorageTypes {
 	 * @return the storage class type
 	 * @throws E if {@code clazz} is illegal for a storage class type
 	 */
-	public static <E extends Exception> ClassType classFromClass(Class<?> clazz, Function<String, ? extends E> onIllegalClass) throws E {
+	public static <E extends Exception> ClassType classFromClass(Class<?> clazz, ExceptionSupplier<? extends E> onIllegalClass) throws E {
 		return ClassTypeImpl.fromClass(clazz, onIllegalClass);
 	}
 

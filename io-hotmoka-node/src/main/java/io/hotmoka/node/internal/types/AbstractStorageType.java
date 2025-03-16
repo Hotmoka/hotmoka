@@ -17,9 +17,10 @@ limitations under the License.
 package io.hotmoka.node.internal.types;
 
 import java.io.IOException;
-import java.util.function.Function;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.api.types.StorageType;
@@ -44,11 +45,7 @@ public abstract class AbstractStorageType extends AbstractMarshallable implement
 	 * @throws InconsistentJsonException if {@code json} is inconsistent
 	 */
 	public static StorageType from(StorageTypeJson json) throws InconsistentJsonException {
-		var name = json.getName();
-		if (name == null)
-			throw new InconsistentJsonException("name cannot be null");
-
-		return named(name, InconsistentJsonException::new);
+		return named(Objects.requireNonNull(json.getName(), "name cannot be null", InconsistentJsonException::new), InconsistentJsonException::new);
 	}
 
 	/**
@@ -59,8 +56,8 @@ public abstract class AbstractStorageType extends AbstractMarshallable implement
 	 * @return the storage type
 	 * @throws E if {@code name} is illegal for a storage type
 	 */
-	public static <E extends Exception> StorageType named(String name, Function<String, ? extends E> onIllegalName) throws E {
-		switch (name) {
+	public static <E extends Exception> StorageType named(String name, ExceptionSupplier<? extends E> onIllegalName) throws E {
+		switch (Objects.requireNonNull(name, "name cannot be null", onIllegalName)) {
 		case "boolean":
 	        return BasicTypeImpl.BOOLEAN;
 	    case "byte":
@@ -91,7 +88,7 @@ public abstract class AbstractStorageType extends AbstractMarshallable implement
 	 * @return the class type
 	 * @throws E if {@code clazz} is illegal for a storage type
 	 */
-	public static <E extends Exception> StorageType fromClass(Class<?> clazz, Function<String, ? extends E> onIllegalClass) throws E {
+	public static <E extends Exception> StorageType fromClass(Class<?> clazz, ExceptionSupplier<? extends E> onIllegalClass) throws E {
 		if (clazz == boolean.class)
 			return BasicTypeImpl.BOOLEAN;
 		else if (clazz == byte.class)

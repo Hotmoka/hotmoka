@@ -117,12 +117,12 @@ public class SellValidation extends AbstractCommand {
 				var takamakaCode = node.getTakamakaCode();
 				var manifest = node.getManifest();
 				var validators = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest, StorageValues.NO_VALUES, IllegalArgumentException::new))
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest, StorageValues.EMPTY, IllegalArgumentException::new))
 					.orElseThrow(() -> new CommandException(MethodSignatures.GET_VALIDATORS + " should not return void"));
 				var seller = StorageValues.reference(SellValidation.this.seller, CommandException::new);
 				var algorithm = SignatureHelpers.of(node).signatureAlgorithmFor(seller);
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest, StorageValues.NO_VALUES, IllegalArgumentException::new))
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest, StorageValues.EMPTY, IllegalArgumentException::new))
 					.orElseThrow(() -> new NodeException(MethodSignatures.GET_CHAIN_ID + " should not return void"))).getValue();
 				KeyPair keys = readKeys(Accounts.of(seller), node, passwordOfSeller);
 				Signer<SignedTransactionRequest<?>> signer = algorithm.getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
@@ -148,7 +148,7 @@ public class SellValidation extends AbstractCommand {
 				InstanceMethodCallTransactionRequest request2 = TransactionRequests.instanceMethodCall
 					(signer, seller, nonceHelper.getNonceOf(seller), chainId, gasLimit, gasHelper.getSafeGasPrice(), takamakaCode,
 					MethodSignatures.ofVoid(StorageTypes.SHARED_ENTITY, "place", StorageTypes.BIG_INTEGER, StorageTypes.SHARED_ENTITY_OFFER),
-					validators, StorageValues.bigIntegerOf(BigInteger.ZERO), newOffer);
+					validators, new StorageValue[] { StorageValues.bigIntegerOf(BigInteger.ZERO), newOffer }, IllegalArgumentException::new);
 
 				node.addInstanceMethodCallTransaction(request2);
 				System.out.println("Offer " + newOffer + " placed");

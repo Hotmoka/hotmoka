@@ -18,8 +18,8 @@ package io.hotmoka.node;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.function.Function;
 
+import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.StorageType;
@@ -78,7 +78,7 @@ public abstract class StorageValues {
 	/**
 	 * An empty array of storage values.
 	 */
-	public final static StorageValue[] NO_VALUES = new StorageValue[0];
+	public final static StorageValue[] EMPTY = new StorageValue[0];
 
 	/**
 	 * Yields the storage value corresponding to the given boolean value.
@@ -201,7 +201,7 @@ public abstract class StorageValues {
 	 * @return the storage reference
 	 * @throws E if the result would be an illegal storage reference
 	 */
-	public static <E extends Exception> StorageReference reference(TransactionReference transaction, BigInteger progressive, Function<String, ? extends E> onIllegalReference) throws E {
+	public static <E extends Exception> StorageReference reference(TransactionReference transaction, BigInteger progressive, ExceptionSupplier<? extends E> onIllegalReference) throws E {
 		return new StorageReferenceImpl(transaction, progressive, onIllegalReference);
 	}
 
@@ -214,7 +214,7 @@ public abstract class StorageValues {
 	 * @return the storage reference
 	 * @throws E if {@code s} is an illegal representation for a storage reference
 	 */
-	public static <E extends Exception> StorageReference reference(String s, Function<String, ? extends E> onIllegalReference) throws E {
+	public static <E extends Exception> StorageReference reference(String s, ExceptionSupplier<? extends E> onIllegalReference) throws E {
 		return new StorageReferenceImpl(s, onIllegalReference);
 	}
 
@@ -228,7 +228,7 @@ public abstract class StorageValues {
 	 * @return the resulting storage value
 	 * @throws E if {@code s} cannot be converted into {@code type}
 	 */
-	public static <E extends Exception> StorageValue of(String s, StorageType type, Function<String, ? extends E> exceptionCreator) throws E {
+	public static <E extends Exception> StorageValue of(String s, StorageType type, ExceptionSupplier<? extends E> exceptionCreator) throws E {
 		return AbstractStorageValue.of(s, type, exceptionCreator);
 	}
 

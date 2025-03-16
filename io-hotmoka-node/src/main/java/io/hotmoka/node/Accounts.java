@@ -17,9 +17,9 @@ limitations under the License.
 package io.hotmoka.node;
 
 import java.io.IOException;
-import java.util.function.Function;
 
 import io.hotmoka.crypto.api.Entropy;
+import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.node.api.Account;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.internal.AccountImpl;
@@ -84,7 +84,7 @@ public final class Accounts {
 	 * @throws IOException if the PEM file cannot be read
 	 * @throws E if {@code reference} is illegal as a storage reference or it is not legal for an account
 	 */
-	public static <E extends Exception> Account of(String reference, Function<String, ? extends E> onIllegalReference) throws IOException, E {
+	public static <E extends Exception> Account of(String reference, ExceptionSupplier<? extends E> onIllegalReference) throws IOException, E {
 		return new AccountImpl(reference, onIllegalReference);
 	}
 
@@ -103,7 +103,7 @@ public final class Accounts {
 	 * @throws IOException if the PEM file cannot be read
 	 * @throws E if {@code reference} is illegal as a storage reference or it is not legal for an account
 	 */
-	public static <E extends Exception> Account of(String reference, String dir, Function<String, ? extends E> onIllegalReference) throws IOException, E {
+	public static <E extends Exception> Account of(String reference, String dir, ExceptionSupplier<? extends E> onIllegalReference) throws IOException, E {
 		return new AccountImpl(reference, dir, onIllegalReference);
 	}
 

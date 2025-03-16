@@ -75,7 +75,7 @@ public class BindKey extends AbstractCommand {
 
 			// we look in the accounts ledger
 			var ledger = node.runInstanceMethodCallTransaction
-				(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, MethodSignatures.GET_ACCOUNTS_LEDGER, manifest, StorageValues.NO_VALUES, IllegalArgumentException::new))
+				(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, MethodSignatures.GET_ACCOUNTS_LEDGER, manifest, StorageValues.EMPTY, IllegalArgumentException::new))
 				.orElseThrow(() -> new CommandException(MethodSignatures.GET_ACCOUNTS_LEDGER + " should not return void"))
 				.asReturnedReference(MethodSignatures.GET_ACCOUNTS_LEDGER, CommandException::new);
 			StorageValue result = node.runInstanceMethodCallTransaction

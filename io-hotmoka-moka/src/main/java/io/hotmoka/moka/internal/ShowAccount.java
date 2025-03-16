@@ -108,7 +108,7 @@ public class ShowAccount extends AbstractCommand {
 		var takamakaCode = node.getTakamakaCode();
 		StorageReference reference = account.getReference();
 		BigInteger balance = node.runInstanceMethodCallTransaction(
-			TransactionRequests.instanceViewMethodCall(reference, _100_000, takamakaCode, MethodSignatures.BALANCE, reference, StorageValues.NO_VALUES, IllegalArgumentException::new))
+			TransactionRequests.instanceViewMethodCall(reference, _100_000, takamakaCode, MethodSignatures.BALANCE, reference, StorageValues.EMPTY, IllegalArgumentException::new))
 			.orElseThrow(() -> new NodeException(MethodSignatures.BALANCE + " should not return void"))
 			.asReturnedBigInteger(MethodSignatures.BALANCE, NodeException::new);
 		System.out.println("balance: " + balance);

@@ -73,6 +73,7 @@ public class JarStoreTransactionRequestImpl extends NonInitialTransactionRequest
 	/**
 	 * Builds the transaction request.
 	 * 
+	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
 	 * @param signer the signer of the request
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
@@ -82,20 +83,21 @@ public class JarStoreTransactionRequestImpl extends NonInitialTransactionRequest
 	 * @param classpath the class path where the {@code caller} is interpreted
 	 * @param jar the bytes of the jar to install
 	 * @param dependencies the dependencies of the jar, already installed in blockchain
+	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
+	 * @throws E if some argument passed to this constructor is illegal
 	 * @throws SignatureException if the signer cannot sign the request
 	 * @throws InvalidKeyException if the signer uses an invalid private key
 	 */
-	// TODO: pass exception supplier
-	public JarStoreTransactionRequestImpl(Signer<? super JarStoreTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) throws InvalidKeyException, SignatureException {
-		super(caller, nonce, gasLimit, gasPrice, classpath, IllegalArgumentException::new);
+	public <E extends Exception> JarStoreTransactionRequestImpl(Signer<? super JarStoreTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference[] dependencies, ExceptionSupplier<? extends E> onIllegalArgs) throws E, InvalidKeyException, SignatureException {
+		super(caller, nonce, gasLimit, gasPrice, classpath, onIllegalArgs);
 
-		this.jar = Objects.requireNonNull(jar, "jar cannot be null", IllegalArgumentException::new).clone();
+		this.jar = Objects.requireNonNull(jar, "jar cannot be null", onIllegalArgs).clone();
 
-		this.dependencies = Objects.requireNonNull(dependencies, "dependencies cannot be null", IllegalArgumentException::new).clone();
+		this.dependencies = Objects.requireNonNull(dependencies, "dependencies cannot be null", onIllegalArgs).clone();
 		for (var dependency: dependencies)
-			Objects.requireNonNull(dependency, "dependencies cannot hold null", IllegalArgumentException::new);
+			Objects.requireNonNull(dependency, "dependencies cannot hold null", onIllegalArgs);
 
-		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null", IllegalArgumentException::new);
+		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null", onIllegalArgs);
 		this.signature = signer.sign(this);
 	}
 
@@ -150,7 +152,7 @@ public class JarStoreTransactionRequestImpl extends NonInitialTransactionRequest
 	}
 
 	private static TransactionReference[] convertedDependencies(TransactionRequestJson json) throws InconsistentJsonException {
-		TransactionReferences.Json[] dependencies = json.getDependencies().toArray(TransactionReferences.Json[]::new);
+		var dependencies = json.getDependencies().toArray(TransactionReferences.Json[]::new);
 		var result = new TransactionReference[dependencies.length];
 		for (int pos = 0; pos < result.length; pos++)
 			result[pos] = Objects.requireNonNull(dependencies[pos], "dependencies cannot hold null elements", InconsistentJsonException::new).unmap();

@@ -18,10 +18,10 @@ package io.hotmoka.node.internal.signatures;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Objects;
-import java.util.function.Function;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -58,30 +58,17 @@ public final class FieldSignatureImpl extends AbstractMarshallable implements Fi
 	/**
 	 * Builds the signature of a field.
 	 * 
+	 * @param <E> the type of the exception thrown if some arguments is illegal
 	 * @param definingClass the class defining the field
 	 * @param name the name of the field
 	 * @param type the type of the field
+	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
 	 */
-	public FieldSignatureImpl(ClassType definingClass, String name, StorageType type) {
-		this.definingClass = Objects.requireNonNull(definingClass, "definingClass cannot be null");
-		this.name = Objects.requireNonNull(name, "name cannot be null");
-		this.type = Objects.requireNonNull(type, "type cannot be null");
-	}
-
-	/**
-	 * Builds the signature of a field.
-	 * 
-	 * @param <E> the type of the exception thrown if {@code definingClass} or {@code type} cannot be converted
-	 *            into storage types
-	 * @param definingClass the name of the class defining the field
-	 * @param name the name of the field
-	 * @param type the name of the type of the field
-	 * @param onIllegalType the generator of the exception thrown if {@code definingClass} or {@code type}
-	 *                      cannot be converted into storage types
-	 * @throws E if {@code definingClass} or {@code type} cannot be converted into storage types
-	 */
-	public <E extends Exception> FieldSignatureImpl(String definingClass, String name, String type, Function<String, ? extends E> onIllegalType) throws E {
-		this(StorageTypes.classNamed(definingClass, onIllegalType), name, StorageTypes.named(type, onIllegalType));
+	public <E extends Exception> FieldSignatureImpl(ClassType definingClass, String name, StorageType type, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		this.definingClass = Objects.requireNonNull(definingClass, "definingClass cannot be null", onIllegalArgs);
+		this.name = Objects.requireNonNull(name, "name cannot be null", onIllegalArgs);
+		this.type = Objects.requireNonNull(type, "type cannot be null", onIllegalArgs);
 	}
 
 	/**
@@ -91,21 +78,9 @@ public final class FieldSignatureImpl extends AbstractMarshallable implements Fi
 	 * @throws InconsistentJsonException if {@code json} is inconsistent
 	 */
 	public FieldSignatureImpl(FieldSignatureJson json) throws InconsistentJsonException {
-		var definingClass = json.getDefiningClass();
-		if (definingClass == null)
-			throw new InconsistentJsonException("definingClass cannot be null");
-
-		var name = json.getName();
-		if (name == null)
-			throw new InconsistentJsonException("name cannot be null");
-
-		var type = json.getType();
-		if (type == null)
-			throw new InconsistentJsonException("type cannot be null");
-
-		this.definingClass = StorageTypes.classNamed(definingClass, InconsistentJsonException::new);
-		this.name = name;
-		this.type = StorageTypes.named(type, InconsistentJsonException::new);
+		this(StorageTypes.classNamed(json.getDefiningClass(), InconsistentJsonException::new),
+			json.getName(),
+			StorageTypes.named(json.getType(), InconsistentJsonException::new), InconsistentJsonException::new);
 	}
 
 	@Override

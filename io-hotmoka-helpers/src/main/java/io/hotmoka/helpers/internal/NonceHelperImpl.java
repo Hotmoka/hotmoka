@@ -57,7 +57,7 @@ public class NonceHelperImpl implements NonceHelper {
 	public BigInteger getNonceOf(StorageReference account, TransactionReference takamakaCode) throws TransactionRejectedException, TransactionException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
 		try {
 			return node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(account, _100_000, takamakaCode, MethodSignatures.NONCE, account, StorageValues.NO_VALUES, IllegalArgumentException::new))
+				(account, _100_000, takamakaCode, MethodSignatures.NONCE, account, StorageValues.EMPTY, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
 				.asReturnedBigInteger(MethodSignatures.NONCE, NodeException::new);
 		}

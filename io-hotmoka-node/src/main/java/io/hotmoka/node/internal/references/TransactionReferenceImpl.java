@@ -19,10 +19,10 @@ package io.hotmoka.node.internal.references;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
-import java.util.function.Function;
 
 import io.hotmoka.crypto.Hex;
-import io.hotmoka.crypto.HexConversionException;
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -50,17 +50,12 @@ public final class TransactionReferenceImpl extends AbstractMarshallable impleme
 	 * @param hash the hash of the transaction, as the hexadecimal representation of its {@link TransactionReference#REQUEST_HASH_LENGTH} bytes
 	 * @throws E if {@code hash} in not a legal transaction hash
 	 */
-	public <E extends Exception> TransactionReferenceImpl(String hash, Function<String, ? extends E> onIllegalHash) throws E {
+	public <E extends Exception> TransactionReferenceImpl(String hash, ExceptionSupplier<? extends E> onIllegalHash) throws E {
 		// each byte is represented by two successive characters
 		if (hash.length() != REQUEST_HASH_LENGTH * 2)
 			throw onIllegalHash.apply("Illegal transaction reference: it should be " + REQUEST_HASH_LENGTH + " bytes long");
 
-		try {
-			this.hash = Hex.fromHexString(hash);
-		}
-		catch (HexConversionException e) {
-			throw onIllegalHash.apply("Illegal hexadecimal string: " + e.getMessage());
-		}
+		this.hash = Hex.fromHexString(hash, onIllegalHash);
 	}
 
 	/**
@@ -70,7 +65,7 @@ public final class TransactionReferenceImpl extends AbstractMarshallable impleme
 	 * @param hash the hash of the transaction, as a byte array of length {@link TransactionReference#REQUEST_HASH_LENGTH}
 	 * @throws E if {@code hash} in not a legal transaction hash
 	 */
-	public <E extends Exception> TransactionReferenceImpl(byte[] hash, Function<String, ? extends E> onIllegalHash) throws E {
+	public <E extends Exception> TransactionReferenceImpl(byte[] hash, ExceptionSupplier<? extends E> onIllegalHash) throws E {
 		if (hash.length != REQUEST_HASH_LENGTH)
 			throw onIllegalHash.apply("Illegal transaction reference: it should be " + REQUEST_HASH_LENGTH + " bytes long");
 
@@ -84,20 +79,13 @@ public final class TransactionReferenceImpl extends AbstractMarshallable impleme
 	 * @throws InconsistentJsonException if {@code json} is inconsistent
 	 */
 	public TransactionReferenceImpl(TransactionReferenceJson json) throws InconsistentJsonException {
-		var hash = json.getHash();
-		if (hash == null)
-			throw new InconsistentJsonException(hash);
+		var hash = Objects.requireNonNull(json.getHash(), "hash cannot be null", InconsistentJsonException::new);
 
 		// each byte is represented by two successive characters
 		if (hash.length() != REQUEST_HASH_LENGTH * 2)
 			throw new InconsistentJsonException("Illegal transaction reference: it should be " + REQUEST_HASH_LENGTH + " bytes long");
 
-		try {
-			this.hash = Hex.fromHexString(hash);
-		}
-		catch (HexConversionException e) {
-			throw new InconsistentJsonException(e);
-		}
+		this.hash = Hex.fromHexString(hash, InconsistentJsonException::new);
 	}
 
 	/**

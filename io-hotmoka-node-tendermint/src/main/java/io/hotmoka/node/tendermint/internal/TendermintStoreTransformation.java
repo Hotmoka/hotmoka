@@ -101,12 +101,12 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 				BigInteger _50_000 = BigInteger.valueOf(50_000);
 
 				StorageReference shares = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _50_000, takamakaCode, MethodSignatures.GET_SHARES, validators, StorageValues.NO_VALUES, IllegalArgumentException::new))
+					(manifest, _50_000, takamakaCode, MethodSignatures.GET_SHARES, validators, StorageValues.EMPTY, IllegalArgumentException::new))
 					.orElseThrow(() -> new StoreException(MethodSignatures.GET_SHARES + " should not return void"))
 					.asReference(value -> new StoreException(MethodSignatures.GET_SHARES + " should return a reference, not a " + value.getClass().getName()));
 
 				int numOfValidators = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _50_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SIZE, shares, StorageValues.NO_VALUES, IllegalArgumentException::new))
+					(manifest, _50_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SIZE, shares, StorageValues.EMPTY, IllegalArgumentException::new))
 					.orElseThrow(() -> new StoreException(MethodSignatures.STORAGE_MAP_VIEW_SIZE + " should not return void"))
 					.asInt(value -> new StoreException(MethodSignatures.STORAGE_MAP_VIEW_SIZE + " should return an integer, not a " + value.getClass().getName()));
 
@@ -119,7 +119,7 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 						.asReference(value -> new StoreException(MethodSignatures.STORAGE_MAP_VIEW_SELECT + " should return a reference, not a " + value.getClass().getName()));
 
 					String id = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-						(manifest, _50_000, takamakaCode, MethodSignatures.ID, validator, StorageValues.NO_VALUES, IllegalArgumentException::new))
+						(manifest, _50_000, takamakaCode, MethodSignatures.ID, validator, StorageValues.EMPTY, IllegalArgumentException::new))
 						.orElseThrow(() -> new StoreException(MethodSignatures.ID + " should not return void"))
 						.asString(value -> new StoreException(MethodSignatures.ID + " should return a string, not a " + value.getClass().getName()));
 

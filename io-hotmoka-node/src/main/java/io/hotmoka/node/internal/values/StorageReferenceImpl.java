@@ -24,6 +24,7 @@ import java.util.Objects;
 import java.util.function.Function;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.TransactionReferences;
@@ -80,7 +81,7 @@ public final class StorageReferenceImpl extends AbstractStorageValue implements 
 	 * @param onIllegalReference the creator of the exception thrown if {@code s} is an illegal representation for a storage reference
 	 * @throws E if {@code s} is an illegal representation for a storage reference
 	 */
-	public <E extends Exception> StorageReferenceImpl(String s, Function<String, ? extends E> onIllegalReference) throws E {
+	public <E extends Exception> StorageReferenceImpl(String s, ExceptionSupplier<? extends E> onIllegalReference) throws E {
 		String[] splits = s.split("#");
 		if (splits.length != 2)
 			throw onIllegalReference.apply("A storage reference should have the form transaction#progressive");

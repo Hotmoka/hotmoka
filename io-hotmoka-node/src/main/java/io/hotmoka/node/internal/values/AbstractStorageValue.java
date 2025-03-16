@@ -21,6 +21,7 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 import java.util.function.Function;
 
+import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -51,7 +52,7 @@ public abstract class AbstractStorageValue extends AbstractMarshallable implemen
 	 * @return the resulting storage value
 	 * @throws E if {@code s} cannot be converted into {@code type}
 	 */
-	public static <E extends Exception> StorageValue of(String s, StorageType type, Function<String, ? extends E> onIllegalConversion) throws E {
+	public static <E extends Exception> StorageValue of(String s, StorageType type, ExceptionSupplier<? extends E> onIllegalConversion) throws E {
 		if (type == StorageTypes.BOOLEAN)
 			return StorageValues.booleanOf(Boolean.parseBoolean(s));
 		else if (type == StorageTypes.BYTE)

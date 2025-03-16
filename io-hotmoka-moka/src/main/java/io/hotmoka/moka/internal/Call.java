@@ -213,7 +213,8 @@ public class Call extends AbstractCommand {
 							gasLimit,
 							classpath,
 							signatureOfMethod,
-							actuals);
+							actuals,
+							IllegalArgumentException::new);
 				else
 					return TransactionRequests.instanceViewMethodCall(
 							caller,
@@ -228,7 +229,7 @@ public class Call extends AbstractCommand {
 				KeyPair keys = readKeys(Accounts.of(payer), node, passwordOfPayer);
 				var takamakaCode = node.getTakamakaCode();
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest, StorageValues.NO_VALUES, IllegalArgumentException::new))
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest, StorageValues.EMPTY, IllegalArgumentException::new))
 					.orElseThrow(() -> new CommandException(MethodSignatures.GET_CHAIN_ID + " should not return void"))).getValue();
 				var signature = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
 				BigInteger nonce = NonceHelpers.of(node).getNonceOf(payer);
@@ -244,7 +245,8 @@ public class Call extends AbstractCommand {
 							gasPrice,
 							classpath,
 							signatureOfMethod,
-							actuals);
+							actuals,
+							IllegalArgumentException::new);
 				else
 					return TransactionRequests.instanceMethodCall(
 							signature.getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
@@ -256,7 +258,8 @@ public class Call extends AbstractCommand {
 							classpath,
 							signatureOfMethod,
 							receiver,
-							actuals);
+							actuals,
+							IllegalArgumentException::new);
 			}
 		}
 

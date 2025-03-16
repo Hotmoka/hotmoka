@@ -182,13 +182,13 @@ public class InitTendermint extends AbstractCommand {
 				var takamakaCode = initialized.getTakamakaCode();
 				var manifest = initialized.getManifest();
 				var validators = (StorageReference) initialized.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest, StorageValues.NO_VALUES, IllegalArgumentException::new))
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest, StorageValues.EMPTY, IllegalArgumentException::new))
 					.orElseThrow(() -> new NodeException(MethodSignatures.GET_VALIDATORS + " should not return void"));
 				var shares = (StorageReference) initialized.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_VIEW, "getShares", StorageTypes.STORAGE_MAP_VIEW), validators, StorageValues.NO_VALUES, IllegalArgumentException::new))
+					(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_VIEW, "getShares", StorageTypes.STORAGE_MAP_VIEW), validators, StorageValues.EMPTY, IllegalArgumentException::new))
 					.orElseThrow(() -> new NodeException("getShares() should not return void"));
 				int numOfValidators = ((IntValue) initialized.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.STORAGE_MAP_VIEW, "size", StorageTypes.INT), shares, StorageValues.NO_VALUES, IllegalArgumentException::new))
+					(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.STORAGE_MAP_VIEW, "size", StorageTypes.INT), shares, StorageValues.EMPTY, IllegalArgumentException::new))
 					.orElseThrow(() -> new NodeException("size() should not return void"))).getValue();
 
 				for (int num = 0; num < numOfValidators; num++) {
@@ -196,7 +196,7 @@ public class InitTendermint extends AbstractCommand {
 						(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.STORAGE_MAP_VIEW, "select", StorageTypes.OBJECT, StorageTypes.INT), shares, new StorageValue[] { StorageValues.intOf(num) }, IllegalArgumentException::new))
 						.orElseThrow(() -> new NodeException("select() should not return void"));
 					String publicKeyBase64 = ((StringValue) initialized.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-						(manifest, _100_000, takamakaCode, MethodSignatures.PUBLIC_KEY, validator, StorageValues.NO_VALUES, IllegalArgumentException::new))
+						(manifest, _100_000, takamakaCode, MethodSignatures.PUBLIC_KEY, validator, StorageValues.EMPTY, IllegalArgumentException::new))
 						.orElseThrow(() -> new NodeException(MethodSignatures.PUBLIC_KEY + " should not return void"))).getValue();
 					String publicKeyBase58 = Base58.toBase58String(Base64.fromBase64String(publicKeyBase64));
 					// the pem file, if it exists, is named with the public key, base58

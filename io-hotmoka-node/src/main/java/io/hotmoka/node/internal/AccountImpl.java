@@ -18,10 +18,10 @@ package io.hotmoka.node.internal;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.function.Function;
 
 import io.hotmoka.crypto.AbstractAccount;
 import io.hotmoka.crypto.api.Entropy;
+import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.Account;
@@ -92,7 +92,7 @@ public class AccountImpl extends AbstractAccount<StorageReference> implements Ac
 	 * @throws IOException if the PEM file cannot be read
 	 * @throws E if {@code reference} is illegal as a storage reference or it is not legal for an account
 	 */
-	public <E extends Exception> AccountImpl(String reference, Function<String, ? extends E> onIllegalReference) throws IOException, E {
+	public <E extends Exception> AccountImpl(String reference, ExceptionSupplier<? extends E> onIllegalReference) throws IOException, E {
 		this(StorageValues.reference(reference, onIllegalReference));
 	}
 
@@ -110,7 +110,7 @@ public class AccountImpl extends AbstractAccount<StorageReference> implements Ac
 	 * @throws IOException if the PEM file cannot be read
 	 * @throws E if {@code reference} is illegal as a storage reference or it is not legal for an account
 	 */
-	public <E extends Exception> AccountImpl(String reference, String dir, Function<String, ? extends E> onIllegalReference) throws IOException, E {
+	public <E extends Exception> AccountImpl(String reference, String dir, ExceptionSupplier<? extends E> onIllegalReference) throws IOException, E {
 		this(StorageValues.reference(reference, onIllegalReference), dir);
 	}
 

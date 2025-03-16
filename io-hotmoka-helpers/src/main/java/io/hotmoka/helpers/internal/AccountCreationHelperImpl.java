@@ -93,7 +93,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 
 		try {
 			gamete = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest, StorageValues.NO_VALUES, IllegalArgumentException::new))
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest, StorageValues.EMPTY, IllegalArgumentException::new))
 					.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"))
 					.asReference(value -> new NodeException(MethodSignatures.GET_GAMETE + " should return a reference, not a " + value.getClass().getName()));
 		}
@@ -139,7 +139,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 			(signer, gamete, nonce,
 			chainId, gas, gasHelper.getGasPrice(), takamakaCode,
 			method, gamete,
-			StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyEncoded));
+			new StorageValue[] { StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyEncoded) }, IllegalArgumentException::new);
 
 		try {
 			return (StorageReference) node.addInstanceMethodCallTransaction(request)
@@ -193,7 +193,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 
 		if (addToLedger) {
 			var accountsLedger = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_ACCOUNTS_LEDGER, manifest, StorageValues.NO_VALUES, IllegalArgumentException::new))
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_ACCOUNTS_LEDGER, manifest, StorageValues.EMPTY, IllegalArgumentException::new))
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_ACCOUNTS_LEDGER + " should not return void"))
 				.asReturnedReference(MethodSignatures.GET_ACCOUNTS_LEDGER, NodeException::new);
 
@@ -203,8 +203,8 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 				chainId, gas1.add(gas2).add(EXTRA_GAS_FOR_ANONYMOUS), gasHelper.getGasPrice(), takamakaCode,
 				method,
 				accountsLedger,
-				StorageValues.bigIntegerOf(balance),
-				StorageValues.stringOf(publicKeyEncoded));
+				new StorageValue[] { StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyEncoded) },
+				IllegalArgumentException::new);
 
 			account = node.addInstanceMethodCallTransaction((InstanceMethodCallTransactionRequest) request1)
 				.orElseThrow(() -> new NodeException(method + " should not return void"))
@@ -233,7 +233,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		
 		try {
 			gamete = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest, StorageValues.NO_VALUES, IllegalArgumentException::new))
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest, StorageValues.EMPTY, IllegalArgumentException::new))
 					.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"))
 					.asReturnedReference(MethodSignatures.GET_GAMETE, NodeException::new);
 		}
@@ -270,7 +270,8 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		var method = MethodSignatures.ofNonVoid(StorageTypes.GAMETE, "faucetTendermintED25519Validator", StorageTypes.TENDERMINT_ED25519_VALIDATOR, StorageTypes.BIG_INTEGER, StorageTypes.STRING);
 		var request = TransactionRequests.instanceMethodCall
 			(signer, gamete, nonce, chainId, gas, gasHelper.getGasPrice(), takamakaCode, method, gamete,
-			StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyEncoded));
+			new StorageValue[] { StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyEncoded) },
+			IllegalArgumentException::new);
 
 		try {
 			return node.addInstanceMethodCallTransaction(request)

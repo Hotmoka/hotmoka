@@ -17,10 +17,10 @@ limitations under the License.
 package io.hotmoka.node.internal.types;
 
 import java.io.IOException;
-import java.util.Objects;
-import java.util.function.Function;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.api.types.ClassType;
@@ -46,7 +46,7 @@ public final class ClassTypeImpl extends AbstractStorageType implements ClassTyp
 	 * @param onIllegalName the exception generator used if {@code name} is illegal for a class type
 	 * @throws E if {@code name} is illegal for a class type
 	 */
-	private <E extends Exception> ClassTypeImpl(String name, Function<String, ? extends E> onIllegalName) throws E {
+	private <E extends Exception> ClassTypeImpl(String name, ExceptionSupplier<? extends E> onIllegalName) throws E {
 		if ("boolean".equals(name) || "byte".equals(name) || "char".equals(name) || "short".equals(name) ||
 				"int".equals(name) || "long".equals(name) || "float".equals(name) || "double".equals(name))
 			throw onIllegalName.apply("Refusing to create a class type whose name is that of the basic type " + name);
@@ -54,20 +54,20 @@ public final class ClassTypeImpl extends AbstractStorageType implements ClassTyp
 		if ("void".equals(name))
 			throw onIllegalName.apply("Refusing to create a class type named void");
 
-		this.name = Objects.requireNonNull(name, "name cannot be null");
+		this.name = Objects.requireNonNull(name, "name cannot be null", onIllegalName);
 	}
 
 	/**
 	 * Yields the class type for a class with the given name.
 	 * 
 	 * @param <E> the type of the exception thrown if {@code name} is illegal for a class type
-	 * @param className the name of the class
+	 * @param name the name of the class
 	 * @param onIllegalName the exception generator used if {@code name} is illegal for a class type
 	 * @return the class type
 	 * @throws E if {@code name} is illegal for a class type
 	 */
-	public static <E extends Exception> ClassType named(String className, Function<String, ? extends E> onIllegalName) throws E {
-		switch (className) {
+	public static <E extends Exception> ClassType named(String name, ExceptionSupplier<? extends E> onIllegalName) throws E {
+		switch (Objects.requireNonNull(name, "className cannot be null", onIllegalName)) {
 		case "java.math.BigInteger": return BIG_INTEGER;
 		case "java.lang.Object": return OBJECT;
 		case "java.lang.String": return STRING;
@@ -124,7 +124,7 @@ public final class ClassTypeImpl extends AbstractStorageType implements ClassTyp
 		case Constants.POLL_NAME: return POLL;
 		case Constants.SHARED_ENTITY_NAME: return SHARED_ENTITY;
 		case Constants.SHARED_ENTITY_OFFER_NAME: return SHARED_ENTITY_OFFER;
-		default: return new ClassTypeImpl(className, onIllegalName);
+		default: return new ClassTypeImpl(name, onIllegalName);
 		}
 	}
 
@@ -137,7 +137,7 @@ public final class ClassTypeImpl extends AbstractStorageType implements ClassTyp
 	 * @return the storage class type
 	 * @throws E if {@code clazz} is illegal for a storage class type
 	 */
-	public static <E extends Exception> ClassType fromClass(Class<?> clazz, Function<String, ? extends E> onIllegalClass) throws E {
+	public static <E extends Exception> ClassType fromClass(Class<?> clazz, ExceptionSupplier<? extends E> onIllegalClass) throws E {
 		if (clazz == boolean.class || clazz == byte.class || clazz == char.class || clazz == short.class
 				|| clazz == int.class || clazz == long.class || clazz == float.class || clazz == double.class)
 			throw onIllegalClass.apply("Primitive types are not storage class types");

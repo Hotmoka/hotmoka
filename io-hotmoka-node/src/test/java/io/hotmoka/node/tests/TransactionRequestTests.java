@@ -97,7 +97,8 @@ public class TransactionRequestTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("jar store transaction requests are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForJarStoreTransactionRequest() throws Exception {
-		var request1 = TransactionRequests.jarStore(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, jar, reference, reference2, reference3);
+		var request1 = TransactionRequests.jarStore(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, jar,
+				new TransactionReference[] { reference, reference2, reference3 }, IllegalArgumentException::new);
 		String encoded = new TransactionRequests.Encoder().encode(request1);
 		var request2 = new TransactionRequests.Decoder().decode(encoded);
 		assertEquals(request1, request2);
@@ -120,7 +121,7 @@ public class TransactionRequestTests extends AbstractLoggedTests {
 	public void encodeDecodeWorksForStaticMethodCallTransactionRequest() throws Exception {
 		var value1 = StorageValues.intOf(13);
 		var value2 = StorageValues.reference(reference2, BigInteger.ZERO, RuntimeException::new);
-		var request1 = TransactionRequests.staticMethodCall(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, MOO, value1, value2);
+		var request1 = TransactionRequests.staticMethodCall(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, MOO, new StorageValue[] { value1, value2 }, IllegalArgumentException::new);
 		String encoded = new TransactionRequests.Encoder().encode(request1);
 		var request2 = new TransactionRequests.Decoder().decode(encoded);
 		assertEquals(request1, request2);
@@ -132,7 +133,7 @@ public class TransactionRequestTests extends AbstractLoggedTests {
 		var value1 = StorageValues.intOf(13);
 		var value2 = StorageValues.reference(reference2, BigInteger.ZERO, IllegalArgumentException::new);
 		var receiver = StorageValues.reference(reference2, BigInteger.valueOf(17), IllegalArgumentException::new);
-		var request1 = TransactionRequests.instanceMethodCall(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, MOO, receiver, value1, value2);
+		var request1 = TransactionRequests.instanceMethodCall(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, MOO, receiver, new StorageValue[] { value1, value2 }, IllegalArgumentException::new);
 		String encoded = new TransactionRequests.Encoder().encode(request1);
 		var request2 = new TransactionRequests.Decoder().decode(encoded);
 		assertEquals(request1, request2);

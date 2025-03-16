@@ -82,7 +82,7 @@ public class JarStoreInitialTransactionRequestImpl extends TransactionRequestImp
 	}
 
 	private static TransactionReference[] convertedDependencies(TransactionRequestJson json) throws InconsistentJsonException {
-		TransactionReferences.Json[] dependencies = json.getDependencies().toArray(TransactionReferences.Json[]::new);
+		var dependencies = json.getDependencies().toArray(TransactionReferences.Json[]::new);
 		var result = new TransactionReference[dependencies.length];
 		for (int pos = 0; pos < result.length; pos++)
 			result[pos] = Objects.requireNonNull(dependencies[pos], "dependencies cannot hold null elements", InconsistentJsonException::new).unmap();

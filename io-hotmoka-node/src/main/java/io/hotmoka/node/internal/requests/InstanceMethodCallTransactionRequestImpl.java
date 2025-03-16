@@ -71,6 +71,7 @@ public class InstanceMethodCallTransactionRequestImpl extends AbstractInstanceMe
 	/**
 	 * Builds the transaction request.
 	 * 
+	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
 	 * @param signer the signer of the request
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
@@ -81,14 +82,15 @@ public class InstanceMethodCallTransactionRequestImpl extends AbstractInstanceMe
 	 * @param method the method that must be called
 	 * @param receiver the receiver of the call
 	 * @param actuals the actual arguments passed to the method
+	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
 	 * @throws SignatureException if the signer cannot sign the request
 	 * @throws InvalidKeyException if the signer uses an invalid private key
 	 */
-	// TODO: pass exception supplier
-	public InstanceMethodCallTransactionRequestImpl(Signer<? super InstanceMethodCallTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws InvalidKeyException, SignatureException {
-		super(caller, nonce, gasLimit, gasPrice, classpath, method, receiver, actuals, IllegalArgumentException::new);
+	public <E extends Exception> InstanceMethodCallTransactionRequestImpl(Signer<? super InstanceMethodCallTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue[] actuals, ExceptionSupplier<? extends E> onIllegalArgs) throws E, InvalidKeyException, SignatureException {
+		super(caller, nonce, gasLimit, gasPrice, classpath, method, receiver, actuals, onIllegalArgs);
 
-		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null", NullPointerException::new);
+		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null", onIllegalArgs);
 		this.signature = signer.sign(this);
 	}
 
@@ -117,6 +119,25 @@ public class InstanceMethodCallTransactionRequestImpl extends AbstractInstanceMe
 	}
 
 	/**
+	 * Builds the transaction request as it can be sent to run a {@code @@View} method.
+	 * It fixes the signature to a missing signature, the nonce to zero, the chain identifier
+	 * to the empty string and the gas price to zero. None of them is used for a view transaction.
+	 * 
+	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
+	 * @param caller the externally owned caller contract that pays for the transaction
+	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
+	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
+	 * @param method the method that must be called
+	 * @param receiver the receiver of the call
+	 * @param actuals the actual arguments passed to the method
+	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
+	 */
+	public <E extends Exception> InstanceMethodCallTransactionRequestImpl(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue[] actuals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		this(NO_SIG, caller, ZERO, "", gasLimit, ZERO, classpath, method, receiver, actuals, onIllegalArgs);
+	}
+
+	/**
 	 * Builds a transaction request from its given JSON representation.
 	 * 
 	 * @param json the JSON representation
@@ -138,55 +159,10 @@ public class InstanceMethodCallTransactionRequestImpl extends AbstractInstanceMe
 		);
 	}
 
-	/**
-	 * Builds the transaction request as it can be sent to run a {@code @@View} method.
-	 * It fixes the signature to a missing signature, the nonce to zero, the chain identifier
-	 * to the empty string and the gas price to zero. None of them is used for a view transaction.
-	 * 
-	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
-	 * @param caller the externally owned caller contract that pays for the transaction
-	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
-	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
-	 * @param method the method that must be called
-	 * @param receiver the receiver of the call
-	 * @param actuals the actual arguments passed to the method
-	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
-	 * @throws E if some argument is illegal
-	 */
-	public <E extends Exception> InstanceMethodCallTransactionRequestImpl(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue[] actuals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
-		this(NO_SIG, caller, ZERO, "", gasLimit, ZERO, classpath, method, receiver, actuals, onIllegalArgs);
-	}
-
 	@Override
 	public final void into(MarshallingContext context) throws IOException {
 		intoWithoutSignature(context);
 		context.writeLengthAndBytes(signature);
-	}
-
-	@Override
-	public String toString() {
-        return super.toString() + "\n  chainId: " + chainId + "\n  signature: " + Hex.toHexString(signature);
-	}
-
-	@Override
-	public boolean equals(Object other) {
-		return other instanceof InstanceMethodCallTransactionRequest imctr &&
-			super.equals(other) && chainId.equals(imctr.getChainId()) && Arrays.equals(signature, imctr.getSignature());
-	}
-
-	@Override
-	public int hashCode() {
-		return super.hashCode() ^ chainId.hashCode() ^ Arrays.hashCode(signature);
-	}
-
-	@Override
-	public byte[] getSignature() {
-		return signature.clone();
-	}
-
-	@Override
-	public String getChainId() {
-		return chainId;
 	}
 
 	@Override
@@ -195,7 +171,7 @@ public class InstanceMethodCallTransactionRequestImpl extends AbstractInstanceMe
 		boolean receiveInt = MethodSignatures.RECEIVE_INT.equals(staticTarget);
 		boolean receiveLong = MethodSignatures.RECEIVE_LONG.equals(staticTarget);
 		boolean receiveBigInteger = MethodSignatures.RECEIVE_BIG_INTEGER.equals(staticTarget);
-
+	
 		if (receiveInt)
 			context.writeByte(SELECTOR_TRANSFER_INT);
 		else if (receiveLong)
@@ -204,9 +180,9 @@ public class InstanceMethodCallTransactionRequestImpl extends AbstractInstanceMe
 			context.writeByte(SELECTOR_TRANSFER_BIG_INTEGER);
 		else
 			context.writeByte(SELECTOR);
-
+	
 		context.writeStringUnshared(chainId);
-
+	
 		if (receiveInt || receiveLong || receiveBigInteger) {
 			getCaller().intoWithoutSelector(context);
 			context.writeBigInteger(getGasLimit());
@@ -214,9 +190,9 @@ public class InstanceMethodCallTransactionRequestImpl extends AbstractInstanceMe
 			getClasspath().into(context);
 			context.writeBigInteger(getNonce());
 			getReceiver().intoWithoutSelector(context);
-
+	
 			StorageValue howMuch = actuals().findFirst().get();
-
+	
 			if (receiveInt)
 				context.writeInt(((IntValue) howMuch).getValue());
 			else if (receiveLong)
@@ -249,8 +225,8 @@ public class InstanceMethodCallTransactionRequestImpl extends AbstractInstanceMe
 			var method = MethodSignatures.from(context);
 			var receiver = StorageValues.referenceWithoutSelectorFrom(context);
 			byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
-
-			return TransactionRequests.instanceMethodCall(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, receiver, actuals, IOException::new);
+	
+			return new InstanceMethodCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, receiver, actuals, IOException::new);
 		}
 		else if (selector == SELECTOR_TRANSFER_INT || selector == SELECTOR_TRANSFER_LONG || selector == SELECTOR_TRANSFER_BIG_INTEGER) {
 			var chainId = context.readStringUnshared();
@@ -260,27 +236,53 @@ public class InstanceMethodCallTransactionRequestImpl extends AbstractInstanceMe
 			var classpath = TransactionReferences.from(context);
 			var nonce = context.readBigInteger();
 			var receiver = StorageValues.referenceWithoutSelectorFrom(context);
-
+	
 			if (selector == SELECTOR_TRANSFER_INT) {
 				int howMuch = context.readInt();
 				byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
-
+	
 				return TransactionRequests.instanceMethodCall(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, MethodSignatures.RECEIVE_INT, receiver, new StorageValue[] { StorageValues.intOf(howMuch) }, IOException::new);
 			}
 			else if (selector == SELECTOR_TRANSFER_LONG) {
 				long howMuch = context.readLong();
 				byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
-
+	
 				return TransactionRequests.instanceMethodCall(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, MethodSignatures.RECEIVE_LONG, receiver, new StorageValue[] { StorageValues.longOf(howMuch) }, IOException::new);
 			}
 			else {
 				BigInteger howMuch = context.readBigInteger();
 				byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
-
+	
 				return TransactionRequests.instanceMethodCall(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, MethodSignatures.RECEIVE_BIG_INTEGER, receiver, new StorageValue[] { StorageValues.bigIntegerOf(howMuch) }, IOException::new);
 			}
 		}
 		else
 			throw new IOException("Unexpected request selector " + selector);
+	}
+
+	@Override
+	public String toString() {
+        return super.toString() + "\n  chainId: " + chainId + "\n  signature: " + Hex.toHexString(signature);
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		return other instanceof InstanceMethodCallTransactionRequest imctr &&
+			super.equals(other) && chainId.equals(imctr.getChainId()) && Arrays.equals(signature, imctr.getSignature());
+	}
+
+	@Override
+	public int hashCode() {
+		return super.hashCode() ^ chainId.hashCode() ^ Arrays.hashCode(signature);
+	}
+
+	@Override
+	public byte[] getSignature() {
+		return signature.clone();
+	}
+
+	@Override
+	public String getChainId() {
+		return chainId;
 	}
 }

@@ -150,7 +150,7 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
 
 		StorageReference gamete = node.gamete();
-		var getNonceRequest = TransactionRequests.instanceViewMethodCall(gamete, BigInteger.valueOf(50_000), takamakaCodeReference, MethodSignatures.NONCE, gamete, StorageValues.NO_VALUES, IllegalArgumentException::new);
+		var getNonceRequest = TransactionRequests.instanceViewMethodCall(gamete, BigInteger.valueOf(50_000), takamakaCodeReference, MethodSignatures.NONCE, gamete, StorageValues.EMPTY, IllegalArgumentException::new);
 		BigInteger nonceOfGamete;
 
 		try {

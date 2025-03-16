@@ -52,7 +52,7 @@ public final class ConstructorSignatureImpl extends AbstractCodeSignature implem
 	 * @throws InconsistentJsonException if {@code json} is inconsistent
 	 */
 	public ConstructorSignatureImpl(ConstructorSignatureJson json) throws InconsistentJsonException {
-		super(getDefiningClassAsType(json), getFormalsAsTypes(json));
+		this(getDefiningClassAsType(json), getFormalsAsTypes(json));
 	}
 
 	private static ClassType getDefiningClassAsType(ConstructorSignatureJson json) throws InconsistentJsonException {

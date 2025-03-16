@@ -48,6 +48,7 @@ import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
 
 /**
  * Implementation of an object that helps with sending coins to accounts.
@@ -96,7 +97,7 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 			chainId, gas, gasHelper.getGasPrice(), takamakaCode,
 			MethodSignatures.RECEIVE_BIG_INTEGER,
 			destination,
-			StorageValues.bigIntegerOf(amount));
+			new StorageValue[] { StorageValues.bigIntegerOf(amount) }, IllegalArgumentException::new);
 
 		try {
 			node.addInstanceMethodCallTransaction(request1);
@@ -115,7 +116,7 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 
 		try {
 			var gamete = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest, StorageValues.NO_VALUES, IllegalArgumentException::new))
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest, StorageValues.EMPTY, IllegalArgumentException::new))
 					.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"))
 					.asReference(value -> new NodeException(MethodSignatures.GET_GAMETE + " should return a reference, not a " + value.getClass().getName()));
 
@@ -129,7 +130,8 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 							chainId, _100_000, gasHelper.getGasPrice(), takamakaCode,
 							MethodSignatures.ofVoid(GAMETE, "faucet", PAYABLE_CONTRACT, BIG_INTEGER),
 							gamete,
-							destination, StorageValues.bigIntegerOf(amount));
+							new StorageValue[] { destination, StorageValues.bigIntegerOf(amount) },
+							IllegalArgumentException::new);
 
 			node.addInstanceMethodCallTransaction(request);
 			requestsHandler.accept(new TransactionRequest<?>[] { request });

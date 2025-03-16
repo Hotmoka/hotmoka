@@ -97,7 +97,9 @@ public class JarsNodeImpl extends AbstractNodeDecorator<Node> implements JarsNod
 		int pos = 0;
 		for (Path jar: jars) {
 			byte[] bytes = Files.readAllBytes(jar);
-			jarSuppliers[pos] = postJarStoreTransaction(TransactionRequests.jarStore(signerOnBehalfOfPayer, payer, nonce, chainId, BigInteger.valueOf(10000 + bytes.length * 200L), gasHelper.getSafeGasPrice(), takamakaCode, bytes, takamakaCode));
+			jarSuppliers[pos] = postJarStoreTransaction(TransactionRequests.jarStore
+				(signerOnBehalfOfPayer, payer, nonce, chainId, BigInteger.valueOf(10000 + bytes.length * 200L), gasHelper.getSafeGasPrice(), takamakaCode, bytes,
+					new TransactionReference[] { takamakaCode }, IllegalArgumentException::new));
 			nonce = nonce.add(ONE);
 			pos++;
 		}
