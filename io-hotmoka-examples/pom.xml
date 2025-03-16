@@ -233,6 +233,24 @@
             </configuration>
           </execution>
 
+		  <execution><id>sswmt2025c1</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>ssvmt2025c1</classifier>
+              <includes><include>io/hotmoka/examples/ssvmt2025/c1/**</include></includes>
+            </configuration>
+          </execution>
+
+		  <execution><id>sswmt2025c2</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>ssvmt2025c2</classifier>
+              <includes><include>io/hotmoka/examples/ssvmt2025/c2/**</include></includes>
+            </configuration>
+          </execution>
+
+		  <execution><id>sswmt2025c3</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>ssvmt2025c3</classifier>
+              <includes><include>io/hotmoka/examples/ssvmt2025/c3/**</include></includes>
+            </configuration>
+          </execution>
+
 		  <execution><id>wtsc2020</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>wtsc2020</classifier>
               <includes><include>io/hotmoka/examples/wtsc2020/**</include></includes>

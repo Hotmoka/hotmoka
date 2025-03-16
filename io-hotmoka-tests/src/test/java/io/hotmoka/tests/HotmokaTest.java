@@ -151,15 +151,26 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	    		privateKeyOfGamete = keys.getPrivate();
 
 	    		Node wrapped;
-	    		//node = wrapped = mkDiskNode();
-	    		//node = wrapped = mkMokamintNodeConnectedToPeer();
-	    		//node = wrapped = mkMokamintNetwork(4);
-	    		//node = wrapped = mkTendermintNode();
-	    		node = mkRemoteNode(wrapped = mkDiskNode());
-	    		//node = mkRemoteNode(wrapped = mkMokamintNetwork(1));
-	    		//node = mkRemoteNode(wrapped = mkTendermintNode());
-	    		//node = wrapped = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
-	    		//node = wrapped = mkRemoteNode("localhost:8080");
+	    		
+	    		String requestedNodeType = System.getProperty("nodeType");
+	    		if ("tendermint".equals(requestedNodeType))
+	    			node = wrapped = mkTendermintNode();
+	    		else if ("mokamint".equals(requestedNodeType))
+	    			node = wrapped = mkMokamintNetwork(1);
+	    		else if ("disk".equals(requestedNodeType))
+	    			node = wrapped = mkDiskNode();
+	    		else {
+	    			//node = wrapped = mkDiskNode();
+	    			//node = wrapped = mkMokamintNodeConnectedToPeer();
+	    			//node = wrapped = mkMokamintNetwork(4);
+	    			//node = wrapped = mkTendermintNode();
+	    			node = mkRemoteNode(wrapped = mkDiskNode());
+	    			//node = mkRemoteNode(wrapped = mkMokamintNetwork(1));
+	    			//node = mkRemoteNode(wrapped = mkTendermintNode());
+	    			//node = wrapped = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
+	    			//node = wrapped = mkRemoteNode("localhost:8080");
+	    		}
+
 	    		initializeNodeIfNeeded(wrapped);
 
 	    		manifest = node.getManifest();
@@ -518,12 +529,14 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	private static <B extends ConsensusConfigBuilder<?,B>> B fillConsensusConfig(ConsensusConfigBuilder<?,B> builder) throws NodeException {
 		try {
+			boolean skipVerification = "true".equals(System.getProperty("skipVerification"));
 			return builder.setSignatureForRequests(SignatureAlgorithms.ed25519det()) // good for testing
 					.allowUnsignedFaucet(true) // good for testing
 					.ignoreGasPrice(true) // good for testing
 					.setInitialSupply(Coin.level7(10000000)) // enough for all tests
 					.setFinalSupply(Coin.level7(10000000).multiply(BigInteger.TWO))
-					.setPublicKeyOfGamete(consensus.getPublicKeyOfGamete());
+					.setPublicKeyOfGamete(consensus.getPublicKeyOfGamete())
+					.skipVerification(skipVerification);
 		}
 		catch (NoSuchAlgorithmException | InvalidKeyException e) {
 			throw new NodeException(e);

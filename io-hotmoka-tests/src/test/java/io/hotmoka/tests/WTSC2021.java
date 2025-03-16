@@ -16,28 +16,34 @@ limitations under the License.
 
 package io.hotmoka.tests;
 
+import static io.hotmoka.helpers.Coin.level2;
+import static io.hotmoka.helpers.Coin.level3;
+import static io.hotmoka.helpers.Coin.panarea;
+import static io.hotmoka.node.StorageTypes.BOOLEAN;
 import static java.math.BigInteger.ZERO;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Logger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.RepetitionInfo;
+import org.junit.jupiter.api.Test;
 
+import io.hotmoka.crypto.Base64;
+import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
@@ -45,138 +51,116 @@ import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
+import io.hotmoka.node.api.signatures.ConstructorSignature;
+import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
+import io.hotmoka.node.api.signatures.VoidMethodSignature;
+import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StorageValue;
 
 /**
- * A test for generating many coin transfers and count their speed.
+ * A test that performs repeated transfers between accounts of an ERC20 token.
  */
 class WTSC2021 extends HotmokaTest {
-	private final static String MY_ACCOUNTS = "io.hotmoka.examples.wtsc2021.MyAccounts";
-	private final static int NUMBER_OF_TRANSFERS = 1000;
-	private static int NUMBER_OF_ACCOUNTS = 500;
-	private static ForkJoinPool customThreadPool;
-	private final static Logger LOGGER = Logger.getLogger(WTSC2021.class.getName());
+	private static int NUMBER_OF_INVESTORS = 100;
+	private final static int NUMBER_OF_TRANSFERS = 5;
+	private final static int NUMBER_OF_ITERATIONS = 10;
+    private final ClassType COIN = StorageTypes.classNamed("io.hotmoka.examples.tokens.ExampleCoin", IllegalArgumentException::new);
+    private final ConstructorSignature CONSTRUCTOR_OF_COIN = ConstructorSignatures.of(COIN);
+    private final NonVoidMethodSignature TRANSFER = MethodSignatures.ofNonVoid(StorageTypes.IERC20, "transfer", BOOLEAN, StorageTypes.CONTRACT, StorageTypes.INT);
+    private final ClassType CREATOR = StorageTypes.classNamed("io.hotmoka.examples.tokens.ExampleCoinCreator", IllegalArgumentException::new);
+    private final ConstructorSignature CONSTRUCTOR_OF_CREATOR = ConstructorSignatures.of(CREATOR, StorageTypes.BIG_INTEGER, StorageTypes.STRING);
+    private final VoidMethodSignature DISTRIBUTE = MethodSignatures.ofVoid(CREATOR, "distribute", StorageTypes.ACCOUNTS, StorageTypes.IERC20, StorageTypes.INT);
+    private StorageReference[] investors;
+    private PrivateKey[] privateKeysOfInvestors;
+    private StorageReference token;
+	private final AtomicInteger numberOfTransactions = new AtomicInteger();
+	private ExecutorService customThreadPool;
 
 	@BeforeAll
-	static void beforeAll() throws Exception {
-		customThreadPool = new ForkJoinPool(NUMBER_OF_ACCOUNTS);
+	static void beforeAll() {
 		String cheapTests = System.getProperty("cheapTests");
 		if ("true".equals(cheapTests)) {
 			System.out.println("Running in cheap mode since cheapTests = true");
-			NUMBER_OF_ACCOUNTS = 4;
+			NUMBER_OF_INVESTORS = 4;
+		}
+	}
+
+	@Test @DisplayName("performance test")
+	void performanceTest() {
+    	long start = System.currentTimeMillis();
+
+		System.out.printf("Performance test with %d investors of an ERC20 token, each making %d transfers, iterated %d times...\n", NUMBER_OF_INVESTORS, NUMBER_OF_TRANSFERS, NUMBER_OF_ITERATIONS);
+
+		customThreadPool = new ForkJoinPool(NUMBER_OF_INVESTORS);
+		IntStream.range(0, NUMBER_OF_ITERATIONS).forEach(this::iteration);
+	    long elapsed = System.currentTimeMillis() - start;
+	    customThreadPool.shutdownNow();
+	
+	    System.out.printf("did %s transactions in %.2fms [%d tx/s]\n", numberOfTransactions, elapsed / 1000.0, numberOfTransactions.get() * 1000L / elapsed);
+	}
+
+	private void iteration(int num) {
+		System.out.println("iteration #" + num);
+
+		try {
+			setJar("tokens.jar");
+			numberOfTransactions.getAndIncrement();
+
+			setAccounts(Stream.generate(() -> level3(1)).limit(NUMBER_OF_INVESTORS + 1));
+			numberOfTransactions.getAndIncrement();
+
+			investors = accounts().limit(NUMBER_OF_INVESTORS).toArray(StorageReference[]::new);
+			privateKeysOfInvestors = privateKeys().limit(NUMBER_OF_INVESTORS).toArray(PrivateKey[]::new);
+
+			// the creator is created apart, since it has a different class
+			KeyPair keys = signature().getKeyPair();
+			PrivateKey privateKeyOfCreator = keys.getPrivate();
+			String publicKey = Base64.toBase64String(signature().encodingOf(keys.getPublic()));
+			StorageReference creator = addConstructorCallTransaction
+				(privateKey(NUMBER_OF_INVESTORS), account(NUMBER_OF_INVESTORS), _50_000, ZERO, jar(), CONSTRUCTOR_OF_CREATOR,
+				StorageValues.bigIntegerOf(level2(500)), StorageValues.stringOf(publicKey));
+
+			// @creator creates the coin; initially, @creator will hold all tokens
+			token = addConstructorCallTransaction(privateKeyOfCreator, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_OF_COIN);
+
+			// @creator makes a token transfer to each @investor (investors will now have tokens to trade)
+			addInstanceVoidMethodCallTransaction(privateKeyOfCreator, creator, _100_000.multiply(BigInteger.valueOf(NUMBER_OF_INVESTORS)), ZERO, jar(),
+				DISTRIBUTE, creator, containerOfAccounts(), token, StorageValues.intOf(50_000));
+
+			customThreadPool.submit(() -> IntStream.range(0, NUMBER_OF_INVESTORS).parallel().forEach(this::runTransfersForSender)).get();
+		}
+		catch (InvalidKeyException | SignatureException | TransactionException | CodeExecutionException
+				| TransactionRejectedException | InterruptedException | ExecutionException
+				| NoSuchAlgorithmException | UnknownReferenceException | ClassNotFoundException | IOException | NodeException | TimeoutException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+    private void runTransfersForSender(int senderIndex) {
+    	StorageReference sender = investors[senderIndex];
+    	PrivateKey privateKeyOfSender = privateKeysOfInvestors[senderIndex];
+    	var random = new Random(13011973);
+
+    	// choose 5 receivers randomly and send random tokens to them
+    	random.ints(0, NUMBER_OF_INVESTORS).limit(NUMBER_OF_TRANSFERS)
+    		.forEach(i -> createTransfer(sender, privateKeyOfSender, investors[i], 10 * (random.nextInt(5) + 1)));
+    }
+
+    /**
+     * Transition that performs the transfer on ERC20
+     */
+    private void createTransfer(StorageReference sender, PrivateKey privateKeyOfSender, StorageReference receiver, int howMuch) {
+		try {
+			addInstanceNonVoidMethodCallTransaction(privateKeyOfSender, sender, _500_000, ZERO, jar(), TRANSFER, token, receiver, StorageValues.intOf(howMuch));
+		}
+		catch (TimeoutException e) {
+			// this occurs if the node is remote and very slow, so that the connection timeouts
+		}
+		catch (InvalidKeyException | SignatureException | TransactionException | CodeExecutionException | TransactionRejectedException | NodeException | InterruptedException e) {
+			throw new RuntimeException(e);
 		}
 
-		setJar("wtsc2021.jar");
-		transactions.getAndIncrement();
-	}
-
-	@BeforeEach
-	void beforeEach() throws Exception {
-		long start = System.currentTimeMillis();
-		setAccounts(MY_ACCOUNTS, jar(), Stream.generate(() -> _50_000).limit(NUMBER_OF_ACCOUNTS)); // NUMBER_OF_ACCOUNTS accounts
-		transactions.getAndIncrement();
-		totalTime += System.currentTimeMillis() - start;
-	}
-
-	@AfterAll
-	static void afterAll() {
-		customThreadPool.shutdownNow();
-		System.out.printf("%d money transfers, %d transactions in %d ms [%d tx/s]\n", transfers.get(), transactions.get(), totalTime, transactions.get() * 1000L / totalTime);
-	}
-
-	private final AtomicInteger ticket = new AtomicInteger();
-	private final static AtomicInteger transfers = new AtomicInteger();
-	private final static AtomicInteger transactions = new AtomicInteger();
-	private final static AtomicInteger failed = new AtomicInteger();
-	private static long totalTime;
-
-	@RepeatedTest(10)
-	@DisplayName(NUMBER_OF_TRANSFERS + " random transfers between accounts")
-	void randomTransfers(RepetitionInfo repetitionInfo) throws Exception {
-		var remaining = new AtomicInteger(NUMBER_OF_ACCOUNTS);
-
-		// we need a lock despite using an AtomicInteger, just to guarantee that
-		// remaining workers are reported in order in the logs
-		var lock = new Object();
-
-		var accounts = accounts().toArray(StorageReference[]::new);
-
-		class Worker implements Runnable {
-			private final int num;
-
-			private Worker(int num) {
-				this.num = num;
-			}
-
-			@Override
-			public void run() {
-				try {
-					StorageReference from = account(num);
-					PrivateKey key = privateKey(num);
-					var random = new Random();
-
-					while (ticket.getAndIncrement() < NUMBER_OF_TRANSFERS) {
-						StorageReference to = random.ints(0, NUMBER_OF_ACCOUNTS).filter(i -> i != num).mapToObj(i -> accounts[i]).findAny().get();
-						int amount = 1 + random.nextInt(10);
-						addInstanceVoidMethodCallTransaction(key, from, _50_000, ZERO, takamakaCode(), MethodSignatures.RECEIVE_INT, to, StorageValues.intOf(amount));
-						transfers.getAndIncrement();
-						transactions.getAndIncrement();
-					}
-				}
-				catch (TimeoutException e) {
-					// this occurs if the node is remote and very slow, so that the connection timeouts
-				}
-				catch (TransactionRejectedException e) {
-					// eventually, the paying account "num" might not have enough gas to pay for a transaction
-					if (!e.getMessage().startsWith("The payer has not enough funds to buy"))
-						failure(e);
-					else
-						synchronized (lock) {
-							LOGGER.info("Worker #" + num + " exits since it has not enough funds for buying gas: " + remaining.decrementAndGet() + " workers remaining");
-						}
-				}
-				catch (TransactionException e) {
-					// eventually, the paying account "num" might not have enough balance to pay the other account
-					if (!e.getMessage().startsWith("io.takamaka.code.lang.InsufficientFundsError"))
-						failure(e);
-					else
-						synchronized (lock) {
-							LOGGER.info("Worker #" + num + " exits since it has not enough funds anymore: " + remaining.decrementAndGet() + " workers remaining");
-						}
-				}
-				catch (InvalidKeyException | SignatureException | CodeExecutionException | NodeException e) {
-					failure(e);
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-					failure(e);
-				}
-			}
-
-			private void failure(Exception exception) {
-				int howManyFailedAlready = failed.incrementAndGet();
-				LOGGER.warning("Worker #" + num + " failed, which is normal for nodes with probabilistic finality (" + (NUMBER_OF_ACCOUNTS - howManyFailedAlready) + " remaining workers): " + exception.getMessage());
-			}
-		}
-
-		long start = System.currentTimeMillis();
-
-		customThreadPool.submit(() -> IntStream.range(0, NUMBER_OF_ACCOUNTS).parallel().mapToObj(Worker::new).forEach(Runnable::run)).get();
-
-		// we ask for the richest account
-		StorageValue richest = runInstanceNonVoidMethodCallTransaction(account(0), _1_000_000, jar(), MethodSignatures.ofNonVoid(StorageTypes.classNamed(MY_ACCOUNTS, IllegalArgumentException::new), "richest", StorageTypes.EOA), containerOfAccounts());
-
-		totalTime += System.currentTimeMillis() - start;
-
-		System.out.println("iteration " + repetitionInfo.getCurrentRepetition() + "/" + repetitionInfo.getTotalRepetitions() + " complete, the richest is " + richest);
-
-		// we compute the sum of the balances of the accounts
-		BigInteger sum = ZERO;
-		for (int i = 0; i < NUMBER_OF_ACCOUNTS; i++)
-			sum = sum.add(runInstanceNonVoidMethodCallTransaction(account(0), _50_000, takamakaCode(), MethodSignatures.BALANCE, account(i)).asBigInteger(value -> new NodeException()));
-
-		// no money got lost in translation
-		assertEquals(sum, BigInteger.valueOf(NUMBER_OF_ACCOUNTS).multiply(_50_000));
-	}
+    	numberOfTransactions.getAndIncrement();
+    }
 }
