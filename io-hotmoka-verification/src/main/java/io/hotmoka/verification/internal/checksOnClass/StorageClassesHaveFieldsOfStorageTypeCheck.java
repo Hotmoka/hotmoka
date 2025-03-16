@@ -45,7 +45,7 @@ public class StorageClassesHaveFieldsOfStorageTypeCheck extends CheckOnClasses {
 		// be possible to determine if the content is a storage value
 		try {
 			return type.isPrimitive() || type == Object.class || type.isInterface() || type == String.class || type == BigInteger.class
-				|| (!type.isArray() && classLoader.isStorage(type.getName()));
+				|| (!type.isArray() && classLoader.isStorage(type.getName())); // TODO: provide isStorage for class?
 		}
 		catch (ClassNotFoundException e) {
 			throw new IllegalJarException(e);
