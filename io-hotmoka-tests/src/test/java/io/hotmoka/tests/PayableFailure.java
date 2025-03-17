@@ -39,7 +39,7 @@ import io.hotmoka.node.api.values.StorageReference;
  */
 class PayableFailure extends HotmokaTest {
 
-	private final static ClassType C = StorageTypes.classNamed("io.hotmoka.examples.payablefailure.C", IllegalArgumentException::new);
+	private final static ClassType C = StorageTypes.classNamed("io.hotmoka.examples.payablefailure.C");
 
 	@BeforeAll
 	static void beforeAll() throws Exception {

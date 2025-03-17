@@ -49,7 +49,6 @@ import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StorageValue;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -149,7 +148,7 @@ public class AccountsNodeImpl extends AbstractNodeDecorator<Node> implements Acc
 		BigInteger nonce;
 
 		try {
-			nonce = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(payer, _100_000, classpath, MethodSignatures.NONCE, payer, StorageValues.EMPTY, IllegalArgumentException::new))
+			nonce = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(payer, _100_000, classpath, MethodSignatures.NONCE, payer))
 				.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
 				.asReturnedBigInteger(MethodSignatures.NONCE, NodeException::new);
 		}
@@ -189,14 +188,13 @@ public class AccountsNodeImpl extends AbstractNodeDecorator<Node> implements Acc
 		this.container = addConstructorCallTransaction(TransactionRequests.constructorCall
 				(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getSafeGasPrice(), classpath,
 						// TODO: check exception below
-						ConstructorSignatures.of(StorageTypes.classNamed(containerClassName, NodeException::new), StorageTypes.BIG_INTEGER, StorageTypes.STRING, StorageTypes.STRING),
-						new StorageValue[] { StorageValues.bigIntegerOf(sum), StorageValues.stringOf(balances.toString()), StorageValues.stringOf(publicKeys.toString()) },
-						NodeException::new));
+						ConstructorSignatures.of(StorageTypes.classNamed(containerClassName), StorageTypes.BIG_INTEGER, StorageTypes.STRING, StorageTypes.STRING),
+						StorageValues.bigIntegerOf(sum), StorageValues.stringOf(balances.toString()), StorageValues.stringOf(publicKeys.toString())));
 
 		var get = MethodSignatures.ofNonVoid(StorageTypes.ACCOUNTS, "get", StorageTypes.EOA, StorageTypes.INT);
 
 		for (int i = 0; i < funds.length; i++)
-			this.accounts[i] = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(payer, _100_000, classpath, get, container, new StorageValue[] { StorageValues.intOf(i) }, IllegalArgumentException::new))
+			this.accounts[i] = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(payer, _100_000, classpath, get, container, StorageValues.intOf(i)))
 				.orElseThrow(() -> new NodeException(get + " should not return void"))
 				.asReference(value -> new NodeException(get + " should return a reference, not a " + value.getClass().getName()));
 	}

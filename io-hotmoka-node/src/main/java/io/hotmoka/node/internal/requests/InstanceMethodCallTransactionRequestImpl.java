@@ -34,7 +34,6 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
-import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.signatures.MethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -241,19 +240,19 @@ public class InstanceMethodCallTransactionRequestImpl extends AbstractInstanceMe
 				int howMuch = context.readInt();
 				byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 	
-				return TransactionRequests.instanceMethodCall(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, MethodSignatures.RECEIVE_INT, receiver, new StorageValue[] { StorageValues.intOf(howMuch) }, IOException::new);
+				return new InstanceMethodCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, MethodSignatures.RECEIVE_INT, receiver, new StorageValue[] { StorageValues.intOf(howMuch) }, IOException::new);
 			}
 			else if (selector == SELECTOR_TRANSFER_LONG) {
 				long howMuch = context.readLong();
 				byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 	
-				return TransactionRequests.instanceMethodCall(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, MethodSignatures.RECEIVE_LONG, receiver, new StorageValue[] { StorageValues.longOf(howMuch) }, IOException::new);
+				return new InstanceMethodCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, MethodSignatures.RECEIVE_LONG, receiver, new StorageValue[] { StorageValues.longOf(howMuch) }, IOException::new);
 			}
 			else {
 				BigInteger howMuch = context.readBigInteger();
 				byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 	
-				return TransactionRequests.instanceMethodCall(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, MethodSignatures.RECEIVE_BIG_INTEGER, receiver, new StorageValue[] { StorageValues.bigIntegerOf(howMuch) }, IOException::new);
+				return new InstanceMethodCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, MethodSignatures.RECEIVE_BIG_INTEGER, receiver, new StorageValue[] { StorageValues.bigIntegerOf(howMuch) }, IOException::new);
 			}
 		}
 		else

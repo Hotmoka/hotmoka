@@ -76,7 +76,7 @@ public abstract class AbstractStorageValue extends AbstractMarshallable implemen
 		else if (StorageTypes.STRING.equals(type))
 			return StorageValues.stringOf(s);
 		else if (type instanceof ClassType)
-			return StorageValues.reference(s, onIllegalConversion);
+			return new StorageReferenceImpl(s, onIllegalConversion);
 		else
 			throw onIllegalConversion.apply("Cannot transform " + s + " into a storage value");
 	}

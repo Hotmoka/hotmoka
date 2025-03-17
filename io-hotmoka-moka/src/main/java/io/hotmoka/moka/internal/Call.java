@@ -127,7 +127,7 @@ public class Call extends AbstractCommand {
 		private Run() throws Exception {
 			try (Node node = this.node = RemoteNodes.of(uri, 10_000)) {
 				if ("the classpath of the receiver".equals(Call.this.classpath))
-					this.classpath = node.getClassTag(StorageValues.reference(Call.this.receiver, s -> new CommandException("The receiver " + Call.this.receiver + " is not a valid storage reference: " + s))).getJar();
+					this.classpath = node.getClassTag(StorageValues.reference(Call.this.receiver)).getJar();
 				else
 					this.classpath = TransactionReferences.of(Call.this.classpath);
 
@@ -141,7 +141,7 @@ public class Call extends AbstractCommand {
 
 				if (!isView) {
 					passwordOfPayer = ensurePassword(passwordOfPayer, "the payer account", interactive, false);
-					this.payer = StorageValues.reference(Call.this.payer, s -> new CommandException("The payer " + Call.this.payer + " is not a valid storage reference: " + s));
+					this.payer = StorageValues.reference(Call.this.payer);
 				}
 				else
 					this.payer = null;
@@ -196,7 +196,7 @@ public class Call extends AbstractCommand {
 				return null;
 			}
 			catch (ClassNotFoundException e) {
-				return StorageValues.reference(Call.this.receiver, s -> new IllegalArgumentException("The receiver " + Call.this.receiver + " is neither a class name nor a valid storage reference: " + s));
+				return StorageValues.reference(Call.this.receiver);
 			}
 		}
 
@@ -222,14 +222,13 @@ public class Call extends AbstractCommand {
 							classpath,
 							signatureOfMethod,
 							receiver,
-							actuals,
-							IllegalArgumentException::new);
+							actuals);
 			}
 			else {
 				KeyPair keys = readKeys(Accounts.of(payer), node, passwordOfPayer);
 				var takamakaCode = node.getTakamakaCode();
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest, StorageValues.EMPTY, IllegalArgumentException::new))
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
 					.orElseThrow(() -> new CommandException(MethodSignatures.GET_CHAIN_ID + " should not return void"))).getValue();
 				var signature = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
 				BigInteger nonce = NonceHelpers.of(node).getNonceOf(payer);
@@ -258,8 +257,7 @@ public class Call extends AbstractCommand {
 							classpath,
 							signatureOfMethod,
 							receiver,
-							actuals,
-							IllegalArgumentException::new);
+							actuals);
 			}
 		}
 
@@ -311,7 +309,7 @@ public class Call extends AbstractCommand {
 			if (result.length > 0) {
 				int pos = 0;
 				for (String actualAsString: args)
-					result[pos] = StorageValues.of(actualAsString, formals[pos++], IllegalArgumentException::new);
+					result[pos] = StorageValues.of(actualAsString, formals[pos++]);
 			}
 
 			return result;
@@ -322,15 +320,13 @@ public class Call extends AbstractCommand {
 			var formals = new StorageType[parameters.length];
 			int pos = 0;
 			for (var parameter: parameters)
-				formals[pos++] = StorageTypes.fromClass(parameter.getType(), s -> new CommandException("The formal arguments of " + method + " are not storage types: " + s));
+				formals[pos++] = StorageTypes.fromClass(parameter.getType());
 
 			Class<?> returnType = method.getReturnType();
 			if (returnType == void.class)
-				return MethodSignatures.ofVoid(StorageTypes.classFromClass(clazz, CommandException::new), methodName, formals);
+				return MethodSignatures.ofVoid(StorageTypes.classFromClass(clazz), methodName, formals);
 			else
-				return MethodSignatures.ofNonVoid(StorageTypes.classFromClass(clazz, CommandException::new), methodName,
-						StorageTypes.fromClass(returnType, s -> new CommandException("The return type of " + method + " is not a storage type: " + s)),
-						formals);
+				return MethodSignatures.ofNonVoid(StorageTypes.classFromClass(clazz), methodName, StorageTypes.fromClass(returnType), formals);
 		}
 
 		private Method askForMethod() throws ClassNotFoundException, CommandException {

@@ -104,9 +104,9 @@ public class Create extends AbstractCommand {
 			try (Node node = RemoteNodes.of(uri, 10_000)) {
 				var takamakaCode = node.getTakamakaCode();
 				var manifest = node.getManifest();
-				var payer = StorageValues.reference(Create.this.payer, CommandException::new);
+				var payer = StorageValues.reference(Create.this.payer);
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest, StorageValues.EMPTY, IllegalArgumentException::new))
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
 					.orElseThrow(() -> new CommandException(MethodSignatures.GET_CHAIN_ID + " should not return void"))).getValue();
 				var gasHelper = GasHelpers.of(node);
 				var nonceHelper = NonceHelpers.of(node);
@@ -131,8 +131,7 @@ public class Create extends AbstractCommand {
 						gasHelper.getGasPrice(),
 						classpath,
 						signatureOfConstructor,
-						actualsAsStorageValues(signatureOfConstructor),
-						CommandException::new);
+						actualsAsStorageValues(signatureOfConstructor));
 
 				try {
 					StorageReference object = node.addConstructorCallTransaction(request);
@@ -152,7 +151,7 @@ public class Create extends AbstractCommand {
 			if (result.length > 0) {
 				int pos = 0;
 				for (String actualAsString: args)
-					result[pos] = StorageValues.of(actualAsString, formals[pos++], IllegalArgumentException::new);
+					result[pos] = StorageValues.of(actualAsString, formals[pos++]);
 			}
 
 			return result;
@@ -163,9 +162,9 @@ public class Create extends AbstractCommand {
 			var formals = new StorageType[parameters.length];
 			int pos = 0;
 			for (var parameter: parameters)
-				formals[pos++] = StorageTypes.fromClass(parameter.getType(), s -> new CommandException("The formal arguments of " + constructor + " are not storage types: " + s));
+				formals[pos++] = StorageTypes.fromClass(parameter.getType());
 
-			return ConstructorSignatures.of(StorageTypes.classNamed(className, s -> new CommandException("The class " + className + " is not a storage type: " + s)), formals);
+			return ConstructorSignatures.of(StorageTypes.classNamed(className), formals);
 		}
 
 		private Constructor<?> askForConstructor() throws ClassNotFoundException, CommandException {

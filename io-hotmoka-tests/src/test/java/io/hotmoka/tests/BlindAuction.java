@@ -70,7 +70,7 @@ class BlindAuction extends HotmokaTest {
 	 */
 	private static int REVEAL_TIME = 8_000;
 
-	private static final ClassType BLIND_AUCTION = StorageTypes.classNamed("io.hotmoka.examples.auction.BlindAuction", IllegalArgumentException::new);
+	private static final ClassType BLIND_AUCTION = StorageTypes.classNamed("io.hotmoka.examples.auction.BlindAuction");
 
 	private static final ConstructorSignature CONSTRUCTOR_BLIND_AUCTION = ConstructorSignatures.of(BLIND_AUCTION, INT, INT);
 
@@ -82,13 +82,13 @@ class BlindAuction extends HotmokaTest {
 			BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE);
 
 	private static final ConstructorSignature CONSTRUCTOR_REVEALED_BID = ConstructorSignatures.of
-		(StorageTypes.classNamed("io.hotmoka.examples.auction.BlindAuction$RevealedBid", IllegalArgumentException::new),
+		(StorageTypes.classNamed("io.hotmoka.examples.auction.BlindAuction$RevealedBid"),
 			StorageTypes.BIG_INTEGER, BOOLEAN, StorageTypes.BYTES32_SNAPSHOT);
 
 	private static final VoidMethodSignature BID = MethodSignatures.ofVoid(BLIND_AUCTION, "bid", StorageTypes.BIG_INTEGER, StorageTypes.BYTES32_SNAPSHOT);
 
 	private static final VoidMethodSignature REVEAL = MethodSignatures.ofVoid(BLIND_AUCTION, "reveal",
-			StorageTypes.classNamed("io.hotmoka.examples.auction.BlindAuction$RevealedBid", IllegalArgumentException::new));
+			StorageTypes.classNamed("io.hotmoka.examples.auction.BlindAuction$RevealedBid"));
 
 	private static final NonVoidMethodSignature AUCTION_END = MethodSignatures.ofNonVoid(BLIND_AUCTION, "auctionEnd", StorageTypes.PAYABLE_CONTRACT);
 

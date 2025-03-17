@@ -42,7 +42,7 @@ import io.hotmoka.node.api.values.StorageReference;
  * A test for the distribution of coins.
  */
 class Distributor extends HotmokaTest {
-	private static final ClassType DISTRIBUTOR = StorageTypes.classNamed("io.hotmoka.examples.distributor.Distributor", IllegalArgumentException::new);
+	private static final ClassType DISTRIBUTOR = StorageTypes.classNamed("io.hotmoka.examples.distributor.Distributor");
 	private static final VoidMethodSignature ADD_AS_PAYEE = MethodSignatures.ofVoid(DISTRIBUTOR, "addAsPayee");
 	private static final VoidMethodSignature DISTRIBUTE = MethodSignatures.ofVoid(DISTRIBUTOR, "distribute", StorageTypes.BIG_INTEGER);
 

@@ -43,7 +43,7 @@ import io.hotmoka.node.api.values.StorageReference;
  * A test for a class that uses lambda expressions referring to entries.
  */
 class Lambdas extends HotmokaTest {
-	private static final ClassType LAMBDAS = StorageTypes.classNamed("io.hotmoka.examples.lambdas.Lambdas", IllegalArgumentException::new);
+	private static final ClassType LAMBDAS = StorageTypes.classNamed("io.hotmoka.examples.lambdas.Lambdas");
 	private static final ConstructorSignature CONSTRUCTOR_LAMBDAS = ConstructorSignatures.of(LAMBDAS, StorageTypes.BIG_INTEGER, StorageTypes.STRING);
 
 	/**

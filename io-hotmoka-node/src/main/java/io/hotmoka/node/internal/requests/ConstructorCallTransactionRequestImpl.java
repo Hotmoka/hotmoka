@@ -33,7 +33,6 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
-import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.node.api.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
@@ -212,6 +211,6 @@ public class ConstructorCallTransactionRequestImpl extends CodeExecutionTransact
 		var constructor = ConstructorSignatures.from(context);
 		byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 
-		return TransactionRequests.constructorCall(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, constructor, actuals, IOException::new);
+		return new ConstructorCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, constructor, actuals, IOException::new);
 	}
 }

@@ -64,7 +64,7 @@ public class State extends AbstractCommand {
 
 		private Run() throws Exception {
 			checkStorageReference(object);
-			var reference = StorageValues.reference(object, CommandException::new);
+			var reference = StorageValues.reference(object);
 
 			try (var node = this.node = RemoteNodes.of(uri, 10_000)) {
 				this.updates = node.getState(reference).sorted().toArray(Update[]::new);

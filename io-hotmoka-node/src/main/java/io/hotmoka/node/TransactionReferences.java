@@ -33,11 +33,6 @@ public abstract class TransactionReferences {
 	private TransactionReferences() {}
 
 	/**
-	 * An empty array of transaction references.
-	 */
-	public final static TransactionReference[] EMPTY = new TransactionReference[0];
-
-	/**
 	 * Yields a transaction reference with the given hash.
 	 * 
 	 * @param hash the hash of the transaction, as the hexadecimal representation of its {@link TransactionReference#REQUEST_HASH_LENGTH} bytes

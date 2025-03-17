@@ -39,7 +39,6 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.IntValue;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.remote.RemoteNodes;
 import picocli.CommandLine.Command;
@@ -92,25 +91,25 @@ public class BuyValidation extends AbstractCommand {
 				var takamakaCode = node.getTakamakaCode();
 				var manifest = node.getManifest();
 				var validators = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest, StorageValues.EMPTY, IllegalArgumentException::new))
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest))
 					.orElseThrow(() -> new CommandException("getValidators() should not return void"));
-				var buyer = StorageValues.reference(BuyValidation.this.buyer, CommandException::new);
+				var buyer = StorageValues.reference(BuyValidation.this.buyer);
 				var algorithm = SignatureHelpers.of(node).signatureAlgorithmFor(buyer);
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest, StorageValues.EMPTY, IllegalArgumentException::new))
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
 					.orElseThrow(() -> new CommandException("getChainId() should not return void"))).getValue();
 				KeyPair keys = readKeys(Accounts.of(buyer), node, passwordOfBuyer);
 				var signer = algorithm.getSigner(keys.getPrivate(), SignedTransactionRequest<?>::toByteArrayWithoutSignature);				
 				InstanceMethodCallTransactionRequest request;
 
 				int buyerSurcharge = ((IntValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getBuyerSurcharge", StorageTypes.INT), validators, StorageValues.EMPTY, IllegalArgumentException::new))
+					(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getBuyerSurcharge", StorageTypes.INT), validators))
 					.orElseThrow(() -> new CommandException("getBuyerSurcharge() should not return void"))).getValue();
 
-				StorageReference offer = StorageValues.reference(BuyValidation.this.offer, CommandException::new);
+				StorageReference offer = StorageValues.reference(BuyValidation.this.offer);
 
 				BigInteger cost = ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_OFFER, "getCost", StorageTypes.BIG_INTEGER), offer, StorageValues.EMPTY, IllegalArgumentException::new))
+					(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_OFFER, "getCost", StorageTypes.BIG_INTEGER), offer))
 						.orElseThrow(() -> new CommandException("getCost() should not return void"))).getValue();
 				BigInteger costWithSurcharge = cost.multiply(BigInteger.valueOf(buyerSurcharge + 100_000_000L)).divide(_100_000_000);
 
@@ -119,8 +118,7 @@ public class BuyValidation extends AbstractCommand {
 				request = TransactionRequests.instanceMethodCall
 					(signer, buyer, nonceHelper.getNonceOf(buyer), chainId, gasLimit, gasHelper.getSafeGasPrice(), takamakaCode,
 					MethodSignatures.ofVoid(StorageTypes.ABSTRACT_VALIDATORS, "accept", StorageTypes.BIG_INTEGER, StorageTypes.VALIDATOR, StorageTypes.SHARED_ENTITY_OFFER),
-					validators, new StorageValue[] { StorageValues.bigIntegerOf(costWithSurcharge), buyer, offer },
-					IllegalArgumentException::new);
+					validators, StorageValues.bigIntegerOf(costWithSurcharge), buyer, offer);
 
 				node.addInstanceMethodCallTransaction(request);
 				System.out.println("Offer accepted");

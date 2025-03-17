@@ -47,7 +47,7 @@ import io.takamaka.code.constants.Constants;
  * A test for the remote purchase contract.
  */
 class TicTacToe extends HotmokaTest {
-	private static final ClassType TIC_TAC_TOE = StorageTypes.classNamed("io.hotmoka.examples.tictactoe.TicTacToe", IllegalArgumentException::new);
+	private static final ClassType TIC_TAC_TOE = StorageTypes.classNamed("io.hotmoka.examples.tictactoe.TicTacToe");
 	private static final ConstructorSignature CONSTRUCTOR_TIC_TAC_TOE = ConstructorSignatures.of(TIC_TAC_TOE);
 	private static final NonVoidMethodSignature TO_STRING = MethodSignatures.ofNonVoid(TIC_TAC_TOE, "toString", StorageTypes.STRING);
 	private static final VoidMethodSignature PLAY = MethodSignatures.ofVoid(TIC_TAC_TOE, "play", LONG, INT, INT);

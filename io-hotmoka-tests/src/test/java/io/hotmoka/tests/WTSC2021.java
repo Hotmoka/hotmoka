@@ -65,10 +65,10 @@ class WTSC2021 extends HotmokaTest {
 	private static int NUMBER_OF_INVESTORS = 100;
 	private final static int NUMBER_OF_TRANSFERS = 5;
 	private final static int NUMBER_OF_ITERATIONS = 10;
-    private final ClassType COIN = StorageTypes.classNamed("io.hotmoka.examples.tokens.ExampleCoin", IllegalArgumentException::new);
+    private final ClassType COIN = StorageTypes.classNamed("io.hotmoka.examples.tokens.ExampleCoin");
     private final ConstructorSignature CONSTRUCTOR_OF_COIN = ConstructorSignatures.of(COIN);
     private final NonVoidMethodSignature TRANSFER = MethodSignatures.ofNonVoid(StorageTypes.IERC20, "transfer", BOOLEAN, StorageTypes.CONTRACT, StorageTypes.INT);
-    private final ClassType CREATOR = StorageTypes.classNamed("io.hotmoka.examples.tokens.ExampleCoinCreator", IllegalArgumentException::new);
+    private final ClassType CREATOR = StorageTypes.classNamed("io.hotmoka.examples.tokens.ExampleCoinCreator");
     private final ConstructorSignature CONSTRUCTOR_OF_CREATOR = ConstructorSignatures.of(CREATOR, StorageTypes.BIG_INTEGER, StorageTypes.STRING);
     private final VoidMethodSignature DISTRIBUTE = MethodSignatures.ofVoid(CREATOR, "distribute", StorageTypes.ACCOUNTS, StorageTypes.IERC20, StorageTypes.INT);
     private StorageReference[] investors;

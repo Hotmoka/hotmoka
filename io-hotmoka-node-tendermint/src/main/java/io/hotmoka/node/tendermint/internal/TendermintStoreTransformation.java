@@ -37,7 +37,6 @@ import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponseWithEvents;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.local.AbstractTrieBasedStoreTransformation;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
@@ -101,12 +100,12 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 				BigInteger _50_000 = BigInteger.valueOf(50_000);
 
 				StorageReference shares = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _50_000, takamakaCode, MethodSignatures.GET_SHARES, validators, StorageValues.EMPTY, IllegalArgumentException::new))
+					(manifest, _50_000, takamakaCode, MethodSignatures.GET_SHARES, validators))
 					.orElseThrow(() -> new StoreException(MethodSignatures.GET_SHARES + " should not return void"))
 					.asReference(value -> new StoreException(MethodSignatures.GET_SHARES + " should return a reference, not a " + value.getClass().getName()));
 
 				int numOfValidators = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _50_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SIZE, shares, StorageValues.EMPTY, IllegalArgumentException::new))
+					(manifest, _50_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SIZE, shares))
 					.orElseThrow(() -> new StoreException(MethodSignatures.STORAGE_MAP_VIEW_SIZE + " should not return void"))
 					.asInt(value -> new StoreException(MethodSignatures.STORAGE_MAP_VIEW_SIZE + " should return an integer, not a " + value.getClass().getName()));
 
@@ -114,17 +113,17 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 
 				for (int num = 0; num < numOfValidators; num++) {
 					StorageReference validator = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-						(manifest, _50_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SELECT, shares, new StorageValue[] { StorageValues.intOf(num) }, IllegalArgumentException::new))
+						(manifest, _50_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SELECT, shares, StorageValues.intOf(num)))
 						.orElseThrow(() -> new StoreException(MethodSignatures.STORAGE_MAP_VIEW_SELECT + " should not return void"))
 						.asReference(value -> new StoreException(MethodSignatures.STORAGE_MAP_VIEW_SELECT + " should return a reference, not a " + value.getClass().getName()));
 
 					String id = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-						(manifest, _50_000, takamakaCode, MethodSignatures.ID, validator, StorageValues.EMPTY, IllegalArgumentException::new))
+						(manifest, _50_000, takamakaCode, MethodSignatures.ID, validator))
 						.orElseThrow(() -> new StoreException(MethodSignatures.ID + " should not return void"))
 						.asString(value -> new StoreException(MethodSignatures.ID + " should return a string, not a " + value.getClass().getName()));
 
 					long power = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-						(manifest, _50_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_GET, shares, new StorageValue[] { validator }, IllegalArgumentException::new))
+						(manifest, _50_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_GET, shares, validator))
 						.orElseThrow(() -> new StoreException(MethodSignatures.STORAGE_MAP_VIEW_GET + " should not return void"))
 						.asBigInteger(value -> new StoreException(MethodSignatures.STORAGE_MAP_VIEW_GET + " should return a BigInteger, not a " + value.getClass().getName()))
 						.longValue();

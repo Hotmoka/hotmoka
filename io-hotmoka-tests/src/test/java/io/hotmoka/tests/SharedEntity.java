@@ -51,10 +51,10 @@ import io.hotmoka.node.api.values.StorageReference;
  * A test for the shared entity contract and subclasses.
  */
 class SharedEntity extends HotmokaTest {
-    private static final ClassType SIMPLE_SHARED_ENTITY = StorageTypes.classNamed("io.takamaka.code.dao.SimpleSharedEntity", IllegalArgumentException::new);
-    private static final ClassType SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS = StorageTypes.classNamed(SHARED_ENTITY + "WithCappedShareholders", IllegalArgumentException::new);
-    private static final ClassType SHARED_ENTITY_WITH_INTEGRAL_SHARES = StorageTypes.classNamed(SHARED_ENTITY + "WithIntegralShares", IllegalArgumentException::new);
-    private static final ClassType SHARED_ENTITY_WITH_CAPPED_SHARES = StorageTypes.classNamed(SHARED_ENTITY + "WithCappedShares", IllegalArgumentException::new);
+    private static final ClassType SIMPLE_SHARED_ENTITY = StorageTypes.classNamed("io.takamaka.code.dao.SimpleSharedEntity");
+    private static final ClassType SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS = StorageTypes.classNamed(SHARED_ENTITY + "WithCappedShareholders");
+    private static final ClassType SHARED_ENTITY_WITH_INTEGRAL_SHARES = StorageTypes.classNamed(SHARED_ENTITY + "WithIntegralShares");
+    private static final ClassType SHARED_ENTITY_WITH_CAPPED_SHARES = StorageTypes.classNamed(SHARED_ENTITY + "WithCappedShares");
     private static final ClassType OFFER = StorageTypes.SHARED_ENTITY_OFFER;
     private static final ConstructorSignature SIMPLE_SHARED_ENTITY_CONSTRUCTOR = ConstructorSignatures.of(SIMPLE_SHARED_ENTITY, PAYABLE_CONTRACT, BIG_INTEGER);
     private static final ConstructorSignature SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS_CONSTRUCTOR = ConstructorSignatures.of(SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS, PAYABLE_CONTRACT, BIG_INTEGER, INT);

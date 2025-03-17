@@ -45,7 +45,7 @@ import io.hotmoka.node.api.values.StorageValue;
  * A test for the simple storage class.
  */
 class Storage extends HotmokaTest {
-	private static final ClassType SIMPLE_STORAGE = StorageTypes.classNamed("io.hotmoka.examples.storage.SimpleStorage", IllegalArgumentException::new);
+	private static final ClassType SIMPLE_STORAGE = StorageTypes.classNamed("io.hotmoka.examples.storage.SimpleStorage");
 	private static final VoidMethodSignature SET = MethodSignatures.ofVoid(SIMPLE_STORAGE, "set", INT);
 	private static final NonVoidMethodSignature GET = MethodSignatures.ofNonVoid(SIMPLE_STORAGE, "get", INT);
 	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_STORAGE = ConstructorSignatures.of(SIMPLE_STORAGE);

@@ -26,7 +26,6 @@ import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.TransactionReferences;
-import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.node.api.responses.GameteCreationTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -149,6 +148,6 @@ public class GameteCreationTransactionRequestImpl extends TransactionRequestImpl
 		var initialAmount = context.readBigInteger();
 		var publicKey = context.readStringUnshared();
 
-		return TransactionRequests.gameteCreation(classpath, initialAmount, publicKey, IOException::new);
+		return new GameteCreationTransactionRequestImpl(classpath, initialAmount, publicKey, IOException::new);
 	}
 }

@@ -48,7 +48,7 @@ import io.takamaka.code.constants.Constants;
  * A test for the ExampleCoin contract (a ERC20 contract).
  */
 class ExampleCoin extends HotmokaTest {
-    private static final ClassType EXAMPLECOIN = StorageTypes.classNamed("io.hotmoka.examples.tokens.ExampleCoin", IllegalArgumentException::new);
+    private static final ClassType EXAMPLECOIN = StorageTypes.classNamed("io.hotmoka.examples.tokens.ExampleCoin");
     private static final ClassType UBI = StorageTypes.UNSIGNED_BIG_INTEGER;
     private static final ConstructorSignature CONSTRUCTOR_EXAMPLECOIN = ConstructorSignatures.of(EXAMPLECOIN);
     private static final ConstructorSignature CONSTRUCTOR_UBI_STR = ConstructorSignatures.of(UBI, StorageTypes.STRING);

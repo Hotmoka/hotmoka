@@ -44,7 +44,6 @@ import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StorageValue;
 
 /**
  * A decorator of a node, that installs a jar and creates some initial accounts in it.
@@ -83,10 +82,10 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 		super(parent);
 
 		// we install the jar containing the basic Takamaka classes
-		TransactionReference takamakaCodeReference = parent.addJarStoreInitialTransaction(TransactionRequests.jarStoreInitial(Files.readAllBytes(takamakaCode), new TransactionReference[0], IllegalArgumentException::new));
+		TransactionReference takamakaCodeReference = parent.addJarStoreInitialTransaction(TransactionRequests.jarStoreInitial(Files.readAllBytes(takamakaCode)));
 
 		// we create a gamete with both red and green coins
-		this.gamete = parent.addGameteCreationTransaction(TransactionRequests.gameteCreation(takamakaCodeReference, consensus.getInitialSupply(), consensus.getPublicKeyOfGameteBase64(), IllegalArgumentException::new));
+		this.gamete = parent.addGameteCreationTransaction(TransactionRequests.gameteCreation(takamakaCodeReference, consensus.getInitialSupply(), consensus.getPublicKeyOfGameteBase64()));
 
 		if (producerOfValidatorsBuilder == null)
 			producerOfValidatorsBuilder = this::createEmptyValidatorsBuilder;
@@ -101,7 +100,7 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 		StorageReference builderOfGasStation = producerOfGasStationBuilder.apply(this, consensus, takamakaCodeReference);
 
 		BigInteger nonceOfGamete = getNonceOfGamete(parent, takamakaCodeReference);
-		var function = StorageTypes.fromClass(Function.class, IllegalArgumentException::new);
+		var function = StorageTypes.fromClass(Function.class);
 
 		// we create the manifest, passing the storage array of validators in store and their powers
 		var request = TransactionRequests.constructorCall
@@ -110,20 +109,17 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 					StorageTypes.INT, StorageTypes.LONG,
 					StorageTypes.BOOLEAN, StorageTypes.BOOLEAN,
 					StorageTypes.STRING, StorageTypes.GAMETE, StorageTypes.LONG, function, function),
-			new StorageValue[] {
-				StorageValues.stringOf(consensus.getGenesisTime().toInstant(ZoneOffset.UTC).toString()),
-				StorageValues.stringOf(consensus.getChainId()), StorageValues.intOf(consensus.getMaxErrorLength()), StorageValues.intOf(consensus.getMaxDependencies()),
-				StorageValues.longOf(consensus.getMaxCumulativeSizeOfDependencies()),
-				StorageValues.booleanOf(consensus.allowsUnsignedFaucet()), StorageValues.booleanOf(consensus.skipsVerification()),
-				StorageValues.stringOf(consensus.getSignatureForRequests().getName()), gamete, StorageValues.longOf(consensus.getVerificationVersion()),
-				builderOfValidators, builderOfGasStation
-			},
-			IllegalArgumentException::new);
+					StorageValues.stringOf(consensus.getGenesisTime().toInstant(ZoneOffset.UTC).toString()),
+					StorageValues.stringOf(consensus.getChainId()), StorageValues.intOf(consensus.getMaxErrorLength()), StorageValues.intOf(consensus.getMaxDependencies()),
+					StorageValues.longOf(consensus.getMaxCumulativeSizeOfDependencies()),
+					StorageValues.booleanOf(consensus.allowsUnsignedFaucet()), StorageValues.booleanOf(consensus.skipsVerification()),
+					StorageValues.stringOf(consensus.getSignatureForRequests().getName()), gamete, StorageValues.longOf(consensus.getVerificationVersion()),
+					builderOfValidators, builderOfGasStation);
 
 		StorageReference manifest = parent.addConstructorCallTransaction(request);
 
 		// we install the manifest and initialize the node
-		parent.addInitializationTransaction(TransactionRequests.initialization(takamakaCodeReference, manifest, NodeException::new));
+		parent.addInitializationTransaction(TransactionRequests.initialization(takamakaCodeReference, manifest));
 	}
 
 	/**
@@ -145,10 +141,10 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 		super(parent);
 
 		// we install the jar containing the basic Takamaka classes
-		TransactionReference takamakaCodeReference = parent.addJarStoreInitialTransaction(TransactionRequests.jarStoreInitial(Files.readAllBytes(takamakaCode), new TransactionReference[0], IllegalArgumentException::new));
+		TransactionReference takamakaCodeReference = parent.addJarStoreInitialTransaction(TransactionRequests.jarStoreInitial(Files.readAllBytes(takamakaCode)));
 
 		// we create a gamete with both red and green coins
-		this.gamete = parent.addGameteCreationTransaction(TransactionRequests.gameteCreation(takamakaCodeReference, consensus.getInitialSupply(), consensus.getPublicKeyOfGameteBase64(), IllegalArgumentException::new));
+		this.gamete = parent.addGameteCreationTransaction(TransactionRequests.gameteCreation(takamakaCodeReference, consensus.getInitialSupply(), consensus.getPublicKeyOfGameteBase64()));
 
 		// we create the builder of the validators
 		StorageReference builderOfValidators = createEmptyValidatorsBuilder(this, consensus, takamakaCodeReference);
@@ -157,24 +153,21 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 		StorageReference builderOfGasStation = createGenericGasStationBuilder(this, consensus, takamakaCodeReference);
 
 		BigInteger nonceOfGamete = getNonceOfGamete(parent, takamakaCodeReference);
-		var function = StorageTypes.fromClass(Function.class, IllegalArgumentException::new);
+		var function = StorageTypes.fromClass(Function.class);
 
 		// we create the manifest, passing the storage array of validators in store and their powers
 		var request = TransactionRequests.constructorCall
 			(new byte[0], gamete, nonceOfGamete, "", BigInteger.valueOf(1_000_000), ZERO, takamakaCodeReference,
-					ConstructorSignatures.of(StorageTypes.MANIFEST, StorageTypes.STRING, StorageTypes.STRING, StorageTypes.INT,
-					StorageTypes.INT, StorageTypes.LONG,
-					StorageTypes.BOOLEAN, StorageTypes.BOOLEAN,
-					StorageTypes.STRING, StorageTypes.GAMETE, StorageTypes.LONG, function, function),
-			new StorageValue[] {
+				ConstructorSignatures.of(StorageTypes.MANIFEST, StorageTypes.STRING, StorageTypes.STRING, StorageTypes.INT,
+				StorageTypes.INT, StorageTypes.LONG,
+				StorageTypes.BOOLEAN, StorageTypes.BOOLEAN,
+				StorageTypes.STRING, StorageTypes.GAMETE, StorageTypes.LONG, function, function),
 				StorageValues.stringOf(consensus.getGenesisTime().toString()),
 				StorageValues.stringOf(consensus.getChainId()), StorageValues.intOf(consensus.getMaxErrorLength()), StorageValues.intOf(consensus.getMaxDependencies()),
 				StorageValues.longOf(consensus.getMaxCumulativeSizeOfDependencies()),
 				StorageValues.booleanOf(consensus.allowsUnsignedFaucet()), StorageValues.booleanOf(consensus.skipsVerification()),
 				StorageValues.stringOf(consensus.getSignatureForRequests().getName()), gamete, StorageValues.longOf(consensus.getVerificationVersion()),
-				builderOfValidators, builderOfGasStation
-			},
-			IllegalArgumentException::new);
+				builderOfValidators, builderOfGasStation);
 
 		StorageReference manifest;
 
@@ -187,12 +180,12 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 		}
 
 		// we install the manifest and initialize the node
-		parent.addInitializationTransaction(TransactionRequests.initialization(takamakaCodeReference, manifest, NodeException::new));
+		parent.addInitializationTransaction(TransactionRequests.initialization(takamakaCodeReference, manifest));
 	}
 
 	private BigInteger getNonceOfGamete(Node node, TransactionReference takamakaCode) throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException {
 		var _1_000_000 = BigInteger.valueOf(1_000_000);
-		var getNonceRequest = TransactionRequests.instanceViewMethodCall(gamete, _1_000_000, takamakaCode, MethodSignatures.NONCE, gamete, StorageValues.EMPTY, IllegalArgumentException::new);
+		var getNonceRequest = TransactionRequests.instanceViewMethodCall(gamete, _1_000_000, takamakaCode, MethodSignatures.NONCE, gamete);
 
 		try {
 			return node.runInstanceMethodCallTransaction(getNonceRequest)
@@ -213,15 +206,12 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 			// we create the builder of zero validators
 			var request = TransactionRequests.constructorCall
 					(new byte[0], gamete, nonceOfGamete, "", _200_000, ZERO, takamakaCode,
-							ConstructorSignatures.of(StorageTypes.classNamed("io.takamaka.code.governance.GenericValidators$Builder", IllegalArgumentException::new), StorageTypes.STRING,
-									StorageTypes.STRING, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG,
-									StorageTypes.INT, StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
-					new StorageValue[] {
-							StorageValues.stringOf(""), StorageValues.stringOf(""), StorageValues.bigIntegerOf(consensus.getTicketForNewPoll()), StorageValues.bigIntegerOf(consensus.getFinalSupply()),
-							StorageValues.longOf(consensus.getInitialInflation()), StorageValues.intOf(0),
-							StorageValues.intOf(0), StorageValues.intOf(0), StorageValues.intOf(0)
-					},
-					IllegalArgumentException::new);
+							ConstructorSignatures.of(StorageTypes.classNamed("io.takamaka.code.governance.GenericValidators$Builder"), StorageTypes.STRING,
+								StorageTypes.STRING, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG,
+								StorageTypes.INT, StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
+								StorageValues.stringOf(""), StorageValues.stringOf(""), StorageValues.bigIntegerOf(consensus.getTicketForNewPoll()), StorageValues.bigIntegerOf(consensus.getFinalSupply()),
+								StorageValues.longOf(consensus.getInitialInflation()), StorageValues.intOf(0),
+								StorageValues.intOf(0), StorageValues.intOf(0), StorageValues.intOf(0));
 
 			return node.addConstructorCallTransaction(request);
 		}
@@ -238,14 +228,11 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 			// we create the builder of a generic gas station
 			var request = TransactionRequests.constructorCall
 					(new byte[0], gamete, nonceOfGamete, "", BigInteger.valueOf(100_000), ZERO, takamakaCode,
-							ConstructorSignatures.of(StorageTypes.classNamed("io.takamaka.code.governance.GenericGasStation$Builder", IllegalArgumentException::new),
-									StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.BOOLEAN, StorageTypes.BIG_INTEGER, StorageTypes.LONG),
-					new StorageValue[] {
-						StorageValues.bigIntegerOf(consensus.getInitialGasPrice()), StorageValues.bigIntegerOf(consensus.getMaxGasPerTransaction()),
-						StorageValues.booleanOf(consensus.ignoresGasPrice()), StorageValues.bigIntegerOf(consensus.getTargetGasAtReward()),
-						StorageValues.longOf(consensus.getOblivion())
-					},
-					IllegalArgumentException::new);
+							ConstructorSignatures.of(StorageTypes.classNamed("io.takamaka.code.governance.GenericGasStation$Builder"),
+								StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.BOOLEAN, StorageTypes.BIG_INTEGER, StorageTypes.LONG),
+								StorageValues.bigIntegerOf(consensus.getInitialGasPrice()), StorageValues.bigIntegerOf(consensus.getMaxGasPerTransaction()),
+								StorageValues.booleanOf(consensus.ignoresGasPrice()), StorageValues.bigIntegerOf(consensus.getTargetGasAtReward()),
+								StorageValues.longOf(consensus.getOblivion()));
 
 			return node.addConstructorCallTransaction(request);
 		}

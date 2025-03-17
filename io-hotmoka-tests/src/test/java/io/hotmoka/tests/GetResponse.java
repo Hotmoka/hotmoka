@@ -40,7 +40,7 @@ import io.hotmoka.node.api.values.StorageReference;
  */
 class GetResponse extends HotmokaTest {
 	private static final ConstructorSignature ABSTRACT_FAIL_IMPL_CONSTRUCTOR = ConstructorSignatures.of
-		(StorageTypes.classNamed("io.hotmoka.examples.abstractfail.AbstractFailImpl", IllegalArgumentException::new), StorageTypes.INT);
+		(StorageTypes.classNamed("io.hotmoka.examples.abstractfail.AbstractFailImpl"), StorageTypes.INT);
 
 	@BeforeAll
 	static void beforeAll() throws Exception {

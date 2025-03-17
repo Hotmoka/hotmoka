@@ -33,7 +33,6 @@ import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StorageValue;
 import io.takamaka.code.constants.Constants;
 
 public class Faucet extends HotmokaTest {
@@ -61,8 +60,7 @@ public class Faucet extends HotmokaTest {
 		var method = MethodSignatures.ofNonVoid(StorageTypes.GAMETE, "faucet", StorageTypes.EOA, StorageTypes.INT, StorageTypes.STRING);
 		var account = (StorageReference) node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall
 			(signer, gamete, getNonceOf(gamete), chainId(), _100_000, ONE, takamakaCode(),
-			method, gamete, new StorageValue[] { StorageValues.intOf(100_000), StorageValues.stringOf(publicKey) },
-			IllegalArgumentException::new))
+			method, gamete, StorageValues.intOf(100_000), StorageValues.stringOf(publicKey)))
 			.orElseThrow(() -> new NodeException(method + " should not return void"));
 
 		assertNotNull(account);
@@ -84,7 +82,6 @@ public class Faucet extends HotmokaTest {
 			node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall
 				(signer, caller, getNonceOf(caller), chainId(), _50_000, ONE, takamakaCode(),
 				MethodSignatures.ofNonVoid(StorageTypes.GAMETE, "faucet", StorageTypes.EOA, StorageTypes.INT, StorageTypes.STRING),
-				gamete, new StorageValue[] { StorageValues.intOf(100_000), StorageValues.stringOf(publicKey) },
-				IllegalArgumentException::new)));
+				gamete, StorageValues.intOf(100_000), StorageValues.stringOf(publicKey))));
 	}
 }

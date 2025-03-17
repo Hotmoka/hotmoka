@@ -19,7 +19,6 @@ package io.hotmoka.node;
 import java.io.IOException;
 import java.math.BigInteger;
 
-import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.StorageType;
@@ -205,14 +204,11 @@ public abstract class StorageValues {
 	/**
 	 * Yields a storage reference from its string representation.
 	 * 
-	 * @param <E> the type of exception thrown if {@code s} is an illegal representation for a storage reference
 	 * @param s the string representation
-	 * @param onIllegalReference the creator of the exception thrown if {@code s} is an illegal representation for a storage reference
 	 * @return the storage reference
-	 * @throws E if {@code s} is an illegal representation for a storage reference
 	 */
-	public static <E extends Exception> StorageReference reference(String s, ExceptionSupplier<? extends E> onIllegalReference) throws E {
-		return new StorageReferenceImpl(s, onIllegalReference);
+	public static StorageReference reference(String s) {
+		return new StorageReferenceImpl(s, IllegalArgumentException::new);
 	}
 
 	/**
@@ -220,13 +216,10 @@ public abstract class StorageValues {
 	 * 
 	 * @param s the string; use "null" (without quotes) for {@code null}
 	 * @param type the type of the storage value
-	 * @param exceptionCreator the creator of the exception thrown if the conversion is impossible;
-	 *                         it receives a string that describes the error
 	 * @return the resulting storage value
-	 * @throws E if {@code s} cannot be converted into {@code type}
 	 */
-	public static <E extends Exception> StorageValue of(String s, StorageType type, ExceptionSupplier<? extends E> exceptionCreator) throws E {
-		return AbstractStorageValue.of(s, type, exceptionCreator);
+	public static StorageValue of(String s, StorageType type) {
+		return AbstractStorageValue.of(s, type, IllegalArgumentException::new);
 	}
 
 	/**

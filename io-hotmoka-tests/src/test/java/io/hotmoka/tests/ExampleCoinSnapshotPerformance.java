@@ -63,7 +63,6 @@ import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StorageValue;
 
 /**
  * A test that performs repeated transfers between accounts of an ERC20 token, performing snapshots at regular intervals.
@@ -188,7 +187,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
         private final MethodSignature MINT;
         private final NonVoidMethodSignature YIELD_SNAPSHOT;
         private final static NonVoidMethodSignature TO_BIG_INTEGER = MethodSignatures.ofNonVoid(StorageTypes.UNSIGNED_BIG_INTEGER, "toBigInteger", StorageTypes.BIG_INTEGER);
-        private final static ClassType CREATOR = StorageTypes.classNamed("io.hotmoka.examples.tokens.ExampleCoinCreator", IllegalArgumentException::new);
+        private final static ClassType CREATOR = StorageTypes.classNamed("io.hotmoka.examples.tokens.ExampleCoinCreator");
         private final Random random = new Random(192846374);
         private final NonceHelper nonceHelper = NonceHelpers.of(node);
 		private StorageReference creator; // the creator (and owner) of the contract
@@ -208,7 +207,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     	private Context(String coinName, int numberOfInvestors) {
     		this.coinName = coinName;
     		this.numberOfInvestors = numberOfInvestors;
-    		this.COIN = StorageTypes.classNamed(coinName, IllegalArgumentException::new);
+    		this.COIN = StorageTypes.classNamed(coinName);
     		this.TRANSFER = MethodSignatures.ofNonVoid(COIN, "transfer", BOOLEAN, StorageTypes.CONTRACT, StorageTypes.INT);
     		this.BURN = MethodSignatures.ofVoid(COIN, "burn", StorageTypes.CONTRACT, StorageTypes.INT);
     		this.MINT = MethodSignatures.ofVoid(COIN, "mint", StorageTypes.CONTRACT, StorageTypes.INT);
@@ -258,21 +257,21 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     		var request = TransactionRequests.constructorCall
     			(signature().getSigner(nodeWithAccounts.privateKey(numberOfInvestors), SignedTransactionRequest::toByteArrayWithoutSignature),
     			nodeWithAccounts.account(numberOfInvestors), ZERO, chainId(), _50_000, ZERO, jar(), ConstructorSignatures.of(CREATOR, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
-    			new StorageValue[] { StorageValues.bigIntegerOf(level2(500)), StorageValues.stringOf(publicKey) }, IllegalArgumentException::new);
+    			StorageValues.bigIntegerOf(level2(500)), StorageValues.stringOf(publicKey));
     		creator = node.addConstructorCallTransaction(request);
     	}
 
     	private void distributeInitialTokens() throws Exception {
     		var request = TransactionRequests.instanceMethodCall(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, ONE, chainId(), _100_000.multiply(BigInteger.valueOf(numberOfInvestors)), ZERO, jar(),
     			MethodSignatures.ofVoid(CREATOR, "distribute", StorageTypes.ACCOUNTS, StorageTypes.IERC20, StorageTypes.INT), creator,
-    			new StorageValue[] { nodeWithAccounts.container(), coin, StorageValues.intOf(50_000) }, IllegalArgumentException::new);
+    			nodeWithAccounts.container(), coin, StorageValues.intOf(50_000));
     	    node.addInstanceMethodCallTransaction(request);
     	    trace(TransactionReferences.of(hasher.hash(request)));
     	}
 
     	private void createCoin() throws Exception {
     		var request = TransactionRequests.constructorCall
-    	    	(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, ZERO, chainId(), _500_000, panarea(1), jar(), ConstructorSignatures.of(COIN), new StorageValue[0], IllegalArgumentException::new);
+    	    	(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, ZERO, chainId(), _500_000, panarea(1), jar(), ConstructorSignatures.of(COIN));
     	    coin = node.addConstructorCallTransaction(request);
     	    trace(TransactionReferences.of(hasher.hash(request)));
     	}
@@ -336,7 +335,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
 		private void transfer(StorageReference sender, PrivateKey privateKeyOfSender, StorageReference receiver, int howMuch) throws Exception {
 			var request = TransactionRequests.instanceMethodCall
 				(signature().getSigner(privateKeyOfSender, SignedTransactionRequest::toByteArrayWithoutSignature), sender, nonceHelper.getNonceOf(sender), chainId(), _10_000_000, ZERO, jar(),
-				TRANSFER, coin, new StorageValue[] { receiver, StorageValues.intOf(howMuch) }, IllegalArgumentException::new);
+				TRANSFER, coin, receiver, StorageValues.intOf(howMuch));
 			node.addInstanceMethodCallTransaction(request);
 			trace(TransactionReferences.of(hasher.hash(request)));
 			numberOfTransfers.getAndIncrement();
@@ -345,7 +344,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
 		private void burn(StorageReference victim, int howMuch) throws Exception {
     		var request = TransactionRequests.instanceMethodCall
     			(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, nonceHelper.getNonceOf(creator), chainId(),
-    					_10_000_000, ZERO, jar(), BURN, coin, new StorageValue[] { victim, StorageValues.intOf(howMuch) }, IllegalArgumentException::new);
+    					_10_000_000, ZERO, jar(), BURN, coin, victim, StorageValues.intOf(howMuch));
             node.addInstanceMethodCallTransaction(request);
             trace(TransactionReferences.of(hasher.hash(request)));
             numberOfBurns.getAndIncrement();
@@ -354,14 +353,14 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     	private void mint(StorageReference beneficiary, int howMuch) throws Exception {
     		var request = TransactionRequests.instanceMethodCall
     			(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, nonceHelper.getNonceOf(creator), chainId(), _10_000_000, ZERO, jar(),
-    					MINT, coin, new StorageValue[] { beneficiary, StorageValues.intOf(howMuch) }, IllegalArgumentException::new);
+    					MINT, coin, beneficiary, StorageValues.intOf(howMuch));
             node.addInstanceMethodCallTransaction(request);
             trace(TransactionReferences.of(hasher.hash(request)));
             numberOfMints.getAndIncrement();
 		}
 
     	private int convertUBItoInt(StorageReference ubi) throws Exception {
-    		var request = TransactionRequests.instanceViewMethodCall(creator, _50_000, jar(), TO_BIG_INTEGER, ubi, StorageValues.EMPTY, IllegalArgumentException::new);
+    		var request = TransactionRequests.instanceViewMethodCall(creator, _50_000, jar(), TO_BIG_INTEGER, ubi);
     		return node.runInstanceMethodCallTransaction(request)
     			.orElseThrow(NodeException::new)
         		.asReturnedBigInteger(TO_BIG_INTEGER, NodeException::new)
@@ -371,7 +370,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
         private StorageReference createSnapshot() throws Exception {
         	var request = TransactionRequests.instanceMethodCall
         		(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, nonceHelper.getNonceOf(creator), chainId(),
-        				_500_000, ZERO, jar(), YIELD_SNAPSHOT, coin, StorageValues.EMPTY, IllegalArgumentException::new);
+        				_500_000, ZERO, jar(), YIELD_SNAPSHOT, coin);
             StorageReference result = node.addInstanceMethodCallTransaction(request)
             	.orElseThrow(NodeException::new)
             	.asReturnedReference(YIELD_SNAPSHOT, NodeException::new);

@@ -43,7 +43,7 @@ class IllegalCallToNonWhiteListedMethod8 extends HotmokaTest {
 	void callCfoo() {
 		throwsTransactionExceptionWithCause(IllegalArgumentException.class, () ->
 			addStaticNonVoidMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(),
-				MethodSignatures.ofNonVoid(StorageTypes.classNamed("io.hotmoka.examples.errors.illegalcalltononwhitelistedmethod8.C", IllegalArgumentException::new), "foo", StorageTypes.STRING))
+				MethodSignatures.ofNonVoid(StorageTypes.classNamed("io.hotmoka.examples.errors.illegalcalltononwhitelistedmethod8.C"), "foo", StorageTypes.STRING))
 		);
 	}
 }

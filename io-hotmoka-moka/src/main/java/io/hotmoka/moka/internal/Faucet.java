@@ -35,7 +35,6 @@ import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.remote.RemoteNodes;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -95,8 +94,7 @@ public class Faucet extends AbstractCommand {
 				gamete, NonceHelpers.of(node).getNonceOf(gamete),
 				manifestHelper.getChainId(), _100_000, GasHelpers.of(node).getGasPrice(), takamakaCode,
 				MethodSignatures.ofVoid(GAMETE, "setMaxFaucet", BIG_INTEGER), gamete,
-				new StorageValue[] { StorageValues.bigIntegerOf(max) },
-				IllegalArgumentException::new));
+				StorageValues.bigIntegerOf(max)));
 		}
 	}
 }

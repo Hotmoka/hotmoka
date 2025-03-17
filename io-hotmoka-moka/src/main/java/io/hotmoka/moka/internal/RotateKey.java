@@ -39,7 +39,6 @@ import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.remote.RemoteNodes;
 import picocli.CommandLine.Command;
@@ -92,7 +91,7 @@ public class RotateKey extends AbstractCommand {
 
 		private Run() throws Exception {
 			try (var node = this.node = RemoteNodes.of(uri, 10_000)) {
-				this.account = StorageValues.reference(RotateKey.this.account, s -> new CommandException("The account " + RotateKey.this.account + " is not a valid storage reference: " + s));
+				this.account = StorageValues.reference(RotateKey.this.account);
 
 				if ("the classpath of the account".equals(RotateKey.this.classpath))
 					this.classpath = node.getClassTag(account).getJar();
@@ -125,7 +124,7 @@ public class RotateKey extends AbstractCommand {
 			var takamakaCode = node.getTakamakaCode();
 			KeyPair keys = readKeys(Accounts.of(account), node, passwordOfAccount);
 			String chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest, StorageValues.EMPTY, IllegalArgumentException::new))
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
 				.orElseThrow(() -> new CommandException(MethodSignatures.GET_CHAIN_ID + " should not return void"))).getValue();
 			var signature = SignatureHelpers.of(node).signatureAlgorithmFor(account);
 			BigInteger nonce = NonceHelpers.of(node).getNonceOf(account);
@@ -144,8 +143,7 @@ public class RotateKey extends AbstractCommand {
 					classpath,
 					MethodSignatures.ofVoid(StorageTypes.EOA, "rotatePublicKey", StorageTypes.STRING),
 					account,
-					new StorageValue[] { StorageValues.stringOf(publicKeyEncoded) },
-					IllegalArgumentException::new);
+					StorageValues.stringOf(publicKeyEncoded));
 		}
 
 		private BigInteger getGasPrice() throws Exception {

@@ -177,17 +177,17 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	    		takamakaCode = node.getTakamakaCode();
 
 	    		var gamete = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-	    				(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest, StorageValues.EMPTY, NodeException::new))
+	    				(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
 	    				.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"))
 	    				.asReturnedReference(MethodSignatures.GET_GAMETE, NodeException::new);
 
 	    		chainId = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-	    				(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest, StorageValues.EMPTY, NodeException::new))
+	    				(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
 	    				.orElseThrow(() -> new NodeException(MethodSignatures.GET_CHAIN_ID + " should not return void"))
 	    				.asReturnedString(MethodSignatures.GET_CHAIN_ID, NodeException::new);
 
 	    		BigInteger nonce = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-	    				(gamete, _100_000, takamakaCode, MethodSignatures.NONCE, gamete, StorageValues.EMPTY, NodeException::new))
+	    				(gamete, _100_000, takamakaCode, MethodSignatures.NONCE, gamete))
 	    				.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
 	    				.asReturnedBigInteger(MethodSignatures.NONCE, NodeException::new);
 
@@ -198,8 +198,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	    		node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall
 	    				(signerOfGamete, gamete, nonce, chainId, _100_000, BigInteger.ONE, takamakaCode,
    						MethodSignatures.ofVoid(StorageTypes.GAMETE, "setMaxFaucet", StorageTypes.BIG_INTEGER), gamete,
-   						new StorageValue[] { StorageValues.bigIntegerOf(aLot) },
-   						IllegalArgumentException::new));
+   						StorageValues.bigIntegerOf(aLot)));
 
 	    		var local = AccountsNodes.of(node, gamete, privateKeyOfGamete, aLot);
 	    		localGamete = local.account(0);
@@ -629,7 +628,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	}
 
 	protected final TransactionReference addJarStoreInitialTransaction(byte[] jar, TransactionReference... dependencies) throws TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
-		return node.addJarStoreInitialTransaction(TransactionRequests.jarStoreInitial(jar, dependencies, IllegalArgumentException::new));
+		return node.addJarStoreInitialTransaction(TransactionRequests.jarStoreInitial(jar, dependencies));
 	}
 
 	/**
@@ -638,7 +637,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	protected final TransactionReference addJarStoreTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) throws TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		return node.addJarStoreTransaction(TransactionRequests.jarStore
 			(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice,
-				classpath, jar, dependencies, IllegalArgumentException::new));
+				classpath, jar, dependencies));
 	}
 
 	/**
@@ -646,22 +645,21 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	 */
 	protected final StorageReference addConstructorCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		return node.addConstructorCallTransaction(TransactionRequests.constructorCall(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature),
-			caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, constructor,
-			actuals, IllegalArgumentException::new));
+			caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, constructor, actuals));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
 	protected final void addInstanceVoidMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, VoidMethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
-		node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, receiver, actuals, IllegalArgumentException::new));
+		node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, receiver, actuals));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
 	protected final StorageValue addInstanceNonVoidMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, NonVoidMethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
-		return node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, receiver, actuals, IllegalArgumentException::new)).orElseThrow(() -> new NodeException(method + " did not return any value"));
+		return node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, receiver, actuals)).orElseThrow(() -> new NodeException(method + " did not return any value"));
 	}
 
 	/**
@@ -682,14 +680,14 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	 * Takes care of computing the next nonce.
 	 */
 	protected final StorageValue runInstanceNonVoidMethodCallTransaction(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, NonVoidMethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
-		return node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(caller, gasLimit, classpath, method, receiver, actuals, IllegalArgumentException::new)).orElseThrow(() -> new NodeException(method + " did not return any value"));
+		return node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(caller, gasLimit, classpath, method, receiver, actuals)).orElseThrow(() -> new NodeException(method + " did not return any value"));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
 	protected final void runInstanceVoidMethodCallTransaction(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, VoidMethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
-		node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(caller, gasLimit, classpath, method, receiver, actuals, IllegalArgumentException::new));
+		node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(caller, gasLimit, classpath, method, receiver, actuals));
 	}
 
 	/**
@@ -711,14 +709,14 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	 */
 	protected final JarFuture postJarStoreTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) throws TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, InterruptedException, TimeoutException {
 		return node.postJarStoreTransaction(TransactionRequests.jarStore(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature),
-			caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, jar, dependencies, IllegalArgumentException::new));
+			caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, jar, dependencies));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
 	protected final MethodFuture postInstanceMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, InterruptedException, TimeoutException {
-		return node.postInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, receiver, actuals, IllegalArgumentException::new));
+		return node.postInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, receiver, actuals));
 	}
 
 	/**
@@ -726,7 +724,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	 */
 	protected final ConstructorFuture postConstructorCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) throws TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, InterruptedException, TimeoutException {
 		return node.postConstructorCallTransaction(TransactionRequests.constructorCall(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature),
-			caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, constructor, actuals, IllegalArgumentException::new));
+			caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, constructor, actuals));
 	}
 
 	protected static byte[] bytesOf(String fileName) throws IOException {
@@ -790,7 +788,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			else
 				// we ask the account: 100,000 units of gas should be enough to run the method
 				nonce = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(account, _100_000, node.getClassTag(account).getJar(), MethodSignatures.NONCE, account, StorageValues.EMPTY, IllegalArgumentException::new))
+					(account, _100_000, node.getClassTag(account).getJar(), MethodSignatures.NONCE, account))
 					.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
 					.asReturnedBigInteger(MethodSignatures.NONCE, NodeException::new);
 

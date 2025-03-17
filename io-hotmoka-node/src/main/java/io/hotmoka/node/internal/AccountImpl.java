@@ -26,6 +26,7 @@ import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.Account;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.internal.values.StorageReferenceImpl;
 
 /**
  * The information to control an account of a Hotmoka node.
@@ -93,7 +94,7 @@ public class AccountImpl extends AbstractAccount<StorageReference> implements Ac
 	 * @throws E if {@code reference} is illegal as a storage reference or it is not legal for an account
 	 */
 	public <E extends Exception> AccountImpl(String reference, ExceptionSupplier<? extends E> onIllegalReference) throws IOException, E {
-		this(StorageValues.reference(reference, onIllegalReference));
+		this(new StorageReferenceImpl(reference, onIllegalReference));
 	}
 
 	/**
@@ -111,7 +112,7 @@ public class AccountImpl extends AbstractAccount<StorageReference> implements Ac
 	 * @throws E if {@code reference} is illegal as a storage reference or it is not legal for an account
 	 */
 	public <E extends Exception> AccountImpl(String reference, String dir, ExceptionSupplier<? extends E> onIllegalReference) throws IOException, E {
-		this(StorageValues.reference(reference, onIllegalReference), dir);
+		this(new StorageReferenceImpl(reference, onIllegalReference), dir);
 	}
 
 	/**

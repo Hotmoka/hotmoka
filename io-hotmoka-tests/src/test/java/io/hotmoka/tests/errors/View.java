@@ -34,7 +34,7 @@ import io.hotmoka.tests.HotmokaTest;
 
 class View extends HotmokaTest {
 
-	private final static ClassType C = StorageTypes.classNamed("io.hotmoka.examples.errors.view.C", IllegalArgumentException::new);
+	private final static ClassType C = StorageTypes.classNamed("io.hotmoka.examples.errors.view.C");
 
 	@BeforeAll
 	static void beforeAll() throws Exception {

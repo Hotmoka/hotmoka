@@ -40,15 +40,15 @@ import io.hotmoka.node.api.values.StorageReference;
  * A test for inner classes.
  */
 class Inner extends HotmokaTest {
-	private static final ClassType TEST_INNER = StorageTypes.classNamed("io.hotmoka.examples.inner.TestInner", IllegalArgumentException::new);
+	private static final ClassType TEST_INNER = StorageTypes.classNamed("io.hotmoka.examples.inner.TestInner");
 
-	private static final ClassType TEST_INNER_INSIDE = StorageTypes.classNamed("io.hotmoka.examples.inner.TestInner$Inside", IllegalArgumentException::new);
+	private static final ClassType TEST_INNER_INSIDE = StorageTypes.classNamed("io.hotmoka.examples.inner.TestInner$Inside");
 
 	private static final ConstructorSignature TEST_INNER_CONSTRUCTOR = ConstructorSignatures.of(TEST_INNER);
 
 	// do not forget the implicit parameter holding the parent of the inner object
 	private static final ConstructorSignature TEST_INNER_INSIDE_CONSTRUCTOR = ConstructorSignatures.of(TEST_INNER_INSIDE,
-			StorageTypes.classNamed("io.hotmoka.examples.inner.TestInner", IllegalArgumentException::new), StorageTypes.LONG);
+			StorageTypes.classNamed("io.hotmoka.examples.inner.TestInner"), StorageTypes.LONG);
 
 	private static final NonVoidMethodSignature TEST_INNER_INSIDE_GETBALANCE = MethodSignatures.ofNonVoid(TEST_INNER_INSIDE, "getBalance", StorageTypes.BIG_INTEGER);
 

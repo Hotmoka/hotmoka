@@ -28,7 +28,6 @@ import io.hotmoka.crypto.Hex;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.MethodSignatures;
-import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.Account;
 import io.hotmoka.node.api.Node;
@@ -108,7 +107,7 @@ public class ShowAccount extends AbstractCommand {
 		var takamakaCode = node.getTakamakaCode();
 		StorageReference reference = account.getReference();
 		BigInteger balance = node.runInstanceMethodCallTransaction(
-			TransactionRequests.instanceViewMethodCall(reference, _100_000, takamakaCode, MethodSignatures.BALANCE, reference, StorageValues.EMPTY, IllegalArgumentException::new))
+			TransactionRequests.instanceViewMethodCall(reference, _100_000, takamakaCode, MethodSignatures.BALANCE, reference))
 			.orElseThrow(() -> new NodeException(MethodSignatures.BALANCE + " should not return void"))
 			.asReturnedBigInteger(MethodSignatures.BALANCE, NodeException::new);
 		System.out.println("balance: " + balance);

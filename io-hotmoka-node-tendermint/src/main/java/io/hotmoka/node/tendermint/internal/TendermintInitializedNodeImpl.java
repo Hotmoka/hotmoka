@@ -53,7 +53,6 @@ import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.tendermint.api.TendermintNode;
 
 /**
@@ -150,7 +149,7 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
 
 		StorageReference gamete = node.gamete();
-		var getNonceRequest = TransactionRequests.instanceViewMethodCall(gamete, BigInteger.valueOf(50_000), takamakaCodeReference, MethodSignatures.NONCE, gamete, StorageValues.EMPTY, IllegalArgumentException::new);
+		var getNonceRequest = TransactionRequests.instanceViewMethodCall(gamete, BigInteger.valueOf(50_000), takamakaCodeReference, MethodSignatures.NONCE, gamete);
 		BigInteger nonceOfGamete;
 
 		try {
@@ -168,18 +167,15 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 
 		// we create the builder of the validators
 		var _200_000 = BigInteger.valueOf(200_000);
-		ClassType builderClass = StorageTypes.classNamed(StorageTypes.TENDERMINT_VALIDATORS + "$Builder", IllegalArgumentException::new);
+		ClassType builderClass = StorageTypes.classNamed(StorageTypes.TENDERMINT_VALIDATORS + "$Builder");
 
 		var request = TransactionRequests.constructorCall
 			(new byte[0], gamete, nonceOfGamete, "", _200_000, ZERO, takamakaCodeReference,
-					ConstructorSignatures.of(builderClass, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG,
+				ConstructorSignatures.of(builderClass, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG,
 					StorageTypes.INT, StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
-			new StorageValue[] {
-				StorageValues.bigIntegerOf(consensus.getTicketForNewPoll()), StorageValues.bigIntegerOf(consensus.getFinalSupply()),
-				StorageValues.longOf(consensus.getInitialInflation()), StorageValues.intOf(consensus.getPercentStaked()), StorageValues.intOf(consensus.getBuyerSurcharge()),
-				StorageValues.intOf(consensus.getSlashingForMisbehaving()), StorageValues.intOf(consensus.getSlashingForNotBehaving())
-			},
-			IllegalArgumentException::new);
+					StorageValues.bigIntegerOf(consensus.getTicketForNewPoll()), StorageValues.bigIntegerOf(consensus.getFinalSupply()),
+					StorageValues.longOf(consensus.getInitialInflation()), StorageValues.intOf(consensus.getPercentStaked()), StorageValues.intOf(consensus.getBuyerSurcharge()),
+					StorageValues.intOf(consensus.getSlashingForMisbehaving()), StorageValues.intOf(consensus.getSlashingForNotBehaving()));
 
 		nonceOfGamete = nonceOfGamete.add(BigInteger.ONE);
 
@@ -204,7 +200,7 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 			long power = powerFromTendermintValidator(tv);
 			var addValidator = TransactionRequests.instanceMethodCall
 				(new byte[0], gamete, nonceOfGamete, "", _200_000, ZERO, takamakaCodeReference,
-				addValidatorMethod, builder, new StorageValue[] { StorageValues.stringOf(publicKeyBase64), StorageValues.longOf(power) }, IllegalArgumentException::new);
+				addValidatorMethod, builder, StorageValues.stringOf(publicKeyBase64), StorageValues.longOf(power));
 			node.addInstanceMethodCallTransaction(addValidator);
 			nonceOfGamete = nonceOfGamete.add(BigInteger.ONE);
 		}

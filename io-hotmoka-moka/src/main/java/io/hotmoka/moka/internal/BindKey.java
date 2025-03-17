@@ -57,7 +57,7 @@ public class BindKey extends AbstractCommand {
 			storageReference = getReferenceFromAccountLedger();
 		else {	
 			checkStorageReference(reference);
-			storageReference = StorageValues.reference(reference, CommandException::new);
+			storageReference = StorageValues.reference(reference);
 		}
 
 		var account = Accounts.of(Entropies.load(Paths.get(key + ".pem")), storageReference);
@@ -75,11 +75,11 @@ public class BindKey extends AbstractCommand {
 
 			// we look in the accounts ledger
 			var ledger = node.runInstanceMethodCallTransaction
-				(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, MethodSignatures.GET_ACCOUNTS_LEDGER, manifest, StorageValues.EMPTY, IllegalArgumentException::new))
+				(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, MethodSignatures.GET_ACCOUNTS_LEDGER, manifest))
 				.orElseThrow(() -> new CommandException(MethodSignatures.GET_ACCOUNTS_LEDGER + " should not return void"))
 				.asReturnedReference(MethodSignatures.GET_ACCOUNTS_LEDGER, CommandException::new);
 			StorageValue result = node.runInstanceMethodCallTransaction
-				(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, MethodSignatures.GET_FROM_ACCOUNTS_LEDGER, ledger, new StorageValue[] { StorageValues.stringOf(key) }, IllegalArgumentException::new))
+				(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, MethodSignatures.GET_FROM_ACCOUNTS_LEDGER, ledger, StorageValues.stringOf(key)))
 				.orElseThrow(() -> new CommandException(MethodSignatures.GET_FROM_ACCOUNTS_LEDGER + " should not return void"));
 
 			if (result instanceof StorageReference sr)

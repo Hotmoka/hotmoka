@@ -37,7 +37,7 @@ import io.hotmoka.node.api.values.StorageReference;
  */
 class Cycle extends HotmokaTest {
 
-	private final static ClassType CYCLE = StorageTypes.classNamed("io.hotmoka.examples.cycle.Cycle", IllegalArgumentException::new);
+	private final static ClassType CYCLE = StorageTypes.classNamed("io.hotmoka.examples.cycle.Cycle");
 
 	@BeforeAll
 	static void beforeAll() throws Exception {

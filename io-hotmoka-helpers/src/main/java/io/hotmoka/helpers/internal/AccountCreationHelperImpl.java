@@ -53,7 +53,6 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StorageValue;
 
 /**
  * An object that helps with the creation of new accounts.
@@ -93,7 +92,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 
 		try {
 			gamete = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest, StorageValues.EMPTY, IllegalArgumentException::new))
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
 					.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"))
 					.asReference(value -> new NodeException(MethodSignatures.GET_GAMETE + " should return a reference, not a " + value.getClass().getName()));
 		}
@@ -113,7 +112,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		case "qtesla1":
 		case "qtesla3":
 			methodName = "faucet" + signature.toUpperCase();
-			eoaType = StorageTypes.classNamed(StorageTypes.EOA + signature.toUpperCase(), IllegalArgumentException::new);
+			eoaType = StorageTypes.classNamed(StorageTypes.EOA + signature.toUpperCase());
 			break;
 		default:
 			throw new NodeException("Unknown signature algorithm " + signature);
@@ -138,8 +137,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		var request = TransactionRequests.instanceMethodCall
 			(signer, gamete, nonce,
 			chainId, gas, gasHelper.getGasPrice(), takamakaCode,
-			method, gamete,
-			new StorageValue[] { StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyEncoded) }, IllegalArgumentException::new);
+			method, gamete, StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyEncoded));
 
 		try {
 			return (StorageReference) node.addInstanceMethodCallTransaction(request)
@@ -170,7 +168,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		case "sha256dsa":
 		case "qtesla1":
 		case "qtesla3":
-			eoaType = StorageTypes.classNamed(StorageTypes.EOA + signature.toUpperCase(), IllegalArgumentException::new);
+			eoaType = StorageTypes.classNamed(StorageTypes.EOA + signature.toUpperCase());
 			break;
 		default:
 			throw new IllegalArgumentException("unknown signature algorithm " + signature);
@@ -193,7 +191,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 
 		if (addToLedger) {
 			var accountsLedger = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_ACCOUNTS_LEDGER, manifest, StorageValues.EMPTY, IllegalArgumentException::new))
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_ACCOUNTS_LEDGER, manifest))
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_ACCOUNTS_LEDGER + " should not return void"))
 				.asReturnedReference(MethodSignatures.GET_ACCOUNTS_LEDGER, NodeException::new);
 
@@ -203,8 +201,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 				chainId, gas1.add(gas2).add(EXTRA_GAS_FOR_ANONYMOUS), gasHelper.getGasPrice(), takamakaCode,
 				method,
 				accountsLedger,
-				new StorageValue[] { StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyEncoded) },
-				IllegalArgumentException::new);
+				StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyEncoded));
 
 			account = node.addInstanceMethodCallTransaction((InstanceMethodCallTransactionRequest) request1)
 				.orElseThrow(() -> new NodeException(method + " should not return void"))
@@ -215,8 +212,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 				(signer, payer, nonceHelper.getNonceOf(payer),
 				chainId, gas1.add(gas2), gasHelper.getGasPrice(), takamakaCode,
 				ConstructorSignatures.of(eoaType, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
-				new StorageValue[] { StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyEncoded) },
-				NodeException::new); // TODO: check exception
+				StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyEncoded));
 			account = node.addConstructorCallTransaction((ConstructorCallTransactionRequest) request1);
 		}
 
@@ -233,7 +229,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		
 		try {
 			gamete = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest, StorageValues.EMPTY, IllegalArgumentException::new))
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
 					.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"))
 					.asReturnedReference(MethodSignatures.GET_GAMETE, NodeException::new);
 		}
@@ -270,8 +266,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		var method = MethodSignatures.ofNonVoid(StorageTypes.GAMETE, "faucetTendermintED25519Validator", StorageTypes.TENDERMINT_ED25519_VALIDATOR, StorageTypes.BIG_INTEGER, StorageTypes.STRING);
 		var request = TransactionRequests.instanceMethodCall
 			(signer, gamete, nonce, chainId, gas, gasHelper.getGasPrice(), takamakaCode, method, gamete,
-			new StorageValue[] { StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyEncoded) },
-			IllegalArgumentException::new);
+			StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyEncoded));
 
 		try {
 			return node.addInstanceMethodCallTransaction(request)
@@ -312,8 +307,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 			(signer, payer, nonceHelper.getNonceOf(payer),
 			chainId, gas1.add(gas2), gasHelper.getGasPrice(), takamakaCode,
 			ConstructorSignatures.of(StorageTypes.TENDERMINT_ED25519_VALIDATOR, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
-			new StorageValue[] { StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyEncoded) },
-			NodeException::new); // TODO: check exception
+			StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyEncoded));
 		StorageReference validator = node.addConstructorCallTransaction(request1);
 
 		requestsHandler.accept(new TransactionRequest<?>[] { request1 });

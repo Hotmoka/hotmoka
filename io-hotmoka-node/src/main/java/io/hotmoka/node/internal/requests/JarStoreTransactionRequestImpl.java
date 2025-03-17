@@ -35,7 +35,6 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.NodeMarshallingContexts;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
-import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.node.api.responses.JarStoreTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -268,6 +267,6 @@ public class JarStoreTransactionRequestImpl extends NonInitialTransactionRequest
 		var dependencies = context.readLengthAndArray(TransactionReferences::from, TransactionReference[]::new);
 		byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 
-		return TransactionRequests.jarStore(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, jar, dependencies, IOException::new);
+		return new JarStoreTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, jar, dependencies, IOException::new);
 	}
 }

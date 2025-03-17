@@ -45,9 +45,9 @@ import io.hotmoka.node.api.values.StorageValue;
  */
 class Signatures extends HotmokaTest {
 
-	private final static ClassType SHA256DSA = StorageTypes.classNamed("io.takamaka.code.lang.ExternallyOwnedAccountSHA256DSA", IllegalArgumentException::new);
-	private final static ClassType QTESLA1 = StorageTypes.classNamed("io.takamaka.code.lang.ExternallyOwnedAccountQTESLA1", IllegalArgumentException::new);
-	private final static ClassType ED25519 = StorageTypes.classNamed("io.takamaka.code.lang.ExternallyOwnedAccountED25519", IllegalArgumentException::new);
+	private final static ClassType SHA256DSA = StorageTypes.classNamed("io.takamaka.code.lang.ExternallyOwnedAccountSHA256DSA");
+	private final static ClassType QTESLA1 = StorageTypes.classNamed("io.takamaka.code.lang.ExternallyOwnedAccountQTESLA1");
+	private final static ClassType ED25519 = StorageTypes.classNamed("io.takamaka.code.lang.ExternallyOwnedAccountED25519");
 
 	@BeforeEach
 	void beforeEach() throws Exception {
@@ -77,7 +77,7 @@ class Signatures extends HotmokaTest {
 	@Test @DisplayName("create accounts with distinct signing algorithms and use them for signing transactions")
 	void createAccountsWithDistinctSigningAlgorithmsAndUseThem() throws Exception {
 		var amount = StorageValues.intOf(_10_000_000.intValue());
-		var callee = MethodSignatures.ofNonVoid(StorageTypes.classNamed("io.takamaka.code.lang.Coin", IllegalArgumentException::new), "panarea", StorageTypes.BIG_INTEGER, StorageTypes.LONG);
+		var callee = MethodSignatures.ofNonVoid(StorageTypes.classNamed("io.takamaka.code.lang.Coin"), "panarea", StorageTypes.BIG_INTEGER, StorageTypes.LONG);
 
 		var sha256dsa = SignatureAlgorithms.sha256dsa();
 		KeyPair sha256dsaKeyPair = sha256dsa.getKeyPair();

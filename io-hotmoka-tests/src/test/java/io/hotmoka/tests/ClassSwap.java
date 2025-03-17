@@ -42,7 +42,7 @@ import io.hotmoka.node.local.DeserializationException;
  * A test for the creation of classes with the same name but from different jars.
  */
 class ClassSwap extends HotmokaTest {
-	private static final ClassType C = StorageTypes.classNamed("C", IllegalArgumentException::new);
+	private static final ClassType C = StorageTypes.classNamed("C");
 	private static final ConstructorSignature CONSTRUCTOR_C = ConstructorSignatures.of(C);
 	private static final NonVoidMethodSignature GET = MethodSignatures.ofNonVoid(C, "get", StorageTypes.INT);
 

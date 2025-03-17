@@ -41,8 +41,8 @@ import io.hotmoka.node.api.values.StorageReference;
  * A test for the simplified crowd funding contract.
  */
 class CrowdFundingSimplified extends HotmokaTest {
-	private static final ClassType CAMPAIGN = StorageTypes.classNamed("io.hotmoka.examples.crowdfunding.CrowdFundingSimplified$Campaign", IllegalArgumentException::new);
-	private static final ClassType CROWD_FUNDING_SIMPLIFIED = StorageTypes.classNamed("io.hotmoka.examples.crowdfunding.CrowdFundingSimplified", IllegalArgumentException::new);
+	private static final ClassType CAMPAIGN = StorageTypes.classNamed("io.hotmoka.examples.crowdfunding.CrowdFundingSimplified$Campaign");
+	private static final ClassType CROWD_FUNDING_SIMPLIFIED = StorageTypes.classNamed("io.hotmoka.examples.crowdfunding.CrowdFundingSimplified");
 	private static final ConstructorSignature CONSTRUCTOR_CROWD_FUNDING_SIMPLIFIED = ConstructorSignatures.of(CROWD_FUNDING_SIMPLIFIED);
 
 	/**

@@ -24,16 +24,14 @@ import org.junit.jupiter.api.Test;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.testing.AbstractLoggedTests;
-import jakarta.websocket.DecodeException;
-import jakarta.websocket.EncodeException;
 
 public class ConstructorSignatureTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("constructor signatures are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForConstructorSignature() throws EncodeException, DecodeException {
-		var constructor1 = ConstructorSignatures.of(StorageTypes.classNamed("io.hotmoka.MyClass", IllegalArgumentException::new), StorageTypes.classNamed("io.hotmoka.OtherClass", IllegalArgumentException::new),
-			StorageTypes.CHAR, StorageTypes.DOUBLE, StorageTypes.classNamed("io.hotmoka.Something", IllegalArgumentException::new));
+	public void encodeDecodeWorksForConstructorSignature() throws Exception {
+		var constructor1 = ConstructorSignatures.of(StorageTypes.classNamed("io.hotmoka.MyClass"), StorageTypes.classNamed("io.hotmoka.OtherClass"),
+			StorageTypes.CHAR, StorageTypes.DOUBLE, StorageTypes.classNamed("io.hotmoka.Something"));
 		String encoded = new ConstructorSignatures.Encoder().encode(constructor1);
 		var constructor2 = new ConstructorSignatures.Decoder().decode(encoded);
 		assertEquals(constructor1, constructor2);
@@ -41,8 +39,8 @@ public class ConstructorSignatureTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("constructor signatures without formals are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForConstructorSignatureWithoutFormals() throws EncodeException, DecodeException {
-		var constructor1 = ConstructorSignatures.of(StorageTypes.classNamed("io.hotmoka.MyClass", IllegalArgumentException::new));
+	public void encodeDecodeWorksForConstructorSignatureWithoutFormals() throws Exception {
+		var constructor1 = ConstructorSignatures.of(StorageTypes.classNamed("io.hotmoka.MyClass"));
 		String encoded = new ConstructorSignatures.Encoder().encode(constructor1);
 		var constructor2 = new ConstructorSignatures.Decoder().decode(encoded);
 		assertEquals(constructor1, constructor2);

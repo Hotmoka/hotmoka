@@ -37,8 +37,8 @@ import io.hotmoka.node.api.values.StorageReference;
  * A test for calls to methods on "this".
  */
 class ConstructorOnThis extends HotmokaTest {
-	private static final ClassType BRIDGE = StorageTypes.classNamed("io.hotmoka.examples.constructoronthis.Bridge", IllegalArgumentException::new);
-	private static final ClassType BRIDGE2 = StorageTypes.classNamed("io.hotmoka.examples.constructoronthis.Bridge2", IllegalArgumentException::new);
+	private static final ClassType BRIDGE = StorageTypes.classNamed("io.hotmoka.examples.constructoronthis.Bridge");
+	private static final ClassType BRIDGE2 = StorageTypes.classNamed("io.hotmoka.examples.constructoronthis.Bridge2");
 
 	@BeforeAll
 	static void beforeAll() throws Exception {

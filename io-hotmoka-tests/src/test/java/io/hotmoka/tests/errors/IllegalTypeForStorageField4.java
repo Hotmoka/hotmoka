@@ -45,7 +45,7 @@ class IllegalTypeForStorageField4 extends HotmokaTest {
 		throwsTransactionExceptionWithCause(UpdatesExtractionException.class, () ->
 			addConstructorCallTransaction
 				(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(),
-				ConstructorSignatures.of(StorageTypes.classNamed("io.hotmoka.examples.errors.illegaltypeforstoragefield4.C", IllegalArgumentException::new)))
+				ConstructorSignatures.of(StorageTypes.classNamed("io.hotmoka.examples.errors.illegaltypeforstoragefield4.C")))
 		);
 	}
 }

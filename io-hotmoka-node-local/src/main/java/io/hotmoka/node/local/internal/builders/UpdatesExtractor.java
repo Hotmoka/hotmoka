@@ -152,7 +152,7 @@ public class UpdatesExtractor {
 
 				if (!inStorage)
 					// storage objects can only have class type, hence the conversion must succeed
-					updates.add(Updates.classTag(storageReference, StorageTypes.classFromClass(clazz, IllegalArgumentException::new), classLoader.transactionThatInstalledJarFor(clazz)));
+					updates.add(Updates.classTag(storageReference, StorageTypes.classFromClass(clazz), classLoader.transactionThatInstalledJarFor(clazz)));
 
 				Class<?> previous = null;
 				var storage = classLoader.getStorage();
@@ -180,7 +180,7 @@ public class UpdatesExtractor {
 			 */
 			private void addUpdateFor(ClassType fieldDefiningClass, String fieldName, String fieldClassName, Object newValue) throws UpdatesExtractionException, StoreException {
 				// TODO: check exception below
-				var field = FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.classNamed(fieldClassName, IllegalArgumentException::new));
+				var field = FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.classNamed(fieldClassName));
 
 				if (newValue == null)
 					// the field has been set to null
@@ -406,7 +406,7 @@ public class UpdatesExtractor {
 			private void addUpdateFor(Field field, Object newValue) throws UpdatesExtractionException, StoreException {
 				Class<?> fieldType = field.getType();
 				// the field is defined in a storage object, hence the subsequent conversion cannot fail
-				ClassType fieldDefiningClass = StorageTypes.classFromClass(field.getDeclaringClass(), IllegalArgumentException::new);
+				ClassType fieldDefiningClass = StorageTypes.classFromClass(field.getDeclaringClass());
 				String fieldName = field.getName();
 
 				if (fieldType == char.class)

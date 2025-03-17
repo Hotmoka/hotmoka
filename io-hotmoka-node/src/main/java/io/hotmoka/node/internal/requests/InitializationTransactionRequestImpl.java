@@ -25,7 +25,6 @@ import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
-import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.requests.InitializationTransactionRequest;
 import io.hotmoka.node.api.responses.InitializationTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -127,6 +126,6 @@ public class InitializationTransactionRequestImpl extends TransactionRequestImpl
 		var classpath = TransactionReferences.from(context);
 		var manifest = StorageValues.referenceWithoutSelectorFrom(context);
 
-		return TransactionRequests.initialization(classpath, manifest, IOException::new);
+		return new InitializationTransactionRequestImpl(classpath, manifest, IOException::new);
 	}
 }

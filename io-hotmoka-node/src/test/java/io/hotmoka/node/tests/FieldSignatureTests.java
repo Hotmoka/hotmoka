@@ -24,15 +24,13 @@ import org.junit.jupiter.api.Test;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.testing.AbstractLoggedTests;
-import jakarta.websocket.DecodeException;
-import jakarta.websocket.EncodeException;
 
 public class FieldSignatureTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("field signatures of class type are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForFieldSignatureOfClassType() throws EncodeException, DecodeException {
-		var field1 = FieldSignatures.of(StorageTypes.classNamed("io.hotmoka.MyClass", IllegalArgumentException::new), "f1", StorageTypes.classNamed("io.hotmoka.OtherClass", IllegalArgumentException::new));
+	public void encodeDecodeWorksForFieldSignatureOfClassType() throws Exception {
+		var field1 = FieldSignatures.of(StorageTypes.classNamed("io.hotmoka.MyClass"), "f1", StorageTypes.classNamed("io.hotmoka.OtherClass"));
 		String encoded = new FieldSignatures.Encoder().encode(field1);
 		var field2 = new FieldSignatures.Decoder().decode(encoded);
 		assertEquals(field1, field2);
@@ -40,8 +38,8 @@ public class FieldSignatureTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("field signatures of basic type are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForFieldSignatureOfBasicType() throws EncodeException, DecodeException {
-		var field1 = FieldSignatures.of(StorageTypes.classNamed("io.hotmoka.MyClass", IllegalArgumentException::new), "f1", StorageTypes.INT);
+	public void encodeDecodeWorksForFieldSignatureOfBasicType() throws Exception {
+		var field1 = FieldSignatures.of(StorageTypes.classNamed("io.hotmoka.MyClass"), "f1", StorageTypes.INT);
 		String encoded = new FieldSignatures.Encoder().encode(field1);
 		var field2 = new FieldSignatures.Decoder().decode(encoded);
 		assertEquals(field1, field2);

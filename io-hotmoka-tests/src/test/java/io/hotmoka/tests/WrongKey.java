@@ -33,7 +33,6 @@ import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StorageValue;
 
 /**
  * A test for wrong use of keys for signing a transaction.
@@ -60,7 +59,7 @@ class WrongKey extends HotmokaTest {
 				caller, BigInteger.ZERO, chainId(),
 				_100_000, panarea(1), takamakaCode(),
 				ConstructorSignatures.EOA_CONSTRUCTOR,
-				new StorageValue[] { StorageValues.bigIntegerOf(_50_000), StorageValues.stringOf("ciao") }, IllegalArgumentException::new)));
+				StorageValues.bigIntegerOf(_50_000), StorageValues.stringOf("ciao"))));
 		assertTrue(e.getMessage().contains("Invalid request signature"));
 	}
 }

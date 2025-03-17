@@ -28,7 +28,6 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
-import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.requests.InstanceSystemMethodCallTransactionRequest;
 import io.hotmoka.node.api.signatures.MethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -128,6 +127,6 @@ public class InstanceSystemMethodCallTransactionRequestImpl extends AbstractInst
 		var method = MethodSignatures.from(context);
 		var receiver = StorageValues.referenceWithoutSelectorFrom(context);
 
-		return TransactionRequests.instanceSystemMethodCall(caller, nonce, gasLimit, classpath, method, receiver, actuals, IOException::new);
+		return new InstanceSystemMethodCallTransactionRequestImpl(caller, nonce, gasLimit, classpath, method, receiver, actuals, IOException::new);
 	}
 }

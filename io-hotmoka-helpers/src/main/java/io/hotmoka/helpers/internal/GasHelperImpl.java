@@ -21,7 +21,6 @@ import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.helpers.api.GasHelper;
 import io.hotmoka.node.MethodSignatures;
-import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
@@ -63,12 +62,12 @@ public class GasHelperImpl implements GasHelper {
 		try {
 			if (gasStation == null)
 				this.gasStation = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-						(manifest, BigInteger.valueOf(100_000), takamakaCode, MethodSignatures.GET_GAS_STATION, manifest, StorageValues.EMPTY, IllegalArgumentException::new))
+						(manifest, BigInteger.valueOf(100_000), takamakaCode, MethodSignatures.GET_GAS_STATION, manifest))
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAS_STATION + " should not return void"))
 				.asReturnedReference(MethodSignatures.GET_GAS_STATION, NodeException::new);
 
 			return node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, BigInteger.valueOf(100_000), takamakaCode, MethodSignatures.GET_GAS_PRICE, gasStation, StorageValues.EMPTY, IllegalArgumentException::new))
+					(manifest, BigInteger.valueOf(100_000), takamakaCode, MethodSignatures.GET_GAS_PRICE, gasStation))
 					.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAS_PRICE + " should not return void"))
 					.asReturnedBigInteger(MethodSignatures.GET_GAS_PRICE, NodeException::new);
 		}

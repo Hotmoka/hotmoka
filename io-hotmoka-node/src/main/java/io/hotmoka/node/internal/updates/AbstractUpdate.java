@@ -46,6 +46,7 @@ import io.hotmoka.node.api.values.ShortValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.internal.gson.UpdateJson;
+import io.hotmoka.node.internal.types.ClassTypeImpl;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
@@ -88,7 +89,7 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 			if (jar == null)
 				throw new InconsistentJsonException("jar cannot be null if clazz is non-null");
 
-			return Updates.classTag(sr, StorageTypes.classNamed(clazz, InconsistentJsonException::new), jar.unmap());
+			return Updates.classTag(sr, ClassTypeImpl.named(clazz, InconsistentJsonException::new), jar.unmap());
 		}
 
 		var field1 = json.getField();
