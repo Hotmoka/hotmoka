@@ -19,6 +19,7 @@ package io.hotmoka.node.internal.signatures;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.ConstructorSignatures;
@@ -27,6 +28,8 @@ import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
 import io.hotmoka.node.internal.gson.ConstructorSignatureJson;
+import io.hotmoka.node.internal.types.AbstractStorageType;
+import io.hotmoka.node.internal.types.ClassTypeImpl;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
@@ -38,11 +41,14 @@ public final class ConstructorSignatureImpl extends AbstractCodeSignature implem
 	/**
 	 * Builds the signature of a constructor.
 	 * 
+	 * @param <E> the type of the exception thrown if some arguments is illegal
 	 * @param definingClass the class defining the constructor
 	 * @param formals the formal arguments of the constructor
+	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
 	 */
-	public ConstructorSignatureImpl(ClassType definingClass, StorageType... formals) {
-		super(definingClass, formals);
+	public <E extends Exception> ConstructorSignatureImpl(ClassType definingClass, StorageType[] formals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(definingClass, formals, onIllegalArgs);
 	}
 
 	/**
@@ -52,15 +58,7 @@ public final class ConstructorSignatureImpl extends AbstractCodeSignature implem
 	 * @throws InconsistentJsonException if {@code json} is inconsistent
 	 */
 	public ConstructorSignatureImpl(ConstructorSignatureJson json) throws InconsistentJsonException {
-		this(getDefiningClassAsType(json), getFormalsAsTypes(json));
-	}
-
-	private static ClassType getDefiningClassAsType(ConstructorSignatureJson json) throws InconsistentJsonException {
-		String className = json.getDefiningClass();
-		if (className == null)
-			throw new InconsistentJsonException("definingClass cannot be null");
-
-		return StorageTypes.classNamed(className, InconsistentJsonException::new);
+		this(ClassTypeImpl.named(json.getDefiningClass(), InconsistentJsonException::new), getFormalsAsTypes(json), InconsistentJsonException::new);
 	}
 
 	private static StorageType[] getFormalsAsTypes(ConstructorSignatureJson json) throws InconsistentJsonException {
@@ -68,7 +66,7 @@ public final class ConstructorSignatureImpl extends AbstractCodeSignature implem
 		var formalsAsTypes = new StorageType[formals.length];
 		int pos = 0;
 		for (var formal: formals)
-			formalsAsTypes[pos++] = StorageTypes.named(formal, InconsistentJsonException::new);
+			formalsAsTypes[pos++] = AbstractStorageType.named(formal, InconsistentJsonException::new);
 
 		return formalsAsTypes;
 	}
@@ -102,7 +100,7 @@ public final class ConstructorSignatureImpl extends AbstractCodeSignature implem
 
 		var formals = context.readLengthAndArray(StorageTypes::from, StorageType[]::new);
 
-		return ConstructorSignatures.of(definingClass, formals);
+		return new ConstructorSignatureImpl(definingClass, formals, IOException::new);
 	}
 
 	/**

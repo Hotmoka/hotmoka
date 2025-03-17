@@ -123,7 +123,7 @@ public class AccountImpl extends AbstractAccount<StorageReference> implements Ac
 	 */
 	public AccountImpl(Entropy entropy, byte[] reference) {
 		// TODO: exception should be checked
-		this(entropy, StorageValues.reference(TransactionReferences.of(reference, IllegalArgumentException::new), BigInteger.ZERO, IllegalArgumentException::new));
+		this(entropy, StorageValues.reference(TransactionReferences.of(reference), BigInteger.ZERO));
 	}
 
     @Override

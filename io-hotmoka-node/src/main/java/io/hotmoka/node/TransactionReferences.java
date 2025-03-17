@@ -18,7 +18,6 @@ package io.hotmoka.node;
 
 import java.io.IOException;
 
-import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.internal.gson.TransactionReferenceDecoder;
@@ -41,27 +40,21 @@ public abstract class TransactionReferences {
 	/**
 	 * Yields a transaction reference with the given hash.
 	 * 
-	 * @param <E> the type of the exception thrown if {@code hash} is an illegal transaction hash
 	 * @param hash the hash of the transaction, as the hexadecimal representation of its {@link TransactionReference#REQUEST_HASH_LENGTH} bytes
-	 * @param onIllegalHash the creator of the exception thrown if {@code hash} is an illegal transaction hash
 	 * @return the transaction reference
-	 * @throws E if {@code hash} in not a legal transaction hash
 	 */
-	public static <E extends Exception> TransactionReference of(String hash, ExceptionSupplier<? extends E> onIllegalHash) throws E {
-		return new TransactionReferenceImpl(hash, onIllegalHash);
+	public static TransactionReference of(String hash) {
+		return new TransactionReferenceImpl(hash, IllegalArgumentException::new);
 	}
 
 	/**
 	 * Yields a transaction reference with the given hash.
 	 * 
-	 * @param <E> the type of the exception thrown if {@code hash} is an illegal transaction hash
 	 * @param hash the hash of the transaction, as a byte array of length {@link TransactionReference#REQUEST_HASH_LENGTH}
-	 * @param onIllegalHash the creator of the exception thrown if {@code hash} is an illegal transaction hash
 	 * @return the transaction reference
-	 * @throws E if {@code hash} in not a legal transaction hash
 	 */
-	public static <E extends Exception> TransactionReference of(byte[] hash, ExceptionSupplier<? extends E> onIllegalHash) throws E {
-		return new TransactionReferenceImpl(hash, onIllegalHash);
+	public static TransactionReference of(byte[] hash) {
+		return new TransactionReferenceImpl(hash, IllegalArgumentException::new);
 	}
 
 	/**

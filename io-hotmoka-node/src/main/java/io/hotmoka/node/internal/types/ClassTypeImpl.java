@@ -67,7 +67,7 @@ public final class ClassTypeImpl extends AbstractStorageType implements ClassTyp
 	 * @throws E if {@code name} is illegal for a class type
 	 */
 	public static <E extends Exception> ClassType named(String name, ExceptionSupplier<? extends E> onIllegalName) throws E {
-		switch (Objects.requireNonNull(name, "className cannot be null", onIllegalName)) {
+		switch (Objects.requireNonNull(name, "class name cannot be null", onIllegalName)) {
 		case "java.math.BigInteger": return BIG_INTEGER;
 		case "java.lang.Object": return OBJECT;
 		case "java.lang.String": return STRING;

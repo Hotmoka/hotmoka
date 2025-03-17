@@ -31,21 +31,18 @@ import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.testing.AbstractLoggedTests;
-import jakarta.websocket.DecodeException;
-import jakarta.websocket.EncodeException;
 
 public class UpdateTests extends AbstractLoggedTests {
 	private final static StorageReference object = StorageValues.reference
-		(TransactionReferences.of("cafebabedeadbeafcafebabedeadbeafcafebabedeadbeafcafebabedeadbeaf", IllegalArgumentException::new),
-		 BigInteger.valueOf(13), IllegalArgumentException::new);
+		(TransactionReferences.of("cafebabedeadbeafcafebabedeadbeafcafebabedeadbeafcafebabedeadbeaf"), BigInteger.valueOf(13));
 
 	private final static FieldSignature field = FieldSignatures.of
 		(StorageTypes.classNamed("io.hotmoka.MyClass", IllegalArgumentException::new), "f1", StorageTypes.classNamed("io.hotmoka.OtherClass", IllegalArgumentException::new));
 
 	@Test
 	@DisplayName("class tags are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForClassTag() throws EncodeException, DecodeException {
-		var jar = TransactionReferences.of("01234567deadbeafcafebabedeadbeafcafebabedeadbeafcafebabedeadbeaf", IllegalArgumentException::new);
+	public void encodeDecodeWorksForClassTag() throws Exception {
+		var jar = TransactionReferences.of("01234567deadbeafcafebabedeadbeafcafebabedeadbeafcafebabedeadbeaf");
 		var classTag1 = Updates.classTag(object, StorageTypes.classNamed("MyGreatClass", IllegalArgumentException::new), jar);
 		String encoded = new Updates.Encoder().encode(classTag1);
 		var classTag2 = new Updates.Decoder().decode(encoded);
@@ -54,7 +51,7 @@ public class UpdateTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("updates of big integer are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForUpdateOfBigInteger() throws EncodeException, DecodeException {
+	public void encodeDecodeWorksForUpdateOfBigInteger() throws Exception {
 		var update1 = Updates.ofBigInteger(object, field, BigInteger.TEN);
 		String encoded = new Updates.Encoder().encode(update1);
 		var update2 = new Updates.Decoder().decode(encoded);
@@ -63,7 +60,7 @@ public class UpdateTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("updates of boolean are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForUpdateOfBoolean() throws EncodeException, DecodeException {
+	public void encodeDecodeWorksForUpdateOfBoolean() throws Exception {
 		var update1 = Updates.ofBoolean(object, field, true);
 		String encoded = new Updates.Encoder().encode(update1);
 		var update2 = new Updates.Decoder().decode(encoded);
@@ -72,7 +69,7 @@ public class UpdateTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("updates of byte are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForUpdateOfByte() throws EncodeException, DecodeException {
+	public void encodeDecodeWorksForUpdateOfByte() throws Exception {
 		var update1 = Updates.ofByte(object, field, (byte) 13);
 		String encoded = new Updates.Encoder().encode(update1);
 		var update2 = new Updates.Decoder().decode(encoded);
@@ -81,7 +78,7 @@ public class UpdateTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("updates of char are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForUpdateOfChar() throws EncodeException, DecodeException {
+	public void encodeDecodeWorksForUpdateOfChar() throws Exception {
 		var update1 = Updates.ofChar(object, field, 'A');
 		String encoded = new Updates.Encoder().encode(update1);
 		var update2 = new Updates.Decoder().decode(encoded);
@@ -90,7 +87,7 @@ public class UpdateTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("updates of double are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForUpdateOfDouble() throws EncodeException, DecodeException {
+	public void encodeDecodeWorksForUpdateOfDouble() throws Exception {
 		var update1 = Updates.ofDouble(object, field, 3.1415);
 		String encoded = new Updates.Encoder().encode(update1);
 		var update2 = new Updates.Decoder().decode(encoded);
@@ -99,7 +96,7 @@ public class UpdateTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("updates of float are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForUpdateOfFloat() throws EncodeException, DecodeException {
+	public void encodeDecodeWorksForUpdateOfFloat() throws Exception {
 		var update1 = Updates.ofFloat(object, field, 3.1415f);
 		String encoded = new Updates.Encoder().encode(update1);
 		var update2 = new Updates.Decoder().decode(encoded);
@@ -108,7 +105,7 @@ public class UpdateTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("updates of int are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForUpdateOfInt() throws EncodeException, DecodeException {
+	public void encodeDecodeWorksForUpdateOfInt() throws Exception {
 		var update1 = Updates.ofInt(object, field, 1973);
 		String encoded = new Updates.Encoder().encode(update1);
 		var update2 = new Updates.Decoder().decode(encoded);
@@ -117,7 +114,7 @@ public class UpdateTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("updates of long are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForUpdateOfLong() throws EncodeException, DecodeException {
+	public void encodeDecodeWorksForUpdateOfLong() throws Exception {
 		var update1 = Updates.ofLong(object, field, 1234567890L);
 		String encoded = new Updates.Encoder().encode(update1);
 		var update2 = new Updates.Decoder().decode(encoded);
@@ -126,7 +123,7 @@ public class UpdateTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("updates of short are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForUpdateOfShort() throws EncodeException, DecodeException {
+	public void encodeDecodeWorksForUpdateOfShort() throws Exception {
 		var update1 = Updates.ofShort(object, field, (short) 1973);
 		String encoded = new Updates.Encoder().encode(update1);
 		var update2 = new Updates.Decoder().decode(encoded);
@@ -135,10 +132,8 @@ public class UpdateTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("updates of storage are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForUpdateOfStorage() throws EncodeException, DecodeException {
-		var value = StorageValues.reference(
-			TransactionReferences.of("01234567deadbeafcafebabedeadbeafcafebabedeadbeafcafebabedeadbeaf", IllegalArgumentException::new),
-			BigInteger.TWO, IllegalArgumentException::new);
+	public void encodeDecodeWorksForUpdateOfStorage() throws Exception {
+		var value = StorageValues.reference(TransactionReferences.of("01234567deadbeafcafebabedeadbeafcafebabedeadbeafcafebabedeadbeaf"), BigInteger.TWO);
 		var update1 = Updates.ofStorage(object, field, value);
 		String encoded = new Updates.Encoder().encode(update1);
 		var update2 = new Updates.Decoder().decode(encoded);
@@ -147,7 +142,7 @@ public class UpdateTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("updates of string are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForUpdateOfString() throws EncodeException, DecodeException {
+	public void encodeDecodeWorksForUpdateOfString() throws Exception {
 		var update1 = Updates.ofString(object, field, "hello");
 		String encoded = new Updates.Encoder().encode(update1);
 		var update2 = new Updates.Decoder().decode(encoded);
@@ -156,7 +151,7 @@ public class UpdateTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("updates to null are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForUpdateToNull() throws EncodeException, DecodeException {
+	public void encodeDecodeWorksForUpdateToNull() throws Exception {
 		var update1 = Updates.toNull(object, field, false);
 		String encoded = new Updates.Encoder().encode(update1);
 		var update2 = new Updates.Decoder().decode(encoded);

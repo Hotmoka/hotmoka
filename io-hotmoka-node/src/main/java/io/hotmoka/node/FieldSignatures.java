@@ -43,7 +43,7 @@ public abstract class FieldSignatures {
 	 * @return the field signature
 	 */
 	public static FieldSignature of(ClassType definingClass, String name, StorageType type) {
-		return new FieldSignatureImpl(definingClass, name, type, IllegalArgumentException::new); // TODO
+		return new FieldSignatureImpl(definingClass, name, type, IllegalArgumentException::new);
 	}
 
 	/**

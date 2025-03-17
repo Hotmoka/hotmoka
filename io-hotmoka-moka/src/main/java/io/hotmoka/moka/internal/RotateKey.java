@@ -97,7 +97,7 @@ public class RotateKey extends AbstractCommand {
 				if ("the classpath of the account".equals(RotateKey.this.classpath))
 					this.classpath = node.getClassTag(account).getJar();
 				else
-					this.classpath = TransactionReferences.of(RotateKey.this.classpath, s -> new CommandException("The classpath " + RotateKey.this.classpath + " is not a valid transaction reference: " + s));
+					this.classpath = TransactionReferences.of(RotateKey.this.classpath);
 
 				passwordOfAccount = ensurePassword(passwordOfAccount, "the account", interactive, false);
 				this.entropy = Entropies.random();

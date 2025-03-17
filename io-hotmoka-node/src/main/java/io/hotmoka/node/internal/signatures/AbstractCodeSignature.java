@@ -19,11 +19,12 @@ package io.hotmoka.node.internal.signatures;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.node.NodeMarshallingContexts;
@@ -50,13 +51,17 @@ public abstract class AbstractCodeSignature extends AbstractMarshallable impleme
 	/**
 	 * Builds the signature of a method or constructor.
 	 * 
+	 * @param <E> the type of the exception thrown if some arguments is illegal
 	 * @param definingClass the class of the method or constructor
 	 * @param formals the formal arguments of the method or constructor
+	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
 	 */
-	protected AbstractCodeSignature(ClassType definingClass, StorageType... formals) {
-		this.definingClass = Objects.requireNonNull(definingClass, "definingClass cannot be null");
-		this.formals = Objects.requireNonNull(formals, "formals cannot be null");
-		Stream.of(formals).forEach(formal -> Objects.requireNonNull(formal, "formals cannot hold null"));
+	protected <E extends Exception> AbstractCodeSignature(ClassType definingClass, StorageType[] formals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		this.definingClass = Objects.requireNonNull(definingClass, "definingClass cannot be null", onIllegalArgs);
+		this.formals = Objects.requireNonNull(formals, "formals cannot be null", onIllegalArgs);
+		for (var formal: formals)
+			Objects.requireNonNull(formal, "formals cannot hold null", onIllegalArgs);
 	}
 
 	@Override

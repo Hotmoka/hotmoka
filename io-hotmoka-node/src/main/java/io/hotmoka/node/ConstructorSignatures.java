@@ -42,7 +42,7 @@ public abstract class ConstructorSignatures {
 	 * @return the signature of the constructor
 	 */
 	public static ConstructorSignature of(ClassType definingClass, StorageType... formals) {
-		return new ConstructorSignatureImpl(definingClass, formals);
+		return new ConstructorSignatureImpl(definingClass, formals, IllegalArgumentException::new);
 	}
 
 	/**

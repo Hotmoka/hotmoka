@@ -157,7 +157,7 @@ public abstract class AbstractStorageValue extends AbstractMarshallable implemen
 		var progressive = json.getProgressive();
 
 		if (transaction != null && progressive != null)
-			return StorageValues.reference(transaction.unmap(), progressive, InconsistentJsonException::new);
+			return new StorageReferenceImpl(transaction.unmap(), progressive, InconsistentJsonException::new);
 		else if (transaction != null || progressive != null)
 			throw new InconsistentJsonException("None or both transaction and progressive must be present in JSON");
 

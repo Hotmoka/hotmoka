@@ -22,7 +22,6 @@ import java.util.Arrays;
 
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.exceptions.ExceptionSupplier;
-import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -51,8 +50,10 @@ public final class TransactionReferenceImpl extends AbstractMarshallable impleme
 	 * @throws E if {@code hash} in not a legal transaction hash
 	 */
 	public <E extends Exception> TransactionReferenceImpl(String hash, ExceptionSupplier<? extends E> onIllegalHash) throws E {
+		if (hash == null)
+			throw onIllegalHash.apply("hash cannot be null");
 		// each byte is represented by two successive characters
-		if (hash.length() != REQUEST_HASH_LENGTH * 2)
+		else if (hash.length() != REQUEST_HASH_LENGTH * 2)
 			throw onIllegalHash.apply("Illegal transaction reference: it should be " + REQUEST_HASH_LENGTH + " bytes long");
 
 		this.hash = Hex.fromHexString(hash, onIllegalHash);
@@ -66,7 +67,9 @@ public final class TransactionReferenceImpl extends AbstractMarshallable impleme
 	 * @throws E if {@code hash} in not a legal transaction hash
 	 */
 	public <E extends Exception> TransactionReferenceImpl(byte[] hash, ExceptionSupplier<? extends E> onIllegalHash) throws E {
-		if (hash.length != REQUEST_HASH_LENGTH)
+		if (hash == null)
+			throw onIllegalHash.apply("hash cannot be null");
+		else if (hash.length != REQUEST_HASH_LENGTH)
 			throw onIllegalHash.apply("Illegal transaction reference: it should be " + REQUEST_HASH_LENGTH + " bytes long");
 
 		this.hash = hash.clone();
@@ -79,13 +82,7 @@ public final class TransactionReferenceImpl extends AbstractMarshallable impleme
 	 * @throws InconsistentJsonException if {@code json} is inconsistent
 	 */
 	public TransactionReferenceImpl(TransactionReferenceJson json) throws InconsistentJsonException {
-		var hash = Objects.requireNonNull(json.getHash(), "hash cannot be null", InconsistentJsonException::new);
-
-		// each byte is represented by two successive characters
-		if (hash.length() != REQUEST_HASH_LENGTH * 2)
-			throw new InconsistentJsonException("Illegal transaction reference: it should be " + REQUEST_HASH_LENGTH + " bytes long");
-
-		this.hash = Hex.fromHexString(hash, InconsistentJsonException::new);
+		this(json.getHash(), InconsistentJsonException::new);
 	}
 
 	/**

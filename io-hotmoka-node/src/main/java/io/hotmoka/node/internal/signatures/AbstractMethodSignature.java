@@ -17,10 +17,11 @@ limitations under the License.
 package io.hotmoka.node.internal.signatures;
 
 import java.io.IOException;
-import java.util.Objects;
 import java.util.Optional;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
@@ -30,6 +31,8 @@ import io.hotmoka.node.api.signatures.VoidMethodSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
 import io.hotmoka.node.internal.gson.MethodSignatureJson;
+import io.hotmoka.node.internal.types.AbstractStorageType;
+import io.hotmoka.node.internal.types.ClassTypeImpl;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
@@ -46,14 +49,17 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 	/**
 	 * Builds the signature of a method.
 	 * 
+	 * @param <E> the type of the exception thrown if some arguments is illegal
 	 * @param definingClass the class of the method
 	 * @param methodName the name of the method
 	 * @param formals the formal arguments of the method
+	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
 	 */
-	protected AbstractMethodSignature(ClassType definingClass, String methodName, StorageType... formals) {
-		super(definingClass, formals);
+	protected <E extends Exception> AbstractMethodSignature(ClassType definingClass, String methodName, StorageType[] formals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(definingClass, formals, onIllegalArgs);
 
-		this.methodName = Objects.requireNonNull(methodName, "methodName cannot be null");
+		this.methodName = Objects.requireNonNull(methodName, "methodName cannot be null", onIllegalArgs);
 	}
 
 	/**
@@ -68,23 +74,15 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 		var formalsAsTypes = new StorageType[formals.length];
 		int pos = 0;
 		for (var formal: formals)
-			formalsAsTypes[pos++] = StorageTypes.named(formal, InconsistentJsonException::new);
+			formalsAsTypes[pos++] = AbstractStorageType.named(formal, InconsistentJsonException::new);
 
-		String definingClass = json.getDefiningClass();
-		if (definingClass == null)
-			throw new InconsistentJsonException("definingClass cannot be null");
-
-		String name = json.getName();
-		if (name == null)
-			throw new InconsistentJsonException("name cannot be null");
-
-		var definingClassType = StorageTypes.classNamed(definingClass, InconsistentJsonException::new);
+		var definingClassType = ClassTypeImpl.named(json.getDefiningClass(), InconsistentJsonException::new);
 
 		Optional<String> returnType = json.getReturnType();
 		if (returnType.isPresent())
-			return MethodSignatures.ofNonVoid(definingClassType, name, StorageTypes.named(returnType.get(), InconsistentJsonException::new), formalsAsTypes);
+			return new NonVoidMethodSignatureImpl(definingClassType, json.getName(), AbstractStorageType.named(returnType.get(), InconsistentJsonException::new), formalsAsTypes, InconsistentJsonException::new);
 		else
-			return MethodSignatures.ofVoid(definingClassType, name, formalsAsTypes);
+			return new VoidMethodSignatureImpl(definingClassType, json.getName(), formalsAsTypes, InconsistentJsonException::new);
 	}
 
 	@Override
@@ -131,9 +129,9 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 			formals[pos] = StorageTypes.from(context);
 
 		if (isVoid)
-			return MethodSignatures.ofVoid(definingClass, methodName, formals);
+			return new VoidMethodSignatureImpl(definingClass, methodName, formals, IOException::new);
 		else
-			return MethodSignatures.ofNonVoid(definingClass, methodName, StorageTypes.from(context), formals);
+			return new NonVoidMethodSignatureImpl(definingClass, methodName, StorageTypes.from(context), formals, IOException::new);
 	}
 
 	/**

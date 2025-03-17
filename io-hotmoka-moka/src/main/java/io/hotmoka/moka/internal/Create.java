@@ -113,7 +113,7 @@ public class Create extends AbstractCommand {
 				KeyPair keys = readKeys(Accounts.of(payer), node, passwordOfPayer);
 
 				TransactionReference classpath = "takamakaCode".equals(Create.this.classpath) ? takamakaCode :
-					TransactionReferences.of(Create.this.classpath, s -> new CommandException("The classpath " + Create.this.classpath + " is not a valid transaction reference: " + s));
+					TransactionReferences.of(Create.this.classpath);
 				TakamakaClassLoader classloader = ClassLoaderHelpers.of(node).classloaderFor(classpath);
 				this.clazz = classloader.loadClass(className);
 				this.whiteListingWizard = classloader.getWhiteListingWizard();

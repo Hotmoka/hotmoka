@@ -31,7 +31,7 @@ public class TransactionReferenceTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("transaction references are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForTransactionReference() throws EncodeException, DecodeException {
-		var reference1 = TransactionReferences.of("cafebabe12345678cafebabe12345678cafebabe12345678cafebabe12345678", IllegalArgumentException::new);
+		var reference1 = TransactionReferences.of("cafebabe12345678cafebabe12345678cafebabe12345678cafebabe12345678");
 		String encoded = new TransactionReferences.Encoder().encode(reference1);
 		var reference2 = new TransactionReferences.Decoder().decode(encoded);
 		assertEquals(reference1, reference2);

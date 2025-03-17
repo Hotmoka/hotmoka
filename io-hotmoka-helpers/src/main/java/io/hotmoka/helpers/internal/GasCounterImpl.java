@@ -86,7 +86,7 @@ public class GasCounterImpl implements GasCounter {
 		}
 
 		// the hashing algorithm generates hashes of the correct length, hence no checked exception
-		var references = Stream.of(requests).map(hasher::hash).map(hash -> TransactionReferences.of(hash, IllegalArgumentException::new)).toArray(TransactionReference[]::new);
+		var references = Stream.of(requests).map(hasher::hash).map(TransactionReferences::of).toArray(TransactionReference[]::new);
 		var forPenalty = BigInteger.ZERO;
 		var forCPU = BigInteger.ZERO;
 		var forRAM = BigInteger.ZERO;

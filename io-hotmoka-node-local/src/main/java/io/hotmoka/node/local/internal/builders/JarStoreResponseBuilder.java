@@ -83,7 +83,7 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 				return TransactionResponses.jarStoreSuccessful(instrumentedBytes, request.getDependencies(), consensus.getVerificationVersion(), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			}
 			catch (Throwable t) {
-				var reference = TransactionReferences.of(environment.getHasher().hash(getRequest()), IllegalArgumentException::new);
+				var reference = TransactionReferences.of(environment.getHasher().hash(getRequest()));
 				LOGGER.warning(reference + ": failed with message: \"" + t.getMessage() + "\"");
 				resetBalanceOfPayerToInitialValueMinusAllPromisedGas();
 				// we do not pay back the gas

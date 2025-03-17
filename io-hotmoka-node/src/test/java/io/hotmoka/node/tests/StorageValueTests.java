@@ -26,14 +26,12 @@ import org.junit.jupiter.api.Test;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.testing.AbstractLoggedTests;
-import jakarta.websocket.DecodeException;
-import jakarta.websocket.EncodeException;
 
 public class StorageValueTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("big integer storage values are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForBigIntegerStorageValue() throws EncodeException, DecodeException {
+	public void encodeDecodeWorksForBigIntegerStorageValue() throws Exception {
 		var value1 = StorageValues.bigIntegerOf(BigInteger.valueOf(12345678));
 		String encoded = new StorageValues.Encoder().encode(value1);
 		var value2 = new StorageValues.Decoder().decode(encoded);
@@ -42,7 +40,7 @@ public class StorageValueTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("boolean storage values are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForBooleanStorageValue() throws EncodeException, DecodeException {
+	public void encodeDecodeWorksForBooleanStorageValue() throws Exception {
 		var value1 = StorageValues.booleanOf(true);
 		String encoded = new StorageValues.Encoder().encode(value1);
 		var value2 = new StorageValues.Decoder().decode(encoded);
@@ -51,7 +49,7 @@ public class StorageValueTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("byte storage values are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForByteStorageValue() throws EncodeException, DecodeException {
+	public void encodeDecodeWorksForByteStorageValue() throws Exception {
 		var value1 = StorageValues.byteOf((byte) 13);
 		String encoded = new StorageValues.Encoder().encode(value1);
 		var value2 = new StorageValues.Decoder().decode(encoded);
@@ -60,7 +58,7 @@ public class StorageValueTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("char storage values are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForCharStorageValue() throws EncodeException, DecodeException {
+	public void encodeDecodeWorksForCharStorageValue() throws Exception {
 		var value1 = StorageValues.charOf('@');
 		String encoded = new StorageValues.Encoder().encode(value1);
 		var value2 = new StorageValues.Decoder().decode(encoded);
@@ -69,7 +67,7 @@ public class StorageValueTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("double storage values are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForDoubleStorageValue() throws EncodeException, DecodeException {
+	public void encodeDecodeWorksForDoubleStorageValue() throws Exception {
 		var value1 = StorageValues.doubleOf(3.1415);
 		String encoded = new StorageValues.Encoder().encode(value1);
 		var value2 = new StorageValues.Decoder().decode(encoded);
@@ -78,7 +76,7 @@ public class StorageValueTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("float storage values are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForFloatStorageValue() throws EncodeException, DecodeException {
+	public void encodeDecodeWorksForFloatStorageValue() throws Exception {
 		var value1 = StorageValues.floatOf(3.1415f);
 		String encoded = new StorageValues.Encoder().encode(value1);
 		var value2 = new StorageValues.Decoder().decode(encoded);
@@ -87,7 +85,7 @@ public class StorageValueTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("int storage values are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForIntStorageValue() throws EncodeException, DecodeException {
+	public void encodeDecodeWorksForIntStorageValue() throws Exception {
 		var value1 = StorageValues.intOf(2024);
 		String encoded = new StorageValues.Encoder().encode(value1);
 		var value2 = new StorageValues.Decoder().decode(encoded);
@@ -96,7 +94,7 @@ public class StorageValueTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("long storage values are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForLongStorageValue() throws EncodeException, DecodeException {
+	public void encodeDecodeWorksForLongStorageValue() throws Exception {
 		var value1 = StorageValues.longOf(123456789L);
 		String encoded = new StorageValues.Encoder().encode(value1);
 		var value2 = new StorageValues.Decoder().decode(encoded);
@@ -105,7 +103,7 @@ public class StorageValueTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("null storage values are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForNullStorageValue() throws EncodeException, DecodeException {
+	public void encodeDecodeWorksForNullStorageValue() throws Exception {
 		var value1 = StorageValues.NULL;
 		String encoded = new StorageValues.Encoder().encode(value1);
 		var value2 = new StorageValues.Decoder().decode(encoded);
@@ -114,7 +112,7 @@ public class StorageValueTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("short storage values are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForShortStorageValue() throws EncodeException, DecodeException {
+	public void encodeDecodeWorksForShortStorageValue() throws Exception {
 		var value1 = StorageValues.shortOf((short) 1234);
 		String encoded = new StorageValues.Encoder().encode(value1);
 		var value2 = new StorageValues.Decoder().decode(encoded);
@@ -123,8 +121,8 @@ public class StorageValueTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("storage references are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForStorageReference() throws EncodeException, DecodeException {
-		var value1 = StorageValues.reference(TransactionReferences.of("cafebabe12345678cafebabe12345678cafebabe12345678cafebabe12345678", IllegalArgumentException::new), BigInteger.valueOf(13), IllegalArgumentException::new);
+	public void encodeDecodeWorksForStorageReference() throws Exception {
+		var value1 = StorageValues.reference(TransactionReferences.of("cafebabe12345678cafebabe12345678cafebabe12345678cafebabe12345678"), BigInteger.valueOf(13));
 		String encoded = new StorageValues.Encoder().encode(value1);
 		var value2 = new StorageValues.Decoder().decode(encoded);
 		assertEquals(value1, value2);
@@ -132,7 +130,7 @@ public class StorageValueTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("string storage values are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForStringStorageValue() throws EncodeException, DecodeException {
+	public void encodeDecodeWorksForStringStorageValue() throws Exception {
 		var value1 = StorageValues.stringOf("hello");
 		String encoded = new StorageValues.Encoder().encode(value1);
 		var value2 = new StorageValues.Decoder().decode(encoded);

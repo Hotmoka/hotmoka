@@ -48,7 +48,7 @@ public abstract class MethodSignatures {
 	 * @return the signature of the method
 	 */
 	public static NonVoidMethodSignature ofNonVoid(ClassType definingClass, String methodName, StorageType returnType, StorageType... formals) {
-		return new NonVoidMethodSignatureImpl(definingClass, methodName, returnType, formals);
+		return new NonVoidMethodSignatureImpl(definingClass, methodName, returnType, formals, IllegalArgumentException::new);
 	}
 
 	/**
@@ -60,7 +60,7 @@ public abstract class MethodSignatures {
 	 * @return the signature of the method
 	 */
 	public static VoidMethodSignature ofVoid(ClassType definingClass, String methodName, StorageType... formals) {
-		return new VoidMethodSignatureImpl(definingClass, methodName, formals);
+		return new VoidMethodSignatureImpl(definingClass, methodName, formals, IllegalArgumentException::new);
 	}
 
 	/**

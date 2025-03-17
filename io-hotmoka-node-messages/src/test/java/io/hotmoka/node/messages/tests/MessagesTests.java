@@ -96,8 +96,8 @@ import io.hotmoka.node.messages.RunStaticMethodCallTransactionResultMessages;
 import io.hotmoka.testing.AbstractLoggedTests;
 
 public class MessagesTests extends AbstractLoggedTests {
-	private final static TransactionReference TRANSACTION_REFERENCE = TransactionReferences.of("12345678901234567890abcdeabcdeff12345678901234567890abcdeabcdeff", RuntimeException::new);
-	private final static StorageReference OBJECT = StorageValues.reference(TRANSACTION_REFERENCE, BigInteger.ONE, RuntimeException::new);
+	private final static TransactionReference TRANSACTION_REFERENCE = TransactionReferences.of("12345678901234567890abcdeabcdeff12345678901234567890abcdeabcdeff");
+	private final static StorageReference OBJECT = StorageValues.reference(TRANSACTION_REFERENCE, BigInteger.ONE);
 	private final static NonVoidMethodSignature TARGET = MethodSignatures.ofNonVoid(StorageTypes.classNamed("my.class", IllegalArgumentException::new), "target", StorageTypes.STRING, StorageTypes.BOOLEAN, StorageTypes.FLOAT, StorageTypes.INT);
 
 	@Test
@@ -152,7 +152,7 @@ public class MessagesTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("getTakamakaCodeResult messages are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForGetTakamakaCodeResult() throws Exception {
-		var expected = GetTakamakaCodeResultMessages.of(TransactionReferences.of("12345678901234567890abcdeabcdeff12345678901234567890abcdeabcdeff", IllegalArgumentException::new), "id");
+		var expected = GetTakamakaCodeResultMessages.of(TransactionReferences.of("12345678901234567890abcdeabcdeff12345678901234567890abcdeabcdeff"), "id");
 		String encoded = new GetTakamakaCodeResultMessages.Encoder().encode(expected);
 		var actual = new GetTakamakaCodeResultMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);
@@ -642,7 +642,7 @@ public class MessagesTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("event messages are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForEvent() throws Exception {
-		var expected = EventMessages.of(OBJECT, StorageValues.reference(TRANSACTION_REFERENCE, BigInteger.TWO, RuntimeException::new));
+		var expected = EventMessages.of(OBJECT, StorageValues.reference(TRANSACTION_REFERENCE, BigInteger.TWO));
 		String encoded = new EventMessages.Encoder().encode(expected);
 		var actual = new EventMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);

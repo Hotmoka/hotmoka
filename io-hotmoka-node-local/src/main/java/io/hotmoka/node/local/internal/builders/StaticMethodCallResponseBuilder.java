@@ -113,7 +113,7 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 				}
 			}
 			catch (Throwable t) {
-				var reference = TransactionReferences.of(environment.getHasher().hash(getRequest()), IllegalArgumentException::new);
+				var reference = TransactionReferences.of(environment.getHasher().hash(getRequest()));
 				LOGGER.warning(reference + ": failed with message: \"" + t.getMessage() + "\"");
 
 				resetBalanceOfPayerToInitialValueMinusAllPromisedGas();

@@ -17,9 +17,10 @@ limitations under the License.
 package io.hotmoka.node.internal.signatures;
 
 import java.io.IOException;
-import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.types.ClassType;
@@ -39,15 +40,18 @@ public final class NonVoidMethodSignatureImpl extends AbstractMethodSignature im
 	/**
 	 * Builds the signature of a method, that returns a value.
 	 * 
+	 * @param <E> the type of the exception thrown if some arguments is illegal
 	 * @param definingClass the class of the method
 	 * @param methodName the name of the method
 	 * @param returnType the type of the returned value
 	 * @param formals the formal arguments of the method
+	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
 	 */
-	public NonVoidMethodSignatureImpl(ClassType definingClass, String methodName, StorageType returnType, StorageType... formals) {
-		super(definingClass, methodName, formals);
+	public <E extends Exception> NonVoidMethodSignatureImpl(ClassType definingClass, String methodName, StorageType returnType, StorageType[] formals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(definingClass, methodName, formals, onIllegalArgs);
 
-		this.returnType = Objects.requireNonNull(returnType, "returnType cannot be null");
+		this.returnType = Objects.requireNonNull(returnType, "returnType cannot be null", onIllegalArgs);
 	}
 
 	@Override

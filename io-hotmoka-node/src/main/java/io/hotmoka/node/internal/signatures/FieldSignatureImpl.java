@@ -32,6 +32,8 @@ import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
 import io.hotmoka.node.internal.gson.FieldSignatureJson;
+import io.hotmoka.node.internal.types.AbstractStorageType;
+import io.hotmoka.node.internal.types.ClassTypeImpl;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
@@ -78,9 +80,9 @@ public final class FieldSignatureImpl extends AbstractMarshallable implements Fi
 	 * @throws InconsistentJsonException if {@code json} is inconsistent
 	 */
 	public FieldSignatureImpl(FieldSignatureJson json) throws InconsistentJsonException {
-		this(StorageTypes.classNamed(json.getDefiningClass(), InconsistentJsonException::new),
+		this(ClassTypeImpl.named(json.getDefiningClass(), InconsistentJsonException::new),
 			json.getName(),
-			StorageTypes.named(json.getType(), InconsistentJsonException::new), InconsistentJsonException::new);
+			AbstractStorageType.named(json.getType(), InconsistentJsonException::new), InconsistentJsonException::new);
 	}
 
 	@Override

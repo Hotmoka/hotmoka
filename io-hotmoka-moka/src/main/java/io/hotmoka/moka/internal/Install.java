@@ -96,7 +96,7 @@ public class Install extends AbstractCommand {
 				if (libs != null) {
 					var libsRefs = new ArrayList<TransactionReference>();
 					for (String lib: libs)
-						libsRefs.add(TransactionReferences.of(lib, s -> new CommandException("Library " + lib + " is not a valid transaction reference: " + s)));
+						libsRefs.add(TransactionReferences.of(lib));
 
 					dependencies = libsRefs.stream().distinct().toArray(TransactionReference[]::new);
 				}
@@ -111,7 +111,7 @@ public class Install extends AbstractCommand {
 					gas = new BigInteger(gasLimit);
 
 				TransactionReference classpath = "takamakaCode".equals(Install.this.classpath) ?
-					takamakaCode : TransactionReferences.of(Install.this.classpath, s -> new CommandException("The classpath " + Install.this.classpath + " is not a valid transaction reference: " + s));
+					takamakaCode : TransactionReferences.of(Install.this.classpath);
 
 				askForConfirmation(gas);
 

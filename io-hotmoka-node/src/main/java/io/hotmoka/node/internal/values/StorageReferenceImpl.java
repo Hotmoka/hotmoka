@@ -27,12 +27,12 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
-import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.internal.marshalling.NodeMarshallingContext;
+import io.hotmoka.node.internal.references.TransactionReferenceImpl;
 
 /**
  * A reference to an object of class type that can be stored in a Hotmoka node.
@@ -86,7 +86,7 @@ public final class StorageReferenceImpl extends AbstractStorageValue implements 
 		if (splits.length != 2)
 			throw onIllegalReference.apply("A storage reference should have the form transaction#progressive");
 
-		this.transaction = TransactionReferences.of(splits[0], onIllegalReference);
+		this.transaction = new TransactionReferenceImpl(splits[0], onIllegalReference);
 
 		try {
 			this.progressive = new BigInteger(splits[1], 16);

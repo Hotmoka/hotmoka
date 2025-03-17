@@ -42,11 +42,11 @@ import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.testing.AbstractLoggedTests;
 
 public class TransactionRequestTests extends AbstractLoggedTests {
-	private final static TransactionReference classpath = TransactionReferences.of("cafebabe01234567cafebabe01234567cafebabe01234567cafebabe01234567", IllegalArgumentException::new);
-	private final static TransactionReference reference = TransactionReferences.of("01234567cafebabe01234567cafebabe01234567cafebabe01234567cafebabe", IllegalArgumentException::new);
-	private final static TransactionReference reference2 = TransactionReferences.of("a1234567cafebabe01234567cafebabe01234567cafebabe01234567cafebabe", IllegalArgumentException::new);
-	private final static TransactionReference reference3 = TransactionReferences.of("b1234567cafebabe01234567cafebabe01234567cafebabe01234567cafebabe", IllegalArgumentException::new);
-	private final static StorageReference caller = StorageValues.reference(reference, BigInteger.TWO, IllegalArgumentException::new);
+	private final static TransactionReference classpath = TransactionReferences.of("cafebabe01234567cafebabe01234567cafebabe01234567cafebabe01234567");
+	private final static TransactionReference reference = TransactionReferences.of("01234567cafebabe01234567cafebabe01234567cafebabe01234567cafebabe");
+	private final static TransactionReference reference2 = TransactionReferences.of("a1234567cafebabe01234567cafebabe01234567cafebabe01234567cafebabe");
+	private final static TransactionReference reference3 = TransactionReferences.of("b1234567cafebabe01234567cafebabe01234567cafebabe01234567cafebabe");
+	private final static StorageReference caller = StorageValues.reference(reference, BigInteger.TWO);
 	private final static byte[] jar = "Imagine this to be a very beautiful jar file".getBytes();
 	private final static Signer<SignedTransactionRequest<?>> signer;
 	private final static BigInteger nonce = BigInteger.valueOf(1317);
@@ -78,7 +78,7 @@ public class TransactionRequestTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("initialization transaction requests are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForInitializationTransactionRequest() throws Exception {
-		var manifest = StorageValues.reference(reference, BigInteger.ONE, IllegalArgumentException::new);
+		var manifest = StorageValues.reference(reference, BigInteger.ONE);
 		var request1 = TransactionRequests.initialization(classpath, manifest, IllegalArgumentException::new);
 		String encoded = new TransactionRequests.Encoder().encode(request1);
 		var request2 = new TransactionRequests.Decoder().decode(encoded);
@@ -109,7 +109,7 @@ public class TransactionRequestTests extends AbstractLoggedTests {
 	public void encodeDecodeWorksForConstructorCallTransactionRequest() throws Exception {
 		var constructor = ConstructorSignatures.of(MY_CLASS, StorageTypes.INT, StorageTypes.classNamed("io.hotmoka.OtherClass", IllegalArgumentException::new));
 		var value1 = StorageValues.intOf(13);
-		var value2 = StorageValues.reference(reference2, BigInteger.ZERO, RuntimeException::new);
+		var value2 = StorageValues.reference(reference2, BigInteger.ZERO);
 		var request1 = TransactionRequests.constructorCall(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, constructor, new StorageValue[] { value1, value2 }, IllegalArgumentException::new);
 		String encoded = new TransactionRequests.Encoder().encode(request1);
 		var request2 = new TransactionRequests.Decoder().decode(encoded);
@@ -120,7 +120,7 @@ public class TransactionRequestTests extends AbstractLoggedTests {
 	@DisplayName("static method call transaction requests are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForStaticMethodCallTransactionRequest() throws Exception {
 		var value1 = StorageValues.intOf(13);
-		var value2 = StorageValues.reference(reference2, BigInteger.ZERO, RuntimeException::new);
+		var value2 = StorageValues.reference(reference2, BigInteger.ZERO);
 		var request1 = TransactionRequests.staticMethodCall(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, MOO, new StorageValue[] { value1, value2 }, IllegalArgumentException::new);
 		String encoded = new TransactionRequests.Encoder().encode(request1);
 		var request2 = new TransactionRequests.Decoder().decode(encoded);
@@ -131,8 +131,8 @@ public class TransactionRequestTests extends AbstractLoggedTests {
 	@DisplayName("instance method call transaction requests are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForInstanceMethodCallTransactionRequest() throws Exception {
 		var value1 = StorageValues.intOf(13);
-		var value2 = StorageValues.reference(reference2, BigInteger.ZERO, IllegalArgumentException::new);
-		var receiver = StorageValues.reference(reference2, BigInteger.valueOf(17), IllegalArgumentException::new);
+		var value2 = StorageValues.reference(reference2, BigInteger.ZERO);
+		var receiver = StorageValues.reference(reference2, BigInteger.valueOf(17));
 		var request1 = TransactionRequests.instanceMethodCall(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, MOO, receiver, new StorageValue[] { value1, value2 }, IllegalArgumentException::new);
 		String encoded = new TransactionRequests.Encoder().encode(request1);
 		var request2 = new TransactionRequests.Decoder().decode(encoded);
@@ -143,8 +143,8 @@ public class TransactionRequestTests extends AbstractLoggedTests {
 	@DisplayName("instance system method call transaction requests are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForInstanceSystemMethodCallTransactionRequest() throws Exception {
 		var value1 = StorageValues.intOf(13);
-		var value2 = StorageValues.reference(reference2, BigInteger.ZERO, IllegalArgumentException::new);
-		var receiver = StorageValues.reference(reference2, BigInteger.valueOf(17), IllegalArgumentException::new);
+		var value2 = StorageValues.reference(reference2, BigInteger.ZERO);
+		var receiver = StorageValues.reference(reference2, BigInteger.valueOf(17));
 		var request1 = TransactionRequests.instanceSystemMethodCall(caller, nonce, gasLimit, classpath, MOO, receiver, new StorageValue[] { value1, value2 }, IllegalArgumentException::new);
 		String encoded = new TransactionRequests.Encoder().encode(request1);
 		var request2 = new TransactionRequests.Decoder().decode(encoded);
