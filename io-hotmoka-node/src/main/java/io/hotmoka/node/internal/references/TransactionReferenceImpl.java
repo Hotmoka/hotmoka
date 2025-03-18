@@ -22,6 +22,7 @@ import java.util.Arrays;
 
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -47,13 +48,12 @@ public final class TransactionReferenceImpl extends AbstractMarshallable impleme
 	 * 
 	 * @param <E> the type of the exception thrown if {@code hash} is an illegal transaction hash
 	 * @param hash the hash of the transaction, as the hexadecimal representation of its {@link TransactionReference#REQUEST_HASH_LENGTH} bytes
+	 * @param onIllegalHash the generator of the exception thrown if {@code hash} is illegal
 	 * @throws E if {@code hash} in not a legal transaction hash
 	 */
 	public <E extends Exception> TransactionReferenceImpl(String hash, ExceptionSupplier<? extends E> onIllegalHash) throws E {
-		if (hash == null)
-			throw onIllegalHash.apply("hash cannot be null");
 		// each byte is represented by two successive characters
-		else if (hash.length() != REQUEST_HASH_LENGTH * 2)
+		if (Objects.requireNonNull(hash, "hash cannot be null", onIllegalHash).length() != REQUEST_HASH_LENGTH * 2)
 			throw onIllegalHash.apply("Illegal transaction reference: it should be " + REQUEST_HASH_LENGTH + " bytes long");
 
 		this.hash = Hex.fromHexString(hash, onIllegalHash);
@@ -62,15 +62,11 @@ public final class TransactionReferenceImpl extends AbstractMarshallable impleme
 	/**
 	 * Builds a transaction reference with the given hash.
 	 * 
-	 * @param <E> the type of the exception thrown if {@code hash} is an illegal transaction hash
 	 * @param hash the hash of the transaction, as a byte array of length {@link TransactionReference#REQUEST_HASH_LENGTH}
-	 * @throws E if {@code hash} in not a legal transaction hash
 	 */
-	public <E extends Exception> TransactionReferenceImpl(byte[] hash, ExceptionSupplier<? extends E> onIllegalHash) throws E {
-		if (hash == null)
-			throw onIllegalHash.apply("hash cannot be null");
-		else if (hash.length != REQUEST_HASH_LENGTH)
-			throw onIllegalHash.apply("Illegal transaction reference: it should be " + REQUEST_HASH_LENGTH + " bytes long");
+	public TransactionReferenceImpl(byte[] hash) {
+		if (Objects.requireNonNull(hash, "hash cannot be null", IllegalArgumentException::new).length != REQUEST_HASH_LENGTH)
+			throw new IllegalArgumentException("Illegal transaction reference: it should be " + REQUEST_HASH_LENGTH + " bytes long");
 
 		this.hash = hash.clone();
 	}

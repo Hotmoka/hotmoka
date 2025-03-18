@@ -137,7 +137,7 @@ public class JarStoreTransactionRequestImpl extends NonInitialTransactionRequest
 	 */
 	public JarStoreTransactionRequestImpl(TransactionRequestJson json) throws InconsistentJsonException {
 		this(
-			Hex.fromHexString(json.getSignature(), InconsistentJsonException::new),
+			Hex.fromHexString(Objects.requireNonNull(json.getSignature(), "signature cannot be null", InconsistentJsonException::new), InconsistentJsonException::new),
 			Objects.requireNonNull(json.getCaller(), "caller cannot be null", InconsistentJsonException::new).unmap().asReference(value -> new InconsistentJsonException("caller must be a storage reference, not a " + value.getClass().getSimpleName())),
 			json.getNonce(),
 			json.getChainId(),

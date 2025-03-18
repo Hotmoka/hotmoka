@@ -20,11 +20,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigInteger;
-import java.util.Objects;
 import java.util.function.Function;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
@@ -66,9 +66,9 @@ public final class StorageReferenceImpl extends AbstractStorageValue implements 
 	 * @param onIllegalReference the creator of the exception thrown if the result would be an illegal storage reference
 	 * @throws E if the result would be an illegal storage reference
 	 */
-	public <E extends Exception> StorageReferenceImpl(TransactionReference transaction, BigInteger progressive, Function<String, ? extends E> onIllegalReference) throws E {
-		this.transaction = Objects.requireNonNull(transaction, "transaction cannot be null");
-		this.progressive = Objects.requireNonNull(progressive, "progressive cannot be null");
+	public <E extends Exception> StorageReferenceImpl(TransactionReference transaction, BigInteger progressive, ExceptionSupplier<? extends E> onIllegalReference) throws E {
+		this.transaction = Objects.requireNonNull(transaction, "transaction cannot be null", onIllegalReference);
+		this.progressive = Objects.requireNonNull(progressive, "progressive cannot be null", onIllegalReference);
 		if (progressive.signum() < 0)
 			throw onIllegalReference.apply("progressive cannot be negative");
 	}
@@ -82,7 +82,7 @@ public final class StorageReferenceImpl extends AbstractStorageValue implements 
 	 * @throws E if {@code s} is an illegal representation for a storage reference
 	 */
 	public <E extends Exception> StorageReferenceImpl(String s, ExceptionSupplier<? extends E> onIllegalReference) throws E {
-		String[] splits = s.split("#");
+		String[] splits = Objects.requireNonNull(s, "s cannot be null", onIllegalReference).split("#");
 		if (splits.length != 2)
 			throw onIllegalReference.apply("A storage reference should have the form transaction#progressive");
 

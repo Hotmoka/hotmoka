@@ -47,7 +47,6 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.messages.AddConstructorCallTransactionMessages;
 import io.hotmoka.node.messages.AddConstructorCallTransactionResultMessages;
 import io.hotmoka.node.messages.AddGameteCreationTransactionMessages;
@@ -327,8 +326,7 @@ public class MessagesTests extends AbstractLoggedTests {
 		var keys = ed25519.getKeyPair();
 		var signer = ed25519.getSigner(keys.getPrivate(), StaticMethodCallTransactionRequest::toByteArrayWithoutSignature);
 		var request = TransactionRequests.staticMethodCall(signer, OBJECT, BigInteger.valueOf(13L), "my_chain", BigInteger.valueOf(1000L), BigInteger.valueOf(17L),
-			TRANSACTION_REFERENCE, TARGET, new StorageValue[] { StorageValues.FALSE, StorageValues.floatOf(3.14f), StorageValues.intOf(2024) },
-			IllegalArgumentException::new);
+			TRANSACTION_REFERENCE, TARGET, StorageValues.FALSE, StorageValues.floatOf(3.14f), StorageValues.intOf(2024));
 		var expected = RunStaticMethodCallTransactionMessages.of(request, "id");
 		String encoded = new RunStaticMethodCallTransactionMessages.Encoder().encode(expected);
 		var actual = new RunStaticMethodCallTransactionMessages.Decoder().decode(encoded);
@@ -393,8 +391,7 @@ public class MessagesTests extends AbstractLoggedTests {
 		var keys = ed25519.getKeyPair();
 		var signer = ed25519.getSigner(keys.getPrivate(), StaticMethodCallTransactionRequest::toByteArrayWithoutSignature);
 		var request = TransactionRequests.staticMethodCall(signer, OBJECT, BigInteger.valueOf(13L), "my_chain", BigInteger.valueOf(1000L), BigInteger.valueOf(17L),
-				TRANSACTION_REFERENCE, TARGET, new StorageValue[] { StorageValues.FALSE, StorageValues.floatOf(3.14f), StorageValues.intOf(2024) },
-				IllegalArgumentException::new);
+				TRANSACTION_REFERENCE, TARGET, StorageValues.FALSE, StorageValues.floatOf(3.14f), StorageValues.intOf(2024));
 		var expected = AddStaticMethodCallTransactionMessages.of(request, "id");
 		String encoded = new AddStaticMethodCallTransactionMessages.Encoder().encode(expected);
 		var actual = new AddStaticMethodCallTransactionMessages.Decoder().decode(encoded);
@@ -581,8 +578,7 @@ public class MessagesTests extends AbstractLoggedTests {
 		var keys = ed25519.getKeyPair();
 		var signer = ed25519.getSigner(keys.getPrivate(), StaticMethodCallTransactionRequest::toByteArrayWithoutSignature);
 		var request = TransactionRequests.staticMethodCall(signer, OBJECT, BigInteger.valueOf(13L), "my_chain", BigInteger.valueOf(1000L), BigInteger.valueOf(17L),
-			TRANSACTION_REFERENCE, TARGET, new StorageValue[] { StorageValues.FALSE, StorageValues.floatOf(3.14f), StorageValues.intOf(2024) },
-			IllegalArgumentException::new);
+			TRANSACTION_REFERENCE, TARGET, StorageValues.FALSE, StorageValues.floatOf(3.14f), StorageValues.intOf(2024));
 		var expected = PostStaticMethodCallTransactionMessages.of(request, "id");
 		String encoded = new PostStaticMethodCallTransactionMessages.Encoder().encode(expected);
 		var actual = new PostStaticMethodCallTransactionMessages.Decoder().decode(encoded);

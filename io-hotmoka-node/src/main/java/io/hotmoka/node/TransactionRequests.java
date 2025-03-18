@@ -22,7 +22,6 @@ import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
 import io.hotmoka.crypto.api.Signer;
-import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
@@ -225,7 +224,7 @@ public abstract class TransactionRequests {
 	 * @return the request
 	 */
 	public static InstanceMethodCallTransactionRequest instanceViewMethodCall(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) {
-		return new InstanceMethodCallTransactionRequestImpl(caller, gasLimit, classpath, method, receiver, actuals, IllegalArgumentException::new);
+		return new InstanceMethodCallTransactionRequestImpl(caller, gasLimit, classpath, method, receiver, actuals);
 	}
 
 	/**
@@ -249,7 +248,6 @@ public abstract class TransactionRequests {
 	/**
 	 * Yields a transaction request to call a static method in a node.
 	 * 
-	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
 	 * @param signature the signature of the request
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
@@ -259,18 +257,15 @@ public abstract class TransactionRequests {
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param method the method that must be called
 	 * @param actuals the actual arguments passed to the method
-	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
 	 * @return the request
-	 * @throws E if some argument passed to this constructor is illegal
 	 */
-	public static <E extends Exception> StaticMethodCallTransactionRequest staticMethodCall(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue[] actuals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
-		return new StaticMethodCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, actuals, onIllegalArgs);
+	public static StaticMethodCallTransactionRequest staticMethodCall(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue[] actuals) {
+		return new StaticMethodCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, actuals, IllegalArgumentException::new);
 	}
 
 	/**
 	 * Yields a transaction request to call a static method in a node.
 	 * 
-	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
 	 * @param signer the signer of the request
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
@@ -280,14 +275,12 @@ public abstract class TransactionRequests {
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param method the method that must be called
 	 * @param actuals the actual arguments passed to the method
-	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
 	 * @return the request
-	 * @throws E if some argument is illegal
 	 * @throws SignatureException if the signer cannot sign the request
 	 * @throws InvalidKeyException if the signer uses an invalid private key
 	 */
-	public static <E extends Exception> StaticMethodCallTransactionRequest staticMethodCall(Signer<? super StaticMethodCallTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue[] actuals, ExceptionSupplier<? extends E> onIllegalArgs) throws E, InvalidKeyException, SignatureException {
-		return new StaticMethodCallTransactionRequestImpl(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, actuals, onIllegalArgs);
+	public static StaticMethodCallTransactionRequest staticMethodCall(Signer<? super StaticMethodCallTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) throws InvalidKeyException, SignatureException {
+		return new StaticMethodCallTransactionRequestImpl(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, actuals, IllegalArgumentException::new);
 	}
 
 	/**
@@ -295,18 +288,15 @@ public abstract class TransactionRequests {
 	 * It fixes the signature to a missing signature, the nonce to zero, the chain identifier
 	 * to the empty string and the gas price to zero. None of them is used for a view transaction.
 	 * 
-	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param method the method that must be called
 	 * @param actuals the actual arguments passed to the method
-	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
 	 * @return the request
-	 * @throws E if some argument is illegal
 	 */
-	public static <E extends Exception> StaticMethodCallTransactionRequest staticViewMethodCall(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageValue[] actuals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
-		return new StaticMethodCallTransactionRequestImpl(caller, gasLimit, classpath, method, actuals, onIllegalArgs);
+	public static StaticMethodCallTransactionRequest staticViewMethodCall(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageValue... actuals) {
+		return new StaticMethodCallTransactionRequestImpl(caller, gasLimit, classpath, method, actuals);
 	}
 
 	/**
@@ -348,7 +338,7 @@ public abstract class TransactionRequests {
     public static class Json extends TransactionRequestJson {
 
     	/**
-    	 * Creates the Json representation for the given transaction request.
+    	 * Creates the JSON representation for the given transaction request.
     	 * 
     	 * @param request the transaction request
     	 */

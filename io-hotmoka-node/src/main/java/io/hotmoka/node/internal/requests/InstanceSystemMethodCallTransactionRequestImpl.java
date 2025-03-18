@@ -123,7 +123,7 @@ public class InstanceSystemMethodCallTransactionRequestImpl extends AbstractInst
 		var gasLimit = context.readBigInteger();
 		var classpath = TransactionReferences.from(context);
 		var nonce = context.readBigInteger();
-		StorageValue[] actuals = context.readLengthAndArray(StorageValues::from, StorageValue[]::new);
+		var actuals = context.readLengthAndArray(StorageValues::from, StorageValue[]::new);
 		var method = MethodSignatures.from(context);
 		var receiver = StorageValues.referenceWithoutSelectorFrom(context);
 

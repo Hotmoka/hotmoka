@@ -58,7 +58,7 @@ public final class VoidMethodSignatureImpl extends AbstractMethodSignature imple
     @Override
     public void into(MarshallingContext context) throws IOException {
     	getDefiningClass().into(context);
-    	context.writeStringUnshared(getMethodName());
+    	context.writeStringUnshared(getName());
 
     	var formals = getFormals().toArray(StorageType[]::new);
     	context.writeCompactInt(formals.length * 2); // this signals that the method is void (see from() inside AbstractMethodSignature)

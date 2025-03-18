@@ -425,7 +425,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		try (var scope = mkScope()) {
 			var reference = TransactionReferences.of(hasher.hash(request));
 			String referenceAsString = reference.toString();
-			LOGGER.info(referenceAsString + ": running start (" + request.getClass().getSimpleName() + " -> " + trim(request.getStaticTarget().getMethodName()) + ')');
+			LOGGER.info(referenceAsString + ": running start (" + request.getClass().getSimpleName() + " -> " + trim(request.getStaticTarget().getName()) + ')');
 			Optional<StorageValue> result = store.beginViewTransformation().runInstanceMethodCallTransaction(request, reference);
 			LOGGER.info(referenceAsString + ": running success");
 			return result;
@@ -445,7 +445,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		try (var scope = mkScope()) {
 			var reference = TransactionReferences.of(hasher.hash(request));
 			String referenceAsString = reference.toString();
-			LOGGER.info(referenceAsString + ": running start (" + request.getClass().getSimpleName() + " -> " + trim(request.getStaticTarget().getMethodName()) + ')');
+			LOGGER.info(referenceAsString + ": running start (" + request.getClass().getSimpleName() + " -> " + trim(request.getStaticTarget().getName()) + ')');
 			Optional<StorageValue> result = store.beginViewTransformation().runStaticMethodCallTransaction(request, reference);
 			LOGGER.info(referenceAsString + ": running success");
 			return result;
@@ -619,7 +619,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	private TransactionReference post(TransactionRequest<?> request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
 		var reference = TransactionReferences.of(hasher.hash(request));
 		if (request instanceof MethodCallTransactionRequest mctr)
-			LOGGER.info(reference + ": posting (" + request.getClass().getSimpleName() + " -> " + trim(mctr.getStaticTarget().getMethodName()) + ')');
+			LOGGER.info(reference + ": posting (" + request.getClass().getSimpleName() + " -> " + trim(mctr.getStaticTarget().getName()) + ')');
 		else if (request instanceof ConstructorCallTransactionRequest cctr)
 			LOGGER.info(reference + ": posting (" + request.getClass().getSimpleName() + " -> " + trim(cctr.getStaticTarget().getDefiningClass().getName()) + ')');
 		else

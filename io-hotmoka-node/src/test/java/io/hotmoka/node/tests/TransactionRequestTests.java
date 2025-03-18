@@ -38,7 +38,6 @@ import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.testing.AbstractLoggedTests;
 
 public class TransactionRequestTests extends AbstractLoggedTests {
@@ -120,7 +119,7 @@ public class TransactionRequestTests extends AbstractLoggedTests {
 	public void encodeDecodeWorksForStaticMethodCallTransactionRequest() throws Exception {
 		var value1 = StorageValues.intOf(13);
 		var value2 = StorageValues.reference(reference2, BigInteger.ZERO);
-		var request1 = TransactionRequests.staticMethodCall(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, MOO, new StorageValue[] { value1, value2 }, IllegalArgumentException::new);
+		var request1 = TransactionRequests.staticMethodCall(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, MOO, value1, value2);
 		String encoded = new TransactionRequests.Encoder().encode(request1);
 		var request2 = new TransactionRequests.Decoder().decode(encoded);
 		assertEquals(request1, request2);

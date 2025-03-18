@@ -80,7 +80,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 		protected void ensureWhiteListingOf(Method executable, Object[] actuals) throws ClassNotFoundException {
 			Optional<Method> model = classLoader.getWhiteListingWizard().whiteListingModelOf(executable);
 			if (model.isEmpty())
-				throw new NonWhiteListedCallException("illegal call to non-white-listed method " + request.getStaticTarget().getDefiningClass() + "." + request.getStaticTarget().getMethodName());
+				throw new NonWhiteListedCallException("illegal call to non-white-listed method " + request.getStaticTarget().getDefiningClass() + "." + request.getStaticTarget().getName());
 		}
 
 		/**
@@ -95,7 +95,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 			Class<?> returnType = method instanceof NonVoidMethodSignature nvms ? classLoader.loadClass(nvms.getReturnType()) : void.class;
 			Class<?>[] argTypes = formalsAsClass();
 		
-			return classLoader.resolveMethod(method.getDefiningClass().getName(), method.getMethodName(), argTypes, returnType)
+			return classLoader.resolveMethod(method.getDefiningClass().getName(), method.getName(), argTypes, returnType)
 				.orElseThrow(() -> new NoSuchMethodException(method.toString()));
 		}
 

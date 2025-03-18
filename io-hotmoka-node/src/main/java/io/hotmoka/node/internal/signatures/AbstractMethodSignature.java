@@ -44,7 +44,7 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 	/**
 	 * The name of the method.
 	 */
-	private final String methodName;
+	private final String name;
 
 	/**
 	 * Builds the signature of a method.
@@ -56,10 +56,10 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	protected <E extends Exception> AbstractMethodSignature(ClassType definingClass, String methodName, StorageType[] formals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	protected <E extends Exception> AbstractMethodSignature(ClassType definingClass, String name, StorageType[] formals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
 		super(definingClass, formals, onIllegalArgs);
 
-		this.methodName = Objects.requireNonNull(methodName, "methodName cannot be null", onIllegalArgs);
+		this.name = Objects.requireNonNull(name, "name cannot be null", onIllegalArgs);
 	}
 
 	/**
@@ -86,23 +86,23 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 	}
 
 	@Override
-	public final String getMethodName() {
-		return methodName;
+	public final String getName() {
+		return name;
 	}
 
 	@Override
 	public String toString() {
-		return getDefiningClass() + "." + methodName + commaSeparatedFormals();
+		return getDefiningClass() + "." + name + commaSeparatedFormals();
 	}
 
     @Override
 	public boolean equals(Object other) {
-		return other instanceof MethodSignature ms && methodName.equals(ms.getMethodName()) && super.equals(other);
+		return other instanceof MethodSignature ms && name.equals(ms.getName()) && super.equals(other);
 	}
 
 	@Override
 	public int hashCode() {
-		return super.hashCode() ^ methodName.hashCode();
+		return super.hashCode() ^ name.hashCode();
 	}
 
 	/**
@@ -116,7 +116,7 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 		if (!(StorageTypes.from(context) instanceof ClassType definingClass))
 			throw new IOException("The type defining a method must be a class type");
 
-		var methodName = context.readStringUnshared();
+		var name = context.readStringUnshared();
 		int length = context.readCompactInt();
 
 		// we determine if the method is void or not, by looking at the parity of the number of formals
@@ -129,9 +129,9 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 			formals[pos] = StorageTypes.from(context);
 
 		if (isVoid)
-			return new VoidMethodSignatureImpl(definingClass, methodName, formals, IOException::new);
+			return new VoidMethodSignatureImpl(definingClass, name, formals, IOException::new);
 		else
-			return new NonVoidMethodSignatureImpl(definingClass, methodName, StorageTypes.from(context), formals, IOException::new);
+			return new NonVoidMethodSignatureImpl(definingClass, name, StorageTypes.from(context), formals, IOException::new);
 	}
 
 	/**

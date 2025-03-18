@@ -207,7 +207,7 @@ public class ConstructorCallTransactionRequestImpl extends CodeExecutionTransact
 		var gasPrice = context.readBigInteger();
 		var classpath = TransactionReferences.from(context);
 		var nonce = context.readBigInteger();
-		StorageValue[] actuals = context.readLengthAndArray(StorageValues::from, StorageValue[]::new);
+		var actuals = context.readLengthAndArray(StorageValues::from, StorageValue[]::new);
 		var constructor = ConstructorSignatures.from(context);
 		byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 

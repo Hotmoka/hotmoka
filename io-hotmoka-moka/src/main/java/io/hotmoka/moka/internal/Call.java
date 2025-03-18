@@ -213,8 +213,7 @@ public class Call extends AbstractCommand {
 							gasLimit,
 							classpath,
 							signatureOfMethod,
-							actuals,
-							IllegalArgumentException::new);
+							actuals);
 				else
 					return TransactionRequests.instanceViewMethodCall(
 							caller,
@@ -244,8 +243,7 @@ public class Call extends AbstractCommand {
 							gasPrice,
 							classpath,
 							signatureOfMethod,
-							actuals,
-							IllegalArgumentException::new);
+							actuals);
 				else
 					return TransactionRequests.instanceMethodCall(
 							signature.getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),

@@ -296,8 +296,7 @@ public class NodeFromNetwork extends HotmokaTest {
     			_500_000, ONE, takamakaCode(), bytesOf("collections.jar"), takamakaCode());
 
     		var randomValue = remote.runStaticMethodCallTransaction
-       			(TransactionRequests.staticViewMethodCall(account(0), _500_000, jar, MethodSignatures.ofNonVoid(ARRAY_TESTS, "testRandomInitialization", StorageTypes.INT),
-       					StorageValues.EMPTY, IllegalArgumentException::new))
+       			(TransactionRequests.staticViewMethodCall(account(0), _500_000, jar, MethodSignatures.ofNonVoid(ARRAY_TESTS, "testRandomInitialization", StorageTypes.INT)))
        			.get().asInt(__ -> new NodeException());
 
     		assertEquals(1225, randomValue);

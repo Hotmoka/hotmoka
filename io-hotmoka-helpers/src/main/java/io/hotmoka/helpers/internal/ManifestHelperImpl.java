@@ -302,7 +302,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 			{
 				NonVoidMethodSignature method = MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getBuyerSurcharge", StorageTypes.INT);
 				buyerSurcharge = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-						(manifest, _100_000, takamakaCode, method, validators, StorageValues.EMPTY))
+						(manifest, _100_000, takamakaCode, method, validators))
 						.orElseThrow(() -> new NodeException(method + " should not return void"))
 						.asReturnedInt(method, NodeException::new);
 			}

@@ -72,7 +72,7 @@ public final class NonVoidMethodSignatureImpl extends AbstractMethodSignature im
     @Override
     public void into(MarshallingContext context) throws IOException {
     	getDefiningClass().into(context);
-    	context.writeStringUnshared(getMethodName());
+    	context.writeStringUnshared(getName());
 
     	var formals = getFormals().toArray(StorageType[]::new);
     	context.writeCompactInt(formals.length * 2 + 1); // this signals that the method is non-void (see from() inside AbstractMethodSignature)

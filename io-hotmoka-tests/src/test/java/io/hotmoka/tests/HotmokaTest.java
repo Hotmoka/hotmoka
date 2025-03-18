@@ -666,14 +666,14 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	 * Takes care of computing the next nonce.
 	 */
 	protected final StorageValue addStaticNonVoidMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, NonVoidMethodSignature method, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
-		return node.addStaticMethodCallTransaction(TransactionRequests.staticMethodCall(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, actuals, IllegalArgumentException::new)).orElseThrow(() -> new NodeException(method + " did not return any value"));
+		return node.addStaticMethodCallTransaction(TransactionRequests.staticMethodCall(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, actuals)).orElseThrow(() -> new NodeException(method + " did not return any value"));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
 	protected final void addStaticVoidMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, VoidMethodSignature method, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
-		node.addStaticMethodCallTransaction(TransactionRequests.staticMethodCall(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, actuals, IllegalArgumentException::new));
+		node.addStaticMethodCallTransaction(TransactionRequests.staticMethodCall(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, actuals));
 	}
 
 	/**
@@ -694,14 +694,14 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	 * Takes care of computing the next nonce.
 	 */
 	protected final StorageValue runStaticNonVoidMethodCallTransaction(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, NonVoidMethodSignature method, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
-		return node.runStaticMethodCallTransaction(TransactionRequests.staticViewMethodCall(caller, gasLimit, classpath, method, actuals, IllegalArgumentException::new)).orElseThrow(() -> new NodeException(method + " did not return any value"));
+		return node.runStaticMethodCallTransaction(TransactionRequests.staticViewMethodCall(caller, gasLimit, classpath, method, actuals)).orElseThrow(() -> new NodeException(method + " did not return any value"));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
 	protected final void runStaticVoidMethodCallTransaction(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, VoidMethodSignature method, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
-		node.runStaticMethodCallTransaction(TransactionRequests.staticViewMethodCall(caller, gasLimit, classpath, method, actuals, IllegalArgumentException::new));
+		node.runStaticMethodCallTransaction(TransactionRequests.staticViewMethodCall(caller, gasLimit, classpath, method, actuals));
 	}
 
 	/**

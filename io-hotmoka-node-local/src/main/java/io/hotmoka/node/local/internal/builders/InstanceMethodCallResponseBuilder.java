@@ -77,7 +77,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	}
 
 	private boolean isCallToFaucet() {
-		return consensus.allowsUnsignedFaucet() && request.getStaticTarget().getMethodName().startsWith("faucet")
+		return consensus.allowsUnsignedFaucet() && request.getStaticTarget().getName().startsWith("faucet")
 			&& request.getStaticTarget().getDefiningClass().equals(StorageTypes.GAMETE) && request.getCaller().equals(request.getReceiver())
 			&& callerIsGameteOfTheNode();
 	}
@@ -218,7 +218,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 			Class<?> returnType = method instanceof NonVoidMethodSignature nvms ? classLoader.loadClass(nvms.getReturnType()) : void.class;
 			Class<?>[] argTypes = formalsAsClassForFromContract();
 		
-			return classLoader.resolveMethod(method.getDefiningClass().getName(), method.getMethodName(), argTypes, returnType)
+			return classLoader.resolveMethod(method.getDefiningClass().getName(), method.getName(), argTypes, returnType)
 				.orElseThrow(() -> new NoSuchMethodException(method.toString()));
 		}
 

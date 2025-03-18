@@ -34,7 +34,6 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
-import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.api.signatures.MethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -113,17 +112,14 @@ public class StaticMethodCallTransactionRequestImpl extends MethodCallTransactio
 	 * It fixes the signature to a missing signature, the nonce to zero, the chain identifier
 	 * to the empty string and the gas price to zero. None of them is used for a view transaction.
 	 * 
-	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param method the method that must be called
 	 * @param actuals the actual arguments passed to the method
-	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
-	 * @throws E if some argument is illegal
 	 */
-	public <E extends Exception> StaticMethodCallTransactionRequestImpl(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageValue[] actuals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
-		this(NO_SIG, caller, ZERO, "", gasLimit, ZERO, classpath, method, actuals, onIllegalArgs);
+	public StaticMethodCallTransactionRequestImpl(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageValue... actuals) {
+		this(NO_SIG, caller, ZERO, "", gasLimit, ZERO, classpath, method, actuals, IllegalArgumentException::new);
 	}
 
 	/**
@@ -206,6 +202,6 @@ public class StaticMethodCallTransactionRequestImpl extends MethodCallTransactio
 		var method = MethodSignatures.from(context);
 		byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 
-		return TransactionRequests.staticMethodCall(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, actuals, IOException::new);
+		return new StaticMethodCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, actuals, IOException::new);
 	}
 }

@@ -38,7 +38,6 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StorageValue;
 
 /**
  * A test for signing transactions with distinct signatures.
@@ -85,7 +84,7 @@ class Signatures extends HotmokaTest {
 		StorageReference sha256dsaAccount = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, takamakaCode(), ConstructorSignatures.of(SHA256DSA, StorageTypes.INT, StorageTypes.STRING), amount, sha256dsaPublicKey);
 		var sha256dsaResult = node.addStaticMethodCallTransaction(TransactionRequests.staticMethodCall
 			(sha256dsa.getSigner(sha256dsaKeyPair.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature), sha256dsaAccount, ZERO, chainId(),
-			_100_000, ONE, takamakaCode(), callee, new StorageValue[] { StorageValues.longOf(1973) }, IllegalArgumentException::new)).get().asReturnedBigInteger(callee, NodeException::new);
+			_100_000, ONE, takamakaCode(), callee, StorageValues.longOf(1973))).get().asReturnedBigInteger(callee, NodeException::new);
 		assertEquals(BigInteger.valueOf(1973), sha256dsaResult);
 
 		var qtesla1 = SignatureAlgorithms.qtesla1();
@@ -94,7 +93,7 @@ class Signatures extends HotmokaTest {
 		StorageReference qteslaAccount = addConstructorCallTransaction(privateKey(0), account(0), _10_000_000, ONE, takamakaCode(), ConstructorSignatures.of(QTESLA1, StorageTypes.INT, StorageTypes.STRING), amount, qteslaPublicKey);
 		var qteslaResult = node.addStaticMethodCallTransaction(TransactionRequests.staticMethodCall
 			(qtesla1.getSigner(qteslaKeyPair.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature), qteslaAccount, ZERO, chainId(),
-			_500_000, ONE, takamakaCode(), callee, new StorageValue[] {  StorageValues.longOf(1973) }, IllegalArgumentException::new)).get().asReturnedBigInteger(callee, NodeException::new);
+			_500_000, ONE, takamakaCode(), callee, StorageValues.longOf(1973))).get().asReturnedBigInteger(callee, NodeException::new);
 		assertEquals(BigInteger.valueOf(1973), qteslaResult);
 
 		var ed25519 = SignatureAlgorithms.ed25519();
@@ -103,7 +102,7 @@ class Signatures extends HotmokaTest {
 		StorageReference ed25519Account = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, takamakaCode(), ConstructorSignatures.of(ED25519, StorageTypes.INT, StorageTypes.STRING), amount, ed25519PublicKey);
 		var ed25519Result = node.addStaticMethodCallTransaction(TransactionRequests.staticMethodCall
 			(ed25519.getSigner(ed25519KeyPair.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature), ed25519Account, ZERO, chainId(),
-			_500_000, ONE, takamakaCode(), callee, new StorageValue[] {  StorageValues.longOf(1973) }, IllegalArgumentException::new)).get().asReturnedBigInteger(callee, NodeException::new);
+			_500_000, ONE, takamakaCode(), callee, StorageValues.longOf(1973))).get().asReturnedBigInteger(callee, NodeException::new);
 		assertEquals(BigInteger.valueOf(1973), ed25519Result);
 	}
 }

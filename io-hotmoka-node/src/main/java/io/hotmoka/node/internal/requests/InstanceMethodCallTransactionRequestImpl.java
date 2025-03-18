@@ -122,18 +122,15 @@ public class InstanceMethodCallTransactionRequestImpl extends AbstractInstanceMe
 	 * It fixes the signature to a missing signature, the nonce to zero, the chain identifier
 	 * to the empty string and the gas price to zero. None of them is used for a view transaction.
 	 * 
-	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param method the method that must be called
 	 * @param receiver the receiver of the call
 	 * @param actuals the actual arguments passed to the method
-	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
-	 * @throws E if some argument is illegal
 	 */
-	public <E extends Exception> InstanceMethodCallTransactionRequestImpl(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue[] actuals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
-		this(NO_SIG, caller, ZERO, "", gasLimit, ZERO, classpath, method, receiver, actuals, onIllegalArgs);
+	public InstanceMethodCallTransactionRequestImpl(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) {
+		this(NO_SIG, caller, ZERO, "", gasLimit, ZERO, classpath, method, receiver, actuals, IllegalArgumentException::new);
 	}
 
 	/**

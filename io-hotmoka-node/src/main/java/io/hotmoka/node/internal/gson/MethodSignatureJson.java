@@ -37,7 +37,7 @@ public abstract class MethodSignatureJson implements JsonRepresentation<MethodSi
 
 	protected MethodSignatureJson(MethodSignature method) {
 		this.definingClass = method.getDefiningClass().getName();
-		this.name = method.getMethodName();
+		this.name = method.getName();
 
 		StorageType[] formals = method.getFormals().toArray(StorageType[]::new);
 		if (formals.length == 0)

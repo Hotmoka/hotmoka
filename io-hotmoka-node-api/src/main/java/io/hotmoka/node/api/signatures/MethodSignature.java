@@ -30,5 +30,5 @@ public interface MethodSignature extends Marshallable, CodeSignature {
 	 * 
 	 * @return the name of the method
 	 */
-	String getMethodName();
+	String getName();
 }
