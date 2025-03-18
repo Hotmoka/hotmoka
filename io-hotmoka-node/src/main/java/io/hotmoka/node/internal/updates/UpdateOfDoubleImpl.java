@@ -19,6 +19,7 @@ package io.hotmoka.node.internal.updates;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.signatures.FieldSignature;
@@ -46,8 +47,8 @@ public final class UpdateOfDoubleImpl extends UpdateOfFieldImpl implements Updat
 	 * @param field the field that is modified
 	 * @param value the new value of the field
 	 */
-	public UpdateOfDoubleImpl(StorageReference object, FieldSignature field, double value) {
-		super(object, field);
+	public <E extends Exception> UpdateOfDoubleImpl(StorageReference object, FieldSignature field, double value, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(object, field, onIllegalArgs);
 
 		this.value = value;
 	}

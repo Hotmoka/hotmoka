@@ -17,9 +17,10 @@ limitations under the License.
 package io.hotmoka.node.internal.updates;
 
 import java.io.IOException;
-import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.api.signatures.FieldSignature;
@@ -56,10 +57,10 @@ public final class UpdateOfStorageImpl extends UpdateOfFieldImpl implements Upda
 	 * @param field the field that is modified
 	 * @param value the new value of the field
 	 */
-	public UpdateOfStorageImpl(StorageReference object, FieldSignature field, StorageReference value) {
-		super(object, field);
+	public <E extends Exception> UpdateOfStorageImpl(StorageReference object, FieldSignature field, StorageReference value, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(object, field, onIllegalArgs);
 
-		this.value = Objects.requireNonNull(value, "value cannot be null");
+		this.value = Objects.requireNonNull(value, "value cannot be null", onIllegalArgs);
 	}
 
 	@Override

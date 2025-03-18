@@ -19,6 +19,7 @@ package io.hotmoka.node.internal.updates;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.signatures.FieldSignature;
@@ -46,8 +47,8 @@ public final class UpdateToNullImpl extends UpdateOfFieldImpl implements UpdateT
 	 * @param field the field that is modified
 	 * @param eager true if and only if the update is eager
 	 */
-	public UpdateToNullImpl(StorageReference object, FieldSignature field, boolean eager) {
-		super(object, field);
+	public <E extends Exception> UpdateToNullImpl(StorageReference object, FieldSignature field, boolean eager, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(object, field, onIllegalArgs);
 
 		this.eager = eager;
 	}

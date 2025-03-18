@@ -19,9 +19,10 @@ package io.hotmoka.node.internal.updates;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
-import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -29,7 +30,6 @@ import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.NodeMarshallingContexts;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.TransactionReferences;
-import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.BigIntegerValue;
@@ -63,10 +63,71 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 	/**
 	 * Builds an update.
 	 * 
+	 * @param <E> the type of the exception thrown if some argument is illegal
 	 * @param object the storage reference of the object whose field is modified
+	 * @param onIllegalArgs the supplier of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
 	 */
-	protected AbstractUpdate(StorageReference object) {
-		this.object = Objects.requireNonNull(object, "object cannot be null");
+	protected <E extends Exception> AbstractUpdate(StorageReference object, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		this.object = Objects.requireNonNull(object, "object cannot be null", onIllegalArgs);
+	}
+
+	/**
+	 * Factory method that unmarshals an update from the given stream.
+	 * 
+	 * @param context the unmarshalling context
+	 * @return the update
+	 * @throws IOException if the update cannot be unmarshalled
+	 */
+	public static Update from(UnmarshallingContext context) throws IOException {
+		var selector = context.readByte();
+		switch (selector) {
+		case ClassTagImpl.SELECTOR: {
+			var object = StorageReferenceImpl.fromWithoutSelector(context);
+	
+			if (!(StorageTypes.from(context) instanceof ClassType clazz))
+				throw new IOException("A class tag must refer to a class type");
+	
+			return new ClassTagImpl(object, clazz, TransactionReferences.from(context), IOException::new);
+		}
+		case UpdateOfBigIntegerImpl.SELECTOR_BALANCE: return new UpdateOfBigIntegerImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.BALANCE_FIELD, context.readBigInteger(), IOException::new);
+		case UpdateOfBigIntegerImpl.SELECTOR_GAS_PRICE: return new UpdateOfBigIntegerImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.GENERIC_GAS_STATION_GAS_PRICE_FIELD, context.readBigInteger(), IOException::new);
+		case UpdateOfBigIntegerImpl.SELECTOR_UBI_VALUE: return new UpdateOfBigIntegerImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.UNSIGNED_BIG_INTEGER_VALUE_FIELD, context.readBigInteger(), IOException::new);
+		case UpdateOfBigIntegerImpl.SELECTOR_BALANCE_TO_ZERO: return new UpdateOfBigIntegerImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.BALANCE_FIELD, BigInteger.ZERO, IOException::new);
+		case UpdateOfBigIntegerImpl.SELECTOR_NONCE_TO_ZERO: return new UpdateOfBigIntegerImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.EOA_NONCE_FIELD, BigInteger.ZERO, IOException::new);
+		case UpdateOfBigIntegerImpl.SELECTOR_NONCE: return new UpdateOfBigIntegerImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.EOA_NONCE_FIELD, context.readBigInteger(), IOException::new);
+		case UpdateOfBigIntegerImpl.SELECTOR: return new UpdateOfBigIntegerImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readBigInteger(), IOException::new);
+		case UpdateOfBooleanImpl.SELECTOR_FALSE: return new UpdateOfBooleanImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), false, IOException::new);
+		case UpdateOfBooleanImpl.SELECTOR_TRUE: return new UpdateOfBooleanImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), true, IOException::new);
+		case UpdateOfByteImpl.SELECTOR: return new UpdateOfByteImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readByte(), IOException::new);
+		case UpdateOfCharImpl.SELECTOR: return new UpdateOfCharImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readChar(), IOException::new);
+		case UpdateOfDoubleImpl.SELECTOR: return new UpdateOfDoubleImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readDouble(), IOException::new);
+		case UpdateOfFloatImpl.SELECTOR: return new UpdateOfFloatImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readFloat(), IOException::new);
+		case UpdateOfIntImpl.SELECTOR: return new UpdateOfIntImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readInt(), IOException::new);
+		case UpdateOfIntImpl.SELECTOR_SMALL: return new UpdateOfIntImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readShort(), IOException::new);
+		case UpdateOfIntImpl.SELECTOR_VERY_SMALL: return new UpdateOfIntImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readByte(), IOException::new);
+		case UpdateOfIntImpl.SELECTOR_STORAGE_TREE_MAP_NODE_SIZE: return new UpdateOfIntImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_MAP_NODE_SIZE_FIELD, context.readCompactInt(), IOException::new);
+		case UpdateOfIntImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_SIZE: return new UpdateOfIntImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_INTMAP_NODE_SIZE_FIELD, context.readCompactInt(), IOException::new);
+		case UpdateOfIntImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_KEY: return new UpdateOfIntImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_INTMAP_NODE_KEY_FIELD, context.readCompactInt(), IOException::new);
+		case UpdateOfLongImpl.SELECTOR: return new UpdateOfLongImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readLong(), IOException::new);
+		case UpdateOfShortImpl.SELECTOR: return new UpdateOfShortImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readShort(), IOException::new);
+		case UpdateOfStorageImpl.SELECTOR: return new UpdateOfStorageImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), StorageReferenceImpl.fromWithoutSelector(context), IOException::new);
+		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_NODE_LEFT: return new UpdateOfStorageImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_MAP_NODE_LEFT_FIELD, StorageReferenceImpl.fromWithoutSelector(context), IOException::new);
+		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_NODE_RIGHT: return new UpdateOfStorageImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_MAP_NODE_RIGHT_FIELD, StorageReferenceImpl.fromWithoutSelector(context), IOException::new);
+		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_NODE_KEY: return new UpdateOfStorageImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_MAP_NODE_KEY_FIELD, StorageReferenceImpl.fromWithoutSelector(context), IOException::new);
+		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_NODE_VALUE: return new UpdateOfStorageImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_MAP_NODE_VALUE_FIELD, StorageReferenceImpl.fromWithoutSelector(context), IOException::new);
+		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_INTMAP_ROOT: return new UpdateOfStorageImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_INTMAP_ROOT_FIELD, StorageReferenceImpl.fromWithoutSelector(context), IOException::new);
+		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_VALUE: return new UpdateOfStorageImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_INTMAP_NODE_VALUE_FIELD, StorageReferenceImpl.fromWithoutSelector(context), IOException::new);
+		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_LEFT: return new UpdateOfStorageImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_INTMAP_NODE_LEFT_FIELD, StorageReferenceImpl.fromWithoutSelector(context), IOException::new);
+		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_RIGHT: return new UpdateOfStorageImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_INTMAP_NODE_RIGHT_FIELD, StorageReferenceImpl.fromWithoutSelector(context), IOException::new);
+		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_ROOT: return new UpdateOfStorageImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_MAP_ROOT_FIELD, StorageReferenceImpl.fromWithoutSelector(context), IOException::new);
+		case UpdateOfStorageImpl.SELECTOR_EVENT_CREATOR: return new UpdateOfStorageImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.EVENT_CREATOR_FIELD, StorageReferenceImpl.fromWithoutSelector(context), IOException::new);
+		case UpdateOfStringImpl.SELECTOR_PUBLIC_KEY: return new UpdateOfStringImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.EOA_PUBLIC_KEY_FIELD, context.readStringUnshared(), IOException::new);
+		case UpdateOfStringImpl.SELECTOR: return new UpdateOfStringImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readStringUnshared(), IOException::new);
+		case UpdateToNullImpl.SELECTOR_EAGER: return new UpdateToNullImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), true, IOException::new);
+		case UpdateToNullImpl.SELECTOR_LAZY: return new UpdateToNullImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), false, IOException::new);
+		default: throw new IOException("Unexpected update selector: " + selector);
+		}
 	}
 
 	/**
@@ -76,55 +137,42 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 	 * @throws InconsistentJsonException if {@code json} is inconsistent
 	 */
 	public static Update from(UpdateJson json) throws InconsistentJsonException {
-		var object = json.getObject();
-		if (object == null)
-			throw new InconsistentJsonException("object cannot be null");
-
-		if (!(object.unmap() instanceof StorageReference sr))
+		if (!(Objects.requireNonNull(json.getObject(), "object cannot be null", InconsistentJsonException::new).unmap() instanceof StorageReference object))
 			throw new InconsistentJsonException("A storage reference was expected as object");
 
 		var clazz = json.getClazz();
 		if (clazz != null) {
-			var jar = json.getJar();
-			if (jar == null)
-				throw new InconsistentJsonException("jar cannot be null if clazz is non-null");
-
-			return Updates.classTag(sr, ClassTypeImpl.named(clazz, InconsistentJsonException::new), jar.unmap());
+			var jar = Objects.requireNonNull(json.getJar(), "jar cannot be null if clazz is non-null", InconsistentJsonException::new).unmap();
+			return new ClassTagImpl(object, ClassTypeImpl.named(clazz, InconsistentJsonException::new), jar, InconsistentJsonException::new);
 		}
 
-		var field1 = json.getField();
-		var value1 = json.getValue();
-
-		if (field1 == null || value1 == null)
-			throw new InconsistentJsonException("A field update must have non-null field and value");
-
-		var field = field1.unmap();
-		var value = value1.unmap();
+		var field = Objects.requireNonNull(json.getField(), "A field update must have non-null field", InconsistentJsonException::new).unmap();
+		var value = Objects.requireNonNull(json.getValue(), "A field update must have non-null value", InconsistentJsonException::new).unmap();
 
 		if (value instanceof BigIntegerValue biv)
-			return Updates.ofBigInteger(sr, field, biv.getValue());
+			return new UpdateOfBigIntegerImpl(object, field, biv.getValue(), InconsistentJsonException::new);
 		else if (value instanceof BooleanValue bv)
-			return Updates.ofBoolean(sr, field, bv.getValue());
+			return new UpdateOfBooleanImpl(object, field, bv.getValue(), InconsistentJsonException::new);
 		else if (value instanceof ByteValue bv)
-			return Updates.ofByte(sr, field, bv.getValue());
+			return new UpdateOfByteImpl(object, field, bv.getValue(), InconsistentJsonException::new);
 		else if (value instanceof CharValue cv)
-			return Updates.ofChar(sr, field, cv.getValue());
+			return new UpdateOfCharImpl(object, field, cv.getValue(), InconsistentJsonException::new);
 		else if (value instanceof DoubleValue dv)
-			return Updates.ofDouble(sr, field, dv.getValue());
+			return new UpdateOfDoubleImpl(object, field, dv.getValue(), InconsistentJsonException::new);
 		else if (value instanceof FloatValue fv)
-			return Updates.ofFloat(sr, field, fv.getValue());
+			return new UpdateOfFloatImpl(object, field, fv.getValue(), InconsistentJsonException::new);
 		else if (value instanceof IntValue iv)
-			return Updates.ofInt(sr, field, iv.getValue());
+			return new UpdateOfIntImpl(object, field, iv.getValue(), InconsistentJsonException::new);
 		else if (value instanceof LongValue lv)
-			return Updates.ofLong(sr, field, lv.getValue());
+			return new UpdateOfLongImpl(object, field, lv.getValue(), InconsistentJsonException::new);
 		else if (value instanceof ShortValue sv)
-			return Updates.ofShort(sr, field, sv.getValue());
-		else if (value instanceof StorageReference sr2)
-			return Updates.ofStorage(sr, field, sr2);
+			return new UpdateOfShortImpl(object, field, sv.getValue(), InconsistentJsonException::new);
+		else if (value instanceof StorageReference sr)
+			return new UpdateOfStorageImpl(object, field, sr, InconsistentJsonException::new);
 		else if (value instanceof StringValue sv)
-			return Updates.ofString(sr, field, sv.getValue());
+			return new UpdateOfStringImpl(object, field, sv.getValue(), InconsistentJsonException::new);
 		else if (value instanceof NullValue)
-			return Updates.toNull(sr, field, json.isEager());
+			return new UpdateToNullImpl(object, field, json.isEager(), InconsistentJsonException::new);
 		else
 			throw new InconsistentJsonException("Illegal update JSON");
 	}
@@ -161,64 +209,6 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		object.intoWithoutSelector(context);
-	}
-
-	/**
-	 * Factory method that unmarshals an update from the given stream.
-	 * 
-	 * @param context the unmarshalling context
-	 * @return the update
-	 * @throws IOException if the update cannot be unmarshalled
-	 */
-	public static Update from(UnmarshallingContext context) throws IOException {
-		var selector = context.readByte();
-		switch (selector) {
-		case ClassTagImpl.SELECTOR: {
-			var sr = StorageReferenceImpl.fromWithoutSelector(context);
-
-			if (!(StorageTypes.from(context) instanceof ClassType clazz))
-				throw new IOException("A class tag must refer to a class type");
-
-			return Updates.classTag(sr, clazz, TransactionReferences.from(context));
-		}
-		case UpdateOfBigIntegerImpl.SELECTOR_BALANCE: return Updates.ofBigInteger(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.BALANCE_FIELD, context.readBigInteger());
-		case UpdateOfBigIntegerImpl.SELECTOR_GAS_PRICE: return Updates.ofBigInteger(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.GENERIC_GAS_STATION_GAS_PRICE_FIELD, context.readBigInteger());
-		case UpdateOfBigIntegerImpl.SELECTOR_UBI_VALUE: return Updates.ofBigInteger(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.UNSIGNED_BIG_INTEGER_VALUE_FIELD, context.readBigInteger());
-		case UpdateOfBigIntegerImpl.SELECTOR_BALANCE_TO_ZERO: return Updates.ofBigInteger(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.BALANCE_FIELD, BigInteger.ZERO);
-		case UpdateOfBigIntegerImpl.SELECTOR_NONCE_TO_ZERO: return Updates.ofBigInteger(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.EOA_NONCE_FIELD, BigInteger.ZERO);
-		case UpdateOfBigIntegerImpl.SELECTOR_NONCE: return Updates.ofBigInteger(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.EOA_NONCE_FIELD, context.readBigInteger());
-		case UpdateOfBigIntegerImpl.SELECTOR: return Updates.ofBigInteger(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readBigInteger());
-		case UpdateOfBooleanImpl.SELECTOR_FALSE: return Updates.ofBoolean(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), false);
-		case UpdateOfBooleanImpl.SELECTOR_TRUE: return Updates.ofBoolean(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), true);
-		case UpdateOfByteImpl.SELECTOR: return Updates.ofByte(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readByte());
-		case UpdateOfCharImpl.SELECTOR: return Updates.ofChar(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readChar());
-		case UpdateOfDoubleImpl.SELECTOR: return Updates.ofDouble(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readDouble());
-		case UpdateOfFloatImpl.SELECTOR: return Updates.ofFloat(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readFloat());
-		case UpdateOfIntImpl.SELECTOR: return Updates.ofInt(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readInt());
-		case UpdateOfIntImpl.SELECTOR_SMALL: return Updates.ofInt(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readShort());
-		case UpdateOfIntImpl.SELECTOR_VERY_SMALL: return Updates.ofInt(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readByte());
-		case UpdateOfIntImpl.SELECTOR_STORAGE_TREE_MAP_NODE_SIZE: return Updates.ofInt(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_MAP_NODE_SIZE_FIELD, context.readCompactInt());
-		case UpdateOfIntImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_SIZE: return Updates.ofInt(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_INTMAP_NODE_SIZE_FIELD, context.readCompactInt());
-		case UpdateOfIntImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_KEY: return Updates.ofInt(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_INTMAP_NODE_KEY_FIELD, context.readCompactInt());
-		case UpdateOfLongImpl.SELECTOR: return Updates.ofLong(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readLong());
-		case UpdateOfShortImpl.SELECTOR: return Updates.ofShort(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readShort());
-		case UpdateOfStorageImpl.SELECTOR: return Updates.ofStorage(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), StorageReferenceImpl.fromWithoutSelector(context));
-		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_NODE_LEFT: return Updates.ofStorage(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_MAP_NODE_LEFT_FIELD, StorageReferenceImpl.fromWithoutSelector(context));
-		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_NODE_RIGHT: return Updates.ofStorage(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_MAP_NODE_RIGHT_FIELD, StorageReferenceImpl.fromWithoutSelector(context));
-		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_NODE_KEY: return Updates.ofStorage(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_MAP_NODE_KEY_FIELD, StorageReferenceImpl.fromWithoutSelector(context));
-		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_NODE_VALUE: return Updates.ofStorage(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_MAP_NODE_VALUE_FIELD, StorageReferenceImpl.fromWithoutSelector(context));
-		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_INTMAP_ROOT: return Updates.ofStorage(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_INTMAP_ROOT_FIELD, StorageReferenceImpl.fromWithoutSelector(context));
-		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_VALUE: return Updates.ofStorage(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_INTMAP_NODE_VALUE_FIELD, StorageReferenceImpl.fromWithoutSelector(context));
-		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_LEFT: return Updates.ofStorage(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_INTMAP_NODE_LEFT_FIELD, StorageReferenceImpl.fromWithoutSelector(context));
-		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_RIGHT: return Updates.ofStorage(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_INTMAP_NODE_RIGHT_FIELD, StorageReferenceImpl.fromWithoutSelector(context));
-		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_ROOT: return Updates.ofStorage(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_MAP_ROOT_FIELD, StorageReferenceImpl.fromWithoutSelector(context));
-		case UpdateOfStorageImpl.SELECTOR_EVENT_CREATOR: return Updates.ofStorage(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.EVENT_CREATOR_FIELD, StorageReferenceImpl.fromWithoutSelector(context));
-		case UpdateOfStringImpl.SELECTOR_PUBLIC_KEY: return Updates.ofString(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.EOA_PUBLIC_KEY_FIELD, context.readStringUnshared());
-		case UpdateOfStringImpl.SELECTOR: return Updates.ofString(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readStringUnshared());
-		case UpdateToNullImpl.SELECTOR_EAGER: return Updates.toNull(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), true);
-		case UpdateToNullImpl.SELECTOR_LAZY: return Updates.toNull(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), false);
-		default: throw new IOException("Unexpected update selector: " + selector);
-		}
 	}
 
 	@Override

@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.updates.Update;
@@ -43,8 +44,8 @@ abstract class UpdateOfFieldImpl extends AbstractUpdate implements UpdateOfField
 	 * @param object the storage reference of the object whose field is modified
 	 * @param field the field that is modified
 	 */
-	protected UpdateOfFieldImpl(StorageReference object, FieldSignature field) {
-		super(object);
+	protected <E extends Exception> UpdateOfFieldImpl(StorageReference object, FieldSignature field, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(object, onIllegalArgs);
 
 		this.field = Objects.requireNonNull(field, "field cannot be null");
 	}

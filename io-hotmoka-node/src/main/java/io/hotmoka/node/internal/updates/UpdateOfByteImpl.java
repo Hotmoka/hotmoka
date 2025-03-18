@@ -19,6 +19,7 @@ package io.hotmoka.node.internal.updates;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.signatures.FieldSignature;
@@ -46,8 +47,8 @@ public final class UpdateOfByteImpl extends UpdateOfFieldImpl implements UpdateO
 	 * @param field the field that is modified
 	 * @param value the new value of the field
 	 */
-	public UpdateOfByteImpl(StorageReference object, FieldSignature field, byte value) {
-		super(object, field);
+	public <E extends Exception> UpdateOfByteImpl(StorageReference object, FieldSignature field, byte value, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(object, field, onIllegalArgs);
 
 		this.value = value;
 	}

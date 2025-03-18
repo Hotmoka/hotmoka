@@ -18,9 +18,10 @@ package io.hotmoka.node.internal.updates;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.StorageTypes;
@@ -56,10 +57,10 @@ public final class UpdateOfBigIntegerImpl extends UpdateOfFieldImpl implements U
 	 * @param field the field that is modified
 	 * @param value the new value of the field
 	 */
-	public UpdateOfBigIntegerImpl(StorageReference object, FieldSignature field, BigInteger value) {
-		super(object, field);
+	public <E extends Exception> UpdateOfBigIntegerImpl(StorageReference object, FieldSignature field, BigInteger value, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(object, field, onIllegalArgs);
 
-		this.value = Objects.requireNonNull(value, "value cannot be null");
+		this.value = Objects.requireNonNull(value, "value cannot be null", onIllegalArgs);
 	}
 
 	@Override

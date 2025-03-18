@@ -72,7 +72,7 @@ public abstract class Updates {
 	 * @return the update
 	 */
 	public static ClassTag classTag(StorageReference object, ClassType clazz, TransactionReference jar) {
-		return new ClassTagImpl(object, clazz, jar);
+		return new ClassTagImpl(object, clazz, jar, IllegalArgumentException::new);
 	}
 
 	/**
@@ -84,7 +84,7 @@ public abstract class Updates {
 	 * @return the update
 	 */
 	public static UpdateOfBigInteger ofBigInteger(StorageReference object, FieldSignature field, BigInteger value) {
-		return new UpdateOfBigIntegerImpl(object, field, value);
+		return new UpdateOfBigIntegerImpl(object, field, value, IllegalArgumentException::new);
 	}
 
 	/**
@@ -96,7 +96,7 @@ public abstract class Updates {
 	 * @return the update
 	 */
 	public static UpdateOfBoolean ofBoolean(StorageReference object, FieldSignature field, boolean value) {
-		return new UpdateOfBooleanImpl(object, field, value);
+		return new UpdateOfBooleanImpl(object, field, value, IllegalArgumentException::new);
 	}
 
 	/**
@@ -108,7 +108,7 @@ public abstract class Updates {
 	 * @return the update
 	 */
 	public static UpdateOfByte ofByte(StorageReference object, FieldSignature field, byte value) {
-		return new UpdateOfByteImpl(object, field, value);
+		return new UpdateOfByteImpl(object, field, value, IllegalArgumentException::new);
 	}
 
 	/**
@@ -120,7 +120,7 @@ public abstract class Updates {
 	 * @return the update
 	 */
 	public static UpdateOfChar ofChar(StorageReference object, FieldSignature field, char value) {
-		return new UpdateOfCharImpl(object, field, value);
+		return new UpdateOfCharImpl(object, field, value, IllegalArgumentException::new);
 	}
 
 	/**
@@ -132,7 +132,7 @@ public abstract class Updates {
 	 * @return the update
 	 */
 	public static UpdateOfShort ofShort(StorageReference object, FieldSignature field, short value) {
-		return new UpdateOfShortImpl(object, field, value);
+		return new UpdateOfShortImpl(object, field, value, IllegalArgumentException::new);
 	}
 
 	/**
@@ -144,7 +144,7 @@ public abstract class Updates {
 	 * @return the update
 	 */
 	public static UpdateOfInt ofInt(StorageReference object, FieldSignature field, int value) {
-		return new UpdateOfIntImpl(object, field, value);
+		return new UpdateOfIntImpl(object, field, value, IllegalArgumentException::new);
 	}
 
 	/**
@@ -156,7 +156,7 @@ public abstract class Updates {
 	 * @return the update
 	 */
 	public static UpdateOfLong ofLong(StorageReference object, FieldSignature field, long value) {
-		return new UpdateOfLongImpl(object, field, value);
+		return new UpdateOfLongImpl(object, field, value, IllegalArgumentException::new);
 	}
 
 	/**
@@ -168,7 +168,7 @@ public abstract class Updates {
 	 * @return the update
 	 */
 	public static UpdateOfFloat ofFloat(StorageReference object, FieldSignature field, float value) {
-		return new UpdateOfFloatImpl(object, field, value);
+		return new UpdateOfFloatImpl(object, field, value, IllegalArgumentException::new);
 	}
 
 	/**
@@ -180,7 +180,7 @@ public abstract class Updates {
 	 * @return the update
 	 */
 	public static UpdateOfDouble ofDouble(StorageReference object, FieldSignature field, double value) {
-		return new UpdateOfDoubleImpl(object, field, value);
+		return new UpdateOfDoubleImpl(object, field, value, IllegalArgumentException::new);
 	}
 
 	/**
@@ -192,7 +192,7 @@ public abstract class Updates {
 	 * @return the update
 	 */
 	public static UpdateOfString ofString(StorageReference object, FieldSignature field, String value) {
-		return new UpdateOfStringImpl(object, field, value);
+		return new UpdateOfStringImpl(object, field, value, IllegalArgumentException::new);
 	}
 
 	/**
@@ -204,7 +204,7 @@ public abstract class Updates {
 	 * @return the update
 	 */
 	public static UpdateOfStorage ofStorage(StorageReference object, FieldSignature field, StorageReference value) {
-		return new UpdateOfStorageImpl(object, field, value);
+		return new UpdateOfStorageImpl(object, field, value, IllegalArgumentException::new);
 	}
 
 	/**
@@ -216,7 +216,7 @@ public abstract class Updates {
 	 * @return the update
 	 */
 	public static UpdateToNull toNull(StorageReference object, FieldSignature field, boolean eager) {
-		return new UpdateToNullImpl(object, field, eager);
+		return new UpdateToNullImpl(object, field, eager, IllegalArgumentException::new);
 	}
 
 	/**
@@ -258,7 +258,7 @@ public abstract class Updates {
     public static class Json extends UpdateJson {
 
     	/**
-    	 * Creates the Json representation for the given update.
+    	 * Creates the JSON representation for the given update.
     	 * 
     	 * @param update the update
     	 */

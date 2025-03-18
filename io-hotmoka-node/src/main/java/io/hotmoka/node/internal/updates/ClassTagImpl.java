@@ -17,9 +17,10 @@ limitations under the License.
 package io.hotmoka.node.internal.updates;
 
 import java.io.IOException;
-import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
@@ -51,11 +52,11 @@ public final class ClassTagImpl extends AbstractUpdate implements ClassTag {
 	 * @param clazz the class of the object
 	 * @param jar the reference to the transaction that installed the jar from which the class was resolved
 	 */
-	public ClassTagImpl(StorageReference object, ClassType clazz, TransactionReference jar) {
-		super(object);
+	public <E extends Exception> ClassTagImpl(StorageReference object, ClassType clazz, TransactionReference jar, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(object, onIllegalArgs);
 
-		this.jar = Objects.requireNonNull(jar, "jar cannot be null");
-		this.clazz = Objects.requireNonNull(clazz, "clazz cannot be null");
+		this.jar = Objects.requireNonNull(jar, "jar cannot be null", onIllegalArgs);
+		this.clazz = Objects.requireNonNull(clazz, "clazz cannot be null", onIllegalArgs);
 	}
 
 	@Override
