@@ -32,6 +32,7 @@ import io.hotmoka.node.api.responses.NonVoidMethodCallTransactionSuccessfulRespo
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
+import io.hotmoka.node.internal.values.StorageReferenceImpl;
 
 /**
  * Implementation of a response for a successful transaction that calls a method
@@ -133,11 +134,11 @@ public class MethodCallTransactionSuccessfulResponseImpl extends MethodCallTrans
 		Stream<StorageReference> events;
 
 		if (selector == SELECTOR)
-			events = Stream.of(context.readLengthAndArray(StorageValues::referenceWithoutSelectorFrom, StorageReference[]::new));
+			events = Stream.of(context.readLengthAndArray(StorageReferenceImpl::fromWithoutSelector, StorageReference[]::new));
 		else if (selector == SELECTOR_NO_EVENTS)
 			events = Stream.empty();
 		else if (selector == SELECTOR_ONE_EVENT)
-			events = Stream.of(StorageValues.referenceWithoutSelectorFrom(context));
+			events = Stream.of(StorageReferenceImpl.fromWithoutSelector(context));
 		else
 			throw new IOException("Unexpected response selector: " + selector);
 

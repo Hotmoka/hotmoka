@@ -34,7 +34,7 @@ public class NodeMarshallingContext extends AbstractMarshallingContext {
 	 * @param os the stream where bytes are marshalled.
 	 * @throws IOException if the context cannot be created
 	 */
-	public NodeMarshallingContext(OutputStream os) throws IOException {
+	public NodeMarshallingContext(OutputStream os) throws IOException { // TODO: remove exception
 		super(os);
 		
 		registerObjectMarshaller(new TransactionReferenceMarshaller());

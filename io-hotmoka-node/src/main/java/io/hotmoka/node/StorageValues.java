@@ -229,19 +229,6 @@ public abstract class StorageValues {
 	}
 
 	/**
-	 * Unmarshals a storage reference from the given stream. It assumes that there
-	 * is no selector at the beginning of the stream, contrary to what
-	 * {@link #from(UnmarshallingContext)} does.
-	 * 
-	 * @param context the unmarshalling context
-	 * @return the storage reference
-	 * @throws IOException if the storage reference could not be unmarshalled
-	 */
-	public static StorageReference referenceWithoutSelectorFrom(UnmarshallingContext context) throws IOException {
-		return StorageReferenceImpl.fromWithoutSelector(context);
-	}
-
-	/**
 	 * Gson encoder.
 	 */
 	public static class Encoder extends StorageValueEncoder {

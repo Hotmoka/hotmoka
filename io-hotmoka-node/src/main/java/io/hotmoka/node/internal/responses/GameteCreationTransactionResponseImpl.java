@@ -24,11 +24,11 @@ import java.util.stream.Stream;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
-import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.responses.GameteCreationTransactionResponse;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.internal.values.StorageReferenceImpl;
 
 /**
  * A response for a transaction that installs a jar in a yet not initialized blockchain.
@@ -113,6 +113,6 @@ public class GameteCreationTransactionResponseImpl extends TransactionResponseIm
 	 */
 	public static GameteCreationTransactionResponseImpl from(UnmarshallingContext context) throws IOException {
 		Stream<Update> updates = Stream.of(context.readLengthAndArray(Updates::from, Update[]::new));
-		return new GameteCreationTransactionResponseImpl(updates, StorageValues.referenceWithoutSelectorFrom(context));
+		return new GameteCreationTransactionResponseImpl(updates, StorageReferenceImpl.fromWithoutSelector(context));
 	}
 }

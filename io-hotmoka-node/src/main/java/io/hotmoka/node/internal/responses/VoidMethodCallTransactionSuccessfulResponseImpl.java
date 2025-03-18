@@ -26,11 +26,11 @@ import java.util.stream.Stream;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
-import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.internal.values.StorageReferenceImpl;
 
 /**
  * Implementation of a response for a successful transaction that calls a method
@@ -111,7 +111,7 @@ public class VoidMethodCallTransactionSuccessfulResponseImpl extends MethodCallT
 		Stream<StorageReference> events;
 
 		if (selector == SELECTOR)
-			events = Stream.of(context.readLengthAndArray(StorageValues::referenceWithoutSelectorFrom, StorageReference[]::new));
+			events = Stream.of(context.readLengthAndArray(StorageReferenceImpl::fromWithoutSelector, StorageReference[]::new));
 		else if (selector == SELECTOR_NO_EVENTS)
 			events = Stream.empty();
 		else

@@ -28,7 +28,6 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.NodeMarshallingContexts;
 import io.hotmoka.node.StorageTypes;
-import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.types.ClassType;
@@ -47,6 +46,7 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.internal.gson.UpdateJson;
 import io.hotmoka.node.internal.types.ClassTypeImpl;
+import io.hotmoka.node.internal.values.StorageReferenceImpl;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
@@ -174,49 +174,49 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 		var selector = context.readByte();
 		switch (selector) {
 		case ClassTagImpl.SELECTOR: {
-			var sr = StorageValues.referenceWithoutSelectorFrom(context);
+			var sr = StorageReferenceImpl.fromWithoutSelector(context);
 
 			if (!(StorageTypes.from(context) instanceof ClassType clazz))
 				throw new IOException("A class tag must refer to a class type");
 
 			return Updates.classTag(sr, clazz, TransactionReferences.from(context));
 		}
-		case UpdateOfBigIntegerImpl.SELECTOR_BALANCE: return Updates.ofBigInteger(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.BALANCE_FIELD, context.readBigInteger());
-		case UpdateOfBigIntegerImpl.SELECTOR_GAS_PRICE: return Updates.ofBigInteger(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.GENERIC_GAS_STATION_GAS_PRICE_FIELD, context.readBigInteger());
-		case UpdateOfBigIntegerImpl.SELECTOR_UBI_VALUE: return Updates.ofBigInteger(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.UNSIGNED_BIG_INTEGER_VALUE_FIELD, context.readBigInteger());
-		case UpdateOfBigIntegerImpl.SELECTOR_BALANCE_TO_ZERO: return Updates.ofBigInteger(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.BALANCE_FIELD, BigInteger.ZERO);
-		case UpdateOfBigIntegerImpl.SELECTOR_NONCE_TO_ZERO: return Updates.ofBigInteger(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.EOA_NONCE_FIELD, BigInteger.ZERO);
-		case UpdateOfBigIntegerImpl.SELECTOR_NONCE: return Updates.ofBigInteger(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.EOA_NONCE_FIELD, context.readBigInteger());
-		case UpdateOfBigIntegerImpl.SELECTOR: return Updates.ofBigInteger(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.from(context), context.readBigInteger());
-		case UpdateOfBooleanImpl.SELECTOR_FALSE: return Updates.ofBoolean(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.from(context), false);
-		case UpdateOfBooleanImpl.SELECTOR_TRUE: return Updates.ofBoolean(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.from(context), true);
-		case UpdateOfByteImpl.SELECTOR: return Updates.ofByte(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.from(context), context.readByte());
-		case UpdateOfCharImpl.SELECTOR: return Updates.ofChar(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.from(context), context.readChar());
-		case UpdateOfDoubleImpl.SELECTOR: return Updates.ofDouble(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.from(context), context.readDouble());
-		case UpdateOfFloatImpl.SELECTOR: return Updates.ofFloat(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.from(context), context.readFloat());
-		case UpdateOfIntImpl.SELECTOR: return Updates.ofInt(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.from(context), context.readInt());
-		case UpdateOfIntImpl.SELECTOR_SMALL: return Updates.ofInt(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.from(context), context.readShort());
-		case UpdateOfIntImpl.SELECTOR_VERY_SMALL: return Updates.ofInt(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.from(context), context.readByte());
-		case UpdateOfIntImpl.SELECTOR_STORAGE_TREE_MAP_NODE_SIZE: return Updates.ofInt(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.STORAGE_TREE_MAP_NODE_SIZE_FIELD, context.readCompactInt());
-		case UpdateOfIntImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_SIZE: return Updates.ofInt(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.STORAGE_TREE_INTMAP_NODE_SIZE_FIELD, context.readCompactInt());
-		case UpdateOfIntImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_KEY: return Updates.ofInt(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.STORAGE_TREE_INTMAP_NODE_KEY_FIELD, context.readCompactInt());
-		case UpdateOfLongImpl.SELECTOR: return Updates.ofLong(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.from(context), context.readLong());
-		case UpdateOfShortImpl.SELECTOR: return Updates.ofShort(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.from(context), context.readShort());
-		case UpdateOfStorageImpl.SELECTOR: return Updates.ofStorage(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.from(context), StorageValues.referenceWithoutSelectorFrom(context));
-		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_NODE_LEFT: return Updates.ofStorage(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.STORAGE_TREE_MAP_NODE_LEFT_FIELD, StorageValues.referenceWithoutSelectorFrom(context));
-		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_NODE_RIGHT: return Updates.ofStorage(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.STORAGE_TREE_MAP_NODE_RIGHT_FIELD, StorageValues.referenceWithoutSelectorFrom(context));
-		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_NODE_KEY: return Updates.ofStorage(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.STORAGE_TREE_MAP_NODE_KEY_FIELD, StorageValues.referenceWithoutSelectorFrom(context));
-		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_NODE_VALUE: return Updates.ofStorage(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.STORAGE_TREE_MAP_NODE_VALUE_FIELD, StorageValues.referenceWithoutSelectorFrom(context));
-		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_INTMAP_ROOT: return Updates.ofStorage(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.STORAGE_TREE_INTMAP_ROOT_FIELD, StorageValues.referenceWithoutSelectorFrom(context));
-		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_VALUE: return Updates.ofStorage(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.STORAGE_TREE_INTMAP_NODE_VALUE_FIELD, StorageValues.referenceWithoutSelectorFrom(context));
-		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_LEFT: return Updates.ofStorage(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.STORAGE_TREE_INTMAP_NODE_LEFT_FIELD, StorageValues.referenceWithoutSelectorFrom(context));
-		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_RIGHT: return Updates.ofStorage(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.STORAGE_TREE_INTMAP_NODE_RIGHT_FIELD, StorageValues.referenceWithoutSelectorFrom(context));
-		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_ROOT: return Updates.ofStorage(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.STORAGE_TREE_MAP_ROOT_FIELD, StorageValues.referenceWithoutSelectorFrom(context));
-		case UpdateOfStorageImpl.SELECTOR_EVENT_CREATOR: return Updates.ofStorage(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.EVENT_CREATOR_FIELD, StorageValues.referenceWithoutSelectorFrom(context));
-		case UpdateOfStringImpl.SELECTOR_PUBLIC_KEY: return Updates.ofString(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.EOA_PUBLIC_KEY_FIELD, context.readStringUnshared());
-		case UpdateOfStringImpl.SELECTOR: return Updates.ofString(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.from(context), context.readStringUnshared());
-		case UpdateToNullImpl.SELECTOR_EAGER: return Updates.toNull(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.from(context), true);
-		case UpdateToNullImpl.SELECTOR_LAZY: return Updates.toNull(StorageValues.referenceWithoutSelectorFrom(context), FieldSignatures.from(context), false);
+		case UpdateOfBigIntegerImpl.SELECTOR_BALANCE: return Updates.ofBigInteger(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.BALANCE_FIELD, context.readBigInteger());
+		case UpdateOfBigIntegerImpl.SELECTOR_GAS_PRICE: return Updates.ofBigInteger(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.GENERIC_GAS_STATION_GAS_PRICE_FIELD, context.readBigInteger());
+		case UpdateOfBigIntegerImpl.SELECTOR_UBI_VALUE: return Updates.ofBigInteger(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.UNSIGNED_BIG_INTEGER_VALUE_FIELD, context.readBigInteger());
+		case UpdateOfBigIntegerImpl.SELECTOR_BALANCE_TO_ZERO: return Updates.ofBigInteger(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.BALANCE_FIELD, BigInteger.ZERO);
+		case UpdateOfBigIntegerImpl.SELECTOR_NONCE_TO_ZERO: return Updates.ofBigInteger(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.EOA_NONCE_FIELD, BigInteger.ZERO);
+		case UpdateOfBigIntegerImpl.SELECTOR_NONCE: return Updates.ofBigInteger(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.EOA_NONCE_FIELD, context.readBigInteger());
+		case UpdateOfBigIntegerImpl.SELECTOR: return Updates.ofBigInteger(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readBigInteger());
+		case UpdateOfBooleanImpl.SELECTOR_FALSE: return Updates.ofBoolean(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), false);
+		case UpdateOfBooleanImpl.SELECTOR_TRUE: return Updates.ofBoolean(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), true);
+		case UpdateOfByteImpl.SELECTOR: return Updates.ofByte(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readByte());
+		case UpdateOfCharImpl.SELECTOR: return Updates.ofChar(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readChar());
+		case UpdateOfDoubleImpl.SELECTOR: return Updates.ofDouble(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readDouble());
+		case UpdateOfFloatImpl.SELECTOR: return Updates.ofFloat(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readFloat());
+		case UpdateOfIntImpl.SELECTOR: return Updates.ofInt(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readInt());
+		case UpdateOfIntImpl.SELECTOR_SMALL: return Updates.ofInt(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readShort());
+		case UpdateOfIntImpl.SELECTOR_VERY_SMALL: return Updates.ofInt(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readByte());
+		case UpdateOfIntImpl.SELECTOR_STORAGE_TREE_MAP_NODE_SIZE: return Updates.ofInt(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_MAP_NODE_SIZE_FIELD, context.readCompactInt());
+		case UpdateOfIntImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_SIZE: return Updates.ofInt(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_INTMAP_NODE_SIZE_FIELD, context.readCompactInt());
+		case UpdateOfIntImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_KEY: return Updates.ofInt(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_INTMAP_NODE_KEY_FIELD, context.readCompactInt());
+		case UpdateOfLongImpl.SELECTOR: return Updates.ofLong(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readLong());
+		case UpdateOfShortImpl.SELECTOR: return Updates.ofShort(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readShort());
+		case UpdateOfStorageImpl.SELECTOR: return Updates.ofStorage(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), StorageReferenceImpl.fromWithoutSelector(context));
+		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_NODE_LEFT: return Updates.ofStorage(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_MAP_NODE_LEFT_FIELD, StorageReferenceImpl.fromWithoutSelector(context));
+		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_NODE_RIGHT: return Updates.ofStorage(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_MAP_NODE_RIGHT_FIELD, StorageReferenceImpl.fromWithoutSelector(context));
+		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_NODE_KEY: return Updates.ofStorage(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_MAP_NODE_KEY_FIELD, StorageReferenceImpl.fromWithoutSelector(context));
+		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_NODE_VALUE: return Updates.ofStorage(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_MAP_NODE_VALUE_FIELD, StorageReferenceImpl.fromWithoutSelector(context));
+		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_INTMAP_ROOT: return Updates.ofStorage(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_INTMAP_ROOT_FIELD, StorageReferenceImpl.fromWithoutSelector(context));
+		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_VALUE: return Updates.ofStorage(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_INTMAP_NODE_VALUE_FIELD, StorageReferenceImpl.fromWithoutSelector(context));
+		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_LEFT: return Updates.ofStorage(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_INTMAP_NODE_LEFT_FIELD, StorageReferenceImpl.fromWithoutSelector(context));
+		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_RIGHT: return Updates.ofStorage(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_INTMAP_NODE_RIGHT_FIELD, StorageReferenceImpl.fromWithoutSelector(context));
+		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_ROOT: return Updates.ofStorage(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_MAP_ROOT_FIELD, StorageReferenceImpl.fromWithoutSelector(context));
+		case UpdateOfStorageImpl.SELECTOR_EVENT_CREATOR: return Updates.ofStorage(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.EVENT_CREATOR_FIELD, StorageReferenceImpl.fromWithoutSelector(context));
+		case UpdateOfStringImpl.SELECTOR_PUBLIC_KEY: return Updates.ofString(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.EOA_PUBLIC_KEY_FIELD, context.readStringUnshared());
+		case UpdateOfStringImpl.SELECTOR: return Updates.ofString(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readStringUnshared());
+		case UpdateToNullImpl.SELECTOR_EAGER: return Updates.toNull(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), true);
+		case UpdateToNullImpl.SELECTOR_LAZY: return Updates.toNull(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), false);
 		default: throw new IOException("Unexpected update selector: " + selector);
 		}
 	}

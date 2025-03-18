@@ -26,11 +26,11 @@ import java.util.stream.Stream;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
-import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.responses.ConstructorCallTransactionSuccessfulResponse;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.internal.values.StorageReferenceImpl;
 
 /**
  * Implementation of a response for a successful transaction that calls a constructor to instantiate an object in the store
@@ -126,13 +126,13 @@ public class ConstructorCallTransactionSuccessfulResponseImpl extends CodeExecut
 		var gasConsumedForStorage = context.readBigInteger();
 		Stream<StorageReference> events;
 		if (selector == SELECTOR)
-			events = Stream.of(context.readLengthAndArray(StorageValues::referenceWithoutSelectorFrom, StorageReference[]::new));
+			events = Stream.of(context.readLengthAndArray(StorageReferenceImpl::fromWithoutSelector, StorageReference[]::new));
 		else if (selector == SELECTOR_NO_EVENTS)
 			events = Stream.empty();
 		else
 			throw new IOException("Unexpected response selector: " + selector);
 
-		var newObject = StorageValues.referenceWithoutSelectorFrom(context);
+		var newObject = StorageReferenceImpl.fromWithoutSelector(context);
 		return new ConstructorCallTransactionSuccessfulResponseImpl(newObject, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 	}
 }

@@ -33,13 +33,13 @@ import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.NodeMarshallingContexts;
-import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.node.api.responses.JarStoreTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.internal.gson.TransactionRequestJson;
+import io.hotmoka.node.internal.values.StorageReferenceImpl;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
@@ -157,7 +157,7 @@ public class JarStoreTransactionRequestImpl extends NonInitialTransactionRequest
 	 */
 	public static JarStoreTransactionRequest from(UnmarshallingContext context) throws IOException {
 		var chainId = context.readStringUnshared();
-		var caller = StorageValues.referenceWithoutSelectorFrom(context);
+		var caller = StorageReferenceImpl.fromWithoutSelector(context);
 		var gasLimit = context.readBigInteger();
 		var gasPrice = context.readBigInteger();
 		var classpath = TransactionReferences.from(context);

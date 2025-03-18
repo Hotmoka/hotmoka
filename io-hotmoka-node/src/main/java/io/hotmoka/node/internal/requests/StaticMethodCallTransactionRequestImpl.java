@@ -40,6 +40,7 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.internal.gson.TransactionRequestJson;
+import io.hotmoka.node.internal.values.StorageReferenceImpl;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
@@ -150,7 +151,7 @@ public class StaticMethodCallTransactionRequestImpl extends MethodCallTransactio
 	 */
 	public static StaticMethodCallTransactionRequest from(UnmarshallingContext context) throws IOException {
 		var chainId = context.readStringUnshared();
-		var caller = StorageValues.referenceWithoutSelectorFrom(context);
+		var caller = StorageReferenceImpl.fromWithoutSelector(context);
 		var gasLimit = context.readBigInteger();
 		var gasPrice = context.readBigInteger();
 		var classpath = TransactionReferences.from(context);

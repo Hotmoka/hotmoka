@@ -34,6 +34,7 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.internal.gson.TransactionRequestJson;
+import io.hotmoka.node.internal.values.StorageReferenceImpl;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
@@ -119,13 +120,13 @@ public class InstanceSystemMethodCallTransactionRequestImpl extends AbstractInst
 	 * @throws IOException if the request could not be unmarshalled
 	 */
 	public static InstanceSystemMethodCallTransactionRequest from(UnmarshallingContext context) throws IOException {
-		var caller = StorageValues.referenceWithoutSelectorFrom(context);
+		var caller = StorageReferenceImpl.fromWithoutSelector(context);
 		var gasLimit = context.readBigInteger();
 		var classpath = TransactionReferences.from(context);
 		var nonce = context.readBigInteger();
 		var actuals = context.readLengthAndArray(StorageValues::from, StorageValue[]::new);
 		var method = MethodSignatures.from(context);
-		var receiver = StorageValues.referenceWithoutSelectorFrom(context);
+		var receiver = StorageReferenceImpl.fromWithoutSelector(context);
 
 		return new InstanceSystemMethodCallTransactionRequestImpl(caller, nonce, gasLimit, classpath, method, receiver, actuals, IOException::new);
 	}

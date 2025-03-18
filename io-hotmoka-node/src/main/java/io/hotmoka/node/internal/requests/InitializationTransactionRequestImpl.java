@@ -23,13 +23,13 @@ import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
-import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.requests.InitializationTransactionRequest;
 import io.hotmoka.node.api.responses.InitializationTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.internal.gson.TransactionRequestJson;
+import io.hotmoka.node.internal.values.StorageReferenceImpl;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
@@ -123,7 +123,7 @@ public class InitializationTransactionRequestImpl extends TransactionRequestImpl
 	public InitializationTransactionRequestImpl(UnmarshallingContext context) throws IOException {
 		this(
 			TransactionReferences.from(context),
-			StorageValues.referenceWithoutSelectorFrom(context),
+			StorageReferenceImpl.fromWithoutSelector(context),
 			IOException::new
 		);
 	}

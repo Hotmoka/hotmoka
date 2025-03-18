@@ -43,6 +43,7 @@ import io.hotmoka.node.api.values.LongValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.internal.gson.TransactionRequestJson;
+import io.hotmoka.node.internal.values.StorageReferenceImpl;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
@@ -209,26 +210,26 @@ public class InstanceMethodCallTransactionRequestImpl extends AbstractInstanceMe
 	public static InstanceMethodCallTransactionRequest from(UnmarshallingContext context, byte selector) throws IOException {
 		if (selector == SELECTOR) {
 			var chainId = context.readStringUnshared();
-			var caller = StorageValues.referenceWithoutSelectorFrom(context);
+			var caller = StorageReferenceImpl.fromWithoutSelector(context);
 			var gasLimit = context.readBigInteger();
 			var gasPrice = context.readBigInteger();
 			var classpath = TransactionReferences.from(context);
 			var nonce = context.readBigInteger();
 			var actuals = context.readLengthAndArray(StorageValues::from, StorageValue[]::new);
 			var method = MethodSignatures.from(context);
-			var receiver = StorageValues.referenceWithoutSelectorFrom(context);
+			var receiver = StorageReferenceImpl.fromWithoutSelector(context);
 			byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 	
 			return new InstanceMethodCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, receiver, actuals, IOException::new);
 		}
 		else if (selector == SELECTOR_TRANSFER_INT || selector == SELECTOR_TRANSFER_LONG || selector == SELECTOR_TRANSFER_BIG_INTEGER) {
 			var chainId = context.readStringUnshared();
-			var caller = StorageValues.referenceWithoutSelectorFrom(context);
+			var caller = StorageReferenceImpl.fromWithoutSelector(context);
 			var gasLimit = context.readBigInteger();
 			var gasPrice = context.readBigInteger();
 			var classpath = TransactionReferences.from(context);
 			var nonce = context.readBigInteger();
-			var receiver = StorageValues.referenceWithoutSelectorFrom(context);
+			var receiver = StorageReferenceImpl.fromWithoutSelector(context);
 	
 			if (selector == SELECTOR_TRANSFER_INT) {
 				int howMuch = context.readInt();

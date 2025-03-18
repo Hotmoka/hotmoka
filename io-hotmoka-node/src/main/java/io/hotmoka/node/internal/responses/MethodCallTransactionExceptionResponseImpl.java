@@ -26,11 +26,11 @@ import java.util.stream.Stream;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
-import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.responses.MethodCallTransactionExceptionResponse;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.internal.values.StorageReferenceImpl;
 
 /**
  * Implementation of a response for a successful transaction that calls a method in the store of the node.
@@ -148,7 +148,7 @@ public class MethodCallTransactionExceptionResponseImpl extends MethodCallTransa
 		var gasConsumedForCPU = context.readBigInteger();
 		var gasConsumedForRAM = context.readBigInteger();
 		var gasConsumedForStorage = context.readBigInteger();
-		Stream<StorageReference> events = Stream.of(context.readLengthAndArray(StorageValues::referenceWithoutSelectorFrom, StorageReference[]::new));
+		Stream<StorageReference> events = Stream.of(context.readLengthAndArray(StorageReferenceImpl::fromWithoutSelector, StorageReference[]::new));
 		var classNameOfCause = context.readStringUnshared();
 		var messageOfCause = context.readStringUnshared();
 		var where = context.readStringUnshared();
