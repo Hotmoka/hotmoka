@@ -161,7 +161,7 @@ public abstract class StorageValues {
 	 * @return the corresponding storage value
 	 */
 	public static BigIntegerValue bigIntegerOf(BigInteger value) {
-		return new BigIntegerValueImpl(value);
+		return new BigIntegerValueImpl(value, IllegalArgumentException::new);
 	}
 
 	/**
@@ -171,7 +171,7 @@ public abstract class StorageValues {
 	 * @return the corresponding storage value
 	 */
 	public static BigIntegerValue bigIntegerOf(long value) {
-		return new BigIntegerValueImpl(BigInteger.valueOf(value));
+		return bigIntegerOf(BigInteger.valueOf(value));
 	}
 
 	/**
@@ -181,7 +181,7 @@ public abstract class StorageValues {
 	 * @return the corresponding storage value
 	 */
 	public static StringValue stringOf(String value) {
-		return new StringValueImpl(value);
+		return new StringValueImpl(value, IllegalArgumentException::new);
 	}
 
 	/**
@@ -214,7 +214,7 @@ public abstract class StorageValues {
 	 * @return the resulting storage value
 	 */
 	public static StorageValue of(String s, StorageType type) {
-		return AbstractStorageValue.of(s, type, IllegalArgumentException::new);
+		return AbstractStorageValue.of(s, type);
 	}
 
 	/**

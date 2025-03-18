@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.node.internal.signatures;
 
 import java.io.IOException;
-import java.util.Optional;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.exceptions.ExceptionSupplier;
@@ -31,8 +30,6 @@ import io.hotmoka.node.api.signatures.VoidMethodSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
 import io.hotmoka.node.internal.gson.MethodSignatureJson;
-import io.hotmoka.node.internal.types.AbstractStorageType;
-import io.hotmoka.node.internal.types.ClassTypeImpl;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
@@ -70,19 +67,7 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 	 * @throws InconsistentJsonException if {@code json} is inconsistent
 	 */
 	public static MethodSignature from(MethodSignatureJson json) throws InconsistentJsonException {
-		var formals = json.getFormals().toArray(String[]::new);
-		var formalsAsTypes = new StorageType[formals.length];
-		int pos = 0;
-		for (var formal: formals)
-			formalsAsTypes[pos++] = AbstractStorageType.named(formal, InconsistentJsonException::new);
-
-		var definingClassType = ClassTypeImpl.named(json.getDefiningClass(), InconsistentJsonException::new);
-
-		Optional<String> returnType = json.getReturnType();
-		if (returnType.isPresent())
-			return new NonVoidMethodSignatureImpl(definingClassType, json.getName(), AbstractStorageType.named(returnType.get(), InconsistentJsonException::new), formalsAsTypes, InconsistentJsonException::new);
-		else
-			return new VoidMethodSignatureImpl(definingClassType, json.getName(), formalsAsTypes, InconsistentJsonException::new);
+		return json.getReturnType().isPresent() ? new NonVoidMethodSignatureImpl(json) : new VoidMethodSignatureImpl(json);
 	}
 
 	@Override

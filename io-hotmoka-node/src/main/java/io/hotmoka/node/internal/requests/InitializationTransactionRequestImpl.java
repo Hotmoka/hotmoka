@@ -115,17 +115,16 @@ public class InitializationTransactionRequestImpl extends TransactionRequestImpl
 	}
 
 	/**
-	 * Factory method that unmarshals a request from the given stream.
-	 * The selector has been already unmarshalled.
+	 * Unmarshals a transaction from the given context. The selector has been already unmarshalled.
 	 * 
 	 * @param context the unmarshalling context
-	 * @return the request
 	 * @throws IOException if the request could not be unmarshalled
 	 */
-	public static InitializationTransactionRequest from(UnmarshallingContext context) throws IOException {
-		var classpath = TransactionReferences.from(context);
-		var manifest = StorageValues.referenceWithoutSelectorFrom(context);
-
-		return new InitializationTransactionRequestImpl(classpath, manifest, IOException::new);
+	public InitializationTransactionRequestImpl(UnmarshallingContext context) throws IOException {
+		this(
+			TransactionReferences.from(context),
+			StorageValues.referenceWithoutSelectorFrom(context),
+			IOException::new
+		);
 	}
 }

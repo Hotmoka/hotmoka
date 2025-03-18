@@ -18,10 +18,11 @@ package io.hotmoka.node.internal.values;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.Objects;
 import java.util.function.Function;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.values.BigIntegerValue;
@@ -42,10 +43,13 @@ public final class BigIntegerValueImpl extends AbstractStorageValue implements B
 	/**
 	 * Builds a big integer that can be stored in a Hotmoka node.
 	 * 
+	 * @param <E> the type of the exception thrown if some argument is illegal
 	 * @param value the big integer
+	 * @param onIllegalArgs the supplier of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
 	 */
-	public BigIntegerValueImpl(BigInteger value) {
-		this.value = Objects.requireNonNull(value, "value cannot be null");
+	public <E extends Exception> BigIntegerValueImpl(BigInteger value, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		this.value = Objects.requireNonNull(value, "value cannot be null", onIllegalArgs);
 	}
 
 	@Override

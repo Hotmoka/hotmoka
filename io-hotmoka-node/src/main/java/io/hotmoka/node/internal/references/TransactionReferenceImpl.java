@@ -62,11 +62,14 @@ public final class TransactionReferenceImpl extends AbstractMarshallable impleme
 	/**
 	 * Builds a transaction reference with the given hash.
 	 * 
+	 * @param <E> the type of the exception thrown if {@code hash} is an illegal transaction hash
 	 * @param hash the hash of the transaction, as a byte array of length {@link TransactionReference#REQUEST_HASH_LENGTH}
+	 * @param onIllegalHash the generator of the exception thrown if {@code hash} is illegal
+	 * @throws E if {@code hash} in not a legal transaction hash
 	 */
-	public TransactionReferenceImpl(byte[] hash) {
-		if (Objects.requireNonNull(hash, "hash cannot be null", IllegalArgumentException::new).length != REQUEST_HASH_LENGTH)
-			throw new IllegalArgumentException("Illegal transaction reference: it should be " + REQUEST_HASH_LENGTH + " bytes long");
+	public <E extends Exception> TransactionReferenceImpl(byte[] hash, ExceptionSupplier<? extends E> onIllegalHash) throws E {
+		if (Objects.requireNonNull(hash, "hash cannot be null", onIllegalHash).length != REQUEST_HASH_LENGTH)
+			throw onIllegalHash.apply("Illegal transaction reference: it should be " + REQUEST_HASH_LENGTH + " bytes long");
 
 		this.hash = hash.clone();
 	}

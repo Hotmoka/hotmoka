@@ -177,7 +177,7 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 			var sr = StorageValues.referenceWithoutSelectorFrom(context);
 
 			if (!(StorageTypes.from(context) instanceof ClassType clazz))
-				throw new IOException("An object having a class tag must have class type");
+				throw new IOException("A class tag must refer to a class type");
 
 			return Updates.classTag(sr, clazz, TransactionReferences.from(context));
 		}

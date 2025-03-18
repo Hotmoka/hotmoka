@@ -25,6 +25,10 @@ import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
+import io.hotmoka.node.internal.gson.MethodSignatureJson;
+import io.hotmoka.node.internal.types.AbstractStorageType;
+import io.hotmoka.node.internal.types.ClassTypeImpl;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * The signature of a method of a class, that returns a value.
@@ -42,16 +46,32 @@ public final class NonVoidMethodSignatureImpl extends AbstractMethodSignature im
 	 * 
 	 * @param <E> the type of the exception thrown if some arguments is illegal
 	 * @param definingClass the class of the method
-	 * @param methodName the name of the method
+	 * @param name the name of the method
 	 * @param returnType the type of the returned value
 	 * @param formals the formal arguments of the method
 	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	public <E extends Exception> NonVoidMethodSignatureImpl(ClassType definingClass, String methodName, StorageType returnType, StorageType[] formals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
-		super(definingClass, methodName, formals, onIllegalArgs);
+	public <E extends Exception> NonVoidMethodSignatureImpl(ClassType definingClass, String name, StorageType returnType, StorageType[] formals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(definingClass, name, formals, onIllegalArgs);
 
 		this.returnType = Objects.requireNonNull(returnType, "returnType cannot be null", onIllegalArgs);
+	}
+
+	/**
+	 * Creates a method signature from the given JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public NonVoidMethodSignatureImpl(MethodSignatureJson json) throws InconsistentJsonException {
+		this(
+			ClassTypeImpl.named(json.getDefiningClass(), InconsistentJsonException::new),
+			json.getName(),
+			AbstractStorageType.named(json.getReturnType().orElseThrow(() -> new InconsistentJsonException("Missing returnType")), InconsistentJsonException::new),
+			formalsAsTypes(json),
+			InconsistentJsonException::new
+		);
 	}
 
 	@Override

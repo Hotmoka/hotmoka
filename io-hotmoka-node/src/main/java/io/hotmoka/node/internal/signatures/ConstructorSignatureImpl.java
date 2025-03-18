@@ -61,6 +61,20 @@ public final class ConstructorSignatureImpl extends AbstractCodeSignature implem
 		this(ClassTypeImpl.named(json.getDefiningClass(), InconsistentJsonException::new), getFormalsAsTypes(json), InconsistentJsonException::new);
 	}
 
+	/**
+	 * Unmarshals a constructor signature from the given context.
+	 * 
+	 * @param context the unmarshalling context
+	 * @throws IOException if the constructor signature cannot be unmarshalled
+	 */
+	public ConstructorSignatureImpl(UnmarshallingContext context) throws IOException {
+		this(
+			unmarshalDefiningClass(context),
+			context.readLengthAndArray(StorageTypes::from, StorageType[]::new),
+			IOException::new
+		);
+	}
+
 	private static StorageType[] getFormalsAsTypes(ConstructorSignatureJson json) throws InconsistentJsonException {
 		var formals = json.getFormals().toArray(String[]::new);
 		var formalsAsTypes = new StorageType[formals.length];
@@ -88,22 +102,6 @@ public final class ConstructorSignatureImpl extends AbstractCodeSignature implem
     }
 
     /**
-	 * Factory method that unmarshals a constructor signature from the given context.
-	 * 
-	 * @param context the unmarshalling context
-	 * @return the constructor signature
-	 * @throws IOException if the constructor signature cannot be unmarshalled
-	 */
-	public static ConstructorSignature from(UnmarshallingContext context) throws IOException {
-		if (!(StorageTypes.from(context) instanceof ClassType definingClass))
-			throw new IOException("The type defining a constructor must be a class type");
-
-		var formals = context.readLengthAndArray(StorageTypes::from, StorageType[]::new);
-
-		return new ConstructorSignatureImpl(definingClass, formals, IOException::new);
-	}
-
-	/**
 	 * The constructor of an externally owned account with a big integer amount.
 	 */
 	public final static ConstructorSignature EOA_CONSTRUCTOR = ConstructorSignatures.of(StorageTypes.EOA, StorageTypes.BIG_INTEGER, StorageTypes.STRING);

@@ -129,7 +129,7 @@ public abstract class TransactionRequests {
 	 * @throws InvalidKeyException if the signer uses an invalid private key
 	 */
 	public static JarStoreTransactionRequest jarStore(Signer<? super JarStoreTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) throws InvalidKeyException, SignatureException {
-		return new JarStoreTransactionRequestImpl(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, jar, dependencies, IllegalArgumentException::new);
+		return new JarStoreTransactionRequestImpl(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, jar, dependencies);
 	}
 
 	/**
@@ -167,7 +167,7 @@ public abstract class TransactionRequests {
 	 * @throws InvalidKeyException if the signer uses an invalid private key
 	 */
 	public static ConstructorCallTransactionRequest constructorCall(Signer<? super ConstructorCallTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) throws InvalidKeyException, SignatureException {
-		return new ConstructorCallTransactionRequestImpl(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, constructor, actuals, IllegalArgumentException::new);
+		return new ConstructorCallTransactionRequestImpl(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, constructor, actuals);
 	}
 
 	/**
@@ -188,7 +188,7 @@ public abstract class TransactionRequests {
 	 * @throws InvalidKeyException if the signer uses an invalid private key
 	 */
 	public static InstanceMethodCallTransactionRequest instanceMethodCall(Signer<? super InstanceMethodCallTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws InvalidKeyException, SignatureException {
-		return new InstanceMethodCallTransactionRequestImpl(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, receiver, actuals, IllegalArgumentException::new);
+		return new InstanceMethodCallTransactionRequestImpl(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, receiver, actuals);
 	}
 
 	/**
@@ -280,7 +280,7 @@ public abstract class TransactionRequests {
 	 * @throws InvalidKeyException if the signer uses an invalid private key
 	 */
 	public static StaticMethodCallTransactionRequest staticMethodCall(Signer<? super StaticMethodCallTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) throws InvalidKeyException, SignatureException {
-		return new StaticMethodCallTransactionRequestImpl(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, actuals, IllegalArgumentException::new);
+		return new StaticMethodCallTransactionRequestImpl(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, actuals);
 	}
 
 	/**

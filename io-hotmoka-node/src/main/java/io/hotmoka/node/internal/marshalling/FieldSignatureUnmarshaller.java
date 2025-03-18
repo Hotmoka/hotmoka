@@ -22,10 +22,10 @@ import java.util.Map;
 
 import io.hotmoka.marshalling.AbstractObjectUnmarshaller;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
-import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.types.ClassType;
+import io.hotmoka.node.internal.signatures.FieldSignatureImpl;
 
 /**
  * An unmarshaller for field signatures, that understands the optimization
@@ -49,7 +49,7 @@ class FieldSignatureUnmarshaller extends AbstractObjectUnmarshaller<FieldSignatu
 			if (!(StorageTypes.from(context) instanceof ClassType clazz))
 				throw new IOException("Expected a class type as container of a field");
 
-			var field = FieldSignatures.of(clazz, context.readStringUnshared(), StorageTypes.from(context));
+			var field = new FieldSignatureImpl(clazz, context.readStringUnshared(), StorageTypes.from(context), IOException::new);
 
 			int size = memory.size();
 			if (size < Integer.MAX_VALUE)

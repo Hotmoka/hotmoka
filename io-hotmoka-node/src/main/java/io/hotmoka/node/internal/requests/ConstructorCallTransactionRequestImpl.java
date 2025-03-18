@@ -67,7 +67,6 @@ public class ConstructorCallTransactionRequestImpl extends CodeExecutionTransact
 	/**
 	 * Builds the transaction request.
 	 * 
-	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
 	 * @param signer the signer of the request
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
@@ -77,19 +76,17 @@ public class ConstructorCallTransactionRequestImpl extends CodeExecutionTransact
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param constructor the constructor that must be called
 	 * @param actuals the actual arguments passed to the constructor
-	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
-	 * @throws E if some argument passed to this constructor is illegal
 	 * @throws SignatureException if the signer cannot sign the request
 	 * @throws InvalidKeyException if the signer uses an invalid private key
 	 */
-	public <E extends Exception> ConstructorCallTransactionRequestImpl(Signer<? super ConstructorCallTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue[] actuals, ExceptionSupplier<? extends E> onIllegalArgs) throws E, InvalidKeyException, SignatureException {
-		super(caller, nonce, gasLimit, gasPrice, classpath, actuals, onIllegalArgs);
+	public ConstructorCallTransactionRequestImpl(Signer<? super ConstructorCallTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) throws InvalidKeyException, SignatureException {
+		super(caller, nonce, gasLimit, gasPrice, classpath, actuals, IllegalArgumentException::new);
 
-		this.constructor = Objects.requireNonNull(constructor, "constructor cannot be null", onIllegalArgs);
-		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null", onIllegalArgs);
+		this.constructor = Objects.requireNonNull(constructor, "constructor cannot be null", IllegalArgumentException::new);
+		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null", IllegalArgumentException::new);
 
 		if (constructor.getFormals().count() != actuals.length)
-			throw onIllegalArgs.apply("Argument count mismatch: " + constructor.getFormals().count() + " formals vs " + actuals.length + " actuals");
+			throw new IllegalArgumentException("Argument count mismatch: " + constructor.getFormals().count() + " formals vs " + actuals.length + " actuals");
 
 		this.signature = signer.sign(this);
 	}
@@ -142,6 +139,28 @@ public class ConstructorCallTransactionRequestImpl extends CodeExecutionTransact
 		);
 	}
 
+	/**
+	 * Factory method that unmarshals a request from the given stream.
+	 * The selector has been already unmarshalled.
+	 * 
+	 * @param context the unmarshalling context
+	 * @return the request
+	 * @throws IOException if the request cannot be unmarshalled
+	 */
+	public static ConstructorCallTransactionRequest from(UnmarshallingContext context) throws IOException {
+		var chainId = context.readStringUnshared();
+		var caller = StorageValues.referenceWithoutSelectorFrom(context);
+		var gasLimit = context.readBigInteger();
+		var gasPrice = context.readBigInteger();
+		var classpath = TransactionReferences.from(context);
+		var nonce = context.readBigInteger();
+		var actuals = context.readLengthAndArray(StorageValues::from, StorageValue[]::new);
+		var constructor = ConstructorSignatures.from(context);
+		byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
+	
+		return new ConstructorCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, constructor, actuals, IOException::new);
+	}
+
 	@Override
 	public final void into(MarshallingContext context) throws IOException {
 		intoWithoutSignature(context);
@@ -190,27 +209,5 @@ public class ConstructorCallTransactionRequestImpl extends CodeExecutionTransact
 		context.writeStringUnshared(chainId);
 		super.intoWithoutSignature(context);
 		constructor.into(context);
-	}
-
-	/**
-	 * Factory method that unmarshals a request from the given stream.
-	 * The selector has been already unmarshalled.
-	 * 
-	 * @param context the unmarshalling context
-	 * @return the request
-	 * @throws IOException if the request cannot be unmarshalled
-	 */
-	public static ConstructorCallTransactionRequest from(UnmarshallingContext context) throws IOException {
-		var chainId = context.readStringUnshared();
-		var caller = StorageValues.referenceWithoutSelectorFrom(context);
-		var gasLimit = context.readBigInteger();
-		var gasPrice = context.readBigInteger();
-		var classpath = TransactionReferences.from(context);
-		var nonce = context.readBigInteger();
-		var actuals = context.readLengthAndArray(StorageValues::from, StorageValue[]::new);
-		var constructor = ConstructorSignatures.from(context);
-		byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
-
-		return new ConstructorCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, constructor, actuals, IOException::new);
 	}
 }

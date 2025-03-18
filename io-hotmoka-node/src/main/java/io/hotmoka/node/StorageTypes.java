@@ -63,7 +63,7 @@ public abstract class StorageTypes {
 	 * @return the class type
 	 */
 	public static StorageType fromClass(Class<?> clazz) {
-		return AbstractStorageType.fromClass(clazz, IllegalArgumentException::new);
+		return AbstractStorageType.fromClass(clazz);
 	}
 
 	/**
@@ -73,7 +73,7 @@ public abstract class StorageTypes {
 	 * @return the storage class type
 	 */
 	public static ClassType classFromClass(Class<?> clazz) {
-		return ClassTypeImpl.fromClass(clazz, IllegalArgumentException::new);
+		return ClassTypeImpl.fromClass(clazz);
 	}
 
 	/**

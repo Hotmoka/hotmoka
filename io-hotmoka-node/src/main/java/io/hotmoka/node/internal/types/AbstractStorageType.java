@@ -45,7 +45,24 @@ public abstract class AbstractStorageType extends AbstractMarshallable implement
 	 * @throws InconsistentJsonException if {@code json} is inconsistent
 	 */
 	public static StorageType from(StorageTypeJson json) throws InconsistentJsonException {
-		return named(Objects.requireNonNull(json.getName(), "name cannot be null", InconsistentJsonException::new), InconsistentJsonException::new);
+		return named(json.getName(), InconsistentJsonException::new);
+	}
+
+	/**
+	 * Yields the storage type unmarshalled from the given context.
+	 * 
+	 * @param context the unmarshalling context
+	 * @return the storage type
+	 * @throws IOException if the type cannot be marshalled
+	 */
+	public static StorageType from(UnmarshallingContext context) throws IOException {
+		byte selector = context.readByte();
+	
+		StorageType result = BasicTypeImpl.withSelector(selector);
+		if (result != null)
+			return result;
+		else
+			return Objects.requireNonNull(ClassTypeImpl.withSelector(selector, context), "Unknown storage type selector " + selector, IOException::new);
 	}
 
 	/**
@@ -53,6 +70,7 @@ public abstract class AbstractStorageType extends AbstractMarshallable implement
 	 * 
 	 * @param <E> the type of the exception thrown if {@code name} is illegal for a storage type
 	 * @param name the name of the type
+	 * @param onIllegalName the supplier of the exception thrown if {@code name} is illegal for a storage type
 	 * @return the storage type
 	 * @throws E if {@code name} is illegal for a storage type
 	 */
@@ -82,14 +100,11 @@ public abstract class AbstractStorageType extends AbstractMarshallable implement
 	/**
 	 * Yields the storage type corresponding to the given class.
 	 * 
-	 * @param <E> the type of the exception thrown if {@code clazz} is illegal for a storage type
 	 * @param clazz the class
-	 * @param onIllegalClass the exception generator used if {@code clazz} is illegal for a storage type
 	 * @return the class type
-	 * @throws E if {@code clazz} is illegal for a storage type
 	 */
-	public static <E extends Exception> StorageType fromClass(Class<?> clazz, ExceptionSupplier<? extends E> onIllegalClass) throws E {
-		if (clazz == boolean.class)
+	public static StorageType fromClass(Class<?> clazz) {
+		if (Objects.requireNonNull(clazz, "clazz cannot be null", IllegalArgumentException::new) == boolean.class)
 			return BasicTypeImpl.BOOLEAN;
 		else if (clazz == byte.class)
 			return BasicTypeImpl.BYTE;
@@ -106,29 +121,8 @@ public abstract class AbstractStorageType extends AbstractMarshallable implement
 		else if (clazz == double.class)
 			return BasicTypeImpl.DOUBLE;
 		else if (clazz.isArray())
-			throw onIllegalClass.apply("Arrays are not storage types");
+			throw new IllegalArgumentException("Arrays are not storage types");
 		else
-			return ClassTypeImpl.named(clazz.getName(), onIllegalClass);
-	}
-
-	/**
-	 * Yields the storage type unmarshalled from the given context.
-	 * 
-	 * @param context the unmarshalling context
-	 * @return the storage type
-	 * @throws IOException if the type cannot be marshalled
-     */
-	public static StorageType from(UnmarshallingContext context) throws IOException {
-		byte selector = context.readByte();
-
-		StorageType result = BasicTypeImpl.withSelector(selector);
-		if (result != null)
-			return result;
-
-		result = ClassTypeImpl.withSelector(selector, context);
-		if (result == null)
-			throw new IOException("Unknown storage type selector " + selector);
-
-		return result;
+			return ClassTypeImpl.named(clazz.getName(), IllegalArgumentException::new);
 	}
 }

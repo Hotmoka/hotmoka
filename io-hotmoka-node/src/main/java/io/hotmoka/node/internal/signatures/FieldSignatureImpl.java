@@ -80,9 +80,12 @@ public final class FieldSignatureImpl extends AbstractMarshallable implements Fi
 	 * @throws InconsistentJsonException if {@code json} is inconsistent
 	 */
 	public FieldSignatureImpl(FieldSignatureJson json) throws InconsistentJsonException {
-		this(ClassTypeImpl.named(json.getDefiningClass(), InconsistentJsonException::new),
+		this(
+			ClassTypeImpl.named(json.getDefiningClass(), InconsistentJsonException::new),
 			json.getName(),
-			AbstractStorageType.named(json.getType(), InconsistentJsonException::new), InconsistentJsonException::new);
+			AbstractStorageType.named(json.getType(), InconsistentJsonException::new),
+			InconsistentJsonException::new
+		);
 	}
 
 	@Override

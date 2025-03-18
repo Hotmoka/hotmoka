@@ -22,8 +22,8 @@ import java.util.Map;
 
 import io.hotmoka.marshalling.AbstractObjectUnmarshaller;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
-import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.internal.references.TransactionReferenceImpl;
 
 /**
  * An unmarshaller for transaction references, that understands the optimization
@@ -45,7 +45,7 @@ class TransactionReferenceUnmarshaller extends AbstractObjectUnmarshaller<Transa
 
 		if (selector == 255) {
 			byte[] bytes = context.readBytes(TransactionReference.REQUEST_HASH_LENGTH, "Cannot read a transaction reference");
-			var reference = TransactionReferences.of(bytes);
+			var reference = new TransactionReferenceImpl(bytes, IOException::new);
 
 			int size = memory.size();
 			if (size < Integer.MAX_VALUE)

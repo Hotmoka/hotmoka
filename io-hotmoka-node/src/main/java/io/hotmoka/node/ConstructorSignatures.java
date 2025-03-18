@@ -53,7 +53,7 @@ public abstract class ConstructorSignatures {
 	 * @throws IOException if the constructor signature cannot be unmarshalled
 	 */
 	public static ConstructorSignature from(UnmarshallingContext context) throws IOException {
-		return ConstructorSignatureImpl.from(context);
+		return new ConstructorSignatureImpl(context);
 	}
 
 	/**

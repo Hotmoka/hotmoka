@@ -49,10 +49,10 @@ public final class ClassTypeImpl extends AbstractStorageType implements ClassTyp
 	private <E extends Exception> ClassTypeImpl(String name, ExceptionSupplier<? extends E> onIllegalName) throws E {
 		if ("boolean".equals(name) || "byte".equals(name) || "char".equals(name) || "short".equals(name) ||
 				"int".equals(name) || "long".equals(name) || "float".equals(name) || "double".equals(name))
-			throw onIllegalName.apply("Refusing to create a class type whose name is that of the basic type " + name);
+			throw onIllegalName.apply("Primitive types are not storage class types");
 
 		if ("void".equals(name))
-			throw onIllegalName.apply("Refusing to create a class type named void");
+			throw onIllegalName.apply("Arrays are not storage class types");
 
 		this.name = Objects.requireNonNull(name, "name cannot be null", onIllegalName);
 	}
@@ -131,20 +131,17 @@ public final class ClassTypeImpl extends AbstractStorageType implements ClassTyp
 	/**
 	 * Yields the storage class type corresponding to the given class.
 	 * 
-	 * @param <E> the type of the exception thrown if {@code clazz} is illegal for a storage class type
 	 * @param clazz the class
-	 * @param onIllegalClass the exception generator used if {@code clazz} is illegal for a storage class type
 	 * @return the storage class type
-	 * @throws E if {@code clazz} is illegal for a storage class type
 	 */
-	public static <E extends Exception> ClassType fromClass(Class<?> clazz, ExceptionSupplier<? extends E> onIllegalClass) throws E {
+	public static ClassType fromClass(Class<?> clazz) {
 		if (clazz == boolean.class || clazz == byte.class || clazz == char.class || clazz == short.class
 				|| clazz == int.class || clazz == long.class || clazz == float.class || clazz == double.class)
-			throw onIllegalClass.apply("Primitive types are not storage class types");
-		else if (clazz.isArray())
-			throw onIllegalClass.apply("Arrays are not storage class types");
+			throw new IllegalArgumentException("Primitive types are not storage class types");
+		else if (Objects.requireNonNull(clazz, "clazz cannot be null", IllegalArgumentException::new).isArray())
+			throw new IllegalArgumentException("Arrays are not storage class types");
 		else
-			return ClassTypeImpl.named(clazz.getName(), onIllegalClass);
+			return ClassTypeImpl.named(clazz.getName(), IllegalArgumentException::new);
 	}
 
 	/**

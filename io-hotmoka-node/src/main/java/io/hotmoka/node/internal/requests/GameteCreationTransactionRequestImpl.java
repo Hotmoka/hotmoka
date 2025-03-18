@@ -92,6 +92,21 @@ public class GameteCreationTransactionRequestImpl extends TransactionRequestImpl
 		);
 	}
 
+	/**
+	 * Unmarshals a transaction from the given context. The selector has been already unmarshalled.
+	 * 
+	 * @param context the unmarshalling context
+	 * @throws IOException if the unmarshalling failed
+	 */
+	public GameteCreationTransactionRequestImpl(UnmarshallingContext context) throws IOException {
+		this(
+			TransactionReferences.from(context),
+			context.readBigInteger(),
+			context.readStringUnshared(),
+			IOException::new
+		);
+	}
+
 	@Override
 	public final TransactionReference getClasspath() {
 		return classpath;
@@ -133,21 +148,5 @@ public class GameteCreationTransactionRequestImpl extends TransactionRequestImpl
 		classpath.into(context);
 		context.writeBigInteger(initialAmount);
 		context.writeStringUnshared(publicKey);
-	}
-
-	/**
-	 * Factory method that unmarshals a request from the given stream.
-	 * The selector has been already unmarshalled.
-	 * 
-	 * @param context the unmarshalling context
-	 * @return the request
-	 * @throws IOException if the unmarshalling failed
-	 */
-	public static GameteCreationTransactionRequest from(UnmarshallingContext context) throws IOException {
-		var classpath = TransactionReferences.from(context);
-		var initialAmount = context.readBigInteger();
-		var publicKey = context.readStringUnshared();
-
-		return new GameteCreationTransactionRequestImpl(classpath, initialAmount, publicKey, IOException::new);
 	}
 }

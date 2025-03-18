@@ -21,7 +21,7 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 import java.util.function.Function;
 
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -47,13 +47,12 @@ public abstract class AbstractStorageValue extends AbstractMarshallable implemen
 	 * 
 	 * @param s the string; use "null" (without quotes) for {@code null}
 	 * @param type the type of the storage value
-	 * @param onIllegalConversion the creator of the exception thrown if the conversion is impossible;
-	 *                         it receives a string that describes the error
 	 * @return the resulting storage value
-	 * @throws E if {@code s} cannot be converted into {@code type}
 	 */
-	public static <E extends Exception> StorageValue of(String s, StorageType type, ExceptionSupplier<? extends E> onIllegalConversion) throws E {
-		if (type == StorageTypes.BOOLEAN)
+	public static StorageValue of(String s, StorageType type)  {
+		Objects.requireNonNull(s, "s cannot be null", IllegalArgumentException::new);
+
+		if (Objects.requireNonNull(type, "type cannot be null", IllegalArgumentException::new) == StorageTypes.BOOLEAN)
 			return StorageValues.booleanOf(Boolean.parseBoolean(s));
 		else if (type == StorageTypes.BYTE)
 			return StorageValues.byteOf(Byte.parseByte(s));
@@ -69,16 +68,22 @@ public abstract class AbstractStorageValue extends AbstractMarshallable implemen
 			return StorageValues.floatOf(Float.parseFloat(s));
 		else if (type == StorageTypes.DOUBLE)
 			return StorageValues.doubleOf(Double.parseDouble(s));
-		else if ((type instanceof ClassType || type.equals(StorageTypes.BIG_INTEGER) || StorageTypes.STRING.equals(type)) && "null".equals(s))
+		else if ((type instanceof ClassType || StorageTypes.BIG_INTEGER.equals(type) || StorageTypes.STRING.equals(type)) && "null".equals(s))
 			return StorageValues.NULL;
-		else if (StorageTypes.BIG_INTEGER.equals(type))
-			return StorageValues.bigIntegerOf(new BigInteger(s));
+		else if (StorageTypes.BIG_INTEGER.equals(type)) {
+			try {
+				return StorageValues.bigIntegerOf(new BigInteger(s));
+			}
+			catch (NumberFormatException e) {
+				throw new IllegalArgumentException("Cannot transform the string into a big integer", e);
+			}
+		}
 		else if (StorageTypes.STRING.equals(type))
 			return StorageValues.stringOf(s);
 		else if (type instanceof ClassType)
-			return new StorageReferenceImpl(s, onIllegalConversion);
+			return StorageValues.stringOf(s);
 		else
-			throw onIllegalConversion.apply("Cannot transform " + s + " into a storage value");
+			throw new IllegalArgumentException("Cannot transform the string into a storage value");
 	}
 
 	/**
@@ -91,7 +96,7 @@ public abstract class AbstractStorageValue extends AbstractMarshallable implemen
 	public static StorageValue from(UnmarshallingContext context) throws IOException {
 		var selector = context.readByte();
 		switch (selector) {
-		case BigIntegerValueImpl.SELECTOR: return StorageValues.bigIntegerOf(context.readBigInteger());
+		case BigIntegerValueImpl.SELECTOR: return new BigIntegerValueImpl(context.readBigInteger(), IOException::new);
 		case BooleanValueImpl.SELECTOR_TRUE: return StorageValues.TRUE;
 		case BooleanValueImpl.SELECTOR_FALSE: return StorageValues.FALSE;
 		case ByteValueImpl.SELECTOR: return StorageValues.byteOf(context.readByte());
@@ -103,8 +108,8 @@ public abstract class AbstractStorageValue extends AbstractMarshallable implemen
 		case NullValueImpl.SELECTOR: return StorageValues.NULL;
 		case ShortValueImpl.SELECTOR: return StorageValues.shortOf(context.readShort());
 		case StorageReferenceImpl.SELECTOR: return StorageValues.referenceWithoutSelectorFrom(context);
-		case StringValueImpl.SELECTOR_EMPTY_STRING: return StorageValues.stringOf("");
-		case StringValueImpl.SELECTOR: return StorageValues.stringOf(context.readStringUnshared());
+		case StringValueImpl.SELECTOR_EMPTY_STRING: return new StringValueImpl("", IOException::new);
+		case StringValueImpl.SELECTOR: return new StringValueImpl(context.readStringUnshared(), IOException::new);
 		default: // small integers receive an optimized representation
 			if (selector < 0)
 				return StorageValues.intOf((selector + 256) - IntValueImpl.SELECTOR - 1);
@@ -116,7 +121,7 @@ public abstract class AbstractStorageValue extends AbstractMarshallable implemen
 	public static StorageValue from(StorageValueJson json) throws InconsistentJsonException {
 		var bigIntegerValue = json.getBigIntegerValue();
 		if (bigIntegerValue != null)
-			return StorageValues.bigIntegerOf(bigIntegerValue);
+			return new BigIntegerValueImpl(bigIntegerValue, InconsistentJsonException::new);
 
 		var booleanValue = json.getBooleanValue();
 		if (booleanValue != null)
@@ -163,7 +168,7 @@ public abstract class AbstractStorageValue extends AbstractMarshallable implemen
 
 		var stringValue = json.getStringValue();
 		if (stringValue != null)
-			return StorageValues.stringOf(stringValue);
+			return new StringValueImpl(stringValue, InconsistentJsonException::new);
 
 		throw new InconsistentJsonException("Illegal storage value JSON");
 	}

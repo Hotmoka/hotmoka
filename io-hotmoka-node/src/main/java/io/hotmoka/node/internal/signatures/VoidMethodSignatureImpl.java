@@ -24,6 +24,9 @@ import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.node.api.signatures.VoidMethodSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
+import io.hotmoka.node.internal.gson.MethodSignatureJson;
+import io.hotmoka.node.internal.types.ClassTypeImpl;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * The signature of a method of a class, that does not return any value.
@@ -36,13 +39,28 @@ public final class VoidMethodSignatureImpl extends AbstractMethodSignature imple
 	 * 
 	 * @param <E> the type of the exception thrown if some arguments is illegal
 	 * @param definingClass the class of the method
-	 * @param methodName the name of the method
+	 * @param name the name of the method
 	 * @param formals the formal arguments of the method
 	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	public <E extends Exception> VoidMethodSignatureImpl(ClassType definingClass, String methodName, StorageType[] formals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
-		super(definingClass, methodName, formals, onIllegalArgs);
+	public <E extends Exception> VoidMethodSignatureImpl(ClassType definingClass, String name, StorageType[] formals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(definingClass, name, formals, onIllegalArgs);
+	}
+
+	/**
+	 * Creates a method signature from the given JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public VoidMethodSignatureImpl(MethodSignatureJson json) throws InconsistentJsonException {
+		this(
+			ClassTypeImpl.named(json.getDefiningClass(), InconsistentJsonException::new),
+			json.getName(),
+			formalsAsTypes(json),
+			InconsistentJsonException::new
+		);
 	}
 
 	@Override

@@ -27,10 +27,15 @@ import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.NodeMarshallingContexts;
+import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.api.signatures.CodeSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
+import io.hotmoka.node.internal.gson.MethodSignatureJson;
+import io.hotmoka.node.internal.types.AbstractStorageType;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * The signature of a method or constructor.
@@ -62,6 +67,23 @@ public abstract class AbstractCodeSignature extends AbstractMarshallable impleme
 		this.formals = Objects.requireNonNull(formals, "formals cannot be null", onIllegalArgs);
 		for (var formal: formals)
 			Objects.requireNonNull(formal, "formals cannot hold null", onIllegalArgs);
+	}
+
+	protected static ClassType unmarshalDefiningClass(UnmarshallingContext context) throws IOException {
+		if (!(StorageTypes.from(context) instanceof ClassType definingClass))
+			throw new IOException("The type defining a constructor must be a class type");
+	
+		return definingClass;
+	}
+
+	protected static StorageType[] formalsAsTypes(MethodSignatureJson json) throws InconsistentJsonException {
+		var formals = json.getFormals().toArray(String[]::new);
+		var formalsAsTypes = new StorageType[formals.length];
+		int pos = 0;
+		for (var formal: formals)
+			formalsAsTypes[pos++] = AbstractStorageType.named(formal, InconsistentJsonException::new);
+
+		return formalsAsTypes;
 	}
 
 	@Override

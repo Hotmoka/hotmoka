@@ -62,15 +62,15 @@ public abstract class TransactionRequestImpl<R extends TransactionResponse> exte
 		byte selector = context.readByte();
 		switch (selector) {
 		case ConstructorCallTransactionRequestImpl.SELECTOR: return ConstructorCallTransactionRequestImpl.from(context);
-		case InitializationTransactionRequestImpl.SELECTOR: return InitializationTransactionRequestImpl.from(context);
+		case InitializationTransactionRequestImpl.SELECTOR: return new InitializationTransactionRequestImpl(context);
 		case InstanceMethodCallTransactionRequestImpl.SELECTOR:
 		case InstanceMethodCallTransactionRequestImpl.SELECTOR_TRANSFER_INT:
 		case InstanceMethodCallTransactionRequestImpl.SELECTOR_TRANSFER_LONG:
 		case InstanceMethodCallTransactionRequestImpl.SELECTOR_TRANSFER_BIG_INTEGER:
 			return InstanceMethodCallTransactionRequestImpl.from(context, selector);
-		case JarStoreInitialTransactionRequestImpl.SELECTOR: return JarStoreInitialTransactionRequestImpl.from(context);
+		case JarStoreInitialTransactionRequestImpl.SELECTOR: return new JarStoreInitialTransactionRequestImpl(context);
 		case JarStoreTransactionRequestImpl.SELECTOR: return JarStoreTransactionRequestImpl.from(context);
-		case GameteCreationTransactionRequestImpl.SELECTOR: return GameteCreationTransactionRequestImpl.from(context);
+		case GameteCreationTransactionRequestImpl.SELECTOR: return new GameteCreationTransactionRequestImpl(context);
 		case StaticMethodCallTransactionRequestImpl.SELECTOR: return StaticMethodCallTransactionRequestImpl.from(context);
 		case InstanceSystemMethodCallTransactionRequestImpl.SELECTOR: return InstanceSystemMethodCallTransactionRequestImpl.from(context);
 		default: throw new IOException("Unexpected request selector: " + selector);

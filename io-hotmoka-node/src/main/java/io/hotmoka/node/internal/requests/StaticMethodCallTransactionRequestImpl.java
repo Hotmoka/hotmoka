@@ -62,7 +62,6 @@ public class StaticMethodCallTransactionRequestImpl extends MethodCallTransactio
 	/**
 	 * Builds the transaction request.
 	 * 
-	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
 	 * @param signer the signer of the request
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
@@ -72,15 +71,13 @@ public class StaticMethodCallTransactionRequestImpl extends MethodCallTransactio
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param method the method that must be called
 	 * @param actuals the actual arguments passed to the method
-	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
-	 * @throws E if some argument is illegal
 	 * @throws SignatureException if the signer cannot sign the request
 	 * @throws InvalidKeyException if the signer uses an invalid private key
 	 */
-	public <E extends Exception> StaticMethodCallTransactionRequestImpl(Signer<? super StaticMethodCallTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue[] actuals, ExceptionSupplier<? extends E> onIllegalArgs) throws E, InvalidKeyException, SignatureException {
-		super(caller, nonce, gasLimit, gasPrice, classpath, method, actuals, onIllegalArgs);
+	public StaticMethodCallTransactionRequestImpl(Signer<? super StaticMethodCallTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) throws InvalidKeyException, SignatureException {
+		super(caller, nonce, gasLimit, gasPrice, classpath, method, actuals, IllegalArgumentException::new);
 
-		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null", onIllegalArgs);
+		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null", IllegalArgumentException::new);
 		this.signature = signer.sign(this);
 	}
 
@@ -143,6 +140,28 @@ public class StaticMethodCallTransactionRequestImpl extends MethodCallTransactio
 		);
 	}
 
+	/**
+	 * Factory method that unmarshals a request from the given stream.
+	 * The selector has been already unmarshalled.
+	 * 
+	 * @param context the unmarshalling context
+	 * @return the request
+	 * @throws IOException if the request could not be unmarshalled
+	 */
+	public static StaticMethodCallTransactionRequest from(UnmarshallingContext context) throws IOException {
+		var chainId = context.readStringUnshared();
+		var caller = StorageValues.referenceWithoutSelectorFrom(context);
+		var gasLimit = context.readBigInteger();
+		var gasPrice = context.readBigInteger();
+		var classpath = TransactionReferences.from(context);
+		var nonce = context.readBigInteger();
+		var actuals = context.readLengthAndArray(StorageValues::from, StorageValue[]::new);
+		var method = MethodSignatures.from(context);
+		byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
+	
+		return new StaticMethodCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, actuals, IOException::new);
+	}
+
 	@Override
 	public boolean equals(Object other) {
 		return other instanceof StaticMethodCallTransactionRequest smctr && super.equals(other)
@@ -181,27 +200,5 @@ public class StaticMethodCallTransactionRequestImpl extends MethodCallTransactio
 	@Override
 	public String getChainId() {
 		return chainId;
-	}
-
-	/**
-	 * Factory method that unmarshals a request from the given stream.
-	 * The selector has been already unmarshalled.
-	 * 
-	 * @param context the unmarshalling context
-	 * @return the request
-	 * @throws IOException if the request could not be unmarshalled
-	 */
-	public static StaticMethodCallTransactionRequest from(UnmarshallingContext context) throws IOException {
-		var chainId = context.readStringUnshared();
-		var caller = StorageValues.referenceWithoutSelectorFrom(context);
-		var gasLimit = context.readBigInteger();
-		var gasPrice = context.readBigInteger();
-		var classpath = TransactionReferences.from(context);
-		var nonce = context.readBigInteger();
-		var actuals = context.readLengthAndArray(StorageValues::from, StorageValue[]::new);
-		var method = MethodSignatures.from(context);
-		byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
-
-		return new StaticMethodCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, actuals, IOException::new);
 	}
 }

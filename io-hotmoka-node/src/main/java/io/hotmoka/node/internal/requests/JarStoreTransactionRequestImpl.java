@@ -72,7 +72,6 @@ public class JarStoreTransactionRequestImpl extends NonInitialTransactionRequest
 	/**
 	 * Builds the transaction request.
 	 * 
-	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
 	 * @param signer the signer of the request
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
@@ -82,21 +81,19 @@ public class JarStoreTransactionRequestImpl extends NonInitialTransactionRequest
 	 * @param classpath the class path where the {@code caller} is interpreted
 	 * @param jar the bytes of the jar to install
 	 * @param dependencies the dependencies of the jar, already installed in blockchain
-	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
-	 * @throws E if some argument passed to this constructor is illegal
 	 * @throws SignatureException if the signer cannot sign the request
 	 * @throws InvalidKeyException if the signer uses an invalid private key
 	 */
-	public <E extends Exception> JarStoreTransactionRequestImpl(Signer<? super JarStoreTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference[] dependencies, ExceptionSupplier<? extends E> onIllegalArgs) throws E, InvalidKeyException, SignatureException {
-		super(caller, nonce, gasLimit, gasPrice, classpath, onIllegalArgs);
+	public JarStoreTransactionRequestImpl(Signer<? super JarStoreTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) throws InvalidKeyException, SignatureException {
+		super(caller, nonce, gasLimit, gasPrice, classpath, IllegalArgumentException::new);
 
-		this.jar = Objects.requireNonNull(jar, "jar cannot be null", onIllegalArgs).clone();
+		this.jar = Objects.requireNonNull(jar, "jar cannot be null", IllegalArgumentException::new).clone();
 
-		this.dependencies = Objects.requireNonNull(dependencies, "dependencies cannot be null", onIllegalArgs).clone();
+		this.dependencies = Objects.requireNonNull(dependencies, "dependencies cannot be null", IllegalArgumentException::new).clone();
 		for (var dependency: dependencies)
-			Objects.requireNonNull(dependency, "dependencies cannot hold null", onIllegalArgs);
+			Objects.requireNonNull(dependency, "dependencies cannot hold null", IllegalArgumentException::new);
 
-		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null", onIllegalArgs);
+		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null", IllegalArgumentException::new);
 		this.signature = signer.sign(this);
 	}
 
@@ -148,6 +145,29 @@ public class JarStoreTransactionRequestImpl extends NonInitialTransactionRequest
 			convertedDependencies(json),
 			InconsistentJsonException::new
 		);
+	}
+
+	/**
+	 * Factory method that unmarshals a request from the given stream.
+	 * The selector has been already unmarshalled.
+	 * 
+	 * @param context the unmarshalling context
+	 * @return the request
+	 * @throws IOException if the request could not be unmarshalled
+	 */
+	public static JarStoreTransactionRequest from(UnmarshallingContext context) throws IOException {
+		var chainId = context.readStringUnshared();
+		var caller = StorageValues.referenceWithoutSelectorFrom(context);
+		var gasLimit = context.readBigInteger();
+		var gasPrice = context.readBigInteger();
+		var classpath = TransactionReferences.from(context);
+		var nonce = context.readBigInteger();
+	
+		byte[] jar = context.readLengthAndBytes("Jar length mismatch in request");
+		var dependencies = context.readLengthAndArray(TransactionReferences::from, TransactionReference[]::new);
+		byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
+	
+		return new JarStoreTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, jar, dependencies, IOException::new);
 	}
 
 	private static TransactionReference[] convertedDependencies(TransactionRequestJson json) throws InconsistentJsonException {
@@ -245,28 +265,5 @@ public class JarStoreTransactionRequestImpl extends NonInitialTransactionRequest
 			// impossible with a byte array output stream
 			throw new RuntimeException("Unexpected exception", e);
 		}
-	}
-
-	/**
-	 * Factory method that unmarshals a request from the given stream.
-	 * The selector has been already unmarshalled.
-	 * 
-	 * @param context the unmarshalling context
-	 * @return the request
-	 * @throws IOException if the request could not be unmarshalled
-	 */
-	public static JarStoreTransactionRequest from(UnmarshallingContext context) throws IOException {
-		var chainId = context.readStringUnshared();
-		var caller = StorageValues.referenceWithoutSelectorFrom(context);
-		var gasLimit = context.readBigInteger();
-		var gasPrice = context.readBigInteger();
-		var classpath = TransactionReferences.from(context);
-		var nonce = context.readBigInteger();
-
-		byte[] jar = context.readLengthAndBytes("Jar length mismatch in request");
-		var dependencies = context.readLengthAndArray(TransactionReferences::from, TransactionReference[]::new);
-		byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
-
-		return new JarStoreTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, jar, dependencies, IOException::new);
 	}
 }

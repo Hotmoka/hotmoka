@@ -80,6 +80,20 @@ public class JarStoreInitialTransactionRequestImpl extends TransactionRequestImp
 		);
 	}
 
+	/**
+	 * Unmarshals a transaction request from the given context. The selector has been already unmarshalled.
+	 * 
+	 * @param context the unmarshalling context
+	 * @throws IOException if the request could not be unmarshalled
+	 */
+	public JarStoreInitialTransactionRequestImpl(UnmarshallingContext context) throws IOException {
+		this(
+			context.readLengthAndBytes("jar length mismatch in request"),
+			context.readLengthAndArray(TransactionReferences::from, TransactionReference[]::new),
+			IOException::new
+		);
+	}
+
 	private static TransactionReference[] convertedDependencies(TransactionRequestJson json) throws InconsistentJsonException {
 		var dependencies = json.getDependencies().toArray(TransactionReferences.Json[]::new);
 		var result = new TransactionReference[dependencies.length];
@@ -137,20 +151,5 @@ public class JarStoreInitialTransactionRequestImpl extends TransactionRequestImp
 		context.writeByte(SELECTOR);
 		context.writeLengthAndBytes(jar);
 		context.writeLengthAndArray(dependencies);
-	}
-
-	/**
-	 * Factory method that unmarshals a request from the given stream.
-	 * The selector has been already unmarshalled.
-	 * 
-	 * @param context the unmarshalling context
-	 * @return the request
-	 * @throws IOException if the request could not be unmarshalled
-	 */
-	public static JarStoreInitialTransactionRequest from(UnmarshallingContext context) throws IOException {
-		byte[] jar = context.readLengthAndBytes("jar length mismatch in request");
-		var dependencies = context.readLengthAndArray(TransactionReferences::from, TransactionReference[]::new);
-
-		return new JarStoreInitialTransactionRequestImpl(jar, dependencies, IOException::new);
 	}
 }
