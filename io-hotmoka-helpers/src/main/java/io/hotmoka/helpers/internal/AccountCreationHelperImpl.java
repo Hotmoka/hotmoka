@@ -123,7 +123,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		KeyPair keyPair = signatureForFaucet.getKeyPair();
 		Signer<SignedTransactionRequest<?>> signer = signatureForFaucet.getSigner(keyPair.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 		String publicKeyEncoded = Base64.toBase64String(signatureAlgorithm.encodingOf(publicKey));
-		var method = MethodSignatures.ofNonVoid(StorageTypes.GAMETE, methodName, eoaType, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.STRING);
+		var method = MethodSignatures.ofNonVoid(StorageTypes.GAMETE, methodName, eoaType, StorageTypes.BIG_INTEGER, StorageTypes.STRING);
 		BigInteger nonce;
 
 		try {
@@ -326,7 +326,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		case "qtesla3":
 			return BigInteger.valueOf(6_000_000L);
 		default:
-			throw new IllegalArgumentException("unknown signature algorithm " + signature);
+			throw new IllegalArgumentException("Unknown signature algorithm " + signature);
 		}
 	}
 
@@ -342,7 +342,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		case "empty":
 			return _100_000;
 		default:
-			throw new IllegalArgumentException("unknown signature algorithm " + signature);
+			throw new IllegalArgumentException("Unknown signature algorithm " + signature);
 		}
 	}
 }

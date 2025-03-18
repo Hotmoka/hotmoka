@@ -20,7 +20,6 @@ import java.net.URI;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 
-import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
@@ -33,6 +32,7 @@ import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.updates.UpdateOfField;
 import io.hotmoka.node.api.updates.UpdateOfString;
+import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.RemoteNodes;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -43,8 +43,8 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class State extends AbstractCommand {
 
-	@Parameters(index = "0", description = "the storage reference of the object")
-    private String object;
+	@Parameters(index = "0", description = "the storage reference of the object", converter = StorageReferenceOptionConverter.class)
+    private StorageReference object;
 
 	@Option(names = { "--uri" }, description = "the URI of the node", defaultValue = "ws://localhost:8001")
     private URI uri;
@@ -63,11 +63,8 @@ public class State extends AbstractCommand {
 		private final ClassTag tag;
 
 		private Run() throws Exception {
-			checkStorageReference(object);
-			var reference = StorageValues.reference(object);
-
 			try (var node = this.node = RemoteNodes.of(uri, 10_000)) {
-				this.updates = node.getState(reference).sorted().toArray(Update[]::new);
+				this.updates = node.getState(object).sorted().toArray(Update[]::new);
 				this.tag = getClassTag();
 
 				printHeader();

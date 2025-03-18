@@ -30,6 +30,7 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.AccountCreationHelpers;
 import io.hotmoka.helpers.api.AccountCreationHelper;
 import io.hotmoka.node.Accounts;
+import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.TransactionRequest;
@@ -137,7 +138,7 @@ public class CreateAccount extends AbstractCommand {
 
 		private StorageReference createAccountFromPayer() throws Exception {
 			checkStorageReference(payer);
-			var payer = Accounts.of(CreateAccount.this.payer, s -> new CommandException("The reference " + CreateAccount.this.payer + " is not a valid storage reference for an account: " + s));
+			var payer = Accounts.of(StorageValues.reference(CreateAccount.this.payer));
 			KeyPair keysOfPayer = readKeys(payer, node, passwordOfPayer);
 			if (createTendermintValidator)
 				return accountCreationHelper.tendermintValidatorPaidBy

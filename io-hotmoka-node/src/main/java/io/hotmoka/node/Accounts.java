@@ -19,7 +19,6 @@ package io.hotmoka.node;
 import java.io.IOException;
 
 import io.hotmoka.crypto.api.Entropy;
-import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.node.api.Account;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.internal.AccountImpl;
@@ -68,43 +67,6 @@ public final class Accounts {
 	 */
 	public static Account of(StorageReference reference, String dir) throws IOException {
 		return new AccountImpl(reference, dir);
-	}
-
-	/**
-	 * Creates the information to control an account in a Hotmoka node.
-	 * The entropy of the account is recovered from its PEM file.
-	 * 
-	 * @param <E> the type of the exception thrown if {@code reference} is illegal as a storage reference
-	 *            or it is not legal for an account
-	 * @param reference the reference to the account, as a string. This is limited to have 0 as progressive,
-	 *                  in order to reduce the information needed to represent an account as BIP39 words
-	 * @param onIllegalReference the creator of the exception thrown if {@code reference} is illegal
-	 *                           as a storage reference or it is not legal for an account
-	 * @return the account
-	 * @throws IOException if the PEM file cannot be read
-	 * @throws E if {@code reference} is illegal as a storage reference or it is not legal for an account
-	 */
-	public static <E extends Exception> Account of(String reference, ExceptionSupplier<? extends E> onIllegalReference) throws IOException, E {
-		return new AccountImpl(reference, onIllegalReference);
-	}
-
-	/**
-	 * Yields the information to control an account in a Hotmoka node.
-	 * The entropy of the account is recovered from its PEM file.
-	 * 
-	 * @param <E> the type of the exception thrown if {@code reference} is illegal as a storage reference
-	 *            or it is not legal for an account
-	 * @param reference the reference to the account, as a string. This is limited to have 0 as progressive,
-	 *                  in order to reduce the information needed to represent an account as BIP39 words
-	 * @param dir the directory where the PEM file must be looked for
-	 * @param onIllegalReference the creator of the exception thrown if {@code reference} is illegal
-	 *                           as a storage reference or it is not legal for an account
-	 * @return the account
-	 * @throws IOException if the PEM file cannot be read
-	 * @throws E if {@code reference} is illegal as a storage reference or it is not legal for an account
-	 */
-	public static <E extends Exception> Account of(String reference, String dir, ExceptionSupplier<? extends E> onIllegalReference) throws IOException, E {
-		return new AccountImpl(reference, dir, onIllegalReference);
 	}
 
 	/**

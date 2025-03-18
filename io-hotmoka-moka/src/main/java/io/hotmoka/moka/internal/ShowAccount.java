@@ -26,7 +26,6 @@ import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.helpers.SignatureHelpers;
-import io.hotmoka.node.Accounts;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.Account;
@@ -43,14 +42,14 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class ShowAccount extends AbstractCommand {
 
-	@Parameters(index = "0", description = "the reference of the account to show")
-    private String reference;
+	@Parameters(index = "0", description = "the reference of the account to show", converter = AccountOptionConverter.class)
+    private Account account;
 
 	@Option(names = { "--uri" }, description = "the URI of the node", defaultValue = "ws://localhost:8001")
     private URI uri;
 
-	@Option(names = { "--balances" }, description = "show the balances of the account")
-	private boolean balances;
+	@Option(names = { "--balance" }, description = "show the balance of the account")
+	private boolean balance;
 
 	@Option(names = { "--keys" }, description = "show the private and public key of the account")
 	private boolean keys;
@@ -66,17 +65,16 @@ public class ShowAccount extends AbstractCommand {
 		if (keys)
 			password = ensurePassword(password, "the account", interactive, false);
 
-		var account = Accounts.of(reference, s -> new CommandException("The reference " + reference + " is not a valid storage reference for an account: " + s));
 		System.out.println("reference: " + account.getReference());
 		System.out.println("entropy: " + Base64.toBase64String(account.getEntropyAsBytes()));
 
-		if (balances || keys) {
+		if (balance || keys) {
 			try (var node = RemoteNodes.of(uri, 10_000)) {
-				if (balances)
-					showBalances(account, node);
+				if (balance)
+					showBalance(node);
 
 				if (keys)
-					showKeys(account, node);
+					showKeys(node);
 			}
 		}
 
@@ -84,7 +82,7 @@ public class ShowAccount extends AbstractCommand {
 		printPassphrase(account);
 	}
 
-	private void showKeys(Account account, Node node) throws Exception {
+	private void showKeys(Node node) throws Exception {
 		var algorithm = SignatureHelpers.of(node).signatureAlgorithmFor(account.getReference());
 		System.out.println("signature type: " + algorithm);
 		KeyPair keys = account.keys(password, algorithm);
@@ -103,7 +101,7 @@ public class ShowAccount extends AbstractCommand {
 		System.out.println("Tendermint-like address: " + hex);
 	}
 
-	private void showBalances(Account account, Node node) throws Exception {
+	private void showBalance(Node node) throws Exception {
 		var takamakaCode = node.getTakamakaCode();
 		StorageReference reference = account.getReference();
 		BigInteger balance = node.runInstanceMethodCallTransaction(
