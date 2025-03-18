@@ -44,9 +44,12 @@ public final class UpdateOfBooleanImpl extends UpdateOfFieldImpl implements Upda
 	/**
 	 * Builds an update of an {@code boolean} field.
 	 * 
+	 * @param <E> the type of the exception thrown if some argument is illegal
 	 * @param object the storage reference of the object whose field is modified
 	 * @param field the field that is modified
 	 * @param value the new value of the field
+	 * @param onIllegalArgs the supplier of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
 	 */
 	public <E extends Exception> UpdateOfBooleanImpl(StorageReference object, FieldSignature field, boolean value, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
 		super(object, field, onIllegalArgs);

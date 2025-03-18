@@ -53,9 +53,12 @@ public final class UpdateOfBigIntegerImpl extends UpdateOfFieldImpl implements U
 	/**
 	 * Builds an update of a {@link java.math.BigInteger} field.
 	 * 
+	 * @param <E> the type of the exception thrown if some argument is illegal
 	 * @param object the storage reference of the object whose field is modified
 	 * @param field the field that is modified
 	 * @param value the new value of the field
+	 * @param onIllegalArgs the supplier of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
 	 */
 	public <E extends Exception> UpdateOfBigIntegerImpl(StorageReference object, FieldSignature field, BigInteger value, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
 		super(object, field, onIllegalArgs);

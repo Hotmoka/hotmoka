@@ -53,9 +53,12 @@ public final class UpdateOfStorageImpl extends UpdateOfFieldImpl implements Upda
 	/**
 	 * Builds an update of a field of storage (reference) type.
 	 * 
+	 * @param <E> the type of the exception thrown if some argument is illegal
 	 * @param object the storage reference of the object whose field is modified
 	 * @param field the field that is modified
 	 * @param value the new value of the field
+	 * @param onIllegalArgs the supplier of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
 	 */
 	public <E extends Exception> UpdateOfStorageImpl(StorageReference object, FieldSignature field, StorageReference value, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
 		super(object, field, onIllegalArgs);

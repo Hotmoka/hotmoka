@@ -48,9 +48,12 @@ public final class ClassTagImpl extends AbstractUpdate implements ClassTag {
 	/**
 	 * Builds an update for the class tag of an object.
 	 * 
+	 * @param <E> the type of the exception thrown if some argument is illegal
 	 * @param object the storage reference of the object whose class name is set
 	 * @param clazz the class of the object
 	 * @param jar the reference to the transaction that installed the jar from which the class was resolved
+	 * @param onIllegalArgs the supplier of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
 	 */
 	public <E extends Exception> ClassTagImpl(StorageReference object, ClassType clazz, TransactionReference jar, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
 		super(object, onIllegalArgs);

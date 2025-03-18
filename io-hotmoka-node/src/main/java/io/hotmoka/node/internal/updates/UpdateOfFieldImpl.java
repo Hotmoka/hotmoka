@@ -17,10 +17,10 @@ limitations under the License.
 package io.hotmoka.node.internal.updates;
 
 import java.io.IOException;
-import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.updates.Update;
@@ -41,13 +41,16 @@ abstract class UpdateOfFieldImpl extends AbstractUpdate implements UpdateOfField
 	/**
 	 * Builds an update.
 	 * 
+	 * @param <E> the type of the exception thrown if some argument is illegal
 	 * @param object the storage reference of the object whose field is modified
 	 * @param field the field that is modified
+	 * @param onIllegalArgs the supplier of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
 	 */
 	protected <E extends Exception> UpdateOfFieldImpl(StorageReference object, FieldSignature field, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
 		super(object, onIllegalArgs);
 
-		this.field = Objects.requireNonNull(field, "field cannot be null");
+		this.field = Objects.requireNonNull(field, "field cannot be null", onIllegalArgs);
 	}
 
 	@Override

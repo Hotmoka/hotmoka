@@ -43,9 +43,12 @@ public final class UpdateOfShortImpl extends UpdateOfFieldImpl implements Update
 	/**
 	 * Builds an update of an {@code short} field.
 	 * 
+	 * @param <E> the type of the exception thrown if some argument is illegal
 	 * @param object the storage reference of the object whose field is modified
 	 * @param field the field that is modified
 	 * @param value the new value of the field
+	 * @param onIllegalArgs the supplier of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
 	 */
 	public <E extends Exception> UpdateOfShortImpl(StorageReference object, FieldSignature field, short value, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
 		super(object, field, onIllegalArgs);

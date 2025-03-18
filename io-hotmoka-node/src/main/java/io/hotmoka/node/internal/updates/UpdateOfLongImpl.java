@@ -43,9 +43,12 @@ public final class UpdateOfLongImpl extends UpdateOfFieldImpl implements UpdateO
 	/**
 	 * Builds an update of an {@code long} field.
 	 * 
+	 * @param <E> the type of the exception thrown if some argument is illegal
 	 * @param object the storage reference of the object whose field is modified
 	 * @param field the field that is modified
 	 * @param value the new value of the field
+	 * @param onIllegalArgs the supplier of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
 	 */
 	public <E extends Exception> UpdateOfLongImpl(StorageReference object, FieldSignature field, long value, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
 		super(object, field, onIllegalArgs);

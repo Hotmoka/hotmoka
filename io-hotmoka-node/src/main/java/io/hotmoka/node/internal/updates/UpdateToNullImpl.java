@@ -43,9 +43,12 @@ public final class UpdateToNullImpl extends UpdateOfFieldImpl implements UpdateT
 	/**
 	 * Builds an update of a field to {@code null}.
 	 * 
+	 * @param <E> the type of the exception thrown if some argument is illegal
 	 * @param object the storage reference of the object whose field is modified
 	 * @param field the field that is modified
 	 * @param eager true if and only if the update is eager
+	 * @param onIllegalArgs the supplier of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
 	 */
 	public <E extends Exception> UpdateToNullImpl(StorageReference object, FieldSignature field, boolean eager, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
 		super(object, field, onIllegalArgs);
