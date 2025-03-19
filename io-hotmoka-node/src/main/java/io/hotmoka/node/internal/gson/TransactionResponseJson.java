@@ -20,10 +20,8 @@ import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import io.hotmoka.crypto.Hex;
-import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
-import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.responses.ConstructorCallTransactionExceptionResponse;
 import io.hotmoka.node.api.responses.ConstructorCallTransactionFailedResponse;
@@ -38,9 +36,7 @@ import io.hotmoka.node.api.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.node.api.responses.NonVoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.responses.VoidMethodCallTransactionSuccessfulResponse;
-import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.api.updates.Update;
-import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.internal.responses.TransactionResponseImpl;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
@@ -288,74 +284,70 @@ public abstract class TransactionResponseJson implements JsonRepresentation<Tran
 
 	@Override
 	public TransactionResponse unmap() throws InconsistentJsonException {
-		if (GameteCreationTransactionResponse.class.getSimpleName().equals(type))
-			return TransactionResponses.gameteCreation(convertedUpdates(), unmapIntoStorageReference(gamete));
-		else if (InitializationTransactionResponse.class.getSimpleName().equals(type))
-			return TransactionResponses.initialization();
-		else if (JarStoreInitialTransactionResponse.class.getSimpleName().equals(type))
-			return TransactionResponses.jarStoreInitial(getBytesOfJar(), convertedDependencies(), verificationToolVersion);
-		else if (JarStoreTransactionFailedResponse.class.getSimpleName().equals(type))
-			return TransactionResponses.jarStoreFailed(classNameOfCause, messageOfCause, convertedUpdates(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
-		else if (JarStoreTransactionSuccessfulResponse.class.getSimpleName().equals(type))
-			return TransactionResponses.jarStoreSuccessful(getBytesOfJar(), convertedDependencies(), verificationToolVersion, convertedUpdates(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-		else if (ConstructorCallTransactionExceptionResponse.class.getSimpleName().equals(type))
-			return TransactionResponses.constructorCallException(classNameOfCause, messageOfCause, where, convertedUpdates(), convertedEvents(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-		else if (ConstructorCallTransactionFailedResponse.class.getSimpleName().equals(type))
-			return TransactionResponses.constructorCallFailed(classNameOfCause, messageOfCause, where, convertedUpdates(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
-		else if (ConstructorCallTransactionSuccessfulResponse.class.getSimpleName().equals(type))
-			return TransactionResponses.constructorCallSuccessful(unmapIntoStorageReference(newObject), convertedUpdates(), convertedEvents(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-		else if (MethodCallTransactionExceptionResponse.class.getSimpleName().equals(type))
-			return TransactionResponses.methodCallException(classNameOfCause, messageOfCause, where, convertedUpdates(), convertedEvents(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-		else if (MethodCallTransactionFailedResponse.class.getSimpleName().equals(type))
-			return TransactionResponses.methodCallFailed(classNameOfCause, messageOfCause, where, convertedUpdates(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
-		else if (NonVoidMethodCallTransactionSuccessfulResponse.class.getSimpleName().equals(type))
-			return TransactionResponses.methodCallSuccessful(result.unmap(), convertedUpdates(), convertedEvents(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-		else if (VoidMethodCallTransactionSuccessfulResponse.class.getSimpleName().equals(type))
-			return TransactionResponses.voidMethodCallSuccessful(convertedUpdates(), convertedEvents(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-		else
-			throw new InconsistentJsonException("Unexpected response type " + type);
+		return TransactionResponseImpl.from(this);
 	}
 
-	private byte[] getBytesOfJar() throws InconsistentJsonException {
-		try {
-			return Hex.fromHexString(instrumentedJar);
-		}
-		catch (HexConversionException e) {
-			throw new InconsistentJsonException("The bytes of the instrumented jar cannot be reconstructed");
-		}
+	public String getType() {
+		return type;
 	}
 
-	private static StorageReference unmapIntoStorageReference(StorageValues.Json json) throws InconsistentJsonException {
-		if (json.unmap() instanceof StorageReference sr)
-			return sr;
-		else
-			throw new InconsistentJsonException("Unexpected storage value");
+	public Stream<Updates.Json> getUpdates() {
+		return updates == null ? Stream.empty() : Stream.of(updates);
 	}
 
-	private Stream<Update> convertedUpdates() throws InconsistentJsonException {
-		var result = new Update[updates.length];
-		for (int pos = 0; pos < result.length; pos++)
-			result[pos] = updates[pos].unmap();
-
-		return Stream.of(result);
+	public StorageValues.Json getGamete() {
+		return gamete;
 	}
 
-	private Stream<TransactionReference> convertedDependencies() throws InconsistentJsonException {
-		var result = new TransactionReference[dependencies.length];
-		for (int pos = 0; pos < result.length; pos++)
-			result[pos] = dependencies[pos].unmap();
-
-		return Stream.of(result);
+	public String getInstrumentedJar() {
+		return instrumentedJar;
 	}
 
-	private Stream<StorageReference> convertedEvents() throws InconsistentJsonException {
-		var result = new StorageReference[events.length];
-		for (int pos = 0; pos < result.length; pos++)
-			if (events[pos].unmap() instanceof StorageReference sr)
-				result[pos] = sr;
-			else
-				throw new InconsistentJsonException("Events must be referred through storage references");
+	public Stream<TransactionReferences.Json> getDependencies() {
+		return dependencies == null ? Stream.empty() : Stream.of(dependencies);
+	}
 
-		return Stream.of(result);
+	public Long getVerificationToolVersion() {
+		return verificationToolVersion;
+	}
+
+	public BigInteger getGasConsumedForCPU() {
+		return gasConsumedForCPU;
+	}
+
+	public BigInteger getGasConsumedForRAM() {
+		return gasConsumedForRAM;
+	}
+
+	public BigInteger getGasConsumedForStorage() {
+		return gasConsumedForStorage;
+	}
+
+	public BigInteger getGasConsumedForPenalty() {
+		return gasConsumedForPenalty;
+	}
+
+	public String getClassNameOfCause() {
+		return classNameOfCause;
+	}
+
+	public String getMessageOfCause() {
+		return messageOfCause;
+	}
+
+	public Stream<StorageValues.Json> getEvents() {
+		return events == null ? Stream.empty() : Stream.of(events);
+	}
+
+	public String getWhere() {
+		return where;
+	}
+
+	public StorageValues.Json getNewObject() {
+		return newObject;
+	}
+
+	public StorageValues.Json getResult() {
+		return result;
 	}
 }

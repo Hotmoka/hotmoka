@@ -82,7 +82,7 @@ public abstract class TransactionResponses {
 	 * @return the response
 	 */
 	public static GameteCreationTransactionResponse gameteCreation(Stream<Update> updates, StorageReference gamete) {
-		return new GameteCreationTransactionResponseImpl(updates, gamete);
+		return new GameteCreationTransactionResponseImpl(updates, gamete, IllegalArgumentException::new);
 	}
 
 	/**

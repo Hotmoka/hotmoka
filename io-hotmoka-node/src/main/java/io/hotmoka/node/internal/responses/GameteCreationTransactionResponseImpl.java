@@ -22,13 +22,17 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.responses.GameteCreationTransactionResponse;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.internal.gson.TransactionResponseJson;
 import io.hotmoka.node.internal.values.StorageReferenceImpl;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * A response for a transaction that installs a jar in a yet not initialized blockchain.
@@ -53,9 +57,44 @@ public class GameteCreationTransactionResponseImpl extends TransactionResponseIm
 	 * @param updates the updates resulting from the execution of the transaction
 	 * @param gamete the created gamete
 	 */
-	public GameteCreationTransactionResponseImpl(Stream<Update> updates, StorageReference gamete) {
-		this.updates = updates.toArray(Update[]::new);
-		this.gamete = gamete;
+	public <E extends Exception> GameteCreationTransactionResponseImpl(Stream<Update> updates, StorageReference gamete, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		this(updates.toArray(Update[]::new), gamete, onIllegalArgs);
+	}
+
+	/**
+	 * Unmarshals a response from the given stream.
+	 * The selector of the response has been already processed.
+	 * 
+	 * @param context the unmarshalling context
+	 * @throws IOException if the response could not be unmarshalled
+	 */
+	public GameteCreationTransactionResponseImpl(UnmarshallingContext context) throws IOException {
+		this(context.readLengthAndArray(Updates::from, Update[]::new), StorageReferenceImpl.fromWithoutSelector(context), IOException::new);
+	}
+
+	/**
+	 * Creates a response from the given JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public GameteCreationTransactionResponseImpl(TransactionResponseJson json) throws InconsistentJsonException {
+		this(unmapUpdates(json), unmapIntoStorageReference(json.getGamete()), InconsistentJsonException::new);
+	}
+
+	/**
+	 * Builds the transaction response.
+	 * 
+	 * @param updates the updates resulting from the execution of the transaction
+	 * @param gamete the created gamete
+	 */
+	private <E extends Exception> GameteCreationTransactionResponseImpl(Update[] updates, StorageReference gamete, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		this.updates = updates;
+	
+		for (var update: updates)
+			Objects.requireNonNull(update, "updates cannot hold null elements", onIllegalArgs);
+	
+		this.gamete = Objects.requireNonNull(gamete, "gamete cannot be null", onIllegalArgs);
 	}
 
 	@Override
@@ -101,18 +140,5 @@ public class GameteCreationTransactionResponseImpl extends TransactionResponseIm
 		context.writeByte(SELECTOR);
 		context.writeLengthAndArray(updates);
 		gamete.intoWithoutSelector(context);
-	}
-
-	/**
-	 * Factory method that unmarshals a response from the given stream.
-	 * The selector of the response has been already processed.
-	 * 
-	 * @param context the unmarshalling context
-	 * @return the response
-	 * @throws IOException if the response could not be unmarshalled
-	 */
-	public static GameteCreationTransactionResponseImpl from(UnmarshallingContext context) throws IOException {
-		Stream<Update> updates = Stream.of(context.readLengthAndArray(Updates::from, Update[]::new));
-		return new GameteCreationTransactionResponseImpl(updates, StorageReferenceImpl.fromWithoutSelector(context));
 	}
 }
