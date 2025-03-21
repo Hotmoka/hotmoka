@@ -162,8 +162,8 @@ public class JarStoreInitialTransactionResponseImpl extends TransactionResponseI
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
-		context.writeLengthAndArray(dependencies);
 		context.writeLengthAndBytes(instrumentedJar);
+		context.writeLengthAndArray(dependencies);
 		context.writeLong(verificationToolVersion);
 	}
 
