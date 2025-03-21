@@ -19,18 +19,21 @@ package io.hotmoka.node.internal.responses;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.responses.MethodCallTransactionExceptionResponse;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.internal.gson.TransactionResponseJson;
 import io.hotmoka.node.internal.values.StorageReferenceImpl;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * Implementation of a response for a successful transaction that calls a method in the store of the node.
@@ -64,21 +67,83 @@ public class MethodCallTransactionExceptionResponseImpl extends MethodCallTransa
 	/**
 	 * Builds the transaction response.
 	 * 
-	 * @param classNameOfCause the fully-qualified class name of the cause exception
-	 * @param messageOfCause of the message of the cause exception; this might be {@code null}
-	 * @param where the program point where the cause exception occurred; this might be {@code null}
 	 * @param updates the updates resulting from the execution of the transaction
 	 * @param events the events resulting from the execution of the transaction
 	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
 	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
+	 * @param classNameOfCause the fully-qualified class name of the cause exception
+	 * @param messageOfCause of the message of the cause exception; this might be {@code null}
+	 * @param where the program point where the cause exception occurred; this might be {@code null}
 	 */
-	public MethodCallTransactionExceptionResponseImpl(String classNameOfCause, String messageOfCause, String where, Stream<Update> updates, Stream<StorageReference> events, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
-		super(updates.toArray(Update[]::new), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, IllegalArgumentException::new);
+	public MethodCallTransactionExceptionResponseImpl(Stream<Update> updates, Stream<StorageReference> events, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, String classNameOfCause, String messageOfCause, String where) {
+		this(updates.toArray(Update[]::new), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, events.toArray(StorageReference[]::new), classNameOfCause, messageOfCause, where, IllegalArgumentException::new);
+	}
 
-		this.classNameOfCause = Objects.requireNonNull(classNameOfCause, "classNameOfCause cannot be null");
-		this.events = events.toArray(StorageReference[]::new);
-		Stream.of(this.events).forEach(event -> Objects.requireNonNull(event, "events cannot hold null"));
+	/**
+	 * Unmarshals a response from the given stream.
+	 * The selector of the response has been already processed.
+	 * 
+	 * @param context the unmarshalling context
+	 * @throws IOException if the response could not be unmarshalled
+	 */
+	public MethodCallTransactionExceptionResponseImpl(UnmarshallingContext context) throws IOException {
+		this(
+			context.readLengthAndArray(Updates::from, Update[]::new),
+			context.readBigInteger(),
+			context.readBigInteger(),
+			context.readBigInteger(),
+			context.readLengthAndArray(StorageReferenceImpl::fromWithoutSelector, StorageReference[]::new),
+			context.readStringUnshared(),
+			context.readStringUnshared(),
+			context.readStringUnshared(),
+			IOException::new
+		);
+	}
+
+	/**
+	 * Creates a response from the given JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public MethodCallTransactionExceptionResponseImpl(TransactionResponseJson json) throws InconsistentJsonException {
+		this(
+			unmapUpdates(json),
+			json.getGasConsumedForCPU(),
+			json.getGasConsumedForRAM(),
+			json.getGasConsumedForStorage(),
+			unmapEvents(json),
+			json.getClassNameOfCause(),
+			json.getMessageOfCause(),
+			json.getWhere(),
+			InconsistentJsonException::new
+		);
+	}
+
+	/**
+	 * Builds the transaction response.
+	 * 
+	 * @param <E> the type of the exception thrown if some argument is illegal
+	 * @param updates the updates resulting from the execution of the transaction
+	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
+	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
+	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
+	 * @param events the events resulting from the execution of the transaction
+	 * @param classNameOfCause the fully-qualified class name of the cause exception
+	 * @param messageOfCause of the message of the cause exception; this might be {@code null}
+	 * @param where the program point where the cause exception occurred; this might be {@code null}
+	 * @param onIllegalArgs the creator of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
+	 */
+	private <E extends Exception> MethodCallTransactionExceptionResponseImpl(Update[] updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, StorageReference[] events, String classNameOfCause, String messageOfCause, String where, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, onIllegalArgs);
+
+		this.events = Objects.requireNonNull(events, "events cannot be null", onIllegalArgs);
+		for (var event: events)
+			Objects.requireNonNull(event, "events cannot hold null elements", onIllegalArgs);
+
+		this.classNameOfCause = Objects.requireNonNull(classNameOfCause, "classNameOfCause cannot be null", onIllegalArgs);
 		this.messageOfCause = messageOfCause == null ? "" : messageOfCause;
 		this.where = where == null ? "" : where;
 	}
@@ -133,25 +198,5 @@ public class MethodCallTransactionExceptionResponseImpl extends MethodCallTransa
 		context.writeStringUnshared(classNameOfCause);
 		context.writeStringUnshared(messageOfCause);
 		context.writeStringUnshared(where);
-	}
-
-	/**
-	 * Factory method that unmarshals a response from the given stream.
-	 * The selector of the response has been already processed.
-	 * 
-	 * @param context the unmarshalling context
-	 * @return the response
-	 * @throws IOException if the response could not be unmarshalled
-	 */
-	public static MethodCallTransactionExceptionResponseImpl from(UnmarshallingContext context) throws IOException {
-		Stream<Update> updates = Stream.of(context.readLengthAndArray(Updates::from, Update[]::new));
-		var gasConsumedForCPU = context.readBigInteger();
-		var gasConsumedForRAM = context.readBigInteger();
-		var gasConsumedForStorage = context.readBigInteger();
-		Stream<StorageReference> events = Stream.of(context.readLengthAndArray(StorageReferenceImpl::fromWithoutSelector, StorageReference[]::new));
-		var classNameOfCause = context.readStringUnshared();
-		var messageOfCause = context.readStringUnshared();
-		var where = context.readStringUnshared();
-		return new MethodCallTransactionExceptionResponseImpl(classNameOfCause, messageOfCause, where, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 	}
 }

@@ -22,6 +22,7 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.node.api.updates.Update;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * A response for a transaction that should call a method in blockchain.
@@ -43,4 +44,6 @@ public abstract class MethodCallTransactionResponseImpl extends CodeExecutionTra
 	protected <E extends Exception> MethodCallTransactionResponseImpl(Update[] updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
 		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, onIllegalArgs);
 	}
+
+	protected final static StorageReference[] NO_REFERENCES = new StorageReference[0];
 }

@@ -81,33 +81,6 @@ public class ConstructorCallTransactionExceptionResponseImpl extends CodeExecuti
 	}
 
 	/**
-	 * Builds the transaction response.
-	 * 
-	 * @param <E> the type of the exception thrown if some argument is illegal
-	 * @param updates the updates resulting from the execution of the transaction
-	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
-	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
-	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
-	 * @param events the events resulting from the execution of the transaction
-	 * @param classNameOfCause the fully-qualified class name of the cause exception
-	 * @param messageOfCause of the message of the cause exception; this might be {@code null}
-	 * @param where the program point where the cause exception occurred; this might be {@code null}
-	 * @param onIllegalArgs the creator of the exception thrown if some argument is illegal
-	 * @throws E if some argument is illegal
-	 */
-	private <E extends Exception> ConstructorCallTransactionExceptionResponseImpl(Update[] updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, StorageReference[] events, String classNameOfCause, String messageOfCause, String where, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
-		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, onIllegalArgs);
-
-		this.events = Objects.requireNonNull(events, "events cannot be null", onIllegalArgs);
-		for (var event: events)
-			Objects.requireNonNull(event, "events cannot hold null elements", onIllegalArgs);
-
-		this.classNameOfCause = Objects.requireNonNull(classNameOfCause, "classNameOfCause cannot be null", onIllegalArgs);
-		this.messageOfCause = messageOfCause == null ? "" : messageOfCause;
-		this.where = where == null ? "" : where;
-	}
-
-	/**
 	 * Unmarshals a response from the given stream.
 	 * The selector of the response has been already processed.
 	 * 
@@ -146,6 +119,33 @@ public class ConstructorCallTransactionExceptionResponseImpl extends CodeExecuti
 			json.getWhere(),
 			InconsistentJsonException::new
 		);
+	}
+
+	/**
+	 * Builds the transaction response.
+	 * 
+	 * @param <E> the type of the exception thrown if some argument is illegal
+	 * @param updates the updates resulting from the execution of the transaction
+	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
+	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
+	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
+	 * @param events the events resulting from the execution of the transaction
+	 * @param classNameOfCause the fully-qualified class name of the cause exception
+	 * @param messageOfCause of the message of the cause exception; this might be {@code null}
+	 * @param where the program point where the cause exception occurred; this might be {@code null}
+	 * @param onIllegalArgs the creator of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
+	 */
+	private <E extends Exception> ConstructorCallTransactionExceptionResponseImpl(Update[] updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, StorageReference[] events, String classNameOfCause, String messageOfCause, String where, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, onIllegalArgs);
+	
+		this.events = Objects.requireNonNull(events, "events cannot be null", onIllegalArgs);
+		for (var event: events)
+			Objects.requireNonNull(event, "events cannot hold null elements", onIllegalArgs);
+	
+		this.classNameOfCause = Objects.requireNonNull(classNameOfCause, "classNameOfCause cannot be null", onIllegalArgs);
+		this.messageOfCause = messageOfCause == null ? "" : messageOfCause;
+		this.where = where == null ? "" : where;
 	}
 
 	@Override

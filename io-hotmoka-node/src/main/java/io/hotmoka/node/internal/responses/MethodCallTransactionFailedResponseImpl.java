@@ -18,15 +18,18 @@ package io.hotmoka.node.internal.responses;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.node.api.updates.Update;
+import io.hotmoka.node.internal.gson.TransactionResponseJson;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * Implementation of a response for a failed transaction that should have called a method in blockchain.
@@ -58,20 +61,80 @@ public class MethodCallTransactionFailedResponseImpl extends MethodCallTransacti
 	/**
 	 * Builds the transaction response.
 	 * 
-	 * @param classNameOfCause the fully-qualified class name of the cause exception
-	 * @param messageOfCause of the message of the cause exception; this might be {@code null}
-	 * @param where the program point where the cause exception occurred; this might be {@code null}
 	 * @param updates the updates resulting from the execution of the transaction
 	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
 	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 * @param gasConsumedForPenalty the amount of gas consumed by the transaction as penalty for the failure
+	 * @param classNameOfCause the fully-qualified class name of the cause exception
+	 * @param messageOfCause of the message of the cause exception; this might be {@code null}
+	 * @param where the program point where the cause exception occurred; this might be {@code null}
 	 */
-	public MethodCallTransactionFailedResponseImpl(String classNameOfCause, String messageOfCause, String where, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty) {
-		super(updates.toArray(Update[]::new), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, IllegalArgumentException::new);
+	public MethodCallTransactionFailedResponseImpl(Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty, String classNameOfCause, String messageOfCause, String where) {
+		this(updates.toArray(Update[]::new), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty, classNameOfCause, messageOfCause, where, IllegalArgumentException::new);
+	}
 
-		this.gasConsumedForPenalty = Objects.requireNonNull(gasConsumedForPenalty, "gasConsumedForPenalty cannot be null");
-		this.classNameOfCause = Objects.requireNonNull(classNameOfCause, "classNameOfCause cannot be null");
+	/**
+	 * Unmarshals a response from the given stream.
+	 * The selector of the response has been already processed.
+	 * 
+	 * @param context the unmarshalling context
+	 * @throws IOException if the response could not be unmarshalled
+	 */
+	public MethodCallTransactionFailedResponseImpl(UnmarshallingContext context) throws IOException {
+		this(
+			context.readLengthAndArray(Updates::from, Update[]::new),
+			context.readBigInteger(),
+			context.readBigInteger(),
+			context.readBigInteger(),
+			context.readBigInteger(),
+			context.readStringUnshared(),
+			context.readStringUnshared(),
+			context.readStringUnshared(),
+			IOException::new
+		);
+	}
+
+	/**
+	 * Creates a response from the given JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public MethodCallTransactionFailedResponseImpl(TransactionResponseJson json) throws InconsistentJsonException {
+		this(
+			unmapUpdates(json),
+			json.getGasConsumedForCPU(),
+			json.getGasConsumedForRAM(),
+			json.getGasConsumedForStorage(),
+			json.getGasConsumedForPenalty(),
+			json.getClassNameOfCause(),
+			json.getMessageOfCause(),
+			json.getWhere(),
+			InconsistentJsonException::new
+		);
+	}
+
+	/**
+	 * Builds the transaction response.
+	 * 
+	 * @param <E> the type of the exception thrown if some argument is illegal
+	 * @param updates the updates resulting from the execution of the transaction
+	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
+	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
+	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
+	 * @param gasConsumedForPenalty the amount of gas consumed by the transaction as penalty for the failure
+	 * @param classNameOfCause the fully-qualified class name of the cause exception
+	 * @param messageOfCause of the message of the cause exception; this might be {@code null}
+	 * @param where the program point where the cause exception occurred; this might be {@code null}
+	 * @param onIllegalArgs the creator of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
+	 */
+	private <E extends Exception> MethodCallTransactionFailedResponseImpl(Update[] updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty, String classNameOfCause, String messageOfCause, String where, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, onIllegalArgs);
+
+		this.gasConsumedForPenalty = Objects.requireNonNull(gasConsumedForPenalty, "gasConsumedForPenalty cannot be null", onIllegalArgs);
+		this.classNameOfCause = Objects.requireNonNull(classNameOfCause, "classNameOfCause cannot be null", onIllegalArgs);
 		this.messageOfCause = messageOfCause == null ? "" : messageOfCause;
 		this.where = where == null ? "" : where;
 	}
@@ -130,26 +193,5 @@ public class MethodCallTransactionFailedResponseImpl extends MethodCallTransacti
 		context.writeStringUnshared(classNameOfCause);
 		context.writeStringUnshared(messageOfCause);
 		context.writeStringUnshared(where);
-	}
-
-	/**
-	 * Factory method that unmarshals a response from the given stream.
-	 * The selector of the response has been already processed.
-	 * 
-	 * @param context the unmarshalling context
-	 * @return the response
-	 * @throws IOException if the response could not be unmarshalled
-	 */
-	public static MethodCallTransactionFailedResponseImpl from(UnmarshallingContext context) throws IOException {
-		Stream<Update> updates = Stream.of(context.readLengthAndArray(Updates::from, Update[]::new));
-		var gasConsumedForCPU = context.readBigInteger();
-		var gasConsumedForRAM = context.readBigInteger();
-		var gasConsumedForStorage = context.readBigInteger();
-		var gasConsumedForPenalty = context.readBigInteger();
-		var classNameOfCause = context.readStringUnshared();
-		var messageOfCause = context.readStringUnshared();
-		var where = context.readStringUnshared();
-
-		return new MethodCallTransactionFailedResponseImpl(classNameOfCause, messageOfCause, where, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
 	}
 }

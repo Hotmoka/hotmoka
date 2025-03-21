@@ -51,7 +51,7 @@ import io.hotmoka.node.internal.responses.JarStoreTransactionFailedResponseImpl;
 import io.hotmoka.node.internal.responses.JarStoreTransactionSuccessfulResponseImpl;
 import io.hotmoka.node.internal.responses.MethodCallTransactionExceptionResponseImpl;
 import io.hotmoka.node.internal.responses.MethodCallTransactionFailedResponseImpl;
-import io.hotmoka.node.internal.responses.MethodCallTransactionSuccessfulResponseImpl;
+import io.hotmoka.node.internal.responses.NonVoidMethodCallTransactionSuccessfulResponseImpl;
 import io.hotmoka.node.internal.responses.TransactionResponseImpl;
 import io.hotmoka.node.internal.responses.VoidMethodCallTransactionSuccessfulResponseImpl;
 
@@ -187,8 +187,8 @@ public abstract class TransactionResponses {
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 * @return the response
 	 */
-	public static NonVoidMethodCallTransactionSuccessfulResponse methodCallSuccessful(StorageValue result, Stream<Update> updates, Stream<StorageReference> events, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
-		return new MethodCallTransactionSuccessfulResponseImpl(result, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+	public static NonVoidMethodCallTransactionSuccessfulResponse nonVoidMethodCallSuccessful(StorageValue result, Stream<Update> updates, Stream<StorageReference> events, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
+		return new NonVoidMethodCallTransactionSuccessfulResponseImpl(result, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 	}
 
 	/**
@@ -208,35 +208,35 @@ public abstract class TransactionResponses {
 	/**
 	 * Yields the response to a transaction that called a method whose execution led to an exception.
 	 * 
-	 * @param classNameOfCause the fully-qualified class name of the cause exception
-	 * @param messageOfCause of the message of the cause exception; this might be {@code null}
-	 * @param where the program point where the cause exception occurred; this might be {@code null}
 	 * @param updates the updates resulting from the execution of the transaction
 	 * @param events the events resulting from the execution of the transaction
 	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
 	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
+	 * @param classNameOfCause the fully-qualified class name of the cause exception
+	 * @param messageOfCause of the message of the cause exception; this might be {@code null}
+	 * @param where the program point where the cause exception occurred; this might be {@code null}
 	 * @return the response
 	 */
-	public static MethodCallTransactionExceptionResponse methodCallException(String classNameOfCause, String messageOfCause, String where, Stream<Update> updates, Stream<StorageReference> events, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
-		return new MethodCallTransactionExceptionResponseImpl(classNameOfCause, messageOfCause, where, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+	public static MethodCallTransactionExceptionResponse methodCallException(Stream<Update> updates, Stream<StorageReference> events, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, String classNameOfCause, String messageOfCause, String where) {
+		return new MethodCallTransactionExceptionResponseImpl(updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, classNameOfCause, messageOfCause, where);
 	}
 
 	/**
 	 * Yields the response to a failed transaction that should have called a method.
 	 * 
-	 * @param classNameOfCause the fully-qualified class name of the cause exception
-	 * @param messageOfCause of the message of the cause exception; this might be {@code null}
-	 * @param where the program point where the cause exception occurred; this might be {@code null}
 	 * @param updates the updates resulting from the execution of the transaction
 	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
 	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 * @param gasConsumedForPenalty the amount of gas consumed by the transaction as penalty for the failure
+	 * @param classNameOfCause the fully-qualified class name of the cause exception
+	 * @param messageOfCause of the message of the cause exception; this might be {@code null}
+	 * @param where the program point where the cause exception occurred; this might be {@code null}
 	 * @return the response
 	 */
-	public static MethodCallTransactionFailedResponse methodCallFailed(String classNameOfCause, String messageOfCause, String where, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty) {
-		return new MethodCallTransactionFailedResponseImpl(classNameOfCause, messageOfCause, where, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
+	public static MethodCallTransactionFailedResponse methodCallFailed(Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty, String classNameOfCause, String messageOfCause, String where) {
+		return new MethodCallTransactionFailedResponseImpl(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty, classNameOfCause, messageOfCause, where);
 	}
 
 	/**

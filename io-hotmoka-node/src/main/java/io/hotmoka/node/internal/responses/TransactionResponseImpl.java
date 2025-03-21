@@ -18,7 +18,6 @@ package io.hotmoka.node.internal.responses;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.stream.Stream;
 
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.exceptions.Objects;
@@ -28,7 +27,6 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.NodeMarshallingContexts;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
-import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.responses.ConstructorCallTransactionExceptionResponse;
 import io.hotmoka.node.api.responses.ConstructorCallTransactionFailedResponse;
@@ -55,11 +53,6 @@ import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 public abstract class TransactionResponseImpl extends AbstractMarshallable implements TransactionResponse {
 
 	/**
-	 * Creates the request.
-	 */
-	protected TransactionResponseImpl() {}
-
-	/**
 	 * Factory method that unmarshals a response from the given stream.
 	 * 
 	 * @param context the unmarshalling context
@@ -79,13 +72,14 @@ public abstract class TransactionResponseImpl extends AbstractMarshallable imple
 		case ConstructorCallTransactionFailedResponseImpl.SELECTOR: return new ConstructorCallTransactionFailedResponseImpl(context);
 		case ConstructorCallTransactionSuccessfulResponseImpl.SELECTOR:
 		case ConstructorCallTransactionSuccessfulResponseImpl.SELECTOR_NO_EVENTS: return new ConstructorCallTransactionSuccessfulResponseImpl(context, selector);
-		case MethodCallTransactionExceptionResponseImpl.SELECTOR: return MethodCallTransactionExceptionResponseImpl.from(context);
-		case MethodCallTransactionFailedResponseImpl.SELECTOR: return MethodCallTransactionFailedResponseImpl.from(context);
-		case MethodCallTransactionSuccessfulResponseImpl.SELECTOR:
-		case MethodCallTransactionSuccessfulResponseImpl.SELECTOR_NO_EVENTS:
-		case MethodCallTransactionSuccessfulResponseImpl.SELECTOR_ONE_EVENT: return MethodCallTransactionSuccessfulResponseImpl.from(context, selector);
+		case MethodCallTransactionExceptionResponseImpl.SELECTOR: return new MethodCallTransactionExceptionResponseImpl(context);
+		case MethodCallTransactionFailedResponseImpl.SELECTOR: return new MethodCallTransactionFailedResponseImpl(context);
+		case NonVoidMethodCallTransactionSuccessfulResponseImpl.SELECTOR:
+		case NonVoidMethodCallTransactionSuccessfulResponseImpl.SELECTOR_NO_EVENTS:
+		case NonVoidMethodCallTransactionSuccessfulResponseImpl.SELECTOR_ONE_EVENT: return new NonVoidMethodCallTransactionSuccessfulResponseImpl(context, selector);
 		case VoidMethodCallTransactionSuccessfulResponseImpl.SELECTOR:
-		case VoidMethodCallTransactionSuccessfulResponseImpl.SELECTOR_NO_EVENTS: return VoidMethodCallTransactionSuccessfulResponseImpl.from(context, selector);
+		case VoidMethodCallTransactionSuccessfulResponseImpl.SELECTOR_NO_EVENTS:
+		case VoidMethodCallTransactionSuccessfulResponseImpl.SELECTOR_ONE_EVENT: return new VoidMethodCallTransactionSuccessfulResponseImpl(context, selector);
 		default: throw new IOException("Unexpected response selector: " + selector);
 		}
 	}
@@ -117,16 +111,26 @@ public abstract class TransactionResponseImpl extends AbstractMarshallable imple
 		else if (ConstructorCallTransactionSuccessfulResponse.class.getSimpleName().equals(type))
 			return new ConstructorCallTransactionSuccessfulResponseImpl(json);
 		else if (MethodCallTransactionExceptionResponse.class.getSimpleName().equals(type))
-			return TransactionResponses.methodCallException(json.getClassNameOfCause(), json.getMessageOfCause(), json.getWhere(), Stream.of(unmapUpdates(json)), Stream.of(unmapEvents(json)), json.getGasConsumedForCPU(), json.getGasConsumedForRAM(), json.getGasConsumedForStorage());
+			return new MethodCallTransactionExceptionResponseImpl(json);
 		else if (MethodCallTransactionFailedResponse.class.getSimpleName().equals(type))
-			return TransactionResponses.methodCallFailed(json.getClassNameOfCause(), json.getMessageOfCause(), json.getWhere(), Stream.of(unmapUpdates(json)), json.getGasConsumedForCPU(), json.getGasConsumedForRAM(), json.getGasConsumedForStorage(), json.getGasConsumedForPenalty());
+			return new MethodCallTransactionFailedResponseImpl(json);
 		else if (NonVoidMethodCallTransactionSuccessfulResponse.class.getSimpleName().equals(type))
-			return TransactionResponses.methodCallSuccessful(json.getResult().unmap(), Stream.of(unmapUpdates(json)), Stream.of(unmapEvents(json)), json.getGasConsumedForCPU(), json.getGasConsumedForRAM(), json.getGasConsumedForStorage());
+			return new NonVoidMethodCallTransactionSuccessfulResponseImpl(json);
 		else if (VoidMethodCallTransactionSuccessfulResponse.class.getSimpleName().equals(type))
-			return TransactionResponses.voidMethodCallSuccessful(Stream.of(unmapUpdates(json)), Stream.of(unmapEvents(json)), json.getGasConsumedForCPU(), json.getGasConsumedForRAM(), json.getGasConsumedForStorage());
+			return new VoidMethodCallTransactionSuccessfulResponseImpl(json);
 		else
 			throw new InconsistentJsonException("Unexpected response type " + type);
 	}
+
+	@Override
+	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
+		return NodeMarshallingContexts.of(os);
+	}
+
+	/**
+	 * Creates the request.
+	 */
+	protected TransactionResponseImpl() {}
 
 	protected static byte[] instrumentedJarAsBytes(TransactionResponseJson json) throws InconsistentJsonException {
 		String instrumentedJar = Objects.requireNonNull(json.getInstrumentedJar(), "instrumentedJar cannot be null", InconsistentJsonException::new);
@@ -173,10 +177,5 @@ public abstract class TransactionResponseImpl extends AbstractMarshallable imple
 				.asReference(v -> new InconsistentJsonException("events should hold storage references, not a " + v.getClass().getSimpleName()));
 
 		return result;
-	}
-
-	@Override
-	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
-		return NodeMarshallingContexts.of(os);
 	}
 }
