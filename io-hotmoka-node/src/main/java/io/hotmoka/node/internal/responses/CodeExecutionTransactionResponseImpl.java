@@ -18,9 +18,9 @@ package io.hotmoka.node.internal.responses;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.node.api.responses.CodeExecutionTransactionResponse;
 import io.hotmoka.node.api.updates.Update;
@@ -35,13 +35,16 @@ public abstract class CodeExecutionTransactionResponseImpl extends NonInitialTra
 	/**
 	 * Builds the transaction response.
 	 * 
+	 * @param <E> the type of the exception thrown if some argument is illegal
 	 * @param updates the updates resulting from the execution of the transaction
 	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
 	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
+	 * @param onIllegalArgs the creator of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
 	 */
-	protected CodeExecutionTransactionResponseImpl(Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
-		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+	protected <E extends Exception> CodeExecutionTransactionResponseImpl(Update[] updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, onIllegalArgs);
 	}
 
 	/**

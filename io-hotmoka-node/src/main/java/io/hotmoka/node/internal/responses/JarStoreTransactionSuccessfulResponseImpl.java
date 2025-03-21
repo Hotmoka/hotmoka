@@ -19,10 +19,11 @@ package io.hotmoka.node.internal.responses;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.TransactionReferences;
@@ -31,6 +32,8 @@ import io.hotmoka.node.api.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.node.api.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.Update;
+import io.hotmoka.node.internal.gson.TransactionResponseJson;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * Implementation of a response for a successful transaction that installs a jar in a blockchain.
@@ -67,11 +70,71 @@ public class JarStoreTransactionSuccessfulResponseImpl extends NonInitialTransac
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 */
 	public JarStoreTransactionSuccessfulResponseImpl(byte[] instrumentedJar, Stream<TransactionReference> dependencies, long verificationToolVersion, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
-		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+		this(updates.toArray(Update[]::new), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, instrumentedJar.clone(), dependencies.toArray(TransactionReference[]::new), verificationToolVersion, IllegalArgumentException::new);
+	}
 
-		this.instrumentedJar = instrumentedJar.clone();
-		this.dependencies = dependencies.toArray(TransactionReference[]::new);
-		Stream.of(this.dependencies).forEach(dependency -> Objects.requireNonNull(dependency, "dependencies cannot hold null"));
+	/**
+	 * Unmarshals a response from the given stream.
+	 * The selector of the response has been already processed.
+	 * 
+	 * @param context the unmarshalling context
+	 * @throws IOException if the response could not be unmarshalled
+	 */
+	public JarStoreTransactionSuccessfulResponseImpl(UnmarshallingContext context) throws IOException {
+		this(
+			context.readLengthAndArray(Updates::from, Update[]::new),
+			context.readBigInteger(),
+			context.readBigInteger(),
+			context.readBigInteger(),
+			context.readLengthAndBytes("Jar length mismatch in response"),
+			context.readLengthAndArray(TransactionReferences::from, TransactionReference[]::new),
+			context.readLong(),
+			IOException::new
+		);
+	}
+
+	/**
+	 * Creates a response from the given JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public JarStoreTransactionSuccessfulResponseImpl(TransactionResponseJson json) throws InconsistentJsonException {
+		this(
+			unmapUpdates(json),
+			json.getGasConsumedForCPU(),
+			json.getGasConsumedForRAM(),
+			json.getGasConsumedForStorage(),
+			instrumentedJarAsBytes(json),
+			unmapDependencies(json),
+			json.getVerificationToolVersion(),
+			InconsistentJsonException::new
+		);
+	}
+
+	/**
+	 * Builds the transaction response.
+	 * 
+	 * @param <E> the type of the exception thrown if some argument is illegal
+	 * @param updates the updates resulting from the execution of the transaction
+	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
+	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
+	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
+	 * @param instrumentedJar the bytes of the jar to install, instrumented
+	 * @param dependencies the dependencies of the jar, previously installed in blockchain
+	 * @param verificationToolVersion the version of the verification tool
+	 * @param onIllegalArgs the creator of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
+	 */
+	private <E extends Exception> JarStoreTransactionSuccessfulResponseImpl(Update[] updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, byte[] instrumentedJar, TransactionReference[] dependencies, long verificationToolVersion, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, onIllegalArgs);
+
+		this.instrumentedJar = Objects.requireNonNull(instrumentedJar, "instrumenteJar cannot be null", onIllegalArgs);
+
+		this.dependencies = Objects.requireNonNull(dependencies, "dependencies cannot be null", onIllegalArgs);
+		for (var dependency: dependencies)
+			Objects.requireNonNull(dependency, "dependencies cannot hold null elements", onIllegalArgs);
+
 		this.verificationToolVersion = verificationToolVersion;
 	}
 
@@ -120,28 +183,9 @@ public class JarStoreTransactionSuccessfulResponseImpl extends NonInitialTransac
 	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
 		super.into(context);
-		context.writeLong(verificationToolVersion);
 		context.writeLengthAndBytes(instrumentedJar);
 		context.writeLengthAndArray(dependencies);
-	}
-
-	/**
-	 * Factory method that unmarshals a response from the given stream.
-	 * The selector of the response has been already processed.
-	 * 
-	 * @param context the unmarshalling context
-	 * @return the response
-	 * @throws IOException if the response could not be unmarshalled
-	 */
-	public static JarStoreTransactionSuccessfulResponseImpl from(UnmarshallingContext context) throws IOException {
-		Stream<Update> updates = Stream.of(context.readLengthAndArray(Updates::from, Update[]::new));
-		var gasConsumedForCPU = context.readBigInteger();
-		var gasConsumedForRAM = context.readBigInteger();
-		var gasConsumedForStorage = context.readBigInteger();
-		var verificationToolVersion = context.readLong();
-		byte[] instrumentedJar = context.readLengthAndBytes("Jar length mismatch in response");
-		Stream<TransactionReference> dependencies = Stream.of(context.readLengthAndArray(TransactionReferences::from, TransactionReference[]::new));
-		return new JarStoreTransactionSuccessfulResponseImpl(instrumentedJar, dependencies, verificationToolVersion, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+		context.writeLong(verificationToolVersion);
 	}
 
 	@Override

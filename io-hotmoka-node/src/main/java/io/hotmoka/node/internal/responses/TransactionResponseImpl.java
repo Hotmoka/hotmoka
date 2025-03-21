@@ -71,14 +71,14 @@ public abstract class TransactionResponseImpl extends AbstractMarshallable imple
 
 		switch (selector) {
 		case GameteCreationTransactionResponseImpl.SELECTOR: return new GameteCreationTransactionResponseImpl(context);
-		case JarStoreInitialTransactionResponseImpl.SELECTOR: return JarStoreInitialTransactionResponseImpl.from(context);
-		case InitializationTransactionResponseImpl.SELECTOR: return InitializationTransactionResponseImpl.from(context);
-		case JarStoreTransactionFailedResponseImpl.SELECTOR: return JarStoreTransactionFailedResponseImpl.from(context);
-		case JarStoreTransactionSuccessfulResponseImpl.SELECTOR: return JarStoreTransactionSuccessfulResponseImpl.from(context);
-		case ConstructorCallTransactionExceptionResponseImpl.SELECTOR: return ConstructorCallTransactionExceptionResponseImpl.from(context);
-		case ConstructorCallTransactionFailedResponseImpl.SELECTOR: return ConstructorCallTransactionFailedResponseImpl.from(context);
+		case JarStoreInitialTransactionResponseImpl.SELECTOR: return new JarStoreInitialTransactionResponseImpl(context);
+		case InitializationTransactionResponseImpl.SELECTOR: return new InitializationTransactionResponseImpl(context);
+		case JarStoreTransactionFailedResponseImpl.SELECTOR: return new JarStoreTransactionFailedResponseImpl(context);
+		case JarStoreTransactionSuccessfulResponseImpl.SELECTOR: return new JarStoreTransactionSuccessfulResponseImpl(context);
+		case ConstructorCallTransactionExceptionResponseImpl.SELECTOR: return new ConstructorCallTransactionExceptionResponseImpl(context);
+		case ConstructorCallTransactionFailedResponseImpl.SELECTOR: return new ConstructorCallTransactionFailedResponseImpl(context);
 		case ConstructorCallTransactionSuccessfulResponseImpl.SELECTOR:
-		case ConstructorCallTransactionSuccessfulResponseImpl.SELECTOR_NO_EVENTS: return ConstructorCallTransactionSuccessfulResponseImpl.from(context, selector);
+		case ConstructorCallTransactionSuccessfulResponseImpl.SELECTOR_NO_EVENTS: return new ConstructorCallTransactionSuccessfulResponseImpl(context, selector);
 		case MethodCallTransactionExceptionResponseImpl.SELECTOR: return MethodCallTransactionExceptionResponseImpl.from(context);
 		case MethodCallTransactionFailedResponseImpl.SELECTOR: return MethodCallTransactionFailedResponseImpl.from(context);
 		case MethodCallTransactionSuccessfulResponseImpl.SELECTOR:
@@ -103,19 +103,19 @@ public abstract class TransactionResponseImpl extends AbstractMarshallable imple
 		if (GameteCreationTransactionResponse.class.getSimpleName().equals(type))
 			return new GameteCreationTransactionResponseImpl(json);
 		else if (InitializationTransactionResponse.class.getSimpleName().equals(type))
-			return TransactionResponses.initialization();
+			return new InitializationTransactionResponseImpl(json);
 		else if (JarStoreInitialTransactionResponse.class.getSimpleName().equals(type))
-			return TransactionResponses.jarStoreInitial(getBytesOfJar(json), Stream.of(unmapDependencies(json)), json.getVerificationToolVersion());
+			return new JarStoreInitialTransactionResponseImpl(json);
 		else if (JarStoreTransactionFailedResponse.class.getSimpleName().equals(type))
-			return TransactionResponses.jarStoreFailed(json.getClassNameOfCause(), json.getMessageOfCause(), Stream.of(unmapUpdates(json)), json.getGasConsumedForCPU(), json.getGasConsumedForRAM(), json.getGasConsumedForStorage(), json.getGasConsumedForPenalty());
+			return new JarStoreTransactionFailedResponseImpl(json);
 		else if (JarStoreTransactionSuccessfulResponse.class.getSimpleName().equals(type))
-			return TransactionResponses.jarStoreSuccessful(getBytesOfJar(json), Stream.of(unmapDependencies(json)), json.getVerificationToolVersion(), Stream.of(unmapUpdates(json)), json.getGasConsumedForCPU(), json.getGasConsumedForRAM(), json.getGasConsumedForStorage());
+			return new JarStoreTransactionSuccessfulResponseImpl(json);
 		else if (ConstructorCallTransactionExceptionResponse.class.getSimpleName().equals(type))
-			return TransactionResponses.constructorCallException(json.getClassNameOfCause(), json.getMessageOfCause(), json.getWhere(), Stream.of(unmapUpdates(json)), Stream.of(unmapEvents(json)), json.getGasConsumedForCPU(), json.getGasConsumedForRAM(), json.getGasConsumedForStorage());
+			return new ConstructorCallTransactionExceptionResponseImpl(json);
 		else if (ConstructorCallTransactionFailedResponse.class.getSimpleName().equals(type))
-			return TransactionResponses.constructorCallFailed(json.getClassNameOfCause(), json.getMessageOfCause(), json.getWhere(), Stream.of(unmapUpdates(json)), json.getGasConsumedForCPU(), json.getGasConsumedForRAM(), json.getGasConsumedForStorage(), json.getGasConsumedForPenalty());
+			return new ConstructorCallTransactionFailedResponseImpl(json);
 		else if (ConstructorCallTransactionSuccessfulResponse.class.getSimpleName().equals(type))
-			return TransactionResponses.constructorCallSuccessful(unmapIntoStorageReference(json.getNewObject()), Stream.of(unmapUpdates(json)), Stream.of(unmapEvents(json)), json.getGasConsumedForCPU(), json.getGasConsumedForRAM(), json.getGasConsumedForStorage());
+			return new ConstructorCallTransactionSuccessfulResponseImpl(json);
 		else if (MethodCallTransactionExceptionResponse.class.getSimpleName().equals(type))
 			return TransactionResponses.methodCallException(json.getClassNameOfCause(), json.getMessageOfCause(), json.getWhere(), Stream.of(unmapUpdates(json)), Stream.of(unmapEvents(json)), json.getGasConsumedForCPU(), json.getGasConsumedForRAM(), json.getGasConsumedForStorage());
 		else if (MethodCallTransactionFailedResponse.class.getSimpleName().equals(type))
@@ -126,6 +126,11 @@ public abstract class TransactionResponseImpl extends AbstractMarshallable imple
 			return TransactionResponses.voidMethodCallSuccessful(Stream.of(unmapUpdates(json)), Stream.of(unmapEvents(json)), json.getGasConsumedForCPU(), json.getGasConsumedForRAM(), json.getGasConsumedForStorage());
 		else
 			throw new InconsistentJsonException("Unexpected response type " + type);
+	}
+
+	protected static byte[] instrumentedJarAsBytes(TransactionResponseJson json) throws InconsistentJsonException {
+		String instrumentedJar = Objects.requireNonNull(json.getInstrumentedJar(), "instrumentedJar cannot be null", InconsistentJsonException::new);
+		return Hex.fromHexString(instrumentedJar, message -> new InconsistentJsonException("The instrumentedJar is not a hexadecimal string: " + message));
 	}
 
 	protected static StorageReference unmapIntoStorageReference(StorageValues.Json json) throws InconsistentJsonException {
@@ -168,13 +173,6 @@ public abstract class TransactionResponseImpl extends AbstractMarshallable imple
 				.asReference(v -> new InconsistentJsonException("events should hold storage references, not a " + v.getClass().getSimpleName()));
 
 		return result;
-	}
-
-	private static byte[] getBytesOfJar(TransactionResponseJson json) throws InconsistentJsonException {
-		return Hex.fromHexString(
-			Objects.requireNonNull(json.getInstrumentedJar(), "instrumentedJar cannot be null", InconsistentJsonException::new),
-			s -> new InconsistentJsonException("The bytes of the instrumented jar cannot be reconstructed: " + s)
-		);
 	}
 
 	@Override

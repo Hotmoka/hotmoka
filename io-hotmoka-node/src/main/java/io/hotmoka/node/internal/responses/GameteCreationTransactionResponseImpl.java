@@ -85,8 +85,11 @@ public class GameteCreationTransactionResponseImpl extends TransactionResponseIm
 	/**
 	 * Builds the transaction response.
 	 * 
+	 * @param <E> the type of the exception thrown if some argument is illegal
 	 * @param updates the updates resulting from the execution of the transaction
 	 * @param gamete the created gamete
+	 * @param onIllegalArgs the creator of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
 	 */
 	private <E extends Exception> GameteCreationTransactionResponseImpl(Update[] updates, StorageReference gamete, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
 		this.updates = updates;

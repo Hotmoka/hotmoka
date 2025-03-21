@@ -74,7 +74,7 @@ public class MethodCallTransactionExceptionResponseImpl extends MethodCallTransa
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 */
 	public MethodCallTransactionExceptionResponseImpl(String classNameOfCause, String messageOfCause, String where, Stream<Update> updates, Stream<StorageReference> events, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
-		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+		super(updates.toArray(Update[]::new), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, IllegalArgumentException::new);
 
 		this.classNameOfCause = Objects.requireNonNull(classNameOfCause, "classNameOfCause cannot be null");
 		this.events = events.toArray(StorageReference[]::new);

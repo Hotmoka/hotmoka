@@ -21,11 +21,15 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.internal.gson.TransactionResponseJson;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * Implementation of a response for a transaction that installs a jar in a yet non-initialized node.
@@ -58,8 +62,62 @@ public class JarStoreInitialTransactionResponseImpl extends TransactionResponseI
 	 * @param verificationToolVersion the version of the verification tool
 	 */
 	public JarStoreInitialTransactionResponseImpl(byte[] instrumentedJar, Stream<TransactionReference> dependencies, long verificationToolVersion) {
-		this.instrumentedJar = instrumentedJar.clone();
-		this.dependencies = dependencies.toArray(TransactionReference[]::new);
+		this(
+			instrumentedJar.clone(),
+			dependencies.toArray(TransactionReference[]::new),
+			verificationToolVersion,
+			IllegalArgumentException::new
+		);
+	}
+
+	/**
+	 * Unmarshals a response from the given stream.
+	 * The selector of the response has been already processed.
+	 * 
+	 * @param context the unmarshalling context
+	 * @throws IOException if the response could not be unmarshalled
+	 */
+	public JarStoreInitialTransactionResponseImpl(UnmarshallingContext context) throws IOException {
+		this(
+			context.readLengthAndBytes("Jar length mismatch in response"),
+			context.readLengthAndArray(TransactionReferences::from, TransactionReference[]::new),
+			context.readLong(),
+			IOException::new
+		);
+	}
+
+	/**
+	 * Creates a response from the given JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public JarStoreInitialTransactionResponseImpl(TransactionResponseJson json) throws InconsistentJsonException {
+		this(
+			instrumentedJarAsBytes(json),
+			unmapDependencies(json),
+			json.getVerificationToolVersion(),
+			InconsistentJsonException::new
+		);
+	}
+
+	/**
+	 * Builds a transaction response.
+	 * 
+	 * @param <E> the type of the exception thrown if some argument is illegal
+	 * @param instrumentedJar the bytes of the jar to install, instrumented
+	 * @param dependencies the dependencies of the jar, previously installed in blockchain
+	 * @param verificationToolVersion the version of the verification tool
+	 * @param onIllegalArgs the creator of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
+	 */
+	private <E extends Exception> JarStoreInitialTransactionResponseImpl(byte[] instrumentedJar, TransactionReference[] dependencies, long verificationToolVersion, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		this.instrumentedJar = Objects.requireNonNull(instrumentedJar, "insrumentedJar cannot be null", onIllegalArgs);
+
+		this.dependencies = Objects.requireNonNull(dependencies, "dependencies cannot be null", onIllegalArgs);
+		for (var dependency: dependencies)
+			Objects.requireNonNull(dependency, "dependencies cannot hold null elements", onIllegalArgs);
+
 		this.verificationToolVersion = verificationToolVersion;
 	}
 
@@ -104,24 +162,9 @@ public class JarStoreInitialTransactionResponseImpl extends TransactionResponseI
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
-		context.writeLong(verificationToolVersion);
-		context.writeLengthAndBytes(instrumentedJar);
 		context.writeLengthAndArray(dependencies);
-	}
-
-	/**
-	 * Factory method that unmarshals a response from the given stream.
-	 * The selector of the response has been already processed.
-	 * 
-	 * @param context the unmarshalling context
-	 * @return the response
-	 * @throws IOException if the response could not be unmarshalled
-	 */
-	public static JarStoreInitialTransactionResponseImpl from(UnmarshallingContext context) throws IOException {
-		var verificationToolVersion = context.readLong();
-		byte[] instrumentedJar = context.readLengthAndBytes("Jar length mismatch in response");
-		Stream<TransactionReference> dependencies = Stream.of(context.readLengthAndArray(TransactionReferences::from, TransactionReference[]::new));
-		return new JarStoreInitialTransactionResponseImpl(instrumentedJar, dependencies, verificationToolVersion);
+		context.writeLengthAndBytes(instrumentedJar);
+		context.writeLong(verificationToolVersion);
 	}
 
 	@Override

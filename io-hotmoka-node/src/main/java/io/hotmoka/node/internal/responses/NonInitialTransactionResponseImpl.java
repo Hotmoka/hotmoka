@@ -19,11 +19,12 @@ package io.hotmoka.node.internal.responses;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.node.api.responses.NonInitialTransactionResponse;
 import io.hotmoka.node.api.updates.Update;
@@ -57,26 +58,45 @@ public abstract class NonInitialTransactionResponseImpl extends TransactionRespo
 	/**
 	 * Builds the transaction response.
 	 * 
+	 * @param <E> the type of the exception thrown if some argument is illegal
 	 * @param updates the updates resulting from the execution of the transaction
 	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
 	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
+	 * @param onIllegalArgs the creator of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
 	 */
-	protected NonInitialTransactionResponseImpl(Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
-		this.gasConsumedForCPU = Objects.requireNonNull(gasConsumedForCPU, "gasConsumedForCPU cannot be null");
-		this.gasConsumedForRAM = Objects.requireNonNull(gasConsumedForRAM, "gasConsumedForRAM cannot be null");
-		this.gasConsumedForStorage = Objects.requireNonNull(gasConsumedForStorage, "gasConsumedForStorage cannot be null");
-		this.updates = updates.toArray(Update[]::new);
-		Stream.of(this.updates).forEach(update -> Objects.requireNonNull(update, "updates cannot hold null"));
+	protected <E extends Exception> NonInitialTransactionResponseImpl(Update[] updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		this.gasConsumedForCPU = Objects.requireNonNull(gasConsumedForCPU, "gasConsumedForCPU cannot be null", onIllegalArgs);
+		if (gasConsumedForCPU.signum() < 0)
+			throw onIllegalArgs.apply("gasConsumedForCPU cannot be negative");
+
+		this.gasConsumedForRAM = Objects.requireNonNull(gasConsumedForRAM, "gasConsumedForRAM cannot be null", onIllegalArgs);
+		if (gasConsumedForRAM.signum() < 0)
+			throw onIllegalArgs.apply("gasConsumedForRAM cannot be negative");
+
+		this.gasConsumedForStorage = Objects.requireNonNull(gasConsumedForStorage, "gasConsumedForStorage cannot be null", onIllegalArgs);
+		if (gasConsumedForStorage.signum() < 0)
+			throw onIllegalArgs.apply("gasConsumedForStorage cannot be negative");
+
+		this.updates = Objects.requireNonNull(updates, "updates cannot be null", onIllegalArgs);
+		for (var update: updates)
+			Objects.requireNonNull(update, "updates cannot hold null elements", onIllegalArgs);
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof NonInitialTransactionResponse nitr
-			&& Arrays.equals(updates, nitr.getUpdates().toArray(Update[]::new))
-			&& gasConsumedForCPU.equals(nitr.getGasConsumedForCPU())
-			&& gasConsumedForRAM.equals(nitr.getGasConsumedForRAM())
-			&& gasConsumedForStorage.equals(nitr.getGasConsumedForStorage());
+		if (other instanceof NonInitialTransactionResponseImpl nitri) // optimization
+			return Arrays.equals(updates, nitri.updates)
+					&& gasConsumedForCPU.equals(nitri.gasConsumedForCPU)
+					&& gasConsumedForRAM.equals(nitri.gasConsumedForRAM)
+					&& gasConsumedForStorage.equals(nitri.gasConsumedForStorage);
+		else
+			return other instanceof NonInitialTransactionResponse nitr
+					&& Arrays.equals(updates, nitr.getUpdates().toArray(Update[]::new))
+					&& gasConsumedForCPU.equals(nitr.getGasConsumedForCPU())
+					&& gasConsumedForRAM.equals(nitr.getGasConsumedForRAM())
+					&& gasConsumedForStorage.equals(nitr.getGasConsumedForStorage());
 	}
 
 	@Override

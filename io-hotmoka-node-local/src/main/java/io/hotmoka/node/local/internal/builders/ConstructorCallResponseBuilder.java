@@ -109,9 +109,9 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 				catch (InvocationTargetException e) {
 					Throwable cause = e.getCause();
 					if (isCheckedForThrowsExceptions(cause, constructorJVM)) {
-						chargeGasForStorageOf(TransactionResponses.constructorCallException(cause.getClass().getName(), getMessage(cause), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+						chargeGasForStorageOf(TransactionResponses.constructorCallException(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), cause.getClass().getName(), getMessage(cause), where(cause)));
 						refundPayerForAllRemainingGas();
-						return TransactionResponses.constructorCallException(cause.getClass().getName(), getMessage(cause), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+						return TransactionResponses.constructorCallException(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), cause.getClass().getName(), getMessage(cause), where(cause));
 					}
 					else
 						throw cause;
@@ -129,7 +129,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
 				resetBalanceOfPayerToInitialValueMinusAllPromisedGas();
 				try {
-					return TransactionResponses.constructorCallFailed(t.getClass().getName(), getMessage(t), where(t), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+					return TransactionResponses.constructorCallFailed(updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), t.getClass().getName(), getMessage(t), where(t));
 				}
 				catch (UpdatesExtractionException | StoreException e) {
 					throw new RuntimeException(e); // TODO
@@ -208,8 +208,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 			BigInteger gas = request.getGasLimit();
 		
 			return TransactionResponses.constructorCallFailed
-				("placeholder for the name of the exception", "placeholder for the message of the exception", "placeholder for where",
-				Stream.empty(), gas, gas, gas, gas).size();
+				(Stream.empty(), gas, gas, gas, gas, "placeholder for the name of the exception", "placeholder for the message of the exception", "placeholder for where").size();
 		}
 	}
 }

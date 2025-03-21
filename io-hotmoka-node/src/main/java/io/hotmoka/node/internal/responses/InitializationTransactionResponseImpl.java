@@ -22,6 +22,8 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.api.responses.InitializationTransactionResponse;
+import io.hotmoka.node.internal.gson.TransactionResponseJson;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * Implementation of a response for a transaction that initializes a node.
@@ -34,6 +36,27 @@ public class InitializationTransactionResponseImpl extends TransactionResponseIm
 	 * Builds the transaction response.
 	 */
 	public InitializationTransactionResponseImpl() {}
+
+	/**
+	 * Unmarshals a response from the given stream.
+	 * The selector of the response has been already processed.
+	 * 
+	 * @param context the unmarshalling context
+	 * @throws IOException if the response could not be unmarshalled
+	 */
+	public InitializationTransactionResponseImpl(UnmarshallingContext context) throws IOException {
+		this();
+	}
+
+	/**
+	 * Creates a response from the given JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public InitializationTransactionResponseImpl(TransactionResponseJson json) throws InconsistentJsonException {
+		this();
+	}
 
 	@Override
 	public boolean equals(Object other) {

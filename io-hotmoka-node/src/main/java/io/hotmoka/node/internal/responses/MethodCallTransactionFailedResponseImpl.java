@@ -68,7 +68,7 @@ public class MethodCallTransactionFailedResponseImpl extends MethodCallTransacti
 	 * @param gasConsumedForPenalty the amount of gas consumed by the transaction as penalty for the failure
 	 */
 	public MethodCallTransactionFailedResponseImpl(String classNameOfCause, String messageOfCause, String where, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty) {
-		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+		super(updates.toArray(Update[]::new), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, IllegalArgumentException::new);
 
 		this.gasConsumedForPenalty = Objects.requireNonNull(gasConsumedForPenalty, "gasConsumedForPenalty cannot be null");
 		this.classNameOfCause = Objects.requireNonNull(classNameOfCause, "classNameOfCause cannot be null");

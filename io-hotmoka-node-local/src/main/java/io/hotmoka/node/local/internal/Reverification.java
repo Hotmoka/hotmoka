@@ -230,10 +230,9 @@ public class Reverification {
 		var currentResponseAsNonInitial = (JarStoreTransactionSuccessfulResponse) response;
 
 		var replacement = TransactionResponses.jarStoreFailed(
-			VerificationException.class.getName(), error,
 			currentResponseAsNonInitial.getUpdates(), currentResponseAsNonInitial.getGasConsumedForCPU(),
 			currentResponseAsNonInitial.getGasConsumedForRAM(), currentResponseAsNonInitial.getGasConsumedForStorage(),
-			BigInteger.ZERO);
+			BigInteger.ZERO, VerificationException.class.getName(), error);
 
 		reverified.put(transaction, replacement);
 

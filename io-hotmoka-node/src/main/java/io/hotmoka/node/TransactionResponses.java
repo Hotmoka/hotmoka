@@ -114,17 +114,17 @@ public abstract class TransactionResponses {
 	/**
 	 * Yields the response of a failed transaction that should have installed a jar in a yet non-initialized node.
 	 * 
-	 * @param classNameOfCause the fully-qualified class name of the cause exception
-	 * @param messageOfCause of the message of the cause exception; this might be {@code null}
 	 * @param updates the updates resulting from the execution of the transaction
 	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
 	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 * @param gasConsumedForPenalty the amount of gas consumed by the transaction as penalty for the failure
+	 * @param classNameOfCause the fully-qualified class name of the cause exception
+	 * @param messageOfCause of the message of the cause exception; this might be {@code null}
 	 * @return the response
 	 */
-	public static JarStoreTransactionFailedResponse jarStoreFailed(String classNameOfCause, String messageOfCause, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty) {
-		return new JarStoreTransactionFailedResponseImpl(classNameOfCause, messageOfCause, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
+	public static JarStoreTransactionFailedResponse jarStoreFailed(Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty, String classNameOfCause, String messageOfCause) {
+		return new JarStoreTransactionFailedResponseImpl(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty, classNameOfCause, messageOfCause);
 	}
 
 	/**
@@ -145,18 +145,18 @@ public abstract class TransactionResponses {
 	/**
 	 * Yields the response to a transaction that called a constructor whose execution led to an exception.
 	 * 
-	 * @param classNameOfCause the fully-qualified class name of the cause exception
-	 * @param messageOfCause of the message of the cause exception; this might be {@code null}
-	 * @param where the program point where the cause exception occurred; this might be {@code null}
 	 * @param updates the updates resulting from the execution of the transaction
 	 * @param events the events resulting from the execution of the transaction
 	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
 	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
+	 * @param classNameOfCause the fully-qualified class name of the cause exception
+	 * @param messageOfCause of the message of the cause exception; this might be {@code null}
+	 * @param where the program point where the cause exception occurred; this might be {@code null}
 	 * @return the response
 	 */
-	public static ConstructorCallTransactionExceptionResponse constructorCallException(String classNameOfCause, String messageOfCause, String where, Stream<Update> updates, Stream<StorageReference> events, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
-		return new ConstructorCallTransactionExceptionResponseImpl(classNameOfCause, messageOfCause, where, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+	public static ConstructorCallTransactionExceptionResponse constructorCallException(Stream<Update> updates, Stream<StorageReference> events, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, String classNameOfCause, String messageOfCause, String where) {
+		return new ConstructorCallTransactionExceptionResponseImpl(updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, classNameOfCause, messageOfCause, where);
 	}
 
 	/**
@@ -172,8 +172,8 @@ public abstract class TransactionResponses {
 	 * @param gasConsumedForPenalty the amount of gas consumed by the transaction as penalty for the failure
 	 * @return the response
 	 */
-	public static ConstructorCallTransactionFailedResponse constructorCallFailed(String classNameOfCause, String messageOfCause, String where, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty) {
-		return new ConstructorCallTransactionFailedResponseImpl(classNameOfCause, messageOfCause, where, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
+	public static ConstructorCallTransactionFailedResponse constructorCallFailed(Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty, String classNameOfCause, String messageOfCause, String where) {
+		return new ConstructorCallTransactionFailedResponseImpl(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty, classNameOfCause, messageOfCause, where);
 	}
 
 	/**

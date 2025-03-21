@@ -34,8 +34,6 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.testing.AbstractLoggedTests;
-import jakarta.websocket.DecodeException;
-import jakarta.websocket.EncodeException;
 
 public class TransactionResponseTests extends AbstractLoggedTests {
 	private final static TransactionReference classpath = TransactionReferences.of("cafebabe01234567cafebabe01234567cafebabe01234567cafebabe01234567");
@@ -61,7 +59,7 @@ public class TransactionResponseTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("gamete creation transaction responses are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForGameteCreationTransactionResponse() throws EncodeException, DecodeException {
+	public void encodeDecodeWorksForGameteCreationTransactionResponse() throws Exception {
 		var response1 = TransactionResponses.gameteCreation(Stream.of(update1, update2, update3), gamete);
 		String encoded = new TransactionResponses.Encoder().encode(response1);
 		var response2 = new TransactionResponses.Decoder().decode(encoded);
@@ -70,7 +68,7 @@ public class TransactionResponseTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("initialization transaction responses are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForInitializationTransactionResponse() throws EncodeException, DecodeException {
+	public void encodeDecodeWorksForInitializationTransactionResponse() throws Exception {
 		var response1 = TransactionResponses.initialization();
 		String encoded = new TransactionResponses.Encoder().encode(response1);
 		var response2 = new TransactionResponses.Decoder().decode(encoded);
@@ -79,7 +77,7 @@ public class TransactionResponseTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("jar store initial transaction responses are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForJarStoreInitialTransactionResponse() throws EncodeException, DecodeException {
+	public void encodeDecodeWorksForJarStoreInitialTransactionResponse() throws Exception {
 		var response1 = TransactionResponses.jarStoreInitial(instrumentedJar, Stream.of(reference, reference2, reference3), 13);
 		String encoded = new TransactionResponses.Encoder().encode(response1);
 		var response2 = new TransactionResponses.Decoder().decode(encoded);
@@ -88,7 +86,7 @@ public class TransactionResponseTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("jar store successful transaction responses are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForJarStoreTransactionSuccessfulResponse() throws EncodeException, DecodeException {
+	public void encodeDecodeWorksForJarStoreTransactionSuccessfulResponse() throws Exception {
 		var response1 = TransactionResponses.jarStoreSuccessful(instrumentedJar, Stream.of(reference, reference2, reference3), 12, Stream.of(update1, update2, update3), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 		String encoded = new TransactionResponses.Encoder().encode(response1);
 		var response2 = new TransactionResponses.Decoder().decode(encoded);
@@ -97,8 +95,8 @@ public class TransactionResponseTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("jar store failed transaction responses are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForJarStoreTransactionFailedResponse() throws EncodeException, DecodeException {
-		var response1 = TransactionResponses.jarStoreFailed(classNameOfCause, messageName, Stream.of(update1, update2, update3), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
+	public void encodeDecodeWorksForJarStoreTransactionFailedResponse() throws Exception {
+		var response1 = TransactionResponses.jarStoreFailed(Stream.of(update1, update2, update3), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty, classNameOfCause, messageName);
 		String encoded = new TransactionResponses.Encoder().encode(response1);
 		var response2 = new TransactionResponses.Decoder().decode(encoded);
 		assertEquals(response1, response2);
@@ -106,8 +104,8 @@ public class TransactionResponseTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("constructor call failed transaction responses are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForConstructorCallTransactionFailedResponse() throws EncodeException, DecodeException {
-		var response1 = TransactionResponses.constructorCallFailed(classNameOfCause, messageName, where, Stream.of(update1, update2, update3), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
+	public void encodeDecodeWorksForConstructorCallTransactionFailedResponse() throws Exception {
+		var response1 = TransactionResponses.constructorCallFailed(Stream.of(update1, update2, update3), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty, classNameOfCause, messageName, where);
 		String encoded = new TransactionResponses.Encoder().encode(response1);
 		var response2 = new TransactionResponses.Decoder().decode(encoded);
 		assertEquals(response1, response2);
@@ -115,8 +113,8 @@ public class TransactionResponseTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("constructor call exception transaction responses are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForConstructorCallTransactionExceptionResponse() throws EncodeException, DecodeException {
-		var response1 = TransactionResponses.constructorCallException(classNameOfCause, messageName, where, Stream.of(update1, update2, update3), Stream.of(event1, event2, event3), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+	public void encodeDecodeWorksForConstructorCallTransactionExceptionResponse() throws Exception {
+		var response1 = TransactionResponses.constructorCallException(Stream.of(update1, update2, update3), Stream.of(event1, event2, event3), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, classNameOfCause, messageName, where);
 		String encoded = new TransactionResponses.Encoder().encode(response1);
 		var response2 = new TransactionResponses.Decoder().decode(encoded);
 		assertEquals(response1, response2);
@@ -124,7 +122,7 @@ public class TransactionResponseTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("constructor call successful transaction responses are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForConstructorCallTransactionSuccessfulResponse() throws EncodeException, DecodeException {
+	public void encodeDecodeWorksForConstructorCallTransactionSuccessfulResponse() throws Exception {
 		var response1 = TransactionResponses.constructorCallSuccessful(result, Stream.of(update1, update2, update3), Stream.of(event1, event2, event3), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 		String encoded = new TransactionResponses.Encoder().encode(response1);
 		var response2 = new TransactionResponses.Decoder().decode(encoded);
@@ -133,7 +131,7 @@ public class TransactionResponseTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("method call exception transaction responses are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForMethodCallTransactionExceptionResponse() throws EncodeException, DecodeException {
+	public void encodeDecodeWorksForMethodCallTransactionExceptionResponse() throws Exception {
 		var response1 = TransactionResponses.methodCallException(classNameOfCause, messageName, where, Stream.of(update1, update2, update3), Stream.of(event1, event2, event3), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 		String encoded = new TransactionResponses.Encoder().encode(response1);
 		var response2 = new TransactionResponses.Decoder().decode(encoded);
@@ -142,7 +140,7 @@ public class TransactionResponseTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("method call failed transaction responses are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForMethodCallTransactionFailedResponse() throws EncodeException, DecodeException {
+	public void encodeDecodeWorksForMethodCallTransactionFailedResponse() throws Exception {
 		var response1 = TransactionResponses.methodCallFailed(classNameOfCause, messageName, where, Stream.of(update1, update2, update3), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
 		String encoded = new TransactionResponses.Encoder().encode(response1);
 		var response2 = new TransactionResponses.Decoder().decode(encoded);
@@ -151,7 +149,7 @@ public class TransactionResponseTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("method call successful transaction responses are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForMethodCallTransactionSuccessfulResponse() throws EncodeException, DecodeException {
+	public void encodeDecodeWorksForMethodCallTransactionSuccessfulResponse() throws Exception {
 		var response1 = TransactionResponses.methodCallSuccessful(result, Stream.of(update1, update2, update3), Stream.of(event1, event2, event3), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 		String encoded = new TransactionResponses.Encoder().encode(response1);
 		var response2 = new TransactionResponses.Decoder().decode(encoded);
@@ -160,7 +158,7 @@ public class TransactionResponseTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("void method call successful transaction responses are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForVoidMethodCallTransactionSuccessfulResponse() throws EncodeException, DecodeException {
+	public void encodeDecodeWorksForVoidMethodCallTransactionSuccessfulResponse() throws Exception {
 		var response1 = TransactionResponses.voidMethodCallSuccessful(Stream.of(update1, update2, update3), Stream.of(event1, event2, event3), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 		String encoded = new TransactionResponses.Encoder().encode(response1);
 		var response2 = new TransactionResponses.Decoder().decode(encoded);

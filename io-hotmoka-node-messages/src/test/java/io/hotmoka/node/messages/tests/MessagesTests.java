@@ -252,8 +252,8 @@ public class MessagesTests extends AbstractLoggedTests {
 		var update1 = Updates.ofInt(OBJECT, FieldSignatures.of(clazz, "field1", StorageTypes.INT), 42);
 		var update2 = Updates.ofBigInteger(OBJECT, FieldSignatures.of(clazz, "field2", StorageTypes.BIG_INTEGER), BigInteger.valueOf(13L));
 		var update3 = Updates.ofString(OBJECT, FieldSignatures.of(clazz, "field3", StorageTypes.STRING), "hello");
-		var response = TransactionResponses.constructorCallException("io.my.Exception", "code exploded", null, Stream.of(update1, update2, update3), Stream.of(OBJECT),
-			BigInteger.valueOf(42L), BigInteger.valueOf(13L), BigInteger.valueOf(17L));
+		var response = TransactionResponses.constructorCallException(Stream.of(update1, update2, update3), Stream.of(OBJECT),
+			BigInteger.valueOf(42L), BigInteger.valueOf(13L), BigInteger.valueOf(17L), "io.my.Exception", "code exploded", null);
 
 		var expected = GetResponseResultMessages.of(response, "id");
 		String encoded = new GetResponseResultMessages.Encoder().encode(expected);
@@ -277,8 +277,8 @@ public class MessagesTests extends AbstractLoggedTests {
 		var update1 = Updates.ofInt(OBJECT, FieldSignatures.of(clazz, "field1", StorageTypes.INT), 42);
 		var update2 = Updates.ofBigInteger(OBJECT, FieldSignatures.of(clazz, "field2", StorageTypes.BIG_INTEGER), BigInteger.valueOf(13L));
 		var update3 = Updates.ofString(OBJECT, FieldSignatures.of(clazz, "field3", StorageTypes.STRING), "hello");
-		var response = TransactionResponses.constructorCallException("io.my.Exception", "code exploded", null, Stream.of(update1, update2, update3), Stream.of(OBJECT),
-			BigInteger.valueOf(42L), BigInteger.valueOf(13L), BigInteger.valueOf(17L));
+		var response = TransactionResponses.constructorCallException(Stream.of(update1, update2, update3), Stream.of(OBJECT),
+			BigInteger.valueOf(42L), BigInteger.valueOf(13L), BigInteger.valueOf(17L), "io.my.Exception", "code exploded", null);
 
 		var expected = GetPolledResponseResultMessages.of(response, "id");
 		String encoded = new GetPolledResponseResultMessages.Encoder().encode(expected);

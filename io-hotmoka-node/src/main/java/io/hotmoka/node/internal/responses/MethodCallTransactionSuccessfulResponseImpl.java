@@ -66,7 +66,7 @@ public class MethodCallTransactionSuccessfulResponseImpl extends MethodCallTrans
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 */
 	public MethodCallTransactionSuccessfulResponseImpl(StorageValue result, Stream<Update> updates, Stream<StorageReference> events, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
-		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+		super(updates.toArray(Update[]::new), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, IllegalArgumentException::new);
 
 		this.result = Objects.requireNonNull(result);
 		this.events = events.toArray(StorageReference[]::new);

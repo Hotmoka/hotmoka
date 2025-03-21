@@ -88,7 +88,7 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 				resetBalanceOfPayerToInitialValueMinusAllPromisedGas();
 				// we do not pay back the gas
 				try {
-					return TransactionResponses.jarStoreFailed(t.getClass().getName(), getMessage(t), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+					return TransactionResponses.jarStoreFailed(updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), t.getClass().getName(), getMessage(t));
 				}
 				catch (UpdatesExtractionException | StoreException e) {
 					throw new RuntimeException(e); // TODO
@@ -109,7 +109,7 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 		@Override
 		protected final int gasForStoringFailedResponse() {
 			BigInteger gas = request.getGasLimit();
-			return TransactionResponses.jarStoreFailed("placeholder for the name of the exception", "placeholder for the message of the exception", Stream.empty(), gas, gas, gas, gas).size();
+			return TransactionResponses.jarStoreFailed(Stream.empty(), gas, gas, gas, gas, "placeholder for the name of the exception", "placeholder for the message of the exception").size();
 		}
 
 		@Override

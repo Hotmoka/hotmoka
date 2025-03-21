@@ -57,7 +57,7 @@ public class VoidMethodCallTransactionSuccessfulResponseImpl extends MethodCallT
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 */
 	public VoidMethodCallTransactionSuccessfulResponseImpl(Stream<Update> updates, Stream<StorageReference> events, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
-		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+		super(updates.toArray(Update[]::new), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, IllegalArgumentException::new);
 
 		this.events = events.toArray(StorageReference[]::new);
 		Stream.of(this.events).forEach(event -> Objects.requireNonNull(event, "events cannot hold null"));
