@@ -39,7 +39,7 @@ public abstract class TransactionReferences {
 	 * @return the transaction reference
 	 */
 	public static TransactionReference of(String hash) {
-		return new TransactionReferenceImpl(hash, IllegalArgumentException::new);
+		return new TransactionReferenceImpl(hash);
 	}
 
 	/**

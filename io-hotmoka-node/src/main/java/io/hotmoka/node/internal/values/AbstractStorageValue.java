@@ -96,9 +96,9 @@ public abstract class AbstractStorageValue extends AbstractMarshallable implemen
 	public static StorageValue from(UnmarshallingContext context) throws IOException {
 		var selector = context.readByte();
 		switch (selector) {
-		case BigIntegerValueImpl.SELECTOR: return new BigIntegerValueImpl(context.readBigInteger(), IOException::new);
-		case BooleanValueImpl.SELECTOR_TRUE: return StorageValues.TRUE;
-		case BooleanValueImpl.SELECTOR_FALSE: return StorageValues.FALSE;
+		case BigIntegerValueImpl.SELECTOR: return new BigIntegerValueImpl(context);
+		case BooleanValueImpl.SELECTOR_TRUE:
+		case BooleanValueImpl.SELECTOR_FALSE: return BooleanValueImpl.from(context, selector);
 		case ByteValueImpl.SELECTOR: return StorageValues.byteOf(context.readByte());
 		case CharValueImpl.SELECTOR: return StorageValues.charOf(context.readChar());
 		case DoubleValueImpl.SELECTOR: return StorageValues.doubleOf(context.readDouble());
@@ -108,8 +108,8 @@ public abstract class AbstractStorageValue extends AbstractMarshallable implemen
 		case NullValueImpl.SELECTOR: return StorageValues.NULL;
 		case ShortValueImpl.SELECTOR: return StorageValues.shortOf(context.readShort());
 		case StorageReferenceImpl.SELECTOR: return StorageReferenceImpl.fromWithoutSelector(context);
-		case StringValueImpl.SELECTOR_EMPTY_STRING: return new StringValueImpl("", IOException::new);
-		case StringValueImpl.SELECTOR: return new StringValueImpl(context.readStringUnshared(), IOException::new);
+		case StringValueImpl.SELECTOR_EMPTY_STRING:
+		case StringValueImpl.SELECTOR: return new StringValueImpl(context, selector);
 		default: // small integers receive an optimized representation
 			if (selector < 0)
 				return StorageValues.intOf((selector + 256) - IntValueImpl.SELECTOR - 1);
@@ -121,11 +121,11 @@ public abstract class AbstractStorageValue extends AbstractMarshallable implemen
 	public static StorageValue from(StorageValueJson json) throws InconsistentJsonException {
 		var bigIntegerValue = json.getBigIntegerValue();
 		if (bigIntegerValue != null)
-			return new BigIntegerValueImpl(bigIntegerValue, InconsistentJsonException::new);
+			return new BigIntegerValueImpl(json);
 
 		var booleanValue = json.getBooleanValue();
 		if (booleanValue != null)
-			return StorageValues.booleanOf(booleanValue);
+			return BooleanValueImpl.from(json);
 
 		var byteValue = json.getByteValue();
 		if (byteValue != null)
@@ -158,17 +158,12 @@ public abstract class AbstractStorageValue extends AbstractMarshallable implemen
 		if (shortValue != null)
 			return StorageValues.shortOf(shortValue);
 
-		var transaction = json.getTransaction();
-		var progressive = json.getProgressive();
-
-		if (transaction != null && progressive != null)
-			return new StorageReferenceImpl(transaction.unmap(), progressive, InconsistentJsonException::new);
-		else if (transaction != null || progressive != null)
-			throw new InconsistentJsonException("None or both transaction and progressive must be present in JSON");
+		if (json.getTransaction() != null || json.getProgressive() != null)
+			return new StorageReferenceImpl(json);
 
 		var stringValue = json.getStringValue();
 		if (stringValue != null)
-			return new StringValueImpl(stringValue, InconsistentJsonException::new);
+			return new StringValueImpl(json);
 
 		throw new InconsistentJsonException("Illegal storage value JSON");
 	}

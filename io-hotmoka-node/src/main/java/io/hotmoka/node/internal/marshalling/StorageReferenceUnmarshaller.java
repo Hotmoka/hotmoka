@@ -22,7 +22,6 @@ import java.util.Map;
 
 import io.hotmoka.marshalling.AbstractObjectUnmarshaller;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
-import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.internal.values.StorageReferenceImpl;
 
@@ -40,12 +39,12 @@ class StorageReferenceUnmarshaller extends AbstractObjectUnmarshaller<StorageRef
 
 	@Override
 	public StorageReference read(UnmarshallingContext context) throws IOException {
-		int selector = context.readByte();
+		int selector = context.readByte();	
 		if (selector < 0)
 			selector = 256 + selector;
 
 		if (selector == 255) {
-			var reference = new StorageReferenceImpl(TransactionReferences.from(context), context.readBigInteger(), IOException::new);
+			var reference = new StorageReferenceImpl(context);
 
 			int size = memory.size();
 			if (size < Integer.MAX_VALUE)

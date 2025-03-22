@@ -28,11 +28,14 @@ import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.NodeMarshallingContexts;
+import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
+import io.hotmoka.node.internal.gson.StorageValueJson;
 import io.hotmoka.node.internal.references.TransactionReferenceImpl;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * A reference to an object of class type that can be stored in a Hotmoka node.
@@ -66,7 +69,46 @@ public final class StorageReferenceImpl extends AbstractStorageValue implements 
 	 * @param onIllegalReference the creator of the exception thrown if the result would be an illegal storage reference
 	 * @throws E if the result would be an illegal storage reference
 	 */
-	public <E extends Exception> StorageReferenceImpl(TransactionReference transaction, BigInteger progressive, ExceptionSupplier<? extends E> onIllegalReference) throws E {
+	public StorageReferenceImpl(TransactionReference transaction, BigInteger progressive) {
+		this(transaction, progressive, IllegalArgumentException::new);
+	}
+
+	/**
+	 * Unmarshals a storage reference from the given stream.
+	 * The selector of the value has been already processed.
+	 * 
+	 * @param context the unmarshalling context
+	 * @throws IOException if the response could not be unmarshalled
+	 */
+	public StorageReferenceImpl(UnmarshallingContext context) throws IOException {
+		this(TransactionReferences.from(context), context.readBigInteger(), IOException::new);
+	}
+
+	/**
+	 * Creates a storage reference from the given JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public StorageReferenceImpl(StorageValueJson json) throws InconsistentJsonException {
+		this(
+			Objects.requireNonNull(json.getTransaction(), "transaction cannot be null in a storage reference", InconsistentJsonException::new).unmap(),
+			json.getProgressive(),
+			InconsistentJsonException::new
+		);
+	}
+
+	/**
+	 * Builds a storage reference from its transaction reference and progressive.
+	 * 
+	 * @param <E> the type of the exception to throw if the result would be an illegal storage reference
+	 * @param transaction the transaction that created the object
+	 * @param progressive the progressive number of the object among those that have been created
+	 *                    during the same transaction
+	 * @param onIllegalReference the creator of the exception thrown if the result would be an illegal storage reference
+	 * @throws E if the result would be an illegal storage reference
+	 */
+	private <E extends Exception> StorageReferenceImpl(TransactionReference transaction, BigInteger progressive, ExceptionSupplier<? extends E> onIllegalReference) throws E {
 		this.transaction = Objects.requireNonNull(transaction, "transaction cannot be null", onIllegalReference);
 		this.progressive = Objects.requireNonNull(progressive, "progressive cannot be null", onIllegalReference);
 		if (progressive.signum() < 0)
@@ -76,27 +118,24 @@ public final class StorageReferenceImpl extends AbstractStorageValue implements 
 	/**
 	 * Builds a storage reference from its string representation.
 	 * 
-	 * @param <E> the type of exception thrown if {@code s} is an illegal representation for a storage reference
 	 * @param s the string representation
-	 * @param onIllegalReference the creator of the exception thrown if {@code s} is an illegal representation for a storage reference
-	 * @throws E if {@code s} is an illegal representation for a storage reference
 	 */
-	public <E extends Exception> StorageReferenceImpl(String s, ExceptionSupplier<? extends E> onIllegalReference) throws E {
-		String[] splits = Objects.requireNonNull(s, "s cannot be null", onIllegalReference).split("#");
+	public <E extends Exception> StorageReferenceImpl(String s) {
+		String[] splits = Objects.requireNonNull(s, "s cannot be null", IllegalArgumentException::new).split("#");
 		if (splits.length != 2)
-			throw onIllegalReference.apply("A storage reference should have the form transaction#progressive");
+			throw new IllegalArgumentException("A storage reference should have the form transaction#progressive");
 
-		this.transaction = new TransactionReferenceImpl(splits[0], onIllegalReference);
+		this.transaction = new TransactionReferenceImpl(splits[0]);
 
 		try {
 			this.progressive = new BigInteger(splits[1], 16);
 		}
 		catch (NumberFormatException e) {
-			throw onIllegalReference.apply("The progressive part of a storage reference should be a positive hexadecimal number: " + e.getMessage());
+			throw new IllegalArgumentException("The progressive part of a storage reference should be a positive hexadecimal number", e);
 		}
 
 		if (progressive.signum() < 0)
-			throw onIllegalReference.apply("The progressive part of a storage reference should be a positive hexadecimal number");
+			throw new IllegalArgumentException("The progressive part of a storage reference should be a positive hexadecimal number");
 	}
 
 	@Override

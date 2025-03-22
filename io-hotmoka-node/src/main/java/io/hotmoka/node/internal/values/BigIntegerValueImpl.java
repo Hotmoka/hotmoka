@@ -24,9 +24,12 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageValue;
+import io.hotmoka.node.internal.gson.StorageValueJson;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * Implementation of a big integer stored in a Hotmoka node.
@@ -48,7 +51,40 @@ public final class BigIntegerValueImpl extends AbstractStorageValue implements B
 	 * @param onIllegalArgs the supplier of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	public <E extends Exception> BigIntegerValueImpl(BigInteger value, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	public BigIntegerValueImpl(BigInteger value) {
+		this(value, IllegalArgumentException::new);
+	}
+
+	/**
+	 * Unmarshals a big integer that can be stored in a Hotmoka node, from the given stream.
+	 * The selector of the value has been already processed.
+	 * 
+	 * @param context the unmarshalling context
+	 * @throws IOException if the response could not be unmarshalled
+	 */
+	public BigIntegerValueImpl(UnmarshallingContext context) throws IOException {
+		this(context.readBigInteger(), IOException::new);
+	}
+
+	/**
+	 * Creates a big integer that can be stored in a Hotmoka node, from the given JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public BigIntegerValueImpl(StorageValueJson json) throws InconsistentJsonException {
+		this(json.getBigIntegerValue(), InconsistentJsonException::new);
+	}
+
+	/**
+	 * Builds a big integer that can be stored in a Hotmoka node.
+	 * 
+	 * @param <E> the type of the exception thrown if some argument is illegal
+	 * @param value the big integer
+	 * @param onIllegalArgs the supplier of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
+	 */
+	private <E extends Exception> BigIntegerValueImpl(BigInteger value, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
 		this.value = Objects.requireNonNull(value, "value cannot be null", onIllegalArgs);
 	}
 

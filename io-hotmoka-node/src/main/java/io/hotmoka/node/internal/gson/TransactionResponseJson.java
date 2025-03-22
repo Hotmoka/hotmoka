@@ -282,11 +282,6 @@ public abstract class TransactionResponseJson implements JsonRepresentation<Tran
 			throw new IllegalArgumentException("Unexpected response of type " + response.getClass().getName());
 	}
 
-	@Override
-	public TransactionResponse unmap() throws InconsistentJsonException {
-		return TransactionResponseImpl.from(this);
-	}
-
 	public String getType() {
 		return type;
 	}
@@ -349,5 +344,10 @@ public abstract class TransactionResponseJson implements JsonRepresentation<Tran
 
 	public StorageValues.Json getResult() {
 		return result;
+	}
+
+	@Override
+	public TransactionResponse unmap() throws InconsistentJsonException {
+		return TransactionResponseImpl.from(this);
 	}
 }

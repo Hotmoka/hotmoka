@@ -21,9 +21,12 @@ import java.util.function.Function;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.values.BooleanValue;
 import io.hotmoka.node.api.values.StorageValue;
+import io.hotmoka.node.internal.gson.StorageValueJson;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * Implementation of a {@code boolean} value stored in a Hotmoka node.
@@ -55,6 +58,33 @@ public final class BooleanValueImpl extends AbstractStorageValue implements Bool
 	 */
 	private BooleanValueImpl(boolean value) {
 		this.value = value;
+	}
+
+	/**
+	 * Unmarshals a {@code boolean} value, from the given stream.
+	 * The selector of the value has been already processed.
+	 * 
+	 * @param context the unmarshalling context
+	 * @return the value
+	 * @throws IOException if the response could not be unmarshalled
+	 */
+	public static BooleanValue from(UnmarshallingContext context, byte selector) throws IOException {
+		switch (selector) {
+		case SELECTOR_TRUE: return TRUE;
+		case SELECTOR_FALSE: return FALSE;
+		default: throw new IllegalArgumentException("Unexpected selector " + selector + " for a boolean value");
+		}
+	}
+
+	/**
+	 * Yields a {@code boolean} value, from the given JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @return the value
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public static BooleanValue from(StorageValueJson json) throws InconsistentJsonException {
+		return json.getBooleanValue() ? TRUE : FALSE;
 	}
 
 	@Override

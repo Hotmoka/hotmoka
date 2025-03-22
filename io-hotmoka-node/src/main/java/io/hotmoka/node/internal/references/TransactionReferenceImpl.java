@@ -44,28 +44,21 @@ public final class TransactionReferenceImpl extends AbstractMarshallable impleme
 	private final byte[] hash;
 
 	/**
-	 * Builds a transaction reference.
-	 * 
-	 * @param <E> the type of the exception thrown if {@code hash} is an illegal transaction hash
-	 * @param hash the hash of the transaction, as the hexadecimal representation of its {@link TransactionReference#REQUEST_HASH_LENGTH} bytes
-	 * @param onIllegalHash the generator of the exception thrown if {@code hash} is illegal
-	 * @throws E if {@code hash} in not a legal transaction hash
-	 */
-	public <E extends Exception> TransactionReferenceImpl(String hash, ExceptionSupplier<? extends E> onIllegalHash) throws E {
-		// each byte is represented by two successive characters
-		if (Objects.requireNonNull(hash, "hash cannot be null", onIllegalHash).length() != REQUEST_HASH_LENGTH * 2)
-			throw onIllegalHash.apply("Illegal transaction reference: it should be " + REQUEST_HASH_LENGTH + " bytes long");
-
-		this.hash = Hex.fromHexString(hash, onIllegalHash);
-	}
-
-	/**
 	 * Builds a transaction reference with the given hash.
 	 * 
 	 * @param hash the hash of the transaction, as a byte array of length {@link TransactionReference#REQUEST_HASH_LENGTH}
 	 */
 	public TransactionReferenceImpl(byte[] hash) {
 		this(checkHash(hash, IllegalArgumentException::new).clone(), IllegalArgumentException::new);
+	}
+
+	/**
+	 * Builds a transaction reference.
+	 * 
+	 * @param hash the hash of the transaction, as the hexadecimal representation of its {@link TransactionReference#REQUEST_HASH_LENGTH} bytes
+	 */
+	public TransactionReferenceImpl(String hash) {
+		this(hash, IllegalArgumentException::new);
 	}
 
 	/**
@@ -89,6 +82,22 @@ public final class TransactionReferenceImpl extends AbstractMarshallable impleme
 			context.readBytes(TransactionReference.REQUEST_HASH_LENGTH, "Cannot read a transaction reference"),
 			IOException::new
 		);
+	}
+
+	/**
+	 * Builds a transaction reference.
+	 * 
+	 * @param <E> the type of the exception thrown if {@code hash} is an illegal transaction hash
+	 * @param hash the hash of the transaction, as the hexadecimal representation of its {@link TransactionReference#REQUEST_HASH_LENGTH} bytes
+	 * @param onIllegalHash the generator of the exception thrown if {@code hash} is illegal
+	 * @throws E if {@code hash} in not a legal transaction hash
+	 */
+	private <E extends Exception> TransactionReferenceImpl(String hash, ExceptionSupplier<? extends E> onIllegalHash) throws E {
+		// each byte is represented by two successive characters
+		if (Objects.requireNonNull(hash, "hash cannot be null", onIllegalHash).length() != REQUEST_HASH_LENGTH * 2)
+			throw onIllegalHash.apply("Illegal transaction reference: it should be " + REQUEST_HASH_LENGTH + " bytes long");
+	
+		this.hash = Hex.fromHexString(hash, onIllegalHash);
 	}
 
 	/**
