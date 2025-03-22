@@ -207,7 +207,7 @@ public abstract class TransactionRequests {
 	 * @return the request
 	 */
 	public static InstanceMethodCallTransactionRequest instanceMethodCall(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) {
-		return new InstanceMethodCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, receiver, actuals, IllegalArgumentException::new);
+		return new InstanceMethodCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, receiver, actuals);
 	}
 
 	/**
