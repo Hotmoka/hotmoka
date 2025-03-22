@@ -23,6 +23,7 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
@@ -31,6 +32,9 @@ import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.updates.UpdateOfBigInteger;
 import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.internal.gson.UpdateJson;
+import io.hotmoka.node.internal.values.StorageReferenceImpl;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * The implementation of an update of a field of type {@link java.math.BigInteger}.
@@ -53,6 +57,76 @@ public final class UpdateOfBigIntegerImpl extends UpdateOfFieldImpl implements U
 	/**
 	 * Builds an update of a {@link java.math.BigInteger} field.
 	 * 
+	 * @param object the storage reference of the object whose field is modified
+	 * @param field the field that is modified
+	 * @param value the new value of the field
+	 */
+	public UpdateOfBigIntegerImpl(StorageReference object, FieldSignature field, BigInteger value) {
+		this(object, field, value, IllegalArgumentException::new);
+	}
+
+	/**
+	 * Builds an update of a {@link java.math.BigInteger} field from its given JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @param value the assigned value
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public UpdateOfBigIntegerImpl(UpdateJson json, BigInteger value) throws InconsistentJsonException {
+		this(
+			unmapObject(json),
+			unmapField(json),
+			value,
+			InconsistentJsonException::new
+		);
+	}
+
+	/**
+	 * Unmarshals an update of a {@link java.math.BigInteger} field from the given context.
+	 * The selector has been already unmarshalled.
+	 * 
+	 * @param context the unmarshalling context
+	 * @param selector the selector
+	 * @throws IOException if the unmarshalling failed
+	 */
+	public UpdateOfBigIntegerImpl(UnmarshallingContext context, byte selector) throws IOException {
+		this(
+			StorageReferenceImpl.fromWithoutSelector(context),
+			unmarshalField(context, selector),
+			unmarshalValue(context, selector),
+			IOException::new
+		);
+	}
+
+	private static FieldSignature unmarshalField(UnmarshallingContext context, int selector) throws IOException {
+		switch (selector) {
+		case SELECTOR_BALANCE: return FieldSignatures.BALANCE_FIELD;
+		case SELECTOR_GAS_PRICE: return FieldSignatures.GENERIC_GAS_STATION_GAS_PRICE_FIELD;
+		case SELECTOR_UBI_VALUE: return FieldSignatures.UNSIGNED_BIG_INTEGER_VALUE_FIELD;
+		case SELECTOR_BALANCE_TO_ZERO: return FieldSignatures.BALANCE_FIELD;
+		case SELECTOR_NONCE_TO_ZERO: return FieldSignatures.EOA_NONCE_FIELD;
+		case SELECTOR_NONCE: return FieldSignatures.EOA_NONCE_FIELD;
+		case SELECTOR: return FieldSignatures.from(context);
+		default: throw new IllegalArgumentException("Unexpected selector " + selector + " for a BigInteger field update");
+		}
+	}
+
+	private static BigInteger unmarshalValue(UnmarshallingContext context, int selector) throws IOException {
+		switch (selector) {
+		case SELECTOR_BALANCE: return context.readBigInteger();
+		case SELECTOR_GAS_PRICE: return context.readBigInteger();
+		case SELECTOR_UBI_VALUE: return context.readBigInteger();
+		case SELECTOR_BALANCE_TO_ZERO: return BigInteger.ZERO;
+		case SELECTOR_NONCE_TO_ZERO: return BigInteger.ZERO;
+		case SELECTOR_NONCE: return context.readBigInteger();
+		case SELECTOR: return context.readBigInteger();
+		default: throw new IllegalArgumentException("Unexpected selector " + selector + " for a BigInteger field update");
+		}
+	}
+
+	/**
+	 * Builds an update of a {@link java.math.BigInteger} field.
+	 * 
 	 * @param <E> the type of the exception thrown if some argument is illegal
 	 * @param object the storage reference of the object whose field is modified
 	 * @param field the field that is modified
@@ -60,7 +134,7 @@ public final class UpdateOfBigIntegerImpl extends UpdateOfFieldImpl implements U
 	 * @param onIllegalArgs the supplier of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	public <E extends Exception> UpdateOfBigIntegerImpl(StorageReference object, FieldSignature field, BigInteger value, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	private <E extends Exception> UpdateOfBigIntegerImpl(StorageReference object, FieldSignature field, BigInteger value, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
 		super(object, field, onIllegalArgs);
 
 		this.value = Objects.requireNonNull(value, "value cannot be null", onIllegalArgs);

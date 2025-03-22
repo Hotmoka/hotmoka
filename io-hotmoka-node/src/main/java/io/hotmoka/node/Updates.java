@@ -84,7 +84,7 @@ public abstract class Updates {
 	 * @return the update
 	 */
 	public static UpdateOfBigInteger ofBigInteger(StorageReference object, FieldSignature field, BigInteger value) {
-		return new UpdateOfBigIntegerImpl(object, field, value, IllegalArgumentException::new);
+		return new UpdateOfBigIntegerImpl(object, field, value);
 	}
 
 	/**
@@ -96,7 +96,7 @@ public abstract class Updates {
 	 * @return the update
 	 */
 	public static UpdateOfBoolean ofBoolean(StorageReference object, FieldSignature field, boolean value) {
-		return new UpdateOfBooleanImpl(object, field, value, IllegalArgumentException::new);
+		return new UpdateOfBooleanImpl(object, field, value);
 	}
 
 	/**

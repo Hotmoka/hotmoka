@@ -18,7 +18,6 @@ package io.hotmoka.node.internal.updates;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.exceptions.ExceptionSupplier;
@@ -80,15 +79,18 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 		var selector = context.readByte();
 		switch (selector) {
 		case ClassTagImpl.SELECTOR: return new ClassTagImpl(context);
-		case UpdateOfBigIntegerImpl.SELECTOR_BALANCE: return new UpdateOfBigIntegerImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.BALANCE_FIELD, context.readBigInteger(), IOException::new);
-		case UpdateOfBigIntegerImpl.SELECTOR_GAS_PRICE: return new UpdateOfBigIntegerImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.GENERIC_GAS_STATION_GAS_PRICE_FIELD, context.readBigInteger(), IOException::new);
-		case UpdateOfBigIntegerImpl.SELECTOR_UBI_VALUE: return new UpdateOfBigIntegerImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.UNSIGNED_BIG_INTEGER_VALUE_FIELD, context.readBigInteger(), IOException::new);
-		case UpdateOfBigIntegerImpl.SELECTOR_BALANCE_TO_ZERO: return new UpdateOfBigIntegerImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.BALANCE_FIELD, BigInteger.ZERO, IOException::new);
-		case UpdateOfBigIntegerImpl.SELECTOR_NONCE_TO_ZERO: return new UpdateOfBigIntegerImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.EOA_NONCE_FIELD, BigInteger.ZERO, IOException::new);
-		case UpdateOfBigIntegerImpl.SELECTOR_NONCE: return new UpdateOfBigIntegerImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.EOA_NONCE_FIELD, context.readBigInteger(), IOException::new);
-		case UpdateOfBigIntegerImpl.SELECTOR: return new UpdateOfBigIntegerImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readBigInteger(), IOException::new);
-		case UpdateOfBooleanImpl.SELECTOR_FALSE: return new UpdateOfBooleanImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), false, IOException::new);
-		case UpdateOfBooleanImpl.SELECTOR_TRUE: return new UpdateOfBooleanImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), true, IOException::new);
+
+		case UpdateOfBigIntegerImpl.SELECTOR_BALANCE:
+		case UpdateOfBigIntegerImpl.SELECTOR_GAS_PRICE:
+		case UpdateOfBigIntegerImpl.SELECTOR_UBI_VALUE:
+		case UpdateOfBigIntegerImpl.SELECTOR_BALANCE_TO_ZERO:
+		case UpdateOfBigIntegerImpl.SELECTOR_NONCE_TO_ZERO:
+		case UpdateOfBigIntegerImpl.SELECTOR_NONCE:
+		case UpdateOfBigIntegerImpl.SELECTOR: return new UpdateOfBigIntegerImpl(context, selector);
+
+		case UpdateOfBooleanImpl.SELECTOR_FALSE:
+		case UpdateOfBooleanImpl.SELECTOR_TRUE: return new UpdateOfBooleanImpl(context, selector);
+
 		case UpdateOfByteImpl.SELECTOR: return new UpdateOfByteImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readByte(), IOException::new);
 		case UpdateOfCharImpl.SELECTOR: return new UpdateOfCharImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readChar(), IOException::new);
 		case UpdateOfDoubleImpl.SELECTOR: return new UpdateOfDoubleImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readDouble(), IOException::new);
@@ -142,9 +144,9 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 		var value = Objects.requireNonNull(json.getValue(), "A field update must have non-null value", InconsistentJsonException::new).unmap();
 
 		if (value instanceof BigIntegerValue biv)
-			return new UpdateOfBigIntegerImpl(object, field, biv.getValue(), InconsistentJsonException::new);
+			return new UpdateOfBigIntegerImpl(json, biv.getValue());
 		else if (value instanceof BooleanValue bv)
-			return new UpdateOfBooleanImpl(object, field, bv.getValue(), InconsistentJsonException::new);
+			return new UpdateOfBooleanImpl(json, bv.getValue());
 		else if (value instanceof ByteValue bv)
 			return new UpdateOfByteImpl(object, field, bv.getValue(), InconsistentJsonException::new);
 		else if (value instanceof CharValue cv)

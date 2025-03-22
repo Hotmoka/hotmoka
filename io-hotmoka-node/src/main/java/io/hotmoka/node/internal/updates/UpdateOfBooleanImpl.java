@@ -21,12 +21,17 @@ import java.io.IOException;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.marshalling.api.UnmarshallingContext;
+import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.updates.UpdateOfBoolean;
 import io.hotmoka.node.api.values.BooleanValue;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.internal.gson.UpdateJson;
+import io.hotmoka.node.internal.values.StorageReferenceImpl;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * The implementation of an update of a field of type {@code boolean}.
@@ -42,6 +47,50 @@ public final class UpdateOfBooleanImpl extends UpdateOfFieldImpl implements Upda
 	private final boolean value;
 
 	/**
+	 * Builds an update of a {@code boolean} field.
+	 * 
+	 * @param object the storage reference of the object whose field is modified
+	 * @param field the field that is modified
+	 * @param value the new value of the field
+	 */
+	public UpdateOfBooleanImpl(StorageReference object, FieldSignature field, boolean value) {
+		this(object, field, value, IllegalArgumentException::new);
+	}
+
+	/**
+	 * Builds an update of a {@code boolean} field from its given JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @param value the assigned value
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public UpdateOfBooleanImpl(UpdateJson json, boolean value) throws InconsistentJsonException {
+		this(
+			unmapObject(json),
+			unmapField(json),
+			value,
+			InconsistentJsonException::new
+		);
+	}
+
+	/**
+	 * Unmarshals an update of a {@code boolean} field from the given context.
+	 * The selector has been already unmarshalled.
+	 * 
+	 * @param context the unmarshalling context
+	 * @param selector the selector
+	 * @throws IOException if the unmarshalling failed
+	 */
+	public UpdateOfBooleanImpl(UnmarshallingContext context, byte selector) throws IOException {
+		this(
+			StorageReferenceImpl.fromWithoutSelector(context),
+			FieldSignatures.from(context),
+			unmarshalValue(context, selector),
+			IOException::new
+		);
+	}
+
+	/**
 	 * Builds an update of an {@code boolean} field.
 	 * 
 	 * @param <E> the type of the exception thrown if some argument is illegal
@@ -51,10 +100,19 @@ public final class UpdateOfBooleanImpl extends UpdateOfFieldImpl implements Upda
 	 * @param onIllegalArgs the supplier of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	public <E extends Exception> UpdateOfBooleanImpl(StorageReference object, FieldSignature field, boolean value, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	private <E extends Exception> UpdateOfBooleanImpl(StorageReference object, FieldSignature field, boolean value, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
 		super(object, field, onIllegalArgs);
-
+	
 		this.value = value;
+	}
+
+	private static boolean unmarshalValue(UnmarshallingContext context, byte selector) {
+		if (selector == SELECTOR_TRUE)
+			return true;
+		else if (selector == SELECTOR_FALSE)
+			return false;
+		else
+			throw new IllegalArgumentException("Unexpected selector " + selector + " for a boolean field update");
 	}
 
 	@Override
