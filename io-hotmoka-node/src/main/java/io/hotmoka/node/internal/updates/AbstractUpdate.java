@@ -112,8 +112,8 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_RIGHT: return new UpdateOfStorageImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_INTMAP_NODE_RIGHT_FIELD, StorageReferenceImpl.fromWithoutSelector(context), IOException::new);
 		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_ROOT: return new UpdateOfStorageImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_MAP_ROOT_FIELD, StorageReferenceImpl.fromWithoutSelector(context), IOException::new);
 		case UpdateOfStorageImpl.SELECTOR_EVENT_CREATOR: return new UpdateOfStorageImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.EVENT_CREATOR_FIELD, StorageReferenceImpl.fromWithoutSelector(context), IOException::new);
-		case UpdateOfStringImpl.SELECTOR_PUBLIC_KEY: return new UpdateOfStringImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.EOA_PUBLIC_KEY_FIELD, context.readStringUnshared(), IOException::new);
-		case UpdateOfStringImpl.SELECTOR: return new UpdateOfStringImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readStringUnshared(), IOException::new);
+		case UpdateOfStringImpl.SELECTOR_PUBLIC_KEY:
+		case UpdateOfStringImpl.SELECTOR: return new UpdateOfStringImpl(context, selector);
 		case UpdateToNullImpl.SELECTOR_EAGER:
 		case UpdateToNullImpl.SELECTOR_LAZY: return new UpdateToNullImpl(context, selector);
 		default: throw new IOException("Unexpected update selector: " + selector);
@@ -155,7 +155,7 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 		else if (value instanceof StorageReference sr)
 			return new UpdateOfStorageImpl(object, field, sr, InconsistentJsonException::new);
 		else if (value instanceof StringValue sv)
-			return new UpdateOfStringImpl(object, field, sv.getValue(), InconsistentJsonException::new);
+			return new UpdateOfStringImpl(json, sv.getValue());
 		else if (value instanceof NullValue)
 			return new UpdateToNullImpl(json);
 		else

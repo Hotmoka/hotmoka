@@ -192,7 +192,7 @@ public abstract class Updates {
 	 * @return the update
 	 */
 	public static UpdateOfString ofString(StorageReference object, FieldSignature field, String value) {
-		return new UpdateOfStringImpl(object, field, value, IllegalArgumentException::new);
+		return new UpdateOfStringImpl(object, field, value);
 	}
 
 	/**
