@@ -93,29 +93,36 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 		case UpdateOfCharImpl.SELECTOR: return new UpdateOfCharImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readChar(), IOException::new);
 		case UpdateOfDoubleImpl.SELECTOR: return new UpdateOfDoubleImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readDouble(), IOException::new);
 		case UpdateOfFloatImpl.SELECTOR: return new UpdateOfFloatImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readFloat(), IOException::new);
+
 		case UpdateOfIntImpl.SELECTOR: return new UpdateOfIntImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readInt(), IOException::new);
 		case UpdateOfIntImpl.SELECTOR_SMALL: return new UpdateOfIntImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readShort(), IOException::new);
 		case UpdateOfIntImpl.SELECTOR_VERY_SMALL: return new UpdateOfIntImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readByte(), IOException::new);
 		case UpdateOfIntImpl.SELECTOR_STORAGE_TREE_MAP_NODE_SIZE: return new UpdateOfIntImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_MAP_NODE_SIZE_FIELD, context.readCompactInt(), IOException::new);
 		case UpdateOfIntImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_SIZE: return new UpdateOfIntImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_INTMAP_NODE_SIZE_FIELD, context.readCompactInt(), IOException::new);
 		case UpdateOfIntImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_KEY: return new UpdateOfIntImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_INTMAP_NODE_KEY_FIELD, context.readCompactInt(), IOException::new);
+
 		case UpdateOfLongImpl.SELECTOR: return new UpdateOfLongImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readLong(), IOException::new);
+
 		case UpdateOfShortImpl.SELECTOR: return new UpdateOfShortImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readShort(), IOException::new);
-		case UpdateOfStorageImpl.SELECTOR: return new UpdateOfStorageImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), StorageReferenceImpl.fromWithoutSelector(context), IOException::new);
-		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_NODE_LEFT: return new UpdateOfStorageImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_MAP_NODE_LEFT_FIELD, StorageReferenceImpl.fromWithoutSelector(context), IOException::new);
-		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_NODE_RIGHT: return new UpdateOfStorageImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_MAP_NODE_RIGHT_FIELD, StorageReferenceImpl.fromWithoutSelector(context), IOException::new);
-		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_NODE_KEY: return new UpdateOfStorageImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_MAP_NODE_KEY_FIELD, StorageReferenceImpl.fromWithoutSelector(context), IOException::new);
-		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_NODE_VALUE: return new UpdateOfStorageImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_MAP_NODE_VALUE_FIELD, StorageReferenceImpl.fromWithoutSelector(context), IOException::new);
-		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_INTMAP_ROOT: return new UpdateOfStorageImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_INTMAP_ROOT_FIELD, StorageReferenceImpl.fromWithoutSelector(context), IOException::new);
-		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_VALUE: return new UpdateOfStorageImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_INTMAP_NODE_VALUE_FIELD, StorageReferenceImpl.fromWithoutSelector(context), IOException::new);
-		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_LEFT: return new UpdateOfStorageImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_INTMAP_NODE_LEFT_FIELD, StorageReferenceImpl.fromWithoutSelector(context), IOException::new);
-		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_RIGHT: return new UpdateOfStorageImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_INTMAP_NODE_RIGHT_FIELD, StorageReferenceImpl.fromWithoutSelector(context), IOException::new);
-		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_ROOT: return new UpdateOfStorageImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_MAP_ROOT_FIELD, StorageReferenceImpl.fromWithoutSelector(context), IOException::new);
-		case UpdateOfStorageImpl.SELECTOR_EVENT_CREATOR: return new UpdateOfStorageImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.EVENT_CREATOR_FIELD, StorageReferenceImpl.fromWithoutSelector(context), IOException::new);
+
+		case UpdateOfStorageImpl.SELECTOR:
+		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_NODE_LEFT:
+		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_NODE_RIGHT:
+		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_NODE_KEY:
+		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_NODE_VALUE:
+		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_INTMAP_ROOT:
+		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_VALUE:
+		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_LEFT:
+		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_RIGHT:
+		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_ROOT:
+		case UpdateOfStorageImpl.SELECTOR_EVENT_CREATOR: return new UpdateOfStorageImpl(context, selector);
+
 		case UpdateOfStringImpl.SELECTOR_PUBLIC_KEY:
 		case UpdateOfStringImpl.SELECTOR: return new UpdateOfStringImpl(context, selector);
+
 		case UpdateToNullImpl.SELECTOR_EAGER:
 		case UpdateToNullImpl.SELECTOR_LAZY: return new UpdateToNullImpl(context, selector);
+
 		default: throw new IOException("Unexpected update selector: " + selector);
 		}
 	}
@@ -153,7 +160,7 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 		else if (value instanceof ShortValue sv)
 			return new UpdateOfShortImpl(object, field, sv.getValue(), InconsistentJsonException::new);
 		else if (value instanceof StorageReference sr)
-			return new UpdateOfStorageImpl(object, field, sr, InconsistentJsonException::new);
+			return new UpdateOfStorageImpl(json, sr);
 		else if (value instanceof StringValue sv)
 			return new UpdateOfStringImpl(json, sv.getValue());
 		else if (value instanceof NullValue)

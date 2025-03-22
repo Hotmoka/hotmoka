@@ -22,11 +22,15 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.updates.UpdateOfStorage;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.internal.gson.UpdateJson;
+import io.hotmoka.node.internal.values.StorageReferenceImpl;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * The implementation of an update of a field of storage (reference) type.
@@ -53,6 +57,50 @@ public final class UpdateOfStorageImpl extends UpdateOfFieldImpl implements Upda
 	/**
 	 * Builds an update of a field of storage (reference) type.
 	 * 
+	 * @param object the storage reference of the object whose field is modified
+	 * @param field the field that is modified
+	 * @param value the new value of the field
+	 */
+	public UpdateOfStorageImpl(StorageReference object, FieldSignature field, StorageReference value) {
+		this(object, field, value, IllegalArgumentException::new);
+	}
+
+	/**
+	 * Builds an update of a field of storage (reference) type from its given JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @param value the assigned value
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public UpdateOfStorageImpl(UpdateJson json, StorageReference value) throws InconsistentJsonException {
+		this(
+			unmapObject(json),
+			unmapField(json),
+			value,
+			InconsistentJsonException::new
+		);
+	}
+
+	/**
+	 * Unmarshals an update a field of storage (reference) type from the given context.
+	 * The selector has been already unmarshalled.
+	 * 
+	 * @param context the unmarshalling context
+	 * @param selector the selector
+	 * @throws IOException if the unmarshalling failed
+	 */
+	public UpdateOfStorageImpl(UnmarshallingContext context, byte selector) throws IOException {
+		this(
+			StorageReferenceImpl.fromWithoutSelector(context),
+			unmarshalField(context, selector),
+			StorageReferenceImpl.fromWithoutSelector(context),
+			IOException::new
+		);
+	}
+
+	/**
+	 * Builds an update of a field of storage (reference) type.
+	 * 
 	 * @param <E> the type of the exception thrown if some argument is illegal
 	 * @param object the storage reference of the object whose field is modified
 	 * @param field the field that is modified
@@ -60,10 +108,27 @@ public final class UpdateOfStorageImpl extends UpdateOfFieldImpl implements Upda
 	 * @param onIllegalArgs the supplier of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	public <E extends Exception> UpdateOfStorageImpl(StorageReference object, FieldSignature field, StorageReference value, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	private <E extends Exception> UpdateOfStorageImpl(StorageReference object, FieldSignature field, StorageReference value, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
 		super(object, field, onIllegalArgs);
-
+	
 		this.value = Objects.requireNonNull(value, "value cannot be null", onIllegalArgs);
+	}
+
+	private static FieldSignature unmarshalField(UnmarshallingContext context, int selector) throws IOException {
+		switch (selector) {
+		case SELECTOR: return FieldSignatures.from(context);
+		case SELECTOR_STORAGE_TREE_MAP_NODE_LEFT: return FieldSignatures.STORAGE_TREE_MAP_NODE_LEFT_FIELD;
+		case SELECTOR_STORAGE_TREE_MAP_NODE_RIGHT: return FieldSignatures.STORAGE_TREE_MAP_NODE_RIGHT_FIELD;
+		case SELECTOR_STORAGE_TREE_MAP_NODE_KEY: return FieldSignatures.STORAGE_TREE_MAP_NODE_KEY_FIELD;
+		case SELECTOR_STORAGE_TREE_MAP_NODE_VALUE: return FieldSignatures.STORAGE_TREE_MAP_NODE_VALUE_FIELD;
+		case SELECTOR_STORAGE_TREE_INTMAP_ROOT: return FieldSignatures.STORAGE_TREE_INTMAP_ROOT_FIELD;
+		case SELECTOR_STORAGE_TREE_INTMAP_NODE_VALUE: return FieldSignatures.STORAGE_TREE_INTMAP_NODE_VALUE_FIELD;
+		case SELECTOR_STORAGE_TREE_INTMAP_NODE_LEFT: return FieldSignatures.STORAGE_TREE_INTMAP_NODE_LEFT_FIELD;
+		case SELECTOR_STORAGE_TREE_INTMAP_NODE_RIGHT: return FieldSignatures.STORAGE_TREE_INTMAP_NODE_RIGHT_FIELD;
+		case SELECTOR_STORAGE_TREE_MAP_ROOT: return FieldSignatures.STORAGE_TREE_MAP_ROOT_FIELD;
+		case SELECTOR_EVENT_CREATOR: return FieldSignatures.EVENT_CREATOR_FIELD;
+		default: throw new IllegalArgumentException("Unexpected selector " + selector + " for a storage field update");
+		}
 	}
 
 	@Override

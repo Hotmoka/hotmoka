@@ -204,7 +204,7 @@ public abstract class Updates {
 	 * @return the update
 	 */
 	public static UpdateOfStorage ofStorage(StorageReference object, FieldSignature field, StorageReference value) {
-		return new UpdateOfStorageImpl(object, field, value, IllegalArgumentException::new);
+		return new UpdateOfStorageImpl(object, field, value);
 	}
 
 	/**
