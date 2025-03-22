@@ -28,9 +28,6 @@ import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.NodeMarshallingContexts;
-import io.hotmoka.node.StorageTypes;
-import io.hotmoka.node.TransactionReferences;
-import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.BooleanValue;
@@ -45,7 +42,6 @@ import io.hotmoka.node.api.values.ShortValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.internal.gson.UpdateJson;
-import io.hotmoka.node.internal.types.ClassTypeImpl;
 import io.hotmoka.node.internal.values.StorageReferenceImpl;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
@@ -82,14 +78,7 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 	public static Update from(UnmarshallingContext context) throws IOException {
 		var selector = context.readByte();
 		switch (selector) {
-		case ClassTagImpl.SELECTOR: {
-			var object = StorageReferenceImpl.fromWithoutSelector(context);
-	
-			if (!(StorageTypes.from(context) instanceof ClassType clazz))
-				throw new IOException("A class tag must refer to a class type");
-	
-			return new ClassTagImpl(object, clazz, TransactionReferences.from(context), IOException::new);
-		}
+		case ClassTagImpl.SELECTOR: return new ClassTagImpl(context);
 		case UpdateOfBigIntegerImpl.SELECTOR_BALANCE: return new UpdateOfBigIntegerImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.BALANCE_FIELD, context.readBigInteger(), IOException::new);
 		case UpdateOfBigIntegerImpl.SELECTOR_GAS_PRICE: return new UpdateOfBigIntegerImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.GENERIC_GAS_STATION_GAS_PRICE_FIELD, context.readBigInteger(), IOException::new);
 		case UpdateOfBigIntegerImpl.SELECTOR_UBI_VALUE: return new UpdateOfBigIntegerImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.UNSIGNED_BIG_INTEGER_VALUE_FIELD, context.readBigInteger(), IOException::new);
@@ -137,15 +126,10 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 	 * @throws InconsistentJsonException if {@code json} is inconsistent
 	 */
 	public static Update from(UpdateJson json) throws InconsistentJsonException {
-		if (!(Objects.requireNonNull(json.getObject(), "object cannot be null", InconsistentJsonException::new).unmap() instanceof StorageReference object))
-			throw new InconsistentJsonException("A storage reference was expected as object");
+		if (json.getClazz() != null)
+			return new ClassTagImpl(json);
 
-		var clazz = json.getClazz();
-		if (clazz != null) {
-			var jar = Objects.requireNonNull(json.getJar(), "jar cannot be null if clazz is non-null", InconsistentJsonException::new).unmap();
-			return new ClassTagImpl(object, ClassTypeImpl.named(clazz, InconsistentJsonException::new), jar, InconsistentJsonException::new);
-		}
-
+		var object = unmapObject(json);
 		var field = Objects.requireNonNull(json.getField(), "A field update must have non-null field", InconsistentJsonException::new).unmap();
 		var value = Objects.requireNonNull(json.getValue(), "A field update must have non-null value", InconsistentJsonException::new).unmap();
 
@@ -175,6 +159,13 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 			return new UpdateToNullImpl(object, field, json.isEager(), InconsistentJsonException::new);
 		else
 			throw new InconsistentJsonException("Illegal update JSON");
+	}
+
+	protected static StorageReference unmapObject(UpdateJson json) throws InconsistentJsonException {
+		if (Objects.requireNonNull(json.getObject(), "object cannot be null", InconsistentJsonException::new).unmap() instanceof StorageReference object)
+			return object;
+		else
+			throw new InconsistentJsonException("A storage reference was expected as object");
 	}
 
 	@Override

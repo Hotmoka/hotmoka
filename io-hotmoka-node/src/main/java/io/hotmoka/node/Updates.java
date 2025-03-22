@@ -72,7 +72,7 @@ public abstract class Updates {
 	 * @return the update
 	 */
 	public static ClassTag classTag(StorageReference object, ClassType clazz, TransactionReference jar) {
-		return new ClassTagImpl(object, clazz, jar, IllegalArgumentException::new);
+		return new ClassTagImpl(object, clazz, jar);
 	}
 
 	/**

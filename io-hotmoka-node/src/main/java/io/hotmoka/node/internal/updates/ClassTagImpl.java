@@ -22,11 +22,18 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.marshalling.api.UnmarshallingContext;
+import io.hotmoka.node.StorageTypes;
+import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.internal.gson.UpdateJson;
+import io.hotmoka.node.internal.types.ClassTypeImpl;
+import io.hotmoka.node.internal.values.StorageReferenceImpl;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * Implementation of an update that states that an object belongs to a given class.
@@ -48,6 +55,48 @@ public final class ClassTagImpl extends AbstractUpdate implements ClassTag {
 	/**
 	 * Builds an update for the class tag of an object.
 	 * 
+	 * @param object the storage reference of the object whose class name is set
+	 * @param clazz the class of the object
+	 * @param jar the reference to the transaction that installed the jar from which the class was resolved
+	 */
+	public ClassTagImpl(StorageReference object, ClassType clazz, TransactionReference jar) {
+		this(object, clazz, jar, IllegalArgumentException::new);
+	}
+
+	/**
+	 * Builds an update for the class tag of an object from its given JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public ClassTagImpl(UpdateJson json) throws InconsistentJsonException {
+		this(
+			unmapObject(json),
+			ClassTypeImpl.named(json.getClazz(), InconsistentJsonException::new),
+			Objects.requireNonNull(json.getJar(), "jar cannot be null if clazz is non-null", InconsistentJsonException::new).unmap(),
+			InconsistentJsonException::new
+		);
+	}
+
+	/**
+	 * Unmarshals an update for the class tag of an object from the given context.
+	 * The selector has been already unmarshalled.
+	 * 
+	 * @param context the unmarshalling context
+	 * @throws IOException if the unmarshalling failed
+	 */
+	public ClassTagImpl(UnmarshallingContext context) throws IOException {
+		this(
+			StorageReferenceImpl.fromWithoutSelector(context),
+			unmarshalClass(context),
+			TransactionReferences.from(context),
+			IOException::new
+		);
+	}
+
+	/**
+	 * Builds an update for the class tag of an object.
+	 * 
 	 * @param <E> the type of the exception thrown if some argument is illegal
 	 * @param object the storage reference of the object whose class name is set
 	 * @param clazz the class of the object
@@ -55,11 +104,18 @@ public final class ClassTagImpl extends AbstractUpdate implements ClassTag {
 	 * @param onIllegalArgs the supplier of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	public <E extends Exception> ClassTagImpl(StorageReference object, ClassType clazz, TransactionReference jar, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	private <E extends Exception> ClassTagImpl(StorageReference object, ClassType clazz, TransactionReference jar, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
 		super(object, onIllegalArgs);
-
+	
 		this.jar = Objects.requireNonNull(jar, "jar cannot be null", onIllegalArgs);
 		this.clazz = Objects.requireNonNull(clazz, "clazz cannot be null", onIllegalArgs);
+	}
+
+	private static ClassType unmarshalClass(UnmarshallingContext context) throws IOException {
+		if (StorageTypes.from(context) instanceof ClassType clazz)
+			return clazz;
+		else
+			throw new IOException("A class tag must refer to a class type");
 	}
 
 	@Override
