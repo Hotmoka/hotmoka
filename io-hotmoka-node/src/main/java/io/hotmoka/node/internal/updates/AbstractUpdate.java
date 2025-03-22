@@ -25,7 +25,6 @@ import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
-import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.NodeMarshallingContexts;
 import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.updates.Update;
@@ -42,7 +41,6 @@ import io.hotmoka.node.api.values.ShortValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.internal.gson.UpdateJson;
-import io.hotmoka.node.internal.values.StorageReferenceImpl;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
@@ -78,6 +76,7 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 	public static Update from(UnmarshallingContext context) throws IOException {
 		var selector = context.readByte();
 		switch (selector) {
+
 		case ClassTagImpl.SELECTOR: return new ClassTagImpl(context);
 
 		case UpdateOfBigIntegerImpl.SELECTOR_BALANCE:
@@ -91,10 +90,13 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 		case UpdateOfBooleanImpl.SELECTOR_FALSE:
 		case UpdateOfBooleanImpl.SELECTOR_TRUE: return new UpdateOfBooleanImpl(context, selector);
 
-		case UpdateOfByteImpl.SELECTOR: return new UpdateOfByteImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readByte(), IOException::new);
-		case UpdateOfCharImpl.SELECTOR: return new UpdateOfCharImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readChar(), IOException::new);
-		case UpdateOfDoubleImpl.SELECTOR: return new UpdateOfDoubleImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readDouble(), IOException::new);
-		case UpdateOfFloatImpl.SELECTOR: return new UpdateOfFloatImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readFloat(), IOException::new);
+		case UpdateOfByteImpl.SELECTOR: return new UpdateOfByteImpl(context);
+
+		case UpdateOfCharImpl.SELECTOR: return new UpdateOfCharImpl(context);
+
+		case UpdateOfDoubleImpl.SELECTOR: return new UpdateOfDoubleImpl(context);
+
+		case UpdateOfFloatImpl.SELECTOR: return new UpdateOfFloatImpl(context);
 
 		case UpdateOfIntImpl.SELECTOR:
 		case UpdateOfIntImpl.SELECTOR_SMALL:
@@ -103,9 +105,9 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 		case UpdateOfIntImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_SIZE:
 		case UpdateOfIntImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_KEY: return new UpdateOfIntImpl(context, selector);
 
-		case UpdateOfLongImpl.SELECTOR: return new UpdateOfLongImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readLong(), IOException::new);
+		case UpdateOfLongImpl.SELECTOR: return new UpdateOfLongImpl(context);
 
-		case UpdateOfShortImpl.SELECTOR: return new UpdateOfShortImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readShort(), IOException::new);
+		case UpdateOfShortImpl.SELECTOR: return new UpdateOfShortImpl(context);
 
 		case UpdateOfStorageImpl.SELECTOR:
 		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_NODE_LEFT:
@@ -139,8 +141,6 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 		if (json.getClazz() != null)
 			return new ClassTagImpl(json);
 
-		var object = unmapObject(json);
-		var field = unmapField(json);
 		var value = Objects.requireNonNull(json.getValue(), "A field update must have non-null value", InconsistentJsonException::new).unmap();
 
 		if (value instanceof BigIntegerValue biv)
@@ -148,19 +148,19 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 		else if (value instanceof BooleanValue bv)
 			return new UpdateOfBooleanImpl(json, bv.getValue());
 		else if (value instanceof ByteValue bv)
-			return new UpdateOfByteImpl(object, field, bv.getValue(), InconsistentJsonException::new);
+			return new UpdateOfByteImpl(json, bv.getValue());
 		else if (value instanceof CharValue cv)
-			return new UpdateOfCharImpl(object, field, cv.getValue(), InconsistentJsonException::new);
+			return new UpdateOfCharImpl(json, cv.getValue());
 		else if (value instanceof DoubleValue dv)
-			return new UpdateOfDoubleImpl(object, field, dv.getValue(), InconsistentJsonException::new);
+			return new UpdateOfDoubleImpl(json, dv.getValue());
 		else if (value instanceof FloatValue fv)
-			return new UpdateOfFloatImpl(object, field, fv.getValue(), InconsistentJsonException::new);
+			return new UpdateOfFloatImpl(json, fv.getValue());
 		else if (value instanceof IntValue iv)
 			return new UpdateOfIntImpl(json, iv.getValue());
 		else if (value instanceof LongValue lv)
-			return new UpdateOfLongImpl(object, field, lv.getValue(), InconsistentJsonException::new);
+			return new UpdateOfLongImpl(json, lv.getValue());
 		else if (value instanceof ShortValue sv)
-			return new UpdateOfShortImpl(object, field, sv.getValue(), InconsistentJsonException::new);
+			return new UpdateOfShortImpl(json, sv.getValue());
 		else if (value instanceof StorageReference sr)
 			return new UpdateOfStorageImpl(json, sr);
 		else if (value instanceof StringValue sv)

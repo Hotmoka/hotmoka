@@ -21,12 +21,17 @@ import java.io.IOException;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.marshalling.api.UnmarshallingContext;
+import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.updates.UpdateOfFloat;
 import io.hotmoka.node.api.values.FloatValue;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.internal.gson.UpdateJson;
+import io.hotmoka.node.internal.values.StorageReferenceImpl;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * The implementation of an update of a field of type {@code float}.
@@ -41,6 +46,49 @@ public final class UpdateOfFloatImpl extends UpdateOfFieldImpl implements Update
 	private final float value;
 
 	/**
+	 * Builds an update of a {@code float} field.
+	 * 
+	 * @param object the storage reference of the object whose field is modified
+	 * @param field the field that is modified
+	 * @param value the new value of the field
+	 */
+	public UpdateOfFloatImpl(StorageReference object, FieldSignature field, float value) {
+		this(object, field, value, IllegalArgumentException::new);
+	}
+
+	/**
+	 * Builds an update of a {@code float} field from its given JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @param value the assigned value
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public UpdateOfFloatImpl(UpdateJson json, float value) throws InconsistentJsonException {
+		this(
+			unmapObject(json),
+			unmapField(json),
+			value,
+			InconsistentJsonException::new
+		);
+	}
+
+	/**
+	 * Unmarshals an update of a {@code float} field from the given context.
+	 * The selector has been already unmarshalled.
+	 * 
+	 * @param context the unmarshalling context
+	 * @throws IOException if the unmarshalling failed
+	 */
+	public UpdateOfFloatImpl(UnmarshallingContext context) throws IOException {
+		this(
+			StorageReferenceImpl.fromWithoutSelector(context),
+			FieldSignatures.from(context),
+			context.readFloat(),
+			IOException::new
+		);
+	}
+
+	/**
 	 * Builds an update of an {@code float} field.
 	 * 
 	 * @param <E> the type of the exception thrown if some argument is illegal
@@ -50,7 +98,7 @@ public final class UpdateOfFloatImpl extends UpdateOfFieldImpl implements Update
 	 * @param onIllegalArgs the supplier of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	public <E extends Exception> UpdateOfFloatImpl(StorageReference object, FieldSignature field, float value, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	private <E extends Exception> UpdateOfFloatImpl(StorageReference object, FieldSignature field, float value, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
 		super(object, field, onIllegalArgs);
 
 		this.value = value;
