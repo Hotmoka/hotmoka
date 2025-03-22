@@ -29,6 +29,7 @@ import io.hotmoka.node.api.nodes.ConsensusConfigBuilder;
 import io.hotmoka.node.internal.gson.ConsensusConfigDecoder;
 import io.hotmoka.node.internal.gson.ConsensusConfigEncoder;
 import io.hotmoka.node.internal.gson.ConsensusConfigJson;
+import io.hotmoka.node.internal.nodes.BasicConsensusConfigBuilder;
 
 /**
  * Providers of consensus configurations.
@@ -37,54 +38,6 @@ public abstract class ConsensusConfigBuilders {
 
 	private ConsensusConfigBuilders() {}
 
-	private static class MyConsensusConfig extends AbstractConsensusConfig<MyConsensusConfig, MyConsensusConfigBuilder> {
-		
-		/**
-		 * Full constructor for the builder pattern.
-		 * 
-		 * @param builder the builder where information is extracted from
-		 */
-		private MyConsensusConfig(MyConsensusConfigBuilder builder) {
-			super(builder);
-		}
-
-		@Override
-		public MyConsensusConfigBuilder toBuilder() {
-			return new MyConsensusConfigBuilder(this);
-		}
-	}
-
-	/**
-	 * The builder of consensus configurations, according to the builder pattern.
-	 */
-	private static class MyConsensusConfigBuilder extends AbstractConsensusConfigBuilder<MyConsensusConfig, MyConsensusConfigBuilder> {
-
-		private MyConsensusConfigBuilder() throws NoSuchAlgorithmException {
-		}
-
-		private MyConsensusConfigBuilder(SignatureAlgorithm signatureForRequests) {
-			super(signatureForRequests);
-		}
-
-		private MyConsensusConfigBuilder(Path path) throws NoSuchAlgorithmException, FileNotFoundException, InvalidKeyException, InvalidKeySpecException, Base64ConversionException {
-			super(readToml(path));
-		}
-
-		private MyConsensusConfigBuilder(MyConsensusConfig config) {
-			super(config);
-		}
-
-		@Override
-		public MyConsensusConfig build() {
-			return new MyConsensusConfig(this);
-		}
-
-		@Override
-		protected MyConsensusConfigBuilder getThis() {
-			return this;
-		}
-	}
-
 	/**
 	 * Creates a builder containing default data.
 	 * 
@@ -92,7 +45,7 @@ public abstract class ConsensusConfigBuilders {
 	 * @throws NoSuchAlgorithmException if some cryptographic algorithm is not available
 	 */
 	public static ConsensusConfigBuilder<?,?> defaults() throws NoSuchAlgorithmException {
-		return new MyConsensusConfigBuilder();
+		return new BasicConsensusConfigBuilder();
 	}
 
 	/**
@@ -102,7 +55,7 @@ public abstract class ConsensusConfigBuilders {
 	 * @return the builder
 	 */
 	public static ConsensusConfigBuilder<?,?> defaults(SignatureAlgorithm signatureForRequests) {
-		return new MyConsensusConfigBuilder(signatureForRequests);
+		return new BasicConsensusConfigBuilder(signatureForRequests);
 	}
 
 	/**
@@ -119,7 +72,7 @@ public abstract class ConsensusConfigBuilders {
 	 * @throws InvalidKeyException if some public key in the TOML file is invalid
 	 */
 	public static ConsensusConfigBuilder<?,?> load(Path path) throws NoSuchAlgorithmException, FileNotFoundException, InvalidKeyException, InvalidKeySpecException, Base64ConversionException {
-		return new MyConsensusConfigBuilder(path);
+		return new BasicConsensusConfigBuilder(path);
 	}
 
 	/**

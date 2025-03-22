@@ -19,16 +19,11 @@ package io.hotmoka.node.internal.gson;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-import java.time.LocalDateTime;
 
-import io.hotmoka.crypto.Base64;
-import io.hotmoka.crypto.Base64ConversionException;
-import io.hotmoka.crypto.SignatureAlgorithms;
-import io.hotmoka.node.ConsensusConfigBuilders;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
+import io.hotmoka.node.internal.nodes.BasicConsensusConfigBuilder;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**
@@ -77,30 +72,84 @@ public abstract class ConsensusConfigJson implements JsonRepresentation<Consensu
 		this.signatureForRequests = config.getSignatureForRequests().getName();
 	}
 
-	@Override
-	public ConsensusConfig<?,?> unmap() throws NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException, Base64ConversionException {
-		var signature = SignatureAlgorithms.of(signatureForRequests);
+	public String getSignatureForRequests() {
+		return signatureForRequests;
+	}
 
-		return ConsensusConfigBuilders.defaults()
-			.setGenesisTime(LocalDateTime.parse(genesisTime, ISO_LOCAL_DATE_TIME))
-			.setChainId(chainId)
-			.setMaxErrorLength(maxErrorLength)
-			.setMaxDependencies(maxDependencies)
-			.setMaxCumulativeSizeOfDependencies(maxCumulativeSizeOfDependencies)
-			.allowUnsignedFaucet(allowsUnsignedFaucet)
-			.skipVerification(skipsVerification)
-			.setPublicKeyOfGamete(signature.publicKeyFromEncoding(Base64.fromBase64String(publicKeyOfGameteBase64)))
-			.setInitialGasPrice(initialGasPrice)
-			.setMaxGasPerTransaction(maxGasPerTransaction)
-			.ignoreGasPrice(ignoresGasPrice)
-			.setTargetGasAtReward(targetGasAtReward)
-			.setOblivion(oblivion)
-			.setInitialInflation(initialInflation)
-			.setVerificationVersion(verificationVersion)
-			.setInitialSupply(initialSupply)
-			.setFinalSupply(finalSupply)
-			.setTicketForNewPoll(ticketForNewPoll)
-			.setSignatureForRequests(signature)
-			.build();
+	public BigInteger getTicketForNewPoll() {
+		return ticketForNewPoll;
+	}
+
+	public BigInteger getFinalSupply() {
+		return finalSupply;
+	}
+
+	public BigInteger getInitialSupply() {
+		return initialSupply;
+	}
+
+	public long getVerificationVersion() {
+		return verificationVersion;
+	}
+
+	public long getInitialInflation() {
+		return initialInflation;
+	}
+
+	public long getOblivion() {
+		return oblivion;
+	}
+
+	public BigInteger getTargetGasAtReward() {
+		return targetGasAtReward;
+	}
+
+	public boolean isIgnoresGasPrice() {
+		return ignoresGasPrice;
+	}
+
+	public BigInteger getMaxGasPerTransaction() {
+		return maxGasPerTransaction;
+	}
+
+	public BigInteger getInitialGasPrice() {
+		return initialGasPrice;
+	}
+
+	public String getPublicKeyOfGameteBase64() {
+		return publicKeyOfGameteBase64;
+	}
+
+	public boolean isSkipsVerification() {
+		return skipsVerification;
+	}
+
+	public boolean isAllowsUnsignedFaucet() {
+		return allowsUnsignedFaucet;
+	}
+
+	public long getMaxCumulativeSizeOfDependencies() {
+		return maxCumulativeSizeOfDependencies;
+	}
+
+	public String getGenesisTime() {
+		return genesisTime;
+	}
+
+	public String getChainId() {
+		return chainId;
+	}
+
+	public int getMaxErrorLength() {
+		return maxErrorLength;
+	}
+
+	public int getMaxDependencies() {
+		return maxDependencies;
+	}
+
+	@Override
+	public ConsensusConfig<?,?> unmap() throws NoSuchAlgorithmException, InconsistentJsonException {
+		return new BasicConsensusConfigBuilder(this).build();
 	}
 }
