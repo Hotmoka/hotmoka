@@ -16,8 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.internal.signatures;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -25,11 +23,6 @@ import java.util.stream.Stream;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.exceptions.Objects;
-import io.hotmoka.marshalling.AbstractMarshallable;
-import io.hotmoka.marshalling.api.MarshallingContext;
-import io.hotmoka.marshalling.api.UnmarshallingContext;
-import io.hotmoka.node.NodeMarshallingContexts;
-import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.api.signatures.CodeSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
@@ -41,12 +34,7 @@ import io.hotmoka.websockets.beans.api.InconsistentJsonException;
  * The signature of a method or constructor.
  */
 @Immutable
-public abstract class AbstractCodeSignature extends AbstractMarshallable implements CodeSignature {
-
-	/**
-	 * The class of the method or constructor.
-	 */
-	private final ClassType definingClass;
+public abstract class AbstractCodeSignature extends AbstractSignature implements CodeSignature {
 
 	/**
 	 * The formal arguments of the method or constructor.
@@ -63,17 +51,11 @@ public abstract class AbstractCodeSignature extends AbstractMarshallable impleme
 	 * @throws E if some argument is illegal
 	 */
 	protected <E extends Exception> AbstractCodeSignature(ClassType definingClass, StorageType[] formals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
-		this.definingClass = Objects.requireNonNull(definingClass, "definingClass cannot be null", onIllegalArgs);
+		super(definingClass, onIllegalArgs);
+		
 		this.formals = Objects.requireNonNull(formals, "formals cannot be null", onIllegalArgs);
 		for (var formal: formals)
 			Objects.requireNonNull(formal, "formals cannot hold null", onIllegalArgs);
-	}
-
-	protected static ClassType unmarshalDefiningClass(UnmarshallingContext context) throws IOException {
-		if (!(StorageTypes.from(context) instanceof ClassType definingClass))
-			throw new IOException("The type defining a constructor must be a class type");
-	
-		return definingClass;
 	}
 
 	protected static StorageType[] formalsAsTypes(MethodSignatureJson json) throws InconsistentJsonException {
@@ -84,11 +66,6 @@ public abstract class AbstractCodeSignature extends AbstractMarshallable impleme
 			formalsAsTypes[pos++] = AbstractStorageType.named(formal, InconsistentJsonException::new);
 
 		return formalsAsTypes;
-	}
-
-	@Override
-	public final ClassType getDefiningClass() {
-		return definingClass;
 	}
 
 	@Override
@@ -110,19 +87,14 @@ public abstract class AbstractCodeSignature extends AbstractMarshallable impleme
 	@Override
 	public boolean equals(Object other) {
 		if (other instanceof AbstractCodeSignature acs)
-			return acs.definingClass.equals(definingClass) && Arrays.equals(acs.formals, formals); // optimization
+			return super.equals(other) && Arrays.equals(acs.formals, formals); // optimization
 		else
-			return other instanceof CodeSignature cs && cs.getDefiningClass().equals(definingClass)
+			return other instanceof CodeSignature cs && super.equals(other)
 				&& Arrays.equals(cs.getFormals().toArray(StorageType[]::new), formals);
 	}
 
 	@Override
 	public int hashCode() {
-		return definingClass.hashCode() ^ Arrays.hashCode(formals);
-	}
-
-	@Override
-	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
-		return NodeMarshallingContexts.of(os);
+		return super.hashCode() ^ Arrays.hashCode(formals);
 	}
 }

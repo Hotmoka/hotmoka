@@ -37,7 +37,7 @@ public abstract class AbstractConsensusConfigBuilder<C extends AbstractConsensus
 	/**
 	 * Creates the builder.
 	 * 
-	 * @throws NoSuchAlgorithmException if the configuration refers to some unknown hashing algorithm
+	 * @throws NoSuchAlgorithmException if some cryptographic algorithm is not available
 	 */
 	protected AbstractConsensusConfigBuilder() throws NoSuchAlgorithmException {
 	}
@@ -52,11 +52,10 @@ public abstract class AbstractConsensusConfigBuilder<C extends AbstractConsensus
 	}
 
 	/**
-	 * Reads the properties of the given TOML file and sets them for
-	 * the corresponding fields of this builder.
+	 * Creates a configuration builder initialized with the properties of the given TOML file.
 	 * 
 	 * @param toml the file
-	 * @throws NoSuchAlgorithmException if some hashing algorithm cannot be found
+	 * @throws NoSuchAlgorithmException if some cryptographic algorithm is not available
 	 * @throws Base64ConversionException if some public key in the TOML file is not correctly Base64-encoded
 	 * @throws InvalidKeySpecException if the specification of some public key in the TOML file is illegal
 	 * @throws InvalidKeyException if some public key in the TOML file is invalid

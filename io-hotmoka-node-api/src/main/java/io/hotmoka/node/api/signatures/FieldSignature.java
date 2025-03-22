@@ -18,21 +18,13 @@ package io.hotmoka.node.api.signatures;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.api.Marshallable;
-import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
 
 /**
  * The signature of a field of a class.
  */
 @Immutable
-public interface FieldSignature extends Marshallable, Comparable<FieldSignature> {
-
-	/**
-	 * Yields the class of the field.
-	 * 
-	 * @return the class of the field
-	 */
-	ClassType getDefiningClass();
+public interface FieldSignature extends Signature, Marshallable, Comparable<FieldSignature> {
 
 	/**
 	 * Yields the name of the field.

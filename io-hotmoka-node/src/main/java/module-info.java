@@ -26,7 +26,6 @@ module io.hotmoka.node {
 	requires io.hotmoka.crypto;
 	requires io.hotmoka.annotations;
 	requires io.hotmoka.marshalling;
-	requires io.hotmoka.instrumentation.api;
 	requires io.hotmoka.instrumentation;
 	requires io.hotmoka.exceptions;
 	requires io.hotmoka.websockets.beans;

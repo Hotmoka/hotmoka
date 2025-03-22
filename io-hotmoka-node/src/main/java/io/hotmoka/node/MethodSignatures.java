@@ -48,7 +48,7 @@ public abstract class MethodSignatures {
 	 * @return the signature of the method
 	 */
 	public static NonVoidMethodSignature ofNonVoid(ClassType definingClass, String methodName, StorageType returnType, StorageType... formals) {
-		return new NonVoidMethodSignatureImpl(definingClass, methodName, returnType, formals, IllegalArgumentException::new);
+		return new NonVoidMethodSignatureImpl(definingClass, methodName, returnType, formals);
 	}
 
 	/**
@@ -60,7 +60,7 @@ public abstract class MethodSignatures {
 	 * @return the signature of the method
 	 */
 	public static VoidMethodSignature ofVoid(ClassType definingClass, String methodName, StorageType... formals) {
-		return new VoidMethodSignatureImpl(definingClass, methodName, formals, IllegalArgumentException::new);
+		return new VoidMethodSignatureImpl(definingClass, methodName, formals);
 	}
 
 	/**
@@ -97,12 +97,12 @@ public abstract class MethodSignatures {
 	}
 
     /**
-     * Json representation.
+     * JSON representation.
      */
     public static class Json extends MethodSignatureJson {
 
     	/**
-    	 * Creates the Json representation for the given method signature.
+    	 * Creates the JSON representation for the given method signature.
     	 * 
     	 * @param method the method signature
     	 */

@@ -16,31 +16,47 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal;
 
+import java.util.Objects;
+
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.messages.api.GetNodeInfoMessage;
+import io.hotmoka.node.api.nodes.NodeInfo;
+import io.hotmoka.node.messages.api.GetInfoResultMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
 
 /**
- * Implementation of the network message corresponding to {@link Node#getNodeInfo()}.
+ * Implementation of the network message corresponding to the result of the {@link Node#getInfo()} method.
  */
-public class GetNodeInfoMessageImpl extends AbstractRpcMessage implements GetNodeInfoMessage {
+public class GetInfoResultMessageImpl extends AbstractRpcMessage implements GetInfoResultMessage {
+
+	/**
+	 * The result of the call.
+	 */
+	private final NodeInfo result;
 
 	/**
 	 * Creates the message.
 	 * 
+	 * @param result the result of the call
 	 * @param id the identifier of the message
 	 */
-	public GetNodeInfoMessageImpl(String id) {
+	public GetInfoResultMessageImpl(NodeInfo result, String id) {
 		super(id);
+
+		this.result = Objects.requireNonNull(result, "result cannot be null");
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof GetNodeInfoMessage && super.equals(other);
+		return other instanceof GetInfoResultMessage gnirm && super.equals(other) && result.equals(gnirm.get());
 	}
 
 	@Override
 	protected String getExpectedType() {
-		return GetNodeInfoMessage.class.getName();
+		return GetInfoResultMessage.class.getName();
+	}
+
+	@Override
+	public NodeInfo get() {
+		return result;
 	}
 }

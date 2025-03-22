@@ -1,5 +1,5 @@
 /*
-Copyright 2023 Fausto Spoto
+Copyright 2021 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,24 +14,30 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node;
+package io.hotmoka.node.api.signatures;
 
-import io.hotmoka.node.api.SubscriptionsManager;
-import io.hotmoka.node.internal.nodes.SubscriptionsManagerImpl;
+import io.hotmoka.annotations.Immutable;
+import io.hotmoka.node.api.types.ClassType;
 
 /**
- * Provider of manager of subscriptions to the events occurring in a Hotmoka node.
+ * The signature of a field, method or constructor.
  */
-public abstract class SubscriptionsManagers {
-
-	private SubscriptionsManagers() {}
+@Immutable
+public interface Signature {
 
 	/**
-	 * Yields a new manager of subscriptions to the events occurring in a Hotmoka node.
+	 * Yields the class defining the field, method or constructor.
 	 * 
-	 * @return the manager of subscriptions
+	 * @return the class
 	 */
-	public static SubscriptionsManager create() {
-		return new SubscriptionsManagerImpl();
-	}
+	ClassType getDefiningClass();
+
+	@Override
+	boolean equals(Object other);
+
+	@Override
+	int hashCode();
+
+	@Override
+	String toString();
 }

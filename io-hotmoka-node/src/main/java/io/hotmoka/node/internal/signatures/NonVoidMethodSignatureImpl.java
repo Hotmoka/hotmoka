@@ -44,18 +44,13 @@ public final class NonVoidMethodSignatureImpl extends AbstractMethodSignature im
 	/**
 	 * Builds the signature of a method, that returns a value.
 	 * 
-	 * @param <E> the type of the exception thrown if some arguments is illegal
 	 * @param definingClass the class of the method
 	 * @param name the name of the method
 	 * @param returnType the type of the returned value
 	 * @param formals the formal arguments of the method
-	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
-	 * @throws E if some argument is illegal
 	 */
-	public <E extends Exception> NonVoidMethodSignatureImpl(ClassType definingClass, String name, StorageType returnType, StorageType[] formals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
-		super(definingClass, name, formals, onIllegalArgs);
-
-		this.returnType = Objects.requireNonNull(returnType, "returnType cannot be null", onIllegalArgs);
+	public NonVoidMethodSignatureImpl(ClassType definingClass, String name, StorageType returnType, StorageType[] formals) {
+		this(definingClass, name, returnType, formals, IllegalArgumentException::new);
 	}
 
 	/**
@@ -72,6 +67,23 @@ public final class NonVoidMethodSignatureImpl extends AbstractMethodSignature im
 			formalsAsTypes(json),
 			InconsistentJsonException::new
 		);
+	}
+
+	/**
+	 * Builds the signature of a method, that returns a value.
+	 * 
+	 * @param <E> the type of the exception thrown if some arguments is illegal
+	 * @param definingClass the class of the method
+	 * @param name the name of the method
+	 * @param returnType the type of the returned value
+	 * @param formals the formal arguments of the method
+	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
+	 */
+	<E extends Exception> NonVoidMethodSignatureImpl(ClassType definingClass, String name, StorageType returnType, StorageType[] formals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(definingClass, name, formals, onIllegalArgs);
+	
+		this.returnType = Objects.requireNonNull(returnType, "returnType cannot be null", onIllegalArgs);
 	}
 
 	@Override

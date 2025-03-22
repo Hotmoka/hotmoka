@@ -64,12 +64,12 @@ public abstract class NodeInfos {
 	}
 
     /**
-     * Json representation.
+     * JSON representation.
      */
     public static class Json extends NodeInfoJson {
 
     	/**
-    	 * Creates the Json representation for the given node info.
+    	 * Creates the JSON representation for the given node info.
     	 * 
     	 * @param info the node information
     	 */

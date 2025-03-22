@@ -128,7 +128,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
 	 * @return true if the test context is accepted, otherwise it must be skipped
 	 */
 	private boolean accept(Context context) throws Exception {
-		String type = node.getNodeInfo().getType();
+		String type = node.getInfo().getType();
 		boolean isSlow = type.contains("TendermintNode") || type.contains("MokamintNode");
 		return !isSlow || context.numberOfInvestors <= 100; // the others take too much with Tendermint
 	}

@@ -50,7 +50,6 @@ import io.hotmoka.node.CodeFutures;
 import io.hotmoka.node.JarFutures;
 import io.hotmoka.node.SubscriptionsManagers;
 import io.hotmoka.node.TransactionReferences;
-import io.hotmoka.node.UninitializedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.ConstructorFuture;
 import io.hotmoka.node.api.JarFuture;
@@ -100,7 +99,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	/**
 	 * The manager of the subscriptions to the events occurring in this node.
 	 */
-	private final SubscriptionsManager subscriptions = SubscriptionsManagers.mk();
+	private final SubscriptionsManager subscriptions = SubscriptionsManagers.create();
 
 	/**
 	 * The configuration of the node.
@@ -242,7 +241,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		S store = enterHead();
 
 		try (var scope = mkScope()) {
-			return store.getManifest().orElseThrow(UninitializedNodeException::new);
+			return store.getManifest().orElseThrow(() -> new NodeException("The node is not initialized yet"));
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);

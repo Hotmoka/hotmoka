@@ -17,29 +17,29 @@ limitations under the License.
 package io.hotmoka.node.messages.internal.gson;
 
 import io.hotmoka.node.NodeInfos;
-import io.hotmoka.node.messages.GetNodeInfoResultMessages;
-import io.hotmoka.node.messages.api.GetNodeInfoResultMessage;
+import io.hotmoka.node.messages.GetInfoResultMessages;
+import io.hotmoka.node.messages.api.GetInfoResultMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
 
 /**
- * The JSON representation of a {@link GetNodeInfoResultMessage}.
+ * The JSON representation of a {@link GetInfoResultMessage}.
  */
-public abstract class GetNodeInfoResultMessageJson extends AbstractRpcMessageJsonRepresentation<GetNodeInfoResultMessage> {
+public abstract class GetInfoResultMessageJson extends AbstractRpcMessageJsonRepresentation<GetInfoResultMessage> {
 	private final NodeInfos.Json result;
 
-	protected GetNodeInfoResultMessageJson(GetNodeInfoResultMessage message) {
+	protected GetInfoResultMessageJson(GetInfoResultMessage message) {
 		super(message);
 
 		this.result = new NodeInfos.Json(message.get());
 	}
 
 	@Override
-	public GetNodeInfoResultMessage unmap() {
-		return GetNodeInfoResultMessages.of(result.unmap(), getId());
+	public GetInfoResultMessage unmap() {
+		return GetInfoResultMessages.of(result.unmap(), getId());
 	}
 
 	@Override
 	protected String getExpectedType() {
-		return GetNodeInfoResultMessage.class.getName();
+		return GetInfoResultMessage.class.getName();
 	}
 }

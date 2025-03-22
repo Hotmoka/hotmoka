@@ -37,6 +37,17 @@ public final class VoidMethodSignatureImpl extends AbstractMethodSignature imple
 	/**
 	 * Builds the signature of a method, that returns no value.
 	 * 
+	 * @param definingClass the class of the method
+	 * @param name the name of the method
+	 * @param formals the formal arguments of the method
+	 */
+	public VoidMethodSignatureImpl(ClassType definingClass, String name, StorageType[] formals) {
+		super(definingClass, name, formals, IllegalArgumentException::new);
+	}
+
+	/**
+	 * Builds the signature of a method, that returns no value.
+	 * 
 	 * @param <E> the type of the exception thrown if some arguments is illegal
 	 * @param definingClass the class of the method
 	 * @param name the name of the method
@@ -44,7 +55,7 @@ public final class VoidMethodSignatureImpl extends AbstractMethodSignature imple
 	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	public <E extends Exception> VoidMethodSignatureImpl(ClassType definingClass, String name, StorageType[] formals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	<E extends Exception> VoidMethodSignatureImpl(ClassType definingClass, String name, StorageType[] formals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
 		super(definingClass, name, formals, onIllegalArgs);
 	}
 

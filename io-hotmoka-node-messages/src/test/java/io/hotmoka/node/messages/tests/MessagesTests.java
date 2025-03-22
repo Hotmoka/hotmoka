@@ -68,8 +68,8 @@ import io.hotmoka.node.messages.GetConsensusConfigMessages;
 import io.hotmoka.node.messages.GetConsensusConfigResultMessages;
 import io.hotmoka.node.messages.GetManifestMessages;
 import io.hotmoka.node.messages.GetManifestResultMessages;
-import io.hotmoka.node.messages.GetNodeInfoMessages;
-import io.hotmoka.node.messages.GetNodeInfoResultMessages;
+import io.hotmoka.node.messages.GetInfoMessages;
+import io.hotmoka.node.messages.GetInfoResultMessages;
 import io.hotmoka.node.messages.GetPolledResponseMessages;
 import io.hotmoka.node.messages.GetPolledResponseResultMessages;
 import io.hotmoka.node.messages.GetRequestMessages;
@@ -100,20 +100,20 @@ public class MessagesTests extends AbstractLoggedTests {
 	private final static NonVoidMethodSignature TARGET = MethodSignatures.ofNonVoid(StorageTypes.classNamed("my.class"), "target", StorageTypes.STRING, StorageTypes.BOOLEAN, StorageTypes.FLOAT, StorageTypes.INT);
 
 	@Test
-	@DisplayName("getNodeInfo messages are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForGetNodeInfo() throws Exception {
-		var expected = GetNodeInfoMessages.of("id");
-		String encoded = new GetNodeInfoMessages.Encoder().encode(expected);
-		var actual = new GetNodeInfoMessages.Decoder().decode(encoded);
+	@DisplayName("getInfo messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForGetInfo() throws Exception {
+		var expected = GetInfoMessages.of("id");
+		String encoded = new GetInfoMessages.Encoder().encode(expected);
+		var actual = new GetInfoMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);
 	}
 
 	@Test
-	@DisplayName("getNodeInfoResult messages are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForGetNodeInfoResult() throws Exception {
-		var expected = GetNodeInfoResultMessages.of(NodeInfos.of("special node", "1.2.3", "id314"), "id");
-		String encoded = new GetNodeInfoResultMessages.Encoder().encode(expected);
-		var actual = new GetNodeInfoResultMessages.Decoder().decode(encoded);
+	@DisplayName("getInfoResult messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForGetInfoResult() throws Exception {
+		var expected = GetInfoResultMessages.of(NodeInfos.of("special node", "1.2.3", "id314"), "id");
+		String encoded = new GetInfoResultMessages.Encoder().encode(expected);
+		var actual = new GetInfoResultMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);
 	}
 

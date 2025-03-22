@@ -137,8 +137,8 @@ public abstract class NodeDecoratorImpl<N extends Node> implements Node {
 	}
 
 	@Override
-	public NodeInfo getNodeInfo() throws NodeException, TimeoutException, InterruptedException {
-		return parent.getNodeInfo();
+	public NodeInfo getInfo() throws NodeException, TimeoutException, InterruptedException {
+		return parent.getInfo();
 	}
 
 	@Override

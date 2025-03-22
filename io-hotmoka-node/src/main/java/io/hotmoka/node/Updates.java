@@ -253,7 +253,7 @@ public abstract class Updates {
 	}
 
     /**
-     * Json representation.
+     * JSON representation.
      */
     public static class Json extends UpdateJson {
 

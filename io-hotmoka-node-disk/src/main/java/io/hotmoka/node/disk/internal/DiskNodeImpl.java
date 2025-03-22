@@ -77,7 +77,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 	}
 
 	@Override
-	public NodeInfo getNodeInfo() throws ClosedNodeException {
+	public NodeInfo getInfo() throws ClosedNodeException {
 		try (var scope = mkScope()) {
 			return NodeInfos.of(DiskNode.class.getName(), HOTMOKA_VERSION, "");
 		}

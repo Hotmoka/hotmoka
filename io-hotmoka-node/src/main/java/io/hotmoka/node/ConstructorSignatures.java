@@ -42,7 +42,7 @@ public abstract class ConstructorSignatures {
 	 * @return the signature of the constructor
 	 */
 	public static ConstructorSignature of(ClassType definingClass, StorageType... formals) {
-		return new ConstructorSignatureImpl(definingClass, formals, IllegalArgumentException::new);
+		return new ConstructorSignatureImpl(definingClass, formals);
 	}
 
 	/**
@@ -79,12 +79,12 @@ public abstract class ConstructorSignatures {
 	}
 
     /**
-     * Json representation.
+     * JSON representation.
      */
     public static class Json extends ConstructorSignatureJson {
 
     	/**
-    	 * Creates the Json representation for the given constructor signature.
+    	 * Creates the JSON representation for the given constructor signature.
     	 * 
     	 * @param constructor the constructor signature
     	 */

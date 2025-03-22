@@ -43,7 +43,7 @@ public abstract class FieldSignatures {
 	 * @return the field signature
 	 */
 	public static FieldSignature of(ClassType definingClass, String name, StorageType type) {
-		return new FieldSignatureImpl(definingClass, name, type, IllegalArgumentException::new);
+		return new FieldSignatureImpl(definingClass, name, type);
 	}
 
 	/**
@@ -80,12 +80,12 @@ public abstract class FieldSignatures {
 	}
 
     /**
-     * Json representation.
+     * JSON representation.
      */
     public static class Json extends FieldSignatureJson {
 
     	/**
-    	 * Creates the Json representation for the given field signature.
+    	 * Creates the JSON representation for the given field signature.
     	 * 
     	 * @param field the field signature
     	 */

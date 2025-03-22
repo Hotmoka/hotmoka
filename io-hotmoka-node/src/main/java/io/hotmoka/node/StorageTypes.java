@@ -110,12 +110,12 @@ public abstract class StorageTypes {
 	}
 
     /**
-     * Json representation.
+     * JSON representation.
      */
     public static class Json extends StorageTypeJson {
 
     	/**
-    	 * Creates the Json representation for the given type.
+    	 * Creates the JSON representation for the given type.
     	 * 
     	 * @param type the type
     	 */

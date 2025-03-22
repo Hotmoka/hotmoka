@@ -110,7 +110,7 @@ class PollWithTimeWindow extends HotmokaTest {
 		StorageReference action = addAction();
 
 		// the Tendermint and Mokamint blockchains are slower
-		String type = node.getNodeInfo().getType();
+		String type = node.getInfo().getType();
 		boolean isTendermint = type.contains("TendermintNode");
 		boolean isMokamint = type.contains("MokamintNode");
 		long duration = isMokamint ? 40_000 : isTendermint ? 10_000 : 3000;
@@ -136,7 +136,7 @@ class PollWithTimeWindow extends HotmokaTest {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
 		// the Tendermint and Mokamint blockchains are slower
-		String type = node.getNodeInfo().getType();
+		String type = node.getInfo().getType();
 		boolean isTendermint = type.contains("TendermintNode");
 		boolean isMokamint = type.contains("MokamintNode");
 		long start = isMokamint ? 40_000 : isTendermint ? 10_000 : 2000;
@@ -178,7 +178,7 @@ class PollWithTimeWindow extends HotmokaTest {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
 		// the Tendermint and Mokamint blockchains are slower
-		String type = node.getNodeInfo().getType();
+		String type = node.getInfo().getType();
 		boolean isTendermint = type.contains("TendermintNode");
 		boolean isMokamint = type.contains("MokamintNode");
 		long start = isMokamint ? 40_000 : isTendermint ? 10_000 : 2000;
@@ -215,7 +215,7 @@ class PollWithTimeWindow extends HotmokaTest {
 		long start = 200L;
 		long duration = 200L;
 		// the Mokamint blockchain is slower
-		String type = node.getNodeInfo().getType();
+		String type = node.getInfo().getType();
 		boolean isMokamint = type.contains("MokamintNode");
 		long expired = start + duration + (isMokamint ? 20_000 : 2_000);
 		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, duration);
@@ -240,7 +240,7 @@ class PollWithTimeWindow extends HotmokaTest {
 		StorageReference action = addAction();
 		long start = 0;
 		// the Tendermint and Mokamint blockchains are slower
-		String type = node.getNodeInfo().getType();
+		String type = node.getInfo().getType();
 		boolean isTendermint = type.contains("TendermintNode");
 		boolean isMokamint = type.contains("MokamintNode");
 		long duration = isMokamint ? 40_000 : isTendermint ? 10_000 : 3000;

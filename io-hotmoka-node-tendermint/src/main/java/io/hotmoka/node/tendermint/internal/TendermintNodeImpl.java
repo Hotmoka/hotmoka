@@ -173,7 +173,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	}
 
 	@Override
-	public NodeInfo getNodeInfo() throws NodeException, TimeoutException, InterruptedException {
+	public NodeInfo getInfo() throws NodeException, TimeoutException, InterruptedException {
 		try (var scope = mkScope()) {
 			return NodeInfos.of(TendermintNode.class.getName(), HOTMOKA_VERSION, poster.getNodeID());
 		}

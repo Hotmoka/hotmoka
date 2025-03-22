@@ -17,16 +17,13 @@ limitations under the License.
 package io.hotmoka.node.internal.signatures;
 
 import java.io.IOException;
-import java.io.OutputStream;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.exceptions.Objects;
-import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.FieldSignatures;
-import io.hotmoka.node.NodeMarshallingContexts;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.types.ClassType;
@@ -40,12 +37,7 @@ import io.hotmoka.websockets.beans.api.InconsistentJsonException;
  * The signature of a field of a class.
  */
 @Immutable
-public final class FieldSignatureImpl extends AbstractMarshallable implements FieldSignature {
-
-	/**
-	 * The class defining the field.
-	 */
-	private final ClassType definingClass;
+public final class FieldSignatureImpl extends AbstractSignature implements FieldSignature {
 
 	/**
 	 * The name of the field.
@@ -60,17 +52,12 @@ public final class FieldSignatureImpl extends AbstractMarshallable implements Fi
 	/**
 	 * Builds the signature of a field.
 	 * 
-	 * @param <E> the type of the exception thrown if some arguments is illegal
 	 * @param definingClass the class defining the field
 	 * @param name the name of the field
 	 * @param type the type of the field
-	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
-	 * @throws E if some argument is illegal
 	 */
-	public <E extends Exception> FieldSignatureImpl(ClassType definingClass, String name, StorageType type, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
-		this.definingClass = Objects.requireNonNull(definingClass, "definingClass cannot be null", onIllegalArgs);
-		this.name = Objects.requireNonNull(name, "name cannot be null", onIllegalArgs);
-		this.type = Objects.requireNonNull(type, "type cannot be null", onIllegalArgs);
+	public FieldSignatureImpl(ClassType definingClass, String name, StorageType type) {
+		this(definingClass, name, type, IllegalArgumentException::new);
 	}
 
 	/**
@@ -88,9 +75,32 @@ public final class FieldSignatureImpl extends AbstractMarshallable implements Fi
 		);
 	}
 
-	@Override
-	public ClassType getDefiningClass() {
-		return definingClass;
+	/**
+	 * Unmarshals a field signature from the given stream.
+	 * The selector of the response has been already processed.
+	 * 
+	 * @param context the unmarshalling context
+	 * @throws IOException if the response could not be unmarshalled
+	 */
+	public FieldSignatureImpl(UnmarshallingContext context) throws IOException {
+		this(unmarshalDefiningClass(context), context.readStringUnshared(), StorageTypes.from(context), IOException::new);
+	}
+
+	/**
+	 * Builds the signature of a field.
+	 * 
+	 * @param <E> the type of the exception thrown if some arguments is illegal
+	 * @param definingClass the class defining the field
+	 * @param name the name of the field
+	 * @param type the type of the field
+	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
+	 */
+	private <E extends Exception> FieldSignatureImpl(ClassType definingClass, String name, StorageType type, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(definingClass, onIllegalArgs);
+		
+		this.name = Objects.requireNonNull(name, "name cannot be null", onIllegalArgs);
+		this.type = Objects.requireNonNull(type, "type cannot be null", onIllegalArgs);
 	}
 
 	@Override
@@ -105,23 +115,22 @@ public final class FieldSignatureImpl extends AbstractMarshallable implements Fi
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof FieldSignature fs && fs.getDefiningClass().equals(definingClass)
-			&& fs.getName().equals(name) && fs.getType().equals(type);
+		return other instanceof FieldSignature fs && super.equals(other) && fs.getName().equals(name) && fs.getType().equals(type);
 	}
 
 	@Override
 	public int hashCode() {
-		return definingClass.hashCode() ^ name.hashCode() ^ type.hashCode();
+		return super.hashCode() ^ name.hashCode() ^ type.hashCode();
 	}
 
 	@Override
 	public String toString() {
-		return definingClass + "." + name + ":" + type;
+		return getDefiningClass() + "." + name + ":" + type;
 	}
 
 	@Override
 	public int compareTo(FieldSignature other) {
-		int diff = definingClass.compareTo(other.getDefiningClass());
+		int diff = getDefiningClass().compareTo(other.getDefiningClass());
 		if (diff != 0)
 			return diff;
 
@@ -141,13 +150,8 @@ public final class FieldSignatureImpl extends AbstractMarshallable implements Fi
 	 * @return the field signature
 	 * @throws IOException if the field signature could not be unmarshalled
 	 */
-	public static FieldSignature from(UnmarshallingContext context) throws IOException {
+	public static FieldSignature from(UnmarshallingContext context) throws IOException { // TODO: maybe change to NodeUnmarshallingContext?
 		return context.readObject(FieldSignature.class);
-	}
-
-	@Override
-	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
-		return NodeMarshallingContexts.of(os);
 	}
 
 	/**

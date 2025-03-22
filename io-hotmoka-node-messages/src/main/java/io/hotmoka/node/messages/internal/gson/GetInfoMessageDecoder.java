@@ -14,15 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.messages.api;
+package io.hotmoka.node.messages.internal.gson;
 
-import io.hotmoka.annotations.Immutable;
-import io.hotmoka.node.api.Node;
-import io.hotmoka.websockets.beans.api.RpcMessage;
+import io.hotmoka.node.messages.GetInfoMessages;
+import io.hotmoka.node.messages.api.GetInfoMessage;
+import io.hotmoka.websockets.beans.MappedDecoder;
 
 /**
- * The network message corresponding to {@link Node#getNodeInfo()}.
+ * A decoder for a {@link GetInfoMessage}.
  */
-@Immutable
-public interface GetNodeInfoMessage extends RpcMessage {
+public class GetInfoMessageDecoder extends MappedDecoder<GetInfoMessage, GetInfoMessages.Json> {
+
+	public GetInfoMessageDecoder() {
+		super(GetInfoMessages.Json.class);
+	}
 }

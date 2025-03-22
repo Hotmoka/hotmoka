@@ -27,7 +27,7 @@ import static io.hotmoka.node.service.api.NodeService.EVENTS_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_CLASS_TAG_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_CONSENSUS_CONFIG_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_MANIFEST_ENDPOINT;
-import static io.hotmoka.node.service.api.NodeService.GET_NODE_INFO_ENDPOINT;
+import static io.hotmoka.node.service.api.NodeService.GET_INFO_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_POLLED_RESPONSE_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_REQUEST_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_RESPONSE_ENDPOINT;
@@ -101,8 +101,8 @@ import io.hotmoka.node.messages.GetConsensusConfigMessages;
 import io.hotmoka.node.messages.GetConsensusConfigResultMessages;
 import io.hotmoka.node.messages.GetManifestMessages;
 import io.hotmoka.node.messages.GetManifestResultMessages;
-import io.hotmoka.node.messages.GetNodeInfoMessages;
-import io.hotmoka.node.messages.GetNodeInfoResultMessages;
+import io.hotmoka.node.messages.GetInfoMessages;
+import io.hotmoka.node.messages.GetInfoResultMessages;
 import io.hotmoka.node.messages.GetPolledResponseMessages;
 import io.hotmoka.node.messages.GetPolledResponseResultMessages;
 import io.hotmoka.node.messages.GetRequestMessages;
@@ -146,8 +146,8 @@ import io.hotmoka.node.messages.api.GetConsensusConfigMessage;
 import io.hotmoka.node.messages.api.GetConsensusConfigResultMessage;
 import io.hotmoka.node.messages.api.GetManifestMessage;
 import io.hotmoka.node.messages.api.GetManifestResultMessage;
-import io.hotmoka.node.messages.api.GetNodeInfoMessage;
-import io.hotmoka.node.messages.api.GetNodeInfoResultMessage;
+import io.hotmoka.node.messages.api.GetInfoMessage;
+import io.hotmoka.node.messages.api.GetInfoResultMessage;
 import io.hotmoka.node.messages.api.GetPolledResponseMessage;
 import io.hotmoka.node.messages.api.GetPolledResponseResultMessage;
 import io.hotmoka.node.messages.api.GetRequestMessage;
@@ -189,7 +189,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	/**
 	 * The manager of the subscriptions to the events occurring in this node.
 	 */
-	private final SubscriptionsManager subscriptions = SubscriptionsManagers.mk();
+	private final SubscriptionsManager subscriptions = SubscriptionsManagers.create();
 
 	/**
 	 * The prefix used in the log messages;
@@ -212,7 +212,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
     	this.logPrefix = "node remote(" + uri + "): ";
 
     	try {
-    		addSession(GET_NODE_INFO_ENDPOINT, uri, GetNodeInfoEndpoint::new);
+    		addSession(GET_INFO_ENDPOINT, uri, GetInfoEndpoint::new);
     		addSession(GET_CONSENSUS_CONFIG_ENDPOINT, uri, GetConsensusConfigEndpoint::new);
     		addSession(GET_TAKAMAKA_CODE_ENDPOINT, uri, GetTakamakaCodeEndpoint::new);
     		addSession(GET_MANIFEST_ENDPOINT, uri, GetManifestEndpoint::new);
@@ -261,8 +261,8 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 
 	@Override
 	protected void notifyResult(RpcMessage message) {
-		if (message instanceof GetNodeInfoResultMessage gnirm)
-			onGetNodeInfoResult(gnirm);
+		if (message instanceof GetInfoResultMessage gnirm)
+			onGetInfoResult(gnirm);
 		else if (message instanceof GetConsensusConfigResultMessage gccrm)
 			onGetConsensusConfigResult(gccrm);
 		else if (message instanceof GetTakamakaCodeResultMessage gtcrm)
@@ -314,35 +314,35 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	}
 
 	@Override
-	public NodeInfo getNodeInfo() throws NodeException, TimeoutException, InterruptedException {
+	public NodeInfo getInfo() throws NodeException, TimeoutException, InterruptedException {
 		ensureIsOpen();
 		var id = nextId();
-		sendGetNodeInfo(id);
-		return waitForResult(id, GetNodeInfoResultMessage.class, TimeoutException.class, NodeException.class);
+		sendGetInfo(id);
+		return waitForResult(id, GetInfoResultMessage.class, TimeoutException.class, NodeException.class);
 	}
 
 	/**
-	 * Sends a {@link GetNodeInfoMessage} to the node service.
+	 * Sends a {@link GetInfoMessage} to the node service.
 	 * 
 	 * @param id the identifier of the message
 	 * @throws NodeException if the message could not be sent
 	 */
-	protected void sendGetNodeInfo(String id) throws NodeException {
-		sendObjectAsync(getSession(GET_NODE_INFO_ENDPOINT), GetNodeInfoMessages.of(id), NodeException::new);
+	protected void sendGetInfo(String id) throws NodeException {
+		sendObjectAsync(getSession(GET_INFO_ENDPOINT), GetInfoMessages.of(id), NodeException::new);
 	}
 
 	/**
-	 * Hook called when a {@link GetNodeInfoResultMessage} has been received.
+	 * Hook called when a {@link GetInfoResultMessage} has been received.
 	 * 
 	 * @param message the message
 	 */
-	protected void onGetNodeInfoResult(GetNodeInfoResultMessage message) {}
+	protected void onGetInfoResult(GetInfoResultMessage message) {}
 
-	private class GetNodeInfoEndpoint extends Endpoint {
+	private class GetInfoEndpoint extends Endpoint {
 
 		@Override
 		protected Session deployAt(URI uri) throws DeploymentException, IOException {
-			return deployAt(uri, GetNodeInfoResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetNodeInfoMessages.Encoder.class);		
+			return deployAt(uri, GetInfoResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetInfoMessages.Encoder.class);		
 		}
 	}
 

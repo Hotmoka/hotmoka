@@ -53,8 +53,8 @@ import io.hotmoka.node.messages.GetConsensusConfigMessages;
 import io.hotmoka.node.messages.GetConsensusConfigResultMessages;
 import io.hotmoka.node.messages.GetManifestMessages;
 import io.hotmoka.node.messages.GetManifestResultMessages;
-import io.hotmoka.node.messages.GetNodeInfoMessages;
-import io.hotmoka.node.messages.GetNodeInfoResultMessages;
+import io.hotmoka.node.messages.GetInfoMessages;
+import io.hotmoka.node.messages.GetInfoResultMessages;
 import io.hotmoka.node.messages.GetPolledResponseMessages;
 import io.hotmoka.node.messages.GetPolledResponseResultMessages;
 import io.hotmoka.node.messages.GetRequestMessages;
@@ -87,7 +87,7 @@ import io.hotmoka.node.messages.api.AddStaticMethodCallTransactionMessage;
 import io.hotmoka.node.messages.api.GetClassTagMessage;
 import io.hotmoka.node.messages.api.GetConsensusConfigMessage;
 import io.hotmoka.node.messages.api.GetManifestMessage;
-import io.hotmoka.node.messages.api.GetNodeInfoMessage;
+import io.hotmoka.node.messages.api.GetInfoMessage;
 import io.hotmoka.node.messages.api.GetPolledResponseMessage;
 import io.hotmoka.node.messages.api.GetRequestMessage;
 import io.hotmoka.node.messages.api.GetResponseMessage;
@@ -159,7 +159,7 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 			this.eventSubscription = node.subscribeToEvents(null, this::publishEvent);
 
 			startContainer("", port,
-					GetNodeInfoEndpoint.config(this), GetConsensusConfigEndpoint.config(this), GetTakamakaCodeEndpoint.config(this),
+					GetInfoEndpoint.config(this), GetConsensusConfigEndpoint.config(this), GetTakamakaCodeEndpoint.config(this),
 					GetManifestEndpoint.config(this), GetClassTagEndpoint.config(this), GetStateEndpoint.config(this),
 					GetRequestEndpoint.config(this), GetResponseEndpoint.config(this), GetPolledResponseEndpoint.config(this),
 					AddGameteCreationTransactionEndpoint.config(this), AddJarStoreInitialTransactionEndpoint.config(this),
@@ -269,9 +269,9 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 				sendExceptionAsync(session, e, message.getId());
 			}
     	}
-    	else if (message instanceof GetNodeInfoMessage) {
+    	else if (message instanceof GetInfoMessage) {
     		try {
-				sendObjectAsync(session, GetNodeInfoResultMessages.of(node.getNodeInfo(), message.getId()));
+				sendObjectAsync(session, GetInfoResultMessages.of(node.getInfo(), message.getId()));
 			}
 			catch (TimeoutException | InterruptedException | NodeException e) {
 				sendExceptionAsync(session, e, message.getId());
@@ -447,22 +447,22 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 			sendObjectAsync(session, ExceptionMessages.of(e, id));
 	}
 
-	protected void onGetNodeInfo(GetNodeInfoMessage message, Session session) {
-		LOGGER.info(logPrefix + "received a " + GET_NODE_INFO_ENDPOINT + " request");
+	protected void onGetInfo(GetInfoMessage message, Session session) {
+		LOGGER.info(logPrefix + "received a " + GET_INFO_ENDPOINT + " request");
 		scheduleRequest(session, message);
 	};
 
-	public static class GetNodeInfoEndpoint extends AbstractServerEndpoint<NodeServiceImpl> {
+	public static class GetInfoEndpoint extends AbstractServerEndpoint<NodeServiceImpl> {
 
 		@Override
 	    public void onOpen(Session session, EndpointConfig config) {
 			var server = getServer();
-			addMessageHandler(session, (GetNodeInfoMessage message) -> server.onGetNodeInfo(message, session));
+			addMessageHandler(session, (GetInfoMessage message) -> server.onGetInfo(message, session));
 	    }
 
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
-			return simpleConfig(server, GetNodeInfoEndpoint.class, GET_NODE_INFO_ENDPOINT,
-				GetNodeInfoMessages.Decoder.class, GetNodeInfoResultMessages.Encoder.class, ExceptionMessages.Encoder.class);
+			return simpleConfig(server, GetInfoEndpoint.class, GET_INFO_ENDPOINT,
+				GetInfoMessages.Decoder.class, GetInfoResultMessages.Encoder.class, ExceptionMessages.Encoder.class);
 		}
 	}
 

@@ -17,34 +17,34 @@ limitations under the License.
 package io.hotmoka.node.messages;
 
 import io.hotmoka.node.api.nodes.NodeInfo;
-import io.hotmoka.node.messages.api.GetNodeInfoResultMessage;
-import io.hotmoka.node.messages.internal.GetNodeInfoResultMessageImpl;
-import io.hotmoka.node.messages.internal.gson.GetNodeInfoResultMessageDecoder;
-import io.hotmoka.node.messages.internal.gson.GetNodeInfoResultMessageEncoder;
-import io.hotmoka.node.messages.internal.gson.GetNodeInfoResultMessageJson;
+import io.hotmoka.node.messages.api.GetInfoResultMessage;
+import io.hotmoka.node.messages.internal.GetInfoResultMessageImpl;
+import io.hotmoka.node.messages.internal.gson.GetInfoResultMessageDecoder;
+import io.hotmoka.node.messages.internal.gson.GetInfoResultMessageEncoder;
+import io.hotmoka.node.messages.internal.gson.GetInfoResultMessageJson;
 
 /**
- * A provider of {@link GetNodeInfoResultMessage}.
+ * A provider of {@link GetInfoResultMessage}.
  */
-public final class GetNodeInfoResultMessages {
+public final class GetInfoResultMessages {
 
-	private GetNodeInfoResultMessages() {}
+	private GetInfoResultMessages() {}
 
 	/**
-	 * Yields a {@link GetNodeInfoResultMessage}.
+	 * Yields a {@link GetInfoResultMessage}.
 	 * 
 	 * @param result the result of the call
 	 * @param id the identifier of the message
 	 * @return the message
 	 */
-	public static GetNodeInfoResultMessage of(NodeInfo result, String id) {
-		return new GetNodeInfoResultMessageImpl(result, id);
+	public static GetInfoResultMessage of(NodeInfo result, String id) {
+		return new GetInfoResultMessageImpl(result, id);
 	}
 
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends GetNodeInfoResultMessageEncoder {
+	public static class Encoder extends GetInfoResultMessageEncoder {
 
 		/**
 		 * Creates a new encoder.
@@ -55,7 +55,7 @@ public final class GetNodeInfoResultMessages {
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends GetNodeInfoResultMessageDecoder {
+	public static class Decoder extends GetInfoResultMessageDecoder {
 
 		/**
 		 * Creates a new decoder.
@@ -66,14 +66,14 @@ public final class GetNodeInfoResultMessages {
 	/**
      * Json representation.
      */
-    public static class Json extends GetNodeInfoResultMessageJson {
+    public static class Json extends GetInfoResultMessageJson {
 
     	/**
     	 * Creates the Json representation for the given message.
     	 * 
     	 * @param message the message
     	 */
-    	public Json(GetNodeInfoResultMessage message) {
+    	public Json(GetInfoResultMessage message) {
     		super(message);
     	}
     }

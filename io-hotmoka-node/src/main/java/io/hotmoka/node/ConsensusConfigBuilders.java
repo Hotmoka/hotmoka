@@ -89,7 +89,7 @@ public abstract class ConsensusConfigBuilders {
 	 * Creates a builder containing default data.
 	 * 
 	 * @return the builder
-	 * @throws NoSuchAlgorithmException if some hashing algorithm used in the default configuration is not available
+	 * @throws NoSuchAlgorithmException if some cryptographic algorithm is not available
 	 */
 	public static ConsensusConfigBuilder<?,?> defaults() throws NoSuchAlgorithmException {
 		return new MyConsensusConfigBuilder();
@@ -113,7 +113,7 @@ public abstract class ConsensusConfigBuilders {
 	 * @param path the path to the TOML file
 	 * @return the builder
 	 * @throws FileNotFoundException if {@code path} cannot be found
-	 * @throws NoSuchAlgorithmException if some hashing algorithm cannot be found
+	 * @throws NoSuchAlgorithmException if some cryptographic algorithm is not available
 	 * @throws Base64ConversionException if some public key in the TOML file is not correctly Base64-encoded
 	 * @throws InvalidKeySpecException if the specification of some public key in the TOML file is illegal
 	 * @throws InvalidKeyException if some public key in the TOML file is invalid
@@ -145,12 +145,12 @@ public abstract class ConsensusConfigBuilders {
 	}
 
     /**
-     * Json representation.
+     * JSON representation.
      */
     public static class Json extends ConsensusConfigJson {
 
     	/**
-    	 * Creates the Json representation for the given configuration.
+    	 * Creates the JSON representation for the given configuration.
     	 * 
     	 * @param config the configuration
     	 */

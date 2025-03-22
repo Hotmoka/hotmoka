@@ -28,9 +28,8 @@ import io.hotmoka.node.local.AbstractLocalNode;
  */
 class GetNodeInfo extends HotmokaTest {
 
-	@Test @DisplayName("getNodeInfoworks")
+	@Test @DisplayName("getInfoworks")
 	void getNodeInfo() throws Exception {
-		var nodeInfo = node.getNodeInfo();
-		assertEquals(AbstractLocalNode.HOTMOKA_VERSION, nodeInfo.getVersion());
+		assertEquals(AbstractLocalNode.HOTMOKA_VERSION, node.getInfo().getVersion());
 	}
 }

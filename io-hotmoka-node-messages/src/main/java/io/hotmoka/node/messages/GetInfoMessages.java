@@ -16,33 +16,33 @@ limitations under the License.
 
 package io.hotmoka.node.messages;
 
-import io.hotmoka.node.messages.api.GetNodeInfoMessage;
-import io.hotmoka.node.messages.internal.GetNodeInfoMessageImpl;
-import io.hotmoka.node.messages.internal.gson.GetNodeInfoMessageDecoder;
-import io.hotmoka.node.messages.internal.gson.GetNodeInfoMessageEncoder;
-import io.hotmoka.node.messages.internal.gson.GetNodeInfoMessageJson;
+import io.hotmoka.node.messages.api.GetInfoMessage;
+import io.hotmoka.node.messages.internal.GetInfoMessageImpl;
+import io.hotmoka.node.messages.internal.gson.GetInfoMessageDecoder;
+import io.hotmoka.node.messages.internal.gson.GetInfoMessageEncoder;
+import io.hotmoka.node.messages.internal.gson.GetInfoMessageJson;
 
 /**
- * A provider of {@link GetNodeInfoMessage}.
+ * A provider of {@link GetInfoMessage}.
  */
-public final class GetNodeInfoMessages {
+public final class GetInfoMessages {
 
-	private GetNodeInfoMessages() {}
+	private GetInfoMessages() {}
 
 	/**
-	 * Yields a {@link GetNodeInfoMessage}.
+	 * Yields a {@link GetInfoMessage}.
 	 * 
 	 * @param id the identifier of the message
 	 * @return the message
 	 */
-	public static GetNodeInfoMessage of(String id) {
-		return new GetNodeInfoMessageImpl(id);
+	public static GetInfoMessage of(String id) {
+		return new GetInfoMessageImpl(id);
 	}
 
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends GetNodeInfoMessageEncoder {
+	public static class Encoder extends GetInfoMessageEncoder {
 
 		/**
 		 * Creates a new encoder.
@@ -53,7 +53,7 @@ public final class GetNodeInfoMessages {
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends GetNodeInfoMessageDecoder {
+	public static class Decoder extends GetInfoMessageDecoder {
 
 		/**
 		 * Creates a new decoder.
@@ -64,14 +64,14 @@ public final class GetNodeInfoMessages {
 	/**
      * Json representation.
      */
-    public static class Json extends GetNodeInfoMessageJson {
+    public static class Json extends GetInfoMessageJson {
 
     	/**
     	 * Creates the Json representation for the given message.
     	 * 
     	 * @param message the message
     	 */
-    	public Json(GetNodeInfoMessage message) {
+    	public Json(GetInfoMessage message) {
     		super(message);
     	}
     }

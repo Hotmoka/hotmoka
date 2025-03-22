@@ -103,7 +103,7 @@ class BlindAuction extends HotmokaTest {
 	static void beforeAll() throws Exception {
 		setJar("auction.jar");
 
-		String type = node.getNodeInfo().getType();
+		String type = node.getInfo().getType();
 
 		if (type.contains("TendermintNode")) {
 			// the Tendermint blockchain is slower and requires more time for all transactions in this test

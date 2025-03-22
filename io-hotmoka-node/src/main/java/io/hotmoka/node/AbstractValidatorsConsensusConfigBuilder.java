@@ -27,7 +27,7 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.node.internal.nodes.ValidatorsConsensusConfigImpl;
 
 /**
- * The builder of a configuration object.
+ * The builder of a configuration object for a Hotmoka node that uses validators.
  * 
  * @param <C> the concrete type of the configuration
  * @param <B> the concrete type of the builder
@@ -37,7 +37,7 @@ public abstract class AbstractValidatorsConsensusConfigBuilder<C extends Abstrac
 	/**
 	 * Creates the builder.
 	 * 
-	 * @throws NoSuchAlgorithmException if the configuration refers to some unknown hashing algorithm
+	 * @throws NoSuchAlgorithmException if some cryptographic algorithm is not available
 	 */
 	protected AbstractValidatorsConsensusConfigBuilder() throws NoSuchAlgorithmException {
 	}
@@ -56,7 +56,7 @@ public abstract class AbstractValidatorsConsensusConfigBuilder<C extends Abstrac
 	 * the corresponding fields of this builder.
 	 * 
 	 * @param toml the file
-	 * @throws NoSuchAlgorithmException if some hashing algorithm cannot be found
+	 * @throws NoSuchAlgorithmException if some cryptographic algorithm is not available
 	 * @throws Base64ConversionException if some public key in the TOML file is not correctly Base64-encoded
 	 * @throws InvalidKeySpecException if the specification of some public key in the TOML file is illegal
 	 * @throws InvalidKeyException if some public key in the TOML file is invalid

@@ -35,9 +35,9 @@ import io.hotmoka.node.api.values.StorageReference;
 public interface NodeService extends AutoCloseable {
 
 	/**
-	 * The network endpoint path where {@link Node#getNodeInfo()} is published.
+	 * The network endpoint path where {@link Node#getInfo()} is published.
 	 */
-	String GET_NODE_INFO_ENDPOINT = "/get_node_info";
+	String GET_INFO_ENDPOINT = "/get_info";
 
 	/**
 	 * The network endpoint path where {@link Node#getConfig()} is published.

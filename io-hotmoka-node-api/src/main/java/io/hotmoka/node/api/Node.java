@@ -101,7 +101,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	NodeInfo getNodeInfo() throws NodeException, TimeoutException, InterruptedException; // TODO: change into getInfo()
+	NodeInfo getInfo() throws NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Yields the class tag of the object with the given storage reference.

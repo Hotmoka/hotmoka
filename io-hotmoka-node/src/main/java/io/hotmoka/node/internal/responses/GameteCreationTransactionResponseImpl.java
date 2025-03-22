@@ -57,8 +57,8 @@ public class GameteCreationTransactionResponseImpl extends TransactionResponseIm
 	 * @param updates the updates resulting from the execution of the transaction
 	 * @param gamete the created gamete
 	 */
-	public <E extends Exception> GameteCreationTransactionResponseImpl(Stream<Update> updates, StorageReference gamete, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
-		this(updates.toArray(Update[]::new), gamete, onIllegalArgs);
+	public GameteCreationTransactionResponseImpl(Stream<Update> updates, StorageReference gamete) {
+		this(updates.toArray(Update[]::new), gamete, IllegalArgumentException::new);
 	}
 
 	/**

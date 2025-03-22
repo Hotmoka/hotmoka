@@ -19,21 +19,13 @@ package io.hotmoka.node.api.signatures;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
 
 /**
  * The signature of a method or constructor.
  */
 @Immutable
-public interface CodeSignature {
-
-	/**
-	 * Yields the class of the method or constructor.
-	 * 
-	 * @return the class
-	 */
-	ClassType getDefiningClass();
+public interface CodeSignature extends Signature {
 
 	/**
 	 * Yields the formal arguments of the method or constructor, ordered from left to right.

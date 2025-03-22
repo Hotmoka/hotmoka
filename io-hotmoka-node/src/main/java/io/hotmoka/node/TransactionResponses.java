@@ -82,7 +82,7 @@ public abstract class TransactionResponses {
 	 * @return the response
 	 */
 	public static GameteCreationTransactionResponse gameteCreation(Stream<Update> updates, StorageReference gamete) {
-		return new GameteCreationTransactionResponseImpl(updates, gamete, IllegalArgumentException::new);
+		return new GameteCreationTransactionResponseImpl(updates, gamete);
 	}
 
 	/**
@@ -273,12 +273,12 @@ public abstract class TransactionResponses {
 	}
 
     /**
-     * Json representation.
+     * JSON representation.
      */
     public static class Json extends TransactionResponseJson {
 
     	/**
-    	 * Creates the Json representation for the given transaction response.
+    	 * Creates the JSON representation for the given transaction response.
     	 * 
     	 * @param response the transaction response
     	 */

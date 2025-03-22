@@ -16,16 +16,16 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal.gson;
 
-import io.hotmoka.node.messages.GetNodeInfoMessages;
-import io.hotmoka.node.messages.api.GetNodeInfoMessage;
-import io.hotmoka.websockets.beans.MappedEncoder;
+import io.hotmoka.node.messages.GetInfoResultMessages;
+import io.hotmoka.node.messages.api.GetInfoResultMessage;
+import io.hotmoka.websockets.beans.MappedDecoder;
 
 /**
- * An encoder of a {@code GetNodeInfoMessage}.
+ * A decoder for {@link GetInfoResultMessage}.
  */
-public class GetNodeInfoMessageEncoder extends MappedEncoder<GetNodeInfoMessage, GetNodeInfoMessages.Json> {
+public class GetInfoResultMessageDecoder extends MappedDecoder<GetInfoResultMessage, GetInfoResultMessages.Json> {
 
-	public GetNodeInfoMessageEncoder() {
-		super(GetNodeInfoMessages.Json::new);
+	public GetInfoResultMessageDecoder() {
+		super(GetInfoResultMessages.Json.class);
 	}
 }

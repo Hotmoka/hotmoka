@@ -145,7 +145,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 	}
 
 	@Override
-	public NodeInfo getNodeInfo() throws NodeException, InterruptedException, TimeoutException {
+	public NodeInfo getInfo() throws NodeException, InterruptedException, TimeoutException {
 		try (var scope = mkScope()) {
 			return NodeInfos.of(MokamintNode.class.getName(), HOTMOKA_VERSION, mokamintNode.getInfo().getUUID().toString());
 		}

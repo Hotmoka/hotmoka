@@ -98,9 +98,7 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 	 * @throws IOException if the method signature cannot be unmarshalled
 	 */
 	public static MethodSignature from(UnmarshallingContext context) throws IOException {
-		if (!(StorageTypes.from(context) instanceof ClassType definingClass))
-			throw new IOException("The type defining a method must be a class type");
-
+		var definingClass = unmarshalDefiningClass(context);
 		var name = context.readStringUnshared();
 		int length = context.readCompactInt();
 

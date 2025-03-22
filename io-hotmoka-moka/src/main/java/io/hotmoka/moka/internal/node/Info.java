@@ -31,7 +31,7 @@ public class Info extends AbstractMokaRpcCommand {
 
 	private void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
 		try {
-			var info = remote.getNodeInfo();
+			var info = remote.getInfo();
 			System.out.println(json() ? new NodeInfos.Encoder().encode(info) : info);
 		}
 		catch (EncodeException e) {

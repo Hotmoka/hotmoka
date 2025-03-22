@@ -251,12 +251,12 @@ public abstract class StorageValues {
 	}
 
     /**
-     * Json representation.
+     * JSON representation.
      */
     public static class Json extends StorageValueJson {
 
     	/**
-    	 * Creates the Json representation for the given storage value.
+    	 * Creates the JSON representation for the given storage value.
     	 * 
     	 * @param value the storage value
     	 */

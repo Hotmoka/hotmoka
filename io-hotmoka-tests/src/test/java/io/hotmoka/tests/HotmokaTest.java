@@ -204,7 +204,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	    		localGamete = local.account(0);
 	    		privateKeyOfLocalGamete = local.privateKey(0);
 
-	    		System.out.println("Running all tests against node " + node.getNodeInfo());
+	    		System.out.println("Running all tests against node " + node.getInfo());
 	        }
 	    }
 

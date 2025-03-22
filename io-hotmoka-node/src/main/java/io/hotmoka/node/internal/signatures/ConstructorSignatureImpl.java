@@ -41,14 +41,11 @@ public final class ConstructorSignatureImpl extends AbstractCodeSignature implem
 	/**
 	 * Builds the signature of a constructor.
 	 * 
-	 * @param <E> the type of the exception thrown if some arguments is illegal
 	 * @param definingClass the class defining the constructor
 	 * @param formals the formal arguments of the constructor
-	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
-	 * @throws E if some argument is illegal
 	 */
-	public <E extends Exception> ConstructorSignatureImpl(ClassType definingClass, StorageType[] formals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
-		super(definingClass, formals, onIllegalArgs);
+	public ConstructorSignatureImpl(ClassType definingClass, StorageType[] formals) {
+		super(definingClass, formals, IllegalArgumentException::new);
 	}
 
 	/**
@@ -58,7 +55,11 @@ public final class ConstructorSignatureImpl extends AbstractCodeSignature implem
 	 * @throws InconsistentJsonException if {@code json} is inconsistent
 	 */
 	public ConstructorSignatureImpl(ConstructorSignatureJson json) throws InconsistentJsonException {
-		this(ClassTypeImpl.named(json.getDefiningClass(), InconsistentJsonException::new), getFormalsAsTypes(json), InconsistentJsonException::new);
+		this(
+			ClassTypeImpl.named(json.getDefiningClass(), InconsistentJsonException::new),
+			getFormalsAsTypes(json),
+			InconsistentJsonException::new
+		);
 	}
 
 	/**
@@ -73,6 +74,19 @@ public final class ConstructorSignatureImpl extends AbstractCodeSignature implem
 			context.readLengthAndArray(StorageTypes::from, StorageType[]::new),
 			IOException::new
 		);
+	}
+
+	/**
+	 * Builds the signature of a constructor.
+	 * 
+	 * @param <E> the type of the exception thrown if some arguments is illegal
+	 * @param definingClass the class defining the constructor
+	 * @param formals the formal arguments of the constructor
+	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
+	 */
+	private <E extends Exception> ConstructorSignatureImpl(ClassType definingClass, StorageType[] formals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(definingClass, formals, onIllegalArgs);
 	}
 
 	private static StorageType[] getFormalsAsTypes(ConstructorSignatureJson json) throws InconsistentJsonException {

@@ -16,26 +16,26 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal.gson;
 
-import io.hotmoka.node.messages.GetNodeInfoMessages;
-import io.hotmoka.node.messages.api.GetNodeInfoMessage;
+import io.hotmoka.node.messages.GetInfoMessages;
+import io.hotmoka.node.messages.api.GetInfoMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
 
 /**
- * The JSON representation of an {@link GetNodeInfoMessage}.
+ * The JSON representation of an {@link GetInfoMessage}.
  */
-public abstract class GetNodeInfoMessageJson extends AbstractRpcMessageJsonRepresentation<GetNodeInfoMessage> {
+public abstract class GetInfoMessageJson extends AbstractRpcMessageJsonRepresentation<GetInfoMessage> {
 
-	protected GetNodeInfoMessageJson(GetNodeInfoMessage message) {
+	protected GetInfoMessageJson(GetInfoMessage message) {
 		super(message);
 	}
 
 	@Override
-	public GetNodeInfoMessage unmap() {
-		return GetNodeInfoMessages.of(getId());
+	public GetInfoMessage unmap() {
+		return GetInfoMessages.of(getId());
 	}
 
 	@Override
 	protected String getExpectedType() {
-		return GetNodeInfoMessage.class.getName();
+		return GetInfoMessage.class.getName();
 	}
 }

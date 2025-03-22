@@ -85,7 +85,7 @@ public abstract class ValidatorsConsensusConfigBuilders {
 	 * Creates a builder containing default data.
 	 * 
 	 * @return the builder
-	 * @throws NoSuchAlgorithmException if some signature algorithm is not available
+	 * @throws NoSuchAlgorithmException if some cryptographic algorithm is not available
 	 */
 	public static ValidatorsConsensusConfigBuilder<?,?> defaults() throws NoSuchAlgorithmException {
 		return new MyConsensusConfigBuilder();
@@ -99,7 +99,7 @@ public abstract class ValidatorsConsensusConfigBuilders {
 	 * @param path the path to the TOML file
 	 * @return the builder
 	 * @throws FileNotFoundException if {@code path} cannot be found
-	 * @throws NoSuchAlgorithmException if some cryptographic algorithm in the TOML file is not available
+	 * @throws NoSuchAlgorithmException if some cryptographic algorithm is not available
 	 * @throws Base64ConversionException if some public key in the TOML file is not correctly Base64-encoded
 	 * @throws InvalidKeySpecException if the specification of some public key in the TOML file is illegal
 	 * @throws InvalidKeyException if some public key in the TOML file is invalid
