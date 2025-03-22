@@ -94,12 +94,12 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 		case UpdateOfDoubleImpl.SELECTOR: return new UpdateOfDoubleImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readDouble(), IOException::new);
 		case UpdateOfFloatImpl.SELECTOR: return new UpdateOfFloatImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readFloat(), IOException::new);
 
-		case UpdateOfIntImpl.SELECTOR: return new UpdateOfIntImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readInt(), IOException::new);
-		case UpdateOfIntImpl.SELECTOR_SMALL: return new UpdateOfIntImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readShort(), IOException::new);
-		case UpdateOfIntImpl.SELECTOR_VERY_SMALL: return new UpdateOfIntImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readByte(), IOException::new);
-		case UpdateOfIntImpl.SELECTOR_STORAGE_TREE_MAP_NODE_SIZE: return new UpdateOfIntImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_MAP_NODE_SIZE_FIELD, context.readCompactInt(), IOException::new);
-		case UpdateOfIntImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_SIZE: return new UpdateOfIntImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_INTMAP_NODE_SIZE_FIELD, context.readCompactInt(), IOException::new);
-		case UpdateOfIntImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_KEY: return new UpdateOfIntImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.STORAGE_TREE_INTMAP_NODE_KEY_FIELD, context.readCompactInt(), IOException::new);
+		case UpdateOfIntImpl.SELECTOR:
+		case UpdateOfIntImpl.SELECTOR_SMALL:
+		case UpdateOfIntImpl.SELECTOR_VERY_SMALL:
+		case UpdateOfIntImpl.SELECTOR_STORAGE_TREE_MAP_NODE_SIZE:
+		case UpdateOfIntImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_SIZE:
+		case UpdateOfIntImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_KEY: return new UpdateOfIntImpl(context, selector);
 
 		case UpdateOfLongImpl.SELECTOR: return new UpdateOfLongImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readLong(), IOException::new);
 
@@ -154,7 +154,7 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 		else if (value instanceof FloatValue fv)
 			return new UpdateOfFloatImpl(object, field, fv.getValue(), InconsistentJsonException::new);
 		else if (value instanceof IntValue iv)
-			return new UpdateOfIntImpl(object, field, iv.getValue(), InconsistentJsonException::new);
+			return new UpdateOfIntImpl(json, iv.getValue());
 		else if (value instanceof LongValue lv)
 			return new UpdateOfLongImpl(object, field, lv.getValue(), InconsistentJsonException::new);
 		else if (value instanceof ShortValue sv)

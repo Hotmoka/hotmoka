@@ -82,7 +82,7 @@ public final class UpdateOfStorageImpl extends UpdateOfFieldImpl implements Upda
 	}
 
 	/**
-	 * Unmarshals an update a field of storage (reference) type from the given context.
+	 * Unmarshals an update of a field of storage (reference) type from the given context.
 	 * The selector has been already unmarshalled.
 	 * 
 	 * @param context the unmarshalling context

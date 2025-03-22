@@ -144,7 +144,7 @@ public abstract class Updates {
 	 * @return the update
 	 */
 	public static UpdateOfInt ofInt(StorageReference object, FieldSignature field, int value) {
-		return new UpdateOfIntImpl(object, field, value, IllegalArgumentException::new);
+		return new UpdateOfIntImpl(object, field, value);
 	}
 
 	/**
