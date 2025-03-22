@@ -18,11 +18,17 @@ package io.hotmoka.node.tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.node.MethodSignatures;
+import io.hotmoka.node.NodeMarshallingContexts;
+import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.StorageTypes;
+import io.hotmoka.node.api.signatures.MethodSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.testing.AbstractLoggedTests;
 
@@ -36,6 +42,26 @@ public class MethodSignatureTests extends AbstractLoggedTests {
 		var method1 = MethodSignatures.ofVoid(MY_CLASS, "m", StorageTypes.classNamed("io.hotmoka.OtherClass"), StorageTypes.CHAR, StorageTypes.DOUBLE, StorageTypes.classNamed("io.hotmoka.Something"));
 		String encoded = new MethodSignatures.Encoder().encode(method1);
 		var method2 = new MethodSignatures.Decoder().decode(encoded);
+		assertEquals(method1, method2);
+	}
+
+	@Test
+	@DisplayName("void method signatures are correctly marshalled and unmarshalled")
+	public void marshalUnmarshalWorksForVoidMethodSignature() throws Exception {
+		var method1 = MethodSignatures.ofVoid(MY_CLASS, "m", StorageTypes.classNamed("io.hotmoka.OtherClass"), StorageTypes.CHAR, StorageTypes.DOUBLE, StorageTypes.classNamed("io.hotmoka.Something"));
+		byte[] bytes;
+
+		try (var baos = new ByteArrayOutputStream(); var context = NodeMarshallingContexts.of(baos)) {
+			method1.into(context);
+			context.flush();
+			bytes = baos.toByteArray();
+		}
+
+		MethodSignature method2;
+		try (var context = NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))) {
+			method2 = MethodSignatures.from(context);
+		}
+
 		assertEquals(method1, method2);
 	}
 

@@ -18,6 +18,8 @@ package io.hotmoka.node.tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
@@ -25,11 +27,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.node.FieldSignatures;
+import io.hotmoka.node.NodeMarshallingContexts;
+import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.Updates;
+import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
@@ -162,6 +167,26 @@ public class TransactionResponseTests extends AbstractLoggedTests {
 		var response1 = TransactionResponses.voidMethodCallSuccessful(Stream.of(update1, update2, update3), Stream.of(event1, event2, event3), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 		String encoded = new TransactionResponses.Encoder().encode(response1);
 		var response2 = new TransactionResponses.Decoder().decode(encoded);
+		assertEquals(response1, response2);
+	}
+
+	@Test
+	@DisplayName("void method call successful transaction responses are correctly marshalled and unmarshalled")
+	public void marshalUnmarshalWorksForVoidMethodCallSuccessfulResponse() throws Exception {
+		var response1 = TransactionResponses.voidMethodCallSuccessful(Stream.of(update1, update2, update3), Stream.of(event1, event2, event3), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+		byte[] bytes;
+
+		try (var baos = new ByteArrayOutputStream(); var context = NodeMarshallingContexts.of(baos)) {
+			response1.into(context);
+			context.flush();
+			bytes = baos.toByteArray();
+		}
+
+		TransactionResponse response2;
+		try (var context = NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))) {
+			response2 = TransactionResponses.from(context);
+		}
+
 		assertEquals(response1, response2);
 	}
 }

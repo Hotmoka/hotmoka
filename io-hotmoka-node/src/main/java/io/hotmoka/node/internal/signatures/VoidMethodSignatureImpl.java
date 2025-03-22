@@ -21,6 +21,7 @@ import java.io.IOException;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.api.signatures.VoidMethodSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
@@ -46,17 +47,19 @@ public final class VoidMethodSignatureImpl extends AbstractMethodSignature imple
 	}
 
 	/**
-	 * Builds the signature of a method, that returns no value.
+	 * Unmarshals a method signature from the given context. The number of formals has already been read.
 	 * 
-	 * @param <E> the type of the exception thrown if some arguments is illegal
-	 * @param definingClass the class of the method
-	 * @param name the name of the method
-	 * @param formals the formal arguments of the method
-	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
-	 * @throws E if some argument is illegal
+	 * @param context the unmarshalling context
+	 * @param numberOfFoirmals the number of formal arguments
+	 * @throws IOException if the unmarshalling failed
 	 */
-	<E extends Exception> VoidMethodSignatureImpl(ClassType definingClass, String name, StorageType[] formals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
-		super(definingClass, name, formals, onIllegalArgs);
+	public VoidMethodSignatureImpl(UnmarshallingContext context, int numberOfFoirmals) throws IOException {
+		this(
+			unmarshalFormals(context, numberOfFoirmals),
+			unmarshalDefiningClass(context),
+			context.readStringUnshared(),
+			IOException::new
+		);
 	}
 
 	/**
@@ -67,11 +70,25 @@ public final class VoidMethodSignatureImpl extends AbstractMethodSignature imple
 	 */
 	public VoidMethodSignatureImpl(MethodSignatureJson json) throws InconsistentJsonException {
 		this(
+			formalsAsTypes(json),
 			ClassTypeImpl.named(json.getDefiningClass(), InconsistentJsonException::new),
 			json.getName(),
-			formalsAsTypes(json),
 			InconsistentJsonException::new
 		);
+	}
+
+	/**
+	 * Builds the signature of a method, that returns no value.
+	 * 
+	 * @param <E> the type of the exception thrown if some arguments is illegal
+	 * @param formals the formal arguments of the method
+	 * @param definingClass the class of the method
+	 * @param name the name of the method
+	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
+	 */
+	private <E extends Exception> VoidMethodSignatureImpl(StorageType[] formals, ClassType definingClass, String name, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(definingClass, name, formals, onIllegalArgs);
 	}
 
 	@Override
@@ -86,12 +103,12 @@ public final class VoidMethodSignatureImpl extends AbstractMethodSignature imple
 
     @Override
     public void into(MarshallingContext context) throws IOException {
-    	getDefiningClass().into(context);
-    	context.writeStringUnshared(getName());
-
     	var formals = getFormals().toArray(StorageType[]::new);
     	context.writeCompactInt(formals.length * 2); // this signals that the method is void (see from() inside AbstractMethodSignature)
     	for (var formal: formals)
     		formal.into(context);
+
+    	getDefiningClass().into(context);
+    	context.writeStringUnshared(getName());
     }
 }

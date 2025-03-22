@@ -25,6 +25,7 @@ import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
+import io.hotmoka.node.NodeMarshallingContexts;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
@@ -33,7 +34,6 @@ import io.hotmoka.node.api.types.StorageType;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.internal.gson.StorageValueJson;
-import io.hotmoka.node.internal.marshalling.NodeMarshallingContext;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
@@ -290,6 +290,6 @@ public abstract class AbstractStorageValue extends AbstractMarshallable implemen
 
 	@Override
 	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
-		return new NodeMarshallingContext(os);
+		return NodeMarshallingContexts.of(os);
 	}
 }

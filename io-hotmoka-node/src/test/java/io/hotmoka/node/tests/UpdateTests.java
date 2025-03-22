@@ -18,17 +18,22 @@ package io.hotmoka.node.tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.node.FieldSignatures;
+import io.hotmoka.node.NodeMarshallingContexts;
+import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.signatures.FieldSignature;
+import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.testing.AbstractLoggedTests;
 
@@ -46,6 +51,27 @@ public class UpdateTests extends AbstractLoggedTests {
 		var classTag1 = Updates.classTag(object, StorageTypes.classNamed("MyGreatClass"), jar);
 		String encoded = new Updates.Encoder().encode(classTag1);
 		var classTag2 = new Updates.Decoder().decode(encoded);
+		assertEquals(classTag1, classTag2);
+	}
+
+	@Test
+	@DisplayName("class tags are correctly marshalled and unmarshalled")
+	public void marshalUnmarshalWorksForClassTag() throws Exception {
+		var jar = TransactionReferences.of("01234567deadbeafcafebabedeadbeafcafebabedeadbeafcafebabedeadbeaf");
+		var classTag1 = Updates.classTag(object, StorageTypes.classNamed("MyGreatClass"), jar);
+		byte[] bytes;
+
+		try (var baos = new ByteArrayOutputStream(); var context = NodeMarshallingContexts.of(baos)) {
+			classTag1.into(context);
+			context.flush();
+			bytes = baos.toByteArray();
+		}
+
+		Update classTag2;
+		try (var context = NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))) {
+			classTag2 = Updates.from(context);
+		}
+
 		assertEquals(classTag1, classTag2);
 	}
 

@@ -49,7 +49,7 @@ public abstract class TransactionReferences {
 	 * @return the transaction reference
 	 */
 	public static TransactionReference of(byte[] hash) {
-		return new TransactionReferenceImpl(hash, IllegalArgumentException::new);
+		return new TransactionReferenceImpl(hash);
 	}
 
 	/**
@@ -86,12 +86,12 @@ public abstract class TransactionReferences {
 	}
 
     /**
-     * Json representation.
+     * JSON representation.
      */
     public static class Json extends TransactionReferenceJson {
 
     	/**
-    	 * Creates the Json representation for the given transaction reference.
+    	 * Creates the JSON representation for the given transaction reference.
     	 * 
     	 * @param reference the transaction reference
     	 */

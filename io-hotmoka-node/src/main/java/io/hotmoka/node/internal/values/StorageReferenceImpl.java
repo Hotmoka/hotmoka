@@ -27,11 +27,11 @@ import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
+import io.hotmoka.node.NodeMarshallingContexts;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
-import io.hotmoka.node.internal.marshalling.NodeMarshallingContext;
 import io.hotmoka.node.internal.references.TransactionReferenceImpl;
 
 /**
@@ -145,7 +145,7 @@ public final class StorageReferenceImpl extends AbstractStorageValue implements 
 
 	@Override
 	public final byte[] toByteArrayWithoutSelector() {
-		try (var baos = new ByteArrayOutputStream(); var context = new NodeMarshallingContext(baos)) {
+		try (var baos = new ByteArrayOutputStream(); var context = NodeMarshallingContexts.of(baos)) {
 			intoWithoutSelector(context);
 			context.flush();
 			return baos.toByteArray();

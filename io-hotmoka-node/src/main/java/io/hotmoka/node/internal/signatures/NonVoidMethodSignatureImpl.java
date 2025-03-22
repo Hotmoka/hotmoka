@@ -22,6 +22,8 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.marshalling.api.UnmarshallingContext;
+import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
@@ -50,7 +52,24 @@ public final class NonVoidMethodSignatureImpl extends AbstractMethodSignature im
 	 * @param formals the formal arguments of the method
 	 */
 	public NonVoidMethodSignatureImpl(ClassType definingClass, String name, StorageType returnType, StorageType[] formals) {
-		this(definingClass, name, returnType, formals, IllegalArgumentException::new);
+		this(formals, definingClass, name, returnType, IllegalArgumentException::new);
+	}
+
+	/**
+	 * Unmarshals a method signature from the given context. The number of formals has already been read.
+	 * 
+	 * @param context the unmarshalling context
+	 * @param numberOfFoirmals the number of formal arguments
+	 * @throws IOException if the unmarshalling failed
+	 */
+	public NonVoidMethodSignatureImpl(UnmarshallingContext context, int numberOfFoirmals) throws IOException {
+		this(
+			unmarshalFormals(context, numberOfFoirmals),
+			unmarshalDefiningClass(context),
+			context.readStringUnshared(),
+			StorageTypes.from(context),
+			IOException::new
+		);
 	}
 
 	/**
@@ -61,10 +80,10 @@ public final class NonVoidMethodSignatureImpl extends AbstractMethodSignature im
 	 */
 	public NonVoidMethodSignatureImpl(MethodSignatureJson json) throws InconsistentJsonException {
 		this(
+			formalsAsTypes(json),
 			ClassTypeImpl.named(json.getDefiningClass(), InconsistentJsonException::new),
 			json.getName(),
 			AbstractStorageType.named(json.getReturnType().orElseThrow(() -> new InconsistentJsonException("Missing returnType")), InconsistentJsonException::new),
-			formalsAsTypes(json),
 			InconsistentJsonException::new
 		);
 	}
@@ -73,14 +92,14 @@ public final class NonVoidMethodSignatureImpl extends AbstractMethodSignature im
 	 * Builds the signature of a method, that returns a value.
 	 * 
 	 * @param <E> the type of the exception thrown if some arguments is illegal
+	 * @param formals the formal arguments of the method
 	 * @param definingClass the class of the method
 	 * @param name the name of the method
 	 * @param returnType the type of the returned value
-	 * @param formals the formal arguments of the method
 	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	<E extends Exception> NonVoidMethodSignatureImpl(ClassType definingClass, String name, StorageType returnType, StorageType[] formals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	private <E extends Exception> NonVoidMethodSignatureImpl(StorageType[] formals, ClassType definingClass, String name, StorageType returnType, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
 		super(definingClass, name, formals, onIllegalArgs);
 	
 		this.returnType = Objects.requireNonNull(returnType, "returnType cannot be null", onIllegalArgs);
@@ -103,14 +122,13 @@ public final class NonVoidMethodSignatureImpl extends AbstractMethodSignature im
 
     @Override
     public void into(MarshallingContext context) throws IOException {
-    	getDefiningClass().into(context);
-    	context.writeStringUnshared(getName());
-
     	var formals = getFormals().toArray(StorageType[]::new);
     	context.writeCompactInt(formals.length * 2 + 1); // this signals that the method is non-void (see from() inside AbstractMethodSignature)
     	for (var formal: formals)
     		formal.into(context);
 
+    	getDefiningClass().into(context);
+    	context.writeStringUnshared(getName());
     	returnType.into(context);
     }
 }

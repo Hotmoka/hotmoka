@@ -98,23 +98,22 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 	 * @throws IOException if the method signature cannot be unmarshalled
 	 */
 	public static MethodSignature from(UnmarshallingContext context) throws IOException {
-		var definingClass = unmarshalDefiningClass(context);
-		var name = context.readStringUnshared();
 		int length = context.readCompactInt();
 
 		// we determine if the method is void or not, by looking at the parity of the number of formals
 		// (see the into() method in NonVoidMethodSignatureImpl and VoidMethodSignatureImpl)
-		boolean isVoid = length % 2 == 0;
-		length /= 2;
+		if (length % 2 == 0)
+			return new VoidMethodSignatureImpl(context, length / 2);
+		else
+			return new NonVoidMethodSignatureImpl(context, length / 2);
+	}
 
-		var formals = new StorageType[length];
-		for (int pos = 0; pos < length; pos++)
+	protected static StorageType[] unmarshalFormals(UnmarshallingContext context, int numberOfFormals) throws IOException {
+		var formals = new StorageType[numberOfFormals];
+		for (int pos = 0; pos < numberOfFormals; pos++)
 			formals[pos] = StorageTypes.from(context);
 
-		if (isVoid)
-			return new VoidMethodSignatureImpl(definingClass, name, formals, IOException::new);
-		else
-			return new NonVoidMethodSignatureImpl(definingClass, name, StorageTypes.from(context), formals, IOException::new);
+		return formals;
 	}
 
 	/**

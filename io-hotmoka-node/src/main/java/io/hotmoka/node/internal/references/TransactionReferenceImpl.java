@@ -26,9 +26,9 @@ import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
+import io.hotmoka.node.NodeMarshallingContexts;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.internal.gson.TransactionReferenceJson;
-import io.hotmoka.node.internal.marshalling.NodeMarshallingContext;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
@@ -62,16 +62,10 @@ public final class TransactionReferenceImpl extends AbstractMarshallable impleme
 	/**
 	 * Builds a transaction reference with the given hash.
 	 * 
-	 * @param <E> the type of the exception thrown if {@code hash} is an illegal transaction hash
 	 * @param hash the hash of the transaction, as a byte array of length {@link TransactionReference#REQUEST_HASH_LENGTH}
-	 * @param onIllegalHash the generator of the exception thrown if {@code hash} is illegal
-	 * @throws E if {@code hash} in not a legal transaction hash
 	 */
-	public <E extends Exception> TransactionReferenceImpl(byte[] hash, ExceptionSupplier<? extends E> onIllegalHash) throws E {
-		if (Objects.requireNonNull(hash, "hash cannot be null", onIllegalHash).length != REQUEST_HASH_LENGTH)
-			throw onIllegalHash.apply("Illegal transaction reference: it should be " + REQUEST_HASH_LENGTH + " bytes long");
-
-		this.hash = hash.clone();
+	public TransactionReferenceImpl(byte[] hash) {
+		this(checkHash(hash, IllegalArgumentException::new).clone(), IllegalArgumentException::new);
 	}
 
 	/**
@@ -82,6 +76,38 @@ public final class TransactionReferenceImpl extends AbstractMarshallable impleme
 	 */
 	public TransactionReferenceImpl(TransactionReferenceJson json) throws InconsistentJsonException {
 		this(json.getHash(), InconsistentJsonException::new);
+	}
+
+	/**
+	 * Unmarshals a transaction reference from the given context.
+	 * 
+	 * @param context the unmarshalling context
+	 * @throws IOException if the unmarshalling failed
+	 */
+	public TransactionReferenceImpl(UnmarshallingContext context) throws IOException {
+		this(
+			context.readBytes(TransactionReference.REQUEST_HASH_LENGTH, "Cannot read a transaction reference"),
+			IOException::new
+		);
+	}
+
+	/**
+	 * Builds a transaction reference with the given hash.
+	 * 
+	 * @param <E> the type of the exception thrown if {@code hash} is an illegal transaction hash
+	 * @param hash the hash of the transaction, as a byte array of length {@link TransactionReference#REQUEST_HASH_LENGTH}
+	 * @param onIllegalHash the generator of the exception thrown if {@code hash} is illegal
+	 * @throws E if {@code hash} in not a legal transaction hash
+	 */
+	private <E extends Exception> TransactionReferenceImpl(byte[] hash, ExceptionSupplier<? extends E> onIllegalHash) throws E {
+		this.hash = hash;
+	}
+
+	private static <E extends Exception> byte[] checkHash(byte[] hash, ExceptionSupplier<? extends E> onIllegalHash) throws E {
+		if (Objects.requireNonNull(hash, "hash cannot be null", onIllegalHash).length != REQUEST_HASH_LENGTH)
+			throw onIllegalHash.apply("Illegal transaction reference: it should be " + REQUEST_HASH_LENGTH + " bytes long");
+
+		return hash;
 	}
 
 	/**
@@ -133,6 +159,6 @@ public final class TransactionReferenceImpl extends AbstractMarshallable impleme
 
 	@Override
 	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
-		return new NodeMarshallingContext(os);
+		return NodeMarshallingContexts.of(os);
 	}
 }
