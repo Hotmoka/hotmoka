@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.node.internal.requests;
 
+import static java.math.BigInteger.ZERO;
+
 import java.io.IOException;
 import java.math.BigInteger;
 
@@ -57,11 +59,9 @@ public class InstanceSystemMethodCallTransactionRequestImpl extends AbstractInst
 	 * @param method the method that must be called
 	 * @param receiver the receiver of the call
 	 * @param actuals the actual arguments passed to the method
-	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
-	 * @throws E if some argument passed to this constructor is illegal
 	 */
-	public <E extends Exception> InstanceSystemMethodCallTransactionRequestImpl(StorageReference caller, BigInteger nonce, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue[] actuals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
-		super(caller, nonce, gasLimit, BigInteger.ZERO, classpath, method, receiver, actuals, onIllegalArgs);
+	public InstanceSystemMethodCallTransactionRequestImpl(StorageReference caller, BigInteger nonce, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) {
+		super(caller, nonce, gasLimit, ZERO, classpath, method, receiver, actuals, IllegalArgumentException::new);
 	}
 
 	/**
@@ -73,14 +73,51 @@ public class InstanceSystemMethodCallTransactionRequestImpl extends AbstractInst
 	public InstanceSystemMethodCallTransactionRequestImpl(TransactionRequestJson json) throws InconsistentJsonException {
 		this(
 			Objects.requireNonNull(json.getCaller(), "caller cannot be null", InconsistentJsonException::new).unmap().asReference(value -> new InconsistentJsonException("caller must be a storage reference, not a " + value.getClass().getSimpleName())),
-			json.getNonce(),
 			json.getGasLimit(),
 			Objects.requireNonNull(json.getClasspath(), "classpath cannot be null", InconsistentJsonException::new).unmap(),
+			json.getNonce(),
+			convertedActuals(json),
 			Objects.requireNonNull(json.getMethod(), "method cannot be null", InconsistentJsonException::new).unmap(),
 			Objects.requireNonNull(json.getReceiver(), "receiver cannot be null", InconsistentJsonException::new).unmap().asReference(value -> new InconsistentJsonException("receiver must be a storage reference, not a " + value.getClass().getSimpleName())),
-			convertedActuals(json),
 			InconsistentJsonException::new
 		);
+	}
+
+	/**
+	 * Unmarshals a transaction from the given context. The selector has been already unmarshalled.
+	 * 
+	 * @param context the unmarshalling context
+	 * @throws IOException if the unmarshalling failed
+	 */
+	public InstanceSystemMethodCallTransactionRequestImpl(UnmarshallingContext context) throws IOException {
+		this(
+			StorageReferenceImpl.fromWithoutSelector(context),
+			context.readBigInteger(),
+			TransactionReferences.from(context),
+			context.readBigInteger(),
+			context.readLengthAndArray(StorageValues::from, StorageValue[]::new),
+			MethodSignatures.from(context),
+			StorageReferenceImpl.fromWithoutSelector(context),
+			IOException::new
+		);
+	}
+
+	/**
+	 * Builds the transaction request.
+	 * 
+	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
+	 * @param caller the externally owned caller contract that pays for the transaction
+	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
+	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
+	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
+	 * @param method the method that must be called
+	 * @param receiver the receiver of the call
+	 * @param actuals the actual arguments passed to the method
+	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
+	 * @throws E if some argument passed to this constructor is illegal
+	 */
+	private <E extends Exception> InstanceSystemMethodCallTransactionRequestImpl(StorageReference caller, BigInteger gasLimit, TransactionReference classpath,  BigInteger nonce, StorageValue[] actuals, MethodSignature method, StorageReference receiver, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(caller, nonce, gasLimit, ZERO, classpath, method, receiver, actuals, onIllegalArgs);
 	}
 
 	@Override
@@ -109,25 +146,5 @@ public class InstanceSystemMethodCallTransactionRequestImpl extends AbstractInst
 		context.writeLengthAndArray(actuals().toArray(Marshallable[]::new));
 		getStaticTarget().into(context);
 		getReceiver().intoWithoutSelector(context);
-	}
-
-	/**
-	 * Factory method that unmarshals a request from the given stream.
-	 * The selector has been already unmarshalled.
-	 * 
-	 * @param context the unmarshalling context
-	 * @return the request
-	 * @throws IOException if the request could not be unmarshalled
-	 */
-	public static InstanceSystemMethodCallTransactionRequest from(UnmarshallingContext context) throws IOException {
-		var caller = StorageReferenceImpl.fromWithoutSelector(context);
-		var gasLimit = context.readBigInteger();
-		var classpath = TransactionReferences.from(context);
-		var nonce = context.readBigInteger();
-		var actuals = context.readLengthAndArray(StorageValues::from, StorageValue[]::new);
-		var method = MethodSignatures.from(context);
-		var receiver = StorageReferenceImpl.fromWithoutSelector(context);
-
-		return new InstanceSystemMethodCallTransactionRequestImpl(caller, nonce, gasLimit, classpath, method, receiver, actuals, IOException::new);
 	}
 }

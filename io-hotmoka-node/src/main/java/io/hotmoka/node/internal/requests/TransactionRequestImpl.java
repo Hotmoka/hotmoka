@@ -66,13 +66,12 @@ public abstract class TransactionRequestImpl<R extends TransactionResponse> exte
 		case InstanceMethodCallTransactionRequestImpl.SELECTOR:
 		case InstanceMethodCallTransactionRequestImpl.SELECTOR_TRANSFER_INT:
 		case InstanceMethodCallTransactionRequestImpl.SELECTOR_TRANSFER_LONG:
-		case InstanceMethodCallTransactionRequestImpl.SELECTOR_TRANSFER_BIG_INTEGER:
-			return new InstanceMethodCallTransactionRequestImpl(context, selector);
+		case InstanceMethodCallTransactionRequestImpl.SELECTOR_TRANSFER_BIG_INTEGER: return new InstanceMethodCallTransactionRequestImpl(context, selector);
 		case JarStoreInitialTransactionRequestImpl.SELECTOR: return new JarStoreInitialTransactionRequestImpl(context);
 		case JarStoreTransactionRequestImpl.SELECTOR: return new JarStoreTransactionRequestImpl(context);
 		case GameteCreationTransactionRequestImpl.SELECTOR: return new GameteCreationTransactionRequestImpl(context);
-		case StaticMethodCallTransactionRequestImpl.SELECTOR: return StaticMethodCallTransactionRequestImpl.from(context);
-		case InstanceSystemMethodCallTransactionRequestImpl.SELECTOR: return InstanceSystemMethodCallTransactionRequestImpl.from(context);
+		case StaticMethodCallTransactionRequestImpl.SELECTOR: return new StaticMethodCallTransactionRequestImpl(context);
+		case InstanceSystemMethodCallTransactionRequestImpl.SELECTOR: return new InstanceSystemMethodCallTransactionRequestImpl(context);
 		default: throw new IOException("Unexpected request selector: " + selector);
 		}
 	}

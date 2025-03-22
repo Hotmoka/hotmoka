@@ -242,7 +242,7 @@ public abstract class TransactionRequests {
 	 * @return the request
 	 */
 	public static InstanceSystemMethodCallTransactionRequest instanceSystemMethodCall(StorageReference caller, BigInteger nonce, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) {
-		return new InstanceSystemMethodCallTransactionRequestImpl(caller, nonce, gasLimit, classpath, method, receiver, actuals, IllegalArgumentException::new);
+		return new InstanceSystemMethodCallTransactionRequestImpl(caller, nonce, gasLimit, classpath, method, receiver, actuals);
 	}
 
 	/**
@@ -259,8 +259,8 @@ public abstract class TransactionRequests {
 	 * @param actuals the actual arguments passed to the method
 	 * @return the request
 	 */
-	public static StaticMethodCallTransactionRequest staticMethodCall(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue[] actuals) {
-		return new StaticMethodCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, actuals, IllegalArgumentException::new);
+	public static StaticMethodCallTransactionRequest staticMethodCall(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) {
+		return new StaticMethodCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, actuals);
 	}
 
 	/**

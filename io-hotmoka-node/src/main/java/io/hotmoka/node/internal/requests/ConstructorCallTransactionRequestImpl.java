@@ -210,9 +210,14 @@ public class ConstructorCallTransactionRequestImpl extends CodeExecutionTransact
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof ConstructorCallTransactionRequest cctr && super.equals(other)
-			&& constructor.equals(cctr.getStaticTarget()) && chainId.equals(cctr.getChainId())
-			&& Arrays.equals(signature, cctr.getSignature());
+		if (other instanceof ConstructorCallTransactionRequestImpl cctri) // optimization
+			return super.equals(other)
+					&& constructor.equals(cctri.getStaticTarget()) && chainId.equals(cctri.getChainId())
+					&& Arrays.equals(signature, cctri.signature);
+		else
+			return other instanceof ConstructorCallTransactionRequest cctr && super.equals(other)
+					&& constructor.equals(cctr.getStaticTarget()) && chainId.equals(cctr.getChainId())
+					&& Arrays.equals(signature, cctr.getSignature());
 	}
 
 	@Override

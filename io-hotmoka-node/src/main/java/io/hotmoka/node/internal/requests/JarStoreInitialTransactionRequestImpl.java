@@ -151,9 +151,12 @@ public class JarStoreInitialTransactionRequestImpl extends TransactionRequestImp
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof JarStoreInitialTransactionRequest jsitr &&
-			Arrays.equals(dependencies, jsitr.getDependencies().toArray(TransactionReference[]::new)) &&
-			Arrays.equals(jar, jsitr.getJar());
+		if (other instanceof JarStoreInitialTransactionRequestImpl jsitri) // optimization
+			return Arrays.equals(dependencies, jsitri.dependencies) && Arrays.equals(jar, jsitri.jar);
+		else
+			return other instanceof JarStoreInitialTransactionRequest jsitr &&
+					Arrays.equals(dependencies, jsitr.getDependencies().toArray(TransactionReference[]::new)) &&
+					Arrays.equals(jar, jsitr.getJar());
 	}
 
 	@Override

@@ -111,11 +111,18 @@ public class JarStoreTransactionRequestImpl extends NonInitialTransactionRequest
 	 * @param dependencies the dependencies of the jar, already installed in blockchain
 	 */
 	public JarStoreTransactionRequestImpl(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) {
-		this(chainId, caller, gasLimit, gasPrice, classpath, nonce,
-				Objects.requireNonNull(jar, "jar cannot be null", IllegalArgumentException::new).clone(),
-				Objects.requireNonNull(dependencies, "dependencies cannot be null", IllegalArgumentException::new).clone(),
-				Objects.requireNonNull(signature, "signature cannot be null", IllegalArgumentException::new).clone(),
-				IllegalArgumentException::new);
+		this(
+			chainId,
+			caller,
+			gasLimit,
+			gasPrice,
+			classpath,
+			nonce,
+			Objects.requireNonNull(jar, "jar cannot be null", IllegalArgumentException::new).clone(),
+			Objects.requireNonNull(dependencies, "dependencies cannot be null", IllegalArgumentException::new).clone(),
+			Objects.requireNonNull(signature, "signature cannot be null", IllegalArgumentException::new).clone(),
+			IllegalArgumentException::new
+		);
 	}
 
 	/**

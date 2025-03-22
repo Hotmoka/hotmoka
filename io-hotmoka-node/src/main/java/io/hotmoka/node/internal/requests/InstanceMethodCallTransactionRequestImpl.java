@@ -291,8 +291,11 @@ public class InstanceMethodCallTransactionRequestImpl extends AbstractInstanceMe
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof InstanceMethodCallTransactionRequest imctr &&
-			super.equals(other) && chainId.equals(imctr.getChainId()) && Arrays.equals(signature, imctr.getSignature());
+		if (other instanceof InstanceMethodCallTransactionRequestImpl imctri) // optimization
+			return super.equals(other) && chainId.equals(imctri.getChainId()) && Arrays.equals(signature, imctri.signature);
+		else
+			return other instanceof InstanceMethodCallTransactionRequest imctr &&
+					super.equals(other) && chainId.equals(imctr.getChainId()) && Arrays.equals(signature, imctr.getSignature());
 	}
 
 	@Override
