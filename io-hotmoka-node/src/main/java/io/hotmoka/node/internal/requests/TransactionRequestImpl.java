@@ -61,7 +61,7 @@ public abstract class TransactionRequestImpl<R extends TransactionResponse> exte
 	public static TransactionRequest<?> from(UnmarshallingContext context) throws IOException {
 		byte selector = context.readByte();
 		switch (selector) {
-		case ConstructorCallTransactionRequestImpl.SELECTOR: return ConstructorCallTransactionRequestImpl.from(context);
+		case ConstructorCallTransactionRequestImpl.SELECTOR: return new ConstructorCallTransactionRequestImpl(context);
 		case InitializationTransactionRequestImpl.SELECTOR: return new InitializationTransactionRequestImpl(context);
 		case InstanceMethodCallTransactionRequestImpl.SELECTOR:
 		case InstanceMethodCallTransactionRequestImpl.SELECTOR_TRANSFER_INT:
@@ -69,7 +69,7 @@ public abstract class TransactionRequestImpl<R extends TransactionResponse> exte
 		case InstanceMethodCallTransactionRequestImpl.SELECTOR_TRANSFER_BIG_INTEGER:
 			return InstanceMethodCallTransactionRequestImpl.from(context, selector);
 		case JarStoreInitialTransactionRequestImpl.SELECTOR: return new JarStoreInitialTransactionRequestImpl(context);
-		case JarStoreTransactionRequestImpl.SELECTOR: return JarStoreTransactionRequestImpl.from(context);
+		case JarStoreTransactionRequestImpl.SELECTOR: return new JarStoreTransactionRequestImpl(context);
 		case GameteCreationTransactionRequestImpl.SELECTOR: return new GameteCreationTransactionRequestImpl(context);
 		case StaticMethodCallTransactionRequestImpl.SELECTOR: return StaticMethodCallTransactionRequestImpl.from(context);
 		case InstanceSystemMethodCallTransactionRequestImpl.SELECTOR: return InstanceSystemMethodCallTransactionRequestImpl.from(context);

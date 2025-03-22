@@ -100,6 +100,71 @@ public class JarStoreTransactionRequestImpl extends NonInitialTransactionRequest
 	/**
 	 * Builds the transaction request.
 	 * 
+	 * @param signature the signature of the request
+	 * @param caller the externally owned caller contract that pays for the transaction
+	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
+	 * @param chainId the chain identifier where this request can be executed, to forbid transaction replay across chains
+	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
+	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
+	 * @param classpath the class path where the {@code caller} is interpreted
+	 * @param jar the bytes of the jar to install
+	 * @param dependencies the dependencies of the jar, already installed in blockchain
+	 */
+	public JarStoreTransactionRequestImpl(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) {
+		this(chainId, caller, gasLimit, gasPrice, classpath, nonce,
+				Objects.requireNonNull(jar, "jar cannot be null", IllegalArgumentException::new).clone(),
+				Objects.requireNonNull(dependencies, "dependencies cannot be null", IllegalArgumentException::new).clone(),
+				Objects.requireNonNull(signature, "signature cannot be null", IllegalArgumentException::new).clone(),
+				IllegalArgumentException::new);
+	}
+
+	/**
+	 * Builds a transaction request from the given JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public JarStoreTransactionRequestImpl(TransactionRequestJson json) throws InconsistentJsonException {
+		this(
+			json.getChainId(),
+			Objects.requireNonNull(json.getCaller(), "caller cannot be null", InconsistentJsonException::new).unmap().asReference(value -> new InconsistentJsonException("caller must be a storage reference, not a " + value.getClass().getSimpleName())),
+			json.getGasLimit(),
+			json.getGasPrice(),
+			Objects.requireNonNull(json.getClasspath(), "classpath cannot be null", InconsistentJsonException::new).unmap(),
+			json.getNonce(),
+			Base64.fromBase64String(Objects.requireNonNull(json.getJar(), "json cannot be null", InconsistentJsonException::new), InconsistentJsonException::new),
+			convertedDependencies(json),
+			Hex.fromHexString(Objects.requireNonNull(json.getSignature(), "signature cannot be null", InconsistentJsonException::new), InconsistentJsonException::new),
+			InconsistentJsonException::new
+		);
+	}
+
+	/**
+	 * Unmarshals a request from the given stream.
+	 * The selector has been already unmarshalled.
+	 * 
+	 * @param context the unmarshalling context
+	 * @return the request
+	 * @throws IOException if the request could not be unmarshalled
+	 */
+	public JarStoreTransactionRequestImpl(UnmarshallingContext context) throws IOException {
+		this(
+			context.readStringUnshared(),
+			StorageReferenceImpl.fromWithoutSelector(context),
+			context.readBigInteger(),
+			context.readBigInteger(),
+			TransactionReferences.from(context),
+			context.readBigInteger(),
+			context.readLengthAndBytes("Jar length mismatch in request"),
+			context.readLengthAndArray(TransactionReferences::from, TransactionReference[]::new),
+			context.readLengthAndBytes("Signature length mismatch in request"),
+			IOException::new
+		);
+	}
+
+	/**
+	 * Builds the transaction request.
+	 * 
 	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
 	 * @param signature the signature of the request
 	 * @param caller the externally owned caller contract that pays for the transaction
@@ -113,61 +178,17 @@ public class JarStoreTransactionRequestImpl extends NonInitialTransactionRequest
 	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
 	 * @throws E if some argument passed to this constructor is illegal
 	 */
-	public <E extends Exception> JarStoreTransactionRequestImpl(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference[] dependencies, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	private <E extends Exception> JarStoreTransactionRequestImpl(String chainId, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, BigInteger nonce, byte[] jar, TransactionReference[] dependencies, byte[] signature, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
 		super(caller, nonce, gasLimit, gasPrice, classpath, onIllegalArgs);
-
-		this.jar = Objects.requireNonNull(jar, "jar cannot be null", onIllegalArgs).clone();
-
-		this.dependencies = Objects.requireNonNull(dependencies, "dependencies cannot be null", onIllegalArgs).clone();
+	
+		this.jar = Objects.requireNonNull(jar, "jar cannot be null", onIllegalArgs);
+	
+		this.dependencies = Objects.requireNonNull(dependencies, "dependencies cannot be null", onIllegalArgs);
 		for (var dependency: dependencies)
 			Objects.requireNonNull(dependency, "dependencies cannot hold null elements", onIllegalArgs);
-
+	
 		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null", onIllegalArgs);
-		this.signature = Objects.requireNonNull(signature, "signature cannot be null", onIllegalArgs).clone();
-	}
-
-	/**
-	 * Builds a transaction request from the given JSON representation.
-	 * 
-	 * @param json the JSON representation
-	 * @throws InconsistentJsonException if {@code json} is inconsistent
-	 */
-	public JarStoreTransactionRequestImpl(TransactionRequestJson json) throws InconsistentJsonException {
-		this(
-			Hex.fromHexString(Objects.requireNonNull(json.getSignature(), "signature cannot be null", InconsistentJsonException::new), InconsistentJsonException::new),
-			Objects.requireNonNull(json.getCaller(), "caller cannot be null", InconsistentJsonException::new).unmap().asReference(value -> new InconsistentJsonException("caller must be a storage reference, not a " + value.getClass().getSimpleName())),
-			json.getNonce(),
-			json.getChainId(),
-			json.getGasLimit(),
-			json.getGasPrice(),
-			Objects.requireNonNull(json.getClasspath(), "classpath cannot be null", InconsistentJsonException::new).unmap(),
-			Base64.fromBase64String(Objects.requireNonNull(json.getJar(), "json cannot be null", InconsistentJsonException::new), InconsistentJsonException::new),
-			convertedDependencies(json),
-			InconsistentJsonException::new
-		);
-	}
-
-	/**
-	 * Factory method that unmarshals a request from the given stream.
-	 * The selector has been already unmarshalled.
-	 * 
-	 * @param context the unmarshalling context
-	 * @return the request
-	 * @throws IOException if the request could not be unmarshalled
-	 */
-	public static JarStoreTransactionRequest from(UnmarshallingContext context) throws IOException {
-		var chainId = context.readStringUnshared();
-		var caller = StorageReferenceImpl.fromWithoutSelector(context);
-		var gasLimit = context.readBigInteger();
-		var gasPrice = context.readBigInteger();
-		var classpath = TransactionReferences.from(context);
-		var nonce = context.readBigInteger();
-	
-		byte[] jar = context.readLengthAndBytes("Jar length mismatch in request");
-		var dependencies = context.readLengthAndArray(TransactionReferences::from, TransactionReference[]::new);
-		byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
-	
-		return new JarStoreTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, jar, dependencies, IOException::new);
+		this.signature = Objects.requireNonNull(signature, "signature cannot be null", onIllegalArgs);
 	}
 
 	private static TransactionReference[] convertedDependencies(TransactionRequestJson json) throws InconsistentJsonException {

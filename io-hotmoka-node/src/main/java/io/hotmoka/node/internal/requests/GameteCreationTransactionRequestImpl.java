@@ -60,21 +60,13 @@ public class GameteCreationTransactionRequestImpl extends TransactionRequestImpl
 	/**
 	 * Builds the transaction request.
 	 * 
-	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
 	 * @param classpath the reference to the jar containing the basic Takamaka classes. This must
 	 *                  have been already installed by a previous transaction
 	 * @param initialAmount the amount of green coins provided to the gamete
 	 * @param publicKey the Base64-encoded public key that will be assigned to the gamete
-	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
-	 * @throws E if some argument passed to this constructor is illegal
 	 */
-	public <E extends Exception> GameteCreationTransactionRequestImpl(TransactionReference classpath, BigInteger initialAmount, String publicKey, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
-		this.classpath = Objects.requireNonNull(classpath, "classpath cannot be null", onIllegalArgs);
-		this.initialAmount = Objects.requireNonNull(initialAmount, "initialAmount cannot be null", onIllegalArgs);
-		this.publicKey = Base64.requireBase64(Objects.requireNonNull(publicKey, "publicKey cannot be null", onIllegalArgs), onIllegalArgs);
-
-		if (initialAmount.signum() < 0)
-			throw onIllegalArgs.apply("initialAmount cannot be negative");
+	public GameteCreationTransactionRequestImpl(TransactionReference classpath, BigInteger initialAmount, String publicKey) {
+		this(classpath, initialAmount, publicKey, IllegalArgumentException::new);
 	}
 
 	/**
@@ -105,6 +97,26 @@ public class GameteCreationTransactionRequestImpl extends TransactionRequestImpl
 			context.readStringUnshared(),
 			IOException::new
 		);
+	}
+
+	/**
+	 * Builds the transaction request.
+	 * 
+	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
+	 * @param classpath the reference to the jar containing the basic Takamaka classes. This must
+	 *                  have been already installed by a previous transaction
+	 * @param initialAmount the amount of green coins provided to the gamete
+	 * @param publicKey the Base64-encoded public key that will be assigned to the gamete
+	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
+	 * @throws E if some argument passed to this constructor is illegal
+	 */
+	private <E extends Exception> GameteCreationTransactionRequestImpl(TransactionReference classpath, BigInteger initialAmount, String publicKey, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		this.classpath = Objects.requireNonNull(classpath, "classpath cannot be null", onIllegalArgs);
+		this.initialAmount = Objects.requireNonNull(initialAmount, "initialAmount cannot be null", onIllegalArgs);
+		this.publicKey = Base64.requireBase64(Objects.requireNonNull(publicKey, "publicKey cannot be null", onIllegalArgs), onIllegalArgs);
+	
+		if (initialAmount.signum() < 0)
+			throw onIllegalArgs.apply("initialAmount cannot be negative");
 	}
 
 	@Override

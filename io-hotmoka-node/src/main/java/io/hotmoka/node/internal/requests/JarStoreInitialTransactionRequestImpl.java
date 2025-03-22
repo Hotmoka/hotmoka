@@ -53,17 +53,29 @@ public class JarStoreInitialTransactionRequestImpl extends TransactionRequestImp
 	/**
 	 * Builds the transaction request.
 	 * 
-	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
 	 * @param jar the bytes of the jar to install
 	 * @param dependencies the dependencies of the jar, already installed in blockchain
-	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
-	 * @throws E if some argument passed to this constructor is illegal
 	 */
-	public <E extends Exception> JarStoreInitialTransactionRequestImpl(byte[] jar, TransactionReference[] dependencies, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
-		this.jar = Objects.requireNonNull(jar, "jar cannot be null", onIllegalArgs).clone();
-		this.dependencies = Objects.requireNonNull(dependencies, "dependencies cannot be null", onIllegalArgs).clone();
-		for (var dependency: dependencies)
-			Objects.requireNonNull(dependency, "dependencies cannot hold null elements", onIllegalArgs);
+	public JarStoreInitialTransactionRequestImpl(byte[] jar, TransactionReference[] dependencies) {
+		this(
+			Objects.requireNonNull(jar, "jar cannot be null", IllegalArgumentException::new).clone(),
+			Objects.requireNonNull(dependencies, "dependencies cannot be null", IllegalArgumentException::new).clone(),
+			IllegalArgumentException::new
+		);
+	}
+
+	/**
+	 * Unmarshals a transaction request from the given context. The selector has been already unmarshalled.
+	 * 
+	 * @param context the unmarshalling context
+	 * @throws IOException if the request could not be unmarshalled
+	 */
+	public JarStoreInitialTransactionRequestImpl(UnmarshallingContext context) throws IOException {
+		this(
+			context.readLengthAndBytes("jar length mismatch in request"),
+			context.readLengthAndArray(TransactionReferences::from, TransactionReference[]::new),
+			IOException::new
+		);
 	}
 
 	/**
@@ -81,17 +93,20 @@ public class JarStoreInitialTransactionRequestImpl extends TransactionRequestImp
 	}
 
 	/**
-	 * Unmarshals a transaction request from the given context. The selector has been already unmarshalled.
+	 * Builds the transaction request.
 	 * 
-	 * @param context the unmarshalling context
-	 * @throws IOException if the request could not be unmarshalled
+	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
+	 * @param jar the bytes of the jar to install
+	 * @param dependencies the dependencies of the jar, already installed in blockchain
+	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
+	 * @throws E if some argument passed to this constructor is illegal
 	 */
-	public JarStoreInitialTransactionRequestImpl(UnmarshallingContext context) throws IOException {
-		this(
-			context.readLengthAndBytes("jar length mismatch in request"),
-			context.readLengthAndArray(TransactionReferences::from, TransactionReference[]::new),
-			IOException::new
-		);
+	private <E extends Exception> JarStoreInitialTransactionRequestImpl(byte[] jar, TransactionReference[] dependencies, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		this.jar = jar;
+		this.dependencies = dependencies;
+
+		for (var dependency: dependencies)
+			Objects.requireNonNull(dependency, "dependencies cannot hold null elements", onIllegalArgs);
 	}
 
 	private static TransactionReference[] convertedDependencies(TransactionRequestJson json) throws InconsistentJsonException {

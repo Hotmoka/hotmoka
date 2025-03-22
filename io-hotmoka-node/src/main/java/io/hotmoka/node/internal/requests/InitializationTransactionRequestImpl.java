@@ -55,16 +55,26 @@ public class InitializationTransactionRequestImpl extends TransactionRequestImpl
 	/**
 	 * Builds the transaction request.
 	 * 
-	 * @param <E> the type of the exception thrown if some argument is illegal
 	 * @param classpath the reference to the jar containing the basic Takamaka classes. This must
 	 *                  have been already installed by a previous transaction
 	 * @param manifest the storage reference that must be set as manifest
-	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
-	 * @throws E if some argument is illegal
 	 */
-	public <E extends Exception> InitializationTransactionRequestImpl(TransactionReference classpath, StorageReference manifest, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
-		this.classpath = Objects.requireNonNull(classpath, "classpath cannot be null", onIllegalArgs);
-		this.manifest = Objects.requireNonNull(manifest, "manifest cannot be null", onIllegalArgs);
+	public InitializationTransactionRequestImpl(TransactionReference classpath, StorageReference manifest) {
+		this(classpath, manifest, IllegalArgumentException::new);
+	}
+
+	/**
+	 * Unmarshals a transaction from the given context. The selector has been already unmarshalled.
+	 * 
+	 * @param context the unmarshalling context
+	 * @throws IOException if the request could not be unmarshalled
+	 */
+	public InitializationTransactionRequestImpl(UnmarshallingContext context) throws IOException {
+		this(
+			TransactionReferences.from(context),
+			StorageReferenceImpl.fromWithoutSelector(context),
+			IOException::new
+		);
 	}
 
 	/**
@@ -80,6 +90,21 @@ public class InitializationTransactionRequestImpl extends TransactionRequestImpl
 				(value -> new InconsistentJsonException("manifest should be a storage reference, not a " + value.getClass().getName())),
 			InconsistentJsonException::new
 		);
+	}
+
+	/**
+	 * Builds the transaction request.
+	 * 
+	 * @param <E> the type of the exception thrown if some argument is illegal
+	 * @param classpath the reference to the jar containing the basic Takamaka classes. This must
+	 *                  have been already installed by a previous transaction
+	 * @param manifest the storage reference that must be set as manifest
+	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
+	 */
+	private <E extends Exception> InitializationTransactionRequestImpl(TransactionReference classpath, StorageReference manifest, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		this.classpath = Objects.requireNonNull(classpath, "classpath cannot be null", onIllegalArgs);
+		this.manifest = Objects.requireNonNull(manifest, "manifest cannot be null", onIllegalArgs);
 	}
 
 	@Override
@@ -112,19 +137,5 @@ public class InitializationTransactionRequestImpl extends TransactionRequestImpl
 		context.writeByte(SELECTOR);
 		classpath.into(context);
 		manifest.intoWithoutSelector(context);
-	}
-
-	/**
-	 * Unmarshals a transaction from the given context. The selector has been already unmarshalled.
-	 * 
-	 * @param context the unmarshalling context
-	 * @throws IOException if the request could not be unmarshalled
-	 */
-	public InitializationTransactionRequestImpl(UnmarshallingContext context) throws IOException {
-		this(
-			TransactionReferences.from(context),
-			StorageReferenceImpl.fromWithoutSelector(context),
-			IOException::new
-		);
 	}
 }

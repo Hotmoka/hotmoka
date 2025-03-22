@@ -65,7 +65,7 @@ public abstract class TransactionRequests {
 	 * @return the request
 	 */
 	public static JarStoreInitialTransactionRequest jarStoreInitial(byte[] jar, TransactionReference... dependencies) {
-		return new JarStoreInitialTransactionRequestImpl(jar, dependencies, IllegalArgumentException::new);
+		return new JarStoreInitialTransactionRequestImpl(jar, dependencies);
 	}
 
 	/**
@@ -78,7 +78,7 @@ public abstract class TransactionRequests {
 	 * @return the request
 	 */
 	public static GameteCreationTransactionRequest gameteCreation(TransactionReference classpath, BigInteger initialAmount, String publicKey) {
-		return new GameteCreationTransactionRequestImpl(classpath, initialAmount, publicKey, IllegalArgumentException::new);
+		return new GameteCreationTransactionRequestImpl(classpath, initialAmount, publicKey);
 	}
 
 	/**
@@ -91,7 +91,7 @@ public abstract class TransactionRequests {
 	 * @return the request
 	 */
 	public static InitializationTransactionRequest initialization(TransactionReference classpath, StorageReference manifest) {
-		return new InitializationTransactionRequestImpl(classpath, manifest, IllegalArgumentException::new);
+		return new InitializationTransactionRequestImpl(classpath, manifest);
 	}
 
 	/**
@@ -109,7 +109,7 @@ public abstract class TransactionRequests {
 	 * @return the request
 	 */
 	public static JarStoreTransactionRequest jarStore(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) {
-		return new JarStoreTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, jar, dependencies, IllegalArgumentException::new);
+		return new JarStoreTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, jar, dependencies);
 	}
 
 	/**
@@ -147,7 +147,7 @@ public abstract class TransactionRequests {
 	 * @return the request
 	 */
 	public static ConstructorCallTransactionRequest constructorCall(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) {
-		return new ConstructorCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, constructor, actuals, IllegalArgumentException::new);
+		return new ConstructorCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, constructor, actuals);
 	}
 
 	/**
