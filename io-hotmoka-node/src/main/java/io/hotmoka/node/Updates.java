@@ -216,7 +216,7 @@ public abstract class Updates {
 	 * @return the update
 	 */
 	public static UpdateToNull toNull(StorageReference object, FieldSignature field, boolean eager) {
-		return new UpdateToNullImpl(object, field, eager, IllegalArgumentException::new);
+		return new UpdateToNullImpl(object, field, eager);
 	}
 
 	/**

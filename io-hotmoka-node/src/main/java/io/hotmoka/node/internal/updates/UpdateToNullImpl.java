@@ -21,11 +21,16 @@ import java.io.IOException;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.marshalling.api.UnmarshallingContext;
+import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.updates.UpdateToNull;
 import io.hotmoka.node.api.values.NullValue;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.internal.gson.UpdateJson;
+import io.hotmoka.node.internal.values.StorageReferenceImpl;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * Implementation of an update of a field to {@code null}.
@@ -43,6 +48,49 @@ public final class UpdateToNullImpl extends UpdateOfFieldImpl implements UpdateT
 	/**
 	 * Builds an update of a field to {@code null}.
 	 * 
+	 * @param object the storage reference of the object whose field is modified
+	 * @param field the field that is modified
+	 * @param eager true if and only if the update is eager
+	 */
+	public UpdateToNullImpl(StorageReference object, FieldSignature field, boolean eager) {
+		this(object, field, eager, IllegalArgumentException::new);
+	}
+
+	/**
+	 * Builds an update of a field to {@code null} from its given JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public UpdateToNullImpl(UpdateJson json) throws InconsistentJsonException {
+		this(
+			unmapObject(json),
+			unmapField(json),
+			json.isEager(),
+			InconsistentJsonException::new
+		);
+	}
+
+	/**
+	 * Unmarshals an update of a field to {@code null} from the given context.
+	 * The selector has been already unmarshalled.
+	 * 
+	 * @param context the unmarshalling context
+	 * @param selector the selector
+	 * @throws IOException if the unmarshalling failed
+	 */
+	public UpdateToNullImpl(UnmarshallingContext context, byte selector) throws IOException {
+		this(
+			StorageReferenceImpl.fromWithoutSelector(context),
+			FieldSignatures.from(context),
+			unmarshalEager(selector),
+			IOException::new
+		);
+	}
+
+	/**
+	 * Builds an update of a field to {@code null}.
+	 * 
 	 * @param <E> the type of the exception thrown if some argument is illegal
 	 * @param object the storage reference of the object whose field is modified
 	 * @param field the field that is modified
@@ -50,10 +98,19 @@ public final class UpdateToNullImpl extends UpdateOfFieldImpl implements UpdateT
 	 * @param onIllegalArgs the supplier of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	public <E extends Exception> UpdateToNullImpl(StorageReference object, FieldSignature field, boolean eager, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	private <E extends Exception> UpdateToNullImpl(StorageReference object, FieldSignature field, boolean eager, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
 		super(object, field, onIllegalArgs);
-
+	
 		this.eager = eager;
+	}
+
+	private static boolean unmarshalEager(byte selector) {
+		if (selector == SELECTOR_EAGER)
+			return true;
+		else if (selector == SELECTOR_LAZY)
+			return false;
+		else
+			throw new IllegalArgumentException("Unknown selector " + selector + " for an update to null");
 	}
 
 	@Override

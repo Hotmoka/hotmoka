@@ -28,6 +28,7 @@ import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.NodeMarshallingContexts;
+import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.BooleanValue;
@@ -113,8 +114,8 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 		case UpdateOfStorageImpl.SELECTOR_EVENT_CREATOR: return new UpdateOfStorageImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.EVENT_CREATOR_FIELD, StorageReferenceImpl.fromWithoutSelector(context), IOException::new);
 		case UpdateOfStringImpl.SELECTOR_PUBLIC_KEY: return new UpdateOfStringImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.EOA_PUBLIC_KEY_FIELD, context.readStringUnshared(), IOException::new);
 		case UpdateOfStringImpl.SELECTOR: return new UpdateOfStringImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readStringUnshared(), IOException::new);
-		case UpdateToNullImpl.SELECTOR_EAGER: return new UpdateToNullImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), true, IOException::new);
-		case UpdateToNullImpl.SELECTOR_LAZY: return new UpdateToNullImpl(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), false, IOException::new);
+		case UpdateToNullImpl.SELECTOR_EAGER:
+		case UpdateToNullImpl.SELECTOR_LAZY: return new UpdateToNullImpl(context, selector);
 		default: throw new IOException("Unexpected update selector: " + selector);
 		}
 	}
@@ -130,7 +131,7 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 			return new ClassTagImpl(json);
 
 		var object = unmapObject(json);
-		var field = Objects.requireNonNull(json.getField(), "A field update must have non-null field", InconsistentJsonException::new).unmap();
+		var field = unmapField(json);
 		var value = Objects.requireNonNull(json.getValue(), "A field update must have non-null value", InconsistentJsonException::new).unmap();
 
 		if (value instanceof BigIntegerValue biv)
@@ -156,9 +157,13 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 		else if (value instanceof StringValue sv)
 			return new UpdateOfStringImpl(object, field, sv.getValue(), InconsistentJsonException::new);
 		else if (value instanceof NullValue)
-			return new UpdateToNullImpl(object, field, json.isEager(), InconsistentJsonException::new);
+			return new UpdateToNullImpl(json);
 		else
 			throw new InconsistentJsonException("Illegal update JSON");
+	}
+
+	protected static FieldSignature unmapField(UpdateJson json) throws InconsistentJsonException {
+		return Objects.requireNonNull(json.getField(), "A field update must have non-null field", InconsistentJsonException::new).unmap();
 	}
 
 	protected static StorageReference unmapObject(UpdateJson json) throws InconsistentJsonException {
