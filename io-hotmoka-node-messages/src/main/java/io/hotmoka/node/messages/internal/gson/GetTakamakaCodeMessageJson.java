@@ -16,9 +16,10 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal.gson;
 
-import io.hotmoka.node.messages.GetTakamakaCodeMessages;
 import io.hotmoka.node.messages.api.GetTakamakaCodeMessage;
+import io.hotmoka.node.messages.internal.GetTakamakaCodeMessageImpl;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * The JSON representation of an {@link GetTakamakaCodeMessage}.
@@ -30,8 +31,8 @@ public abstract class GetTakamakaCodeMessageJson extends AbstractRpcMessageJsonR
 	}
 
 	@Override
-	public GetTakamakaCodeMessage unmap() {
-		return GetTakamakaCodeMessages.of(getId());
+	public GetTakamakaCodeMessage unmap() throws InconsistentJsonException {
+		return new GetTakamakaCodeMessageImpl(this);
 	}
 
 	@Override

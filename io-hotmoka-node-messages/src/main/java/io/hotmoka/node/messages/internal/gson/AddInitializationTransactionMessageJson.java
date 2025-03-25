@@ -17,9 +17,8 @@ limitations under the License.
 package io.hotmoka.node.messages.internal.gson;
 
 import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.api.requests.InitializationTransactionRequest;
-import io.hotmoka.node.messages.AddInitializationTransactionMessages;
 import io.hotmoka.node.messages.api.AddInitializationTransactionMessage;
+import io.hotmoka.node.messages.internal.AddInitializationTransactionMessageImpl;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
@@ -35,13 +34,13 @@ public abstract class AddInitializationTransactionMessageJson extends AbstractRp
 		this.request = new TransactionRequests.Json(message.getRequest());
 	}
 
+	public final TransactionRequests.Json getRequest() {
+		return request;
+	}
+
 	@Override
 	public AddInitializationTransactionMessage unmap() throws InconsistentJsonException {
-		var unmappedRequest = request.unmap();
-		if (unmappedRequest instanceof InitializationTransactionRequest itr)
-			return AddInitializationTransactionMessages.of(itr, getId());
-		else
-			throw new InconsistentJsonException("The argument of the addInitializationTransactionRequest() method must be an InitializationTransactionRequest");
+		return new AddInitializationTransactionMessageImpl(this);
 	}
 
 	@Override

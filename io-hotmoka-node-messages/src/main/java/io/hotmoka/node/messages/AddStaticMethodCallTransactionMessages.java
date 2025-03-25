@@ -26,7 +26,7 @@ import io.hotmoka.node.messages.internal.gson.AddStaticMethodCallTransactionMess
 /**
  * A provider of {@link AddStaticMethodCallTransactionMessage}.
  */
-public final class AddStaticMethodCallTransactionMessages {
+public abstract class AddStaticMethodCallTransactionMessages {
 
 	private AddStaticMethodCallTransactionMessages() {}
 

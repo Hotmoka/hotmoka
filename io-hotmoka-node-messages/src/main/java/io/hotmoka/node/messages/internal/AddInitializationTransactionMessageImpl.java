@@ -16,12 +16,14 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal;
 
-import java.util.Objects;
-
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.requests.InitializationTransactionRequest;
 import io.hotmoka.node.messages.api.AddInitializationTransactionMessage;
+import io.hotmoka.node.messages.internal.gson.AddInitializationTransactionMessageJson;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * Implementation of the network message corresponding to {@link Node#addInitializationTransaction(InitializationTransactionRequest)}.
@@ -37,9 +39,41 @@ public class AddInitializationTransactionMessageImpl extends AbstractRpcMessage 
 	 * @param id the identifier of the message
 	 */
 	public AddInitializationTransactionMessageImpl(InitializationTransactionRequest request, String id) {
-		super(id);
+		this(request, id, IllegalArgumentException::new);
+	}
 
-		this.request = Objects.requireNonNull(request, "request cannot be null");
+	/**
+	 * Creates the message from the given JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public AddInitializationTransactionMessageImpl(AddInitializationTransactionMessageJson json) throws InconsistentJsonException {
+		this(unmapRequest(json), json.getId(), InconsistentJsonException::new);
+	}
+
+	/**
+	 * Creates the message.
+	 * 
+	 * @param <E> the type of the exception thrown if some argument is illegal
+	 * @param request the request of the transaction required to add
+	 * @param id the identifier of the message
+	 * @param onIllegalArgs the creator of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
+	 */
+	private <E extends Exception> AddInitializationTransactionMessageImpl(InitializationTransactionRequest request, String id, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(Objects.requireNonNull(id, "id cannot be null", onIllegalArgs));
+	
+		this.request = Objects.requireNonNull(request, "request cannot be null", onIllegalArgs);
+	}
+
+	private static InitializationTransactionRequest unmapRequest(AddInitializationTransactionMessageJson json) throws InconsistentJsonException {
+		var unmappedRequest = Objects.requireNonNull(json.getRequest(), "request cannot be null", InconsistentJsonException::new).unmap();
+
+		if (unmappedRequest instanceof InitializationTransactionRequest itr)
+			return itr;
+		else
+			throw new InconsistentJsonException("The argument of the addInitializationTransactionRequest() method must be an InitializationTransactionRequest");
 	}
 
 	@Override

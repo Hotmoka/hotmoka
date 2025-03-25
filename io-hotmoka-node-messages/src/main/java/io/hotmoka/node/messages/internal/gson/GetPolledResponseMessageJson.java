@@ -17,8 +17,8 @@ limitations under the License.
 package io.hotmoka.node.messages.internal.gson;
 
 import io.hotmoka.node.TransactionReferences;
-import io.hotmoka.node.messages.GetPolledResponseMessages;
 import io.hotmoka.node.messages.api.GetPolledResponseMessage;
+import io.hotmoka.node.messages.internal.GetPolledResponseMessageImpl;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
@@ -34,9 +34,13 @@ public abstract class GetPolledResponseMessageJson extends AbstractRpcMessageJso
 		this.reference = new TransactionReferences.Json(message.getReference());
 	}
 
+	public final TransactionReferences.Json getReference() {
+		return reference;
+	}
+
 	@Override
 	public GetPolledResponseMessage unmap() throws InconsistentJsonException {
-		return GetPolledResponseMessages.of(reference.unmap(), getId());
+		return new GetPolledResponseMessageImpl(this);
 	}
 
 	@Override

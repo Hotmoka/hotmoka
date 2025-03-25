@@ -26,7 +26,7 @@ import io.hotmoka.node.messages.internal.gson.GetClassTagResultMessageJson;
 /**
  * A provider of {@link GetClassTagResultMessage}.
  */
-public final class GetClassTagResultMessages {
+public abstract class GetClassTagResultMessages {
 
 	private GetClassTagResultMessages() {}
 

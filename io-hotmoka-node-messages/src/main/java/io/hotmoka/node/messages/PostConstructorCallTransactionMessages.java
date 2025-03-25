@@ -26,7 +26,7 @@ import io.hotmoka.node.messages.internal.gson.PostConstructorCallTransactionMess
 /**
  * A provider of {@link PostConstructorCallTransactionMessage}.
  */
-public final class PostConstructorCallTransactionMessages {
+public abstract class PostConstructorCallTransactionMessages {
 
 	private PostConstructorCallTransactionMessages() {}
 

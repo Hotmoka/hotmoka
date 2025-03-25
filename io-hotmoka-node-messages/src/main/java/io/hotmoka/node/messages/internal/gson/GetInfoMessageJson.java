@@ -16,9 +16,10 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal.gson;
 
-import io.hotmoka.node.messages.GetInfoMessages;
 import io.hotmoka.node.messages.api.GetInfoMessage;
+import io.hotmoka.node.messages.internal.GetInfoMessageImpl;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * The JSON representation of an {@link GetInfoMessage}.
@@ -30,8 +31,8 @@ public abstract class GetInfoMessageJson extends AbstractRpcMessageJsonRepresent
 	}
 
 	@Override
-	public GetInfoMessage unmap() {
-		return GetInfoMessages.of(getId());
+	public GetInfoMessage unmap() throws InconsistentJsonException {
+		return new GetInfoMessageImpl(this);
 	}
 
 	@Override

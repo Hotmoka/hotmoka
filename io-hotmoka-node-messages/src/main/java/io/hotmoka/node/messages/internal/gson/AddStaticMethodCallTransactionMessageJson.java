@@ -17,9 +17,8 @@ limitations under the License.
 package io.hotmoka.node.messages.internal.gson;
 
 import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
-import io.hotmoka.node.messages.AddStaticMethodCallTransactionMessages;
 import io.hotmoka.node.messages.api.AddStaticMethodCallTransactionMessage;
+import io.hotmoka.node.messages.internal.AddStaticMethodCallTransactionMessageImpl;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
@@ -35,13 +34,13 @@ public abstract class AddStaticMethodCallTransactionMessageJson extends Abstract
 		this.request = new TransactionRequests.Json(message.getRequest());
 	}
 
+	public final TransactionRequests.Json getRequest() {
+		return request;
+	}
+
 	@Override
 	public AddStaticMethodCallTransactionMessage unmap() throws InconsistentJsonException {
-		var unmappedRequest = request.unmap();
-		if (unmappedRequest instanceof StaticMethodCallTransactionRequest smctr)
-			return AddStaticMethodCallTransactionMessages.of(smctr, getId());
-		else
-			throw new InconsistentJsonException("The argument of the addStaticMethodCallTransactionRequest() method must be a StaticMethodCallTransactionRequest");
+		return new AddStaticMethodCallTransactionMessageImpl(this);
 	}
 
 	@Override

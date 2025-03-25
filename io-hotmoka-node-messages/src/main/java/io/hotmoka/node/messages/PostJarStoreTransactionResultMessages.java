@@ -26,7 +26,7 @@ import io.hotmoka.node.messages.internal.gson.PostJarStoreTransactionResultMessa
 /**
  * A provider of {@link PostJarStoreTransactionResultMessage}.
  */
-public final class PostJarStoreTransactionResultMessages {
+public abstract class PostJarStoreTransactionResultMessages {
 
 	private PostJarStoreTransactionResultMessages() {}
 

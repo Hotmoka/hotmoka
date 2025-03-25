@@ -26,7 +26,7 @@ import io.hotmoka.node.messages.internal.gson.GetPolledResponseMessageJson;
 /**
  * A provider of {@link GetPolledResponseMessage}.
  */
-public final class GetPolledResponseMessages {
+public abstract class GetPolledResponseMessages {
 
 	private GetPolledResponseMessages() {}
 

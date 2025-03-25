@@ -25,7 +25,7 @@ import io.hotmoka.node.messages.internal.gson.GetManifestMessageJson;
 /**
  * A provider of {@link GetManifestMessage}.
  */
-public final class GetManifestMessages {
+public abstract class GetManifestMessages {
 
 	private GetManifestMessages() {}
 

@@ -16,13 +16,15 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal;
 
-import java.util.Objects;
-
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.messages.api.PostConstructorCallTransactionResultMessage;
+import io.hotmoka.node.messages.internal.gson.PostConstructorCallTransactionResultMessageJson;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * Implementation of the network message corresponding to the result of the {@link Node#postConstructorCallTransaction(ConstructorCallTransactionRequest)} method.
@@ -41,9 +43,36 @@ public class PostConstructorCallTransactionResultMessageImpl extends AbstractRpc
 	 * @param id the identifier of the message
 	 */
 	public PostConstructorCallTransactionResultMessageImpl(TransactionReference result, String id) {
-		super(id);
+		this(result, id, IllegalArgumentException::new);
+	}
 
-		this.result = Objects.requireNonNull(result, "result cannot be null");
+	/**
+	 * Creates the message from the given JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public PostConstructorCallTransactionResultMessageImpl(PostConstructorCallTransactionResultMessageJson json) throws InconsistentJsonException {
+		this(
+			Objects.requireNonNull(json.getResult(), "result cannot be null", InconsistentJsonException::new).unmap(),
+			json.getId(),
+			InconsistentJsonException::new
+		);
+	}
+
+	/**
+	 * Creates the message.
+	 * 
+	 * @param <E> the type of the exception thrown if some argument is illegal
+	 * @param result the result of the call; this is the reference to the transaction that has been posted
+	 * @param id the identifier of the message
+	 * @param onIllegalArgs the creator of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
+	 */
+	private <E extends Exception> PostConstructorCallTransactionResultMessageImpl(TransactionReference result, String id, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(Objects.requireNonNull(id, "id cannot be null", onIllegalArgs));
+	
+		this.result = Objects.requireNonNull(result, "result cannot be null", onIllegalArgs);
 	}
 
 	@Override

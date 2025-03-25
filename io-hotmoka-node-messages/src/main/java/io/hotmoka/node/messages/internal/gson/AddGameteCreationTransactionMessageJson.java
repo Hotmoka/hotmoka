@@ -17,9 +17,8 @@ limitations under the License.
 package io.hotmoka.node.messages.internal.gson;
 
 import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
-import io.hotmoka.node.messages.AddGameteCreationTransactionMessages;
 import io.hotmoka.node.messages.api.AddGameteCreationTransactionMessage;
+import io.hotmoka.node.messages.internal.AddGameteCreationTransactionMessageImpl;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
@@ -35,13 +34,13 @@ public abstract class AddGameteCreationTransactionMessageJson extends AbstractRp
 		this.request = new TransactionRequests.Json(message.getRequest());
 	}
 
+	public final TransactionRequests.Json getRequest() {
+		return request;
+	}
+
 	@Override
 	public AddGameteCreationTransactionMessage unmap() throws InconsistentJsonException {
-		var unmappedRequest = request.unmap();
-		if (unmappedRequest instanceof GameteCreationTransactionRequest gctr)
-			return AddGameteCreationTransactionMessages.of(gctr, getId());
-		else
-			throw new InconsistentJsonException("The argument of the addGameteCreationTransactionRequest() method must be a GameteCreationTransactionRequest");
+		return new AddGameteCreationTransactionMessageImpl(this);
 	}
 
 	@Override

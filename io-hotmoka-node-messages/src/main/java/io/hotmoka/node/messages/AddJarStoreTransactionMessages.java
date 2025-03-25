@@ -26,7 +26,7 @@ import io.hotmoka.node.messages.internal.gson.AddJarStoreTransactionMessageJson;
 /**
  * A provider of {@link AddJarStoreTransactionMessage}.
  */
-public final class AddJarStoreTransactionMessages {
+public abstract class AddJarStoreTransactionMessages {
 
 	private AddJarStoreTransactionMessages() {}
 

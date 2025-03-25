@@ -16,9 +16,10 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal.gson;
 
-import io.hotmoka.node.messages.AddInitializationTransactionResultMessages;
 import io.hotmoka.node.messages.api.AddInitializationTransactionResultMessage;
+import io.hotmoka.node.messages.internal.AddInitializationTransactionResultMessageImpl;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * The JSON representation of a {@link AddInitializationTransactionResultMessage}.
@@ -30,8 +31,8 @@ public abstract class AddInitializationTransactionResultMessageJson extends Abst
 	}
 
 	@Override
-	public AddInitializationTransactionResultMessage unmap() {
-		return AddInitializationTransactionResultMessages.of(getId());
+	public AddInitializationTransactionResultMessage unmap() throws InconsistentJsonException {
+		return new AddInitializationTransactionResultMessageImpl(this);
 	}
 
 	@Override

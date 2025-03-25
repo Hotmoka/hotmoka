@@ -18,11 +18,16 @@ package io.hotmoka.node.messages.internal;
 
 import java.util.Optional;
 
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
+import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.messages.api.RunStaticMethodCallTransactionResultMessage;
+import io.hotmoka.node.messages.internal.gson.RunStaticMethodCallTransactionResultMessageJson;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * Implementation of the network message corresponding to the result of the {@link Node#runStaticMethodCallTransaction(StaticMethodCallTransactionRequest)} method.
@@ -41,9 +46,40 @@ public class RunStaticMethodCallTransactionResultMessageImpl extends AbstractRpc
 	 * @param id the identifier of the message
 	 */
 	public RunStaticMethodCallTransactionResultMessageImpl(Optional<StorageValue> result, String id) {
-		super(id);
+		this(result, id, IllegalArgumentException::new);
+	}
 
-		this.result = result;
+	/**
+	 * Creates the message from the given JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public RunStaticMethodCallTransactionResultMessageImpl(RunStaticMethodCallTransactionResultMessageJson json) throws InconsistentJsonException {
+		this(unmapResult(json), json.getId(), InconsistentJsonException::new);
+	}
+
+	/**
+	 * Creates the message.
+	 * 
+	 * @param <E> the type of the exception thrown if some argument is illegal
+	 * @param result the result of the call; this might be empty for void methods
+	 * @param id the identifier of the message
+	 * @param onIllegalArgs the creator of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
+	 */
+	private <E extends Exception> RunStaticMethodCallTransactionResultMessageImpl(Optional<StorageValue> result, String id, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(Objects.requireNonNull(id, "id cannot be null", onIllegalArgs));
+	
+		this.result = Objects.requireNonNull(result, "result cannot be null", onIllegalArgs);
+	}
+
+	private static Optional<StorageValue> unmapResult(RunStaticMethodCallTransactionResultMessageJson json) throws InconsistentJsonException {
+		Optional<StorageValues.Json> maybeResult = json.getResult();
+		if (maybeResult.isPresent())
+			return Optional.of(maybeResult.get().unmap());
+		else
+			return Optional.empty();
 	}
 
 	@Override

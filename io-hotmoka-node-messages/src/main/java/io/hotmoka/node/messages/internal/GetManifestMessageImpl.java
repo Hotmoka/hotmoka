@@ -16,9 +16,13 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal;
 
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.messages.api.GetManifestMessage;
+import io.hotmoka.node.messages.internal.gson.GetManifestMessageJson;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * Implementation of the network message corresponding to {@link Node#getManifest()}.
@@ -31,7 +35,29 @@ public class GetManifestMessageImpl extends AbstractRpcMessage implements GetMan
 	 * @param id the identifier of the message
 	 */
 	public GetManifestMessageImpl(String id) {
-		super(id);
+		this(id, IllegalArgumentException::new);
+	}
+
+	/**
+	 * Creates the message from the given JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public GetManifestMessageImpl(GetManifestMessageJson json) throws InconsistentJsonException {
+		this(json.getId(), InconsistentJsonException::new);
+	}
+
+	/**
+	 * Creates the message.
+	 * 
+	 * @param <E> the type of the exception thrown if some argument is illegal
+	 * @param id the identifier of the message
+	 * @param onIllegalArgs the creator of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
+	 */
+	private <E extends Exception> GetManifestMessageImpl(String id, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(Objects.requireNonNull(id, "id cannot be null", onIllegalArgs));
 	}
 
 	@Override

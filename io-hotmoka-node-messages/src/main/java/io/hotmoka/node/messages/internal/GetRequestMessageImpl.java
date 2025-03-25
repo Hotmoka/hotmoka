@@ -16,12 +16,14 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal;
 
-import java.util.Objects;
-
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.messages.api.GetRequestMessage;
+import io.hotmoka.node.messages.internal.gson.GetRequestMessageJson;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * Implementation of the network message corresponding to {@link Node#getRequest(TransactionReference)}.
@@ -37,9 +39,36 @@ public class GetRequestMessageImpl extends AbstractRpcMessage implements GetRequ
 	 * @param id the identifier of the message
 	 */
 	public GetRequestMessageImpl(TransactionReference reference, String id) {
-		super(id);
+		this(reference, id, IllegalArgumentException::new);
+	}
 
-		this.reference = Objects.requireNonNull(reference, "reference cannot be null");
+	/**
+	 * Creates the message from the given JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public GetRequestMessageImpl(GetRequestMessageJson json) throws InconsistentJsonException {
+		this(
+			Objects.requireNonNull(json.getReference(), "reference cannot be null", InconsistentJsonException::new).unmap(),
+			json.getId(),
+			InconsistentJsonException::new
+		);
+	}
+
+	/**
+	 * Creates the message.
+	 * 
+	 * @param <E> the type of the exception thrown if some argument is illegal
+	 * @param reference the reference to the object whose class tag is required
+	 * @param id the identifier of the message
+	 * @param onIllegalArgs the creator of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
+	 */
+	private <E extends Exception> GetRequestMessageImpl(TransactionReference reference, String id, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(Objects.requireNonNull(id, "id cannot be null", onIllegalArgs));
+	
+		this.reference = Objects.requireNonNull(reference, "reference cannot be null", onIllegalArgs);
 	}
 
 	@Override

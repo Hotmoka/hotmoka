@@ -16,9 +16,10 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal.gson;
 
-import io.hotmoka.node.messages.GetManifestMessages;
 import io.hotmoka.node.messages.api.GetManifestMessage;
+import io.hotmoka.node.messages.internal.GetManifestMessageImpl;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * The JSON representation of an {@link GetManifestMessage}.
@@ -30,8 +31,8 @@ public abstract class GetManifestMessageJson extends AbstractRpcMessageJsonRepre
 	}
 
 	@Override
-	public GetManifestMessage unmap() {
-		return GetManifestMessages.of(getId());
+	public GetManifestMessage unmap() throws InconsistentJsonException {
+		return new GetManifestMessageImpl(this);
 	}
 
 	@Override

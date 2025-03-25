@@ -26,7 +26,7 @@ import io.hotmoka.node.messages.internal.gson.EventMessageJson;
 /**
  * A provider of {@link EventMessage}.
  */
-public final class EventMessages {
+public abstract class EventMessages {
 
 	private EventMessages() {}
 

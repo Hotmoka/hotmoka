@@ -25,7 +25,7 @@ import io.hotmoka.node.messages.internal.gson.AddInitializationTransactionResult
 /**
  * A provider of {@link AddInitializationTransactionResultMessage}.
  */
-public final class AddInitializationTransactionResultMessages {
+public abstract class AddInitializationTransactionResultMessages {
 
 	private AddInitializationTransactionResultMessages() {}
 

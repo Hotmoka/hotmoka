@@ -26,7 +26,7 @@ import io.hotmoka.node.messages.internal.gson.GetRequestMessageJson;
 /**
  * A provider of {@link GetRequestMessage}.
  */
-public final class GetRequestMessages {
+public abstract class GetRequestMessages {
 
 	private GetRequestMessages() {}
 

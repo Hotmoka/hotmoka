@@ -16,9 +16,10 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal.gson;
 
-import io.hotmoka.node.messages.GetConsensusConfigMessages;
 import io.hotmoka.node.messages.api.GetConsensusConfigMessage;
+import io.hotmoka.node.messages.internal.GetConsensusConfigMessageImpl;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * The JSON representation of an {@link GetConsensusConfigMessage}.
@@ -30,8 +31,8 @@ public abstract class GetConsensusConfigMessageJson extends AbstractRpcMessageJs
 	}
 
 	@Override
-	public GetConsensusConfigMessage unmap() {
-		return GetConsensusConfigMessages.of(getId());
+	public GetConsensusConfigMessage unmap() throws InconsistentJsonException {
+		return new GetConsensusConfigMessageImpl(this);
 	}
 
 	@Override

@@ -28,7 +28,7 @@ import io.hotmoka.node.messages.internal.gson.RunStaticMethodCallTransactionResu
 /**
  * A provider of {@link RunStaticMethodCallTransactionResultMessage}.
  */
-public final class RunStaticMethodCallTransactionResultMessages {
+public abstract class RunStaticMethodCallTransactionResultMessages {
 
 	private RunStaticMethodCallTransactionResultMessages() {}
 

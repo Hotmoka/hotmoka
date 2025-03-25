@@ -17,9 +17,8 @@ limitations under the License.
 package io.hotmoka.node.messages.internal.gson;
 
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.messages.AddGameteCreationTransactionResultMessages;
 import io.hotmoka.node.messages.api.AddGameteCreationTransactionResultMessage;
+import io.hotmoka.node.messages.internal.AddGameteCreationTransactionResultMessageImpl;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
@@ -35,13 +34,13 @@ public abstract class AddGameteCreationTransactionResultMessageJson extends Abst
 		this.result = new StorageValues.Json(message.get());
 	}
 
+	public final StorageValues.Json getResult() {
+		return result;
+	}
+
 	@Override
 	public AddGameteCreationTransactionResultMessage unmap() throws InconsistentJsonException {
-		var unmappedResult = result.unmap();
-		if (unmappedResult instanceof StorageReference sr)
-			return AddGameteCreationTransactionResultMessages.of(sr, getId());
-		else
-			throw new InconsistentJsonException("The return value of the addGameteCreationTramsaction() method must be a StorageReference");
+		return new AddGameteCreationTransactionResultMessageImpl(this);
 	}
 
 	@Override

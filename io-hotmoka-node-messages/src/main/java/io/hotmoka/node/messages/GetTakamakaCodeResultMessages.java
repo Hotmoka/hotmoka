@@ -26,7 +26,7 @@ import io.hotmoka.node.messages.internal.gson.GetTakamakaCodeResultMessageJson;
 /**
  * A provider of {@link GetTakamakaCodeResultMessage}.
  */
-public final class GetTakamakaCodeResultMessages {
+public abstract class GetTakamakaCodeResultMessages {
 
 	private GetTakamakaCodeResultMessages() {}
 

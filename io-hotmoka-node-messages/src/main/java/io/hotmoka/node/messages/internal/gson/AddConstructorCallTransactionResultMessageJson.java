@@ -17,9 +17,8 @@ limitations under the License.
 package io.hotmoka.node.messages.internal.gson;
 
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.messages.AddConstructorCallTransactionResultMessages;
 import io.hotmoka.node.messages.api.AddConstructorCallTransactionResultMessage;
+import io.hotmoka.node.messages.internal.AddConstructorCallTransactionResultMessageImpl;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
@@ -35,13 +34,13 @@ public abstract class AddConstructorCallTransactionResultMessageJson extends Abs
 		this.result = new StorageValues.Json(message.get());
 	}
 
+	public final StorageValues.Json getResult() {
+		return result;
+	}
+
 	@Override
 	public AddConstructorCallTransactionResultMessage unmap() throws InconsistentJsonException {
-		var unmappedResult = result.unmap();
-		if (unmappedResult instanceof StorageReference sr)
-			return AddConstructorCallTransactionResultMessages.of(sr, getId());
-		else
-			throw new InconsistentJsonException("The argument of addConstructorCallTransaction() must be a StorageReference");
+		return new AddConstructorCallTransactionResultMessageImpl(this);
 	}
 
 	@Override

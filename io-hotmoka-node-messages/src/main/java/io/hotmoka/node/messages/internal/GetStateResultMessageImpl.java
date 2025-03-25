@@ -17,14 +17,18 @@ limitations under the License.
 package io.hotmoka.node.messages.internal;
 
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.stream.Stream;
 
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
+import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.messages.api.GetStateResultMessage;
+import io.hotmoka.node.messages.internal.gson.GetStateResultMessageJson;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * Implementation of the network message corresponding to the result of the {@link Node#getState(StorageReference)} method.
@@ -43,11 +47,46 @@ public class GetStateResultMessageImpl extends AbstractRpcMessage implements Get
 	 * @param id the identifier of the message
 	 */
 	public GetStateResultMessageImpl(Stream<Update> result, String id) {
-		super(id);
+		this(
+			Objects.requireNonNull(result, "result cannot be null", IllegalArgumentException::new).toArray(Update[]::new),
+			id,
+			IllegalArgumentException::new
+		);
+	}
 
-		this.result = Objects.requireNonNull(result, "result cannot be null")
-			.map(update -> Objects.requireNonNull(update, "result cannot contain null elements"))
-			.toArray(Update[]::new);
+	/**
+	 * Creates the message from the given JSON representation.
+	 * 
+	 * @param json the JSON representation
+	 * @throws InconsistentJsonException if {@code json} is inconsistent
+	 */
+	public GetStateResultMessageImpl(GetStateResultMessageJson json) throws InconsistentJsonException {
+		this(unmapResult(json), json.getId(), InconsistentJsonException::new);
+	}
+
+	/**
+	 * Creates the message.
+	 * 
+	 * @param <E> the type of the exception thrown if some argument is illegal
+	 * @param result the result of the call
+	 * @param id the identifier of the message
+	 * @param onIllegalArgs the creator of the exception thrown if some argument is illegal
+	 * @throws E if some argument is illegal
+	 */
+	private <E extends Exception> GetStateResultMessageImpl(Update[] result, String id, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+		super(Objects.requireNonNull(id, "id cannot be null", onIllegalArgs));
+	
+		this.result = result;
+	}
+
+	private static Update[] unmapResult(GetStateResultMessageJson json) throws InconsistentJsonException {
+		Updates.Json[] updatesJson = json.getResult().toArray(Updates.Json[]::new);
+		var result = new Update[updatesJson.length];
+		int pos = 0;
+		for (var updateJson: updatesJson)
+			result[pos++] = Objects.requireNonNull(updateJson, "result cannot hold null elements", InconsistentJsonException::new).unmap();
+
+		return result;
 	}
 
 	@Override

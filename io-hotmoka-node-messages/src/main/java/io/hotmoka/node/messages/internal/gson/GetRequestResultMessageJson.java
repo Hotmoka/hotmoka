@@ -17,8 +17,8 @@ limitations under the License.
 package io.hotmoka.node.messages.internal.gson;
 
 import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.messages.GetRequestResultMessages;
 import io.hotmoka.node.messages.api.GetRequestResultMessage;
+import io.hotmoka.node.messages.internal.GetRequestResultMessageImpl;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
@@ -34,9 +34,13 @@ public abstract class GetRequestResultMessageJson extends AbstractRpcMessageJson
 		this.result = new TransactionRequests.Json(message.get());
 	}
 
+	public final TransactionRequests.Json getResult() {
+		return result;
+	}
+
 	@Override
 	public GetRequestResultMessage unmap() throws InconsistentJsonException {
-		return GetRequestResultMessages.of(result.unmap(), getId());
+		return new GetRequestResultMessageImpl(this);
 	}
 
 	@Override

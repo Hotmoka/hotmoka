@@ -25,7 +25,7 @@ import io.hotmoka.node.messages.internal.gson.GetConsensusConfigMessageJson;
 /**
  * A provider of {@link GetConsensusConfigMessage}.
  */
-public final class GetConsensusConfigMessages {
+public abstract class GetConsensusConfigMessages {
 
 	private GetConsensusConfigMessages() {}
 

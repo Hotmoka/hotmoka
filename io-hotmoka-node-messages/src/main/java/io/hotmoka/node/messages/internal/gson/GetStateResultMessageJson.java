@@ -18,13 +18,11 @@ package io.hotmoka.node.messages.internal.gson;
 
 import java.util.stream.Stream;
 
-import io.hotmoka.crypto.HexConversionException;
-import io.hotmoka.exceptions.CheckSupplier;
-import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.Updates;
-import io.hotmoka.node.messages.GetStateResultMessages;
 import io.hotmoka.node.messages.api.GetStateResultMessage;
+import io.hotmoka.node.messages.internal.GetStateResultMessageImpl;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * The JSON representation of a {@link GetStateResultMessage}.
@@ -40,9 +38,13 @@ public abstract class GetStateResultMessageJson extends AbstractRpcMessageJsonRe
 			.toArray(Updates.Json[]::new);
 	}
 
+	public final Stream<Updates.Json> getResult() {
+		return result == null ? Stream.empty() : Stream.of(result);
+	}
+
 	@Override
-	public GetStateResultMessage unmap() throws HexConversionException {
-		return CheckSupplier.check(HexConversionException.class, () -> GetStateResultMessages.of(Stream.of(result).map(UncheckFunction.uncheck(Updates.Json::unmap)), getId()));
+	public GetStateResultMessage unmap() throws InconsistentJsonException {
+		return new GetStateResultMessageImpl(this);
 	}
 
 	@Override

@@ -28,7 +28,7 @@ import io.hotmoka.node.messages.internal.gson.AddInstanceMethodCallTransactionRe
 /**
  * A provider of {@link AddInstanceMethodCallTransactionResultMessage}.
  */
-public final class AddInstanceMethodCallTransactionResultMessages {
+public abstract class AddInstanceMethodCallTransactionResultMessages {
 
 	private AddInstanceMethodCallTransactionResultMessages() {}
 

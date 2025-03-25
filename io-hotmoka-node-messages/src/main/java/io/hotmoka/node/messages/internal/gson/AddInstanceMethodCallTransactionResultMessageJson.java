@@ -19,8 +19,8 @@ package io.hotmoka.node.messages.internal.gson;
 import java.util.Optional;
 
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.messages.AddInstanceMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.api.AddInstanceMethodCallTransactionResultMessage;
+import io.hotmoka.node.messages.internal.AddInstanceMethodCallTransactionResultMessageImpl;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
@@ -36,9 +36,13 @@ public abstract class AddInstanceMethodCallTransactionResultMessageJson extends 
 		this.result = message.get().map(StorageValues.Json::new).orElse(null);
 	}
 
+	public final Optional<StorageValues.Json> getResult() {
+		return Optional.ofNullable(result);
+	}
+
 	@Override
 	public AddInstanceMethodCallTransactionResultMessage unmap() throws InconsistentJsonException {
-		return AddInstanceMethodCallTransactionResultMessages.of(result == null ? Optional.empty() : Optional.of(result.unmap()), getId());
+		return new AddInstanceMethodCallTransactionResultMessageImpl(this);
 	}
 
 	@Override

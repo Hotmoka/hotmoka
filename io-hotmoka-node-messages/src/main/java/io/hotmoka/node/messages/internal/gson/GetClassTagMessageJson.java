@@ -17,9 +17,8 @@ limitations under the License.
 package io.hotmoka.node.messages.internal.gson;
 
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.messages.GetClassTagMessages;
 import io.hotmoka.node.messages.api.GetClassTagMessage;
+import io.hotmoka.node.messages.internal.GetClassTagMessageImpl;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
@@ -35,13 +34,13 @@ public abstract class GetClassTagMessageJson extends AbstractRpcMessageJsonRepre
 		this.reference = new StorageValues.Json(message.getReference());
 	}
 
+	public final StorageValues.Json getReference() {
+		return reference;
+	}
+
 	@Override
 	public GetClassTagMessage unmap() throws InconsistentJsonException {
-		var unmappedReference = reference.unmap();
-		if (unmappedReference instanceof StorageReference sr)
-			return GetClassTagMessages.of(sr, getId());
-		else
-			throw new InconsistentJsonException("The argument of a getClassTag() call must be a storage reference");
+		return new GetClassTagMessageImpl(this);
 	}
 
 	@Override

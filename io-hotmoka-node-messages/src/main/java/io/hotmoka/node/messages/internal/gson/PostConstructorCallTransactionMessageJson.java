@@ -17,9 +17,8 @@ limitations under the License.
 package io.hotmoka.node.messages.internal.gson;
 
 import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.node.messages.PostConstructorCallTransactionMessages;
 import io.hotmoka.node.messages.api.PostConstructorCallTransactionMessage;
+import io.hotmoka.node.messages.internal.PostConstructorCallTransactionMessageImpl;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
@@ -35,13 +34,13 @@ public abstract class PostConstructorCallTransactionMessageJson extends Abstract
 		this.request = new TransactionRequests.Json(message.getRequest());
 	}
 
+	public final TransactionRequests.Json getRequest() {
+		return request;
+	}
+
 	@Override
 	public PostConstructorCallTransactionMessage unmap() throws InconsistentJsonException {
-		var unmappedRequest = request.unmap();
-		if (unmappedRequest instanceof ConstructorCallTransactionRequest cctr)
-			return PostConstructorCallTransactionMessages.of(cctr, getId());
-		else
-			throw new InconsistentJsonException("The argument of the postConstructorCallTransactionRequest() method must be a ConstructorCallTransactionRequest");
+		return new PostConstructorCallTransactionMessageImpl(this);
 	}
 
 	@Override

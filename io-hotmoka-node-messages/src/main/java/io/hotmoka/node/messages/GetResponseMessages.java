@@ -26,7 +26,7 @@ import io.hotmoka.node.messages.internal.gson.GetResponseMessageJson;
 /**
  * A provider of {@link GetResponseMessage}.
  */
-public final class GetResponseMessages {
+public abstract class GetResponseMessages {
 
 	private GetResponseMessages() {}
 

@@ -17,9 +17,8 @@ limitations under the License.
 package io.hotmoka.node.messages.internal.gson;
 
 import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.api.requests.JarStoreTransactionRequest;
-import io.hotmoka.node.messages.PostJarStoreTransactionMessages;
 import io.hotmoka.node.messages.api.PostJarStoreTransactionMessage;
+import io.hotmoka.node.messages.internal.PostJarStoreTransactionMessageImpl;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
@@ -35,13 +34,13 @@ public abstract class PostJarStoreTransactionMessageJson extends AbstractRpcMess
 		this.request = new TransactionRequests.Json(message.getRequest());
 	}
 
+	public final TransactionRequests.Json getRequest() {
+		return request;
+	}
+
 	@Override
 	public PostJarStoreTransactionMessage unmap() throws InconsistentJsonException {
-		var unmappedRequest = request.unmap();
-		if (unmappedRequest instanceof JarStoreTransactionRequest jstr)
-			return PostJarStoreTransactionMessages.of(jstr, getId());
-		else
-			throw new InconsistentJsonException("The argument of the postJarStoreTransactionRequest() method must be a JarStoreTransactionRequest");
+		return new PostJarStoreTransactionMessageImpl(this);
 	}
 
 	@Override

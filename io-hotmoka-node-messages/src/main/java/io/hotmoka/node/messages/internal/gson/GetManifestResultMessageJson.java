@@ -17,9 +17,8 @@ limitations under the License.
 package io.hotmoka.node.messages.internal.gson;
 
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.messages.GetManifestResultMessages;
 import io.hotmoka.node.messages.api.GetManifestResultMessage;
+import io.hotmoka.node.messages.internal.GetManifestResultMessageImpl;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
@@ -35,13 +34,13 @@ public abstract class GetManifestResultMessageJson extends AbstractRpcMessageJso
 		this.result = new StorageValues.Json(message.get());
 	}
 
+	public final StorageValues.Json getResult() {
+		return result;
+	}
+
 	@Override
 	public GetManifestResultMessage unmap() throws InconsistentJsonException {
-		var unmappedResult = result.unmap();
-		if (unmappedResult instanceof StorageReference sr)
-			return GetManifestResultMessages.of(sr, getId());
-		else
-			throw new InconsistentJsonException("The result of a getManifest() call must be a storage reference");
+		return new GetManifestResultMessageImpl(this);
 	}
 
 	@Override

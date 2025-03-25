@@ -25,7 +25,7 @@ import io.hotmoka.node.messages.internal.gson.GetInfoMessageJson;
 /**
  * A provider of {@link GetInfoMessage}.
  */
-public final class GetInfoMessages {
+public abstract class GetInfoMessages {
 
 	private GetInfoMessages() {}
 

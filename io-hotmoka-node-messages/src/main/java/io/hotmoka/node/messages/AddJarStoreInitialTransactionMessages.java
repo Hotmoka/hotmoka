@@ -26,7 +26,7 @@ import io.hotmoka.node.messages.internal.gson.AddJarStoreInitialTransactionMessa
 /**
  * A provider of {@link AddJarStoreInitialTransactionMessage}.
  */
-public final class AddJarStoreInitialTransactionMessages {
+public abstract class AddJarStoreInitialTransactionMessages {
 
 	private AddJarStoreInitialTransactionMessages() {}
 

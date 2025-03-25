@@ -26,7 +26,7 @@ import io.hotmoka.node.messages.internal.gson.GetStateMessageJson;
 /**
  * A provider of {@link GetStateMessage}.
  */
-public final class GetStateMessages {
+public abstract class GetStateMessages {
 
 	private GetStateMessages() {}
 

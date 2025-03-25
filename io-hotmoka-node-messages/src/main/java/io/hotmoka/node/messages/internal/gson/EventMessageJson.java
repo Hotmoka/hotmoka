@@ -17,9 +17,8 @@ limitations under the License.
 package io.hotmoka.node.messages.internal.gson;
 
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.messages.EventMessages;
 import io.hotmoka.node.messages.api.EventMessage;
+import io.hotmoka.node.messages.internal.EventMessageImpl;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
@@ -35,17 +34,16 @@ public abstract class EventMessageJson implements JsonRepresentation<EventMessag
 		this.event = new StorageValues.Json(message.getEvent());
 	}
 
+	public final StorageValues.Json getCreator() {
+		return creator;
+	}
+
+	public final StorageValues.Json getEvent() {
+		return event;
+	}
+
 	@Override
 	public EventMessage unmap() throws InconsistentJsonException {
-		var unmappedEvent = event.unmap();
-		if (unmappedEvent instanceof StorageReference event) {
-			var unmappedCreator = creator.unmap();
-			if (unmappedCreator instanceof StorageReference creator)
-				return EventMessages.of(creator, event);
-			else
-				throw new InconsistentJsonException("The creator of an event message must be a storage reference");
-		}
-		else
-			throw new InconsistentJsonException("The event in an event message must be a storage reference");
+		return new EventMessageImpl(this);
 	}
 }

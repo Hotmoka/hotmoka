@@ -26,7 +26,7 @@ import io.hotmoka.node.messages.internal.gson.AddGameteCreationTransactionResult
 /**
  * A provider of {@link AddGameteCreationTransactionResultMessage}.
  */
-public final class AddGameteCreationTransactionResultMessages {
+public abstract class AddGameteCreationTransactionResultMessages {
 
 	private AddGameteCreationTransactionResultMessages() {}
 
