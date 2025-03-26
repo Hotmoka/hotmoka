@@ -24,14 +24,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.exceptions.CheckRunnable;
-import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.node.ClosedNodeException;
 import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.api.requests.TransactionRequest;
+import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.disk.api.DiskNode;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.local.AbstractLocalNode;
@@ -247,7 +247,16 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 				if (transformation.deliveredCount() > 0) {
 					transformation.deliverRewardTransaction("", "");
 					storeOfHead = transformation.getFinalStore();
-					CheckRunnable.check(NodeException.class, () -> transformation.getDeliveredTransactions().forEachOrdered(UncheckConsumer.uncheck(NodeException.class, reference -> publish(reference, storeOfHead))));
+					var transactions = transformation.getDeliveredTransactions().toArray(TransactionReference[]::new);
+					for (var transaction: transactions) {
+						try {
+							publish(transaction, storeOfHead);
+						}
+						catch (UnknownReferenceException e) {
+							// the transactions have been delivered, if they cannot be found then there is a problem in the database
+							throw new NodeException("Delivered transactions should be in store", e);
+						}
+					}
 				}
 
 				return storeOfHead.beginTransformation(System.currentTimeMillis());

@@ -42,6 +42,7 @@ import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.local.AbstractTrieBasedLocalNode;
@@ -231,8 +232,16 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 				try {
 					MokamintStore store = mkStore(si, Optional.ofNullable(lastCaches.get(si)));
 	
-					for (var tx: next.getTransactions().toArray(Transaction[]::new))
-						publish(TransactionReferences.of(getHasher().hash(intoHotmokaRequest(tx))), store);
+					var hasher = getHasher();
+					for (var tx: next.getTransactions().toArray(Transaction[]::new)) {
+						try {
+							publish(TransactionReferences.of(hasher.hash(intoHotmokaRequest(tx))), store);
+						}
+						catch (UnknownReferenceException e) {
+							// the transactions have been delivered, if they cannot be found then there is a problem in the database
+							throw new NodeException("Delivered transactions should be in store", e);
+						}
+					}
 				}
 				catch (ApplicationException | NodeException | io.mokamint.node.api.TransactionRejectedException | UnknownStateIdException e) {
 					LOGGER.log(Level.SEVERE, "failed to publish the transactions in block " + next.getHexHash(), e);

@@ -35,7 +35,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
@@ -130,10 +129,10 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	private final ExecutorService executors;
 
 	/**
-	 * Cached error messages of requests that failed their {@link AbstractLocalNodeImpl#checkRequest(TransactionRequest)}.
+	 * Cached error messages of requests that failed their {@link #checkTransaction(TransactionRequest)}.
 	 * This is useful to avoid polling for the outcome of recent requests whose
-	 * {@link #checkRequest(TransactionRequest)} failed, hence never
-	 * got the chance to pass to {@link #deliverTransaction(TransactionRequest)}.
+	 * {@link #checkTransaction(TransactionRequest)} failed, hence never
+	 * got the chance to pass to delivering.
 	 */
 	private final LRUCache<TransactionReference, String> recentlyRejectedTransactionsMessages = new LRUCache<>(100, 1000);
 
@@ -181,8 +180,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 			initWorkingDirectory();
 
 		this.executors = Executors.newCachedThreadPool();
-
-		addShutdownHook();
 	}
 
 	@Override
@@ -231,7 +228,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 				return getClassTag(manifest).getJar();
 			}
 			catch (UnknownReferenceException e) {
-				throw new NodeException("The manifest of the node cannot be found in the node itself", e);
+				throw new NodeException("The manifest of the node cannot be found in the node itself: is the node initialized?", e);
 			}
 		}
 	}
@@ -332,7 +329,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 					.findFirst()
 					.orElseThrow(() -> new NodeException("Object " + reference + " has no class tag in store"));
 			else
-				throw new NodeException("The creation of object " + reference + " does not contain updates");
+				throw new NodeException("The transaction that created object " + reference + " does not contain updates");
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);
@@ -350,7 +347,9 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 			try {
 				Stream<TransactionReference> history = store.getHistory(Objects.requireNonNull(reference));
 				var updates = new HashSet<Update>();
-				CheckRunnable.check(StoreException.class, () -> history.forEachOrdered(UncheckConsumer.uncheck(StoreException.class, transaction -> addUpdatesCommitted(store, reference, transaction, updates))));
+				CheckRunnable.check(NodeException.class, () -> history.forEachOrdered(UncheckConsumer.uncheck(NodeException.class,
+					transaction -> collectUpdates(store, reference, transaction, updates))));
+
 				return updates.stream();
 			}
 			catch (StoreException e) {
@@ -374,7 +373,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	@Override
 	public final void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException, TimeoutException, InterruptedException, NodeException {
 		try (var scope = mkScope()) {
-			getPolledResponse(post(request)); // result unused
+			getPolledResponse(post(request));
 		}
 	}
 
@@ -492,6 +491,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 * 
 	 * @return the entered store of the head
 	 * @throws NodeException if the operation could not be completed correctly
+	 * @throws InterruptedException if the current thread is interrupted while waiting for the result
 	 */
 	protected abstract S enterHead() throws NodeException, InterruptedException;
 
@@ -503,20 +503,44 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 */
 	protected void exit(S store) throws NodeException {}
 
+	/**
+	 * Yields the executors that can be used to start tasks with this node.
+	 * 
+	 * @return the executors
+	 */
 	protected final ExecutorService getExecutors() {
 		return executors;
 	}
 
+	/**
+	 * Yields the hasher of transactions to use with this node.
+	 * 
+	 * @return the hasher of transactions
+	 */
 	protected final Hasher<TransactionRequest<?>> getHasher() {
 		return hasher;
 	}
 
+	/**
+	 * Takes note that this node has rejected a given transaction request.
+	 * 
+	 * @param request the rejected transaction request
+	 * @param e the exception that explains why it has been rejected
+	 */
 	protected final void signalRejected(TransactionRequest<?> request, TransactionRejectedException e) {
 		var reference = TransactionReferences.of(hasher.hash(request));
 		recentlyRejectedTransactionsMessages.put(reference, e.getMessage());
 		signalCompleted(reference);
 	}
 
+	/**
+	 * Checks that the given transaction request is valid.
+	 * 
+	 * @param request the request
+	 * @throws TransactionRejectedException if the request is not valid
+	 * @throws NodeException if this node is not able to perform the operation
+	 * @throws InterruptedException if the current thread is interrupted while performing the operation
+	 */
 	protected final void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException, NodeException, InterruptedException {
 		S store = enterHead();
 
@@ -539,28 +563,39 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 * are added to the main chain of a blockchain, for each of the transactions in such blocks.
 	 * 
 	 * @param reference the transaction to publish
-	 * @param store the store where {@code transaction} and its potential events can be found
+	 * @param store the store where the transaction and its potential events can be found
+	 * @throws NodeException if this node is not able to perform the operation
+	 * @throws UnknownReferenceException if {@code reference} cannot be found in {@code store}
 	 */
-	protected final void publish(TransactionReference reference, S store) throws NodeException {
+	protected final void publish(TransactionReference reference, S store) throws NodeException, UnknownReferenceException {
 		signalCompleted(reference);
 
 		try {
-			if (store.getResponse(reference) instanceof TransactionResponseWithEvents trwe)
-				CheckRunnable.check(NodeException.class, () -> trwe.getEvents().forEachOrdered(UncheckConsumer.uncheck(NodeException.class, event -> notifyEvent(event, store))));
+			if (store.getResponse(reference) instanceof TransactionResponseWithEvents trwe) {
+				var events = trwe.getEvents().toArray(StorageReference[]::new);
+				for (var event: events)
+					notifyEvent(event, store);
+			}
 		}
-		catch (StoreException | UnknownReferenceException e) {
+		catch (StoreException e) {
 			throw new NodeException(e);
 		}
 	}
 
+	/**
+	 * Closes all the resources of this node.
+	 * 
+	 * @throws NodeException if this node is not able to perform the operation
+	 */
 	protected void closeResources() throws NodeException {
 		executors.shutdownNow();
 	}
 
 	/**
-	 * Factory method for creating an empty store for this node, with empty cache.
+	 * Creates an empty store for this node, with empty cache.
 	 * 
-	 * @return the store empty
+	 * @return the empty store
+	 * @throws NodeException if this node is not able to perform the operation
 	 */
 	protected abstract S mkEmptyStore() throws NodeException;
 
@@ -569,12 +604,20 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 * for instance by adding the request to some mempool or queue of requests to be executed.
 	 * 
 	 * @param request the request
+	 * @throws NodeException if this node is not able to perform the operation
+	 * @throws InterruptedException if the current thread is interrupted while performing the operation
+	 * @throws TimeoutException if the operation could not be completed in time
 	 */
 	protected abstract void postRequest(TransactionRequest<?> request) throws NodeException, InterruptedException, TimeoutException;
 
+	/**
+	 * Cleans the directory where the node's data live.
+	 * 
+	 * @throws NodeException if this node is not able to perform the operation
+	 */
 	private void initWorkingDirectory() throws NodeException {
 		try {
-			deleteRecursively(config.getDir());  // cleans the directory where the node's data live
+			deleteRecursively(config.getDir());
 			Files.createDirectories(config.getDir());
 		}
 		catch (IOException e) {
@@ -600,6 +643,8 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 			creator = store.getCreator(event);
 		}
 		catch (StoreException | UnknownReferenceException | FieldNotFoundException e) {
+			// this private method is only called on events in responses in store:
+			// if they cannot be processed, there is a problem in the database
 			throw new NodeException(e);
 		}
 
@@ -609,7 +654,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 
 	/**
 	 * Posts the given request. It does some preliminary preparation then calls
-	 * {@link #postRequest(TransactionRequest)}, that will implement the node-specific logic of this post.
+	 * {@link #postRequest(TransactionRequest)}, that will implement the node-specific logic of posting.
 	 * 
 	 * @param request the request
 	 * @return the reference of the request
@@ -617,18 +662,20 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 */
 	private TransactionReference post(TransactionRequest<?> request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
 		var reference = TransactionReferences.of(hasher.hash(request));
+		String simpleNameOfRequest = request.getClass().getSimpleName();
+
 		if (request instanceof MethodCallTransactionRequest mctr)
-			LOGGER.info(reference + ": posting (" + request.getClass().getSimpleName() + " -> " + trim(mctr.getStaticTarget().getName()) + ')');
+			LOGGER.info(reference + ": posting (" + simpleNameOfRequest + " -> " + trim(mctr.getStaticTarget().getName()) + ')');
 		else if (request instanceof ConstructorCallTransactionRequest cctr)
-			LOGGER.info(reference + ": posting (" + request.getClass().getSimpleName() + " -> " + trim(cctr.getStaticTarget().getDefiningClass().getName()) + ')');
+			LOGGER.info(reference + ": posting (" + simpleNameOfRequest + " -> " + trim(cctr.getStaticTarget().getDefiningClass().getName()) + ')');
 		else
-			LOGGER.info(reference + ": posting (" + request.getClass().getSimpleName() + ')');
+			LOGGER.info(reference + ": posting (" + simpleNameOfRequest + ')');
 
 		S store = enterHead();
 
 		try {
 			store.getResponse(reference);
-			// if the response is found, then no exception is thrown above and the request was repeated
+			// if the response is found, then no exception is thrown above, which means that the request was repeated
 			throw new TransactionRejectedException("Repeated request " + reference, store.getConfig());
 		}
 		catch (StoreException e) {
@@ -652,33 +699,38 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	/**
-	 * Adds, to the given set, the updates of the fields of the object at the given reference,
+	 * Collects, into the given set, the updates of the fields of an object
 	 * occurred during the execution of a given transaction.
 	 * 
-	 * @param object the reference of the object
-	 * @param referenceInHistory the reference to the transaction
+	 * @param store the store of this node
+	 * @param object the reference to the object
+	 * @param reference the reference to the transaction
 	 * @param updates the set where they must be added
-	 * @throws StoreException 
+	 * @throws NodeException if this node is misbehaving
 	 */
-	private void addUpdatesCommitted(S store, StorageReference object, TransactionReference referenceInHistory, Set<Update> updates) throws StoreException {
+	private void collectUpdates(S store, StorageReference object, TransactionReference reference, Set<Update> updates) throws NodeException {
 		try {
-			if (store.getResponse(referenceInHistory) instanceof TransactionResponseWithUpdates trwu)
+			if (store.getResponse(reference) instanceof TransactionResponseWithUpdates trwu)
 				trwu.getUpdates()
 					.filter(update -> update.getObject().equals(object) && updates.stream().noneMatch(update::sameProperty))
 					.forEach(updates::add);
 			else
-				throw new StoreException("Reference " + referenceInHistory + " is part of the histories but did not generate updates");
+				throw new NodeException("Reference " + reference + " is part of the histories but did not generate updates");
 		}
 		catch (UnknownReferenceException e) {
-			throw new StoreException("Reference " + referenceInHistory + " is part of the histories but is not in the store");
+			throw new NodeException("Reference " + reference + " is part of the histories but is not in the store");
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
 		}
 	}
 
 	/**
-	 * Creates a semaphore for those who will wait for the result of the given request.
+	 * Creates a semaphore for those who will wait for the result of a request.
 	 * 
-	 * @param reference the reference of the transaction for the request
-	 * @throws TransactionRejectedException 
+	 * @param reference the reference of the transaction of the request
+	 * @throws TransactionRejectedException if there is already a semaphore for {@code reference}, which
+	 *                                      means that the request is repeated
 	 */
 	private void createSemaphore(S store, TransactionReference reference) throws TransactionRejectedException {
 		if (semaphores.putIfAbsent(reference, new Semaphore(0)) != null)
@@ -697,19 +749,5 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 				.sorted(Comparator.reverseOrder())
 				.map(Path::toFile)
 				.forEach(File::delete);
-	}
-
-	/**
-	 * Adds a shutdown hook that shuts down the blockchain orderly if the JVM terminates.
-	 */
-	private void addShutdownHook() { // TODO: do we really need it? It seems that it is never called
-		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-			try {
-				close();
-			}
-			catch (NodeException e) {
-				LOGGER.log(Level.SEVERE, "The shutdown hook of the node failed", e);
-			}
-		}));
 	}
 }

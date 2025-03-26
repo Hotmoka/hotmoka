@@ -40,17 +40,17 @@ import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.Hex;
-import io.hotmoka.exceptions.CheckRunnable;
 import io.hotmoka.exceptions.CheckSupplier;
-import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.api.requests.TransactionRequest;
+import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.AbstractTrieBasedLocalNode;
 import io.hotmoka.node.local.StateIds;
 import io.hotmoka.node.local.api.StateId;
@@ -713,7 +713,15 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 				})));
 
 				storeOfHead = mkStore(idOfNewStoreOfHead, Optional.of(transformation.getCache()));
-				CheckRunnable.check(NodeException.class, () -> transformation.getDeliveredTransactions().forEachOrdered(UncheckConsumer.uncheck(NodeException.class, reference -> publish(reference, storeOfHead))));
+				for (var tx: transformation.getDeliveredTransactions().toArray(TransactionReference[]::new)) {
+					try {
+						publish(tx, storeOfHead);
+					}
+					catch (UnknownReferenceException e) {
+						// the transactions have been delivered, if they cannot be found then there is a problem in the database
+						throw new NodeException("Delivered transactions should be in store", e);
+					}
+				}
 
 				byte[] hash = getLastBlockApplicationHash();
 				LOGGER.info("committed Tendermint state " + Hex.toHexString(hash).toUpperCase());

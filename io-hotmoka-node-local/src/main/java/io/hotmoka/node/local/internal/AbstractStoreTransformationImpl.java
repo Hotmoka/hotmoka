@@ -60,6 +60,7 @@ import io.hotmoka.node.api.responses.TransactionResponseWithUpdates;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.ResponseBuilder;
@@ -336,7 +337,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	 * @param classLoader the class loader of the transaction that computed {@code response}
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 */
-	protected void updateCaches(TransactionResponse response, TakamakaClassLoader classLoader) throws StoreException, InterruptedException {
+	protected void updateCaches(TransactionResponse response, EngineClassLoader classLoader) throws StoreException, InterruptedException {
 		if (manifestMightHaveChanged(response)) {
 			cache = cache.setValidators(extractValidators());
 			LOGGER.info("the validators cache has been updated since it might have changed");

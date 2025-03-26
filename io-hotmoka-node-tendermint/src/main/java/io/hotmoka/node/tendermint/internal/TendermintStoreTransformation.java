@@ -38,11 +38,11 @@ import io.hotmoka.node.api.responses.TransactionResponseWithEvents;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractTrieBasedStoreTransformation;
+import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
-import io.hotmoka.verification.api.TakamakaClassLoader;
 
 /**
  * A transformation of a store of a Tendermint node.
@@ -81,7 +81,7 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 	}
 
 	@Override
-	protected void updateCaches(TransactionResponse response, TakamakaClassLoader classLoader) throws StoreException, InterruptedException {
+	protected void updateCaches(TransactionResponse response, EngineClassLoader classLoader) throws StoreException, InterruptedException {
 		super.updateCaches(response, classLoader);
 	
 		if (validatorsMightHaveChanged(response, classLoader)) {
@@ -147,7 +147,7 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 	 * @return true if and only if that condition holds
 	 * @throws ClassNotFoundException if some class cannot be found in the Takamaka program
 	 */
-	private boolean validatorsMightHaveChanged(TransactionResponse response, TakamakaClassLoader classLoader) throws StoreException {
+	private boolean validatorsMightHaveChanged(TransactionResponse response, EngineClassLoader classLoader) throws StoreException {
 		if (response instanceof InitializationTransactionResponse)
 			return true;
 		// we check if there are events of type ValidatorsUpdate triggered by the validators
@@ -167,7 +167,7 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 		return false;
 	}
 
-	private boolean isValidatorsUpdateEvent(StorageReference event, TakamakaClassLoader classLoader) throws StoreException {
+	private boolean isValidatorsUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws StoreException {
 		try {
 			return classLoader.isValidatorsUpdateEvent(getClassName(event));
 		}

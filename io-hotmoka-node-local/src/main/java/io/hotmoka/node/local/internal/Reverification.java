@@ -64,7 +64,7 @@ public class Reverification {
 	private final ConcurrentMap<TransactionReference, TransactionResponse> reverified = new ConcurrentHashMap<>();
 
 	/**
-	 * The execution environment whete the reverification is performed.
+	 * The execution environment where the reverification is performed.
 	 */
 	private final ExecutionEnvironment environment;
 
