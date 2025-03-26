@@ -47,6 +47,7 @@ public interface EngineClassLoader extends TakamakaClassLoader {
 	 * 
 	 * @return the transactions
 	 */
+	// TODO: unused: can we remove?
 	Stream<TransactionReference> getTransactionsOfJars();
 
 	/**

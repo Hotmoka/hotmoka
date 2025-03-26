@@ -19,7 +19,7 @@ package io.hotmoka.node.local.api;
 import java.util.Objects;
 
 /**
- * An exception stating that a store state identifier is unknonwn.
+ * An exception stating that a store state identifier is unknown.
  */
 @SuppressWarnings("serial")
 public class UnknownStateIdException extends Exception {

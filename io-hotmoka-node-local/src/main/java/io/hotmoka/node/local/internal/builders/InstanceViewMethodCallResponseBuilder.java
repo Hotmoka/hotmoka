@@ -16,10 +16,8 @@ limitations under the License.
 
 package io.hotmoka.node.local.internal.builders;
 
-import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.local.api.StoreException;
 
 /**
  * The builder of the response for a transaction that executes an instance method of Takamaka code
@@ -33,10 +31,8 @@ public class InstanceViewMethodCallResponseBuilder extends InstanceMethodCallRes
 	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request of the transaction
 	 * @param environment the execution environment where the response is built
-	 * @throws TransactionRejectedException if the builder cannot be created
-	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	public InstanceViewMethodCallResponseBuilder(TransactionReference reference, InstanceMethodCallTransactionRequest request, ExecutionEnvironment environment) throws TransactionRejectedException, StoreException {
+	public InstanceViewMethodCallResponseBuilder(TransactionReference reference, InstanceMethodCallTransactionRequest request, ExecutionEnvironment environment) {
 		super(reference, request, environment);
 	}
 

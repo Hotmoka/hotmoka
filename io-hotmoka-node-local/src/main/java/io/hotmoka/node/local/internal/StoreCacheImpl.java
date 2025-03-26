@@ -177,7 +177,7 @@ public class StoreCacheImpl implements StoreCache {
 	}
 
 	@Override
-	public final boolean getValidSignatureOutcome(TransactionReference reference, Function<TransactionReference, Boolean> ifMissing) {
+	public final boolean signatureIsValid(TransactionReference reference, Function<TransactionReference, Boolean> ifMissing) {
 		return checkedSignatures.computeIfAbsent(reference, ifMissing);
 	}
 }

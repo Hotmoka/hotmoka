@@ -32,7 +32,7 @@ public interface StoreCache {
 
 	/**
 	 * Yields the current gas price. This information could be recovered from the store
-	 * itself, but this field is used for caching. The gas price might be missing if the
+	 * itself, but this method is used for caching. The gas price might be missing if the
 	 * node is not initialized yet.
 	 * 
 	 * @return the current gas price, if any; this might be missing if the node having the store
@@ -42,7 +42,7 @@ public interface StoreCache {
 
 	/**
 	 * Yields the current inflation. This information could be recovered from the store
-	 * itself, but this field is used for caching. The inflation might be missing if the
+	 * itself, but this method is used for caching. The inflation might be missing if the
 	 * node is not initialized yet.
 	 * 
 	 * @return the current inflation, if any; this might be missing if the node having the store
@@ -52,8 +52,7 @@ public interface StoreCache {
 
 	/**
 	 * Yields the current consensus configuration. This information could be recovered from the store
-	 * itself, but this field is used for caching. The consensus configuration might be missing if the
-	 * store has been checked out to a specific root and consequently this cache has not been recomputed yet.
+	 * itself, but this method is used for caching.
 	 * 
 	 * @return the current consensus configuration
 	 */
@@ -61,8 +60,7 @@ public interface StoreCache {
 
 	/**
 	 * Yields the validators object in store. This information could be recovered from the store
-	 * itself, but this field is used for caching. The consensus configuration might be missing if the
-	 * store has been checked out to a specific root and consequently this cache has not been recomputed yet.
+	 * itself, but this method is used for caching.
 	 * 
 	 * @return the validators object in store, if any; this might be missing if the node having the store
 	 *         is not initialized yet
@@ -71,8 +69,7 @@ public interface StoreCache {
 
 	/**
 	 * Yields the gas station object in store. This information could be recovered from the store
-	 * itself, but this field is used for caching. The consensus configuration might be missing if the
-	 * store has been checked out to a specific root and consequently this cache has not been recomputed yet.
+	 * itself, but this method is used for caching.
 	 * 
 	 * @return the gas station object in store, if any; this might be missing if the node having the store
 	 *         is not initialized yet
@@ -81,8 +78,7 @@ public interface StoreCache {
 
 	/**
 	 * Yields the versions object in store. This information could be recovered from the store
-	 * itself, but this field is used for caching. The consensus configuration might be missing if the
-	 * store has been checked out to a specific root and consequently this cache has not been recomputed yet.
+	 * itself, but this method is used for caching.
 	 * 
 	 * @return the versions object in store, if any; this might be missing if the node having the store
 	 *         is not initialized yet
@@ -99,13 +95,13 @@ public interface StoreCache {
 	EngineClassLoader getClassLoader(TransactionReference classpath, Function<TransactionReference, EngineClassLoader> ifMissing);
 
 	/**
-	 * Yields the result of checking the signature of requests, using a cache to avoid repeated checks, if possible.
+	 * Determines if the signature of a request is valid, using a cache to avoid repeated checks, if possible.
 	 * 
 	 * @param reference the reference of the request
 	 * @param ifMissing a computation executed for cache misses
-	 * @return true if the signature of the request must successfully checked
+	 * @return true if the signature of the request was successfully checked
 	 */
-	boolean getValidSignatureOutcome(TransactionReference reference, Function<TransactionReference, Boolean> ifMissing);
+	boolean signatureIsValid(TransactionReference reference, Function<TransactionReference, Boolean> ifMissing);
 
 	/**
 	 * Yields a new cache with a new gas price.
@@ -156,7 +152,7 @@ public interface StoreCache {
 	StoreCache setConfig(ConsensusConfig<?,?> consensus);
 
 	/**
-	 * Yields a new cache with empty class loader cache.
+	 * Yields a new cache with empty class loaders cache.
 	 * 
 	 * @return the resulting cache
 	 */		

@@ -52,7 +52,7 @@ public interface StoreTransformation<S extends Store<S,T>, T extends StoreTransf
 	 * @return the result of the execution
 	 * @throws TransactionRejectedException if the request has been rejected
 	 * @throws TransactionException if the request has been accepted but its execution failed with an exception not in the Takamaka code
-	 * @throws CodeExecutionException if the request has been accepted but its execution failed with a user exception in the Takamaka code
+	 * @throws CodeExecutionException if the request has been accepted but its execution failed with an exception in the Takamaka code
 	 * @throws StoreException if the final store is not able to complete the operation correctly
 	 * @throws InterruptedException if the current thread is interrupted before computing the result
 	 */
@@ -66,7 +66,7 @@ public interface StoreTransformation<S extends Store<S,T>, T extends StoreTransf
 	 * @return the result of the execution
 	 * @throws TransactionRejectedException if the request has been rejected
 	 * @throws TransactionException if the request has been accepted but its execution failed with an exception not in the Takamaka code
-	 * @throws CodeExecutionException if the request has been accepted but its execution failed with a user exception in the Takamaka code
+	 * @throws CodeExecutionException if the request has been accepted but its execution failed with an exception in the Takamaka code
 	 * @throws StoreException if the final store is not able to complete the operation correctly
 	 * @throws InterruptedException if the current thread is interrupted before computing the result
 	 */

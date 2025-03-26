@@ -39,10 +39,8 @@ public abstract class AbstractInitialResponseBuilder<Request extends InitialTran
 	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request of the transaction
 	 * @param environment the execution environment where the response is built
-	 * @throws TransactionRejectedException if the builder cannot be created
-	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	protected AbstractInitialResponseBuilder(TransactionReference reference, Request request, ExecutionEnvironment environment) throws TransactionRejectedException, StoreException {
+	protected AbstractInitialResponseBuilder(TransactionReference reference, Request request, ExecutionEnvironment environment) {
 		super(reference, request, environment);
 	}
 

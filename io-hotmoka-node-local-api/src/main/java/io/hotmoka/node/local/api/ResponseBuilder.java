@@ -26,7 +26,7 @@ import io.hotmoka.node.api.responses.TransactionResponse;
  * @param <Request> the type of the request of the transaction
  * @param <Response> the type of the response of the transaction
  */
-public interface ResponseBuilder<Request extends TransactionRequest<Response>, Response extends TransactionResponse> {
+public interface ResponseBuilder<Request extends TransactionRequest<? extends Response>, Response extends TransactionResponse> {
 
 	/**
 	 * Yield the request for which this builder was created.
@@ -42,7 +42,7 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	 * @throws TransactionRejectedException if the response cannot be computed because the request
 	 *                                      is inconsistent in the context of execution
 	 * @throws StoreException if the node is misbehaving
-	 * @throws InterruptedException if the current thread has been interrupted before computation the response
+	 * @throws InterruptedException if the current thread has been interrupted before computing the response
 	 */
 	ResponseCreation<Response> getResponseCreation() throws TransactionRejectedException, StoreException, InterruptedException;
 

@@ -23,7 +23,7 @@ import io.hotmoka.annotations.Immutable;
 /**
  * A store that can be checked out, that is, its view of the world can be moved
  * back and forth in time. Different moments of the store are identified by
- * identifiers, that can be checked out when needed.
+ * state identifiers, that can be checked out when needed.
  * 
  * @param <S> the type of this store
  * @param <T> the type of the store transformations that can be started from this store
@@ -32,7 +32,7 @@ import io.hotmoka.annotations.Immutable;
 public interface CheckableStore<S extends CheckableStore<S, T>, T extends StoreTransformation<S, T>> extends Store<S, T> {
 
 	/**
-	 * Yields the identifier of this store.
+	 * Yields the identifier of the currently checked-out state of this store.
 	 * 
 	 * @return the identifier; this is for instance the hash of the store
 	 * @throws StoreException if the operation cannot be completed correctly

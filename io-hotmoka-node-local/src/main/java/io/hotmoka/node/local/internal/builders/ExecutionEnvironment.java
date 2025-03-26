@@ -666,7 +666,7 @@ public abstract class ExecutionEnvironment {
 	}
 
 	protected final boolean signatureIsValid(TransactionReference classpath, Function<TransactionReference, Boolean> ifMissing) {
-		return getCache().getValidSignatureOutcome(classpath, ifMissing);
+		return getCache().signatureIsValid(classpath, ifMissing);
 	}
 
 	protected abstract Hasher<TransactionRequest<?>> getHasher();
