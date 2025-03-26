@@ -19,6 +19,7 @@ limitations under the License.
  */
 module io.hotmoka.node.remote.api {
     exports io.hotmoka.node.remote.api;
+
     requires io.hotmoka.node.api;
     requires io.hotmoka.websockets.client.api;
     requires io.hotmoka.annotations;

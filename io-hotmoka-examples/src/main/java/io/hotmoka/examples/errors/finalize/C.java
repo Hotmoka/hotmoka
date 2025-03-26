@@ -19,5 +19,6 @@ package io.hotmoka.examples.errors.finalize;
 public class C {
 
 	@Override
+	@SuppressWarnings("all")
 	protected void finalize() {} // illegal in Takamaka
 }
