@@ -33,4 +33,11 @@ public interface TransactionResponseWithEvents extends TransactionResponse {
 	 * @return the events
 	 */
     Stream<StorageReference> getEvents();
+
+    /**
+     * Determines if this responses contains at least an event.
+     * 
+     * @return true if and only if that condition holds
+     */
+    boolean hasEvents();
 }

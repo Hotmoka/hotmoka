@@ -126,6 +126,11 @@ public class VoidMethodCallTransactionSuccessfulResponseImpl extends MethodCallT
 	}
 
 	@Override
+	public final boolean hasEvents() {
+		return events.length > 0;
+	}
+
+	@Override
 	public boolean equals(Object other) {
 		return other instanceof VoidMethodCallTransactionSuccessfulResponse vmctsr && super.equals(other) && Arrays.equals(events, vmctsr.getEvents().toArray(StorageReference[]::new));
 	}

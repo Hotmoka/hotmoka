@@ -60,8 +60,8 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 
 	/**
 	 * The current consensus configuration in this store, for the execution of view transactions.
-	 * This coincides with {@link #consensus} but for the maximum allowed for the gas, which is
-	 * fixed to the value specified in the local configuration of the node having this store:
+	 * This coincides with the information kept inside the store but for the maximum allowed for the gas,
+	 * which is fixed to the value specified in the local configuration of the node having this store:
 	 * {@link io.hotmoka.node.local.api.LocalNodeConfig#getMaxGasPerViewTransaction()}.
 	 */
 	private final ConsensusConfig<?,?> consensusForViews;
@@ -72,7 +72,7 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	 * Creates an empty store, with the given cache.
 	 * 
 	 * @param node the node for which the store is created
-	 * @param cache the cache to use in the cloned store
+	 * @param cache the cache to use in the cloned store; if missing, an empty cache is used
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
 	private AbstractStoreImpl(N node, Optional<StoreCache> cache) throws StoreException {
@@ -103,7 +103,7 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	 * Creates a clone of a store, up to the cache.
 	 * 
 	 * @param toClone the store to clone
-	 * @param cache the cache to use in the cloned store
+	 * @param cache the cache to use in the cloned store; if missing, an empty cache is used
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
 	protected AbstractStoreImpl(AbstractStoreImpl<N,C,S,T> toClone, Optional<StoreCache> cache) throws StoreException {
@@ -132,8 +132,7 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 		}
 		catch (TransactionRejectedException e) {
 			// we do not write the error message in the store, since a failed check request means that nobody
-			// is paying for it and therefore we do not want to expand the store; we just take note of the failure,
-			// so that getResponse knows which message to use for the rejected transaction exception
+			// is paying for it and therefore we do not want to expand the store
 			LOGGER.warning(referenceAsString + ": checking failed: " + e.getMessage());
 			throw e;
 		}
@@ -144,6 +143,7 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	 * 
 	 * @param cache the cache to set in the resulting store
 	 * @return the resulting store
+	 * @throws StoreException if the operation cannot be completed correctly
 	 */
 	protected abstract S withCache(StoreCache cache) throws StoreException;
 
@@ -176,12 +176,23 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 		return getNode().getHasher();
 	}
 
+	
+	/**
+	 * Yields the creator of the given event.
+	 * 
+	 * @param event the reference to the event
+	 * @return the reference to the creator of {@code event}
+	 * @throws UnknownReferenceException if {@code event} is not in this store
+	 * @throws FieldNotFoundException if the object {@code event} has no {@code creator} field, which means that it is not really an event
+	 * @throws StoreException if the operation cannot be completed correctly
+	 */
 	protected final StorageReference getCreator(StorageReference event) throws UnknownReferenceException, FieldNotFoundException, StoreException {
 		return getReferenceField(event, FieldSignatures.EVENT_CREATOR_FIELD);
 	}
 
 	@Override
 	public final long getNow() {
+		// transactions executed in a store are only view transactions and use the current time of the local machine
 		return System.currentTimeMillis();
 	}
 }

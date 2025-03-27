@@ -142,6 +142,11 @@ public class ConstructorCallTransactionSuccessfulResponseImpl extends CodeExecut
 		return Stream.of(events);
 	}
 
+	@Override
+	public final boolean hasEvents() {
+		return events.length > 0;
+	}
+
 	/**
 	 * Yields the reference to the object that has been created.
 	 * 

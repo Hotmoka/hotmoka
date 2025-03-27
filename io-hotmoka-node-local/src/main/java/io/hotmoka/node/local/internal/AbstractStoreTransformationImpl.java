@@ -16,9 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.local.internal;
 
-import static io.hotmoka.exceptions.CheckSupplier.check;
-import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
-
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,7 +33,6 @@ import java.util.stream.Stream;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.exceptions.CheckRunnable;
 import io.hotmoka.exceptions.UncheckConsumer;
-import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
@@ -68,7 +64,6 @@ import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.StoreTransformation;
 import io.hotmoka.node.local.internal.builders.ExecutionEnvironment;
-import io.hotmoka.verification.api.TakamakaClassLoader;
 
 /**
  * Partial implementation of a store transformation. This is not thread-safe hence it must
@@ -81,6 +76,10 @@ import io.hotmoka.verification.api.TakamakaClassLoader;
  */
 public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNodeImpl<N,C,S,T>, C extends LocalNodeConfig<C,?>, S extends AbstractStoreImpl<N,C,S,T>, T extends AbstractStoreTransformationImpl<N,C,S,T>> extends ExecutionEnvironment implements StoreTransformation<S, T> {
 	private final static Logger LOGGER = Logger.getLogger(AbstractStoreTransformationImpl.class.getName());
+
+	/**
+	 * The store from which the transformation started.
+	 */
 	private final S store;
 
 	/**
@@ -114,14 +113,14 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	private volatile BigInteger gasConsumed;
 
 	/**
-	 * The reward to send to the validators, accumulated during this transformation.
+	 * The reward to send to the miners, accumulated during this transformation.
 	 */
-	private volatile BigInteger coins;
+	private volatile BigInteger reward;
 
 	/**
-	 * The reward to send to the validators, accumulated during this transformation, without considering the inflation.
+	 * The reward to send to the miners, accumulated during this transformation, without considering the inflation.
 	 */
-	private volatile BigInteger coinsWithoutInflation;
+	private volatile BigInteger rewardWithoutInflation;
 
 	/**
 	 * The current time to use for the execution of transactions delivered into this transformation.
@@ -136,11 +135,11 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	protected final static BigInteger _100_000_000 = BigInteger.valueOf(100_000_000L);
 
 	/**
-	 * Creates a transformation whose transactions are executed with the given executors.
+	 * Creates a transformation whose transactions that starts from the given store.
 	 * 
 	 * @param store the initial store of the transformation
 	 * @param consensus the consensus to use for the execution of transactions in the transformation
-	 * @param now the current time to use for the execution of delivered transactions into the transformation
+	 * @param now the current time to use for the execution of the transactions delivered into the transformation
 	 */
 	protected AbstractStoreTransformationImpl(S store, ConsensusConfig<?,?> consensus, long now) {
 		super(store.getNode().getExecutors());
@@ -149,8 +148,8 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 		this.now = now;
 		this.cache = store.getCache().setConfig(consensus);
 		this.gasConsumed = BigInteger.ZERO;
-		this.coins = BigInteger.ZERO;
-		this.coinsWithoutInflation = BigInteger.ZERO;
+		this.reward = BigInteger.ZERO;
+		this.rewardWithoutInflation = BigInteger.ZERO;
 	}
 
 	@Override
@@ -173,7 +172,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	
 				// we determine how many coins have been minted during the last reward:
 				// it is the price of the gas distributed minus the same price without inflation
-				BigInteger minted = coins.subtract(coinsWithoutInflation);
+				BigInteger minted = reward.subtract(rewardWithoutInflation);
 	
 				// it might happen that the last distribution goes beyond the limit imposed
 				// as final supply: in that case we truncate the minted coins so that the current
@@ -195,22 +194,22 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 
 				var request = TransactionRequests.instanceSystemMethodCall
 					(manifest, nonce, _100_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD, validators,
-						StorageValues.bigIntegerOf(coins), StorageValues.bigIntegerOf(minted),
+						StorageValues.bigIntegerOf(reward), StorageValues.bigIntegerOf(minted),
 						StorageValues.stringOf(behaving), StorageValues.stringOf(misbehaving),
 						StorageValues.bigIntegerOf(gasConsumed), StorageValues.bigIntegerOf(deliveredCount()));
 	
-				TransactionResponse response = responseBuilderFor(TransactionReferences.of(store.getHasher().hash(request)), request).getResponseCreation().getResponse();
+				TransactionResponse response = responseBuilderFor(TransactionReferences.of(getHasher().hash(request)), request).getResponseCreation().getResponse();
 				// if there is only one update, it is the update of the nonce of the manifest: we prefer not to expand
 				// the store with the transaction, so that the state stabilizes, which might give
-				// to the node the chance of suspending the generation of new blocks
+				// to the underlying Tendermint engine the chance of suspending the generation of new blocks
 				if (!(response instanceof TransactionResponseWithUpdates trwu) || trwu.getUpdates().count() > 1L)
 					response = deliverTransaction(request);
 	
 				if (response instanceof MethodCallTransactionFailedResponse responseAsFailed)
-					LOGGER.log(Level.WARNING, "could not reward the validators: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
+					LOGGER.log(Level.SEVERE, "could not reward the validators: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
 				else {
 					LOGGER.info("units of gas consumed for CPU, RAM or storage since the previous reward: " + gasConsumed);
-					LOGGER.info("units of coin rewarded to the validators for their work since the previous reward: " + coins);
+					LOGGER.info("units of coin rewarded to the validators for their work since the previous reward: " + reward);
 					LOGGER.info("units of coin minted since the previous reward: " + minted);
 				}
 			}
@@ -222,8 +221,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 
 	@Override
 	public final TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException, StoreException, InterruptedException {
-		// the hasher should generate hashes of the correct length or otherwise there is a bug in the code
-		var reference = TransactionReferences.of(store.getHasher().hash(request));
+		var reference = TransactionReferences.of(getHasher().hash(request));
 		String referenceAsString = reference.toString();
 	
 		try {
@@ -253,26 +251,29 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 
 	@Override
 	public final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, StoreException {
+		// first we check in the delta, then in the initial store
 		var request = deltaRequests.get(reference);
-		return request != null ? request : getInitialStore().getRequest(reference);
+		return request != null ? request : store.getRequest(reference);
 	}
 
 	@Override
 	public final TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, StoreException {
+		// first we check in the delta, then in the initial store
 		var response = deltaResponses.get(reference);
-		return response != null ? response : getInitialStore().getResponse(reference);
+		return response != null ? response : store.getResponse(reference);
 	}
 
 	@Override
 	public final Stream<TransactionReference> getHistory(StorageReference object) throws UnknownReferenceException, StoreException {
+		// first we check in the delta, then in the initial store
 		var history = deltaHistories.get(object);
-		return history != null ? Stream.of(history) : getInitialStore().getHistory(object);
+		return history != null ? Stream.of(history) : store.getHistory(object);
 	}
 
 	@Override
 	public final Optional<StorageReference> getManifest() throws StoreException {
-		var uncommittedManifest = deltaManifest;
-		return uncommittedManifest != null ? Optional.of(uncommittedManifest) : getInitialStore().getManifest();
+		// first we check in the delta, then in the initial store
+		return deltaManifest != null ? Optional.of(deltaManifest) : store.getManifest();
 	}
 
 	/**
@@ -297,18 +298,38 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 		return cache;
 	}
 
+	/**
+	 * Yields the requests added during this transformation. They are kept in order of addition.
+	 * 
+	 * @return the requests
+	 */
 	protected final LinkedHashMap<TransactionReference, TransactionRequest<?>> getDeltaRequests() {
 		return deltaRequests;
 	}
 
+	/**
+	 * Yields the responses added during this transformation.
+	 * 
+	 * @return the responses
+	 */
 	protected final Map<TransactionReference, TransactionResponse> getDeltaResponses() {
 		return deltaResponses;
 	}
 
+	/**
+	 * Yields the histories of the objects created during this transformation.
+	 * 
+	 * @return the histories
+	 */
 	protected final Map<StorageReference, TransactionReference[]> getDeltaHistories() {
 		return deltaHistories;
 	}
 
+	/**
+	 * Yields the storage reference of the manifest added during this transformation, if any.
+	 * 
+	 * @return the storage reference of the manifest added during this transformation, if any
+	 */
 	protected final Optional<StorageReference> getDeltaManifest() {
 		return Optional.ofNullable(deltaManifest);
 	}
@@ -318,14 +339,30 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 		return store.getHasher();
 	}
 
-	protected final BigInteger getCoins() {
-		return coins;
+	/**
+	 * Yields the reward to send to the miners, accumulated during this transformation.
+	 * 
+	 * @return the reward
+	 */
+	protected final BigInteger getReward() {
+		return reward;
 	}
 
-	protected final BigInteger getCoinsWithoutInflation() {
-		return coinsWithoutInflation;
+	/**
+	 * Yields the reward to send to the miners, accumulated during this transformation,
+	 * without considering the inflation.
+	 * 
+	 * @return the reward without inflation
+	 */
+	protected final BigInteger getRewardWithoutInflation() {
+		return rewardWithoutInflation;
 	}
 
+	/**
+	 * Yields the gas consumed for CPU execution, RAM or storage in this transformation.
+	 * 
+	 * @return the gas consumed
+	 */
 	protected final BigInteger getGasConsumed() {
 		return gasConsumed;
 	}
@@ -333,8 +370,9 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	/**
 	 * Updates the caches, if needed, after the addition of the given response into store.
 	 * 
-	 * @param response the store
+	 * @param response the response added to the store
 	 * @param classLoader the class loader of the transaction that computed {@code response}
+	 * @throws StoreException if the operation cannot be completed correctly
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 */
 	protected void updateCaches(TransactionResponse response, EngineClassLoader classLoader) throws StoreException, InterruptedException {
@@ -369,10 +407,10 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	}
 
 	/**
-	 * Writes in store the given response for the given transaction reference.
+	 * Writes in this transformation the given response for the given transaction reference.
 	 * 
 	 * @param reference the reference of the transaction
-	 * @param response the response
+	 * @param response the response of the transaction
 	 */
 	protected final void setResponse(TransactionReference reference, TransactionResponse response) {
 		deltaResponses.put(reference, response);
@@ -381,8 +419,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	/**
 	 * Yields the creator of the given event.
 	 * 
-	 * @param event the reference to the event; this is assumed to be non-{@code null}
-	 *              and to actually refer an event
+	 * @param event the reference to the event; this is assumed to actually refer an event
 	 * @return the creator of {@code event}
 	 * @throws StoreException if the store is corrupted
 	 */
@@ -390,22 +427,32 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 		try {
 			return getReferenceField(event, FieldSignatures.EVENT_CREATOR_FIELD);
 		}
+		// TODO: it is cleaner to throw both: clients will deal with them
 		catch (UnknownReferenceException | FieldNotFoundException e) {
-			// if it was possible to verify that it is an event, then it exists in store and must have a creator or otherwise the store is corrupted
+			// since reference is assumed to refer to an event in store, it must exist and have a creator or otherwise the store is corrupted
 			throw new StoreException(e);
 		}
 	}
 
+	/**
+	 * Yields the current total supply of the node, from its validators object.
+	 * 
+	 * @param validators the reference to the validators object of the node
+	 * @return the total supply
+	 * @throws UnknownReferenceException if {@code validators} is not in store
+	 * @throws FieldNotFoundException if {@code validators} does not contain the field holding the total supply
+	 * @throws StoreException if the store is not able to complete the operation correctly
+	 */
 	protected final BigInteger getCurrentSupply(StorageReference validators) throws UnknownReferenceException, FieldNotFoundException, StoreException {
 		return getBigIntegerField(validators, FieldSignatures.ABSTRACT_VALIDATORS_CURRENT_SUPPLY_FIELD);
 	}
 
 	/**
-	 * Writes in store the given request for the given transaction reference.
+	 * Writes in this transformation the given request for the given transaction reference.
 	 * 
 	 * @param reference the reference of the transaction
-	 * @param request the request
-	 * @throws StoreException if this store is not able to complete the operation correctly
+	 * @param request the request of the transaction
+	 * @throws StoreException if the store is not able to complete the operation correctly
 	 */
 	private void setRequest(TransactionReference reference, TransactionRequest<?> request) {
 		deltaRequests.put(reference, request);
@@ -417,12 +464,12 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	 * its current state, in reverse chronological order (from newest to oldest).
 	 * 
 	 * @param object the object whose history is set
-	 * @param history the stream that will become the history of the object,
+	 * @param history the transactions that will become the history of the object,
 	 *                replacing its previous history; this is in chronological order,
 	 *                from newest transactions to oldest; hence the last transaction is
 	 *                that when the object has been created
 	 */
-	private void setHistory(StorageReference object, Stream<TransactionReference> history) {
+	private void setHistory(StorageReference object, List<TransactionReference> history) {
 		deltaHistories.put(object, history.toArray(TransactionReference[]::new));
 	}
 
@@ -430,45 +477,45 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	 * Mark the node as initialized. This happens for initialization requests.
 	 * 
 	 * @param manifest the manifest to put in the node
-	 * @throws StoreException if this store is not able to complete the operation correctly
 	 */
 	private void setManifest(StorageReference manifest) {
 		this.deltaManifest = manifest;
 	}
 
 	/*
-	 * Determines if the given response might change the value of some consensus parameter.
+	 * Determine if the given response might change the value of some consensus parameter.
 	 * 
 	 * @param response the response
 	 * @param classLoader the class loader used to build the response
-	 * @return true if the response changes the value of some consensus parameters; otherwise,
-	 *         it is more efficient to return false, since true might trigger a recomputation
-	 *         of the consensus parameters' cache
+	 * @return true if the response changes the value of some consensus parameters
+	 * @throws StoreException if the store is not able to complete the operation correctly
 	 */
-	private boolean consensusParametersMightHaveChanged(TransactionResponse response, TakamakaClassLoader classLoader) throws StoreException {
+	private boolean consensusParametersMightHaveChanged(TransactionResponse response, EngineClassLoader classLoader) throws StoreException {
 		if (response instanceof InitializationTransactionResponse)
 			return true;
 		// we check if there are events of type ConsensusUpdate triggered by the manifest, validators, gas station or versions
-		else if (response instanceof TransactionResponseWithEvents trwe && trwe.getEvents().findAny().isPresent()) {
+		else if (response instanceof TransactionResponseWithEvents trwe && trwe.hasEvents()) {
 			Optional<StorageReference> maybeManifest = getManifest();
 	
 			if (maybeManifest.isPresent()) {
 				var manifest = maybeManifest.get();
 				StorageReference validators = getValidators().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
 				StorageReference versions = getVersions().orElseThrow(() -> new StoreException("The manifest is set but the versions are not set"));
-				StorageReference gasStation = getGasStation().orElseThrow(() -> new StoreException("The manifest is set but gas station is not set"));
+				StorageReference gasStation = getGasStation().orElseThrow(() -> new StoreException("The manifest is set but the gas station is not set"));
 
-				return check(StoreException.class, () ->
-					trwe.getEvents().filter(uncheck(StoreException.class, event -> isConsensusUpdateEvent(event, classLoader)))
-						.map(UncheckFunction.uncheck(StoreException.class, this::getCreatorOfEvent))
-						.anyMatch(creator -> creator.equals(manifest) || creator.equals(validators) || creator.equals(gasStation) || creator.equals(versions)));
+				for (var event: trwe.getEvents().toArray(StorageReference[]::new))
+					if (isConsensusUpdateEvent(event, classLoader)) {
+						StorageReference creator = getCreatorOfEvent(event);
+						if (creator.equals(manifest) || creator.equals(validators) || creator.equals(gasStation) || creator.equals(versions))
+							return true;
+					}
 			}
 		}
 	
 		return false;
 	}
 
-	private boolean isConsensusUpdateEvent(StorageReference event, TakamakaClassLoader classLoader) throws StoreException {
+	private boolean isConsensusUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws StoreException {
 		try {
 			return classLoader.isConsensusUpdateEvent(getClassName(event));
 		}
@@ -476,7 +523,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 			throw new StoreException("Event " + event + " is not an object in store", e);
 		}
 		catch (ClassNotFoundException e) {
-			throw new StoreException(e);
+			throw new StoreException("Event " + event + " has an unknown class", e);
 		}
 	}
 
@@ -486,18 +533,27 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	 * @param response the response
 	 * @param classLoader the class loader used to build the response
 	 * @return true if the response changes the gas price
-	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
+	 * @throws StoreException if the store is not able to complete the operation correctly
 	 */
-	private boolean gasPriceMightHaveChanged(TransactionResponse response, TakamakaClassLoader classLoader) throws StoreException {
-		return response instanceof InitializationTransactionResponse ||
-			(response instanceof TransactionResponseWithEvents trwe && trwe.getEvents().findAny().isPresent() &&
-				check(StoreException.class, () -> getGasStation().map(gasStation ->
-					trwe.getEvents().filter(uncheck(StoreException.class, event -> isGasPriceUpdateEvent(event, classLoader)))
-						.map(UncheckFunction.uncheck(StoreException.class, this::getCreatorOfEvent))
-						.anyMatch(gasStation::equals)).orElse(false)));
+	private boolean gasPriceMightHaveChanged(TransactionResponse response, EngineClassLoader classLoader) throws StoreException {
+		if (response instanceof InitializationTransactionResponse)
+			return true;
+		else if (response instanceof TransactionResponseWithEvents trwe && trwe.hasEvents()) {
+			Optional<StorageReference> maybeManifest = getManifest();
+			
+			if (maybeManifest.isPresent()) {
+				StorageReference gasStation = getGasStation().orElseThrow(() -> new StoreException("The manifest is set but the gas station is not set"));
+
+				for (var event: trwe.getEvents().toArray(StorageReference[]::new))
+					if (isGasPriceUpdateEvent(event, classLoader) && getCreatorOfEvent(event).equals(gasStation))
+						return true;
+			}
+		}
+
+		return false;
 	}
 
-	private boolean isGasPriceUpdateEvent(StorageReference event, TakamakaClassLoader classLoader) throws StoreException {
+	private boolean isGasPriceUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws StoreException {
 		try {
 			return classLoader.isGasPriceUpdateEvent(getClassName(event));
 		}
@@ -505,7 +561,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 			throw new StoreException("Event " + event + " is not an object in store", e);
 		}
 		catch (ClassNotFoundException e) {
-			throw new StoreException(e);
+			throw new StoreException("Event " + event + " has an unknown class", e);
 		}
 	}
 
@@ -514,19 +570,28 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	 * 
 	 * @param response the response
 	 * @param classLoader the class loader used to build the response
-	 * @return true if the response changes the current inflation
-	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
+	 * @return true if the response changes the inflation
+	 * @throws StoreException if the store is not able to complete the operation correctly
 	 */
-	private boolean inflationMightHaveChanged(TransactionResponse response, TakamakaClassLoader classLoader) throws StoreException {
-		return response instanceof InitializationTransactionResponse ||
-			(response instanceof TransactionResponseWithEvents trwe && trwe.getEvents().findAny().isPresent() &&
-				check(StoreException.class, () -> getValidators().map(validators ->
-					trwe.getEvents().filter(uncheck(StoreException.class, event -> isInflationUpdateEvent(event, classLoader)))
-						.map(UncheckFunction.uncheck(StoreException.class, this::getCreatorOfEvent))
-						.anyMatch(validators::equals)).orElse(false)));
+	private boolean inflationMightHaveChanged(TransactionResponse response, EngineClassLoader classLoader) throws StoreException {
+		if (response instanceof InitializationTransactionResponse)
+			return true;
+		else if (response instanceof TransactionResponseWithEvents trwe && trwe.hasEvents()) {
+			Optional<StorageReference> maybeManifest = getManifest();
+			
+			if (maybeManifest.isPresent()) {
+				StorageReference validators = getValidators().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
+
+				for (var event: trwe.getEvents().toArray(StorageReference[]::new))
+					if (isInflationUpdateEvent(event, classLoader) && getCreatorOfEvent(event).equals(validators))
+						return true;
+			}
+		}
+
+		return false;
 	}
 
-	private boolean isInflationUpdateEvent(StorageReference event, TakamakaClassLoader classLoader) throws StoreException {
+	private boolean isInflationUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws StoreException {
 		try {
 			return classLoader.isInflationUpdateEvent(getClassName(event));
 		}
@@ -534,7 +599,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 			throw new StoreException("Event " + event + " is not an object in store", e);
 		}
 		catch (ClassNotFoundException e) {
-			throw new StoreException(e);
+			throw new StoreException("Event " + event + " has an unknown class", e);
 		}
 	}
 
@@ -561,13 +626,16 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 			if (response instanceof FailedTransactionResponse ftr)
 				gasConsumedTotal = gasConsumedTotal.add(ftr.getGasConsumedForPenalty());
 
-			BigInteger gasPrice = ((NonInitialTransactionRequest<?>) request).getGasPrice();
-			BigInteger reward = gasConsumedTotal.multiply(gasPrice);
-			coinsWithoutInflation = coinsWithoutInflation.add(reward);
+			if (!(request instanceof NonInitialTransactionRequest<?> nitr))
+				throw new StoreException("A non-initial transaction response has been computed for an initial transaction request of class " + request.getClass().getSimpleName());
+
+			BigInteger gasPrice = nitr.getGasPrice();
+			BigInteger rewardForThisTransaction = gasConsumedTotal.multiply(gasPrice);
+			rewardWithoutInflation = rewardWithoutInflation.add(rewardForThisTransaction);
 
 			gasConsumedTotal = addInflation(gasConsumedTotal);
-			reward = gasConsumedTotal.multiply(gasPrice);
-			coins = coins.add(reward);
+			rewardForThisTransaction = gasConsumedTotal.multiply(gasPrice);
+			reward = reward.add(rewardForThisTransaction);
 		}
 	}
 
@@ -584,14 +652,10 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	/**
 	 * Pushes the result of executing a successful Hotmoka request.
 	 * This method assumes that the given request was not already present in the store.
-	 * This method yields a store where the push is visible. Checkable stores remain
-	 * unchanged after a call to this method, while non-checkable stores might be
-	 * modified and coincide with the result of the method.
 	 * 
 	 * @param reference the reference of the request
 	 * @param request the request of the transaction
 	 * @param response the response of the transaction
-	 * @return the store resulting after the push
 	 * @throws StoreException if the store is not able to complete the operation correctly
 	 */
 	private void push(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {
@@ -626,7 +690,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	 * 
 	 * @param reference the transaction that has generated the given response
 	 * @param response the response
-	 * @throws StoreException if this store is not able to complete the operation correctly
+	 * @throws StoreException if the store is not able to complete the operation correctly
 	 */
 	private void expandHistory(TransactionReference reference, TransactionResponseWithUpdates response) throws StoreException {
 		// we collect the storage references that have been updated in the response; for each of them,
@@ -650,11 +714,12 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	 * @param added the transaction reference to add in front of the history of {@code object}
 	 * @param addedUpdates the updates generated in {@code added}
 	 * @return the simplified history, with {@code added} in front followed by a subset of the old history
+	 * @throws StoreException if the store is not able to complete the operation correctly
 	 */
-	private Stream<TransactionReference> simplifiedHistory(StorageReference objectUpdatedInResponse, TransactionReference added, Stream<Update> addedUpdates) throws StoreException {
+	private List<TransactionReference> simplifiedHistory(StorageReference objectUpdatedInResponse, TransactionReference added, Stream<Update> addedUpdates) throws StoreException {
 		// if the object has been created at the added transaction, that is its history
 		if (objectUpdatedInResponse.getTransaction().equals(added))
-			return Stream.of(added);
+			return List.of(added);
 
 		Stream<TransactionReference> old;
 
@@ -681,20 +746,21 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 		if (lastPos >= 0)
 			simplified.add(oldAsArray[lastPos]);
 	
-		return simplified.stream();
+		return simplified;
 	}
 
 	/**
 	 * Adds the given transaction reference to the history of the given object,
 	 * if it provides updates for fields that have not yet been covered by other updates.
 	 * 
-	 * @param referenceInHistory the transaction reference
+	 * @param reference the transaction reference
 	 * @param object the object
 	 * @param covered the set of updates for the already covered fields
 	 * @param history the history; this might be modified by the method, by prefixing {@code reference} at its front
+	 * @throws StoreException if the store is not able to complete the operation correctly
 	 */
-	private void addIfUncovered(TransactionReference referenceInHistory, StorageReference object, Set<Update> covered, List<TransactionReference> history) throws StoreException {
-		if (getUpdates(referenceInHistory).filter(update -> update.getObject().equals(object) && covered.stream().noneMatch(update::sameProperty) && covered.add(update)).count() > 0)
-			history.add(referenceInHistory);
+	private void addIfUncovered(TransactionReference reference, StorageReference object, Set<Update> covered, List<TransactionReference> history) throws StoreException {
+		if (getUpdates(reference).filter(update -> update.getObject().equals(object) && covered.stream().noneMatch(update::sameProperty) && covered.add(update)).count() > 0)
+			history.add(reference);
 	}
 }

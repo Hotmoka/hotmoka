@@ -168,6 +168,11 @@ public class NonVoidMethodCallTransactionSuccessfulResponseImpl extends MethodCa
 	}
 
 	@Override
+	public final boolean hasEvents() {
+		return events.length > 0;
+	}
+
+	@Override
 	public void into(MarshallingContext context) throws IOException {
 		boolean optimized0 = events.length == 0;
 		boolean optimized1 = events.length == 1;

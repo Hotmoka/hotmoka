@@ -81,8 +81,8 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 	
 				// we determine how many coins have been minted during the last reward:
 				// it is the price of the gas distributed minus the same price without inflation
-				BigInteger coins = getCoins();
-				BigInteger minted = coins.subtract(getCoinsWithoutInflation());
+				BigInteger coins = getReward();
+				BigInteger minted = coins.subtract(getRewardWithoutInflation());
 	
 				// it might happen that the last distribution goes beyond the limit imposed
 				// as final supply: in that case we truncate the minted coins so that the current

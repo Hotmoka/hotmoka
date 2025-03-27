@@ -154,6 +154,11 @@ public class MethodCallTransactionExceptionResponseImpl extends MethodCallTransa
 	}
 
 	@Override
+	public final boolean hasEvents() {
+		return events.length > 0;
+	}
+
+	@Override
 	public final String getClassNameOfCause() {
 		return classNameOfCause;
 	}
