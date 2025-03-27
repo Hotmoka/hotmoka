@@ -39,7 +39,7 @@ import io.hotmoka.websockets.beans.api.InconsistentJsonException;
  * Implementation of a response for a successful transaction that installs a jar in a blockchain.
  */
 @Immutable
-public class JarStoreTransactionSuccessfulResponseImpl extends NonInitialTransactionResponseImpl implements JarStoreTransactionSuccessfulResponse, TransactionResponseWithInstrumentedJar {
+public class JarStoreTransactionSuccessfulResponseImpl extends NonInitialTransactionResponseImpl implements JarStoreTransactionSuccessfulResponse {
 	final static byte SELECTOR = 2;
 
 	/**

@@ -352,16 +352,10 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		private void callerAndRequestMustAgreeOnNonce() throws TransactionRejectedException, StoreException {
 			// calls to @View methods do not check the nonce
 			if (!isView()) {
-				try {
-					BigInteger expected = environment.getNonce(request.getCaller());
-					if (!expected.equals(request.getNonce()))
-						throw new TransactionRejectedException("Incorrect nonce: the request reports " + request.getNonce()
+				BigInteger expected = environment.getNonce(request.getCaller());
+				if (!expected.equals(request.getNonce()))
+					throw new TransactionRejectedException("Incorrect nonce: the request reports " + request.getNonce()
 						+ " but the account " + request.getCaller() + " contains " + expected, consensus);
-				}
-				catch (UnknownReferenceException | FieldNotFoundException e) {
-					// we have already verified that the caller is an externally owned account, so this can only be a store corruption problem
-					throw new StoreException(e);
-				}
 			}
 		}
 

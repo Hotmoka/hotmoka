@@ -176,7 +176,6 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 		return getNode().getHasher();
 	}
 
-	
 	/**
 	 * Yields the creator of the given event.
 	 * 

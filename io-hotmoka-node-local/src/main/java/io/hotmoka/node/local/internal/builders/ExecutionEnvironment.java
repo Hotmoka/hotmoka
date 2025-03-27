@@ -549,8 +549,21 @@ public abstract class ExecutionEnvironment {
 		}
 	}
 
-	protected final BigInteger getNonce(StorageReference account) throws UnknownReferenceException, FieldNotFoundException, StoreException {
-		return getBigIntegerField(account, FieldSignatures.EOA_NONCE_FIELD);
+	/**
+	 * Yields the nonce of the given account.
+	 * 
+	 * @param account the account; this is assumed to actually refer to an account object in store
+	 * @return the nonce of {@code account}
+	 * @throws StoreException if the store is not able to complete the operation correctly
+	 */
+	protected final BigInteger getNonce(StorageReference account) throws StoreException {
+		try {
+			return getBigIntegerField(account, FieldSignatures.EOA_NONCE_FIELD);
+		}
+		catch (UnknownReferenceException | FieldNotFoundException e) {
+			// since reference is assumed to refer to an account in store, it must exist and have a nonce field or otherwise the store is corrupted
+			throw new StoreException(e);
+		}
 	}
 
 	protected final Stream<UpdateOfField> getEagerFields(StorageReference object) throws UnknownReferenceException, StoreException {

@@ -214,7 +214,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 				}
 			}
 		}
-		catch (TransactionRejectedException | FieldNotFoundException | UnknownReferenceException e) {
+		catch (TransactionRejectedException e) {
 			throw new StoreException("Could not reward the validators", e);
 		}
 	}
@@ -273,19 +273,8 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	@Override
 	public final Optional<StorageReference> getManifest() throws StoreException {
 		// first we check in the delta, then in the initial store
-		return deltaManifest != null ? Optional.of(deltaManifest) : store.getManifest();
-	}
-
-	/**
-	 * Yields the references of the transactions delivered into this transformation.
-	 * 
-	 * @return the references, in order of delivery
-	 */
-	public final Stream<TransactionReference> getDeliveredTransactions() {
-		// we force the order of insertion
-		var result = new ArrayList<TransactionReference>();
-		deltaRequests.forEach((key, _entry) -> result.add(key));
-		return result.stream();
+		StorageReference manifest = deltaManifest;
+		return manifest != null ? Optional.of(manifest) : store.getManifest();
 	}
 
 	@Override
@@ -296,6 +285,18 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	@Override
 	protected StoreCache getCache() {
 		return cache;
+	}
+
+	/**
+	 * Yields the references of the transactions delivered into this transformation.
+	 * 
+	 * @return the references, in order of delivery
+	 */
+	protected final Stream<TransactionReference> getDeliveredTransactions() {
+		// we force the order of insertion
+		var result = new ArrayList<TransactionReference>();
+		deltaRequests.forEach((key, _entry) -> result.add(key));
+		return result.stream();
 	}
 
 	/**
@@ -427,7 +428,6 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 		try {
 			return getReferenceField(event, FieldSignatures.EVENT_CREATOR_FIELD);
 		}
-		// TODO: it is cleaner to throw both: clients will deal with them
 		catch (UnknownReferenceException | FieldNotFoundException e) {
 			// since reference is assumed to refer to an event in store, it must exist and have a creator or otherwise the store is corrupted
 			throw new StoreException(e);
@@ -437,14 +437,19 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	/**
 	 * Yields the current total supply of the node, from its validators object.
 	 * 
-	 * @param validators the reference to the validators object of the node
+	 * @param validators the reference to the validators object of the node; this is assumed to
+	 *                   actually refer to a validators object
 	 * @return the total supply
-	 * @throws UnknownReferenceException if {@code validators} is not in store
-	 * @throws FieldNotFoundException if {@code validators} does not contain the field holding the total supply
 	 * @throws StoreException if the store is not able to complete the operation correctly
 	 */
-	protected final BigInteger getCurrentSupply(StorageReference validators) throws UnknownReferenceException, FieldNotFoundException, StoreException {
-		return getBigIntegerField(validators, FieldSignatures.ABSTRACT_VALIDATORS_CURRENT_SUPPLY_FIELD);
+	protected final BigInteger getCurrentSupply(StorageReference validators) throws StoreException {
+		try {
+			return getBigIntegerField(validators, FieldSignatures.ABSTRACT_VALIDATORS_CURRENT_SUPPLY_FIELD);
+		}
+		catch (UnknownReferenceException | FieldNotFoundException e) {
+			// since reference is assumed to refer to a validators object in store, it must exist and have a currentSupply field
+			throw new StoreException(e);
+		}
 	}
 
 	/**

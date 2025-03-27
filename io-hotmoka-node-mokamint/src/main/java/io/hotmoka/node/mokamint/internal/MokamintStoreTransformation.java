@@ -28,14 +28,12 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractTrieBasedStoreTransformation;
-import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
@@ -142,7 +140,7 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 				}
 			}
 		}
-		catch (TransactionRejectedException | FieldNotFoundException | UnknownReferenceException | Base58ConversionException e) {
+		catch (TransactionRejectedException | Base58ConversionException e) {
 			throw new StoreException("Could not reward the node and the miner", e);
 		}
 	}

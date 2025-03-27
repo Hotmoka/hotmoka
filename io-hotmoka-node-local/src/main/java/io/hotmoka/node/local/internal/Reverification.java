@@ -27,7 +27,6 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import io.hotmoka.node.TransactionResponses;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
@@ -58,8 +57,8 @@ public class Reverification {
 	private final static Logger LOGGER = Logger.getLogger(Reverification.class.getName());
 
 	/**
-	 * Responses that have been found to have
-	 * a distinct verification version than that of the node and have been consequently reverified.
+	 * Responses that have been found to have a distinct verification version
+	 * than that of the node and have been consequently reverified.
 	 */
 	private final ConcurrentMap<TransactionReference, TransactionResponse> reverified = new ConcurrentHashMap<>();
 
@@ -69,8 +68,7 @@ public class Reverification {
 	private final ExecutionEnvironment environment;
 
 	/**
-	 * The consensus parameters to use for reverification. This might be {@code null} if the node is restarting,
-	 * during the recomputation of its same consensus.
+	 * The consensus parameters to use for reverification.
 	 */
 	private final ConsensusConfig<?,?> consensus;
 	
@@ -106,7 +104,7 @@ public class Reverification {
 	/**
 	 * Replaces all reverified responses into the store of the node whose jars have been reverified.
 	 * 
-	 * @throws NodeException if this node is not able to complete the operation correctly
+	 * @throws StoreException if the operation cannot be completed correctly
 	 */
 	public void replace() throws StoreException {
 		for (var entry: reverified.entrySet()) {
@@ -222,9 +220,9 @@ public class Reverification {
 		return responses;
 	}
 
-	private JarStoreTransactionFailedResponse transformIntoFailed(TransactionResponseWithInstrumentedJar response, TransactionReference transaction, String error) {
+	private JarStoreTransactionFailedResponse transformIntoFailed(TransactionResponseWithInstrumentedJar response, TransactionReference transaction, String error) throws StoreException {
 		if (response instanceof JarStoreInitialTransactionResponse)
-			throw new RuntimeException("The reverification of the initial jar store transaction " + transaction + " failed: its jar cannot be used");
+			throw new StoreException("The reverification of the initial jar store transaction " + transaction + " failed: its jar cannot be used");
 
 		// there remains only this possibility:
 		var currentResponseAsNonInitial = (JarStoreTransactionSuccessfulResponse) response;

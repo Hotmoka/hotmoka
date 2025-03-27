@@ -571,14 +571,24 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		signalCompleted(reference);
 
 		try {
-			if (store.getResponse(reference) instanceof TransactionResponseWithEvents trwe) {
-				var events = trwe.getEvents().toArray(StorageReference[]::new);
-				for (var event: events)
+			if (store.getResponse(reference) instanceof TransactionResponseWithEvents trwe && trwe.hasEvents())
+				for (var event: trwe.getEvents().toArray(StorageReference[]::new))
 					notifyEvent(event, store);
-			}
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);
+		}
+	}
+
+	protected void publishAllTransactionsDeliveredIn(T transformation, S store) throws NodeException {
+		for (var tx: transformation.getDeliveredTransactions().toArray(TransactionReference[]::new)) {
+			try {
+				publish(tx, store);
+			}
+			catch (UnknownReferenceException e) {
+				// the transactions have been delivered, if they cannot be found then there is a problem in the database
+				throw new NodeException("Delivered transactions should be in store", e);
+			}
 		}
 	}
 

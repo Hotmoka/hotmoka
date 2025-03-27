@@ -57,10 +57,25 @@ public class StoreCacheImpl implements StoreCache {
 	 */
 	private final ConsensusConfig<?,?> consensus;	
 
+	/**
+	 * The validators object in this store. This information could be recovered from the store
+	 * itself, but this field is used for caching. The validators might be missing if the
+	 * node is not initialized yet.
+	 */
 	private final Optional<StorageReference> validators;
 
+	/**
+	 * The gas station object in this store. This information could be recovered from the store
+	 * itself, but this field is used for caching. The gas station might be missing if the
+	 * node is not initialized yet.
+	 */
 	private final Optional<StorageReference> gasStation;
 
+	/**
+	 * The versions object in this store. This information could be recovered from the store
+	 * itself, but this field is used for caching. The versions object might be missing if the
+	 * node is not initialized yet.
+	 */
 	private final Optional<StorageReference> versions;
 
 	/**
@@ -117,6 +132,11 @@ public class StoreCacheImpl implements StoreCache {
 	}
 
 	@Override
+	public StoreCache setConfig(ConsensusConfig<?,?> consensus) {
+		return new StoreCacheImpl(gasPrice, inflation, consensus, validators, gasStation, versions, classLoaders, checkedSignatures);
+	}
+
+	@Override
 	public StoreCache setValidators(StorageReference validators) {
 		return new StoreCacheImpl(gasPrice, inflation, consensus, Optional.of(validators), gasStation, versions, classLoaders, checkedSignatures);
 	}
@@ -129,11 +149,6 @@ public class StoreCacheImpl implements StoreCache {
 	@Override
 	public StoreCache setVersions(StorageReference versions) {
 		return new StoreCacheImpl(gasPrice, inflation, consensus, validators, gasStation, Optional.of(versions), classLoaders, checkedSignatures);
-	}
-
-	@Override
-	public StoreCache setConfig(ConsensusConfig<?,?> consensus) {
-		return new StoreCacheImpl(gasPrice, inflation, consensus, validators, gasStation, versions, classLoaders, checkedSignatures);
 	}
 
 	@Override
