@@ -22,5 +22,5 @@ import io.hotmoka.annotations.Immutable;
  * A response for a transaction that installs a jar in a yet non-initialized node.
  */
 @Immutable
-public interface JarStoreInitialTransactionResponse extends InitialTransactionResponse, TransactionResponseWithInstrumentedJar, GenericJarStoreTransactionResponse {
+public interface JarStoreInitialTransactionResponse extends InitialTransactionResponse, JarStoreTransactionResponseWithInstrumentedJar, GenericJarStoreTransactionResponse {
 }

@@ -23,7 +23,7 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 /**
  * A response for a transaction that successfully installed a jar in a node.
  */
-public interface TransactionResponseWithInstrumentedJar extends TransactionResponse {
+public interface JarStoreTransactionResponseWithInstrumentedJar extends GenericJarStoreTransactionResponse {
 
 	/**
 	 * Yields the bytes of the installed jar.

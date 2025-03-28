@@ -22,5 +22,5 @@ import io.hotmoka.annotations.Immutable;
  * A response for a successful transaction that installed a jar in a node.
  */
 @Immutable
-public interface JarStoreTransactionSuccessfulResponse extends JarStoreTransactionResponse, TransactionResponseWithInstrumentedJar {
+public interface JarStoreTransactionSuccessfulResponse extends JarStoreTransactionResponse, JarStoreTransactionResponseWithInstrumentedJar {
 }

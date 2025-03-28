@@ -31,7 +31,7 @@ import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.node.api.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
-import io.hotmoka.node.api.responses.TransactionResponseWithInstrumentedJar;
+import io.hotmoka.node.api.responses.JarStoreTransactionResponseWithInstrumentedJar;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.patricia.AbstractPatriciaTrie;
 import io.hotmoka.patricia.api.KeyValueStore;
@@ -122,7 +122,7 @@ public class TrieOfResponses extends AbstractPatriciaTrie<TransactionReference, 
 	 * @throws TrieException 
 	 */
 	private TransactionResponse writeTransformation(TransactionResponse response) throws TrieException {
-		if (response instanceof TransactionResponseWithInstrumentedJar trwij) {
+		if (response instanceof JarStoreTransactionResponseWithInstrumentedJar trwij) {
 			byte[] jar = trwij.getInstrumentedJar();
 			// we store the jar in the store: if it was already installed before, it gets shared
 			byte[] hashedJar = hasherForJars.hash(jar);
@@ -150,7 +150,7 @@ public class TrieOfResponses extends AbstractPatriciaTrie<TransactionReference, 
 	 * @return return the actual response returned by this trie
 	 */
 	private TransactionResponse readTransformation(TransactionResponse response) throws TrieException {
-		if (response instanceof TransactionResponseWithInstrumentedJar trwij) {
+		if (response instanceof JarStoreTransactionResponseWithInstrumentedJar trwij) {
 			// we replace the hash of the jar with the actual jar
 			try {
 				byte[] jar = getStore().get(trwij.getInstrumentedJar());
@@ -165,7 +165,7 @@ public class TrieOfResponses extends AbstractPatriciaTrie<TransactionReference, 
 		return response;
 	}
 
-	private TransactionResponse replaceJar(TransactionResponseWithInstrumentedJar response, byte[] newJar) throws TrieException {
+	private TransactionResponse replaceJar(JarStoreTransactionResponseWithInstrumentedJar response, byte[] newJar) throws TrieException {
 		if (response instanceof JarStoreTransactionSuccessfulResponse jstsr)
 			return TransactionResponses.jarStoreSuccessful
 				(newJar, jstsr.getDependencies(), jstsr.getVerificationVersion(), jstsr.getUpdates(),

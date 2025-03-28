@@ -45,7 +45,7 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.responses.TransactionResponse;
-import io.hotmoka.node.api.responses.TransactionResponseWithInstrumentedJar;
+import io.hotmoka.node.api.responses.JarStoreTransactionResponseWithInstrumentedJar;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
@@ -243,7 +243,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		if (consensus != null && counter.incrementAndGet() > consensus.getMaxDependencies())
 			throw new TransactionRejectedException("Too many dependencies in classpath: max is " + consensus.getMaxDependencies(), consensus);
 
-		TransactionResponseWithInstrumentedJar responseWithInstrumentedJar = getResponseWithInstrumentedJarAt(classpath, environment);
+		JarStoreTransactionResponseWithInstrumentedJar responseWithInstrumentedJar = getResponseWithInstrumentedJarAt(classpath, environment);
 
 		// we consider its dependencies before as well, recursively
 		ConsumerWithExceptions2<TransactionReference, StoreException, TransactionRejectedException> addJars = dependency -> addJars(dependency, consensus, jars, jarTransactions, environment, counter);
@@ -321,7 +321,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @return the response
 	 * @throws TransactionRejectedException if the transaction does not exist in the store, or did not generate a response with instrumented jar
 	 */
-	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAt(TransactionReference reference, ExecutionEnvironment environment) throws StoreException, TransactionRejectedException {
+	private JarStoreTransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAt(TransactionReference reference, ExecutionEnvironment environment) throws StoreException, TransactionRejectedException {
 		// first we check if the response has been reverified and we use the reverified version
 		Optional<TransactionResponse> maybeResponse = reverification.getReverifiedResponse(reference);
 		TransactionResponse response;
@@ -337,7 +337,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			}
 		}
 
-		if (response instanceof TransactionResponseWithInstrumentedJar trwij)
+		if (response instanceof JarStoreTransactionResponseWithInstrumentedJar trwij)
 			return trwij;
 		else
 			throw new TransactionRejectedException("The transaction " + reference + " did not install a jar in store", consensus);

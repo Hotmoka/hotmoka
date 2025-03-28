@@ -29,7 +29,6 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.responses.JarStoreTransactionSuccessfulResponse;
-import io.hotmoka.node.api.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.internal.gson.TransactionResponseJson;
