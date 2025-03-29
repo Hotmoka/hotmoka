@@ -36,9 +36,9 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.GenericJarStoreTransactionResponse;
 import io.hotmoka.node.api.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.node.api.responses.JarStoreTransactionFailedResponse;
+import io.hotmoka.node.api.responses.JarStoreTransactionResponseWithInstrumentedJar;
 import io.hotmoka.node.api.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
-import io.hotmoka.node.api.responses.JarStoreTransactionResponseWithInstrumentedJar;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.AbstractStoreTransformation;
 import io.hotmoka.node.local.api.StoreException;
@@ -47,7 +47,6 @@ import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.VerificationException;
 import io.hotmoka.verification.VerifiedJars;
 import io.hotmoka.verification.api.IllegalJarException;
-import io.hotmoka.verification.api.VerifiedJar;
 import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 
 /**
@@ -88,7 +87,7 @@ public class Reverification {
 
 		var counter = new AtomicInteger();
 		for (var dependency: transactions.toArray(TransactionReference[]::new))
-			reverify(dependency, counter);
+			reverify(dependency, counter, false);
 	}
 
 	/**
@@ -136,88 +135,97 @@ public class Reverification {
 	 * @return the responses of the requests that have tried to install classpath and all its dependencies;
 	 *         this can either be made of successful responses only or it can contain a single failed response only
 	 * @throws StoreException if the store of the node is misbehaving
-	 * @throws TransactionRejectedException if the transactions does not exist or did not install a jar in store
+	 * @throws TransactionRejectedException if the transaction does not exist or did not install a jar in store
 	 */
-	private List<GenericJarStoreTransactionResponse> reverify(TransactionReference transaction, AtomicInteger counter) throws StoreException, TransactionRejectedException {
-		if (consensus != null && counter.incrementAndGet() > consensus.getMaxDependencies())
-			throw new StoreException("Too many dependencies in classpath: max is " + consensus.getMaxDependencies());
+	private List<? extends GenericJarStoreTransactionResponse> reverify(TransactionReference transaction, AtomicInteger counter, boolean wasDependencyInStore) throws StoreException, TransactionRejectedException {
+		if (counter.incrementAndGet() > consensus.getMaxDependencies())
+			throw new TransactionRejectedException("Too many dependencies in classpath: the maximum is " + consensus.getMaxDependencies());
 
-		JarStoreTransactionResponseWithInstrumentedJar response = getResponseWithInstrumentedJarAtUncommitted(transaction);
-		List<GenericJarStoreTransactionResponse> reverifiedDependencies = reverifiedDependenciesOf(response, counter);
+		JarStoreTransactionResponseWithInstrumentedJar response = getResponse(transaction, wasDependencyInStore);
+		var reverifiedDependencies = new ArrayList<JarStoreTransactionResponseWithInstrumentedJar>();
 
-		if (anyFailed(reverifiedDependencies))
-			return List.of(transformIntoFailed(response, transaction, "the reverification of a dependency failed"));
+		for (var reverifiedDependency: reverifiedDependenciesOf(response, counter))
+			if (reverifiedDependency instanceof JarStoreTransactionResponseWithInstrumentedJar jstrwij)
+				reverifiedDependencies.add(jstrwij);
+			else
+				return List.of(transformIntoFailed(response, transaction, "the reverification of a dependency failed"));
 
-		if (!needsReverification(response))
-			return union(reverifiedDependencies, response);
+		if (response.getVerificationVersion() == consensus.getVerificationVersion()) {
+			reverifiedDependencies.add(response);
+			return reverifiedDependencies;
+		}
 
 		// the dependencies have passed reverification successfully, but the transaction needs reverification
-		VerifiedJar vj = recomputeVerifiedJarFor(transaction, reverifiedDependencies);
-		var firstError = vj.getErrors().findFirst();
-		if (firstError.isPresent())
-			return List.of(transformIntoFailed(response, transaction, firstError.get().getMessage()));
+		GenericJarStoreTransactionResponse reverifiedResponse = newResponseAfterReverificationOfJar(transaction, response, reverifiedDependencies);
+
+		if (reverifiedResponse instanceof JarStoreTransactionResponseWithInstrumentedJar) {
+			reverifiedDependencies.add(updateVersion(response, transaction));
+			return reverifiedDependencies;
+		}
 		else
-			return union(reverifiedDependencies, updateVersion(response, transaction));
+			return List.of(reverifiedResponse); // it's a failed response
 	}
 	
-	private VerifiedJar recomputeVerifiedJarFor(TransactionReference transaction, List<GenericJarStoreTransactionResponse> reverifiedDependencies) throws StoreException, TransactionRejectedException {
-		// we get the original jar that classpath had requested to install
+	private List<GenericJarStoreTransactionResponse> reverifiedDependenciesOf(JarStoreTransactionResponseWithInstrumentedJar response, AtomicInteger counter) throws StoreException, TransactionRejectedException {
+		var reverifiedDependencies = new ArrayList<GenericJarStoreTransactionResponse>();
+		for (var dependency: response.getDependencies().toArray(TransactionReference[]::new))
+			reverifiedDependencies.addAll(reverify(dependency, counter, true));
+	
+		return reverifiedDependencies;
+	}
+
+	/**
+	 * 
+	 * @param transaction the reference to the transaction that installed a jar that must be reverified;
+	 *                    it is guaranteed that this existed in store and was a transaction install transaction
+	 * @param response 
+	 * @param reverifiedDependencies
+	 * @return the jar installed by {@code transaction}, reverified with the current verification version of the node
+	 * @throws StoreException
+	 * @throws TransactionRejectedException
+	 */
+	private GenericJarStoreTransactionResponse newResponseAfterReverificationOfJar(TransactionReference transaction, JarStoreTransactionResponseWithInstrumentedJar response, List<JarStoreTransactionResponseWithInstrumentedJar> reverifiedDependencies) throws StoreException, TransactionRejectedException {
 		TransactionRequest<?> request;
 
 		try {
 			request = environment.getRequest(transaction);
 		}
 		catch (UnknownReferenceException e) {
-			throw new TransactionRejectedException("Transaction " + transaction + " under reverification cannot be found in store");
+			throw new StoreException("Transaction " + transaction + " under reverification has a response in store but its request cannot be found in store");
 		}
 
 		// this check should always succeed if the implementation of the node is correct, since we checked already that the response installed a jar
 		if (request instanceof GenericJarStoreTransactionRequest<?> gjstr) {
 			// we build the classpath for the classloader: it includes the jar...
-			byte[] jar = gjstr.getJar();
 			var jars = new ArrayList<byte[]>(1 + reverifiedDependencies.size());
+			byte[] jar = gjstr.getJar();
 			jars.add(jar);
 
-			// ... and the instrumented jars of its dependencies: since we have already considered the case
-			// when a dependency is failed, we can conclude that they must all have an instrumented jar
+			// ... and the instrumented jars of its dependencies
 			for (var dependency: reverifiedDependencies)
-				jars.add(((JarStoreTransactionResponseWithInstrumentedJar) dependency).getInstrumentedJar());
+				jars.add(dependency.getInstrumentedJar());
 
-			// consensus might be null if the node is restarting, during the recomputation of its consensus itself
-			if (consensus != null && jars.stream().mapToLong(bytes -> bytes.length).sum() > consensus.getMaxCumulativeSizeOfDependencies())
-				throw new StoreException("Too large cumulative size of dependencies in classpath: max is " + consensus.getMaxCumulativeSizeOfDependencies() + " bytes");
+			if (jars.stream().mapToLong(bytes -> bytes.length).sum() > consensus.getMaxCumulativeSizeOfDependencies())
+				throw new StoreException("Too large cumulative size of dependencies in classpath: the maximum is " + consensus.getMaxCumulativeSizeOfDependencies() + " bytes");
 
 			try {
-				var tcl = TakamakaClassLoaders.of(jars.stream(), consensus != null ? consensus.getVerificationVersion() : 0);
-				return VerifiedJars.of(jar, tcl, gjstr instanceof InitialTransactionRequest, consensus != null && consensus.skipsVerification());
+				var tcl = TakamakaClassLoaders.of(jars.stream(), consensus.getVerificationVersion());
+				var reverifiedJar = VerifiedJars.of(jar, tcl, gjstr instanceof InitialTransactionRequest, consensus.skipsVerification());
+				var firstError = reverifiedJar.getErrors().findFirst();
+				if (firstError.isPresent())
+					return transformIntoFailed(response, transaction, firstError.get().getMessage());
+				else
+					return updateVersion(response, transaction);
 			}
-			catch (IllegalJarException | UnsupportedVerificationVersionException e) {
+			catch (UnsupportedVerificationVersionException e) {
 				throw new StoreException(e);
+			}
+			catch (IllegalJarException e) {
+				return transformIntoFailed(response, transaction, "The requested jar is illegal according to the current version of the verification module");
 			}
 		}
 		else
-			throw new StoreException("The transaction that installed the jar under reverification did not really install a jar");
-	}
-
-	private boolean needsReverification(JarStoreTransactionResponseWithInstrumentedJar response) {
-		return response.getVerificationVersion() != consensus.getVerificationVersion();
-	}
-
-	private List<GenericJarStoreTransactionResponse> reverifiedDependenciesOf(JarStoreTransactionResponseWithInstrumentedJar response, AtomicInteger counter) throws StoreException, TransactionRejectedException {
-		var reverifiedDependencies = new ArrayList<GenericJarStoreTransactionResponse>();
-		for (var dependency: response.getDependencies().toArray(TransactionReference[]::new))
-			reverifiedDependencies.addAll(reverify(dependency, counter));
-
-		return reverifiedDependencies;
-	}
-
-	private boolean anyFailed(List<GenericJarStoreTransactionResponse> responses) {
-		return responses.stream().anyMatch(response -> response instanceof JarStoreTransactionFailedResponse);
-	}
-
-	private List<GenericJarStoreTransactionResponse> union(List<GenericJarStoreTransactionResponse> responses, GenericJarStoreTransactionResponse added) {
-		responses.add(added);
-		return responses;
+			throw new StoreException("Transaction " + transaction + " under reverification has a response in store that installed a jar but its request is not for a jar installation");
 	}
 
 	private JarStoreTransactionFailedResponse transformIntoFailed(JarStoreTransactionResponseWithInstrumentedJar response, TransactionReference transaction, String error) throws StoreException {
@@ -234,11 +242,11 @@ public class Reverification {
 			return replacement;
 		}
 		else
-			throw new StoreException("Unexpected jar-carrying reponse of class " + response.getClass().getName());
+			throw new StoreException("Unexpected jar-carrying response of class " + response.getClass().getName());
 	}
 
-	private GenericJarStoreTransactionResponse updateVersion(JarStoreTransactionResponseWithInstrumentedJar response, TransactionReference transaction) throws StoreException {
-		GenericJarStoreTransactionResponse replacement;
+	private JarStoreTransactionResponseWithInstrumentedJar updateVersion(JarStoreTransactionResponseWithInstrumentedJar response, TransactionReference transaction) throws StoreException {
+		JarStoreTransactionResponseWithInstrumentedJar replacement;
 
 		if (response instanceof JarStoreInitialTransactionResponse)
 			replacement = TransactionResponses.jarStoreInitial(response.getInstrumentedJar(), response.getDependencies(), consensus.getVerificationVersion());
@@ -248,7 +256,7 @@ public class Reverification {
 				consensus.getVerificationVersion(), currentResponseAsNonInitial.getUpdates(), currentResponseAsNonInitial.getGasConsumedForCPU(),
 				currentResponseAsNonInitial.getGasConsumedForRAM(), currentResponseAsNonInitial.getGasConsumedForStorage());
 		else
-			throw new StoreException("Unexpected jar-carrying reponse of class " + response.getClass().getName());
+			throw new StoreException("Unexpected jar-carrying response of class " + response.getClass().getName());
 
 		reverified.put(transaction, replacement);
 
@@ -257,19 +265,28 @@ public class Reverification {
 
 	/**
 	 * Yields the response generated by the transaction with the given reference.
-	 * The transaction must be a transaction that installed a jar in the store of the node.
+	 * The transaction must be a transaction for a request to install a jar in the store of the node.
 	 * 
 	 * @param reference the reference of the transaction
 	 * @return the response
 	 * @throws StoreException if the store is misbehaving
 	 * @throws TransactionRejectedException if the transaction does not exist in the store, or did not generate a response with instrumented jar
 	 */
-	private JarStoreTransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference) throws StoreException, TransactionRejectedException {
+	private JarStoreTransactionResponseWithInstrumentedJar getResponse(TransactionReference reference, boolean wasDependencyInStore) throws StoreException, TransactionRejectedException {
 		try {
-			if (environment.getResponse(reference) instanceof JarStoreTransactionResponseWithInstrumentedJar trwij)
-				return trwij;
+			TransactionResponse response = environment.getResponse(reference);
+
+			if (response instanceof GenericJarStoreTransactionResponse gjstr) {
+				if (gjstr instanceof JarStoreTransactionResponseWithInstrumentedJar trwij)
+					return trwij;
+				else
+					throw new TransactionRejectedException("The transaction " + reference + " under reverification failed to install a jar in store");
+			}
 			else
-				throw new TransactionRejectedException("The transaction " + reference + " under reverification did not install a jar in store");
+				if (wasDependencyInStore)
+					throw new StoreException("Transaction " + reference + " under reverification was a depdency of a transaction in store, hence it was expected to be a jar store transaction, but it is a " + response.getClass().getSimpleName());
+				else
+					throw new TransactionRejectedException("The transaction " + reference + " under reverification is not a jar store transaction");
 		}
 		catch (UnknownReferenceException e) {
 			throw new TransactionRejectedException("Unknown transaction reference " + reference + " under reverification");

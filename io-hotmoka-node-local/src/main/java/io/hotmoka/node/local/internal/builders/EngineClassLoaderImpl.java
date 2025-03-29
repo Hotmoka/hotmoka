@@ -36,16 +36,13 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import io.hotmoka.exceptions.CheckRunnable;
-import io.hotmoka.exceptions.UncheckConsumer;
-import io.hotmoka.exceptions.functions.ConsumerWithExceptions2;
 import io.hotmoka.instrumentation.api.InstrumentationFields;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
-import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.responses.JarStoreTransactionResponseWithInstrumentedJar;
+import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
@@ -161,7 +158,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			this.reverification = new Reverification(dependenciesAsList.stream(), environment, consensus);
 			var jars = new ArrayList<byte[]>();
 			var transactionsOfJars = new ArrayList<TransactionReference>();
-			this.parent = mkTakamakaClassLoader(dependenciesAsList.stream(), consensus, jar, environment, jars, transactionsOfJars);
+			this.parent = mkTakamakaClassLoader(dependenciesAsList, consensus, jar, environment, jars, transactionsOfJars);
 			this.lengthsOfJars = jars.stream().mapToInt(bytes -> bytes.length).toArray();
 			this.transactionsOfJars = transactionsOfJars.toArray(TransactionReference[]::new);
 			Class<?> contract = getContract(), storage = getStorage();
@@ -201,7 +198,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @throws StoreException 
 	 * @throws TransactionRejectedException 
 	 */
-	private TakamakaClassLoader mkTakamakaClassLoader(Stream<TransactionReference> dependencies, ConsensusConfig<?,?> consensus, byte[] start, ExecutionEnvironment environment, List<byte[]> jars, ArrayList<TransactionReference> transactionsOfJars) throws StoreException, TransactionRejectedException {
+	private TakamakaClassLoader mkTakamakaClassLoader(List<TransactionReference> dependencies, ConsensusConfig<?,?> consensus, byte[] start, ExecutionEnvironment environment, List<byte[]> jars, ArrayList<TransactionReference> transactionsOfJars) throws StoreException, TransactionRejectedException {
 		var counter = new AtomicInteger();
 
 		if (start != null) {
@@ -210,9 +207,8 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			counter.incrementAndGet();
 		}
 
-		ConsumerWithExceptions2<TransactionReference, StoreException, TransactionRejectedException> addJars = dependency -> addJars(dependency, consensus, jars, transactionsOfJars, environment, counter);
-		CheckRunnable.check(StoreException.class, TransactionRejectedException.class,
-			() -> dependencies.forEachOrdered(UncheckConsumer.uncheck(StoreException.class, TransactionRejectedException.class, addJars)));
+		for (var dependency: dependencies)
+			addJars(dependency, consensus, jars, transactionsOfJars, environment, counter);
 
 		processClassesInJars(jars, transactionsOfJars, environment);
 
@@ -240,20 +236,19 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 */
 	private void addJars(TransactionReference classpath, ConsensusConfig<?,?> consensus, List<byte[]> jars, List<TransactionReference> jarTransactions, ExecutionEnvironment environment, AtomicInteger counter) throws StoreException, TransactionRejectedException {
 		// consensus might be null if the node is restarting, during the recomputation of its consensus itself
-		if (consensus != null && counter.incrementAndGet() > consensus.getMaxDependencies())
+		if (counter.incrementAndGet() > consensus.getMaxDependencies())
 			throw new TransactionRejectedException("Too many dependencies in classpath: max is " + consensus.getMaxDependencies(), consensus);
 
 		JarStoreTransactionResponseWithInstrumentedJar responseWithInstrumentedJar = getResponseWithInstrumentedJarAt(classpath, environment);
 
 		// we consider its dependencies before as well, recursively
-		ConsumerWithExceptions2<TransactionReference, StoreException, TransactionRejectedException> addJars = dependency -> addJars(dependency, consensus, jars, jarTransactions, environment, counter);
-		CheckRunnable.check(StoreException.class, TransactionRejectedException.class,
-			() -> responseWithInstrumentedJar.getDependencies().forEachOrdered(UncheckConsumer.uncheck(StoreException.class, TransactionRejectedException.class, addJars)));
+		for (var dependency: responseWithInstrumentedJar.getDependencies().toArray(TransactionReference[]::new))
+			addJars(dependency, consensus, jars, jarTransactions, environment, counter);
 
 		jars.add(responseWithInstrumentedJar.getInstrumentedJar());
 		jarTransactions.add(classpath);
 
-		if (consensus != null && jars.stream().mapToLong(bytes -> bytes.length).sum() > consensus.getMaxCumulativeSizeOfDependencies())
+		if (jars.stream().mapToLong(bytes -> bytes.length).sum() > consensus.getMaxCumulativeSizeOfDependencies())
 			throw new TransactionRejectedException("Too large cumulative size of dependencies in classpath: max is " + consensus.getMaxCumulativeSizeOfDependencies() + " bytes", consensus);
 	}
 
