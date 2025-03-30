@@ -59,7 +59,7 @@ public class Reverification {
 	 * Responses that have been found to have a distinct verification version
 	 * than that of the node and have been consequently reverified.
 	 */
-	private final ConcurrentMap<TransactionReference, TransactionResponse> reverified = new ConcurrentHashMap<>();
+	private final ConcurrentMap<TransactionReference, GenericJarStoreTransactionResponse> reverified = new ConcurrentHashMap<>();
 
 	/**
 	 * The execution environment where the reverification is performed.
@@ -73,13 +73,13 @@ public class Reverification {
 	
 	/**
 	 * Reverifies the responses of the given transactions and of their dependencies.
-	 * They must be transactions that installed jars in the store of the node.
+	 * They should be transactions that installed jars in the store of the node.
 	 * 
 	 * @param transactions the transactions
 	 * @param environment the execution environment where the reverification is performed
 	 * @param consensus the consensus parameters to use for reverification
 	 * @throws StoreException if the operation cannot be completed correctly
-	 * @throws TransactionRejectedException if the transactions does not exist or did not install a jar in store
+	 * @throws TransactionRejectedException if some of the transactions do not exist or did not install a jar in store
 	 */
 	public Reverification(Stream<TransactionReference> transactions, ExecutionEnvironment environment, ConsensusConfig<?,?> consensus) throws StoreException, TransactionRejectedException {
 		this.environment = environment;
@@ -132,6 +132,9 @@ public class Reverification {
 	 * if they have a verification version different from that of the consensus of the node.
 	 *
 	 * @param transaction the transaction
+	 * @param counter the progressive counter of how many transactions have been reverified so far with this object
+	 * @param wasDependencyInStore true if and only if this has been called on a dependency of a transaction
+	 *                             passed at the constructor of this object
 	 * @return the responses of the requests that have tried to install classpath and all its dependencies;
 	 *         this can either be made of successful responses only or it can contain a single failed response only
 	 * @throws StoreException if the store of the node is misbehaving
@@ -158,8 +161,8 @@ public class Reverification {
 		// the dependencies have passed reverification successfully, but the transaction needs reverification
 		GenericJarStoreTransactionResponse reverifiedResponse = newResponseAfterReverificationOfJar(transaction, response, reverifiedDependencies);
 
-		if (reverifiedResponse instanceof JarStoreTransactionResponseWithInstrumentedJar) {
-			reverifiedDependencies.add(updateVersion(response, transaction));
+		if (reverifiedResponse instanceof JarStoreTransactionResponseWithInstrumentedJar jstrwij) {
+			reverifiedDependencies.add(jstrwij);
 			return reverifiedDependencies;
 		}
 		else
@@ -175,16 +178,25 @@ public class Reverification {
 	}
 
 	/**
+	 * Updates the response of the given transaction, after reverifying the jar that that transaction has installed.
 	 * 
 	 * @param transaction the reference to the transaction that installed a jar that must be reverified;
 	 *                    it is guaranteed that this existed in store and was a transaction install transaction
-	 * @param response 
-	 * @param reverifiedDependencies
+	 * @param response the updated response; this might be a successful jar store install response or a failed one, if the
+	 *                 reverification failed
+	 * @param reverifiedDependencies the already reverified dependencies of the jar installed by {@code transaction}
 	 * @return the jar installed by {@code transaction}, reverified with the current verification version of the node
-	 * @throws StoreException
-	 * @throws TransactionRejectedException
+	 * @throws StoreException if the store is misbehaving
 	 */
-	private GenericJarStoreTransactionResponse newResponseAfterReverificationOfJar(TransactionReference transaction, JarStoreTransactionResponseWithInstrumentedJar response, List<JarStoreTransactionResponseWithInstrumentedJar> reverifiedDependencies) throws StoreException, TransactionRejectedException {
+	private GenericJarStoreTransactionResponse newResponseAfterReverificationOfJar
+		(TransactionReference transaction, JarStoreTransactionResponseWithInstrumentedJar response, List<JarStoreTransactionResponseWithInstrumentedJar> reverifiedDependencies)
+				throws StoreException {
+
+		// if the result was already computed, we avoid its recomputation
+		GenericJarStoreTransactionResponse cachedResult = reverified.get(transaction);
+		if (cachedResult != null)
+			return cachedResult;
+
 		TransactionRequest<?> request;
 
 		try {
@@ -230,7 +242,7 @@ public class Reverification {
 
 	private JarStoreTransactionFailedResponse transformIntoFailed(JarStoreTransactionResponseWithInstrumentedJar response, TransactionReference transaction, String error) throws StoreException {
 		if (response instanceof JarStoreInitialTransactionResponse)
-			throw new StoreException("The reverification of the initial jar store transaction " + transaction + " failed: its jar cannot be used");
+			throw new StoreException("The reverification of the initial jar store transaction " + transaction + " failed: its jar cannot be used and the node is broken");
 		else if (response instanceof JarStoreTransactionSuccessfulResponse currentResponseAsNonInitial) {
 			var replacement = TransactionResponses.jarStoreFailed(
 					currentResponseAsNonInitial.getUpdates(), currentResponseAsNonInitial.getGasConsumedForCPU(),
@@ -264,32 +276,35 @@ public class Reverification {
 	}
 
 	/**
-	 * Yields the response generated by the transaction with the given reference.
-	 * The transaction must be a transaction for a request to install a jar in the store of the node.
+	 * Yields the response generated by the transaction with the given reference. The transaction must be
+	 * for a request to install a jar in the store of the node and that installation must have succeeded.
 	 * 
-	 * @param reference the reference of the transaction
+	 * @param transaction the reference of the transaction
 	 * @return the response
 	 * @throws StoreException if the store is misbehaving
 	 * @throws TransactionRejectedException if the transaction does not exist in the store, or did not generate a response with instrumented jar
 	 */
-	private JarStoreTransactionResponseWithInstrumentedJar getResponse(TransactionReference reference, boolean wasDependencyInStore) throws StoreException, TransactionRejectedException {
+	private JarStoreTransactionResponseWithInstrumentedJar getResponse(TransactionReference transaction, boolean wasDependencyInStore) throws StoreException, TransactionRejectedException {
 		try {
-			TransactionResponse response = environment.getResponse(reference);
+			TransactionResponse response = environment.getResponse(transaction);
 
 			if (response instanceof GenericJarStoreTransactionResponse gjstr) {
 				if (gjstr instanceof JarStoreTransactionResponseWithInstrumentedJar trwij)
 					return trwij;
 				else
-					throw new TransactionRejectedException("The transaction " + reference + " under reverification failed to install a jar in store");
+					throw new TransactionRejectedException("The transaction " + transaction + " under reverification failed to install a jar in store");
 			}
 			else
 				if (wasDependencyInStore)
-					throw new StoreException("Transaction " + reference + " under reverification was a depdency of a transaction in store, hence it was expected to be a jar store transaction, but it is a " + response.getClass().getSimpleName());
+					throw new StoreException("Transaction " + transaction + " under reverification was a depdency of a transaction in store, hence it was expected to be a jar store transaction, but it is a " + response.getClass().getSimpleName());
 				else
-					throw new TransactionRejectedException("The transaction " + reference + " under reverification is not a jar store transaction");
+					throw new TransactionRejectedException("The transaction " + transaction + " under reverification is not a jar store transaction");
 		}
 		catch (UnknownReferenceException e) {
-			throw new TransactionRejectedException("Unknown transaction reference " + reference + " under reverification");
+			if (wasDependencyInStore)
+				throw new StoreException("Transaction " + transaction + " under reverification was a depdency of a transaction in store, hence it was expected to exist, but it cannot be found in store");
+			else
+				throw new TransactionRejectedException("Unknown transaction reference " + transaction + " under reverification");
 		}
 	}
 }
