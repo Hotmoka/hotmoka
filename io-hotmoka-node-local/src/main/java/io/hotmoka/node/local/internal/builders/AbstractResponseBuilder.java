@@ -268,7 +268,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * @return the class loader
 		 */
 		public final EngineClassLoaderImpl getClassLoader() {
-			return (EngineClassLoaderImpl) classLoader;
+			return (EngineClassLoaderImpl) classLoader; // TODO: remove cast and change return type
 		}
 
 		/**

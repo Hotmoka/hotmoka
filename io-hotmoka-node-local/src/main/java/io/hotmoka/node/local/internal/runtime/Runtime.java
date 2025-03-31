@@ -62,7 +62,7 @@ public abstract class Runtime {
 	 * @param name the name of the field
 	 * @param fieldClassName the name of the type of the field
 	 * @return the value of the field
-	 * @throws StoreException 
+	 * @throws StoreException if the store of the node is misbehaving
 	 * @throws DeserializationException 
      */
 	public static Object deserializeLastLazyUpdateFor(Object object, String definingClass, String name, String fieldClassName) throws DeserializationException, StoreException {
@@ -101,10 +101,11 @@ public abstract class Runtime {
 	 * 
 	 * @param callee the contract whose entry is called
 	 * @param caller the caller of the entry
-	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Storage.fromContract()}
+	 * @throws StoreException if {@code io.takamaka.code.lang.Storage.fromContract()} cannot be called
+	 *                        or it threw an exception
 	 */
-	public static void fromContract(Object callee, Object caller) throws Throwable {
-		getResponseCreator().getClassLoader().fromContract(callee, caller);
+	public static void fromContract(Object callee, Object caller) throws StoreException {
+		getResponseCreator().getClassLoader().fromContract(callee, caller, StoreException::new);
 	}
 
 	/**
@@ -117,14 +118,14 @@ public abstract class Runtime {
 	 * @param amount the amount of coins
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.payableEntry()}
 	 */
-	public static void payableFromContract(Object callee, Object caller, Dummy dummy, BigInteger amount) throws Throwable {
+	public static void payableFromContract(Object callee, Object caller, Dummy dummy, BigInteger amount) throws StoreException {
 		EngineClassLoaderImpl classLoader = getResponseCreator().getClassLoader();
-		classLoader.fromContract(callee, caller);
+		classLoader.fromContract(callee, caller, StoreException::new);
 		if (dummy == Dummy.METHOD_ON_THIS)
 			// the callee pays itself
-			classLoader.payableFromContract(callee, callee, amount);
+			classLoader.payableFromContract(callee, callee, amount, StoreException::new);
 		else
-			classLoader.payableFromContract(callee, caller, amount);
+			classLoader.payableFromContract(callee, caller, amount, StoreException::new);
 	}
 
 	/**
@@ -141,7 +142,7 @@ public abstract class Runtime {
 	 */
 	public static void payableFromContract(Object callee, Object caller, Dummy dummy, int amount) throws Throwable {
 		EngineClassLoaderImpl classLoader = getResponseCreator().getClassLoader();
-		classLoader.fromContract(callee, caller);
+		classLoader.fromContract(callee, caller, StoreException::new);
 		if (dummy == Dummy.METHOD_ON_THIS)
 			// the callee pays itself
 			classLoader.payableFromContract(callee, callee, amount);
@@ -163,7 +164,7 @@ public abstract class Runtime {
 	 */
 	public static void payableFromContract(Object callee, Object caller, Dummy dummy, long amount) throws Throwable {
 		EngineClassLoaderImpl classLoader = getResponseCreator().getClassLoader();
-		classLoader.fromContract(callee, caller);
+		classLoader.fromContract(callee, caller, StoreException::new);
 		if (dummy == Dummy.METHOD_ON_THIS)
 			// the callee pays itself
 			classLoader.payableFromContract(callee, callee, amount);

@@ -56,7 +56,6 @@ import io.hotmoka.node.api.responses.TransactionResponseWithUpdates;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.ResponseBuilder;
@@ -64,6 +63,7 @@ import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.StoreTransformation;
 import io.hotmoka.node.local.internal.builders.ExecutionEnvironment;
+import io.hotmoka.verification.api.TakamakaClassLoader;
 
 /**
  * Partial implementation of a store transformation. This is not thread-safe hence it must
@@ -376,7 +376,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	 * @throws StoreException if the operation cannot be completed correctly
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 */
-	protected void updateCaches(TransactionResponse response, EngineClassLoader classLoader) throws StoreException, InterruptedException {
+	protected void updateCaches(TransactionResponse response, TakamakaClassLoader classLoader) throws StoreException, InterruptedException {
 		if (manifestMightHaveChanged(response)) {
 			cache = cache.setValidators(extractValidators());
 			LOGGER.info("the validators cache has been updated since it might have changed");
@@ -495,7 +495,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	 * @return true if the response changes the value of some consensus parameters
 	 * @throws StoreException if the store is not able to complete the operation correctly
 	 */
-	private boolean consensusParametersMightHaveChanged(TransactionResponse response, EngineClassLoader classLoader) throws StoreException {
+	private boolean consensusParametersMightHaveChanged(TransactionResponse response, TakamakaClassLoader classLoader) throws StoreException {
 		if (response instanceof InitializationTransactionResponse)
 			return true;
 		// we check if there are events of type ConsensusUpdate triggered by the manifest, validators, gas station or versions
@@ -520,7 +520,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 		return false;
 	}
 
-	private boolean isConsensusUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws StoreException {
+	private boolean isConsensusUpdateEvent(StorageReference event, TakamakaClassLoader classLoader) throws StoreException {
 		try {
 			return classLoader.isConsensusUpdateEvent(getClassName(event));
 		}
@@ -540,7 +540,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	 * @return true if the response changes the gas price
 	 * @throws StoreException if the store is not able to complete the operation correctly
 	 */
-	private boolean gasPriceMightHaveChanged(TransactionResponse response, EngineClassLoader classLoader) throws StoreException {
+	private boolean gasPriceMightHaveChanged(TransactionResponse response, TakamakaClassLoader classLoader) throws StoreException {
 		if (response instanceof InitializationTransactionResponse)
 			return true;
 		else if (response instanceof TransactionResponseWithEvents trwe && trwe.hasEvents()) {
@@ -558,7 +558,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 		return false;
 	}
 
-	private boolean isGasPriceUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws StoreException {
+	private boolean isGasPriceUpdateEvent(StorageReference event, TakamakaClassLoader classLoader) throws StoreException {
 		try {
 			return classLoader.isGasPriceUpdateEvent(getClassName(event));
 		}
@@ -578,7 +578,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	 * @return true if the response changes the inflation
 	 * @throws StoreException if the store is not able to complete the operation correctly
 	 */
-	private boolean inflationMightHaveChanged(TransactionResponse response, EngineClassLoader classLoader) throws StoreException {
+	private boolean inflationMightHaveChanged(TransactionResponse response, TakamakaClassLoader classLoader) throws StoreException {
 		if (response instanceof InitializationTransactionResponse)
 			return true;
 		else if (response instanceof TransactionResponseWithEvents trwe && trwe.hasEvents()) {
@@ -596,7 +596,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 		return false;
 	}
 
-	private boolean isInflationUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws StoreException {
+	private boolean isInflationUpdateEvent(StorageReference event, TakamakaClassLoader classLoader) throws StoreException {
 		try {
 			return classLoader.isInflationUpdateEvent(getClassName(event));
 		}

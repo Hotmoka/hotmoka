@@ -684,7 +684,7 @@ public abstract class ExecutionEnvironment {
 
 	protected abstract Hasher<TransactionRequest<?>> getHasher();
 
-	private EngineClassLoader mkClassLoader(TransactionReference classpath, ConsensusConfig<?,?> consensus) throws StoreException, TransactionRejectedException {
+	private EngineClassLoaderImpl mkClassLoader(TransactionReference classpath, ConsensusConfig<?,?> consensus) throws StoreException, TransactionRejectedException {
 		return new EngineClassLoaderImpl(null, Stream.of(classpath), this, consensus);
 	}
 

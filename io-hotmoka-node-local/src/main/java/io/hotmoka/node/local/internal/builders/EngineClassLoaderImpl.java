@@ -359,17 +359,17 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
-	public final IntStream getLengthsOfJars() {
+	public IntStream getLengthsOfJars() {
 		return IntStream.of(lengthsOfJars);
 	}
 
 	@Override
-	public final Optional<TransactionReference> transactionThatInstalledJarFor(Class<?> clazz) {
+	public Optional<TransactionReference> transactionThatInstalledJarFor(Class<?> clazz) {
 		return Optional.ofNullable(transactionsThatInstalledJarForClasses.get(clazz.getName()));
 	}
 
 	@Override
-	public final <E extends Exception> StorageReference getStorageReferenceOf(Object object, ExceptionSupplier<? extends E> onIllegalAccess) throws E {
+	public <E extends Exception> StorageReference getStorageReferenceOf(Object object, ExceptionSupplier<? extends E> onIllegalAccess) throws E {
 		try {
 			return (StorageReference) storageReference.get(object);
 		}
@@ -379,7 +379,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
-	public final <E extends Exception> boolean getInStorageOf(Object object, ExceptionSupplier<? extends E> onIllegalAccess) throws E {
+	public <E extends Exception> boolean getInStorageOf(Object object, ExceptionSupplier<? extends E> onIllegalAccess) throws E {
 		try {
 			return (boolean) inStorage.get(object);
 		}
@@ -389,7 +389,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
-	public final <E extends Exception> BigInteger getBalanceOf(Object object, ExceptionSupplier<? extends E> onIllegalAccess) throws E {
+	public <E extends Exception> BigInteger getBalanceOf(Object object, ExceptionSupplier<? extends E> onIllegalAccess) throws E {
 		try {
 			return (BigInteger) balanceField.get(object);
 		}
@@ -399,7 +399,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
-	public final <E extends Exception> void setBalanceOf(Object object, BigInteger value, ExceptionSupplier<? extends E> onIllegalAccess) throws E {
+	public <E extends Exception> void setBalanceOf(Object object, BigInteger value, ExceptionSupplier<? extends E> onIllegalAccess) throws E {
 		try {
 			balanceField.set(object, value);
 		}
@@ -409,7 +409,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
-	public final <E extends Exception> void setNonceOf(Object object, BigInteger value, ExceptionSupplier<? extends E> onIllegalAccess) throws E {
+	public <E extends Exception> void setNonceOf(Object object, BigInteger value, ExceptionSupplier<? extends E> onIllegalAccess) throws E {
 		try {
 			externallyOwnedAccountNonce.set(object, value);
 		}
@@ -418,54 +418,39 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		}
 	}
 
-	/**
-	 * Called at the beginning of the instrumentation of a {@code @@FromContract} method or constructor
-	 * of a storage object. It forwards the call to {@code io.takamaka.code.lang.Storage.fromContract()}.
-	 * 
-	 * @param callee the contract whose method or constructor is called
-	 * @param caller the caller of the method or constructor
-	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Storage.fromContract()}
-	 */
-	public final void fromContract(Object callee, Object caller) throws Throwable {
-		// we call the private method of contract
+	@Override
+	public <E extends Exception> void fromContract(Object callee, Object caller, ExceptionSupplier<? extends E> onIllegalAccess) throws E {
 		try {
 			fromContract.invoke(callee, caller);
 		}
-		catch (IllegalArgumentException e) {
-			throw e;
-		}
-		catch (IllegalAccessException e) {
-			throw new IllegalArgumentException("cannot call Storage.fromContract()", e);
+		catch (RuntimeException | IllegalAccessException e) {
+			throw onIllegalAccess.apply("Cannot call Storage.fromContract(): " + e.getMessage());
 		}
 		catch (InvocationTargetException e) {
-			// an exception inside Storage.fromContract() itself: we forward it
-			throw e.getCause();
+			Throwable cause = e.getCause();
+
+			if (cause != null)
+				throw onIllegalAccess.apply("Cannot call Storage.fromContract(): " + cause.getMessage());
+			else
+				throw onIllegalAccess.apply("Cannot call Storage.fromContract()");
 		}
 	}
 
-	/**
-	 * Called at the beginning of the instrumentation of a payable {@code @@FromContract} method or constructor.
-	 * It forwards the call to {@code io.takamaka.code.lang.Contract.payableFromContract()}.
-	 * 
-	 * @param callee the contract whose method or constructor is called
-	 * @param payer the payer of the call
-	 * @param amount the amount of coins
-	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.payableFromContract()}
-	 */
-	public final void payableFromContract(Object callee, Object payer, BigInteger amount) throws Throwable {
-		// we call the private method of contract
+	@Override
+	public <E extends Exception> void payableFromContract(Object callee, Object payer, BigInteger amount, ExceptionSupplier<? extends E> onIllegalAccess) throws E {
 		try {
 			payableFromContractBigInteger.invoke(callee, payer, amount);
 		}
-		catch (IllegalArgumentException e) {
-			throw e;
-		}
-		catch (IllegalAccessException e) {
-			throw new IllegalArgumentException("cannot call Contract.payableFromContract()", e);
+		catch (RuntimeException | IllegalAccessException e) {
+			throw onIllegalAccess.apply("Cannot call Contract.payableFromContract(): " + e.getMessage());
 		}
 		catch (InvocationTargetException e) {
-			// an exception inside Contract.payableFromContract() itself: we forward it
-			throw e.getCause();
+			Throwable cause = e.getCause();
+
+			if (cause != null)
+				throw onIllegalAccess.apply("Cannot call Contract.payableFromContract(): " + cause.getMessage());
+			else
+				throw onIllegalAccess.apply("Cannot call Contract.payableFromContract()");
 		}
 	}
 
@@ -478,7 +463,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @param amount the amount of coins
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.payableFromContract()}
 	 */
-	public final void payableFromContract(Object callee, Object caller, int amount) throws Throwable {
+	public void payableFromContract(Object callee, Object caller, int amount) throws Throwable {
 		try {
 			payableFromContractInt.invoke(callee, caller, amount);
 		}
@@ -503,7 +488,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @param amount the amount of coins
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.payableFromContract()}
 	 */
-	public final void payableFromContract(Object callee, Object caller, long amount) throws Throwable {
+	public void payableFromContract(Object callee, Object caller, long amount) throws Throwable {
 		try {
 			payableFromContractLong.invoke(callee, caller, amount);
 		}
@@ -519,13 +504,8 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		}
 	}
 
-	/**
-	 * Replaces all reverified responses into the store of the node for which
-	 * the class loader has been built.
-	 * 
-	 * @throws StoreException 
-	 */
-	public final void replaceReverifiedResponses() throws StoreException {
+	@Override
+	public void replaceReverifiedResponses() throws StoreException {
 		reverification.replace();
 	}
 
