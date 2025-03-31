@@ -17,7 +17,7 @@ limitations under the License.
 package io.hotmoka.node.local.internal.builders;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.stream.Stream;
+import java.util.List;
 
 import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -60,9 +60,9 @@ public class GameteCreationResponseBuilder extends AbstractInitialResponseBuilde
 				try {
 					Object gamete = classLoader.getGamete().getDeclaredConstructor(String.class).newInstance(request.getPublicKey());
 					classLoader.setBalanceOf(gamete, request.getInitialAmount(), StoreException::new);
-					return TransactionResponses.gameteCreation(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
+					return TransactionResponses.gameteCreation(updatesExtractor.extractUpdatesFrom(List.of(gamete)), classLoader.getStorageReferenceOf(gamete, StoreException::new));
 				}
-				catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | UpdatesExtractionException | StoreException e) {
+				catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | UpdatesExtractionException e) {
 					throw new RuntimeException("Unexpected exception", e);
 				}
 			}

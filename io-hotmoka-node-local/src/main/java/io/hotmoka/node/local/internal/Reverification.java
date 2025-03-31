@@ -254,7 +254,7 @@ public class Reverification {
 			return replacement;
 		}
 		else
-			throw new StoreException("Unexpected jar-carrying response of class " + response.getClass().getName());
+			throw new RuntimeException("Unexpected jar-carrying response of class " + response.getClass().getName());
 	}
 
 	private JarStoreTransactionResponseWithInstrumentedJar updateVersion(JarStoreTransactionResponseWithInstrumentedJar response, TransactionReference transaction) throws StoreException {
@@ -268,7 +268,7 @@ public class Reverification {
 				consensus.getVerificationVersion(), currentResponseAsNonInitial.getUpdates(), currentResponseAsNonInitial.getGasConsumedForCPU(),
 				currentResponseAsNonInitial.getGasConsumedForRAM(), currentResponseAsNonInitial.getGasConsumedForStorage());
 		else
-			throw new StoreException("Unexpected jar-carrying response of class " + response.getClass().getName());
+			throw new RuntimeException("Unexpected jar-carrying response of class " + response.getClass().getName());
 
 		reverified.put(transaction, replacement);
 

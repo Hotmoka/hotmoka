@@ -229,7 +229,8 @@ public class Deserializer {
 			throw new DeserializationException(e);
 		}
 
-		TransactionReference actual = classLoader.transactionThatInstalledJarFor(clazz);
+		TransactionReference actual = classLoader.transactionThatInstalledJarFor(clazz)
+			.orElseThrow(() -> new StoreException("Class " + clazz.getName() + " was a storage class, therefore it should have been installed in the store with a jar"));
 		TransactionReference expected = classTag.getJar();
 		if (!actual.equals(expected))
 			throw new DeserializationException("Class " + classTag.getClazz() + " was instantiated from jar at " + expected + " not from jar at " + actual);

@@ -21,6 +21,7 @@ import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -490,7 +491,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * @throws DeserializationException 
 		 */
 		protected final Stream<Update> updatesToBalanceOrNonceOfCaller() throws UpdatesExtractionException, StoreException {
-			return updatesExtractor.extractUpdatesFrom(Stream.of(deserializedCaller))
+			return updatesExtractor.extractUpdatesFrom(List.of(deserializedCaller))
 				.filter(this::isUpdateToBalanceOrNonceOfCaller);
 		}
 
@@ -544,10 +545,12 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 
 		/**
 		 * Sets the nonce to the value successive to that in the request.
+		 * 
+		 * @throws StoreException if the satore is misbehaving
 		 */
-		private void increaseNonceOfCaller() {
+		private void increaseNonceOfCaller() throws StoreException {
 			if (!isView())
-				classLoader.setNonceOf(deserializedCaller, request.getNonce().add(ONE));
+				classLoader.setNonceOf(deserializedCaller, request.getNonce().add(ONE), StoreException::new);
 		}
 	}
 }

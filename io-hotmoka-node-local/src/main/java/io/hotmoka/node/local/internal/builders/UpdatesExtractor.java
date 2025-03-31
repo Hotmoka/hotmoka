@@ -20,13 +20,13 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InaccessibleObjectException;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.instrumentation.api.InstrumentationFields;
@@ -75,7 +75,7 @@ public class UpdatesExtractor {
 	 *                                    value has been stored into some field
 	 * @throws StoreException if the operation cannot be completed
 	 */
-	public Stream<Update> extractUpdatesFrom(Stream<Object> objects) throws UpdatesExtractionException, StoreException {
+	Stream<Update> extractUpdatesFrom(Iterable<Object> objects) throws UpdatesExtractionException, StoreException {
 		return new Processor(objects).updates.stream();
 	}
 
@@ -87,7 +87,7 @@ public class UpdatesExtractor {
 		/**
 		 * The set of objects to process. This gets expanded as soon as new objects are found to be reachable.
 		 */
-		private final List<Object> workingSet;
+		private final List<Object> workingSet = new ArrayList<>();
 
 		/**
 		 * The set of all objects processed so far. This is needed to avoid processing the same object twice.
@@ -109,10 +109,10 @@ public class UpdatesExtractor {
 		 *                                    value has been stored into some field
 		 * @throws StoreException if the operation cannot be completed
 		 */
-		private Processor(Stream<Object> objects) throws UpdatesExtractionException, StoreException {
-			this.workingSet = objects
-				.filter(object -> seen.add(classLoader.getStorageReferenceOf(object)))
-				.collect(Collectors.toList());
+		private Processor(Iterable<Object> objects) throws UpdatesExtractionException, StoreException {
+			for (var object: objects)
+				if (seen.add(classLoader.getStorageReferenceOf(object, StoreException::new)))
+					workingSet.add(object);
 
 			do {
 				// removes the next storage object to scan for updates and continues recursively
@@ -147,22 +147,24 @@ public class UpdatesExtractor {
 			 */
 			private ExtractedUpdatesSingleObject(Object object) throws UpdatesExtractionException, StoreException {
 				Class<?> clazz = object.getClass();
-				this.storageReference = classLoader.getStorageReferenceOf(object);
-				this.inStorage = classLoader.getInStorageOf(object);
+				this.storageReference = classLoader.getStorageReferenceOf(object, StoreException::new);
+				this.inStorage = classLoader.getInStorageOf(object, StoreException::new);
 
 				if (!inStorage)
 					// storage objects can only have class type, hence the conversion must succeed
-					updates.add(Updates.classTag(storageReference, StorageTypes.classFromClass(clazz), classLoader.transactionThatInstalledJarFor(clazz)));
+					updates.add(Updates.classTag(storageReference, StorageTypes.classFromClass(clazz),
+						classLoader.transactionThatInstalledJarFor(clazz)
+							.orElseThrow(() -> new StoreException("Object " + storageReference + " is in store, therefore it must have been installed in the store with a jar"))));
 
 				Class<?> previous = null;
 				var storage = classLoader.getStorage();
 				while (previous != storage) {
-					addUpdatesForFieldsDefinedInClass(clazz, object);
-					previous = clazz;
 					if (clazz == null)
 						// the objects where expected to be instances of io.takamaka.code.lang.Storage
 						throw new StoreException("Cannot extract the updates of an object that is not subclass of " + Constants.STORAGE_NAME);
 
+					addUpdatesForFieldsDefinedInClass(clazz, object);
+					previous = clazz;
 					clazz = clazz.getSuperclass();
 				}
 			}
@@ -187,7 +189,7 @@ public class UpdatesExtractor {
 					updates.add(Updates.toNull(storageReference, field, false));
 				else if (classLoader.getStorage().isAssignableFrom(newValue.getClass())) {
 					// the field has been set to a storage object
-					var storageReference2 = classLoader.getStorageReferenceOf(newValue);
+					var storageReference2 = classLoader.getStorageReferenceOf(newValue, StoreException::new);
 					updates.add(Updates.ofStorage(storageReference, field, storageReference2));
 
 					// if the new value has not yet been considered, we put in the list of object still to be processed
@@ -386,7 +388,7 @@ public class UpdatesExtractor {
 			private void recursiveExtract(Object object) throws StoreException {
 				Class<?> clazz = object.getClass();
 				if (classLoader.getStorage().isAssignableFrom(clazz)) {
-					if (seen.add(classLoader.getStorageReferenceOf(object)))
+					if (seen.add(classLoader.getStorageReferenceOf(object, StoreException::new)))
 						workingSet.add(object);
 				}
 				else if (classLoader.isLazilyLoaded(clazz)) // eager types are not recursively followed

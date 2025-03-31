@@ -68,7 +68,10 @@ public abstract class Runtime {
 	public static Object deserializeLastLazyUpdateFor(Object object, String definingClass, String name, String fieldClassName) throws DeserializationException, StoreException {
 		AbstractResponseBuilder<?, ?>.ResponseCreator responseCreator = getResponseCreator();
 		// TODO: check exception below
-		return responseCreator.deserializeLastUpdateFor(responseCreator.getClassLoader().getStorageReferenceOf(object), FieldSignatures.of(StorageTypes.classNamed(definingClass), name, StorageTypes.classNamed(fieldClassName)));
+		return responseCreator.deserializeLastUpdateFor(
+			responseCreator.getClassLoader().getStorageReferenceOf(object, StoreException::new),
+			FieldSignatures.of(StorageTypes.classNamed(definingClass), name, StorageTypes.classNamed(fieldClassName))
+		);
 	}
 
 	/**
@@ -86,7 +89,10 @@ public abstract class Runtime {
 	public static Object deserializeLastLazyUpdateForFinal(Object object, String definingClass, String name, String fieldClassName) throws DeserializationException, StoreException {
 		AbstractResponseBuilder<?,?>.ResponseCreator responseCreator = getResponseCreator();
 		// TODO: check exception below
-		return responseCreator.deserializeLastUpdateForFinal(responseCreator.getClassLoader().getStorageReferenceOf(object), FieldSignatures.of(StorageTypes.classNamed(definingClass), name, StorageTypes.classNamed(fieldClassName)));
+		return responseCreator.deserializeLastUpdateForFinal(
+			responseCreator.getClassLoader().getStorageReferenceOf(object, StoreException::new),
+			FieldSignatures.of(StorageTypes.classNamed(definingClass), name, StorageTypes.classNamed(fieldClassName))
+		);
 	}
 
 	/**
@@ -200,9 +206,10 @@ public abstract class Runtime {
 	 * 
 	 * @param object the storage object
 	 * @return the value of the field
+	 * @throws StoreException 
 	 */
-	public static boolean inStorageOf(Object object) {
-		return getResponseCreator().getClassLoader().getInStorageOf(object);
+	public static boolean inStorageOf(Object object) throws StoreException {
+		return getResponseCreator().getClassLoader().getInStorageOf(object, StoreException::new);
 	}
 
 	/**
@@ -212,8 +219,9 @@ public abstract class Runtime {
 	 * @param o1 the first storage object
 	 * @param o2 the second storage object
 	 * @return the result of the comparison
+	 * @throws StoreException 
 	 */
-	public static int compareStorageReferencesOf(Object o1, Object o2) {
+	public static int compareStorageReferencesOf(Object o1, Object o2) throws StoreException {
 		if (o1 == o2)
 			return 0;
 		else if (o1 == null)
@@ -222,7 +230,7 @@ public abstract class Runtime {
 			return 1;
 		else {
 			EngineClassLoader classLoader = getResponseCreator().getClassLoader();
-			return classLoader.getStorageReferenceOf(o1).compareTo(classLoader.getStorageReferenceOf(o2));
+			return classLoader.getStorageReferenceOf(o1, StoreException::new).compareTo(classLoader.getStorageReferenceOf(o2, StoreException::new));
 		}
 	}
 

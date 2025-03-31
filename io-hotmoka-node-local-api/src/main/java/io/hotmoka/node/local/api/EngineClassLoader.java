@@ -17,8 +17,8 @@ limitations under the License.
 package io.hotmoka.node.local.api;
 
 import java.math.BigInteger;
+import java.util.Optional;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -35,6 +35,15 @@ import io.hotmoka.verification.api.TakamakaClassLoader;
 public interface EngineClassLoader extends TakamakaClassLoader {
 
 	/**
+	 * Yields the class object that represents the given storage type in the Java language.
+	 * 
+	 * @param type the storage type
+	 * @return the class object
+	 * @throws ClassNotFoundException if the class of {@code type} cannot be found
+	 */
+	Class<?> loadClass(StorageType type) throws ClassNotFoundException;
+
+	/**
 	 * Yields the lengths (in bytes) of the instrumented jars of the classpath and its dependencies
 	 * used to create this class loader.
 	 * 
@@ -43,37 +52,35 @@ public interface EngineClassLoader extends TakamakaClassLoader {
 	IntStream getLengthsOfJars();
 
 	/**
-	 * Yields the transactions that installed the jars of the classpath and its dependencies
-	 * used to create this class loader.
-	 * 
-	 * @return the transactions
-	 */
-	// TODO: unused: can we remove?
-	Stream<TransactionReference> getTransactionsOfJars();
-
-	/**
 	 * Yields the transaction reference that installed the jar where the given class is defined.
 	 * 
 	 * @param clazz the class
-	 * @return the transaction reference
+	 * @return the transaction reference, if any; this might be missing if {@code clazz} has not
+	 *         been installed with any jar
 	 */
-	TransactionReference transactionThatInstalledJarFor(Class<?> clazz);
+	Optional<TransactionReference> transactionThatInstalledJarFor(Class<?> clazz);
 
 	/**
 	 * Yields the value of the {@code storageReference} field of the given storage object in RAM.
 	 * 
+	 * @param <E> the type of the exception thrown if the field cannot be accessed
 	 * @param object the object
+	 * @param onIllegalAccess the supplier of the exception thrown if the field cannot be accessed
 	 * @return the value of the field
+	 * @throws E if the field cannot be accessed, for any reason
 	 */
-	StorageReference getStorageReferenceOf(Object object);
+	<E extends Exception> StorageReference getStorageReferenceOf(Object object, ExceptionSupplier<? extends E> onIllegalAccess) throws E;
 
 	/**
 	 * Yields the value of the boolean {@code inStorage} field of the given storage object in RAM.
 	 * 
+	 * @param <E> the type of the exception thrown if the field cannot be accessed
 	 * @param object the object
+	 * @param onIllegalAccess the supplier of the exception thrown if the field cannot be accessed
 	 * @return the value of the field
+	 * @throws E if the field cannot be accessed, for any reason
 	 */
-	boolean getInStorageOf(Object object);
+	<E extends Exception> boolean getInStorageOf(Object object, ExceptionSupplier<? extends E> onIllegalAccess) throws E;
 
 	/**
 	 * Yields the value of the {@code balance} field of the given contract in RAM.
@@ -100,26 +107,11 @@ public interface EngineClassLoader extends TakamakaClassLoader {
 	/**
 	 * Sets the value of the {@code nonce} field of the given account in RAM.
 	 * 
+	 * @param <E> the type of the exception thrown if the field cannot be accessed
 	 * @param object the account
 	 * @param value to value to set for the nonce of the account
+	 * @param onIllegalAccess the supplier of the exception thrown if the field cannot be accessed
+	 * @throws E if the field cannot be accessed, for any reason
 	 */
-	void setNonceOf(Object object, BigInteger value);
-
-	/**
-	 * Adds the given amount of coins to the current amount of the validators set of the node.
-	 * 
-	 * @param validators the object containing the validators set
-	 * @param amount the amount to add (if positive) or remove (if negative)
-	 */
-	void increaseCurrentSupply(Object validators, BigInteger amount);
-
-	/**
-	 * Yields the class object that represents the given storage type in the Java language,
-	 * for the current transaction.
-	 * 
-	 * @param type the storage type
-	 * @return the class object, if any
-	 * @throws ClassNotFoundException if some class type cannot be found
-	 */
-	Class<?> loadClass(StorageType type) throws ClassNotFoundException;
+	<E extends Exception> void setNonceOf(Object object, BigInteger value, ExceptionSupplier<? extends E> onIllegalAccess) throws E;
 }

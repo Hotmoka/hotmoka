@@ -120,12 +120,6 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	private final int[] lengthsOfJars;
 
 	/**
-	 * The transactions that installed the jars of the classpath and its dependencies
-	 * used to create this class loader.
-	 */
-	private final TransactionReference[] transactionsOfJars;
-
-	/**
 	 * A map from each class name to the transaction that installed the jar it belongs to.
 	 */
 	private final ConcurrentMap<String, TransactionReference> transactionsThatInstalledJarForClasses = new ConcurrentHashMap<>();
@@ -161,7 +155,6 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			var transactionsOfJars = new ArrayList<TransactionReference>();
 			this.parent = mkTakamakaClassLoader(dependenciesAsList, consensus, jar, environment, jars, transactionsOfJars);
 			this.lengthsOfJars = jars.stream().mapToInt(bytes -> bytes.length).toArray();
-			this.transactionsOfJars = transactionsOfJars.toArray(TransactionReference[]::new);
 			Class<?> contract = getContract(), storage = getStorage();
 			this.fromContract = storage.getDeclaredMethod("fromContract", contract);
 			this.fromContract.setAccessible(true); // it was private
@@ -359,8 +352,10 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			return double.class;
 		else if (type instanceof ClassType ct)
 			return loadClass(ct.getName());
+		else if (type == null)
+			throw new RuntimeException("Unexpected null storage type");
 		else
-			throw new IllegalArgumentException("Unexpected storage type");
+			throw new RuntimeException("Unexpected storage type of class " + type.getClass().getName());
 	}
 
 	@Override
@@ -369,38 +364,27 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
-	public final Stream<TransactionReference> getTransactionsOfJars() {
-		return Stream.of(transactionsOfJars);
+	public final Optional<TransactionReference> transactionThatInstalledJarFor(Class<?> clazz) {
+		return Optional.ofNullable(transactionsThatInstalledJarForClasses.get(clazz.getName()));
 	}
 
 	@Override
-	public final TransactionReference transactionThatInstalledJarFor(Class<?> clazz) {
-		return transactionsThatInstalledJarForClasses.get(clazz.getName());
-	}
-
-	@Override
-	public final StorageReference getStorageReferenceOf(Object object) {
+	public final <E extends Exception> StorageReference getStorageReferenceOf(Object object, ExceptionSupplier<? extends E> onIllegalAccess) throws E {
 		try {
 			return (StorageReference) storageReference.get(object);
 		}
-		catch (IllegalArgumentException e) {
-			throw e;
-		}
-		catch (IllegalAccessException e) {
-			throw new IllegalArgumentException("cannot read the storage reference of a storage object of class " + object.getClass().getName(), e);
+		catch (RuntimeException | IllegalAccessException e) {
+			throw onIllegalAccess.apply("Cannot read the storage reference: " + e.getMessage());
 		}
 	}
 
 	@Override
-	public final boolean getInStorageOf(Object object) {
+	public final <E extends Exception> boolean getInStorageOf(Object object, ExceptionSupplier<? extends E> onIllegalAccess) throws E {
 		try {
 			return (boolean) inStorage.get(object);
 		}
-		catch (IllegalArgumentException e) {
-			throw e;
-		}
-		catch (IllegalAccessException e) {
-			throw new IllegalArgumentException("cannot read the inStorage tag of a storage object of class " + object.getClass().getName(), e);
+		catch (RuntimeException | IllegalAccessException e) {
+			throw onIllegalAccess.apply("Cannot read the inStorage field: " + e.getMessage());
 		}
 	}
 
@@ -410,7 +394,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			return (BigInteger) balanceField.get(object);
 		}
 		catch (RuntimeException | IllegalAccessException e) {
-			throw onIllegalAccess.apply("Cannot access the balance field: " + e.getMessage());
+			throw onIllegalAccess.apply("Cannot read the balance field: " + e.getMessage());
 		}
 	}
 
@@ -425,38 +409,12 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
-	public final void setNonceOf(Object object, BigInteger value) {
-		Class<?> clazz = object.getClass();
-
+	public final <E extends Exception> void setNonceOf(Object object, BigInteger value, ExceptionSupplier<? extends E> onIllegalAccess) throws E {
 		try {
-			if (getExternallyOwnedAccount().isAssignableFrom(clazz))
-				externallyOwnedAccountNonce.set(object, value);
-			else
-				throw new IllegalArgumentException("unknown account class " + clazz); // TODO: what to throw here?
+			externallyOwnedAccountNonce.set(object, value);
 		}
-		catch (IllegalArgumentException e) {
-			throw e;
-		}
-		catch (IllegalAccessException e) {
-			throw new IllegalArgumentException("cannot write the nonce field of an account object of class " + clazz.getName(), e);
-		}
-	}
-
-	@Override
-	public final void increaseCurrentSupply(Object validators, BigInteger amount) {
-		Class<?> clazz = validators.getClass();
-
-		try {
-			if (getAbstractValidators().isAssignableFrom(clazz))
-				abstractValidatorsCurrentSupply.set(validators, ((BigInteger) abstractValidatorsCurrentSupply.get(validators)).add(amount));
-			else
-				throw new IllegalArgumentException("Unknown validators class " + clazz);
-		}
-		catch (IllegalArgumentException e) {
-			throw e;
-		}
-		catch (IllegalAccessException e) {
-			throw new IllegalArgumentException("Cannot access the current supply field of a validators object of class " + clazz.getName(), e);
+		catch (RuntimeException | IllegalAccessException e) {
+			throw onIllegalAccess.apply("Cannot write the nonce field: " + e.getMessage());
 		}
 	}
 

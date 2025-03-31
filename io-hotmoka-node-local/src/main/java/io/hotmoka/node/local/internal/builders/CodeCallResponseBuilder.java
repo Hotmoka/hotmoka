@@ -212,7 +212,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 */
 		protected final StorageValue serialize(Object object) throws IllegalArgumentException {
 			if (isStorage(object))
-				return classLoader.getStorageReferenceOf(object);
+				return classLoader.getStorageReferenceOf(object, IllegalArgumentException::new); // TODO: check exception
 			else if (object instanceof BigInteger bi)
 				return StorageValues.bigIntegerOf(bi);
 			else if (object instanceof Boolean b)
@@ -313,7 +313,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		protected final Stream<Update> updates() throws UpdatesExtractionException, StoreException {
 			List<Object> potentiallyAffectedObjects = new ArrayList<>();
 			scanPotentiallyAffectedObjects(potentiallyAffectedObjects::add);
-			return updatesExtractor.extractUpdatesFrom(potentiallyAffectedObjects.stream());
+			return updatesExtractor.extractUpdatesFrom(potentiallyAffectedObjects);
 		}
 
 		/**
@@ -332,16 +332,21 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 				potentiallyAffectedObjects.add(result);
 
 			scanPotentiallyAffectedObjects(potentiallyAffectedObjects::add);
-			return updatesExtractor.extractUpdatesFrom(potentiallyAffectedObjects.stream());
+			return updatesExtractor.extractUpdatesFrom(potentiallyAffectedObjects);
 		}
 
 		/**
 		 * Yields the storage references of the events generated so far.
 		 * 
 		 * @return the storage references
+		 * @throws StoreException 
 		 */
-		protected final Stream<StorageReference> storageReferencesOfEvents() {
-			return events.stream().map(classLoader::getStorageReferenceOf);
+		protected final Stream<StorageReference> storageReferencesOfEvents() throws StoreException {
+			var result = new ArrayList<StorageReference>();
+			for (var event: events)
+				result.add(classLoader.getStorageReferenceOf(event, StoreException::new));
+
+			return result.stream();
 		}
 	}
 }
