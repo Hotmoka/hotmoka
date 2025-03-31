@@ -131,8 +131,7 @@ public interface EngineClassLoader extends TakamakaClassLoader {
 	 * @param callee the contract whose method or constructor is called
 	 * @param caller the caller of the method or constructor
 	 * @param onIllegalAccess the supplier of the exception thrown if the method cannot be called
-	 * @throws E if {@code io.takamaka.code.lang.Storage.fromContract()} cannot be called or
-	 *           its execution threw an exception
+	 * @throws E if {@code io.takamaka.code.lang.Storage.fromContract()} cannot be called
 	 */
 	<E extends Exception> void fromContract(Object callee, Object caller, ExceptionSupplier<? extends E> onIllegalAccess) throws E;
 
@@ -145,8 +144,33 @@ public interface EngineClassLoader extends TakamakaClassLoader {
 	 * @param payer the payer of the call
 	 * @param amount the amount of coins
 	 * @param onIllegalAccess the supplier of the exception thrown if the method cannot be called
-	 * @throws E if {@code io.takamaka.code.lang.Contract.payableFromContract()} cannot be called or
-	 *           its execution threw an exception
+	 * @throws E if {@code io.takamaka.code.lang.Contract.payableFromContract()} cannot be called
 	 */
 	<E extends Exception> void payableFromContract(Object callee, Object payer, BigInteger amount, ExceptionSupplier<? extends E> onIllegalAccess) throws E;
+
+	/**
+	 * Called at the beginning of the instrumentation of a payable {@code @@FromContract} method or constructor.
+	 * It forwards the call to {@code io.takamaka.code.lang.Contract.payableFromContract()}.
+	 * 
+	 * @param <E> the type of the exception thrown if the field cannot be accessed
+	 * @param callee the contract whose method or constructor is called
+	 * @param payer the payer of the call
+	 * @param amount the amount of coins
+	 * @param onIllegalAccess the supplier of the exception thrown if the method cannot be called
+	 * @throws E if {@code io.takamaka.code.lang.Contract.payableFromContract()} cannot be called
+	 */
+	<E extends Exception> void payableFromContract(Object callee, Object caller, int amount, ExceptionSupplier<? extends E> onIllegalAccess) throws E;
+
+	/**
+	 * Called at the beginning of the instrumentation of a payable {@code @@FromContract} method or constructor.
+	 * It forwards the call to {@code io.takamaka.code.lang.Contract.payableFromContract()}.
+	 * 
+	 * @param <E> the type of the exception thrown if the field cannot be accessed
+	 * @param callee the contract whose method or constructor is called
+	 * @param caller the caller of the method or constructor
+	 * @param amount the amount of coins
+	 * @param onIllegalAccess the supplier of the exception thrown if the method cannot be called
+	 * @throws E if {@code io.takamaka.code.lang.Contract.payableFromContract()} cannot be called
+	 */
+	<E extends Exception> void payableFromContract(Object callee, Object caller, long amount, ExceptionSupplier<? extends E> onIllegalAccess) throws E;
 }

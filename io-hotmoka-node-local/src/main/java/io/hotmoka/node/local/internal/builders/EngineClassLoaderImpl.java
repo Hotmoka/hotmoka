@@ -429,8 +429,13 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		catch (InvocationTargetException e) {
 			Throwable cause = e.getCause();
 
-			if (cause != null)
-				throw onIllegalAccess.apply("Cannot call Storage.fromContract(): " + cause.getMessage());
+			// if the called code throws an unchecked exception, we forward it since some of its requirements might have been violated
+			if (cause instanceof RuntimeException re)
+				throw re;
+			else if (cause instanceof Error error)
+				throw error;
+			else if (cause != null)
+				throw onIllegalAccess.apply("Storage.fromContract() threw an unexpected exception of class " + cause.getClass().getName());
 			else
 				throw onIllegalAccess.apply("Cannot call Storage.fromContract()");
 		}
@@ -447,60 +452,61 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		catch (InvocationTargetException e) {
 			Throwable cause = e.getCause();
 
-			if (cause != null)
-				throw onIllegalAccess.apply("Cannot call Contract.payableFromContract(): " + cause.getMessage());
+			// if the called code throws an unchecked exception, we forward it since some of its requirements might have been violated
+			if (cause instanceof RuntimeException re)
+				throw re;
+			else if (cause instanceof Error error)
+				throw error;
+			else if (cause != null)
+				throw onIllegalAccess.apply("Storage.payableFromContract() threw an unexpected exception of class " + cause.getClass().getName());
 			else
 				throw onIllegalAccess.apply("Cannot call Contract.payableFromContract()");
 		}
 	}
 
-	/**
-	 * Called at the beginning of the instrumentation of a payable {@code @@FromContract} method or constructor.
-	 * It forwards the call to {@code io.takamaka.code.lang.Contract.payableFromContract()}.
-	 * 
-	 * @param callee the contract whose method or constructor is called
-	 * @param caller the caller of the method or constructor
-	 * @param amount the amount of coins
-	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.payableFromContract()}
-	 */
-	public void payableFromContract(Object callee, Object caller, int amount) throws Throwable {
+	@Override
+	public <E extends Exception> void payableFromContract(Object callee, Object caller, int amount, ExceptionSupplier<? extends E> onIllegalAccess) throws E {
 		try {
 			payableFromContractInt.invoke(callee, caller, amount);
 		}
-		catch (IllegalArgumentException e) {
-			throw e;
-		}
-		catch (IllegalAccessException e) {
-			throw new IllegalArgumentException("cannot call Contract.payableFromContract()", e);
+		catch (RuntimeException | IllegalAccessException e) {
+			throw onIllegalAccess.apply("Cannot call Contract.payableFromContract(): " + e.getMessage());
 		}
 		catch (InvocationTargetException e) {
-			// an exception inside Contract.payableFromContract() itself: we forward it
-			throw e.getCause();
+			Throwable cause = e.getCause();
+
+			// if the called code throws an unchecked exception, we forward it since some of its requirements might have been violated
+			if (cause instanceof RuntimeException re)
+				throw re;
+			else if (cause instanceof Error error)
+				throw error;
+			else if (cause != null)
+				throw onIllegalAccess.apply("Storage.payableFromContract() threw an unexpected exception of class " + cause.getClass().getName());
+			else
+				throw onIllegalAccess.apply("Cannot call Contract.payableFromContract()");
 		}
 	}
 
-	/**
-	 * Called at the beginning of the instrumentation of a payable {@code @@FromContract} method or constructor.
-	 * It forwards the call to {@code io.takamaka.code.lang.Contract.payableFromContract()}.
-	 * 
-	 * @param callee the contract whose method or constructor is called
-	 * @param caller the caller of the method or constructor
-	 * @param amount the amount of coins
-	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.payableFromContract()}
-	 */
-	public void payableFromContract(Object callee, Object caller, long amount) throws Throwable {
+	@Override
+	public <E extends Exception> void payableFromContract(Object callee, Object caller, long amount, ExceptionSupplier<? extends E> onIllegalAccess) throws E {
 		try {
 			payableFromContractLong.invoke(callee, caller, amount);
 		}
-		catch (IllegalArgumentException e) {
-			throw e;
-		}
-		catch (IllegalAccessException e) {
-			throw new IllegalArgumentException("cannot call Contract.payableFromContract()", e);
+		catch (RuntimeException | IllegalAccessException e) {
+			throw onIllegalAccess.apply("Cannot call Contract.payableFromContract(): " + e.getMessage());
 		}
 		catch (InvocationTargetException e) {
-			// an exception inside Contract.payableFromContract() itself: we forward it
-			throw e.getCause();
+			Throwable cause = e.getCause();
+
+			// if the called code throws an unchecked exception, we forward it since some of its requirements might have been violated
+			if (cause instanceof RuntimeException re)
+				throw re;
+			else if (cause instanceof Error error)
+				throw error;
+			else if (cause != null)
+				throw onIllegalAccess.apply("Storage.payableFromContract() threw an unexpected exception of class " + cause.getClass().getName());
+			else
+				throw onIllegalAccess.apply("Cannot call Contract.payableFromContract()");
 		}
 	}
 

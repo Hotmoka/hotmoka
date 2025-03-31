@@ -24,7 +24,6 @@ import io.hotmoka.node.local.DeserializationException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.builders.AbstractResponseBuilder;
-import io.hotmoka.node.local.internal.builders.EngineClassLoaderImpl;
 import io.hotmoka.whitelisting.Dummy;
 
 /**
@@ -78,8 +77,7 @@ public abstract class Runtime {
 	 * Yields the last value assigned to the given lazy, {@code final} field of the given storage object.
 	 * 
 	 * @param object the container of the field
-	 * @param definingClass the class of the field. This can only be the class of {@code object}
-	 *                      or one of its superclasses
+	 * @param definingClass the class of the field: this can only be the class of {@code object} or one of its superclasses
 	 * @param name the name of the field
 	 * @param fieldClassName the name of the type of the field
 	 * @return the value of the field
@@ -119,7 +117,7 @@ public abstract class Runtime {
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.payableEntry()}
 	 */
 	public static void payableFromContract(Object callee, Object caller, Dummy dummy, BigInteger amount) throws StoreException {
-		EngineClassLoaderImpl classLoader = getResponseCreator().getClassLoader();
+		EngineClassLoader classLoader = getResponseCreator().getClassLoader();
 		classLoader.fromContract(callee, caller, StoreException::new);
 		if (dummy == Dummy.METHOD_ON_THIS)
 			// the callee pays itself
@@ -140,14 +138,14 @@ public abstract class Runtime {
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Storage.entry()}
 	 *         or {@code io.takamaka.code.lang.Contract.payableEntry()}
 	 */
-	public static void payableFromContract(Object callee, Object caller, Dummy dummy, int amount) throws Throwable {
-		EngineClassLoaderImpl classLoader = getResponseCreator().getClassLoader();
+	public static void payableFromContract(Object callee, Object caller, Dummy dummy, int amount) throws StoreException {
+		EngineClassLoader classLoader = getResponseCreator().getClassLoader();
 		classLoader.fromContract(callee, caller, StoreException::new);
 		if (dummy == Dummy.METHOD_ON_THIS)
 			// the callee pays itself
-			classLoader.payableFromContract(callee, callee, amount);
+			classLoader.payableFromContract(callee, callee, amount, StoreException::new);
 		else
-			classLoader.payableFromContract(callee, caller, amount);
+			classLoader.payableFromContract(callee, caller, amount, StoreException::new);
 	}
 
 	/**
@@ -162,14 +160,14 @@ public abstract class Runtime {
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Storage.entry()}
 	 *         or {@code io.takamaka.code.lang.Contract.entry()}
 	 */
-	public static void payableFromContract(Object callee, Object caller, Dummy dummy, long amount) throws Throwable {
-		EngineClassLoaderImpl classLoader = getResponseCreator().getClassLoader();
+	public static void payableFromContract(Object callee, Object caller, Dummy dummy, long amount) throws StoreException {
+		EngineClassLoader classLoader = getResponseCreator().getClassLoader();
 		classLoader.fromContract(callee, caller, StoreException::new);
 		if (dummy == Dummy.METHOD_ON_THIS)
 			// the callee pays itself
-			classLoader.payableFromContract(callee, callee, amount);
+			classLoader.payableFromContract(callee, callee, amount, StoreException::new);
 		else
-			classLoader.payableFromContract(callee, caller, amount);
+			classLoader.payableFromContract(callee, caller, amount, StoreException::new);
 	}
 
 	/**
