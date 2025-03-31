@@ -62,7 +62,7 @@ public abstract class Runtime {
 	 * @param fieldClassName the name of the type of the field
 	 * @return the value of the field
 	 * @throws StoreException if the store of the node is misbehaving
-	 * @throws DeserializationException 
+	 * @throws DeserializationException if deserialization fails
      */
 	public static Object deserializeLastLazyUpdateFor(Object object, String definingClass, String name, String fieldClassName) throws DeserializationException, StoreException {
 		AbstractResponseBuilder<?, ?>.ResponseCreator responseCreator = getResponseCreator();
@@ -81,8 +81,8 @@ public abstract class Runtime {
 	 * @param name the name of the field
 	 * @param fieldClassName the name of the type of the field
 	 * @return the value of the field
-	 * @throws StoreException 
-	 * @throws DeserializationException 
+	 * @throws StoreException if the store of the node is misbehaving
+	 * @throws DeserializationException if deserialization fails
      */
 	public static Object deserializeLastLazyUpdateForFinal(Object object, String definingClass, String name, String fieldClassName) throws DeserializationException, StoreException {
 		AbstractResponseBuilder<?,?>.ResponseCreator responseCreator = getResponseCreator();
@@ -100,7 +100,7 @@ public abstract class Runtime {
 	 * @param callee the contract whose entry is called
 	 * @param caller the caller of the entry
 	 * @throws StoreException if {@code io.takamaka.code.lang.Storage.fromContract()} cannot be called
-	 *                        or it threw an exception
+	 * @throws RuntimeException in case of any possible exception thrown inside {@code io.takamaka.code.lang.Storage.fromContract()}
 	 */
 	public static void fromContract(Object callee, Object caller) throws StoreException {
 		getResponseCreator().getClassLoader().fromContract(callee, caller, StoreException::new);
@@ -114,7 +114,9 @@ public abstract class Runtime {
 	 * @param caller the caller of the entry
 	 * @param dummy may be used to signal something to the callee
 	 * @param amount the amount of coins
-	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.payableEntry()}
+	 * @throws StoreException if {@code io.takamaka.code.lang.Contract.payableEntry()} cannot be called
+	 * @throws RuntimeException in case of any possible exception thrown inside {@code io.takamaka.code.lang.Storage.fromContract()}
+	 *         or {@code io.takamaka.code.lang.Contract.fromPayableContract()}
 	 */
 	public static void payableFromContract(Object callee, Object caller, Dummy dummy, BigInteger amount) throws StoreException {
 		EngineClassLoader classLoader = getResponseCreator().getClassLoader();
@@ -135,8 +137,9 @@ public abstract class Runtime {
 	 * @param caller the caller of the entry
 	 * @param dummy may be used to signal something to the callee
 	 * @param amount the amount of coins
-	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Storage.entry()}
-	 *         or {@code io.takamaka.code.lang.Contract.payableEntry()}
+	 * @throws StoreException if {@code io.takamaka.code.lang.Contract.payableEntry()} cannot be called
+	 * @throws RuntimeException in case of any possible exception thrown inside {@code io.takamaka.code.lang.Storage.fromContract()}
+	 *         or {@code io.takamaka.code.lang.Contract.fromPayableContract()}
 	 */
 	public static void payableFromContract(Object callee, Object caller, Dummy dummy, int amount) throws StoreException {
 		EngineClassLoader classLoader = getResponseCreator().getClassLoader();
@@ -157,8 +160,9 @@ public abstract class Runtime {
 	 * @param caller the caller of the entry
 	 * @param dummy may be used to signal something to the callee
 	 * @param amount the amount of coins
-	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Storage.entry()}
-	 *         or {@code io.takamaka.code.lang.Contract.entry()}
+	 * @throws StoreException if {@code io.takamaka.code.lang.Contract.payableEntry()} cannot be called
+	 * @throws RuntimeException in case of any possible exception thrown inside {@code io.takamaka.code.lang.Storage.fromContract()}
+	 *         or {@code io.takamaka.code.lang.Contract.fromPayableContract()}
 	 */
 	public static void payableFromContract(Object callee, Object caller, Dummy dummy, long amount) throws StoreException {
 		EngineClassLoader classLoader = getResponseCreator().getClassLoader();
@@ -190,9 +194,7 @@ public abstract class Runtime {
 
 	/**
 	 * Determines if the execution was started by the node itself.
-	 * This is always false if the node has no notion of commit.
-	 * If the execution has been started by a user request, this will
-	 * always be false.
+	 * If the execution has been started by a user request, this will always be false.
 	 * 
 	 * @return true if and only if that condition occurs
 	 */
@@ -205,7 +207,7 @@ public abstract class Runtime {
 	 * 
 	 * @param object the storage object
 	 * @return the value of the field
-	 * @throws StoreException 
+	 * @throws StoreException if the store is misbehaving
 	 */
 	public static boolean inStorageOf(Object object) throws StoreException {
 		return getResponseCreator().getClassLoader().getInStorageOf(object, StoreException::new);
@@ -218,7 +220,7 @@ public abstract class Runtime {
 	 * @param o1 the first storage object
 	 * @param o2 the second storage object
 	 * @return the result of the comparison
-	 * @throws StoreException 
+	 * @throws StoreException if the store is misbehaving 
 	 */
 	public static int compareStorageReferencesOf(Object o1, Object o2) throws StoreException {
 		if (o1 == o2)

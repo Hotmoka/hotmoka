@@ -132,6 +132,7 @@ public interface EngineClassLoader extends TakamakaClassLoader {
 	 * @param caller the caller of the method or constructor
 	 * @param onIllegalAccess the supplier of the exception thrown if the method cannot be called
 	 * @throws E if {@code io.takamaka.code.lang.Storage.fromContract()} cannot be called
+	 * @throws RuntimeException in case of any possible exception thrown inside {@code io.takamaka.code.lang.Storage.fromContract()}
 	 */
 	<E extends Exception> void fromContract(Object callee, Object caller, ExceptionSupplier<? extends E> onIllegalAccess) throws E;
 
@@ -145,6 +146,7 @@ public interface EngineClassLoader extends TakamakaClassLoader {
 	 * @param amount the amount of coins
 	 * @param onIllegalAccess the supplier of the exception thrown if the method cannot be called
 	 * @throws E if {@code io.takamaka.code.lang.Contract.payableFromContract()} cannot be called
+	 * @throws RuntimeException in case of any possible exception thrown inside {@code io.takamaka.code.lang.Contract.fromPayableContract()}
 	 */
 	<E extends Exception> void payableFromContract(Object callee, Object payer, BigInteger amount, ExceptionSupplier<? extends E> onIllegalAccess) throws E;
 
@@ -158,6 +160,7 @@ public interface EngineClassLoader extends TakamakaClassLoader {
 	 * @param amount the amount of coins
 	 * @param onIllegalAccess the supplier of the exception thrown if the method cannot be called
 	 * @throws E if {@code io.takamaka.code.lang.Contract.payableFromContract()} cannot be called
+	 * @throws RuntimeException in case of any possible exception thrown inside {@code io.takamaka.code.lang.Contract.fromPayableContract()}
 	 */
 	<E extends Exception> void payableFromContract(Object callee, Object caller, int amount, ExceptionSupplier<? extends E> onIllegalAccess) throws E;
 
@@ -171,6 +174,7 @@ public interface EngineClassLoader extends TakamakaClassLoader {
 	 * @param amount the amount of coins
 	 * @param onIllegalAccess the supplier of the exception thrown if the method cannot be called
 	 * @throws E if {@code io.takamaka.code.lang.Contract.payableFromContract()} cannot be called
+	 * @throws RuntimeException in case of any possible exception thrown inside {@code io.takamaka.code.lang.Contract.fromPayableContract()}
 	 */
 	<E extends Exception> void payableFromContract(Object callee, Object caller, long amount, ExceptionSupplier<? extends E> onIllegalAccess) throws E;
 }

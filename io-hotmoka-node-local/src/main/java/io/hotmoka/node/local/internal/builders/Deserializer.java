@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.node.local.internal.builders;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -68,46 +67,9 @@ public class Deserializer {
 
 	/**
 	 * A map from each storage reference to its deserialized object. This is needed in order to guarantee that
-	 * repeated deserialization of the same storage reference yields the same object, but it can also
-	 * work as an efficiency measure.
+	 * repeated deserialization of the same storage reference yields the same object, but it is an efficiency measure as well.
 	 */
 	private final Map<StorageReference, Object> cache = new HashMap<>();
-
-	/**
-	 * A comparator that puts updates in the order required for the parameter
-	 * of the deserialization constructor of storage objects: fields of superclasses first;
-	 * then the fields for the same class, ordered by name and then by the
-	 * {@code toString()} of their type.
-	 */
-	private int compare(UpdateOfField update1, UpdateOfField update2) {
-		FieldSignature field1 = update1.getField();
-		FieldSignature field2 = update2.getField();
-
-		try {
-			String className1 = field1.getDefiningClass().getName();
-			String className2 = field2.getDefiningClass().getName();
-
-			if (className1.equals(className2)) {
-				int diff = field1.getName().compareTo(field2.getName());
-				if (diff != 0)
-					return diff;
-				else
-					return field1.getType().toString().compareTo(field2.getType().toString()); // TODO: types are comparable!
-			}
-
-			Class<?> clazz1 = classLoader.loadClass(className1);
-			Class<?> clazz2 = classLoader.loadClass(className2);
-			if (clazz1.isAssignableFrom(clazz2)) // clazz1 superclass of clazz2
-				return -1;
-			else if (clazz2.isAssignableFrom(clazz1)) // clazz2 superclass of clazz1
-				return 1;
-			else
-				throw new UncheckedException(new DeserializationException("Updates are not on the same supeclass chain"));
-		}
-		catch (ClassNotFoundException e) {
-			throw new UncheckedException(new DeserializationException(e));
-		}
-	}
 
 	/**
 	 * Builds an object that translates storage values into RAM values.
@@ -162,7 +124,44 @@ public class Deserializer {
 		else if (value == null)
 			throw new DeserializationException("Unexpected null storage value");
 		else
-			throw new DeserializationException("Unexpected storage value of class " + value.getClass().getName());
+			throw new RuntimeException("Unexpected storage value of class " + value.getClass().getName());
+	}
+
+	/**
+	 * A comparator that puts updates in the order required for the parameter of the
+	 * deserialization constructor of storage objects: fields of superclasses first; then the
+	 * fields for the same class, ordered by name and then by the {@code toString()} of their type.
+	 * This ordering is the same used during instrumentation, when the deserialization constructor
+	 * has been created: see {@link io.hotmoka.instrumentation.internal.InstrumentedClassImpl}.
+	 */
+	private int compare(UpdateOfField update1, UpdateOfField update2) {
+		FieldSignature field1 = update1.getField();
+		FieldSignature field2 = update2.getField();
+	
+		try {
+			String className1 = field1.getDefiningClass().getName();
+			String className2 = field2.getDefiningClass().getName();
+	
+			if (className1.equals(className2)) {
+				int diff = field1.getName().compareTo(field2.getName());
+				if (diff != 0)
+					return diff;
+				else
+					return field1.getType().toString().compareTo(field2.getType().toString()); // TODO: types are comparable!
+			}
+	
+			Class<?> clazz1 = classLoader.loadClass(className1);
+			Class<?> clazz2 = classLoader.loadClass(className2);
+			if (clazz1.isAssignableFrom(clazz2)) // clazz1 superclass of clazz2
+				return -1;
+			else if (clazz2.isAssignableFrom(clazz1)) // clazz2 superclass of clazz1
+				return 1;
+			else
+				throw new UncheckedException(new DeserializationException("Updates are not on the same supeclass chain"));
+		}
+		catch (ClassNotFoundException e) {
+			throw new UncheckedException(new DeserializationException(e));
+		}
 	}
 
 	/**
@@ -171,6 +170,7 @@ public class Deserializer {
 	 * @param reference the reference of the object inside the node's store
 	 * @return the object
 	 * @throws DeserializationException if the object could not be created
+	 * @throws StoreException if the store is misbehaving
 	 */
 	private Object createStorageObject(StorageReference reference) throws DeserializationException, StoreException {
 		List<Class<?>> formals = new ArrayList<>();
@@ -199,13 +199,13 @@ public class Deserializer {
 				.toArray(UpdateOfField[]::new);
 		}
 		catch (UnknownReferenceException e) {
-			// we could compute its class tag above, so this is a problem of the store
+			// we managed to compute its class tag above, so this is a problem of the store
 			throw new StoreException(e);
 		}
 		catch (UncheckedException e) { // this might be thrown by this::compare
 			Throwable cause = e.getCause();
-			if (cause instanceof DeserializationException ee)
-				throw ee;
+			if (cause instanceof DeserializationException de)
+				throw de;
 			else
 				throw new StoreException(cause);
 		}
@@ -226,11 +226,11 @@ public class Deserializer {
 			clazz = classLoader.loadClass(classTag.getClazz().getName());
 		}
 		catch (ClassNotFoundException e) {
-			throw new DeserializationException(e);
+			throw new StoreException(e);
 		}
 
 		TransactionReference actual = classLoader.transactionThatInstalledJarFor(clazz)
-			.orElseThrow(() -> new StoreException("Class " + clazz.getName() + " was a storage class, therefore it should have been installed in the store with a jar"));
+			.orElseThrow(() -> new StoreException("Class " + clazz.getName() + " was a storage class, therefore it should have been installed in the store with some jar"));
 		TransactionReference expected = classTag.getJar();
 		if (!actual.equals(expected))
 			throw new DeserializationException("Class " + classTag.getClazz() + " was instantiated from jar at " + expected + " not from jar at " + actual);
@@ -244,7 +244,7 @@ public class Deserializer {
 		try {
 			constructor = clazz.getConstructor(formals.toArray(Class[]::new));
 		}
-		catch (NoSuchMethodException e) {
+		catch (NoSuchMethodException | SecurityException e) {
 			// the instrumented constructor is missing: the store is corrupted
 			throw new StoreException(e);
 		}
@@ -255,8 +255,8 @@ public class Deserializer {
 		try {
 			return constructor.newInstance(actuals.toArray(Object[]::new));
 		}
-		catch (InvocationTargetException | InstantiationException | IllegalArgumentException | IllegalAccessException | ExceptionInInitializerError e) {
-			// the instrumented constructor is wrong: the store is corrupted
+		catch (ReflectiveOperationException | RuntimeException e) {
+			// the instrumented constructor is broken: the store is corrupted
 			throw new StoreException(e);
 		}
 	}
