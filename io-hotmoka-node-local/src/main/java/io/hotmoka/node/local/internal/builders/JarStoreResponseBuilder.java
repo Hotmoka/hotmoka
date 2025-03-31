@@ -67,7 +67,7 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 		}
 
 		@Override
-		protected JarStoreTransactionResponse body() throws TransactionRejectedException {
+		protected JarStoreTransactionResponse body() throws TransactionRejectedException, StoreException {
 			checkConsistency();
 
 			try {

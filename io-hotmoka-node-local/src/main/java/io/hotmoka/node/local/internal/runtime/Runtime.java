@@ -38,7 +38,7 @@ import io.hotmoka.whitelisting.Dummy;
 public abstract class Runtime {
 
 	/**
-	 * A map that provides the response creation environment for each thread that is running a transaction.
+	 * A map that provides the response creator for each thread that is running a transaction.
 	 */
 	public final static ThreadLocal<AbstractResponseBuilder<?,?>.ResponseCreator> responseCreators = new ThreadLocal<>();
 
@@ -46,9 +46,9 @@ public abstract class Runtime {
 	 * Response builders spawn a thread when they need to execute code that could
 	 * call into this class. This allows the execution of more transactions in parallel
 	 * and with distinct class loaders.
-	 * This method yields the transaction builder that is using that thread.
+	 * This method yields the response creator that that thread is using.
 	 * 
-	 * @return the transaction builder that is using the current thread
+	 * @return the response creator that the current thread is using
 	 */
 	private static AbstractResponseBuilder<?,?>.ResponseCreator getResponseCreator() {
 		return responseCreators.get();
@@ -58,8 +58,7 @@ public abstract class Runtime {
 	 * Yields the last value assigned to the given lazy, non-{@code final} field of the given storage object.
 	 * 
 	 * @param object the container of the field
-	 * @param definingClass the class of the field. This can only be the class of {@code object}
-	 *                      or one of its superclasses
+	 * @param definingClass the class of the field: this can only be the class of {@code object} or one of its superclasses
 	 * @param name the name of the field
 	 * @param fieldClassName the name of the type of the field
 	 * @return the value of the field

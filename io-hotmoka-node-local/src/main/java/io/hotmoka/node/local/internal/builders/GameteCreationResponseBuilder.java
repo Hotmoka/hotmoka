@@ -54,12 +54,12 @@ public class GameteCreationResponseBuilder extends AbstractInitialResponseBuilde
 		return new ResponseCreator() {
 
 			@Override
-			protected GameteCreationTransactionResponse body() throws TransactionRejectedException {
+			protected GameteCreationTransactionResponse body() throws TransactionRejectedException, StoreException {
 				checkConsistency();
 
 				try {
 					Object gamete = classLoader.getGamete().getDeclaredConstructor(String.class).newInstance(request.getPublicKey());
-					classLoader.setBalanceOf(gamete, request.getInitialAmount());
+					classLoader.setBalanceOf(gamete, request.getInitialAmount(), StoreException::new);
 					return TransactionResponses.gameteCreation(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
 				}
 				catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | UpdatesExtractionException | StoreException e) {

@@ -196,7 +196,7 @@ public interface TakamakaClassLoader extends WhiteListingClassLoader {
 	Class<?> getAbstractValidators();
 
 	/**
-	 * Yields the class token of gamete class.
+	 * Yields the class token of the gamete class.
 	 * 
 	 * @return the class token
 	 */

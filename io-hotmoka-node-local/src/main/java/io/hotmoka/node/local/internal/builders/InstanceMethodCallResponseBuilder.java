@@ -110,7 +110,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		}
 
 		@Override
-		protected MethodCallTransactionResponse body() throws TransactionRejectedException {
+		protected MethodCallTransactionResponse body() throws TransactionRejectedException, StoreException {
 			checkConsistency();
 
 			try {
@@ -255,7 +255,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 					Optional<StorageValue> firstArg = request.actuals().findFirst();
 					if (firstArg.isPresent() && firstArg.get() instanceof BigIntegerValue biv) {
 						Object caller = getDeserializedCaller();
-						classLoader.setBalanceOf(caller, classLoader.getBalanceOf(caller).add(biv.getValue()));
+						classLoader.setBalanceOf(caller, classLoader.getBalanceOf(caller, StoreException::new).add(biv.getValue()), StoreException::new);
 					}
 				}
 			}

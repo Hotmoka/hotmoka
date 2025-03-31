@@ -72,7 +72,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		}
 
 		@Override
-		protected ConstructorCallTransactionResponse body() throws TransactionRejectedException {
+		protected ConstructorCallTransactionResponse body() throws TransactionRejectedException, StoreException {
 			checkConsistency();
 
 			try {

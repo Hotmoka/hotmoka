@@ -37,8 +37,6 @@ import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.ResponseBuilder;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.verification.VerificationException;
-import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 
 /**
  * A generic implementation of the creator of a response.
@@ -166,11 +164,9 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * The body of the creation of the response.
 		 * 
 		 * @return the response
-		 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
-		 * @throws UnsupportedVerificationVersionException if the verification version is not available
-		 * @throws VerificationException if the verification of a jar failed, before being installed in the node
+		 * @throws StoreException if the store is misbehaving
 		 */
-		protected abstract Response body() throws TransactionRejectedException, ClassNotFoundException, UnsupportedVerificationVersionException, VerificationException;
+		protected abstract Response body() throws TransactionRejectedException, StoreException;
 
 		/**
 		 * Yields the UTC time when the transaction is being run.

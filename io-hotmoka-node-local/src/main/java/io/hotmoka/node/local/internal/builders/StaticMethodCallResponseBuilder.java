@@ -66,7 +66,7 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 		}
 
 		@Override
-		protected MethodCallTransactionResponse body() throws TransactionRejectedException {
+		protected MethodCallTransactionResponse body() throws TransactionRejectedException, StoreException {
 			checkConsistency();
 
 			try {

@@ -155,7 +155,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 			chargeGasForStorage(BigInteger.valueOf(request.size()));
 			chargeGasForClassLoader();	
 			this.coinsInitiallyPaidForGas = chargePayerForAllGasPromised();
-			this.balanceOfPayerInCaseOfTransactionException = classLoader.getBalanceOf(deserializedCaller);
+			this.balanceOfPayerInCaseOfTransactionException = classLoader.getBalanceOf(deserializedCaller, StoreException::new);
 		}
 
 		/**
@@ -514,30 +514,32 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * Charge to the payer of the transaction all gas promised for the transaction.
 		 * 
 		 * @return the amount that has been subtracted from the balance
+		 * @throws StoreException 
 		 */
-		private BigInteger chargePayerForAllGasPromised() {
+		private BigInteger chargePayerForAllGasPromised() throws StoreException {
 			BigInteger cost = costOf(request.getGasLimit());
-			BigInteger balance = classLoader.getBalanceOf(deserializedCaller);
-			classLoader.setBalanceOf(deserializedCaller, balance.subtract(cost));
+			BigInteger balance = classLoader.getBalanceOf(deserializedCaller, StoreException::new);
+			classLoader.setBalanceOf(deserializedCaller, balance.subtract(cost), StoreException::new);
 
 			return cost;
 		}
 
 		/**
 		 * Pays back the remaining gas to the payer of the transaction.
+		 * @throws StoreException 
 		 */
-		protected final void refundPayerForAllRemainingGas() {
+		protected final void refundPayerForAllRemainingGas() throws StoreException {
 			BigInteger refund = costOf(gas);
-			BigInteger balance = classLoader.getBalanceOf(deserializedCaller);
+			BigInteger balance = classLoader.getBalanceOf(deserializedCaller, StoreException::new);
 
 			if (refund.subtract(coinsInitiallyPaidForGas).signum() <= 0)
-				classLoader.setBalanceOf(deserializedCaller, balance.add(refund));
+				classLoader.setBalanceOf(deserializedCaller, balance.add(refund), StoreException::new);
 			else
-				classLoader.setBalanceOf(deserializedCaller, balance.add(coinsInitiallyPaidForGas));
+				classLoader.setBalanceOf(deserializedCaller, balance.add(coinsInitiallyPaidForGas), StoreException::new);
 		}
 
-		protected final void resetBalanceOfPayerToInitialValueMinusAllPromisedGas() {
-			classLoader.setBalanceOf(deserializedCaller, balanceOfPayerInCaseOfTransactionException);
+		protected final void resetBalanceOfPayerToInitialValueMinusAllPromisedGas() throws StoreException {
+			classLoader.setBalanceOf(deserializedCaller, balanceOfPayerInCaseOfTransactionException, StoreException::new);
 		}
 
 		/**

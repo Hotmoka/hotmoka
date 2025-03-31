@@ -36,6 +36,7 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.instrumentation.api.InstrumentationFields;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -404,28 +405,22 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
-	public final BigInteger getBalanceOf(Object object) {
+	public final <E extends Exception> BigInteger getBalanceOf(Object object, ExceptionSupplier<? extends E> onIllegalAccess) throws E {
 		try {
 			return (BigInteger) balanceField.get(object);
 		}
-		catch (IllegalArgumentException e) {
-			throw e;
-		}
-		catch (IllegalAccessException e) {
-			throw new IllegalArgumentException("cannot read the balance field of a contract object of class " + object.getClass().getName(), e);
+		catch (RuntimeException | IllegalAccessException e) {
+			throw onIllegalAccess.apply("Cannot access the balance field: " + e.getMessage());
 		}
 	}
 
 	@Override
-	public final void setBalanceOf(Object object, BigInteger value) {
+	public final <E extends Exception> void setBalanceOf(Object object, BigInteger value, ExceptionSupplier<? extends E> onIllegalAccess) throws E {
 		try {
 			balanceField.set(object, value);
 		}
-		catch (IllegalArgumentException e) {
-			throw e;
-		}
-		catch (IllegalAccessException e) {
-			throw new IllegalArgumentException("cannot write the balance field of a contract object of class " + object.getClass().getName(), e);
+		catch (RuntimeException | IllegalAccessException e) {
+			throw onIllegalAccess.apply("Cannot write the balance field: " + e.getMessage());
 		}
 	}
 

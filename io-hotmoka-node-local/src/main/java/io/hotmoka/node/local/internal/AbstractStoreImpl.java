@@ -138,6 +138,12 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 		}
 	}
 
+	@Override
+	public final long getNow() {
+		// transactions executed in a store are only view transactions and use the current time of the local machine
+		return System.currentTimeMillis();
+	}
+
 	/**
 	 * Yields a store identical to this, but for its cache, that is set as given.
 	 * 
@@ -157,15 +163,6 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	 */
 	protected abstract T beginTransformation(ConsensusConfig<?,?> consensus, long now) throws StoreException;
 
-	/**
-	 * Yields the node having this store.
-	 * 
-	 * @return the node having this store
-	 */
-	protected final N getNode() {
-		return node;
-	}
-
 	@Override
 	protected final StoreCache getCache() {
 		return cache;
@@ -173,7 +170,16 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 
 	@Override
 	protected final Hasher<TransactionRequest<?>> getHasher() {
-		return getNode().getHasher();
+		return node.getHasher();
+	}
+
+	/**
+	 * Yields the node having this store.
+	 * 
+	 * @return the node having this store
+	 */
+	protected final N getNode() {
+		return node;
 	}
 
 	/**
@@ -187,11 +193,5 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	 */
 	protected final StorageReference getCreator(StorageReference event) throws UnknownReferenceException, FieldNotFoundException, StoreException {
 		return getReferenceField(event, FieldSignatures.EVENT_CREATOR_FIELD);
-	}
-
-	@Override
-	public final long getNow() {
-		// transactions executed in a store are only view transactions and use the current time of the local machine
-		return System.currentTimeMillis();
 	}
 }
