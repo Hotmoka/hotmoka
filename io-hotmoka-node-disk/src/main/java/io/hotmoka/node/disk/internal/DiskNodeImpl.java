@@ -243,7 +243,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 			try {
 				// if we delivered zero transactions, we prefer to avoid the creation of an empty block
 				if (transformation.deliveredCount() > 0) {
-					transformation.deliverRewardTransaction("", "");
+					transformation.deliverRewardTransaction();
 					storeOfHead = transformation.getFinalStore();
 					publishAllTransactionsDeliveredIn(transformation, storeOfHead);
 				}

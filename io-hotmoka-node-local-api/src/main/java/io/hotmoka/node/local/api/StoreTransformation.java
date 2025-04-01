@@ -73,19 +73,6 @@ public interface StoreTransformation<S extends Store<S,T>, T extends StoreTransf
 	Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException, StoreException, InterruptedException;
 
 	/**
-	 * Rewards the validators with the cost of the gas consumed for the execution of the
-	 * requests delivered in this store transformation.
-	 * 
-	 * @param behaving the space-separated sequence of identifiers of the
-	 *                 validators that behaved correctly and will be rewarded
-	 * @param misbehaving the space-separated sequence of the identifiers of the validators that
-	 *                    misbehaved and must be punished
-	 * @throws StoreException if the final store is not able to complete the operation correctly
-	 * @throws InterruptedException if the current thread is interrupted before delivering the transaction
-	 */
-	void deliverRewardTransaction(String behaving, String misbehaving) throws StoreException, InterruptedException;
-
-	/**
 	 * Builds a response for the given request, executed at the current final store,
 	 * and advances the final store to the resulting new store.
 	 * 

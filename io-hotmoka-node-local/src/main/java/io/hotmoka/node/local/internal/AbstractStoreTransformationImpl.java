@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -34,10 +33,7 @@ import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.exceptions.CheckRunnable;
 import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.node.FieldSignatures;
-import io.hotmoka.node.MethodSignatures;
-import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
-import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
@@ -48,7 +44,6 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.FailedTransactionResponse;
 import io.hotmoka.node.api.responses.GameteCreationTransactionResponse;
 import io.hotmoka.node.api.responses.InitializationTransactionResponse;
-import io.hotmoka.node.api.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.node.api.responses.NonInitialTransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponseWithEvents;
@@ -155,68 +150,6 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	@Override
 	public final S getInitialStore() {
 		return store;
-	}
-
-	@Override
-	public final void deliverRewardTransaction(String behaving, String misbehaving) throws StoreException, InterruptedException { // TODO: downgrade into TendermintStoreTransformation
-		try {
-			Optional<StorageReference> maybeManifest = getManifest();
-			if (maybeManifest.isPresent()) {
-				LOGGER.info("reward distribution: behaving validators: " + behaving + ", misbehaving validators: " + misbehaving);
-
-				// we use the manifest as caller, since it is an externally-owned account
-				StorageReference manifest = maybeManifest.get();
-				BigInteger nonce = getNonce(manifest);
-				StorageReference validators = getValidators().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
-				TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
-	
-				// we determine how many coins have been minted during the last reward:
-				// it is the price of the gas distributed minus the same price without inflation
-				BigInteger minted = reward.subtract(rewardWithoutInflation);
-	
-				// it might happen that the last distribution goes beyond the limit imposed
-				// as final supply: in that case we truncate the minted coins so that the current
-				// supply reaches the final supply, exactly; this might occur from below (positive inflation)
-				// or from above (negative inflation)
-				BigInteger currentSupply = getCurrentSupply(validators);
-				if (minted.signum() > 0) {
-					BigInteger finalSupply = getConfig().getFinalSupply();
-					BigInteger extra = finalSupply.subtract(currentSupply.add(minted));
-					if (extra.signum() < 0)
-						minted = minted.add(extra);
-				}
-				else if (minted.signum() < 0) {
-					BigInteger finalSupply = getConfig().getFinalSupply();
-					BigInteger extra = finalSupply.subtract(currentSupply.add(minted));
-					if (extra.signum() > 0)
-						minted = minted.add(extra);
-				}
-
-				var request = TransactionRequests.instanceSystemMethodCall
-					(manifest, nonce, _100_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD, validators,
-						StorageValues.bigIntegerOf(reward), StorageValues.bigIntegerOf(minted),
-						StorageValues.stringOf(behaving), StorageValues.stringOf(misbehaving),
-						StorageValues.bigIntegerOf(gasConsumed), StorageValues.bigIntegerOf(deliveredCount()));
-	
-				TransactionResponse response = responseBuilderFor(TransactionReferences.of(getHasher().hash(request)), request).getResponseCreation().getResponse();
-				// if there is only one update, it is the update of the nonce of the manifest: we prefer not to expand
-				// the store with the transaction, so that the state stabilizes, which might give
-				// to the underlying Tendermint engine the chance of suspending the generation of new blocks
-				if (!(response instanceof TransactionResponseWithUpdates trwu) || trwu.getUpdates().count() > 1L)
-					response = deliverTransaction(request);
-	
-				if (response instanceof MethodCallTransactionFailedResponse responseAsFailed)
-					LOGGER.log(Level.SEVERE, "could not reward the validators: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
-				else {
-					LOGGER.info("units of gas consumed for CPU, RAM or storage since the previous reward: " + gasConsumed);
-					LOGGER.info("units of coin rewarded to the validators for their work since the previous reward: " + reward);
-					LOGGER.info("units of coin minted since the previous reward: " + minted);
-				}
-			}
-		}
-		catch (TransactionRejectedException e) {
-			throw new StoreException("Could not reward the validators", e);
-		}
 	}
 
 	@Override

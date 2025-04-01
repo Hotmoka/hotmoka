@@ -700,7 +700,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		@Override
 		protected ResponseCommit commit(RequestCommit request) throws NodeException {
 			try {
-				transformation.deliverRewardTransaction(behaving, misbehaving);
+				transformation.deliverRewardTransactionToValidators(behaving, misbehaving);
 
 				StateId idOfNewStoreOfHead = CheckSupplier.check(NodeException.class, StoreException.class, () -> getEnvironment().computeInTransaction(UncheckFunction.uncheck(txn -> {
 					StateId stateIdOfFinalStore = transformation.getIdOfFinalStore(txn);

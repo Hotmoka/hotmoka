@@ -16,7 +16,22 @@ limitations under the License.
 
 package io.hotmoka.node.disk.internal;
 
+import java.math.BigInteger;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import io.hotmoka.node.MethodSignatures;
+import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.TransactionReferences;
+import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
+import io.hotmoka.node.api.responses.MethodCallTransactionFailedResponse;
+import io.hotmoka.node.api.responses.TransactionResponse;
+import io.hotmoka.node.api.responses.TransactionResponseWithUpdates;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.local.AbstractStoreTransformation;
 import io.hotmoka.node.local.api.StoreException;
@@ -25,6 +40,8 @@ import io.hotmoka.node.local.api.StoreException;
  * A transformation of a store of a disk node.
  */
 public class DiskStoreTransformation extends AbstractStoreTransformation<DiskNodeImpl, DiskNodeConfig, DiskStore, DiskStoreTransformation> {
+
+	private final static Logger LOGGER = Logger.getLogger(DiskStoreTransformation.class.getName());
 
 	/**
 	 * Creates a transformation from an initial store.
@@ -47,4 +64,73 @@ public class DiskStoreTransformation extends AbstractStoreTransformation<DiskNod
 	public DiskStore getFinalStore() throws StoreException {
 		return getInitialStore().addDelta(getCache(), getDeltaRequests(), getDeltaResponses(), getDeltaHistories(), getDeltaManifest());
 	}
+
+	/**
+	 * Takes note of the gas consumed for the execution of the requests delivered in this store transformation,
+	 * consequently updates the inflation and the total supply.
+	 * 
+	 * @throws StoreException if the final store is not able to complete the operation correctly
+	 * @throws InterruptedException if the current thread is interrupted before delivering the transaction
+	 */
+	protected final void deliverRewardTransaction() throws StoreException, InterruptedException {
+		try {
+			Optional<StorageReference> maybeManifest = getManifest();
+			if (maybeManifest.isPresent()) {
+				// we use the manifest as caller, since it is an externally-owned account
+				StorageReference manifest = maybeManifest.get();
+				BigInteger nonce = getNonce(manifest);
+				StorageReference validators = getValidators().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
+				TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
+				BigInteger reward = getReward();
+	
+				// we determine how many coins have been minted during the last reward:
+				// it is the price of the gas distributed minus the same price without inflation
+				BigInteger minted = reward.subtract(getRewardWithoutInflation());
+	
+				// it might happen that the last distribution goes beyond the limit imposed
+				// as final supply: in that case we truncate the minted coins so that the current
+				// supply reaches the final supply, exactly; this might occur from below (positive inflation)
+				// or from above (negative inflation)
+				BigInteger currentSupply = getCurrentSupply(validators);
+				if (minted.signum() > 0) {
+					BigInteger finalSupply = getConfig().getFinalSupply();
+					BigInteger extra = finalSupply.subtract(currentSupply.add(minted));
+					if (extra.signum() < 0)
+						minted = minted.add(extra);
+				}
+				else if (minted.signum() < 0) {
+					BigInteger finalSupply = getConfig().getFinalSupply();
+					BigInteger extra = finalSupply.subtract(currentSupply.add(minted));
+					if (extra.signum() > 0)
+						minted = minted.add(extra);
+				}
+
+				BigInteger gasConsumed = getGasConsumed();
+
+				var request = TransactionRequests.instanceSystemMethodCall
+					(manifest, nonce, _100_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD, validators,
+						StorageValues.bigIntegerOf(reward), StorageValues.bigIntegerOf(minted),
+						StorageValues.stringOf(""), StorageValues.stringOf(""),
+						StorageValues.bigIntegerOf(gasConsumed), StorageValues.bigIntegerOf(deliveredCount()));
+	
+				TransactionResponse response = responseBuilderFor(TransactionReferences.of(getHasher().hash(request)), request).getResponseCreation().getResponse();
+				// if there is only one update, it is the update of the nonce of the manifest: we prefer not to expand
+				// the store with the transaction, so that the state stabilizes, which might give
+				// to the underlying Tendermint engine the chance of suspending the generation of new blocks
+				if (!(response instanceof TransactionResponseWithUpdates trwu) || trwu.getUpdates().count() > 1L)
+					response = deliverTransaction(request);
+	
+				if (response instanceof MethodCallTransactionFailedResponse responseAsFailed)
+					LOGGER.log(Level.SEVERE, "could not reward: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
+				else {
+					LOGGER.info("units of gas consumed for CPU, RAM or storage since the previous reward: " + gasConsumed);
+					LOGGER.info("units of coin minted since the previous reward: " + minted);
+				}
+			}
+		}
+		catch (TransactionRejectedException e) {
+			throw new StoreException("Could not reward the validators", e);
+		}
+	}
+
 }

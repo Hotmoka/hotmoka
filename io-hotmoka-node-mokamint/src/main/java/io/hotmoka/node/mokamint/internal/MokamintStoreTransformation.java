@@ -105,6 +105,7 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 
 				// we split the rewarding in two calls, so that the accounts created inside the accounts ledger have a #0 progressive index
 
+				// TODO: when minted is 0, the rewards are both 0....
 				long percentForNode = 50_000_000L;
 				BigInteger percenteForNodeAsBI = BigInteger.valueOf(percentForNode);
 				BigInteger coinsForNode = coins.multiply(percenteForNodeAsBI).divide(_100_000_000);
