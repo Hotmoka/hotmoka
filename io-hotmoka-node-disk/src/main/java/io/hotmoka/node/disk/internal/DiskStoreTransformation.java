@@ -69,10 +69,10 @@ public class DiskStoreTransformation extends AbstractStoreTransformation<DiskNod
 	 * Takes note of the gas consumed for the execution of the requests delivered in this store transformation,
 	 * consequently updates the inflation and the total supply.
 	 * 
-	 * @throws StoreException if the final store is not able to complete the operation correctly
+	 * @throws StoreException if the store is not able to complete the operation correctly
 	 * @throws InterruptedException if the current thread is interrupted before delivering the transaction
 	 */
-	protected final void deliverRewardTransaction() throws StoreException, InterruptedException {
+	protected final void deliverCoinbaseTransactions() throws StoreException, InterruptedException {
 		try {
 			Optional<StorageReference> maybeManifest = getManifest();
 			if (maybeManifest.isPresent()) {
@@ -81,55 +81,29 @@ public class DiskStoreTransformation extends AbstractStoreTransformation<DiskNod
 				BigInteger nonce = getNonce(manifest);
 				StorageReference validators = getValidators().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
 				TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
-				BigInteger reward = getReward();
-	
-				// we determine how many coins have been minted during the last reward:
-				// it is the price of the gas distributed minus the same price without inflation
-				BigInteger minted = reward.subtract(getRewardWithoutInflation());
-	
-				// it might happen that the last distribution goes beyond the limit imposed
-				// as final supply: in that case we truncate the minted coins so that the current
-				// supply reaches the final supply, exactly; this might occur from below (positive inflation)
-				// or from above (negative inflation)
-				BigInteger currentSupply = getCurrentSupply(validators);
-				if (minted.signum() > 0) {
-					BigInteger finalSupply = getConfig().getFinalSupply();
-					BigInteger extra = finalSupply.subtract(currentSupply.add(minted));
-					if (extra.signum() < 0)
-						minted = minted.add(extra);
-				}
-				else if (minted.signum() < 0) {
-					BigInteger finalSupply = getConfig().getFinalSupply();
-					BigInteger extra = finalSupply.subtract(currentSupply.add(minted));
-					if (extra.signum() > 0)
-						minted = minted.add(extra);
-				}
-
+				BigInteger minted = getCoinsMinted(validators);
 				BigInteger gasConsumed = getGasConsumed();
+				LOGGER.info("coinbase: units of gas consumed for CPU, RAM or storage since the previous reward: " + gasConsumed);
 
 				var request = TransactionRequests.instanceSystemMethodCall
 					(manifest, nonce, _100_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD, validators,
-						StorageValues.bigIntegerOf(reward), StorageValues.bigIntegerOf(minted),
+						StorageValues.bigIntegerOf(getReward()), StorageValues.bigIntegerOf(minted),
 						StorageValues.stringOf(""), StorageValues.stringOf(""),
 						StorageValues.bigIntegerOf(gasConsumed), StorageValues.bigIntegerOf(deliveredCount()));
 	
 				TransactionResponse response = responseBuilderFor(TransactionReferences.of(getHasher().hash(request)), request).getResponseCreation().getResponse();
-				// if there is only one update, it is the update of the nonce of the manifest: we prefer not to expand
-				// the store with the transaction, so that the state stabilizes, which might give
-				// to the underlying Tendermint engine the chance of suspending the generation of new blocks
+				// if there is only one update, it is the update of the nonce of the manifest: we prefer not to expand the store with the transaction
 				if (!(response instanceof TransactionResponseWithUpdates trwu) || trwu.getUpdates().count() > 1L)
 					response = deliverTransaction(request);
 	
 				if (response instanceof MethodCallTransactionFailedResponse responseAsFailed)
-					LOGGER.log(Level.SEVERE, "could not reward: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
-				else {
-					LOGGER.info("units of gas consumed for CPU, RAM or storage since the previous reward: " + gasConsumed);
-					LOGGER.info("units of coin minted since the previous reward: " + minted);
-				}
+					LOGGER.log(Level.SEVERE, "coinbase: could not perform transaction: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
+				else
+					LOGGER.info("coinbase: units of coin minted since the previous reward: " + minted);
 			}
 		}
 		catch (TransactionRejectedException e) {
-			throw new StoreException("Could not reward the validators", e);
+			throw new StoreException("Could not perform the coinbase transactions", e);
 		}
 	}
 

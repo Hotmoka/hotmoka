@@ -97,19 +97,23 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 	/**
 	 * Rewards the validators with the cost of the gas consumed for the execution of the
 	 * requests delivered in this store transformation.
+	 * Takes note of the gas consumed for the execution of the requests delivered
+	 * in this store transformation, consequently updates the inflation and the total supply.
 	 * 
 	 * @param behaving the space-separated sequence of identifiers of the
 	 *                 validators that behaved correctly and will be rewarded
 	 * @param misbehaving the space-separated sequence of the identifiers of the validators that
 	 *                    misbehaved and must be punished
-	 * @throws StoreException if the final store is not able to complete the operation correctly
+	 * @throws StoreException if the store is not able to complete the operation correctly
 	 * @throws InterruptedException if the current thread is interrupted before delivering the transaction
 	 */
 	protected final void deliverRewardTransactionToValidators(String behaving, String misbehaving) throws StoreException, InterruptedException {
 		try {
 			Optional<StorageReference> maybeManifest = getManifest();
 			if (maybeManifest.isPresent()) {
-				LOGGER.info("reward distribution: behaving validators: " + behaving + ", misbehaving validators: " + misbehaving);
+				BigInteger gasConsumed = getGasConsumed();
+				LOGGER.info("coinbase: behaving validators: " + behaving + ", misbehaving validators: " + misbehaving);
+				LOGGER.info("coinbase: units of gas consumed for CPU, RAM or storage since the previous reward: " + gasConsumed);
 
 				// we use the manifest as caller, since it is an externally-owned account
 				StorageReference manifest = maybeManifest.get();
@@ -117,30 +121,7 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 				StorageReference validators = getValidators().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
 				TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
 				BigInteger reward = getReward();
-	
-				// we determine how many coins have been minted during the last reward:
-				// it is the price of the gas distributed minus the same price without inflation
-				BigInteger minted = reward.subtract(getRewardWithoutInflation());
-	
-				// it might happen that the last distribution goes beyond the limit imposed
-				// as final supply: in that case we truncate the minted coins so that the current
-				// supply reaches the final supply, exactly; this might occur from below (positive inflation)
-				// or from above (negative inflation)
-				BigInteger currentSupply = getCurrentSupply(validators);
-				if (minted.signum() > 0) {
-					BigInteger finalSupply = getConfig().getFinalSupply();
-					BigInteger extra = finalSupply.subtract(currentSupply.add(minted));
-					if (extra.signum() < 0)
-						minted = minted.add(extra);
-				}
-				else if (minted.signum() < 0) {
-					BigInteger finalSupply = getConfig().getFinalSupply();
-					BigInteger extra = finalSupply.subtract(currentSupply.add(minted));
-					if (extra.signum() > 0)
-						minted = minted.add(extra);
-				}
-
-				BigInteger gasConsumed = getGasConsumed();
+				BigInteger minted = getCoinsMinted(validators);
 
 				var request = TransactionRequests.instanceSystemMethodCall
 					(manifest, nonce, _100_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD, validators,
@@ -156,16 +137,15 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 					response = deliverTransaction(request);
 	
 				if (response instanceof MethodCallTransactionFailedResponse responseAsFailed)
-					LOGGER.log(Level.SEVERE, "could not reward the validators: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
+					LOGGER.log(Level.SEVERE, "coinbase: could not reward the validators: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
 				else {
-					LOGGER.info("units of gas consumed for CPU, RAM or storage since the previous reward: " + gasConsumed);
-					LOGGER.info("units of coin rewarded to the validators for their work since the previous reward: " + reward);
-					LOGGER.info("units of coin minted since the previous reward: " + minted);
+					LOGGER.info("coinbase: units of coin minted since the previous reward: " + minted);
+					LOGGER.info("coinbase: units of coin rewarded to the validators for their work since the previous reward: " + reward);
 				}
 			}
 		}
 		catch (TransactionRejectedException e) {
-			throw new StoreException("Could not reward the validators", e);
+			throw new StoreException("Could not perform the coinbase transactions", e);
 		}
 	}
 

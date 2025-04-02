@@ -373,7 +373,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			MokamintStoreTransformation transformation = getTransformation(groupId);
 
 			try {
-				transformation.deliverRewardForNodeAndMiner(deadline.getProlog());
+				transformation.deliverCoinbaseTransactions(deadline.getProlog());
 
 				FunctionWithExceptions2<io.hotmoka.xodus.env.Transaction, byte[], NodeException, StoreException> function = txn -> {
 					StateId stateIdOfFinalStore = transformation.getIdOfFinalStore(txn);

@@ -62,7 +62,18 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 		return super.getCache();
 	}
 
-	public void deliverRewardForNodeAndMiner(Prolog prolog) throws StoreException, InterruptedException {
+	/**
+	 * Rewards the node that created a block and the miner that provided the deadline
+	 * for that block. The rewards is computed from the gas consumed in the block.
+	 * Takes note of the gas consumed for the execution of the requests delivered
+	 * in this store transformation, consequently updates the inflation and the total supply.
+	 * 
+	 * @param prolog the prolog of the block; this contains information about the public keys
+	 *               that identify the creator of the node and the miner
+	 * @throws StoreException if the store is not able to complete the operation correctly
+	 * @throws InterruptedException if the current thread is interrupted before delivering the transaction
+	 */
+	protected void deliverCoinbaseTransactions(Prolog prolog) throws StoreException, InterruptedException {
 		try {
 			Optional<StorageReference> maybeManifest = getManifest();
 			if (maybeManifest.isPresent()) {
@@ -76,73 +87,51 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 				BigInteger nonce = getNonce(manifest);
 				StorageReference validators = getValidators().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
 				TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
-	
-				// we determine how many coins have been minted during the last reward:
-				// it is the price of the gas distributed minus the same price without inflation
-				BigInteger coins = getReward();
-				BigInteger minted = coins.subtract(getRewardWithoutInflation());
-	
-				// it might happen that the last distribution goes beyond the limit imposed
-				// as final supply: in that case we truncate the minted coins so that the current
-				// supply reaches the final supply, exactly; this might occur from below (positive inflation)
-				// or from above (negative inflation)
-				BigInteger currentSupply = getCurrentSupply(validators);
-				if (minted.signum() > 0) {
-					BigInteger finalSupply = getConfig().getFinalSupply();
-					BigInteger extra = finalSupply.subtract(currentSupply.add(minted));
-					if (extra.signum() < 0)
-						minted = minted.add(extra);
-				}
-				else if (minted.signum() < 0) {
-					BigInteger finalSupply = getConfig().getFinalSupply();
-					BigInteger extra = finalSupply.subtract(currentSupply.add(minted));
-					if (extra.signum() > 0)
-						minted = minted.add(extra);
-				}
+				BigInteger minted = getCoinsMinted(validators);
+				BigInteger gasConsumed = getGasConsumed();
 
-				LOGGER.info("coinbase: units of gas consumed for CPU, RAM or storage since the previous reward: " + getGasConsumed());
-				LOGGER.info("coinbase: units of coin minted since the previous reward: " + minted);
+				LOGGER.info("coinbase: units of gas consumed for CPU, RAM or storage since the previous reward: " + gasConsumed);
 
 				// we split the rewarding in two calls, so that the accounts created inside the accounts ledger have a #0 progressive index
-
-				// TODO: when minted is 0, the rewards are both 0....
 				long percentForNode = 50_000_000L;
 				BigInteger percenteForNodeAsBI = BigInteger.valueOf(percentForNode);
-				BigInteger coinsForNode = coins.multiply(percenteForNodeAsBI).divide(_100_000_000);
-				LOGGER.info("coinbase: rewarding " + coinsForNode + " to a node with public key " + publicKeyOfNodeBase58 + " (" + prolog.getSignatureForBlocks() + ", base58)");
+				BigInteger reward = getReward();
+				BigInteger rewardForNode = reward.multiply(percenteForNodeAsBI).divide(_100_000_000);
+				LOGGER.info("coinbase: rewarding " + rewardForNode + " to a node with public key " + publicKeyOfNodeBase58 + " (" + prolog.getSignatureForBlocks() + ", base58)");
 
 				var request = TransactionRequests.instanceSystemMethodCall
 					(manifest, nonce, _100_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD_MOKAMINT_NODE, validators,
-						StorageValues.bigIntegerOf(coinsForNode),
+						StorageValues.bigIntegerOf(rewardForNode),
 						StorageValues.bigIntegerOf(minted),
 						StorageValues.stringOf(publicKeyOfNodeBase64),
-						StorageValues.bigIntegerOf(getGasConsumed()),
+						StorageValues.bigIntegerOf(gasConsumed),
 						StorageValues.bigIntegerOf(deliveredCount()));
 
 				TransactionResponse response = deliverTransaction(request);
 	
 				if (response instanceof MethodCallTransactionFailedResponse responseAsFailed)
-					LOGGER.log(Level.WARNING, "coinbase: could not reward the node: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
+					LOGGER.log(Level.SEVERE, "coinbase: could not reward the node: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
 				else {
-					BigInteger coinsForMiner = coins.subtract(coinsForNode);
-					LOGGER.info("coinbase: rewarding " + coinsForMiner + " to a miner with public key " + publicKeyOfMinerBase58 + " (" + prolog.getSignatureForDeadlines() + ", base58)");
+					LOGGER.info("coinbase: units of coin minted since the previous reward: " + minted);
+					BigInteger rewardForMiner = reward.subtract(rewardForNode);
+					LOGGER.info("coinbase: rewarding " + rewardForMiner + " to a miner with public key " + publicKeyOfMinerBase58 + " (" + prolog.getSignatureForDeadlines() + ", base58)");
 
 					nonce = nonce.add(BigInteger.ONE);
 
 					request = TransactionRequests.instanceSystemMethodCall
 						(manifest, nonce, _100_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD_MOKAMINT_MINER, validators,
-							StorageValues.bigIntegerOf(coinsForMiner),
+							StorageValues.bigIntegerOf(rewardForMiner),
 							StorageValues.stringOf(publicKeyOfMinerBase64));
 
 					response = deliverTransaction(request);
 
 					if (response instanceof MethodCallTransactionFailedResponse responseAsFailed)
-						LOGGER.log(Level.WARNING, "coinbase: could not reward the miner: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
+						LOGGER.log(Level.SEVERE, "coinbase: could not reward the miner: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
 				}
 			}
 		}
 		catch (TransactionRejectedException | Base58ConversionException e) {
-			throw new StoreException("Could not reward the node and the miner", e);
+			throw new StoreException("Could not perform the coinbase transactions", e);
 		}
 	}
 }

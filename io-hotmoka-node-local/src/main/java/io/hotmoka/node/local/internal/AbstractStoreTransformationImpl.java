@@ -283,16 +283,6 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	}
 
 	/**
-	 * Yields the reward to send to the miners, accumulated during this transformation,
-	 * without considering the inflation.
-	 * 
-	 * @return the reward without inflation
-	 */
-	protected final BigInteger getRewardWithoutInflation() {
-		return rewardWithoutInflation;
-	}
-
-	/**
 	 * Yields the gas consumed for CPU execution, RAM or storage in this transformation.
 	 * 
 	 * @return the gas consumed
@@ -368,6 +358,40 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	}
 
 	/**
+	 * Computes how many coins have been minted during the last reward:
+	 * it is the price of the gas distributed minus the same price without inflation.
+	 * 
+	 * @param validators the validators object of the node
+	 * @return the number of minted coins
+	 * @throws StoreException if the store is misbehaving
+	 */
+	protected final BigInteger getCoinsMinted(StorageReference validators) throws StoreException {
+		// we determine how many coins have been minted during the last reward:
+		// it is the price of the gas distributed minus the same price without inflation
+		BigInteger minted = reward.subtract(rewardWithoutInflation);
+
+		// it might happen that the last distribution goes beyond the limit imposed
+		// as final supply: in that case we truncate the minted coins so that the current
+		// supply reaches the final supply, exactly; this might occur from below (positive inflation)
+		// or from above (negative inflation)
+		BigInteger currentSupply = getCurrentSupply(validators);
+		if (minted.signum() > 0) {
+			BigInteger finalSupply = getConfig().getFinalSupply();
+			BigInteger extra = finalSupply.subtract(currentSupply.add(minted));
+			if (extra.signum() < 0)
+				minted = minted.add(extra);
+		}
+		else if (minted.signum() < 0) {
+			BigInteger finalSupply = getConfig().getFinalSupply();
+			BigInteger extra = finalSupply.subtract(currentSupply.add(minted));
+			if (extra.signum() > 0)
+				minted = minted.add(extra);
+		}
+
+		return minted;
+	}
+
+	/**
 	 * Yields the current total supply of the node, from its validators object.
 	 * 
 	 * @param validators the reference to the validators object of the node; this is assumed to
@@ -375,7 +399,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	 * @return the total supply
 	 * @throws StoreException if the store is not able to complete the operation correctly
 	 */
-	protected final BigInteger getCurrentSupply(StorageReference validators) throws StoreException {
+	private BigInteger getCurrentSupply(StorageReference validators) throws StoreException {
 		try {
 			return getBigIntegerField(validators, FieldSignatures.ABSTRACT_VALIDATORS_CURRENT_SUPPLY_FIELD);
 		}
