@@ -266,8 +266,8 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * Expands the store of this node with a transaction that runs an instance method of an object already in this node's store.
 	 * 
 	 * @param request the transaction request
-	 * @return the result of the call, if the method was successfully executed, without exception. If the method is
-	 *         declared to return {@code void}, this result will be {@code null}
+	 * @return the result of the call, if the method was successfully executed, without exception. This is empty
+	 *         if and only if the method is declared to return {@code void}
 	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
 	 * @throws CodeExecutionException if the transaction could be executed and the node has been expanded with a failed transaction,
 	 *                                because of an exception in the user code, that is allowed to be thrown by the method
@@ -301,7 +301,8 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * The node's store is not expanded, since the execution of the method has no side-effects.
 	 * 
 	 * @param request the transaction request
-	 * @return the result of the call, if the method was successfully executed, without exception
+	 * @return the result of the call, if the method was successfully executed, without exception. This is empty
+	 *         if and only if the method is declared to return {@code void}
 	 * @throws TransactionRejectedException if the transaction could not be executed
 	 * @throws CodeExecutionException if the transaction could be executed but led to an exception in the user code,
 	 *                                that is allowed to be thrown by the method

@@ -27,6 +27,7 @@ import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.OptionalLong;
@@ -52,6 +53,7 @@ import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
@@ -113,21 +115,51 @@ public abstract class ExecutionEnvironment {
 		this.executors = executors;
 	}
 
+	/**
+	 * Runs an instance {@code @@View} method of an object already in this environment.
+	 * The node's store is not expanded, since the execution of the method has no side-effects.
+	 * 
+	 * @param request the transaction request
+	 * @return the result of the call, if the method was successfully executed, without exception. This is empty
+	 *         if and only if the method is declared to return {@code void}
+	 * @throws TransactionRejectedException if the transaction could not be executed
+	 * @throws CodeExecutionException if the transaction could be executed but led to an exception in the user code,
+	 *                                that is allowed to be thrown by the method
+	 * @throws TransactionException if the transaction could be executed but led to an exception outside the user code,
+	 *                              or that is not allowed to be thrown by the method
+	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
+	 */
 	public final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException, StoreException, InterruptedException {
 		return getOutcome(new InstanceViewMethodCallResponseBuilder(reference, request, this).getResponseCreation().getResponse());
 	}
 
+	/**
+	 * Runs a static {@code @@View} method of a class in this environment.
+	 * The node's store is not expanded, since the execution of the method has no side-effects.
+	 * 
+	 * @param request the transaction request
+	 * @return the result of the call, if the method was successfully executed, without exception. This is empty
+	 *         if and only if the method is declared to return {@code void}
+	 * @throws TransactionRejectedException if the transaction could not be executed
+	 * @throws CodeExecutionException if the transaction could be executed but led to an exception in the user code,
+	 *                                that is allowed to be thrown by the method
+	 * @throws TransactionException if the transaction could be executed but led to an exception outside the user code,
+	 *                              or that is not allowed to be thrown by the method
+	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
+	 */
 	public final Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException, StoreException, InterruptedException {
 		return getOutcome(new StaticViewMethodCallResponseBuilder(reference, request, this).getResponseCreation().getResponse());
 	}
 
 	/**
 	 * Yields the request that generated the transaction with the given reference.
-	 * If this node has some form of commit, then this method is called only when
-	 * the transaction has been already committed.
 	 * 
 	 * @param reference the reference of the transaction
 	 * @return the request
+	 * @throws UnknownReferenceException if the request of {@code reference} cannot be found in this node
+	 * @throws StoreException if the node is not able to perform the operation
 	 */
 	public abstract TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, StoreException;
 
@@ -136,6 +168,8 @@ public abstract class ExecutionEnvironment {
 	 * 
 	 * @param reference the reference of the transaction
 	 * @return the response
+	 * @throws UnknownReferenceException if the response of {@code reference} cannot be found in this environment
+	 * @throws StoreException if the store is not able to perform the operation
 	 */
 	public abstract TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, StoreException;
 
@@ -145,6 +179,7 @@ public abstract class ExecutionEnvironment {
 	 * 
 	 * @param object the reference of the object
 	 * @return the history
+	 * @throws UnknownReferenceException if {@code object} cannot be found in this environment
 	 * @throws StoreException if the store is not able to perform the operation
 	 */
 	public abstract Stream<TransactionReference> getHistory(StorageReference object) throws UnknownReferenceException, StoreException;
@@ -166,150 +201,153 @@ public abstract class ExecutionEnvironment {
 		return getCache().getConfig();
 	}
 
-	protected final ConsensusConfig<?,?> extractConsensus() throws StoreException, InterruptedException {
-		StorageReference manifest = getManifest().orElseThrow(() -> new StoreException("Cannot extract the consensus if the manifest is not set yet"));
-
+	/**
+	 * Reconstructs the consensus information from the information inside this environment.
+	 * 
+	 * @param manifest the reference to the manifest; this is assumed to actually refer to a manifest
+	 * @return the reconstructed consensus information
+	 * @throws StoreException if the store is not able to complete the operation correctly
+	 * @throws InterruptedException if the current thread is interrupted while performing this operation
+	 */
+	protected final ConsensusConfig<?,?> extractConsensus(StorageReference manifest) throws StoreException, InterruptedException {
 		try {
-			// enough gas for a simple get method
-			BigInteger _100_000 = BigInteger.valueOf(100_000L);
-
 			TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
 
 			// we cannot call getValidators(), getVersions() and getGasStation() since we are here exactly because the caches are not set yet
 			StorageReference validators = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest))
 					.orElseThrow(() -> new StoreException(MethodSignatures.GET_VALIDATORS + " should not return void"))
-					.asReference(value -> new StoreException(MethodSignatures.GET_VALIDATORS + " should return a reference, not a " + value.getClass().getName()));
+					.asReturnedReference(MethodSignatures.GET_VALIDATORS, StoreException::new);
 
 			StorageReference gasStation = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAS_STATION, manifest))
 					.orElseThrow(() -> new StoreException(MethodSignatures.GET_GAS_STATION + " should not return void"))
-					.asReference(value -> new StoreException(MethodSignatures.GET_GAS_STATION + " should return a reference, not a " + value.getClass().getName()));
+					.asReturnedReference(MethodSignatures.GET_GAS_STATION, StoreException::new);
 
 			StorageReference versions = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VERSIONS, manifest))
 					.orElseThrow(() -> new StoreException(MethodSignatures.GET_VERSIONS + " should not return void"))
-					.asReference(value -> new StoreException(MethodSignatures.GET_VERSIONS + " should return a reference, not a " + value.getClass().getName()));
+					.asReturnedReference(MethodSignatures.GET_VERSIONS, StoreException::new);
 	
 			String genesisTime = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_GENESIS_TIME, manifest))
 					.orElseThrow(() -> new StoreException(MethodSignatures.GET_GENESIS_TIME + " should not return void"))
-					.asString(value -> new StoreException(MethodSignatures.GET_GENESIS_TIME + " should return a string, not a " + value.getClass().getName()));
+					.asReturnedString(MethodSignatures.GET_GENESIS_TIME, StoreException::new);
 	
 			String chainId = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
 					.orElseThrow(() -> new StoreException(MethodSignatures.GET_CHAIN_ID + " should not return void"))
-					.asString(value -> new StoreException(MethodSignatures.GET_CHAIN_ID + " should return a string, not a " + value.getClass().getName()));
+					.asReturnedString(MethodSignatures.GET_CHAIN_ID, StoreException::new);
 	
 			StorageReference gamete = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
 					.orElseThrow(() -> new StoreException(MethodSignatures.GET_GAMETE + " should not return void"))
-					.asReference(value -> new StoreException(MethodSignatures.GET_GAMETE + " should return a reference, not a " + value.getClass().getName()));
+					.asReturnedReference(MethodSignatures.GET_GAMETE, StoreException::new);
 	
 			String publicKeyOfGamete = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.PUBLIC_KEY, gamete))
 					.orElseThrow(() -> new StoreException(MethodSignatures.PUBLIC_KEY + " should not return void"))
-					.asString(value -> new StoreException(MethodSignatures.PUBLIC_KEY + " should return a string, not a " + value.getClass().getName()));
+					.asReturnedString(MethodSignatures.PUBLIC_KEY, StoreException::new);
 	
 			int maxErrorLength = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_ERROR_LENGTH, manifest))
 					.orElseThrow(() -> new StoreException(MethodSignatures.GET_MAX_ERROR_LENGTH + " should not return void"))
-					.asInt(value -> new StoreException(MethodSignatures.GET_MAX_ERROR_LENGTH + " should return an int, not a " + value.getClass().getName()));
+					.asReturnedInt(MethodSignatures.GET_MAX_ERROR_LENGTH, StoreException::new);
 	
 			int maxDependencies = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_DEPENDENCIES, manifest))
 					.orElseThrow(() -> new StoreException(MethodSignatures.GET_MAX_DEPENDENCIES + " should not return void"))
-					.asInt(value -> new StoreException(MethodSignatures.GET_MAX_DEPENDENCIES + " should return an int, not a " + value.getClass().getName()));
+					.asReturnedInt(MethodSignatures.GET_MAX_DEPENDENCIES, StoreException::new);
 	
 			long maxCumulativeSizeOfDependencies = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES, manifest))
 					.orElseThrow(() -> new StoreException(MethodSignatures.GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES + " should not return void"))
-					.asLong(value -> new StoreException(MethodSignatures.GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES + " should return a long, not a " + value.getClass().getName()));
+					.asReturnedLong(MethodSignatures.GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES, StoreException::new);
 	
 			boolean allowsFaucet = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.ALLOWS_UNSIGNED_FAUCET, manifest))
 					.orElseThrow(() -> new StoreException(MethodSignatures.ALLOWS_UNSIGNED_FAUCET + " should not return void"))
-					.asBoolean(value -> new StoreException(MethodSignatures.ALLOWS_UNSIGNED_FAUCET + " should return a boolean, not a " + value.getClass().getName()));
+					.asReturnedBoolean(MethodSignatures.ALLOWS_UNSIGNED_FAUCET, StoreException::new);
 	
 			boolean skipsVerification = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.SKIPS_VERIFICATION, manifest))
 					.orElseThrow(() -> new StoreException(MethodSignatures.SKIPS_VERIFICATION + " should not return void"))
-					.asBoolean(value -> new StoreException(MethodSignatures.SKIPS_VERIFICATION + " should return a boolean, not a " + value.getClass().getName()));
+					.asReturnedBoolean(MethodSignatures.SKIPS_VERIFICATION, StoreException::new);
 	
 			String signature = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_SIGNATURE, manifest))
 					.orElseThrow(() -> new StoreException(MethodSignatures.GET_SIGNATURE + " should not return void"))
-					.asString(value -> new StoreException(MethodSignatures.GET_SIGNATURE + " should return a string, not a " + value.getClass().getName()));
+					.asReturnedString(MethodSignatures.GET_SIGNATURE, StoreException::new);
 	
 			BigInteger ticketForNewPoll = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_TICKET_FOR_NEW_POLL, validators))
 					.orElseThrow(() -> new StoreException(MethodSignatures.GET_TICKET_FOR_NEW_POLL + " should not return void"))
-					.asBigInteger(value -> new StoreException(MethodSignatures.GET_TICKET_FOR_NEW_POLL + " should return a BigInteger, not a " + value.getClass().getName()));
+					.asReturnedBigInteger(MethodSignatures.GET_TICKET_FOR_NEW_POLL, StoreException::new);
 	
 			BigInteger initialGasPrice = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_GAS_PRICE, gasStation))
 					.orElseThrow(() -> new StoreException(MethodSignatures.GET_INITIAL_GAS_PRICE + " should not return void"))
-					.asBigInteger(value -> new StoreException(MethodSignatures.GET_INITIAL_GAS_PRICE + " should return a BigInteger, not a " + value.getClass().getName()));
+					.asReturnedBigInteger(MethodSignatures.GET_INITIAL_GAS_PRICE, StoreException::new);
 	
 			BigInteger maxGasPerTransaction = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_GAS_PER_TRANSACTION, gasStation))
 					.orElseThrow(() -> new StoreException(MethodSignatures.GET_MAX_GAS_PER_TRANSACTION + " should not return void"))
-					.asBigInteger(value -> new StoreException(MethodSignatures.GET_MAX_GAS_PER_TRANSACTION + " should return a BigInteger, not a " + value.getClass().getName()));
+					.asReturnedBigInteger(MethodSignatures.GET_MAX_GAS_PER_TRANSACTION, StoreException::new);
 	
 			boolean ignoresGasPrice = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.IGNORES_GAS_PRICE, gasStation))
 					.orElseThrow(() -> new StoreException(MethodSignatures.IGNORES_GAS_PRICE + " should not return void"))
-					.asBoolean(value -> new StoreException(MethodSignatures.IGNORES_GAS_PRICE + " should return a boolean, not a " + value.getClass().getName()));
+					.asReturnedBoolean(MethodSignatures.IGNORES_GAS_PRICE, StoreException::new);
 	
 			BigInteger targetGasAtReward = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_TARGET_GAS_AT_REWARD, gasStation))
 					.orElseThrow(() -> new StoreException(MethodSignatures.GET_TARGET_GAS_AT_REWARD + " should not return void"))
-					.asBigInteger(value -> new StoreException(MethodSignatures.GET_TARGET_GAS_AT_REWARD + " should return a BigInteger, not a " + value.getClass().getName()));
+					.asReturnedBigInteger(MethodSignatures.GET_TARGET_GAS_AT_REWARD, StoreException::new);
 	
 			long oblivion = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_OBLIVION, gasStation))
 					.orElseThrow(() -> new StoreException(MethodSignatures.GET_OBLIVION + " should not return void"))
-					.asLong(value -> new StoreException(MethodSignatures.GET_OBLIVION + " should return a long, not a " + value.getClass().getName()));
+					.asReturnedLong(MethodSignatures.GET_OBLIVION, StoreException::new);
 	
 			long initialInflation = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_INFLATION, validators))
 					.orElseThrow(() -> new StoreException(MethodSignatures.GET_INITIAL_INFLATION + " should not return void"))
-					.asLong(value -> new StoreException(MethodSignatures.GET_INITIAL_INFLATION + " should return a long, not a " + value.getClass().getName()));
+					.asReturnedLong(MethodSignatures.GET_INITIAL_INFLATION, StoreException::new);
 	
 			long verificationVersion = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VERIFICATION_VERSION, versions))
 					.orElseThrow(() -> new StoreException(MethodSignatures.GET_VERIFICATION_VERSION + " should not return void"))
-					.asLong(value -> new StoreException(MethodSignatures.GET_VERIFICATION_VERSION + " should return a long, not a " + value.getClass().getName()));
+					.asReturnedLong(MethodSignatures.GET_VERIFICATION_VERSION, StoreException::new);
 	
 			BigInteger initialSupply = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_SUPPLY, validators))
 					.orElseThrow(() -> new StoreException(MethodSignatures.GET_INITIAL_SUPPLY + " should not return void"))
-					.asBigInteger(value -> new StoreException(MethodSignatures.GET_INITIAL_SUPPLY + " should return a BigInteger, not a " + value.getClass().getName()));
+					.asReturnedBigInteger(MethodSignatures.GET_INITIAL_SUPPLY, StoreException::new);
 	
 			BigInteger finalSupply = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_FINAL_SUPPLY, validators))
 					.orElseThrow(() -> new StoreException(MethodSignatures.GET_FINAL_SUPPLY + " should not return void"))
-					.asBigInteger(value -> new StoreException(MethodSignatures.GET_FINAL_SUPPLY + " should return a BigInteger, not a " + value.getClass().getName()));
+					.asReturnedBigInteger(MethodSignatures.GET_FINAL_SUPPLY, StoreException::new);
 	
 			int buyerSurcharge = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.VALIDATORS_GET_BUYER_SURCHARGE, validators))
 					.orElseThrow(() -> new StoreException(MethodSignatures.VALIDATORS_GET_BUYER_SURCHARGE + " should not return void"))
-					.asInt(value -> new StoreException(MethodSignatures.VALIDATORS_GET_BUYER_SURCHARGE + " should return an int, not a " + value.getClass().getName()));
+					.asReturnedInt(MethodSignatures.VALIDATORS_GET_BUYER_SURCHARGE, StoreException::new);
 	
 			int slashingForMisbehaving = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.VALIDATORS_GET_SLASHING_FOR_MISBEHAVING, validators))
 					.orElseThrow(() -> new StoreException(MethodSignatures.VALIDATORS_GET_SLASHING_FOR_MISBEHAVING + " should not return void"))
-					.asInt(value -> new StoreException(MethodSignatures.VALIDATORS_GET_SLASHING_FOR_MISBEHAVING + " should return an int, not a " + value.getClass().getName()));
+					.asReturnedInt(MethodSignatures.VALIDATORS_GET_SLASHING_FOR_MISBEHAVING, StoreException::new);
 	
 			int slashingForNotBehaving = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.VALIDATORS_GET_SLASHING_FOR_NOT_BEHAVING, validators))
 					.orElseThrow(() -> new StoreException(MethodSignatures.VALIDATORS_GET_SLASHING_FOR_NOT_BEHAVING + " should not return void"))
-					.asInt(value -> new StoreException(MethodSignatures.VALIDATORS_GET_SLASHING_FOR_NOT_BEHAVING + " should return an int, not a " + value.getClass().getName()));
+					.asReturnedInt(MethodSignatures.VALIDATORS_GET_SLASHING_FOR_NOT_BEHAVING, StoreException::new);
 	
 			int percentStaked = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.VALIDATORS_GET_PERCENT_STAKED, validators))
 					.orElseThrow(() -> new StoreException(MethodSignatures.VALIDATORS_GET_PERCENT_STAKED + " should not return void"))
-					.asInt(value -> new StoreException(MethodSignatures.VALIDATORS_GET_PERCENT_STAKED + " should return an int, not a " + value.getClass().getName()));
+					.asReturnedInt(MethodSignatures.VALIDATORS_GET_PERCENT_STAKED, StoreException::new);
 	
 			var signatureAlgorithm = SignatureAlgorithms.of(signature);
 	
@@ -339,118 +377,109 @@ public abstract class ExecutionEnvironment {
 					.setSlashingForNotBehaving(slashingForNotBehaving)
 					.build();
 		}
-		catch (TransactionRejectedException | TransactionException | CodeExecutionException | NoSuchAlgorithmException | InvalidKeyException | InvalidKeySpecException | Base64ConversionException e) {
+		catch (TransactionRejectedException | TransactionException | CodeExecutionException | NoSuchAlgorithmException | InvalidKeyException | InvalidKeySpecException | Base64ConversionException | DateTimeParseException e) {
 			throw new StoreException(e);
 		}
 	}
 
-	protected final StorageReference extractValidators() throws StoreException {
-		Optional<StorageReference> manifest = getManifest();
-		if (manifest.isPresent()) {
-			try {
-				return getReferenceField(manifest.get(), FieldSignatures.MANIFEST_VALIDATORS_FIELD);
-			}
-			catch (FieldNotFoundException e) {
-				throw new StoreException("The manifest does not contain the reference to the validators set", e);
-			}
-			catch (UnknownReferenceException e) {
-				throw new StoreException("The manifest is set but cannot be found in store", e);
-			}
+	/**
+	 * Extracts the validators object from the given manifest.
+	 * 
+	 * @param manifest the reference to the manifest; this is assumed to actually refer to a manifest
+	 * @return the validators object reference
+	 * @throws StoreException if the store is misbehaving
+	 */
+	protected final StorageReference extractValidators(StorageReference manifest) throws StoreException {
+		try {
+			return getReferenceField(manifest, FieldSignatures.MANIFEST_VALIDATORS_FIELD);
 		}
-		else
-			throw new StoreException("The node has been initialized but its manifest cannot be found");
+		catch (FieldNotFoundException e) {
+			throw new StoreException("The manifest does not contain the reference to the validators set", e);
+		}
+		catch (UnknownReferenceException e) {
+			throw new StoreException("The manifest is set but cannot be found in store", e);
+		}
 	}
 
-	protected final StorageReference extractGasStation() throws StoreException {
-		Optional<StorageReference> manifest = getManifest();
-		if (manifest.isPresent()) {
-			try {
-				return getReferenceField(manifest.get(), FieldSignatures.MANIFEST_GAS_STATION_FIELD);
-			}
-			catch (FieldNotFoundException e) {
-				throw new StoreException("The manifest does not contain the reference to the gas station", e);
-			}
-			catch (UnknownReferenceException e) {
-				throw new StoreException("The manifest is set but cannot be found in store", e);
-			}
+	/**
+	 * Extracts the gas station object from the given manifest.
+	 * 
+	 * @param manifest the reference to the manifest; this is assumed to actually refer to a manifest
+	 * @return the gas station object reference
+	 * @throws StoreException if the store is misbehaving
+	 */
+	protected final StorageReference extractGasStation(StorageReference manifest) throws StoreException {
+		try {
+			return getReferenceField(manifest, FieldSignatures.MANIFEST_GAS_STATION_FIELD);
 		}
-		else
-			throw new StoreException("The node has been initialized but its manifest cannot be found");
+		catch (FieldNotFoundException e) {
+			throw new StoreException("The manifest does not contain the reference to the gas station", e);
+		}
+		catch (UnknownReferenceException e) {
+			throw new StoreException("The manifest is set but cannot be found in store", e);
+		}
 	}
 
-	protected final StorageReference extractVersions() throws StoreException {
-		Optional<StorageReference> manifest = getManifest();
-		if (manifest.isPresent()) {
-			try {
-				return getReferenceField(manifest.get(), FieldSignatures.MANIFEST_VERSIONS_FIELD);
-			}
-			catch (FieldNotFoundException e) {
-				throw new StoreException("The manifest does not contain the reference to the versions manager", e);
-			}
-			catch (UnknownReferenceException e) {
-				throw new StoreException("The manifest is set but cannot be found in store", e);
-			}
+	/**
+	 * Extracts the versions object from the given manifest.
+	 * 
+	 * @param manifest the reference to the manifest; this is assumed to actually refer to a manifest
+	 * @return the versions object reference
+	 * @throws StoreException if the store is misbehaving
+	 */
+	protected final StorageReference extractVersions(StorageReference manifest) throws StoreException {
+		try {
+			return getReferenceField(manifest, FieldSignatures.MANIFEST_VERSIONS_FIELD);
 		}
-		else
-			throw new StoreException("The node has been initialized but its manifest cannot be found");
+		catch (FieldNotFoundException e) {
+			throw new StoreException("The manifest does not contain the reference to the versions manager", e);
+		}
+		catch (UnknownReferenceException e) {
+			throw new StoreException("The manifest is set but cannot be found in store", e);
+		}
 	}
 
-	protected final BigInteger extractGasPrice() throws StoreException, InterruptedException {
-		Optional<StorageReference> manifest = getManifest();
-		if (manifest.isPresent()) {
-			TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
-			StorageReference gasStation;
+	/**
+	 * Extracts the gas price from the given manifest.
+	 * 
+	 * @param manifest the reference to the manifest; this is assumed to actually refer to a manifest
+	 * @return the gas price, as reported in the gas station of {@code manifest}
+	 * @throws StoreException if the store is misbehaving
+	 */
+	protected final BigInteger extractGasPrice(StorageReference manifest) throws StoreException, InterruptedException {
+		StorageReference gasStation = extractGasStation(manifest);
+		TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
 
-			try {
-				gasStation = getReferenceField(manifest.get(), FieldSignatures.MANIFEST_GAS_STATION_FIELD);
-			}
-			catch (FieldNotFoundException e) {
-				throw new StoreException("The manifest does not contain the reference to the gas station", e);
-			}
-			catch (UnknownReferenceException e) {
-				throw new StoreException("The manifest is set but cannot be found in store", e);
-			}
-
-			try {
-				return runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest.get(), _100_000, takamakaCode, GET_GAS_PRICE, gasStation))
+		try {
+			return runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, GET_GAS_PRICE, gasStation))
 					.orElseThrow(() -> new StoreException(GET_GAS_PRICE + " should not return void"))
 					.asReturnedBigInteger(GET_GAS_PRICE, StoreException::new);
-			}
-			catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
-				throw new StoreException(e);
-			}
 		}
-		else
-			throw new StoreException("The node has been initialized but its manifest cannot be found");
+		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
+			// the call to getGasPrice() should raise no exception
+			throw new StoreException(e);
+		}
 	}
 
-	protected final long extractInflation() throws StoreException, InterruptedException {
-		Optional<StorageReference> manifest = getManifest();
-		if (manifest.isPresent()) {
-			TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
-			StorageReference validators;
+	/**
+	 * Extracts the inflation from the given manifest.
+	 * 
+	 * @param manifest the reference to the manifest; this is assumed to actually refer to a manifest
+	 * @return the inflation, as reported in the validators of {@code manifest}
+	 * @throws StoreException if the store is misbehaving
+	 */
+	protected final long extractInflation(StorageReference manifest) throws StoreException, InterruptedException {
+		StorageReference validators = extractValidators(manifest);
+		TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
 
-			try {
-				validators = getReferenceField(manifest.get(), FieldSignatures.MANIFEST_VALIDATORS_FIELD);
-			}
-			catch (FieldNotFoundException e) {
-				throw new StoreException("The manifest does not contain the reference to the validators set", e);
-			}
-			catch (UnknownReferenceException e) {
-				throw new StoreException("The manifest is set but cannot be found in store", e);
-			}
-
-			try {
-				return runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest.get(), _100_000, takamakaCode, GET_CURRENT_INFLATION, validators))
+		try {
+			return runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, GET_CURRENT_INFLATION, validators))
 					.orElseThrow(() -> new StoreException(GET_CURRENT_INFLATION + " should not return void"))
-					.asLong(value -> new StoreException(GET_CURRENT_INFLATION + " should return a long, not a " + value.getClass().getName()));
-			}
-			catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
-				throw new StoreException(e);
-			}
+					.asReturnedLong(GET_CURRENT_INFLATION, StoreException::new);
 		}
-		else
-			throw new StoreException("The node has been initialized but its manifest cannot be found");
+		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
+			throw new StoreException(e);
+		}
 	}
 
 	/**
@@ -631,6 +660,12 @@ public abstract class ExecutionEnvironment {
 			throw new StoreException("Unexpected transaction request of class " + request.getClass().getName());
 	}
 
+	/**
+	 * Runs the given instance method call transaction in this environment.
+	 * 
+	 * @param request the request of the transaction to run
+	 * @return the result of the method call, if the method is not {@code void}
+	 */
 	protected final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, StoreException, InterruptedException {
 		return runInstanceMethodCallTransaction(request, TransactionReferences.of(getHasher().hash(request)));
 	}

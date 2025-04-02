@@ -167,15 +167,19 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 	
 		// if this store is already initialized, we can extract the cache information
 		// from the store itself, otherwise the previous cache will be kept
-		if (getManifest().isPresent())
+		Optional<StorageReference> maybeManifest = getManifest();
+		if (maybeManifest.isPresent()) {
+			StorageReference manifest = maybeManifest.get();
+
 			newCache = newCache
-				.setConfig(extractConsensus())
+				.setConfig(extractConsensus(manifest))
 				.invalidateClassLoaders()
-				.setValidators(extractValidators())
-				.setGasStation(extractGasStation())
-				.setVersions(extractVersions())
-				.setGasPrice(extractGasPrice())
-				.setInflation(extractInflation());
+				.setValidators(extractValidators(manifest))
+				.setGasStation(extractGasStation(manifest))
+				.setVersions(extractVersions(manifest))
+				.setGasPrice(extractGasPrice(manifest))
+				.setInflation(extractInflation(manifest));
+		}
 	
 		return withCache(newCache);
 	}

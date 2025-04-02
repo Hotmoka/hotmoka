@@ -301,17 +301,19 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	 */
 	protected void updateCaches(TransactionResponse response, TakamakaClassLoader classLoader) throws StoreException, InterruptedException {
 		if (manifestMightHaveChanged(response)) {
-			cache = cache.setValidators(extractValidators());
+			StorageReference manifest = getManifest().orElseThrow(() -> new StoreException("The manifest just changed, hence it should be set"));
+			cache = cache.setValidators(extractValidators(manifest));
 			LOGGER.info("the validators cache has been updated since it might have changed");
-			cache = cache.setGasStation(extractGasStation());
+			cache = cache.setGasStation(extractGasStation(manifest));
 			LOGGER.info("the gas station cache has been updated since it might have changed");
-			cache = cache.setVersions(extractVersions());
+			cache = cache.setVersions(extractVersions(manifest));
 			LOGGER.info("the versions manager cache has been updated since it might have changed");
 		}
 
 		if (consensusParametersMightHaveChanged(response, classLoader)) {
+			StorageReference manifest = getManifest().orElseThrow(() -> new StoreException("Some consensus parameter just changed, hence the manifest should be set"));
 			long versionBefore = cache.getConfig().getVerificationVersion();
-			cache = cache.setConfig(extractConsensus()).invalidateClassLoaders();
+			cache = cache.setConfig(extractConsensus(manifest)).invalidateClassLoaders();
 			long versionAfter = cache.getConfig().getVerificationVersion();
 			LOGGER.info("the consensus parameters cache has been updated since it might have changed");
 
@@ -320,12 +322,15 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 		}
 
 		if (gasPriceMightHaveChanged(response, classLoader)) {
-			cache = cache.setGasPrice(extractGasPrice());
-			LOGGER.info("the gas cache has been updated since it might have changed: the new gas price is " + cache.getGasPrice().get());
+			StorageReference manifest = getManifest().orElseThrow(() -> new StoreException("The gas price just changed, hence the manifest should be set"));
+			BigInteger newGasPrice = extractGasPrice(manifest);
+			cache = cache.setGasPrice(newGasPrice);
+			LOGGER.info("the gas cache has been updated since it might have changed: the new gas price is " + newGasPrice);
 		}
 
 		if (inflationMightHaveChanged(response, classLoader)) {
-			cache = cache.setInflation(extractInflation());
+			StorageReference manifest = getManifest().orElseThrow(() -> new StoreException("The inflation just changed, hence the manifest should be set"));
+			cache = cache.setInflation(extractInflation(manifest));
 			LOGGER.info("the inflation cache has been updated since it might have changed: the new inflation is " + cache.getInflation().getAsLong());
 		}
 	}
