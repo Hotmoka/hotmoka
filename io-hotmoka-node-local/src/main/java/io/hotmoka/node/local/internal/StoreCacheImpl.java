@@ -22,11 +22,13 @@ import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.function.Function;
 
+import io.hotmoka.exceptions.functions.FunctionWithExceptions2;
 import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.LRUCache;
+import io.hotmoka.node.local.api.ClassLoaderCreationException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
@@ -187,8 +189,8 @@ public class StoreCacheImpl implements StoreCache {
 	}
 
 	@Override
-	public final EngineClassLoader getClassLoader(TransactionReference classpath, Function<TransactionReference, EngineClassLoader> ifMissing) {
-		return classLoaders.computeIfAbsent(classpath, ifMissing);
+	public final EngineClassLoader getClassLoader(TransactionReference classpath, FunctionWithExceptions2<TransactionReference, EngineClassLoader, StoreException, ClassLoaderCreationException> ifMissing) throws StoreException, ClassLoaderCreationException {
+		return classLoaders.computeIfAbsent(classpath, ifMissing, StoreException.class, ClassLoaderCreationException.class);
 	}
 
 	@Override

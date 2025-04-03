@@ -156,36 +156,35 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 				StorageReference manifest = maybeManifest.get();
 				TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
 				StorageReference validators = getValidators().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
-				BigInteger _50_000 = BigInteger.valueOf(50_000);
 
 				StorageReference shares = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _50_000, takamakaCode, MethodSignatures.GET_SHARES, validators))
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_SHARES, validators))
 					.orElseThrow(() -> new StoreException(MethodSignatures.GET_SHARES + " should not return void"))
-					.asReference(value -> new StoreException(MethodSignatures.GET_SHARES + " should return a reference, not a " + value.getClass().getName()));
+					.asReturnedReference(MethodSignatures.GET_SHARES, StoreException::new);
 
 				int numOfValidators = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _50_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SIZE, shares))
+					(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SIZE, shares))
 					.orElseThrow(() -> new StoreException(MethodSignatures.STORAGE_MAP_VIEW_SIZE + " should not return void"))
-					.asInt(value -> new StoreException(MethodSignatures.STORAGE_MAP_VIEW_SIZE + " should return an integer, not a " + value.getClass().getName()));
+					.asReturnedInt(MethodSignatures.STORAGE_MAP_VIEW_SIZE, StoreException::new);
 
 				var result = new TendermintValidator[numOfValidators];
 
 				for (int num = 0; num < numOfValidators; num++) {
 					StorageReference validator = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-						(manifest, _50_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SELECT, shares, StorageValues.intOf(num)))
+						(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SELECT, shares, StorageValues.intOf(num)))
 						.orElseThrow(() -> new StoreException(MethodSignatures.STORAGE_MAP_VIEW_SELECT + " should not return void"))
-						.asReference(value -> new StoreException(MethodSignatures.STORAGE_MAP_VIEW_SELECT + " should return a reference, not a " + value.getClass().getName()));
+						.asReturnedReference(MethodSignatures.STORAGE_MAP_VIEW_SELECT, StoreException::new);
 
 					String id = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-						(manifest, _50_000, takamakaCode, MethodSignatures.ID, validator))
+						(manifest, _100_000, takamakaCode, MethodSignatures.ID, validator))
 						.orElseThrow(() -> new StoreException(MethodSignatures.ID + " should not return void"))
-						.asString(value -> new StoreException(MethodSignatures.ID + " should return a string, not a " + value.getClass().getName()));
+						.asReturnedString(MethodSignatures.ID, StoreException::new);
 
 					long power = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-						(manifest, _50_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_GET, shares, validator))
+						(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_GET, shares, validator))
 						.orElseThrow(() -> new StoreException(MethodSignatures.STORAGE_MAP_VIEW_GET + " should not return void"))
-						.asBigInteger(value -> new StoreException(MethodSignatures.STORAGE_MAP_VIEW_GET + " should return a BigInteger, not a " + value.getClass().getName()))
-						.longValue();
+						.asReturnedBigInteger(MethodSignatures.STORAGE_MAP_VIEW_GET, StoreException::new)
+						.longValueExact();
 
 					result[num] = new TendermintValidator(id, power, getPublicKey(validator), "tendermint/PubKeyEd25519");
 				}
@@ -193,7 +192,7 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 				this.validators = Optional.of(result);
 			}
 		}
-		catch (TransactionRejectedException | TransactionException | CodeExecutionException | UnknownReferenceException | FieldNotFoundException e) {
+		catch (TransactionRejectedException | TransactionException | CodeExecutionException | UnknownReferenceException | FieldNotFoundException | ArithmeticException e) {
 			throw new StoreException(e);
 		}
 	}

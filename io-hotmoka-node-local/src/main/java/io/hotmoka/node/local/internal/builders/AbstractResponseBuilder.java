@@ -33,6 +33,7 @@ import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.DeserializationException;
+import io.hotmoka.node.local.api.ClassLoaderCreationException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.ResponseBuilder;
@@ -89,10 +90,10 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * Creates the class loader for computing the response.
 	 * 
 	 * @return the class loader
-	 * @throws TransactionRejectedException if the request contains wrong information and the class loader cannot be created
+	 * @throws ClassLoaderCreationException if the request contains wrong information and the class loader cannot be created
 	 * @throws StoreException if the store of the node is misbehaving
 	 */
-	protected abstract EngineClassLoader mkClassLoader() throws StoreException, TransactionRejectedException;
+	protected abstract EngineClassLoader mkClassLoader() throws StoreException, ClassLoaderCreationException;
 
 	/**
 	 * The creator of a response. Its body runs in a thread, so that the
@@ -123,7 +124,13 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		private BigInteger nextProgressive = BigInteger.ZERO;
 
 		protected ResponseCreator() throws StoreException, TransactionRejectedException {
-			this.classLoader = mkClassLoader();
+			try {
+				this.classLoader = mkClassLoader();
+			}
+			catch (ClassLoaderCreationException e) {
+				throw new TransactionRejectedException(e, consensus);
+			}
+
 			this.deserializer = new Deserializer(environment, classLoader);
 			this.updatesExtractor = new UpdatesExtractor(classLoader);
 		}

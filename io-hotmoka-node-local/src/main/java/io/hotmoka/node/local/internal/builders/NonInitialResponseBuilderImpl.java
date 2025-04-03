@@ -42,6 +42,7 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.updates.UpdateOfField;
 import io.hotmoka.node.local.DeserializationException;
+import io.hotmoka.node.local.api.ClassLoaderCreationException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.StoreException;
@@ -65,7 +66,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	}
 
 	@Override
-	protected EngineClassLoader mkClassLoader() throws StoreException, TransactionRejectedException {
+	protected EngineClassLoader mkClassLoader() throws StoreException, ClassLoaderCreationException {
 		return environment.getClassLoader(request.getClasspath(), consensus);
 	}
 
@@ -374,12 +375,9 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 				if (totalBalance.subtract(cost).signum() < 0)
 					throw new TransactionRejectedException("The payer has not enough funds to buy " + request.getGasLimit() + " units of gas", consensus);
 			}
-			catch (UnknownReferenceException e) {
+			catch (UnknownReferenceException | FieldNotFoundException e) {
 				// we have verified that the caller was an account, so this can only be a store corruption problem
 				throw new StoreException(e);
-			}
-			catch (FieldNotFoundException e) {
-				throw new TransactionRejectedException("The caller " + request.getCaller() + " has no balance field", consensus);
 			}
 		}
 

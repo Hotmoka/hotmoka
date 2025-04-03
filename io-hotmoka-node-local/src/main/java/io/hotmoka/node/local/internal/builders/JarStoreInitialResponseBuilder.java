@@ -23,6 +23,7 @@ import io.hotmoka.node.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.node.api.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.AbstractInitialResponseBuilder;
+import io.hotmoka.node.local.api.ClassLoaderCreationException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.verification.VerificationException;
@@ -46,7 +47,7 @@ public class JarStoreInitialResponseBuilder extends AbstractInitialResponseBuild
 	}
 
 	@Override
-	protected EngineClassLoader mkClassLoader() throws StoreException, TransactionRejectedException {
+	protected EngineClassLoader mkClassLoader() throws StoreException, ClassLoaderCreationException {
 		// we redefine this method, since the class loader must be able to access the
 		// jar that is being installed and its dependencies, in order to instrument them
 		return new EngineClassLoaderImpl(request.getJar(), request.getDependencies(), environment, consensus);

@@ -25,6 +25,7 @@ import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.node.api.responses.GameteCreationTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.AbstractInitialResponseBuilder;
+import io.hotmoka.node.local.api.ClassLoaderCreationException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreException;
 
@@ -45,7 +46,7 @@ public class GameteCreationResponseBuilder extends AbstractInitialResponseBuilde
 	}
 
 	@Override
-	protected EngineClassLoader mkClassLoader() throws StoreException, TransactionRejectedException {
+	protected EngineClassLoader mkClassLoader() throws StoreException, ClassLoaderCreationException {
 		return environment.getClassLoader(request.getClasspath(), consensus);
 	}
 

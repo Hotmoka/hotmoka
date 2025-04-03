@@ -34,7 +34,6 @@ import java.util.OptionalLong;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
@@ -45,7 +44,6 @@ import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.exceptions.CheckSupplier;
 import io.hotmoka.exceptions.UncheckFunction;
-import io.hotmoka.exceptions.functions.FunctionWithExceptions2;
 import io.hotmoka.exceptions.functions.FunctionWithExceptions3;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.MethodSignatures;
@@ -83,6 +81,7 @@ import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.api.values.StringValue;
+import io.hotmoka.node.local.api.ClassLoaderCreationException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.ResponseBuilder;
@@ -154,6 +153,15 @@ public abstract class ExecutionEnvironment {
 	}
 
 	/**
+	 * Yields the current consensus configuration of the node.
+	 * 
+	 * @return the current consensus configuration of the node
+	 */
+	public final ConsensusConfig<?,?> getConfig() {
+		return getCache().getConfig();
+	}
+
+	/**
 	 * Yields the request that generated the transaction with the given reference.
 	 * 
 	 * @param reference the reference of the transaction
@@ -193,13 +201,11 @@ public abstract class ExecutionEnvironment {
 	public abstract Optional<StorageReference> getManifest() throws StoreException;
 
 	/**
-	 * Yields the current consensus configuration of the node.
+	 * Yields the time to use as current time for the requests executed inside this environment.
 	 * 
-	 * @return the current consensus configuration of the node
+	 * @return the time, in milliseconds from the UNIX epoch time
 	 */
-	public final ConsensusConfig<?,?> getConfig() {
-		return getCache().getConfig();
-	}
+	public abstract long getNow();
 
 	/**
 	 * Reconstructs the consensus information from the information inside this environment.
@@ -309,15 +315,15 @@ public abstract class ExecutionEnvironment {
 					.orElseThrow(() -> new StoreException(MethodSignatures.GET_OBLIVION + " should not return void"))
 					.asReturnedLong(MethodSignatures.GET_OBLIVION, StoreException::new);
 	
-			long initialInflation = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_INFLATION, validators))
-					.orElseThrow(() -> new StoreException(MethodSignatures.GET_INITIAL_INFLATION + " should not return void"))
-					.asReturnedLong(MethodSignatures.GET_INITIAL_INFLATION, StoreException::new);
-	
 			long verificationVersion = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VERIFICATION_VERSION, versions))
 					.orElseThrow(() -> new StoreException(MethodSignatures.GET_VERIFICATION_VERSION + " should not return void"))
 					.asReturnedLong(MethodSignatures.GET_VERIFICATION_VERSION, StoreException::new);
+
+			long initialInflation = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_INFLATION, validators))
+					.orElseThrow(() -> new StoreException(MethodSignatures.GET_INITIAL_INFLATION + " should not return void"))
+					.asReturnedLong(MethodSignatures.GET_INITIAL_INFLATION, StoreException::new);
 	
 			BigInteger initialSupply = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_SUPPLY, validators))
@@ -488,11 +494,10 @@ public abstract class ExecutionEnvironment {
 	 * @param classpath the class path that must be used by the class loader
 	 * @return the class loader
 	 * @throws StoreException if the store is not able to complete the operation correctly
-	 * @throws TransactionRejectedException 
+	 * @throws ClassLoaderCreationException if the class loader cannot be created
 	 */
-	protected final EngineClassLoader getClassLoader(TransactionReference classpath, ConsensusConfig<?,?> consensus) throws StoreException, TransactionRejectedException {
-		FunctionWithExceptions2<TransactionReference, EngineClassLoader, StoreException, TransactionRejectedException> mkClassLoader = _classpath -> mkClassLoader(_classpath, consensus);
-		return CheckSupplier.check(StoreException.class, TransactionRejectedException.class, () -> getClassLoader(classpath, UncheckFunction.uncheck(StoreException.class, TransactionRejectedException.class, mkClassLoader)));
+	protected final EngineClassLoader getClassLoader(TransactionReference classpath, ConsensusConfig<?,?> consensus) throws StoreException, ClassLoaderCreationException {
+		return getCache().getClassLoader(classpath, _classpath -> mkClassLoader(_classpath, consensus));
 	}
 
 	protected final ClassTag getClassTag(StorageReference reference) throws UnknownReferenceException, StoreException {
@@ -620,7 +625,7 @@ public abstract class ExecutionEnvironment {
 		var reference = TransactionReferences.of(getHasher().hash(request));
 		FunctionWithExceptions3<TransactionReference, Boolean, StoreException, UnknownReferenceException, FieldNotFoundException> verifySignature = _reference -> verifySignature(signatureAlgorithm, request);
 		return CheckSupplier.check(StoreException.class, UnknownReferenceException.class, FieldNotFoundException.class, () ->
-			signatureIsValid(reference, UncheckFunction.uncheck(StoreException.class, UnknownReferenceException.class, FieldNotFoundException.class, verifySignature)));
+			getCache().signatureIsValid(reference, UncheckFunction.uncheck(StoreException.class, UnknownReferenceException.class, FieldNotFoundException.class, verifySignature)));
 	}
 
 	protected final String getPublicKey(StorageReference account) throws UnknownReferenceException, FieldNotFoundException, StoreException {
@@ -674,13 +679,6 @@ public abstract class ExecutionEnvironment {
 		return executors;
 	}
 
-	/**
-	 * Yields the time to use as current time for the requests executed inside this environment.
-	 * 
-	 * @return the time, in milliseconds from the UNIX epoch time
-	 */
-	public abstract long getNow();
-
 	protected abstract StoreCache getCache();
 
 	protected final Optional<StorageReference> getValidators() {
@@ -709,17 +707,13 @@ public abstract class ExecutionEnvironment {
 		return getCache().getInflation();
 	}
 
-	protected final EngineClassLoader getClassLoader(TransactionReference classpath, Function<TransactionReference, EngineClassLoader> ifMissing) {
-		return getCache().getClassLoader(classpath, ifMissing);
-	}
-
-	protected final boolean signatureIsValid(TransactionReference classpath, Function<TransactionReference, Boolean> ifMissing) {
-		return getCache().signatureIsValid(classpath, ifMissing);
+	protected final BigInteger getBalance(StorageReference contract) throws UnknownReferenceException, FieldNotFoundException, StoreException {
+		return getBigIntegerField(contract, FieldSignatures.BALANCE_FIELD);
 	}
 
 	protected abstract Hasher<TransactionRequest<?>> getHasher();
 
-	private EngineClassLoaderImpl mkClassLoader(TransactionReference classpath, ConsensusConfig<?,?> consensus) throws StoreException, TransactionRejectedException {
+	private EngineClassLoaderImpl mkClassLoader(TransactionReference classpath, ConsensusConfig<?,?> consensus) throws StoreException, ClassLoaderCreationException {
 		return new EngineClassLoaderImpl(null, Stream.of(classpath), this, consensus);
 	}
 
@@ -728,7 +722,7 @@ public abstract class ExecutionEnvironment {
 			return signature.getVerifier(getPublicKey(request.getCaller(), signature), SignedTransactionRequest<?>::toByteArrayWithoutSignature).verify(request, request.getSignature());
 		}
 		catch (InvalidKeyException | SignatureException | Base64ConversionException | InvalidKeySpecException e) {
-			LOGGER.info("the public key of " + request.getCaller() + " could not be verified: " + e.getMessage());
+			LOGGER.info("the signature of " + request.getCaller() + " could not be verified: " + e.getMessage());
 			return false;
 		}
 	}
@@ -780,10 +774,6 @@ public abstract class ExecutionEnvironment {
 			throw new TransactionException(mctfr.getClassNameOfCause(), mctfr.getMessageOfCause(), mctfr.getWhere());
 		else
 			return Optional.empty(); // void methods return no value
-	}
-
-	protected final BigInteger getBalance(StorageReference contract) throws UnknownReferenceException, FieldNotFoundException, StoreException {
-		return getBigIntegerField(contract, FieldSignatures.BALANCE_FIELD);
 	}
 
 	private String getStringField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {

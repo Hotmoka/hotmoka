@@ -21,6 +21,7 @@ import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.function.Function;
 
+import io.hotmoka.exceptions.functions.FunctionWithExceptions2;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
@@ -91,8 +92,11 @@ public interface StoreCache {
 	 * @param classpath the class path that must be used by the class loader
 	 * @param ifMissing a computation executed for cache misses
 	 * @return the class loader
+	 * @throws StoreException if the store is not able to complete the operation correctly
+	 * @throws ClassLoaderCreationException if the class loader cannot be created, for instance because the {@code classpath}
+	 *                                      refers to some failed transaction
 	 */
-	EngineClassLoader getClassLoader(TransactionReference classpath, Function<TransactionReference, EngineClassLoader> ifMissing);
+	EngineClassLoader getClassLoader(TransactionReference classpath, FunctionWithExceptions2<TransactionReference, EngineClassLoader, StoreException, ClassLoaderCreationException> ifMissing) throws StoreException, ClassLoaderCreationException;
 
 	/**
 	 * Determines if the signature of a request is valid, using a cache to avoid repeated checks, if possible.

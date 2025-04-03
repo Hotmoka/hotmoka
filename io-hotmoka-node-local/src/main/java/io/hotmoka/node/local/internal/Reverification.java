@@ -27,7 +27,6 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import io.hotmoka.node.TransactionResponses;
-import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.GenericJarStoreTransactionRequest;
@@ -41,6 +40,7 @@ import io.hotmoka.node.api.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.AbstractStoreTransformation;
+import io.hotmoka.node.local.api.ClassLoaderCreationException;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.builders.ExecutionEnvironment;
 import io.hotmoka.verification.TakamakaClassLoaders;
@@ -79,9 +79,9 @@ public class Reverification {
 	 * @param environment the execution environment where the reverification is performed
 	 * @param consensus the consensus parameters to use for reverification
 	 * @throws StoreException if the operation cannot be completed correctly
-	 * @throws TransactionRejectedException if some of the transactions do not exist or did not install a jar in store
+	 * @throws ClassLoaderCreationException if some of the transactions do not exist or did not install a jar in store
 	 */
-	public Reverification(Stream<TransactionReference> transactions, ExecutionEnvironment environment, ConsensusConfig<?,?> consensus) throws StoreException, TransactionRejectedException {
+	public Reverification(Stream<TransactionReference> transactions, ExecutionEnvironment environment, ConsensusConfig<?,?> consensus) throws StoreException, ClassLoaderCreationException {
 		this.environment = environment;
 		this.consensus = consensus;
 
@@ -138,11 +138,11 @@ public class Reverification {
 	 * @return the responses of the requests that have tried to install classpath and all its dependencies;
 	 *         this can either be made of successful responses only or it can contain a single failed response only
 	 * @throws StoreException if the store of the node is misbehaving
-	 * @throws TransactionRejectedException if the transaction does not exist or did not install a jar in store
+	 * @throws ClassLoaderCreationException if the transaction does not exist or did not install a jar in store
 	 */
-	private List<? extends GenericJarStoreTransactionResponse> reverify(TransactionReference transaction, AtomicInteger counter, boolean wasDependencyInStore) throws StoreException, TransactionRejectedException {
+	private List<? extends GenericJarStoreTransactionResponse> reverify(TransactionReference transaction, AtomicInteger counter, boolean wasDependencyInStore) throws StoreException, ClassLoaderCreationException {
 		if (counter.incrementAndGet() > consensus.getMaxDependencies())
-			throw new TransactionRejectedException("Too many dependencies in classpath: the maximum is " + consensus.getMaxDependencies());
+			throw new ClassLoaderCreationException("Too many dependencies in classpath: the maximum is " + consensus.getMaxDependencies());
 
 		JarStoreTransactionResponseWithInstrumentedJar response = getResponse(transaction, wasDependencyInStore);
 		var reverifiedDependencies = new ArrayList<JarStoreTransactionResponseWithInstrumentedJar>();
@@ -169,7 +169,7 @@ public class Reverification {
 			return List.of(reverifiedResponse); // it's a failed response
 	}
 	
-	private List<GenericJarStoreTransactionResponse> reverifiedDependenciesOf(JarStoreTransactionResponseWithInstrumentedJar response, AtomicInteger counter) throws StoreException, TransactionRejectedException {
+	private List<GenericJarStoreTransactionResponse> reverifiedDependenciesOf(JarStoreTransactionResponseWithInstrumentedJar response, AtomicInteger counter) throws StoreException, ClassLoaderCreationException {
 		var reverifiedDependencies = new ArrayList<GenericJarStoreTransactionResponse>();
 		for (var dependency: response.getDependencies().toArray(TransactionReference[]::new))
 			reverifiedDependencies.addAll(reverify(dependency, counter, true));
@@ -282,9 +282,9 @@ public class Reverification {
 	 * @param transaction the reference of the transaction
 	 * @return the response
 	 * @throws StoreException if the store is misbehaving
-	 * @throws TransactionRejectedException if the transaction does not exist in the store, or did not generate a response with instrumented jar
+	 * @throws ClassLoaderCreationException if the transaction does not exist in the store, or did not generate a response with instrumented jar
 	 */
-	private JarStoreTransactionResponseWithInstrumentedJar getResponse(TransactionReference transaction, boolean wasDependencyInStore) throws StoreException, TransactionRejectedException {
+	private JarStoreTransactionResponseWithInstrumentedJar getResponse(TransactionReference transaction, boolean wasDependencyInStore) throws StoreException, ClassLoaderCreationException {
 		try {
 			TransactionResponse response = environment.getResponse(transaction);
 
@@ -292,19 +292,19 @@ public class Reverification {
 				if (gjstr instanceof JarStoreTransactionResponseWithInstrumentedJar trwij)
 					return trwij;
 				else
-					throw new TransactionRejectedException("The transaction " + transaction + " under reverification failed to install a jar in store");
+					throw new ClassLoaderCreationException("The transaction " + transaction + " under reverification failed to install a jar in store");
 			}
 			else
 				if (wasDependencyInStore)
 					throw new StoreException("Transaction " + transaction + " under reverification was a depdency of a transaction in store, hence it was expected to be a jar store transaction, but it is a " + response.getClass().getSimpleName());
 				else
-					throw new TransactionRejectedException("The transaction " + transaction + " under reverification is not a jar store transaction");
+					throw new ClassLoaderCreationException("The transaction " + transaction + " under reverification is not a jar store transaction");
 		}
 		catch (UnknownReferenceException e) {
 			if (wasDependencyInStore)
 				throw new StoreException("Transaction " + transaction + " under reverification was a depdency of a transaction in store, hence it was expected to exist, but it cannot be found in store");
 			else
-				throw new TransactionRejectedException("Unknown transaction reference " + transaction + " under reverification");
+				throw new ClassLoaderCreationException("Unknown transaction reference " + transaction + " under reverification");
 		}
 	}
 }
