@@ -17,6 +17,8 @@ limitations under the License.
 package io.hotmoka.node.local.internal;
 
 import java.util.Optional;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.api.Hasher;
@@ -71,8 +73,6 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
 	private AbstractStoreImpl(N node, Optional<StoreCache> cache) throws StoreException {
-		super(node.getExecutors());
-
 		this.node = node;
 		this.cache = cache.isPresent() ? cache.get() : new StoreCacheImpl();
 
@@ -121,24 +121,10 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 		return System.currentTimeMillis();
 	}
 
-	/**
-	 * Yields a store identical to this, but for its cache, that is set as given.
-	 * 
-	 * @param cache the cache to set in the resulting store
-	 * @return the resulting store
-	 * @throws StoreException if the operation cannot be completed correctly
-	 */
-	protected abstract S withCache(StoreCache cache) throws StoreException;
-
-	/**
-	 * Begins a new store transformation.
-	 * 
-	 * @param consensus the consensus configuration at the beginning of the transformation
-	 * @param now the time used as current time for the transactions executed in the transformation
-	 * @return the transformation
-	 * @throws StoreException if the operation cannot be completed correctly
-	 */
-	protected abstract T beginTransformation(ConsensusConfig<?,?> consensus, long now) throws StoreException;
+	@Override
+	protected final <X> Future<X> submit(Callable<X> task) {
+		return node.getExecutors().submit(task);
+	}
 
 	@Override
 	protected final StoreCache getCache() {
@@ -149,6 +135,15 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	protected final Hasher<TransactionRequest<?>> getHasher() {
 		return node.getHasher();
 	}
+
+	/**
+	 * Yields a store identical to this, but for its cache, that is set as given.
+	 * 
+	 * @param cache the cache to set in the resulting store
+	 * @return the resulting store
+	 * @throws StoreException if the operation cannot be completed correctly
+	 */
+	protected abstract S withCache(StoreCache cache) throws StoreException;
 
 	/**
 	 * Yields the node having this store.
@@ -171,4 +166,14 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	protected final StorageReference getCreator(StorageReference event) throws UnknownReferenceException, FieldNotFoundException, StoreException {
 		return getReferenceField(event, FieldSignatures.EVENT_CREATOR_FIELD);
 	}
+
+	/**
+	 * Begins a new store transformation.
+	 * 
+	 * @param consensus the consensus configuration at the beginning of the transformation
+	 * @param now the time used as current time for the transactions executed in the transformation
+	 * @return the transformation
+	 * @throws StoreException if the operation cannot be completed correctly
+	 */
+	protected abstract T beginTransformation(ConsensusConfig<?,?> consensus, long now) throws StoreException;
 }

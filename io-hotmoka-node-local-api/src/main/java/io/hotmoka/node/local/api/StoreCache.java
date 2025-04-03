@@ -19,9 +19,10 @@ package io.hotmoka.node.local.api;
 import java.math.BigInteger;
 import java.util.Optional;
 import java.util.OptionalLong;
-import java.util.function.Function;
 
 import io.hotmoka.exceptions.functions.FunctionWithExceptions2;
+import io.hotmoka.exceptions.functions.FunctionWithExceptions3;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
@@ -104,8 +105,11 @@ public interface StoreCache {
 	 * @param reference the reference of the request
 	 * @param ifMissing a computation executed for cache misses
 	 * @return true if the signature of the request was successfully checked
+	 * @throws StoreException if the store is not able to complete the operation correctly
+	 * @throws UnknownReferenceException if the caller of the request cannot be found in store
+	 * @throws FieldNotFoundException if the caller of the request has no field for its public key; hence it is not really an account
 	 */
-	boolean signatureIsValid(TransactionReference reference, Function<TransactionReference, Boolean> ifMissing);
+	boolean signatureIsValid(TransactionReference reference, FunctionWithExceptions3<TransactionReference, Boolean, StoreException, UnknownReferenceException, FieldNotFoundException> ifMissing) throws StoreException, UnknownReferenceException, FieldNotFoundException;
 
 	/**
 	 * Yields a new cache with a new gas price.

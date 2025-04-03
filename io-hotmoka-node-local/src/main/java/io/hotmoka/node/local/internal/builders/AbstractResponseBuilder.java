@@ -100,7 +100,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * {@linkplain io.hotmoka.node.local.internal.runtime.Runtime} class
 	 * can recover it from its thread-local table.
 	 */
-	public abstract class ResponseCreator {
+	public abstract class ResponseCreator { // TODO: this should be merged into the response builder
 
 		/**
 		 * The object that deserializes storage objects into RAM values.

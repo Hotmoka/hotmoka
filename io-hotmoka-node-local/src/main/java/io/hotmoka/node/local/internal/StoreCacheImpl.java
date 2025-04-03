@@ -20,16 +20,18 @@ import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.OptionalLong;
-import java.util.function.Function;
 
 import io.hotmoka.exceptions.functions.FunctionWithExceptions2;
+import io.hotmoka.exceptions.functions.FunctionWithExceptions3;
 import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.LRUCache;
 import io.hotmoka.node.local.api.ClassLoaderCreationException;
 import io.hotmoka.node.local.api.EngineClassLoader;
+import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
 
@@ -194,7 +196,7 @@ public class StoreCacheImpl implements StoreCache {
 	}
 
 	@Override
-	public final boolean signatureIsValid(TransactionReference reference, Function<TransactionReference, Boolean> ifMissing) {
-		return checkedSignatures.computeIfAbsent(reference, ifMissing);
+	public final boolean signatureIsValid(TransactionReference reference, FunctionWithExceptions3<TransactionReference, Boolean, StoreException, UnknownReferenceException, FieldNotFoundException> ifMissing) throws StoreException, UnknownReferenceException, FieldNotFoundException {
+		return checkedSignatures.computeIfAbsent(reference, ifMissing, StoreException.class, UnknownReferenceException.class, FieldNotFoundException.class);
 	}
 }

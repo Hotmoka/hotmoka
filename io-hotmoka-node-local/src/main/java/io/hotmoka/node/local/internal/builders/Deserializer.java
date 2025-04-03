@@ -90,7 +90,7 @@ public class Deserializer {
 	 * @throws DeserializationException if deserialization fails
 	 * @throws StoreException if the operation could not be completed correctly
 	 */
-	public Object deserialize(StorageValue value) throws DeserializationException, StoreException {
+	public Object deserialize(StorageValue value) throws DeserializationException, StoreException { // TODO remove DeserializationExceptin and use StoreException instead, possibly add UnknownReferenceException
 		if (value instanceof StorageReference sr) {
 			// we use a cache to provide the same value if the same reference gets deserialized twice
 			FunctionWithExceptions2<StorageReference, ? extends Object, DeserializationException, StoreException> createStorageObject = this::createStorageObject;

@@ -32,7 +32,6 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -44,7 +43,6 @@ import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.exceptions.CheckSupplier;
 import io.hotmoka.exceptions.UncheckFunction;
-import io.hotmoka.exceptions.functions.FunctionWithExceptions3;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.TransactionReferences;
@@ -96,30 +94,21 @@ public abstract class ExecutionEnvironment {
 	private final static Logger LOGGER = Logger.getLogger(ExecutionEnvironment.class.getName());
 
 	/**
-	 * The executors to use to spawn new tasks.
-	 */
-	private final ExecutorService executors;
-
-	/**
 	 * Enough gas for a simple get method.
 	 */
 	private final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
 
 	/**
-	 * Creates an execution environment whose transactions are executed with the given executors.
-	 * 
-	 * @param executors the executors to use to spawn new tasks
+	 * Creates an execution environment.
 	 */
-	protected ExecutionEnvironment(ExecutorService executors) {
-		this.executors = executors;
-	}
+	protected ExecutionEnvironment() {}
 
 	/**
 	 * Runs an instance {@code @@View} method of an object already in this environment.
 	 * The node's store is not expanded, since the execution of the method has no side-effects.
 	 * 
 	 * @param request the transaction request
-	 * @return the result of the call, if the method was successfully executed, without exception. This is empty
+	 * @return the result of the call, if the method was successfully executed, without exception; this is empty
 	 *         if and only if the method is declared to return {@code void}
 	 * @throws TransactionRejectedException if the transaction could not be executed
 	 * @throws CodeExecutionException if the transaction could be executed but led to an exception in the user code,
@@ -138,7 +127,7 @@ public abstract class ExecutionEnvironment {
 	 * The node's store is not expanded, since the execution of the method has no side-effects.
 	 * 
 	 * @param request the transaction request
-	 * @return the result of the call, if the method was successfully executed, without exception. This is empty
+	 * @return the result of the call, if the method was successfully executed, without exception; this is empty
 	 *         if and only if the method is declared to return {@code void}
 	 * @throws TransactionRejectedException if the transaction could not be executed
 	 * @throws CodeExecutionException if the transaction could be executed but led to an exception in the user code,
@@ -497,7 +486,7 @@ public abstract class ExecutionEnvironment {
 	 * @throws ClassLoaderCreationException if the class loader cannot be created
 	 */
 	protected final EngineClassLoader getClassLoader(TransactionReference classpath, ConsensusConfig<?,?> consensus) throws StoreException, ClassLoaderCreationException {
-		return getCache().getClassLoader(classpath, _classpath -> mkClassLoader(_classpath, consensus));
+		return getCache().getClassLoader(classpath, _classpath -> new EngineClassLoaderImpl(null, Stream.of(_classpath), this, consensus));
 	}
 
 	/**
@@ -584,7 +573,7 @@ public abstract class ExecutionEnvironment {
 		try {
 			// YoutKit suggests that this is a hotspot if streams are used instead of iterative programming
 			for (var transaction: history.toArray(TransactionReference[]::new)) {
-				var lastUpdate = getLastUpdate(object, field, transaction);
+				var lastUpdate = getUpdateFromTransactionInHistory(object, field, transaction);
 				if (lastUpdate.isPresent())
 					return lastUpdate.get();
 			}
@@ -610,7 +599,7 @@ public abstract class ExecutionEnvironment {
 	 */
 	protected final UpdateOfField getLastUpdateToFinalField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
 		// it accesses directly the transaction that created the object
-		return getLastUpdate(object, field, object.getTransaction()).orElseThrow(() -> new FieldNotFoundException(field));
+		return getUpdateFromTransactionInHistory(object, field, object.getTransaction()).orElseThrow(() -> new FieldNotFoundException(field));
 	}
 
 	/**
@@ -733,11 +722,18 @@ public abstract class ExecutionEnvironment {
 		}
 	}
 
-	protected final boolean signatureIsValid(SignedTransactionRequest<?> request, SignatureAlgorithm signatureAlgorithm) throws StoreException, UnknownReferenceException, FieldNotFoundException {
-		var reference = TransactionReferences.of(getHasher().hash(request));
-		FunctionWithExceptions3<TransactionReference, Boolean, StoreException, UnknownReferenceException, FieldNotFoundException> verifySignature = _reference -> verifySignature(signatureAlgorithm, request);
-		return CheckSupplier.check(StoreException.class, UnknownReferenceException.class, FieldNotFoundException.class, () ->
-			getCache().signatureIsValid(reference, UncheckFunction.uncheck(StoreException.class, UnknownReferenceException.class, FieldNotFoundException.class, verifySignature)));
+	/**
+	 * Verifies the signature of a request is valid, by using a cache to avoid repeated checks, if possible.
+	 * 
+	 * @param request the request
+	 * @param algorithm the signature algorithm to use for checking the validity of the signature
+	 * @return true if and only if the signature of {@code request} could be successfully validated
+	 * @throws StoreException if the store is not able to complete the operation correctly
+	 * @throws UnknownReferenceException if the caller of the request cannot be found in store
+	 * @throws FieldNotFoundException if the caller of the request has no field for its public key; hence it is not really an account
+	 */
+	protected final boolean signatureIsValid(SignedTransactionRequest<?> request, SignatureAlgorithm algorithm) throws StoreException, UnknownReferenceException, FieldNotFoundException {
+		return getCache().signatureIsValid(TransactionReferences.of(getHasher().hash(request)), _reference -> verifySignature(request, algorithm));
 	}
 
 	/**
@@ -747,9 +743,7 @@ public abstract class ExecutionEnvironment {
 	 * @param task the task
 	 * @return a future of the task
 	 */
-	protected final <X> Future<X> submit(Callable<X> task) {
-		return executors.submit(task);
-	}
+	protected abstract <X> Future<X> submit(Callable<X> task);
 
 	/**
 	 * Yields the builder of a response for a request of a transaction.
@@ -840,17 +834,36 @@ public abstract class ExecutionEnvironment {
 		return getCache().getInflation();
 	}
 
+	/**
+	 * Yields the hasher to use for the requests of transactions.
+	 * 
+	 * @return the hasher to use for the requests of transactions
+	 */
 	protected abstract Hasher<TransactionRequest<?>> getHasher();
 
-	private EngineClassLoaderImpl mkClassLoader(TransactionReference classpath, ConsensusConfig<?,?> consensus) throws StoreException, ClassLoaderCreationException {
-		return new EngineClassLoaderImpl(null, Stream.of(classpath), this, consensus);
-	}
-
-	private boolean verifySignature(SignatureAlgorithm signature, SignedTransactionRequest<?> request) throws StoreException, UnknownReferenceException, FieldNotFoundException {
+	/**
+	 * Verifies the signature of the given signed request.
+	 * 
+	 * @param request the signed request
+	 * @param algorithm the signature algorithm to use
+	 * @return true if and only if the signature is valid
+	 * @throws StoreException is the store is misbehaving
+	 * @throws UnknownReferenceException if the caller of {@code request} cannot be found in store, hence its public key cannot be recovered
+	 * @throws FieldNotFoundException if the caller of {@code request} has no field for its public key, hence it is not really an account
+	 */
+	private boolean verifySignature(SignedTransactionRequest<?> request, SignatureAlgorithm algorithm) throws StoreException, UnknownReferenceException, FieldNotFoundException {
 		try {
-			return signature.getVerifier(getPublicKey(request.getCaller(), signature), SignedTransactionRequest<?>::toByteArrayWithoutSignature).verify(request, request.getSignature());
+			return algorithm.getVerifier(getPublicKey(request.getCaller(), algorithm), SignedTransactionRequest<?>::toByteArrayWithoutSignature).verify(request, request.getSignature());
 		}
-		catch (InvalidKeyException | SignatureException | Base64ConversionException | InvalidKeySpecException e) {
+		catch (InvalidKeyException | InvalidKeySpecException e) {
+			LOGGER.info("the signature of " + request.getCaller() + " could not be verified since its key is invalid: " + e.getMessage());
+			return false;
+		}
+		catch (Base64ConversionException e) {
+			LOGGER.info("the signature of " + request.getCaller() + " could not be verified since its public key is not encoded in Base64 format: " + e.getMessage());
+			return false;
+		}
+		catch (SignatureException e) {
 			LOGGER.info("the signature of " + request.getCaller() + " could not be verified: " + e.getMessage());
 			return false;
 		}
@@ -861,11 +874,11 @@ public abstract class ExecutionEnvironment {
 	 * 
 	 * @param object the reference of the object
 	 * @param field the field of the object
-	 * @param reference the reference to the transaction
-	 * @return the update, if any. If the field of {@code object} was not modified during
-	 *         the {@code transaction}, this method returns an empty optional
+	 * @param reference the reference to the transaction; this is assume to be a transaction of the history of {@code object}
+	 * @return the update, if any; if the field of {@code object} was not modified during
+	 *         the {@code transaction}, the result is empty
 	 */
-	private Optional<UpdateOfField> getLastUpdate(StorageReference object, FieldSignature field, TransactionReference reference) throws UnknownReferenceException, StoreException {
+	private Optional<UpdateOfField> getUpdateFromTransactionInHistory(StorageReference object, FieldSignature field, TransactionReference reference) throws UnknownReferenceException, StoreException {
 		if (getResponse(reference) instanceof TransactionResponseWithUpdates trwu)
 			return trwu.getUpdates()
 					.filter(update -> update instanceof UpdateOfField)
@@ -873,27 +886,38 @@ public abstract class ExecutionEnvironment {
 					.filter(update -> update.getObject().equals(object) && update.getField().equals(field))
 					.findFirst(); // TODO: hotspot
 		else
-			throw new StoreException("Transaction reference " + reference + " does not contain updates");
+			throw new StoreException("Transaction reference " + reference + " belongs to the history of " + object + " but it does not contain updates");
 	}
 
 	/**
-	 * Yields the public key of the given externally owned account.
+	 * Yields the public key of the given account.
 	 * 
-	 * @param reference the account
-	 * @param signatureAlgorithm the signing algorithm used for the request
+	 * @param account the account
+	 * @param algorithm the signing algorithm used for the request
 	 * @return the public key
-	 * @throws Base64ConversionException 
-	 * @throws InvalidKeySpecException 
-	 * @throws StoreException 
-	 * @throws FieldNotFoundException 
-	 * @throws UnknownReferenceException 
+	 * @throws Base64ConversionException if the public key of {@code account} is not Base64-encoded
+	 * @throws InvalidKeySpecException if the public key of {@code account} is invalid for {@code algorithm}
+	 * @throws StoreException if the store is misbehaving
+	 * @throws FieldNotFoundException if the field holding the public key of {@code account} cannot be found, which means
+	 *                                that it is not really an account
+	 * @throws UnknownReferenceException if {@code account} cannot be found in store
 	 */
-	private PublicKey getPublicKey(StorageReference reference, SignatureAlgorithm signatureAlgorithm) throws Base64ConversionException, InvalidKeySpecException, UnknownReferenceException, FieldNotFoundException, StoreException {
-		String publicKeyEncodedBase64 = getPublicKey(reference);
+	private PublicKey getPublicKey(StorageReference account, SignatureAlgorithm algorithm) throws Base64ConversionException, InvalidKeySpecException, UnknownReferenceException, FieldNotFoundException, StoreException {
+		String publicKeyEncodedBase64 = getPublicKey(account);
 		byte[] publicKeyEncoded = Base64.fromBase64String(publicKeyEncodedBase64);
-		return signatureAlgorithm.publicKeyFromEncoding(publicKeyEncoded);
+		return algorithm.publicKeyFromEncoding(publicKeyEncoded);
 	}
 
+	/**
+	 * Yields the outcome contained in the given transaction response.
+	 * 
+	 * @param response the transaction response
+	 * @return the outcome
+	 * @throws CodeExecutionException if the response threw an exception inside user code, that is allowed
+	 *                                to be thrown by the called method or constructor
+	 * @throws TransactionException if the response threw an exception outside user code, or that is not allowed
+	 *                              to be thrown by the called method or constructor
+	 */
 	private Optional<StorageValue> getOutcome(MethodCallTransactionResponse response) throws CodeExecutionException, TransactionException {
 		if (response instanceof NonVoidMethodCallTransactionSuccessfulResponse mctsr)
 			return Optional.of(mctsr.getResult());
@@ -905,6 +929,16 @@ public abstract class ExecutionEnvironment {
 			return Optional.empty(); // void methods return no value
 	}
 
+	/**
+	 * Yields the value of the given string field of the given object.
+	 * 
+	 * @param object the object
+	 * @param field the field, of string type
+	 * @return the value of {@code field} of {@code object}
+	 * @throws UnknownReferenceException if {@code object} cannot be found in store
+	 * @throws FieldNotFoundException if {@code object} does not have the given {@code field}
+	 * @throws StoreException if the store is misbehaving
+	 */
 	private String getStringField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
 		if (getLastUpdateToField(object, field).getValue() instanceof StringValue sv)
 			return sv.getValue();

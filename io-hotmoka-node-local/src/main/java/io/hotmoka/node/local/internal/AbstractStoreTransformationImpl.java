@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -136,8 +138,6 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	 * @param now the current time to use for the execution of the transactions delivered into the transformation
 	 */
 	protected AbstractStoreTransformationImpl(S store, ConsensusConfig<?,?> consensus, long now) {
-		super(store.getNode().getExecutors());
-
 		this.store = store;
 		this.now = now;
 		this.cache = store.getCache().setConfig(consensus);
@@ -211,6 +211,11 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	@Override
 	public final long getNow() {
 		return now;
+	}
+
+	@Override
+	protected final <X> Future<X> submit(Callable<X> task) {
+		return store.getNode().getExecutors().submit(task);
 	}
 
 	@Override
