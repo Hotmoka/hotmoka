@@ -534,28 +534,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	/**
-	 * Checks that the given transaction request is valid.
-	 * 
-	 * @param request the request
-	 * @throws TransactionRejectedException if the request is not valid
-	 * @throws NodeException if this node is not able to perform the operation
-	 * @throws InterruptedException if the current thread is interrupted while performing the operation
-	 */
-	protected final void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException, NodeException, InterruptedException {
-		S store = enterHead();
-
-		try {
-			store.checkTransaction(request);
-		}
-		catch (StoreException e) {
-			throw new NodeException(e);
-		}
-		finally {
-			exit(store);
-		}
-	}
-
-	/**
 	 * Publishes the given transaction, that is, takes note that it has been added to the store
 	 * of this node and became visible to its users. This method will signal all tasks waiting
 	 * for the completion of the transaction and will trigger all events contained

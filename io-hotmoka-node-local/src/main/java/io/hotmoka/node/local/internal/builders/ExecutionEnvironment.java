@@ -753,16 +753,13 @@ public abstract class ExecutionEnvironment {
 
 	/**
 	 * Yields the builder of a response for a request of a transaction.
-	 * This method can be redefined in subclasses in order to accomodate
-	 * new kinds of transactions, specific to a node.
 	 * 
 	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request
 	 * @return the builder
-	 * @throws TransactionRejectedException if the builder cannot be created
 	 * @throws StoreException if the store is misbehaving
 	 */
-	protected final ResponseBuilder<?,?> responseBuilderFor(TransactionReference reference, TransactionRequest<?> request) throws TransactionRejectedException, StoreException {
+	protected final ResponseBuilder<?,?> responseBuilderFor(TransactionReference reference, TransactionRequest<?> request) throws StoreException {
 		if (request instanceof JarStoreInitialTransactionRequest jsitr)
 			return new JarStoreInitialResponseBuilder(reference, jsitr, this);
 		else if (request instanceof GameteCreationTransactionRequest gctr)

@@ -181,15 +181,9 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 				while (true) {
 					TransactionRequest<?> current = mempool.take();
 
-					try {
-						checkTransaction(current);
-						if (!checkedMempool.offer(current)) {
-							deliverer.interrupt();
-							throw new NodeException("Mempool overflow");
-						}
-					}
-					catch (TransactionRejectedException e) {
-						signalRejected(current, e);
+					if (!checkedMempool.offer(current)) {
+						deliverer.interrupt();
+						throw new NodeException("Mempool overflow");
 					}
 				}
 			}

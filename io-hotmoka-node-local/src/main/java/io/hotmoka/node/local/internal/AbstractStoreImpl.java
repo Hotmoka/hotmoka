@@ -17,14 +17,11 @@ limitations under the License.
 package io.hotmoka.node.local.internal;
 
 import java.util.Optional;
-import java.util.logging.Logger;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.node.FieldSignatures;
-import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
@@ -65,8 +62,6 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	 * {@link io.hotmoka.node.local.api.LocalNodeConfig#getMaxGasPerViewTransaction()}.
 	 */
 	private final ConsensusConfig<?,?> consensusForViews;
-
-	private final static Logger LOGGER = Logger.getLogger(AbstractStoreImpl.class.getName());
 
 	/**
 	 * Creates an empty store, with the given cache.
@@ -118,24 +113,6 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	@Override
 	public final T beginViewTransformation() throws StoreException {
 		return beginTransformation(consensusForViews, getNow());
-	}
-
-	@Override
-	public final void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException, StoreException {
-		var reference = TransactionReferences.of(getHasher().hash(request));
-		String referenceAsString = reference.toString();
-
-		try {
-			LOGGER.info(referenceAsString + ": checking start");
-			responseBuilderFor(reference, request);
-			LOGGER.info(referenceAsString + ": checking success");
-		}
-		catch (TransactionRejectedException e) {
-			// we do not write the error message in the store, since a failed check request means that nobody
-			// is paying for it and therefore we do not want to expand the store
-			LOGGER.warning(referenceAsString + ": checking failed: " + e.getMessage());
-			throw e;
-		}
 	}
 
 	@Override

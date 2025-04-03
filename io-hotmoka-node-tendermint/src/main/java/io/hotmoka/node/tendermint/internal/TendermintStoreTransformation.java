@@ -107,7 +107,7 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 	 * @throws StoreException if the store is not able to complete the operation correctly
 	 * @throws InterruptedException if the current thread is interrupted before delivering the transaction
 	 */
-	protected final void deliverRewardTransactionToValidators(String behaving, String misbehaving) throws StoreException, InterruptedException {
+	protected final void deliverCoinbaseTransactions(String behaving, String misbehaving) throws StoreException, InterruptedException {
 		Optional<StorageReference> maybeManifest = getManifest();
 		if (maybeManifest.isEmpty())
 			return;

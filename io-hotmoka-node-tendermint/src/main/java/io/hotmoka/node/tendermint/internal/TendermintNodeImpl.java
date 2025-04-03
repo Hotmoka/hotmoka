@@ -605,28 +605,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 
 		@Override
 		protected ResponseCheckTx checkTx(RequestCheckTx request) {
-			var tx = request.getTx();
-	        ResponseCheckTx.Builder responseBuilder = ResponseCheckTx.newBuilder();
-
-	        try (var context = NodeUnmarshallingContexts.of(new ByteArrayInputStream(tx.toByteArray()))) {
-	        	var hotmokaRequest = TransactionRequests.from(context);
-
-	        	try {
-	        		checkTransaction(hotmokaRequest);
-	        	}
-	        	catch (TransactionRejectedException e) {
-	        		signalRejected(hotmokaRequest, e);
-	        		throw e;
-	        	}
-
-	        	responseBuilder.setCode(0);
-	        }
-	        catch (Throwable t) {
-	        	responseBuilder.setCode(t instanceof TransactionRejectedException ? 1 : 2);
-	        	responseBuilder.setData(ByteString.copyFromUtf8(t.getMessage()));
-			}
-
-	        return responseBuilder.build();
+	        return ResponseCheckTx.newBuilder().build();
 		}
 
 		@Override
@@ -700,7 +679,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		@Override
 		protected ResponseCommit commit(RequestCommit request) throws NodeException {
 			try {
-				transformation.deliverRewardTransactionToValidators(behaving, misbehaving);
+				transformation.deliverCoinbaseTransactions(behaving, misbehaving);
 
 				StateId idOfNewStoreOfHead = CheckSupplier.check(NodeException.class, StoreException.class, () -> getEnvironment().computeInTransaction(UncheckFunction.uncheck(txn -> {
 					StateId stateIdOfFinalStore = transformation.getIdOfFinalStore(txn);

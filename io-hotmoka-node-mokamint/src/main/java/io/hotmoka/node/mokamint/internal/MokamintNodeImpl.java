@@ -286,18 +286,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 		@Override
 		public void checkTransaction(Transaction transaction) throws io.mokamint.node.api.TransactionRejectedException, ApplicationException, TimeoutException, InterruptedException {
-			TransactionRequest<?> hotmokaRequest = intoHotmokaRequest(transaction);
-
-			try {
-				MokamintNodeImpl.this.checkTransaction(hotmokaRequest);
-			}
-			catch (TransactionRejectedException e) {
-				signalRejected(hotmokaRequest, e);
-				throw new io.mokamint.node.api.TransactionRejectedException(e.getMessage(), e);
-			}
-			catch (NodeException e) {
-				throw new ApplicationException(e);
-			}
+			// nothing, there is nothing we can check for Hotmoka
 		}
 
 		@Override

@@ -155,8 +155,10 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	    		String requestedNodeType = System.getProperty("nodeType");
 	    		if ("tendermint".equals(requestedNodeType))
 	    			node = wrapped = mkTendermintNode();
-	    		else if ("mokamint".equals(requestedNodeType))
+	    		else if ("mokamint".equals(requestedNodeType) || "mokamint1".equals(requestedNodeType))
 	    			node = wrapped = mkMokamintNetwork(1);
+	    		else if ("mokamint4".equals(requestedNodeType))
+	    			node = wrapped = mkMokamintNetwork(4);
 	    		else if ("disk".equals(requestedNodeType))
 	    			node = wrapped = mkDiskNode();
 	    		else {
