@@ -245,7 +245,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * 
 		 * @return true if and only if the request is signed and the transaction is not a view transaction
 		 */
-		protected boolean transactionIsSigned() {
+		protected boolean transactionIsSigned() throws StoreException {
 			return !isView() && request instanceof SignedTransactionRequest;
 		}
 
@@ -302,7 +302,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * 
 		 * @throws TransactionRejectedException if the gas price is smaller than the current gas price of the node
 		 */
-		private void gasPriceIsLargeEnough() throws TransactionRejectedException {
+		private void gasPriceIsLargeEnough() throws TransactionRejectedException, StoreException {
 			if (transactionIsSigned() && !consensus.ignoresGasPrice()) {
 				Optional<BigInteger> maybeGasPrice = environment.getGasPrice();
 				// before initialization, the gas price is not yet available

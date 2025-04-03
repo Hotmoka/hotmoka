@@ -21,7 +21,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
@@ -64,17 +63,12 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		return new ResponseCreator().create();
 	}
 
-	private boolean callerIsGameteOfTheNode() {
-		try {
-			return environment.getGamete().filter(request.getCaller()::equals).isPresent();
-		}
-		catch (StoreException e) {
-			LOGGER.log(Level.SEVERE, "", e);
-			return false;
-		}
+	private boolean callerIsGameteOfTheNode() throws StoreException {
+		Optional<StorageReference> maybeGamete = environment.getGamete();
+		return maybeGamete.isPresent() && maybeGamete.get().equals(request.getCaller());
 	}
 
-	private boolean isCallToFaucet() {
+	private boolean isCallToFaucet() throws StoreException {
 		return consensus.allowsUnsignedFaucet() && request.getStaticTarget().getName().startsWith("faucet")
 			&& request.getStaticTarget().getDefiningClass().equals(StorageTypes.GAMETE) && request.getCaller().equals(request.getReceiver())
 			&& callerIsGameteOfTheNode();
@@ -230,7 +224,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		}
 
 		@Override
-		protected boolean transactionIsSigned() {
+		protected boolean transactionIsSigned() throws StoreException {
 			return super.transactionIsSigned() && !isCallToFaucet();
 		}
 

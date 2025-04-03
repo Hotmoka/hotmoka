@@ -500,6 +500,14 @@ public abstract class ExecutionEnvironment {
 		return getCache().getClassLoader(classpath, _classpath -> mkClassLoader(_classpath, consensus));
 	}
 
+	/**
+	 * Yields the class tag of the object at the given reference in store.
+	 * 
+	 * @param reference the reference to the object in store
+	 * @return the class tag of the object at {@code reference}
+	 * @throws UnknownReferenceException if {@code reference} does not refer to an object in store
+	 * @throws StoreException if the store is misbehaving
+	 */
 	protected final ClassTag getClassTag(StorageReference reference) throws UnknownReferenceException, StoreException {
 		// we go straight to the transaction that created the object
 		if (getResponse(reference.getTransaction()) instanceof TransactionResponseWithUpdates trwu) {
@@ -512,10 +520,28 @@ public abstract class ExecutionEnvironment {
 			throw new UnknownReferenceException("Transaction reference " + reference + " does not contain updates");
 	}
 
+	/**
+	 * Yields the name of the class of the object in store at the given reference.
+	 * 
+	 * @param reference the reference of the object
+	 * @return the class name of the object at {@code reference}
+	 * @throws UnknownReferenceException if {@code reference} is not bound to any object in store
+	 * @throws StoreException if the store is misbehaving
+	 */
 	protected final String getClassName(StorageReference reference) throws UnknownReferenceException, StoreException {
 		return getClassTag(reference).getClazz().getName();
 	}
 
+	/**
+	 * Yields the value of the given field of the given object in store, of type reference.
+	 * 
+	 * @param object the reference to the object in store
+	 * @param field the field
+	 * @return the value of {@code field} of {@code object}
+	 * @throws UnknownReferenceException if {@code object} cannot be found in store
+	 * @throws FieldNotFoundException if the field cannot be found or its type is not reference
+	 * @throws StoreException if the store is misbehaving
+	 */
 	protected final StorageReference getReferenceField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
 		if (getLastUpdateToField(object, field).getValue() instanceof StorageReference reference)
 			return reference;
@@ -523,6 +549,35 @@ public abstract class ExecutionEnvironment {
 			throw new FieldNotFoundException(field);
 	}
 
+	/**
+	 * Yields the value of the given field of the given object in store, of type {@code BigInteger}.
+	 * 
+	 * @param object the reference to the object in store
+	 * @param field the field
+	 * @return the value of {@code field} of {@code object}
+	 * @throws UnknownReferenceException if {@code object} cannot be found in store
+	 * @throws FieldNotFoundException if the field cannot be found or its type is not {@code BigInteger}
+	 * @throws StoreException if the store is misbehaving
+	 */
+	protected final BigInteger getBigIntegerField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
+		if (getLastUpdateToField(object, field).getValue() instanceof BigIntegerValue biv)
+			return biv.getValue();
+		else
+			throw new FieldNotFoundException(field);
+	}
+
+	/**
+	 * Yields the last update to the given field of the given object in store.
+	 * If the field is {@code final}, it is more optimized to call
+	 * {@link #getLastUpdateToFinalField(StorageReference, FieldSignature)}.
+	 * 
+	 * @param object the reference to the object in store
+	 * @param field the field
+	 * @return the last update of {@code field} of {@code object}
+	 * @throws UnknownReferenceException if {@code object} cannot be found in store
+	 * @throws FieldNotFoundException if {@code object} has not {@code field}
+	 * @throws StoreException if the store is misbehaving
+	 */
 	protected final UpdateOfField getLastUpdateToField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
 		Stream<TransactionReference> history = getHistory(object);
 
@@ -541,35 +596,52 @@ public abstract class ExecutionEnvironment {
 		}
 	}
 
+	/**
+	 * Yields the last update to the given {@code final} field of the given object in store.
+	 * If the field is not {@code final}, then {@link #getLastUpdateToField(StorageReference, FieldSignature)}
+	 * should be called instead.
+	 * 
+	 * @param object the reference to the object in store
+	 * @param field the field; this is assumed to be {@code final}
+	 * @return the last update of {@code field} of {@code object}
+	 * @throws UnknownReferenceException if {@code object} cannot be found in store
+	 * @throws FieldNotFoundException if {@code object} has not {@code field}
+	 * @throws StoreException if the store is misbehaving
+	 */
 	protected final UpdateOfField getLastUpdateToFinalField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
-		// accesses directly the transaction that created the object
+		// it accesses directly the transaction that created the object
 		return getLastUpdate(object, field, object.getTransaction()).orElseThrow(() -> new FieldNotFoundException(field));
 	}
 
+	/**
+	 * Yields the gamete of the node.
+	 * 
+	 * @return the gamete, if it is already set
+	 * @throws StoreException if the store is misbehaving
+	 */
 	protected final Optional<StorageReference> getGamete() throws StoreException {
 		var maybeManifest = getManifest();
-		if (maybeManifest.isPresent()) {
-			try {
-				return Optional.of(getReferenceField(maybeManifest.get(), FieldSignatures.MANIFEST_GAMETE_FIELD));
-			}
-			catch (FieldNotFoundException e) {
-				throw new StoreException("The manifest does not contain the reference to the gamete", e);
-			}
-			catch (UnknownReferenceException e) {
-				throw new StoreException("The manifest is set but cannot be found in store", e);
-			}
-		}
-		else
+		if (maybeManifest.isEmpty())
 			return Optional.empty();
+
+		try {
+			return Optional.of(getReferenceField(maybeManifest.get(), FieldSignatures.MANIFEST_GAMETE_FIELD));
+		}
+		catch (FieldNotFoundException e) {
+			throw new StoreException("The manifest does not contain the reference to the gamete", e);
+		}
+		catch (UnknownReferenceException e) {
+			throw new StoreException("The manifest is set but it cannot be found in store", e);
+		}
 	}
 
-	protected final BigInteger getBigIntegerField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
-		if (getLastUpdateToField(object, field).getValue() instanceof BigIntegerValue biv)
-			return biv.getValue();
-		else
-			throw new FieldNotFoundException(field);
-	}
-
+	/**
+	 * Yields the Takamaka code of the node, that is, the reference to the jar
+	 * that installed its manifest.
+	 * 
+	 * @return the Takamaka code, if it is already set
+	 * @throws StoreException if the store is misbehaving
+	 */
 	protected final Optional<TransactionReference> getTakamakaCode() throws StoreException {
 		var maybeManifest = getManifest();
 		if (maybeManifest.isEmpty())
@@ -579,7 +651,7 @@ public abstract class ExecutionEnvironment {
 			return Optional.of(getClassTag(maybeManifest.get()).getJar());
 		}
 		catch (UnknownReferenceException e) {
-			throw new StoreException("The manifest is set to something that is not an object", e);
+			throw new StoreException("The manifest is set but its calss tag cannot be found", e);
 		}
 	}
 
@@ -588,7 +660,7 @@ public abstract class ExecutionEnvironment {
 	 * 
 	 * @param account the account; this is assumed to actually refer to an account object in store
 	 * @return the nonce of {@code account}
-	 * @throws StoreException if the store is not able to complete the operation correctly
+	 * @throws StoreException if the store is misbehaving
 	 */
 	protected final BigInteger getNonce(StorageReference account) throws StoreException {
 		try {
@@ -600,6 +672,14 @@ public abstract class ExecutionEnvironment {
 		}
 	}
 
+	/**
+	 * Yields the set of updates describing the value of the eager fields of the given object.
+	 * 
+	 * @param object the object
+	 * @return the set of updates
+	 * @throws UnknownReferenceException if {@code object} cannot be found in store
+	 * @throws StoreException if the store is misbehaving
+	 */
 	protected final Stream<UpdateOfField> getEagerFields(StorageReference object) throws UnknownReferenceException, StoreException {
 		var fieldsAlreadySeen = new HashSet<FieldSignature>();
 
@@ -609,6 +689,16 @@ public abstract class ExecutionEnvironment {
 			.map(update -> (UpdateOfField) update);
 	}
 
+	/**
+	 * Yields the updates resulting from the execution of the transaction with the given reference.
+	 * It assumes that the transaction is part of the history of some object, hence it should exist
+	 * in store and should have generated updates.
+	 * 
+	 * @param referenceInHistory the reference to the transaction; this is assumed to be part of the
+	 *                           history of some object
+	 * @return the updates resulting from the execution of {@code referenceInHistory}
+	 * @throws StoreException if the store is misbehaving
+	 */
 	protected final Stream<Update> getUpdates(TransactionReference referenceInHistory) throws StoreException {
 		try {
 			if (getResponse(referenceInHistory) instanceof TransactionResponseWithUpdates trwu)
@@ -675,10 +765,11 @@ public abstract class ExecutionEnvironment {
 		return runInstanceMethodCallTransaction(request, TransactionReferences.of(getHasher().hash(request)));
 	}
 
-	protected final ExecutorService getExecutors() {
-		return executors;
-	}
-
+	/**
+	 * Yields the cache used by the store of the environment.
+	 * 
+	 * @return the cache
+	 */
 	protected abstract StoreCache getCache();
 
 	protected final Optional<StorageReference> getValidators() {

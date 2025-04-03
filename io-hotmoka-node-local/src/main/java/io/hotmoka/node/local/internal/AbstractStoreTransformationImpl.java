@@ -482,6 +482,15 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 		return false;
 	}
 
+	/**
+	 * Checks if the given reference refers to a consensus update event. It assumes that the
+	 * reference is actually in store.
+	 * 
+	 * @param event the reference to the event; this is assumed to be in store
+	 * @param classLoader the class loader
+	 * @return true if and only if that condition holds
+	 * @throws StoreException if the store is misbehaving
+	 */
 	private boolean isConsensusUpdateEvent(StorageReference event, TakamakaClassLoader classLoader) throws StoreException {
 		try {
 			return classLoader.isConsensusUpdateEvent(getClassName(event));
