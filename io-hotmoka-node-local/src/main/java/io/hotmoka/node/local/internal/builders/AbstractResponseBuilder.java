@@ -153,7 +153,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 
 					@Override
 					public final void replaceReverifiedResponses() throws StoreException {
-						((EngineClassLoaderImpl) classLoader).replaceReverifiedResponses();
+						classLoader.replaceReverifiedResponses();
 					}
 				};
 			}

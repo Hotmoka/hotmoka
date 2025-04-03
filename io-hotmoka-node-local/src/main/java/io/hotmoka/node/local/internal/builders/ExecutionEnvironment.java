@@ -651,25 +651,47 @@ public abstract class ExecutionEnvironment {
 			return Optional.of(getClassTag(maybeManifest.get()).getJar());
 		}
 		catch (UnknownReferenceException e) {
-			throw new StoreException("The manifest is set but its calss tag cannot be found", e);
+			throw new StoreException("The manifest is set but its class tag cannot be found", e);
 		}
 	}
 
 	/**
 	 * Yields the nonce of the given account.
 	 * 
-	 * @param account the account; this is assumed to actually refer to an account object in store
+	 * @param account the account
 	 * @return the nonce of {@code account}
+	 * @throws UnknownReferenceException if {@code account} is not found in store
+	 * @throws FieldNotFoundException if {@code account} has no field holding its nonce; this means that it is not really an account
 	 * @throws StoreException if the store is misbehaving
 	 */
-	protected final BigInteger getNonce(StorageReference account) throws StoreException {
-		try {
-			return getBigIntegerField(account, FieldSignatures.EOA_NONCE_FIELD);
-		}
-		catch (UnknownReferenceException | FieldNotFoundException e) {
-			// since reference is assumed to refer to an account in store, it must exist and have a nonce field or otherwise the store is corrupted
-			throw new StoreException(e);
-		}
+	protected final BigInteger getNonce(StorageReference account) throws UnknownReferenceException, FieldNotFoundException, StoreException {
+		return getBigIntegerField(account, FieldSignatures.EOA_NONCE_FIELD);
+	}
+
+	/**
+	 * Yields the public key of the given account.
+	 * 
+	 * @param account the account
+	 * @return the public key of {@code account}
+	 * @throws UnknownReferenceException if {@code account} is not found in store
+	 * @throws FieldNotFoundException if {@code account} has no field holding its public key; this means that it is not really an account
+	 * @throws StoreException if the store is misbehaving
+	 */
+	protected final String getPublicKey(StorageReference account) throws UnknownReferenceException, FieldNotFoundException, StoreException {
+		return getStringField(account, FieldSignatures.EOA_PUBLIC_KEY_FIELD);
+	}
+
+	/**
+	 * Yields the balance of the given contract.
+	 * 
+	 * @param contract the contract
+	 * @return the balance of {@code contract}
+	 * @throws UnknownReferenceException if {@code contract} is not found in store
+	 * @throws FieldNotFoundException if {@code contract} has no field holding its balance; this means that it is not really a contract
+	 * @throws StoreException if the store is misbehaving
+	 */
+	protected final BigInteger getBalance(StorageReference contract) throws UnknownReferenceException, FieldNotFoundException, StoreException {
+		return getBigIntegerField(contract, FieldSignatures.BALANCE_FIELD);
 	}
 
 	/**
@@ -718,10 +740,13 @@ public abstract class ExecutionEnvironment {
 			getCache().signatureIsValid(reference, UncheckFunction.uncheck(StoreException.class, UnknownReferenceException.class, FieldNotFoundException.class, verifySignature)));
 	}
 
-	protected final String getPublicKey(StorageReference account) throws UnknownReferenceException, FieldNotFoundException, StoreException {
-		return getStringField(account, FieldSignatures.EOA_PUBLIC_KEY_FIELD);
-	}
-
+	/**
+	 * Runs the given task with the executors of the node.
+	 * 
+	 * @param <X> the type of the result of the task
+	 * @param task the task
+	 * @return a future of the task
+	 */
 	protected final <X> Future<X> submit(Callable<X> task) {
 		return executors.submit(task);
 	}
@@ -735,6 +760,7 @@ public abstract class ExecutionEnvironment {
 	 * @param request the request
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
+	 * @throws StoreException if the store is misbehaving
 	 */
 	protected final ResponseBuilder<?,?> responseBuilderFor(TransactionReference reference, TransactionRequest<?> request) throws TransactionRejectedException, StoreException {
 		if (request instanceof JarStoreInitialTransactionRequest jsitr)
@@ -772,34 +798,49 @@ public abstract class ExecutionEnvironment {
 	 */
 	protected abstract StoreCache getCache();
 
+	/**
+	 * Yields the validators in store.
+	 * 
+	 * @return the validators; this is missing if the node is not initialized yet
+	 */
 	protected final Optional<StorageReference> getValidators() {
 		return getCache().getValidators();
 	}
 
+	/**
+	 * Yields the gas station in store.
+	 * 
+	 * @return the gas station; this is missing if the node is not initialized yet
+	 */
 	protected final Optional<StorageReference> getGasStation() {
 		return getCache().getGasStation();
 	};
 
+	/**
+	 * Yields the versions object in store.
+	 * 
+	 * @return the versions object; this is missing if the node is not initialized yet
+	 */
 	protected final Optional<StorageReference> getVersions() {
 		return getCache().getVersions();
 	}
 
 	/**
-	 * Yields the current gas price at the end of this transaction.
-	 * This might be missing if the node is not initialized yet.
+	 * Yields the current gas price.
 	 * 
-	 * @return the current gas price at the end of this transaction
+	 * @return the current gas price; this is missing if the node is not initialized yet
 	 */
 	protected final Optional<BigInteger> getGasPrice() {
 		return getCache().getGasPrice();
 	}
 
+	/**
+	 * Yields the current inflation.
+	 * 
+	 * @return the current inflation; this is missing if the node is not initialized yet
+	 */
 	protected final OptionalLong getInflation() {
 		return getCache().getInflation();
-	}
-
-	protected final BigInteger getBalance(StorageReference contract) throws UnknownReferenceException, FieldNotFoundException, StoreException {
-		return getBigIntegerField(contract, FieldSignatures.BALANCE_FIELD);
 	}
 
 	protected abstract Hasher<TransactionRequest<?>> getHasher();

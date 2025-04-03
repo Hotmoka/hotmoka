@@ -22,18 +22,19 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.hotmoka.crypto.Base58;
-import io.hotmoka.crypto.Base58ConversionException;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractTrieBasedStoreTransformation;
+import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
@@ -74,64 +75,81 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 	 * @throws InterruptedException if the current thread is interrupted before delivering the transaction
 	 */
 	protected void deliverCoinbaseTransactions(Prolog prolog) throws StoreException, InterruptedException {
+		Optional<StorageReference> maybeManifest = getManifest();
+		if (maybeManifest.isEmpty())
+			return;
+
+		String publicKeyOfNodeBase58 = prolog.getPublicKeyForSigningBlocksBase58();
+		String publicKeyOfNodeBase64 = Base64.toBase64String(Base58.fromBase58String(publicKeyOfNodeBase58, StoreException::new));
+		String publicKeyOfMinerBase58 = prolog.getPublicKeyForSigningDeadlinesBase58();
+		String publicKeyOfMinerBase64 = Base64.toBase64String(Base58.fromBase58String(publicKeyOfMinerBase58, StoreException::new));
+
+		// we use the manifest as caller, since it is an externally-owned account
+		StorageReference manifest = maybeManifest.get();
+		BigInteger nonce;
+
 		try {
-			Optional<StorageReference> maybeManifest = getManifest();
-			if (maybeManifest.isPresent()) {
-				String publicKeyOfNodeBase58 = prolog.getPublicKeyForSigningBlocksBase58();
-				String publicKeyOfNodeBase64 = Base64.toBase64String(Base58.fromBase58String(publicKeyOfNodeBase58));
-				String publicKeyOfMinerBase58 = prolog.getPublicKeyForSigningDeadlinesBase58();
-				String publicKeyOfMinerBase64 = Base64.toBase64String(Base58.fromBase58String(publicKeyOfMinerBase58));
+			nonce = getNonce(manifest);
+		}
+		catch (UnknownReferenceException | FieldNotFoundException e) {
+			// the manifest is an account; this should not happen
+			throw new StoreException(e);
+		}
 
-				// we use the manifest as caller, since it is an externally-owned account
-				StorageReference manifest = maybeManifest.get();
-				BigInteger nonce = getNonce(manifest);
-				StorageReference validators = getValidators().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
-				TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
-				BigInteger minted = getCoinsMinted(validators);
-				BigInteger gasConsumed = getGasConsumed();
+		StorageReference validators = getValidators().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
+		TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
+		BigInteger minted = getCoinsMinted(validators);
+		BigInteger gasConsumed = getGasConsumed();
 
-				LOGGER.info("coinbase: units of gas consumed for CPU, RAM or storage since the previous reward: " + gasConsumed);
+		LOGGER.info("coinbase: units of gas consumed for CPU, RAM or storage since the previous reward: " + gasConsumed);
 
-				// we split the rewarding in two calls, so that the accounts created inside the accounts ledger have a #0 progressive index
-				long percentForNode = 50_000_000L;
-				BigInteger percenteForNodeAsBI = BigInteger.valueOf(percentForNode);
-				BigInteger reward = getReward();
-				BigInteger rewardForNode = reward.multiply(percenteForNodeAsBI).divide(_100_000_000);
-				LOGGER.info("coinbase: rewarding " + rewardForNode + " to a node with public key " + publicKeyOfNodeBase58 + " (" + prolog.getSignatureForBlocks() + ", base58)");
+		// we split the rewarding in two calls, so that the accounts created inside the accounts ledger have a #0 progressive index
+		long percentForNode = 50_000_000L;
+		BigInteger percenteForNodeAsBI = BigInteger.valueOf(percentForNode);
+		BigInteger reward = getReward();
+		BigInteger rewardForNode = reward.multiply(percenteForNodeAsBI).divide(_100_000_000);
+		LOGGER.info("coinbase: rewarding " + rewardForNode + " to a node with public key " + publicKeyOfNodeBase58 + " (" + prolog.getSignatureForBlocks() + ", base58)");
 
-				var request = TransactionRequests.instanceSystemMethodCall
-					(manifest, nonce, _100_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD_MOKAMINT_NODE, validators,
+		var request = TransactionRequests.instanceSystemMethodCall
+				(manifest, nonce, _100_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD_MOKAMINT_NODE, validators,
 						StorageValues.bigIntegerOf(rewardForNode),
 						StorageValues.bigIntegerOf(minted),
 						StorageValues.stringOf(publicKeyOfNodeBase64),
 						StorageValues.bigIntegerOf(gasConsumed),
 						StorageValues.bigIntegerOf(deliveredCount()));
 
-				TransactionResponse response = deliverTransaction(request);
-	
-				if (response instanceof MethodCallTransactionFailedResponse responseAsFailed)
-					LOGGER.log(Level.SEVERE, "coinbase: could not reward the node: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
-				else {
-					LOGGER.info("coinbase: units of coin minted since the previous reward: " + minted);
-					BigInteger rewardForMiner = reward.subtract(rewardForNode);
-					LOGGER.info("coinbase: rewarding " + rewardForMiner + " to a miner with public key " + publicKeyOfMinerBase58 + " (" + prolog.getSignatureForDeadlines() + ", base58)");
+		TransactionResponse response;
 
-					nonce = nonce.add(BigInteger.ONE);
+		try {
+			response = deliverTransaction(request);
+		}
+		catch (TransactionRejectedException e) {
+			throw new StoreException("The transaction for rewarding the node that created the new block failed", e);
+		}
 
-					request = TransactionRequests.instanceSystemMethodCall
-						(manifest, nonce, _100_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD_MOKAMINT_MINER, validators,
+		if (response instanceof MethodCallTransactionFailedResponse responseAsFailed)
+			LOGGER.log(Level.SEVERE, "coinbase: could not reward the node: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
+		else {
+			LOGGER.info("coinbase: units of coin minted since the previous reward: " + minted);
+			BigInteger rewardForMiner = reward.subtract(rewardForNode);
+			LOGGER.info("coinbase: rewarding " + rewardForMiner + " to a miner with public key " + publicKeyOfMinerBase58 + " (" + prolog.getSignatureForDeadlines() + ", base58)");
+
+			nonce = nonce.add(BigInteger.ONE);
+
+			request = TransactionRequests.instanceSystemMethodCall
+					(manifest, nonce, _100_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD_MOKAMINT_MINER, validators,
 							StorageValues.bigIntegerOf(rewardForMiner),
 							StorageValues.stringOf(publicKeyOfMinerBase64));
 
-					response = deliverTransaction(request);
-
-					if (response instanceof MethodCallTransactionFailedResponse responseAsFailed)
-						LOGGER.log(Level.SEVERE, "coinbase: could not reward the miner: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
-				}
+			try {
+				response = deliverTransaction(request);
 			}
-		}
-		catch (TransactionRejectedException | Base58ConversionException e) {
-			throw new StoreException("Could not perform the coinbase transactions", e);
+			catch (TransactionRejectedException e) {
+				throw new StoreException("The transaction for rewarding the miner that provided the deadline in the new block failed", e);
+			}
+
+			if (response instanceof MethodCallTransactionFailedResponse responseAsFailed)
+				LOGGER.log(Level.SEVERE, "coinbase: could not reward the miner: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
 		}
 	}
 }

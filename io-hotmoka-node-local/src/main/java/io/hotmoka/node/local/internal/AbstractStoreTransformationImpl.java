@@ -53,7 +53,6 @@ import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.LocalNodeConfig;
-import io.hotmoka.node.local.api.ResponseBuilder;
 import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.StoreTransformation;
@@ -159,9 +158,8 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	
 		try {
 			LOGGER.info(referenceAsString + ": delivering start");
-	
-			ResponseBuilder<?,?> responseBuilder = responseBuilderFor(reference, request);
-			var responseCreation = responseBuilder.getResponseCreation();
+
+			var responseCreation = responseBuilderFor(reference, request).getResponseCreation();
 			TransactionResponse response = responseCreation.getResponse();
 			push(reference, request, response);
 			responseCreation.replaceReverifiedResponses();

@@ -354,7 +354,16 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		private void callerAndRequestMustAgreeOnNonce() throws TransactionRejectedException, StoreException {
 			// calls to @View methods do not check the nonce
 			if (!isView()) {
-				BigInteger expected = environment.getNonce(request.getCaller());
+				BigInteger expected;
+
+				try {
+					expected = environment.getNonce(request.getCaller());
+				}
+				catch (UnknownReferenceException | FieldNotFoundException e) {
+					// we have already checked that the caller is an account, hence this should not happen
+					throw new StoreException(e);
+				}
+
 				if (!expected.equals(request.getNonce()))
 					throw new TransactionRejectedException("Incorrect nonce: the request reports " + request.getNonce()
 						+ " but the account " + request.getCaller() + " contains " + expected, consensus);
@@ -368,17 +377,19 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * @throws TransactionRejectedException if the payer is not rich enough for that
 		 */
 		private void callerCanPayForAllPromisedGas() throws TransactionRejectedException, StoreException {
+			BigInteger cost = costOf(request.getGasLimit());
+			BigInteger totalBalance;
+
 			try {
-				BigInteger cost = costOf(request.getGasLimit());
-				BigInteger totalBalance = environment.getBalance(request.getCaller());
-		
-				if (totalBalance.subtract(cost).signum() < 0)
-					throw new TransactionRejectedException("The payer has not enough funds to buy " + request.getGasLimit() + " units of gas", consensus);
+				totalBalance = environment.getBalance(request.getCaller());
 			}
 			catch (UnknownReferenceException | FieldNotFoundException e) {
-				// we have verified that the caller was an account, so this can only be a store corruption problem
+				// we already checked that the caller is an account, therefore this should not happen
 				throw new StoreException(e);
 			}
+		
+			if (totalBalance.subtract(cost).signum() < 0)
+				throw new TransactionRejectedException("The payer has not enough funds to buy " + request.getGasLimit() + " units of gas", consensus);
 		}
 
 		/**

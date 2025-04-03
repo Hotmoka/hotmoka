@@ -26,6 +26,7 @@ import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
@@ -34,6 +35,7 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.local.AbstractStoreTransformation;
+import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.StoreException;
 
 /**
@@ -73,38 +75,49 @@ public class DiskStoreTransformation extends AbstractStoreTransformation<DiskNod
 	 * @throws InterruptedException if the current thread is interrupted before delivering the transaction
 	 */
 	protected final void deliverCoinbaseTransactions() throws StoreException, InterruptedException {
-		try {
-			Optional<StorageReference> maybeManifest = getManifest();
-			if (maybeManifest.isPresent()) {
-				// we use the manifest as caller, since it is an externally-owned account
-				StorageReference manifest = maybeManifest.get();
-				BigInteger nonce = getNonce(manifest);
-				StorageReference validators = getValidators().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
-				TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
-				BigInteger minted = getCoinsMinted(validators);
-				BigInteger gasConsumed = getGasConsumed();
-				LOGGER.info("coinbase: units of gas consumed for CPU, RAM or storage since the previous reward: " + gasConsumed);
+		Optional<StorageReference> maybeManifest = getManifest();
+		if (maybeManifest.isEmpty())
+			return;
 
-				var request = TransactionRequests.instanceSystemMethodCall
-					(manifest, nonce, _100_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD, validators,
+		// we use the manifest as caller, since it is an externally-owned account
+		StorageReference manifest = maybeManifest.get();
+		BigInteger nonce;
+
+		try {
+			nonce = getNonce(manifest);
+		}
+		catch (UnknownReferenceException | FieldNotFoundException e) {
+			// the manifest is an account; this should not happen
+			throw new StoreException(e);
+		}
+
+		StorageReference validators = getValidators().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
+		TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
+		BigInteger minted = getCoinsMinted(validators);
+		BigInteger gasConsumed = getGasConsumed();
+		LOGGER.info("coinbase: units of gas consumed for CPU, RAM or storage since the previous reward: " + gasConsumed);
+
+		var request = TransactionRequests.instanceSystemMethodCall
+				(manifest, nonce, _100_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD, validators,
 						StorageValues.bigIntegerOf(getReward()), StorageValues.bigIntegerOf(minted),
 						StorageValues.stringOf(""), StorageValues.stringOf(""),
 						StorageValues.bigIntegerOf(gasConsumed), StorageValues.bigIntegerOf(deliveredCount()));
-	
-				TransactionResponse response = responseBuilderFor(TransactionReferences.of(getHasher().hash(request)), request).getResponseCreation().getResponse();
-				// if there is only one update, it is the update of the nonce of the manifest: we prefer not to expand the store with the transaction
-				if (!(response instanceof TransactionResponseWithUpdates trwu) || trwu.getUpdates().count() > 1L)
-					response = deliverTransaction(request);
-	
-				if (response instanceof MethodCallTransactionFailedResponse responseAsFailed)
-					LOGGER.log(Level.SEVERE, "coinbase: could not perform transaction: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
-				else
-					LOGGER.info("coinbase: units of coin minted since the previous reward: " + minted);
-			}
+
+		TransactionResponse response;
+
+		try {
+			response = responseBuilderFor(TransactionReferences.of(getHasher().hash(request)), request).getResponseCreation().getResponse();
+			// if there is only one update, it is the update of the nonce of the manifest: we prefer not to expand the store with a useless transaction
+			if (!(response instanceof TransactionResponseWithUpdates trwu) || trwu.getUpdates().count() > 1L)
+				response = deliverTransaction(request);
 		}
 		catch (TransactionRejectedException e) {
 			throw new StoreException("Could not perform the coinbase transactions", e);
 		}
-	}
 
+		if (response instanceof MethodCallTransactionFailedResponse responseAsFailed)
+			LOGGER.log(Level.SEVERE, "coinbase: could not perform transaction: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
+		else
+			LOGGER.info("coinbase: units of coin minted since the previous reward: " + minted);
+	}
 }
