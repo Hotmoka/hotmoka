@@ -164,8 +164,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				}
 			}
 			catch (Throwable t) {
-				var reference = TransactionReferences.of(environment.getHasher().hash(getRequest()));
-				LOGGER.warning(reference + ": failed with message: \"" + t.getMessage() + "\"");
+				LOGGER.warning(TransactionReferences.of(environment.getHasher().hash(getRequest())) + ": failed with message: \"" + t.getMessage() + "\"");
 				return TransactionResponses.methodCallFailed(updatesInCaseOfException(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), t.getClass().getName(), getMessage(t), where(t));
 			}
 		}

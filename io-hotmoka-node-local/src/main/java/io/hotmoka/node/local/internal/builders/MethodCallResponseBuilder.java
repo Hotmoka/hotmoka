@@ -18,7 +18,6 @@ package io.hotmoka.node.local.internal.builders;
 
 import java.lang.reflect.Method;
 import java.math.BigInteger;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.hotmoka.node.NonWhiteListedCallException;
@@ -68,17 +67,15 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 		}
 
 		/**
-		 * Checks that the method called by this transaction
-		 * is white-listed and its white-listing proof-obligations hold.
+		 * Checks that the method called by this transaction is white-listed.
 		 * 
 		 * @param executable the method
 		 * @param actuals the actual arguments passed to {@code executable}, including the receiver for instance methods
-		 * @throws ClassNotFoundException if some class could not be found during the check
+		 * @throws NonWhiteListedCallException if {@code executable} is not white-listed
 		 */
-		protected void ensureWhiteListingOf(Method executable, Object[] actuals) throws ClassNotFoundException {
-			Optional<Method> model = classLoader.getWhiteListingWizard().whiteListingModelOf(executable);
-			if (model.isEmpty())
-				throw new NonWhiteListedCallException("illegal call to non-white-listed method " + request.getStaticTarget().getDefiningClass() + "." + request.getStaticTarget().getName());
+		protected final void ensureWhiteListingOf(Method executable, Object[] actuals) throws NonWhiteListedCallException {
+			classLoader.getWhiteListingWizard().whiteListingModelOf(executable)
+				.orElseThrow(() -> new NonWhiteListedCallException("Illegal call to non-white-listed method " + request.getStaticTarget().getDefiningClass() + "." + request.getStaticTarget().getName()));
 		}
 
 		/**

@@ -19,11 +19,11 @@ package io.hotmoka.node.local.internal.builders;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
-import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import io.hotmoka.node.NonWhiteListedCallException;
+import io.hotmoka.node.OutOfGasException;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -33,6 +33,7 @@ import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
+import io.hotmoka.node.local.DeserializationException;
 import io.hotmoka.node.local.api.StoreException;
 
 /**
@@ -88,9 +89,9 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 					deserializedActuals = this.deserializedActuals;
 				}
 				catch (NoSuchMethodException e) {
-					// if not found, we try to add the trailing types that characterize the @Entry constructors
+					// if not found, we try to add the trailing types that characterize the @FromContract constructors
 					try {
-						constructorJVM = getEntryConstructor();
+						constructorJVM = getFromContractConstructor();
 						deserializedActuals = addExtraActualsForFromContract();
 					}
 					catch (NoSuchMethodException ee) {
@@ -112,7 +113,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 						return TransactionResponses.constructorCallException(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), cause.getClass().getName(), getMessage(cause), where(cause));
 					}
 					else
-						throw cause;
+						throw e;
 				}
 		
 				chargeGasForStorageOf(TransactionResponses.constructorCallSuccessful
@@ -121,9 +122,13 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 				return TransactionResponses.constructorCallSuccessful
 					((StorageReference) serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			}
-			catch (Throwable t) {
-				var reference = TransactionReferences.of(environment.getHasher().hash(getRequest()));
-				LOGGER.warning(reference + ": failed with message: \"" + t.getMessage() + "\"");
+			catch (OutOfGasException | NonWhiteListedCallException | IllegalAssignmentToFieldInStorage | DeserializationException | ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException t) {
+				LOGGER.warning(TransactionReferences.of(environment.getHasher().hash(getRequest())) + ": failed with message: \"" + t.getMessage() + "\"");
+				return TransactionResponses.constructorCallFailed(updatesInCaseOfException(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), t.getClass().getName(), getMessage(t), where(t));
+			}
+			catch (InvocationTargetException e) {
+				Throwable t = e.getCause();
+				LOGGER.warning(TransactionReferences.of(environment.getHasher().hash(getRequest())) + ": failed with message: \"" + t.getMessage() + "\"");
 				return TransactionResponses.constructorCallFailed(updatesInCaseOfException(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), t.getClass().getName(), getMessage(t), where(t));
 			}
 		}
@@ -144,14 +149,13 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		}
 
 		/**
-		 * Resolves the constructor that must be called, assuming that it is an entry.
+		 * Resolves the constructor that must be called, assuming that it is a {@code @@FromContract}.
 		 * 
 		 * @return the constructor
 		 * @throws NoSuchMethodException if the constructor could not be found
-		 * @throws SecurityException if the constructor could not be accessed
 		 * @throws ClassNotFoundException if the class of the constructor or of some parameter cannot be found
 		 */
-		private Constructor<?> getEntryConstructor() throws ClassNotFoundException, NoSuchMethodException {
+		private Constructor<?> getFromContractConstructor() throws ClassNotFoundException, NoSuchMethodException {
 			Class<?>[] argTypes = formalsAsClassForFromContract();
 			ConstructorSignature constructor = request.getStaticTarget();
 
@@ -177,16 +181,15 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		}
 
 		/**
-		 * Checks that the constructor called by this transaction is
-		 * white-listed and its white-listing proof-obligations hold.
+		 * Checks that the constructor called by this transaction is white-listed.
 		 * 
 		 * @param executable the constructor
 		 * @param actuals the actual arguments passed to {@code executable}
+		 * @throws NonWhiteListedCallException if {@code executable} is not white-listed
 		 */
-		private void ensureWhiteListingOf(Constructor<?> executable, Object[] actuals) {
-			Optional<Constructor<?>> model = classLoader.getWhiteListingWizard().whiteListingModelOf(executable);
-			if (model.isEmpty())
-				throw new NonWhiteListedCallException("illegal call to non-white-listed constructor of " + request.getStaticTarget().getDefiningClass());
+		private void ensureWhiteListingOf(Constructor<?> executable, Object[] actuals) throws NonWhiteListedCallException {
+			classLoader.getWhiteListingWizard().whiteListingModelOf(executable)
+				.orElseThrow(() -> new NonWhiteListedCallException("Illegal call to non-white-listed constructor of " + request.getStaticTarget().getDefiningClass()));
 		}
 
 		@Override

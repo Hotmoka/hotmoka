@@ -202,9 +202,8 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 *               or a special Java object that is allowed
 		 *               in store, such as a {@link java.lang.String} or {@link java.math.BigInteger}
 		 * @return the serialization of {@code object}, if any
-		 * @throws IllegalArgumentException if the type of {@code object} is not allowed in store
 		 */
-		protected final StorageValue serialize(Object object) throws IllegalArgumentException {
+		protected final StorageValue serialize(Object object) {
 			if (isStorage(object))
 				return classLoader.getStorageReferenceOf(object, IllegalArgumentException::new); // TODO: check exception
 			else if (object instanceof BigInteger bi)
@@ -230,7 +229,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 			else if (object == null)
 				return StorageValues.NULL;
 			else
-				throw new IllegalArgumentException("An object of class " + object.getClass().getName()
+				throw new IllegalArgumentException("An object of class " + object.getClass().getName() // TODO: check exception
 					+ " cannot be kept in store since it does not implement " + Constants.STORAGE_NAME);
 		}
 

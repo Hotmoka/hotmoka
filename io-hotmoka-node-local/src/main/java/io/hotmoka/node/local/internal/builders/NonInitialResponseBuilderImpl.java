@@ -33,7 +33,7 @@ import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.instrumentation.api.GasCostModel;
 import io.hotmoka.node.FieldSignatures;
-import io.hotmoka.node.OutOfGasError;
+import io.hotmoka.node.OutOfGasException;
 import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -127,12 +127,6 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 */
 		private BigInteger coinsInitiallyPaidForGas;
 
-		/**
-		 * The balance of the payer with all promised gas paid.
-		 * This will be its balance if the transaction fails.
-		 */
-		private BigInteger balanceOfCallerInCaseOfTransactionException;
-
 		protected ResponseCreator() throws TransactionRejectedException, StoreException {
 			this.gas = request.getGasLimit();
 			this.gasCostModel = consensus.getGasCostModel();
@@ -149,7 +143,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 			callerCanPayForAllPromisedGas();
 		}
 
-		protected final void init() throws StoreException, DeserializationException {
+		protected final void init() throws StoreException, DeserializationException, OutOfGasException {
 			this.deserializedCaller = deserializer.deserialize(request.getCaller());
 			BigInteger initialBalance = classLoader.getBalanceOf(deserializedCaller, StoreException::new);
 			var validators = environment.getValidators();
@@ -159,7 +153,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 			chargeGasForStorage(BigInteger.valueOf(request.size()));
 			chargeGasForClassLoader();	
 			this.coinsInitiallyPaidForGas = chargePayerForAllGasPromised();
-			this.balanceOfCallerInCaseOfTransactionException = classLoader.getBalanceOf(deserializedCaller, StoreException::new);
+			BigInteger balanceOfCallerInCaseOfTransactionException = classLoader.getBalanceOf(deserializedCaller, StoreException::new);
 			if (!balanceOfCallerInCaseOfTransactionException.equals(initialBalance))
 				updatesInCaseOfException.add(Updates.ofBigInteger(request.getCaller(), FieldSignatures.BALANCE_FIELD, balanceOfCallerInCaseOfTransactionException)); // TODO
 
@@ -469,8 +463,9 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * 
 		 * @param amount the amount of gas to consume
 		 * @param forWhat the task performed at the end, for the amount of gas to consume
+		 * @throws OutOfGasException 
 		 */
-		private void charge(BigInteger amount, Consumer<BigInteger> forWhat) {
+		private void charge(BigInteger amount, Consumer<BigInteger> forWhat) throws OutOfGasException {
 			if (amount.signum() < 0)
 				throw new IllegalArgumentException("gas cannot increase");
 
@@ -480,7 +475,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 				return;
 
 			if (gas.compareTo(amount) < 0)
-				throw new OutOfGasError();
+				throw new OutOfGasException();
 		
 			gas = gas.subtract(amount);
 			forWhat.accept(amount);
@@ -490,8 +485,9 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * Decreases the available gas by the given amount, for storage allocation.
 		 * 
 		 * @param amount the amount of gas to consume
+		 * @throws OutOfGasException 
 		 */
-		private void chargeGasForStorage(BigInteger amount) {
+		private void chargeGasForStorage(BigInteger amount) throws OutOfGasException {
 			charge(amount, x -> gasConsumedForStorage = gasConsumedForStorage.add(x));
 		}
 
@@ -499,27 +495,31 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * Decreases the available gas for the given response, for storage allocation.
 		 * 
 		 * @param response the response
+		 * @throws OutOfGasException 
 		 */
-		protected final void chargeGasForStorageOf(Response response) {
+		protected final void chargeGasForStorageOf(Response response) throws OutOfGasException {
 			chargeGasForStorage(BigInteger.valueOf(response.size()));
 		}
 
 		@Override
-		public final void chargeGasForCPU(BigInteger amount) {
+		public final void chargeGasForCPU(BigInteger amount) throws OutOfGasException {
 			charge(amount, x -> gasConsumedForCPU = gasConsumedForCPU.add(x));
 		}
 
 		@Override
-		public final void chargeGasForRAM(BigInteger amount) {
+		public final void chargeGasForRAM(BigInteger amount) throws OutOfGasException {
 			charge(amount, x -> gasConsumedForRAM = gasConsumedForRAM.add(x));
 		}
 
 		/**
 		 * Charges gas proportional to the complexity of the class loader that has been created.
 		 */
-		protected final void chargeGasForClassLoader() {
-			classLoader.getLengthsOfJars().mapToObj(gasCostModel::cpuCostForLoadingJar).forEach(this::chargeGasForCPU);
-			classLoader.getLengthsOfJars().mapToObj(gasCostModel::ramCostForLoadingJar).forEach(this::chargeGasForRAM);
+		protected final void chargeGasForClassLoader() throws OutOfGasException {
+			int[] lengthsOfJars = classLoader.getLengthsOfJars().toArray();
+			for (int length: lengthsOfJars) {
+				chargeGasForCPU(gasCostModel.cpuCostForLoadingJar(length));
+				chargeGasForRAM(gasCostModel.ramCostForLoadingJar(length));
+			}
 		}
 
 		/**

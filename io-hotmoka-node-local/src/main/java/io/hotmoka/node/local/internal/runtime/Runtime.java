@@ -19,6 +19,7 @@ package io.hotmoka.node.local.internal.runtime;
 import java.math.BigInteger;
 
 import io.hotmoka.node.FieldSignatures;
+import io.hotmoka.node.OutOfGasException;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.local.DeserializationException;
 import io.hotmoka.node.local.api.EngineClassLoader;
@@ -249,8 +250,9 @@ public abstract class Runtime {
 	 * Charges the given amount of gas for RAM usage for the current transaction.
 	 * 
 	 * @param ram the amount of gas to consume for RAM consumption
+	 * @throws OutOfGasException 
 	 */
-	public static void chargeForRAM(BigInteger ram) {
+	public static void chargeForRAM(BigInteger ram) throws OutOfGasException {
 		getResponseCreator().chargeGasForRAM(ram);
 	}
 
@@ -258,8 +260,9 @@ public abstract class Runtime {
 	 * Charges the given amount of gas for RAM usage for the current transaction.
 	 * 
 	 * @param ram the amount of gas to consume for RAM consumption
+	 * @throws OutOfGasException 
 	 */
-	public static void chargeForRAM(long ram) {
+	public static void chargeForRAM(long ram) throws OutOfGasException {
 		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(ram));
 	}
 
@@ -267,148 +270,169 @@ public abstract class Runtime {
 	 * Charges the given amount of gas for RAM usage for the current transaction.
 	 * 
 	 * @param ram the amount of gas to consume for RAM consumption
+	 * @throws OutOfGasException 
 	 */
-	public static void chargeForRAM(int ram) {
+	public static void chargeForRAM(int ram) throws OutOfGasException {
 		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(ram));
 	}
 
 	/**
 	 * Charges one unit of gas for RAM usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void chargeForRAM1() {
+	public static void chargeForRAM1() throws OutOfGasException {
 		getResponseCreator().chargeGasForRAM(BigInteger.ONE);
 	}
 
 	/**
 	 * Charges two units of gas for RAM usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void chargeForRAM2() {
+	public static void chargeForRAM2() throws OutOfGasException {
 		getResponseCreator().chargeGasForRAM(BigInteger.TWO);
 	}
 
 	/**
 	 * Charges three units of gas for RAM usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void chargeForRAM3() {
+	public static void chargeForRAM3() throws OutOfGasException {
 		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(3L));
 	}
 
 	/**
 	 * Charges four units of gas for RAM usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void chargeForRAM4() {
+	public static void chargeForRAM4() throws OutOfGasException {
 		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(4L));
 	}
 
 	/**
 	 * Charges five units of gas for RAM usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void chargeForRAM5() {
+	public static void chargeForRAM5() throws OutOfGasException {
 		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(5L));
 	}
 
 	/**
 	 * Charges six units of gas for RAM usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void chargeForRAM6() {
+	public static void chargeForRAM6() throws OutOfGasException {
 		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(6L));
 	}
 
 	/**
 	 * Charges seven units of gas for RAM usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void chargeForRAM7() {
+	public static void chargeForRAM7() throws OutOfGasException {
 		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(7L));
 	}
 
 	/**
 	 * Charges eight units of gas for RAM usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void chargeForRAM8() {
+	public static void chargeForRAM8() throws OutOfGasException {
 		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(8L));
 	}
 
 	/**
 	 * Charges nine units of gas for RAM usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void chargeForRAM9() {
+	public static void chargeForRAM9() throws OutOfGasException {
 		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(9L));
 	}
 
 	/**
 	 * Charges ten units of gas for RAM usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void chargeForRAM10() {
+	public static void chargeForRAM10() throws OutOfGasException {
 		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(10L));
 	}
 
 	/**
 	 * Charges eleven units of gas for RAM usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void chargeForRAM11() {
+	public static void chargeForRAM11() throws OutOfGasException {
 		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(11L));
 	}
 
 	/**
 	 * Charges twelve units of gas for RAM usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void chargeForRAM12() {
+	public static void chargeForRAM12() throws OutOfGasException {
 		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(12L));
 	}
 
 	/**
 	 * Charges thirteen units of gas for RAM usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void chargeForRAM13() {
+	public static void chargeForRAM13() throws OutOfGasException {
 		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(13L));
 	}
 
 	/**
 	 * Charges fourteen units of gas for RAM usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void chargeForRAM14() {
+	public static void chargeForRAM14() throws OutOfGasException {
 		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(14L));
 	}
 
 	/**
 	 * Charges fifteen units of gas for RAM usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void chargeForRAM15() {
+	public static void chargeForRAM15() throws OutOfGasException {
 		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(15L));
 	}
 
 	/**
 	 * Charges sixteen units of gas for RAM usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void chargeForRAM16() {
+	public static void chargeForRAM16() throws OutOfGasException {
 		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(16L));
 	}
 
 	/**
 	 * Charges seventeen units of gas for RAM usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void chargeForRAM17() {
+	public static void chargeForRAM17() throws OutOfGasException {
 		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(17L));
 	}
 
 	/**
 	 * Charges eighteen units of gas for RAM usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void chargeForRAM18() {
+	public static void chargeForRAM18() throws OutOfGasException {
 		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(18L));
 	}
 
 	/**
 	 * Charges nineteen units of gas for RAM usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void chargeForRAM19() {
+	public static void chargeForRAM19() throws OutOfGasException {
 		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(19L));
 	}
 
 	/**
 	 * Charges twenty units of gas for RAM usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void chargeForRAM20() {
+	public static void chargeForRAM20() throws OutOfGasException {
 		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(20L));
 	}
 
@@ -416,8 +440,9 @@ public abstract class Runtime {
 	 * Charges the given amount of gas for CPU usage for the current transaction.
 	 * 
 	 * @param cpu the amount of gas to consume
+	 * @throws OutOfGasException 
 	 */
-	public static void charge(long cpu) {
+	public static void charge(long cpu) throws OutOfGasException {
 		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(cpu));
 	}
 
@@ -425,148 +450,169 @@ public abstract class Runtime {
 	 * Charges the given amount of gas for CPU usage for the current transaction.
 	 * 
 	 * @param cpu the amount of gas to consume
+	 * @throws OutOfGasException 
 	 */
-	public static void charge(int cpu) {
+	public static void charge(int cpu) throws OutOfGasException {
 		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(cpu));
 	}
 
 	/**
 	 * Charges one unit of gas for CPU usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void charge1() {
+	public static void charge1() throws OutOfGasException {
 		getResponseCreator().chargeGasForCPU(BigInteger.ONE);
 	}
 
 	/**
 	 * Charges two units of gas for CPU usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void charge2() {
+	public static void charge2() throws OutOfGasException {
 		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(2L));
 	}
 
 	/**
 	 * Charges three units of gas for CPU usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void charge3() {
+	public static void charge3() throws OutOfGasException {
 		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(3L));
 	}
 
 	/**
 	 * Charges four units of gas for CPU usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void charge4() {
+	public static void charge4() throws OutOfGasException {
 		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(4L));
 	}
 
 	/**
 	 * Charges five units of gas for CPU usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void charge5() {
+	public static void charge5() throws OutOfGasException {
 		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(5L));
 	}
 
 	/**
 	 * Charges six units of gas for CPU usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void charge6() {
+	public static void charge6() throws OutOfGasException {
 		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(6L));
 	}
 
 	/**
 	 * Charges seven units of gas for CPU usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void charge7() {
+	public static void charge7() throws OutOfGasException {
 		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(7L));
 	}
 
 	/**
 	 * Charges eight units of gas for CPU usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void charge8() {
+	public static void charge8() throws OutOfGasException {
 		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(8L));
 	}
 
 	/**
 	 * Charges nine units of gas for CPU usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void charge9() {
+	public static void charge9() throws OutOfGasException {
 		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(9L));
 	}
 
 	/**
 	 * Charges ten units of gas for CPU usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void charge10() {
+	public static void charge10() throws OutOfGasException {
 		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(10L));
 	}
 
 	/**
 	 * Charges eleven units of gas for CPU usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void charge11() {
+	public static void charge11() throws OutOfGasException {
 		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(11L));
 	}
 
 	/**
 	 * Charges twelve units of gas for CPU usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void charge12() {
+	public static void charge12() throws OutOfGasException {
 		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(12L));
 	}
 
 	/**
 	 * Charges 13 units of gas for CPU usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void charge13() {
+	public static void charge13() throws OutOfGasException {
 		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(13L));
 	}
 
 	/**
 	 * Charges 14 units of gas for CPU usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void charge14() {
+	public static void charge14() throws OutOfGasException {
 		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(14L));
 	}
 
 	/**
 	 * Charges 15 units of gas for CPU usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void charge15() {
+	public static void charge15() throws OutOfGasException {
 		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(15L));
 	}
 
 	/**
 	 * Charges 16 units of gas for CPU usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void charge16() {
+	public static void charge16() throws OutOfGasException {
 		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(16L));
 	}
 
 	/**
 	 * Charges 17 units of gas for CPU usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void charge17() {
+	public static void charge17() throws OutOfGasException {
 		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(17L));
 	}
 
 	/**
 	 * Charges 18 units of gas for CPU usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void charge18() {
+	public static void charge18() throws OutOfGasException {
 		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(18L));
 	}
 
 	/**
 	 * Charges 19 units of gas for CPU usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void charge19() {
+	public static void charge19() throws OutOfGasException {
 		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(19L));
 	}
 
 	/**
 	 * Charges 20 units of gas for CPU usage for the current transaction.
+	 * @throws OutOfGasException 
 	 */
-	public static void charge20() {
+	public static void charge20() throws OutOfGasException {
 		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(20L));
 	}
 }

@@ -33,7 +33,7 @@ import io.hotmoka.crypto.Base64;
 import io.hotmoka.helpers.GasCounters;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.node.MethodSignatures;
-import io.hotmoka.node.OutOfGasError;
+import io.hotmoka.node.OutOfGasException;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.Account;
@@ -120,7 +120,7 @@ public abstract class AbstractCommand implements Runnable {
 			// we do not verify the password of the account if the access to its public key
 			// costs too much gas (this happens for instance for qTesla accounts);
 			// this means that, if the password is incorrect, the node will reject the transaction, not Moka
-			if (!(e.getMessage().contains(OutOfGasError.class.getName())))
+			if (!(e.getMessage().contains(OutOfGasException.class.getName())))
 				throw e;
 		}
 

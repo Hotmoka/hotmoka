@@ -22,6 +22,7 @@ import java.math.BigInteger;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
+import io.hotmoka.node.OutOfGasException;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
@@ -209,15 +210,16 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * Decreases the available gas by the given amount, for CPU execution.
 		 * 
 		 * @param amount the amount of gas to consume
+		 * @throws OutOfGasException 
 		 */
-		public abstract void chargeGasForCPU(BigInteger amount);
+		public abstract void chargeGasForCPU(BigInteger amount) throws OutOfGasException;
 
 		/**
 		 * Decreases the available gas by the given amount, for RAM execution.
 		 * 
 		 * @param amount the amount of gas to consume
 		 */
-		public abstract void chargeGasForRAM(BigInteger amount);
+		public abstract void chargeGasForRAM(BigInteger amount) throws OutOfGasException;
 
 		/**
 		 * Yields the latest value for the given field of the object with the given storage reference.

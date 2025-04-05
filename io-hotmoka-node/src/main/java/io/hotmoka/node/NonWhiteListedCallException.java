@@ -17,11 +17,10 @@ limitations under the License.
 package io.hotmoka.node;
 
 /**
- * An exception thrown when a potentially white-listed method is called
- * with a parameter (or receiver) that makes it non-white-listed.
+ * An exception thrown when a non-white-listed method is called.
  */
 @SuppressWarnings("serial")
-public class NonWhiteListedCallException extends RuntimeException {
+public class NonWhiteListedCallException extends Exception {
 
 	/**
 	 * Creates the exception with the given message.
