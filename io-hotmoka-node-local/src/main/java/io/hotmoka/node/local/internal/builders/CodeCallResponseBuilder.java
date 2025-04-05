@@ -41,7 +41,6 @@ import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.local.AbstractNonInitialResponseBuilder;
-import io.hotmoka.node.local.DeserializationException;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.whitelisting.Dummy;
 import io.hotmoka.whitelisting.api.WhiteListingClassLoader;
@@ -77,17 +76,12 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		protected ResponseCreator() throws TransactionRejectedException, StoreException {}
 
 		@Override
-		protected void checkConsistency() throws TransactionRejectedException {
+		protected void checkConsistency() throws TransactionRejectedException, StoreException {
 			super.checkConsistency();
 
-			try {
-				// calls to @View methods are allowed to receive non-exported values
-				if (transactionIsSigned()) 
-					argumentsAreExported();
-			}
-			catch (StoreException e) {
-				throw new RuntimeException(e);
-			}
+			// calls to @View methods are allowed to receive non-exported values
+			if (transactionIsSigned()) 
+				argumentsAreExported();
 		}
 
 		/**
@@ -283,17 +277,9 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 			return !(t instanceof RuntimeException || t instanceof Error);
 		}
 
-		/**
-		 * Scans the objects reachable from the context of the caller of the transaction
-		 * that might have been affected during the execution of the transaction
-		 * and consumes each of them. Such objects do not include the returned value of
-		 * a method or the object created by a constructor, if any.
-		 * 
-		 * @param consumer the consumer
-		 */
+		@Override
 		protected void scanPotentiallyAffectedObjects(Consumer<Object> consumer) {
-			consumer.accept(getDeserializedCaller());
-			getDeserializedValidators().ifPresent(consumer);
+			super.scanPotentiallyAffectedObjects(consumer);
 
 			Class<?> storage = classLoader.getStorage();
 			getDeserializedActuals()
@@ -305,26 +291,13 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		}
 
 		/**
-		 * Collects all updates that can be seen from the context of the caller of the method or constructor.
-		 * 
-		 * @return the updates, sorted
-		 * @throws DeserializationException 
-		 */
-		protected final Stream<Update> updates() throws UpdatesExtractionException, StoreException {
-			List<Object> potentiallyAffectedObjects = new ArrayList<>();
-			scanPotentiallyAffectedObjects(potentiallyAffectedObjects::add);
-			return updatesExtractor.extractUpdatesFrom(potentiallyAffectedObjects);
-		}
-
-		/**
 		 * Collects all updates that can be seen from the context of the caller of the transaction,
 		 * including the returned value of a method or the created object of a constructor.
 		 * 
 		 * @param result the returned value or created object
 		 * @return the updates, sorted
-		 * @throws DeserializationException 
 		 */
-		protected final Stream<Update> updates(Object result) throws UpdatesExtractionException, StoreException {
+		protected final Stream<Update> updates(Object result) throws IllegalAssignmentToFieldInStorage, StoreException {
 			List<Object> potentiallyAffectedObjects = new ArrayList<>();
 
 			Class<?> storage = classLoader.getStorage();

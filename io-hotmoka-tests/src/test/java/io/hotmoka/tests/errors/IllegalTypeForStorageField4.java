@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.StorageTypes;
-import io.hotmoka.node.local.internal.builders.UpdatesExtractionException;
+import io.hotmoka.node.local.internal.builders.IllegalAssignmentToFieldInStorage;
 import io.hotmoka.tests.HotmokaTest;
 
 class IllegalTypeForStorageField4 extends HotmokaTest {
@@ -42,7 +42,7 @@ class IllegalTypeForStorageField4 extends HotmokaTest {
 
 	@Test @DisplayName("storing non-storage into interface field fails")
 	void triesToStoreNonStorageIntoInterfaceField() {
-		throwsTransactionExceptionWithCause(UpdatesExtractionException.class, () ->
+		throwsTransactionExceptionWithCause(IllegalAssignmentToFieldInStorage.class, () ->
 			addConstructorCallTransaction
 				(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(),
 				ConstructorSignatures.of(StorageTypes.classNamed("io.hotmoka.examples.errors.illegaltypeforstoragefield4.C")))

@@ -23,10 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.hotmoka.exceptions.CheckSupplier;
-import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.exceptions.UncheckedException;
-import io.hotmoka.exceptions.functions.FunctionWithExceptions2;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -77,7 +74,7 @@ public class Deserializer {
 	 * @param environment the execution environment for which deserialization is performed
 	 * @param classLoader the class loader that can be used to load classes during deserialization
 	 */
-	public Deserializer(ExecutionEnvironment environment, EngineClassLoader classLoader) {
+	protected Deserializer(ExecutionEnvironment environment, EngineClassLoader classLoader) {
 		this.environment = environment;
 		this.classLoader = classLoader;
 	}
@@ -90,11 +87,15 @@ public class Deserializer {
 	 * @throws DeserializationException if deserialization fails
 	 * @throws StoreException if the operation could not be completed correctly
 	 */
-	public Object deserialize(StorageValue value) throws DeserializationException, StoreException { // TODO remove DeserializationExceptin and use StoreException instead, possibly add UnknownReferenceException
+	protected Object deserialize(StorageValue value) throws DeserializationException, StoreException {
 		if (value instanceof StorageReference sr) {
-			// we use a cache to provide the same value if the same reference gets deserialized twice
-			FunctionWithExceptions2<StorageReference, ? extends Object, DeserializationException, StoreException> createStorageObject = this::createStorageObject;
-			return CheckSupplier.check(DeserializationException.class, StoreException.class, () -> cache.computeIfAbsent(sr, UncheckFunction.uncheck(DeserializationException.class, StoreException.class, createStorageObject)));
+			// we use a cache to provide the same value if the same reference gets deserialized twice; putIfAbsent is clumsy because of the exceptions,
+			// so we just get and put; in any case, this object is not meant to be thread-safe
+			Object result = cache.get(sr);
+			if (result == null)
+				cache.put(sr, result = createStorageObject(sr));
+
+			return result;
 		}
 		else if (value instanceof IntValue iv)
 			return iv.getValue();
@@ -122,7 +123,7 @@ public class Deserializer {
 			// we clone the value, so that the alias behavior of values coming from outside the node is fixed
 			return new BigInteger(biv.getValue().toByteArray());
 		else if (value == null)
-			throw new DeserializationException("Unexpected null storage value");
+			throw new RuntimeException("Unexpected null storage value");
 		else
 			throw new RuntimeException("Unexpected storage value of class " + value.getClass().getName());
 	}

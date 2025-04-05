@@ -33,7 +33,6 @@ import io.hotmoka.instrumentation.api.InstrumentationFields;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.Updates;
-import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
@@ -71,11 +70,11 @@ public class UpdatesExtractor {
 	 *                loaded with the class loader provided to the constructor and to be
 	 *                instances of {@code io.takamaka.code.lang.Storage}
 	 * @return the updates, sorted
-	 * @throws UpdatesExtractionException if the updates cannot be extracted, because for instance an illegal
-	 *                                    value has been stored into some field
+	 * @throws IllegalAssignmentToFieldInStorage if the updates cannot be extracted, because an illegal
+	 *                                           value has been stored into some field
 	 * @throws StoreException if the operation cannot be completed
 	 */
-	Stream<Update> extractUpdatesFrom(Iterable<Object> objects) throws UpdatesExtractionException, StoreException {
+	Stream<Update> extractUpdatesFrom(Iterable<Object> objects) throws IllegalAssignmentToFieldInStorage, StoreException {
 		return new Processor(objects).updates.stream();
 	}
 
@@ -100,16 +99,16 @@ public class UpdatesExtractor {
 		private final SortedSet<Update> updates = new TreeSet<>();
 
 		/**
-		 * Builds an internal scope to extract the updates to the given objects,
+		 * Builds an internal scope to extract the updates to the given objects
 		 * and to those reachable from them, recursively.
 		 * 
 		 * @param objects the storage objects whose updates must be computed (for them and
 		 *                for the objects recursively reachable from them)
-		 * @throws UpdatesExtractionException if the updates cannot be extracted, because for instance an illegal
-		 *                                    value has been stored into some field
+		 * @throws IllegalAssignmentToFieldInStorage if the updates cannot be extracted, because an illegal
+		 *                                           value has been stored into some field
 		 * @throws StoreException if the operation cannot be completed
 		 */
-		private Processor(Iterable<Object> objects) throws UpdatesExtractionException, StoreException {
+		private Processor(Iterable<Object> objects) throws IllegalAssignmentToFieldInStorage, StoreException {
 			for (var object: objects)
 				if (seen.add(classLoader.getStorageReferenceOf(object, StoreException::new)))
 					workingSet.add(object);
@@ -141,11 +140,11 @@ public class UpdatesExtractor {
 			 * Builds the scope to extract the updates to a given storage object.
 			 * 
 			 * @param object the storage object
-			 * @throws UpdatesExtractionException if the updates cannot be extracted, because for instance an illegal
-			 *                                    value has been stored into some field
+			 * @throws IllegalAssignmentToFieldInStorage if the updates cannot be extracted, because an illegal
+			 *                                           value has been stored into some field
 			 * @throws StoreException if the operation cannot be completed
 			 */
-			private ExtractedUpdatesSingleObject(Object object) throws UpdatesExtractionException, StoreException {
+			private ExtractedUpdatesSingleObject(Object object) throws IllegalAssignmentToFieldInStorage, StoreException {
 				Class<?> clazz = object.getClass();
 				this.storageReference = classLoader.getStorageReferenceOf(object, StoreException::new);
 				this.inStorage = classLoader.getInStorageOf(object, StoreException::new);
@@ -176,12 +175,11 @@ public class UpdatesExtractor {
 			 * @param fieldName the name of the field
 			 * @param fieldClassName the name of the type of the field
 			 * @param newValue the value set to the field
-			 * @throws UpdatesExtractionException if the updates cannot be extracted, because for instance an illegal
-			 *                                    value has been stored into some field
+			 * @throws IllegalAssignmentToFieldInStorage if the updates cannot be extracted, because an illegal
+			 *                                           value has been stored into some field
 			 * @throws StoreException if the operation cannot be completed
 			 */
-			private void addUpdateFor(ClassType fieldDefiningClass, String fieldName, String fieldClassName, Object newValue) throws UpdatesExtractionException, StoreException {
-				// TODO: check exception below
+			private void addUpdateFor(ClassType fieldDefiningClass, String fieldName, String fieldClassName, Object newValue) throws IllegalAssignmentToFieldInStorage, StoreException {
 				var field = FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.classNamed(fieldClassName));
 
 				if (newValue == null)
@@ -192,147 +190,30 @@ public class UpdatesExtractor {
 					var storageReference2 = classLoader.getStorageReferenceOf(newValue, StoreException::new);
 					updates.add(Updates.ofStorage(storageReference, field, storageReference2));
 
-					// if the new value has not yet been considered, we put in the list of object still to be processed
+					// if the new value has not yet been considered, we put it in the list of object still to be processed
 					if (seen.add(storageReference2))
 						workingSet.add(newValue);
 				}
-				// the following cases occur if the declared type of the field is Object but it is updated
+				// the following two cases occur if the declared type of the field is Object but it is updated
 				// to an object whose type is allowed in storage
 				else if (newValue instanceof String s)
 					updates.add(Updates.ofString(storageReference, field, s));
 				else if (newValue instanceof BigInteger bi)
 					updates.add(Updates.ofBigInteger(storageReference, field, bi));
 				else
-					throw new UpdatesExtractionException("Field " + field + " of a storage object cannot hold a " + newValue.getClass().getName());
+					throw new IllegalAssignmentToFieldInStorage(field, newValue);
 			}
 
 			/**
-			 * Takes note that a field of {@code boolean} type has changed its value and consequently adds it to the set of updates.
-			 * 
-			 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object or one of its superclasses
-			 * @param fieldName the name of the field
-			 * @param s the value set to the field
-			 */
-			private void addUpdateFor(ClassType fieldDefiningClass, String fieldName, boolean s) {
-				updates.add(Updates.ofBoolean(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.BOOLEAN), s));
-			}
-
-			/**
-			 * Takes note that a field of {@code byte} type has changed its value and consequently adds it to the set of updates.
-			 * 
-			 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object or one of its superclasses
-			 * @param fieldName the name of the field
-			 * @param s the value set to the field
-			 */
-			private void addUpdateFor(ClassType fieldDefiningClass, String fieldName, byte s) {
-				updates.add(Updates.ofByte(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.BYTE), s));
-			}
-
-			/**
-			 * Takes note that a field of {@code char} type has changed its value and consequently adds it to the set of updates.
-			 * 
-			 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object or one of its superclasses
-			 * @param fieldName the name of the field
-			 * @param s the value set to the field
-			 */
-			private void addUpdateFor(ClassType fieldDefiningClass, String fieldName, char s) {
-				updates.add(Updates.ofChar(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.CHAR), s));
-			}
-
-			/**
-			 * Takes note that a field of {@code double} type has changed its value and consequently adds it to the set of updates.
-			 * 
-			 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object or one of its superclasses
-			 * @param fieldName the name of the field
-			 * @param s the value set to the field
-			 */
-			private void addUpdateFor(ClassType fieldDefiningClass, String fieldName, double s) {
-				updates.add(Updates.ofDouble(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.DOUBLE), s));
-			}
-
-			/**
-			 * Takes note that a field of {@code float} type has changed its value and consequently adds it to the set of updates.
-			 * 
-			 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object or one of its superclasses
-			 * @param fieldName the name of the field
-			 * @param s the value set to the field
-			 */
-			private void addUpdateFor(ClassType fieldDefiningClass, String fieldName, float s) {
-				updates.add(Updates.ofFloat(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.FLOAT), s));
-			}
-
-			/**
-			 * Takes note that a field of {@code int} type has changed its value and consequently adds it to the set of updates.
-			 * 
-			 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object or one of its superclasses
-			 * @param fieldName the name of the field
-			 * @param s the value set to the field
-			 */
-			private void addUpdateFor(ClassType fieldDefiningClass, String fieldName, int s) {
-				updates.add(Updates.ofInt(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.INT), s));
-			}
-
-			/**
-			 * Takes note that a field of {@code long} type has changed its value and consequently adds it to the set of updates.
-			 * 
-			 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object or one of its superclasses
-			 * @param fieldName the name of the field
-			 * @param s the value set to the field
-			 */
-			private void addUpdateFor(ClassType fieldDefiningClass, String fieldName, long s) {
-				updates.add(Updates.ofLong(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.LONG), s));
-			}
-
-			/**
-			 * Takes note that a field of {@code short} type has changed its value and consequently adds it to the set of updates.
-			 * 
-			 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object or one of its superclasses
-			 * @param fieldName the name of the field
-			 * @param s the value set to the field
-			 */
-			private void addUpdateFor(ClassType fieldDefiningClass, String fieldName, short s) {
-				updates.add(Updates.ofShort(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.SHORT), s));
-			}
-
-			/**
-			 * Takes note that a field of {@link java.lang.String} type has changed its value and consequently adds it to the set of updates.
-			 * 
-			 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object or one of its superclasses
-			 * @param fieldName the name of the field
-			 * @param s the value set to the field
-			 */
-			private void addUpdateFor(ClassType fieldDefiningClass, String fieldName, String s) {
-				if (s == null)
-					updates.add(Updates.toNull(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.STRING), true));
-				else
-					updates.add(Updates.ofString(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.STRING), s));
-			}
-
-			/**
-			 * Takes note that a field of {@link java.math.BigInteger} type has changed its value and consequently adds it to the set of updates.
-			 * 
-			 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object or one of its superclasses
-			 * @param fieldName the name of the field
-			 * @param bi the value set to the field
-			 */
-			private void addUpdateFor(ClassType fieldDefiningClass, String fieldName, BigInteger bi) {
-				FieldSignature field = FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.BIG_INTEGER);
-				if (bi == null)
-					updates.add(Updates.toNull(storageReference, field, true));
-				else
-					updates.add(Updates.ofBigInteger(storageReference, field, bi));
-			}
-
-			/**
-			 * Takes note of updates to the fields of the given object, defined in the given class.
+			 * Takes note of the updates to the fields of the given object, defined in the given class.
 			 * 
 			 * @param clazz the class
 			 * @param object the object
-			 * @throws UpdatesExtractionException if the updates cannot be extracted, because for instance an illegal
-			 *                                    value has been stored into some field
+			 * @throws IllegalAssignmentToFieldInStorage if the updates cannot be extracted, because an illegal
+			 *                                           value has been stored into some field
 			 * @throws StoreException if the operation cannot be completed
 			 */
-			private void addUpdatesForFieldsDefinedInClass(Class<?> clazz, Object object) throws UpdatesExtractionException, StoreException {
+			private void addUpdatesForFieldsDefinedInClass(Class<?> clazz, Object object) throws IllegalAssignmentToFieldInStorage, StoreException {
 				Field[] declaredFields;
 
 				try {
@@ -401,36 +282,43 @@ public class UpdatesExtractor {
 			 * 
 			 * @param field the field
 			 * @param newValue the new value of the field
-			 * @throws UpdatesExtractionException if the updates cannot be extracted, because for instance an illegal
-			 *                                    value has been stored into some field
+			 * @throws IllegalAssignmentToFieldInStorage if the updates cannot be extracted, because an illegal value has been stored into some field
 			 * @throws StoreException if the operation cannot be completed
 			 */
-			private void addUpdateFor(Field field, Object newValue) throws UpdatesExtractionException, StoreException {
+			private void addUpdateFor(Field field, Object newValue) throws IllegalAssignmentToFieldInStorage, StoreException {
 				Class<?> fieldType = field.getType();
 				// the field is defined in a storage object, hence the subsequent conversion cannot fail
 				ClassType fieldDefiningClass = StorageTypes.classFromClass(field.getDeclaringClass());
 				String fieldName = field.getName();
 
 				if (fieldType == char.class)
-					addUpdateFor(fieldDefiningClass, fieldName, (char) newValue);
+					updates.add(Updates.ofChar(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.CHAR), (char) newValue));
 				else if (fieldType == boolean.class)
-					addUpdateFor(fieldDefiningClass, fieldName, (boolean) newValue);
+					updates.add(Updates.ofBoolean(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.BOOLEAN), (boolean) newValue));
 				else if (fieldType == byte.class)
-					addUpdateFor(fieldDefiningClass, fieldName, (byte) newValue);
+					updates.add(Updates.ofByte(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.BYTE), (byte) newValue));
 				else if (fieldType == short.class)
-					addUpdateFor(fieldDefiningClass, fieldName, (short) newValue);
+					updates.add(Updates.ofShort(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.SHORT), (short) newValue));
 				else if (fieldType == int.class)
-					addUpdateFor(fieldDefiningClass, fieldName, (int) newValue);
+					updates.add(Updates.ofInt(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.INT), (int) newValue));
 				else if (fieldType == long.class)
-					addUpdateFor(fieldDefiningClass, fieldName, (long) newValue);
+					updates.add(Updates.ofLong(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.LONG), (long) newValue));
 				else if (fieldType == float.class)
-					addUpdateFor(fieldDefiningClass, fieldName, (float) newValue);
+					updates.add(Updates.ofFloat(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.FLOAT), (float) newValue));
 				else if (fieldType == double.class)
-					addUpdateFor(fieldDefiningClass, fieldName, (double) newValue);
-				else if (fieldType == BigInteger.class)
-					addUpdateFor(fieldDefiningClass, fieldName, (BigInteger) newValue);
-				else if (fieldType == String.class)
-					addUpdateFor(fieldDefiningClass, fieldName, (String) newValue);
+					updates.add(Updates.ofDouble(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.DOUBLE), (double) newValue));
+				else if (fieldType == BigInteger.class) {
+					if (newValue == null)
+						updates.add(Updates.toNull(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.BIG_INTEGER), true));
+					else
+						updates.add(Updates.ofBigInteger(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.BIG_INTEGER), (BigInteger) newValue));
+				}
+				else if (fieldType == String.class) {
+					if (newValue == null)
+						updates.add(Updates.toNull(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.STRING), true));
+					else
+						updates.add(Updates.ofString(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.STRING), (String) newValue));
+				}
 				else if (classLoader.isLazilyLoaded(fieldType))
 					addUpdateFor(fieldDefiningClass, fieldName, fieldType.getName(), newValue);
 				else

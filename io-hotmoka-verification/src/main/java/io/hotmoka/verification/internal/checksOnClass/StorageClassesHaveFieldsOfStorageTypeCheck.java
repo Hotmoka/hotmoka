@@ -40,7 +40,8 @@ public class StorageClassesHaveFieldsOfStorageTypeCheck extends CheckOnClasses {
 
 	private boolean isTypeAllowedForStorageFields(Class<?> type) throws IllegalJarException {
 		// we allow Object since it can be the erasure of a generic type: the runtime of Takamaka
-		// will check later if the actual type of the object in this field is allowed;
+		// will check later if the actual type of the object in this field is allowed
+		// (see the {@code UpdatesExtractor} class);
 		// we also allow interfaces since they cannot extend Storage and only at run time it will
 		// be possible to determine if the content is a storage value
 		try {

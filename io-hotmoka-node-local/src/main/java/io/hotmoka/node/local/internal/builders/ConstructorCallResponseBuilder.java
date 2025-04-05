@@ -23,9 +23,6 @@ import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-import io.hotmoka.exceptions.CheckSupplier;
-import io.hotmoka.exceptions.UncheckFunction;
-import io.hotmoka.exceptions.functions.FunctionWithExceptions2;
 import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionResponses;
@@ -36,7 +33,6 @@ import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
-import io.hotmoka.node.local.DeserializationException;
 import io.hotmoka.node.local.api.StoreException;
 
 /**
@@ -77,9 +73,11 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 
 			try {
 				init();
-				FunctionWithExceptions2<StorageValue, ? extends Object, StoreException, DeserializationException> deserialize = deserializer::deserialize;
-				this.deserializedActuals = CheckSupplier.check(StoreException.class, DeserializationException.class,
-					() -> request.actuals().map(UncheckFunction.uncheck(StoreException.class, DeserializationException.class, deserialize)).toArray(Object[]::new));
+				var actuals = request.actuals().toArray(StorageValue[]::new);
+				this.deserializedActuals = new Object[actuals.length];
+				int pos = 0;
+				for (StorageValue actual: actuals)
+					deserializedActuals[pos++] = deserializer.deserialize(actual);
 		
 				Object[] deserializedActuals;
 				Constructor<?> constructorJVM;
@@ -126,14 +124,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 			catch (Throwable t) {
 				var reference = TransactionReferences.of(environment.getHasher().hash(getRequest()));
 				LOGGER.warning(reference + ": failed with message: \"" + t.getMessage() + "\"");
-				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
-				resetBalanceOfPayerToInitialValueMinusAllPromisedGas();
-				try {
-					return TransactionResponses.constructorCallFailed(updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), t.getClass().getName(), getMessage(t), where(t));
-				}
-				catch (UpdatesExtractionException | StoreException e) {
-					throw new RuntimeException(e); // TODO
-				}
+				return TransactionResponses.constructorCallFailed(updatesInCaseOfException(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), t.getClass().getName(), getMessage(t), where(t));
 			}
 		}
 

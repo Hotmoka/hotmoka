@@ -24,8 +24,8 @@ import io.hotmoka.node.api.responses.NonInitialTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.builders.ExecutionEnvironment;
+import io.hotmoka.node.local.internal.builders.IllegalAssignmentToFieldInStorage;
 import io.hotmoka.node.local.internal.builders.NonInitialResponseBuilderImpl;
-import io.hotmoka.node.local.internal.builders.UpdatesExtractionException;
 import io.hotmoka.verification.VerificationException;
 import io.hotmoka.whitelisting.api.WhiteListingClassLoader;
 
@@ -79,7 +79,7 @@ public abstract class AbstractNonInitialResponseBuilder<Request extends NonIniti
 			if (className.equals(VerificationException.class.getName()) ||
 				className.equals(NonWhiteListedCallException.class.getName()) ||
 				className.equals(SideEffectsInViewMethodException.class.getName()) ||
-				className.equals(UpdatesExtractionException.class.getName()) ||
+				className.equals(IllegalAssignmentToFieldInStorage.class.getName()) ||
 				className.equals(DeserializationException.class.getName()) ||
 				clazz.getClassLoader() instanceof WhiteListingClassLoader)
 				return throwable.getMessage();

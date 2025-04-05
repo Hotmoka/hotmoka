@@ -49,7 +49,7 @@ import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StringValue;
-import io.hotmoka.node.local.internal.builders.UpdatesExtractionException;
+import io.hotmoka.node.local.internal.builders.IllegalAssignmentToFieldInStorage;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -326,7 +326,7 @@ class Basic extends HotmokaTest {
 	void updatesExtractionException() throws Exception {
 		StorageReference wl = addConstructorCallTransaction(key, master, _200_000, ONE, classpath, ConstructorSignatures.of(WITH_LIST));
 		
-		throwsTransactionExceptionWithCause(UpdatesExtractionException.class, () ->
+		throwsTransactionExceptionWithCause(IllegalAssignmentToFieldInStorage.class, () ->
 			addInstanceVoidMethodCallTransaction(key, master, _200_000, ONE, classpath, MethodSignatures.ofVoid(WITH_LIST, "illegal"), wl)
 		);
 	}

@@ -79,21 +79,14 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 				var verifiedJar = VerifiedJars.of(request.getJar(), classLoader, false, consensus.skipsVerification());
 				var instrumentedJar = InstrumentedJars.of(verifiedJar, gasCostModel);
 				var instrumentedBytes = instrumentedJar.toBytes();
-				chargeGasForStorageOf(TransactionResponses.jarStoreSuccessful(instrumentedBytes, request.getDependencies(), consensus.getVerificationVersion(), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+				chargeGasForStorageOf(TransactionResponses.jarStoreSuccessful(instrumentedBytes, request.getDependencies(), consensus.getVerificationVersion(), updates(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 				refundPayerForAllRemainingGas();
-				return TransactionResponses.jarStoreSuccessful(instrumentedBytes, request.getDependencies(), consensus.getVerificationVersion(), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+				return TransactionResponses.jarStoreSuccessful(instrumentedBytes, request.getDependencies(), consensus.getVerificationVersion(), updates(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			}
 			catch (Throwable t) {
 				var reference = TransactionReferences.of(environment.getHasher().hash(getRequest()));
 				LOGGER.warning(reference + ": failed with message: \"" + t.getMessage() + "\"");
-				resetBalanceOfPayerToInitialValueMinusAllPromisedGas();
-				// we do not pay back the gas
-				try {
-					return TransactionResponses.jarStoreFailed(updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), t.getClass().getName(), getMessage(t));
-				}
-				catch (UpdatesExtractionException | StoreException e) {
-					throw new RuntimeException(e); // TODO
-				}
+				return TransactionResponses.jarStoreFailed(updatesInCaseOfException(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), t.getClass().getName(), getMessage(t));
 			}
 		}
 

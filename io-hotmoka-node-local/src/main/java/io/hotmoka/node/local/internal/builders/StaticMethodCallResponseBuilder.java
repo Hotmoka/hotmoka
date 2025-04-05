@@ -113,15 +113,7 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 			catch (Throwable t) {
 				var reference = TransactionReferences.of(environment.getHasher().hash(getRequest()));
 				LOGGER.warning(reference + ": failed with message: \"" + t.getMessage() + "\"");
-
-				resetBalanceOfPayerToInitialValueMinusAllPromisedGas();
-				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller or validators
-				try {
-					return TransactionResponses.methodCallFailed(updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), t.getClass().getName(), getMessage(t), where(t));
-				}
-				catch (UpdatesExtractionException | StoreException e) {
-					throw new RuntimeException(e);
-				}
+				return TransactionResponses.methodCallFailed(updatesInCaseOfException(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), t.getClass().getName(), getMessage(t), where(t));
 			}
 		}
 

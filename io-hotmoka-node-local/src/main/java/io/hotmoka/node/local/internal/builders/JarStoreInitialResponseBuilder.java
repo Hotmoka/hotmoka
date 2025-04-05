@@ -58,7 +58,7 @@ public class JarStoreInitialResponseBuilder extends AbstractInitialResponseBuild
 		return new ResponseCreator() {
 
 			@Override
-			protected JarStoreInitialTransactionResponse body() throws TransactionRejectedException {
+			protected JarStoreInitialTransactionResponse body() throws TransactionRejectedException, StoreException {
 				checkConsistency();
 
 				try {

@@ -21,8 +21,11 @@ import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -31,6 +34,7 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.instrumentation.api.GasCostModel;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.OutOfGasError;
+import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
@@ -116,6 +120,8 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 */
 		private BigInteger gasConsumedForStorage = ZERO;
 
+		private final SortedSet<Update> updatesInCaseOfException = new TreeSet<>();
+
 		/**
 		 * The amount of coins that have been deduced at the beginning for paying the gas in full.
 		 */
@@ -125,31 +131,27 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * The balance of the payer with all promised gas paid.
 		 * This will be its balance if the transaction fails.
 		 */
-		private BigInteger balanceOfPayerInCaseOfTransactionException;
+		private BigInteger balanceOfCallerInCaseOfTransactionException;
 
 		protected ResponseCreator() throws TransactionRejectedException, StoreException {
 			this.gas = request.getGasLimit();
 			this.gasCostModel = consensus.getGasCostModel();
 		}
 
-		protected void checkConsistency() throws TransactionRejectedException {
-			try {
-				callerMustBeExternallyOwnedAccount();
-				gasLimitIsInsideBounds();
-				requestPromisesEnoughGas();
-				gasPriceIsLargeEnough();
-				requestMustHaveCorrectChainId();
-				signatureMustBeValid();
-				callerAndRequestMustAgreeOnNonce();
-				callerCanPayForAllPromisedGas();
-			}
-			catch (StoreException e) {
-				throw new RuntimeException(e);
-			}
+		protected void checkConsistency() throws TransactionRejectedException, StoreException {
+			callerMustBeExternallyOwnedAccount();
+			gasLimitIsInsideBounds();
+			requestPromisesEnoughGas();
+			gasPriceIsLargeEnough();
+			requestMustHaveCorrectChainId();
+			signatureMustBeValid();
+			callerAndRequestMustAgreeOnNonce();
+			callerCanPayForAllPromisedGas();
 		}
 
 		protected final void init() throws StoreException, DeserializationException {
 			this.deserializedCaller = deserializer.deserialize(request.getCaller());
+			BigInteger initialBalance = classLoader.getBalanceOf(deserializedCaller, StoreException::new);
 			var validators = environment.getValidators();
 			this.deserializedValidators = validators.isPresent() ? Optional.of(deserializer.deserialize(validators.get())) : Optional.empty();
 			increaseNonceOfCaller();
@@ -157,7 +159,10 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 			chargeGasForStorage(BigInteger.valueOf(request.size()));
 			chargeGasForClassLoader();	
 			this.coinsInitiallyPaidForGas = chargePayerForAllGasPromised();
-			this.balanceOfPayerInCaseOfTransactionException = classLoader.getBalanceOf(deserializedCaller, StoreException::new);
+			this.balanceOfCallerInCaseOfTransactionException = classLoader.getBalanceOf(deserializedCaller, StoreException::new);
+			if (!balanceOfCallerInCaseOfTransactionException.equals(initialBalance))
+				updatesInCaseOfException.add(Updates.ofBigInteger(request.getCaller(), FieldSignatures.BALANCE_FIELD, balanceOfCallerInCaseOfTransactionException)); // TODO
+
 		}
 
 		/**
@@ -247,6 +252,30 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 */
 		protected boolean transactionIsSigned() throws StoreException {
 			return !isView() && request instanceof SignedTransactionRequest;
+		}
+
+		/**
+		 * Collects all updates that can be seen from the context of the caller of the method or constructor.
+		 * 
+		 * @return the updates, sorted
+		 */
+		protected final Stream<Update> updates() throws IllegalAssignmentToFieldInStorage, StoreException {
+			List<Object> potentiallyAffectedObjects = new ArrayList<>();
+			scanPotentiallyAffectedObjects(potentiallyAffectedObjects::add);
+			return updatesExtractor.extractUpdatesFrom(potentiallyAffectedObjects);
+		}
+
+		/**
+		 * Scans the objects reachable from the context of the caller of the transaction
+		 * that might have been affected during the execution of the transaction
+		 * and consumes each of them. Such objects do not include the returned value of
+		 * a method or the object created by a constructor, if any.
+		 * 
+		 * @param consumer the consumer
+		 */
+		protected void scanPotentiallyAffectedObjects(Consumer<Object> consumer) {
+			consumer.accept(getDeserializedCaller());
+			getDeserializedValidators().ifPresent(consumer);
 		}
 
 		/**
@@ -497,11 +526,9 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * Collects all updates to the balance or nonce of the caller of the transaction.
 		 * 
 		 * @return the updates
-		 * @throws DeserializationException 
 		 */
-		protected final Stream<Update> updatesToBalanceOrNonceOfCaller() throws UpdatesExtractionException, StoreException {
-			return updatesExtractor.extractUpdatesFrom(List.of(deserializedCaller))
-				.filter(this::isUpdateToBalanceOrNonceOfCaller);
+		protected final Stream<Update> updatesInCaseOfException() {
+			return updatesInCaseOfException.stream();
 		}
 
 		/**
@@ -548,18 +575,17 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 				classLoader.setBalanceOf(deserializedCaller, balance.add(coinsInitiallyPaidForGas), StoreException::new);
 		}
 
-		protected final void resetBalanceOfPayerToInitialValueMinusAllPromisedGas() throws StoreException {
-			classLoader.setBalanceOf(deserializedCaller, balanceOfPayerInCaseOfTransactionException, StoreException::new);
-		}
-
 		/**
 		 * Sets the nonce to the value successive to that in the request.
 		 * 
-		 * @throws StoreException if the satore is misbehaving
+		 * @throws StoreException if the store is misbehaving
 		 */
 		private void increaseNonceOfCaller() throws StoreException {
-			if (!isView())
-				classLoader.setNonceOf(deserializedCaller, request.getNonce().add(ONE), StoreException::new);
+			if (!isView()) {
+				BigInteger increasedNonce = request.getNonce().add(ONE);
+				classLoader.setNonceOf(deserializedCaller, increasedNonce, StoreException::new);
+				updatesInCaseOfException.add(Updates.ofBigInteger(request.getCaller(), FieldSignatures.EOA_NONCE_FIELD, increasedNonce));
+			}
 		}
 	}
 }

@@ -90,17 +90,12 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		}
 
 		@Override
-		protected void checkConsistency() throws TransactionRejectedException {
+		protected void checkConsistency() throws TransactionRejectedException, StoreException {
 			super.checkConsistency();
 
-			try {
-				// calls to @View methods are allowed to receive non-exported values
-				if (transactionIsSigned()) 
-					receiverIsExported();
-			}
-			catch (StoreException e) {
-				throw new RuntimeException(e);
-			}
+			// calls to @View methods are allowed to receive non-exported values
+			if (transactionIsSigned()) 
+				receiverIsExported();
 		}
 
 		@Override
@@ -171,15 +166,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 			catch (Throwable t) {
 				var reference = TransactionReferences.of(environment.getHasher().hash(getRequest()));
 				LOGGER.warning(reference + ": failed with message: \"" + t.getMessage() + "\"");
-				resetBalanceOfPayerToInitialValueMinusAllPromisedGas();
-
-				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller or validators
-				try {
-					return TransactionResponses.methodCallFailed(updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), t.getClass().getName(), getMessage(t), where(t));
-				}
-				catch (UpdatesExtractionException | StoreException e) {
-					throw new RuntimeException(e); // TODO
-				}
+				return TransactionResponses.methodCallFailed(updatesInCaseOfException(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), t.getClass().getName(), getMessage(t), where(t));
 			}
 		}
 
