@@ -16,17 +16,15 @@ limitations under the License.
 
 package io.hotmoka.node.local;
 
-import io.hotmoka.node.NonWhiteListedCallException;
-import io.hotmoka.node.SideEffectsInViewMethodException;
+import io.hotmoka.node.api.HotmokaException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.NonInitialTransactionRequest;
 import io.hotmoka.node.api.responses.NonInitialTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.builders.ExecutionEnvironment;
-import io.hotmoka.node.local.internal.builders.IllegalAssignmentToFieldInStorage;
 import io.hotmoka.node.local.internal.builders.NonInitialResponseBuilderImpl;
-import io.hotmoka.verification.VerificationException;
+import io.hotmoka.verification.api.VerificationException;
 import io.hotmoka.whitelisting.api.WhiteListingClassLoader;
 
 /**
@@ -74,13 +72,10 @@ public abstract class AbstractNonInitialResponseBuilder<Request extends NonIniti
 		 */
 		protected final String getMessage(Throwable throwable) {
 			var clazz = throwable.getClass();
-			String className = clazz.getName();
 
-			if (className.equals(VerificationException.class.getName()) ||
-				className.equals(NonWhiteListedCallException.class.getName()) ||
-				className.equals(SideEffectsInViewMethodException.class.getName()) ||
-				className.equals(IllegalAssignmentToFieldInStorage.class.getName()) ||
-				className.equals(DeserializationException.class.getName()) ||
+			if (HotmokaException.class.isAssignableFrom(clazz) ||
+				clazz.getName().equals(VerificationException.class.getName()) ||
+				//clazz.getName().equals(IllegalJarException.class.getName()) || // TODO: make message deterministic before
 				clazz.getClassLoader() instanceof WhiteListingClassLoader)
 				return throwable.getMessage();
 			else

@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.StorageTypes;
-import io.hotmoka.node.local.internal.builders.IllegalAssignmentToFieldInStorage;
+import io.hotmoka.node.api.IllegalAssignmentToFieldInStorage;
 import io.hotmoka.tests.HotmokaTest;
 
 class IllegalTypeForStorageField4 extends HotmokaTest {

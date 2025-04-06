@@ -29,18 +29,11 @@ public class UnknownReferenceException extends Exception {
 
 	/**
 	 * Creates a new exception.
-	 */
-	public UnknownReferenceException() {
-		super("Unknown reference");
-	}
-
-	/**
-	 * Creates a new exception.
 	 * 
 	 * @param reference the reference that cannot be found
 	 */
 	public UnknownReferenceException(StorageReference reference) {
-		super("Unknown reference " + reference);
+		super("Unknown storage reference " + reference);
 	}
 
 	/**
@@ -49,7 +42,7 @@ public class UnknownReferenceException extends Exception {
 	 * @param reference the reference that cannot be found
 	 */
 	public UnknownReferenceException(TransactionReference reference) {
-		super("Unknown reference " + reference);
+		super("Unknown transaction reference " + reference);
 	}
 
 	/**
@@ -59,24 +52,5 @@ public class UnknownReferenceException extends Exception {
 	 */
 	public UnknownReferenceException(String message) {
 		super(Objects.requireNonNull(message, "message cannot be null"));
-	}
-
-	/**
-	 * Creates a new exception with the given cause.
-	 * 
-	 * @param cause the cause
-	 */
-	public UnknownReferenceException(Throwable cause) {
-		super(String.valueOf(cause.getMessage()), cause);
-	}
-
-	/**
-	 * Creates a new exception with the given message and cause.
-	 * 
-	 * @param message the message
-	 * @param cause the cause
-	 */
-	public UnknownReferenceException(String message, Throwable cause) {
-		super(Objects.requireNonNull(message, "message cannot be null"), Objects.requireNonNull(cause, "cause cannot be null"));
 	}
 }

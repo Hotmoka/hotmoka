@@ -1,5 +1,5 @@
 /*
-Copyright 2024 Fausto Spoto
+Copyright 2025 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,29 +14,27 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.local.internal.builders;
-
-import io.hotmoka.node.api.signatures.FieldSignature;
+package io.hotmoka.node.api;
 
 /**
  * An exception thrown when a field of a storage object has been assigned
  * to a value that is not allowed in storage. Most of these situations are already
  * excluded by static analysis (see the verifier
- * {@link io.hotmoka.verification.internal.checksOnClass.StorageClassesHaveFieldsOfStorageTypeCheck}.
+ * {@code io.hotmoka.verification.internal.checksOnClass.StorageClassesHaveFieldsOfStorageTypeCheck}.
  * But Hotmoka still allows fields of declared type {@code Object} or interface,
  * to cope with generic types (often erased into {@code Object} and with fields of
  * interface type. These situations must be checked dynamically and, if violated,
  * throw this exception.
  */
 @SuppressWarnings("serial")
-public class IllegalAssignmentToFieldInStorage extends Exception {
+public class IllegalAssignmentToFieldInStorage extends HotmokaException {
 
 	/**
 	 * Creates the exception with the given message.
 	 * 
 	 * @param message the message
 	 */
-	IllegalAssignmentToFieldInStorage(FieldSignature field, Object newValue) {
-		super("Field " + field + " of a storage object cannot hold a " + newValue.getClass().getName());
+	public IllegalAssignmentToFieldInStorage(String message) {
+		super(message);
 	}
 }

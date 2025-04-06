@@ -14,31 +14,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.verification.api;
+package io.hotmoka.node.api;
 
-import java.util.Objects;
+import io.hotmoka.node.api.types.StorageType;
 
 /**
- * An exception thrown when a jar file contains a class file whose structure is illegal.
+ * An exception thrown when a the method or constructor
+ * called by a transaction refers to an unknown type.
  */
 @SuppressWarnings("serial")
-public class IllegalJarException extends Exception {
+public class UnknownTypeException extends HotmokaException {
 
 	/**
-	 * Creates an exception.
+	 * Creates an exception about an unknown type.
 	 * 
-	 * @param message the message of the exception
+	 * @param type the type
 	 */
-	public IllegalJarException(String message) {
-		super(Objects.requireNonNull(message));
-	}
-
-	/**
-	 * Creates an exception.
-	 * 
-	 * @param cause the cause of the exception
-	 */
-	public IllegalJarException(Exception cause) { // TODO: remove
-		super(cause);
+	public UnknownTypeException(StorageType type) {
+		super("Unknown type " + type);
 	}
 }

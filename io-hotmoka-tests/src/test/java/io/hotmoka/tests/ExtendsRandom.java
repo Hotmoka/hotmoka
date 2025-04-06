@@ -14,31 +14,35 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.tests.errors;
+package io.hotmoka.tests;
 
-import java.math.BigInteger;
-import java.util.Random;
+import static io.hotmoka.helpers.Coin.panarea;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.StorageTypes;
-import io.hotmoka.node.api.NonWhiteListedCallException;
-import io.hotmoka.tests.HotmokaTest;
+import io.hotmoka.node.api.SerializationException;
 
-class IllegalCallToNonWhiteListedMethod10 extends HotmokaTest {
+class ExtendsRandom extends HotmokaTest {
+
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		setJar("extendsrandom.jar");
+	}
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setAccounts(_1_000_000_000);
+		setAccounts(_1_000_000);
 	}
 
-	@Test @DisplayName("new Random()")
-	void testNonWhiteListedCall() {
-		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
-			addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, takamakaCode(), ConstructorSignatures.of(StorageTypes.classFromClass(Random.class)))
-		);
+	@Test @DisplayName("new ExtendsRandom() throws SerializationException")
+	void callConstructor() throws Exception {
+		var constructor = ConstructorSignatures.of(StorageTypes.classNamed("io.hotmoka.examples.extendsrandom.ExtendsRandom"));
+		throwsTransactionExceptionWithCause(SerializationException.class, () ->
+			addConstructorCallTransaction(privateKey(0), account(0), _100_000, panarea(1), jar(), constructor));
 	}
 }

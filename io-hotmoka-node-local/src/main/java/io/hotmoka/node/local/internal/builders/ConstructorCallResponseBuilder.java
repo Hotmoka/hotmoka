@@ -19,28 +19,26 @@ package io.hotmoka.node.local.internal.builders;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-import io.hotmoka.node.NonWhiteListedCallException;
-import io.hotmoka.node.OutOfGasException;
-import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionResponses;
+import io.hotmoka.node.api.HotmokaException;
+import io.hotmoka.node.api.NonWhiteListedCallException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownTypeException;
+import io.hotmoka.node.api.UnmatchedTargetException;
 import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.node.api.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
-import io.hotmoka.node.local.DeserializationException;
 import io.hotmoka.node.local.api.StoreException;
 
 /**
  * The creator of a response for a transaction that executes a constructor of Takamaka code.
  */
 public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> {
-	private final static Logger LOGGER = Logger.getLogger(ConstructorCallResponseBuilder.class.getName());
 
 	/**
 	 * Creates the builder of the response.
@@ -65,8 +63,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		 */
 		private Object[] deserializedActuals;
 
-		private ResponseCreator() throws TransactionRejectedException, StoreException {
-		}
+		private ResponseCreator() throws TransactionRejectedException, StoreException {}
 
 		@Override
 		protected ConstructorCallTransactionResponse body() throws TransactionRejectedException, StoreException {
@@ -74,12 +71,8 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 
 			try {
 				init();
-				var actuals = request.actuals().toArray(StorageValue[]::new);
-				this.deserializedActuals = new Object[actuals.length];
-				int pos = 0;
-				for (StorageValue actual: actuals)
-					deserializedActuals[pos++] = deserializer.deserialize(actual);
-		
+				deserializedActuals = deserializedActuals();
+
 				Object[] deserializedActuals;
 				Constructor<?> constructorJVM;
 		
@@ -88,15 +81,10 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 					constructorJVM = getConstructor();
 					deserializedActuals = this.deserializedActuals;
 				}
-				catch (NoSuchMethodException e) {
+				catch (UnmatchedTargetException e) {
 					// if not found, we try to add the trailing types that characterize the @FromContract constructors
-					try {
-						constructorJVM = getFromContractConstructor();
-						deserializedActuals = addExtraActualsForFromContract();
-					}
-					catch (NoSuchMethodException ee) {
-						throw e; // the message must be relative to the constructor as the user sees it
-					}
+					constructorJVM = getFromContractConstructor();
+					deserializedActuals = addExtraActualsForFromContract();
 				}
 		
 				ensureWhiteListingOf(constructorJVM, deserializedActuals);
@@ -105,62 +93,95 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 				try {
 					result = constructorJVM.newInstance(deserializedActuals);
 				}
-				catch (InvocationTargetException e) {
-					Throwable cause = e.getCause();
-					if (isCheckedForThrowsExceptions(cause, constructorJVM)) {
-						chargeGasForStorageOf(TransactionResponses.constructorCallException(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), cause.getClass().getName(), getMessage(cause), where(cause)));
-						refundPayerForAllRemainingGas();
-						return TransactionResponses.constructorCallException(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), cause.getClass().getName(), getMessage(cause), where(cause));
-					}
-					else
-						throw e;
+				catch (InstantiationException | IllegalAccessException e) {
+					throw new UnmatchedTargetException("Cannot instantiate class " + request.getStaticTarget().getDefiningClass());
 				}
-		
-				chargeGasForStorageOf(TransactionResponses.constructorCallSuccessful
-					((StorageReference) serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-				refundPayerForAllRemainingGas();
-				return TransactionResponses.constructorCallSuccessful
-					((StorageReference) serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+				catch (InvocationTargetException e) {
+					return failure(constructorJVM, e);						
+				}
+
+				if (serialize(result) instanceof StorageReference sr)
+					return success(result, sr);
+				else
+					// a constructor can only create an object, represented as a storage reference in Hotmoka
+					throw new StoreException("The return value of a constructor should be an object");
 			}
-			catch (OutOfGasException | NonWhiteListedCallException | IllegalAssignmentToFieldInStorage | DeserializationException | ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException t) {
-				LOGGER.warning(TransactionReferences.of(environment.getHasher().hash(getRequest())) + ": failed with message: \"" + t.getMessage() + "\"");
+			catch (HotmokaException t) {
 				return TransactionResponses.constructorCallFailed(updatesInCaseOfException(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), t.getClass().getName(), getMessage(t), where(t));
 			}
-			catch (InvocationTargetException e) {
-				Throwable t = e.getCause();
-				LOGGER.warning(TransactionReferences.of(environment.getHasher().hash(getRequest())) + ": failed with message: \"" + t.getMessage() + "\"");
-				return TransactionResponses.constructorCallFailed(updatesInCaseOfException(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), t.getClass().getName(), getMessage(t), where(t));
+		}
+
+		private Object[] deserializedActuals() throws HotmokaException, StoreException {
+			var actuals = request.actuals().toArray(StorageValue[]::new);
+			Object[] deserializedActuals = new Object[actuals.length];
+			int pos = 0;
+			for (StorageValue actual: actuals)
+				deserializedActuals[pos++] = deserializer.deserialize(actual);
+
+			return deserializedActuals;
+		}
+
+		private ConstructorCallTransactionResponse success(Object result, StorageReference reference) throws HotmokaException, StoreException {
+			chargeGasForStorageOf(TransactionResponses.constructorCallSuccessful
+					(reference, updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+			refundCallerForAllRemainingGas();
+			return TransactionResponses.constructorCallSuccessful
+					(reference, updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+		}
+
+		private ConstructorCallTransactionResponse failure(Constructor<?> constructorJVM, InvocationTargetException e) throws HotmokaException, StoreException {
+			Throwable cause = e.getCause();
+			String message = getMessage(cause);
+			String causeClassName = cause.getClass().getName();
+			String where = where(cause);
+
+			if (isCheckedForThrowsExceptions(cause, constructorJVM)) {
+				chargeGasForStorageOf(TransactionResponses.constructorCallException(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), causeClassName, message, where));
+				refundCallerForAllRemainingGas();
+				return TransactionResponses.constructorCallException(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), causeClassName, message, where);
 			}
+			else
+				return TransactionResponses.constructorCallFailed(updatesInCaseOfException(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), causeClassName, message, where);
 		}
 
 		/**
 		 * Resolves the constructor that must be called.
 		 * 
 		 * @return the constructor
-		 * @throws NoSuchMethodException if the constructor could not be found
-		 * @throws ClassNotFoundException if the class of the constructor or of some parameter cannot be found
+		 * @throws UnmatchedTargetException if the constructor could not be found
+		 * @throws UnknownTypeException if the class of the constructor or of some parameter cannot be found
 		 */
-		private Constructor<?> getConstructor() throws ClassNotFoundException, NoSuchMethodException {
-			Class<?>[] argTypes = formalsAsClass();
+		private Constructor<?> getConstructor() throws UnknownTypeException, UnmatchedTargetException {
+			Class<?>[] argTypes = formalsAsClass2();
 			ConstructorSignature constructor = request.getStaticTarget();
 
-			return classLoader.resolveConstructor(constructor.getDefiningClass().getName(), argTypes)
-					.orElseThrow(() -> new NoSuchMethodException(constructor.toString()));
+			try {
+				return classLoader.resolveConstructor(constructor.getDefiningClass().getName(), argTypes)
+					.orElseThrow(() -> new UnmatchedTargetException(constructor));
+			}
+			catch (ClassNotFoundException e) {
+				throw new UnknownTypeException(constructor.getDefiningClass());
+			}
 		}
 
 		/**
 		 * Resolves the constructor that must be called, assuming that it is a {@code @@FromContract}.
 		 * 
 		 * @return the constructor
-		 * @throws NoSuchMethodException if the constructor could not be found
-		 * @throws ClassNotFoundException if the class of the constructor or of some parameter cannot be found
+		 * @throws UnmatchedTargetException if the constructor could not be found
+		 * @throws UnknownTypeException if the class of the constructor or of some parameter cannot be found
 		 */
-		private Constructor<?> getFromContractConstructor() throws ClassNotFoundException, NoSuchMethodException {
-			Class<?>[] argTypes = formalsAsClassForFromContract();
+		private Constructor<?> getFromContractConstructor() throws UnknownTypeException, UnmatchedTargetException {
+			Class<?>[] argTypes = formalsAsClassForFromContract2();
 			ConstructorSignature constructor = request.getStaticTarget();
 
-			return classLoader.resolveConstructor(constructor.getDefiningClass().getName(), argTypes)
-					.orElseThrow(() -> new NoSuchMethodException(constructor.toString()));
+			try {
+				return classLoader.resolveConstructor(constructor.getDefiningClass().getName(), argTypes)
+					.orElseThrow(() -> new UnmatchedTargetException(constructor));
+			}
+			catch (ClassNotFoundException e) {
+				throw new UnknownTypeException(constructor.getDefiningClass());
+			}
 		}
 
 		/**
@@ -189,7 +210,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		 */
 		private void ensureWhiteListingOf(Constructor<?> executable, Object[] actuals) throws NonWhiteListedCallException {
 			classLoader.getWhiteListingWizard().whiteListingModelOf(executable)
-				.orElseThrow(() -> new NonWhiteListedCallException("Illegal call to non-white-listed constructor of " + request.getStaticTarget().getDefiningClass()));
+				.orElseThrow(() -> new NonWhiteListedCallException(request.getStaticTarget()));
 		}
 
 		@Override

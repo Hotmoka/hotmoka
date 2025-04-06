@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import io.hotmoka.exceptions.UncheckedException;
+import io.hotmoka.node.api.DeserializationException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -42,7 +43,6 @@ import io.hotmoka.node.api.values.ShortValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.api.values.StringValue;
-import io.hotmoka.node.local.DeserializationException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.whitelisting.Dummy;
@@ -138,31 +138,39 @@ public class Deserializer {
 	private int compare(UpdateOfField update1, UpdateOfField update2) {
 		FieldSignature field1 = update1.getField();
 		FieldSignature field2 = update2.getField();
-	
-		try {
-			String className1 = field1.getDefiningClass().getName();
-			String className2 = field2.getDefiningClass().getName();
-	
-			if (className1.equals(className2)) {
-				int diff = field1.getName().compareTo(field2.getName());
-				if (diff != 0)
-					return diff;
-				else
-					return field1.getType().toString().compareTo(field2.getType().toString()); // TODO: types are comparable!
-			}
-	
-			Class<?> clazz1 = classLoader.loadClass(className1);
-			Class<?> clazz2 = classLoader.loadClass(className2);
-			if (clazz1.isAssignableFrom(clazz2)) // clazz1 superclass of clazz2
-				return -1;
-			else if (clazz2.isAssignableFrom(clazz1)) // clazz2 superclass of clazz1
-				return 1;
+		String className1 = field1.getDefiningClass().getName();
+		String className2 = field2.getDefiningClass().getName();
+
+		if (className1.equals(className2)) {
+			int diff = field1.getName().compareTo(field2.getName());
+			if (diff != 0)
+				return diff;
 			else
-				throw new UncheckedException(new DeserializationException("Updates are not on the same supeclass chain"));
+				return field1.getType().toString().compareTo(field2.getType().toString());
+		}
+
+		Class<?> clazz1, clazz2;
+
+		try {
+			clazz1 = classLoader.loadClass(className1);
 		}
 		catch (ClassNotFoundException e) {
-			throw new UncheckedException(new DeserializationException(e));
+			throw new UncheckedException(new DeserializationException("The object under deserialization contains a field " + field1 + " of an unknown class"));
 		}
+
+		try {
+			clazz2 = classLoader.loadClass(className2);
+		}
+		catch (ClassNotFoundException e) {
+			throw new UncheckedException(new DeserializationException("The object under deserialization contains a field " + field2 + " of an unknown class"));
+		}
+
+		if (clazz1.isAssignableFrom(clazz2)) // clazz1 superclass of clazz2
+			return -1;
+		else if (clazz2.isAssignableFrom(clazz1)) // clazz2 superclass of clazz1
+			return 1;
+		else
+			throw new UncheckedException(new DeserializationException("Updates are not on the same supeclass chain"));
 	}
 
 	/**
@@ -189,7 +197,7 @@ public class Deserializer {
 			classTag = environment.getClassTag(reference);
 		}
 		catch (UnknownReferenceException e) {
-			throw new DeserializationException(e);
+			throw new DeserializationException("Cannot deserialize " + reference + ": it is not in store");
 		}
 
 		UpdateOfField[] eagerUpdates;
@@ -217,7 +225,7 @@ public class Deserializer {
 				actuals.add(deserialize(update.getValue()));
 			}
 			catch (ClassNotFoundException e) {
-				throw new DeserializationException(e);
+				throw new DeserializationException("Cannot deserialize " + reference + ": it has a field " + update.getField() + " of an unknown class");
 			}
 		}
 

@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2025 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,17 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node;
+package io.hotmoka.examples.extendsrandom;
 
-/**
- * An exception thrown when a transaction has not enough gas
- * to complete its computation.
- */
+import java.util.Random;
+
 @SuppressWarnings("serial")
-public class OutOfGasException extends Exception {
-
-	/**
-	 * Creates the exception.
-	 */
-	public OutOfGasException() {}
+public class ExtendsRandom extends Random {
+	public ExtendsRandom() {
+		super(42);
+	}
 }

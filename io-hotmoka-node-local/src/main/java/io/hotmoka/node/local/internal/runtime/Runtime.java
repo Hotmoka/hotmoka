@@ -19,9 +19,9 @@ package io.hotmoka.node.local.internal.runtime;
 import java.math.BigInteger;
 
 import io.hotmoka.node.FieldSignatures;
-import io.hotmoka.node.OutOfGasException;
 import io.hotmoka.node.StorageTypes;
-import io.hotmoka.node.local.DeserializationException;
+import io.hotmoka.node.api.DeserializationException;
+import io.hotmoka.node.api.OutOfGasException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.builders.AbstractResponseBuilder;

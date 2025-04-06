@@ -33,9 +33,11 @@ import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.instrumentation.api.GasCostModel;
 import io.hotmoka.node.FieldSignatures;
-import io.hotmoka.node.OutOfGasException;
 import io.hotmoka.node.Updates;
+import io.hotmoka.node.api.DeserializationException;
+import io.hotmoka.node.api.IllegalAssignmentToFieldInStorage;
 import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.OutOfGasException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.NonInitialTransactionRequest;
@@ -45,7 +47,6 @@ import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.updates.UpdateOfField;
-import io.hotmoka.node.local.DeserializationException;
 import io.hotmoka.node.local.api.ClassLoaderCreationException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
@@ -471,11 +472,11 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 
 			// gas can only be negative if it was initialized so; this special case is
 			// used for the creation of the gamete, when gas should not be counted
-			if (gas.signum() < 0)
+			if (gas.signum() < 0) // TODO: check
 				return;
 
 			if (gas.compareTo(amount) < 0)
-				throw new OutOfGasException();
+				throw new OutOfGasException("Not enough gas to complete the operation");
 		
 			gas = gas.subtract(amount);
 			forWhat.accept(amount);
@@ -562,10 +563,11 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		}
 
 		/**
-		 * Pays back the remaining gas to the payer of the transaction.
-		 * @throws StoreException 
+		 * Pays back the remaining gas to the caller of the transaction.
+		 * 
+		 * @throws StoreException if the store is misbehaving
 		 */
-		protected final void refundPayerForAllRemainingGas() throws StoreException {
+		protected final void refundCallerForAllRemainingGas() throws StoreException {
 			BigInteger refund = costOf(gas);
 			BigInteger balance = classLoader.getBalanceOf(deserializedCaller, StoreException::new);
 

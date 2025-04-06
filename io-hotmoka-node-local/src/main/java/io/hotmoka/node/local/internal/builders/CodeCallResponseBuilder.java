@@ -23,16 +23,18 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.exceptions.CheckRunnable;
 import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.exceptions.functions.ConsumerWithExceptions2;
 import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.api.IllegalAssignmentToFieldInStorage;
 import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.SerializationException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
+import io.hotmoka.node.api.UnknownTypeException;
 import io.hotmoka.node.api.requests.CodeExecutionTransactionRequest;
 import io.hotmoka.node.api.responses.CodeExecutionTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -147,14 +149,15 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 			if (stackTrace != null)
 				for (StackTraceElement cursor: stackTrace) {
 					int line = cursor.getLineNumber();
+					String className = cursor.getClassName();
 					// we avoid messages in synthetic code or code in the Takamaka library
-					if (line >= 0 && !cursor.getClassName().startsWith(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME))
+					if (line >= 0 && !className.startsWith(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME))
 						try {
-							Class<?> clazz = classLoader.loadClass(cursor.getClassName());
+							Class<?> clazz = classLoader.loadClass(className);
 							if (clazz.getClassLoader() instanceof WhiteListingClassLoader)
 								return cursor.getFileName() + ":" + line;
 						}
-						catch (Exception e) {}
+						catch (ClassNotFoundException e) {}
 				}
 		
 			return null;
@@ -167,11 +170,35 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 * @throws ClassNotFoundException if some class cannot be found
 		 */
 		protected final Class<?>[] formalsAsClass() throws ClassNotFoundException {
-			List<Class<?>> classes = new ArrayList<>();
-			for (StorageType type: request.getStaticTarget().getFormals().collect(Collectors.toList()))
-				classes.add(classLoader.loadClass(type));
+			var formals = request.getStaticTarget().getFormals().toArray(StorageType[]::new);
+			var classes  = new Class<?>[formals.length];
+			int pos = 0;
+			for (var formal: formals)
+				classes[pos++] = classLoader.loadClass(formal);
 		
-			return classes.toArray(Class<?>[]::new);
+			return classes;
+		}
+
+		/**
+		 * Yields the classes of the formal arguments of the method or constructor.
+		 * 
+		 * @return the array of classes, in the same order as the formals
+		 * @throws ClassNotFoundException if some class cannot be found
+		 */
+		protected final Class<?>[] formalsAsClass2() throws UnknownTypeException { // TODO: rename at then end
+			var formals = request.getStaticTarget().getFormals().toArray(StorageType[]::new);
+			var classes  = new Class<?>[formals.length];
+			int pos = 0;
+			for (var formal: formals) {
+				try {
+					classes[pos++] = classLoader.loadClass(formal);
+				}
+				catch (ClassNotFoundException e) {
+					throw new UnknownTypeException(formal);
+				}
+			}
+		
+			return classes;
 		}
 
 		/**
@@ -183,14 +210,43 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 * @throws ClassNotFoundException if some class cannot be found
 		 */
 		protected final Class<?>[] formalsAsClassForFromContract() throws ClassNotFoundException {
-			List<Class<?>> classes = new ArrayList<>();
-			for (StorageType type: request.getStaticTarget().getFormals().collect(Collectors.toList()))
-				classes.add(classLoader.loadClass(type));
+			var formals = request.getStaticTarget().getFormals().toArray(StorageType[]::new);
+			var classes  = new Class<?>[formals.length + 2];
+			int pos = 0;
+			for (var formal: formals)
+				classes[pos++] = classLoader.loadClass(formal);
+
+			classes[pos++] = classLoader.getContract();
+			classes[pos] = Dummy.class;
 		
-			classes.add(classLoader.getContract());
-			classes.add(Dummy.class);
+			return classes;
+		}
+
+		/**
+		 * Yields the classes of the formal arguments of the method or constructor, assuming that it is
+		 * an {@link io.takamaka.code.lang.FromContract}. These are instrumented with the addition of a
+		 * trailing contract formal argument (the caller) and of a dummy type.
+		 * 
+		 * @return the array of classes, in the same order as the formals
+		 * @throws UnknownTypeException if some class cannot be found
+		 */
+		protected final Class<?>[] formalsAsClassForFromContract2() throws UnknownTypeException { // TODO: rename at the end
+			var formals = request.getStaticTarget().getFormals().toArray(StorageType[]::new);
+			var classes  = new Class<?>[formals.length + 2];
+			int pos = 0;
+			for (var formal: formals) {
+				try {
+					classes[pos++] = classLoader.loadClass(formal);
+				}
+				catch (ClassNotFoundException e) {
+					throw new UnknownTypeException(formal);
+				}
+			}
+
+			classes[pos++] = classLoader.getContract();
+			classes[pos] = Dummy.class;
 		
-			return classes.toArray(Class<?>[]::new);
+			return classes;
 		}
 
 		/**
@@ -203,9 +259,9 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 *               in store, such as a {@link java.lang.String} or {@link java.math.BigInteger}
 		 * @return the serialization of {@code object}, if any
 		 */
-		protected final StorageValue serialize(Object object) {
+		protected final StorageValue serialize(Object object) throws SerializationException, StoreException {
 			if (isStorage(object))
-				return classLoader.getStorageReferenceOf(object, IllegalArgumentException::new); // TODO: check exception
+				return classLoader.getStorageReferenceOf(object, StoreException::new);
 			else if (object instanceof BigInteger bi)
 				return StorageValues.bigIntegerOf(bi);
 			else if (object instanceof Boolean b)
@@ -229,8 +285,8 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 			else if (object == null)
 				return StorageValues.NULL;
 			else
-				throw new IllegalArgumentException("An object of class " + object.getClass().getName() // TODO: check exception
-					+ " cannot be kept in store since it does not implement " + Constants.STORAGE_NAME);
+				throw new SerializationException("An object of class " + object.getClass().getName()
+					+ " cannot be serialized into a storage value since it does not implement " + Constants.STORAGE_NAME);
 		}
 
 		private boolean isStorage(Object object) {

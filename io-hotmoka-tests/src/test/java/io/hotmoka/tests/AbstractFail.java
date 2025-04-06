@@ -29,6 +29,7 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.UnmatchedTargetException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
@@ -52,9 +53,9 @@ class AbstractFail extends HotmokaTest {
 		setAccounts(_1_000_000_000, _100_000, _1_000_000);
 	}
 
-	@Test @DisplayName("new AbstractFail() throws InstantiationException")
+	@Test @DisplayName("new AbstractFail() throws UnmatchedTargetException")
 	void createAbstractFail() {
-		throwsTransactionExceptionWithCause(InstantiationException.class, () ->
+		throwsTransactionExceptionWithCause(UnmatchedTargetException.class, () ->
 			// cannot instantiate an abstract class
 			addConstructorCallTransaction(privateKey(0), account(0), _100_000, panarea(1), jar(), ConstructorSignatures.of(ABSTRACT_FAIL))
 		);

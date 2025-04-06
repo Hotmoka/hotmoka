@@ -22,8 +22,9 @@ import java.math.BigInteger;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
-import io.hotmoka.node.OutOfGasException;
 import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.api.DeserializationException;
+import io.hotmoka.node.api.OutOfGasException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
@@ -33,7 +34,6 @@ import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.local.DeserializationException;
 import io.hotmoka.node.local.api.ClassLoaderCreationException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
@@ -234,8 +234,11 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 			try {
 				return deserializer.deserialize(environment.getLastUpdateToField(object, field).getValue());
 			}
-			catch (UnknownReferenceException | FieldNotFoundException e) {
-				throw new DeserializationException(e);
+			catch (UnknownReferenceException e) {
+				throw new DeserializationException("Cannot deserialize " + object + ": it is not in store");
+			}
+			catch (FieldNotFoundException e) {
+				throw new DeserializationException("Cannot find the last value of field " + field + " of " + object);
 			}
 		}
 
@@ -252,8 +255,11 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 			try {
 				return deserializer.deserialize(environment.getLastUpdateToFinalField(object, field).getValue());
 			}
-			catch (UnknownReferenceException | FieldNotFoundException e) {
-				throw new DeserializationException(e);
+			catch (UnknownReferenceException e) {
+				throw new DeserializationException("Cannot deserialize " + object + ": it is not in store");
+			}
+			catch (FieldNotFoundException e) {
+				throw new DeserializationException("Cannot find the last value of field " + field + " of " + object);
 			}
 		}
 

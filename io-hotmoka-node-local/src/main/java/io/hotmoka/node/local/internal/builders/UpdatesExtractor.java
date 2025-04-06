@@ -33,6 +33,7 @@ import io.hotmoka.instrumentation.api.InstrumentationFields;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.Updates;
+import io.hotmoka.node.api.IllegalAssignmentToFieldInStorage;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
@@ -201,7 +202,7 @@ public class UpdatesExtractor {
 				else if (newValue instanceof BigInteger bi)
 					updates.add(Updates.ofBigInteger(storageReference, field, bi));
 				else
-					throw new IllegalAssignmentToFieldInStorage(field, newValue);
+					throw new IllegalAssignmentToFieldInStorage("Field " + field + " of " + storageReference + " cannot hold a " + newValue.getClass().getName());
 			}
 
 			/**

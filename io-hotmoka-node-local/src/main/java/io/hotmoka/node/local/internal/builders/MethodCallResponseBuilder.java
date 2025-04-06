@@ -20,9 +20,10 @@ import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
-import io.hotmoka.node.NonWhiteListedCallException;
-import io.hotmoka.node.SideEffectsInViewMethodException;
 import io.hotmoka.node.TransactionResponses;
+import io.hotmoka.node.api.IllegalAssignmentToFieldInStorage;
+import io.hotmoka.node.api.NonWhiteListedCallException;
+import io.hotmoka.node.api.SideEffectsInViewMethodException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.MethodCallTransactionRequest;
 import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
@@ -75,7 +76,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 		 */
 		protected final void ensureWhiteListingOf(Method executable, Object[] actuals) throws NonWhiteListedCallException {
 			classLoader.getWhiteListingWizard().whiteListingModelOf(executable)
-				.orElseThrow(() -> new NonWhiteListedCallException("Illegal call to non-white-listed method " + request.getStaticTarget().getDefiningClass() + "." + request.getStaticTarget().getName()));
+				.orElseThrow(() -> new NonWhiteListedCallException(request.getStaticTarget()));
 		}
 
 		/**

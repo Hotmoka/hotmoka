@@ -26,9 +26,9 @@ import io.hotmoka.node.local.AbstractInitialResponseBuilder;
 import io.hotmoka.node.local.api.ClassLoaderCreationException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.verification.VerificationException;
 import io.hotmoka.verification.VerifiedJars;
 import io.hotmoka.verification.api.IllegalJarException;
+import io.hotmoka.verification.api.VerificationException;
 
 /**
  * Builds the creator of response for a transaction that installs a jar in the node, during its initialization.

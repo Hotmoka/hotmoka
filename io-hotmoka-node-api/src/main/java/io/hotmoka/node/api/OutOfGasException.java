@@ -14,20 +14,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node;
+package io.hotmoka.node.api;
 
 /**
- * An exception thrown when a non-white-listed method is called.
+ * An exception thrown when a transaction has not enough gas
+ * to complete its computation.
  */
 @SuppressWarnings("serial")
-public class NonWhiteListedCallException extends Exception {
+public class OutOfGasException extends HotmokaException {
 
 	/**
-	 * Creates the exception with the given message.
+	 * Creates an exception with the given message.
 	 * 
 	 * @param message the message
 	 */
-	public NonWhiteListedCallException(String message) {
+	public OutOfGasException(String message) {
 		super(message);
 	}
 }

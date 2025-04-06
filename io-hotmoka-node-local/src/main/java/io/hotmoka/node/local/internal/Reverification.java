@@ -44,9 +44,9 @@ import io.hotmoka.node.local.api.ClassLoaderCreationException;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.builders.ExecutionEnvironment;
 import io.hotmoka.verification.TakamakaClassLoaders;
-import io.hotmoka.verification.VerificationException;
 import io.hotmoka.verification.VerifiedJars;
 import io.hotmoka.verification.api.IllegalJarException;
+import io.hotmoka.verification.api.VerificationException;
 import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 
 /**

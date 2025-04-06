@@ -20,6 +20,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 import io.hotmoka.node.TransactionResponses;
+import io.hotmoka.node.api.IllegalAssignmentToFieldInStorage;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.node.api.responses.GameteCreationTransactionResponse;

@@ -142,13 +142,13 @@ public interface EngineClassLoader extends TakamakaClassLoader {
 	 * 
 	 * @param <E> the type of the exception thrown if the field cannot be accessed
 	 * @param callee the contract whose method or constructor is called
-	 * @param payer the payer of the call
+	 * @param caller the caller of the method or constructor
 	 * @param amount the amount of coins
 	 * @param onIllegalAccess the supplier of the exception thrown if the method cannot be called
 	 * @throws E if {@code io.takamaka.code.lang.Contract.payableFromContract()} cannot be called
 	 * @throws RuntimeException in case of any possible exception thrown inside {@code io.takamaka.code.lang.Contract.fromPayableContract()}
 	 */
-	<E extends Exception> void payableFromContract(Object callee, Object payer, BigInteger amount, ExceptionSupplier<? extends E> onIllegalAccess) throws E;
+	<E extends Exception> void payableFromContract(Object callee, Object caller, BigInteger amount, ExceptionSupplier<? extends E> onIllegalAccess) throws E;
 
 	/**
 	 * Called at the beginning of the instrumentation of a payable {@code @@FromContract} method or constructor.
@@ -156,7 +156,7 @@ public interface EngineClassLoader extends TakamakaClassLoader {
 	 * 
 	 * @param <E> the type of the exception thrown if the field cannot be accessed
 	 * @param callee the contract whose method or constructor is called
-	 * @param payer the payer of the call
+	 * @param caller the caller of the method or constructor
 	 * @param amount the amount of coins
 	 * @param onIllegalAccess the supplier of the exception thrown if the method cannot be called
 	 * @throws E if {@code io.takamaka.code.lang.Contract.payableFromContract()} cannot be called

@@ -275,6 +275,12 @@
             </configuration>
           </execution>
 
+		  <execution><id>extendsrandom</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>extendsrandom</classifier>
+              <includes><include>io/hotmoka/examples/extendsrandom/**</include></includes>
+            </configuration>
+          </execution>
+
 		  <execution><id>calleronthis</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>calleronthis</classifier>
               <includes><include>io/hotmoka/examples/errors/calleronthis/**</include></includes>

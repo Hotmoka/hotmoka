@@ -231,6 +231,7 @@ public final class LRUCache<K, V> {
 	 * Adds a new object to the cache, if its key was unbound.
 	 * In that case, it calls a supplier to provide the new object to add.
 	 * 
+	 * @param <E1> the type of the exceptions thrown by {@code supplier}
 	 * @param key the key of the cached value
 	 * @param supplier the supplier that produces the value to put in cache
 	 * @param exception1 a first kind of exceptions that might be thrown by the supplier
@@ -245,6 +246,8 @@ public final class LRUCache<K, V> {
 	 * Adds a new object to the cache, if its key was unbound.
 	 * In that case, it calls a supplier to provide the new object to add.
 	 * 
+	 * @param <E1> a first type of the exceptions thrown by {@code supplier}
+	 * @param <E2> a second type of the exceptions thrown by {@code supplier}
 	 * @param key the key of the cached value
 	 * @param supplier the supplier that produces the value to put in cache
 	 * @param exception1 a first kind of exceptions that might be thrown by the supplier
@@ -261,6 +264,9 @@ public final class LRUCache<K, V> {
 	 * Adds a new object to the cache, if its key was unbound.
 	 * In that case, it calls a supplier to provide the new object to add.
 	 * 
+	 * @param <E1> a first type of the exceptions thrown by {@code supplier}
+	 * @param <E2> a second type of the exceptions thrown by {@code supplier}
+	 * @param <E3> a third type of the exceptions thrown by {@code supplier}
 	 * @param key the key of the cached value
 	 * @param supplier the supplier that produces the value to put in cache
 	 * @param exception1 a first kind of exceptions that might be thrown by the supplier
@@ -279,6 +285,10 @@ public final class LRUCache<K, V> {
 	 * Adds a new object to the cache, if its key was unbound.
 	 * In that case, it calls a supplier to provide the new object to add.
 	 * 
+	 * @param <E1> a first type of the exceptions thrown by {@code supplier}
+	 * @param <E2> a second type of the exceptions thrown by {@code supplier}
+	 * @param <E3> a third type of the exceptions thrown by {@code supplier}
+	 * @param <E4> a fourth type of the exceptions thrown by {@code supplier}
 	 * @param key the key of the cached value
 	 * @param supplier the supplier that produces the value to put in cache
 	 * @param exception1 a first kind of exceptions that might be thrown by the supplier

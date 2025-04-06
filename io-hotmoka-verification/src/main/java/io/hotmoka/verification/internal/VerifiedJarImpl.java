@@ -31,10 +31,10 @@ import org.apache.bcel.classfile.ClassFormatException;
 import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.util.ClassLoaderRepository;
 
-import io.hotmoka.verification.VerificationException;
 import io.hotmoka.verification.api.Error;
 import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
+import io.hotmoka.verification.api.VerificationException;
 import io.hotmoka.verification.api.VerifiedClass;
 import io.hotmoka.verification.api.VerifiedJar;
 import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;

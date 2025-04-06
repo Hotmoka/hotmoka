@@ -14,31 +14,32 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.verification.api;
+package io.hotmoka.node.api;
 
 import java.util.Objects;
 
 /**
- * An exception thrown when a jar file contains a class file whose structure is illegal.
+ * An exception that expresses the cause of a failed transaction.
  */
 @SuppressWarnings("serial")
-public class IllegalJarException extends Exception {
+public abstract class HotmokaException extends Exception {
 
 	/**
-	 * Creates an exception.
+	 * Creates the exception with a message.
 	 * 
 	 * @param message the message of the exception
 	 */
-	public IllegalJarException(String message) {
+	protected HotmokaException(String message) {
 		super(Objects.requireNonNull(message));
 	}
 
 	/**
-	 * Creates an exception.
+	 * Creates the exception with message and cause.
 	 * 
+	 * @param message the message of the exception
 	 * @param cause the cause of the exception
 	 */
-	public IllegalJarException(Exception cause) { // TODO: remove
-		super(cause);
+	protected HotmokaException(String message, Throwable cause) {
+		super(Objects.requireNonNull(message), Objects.requireNonNull(cause));
 	}
 }

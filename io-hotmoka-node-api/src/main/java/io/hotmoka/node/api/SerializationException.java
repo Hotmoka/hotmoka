@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2025 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,24 +14,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node;
-
-import io.hotmoka.node.api.signatures.MethodSignature;
+package io.hotmoka.node.api;
 
 /**
- * An exception thrown when a transaction for the execution of a
- * {@code @@View} method has side-effects different
- * from the modification of the balance of the caller.
+ * An exception thrown when a transaction calls a method or constructor
+ * whose result value cannot be serialized into a storage value.
  */
 @SuppressWarnings("serial")
-public class SideEffectsInViewMethodException extends Exception {
+public class SerializationException extends HotmokaException {
 
 	/**
-	 * Creates the exception about the given method.
+	 * Creates the exception.
 	 * 
-	 * @param method the method that had unexpected side-effects
+	 * @param message the message of the exception
 	 */
-	public SideEffectsInViewMethodException(MethodSignature method) {
-		super("@View method " + method + " induced side-effects");
+	public SerializationException(String message) {
+		super(message);
 	}
 }

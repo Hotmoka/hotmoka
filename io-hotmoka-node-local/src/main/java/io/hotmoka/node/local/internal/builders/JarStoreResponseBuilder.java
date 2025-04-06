@@ -80,7 +80,7 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 				var instrumentedJar = InstrumentedJars.of(verifiedJar, gasCostModel);
 				var instrumentedBytes = instrumentedJar.toBytes();
 				chargeGasForStorageOf(TransactionResponses.jarStoreSuccessful(instrumentedBytes, request.getDependencies(), consensus.getVerificationVersion(), updates(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-				refundPayerForAllRemainingGas();
+				refundCallerForAllRemainingGas();
 				return TransactionResponses.jarStoreSuccessful(instrumentedBytes, request.getDependencies(), consensus.getVerificationVersion(), updates(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			}
 			catch (Throwable t) {

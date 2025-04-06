@@ -1,5 +1,5 @@
 /*
-Copyright 2025 Fausto Spoto
+Copyright 2021 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,31 +14,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.verification.api;
-
-import java.util.Objects;
+package io.hotmoka.node.api;
 
 /**
- * An exception thrown when a jar file contains a class file whose structure is illegal.
+ * An exception thrown when a storage reference cannot be deserialized.
  */
 @SuppressWarnings("serial")
-public class IllegalJarException extends Exception {
+public class DeserializationException extends HotmokaException {
 
 	/**
-	 * Creates an exception.
+	 * Creates the exception with the given message.
 	 * 
-	 * @param message the message of the exception
+	 * @param message the message
 	 */
-	public IllegalJarException(String message) {
-		super(Objects.requireNonNull(message));
-	}
-
-	/**
-	 * Creates an exception.
-	 * 
-	 * @param cause the cause of the exception
-	 */
-	public IllegalJarException(Exception cause) { // TODO: remove
-		super(cause);
+	public DeserializationException(String message) {
+		super(message);
 	}
 }

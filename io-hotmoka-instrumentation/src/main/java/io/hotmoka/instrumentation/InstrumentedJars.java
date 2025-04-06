@@ -19,8 +19,8 @@ package io.hotmoka.instrumentation;
 import io.hotmoka.instrumentation.api.GasCostModel;
 import io.hotmoka.instrumentation.api.InstrumentedJar;
 import io.hotmoka.instrumentation.internal.InstrumentedJarImpl;
-import io.hotmoka.verification.VerificationException;
 import io.hotmoka.verification.api.IllegalJarException;
+import io.hotmoka.verification.api.VerificationException;
 import io.hotmoka.verification.api.VerifiedJar;
 
 /**

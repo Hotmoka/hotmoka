@@ -53,7 +53,7 @@ import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.RemoteNodes;
 import io.hotmoka.node.service.NodeServices;
-import io.hotmoka.verification.VerificationException;
+import io.hotmoka.verification.api.VerificationException;
 
 public class NodeFromNetwork extends HotmokaTest {
     private final static ClassType ARRAY_TESTS = StorageTypes.classNamed("io.hotmoka.examples.collections.ArrayTests");
