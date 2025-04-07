@@ -62,17 +62,13 @@ public class Instrument extends AbstractCommand {
 			classpath = Stream.concat(classpath, libs.stream().map(this::readAllBytes));
 
 		var classLoader = TakamakaClassLoaders.of(classpath, version);
-		var verifiedJar = VerifiedJars.of(bytesOfOrigin, classLoader, init, skipVerification);
-		verifiedJar.getErrors().forEachOrdered(System.err::println);
-		if (verifiedJar.getErrors().count() > 0)
-			throw new CommandException("Verification failed because of errors, no instrumented jar was generated");
-		else {
-			Path parent = destination.getParent();
-			if (parent != null)
-				Files.createDirectories(parent);
+		var verifiedJar = VerifiedJars.of(bytesOfOrigin, classLoader, init, System.err::println, skipVerification, __ -> new CommandException("Verification failed because of errors, no instrumented jar was generated"));
 
-			InstrumentedJars.of(verifiedJar, GasCostModels.standard()).dump(destination);
-		}
+		Path parent = destination.getParent();
+		if (parent != null)
+			Files.createDirectories(parent);
+
+		InstrumentedJars.of(verifiedJar, GasCostModels.standard()).dump(destination);
 	}
 
 	private byte[] readAllBytes(Path jar) {

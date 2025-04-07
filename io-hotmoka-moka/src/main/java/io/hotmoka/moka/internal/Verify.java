@@ -54,12 +54,8 @@ public class Verify extends AbstractCommand {
 			classpath = Stream.concat(classpath, libs.stream().map(this::readAllBytes));
 
 		var classLoader = TakamakaClassLoaders.of(classpath, version);
-		var verifiedJar = VerifiedJars.of(bytesOfOrigin, classLoader, init, false);
-		verifiedJar.getErrors().forEachOrdered(System.err::println);
-		if (verifiedJar.getErrors().count() > 0)
-			throw new CommandException("Verification failed because of errors");
-		else
-			System.out.println("Verification succeeded");
+		VerifiedJars.of(bytesOfOrigin, classLoader, init, System.err::println, false, __ -> new CommandException("Verification failed because of errors"));
+		System.out.println("Verification succeeded");
 	}
 
 	private byte[] readAllBytes(Path jar) {

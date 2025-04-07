@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -29,12 +30,13 @@ import java.util.zip.ZipInputStream;
 import org.apache.bcel.Repository;
 import org.apache.bcel.classfile.ClassFormatException;
 import org.apache.bcel.classfile.ClassParser;
+import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.util.ClassLoaderRepository;
 
+import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.verification.api.Error;
 import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
-import io.hotmoka.verification.api.VerificationException;
 import io.hotmoka.verification.api.VerifiedClass;
 import io.hotmoka.verification.api.VerifiedJar;
 import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
@@ -58,20 +60,23 @@ public class VerifiedJarImpl implements VerifiedJar {
 	/**
 	 * The ordered set of errors generated while verifying the classes of the jar.
 	 */
-	private final SortedSet<io.hotmoka.verification.api.Error> errors = new TreeSet<>();
+	private final SortedSet<io.hotmoka.verification.api.Error> errors = new TreeSet<>(); // TODO: remove
 
 	/**
-	 * Creates a verified jar from the given file. This verification
-	 * might fail if at least a class did not verify. In that case, the errors generated
-	 * during verification will contain at least an error.
+	 * Creates a verified jar from the given file. Calls the given task for each error
+	 * generated during the verification. At the end, throws an exception if there is at least an error.
 	 * 
+	 * @param <E> the type of the exception thrown if there is at least an error during verification
 	 * @param origin the jar file to verify, given as an array of bytes
 	 * @param classLoader the class loader that can be used to resolve the classes of the program, including those of {@code origin}
 	 * @param duringInitialization true if and only if verification occurs during the node initialization
+	 * @param onError a task to execute for each error found during the verification
 	 * @param skipsVerification true if and only if the static verification of the classes of the jar must be skipped
+	 * @param ifError the creator of the exception thrown if there is at least an error during verification
+	 * @throws E if verification fails
 	 * @throws IllegalJarException if the jar under verification is illegal
 	 */
-	public VerifiedJarImpl(byte[] origin, TakamakaClassLoader classLoader, boolean duringInitialization, boolean skipsVerification) throws IllegalJarException {
+	public <E extends Exception> VerifiedJarImpl(byte[] origin, TakamakaClassLoader classLoader, boolean duringInitialization, Consumer<Error> onError, boolean skipsVerification, ExceptionSupplier<? extends E> ifError) throws E, IllegalJarException {
 		this.classLoader = classLoader;
 
 		// we set the BCEL repository so that it matches the class path made up of the jar to
@@ -80,12 +85,12 @@ public class VerifiedJarImpl implements VerifiedJar {
 		// whole hierarchy of classes must be available to BCEL through its repository
 		Repository.setRepository(new ClassLoaderRepository(classLoader.getJavaClassLoader()));
 
-		new Initializer(origin, duringInitialization, skipsVerification);
-	}
+		new Initializer(origin, duringInitialization, skipsVerification, ifError);
 
-	@Override
-	public Stream<Error> getErrors() {
-		return errors.stream();
+		errors.forEach(onError);
+
+		if (!errors.isEmpty())
+			throw ifError.apply(errors.getFirst().getMessage());
 	}
 
 	@Override
@@ -120,14 +125,17 @@ public class VerifiedJarImpl implements VerifiedJar {
 		private final VersionsManager versionsManager;
 
 		/**
-		 * Performs the verification of the given jar file into another jar file.
+		 * Performs the verification of the given jar file.
 		 * 
+		 * @param <E> the type of the exception thrown if there is at least an error during verification
 		 * @param origin the jar file to verify, as an array of bytes
 		 * @param duringInitialization true if and only if the verification is performed during the initialization of the node
 		 * @param skipsVerification true if and only if the static verification of the classes of the jar must be skipped
+		 * @param ifError the creator of the exception thrown if there is at least an error during verification
+		 * @throws E if verification fails
 		 * @throws IllegalJarException if the jar under verification is illegal
 		 */
-		private Initializer(byte[] origin, boolean duringInitialization, boolean skipsVerification) throws IllegalJarException {
+		private <E extends Exception> Initializer(byte[] origin, boolean duringInitialization, boolean skipsVerification, ExceptionSupplier<? extends E> ifError) throws E, IllegalJarException {
 			this.duringInitialization = duringInitialization;
 
 			try {
@@ -167,15 +175,21 @@ public class VerifiedJarImpl implements VerifiedJar {
 		 * @throws IllegalJarException of the jar under verification is illegal
 		 */
 		private Optional<VerifiedClass> buildVerifiedClass(ZipEntry entry, InputStream input) throws IllegalJarException {
+			JavaClass parsedClass;
+
 			try {
-				// generates a RAM image of the class file, by using the BCEL library for bytecode manipulation
-				return Optional.of(new VerifiedClassImpl(new ClassParser(input, entry.getName()).parse(), VerifiedJarImpl.this, versionsManager, errors::add, duringInitialization, skipsVerification));
-			}
-			catch (VerificationException e) {
-				return Optional.empty();
+				parsedClass = new ClassParser(input, entry.getName()).parse();
 			}
 			catch (ClassFormatException | IOException e) {
 				throw new IllegalJarException(e);
+			}
+
+			try {
+				// generates a RAM image of the class file, by using the BCEL library for bytecode manipulation
+				return Optional.of(new VerifiedClassImpl(parsedClass, VerifiedJarImpl.this, versionsManager, errors::add, duringInitialization, skipsVerification));
+			}
+			catch (VerificationException e) {
+				return Optional.empty();
 			}
 		}
 	}

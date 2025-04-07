@@ -35,7 +35,6 @@ import org.apache.bcel.generic.MethodGen;
 
 import io.hotmoka.verification.api.Bootstraps;
 import io.hotmoka.verification.api.IllegalJarException;
-import io.hotmoka.verification.api.VerificationException;
 import io.hotmoka.verification.api.VerifiedClass;
 import io.hotmoka.verification.api.VerifiedJar;
 
@@ -211,7 +210,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 			applyAllChecksToTheMethodsOfTheClass(versionsManager);
 
 			if (hasErrors)
-				throw new VerificationException("Class verification failed with errors");
+				throw new VerificationException();
 		}
 
 		private void applyAllChecksToTheClass(VersionsManager versionsManager) throws IllegalJarException {

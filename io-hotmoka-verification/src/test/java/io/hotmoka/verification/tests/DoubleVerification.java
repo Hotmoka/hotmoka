@@ -29,7 +29,7 @@ import io.hotmoka.verification.VerifiedJars;
 import io.takamaka.code.constants.Constants;
 
 /**
- * This test tries to verify the same jar twice. This checks
+ * This test verifies the same jar twice. This checks
  * that verification does not modify static information of the verified jar,
  * hence it can be applied twice without exceptions.
  */
@@ -43,7 +43,7 @@ class DoubleVerification extends AbstractLoggedTests {
 		var bytesOfOrigin = Files.readAllBytes(origin);
 		var bytesOfClasspath = Files.readAllBytes(classpath);
     	var classLoader = TakamakaClassLoaders.of(Stream.of(bytesOfClasspath, bytesOfOrigin), 0);
-    	VerifiedJars.of(bytesOfOrigin, classLoader, false, false);
-    	VerifiedJars.of(bytesOfOrigin, classLoader, false, false);
+    	VerifiedJars.of(bytesOfOrigin, classLoader, false, _error -> {}, false, __ -> new RuntimeException("Unexpected exception: verified was expected to succeed"));
+    	VerifiedJars.of(bytesOfOrigin, classLoader, false, _error -> {}, false, __ -> new RuntimeException("Unexpected exception: verified was expected to succeed"));
 	}
 }

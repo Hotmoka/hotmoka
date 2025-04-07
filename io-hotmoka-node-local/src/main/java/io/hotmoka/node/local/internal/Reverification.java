@@ -28,6 +28,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.UnknownReferenceException;
+import io.hotmoka.node.api.VerificationException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.GenericJarStoreTransactionRequest;
 import io.hotmoka.node.api.requests.InitialTransactionRequest;
@@ -46,7 +47,6 @@ import io.hotmoka.node.local.internal.builders.ExecutionEnvironment;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.VerifiedJars;
 import io.hotmoka.verification.api.IllegalJarException;
-import io.hotmoka.verification.api.VerificationException;
 import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 
 /**
@@ -222,12 +222,15 @@ public class Reverification {
 
 			try {
 				var tcl = TakamakaClassLoaders.of(jars.stream(), consensus.getVerificationVersion());
-				var reverifiedJar = VerifiedJars.of(jar, tcl, gjstr instanceof InitialTransactionRequest, consensus.skipsVerification());
-				var firstError = reverifiedJar.getErrors().findFirst();
-				if (firstError.isPresent())
-					return transformIntoFailed(response, transaction, firstError.get().getMessage());
-				else
-					return updateVersion(response, transaction);
+
+				try {
+					VerifiedJars.of(jar, tcl, gjstr instanceof InitialTransactionRequest, _error -> {}, consensus.skipsVerification(), VerificationException::new);
+				}
+				catch (VerificationException e) {
+					return transformIntoFailed(response, transaction, e.getMessage());
+				}
+
+				return updateVersion(response, transaction);
 			}
 			catch (UnsupportedVerificationVersionException e) {
 				throw new StoreException(e);

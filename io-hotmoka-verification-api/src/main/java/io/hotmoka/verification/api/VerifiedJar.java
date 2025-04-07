@@ -31,13 +31,6 @@ public interface VerifiedJar {
 	Stream<VerifiedClass> getClasses();
 
 	/**
-	 * Yields the errors generated during the verification of this jar, if any, in order.
-	 * 
-	 * @return the errors
-	 */
-	Stream<Error> getErrors();
-
-	/**
 	 * Yields the class loader used to load this jar.
 	 * 
 	 * @return the class loader

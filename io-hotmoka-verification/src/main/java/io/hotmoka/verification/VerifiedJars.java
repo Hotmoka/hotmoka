@@ -16,6 +16,10 @@ limitations under the License.
 
 package io.hotmoka.verification;
 
+import java.util.function.Consumer;
+
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.verification.api.Error;
 import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.verification.api.VerifiedJar;
@@ -24,24 +28,25 @@ import io.hotmoka.verification.internal.VerifiedJarImpl;
 /**
  * A provider of jars that have undergone static verification, before being installed into blockchain.
  */
-public final class VerifiedJars {
+public abstract class VerifiedJars {
 
 	private VerifiedJars() {}
 
 	/**
-	 * Creates a verified jar from the given file. This verification
-	 * might fail if at least a class did not verify. In that case, the issues generated
-	 * during verification will contain at least an error.
+	 * Creates a verified jar from the given file. Calls the given task for each error
+	 * generated during the verification. At the end, throws an exception if there is at least an error.
 	 * 
-	 * @param jar the jar file to verify, given as an array of bytes
-	 * @param classLoader the class loader that can be used to resolve the classes of the program,
-	 *                    including those of {@code origin}
-	 * @param duringInitialization true if and only if verification occurs during the initialization of the node
+	 * @param <E> the type of the exception thrown if there is at least an error during verification
+	 * @param origin the jar file to verify, given as an array of bytes
+	 * @param classLoader the class loader that can be used to resolve the classes of the program, including those of {@code origin}
+	 * @param duringInitialization true if and only if verification occurs during the node initialization
+	 * @param onError a task to execute for each error found during the verification
 	 * @param skipsVerification true if and only if the static verification of the classes of the jar must be skipped
-	 * @return the verified jar
-	 * @throws IllegalJarException if {@code jar} is illegal
+	 * @param ifError the creator of the exception thrown if there is at least an error during verification
+	 * @throws E if verification fails
+	 * @throws IllegalJarException if the jar under verification is illegal
 	 */
-	public static VerifiedJar of(byte[] jar, TakamakaClassLoader classLoader, boolean duringInitialization, boolean skipsVerification) throws IllegalJarException {
-		return new VerifiedJarImpl(jar, classLoader, duringInitialization, skipsVerification);
+	public static <E extends Exception> VerifiedJar of(byte[] jar, TakamakaClassLoader classLoader, boolean duringInitialization, Consumer<Error> onError, boolean skipsVerification, ExceptionSupplier<? extends E> ifError) throws E, IllegalJarException {
+		return new VerifiedJarImpl(jar, classLoader, duringInitialization, onError, skipsVerification, ifError);
 	}
 }

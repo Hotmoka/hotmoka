@@ -63,15 +63,7 @@ public class JarStoreInitialResponseBuilder extends AbstractInitialResponseBuild
 				checkConsistency();
 
 				try {
-					byte[] instrumentedJarBytes;
-
-					try {
-						instrumentedJarBytes = InstrumentedJars.of(VerifiedJars.of(request.getJar(), classLoader, true, consensus.skipsVerification()), consensus.getGasCostModel()).toBytes();
-					}
-					catch (io.hotmoka.verification.api.VerificationException e) {
-						throw new VerificationException(e.getMessage());
-					}
-
+					byte[] instrumentedJarBytes = InstrumentedJars.of(VerifiedJars.of(request.getJar(), classLoader, true, _error -> {}, consensus.skipsVerification(), VerificationException::new), consensus.getGasCostModel()).toBytes();
 					return TransactionResponses.jarStoreInitial(instrumentedJarBytes, request.getDependencies(), consensus.getVerificationVersion());
 				}
 				catch (IllegalJarException | HotmokaException e) {

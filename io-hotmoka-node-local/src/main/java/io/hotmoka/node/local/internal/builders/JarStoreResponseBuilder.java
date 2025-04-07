@@ -76,16 +76,8 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 				int jarLength = request.getJarLength();
 				chargeGasForCPU(gasCostModel.cpuCostForInstallingJar(jarLength));
 				chargeGasForRAM(gasCostModel.ramCostForInstallingJar(jarLength));
-				var verifiedJar = VerifiedJars.of(request.getJar(), classLoader, false, consensus.skipsVerification());
-				byte[] instrumentedJarBytes;
-
-				try {
-					instrumentedJarBytes = InstrumentedJars.of(verifiedJar, gasCostModel).toBytes(); // TODO: possibly injected exception type
-				}
-				catch (io.hotmoka.verification.api.VerificationException e) {
-					throw new VerificationException(e.getMessage());
-				}
-
+				var verifiedJar = VerifiedJars.of(request.getJar(), classLoader, false, _error -> {}, consensus.skipsVerification(), VerificationException::new);
+				byte[] instrumentedJarBytes = InstrumentedJars.of(verifiedJar, gasCostModel).toBytes();
 				chargeGasForStorageOf(TransactionResponses.jarStoreSuccessful(instrumentedJarBytes, request.getDependencies(), consensus.getVerificationVersion(), updates(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 				refundCallerForAllRemainingGas();
 				return TransactionResponses.jarStoreSuccessful(instrumentedJarBytes, request.getDependencies(), consensus.getVerificationVersion(), updates(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());

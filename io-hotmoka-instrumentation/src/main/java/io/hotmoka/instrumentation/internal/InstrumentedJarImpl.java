@@ -31,7 +31,6 @@ import io.hotmoka.instrumentation.api.GasCostModel;
 import io.hotmoka.instrumentation.api.InstrumentedClass;
 import io.hotmoka.instrumentation.api.InstrumentedJar;
 import io.hotmoka.verification.api.IllegalJarException;
-import io.hotmoka.verification.api.VerificationException;
 import io.hotmoka.verification.api.VerifiedClass;
 import io.hotmoka.verification.api.VerifiedJar;
 
@@ -54,13 +53,8 @@ public class InstrumentedJarImpl implements InstrumentedJar {
 	 * @param verifiedJar the jar that contains the classes already verified
 	 * @param gasCostModel the gas cost model used for the instrumentation
 	 * @throws IllegalJarException if {@code verifiedJar} is illegal
-	 * @throws VerificationException if {@code verifiedJar} has some error
 	 */
-	public InstrumentedJarImpl(VerifiedJar verifiedJar, GasCostModel gasCostModel) throws IllegalJarException, VerificationException {
-		var firstError = verifiedJar.getErrors().findFirst();
-		if (firstError.isPresent())
-			throw new VerificationException(firstError.get().toString());
-
+	public InstrumentedJarImpl(VerifiedJar verifiedJar, GasCostModel gasCostModel) throws IllegalJarException {
 		this.classes = new TreeSet<>();
 		// we cannot proceed in parallel since the BCEL library is not thread-safe
 		for (var verifiedClass: verifiedJar.getClasses().toArray(VerifiedClass[]::new))

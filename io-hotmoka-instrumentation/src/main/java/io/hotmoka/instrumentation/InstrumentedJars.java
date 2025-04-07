@@ -20,7 +20,6 @@ import io.hotmoka.instrumentation.api.GasCostModel;
 import io.hotmoka.instrumentation.api.InstrumentedJar;
 import io.hotmoka.instrumentation.internal.InstrumentedJarImpl;
 import io.hotmoka.verification.api.IllegalJarException;
-import io.hotmoka.verification.api.VerificationException;
 import io.hotmoka.verification.api.VerifiedJar;
 
 /**
@@ -38,9 +37,8 @@ public final class InstrumentedJars {
 	 * @param gasCostModel the gas cost model used for the instrumentation
 	 * @return the instrumented jar
 	 * @throws IllegalJarException if {@code verifiedJar} is illegal
-	 * @throws VerificationException if {@code verifiedJar} has some verification error
 	 */
-	public static InstrumentedJar of(VerifiedJar verifiedJar, GasCostModel gasCostModel) throws IllegalJarException, VerificationException {
+	public static InstrumentedJar of(VerifiedJar verifiedJar, GasCostModel gasCostModel) throws IllegalJarException {
 		return new InstrumentedJarImpl(verifiedJar, gasCostModel);
 	}
 }

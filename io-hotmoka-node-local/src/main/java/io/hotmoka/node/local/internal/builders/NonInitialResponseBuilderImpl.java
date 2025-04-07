@@ -54,7 +54,6 @@ import io.hotmoka.node.local.api.ClassLoaderCreationException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.verification.api.VerificationException;
 import io.hotmoka.whitelisting.api.WhiteListingClassLoader;
 
 /**
@@ -181,7 +180,6 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 			var clazz = throwable.getClass();
 
 			if (HotmokaException.class.isAssignableFrom(clazz) ||
-				clazz.getName().equals(VerificationException.class.getName()) ||
 				//clazz.getName().equals(IllegalJarException.class.getName()) || // TODO: make message deterministic before
 				clazz.getClassLoader() instanceof WhiteListingClassLoader) {
 
