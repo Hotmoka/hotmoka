@@ -107,13 +107,14 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 					throw new StoreException("The return value of a constructor should be an object");
 			}
 			catch (HotmokaException t) {
-				return TransactionResponses.constructorCallFailed(updatesInCaseOfException(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), t.getClass().getName(), getMessage(t), where(t));
+				logFailure(t);
+				return TransactionResponses.constructorCallFailed(updatesInCaseOfFailure(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), t.getClass().getName(), getMessageForResponse(t), where(t));
 			}
 		}
 
 		private Object[] deserializedActuals() throws HotmokaException, StoreException {
 			var actuals = request.actuals().toArray(StorageValue[]::new);
-			Object[] deserializedActuals = new Object[actuals.length];
+			var deserializedActuals = new Object[actuals.length];
 			int pos = 0;
 			for (StorageValue actual: actuals)
 				deserializedActuals[pos++] = deserializer.deserialize(actual);
@@ -131,7 +132,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 
 		private ConstructorCallTransactionResponse failure(Constructor<?> constructorJVM, InvocationTargetException e) throws HotmokaException, StoreException {
 			Throwable cause = e.getCause();
-			String message = getMessage(cause);
+			String message = getMessageForResponse(cause);
 			String causeClassName = cause.getClass().getName();
 			String where = where(cause);
 
@@ -140,8 +141,10 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 				refundCallerForAllRemainingGas();
 				return TransactionResponses.constructorCallException(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), causeClassName, message, where);
 			}
-			else
-				return TransactionResponses.constructorCallFailed(updatesInCaseOfException(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), causeClassName, message, where);
+			else {
+				logFailure(cause);
+				return TransactionResponses.constructorCallFailed(updatesInCaseOfFailure(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), causeClassName, message, where);
+			}
 		}
 
 		/**

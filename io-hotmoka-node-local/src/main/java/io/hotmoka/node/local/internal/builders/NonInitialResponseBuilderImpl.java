@@ -27,14 +27,17 @@ import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.instrumentation.api.GasCostModel;
 import io.hotmoka.node.FieldSignatures;
+import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.DeserializationException;
+import io.hotmoka.node.api.HotmokaException;
 import io.hotmoka.node.api.IllegalAssignmentToFieldInStorage;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.OutOfGasException;
@@ -51,6 +54,8 @@ import io.hotmoka.node.local.api.ClassLoaderCreationException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.verification.api.VerificationException;
+import io.hotmoka.whitelisting.api.WhiteListingClassLoader;
 
 /**
  * Implementation of the creator of the response for a non-initial transaction. Non-initial transactions consume gas,
@@ -58,6 +63,8 @@ import io.hotmoka.node.local.api.StoreException;
  * the validity of all these elements.
  */
 public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTransactionRequest<Response>, Response extends NonInitialTransactionResponse> extends AbstractResponseBuilder<Request, Response> {
+
+	private final static Logger LOGGER = Logger.getLogger(NonInitialResponseBuilderImpl.class.getName());
 
 	/**
 	 * Creates a the builder of the response.
@@ -121,7 +128,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 */
 		private BigInteger gasConsumedForStorage = ZERO;
 
-		private final SortedSet<Update> updatesInCaseOfException = new TreeSet<>();
+		private final SortedSet<Update> updatesInCaseOfFailure = new TreeSet<>();
 
 		/**
 		 * The amount of coins that have been deduced at the beginning for paying the gas in full.
@@ -156,8 +163,51 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 			this.coinsInitiallyPaidForGas = chargePayerForAllGasPromised();
 			BigInteger balanceOfCallerInCaseOfTransactionException = classLoader.getBalanceOf(deserializedCaller, StoreException::new);
 			if (!balanceOfCallerInCaseOfTransactionException.equals(initialBalance))
-				updatesInCaseOfException.add(Updates.ofBigInteger(request.getCaller(), FieldSignatures.BALANCE_FIELD, balanceOfCallerInCaseOfTransactionException)); // TODO
+				updatesInCaseOfFailure.add(Updates.ofBigInteger(request.getCaller(), FieldSignatures.BALANCE_FIELD, balanceOfCallerInCaseOfTransactionException)); // TODO
 
+		}
+
+		/**
+		 * Yields a safe message for an exception thrown during the execution of a Hotmoka transaction.
+		 * This message will be included in a transaction failed response and included in the store of
+		 * the node, therefore we do not want to store messages that might machine-dependent, or otherwise
+		 * consensus might be lost. The idea is that we only trust exceptions not coming from the Java runtime,
+		 * since the latter might contain non-deterministic messages (for instance, the address of a module or object)
+		 * 
+		 * @param throwable the exception
+		 * @return the safe message of {@code throwable}
+		 */
+		protected final String getMessageForResponse(Throwable throwable) {
+			var clazz = throwable.getClass();
+
+			if (HotmokaException.class.isAssignableFrom(clazz) ||
+				clazz.getName().equals(VerificationException.class.getName()) ||
+				//clazz.getName().equals(IllegalJarException.class.getName()) || // TODO: make message deterministic before
+				clazz.getClassLoader() instanceof WhiteListingClassLoader) {
+
+				return throwable.getMessage();
+			}
+			else
+				return "";
+		}
+
+		/**
+		 * Logs the message of the given exception, in a way that can be safely reported in the logs.
+		 * The idea is that the message is truncated if it is too long, so that there is no risk
+		 * of log flooding for exceptions whose message is, for instance, generated programmatically
+		 * in order to be too long.
+		 * 
+		 * @param throwable the exception
+		 */
+		protected final void logFailure(Throwable throwable) {
+			String message = throwable.getMessage();
+			if (message == null)
+				message = "<no message>";
+			else
+				message = message.substring(0, Math.min(message.length(), 200));
+
+			var reference = TransactionReferences.of(environment.getHasher().hash(getRequest()));
+			LOGGER.warning(reference + ": failed with message: \"" + message + "\"");
 		}
 
 		/**
@@ -468,7 +518,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 */
 		private void charge(BigInteger amount, Consumer<BigInteger> forWhat) throws OutOfGasException {
 			if (amount.signum() < 0)
-				throw new IllegalArgumentException("gas cannot increase");
+				throw new IllegalArgumentException("Gas cannot increase");
 
 			// gas can only be negative if it was initialized so; this special case is
 			// used for the creation of the gamete, when gas should not be counted
@@ -524,12 +574,13 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		}
 
 		/**
-		 * Collects all updates to the balance or nonce of the caller of the transaction.
+		 * Collects the updates to the balance or nonce of the caller of the transaction,
+		 * if the latter fails.
 		 * 
 		 * @return the updates
 		 */
-		protected final Stream<Update> updatesInCaseOfException() {
-			return updatesInCaseOfException.stream();
+		protected final Stream<Update> updatesInCaseOfFailure() {
+			return updatesInCaseOfFailure.stream();
 		}
 
 		/**
@@ -586,7 +637,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 			if (!isView()) {
 				BigInteger increasedNonce = request.getNonce().add(ONE);
 				classLoader.setNonceOf(deserializedCaller, increasedNonce, StoreException::new);
-				updatesInCaseOfException.add(Updates.ofBigInteger(request.getCaller(), FieldSignatures.EOA_NONCE_FIELD, increasedNonce));
+				updatesInCaseOfFailure.add(Updates.ofBigInteger(request.getCaller(), FieldSignatures.EOA_NONCE_FIELD, increasedNonce));
 			}
 		}
 	}

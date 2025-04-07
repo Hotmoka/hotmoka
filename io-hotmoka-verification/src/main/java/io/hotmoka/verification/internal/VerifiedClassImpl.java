@@ -211,7 +211,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 			applyAllChecksToTheMethodsOfTheClass(versionsManager);
 
 			if (hasErrors)
-				throw new VerificationException();
+				throw new VerificationException("Class verification failed with errors");
 		}
 
 		private void applyAllChecksToTheClass(VersionsManager versionsManager) throws IllegalJarException {

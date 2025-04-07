@@ -59,7 +59,7 @@ public class InstrumentedJarImpl implements InstrumentedJar {
 	public InstrumentedJarImpl(VerifiedJar verifiedJar, GasCostModel gasCostModel) throws IllegalJarException, VerificationException {
 		var firstError = verifiedJar.getErrors().findFirst();
 		if (firstError.isPresent())
-			throw new VerificationException(firstError.get());
+			throw new VerificationException(firstError.get().toString());
 
 		this.classes = new TreeSet<>();
 		// we cannot proceed in parallel since the BCEL library is not thread-safe

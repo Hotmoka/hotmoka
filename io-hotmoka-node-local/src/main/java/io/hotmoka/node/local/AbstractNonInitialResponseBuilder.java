@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.local;
 
-import io.hotmoka.node.api.HotmokaException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.NonInitialTransactionRequest;
 import io.hotmoka.node.api.responses.NonInitialTransactionResponse;
@@ -24,8 +23,6 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.builders.ExecutionEnvironment;
 import io.hotmoka.node.local.internal.builders.NonInitialResponseBuilderImpl;
-import io.hotmoka.verification.api.VerificationException;
-import io.hotmoka.whitelisting.api.WhiteListingClassLoader;
 
 /**
  * Partial implementation of the creator of the response for a non-initial transaction.
@@ -60,26 +57,5 @@ public abstract class AbstractNonInitialResponseBuilder<Request extends NonIniti
 		 * @throws StoreException if the store of the node misbehaves
 		 */
 		protected ResponseCreator() throws TransactionRejectedException, StoreException {}
-
-		/**
-		 * Yields a safe message for an exception thrown during the execution of a Hotmoka transaction.
-		 * The idea is that we only trust exceptions not coming from the Java runtime, since
-		 * the latter might contain non-deterministic messages (for instance, the address of
-		 * a module or object)
-		 * 
-		 * @param throwable the exception
-		 * @return the safe message of {@code throwable}
-		 */
-		protected final String getMessage(Throwable throwable) {
-			var clazz = throwable.getClass();
-
-			if (HotmokaException.class.isAssignableFrom(clazz) ||
-				clazz.getName().equals(VerificationException.class.getName()) ||
-				//clazz.getName().equals(IllegalJarException.class.getName()) || // TODO: make message deterministic before
-				clazz.getClassLoader() instanceof WhiteListingClassLoader)
-				return throwable.getMessage();
-			else
-				return "";
-		}
 	}
 }

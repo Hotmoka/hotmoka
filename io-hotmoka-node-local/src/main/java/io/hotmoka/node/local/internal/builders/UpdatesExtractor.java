@@ -202,7 +202,7 @@ public class UpdatesExtractor {
 				else if (newValue instanceof BigInteger bi)
 					updates.add(Updates.ofBigInteger(storageReference, field, bi));
 				else
-					throw new IllegalAssignmentToFieldInStorage("Field " + field + " of " + storageReference + " cannot hold a " + newValue.getClass().getName());
+					throw new IllegalAssignmentToFieldInStorage(field, storageReference, newValue);
 			}
 
 			/**

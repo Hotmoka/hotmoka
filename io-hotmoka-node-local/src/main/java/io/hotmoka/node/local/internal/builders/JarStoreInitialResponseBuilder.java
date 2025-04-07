@@ -18,7 +18,9 @@ package io.hotmoka.node.local.internal.builders;
 
 import io.hotmoka.instrumentation.InstrumentedJars;
 import io.hotmoka.node.TransactionResponses;
+import io.hotmoka.node.api.HotmokaException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.VerificationException;
 import io.hotmoka.node.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.node.api.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -28,7 +30,6 @@ import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.verification.VerifiedJars;
 import io.hotmoka.verification.api.IllegalJarException;
-import io.hotmoka.verification.api.VerificationException;
 
 /**
  * Builds the creator of response for a transaction that installs a jar in the node, during its initialization.
@@ -62,10 +63,18 @@ public class JarStoreInitialResponseBuilder extends AbstractInitialResponseBuild
 				checkConsistency();
 
 				try {
-					var instrumentedJar = InstrumentedJars.of(VerifiedJars.of(request.getJar(), classLoader, true, consensus.skipsVerification()), consensus.getGasCostModel());
-					return TransactionResponses.jarStoreInitial(instrumentedJar.toBytes(), request.getDependencies(), consensus.getVerificationVersion());
+					byte[] instrumentedJarBytes;
+
+					try {
+						instrumentedJarBytes = InstrumentedJars.of(VerifiedJars.of(request.getJar(), classLoader, true, consensus.skipsVerification()), consensus.getGasCostModel()).toBytes();
+					}
+					catch (io.hotmoka.verification.api.VerificationException e) {
+						throw new VerificationException(e.getMessage());
+					}
+
+					return TransactionResponses.jarStoreInitial(instrumentedJarBytes, request.getDependencies(), consensus.getVerificationVersion());
 				}
-				catch (IllegalJarException | VerificationException e) {
+				catch (IllegalJarException | HotmokaException e) {
 					throw new TransactionRejectedException(e, consensus);
 				}
 			}

@@ -131,6 +131,12 @@
             </configuration>
           </execution>
 
+		  <execution><id>outofgas</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>outofgas</classifier>
+              <includes><include>io/hotmoka/examples/outofgas/**</include></includes>
+            </configuration>
+          </execution>
+
 		  <execution><id>basic</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>basic</classifier>
               <includes><include>io/hotmoka/examples/basic/**</include></includes>

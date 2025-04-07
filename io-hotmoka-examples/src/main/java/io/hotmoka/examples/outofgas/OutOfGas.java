@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2025 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,22 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.verification.api;
+package io.hotmoka.examples.outofgas;
 
-import java.util.Objects;
+public class OutOfGas {
 
-/**
- * An exception thrown when the verification of some jar failed.
- */
-@SuppressWarnings("serial")
-public class VerificationException extends Exception {
-	
-	/**
-	 * Creates a verification exception with the given message.
-	 * 
-	 * @param message the message
-	 */
-	public VerificationException(String message) {
-		super(Objects.requireNonNull(message));
+	// by calling this method, all gas will be drained
+	public static void loop() {
+		while (true);
 	}
 }

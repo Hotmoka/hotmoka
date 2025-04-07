@@ -43,6 +43,7 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
+import io.hotmoka.node.api.VerificationException;
 import io.hotmoka.node.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.responses.JarStoreInitialTransactionResponse;
@@ -53,7 +54,6 @@ import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.RemoteNodes;
 import io.hotmoka.node.service.NodeServices;
-import io.hotmoka.verification.api.VerificationException;
 
 public class NodeFromNetwork extends HotmokaTest {
     private final static ClassType ARRAY_TESTS = StorageTypes.classNamed("io.hotmoka.examples.collections.ArrayTests");
@@ -231,7 +231,7 @@ public class NodeFromNetwork extends HotmokaTest {
         			(signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0),
         			ZERO, chainId(), _100_000, ONE, takamakaCode(), bytesOf("callernotonthis.jar"), takamakaCode())));
 
-        	assertTrue(e.getMessage().contains(VerificationException.class.getName()));
+        	assertTrue(e.getMessage().contains(VerificationException.class.getName())); // TODO
         	assertTrue(e.getMessage().contains("caller() can only be called on \"this\""));
         }
     }
@@ -283,7 +283,7 @@ public class NodeFromNetwork extends HotmokaTest {
         	// we wait until the request has been processed; this will throw a TransactionException at the end,
         	// since the request was accepted but its execution failed
         	TransactionException e = assertThrows(TransactionException.class, future::get);
-        	assertTrue(e.getMessage().contains(VerificationException.class.getName()));
+        	assertTrue(e.getMessage().contains(VerificationException.class.getName())); // TODO
         	assertTrue(e.getMessage().contains("caller() can only be called on \"this\""));
         }
     }

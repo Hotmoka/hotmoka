@@ -16,6 +16,9 @@ limitations under the License.
 
 package io.hotmoka.node.api;
 
+import io.hotmoka.node.api.signatures.FieldSignature;
+import io.hotmoka.node.api.values.StorageReference;
+
 /**
  * An exception thrown when a field of a storage object has been assigned
  * to a value that is not allowed in storage. Most of these situations are already
@@ -30,11 +33,13 @@ package io.hotmoka.node.api;
 public class IllegalAssignmentToFieldInStorage extends HotmokaException {
 
 	/**
-	 * Creates the exception with the given message.
+	 * Creates an exception about an illegal assignment of a value to a field.
 	 * 
-	 * @param message the message
+	 * @param field the field
+	 * @param reference the reference of the object whose field is assigned
+	 * @param assignedValue to value assigned to {@code field} of {@code reference}
 	 */
-	public IllegalAssignmentToFieldInStorage(String message) {
-		super(message);
+	public IllegalAssignmentToFieldInStorage(FieldSignature field, StorageReference reference, Object assignedValue) {
+		super("Field " + field + " of " + reference + " cannot hold a " + assignedValue.getClass().getName());
 	}
 }

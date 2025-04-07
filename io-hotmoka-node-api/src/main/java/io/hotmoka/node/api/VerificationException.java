@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2025 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,22 +14,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.verification.api;
-
-import java.util.Objects;
+package io.hotmoka.node.api;
 
 /**
- * An exception thrown when the verification of some jar failed.
+ * An exception thrown when the verification of code to install in the node failed.
  */
 @SuppressWarnings("serial")
-public class VerificationException extends Exception {
-	
+public class VerificationException extends HotmokaException {
+
 	/**
-	 * Creates a verification exception with the given message.
+	 * Creates the exception with the given message.
 	 * 
 	 * @param message the message
 	 */
 	public VerificationException(String message) {
-		super(Objects.requireNonNull(message));
+		super(message);
 	}
 }

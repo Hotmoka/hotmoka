@@ -17,13 +17,13 @@ limitations under the License.
 package io.hotmoka.node.local.internal.builders;
 
 import java.math.BigInteger;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import io.hotmoka.instrumentation.InstrumentedJars;
-import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionResponses;
+import io.hotmoka.node.api.HotmokaException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.VerificationException;
 import io.hotmoka.node.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.node.api.responses.JarStoreTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -32,12 +32,12 @@ import io.hotmoka.node.local.api.ClassLoaderCreationException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.verification.VerifiedJars;
+import io.hotmoka.verification.api.IllegalJarException;
 
 /**
  * The creator of a response for a transaction that installs a jar in the node.
  */
 public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<JarStoreTransactionRequest, JarStoreTransactionResponse> {
-	private final static Logger LOGGER = Logger.getLogger(JarStoreResponseBuilder.class.getName());
 
 	/**
 	 * Creates the builder of the response.
@@ -77,27 +77,32 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 				chargeGasForCPU(gasCostModel.cpuCostForInstallingJar(jarLength));
 				chargeGasForRAM(gasCostModel.ramCostForInstallingJar(jarLength));
 				var verifiedJar = VerifiedJars.of(request.getJar(), classLoader, false, consensus.skipsVerification());
-				var instrumentedJar = InstrumentedJars.of(verifiedJar, gasCostModel);
-				var instrumentedBytes = instrumentedJar.toBytes();
-				chargeGasForStorageOf(TransactionResponses.jarStoreSuccessful(instrumentedBytes, request.getDependencies(), consensus.getVerificationVersion(), updates(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+				byte[] instrumentedJarBytes;
+
+				try {
+					instrumentedJarBytes = InstrumentedJars.of(verifiedJar, gasCostModel).toBytes(); // TODO: possibly injected exception type
+				}
+				catch (io.hotmoka.verification.api.VerificationException e) {
+					throw new VerificationException(e.getMessage());
+				}
+
+				chargeGasForStorageOf(TransactionResponses.jarStoreSuccessful(instrumentedJarBytes, request.getDependencies(), consensus.getVerificationVersion(), updates(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 				refundCallerForAllRemainingGas();
-				return TransactionResponses.jarStoreSuccessful(instrumentedBytes, request.getDependencies(), consensus.getVerificationVersion(), updates(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+				return TransactionResponses.jarStoreSuccessful(instrumentedJarBytes, request.getDependencies(), consensus.getVerificationVersion(), updates(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			}
-			catch (Throwable t) {
-				var reference = TransactionReferences.of(environment.getHasher().hash(getRequest()));
-				LOGGER.warning(reference + ": failed with message: \"" + t.getMessage() + "\"");
-				return TransactionResponses.jarStoreFailed(updatesInCaseOfException(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), t.getClass().getName(), getMessage(t));
+			catch (HotmokaException | IllegalJarException t) {
+				logFailure(t);
+				return TransactionResponses.jarStoreFailed(updatesInCaseOfFailure(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), t.getClass().getName(), getMessageForResponse(t));
 			}
 		}
 
 		@Override
 		protected BigInteger minimalGasRequiredForTransaction() {
 			int jarLength = request.getJarLength();
-			BigInteger result = super.minimalGasRequiredForTransaction();
-			result = result.add(gasCostModel.cpuCostForInstallingJar(jarLength));
-			result = result.add(gasCostModel.ramCostForInstallingJar(jarLength));
-		
-			return result;
+
+			return super.minimalGasRequiredForTransaction()
+					.add(gasCostModel.cpuCostForInstallingJar(jarLength))
+					.add(gasCostModel.ramCostForInstallingJar(jarLength));
 		}
 
 		@Override
@@ -107,7 +112,6 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 		}
 
 		@Override
-		public void event(Object event) {
-		}
+		public void event(Object event) {}
 	}
 }
