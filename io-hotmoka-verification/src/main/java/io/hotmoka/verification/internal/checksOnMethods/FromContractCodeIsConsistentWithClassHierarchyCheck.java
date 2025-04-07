@@ -24,7 +24,7 @@ import java.util.Optional;
 import org.apache.bcel.Const;
 import org.apache.bcel.generic.MethodGen;
 
-import io.hotmoka.verification.api.IllegalJarException;
+import io.hotmoka.verification.api.UnknownTypeException;
 import io.hotmoka.verification.errors.InconsistentFromContractError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
@@ -36,14 +36,14 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class FromContractCodeIsConsistentWithClassHierarchyCheck extends CheckOnMethods {
 
-	public FromContractCodeIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
+	public FromContractCodeIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws UnknownTypeException {
 		super(builder, method);
 
 		if (!Const.CONSTRUCTOR_NAME.equals(methodName) && !method.isPrivate())
 			isIdenticallyFromContractInSupertypesOf(clazz, getMethodFromContractArgumentIn(className));
 	}
 
-	private void isIdenticallyFromContractInSupertypesOf(Class<?> clazz, Optional<Class<?>> contractTypeForEntry) throws IllegalJarException {
+	private void isIdenticallyFromContractInSupertypesOf(Class<?> clazz, Optional<Class<?>> contractTypeForEntry) throws UnknownTypeException {
 		for (Method method: clazz.getDeclaredMethods())
 			if (!Modifier.isPrivate(method.getModifiers()) && method.getName().equals(methodName) && method.getReturnType() == methodReturnTypeClass && Arrays.equals(method.getParameterTypes(), methodArgsClasses)
 					&& !compatibleFromContracts(contractTypeForEntry, getMethodFromContractArgumentIn(clazz.getName())))

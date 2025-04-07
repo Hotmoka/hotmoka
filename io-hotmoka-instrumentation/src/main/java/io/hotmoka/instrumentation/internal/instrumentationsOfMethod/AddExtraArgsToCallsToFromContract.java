@@ -40,6 +40,7 @@ import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
 import io.hotmoka.verification.PushersIterators;
 import io.hotmoka.verification.api.IllegalJarException;
+import io.hotmoka.verification.api.UnknownTypeException;
 import io.hotmoka.whitelisting.WhitelistingConstants;
 import io.takamaka.code.constants.Constants;
 
@@ -57,9 +58,10 @@ public class AddExtraArgsToCallsToFromContract extends MethodLevelInstrumentatio
 	 * 
 	 * @param builder the builder of the class being instrumented
 	 * @param method the method being instrumented
+	 * @throws UnknownTypeException if some type cannot be resolved
 	 * @throws IllegalJarException if the jar under instrumentation is illegal
 	 */
-	public AddExtraArgsToCallsToFromContract(InstrumentedClassImpl.Builder builder, MethodGen method) throws IllegalJarException {
+	public AddExtraArgsToCallsToFromContract(InstrumentedClassImpl.Builder builder, MethodGen method) throws UnknownTypeException, IllegalJarException {
 		builder.super(method);
 
 		if (!method.isAbstract()) {
@@ -84,8 +86,9 @@ public class AddExtraArgsToCallsToFromContract extends MethodLevelInstrumentatio
 	 * @param il the instructions of the method being instrumented
 	 * @param ih the call to the entry
 	 * @throws IllegalJarException if the jar under instrumentation is illegal
+	 * @throws UnknownTypeException if some type cannot be resolved
 	 */
-	private void passExtraArgsToCallToFromContract(InstructionList il, InstructionHandle ih) throws IllegalJarException {
+	private void passExtraArgsToCallToFromContract(InstructionList il, InstructionHandle ih) throws IllegalJarException, UnknownTypeException {
 		var invoke = (InvokeInstruction) ih.getInstruction(); // true since ih comes from callsToFromContract above
 		var args = invoke.getArgumentTypes(cpg);
 		String methodName = invoke.getMethodName(cpg);
@@ -136,15 +139,8 @@ public class AddExtraArgsToCallsToFromContract extends MethodLevelInstrumentatio
 			if (onThis) {
 				// the call is on "this": it inherits our caller
 				var ourArgs = method.getArgumentTypes();
-				boolean isFromContract;
 
-				try {
-					isFromContract = annotations.isFromContract(className, method.getName(), ourArgs, method.getReturnType());
-				}
-				catch (ClassNotFoundException e) {
-					throw new IllegalJarException(e);
-				}
-
+				boolean isFromContract = annotations.isFromContract(className, method.getName(), ourArgs, method.getReturnType());
 				if (isFromContract) {
 					int ourArgsSlots = Stream.of(ourArgs).mapToInt(Type::getSize).sum();
 					// the call is inside a @FromContract: its last minus one argument is the caller: we pass it
@@ -199,20 +195,16 @@ public class AddExtraArgsToCallsToFromContract extends MethodLevelInstrumentatio
 	 * @param instruction the instruction
 	 * @return true if and only if that condition holds
 	 * @throws IllegalJarException if the jar under instrumentation is illegal
+	 * @throws UnknownTypeException if some type cannot be resolved
 	 */
-	private boolean isCallToFromContract(Instruction instruction) throws IllegalJarException {
+	private boolean isCallToFromContract(Instruction instruction) throws IllegalJarException, UnknownTypeException {
 		if (instruction instanceof INVOKEDYNAMIC invokedynamic)
 			return bootstrapMethodsThatWillRequireExtraThis.contains(bootstraps.getBootstrapFor(invokedynamic));
 		else if (instruction instanceof InvokeInstruction invoke &&
 				// we do not consider calls added by instrumentation
 				invoke.getReferenceType(cpg) instanceof ObjectType ot && !RUNTIME_OT.equals(ot)) {
 
-			try {
-				return annotations.isFromContract(ot.getClassName(), invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));
-			}
-			catch (ClassNotFoundException e) {
-				throw new IllegalJarException(e);
-			}
+			return annotations.isFromContract(ot.getClassName(), invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));
 		}
 		else
 			return false;

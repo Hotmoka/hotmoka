@@ -62,7 +62,10 @@ public class Instrument extends AbstractCommand {
 			classpath = Stream.concat(classpath, libs.stream().map(this::readAllBytes));
 
 		var classLoader = TakamakaClassLoaders.of(classpath, version);
-		var verifiedJar = VerifiedJars.of(bytesOfOrigin, classLoader, init, System.err::println, skipVerification, __ -> new CommandException("Verification failed because of errors, no instrumented jar was generated"));
+		var verifiedJar = VerifiedJars.of(bytesOfOrigin, classLoader, init, System.err::println, skipVerification,
+				e -> new CommandException(e.getMessage() + ": no instrumented jar was generated", e),
+				e -> new CommandException(e.getMessage() + ": no instrumented jar was generated", e),
+				e -> new CommandException(e.getMessage() + ": no instrumented jar was generated", e));
 
 		Path parent = destination.getParent();
 		if (parent != null)

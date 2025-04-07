@@ -33,8 +33,8 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
+import io.hotmoka.node.api.UnknownTypeException;
 import io.hotmoka.node.api.updates.ClassTag;
-import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.whitelisting.api.WhiteListingWizard;
 import io.takamaka.code.constants.Constants;
@@ -51,7 +51,7 @@ class PrintAPI {
 			printConstructors();
 			printMethods();
 		}
-		catch (IllegalJarException e) {
+		catch (UnknownTypeException e) {
 			// a jar, if in the store of the node, must be legal because it has already been installed there
 			throw new NodeException(e);
 		}

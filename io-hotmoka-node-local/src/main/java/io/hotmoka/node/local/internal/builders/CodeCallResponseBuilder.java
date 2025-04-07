@@ -20,17 +20,12 @@ import java.lang.reflect.Executable;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import io.hotmoka.exceptions.CheckRunnable;
-import io.hotmoka.exceptions.UncheckConsumer;
-import io.hotmoka.exceptions.functions.ConsumerWithExceptions2;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.IllegalAssignmentToFieldInStorage;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.SerializationException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
@@ -297,17 +292,12 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 * Checks that all the arguments and the receiver passed to the method or constructor have exported type.
 		 * 
 		 * @throws TransactionRejectedException if that condition does not hold
-		 * @throws ClassNotFoundException if some class cannot be found in the Takamaka program
-		 * @throws NodeException 
-		 * @throws UnknownReferenceException 
-		 * @throws NoSuchElementException 
+		 * @throws StoreException if the store is misbehaving
 		 */
 		private void argumentsAreExported() throws TransactionRejectedException, StoreException {
-			ConsumerWithExceptions2<StorageReference, TransactionRejectedException, StoreException> enforceExported = this::enforceExported;
-			CheckRunnable.check(TransactionRejectedException.class, StoreException.class, () -> request.actuals()
-				.filter(actual -> actual instanceof StorageReference)
-				.map(actual -> (StorageReference) actual)
-				.forEachOrdered(UncheckConsumer.uncheck(TransactionRejectedException.class, StoreException.class, enforceExported)));
+			for (var actual: request.actuals().toArray(StorageValue[]::new))
+				if (actual instanceof StorageReference sr)
+					enforceExported(sr);
 		}
 
 		/**

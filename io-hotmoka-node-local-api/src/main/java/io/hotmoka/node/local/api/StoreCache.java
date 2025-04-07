@@ -22,6 +22,7 @@ import java.util.OptionalLong;
 
 import io.hotmoka.exceptions.functions.FunctionWithExceptions2;
 import io.hotmoka.exceptions.functions.FunctionWithExceptions3;
+import io.hotmoka.node.api.ClassLoaderCreationException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.transactions.TransactionReference;

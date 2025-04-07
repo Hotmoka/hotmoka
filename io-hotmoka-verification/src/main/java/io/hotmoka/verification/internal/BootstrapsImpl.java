@@ -55,6 +55,7 @@ import io.hotmoka.verification.api.BcelToClassTransformer;
 import io.hotmoka.verification.api.Bootstraps;
 import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
+import io.hotmoka.verification.api.UnknownTypeException;
 
 /**
  * An object that provides utility methods about the lambda bootstraps
@@ -107,7 +108,7 @@ public class BootstrapsImpl implements Bootstraps {
 
 	private final static BootstrapMethod[] NO_BOOTSTRAPS = new BootstrapMethod[0];
 
-	public BootstrapsImpl(VerifiedClassImpl clazz, MethodGen[] methods) throws IllegalJarException {
+	public BootstrapsImpl(VerifiedClassImpl clazz, MethodGen[] methods) throws IllegalJarException, UnknownTypeException {
 		this.verifiedClass = clazz;
 		TakamakaClassLoader classLoader = clazz.getJar().getClassLoader();
 		this.bcelToClass = BcelToClassTransformers.of(classLoader);
@@ -146,7 +147,7 @@ public class BootstrapsImpl implements Bootstraps {
 	}
 
 	@Override
-	public boolean lambdaIsFromContract(BootstrapMethod bootstrap) throws IllegalJarException {
+	public boolean lambdaIsFromContract(BootstrapMethod bootstrap) throws IllegalJarException, UnknownTypeException {
 		if (bootstrap.getNumBootstrapArguments() == 3 && cpg.getConstant(bootstrap.getBootstrapArguments()[1]) instanceof ConstantMethodHandle cmh
 				&& cpg.getConstant(cmh.getReferenceIndex()) instanceof ConstantMethodref cmr) {
 
@@ -170,12 +171,7 @@ public class BootstrapsImpl implements Bootstraps {
 			String methodName = cu8_2.getBytes();
 			String methodSignature = cu8_3.getBytes();
 
-			try {
-				return annotations.isFromContract(className, methodName, Type.getArgumentTypes(methodSignature), Type.getReturnType(methodSignature));
-			}
-			catch (ClassNotFoundException e) {
-				throw new IllegalJarException(e);
-			}
+			return annotations.isFromContract(className, methodName, Type.getArgumentTypes(methodSignature), Type.getReturnType(methodSignature));
 		}
 
 		return false;
@@ -204,7 +200,7 @@ public class BootstrapsImpl implements Bootstraps {
 	}
 
 	@Override
-	public Optional<? extends Executable> getTargetOf(BootstrapMethod bootstrap) throws IllegalJarException {
+	public Optional<? extends Executable> getTargetOf(BootstrapMethod bootstrap) throws IllegalJarException, UnknownTypeException {
 		if (cpg.getConstant(bootstrap.getBootstrapMethodRef()) instanceof ConstantMethodHandle mh
 				&& cpg.getConstant(mh.getReferenceIndex()) instanceof ConstantMethodref mr) {
 
@@ -285,7 +281,7 @@ public class BootstrapsImpl implements Bootstraps {
 		return Optional.empty();
 	}
 
-	private Optional<? extends Executable> getTargetOfCallSite(BootstrapMethod bootstrap, String className, String methodName, String methodSignature) throws IllegalJarException {
+	private Optional<? extends Executable> getTargetOfCallSite(BootstrapMethod bootstrap, String className, String methodName, String methodSignature) throws IllegalJarException, UnknownTypeException {
 		if ("java.lang.invoke.LambdaMetafactory".equals(className) &&
 				"metafactory".equals(methodName) &&
 				"(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;".equals(methodSignature)) {
@@ -322,18 +318,13 @@ public class BootstrapsImpl implements Bootstraps {
 
 					String methodSignature2 = cu8_3.getBytes();
 
-					try {
-						Class<?>[] args = bcelToClass.of(Type.getArgumentTypes(methodSignature2));
-						Class<?> returnType = bcelToClass.of(Type.getReturnType(methodSignature2));
+					Class<?>[] args = bcelToClass.of(Type.getArgumentTypes(methodSignature2));
+					Class<?> returnType = bcelToClass.of(Type.getReturnType(methodSignature2));
 
-						if (Const.CONSTRUCTOR_NAME.equals(methodName2))
-							return verifiedClass.getResolver().resolveConstructorWithPossiblyExpandedArgs(className2, args);
-						else
-							return verifiedClass.getResolver().resolveMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
-					}
-					catch (ClassNotFoundException e) {
-						throw new IllegalJarException(e);
-					}
+					if (Const.CONSTRUCTOR_NAME.equals(methodName2))
+						return verifiedClass.getResolver().resolveConstructorWithPossiblyExpandedArgs(className2, args);
+					else
+						return verifiedClass.getResolver().resolveMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
 				}
 				else if (constant2 instanceof ConstantInterfaceMethodref mr) {
 					if (!(cpg.getConstant(mr.getClassIndex()) instanceof ConstantClass cc))
@@ -359,15 +350,10 @@ public class BootstrapsImpl implements Bootstraps {
 
 					String methodSignature2 = cu8_3.getBytes();
 
-					try {
-						Class<?>[] args = bcelToClass.of(Type.getArgumentTypes(methodSignature2));
-						Class<?> returnType = bcelToClass.of(Type.getReturnType(methodSignature2));
+					Class<?>[] args = bcelToClass.of(Type.getArgumentTypes(methodSignature2));
+					Class<?> returnType = bcelToClass.of(Type.getReturnType(methodSignature2));
 
-						return verifiedClass.getResolver().resolveInterfaceMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
-					}
-					catch (ClassNotFoundException e) {
-						throw new IllegalJarException(e);
-					}
+					return verifiedClass.getResolver().resolveInterfaceMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
 				}
 			}
 		}
@@ -396,7 +382,7 @@ public class BootstrapsImpl implements Bootstraps {
 		return NO_BOOTSTRAPS;
 	}
 
-	private void collectBootstrapsLeadingToFromContract(MethodGen[] methods) throws IllegalJarException {
+	private void collectBootstrapsLeadingToFromContract(MethodGen[] methods) throws IllegalJarException, UnknownTypeException {
 		int initialSize;
 
 		do {
@@ -419,7 +405,7 @@ public class BootstrapsImpl implements Bootstraps {
 	 * @param methods the methods of the class under verification
 	 * @throws IllegalJarException if some class of the Takamaka program cannot be found
 	 */
-	private void collectLambdasOfFromContract(MethodGen[] methods) throws IllegalJarException {
+	private void collectLambdasOfFromContract(MethodGen[] methods) throws IllegalJarException, UnknownTypeException {
 		// the number of iterations in bounded by methods.length
 
 		// we collect all lambdas reachable from the @FromContract methods, possibly indirectly
@@ -427,15 +413,9 @@ public class BootstrapsImpl implements Bootstraps {
 		var ws = new LinkedList<MethodGen>();
 		var className = verifiedClass.getClassName();
 
-		for (var method: methods) {
-			try {
-				if (annotations.isFromContract(className, method.getName(), method.getArgumentTypes(), method.getReturnType()))
-					ws.add(method);
-			}
-			catch (ClassNotFoundException e) {
-				throw new IllegalJarException(e);
-			}
-		}
+		for (var method: methods)
+			if (annotations.isFromContract(className, method.getName(), method.getArgumentTypes(), method.getReturnType()))
+				ws.add(method);
 
 		while (!ws.isEmpty()) {
 			MethodGen current = ws.removeFirst();
@@ -458,8 +438,9 @@ public class BootstrapsImpl implements Bootstraps {
 	 * @param methods the methods of the class under verification
 	 * @return true if that condition holds
 	 * @throws IllegalJarException if some class of the Takamaka program cannot be loaded
+	 * @throws UnknownTypeException if some type cannot be resolved
 	 */
-	private boolean lambdaCallsFromContract(BootstrapMethod bootstrap, MethodGen[] methods) throws IllegalJarException {
+	private boolean lambdaCallsFromContract(BootstrapMethod bootstrap, MethodGen[] methods) throws IllegalJarException, UnknownTypeException {
 		Optional<MethodGen> lambda = getLambdaFor(bootstrap, methods);
 		if (lambda.isPresent()) {
 			InstructionList instructions = lambda.get().getInstructionList();
@@ -478,23 +459,16 @@ public class BootstrapsImpl implements Bootstraps {
 	 * @param ih the instruction
 	 * @return true if that condition holds
 	 * @throws IllegalJarException if some class of the Takamaka program cannot be found
+	 * @throws UnknownTypeException if some type cannot be resolved
 	 */
-	private boolean leadsToFromContract(InstructionHandle ih) throws IllegalJarException {
+	private boolean leadsToFromContract(InstructionHandle ih) throws IllegalJarException, UnknownTypeException {
 		Instruction instruction = ih.getInstruction();
 	
 		if (instruction instanceof INVOKEDYNAMIC invokedynamic)
 			return bootstrapMethodsLeadingToFromContractAsSet.contains(getBootstrapFor(invokedynamic));
-		else if (instruction instanceof InvokeInstruction invoke && !(invoke instanceof INVOKESTATIC)) {
-			if (invoke.getReferenceType(cpg) instanceof ObjectType ot) {
-				try {
-					return annotations.isFromContract(ot.getClassName(), invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));
-				}
-				catch (ClassNotFoundException e) {
-					throw new IllegalJarException(e);
-				}
-			}
-		}
-
-		return false;
+		else if (instruction instanceof InvokeInstruction invoke && !(invoke instanceof INVOKESTATIC) && invoke.getReferenceType(cpg) instanceof ObjectType ot)
+			return annotations.isFromContract(ot.getClassName(), invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));
+		else
+			return false;
 	}
 }

@@ -39,6 +39,7 @@ import org.apache.bcel.generic.Type;
 
 import io.hotmoka.verification.PushersIterators;
 import io.hotmoka.verification.api.IllegalJarException;
+import io.hotmoka.verification.api.UnknownTypeException;
 import io.hotmoka.verification.errors.IllegalModificationOfAmountInConstructorChaining;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
@@ -48,7 +49,7 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class AmountIsNotModifiedInConstructorChainingCheck extends CheckOnMethods {
 
-	public AmountIsNotModifiedInConstructorChainingCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
+	public AmountIsNotModifiedInConstructorChainingCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException, UnknownTypeException {
 		super(builder, method);
 
 		if (Const.CONSTRUCTOR_NAME.equals(methodName) && methodArgs.length > 0 && methodIsPayableIn(className))
@@ -139,7 +140,7 @@ public class AmountIsNotModifiedInConstructorChainingCheck extends CheckOnMethod
     	return instructions().filter(ih -> ih.getInstruction() == i).findFirst();
     }
 
-    private Optional<InvokeInstruction> getInvokeToPayableFromContractConstructorOnThis(InstructionHandle ih) throws IllegalJarException {
+    private Optional<InvokeInstruction> getInvokeToPayableFromContractConstructorOnThis(InstructionHandle ih) throws UnknownTypeException, IllegalJarException {
     	if (ih.getInstruction() instanceof INVOKESPECIAL invoke) {
     		String methodName = invoke.getMethodName(cpg);
     		if (Const.CONSTRUCTOR_NAME.equals(methodName) && invoke.getReferenceType(cpg) instanceof ObjectType receiver) {
@@ -147,15 +148,8 @@ public class AmountIsNotModifiedInConstructorChainingCheck extends CheckOnMethod
     			int slots = Stream.of(argumentTypes).mapToInt(Type::getSize).sum();
     			String classNameOfReceiver = receiver.getClassName();
     			Type returnType = invoke.getReturnType(cpg);
-    			boolean callsPayableFromContract;
-
-    			try {
-    				callsPayableFromContract = annotations.isFromContract(classNameOfReceiver, methodName, argumentTypes, returnType) &&
-    						annotations.isPayable(classNameOfReceiver, methodName, argumentTypes, returnType);
-    			}
-    			catch (ClassNotFoundException e) {
-    				throw new IllegalJarException(e);
-    			}
+    			boolean callsPayableFromContract = annotations.isFromContract(classNameOfReceiver, methodName, argumentTypes, returnType) &&
+    					annotations.isPayable(classNameOfReceiver, methodName, argumentTypes, returnType);
 
     			if (callsPayableFromContract && pusherIsLoad0(ih, slots + 1))
     				return Optional.of(invoke);

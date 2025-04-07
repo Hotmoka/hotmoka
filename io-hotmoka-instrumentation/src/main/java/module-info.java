@@ -22,6 +22,7 @@ module io.hotmoka.instrumentation {
 	requires transitive io.hotmoka.instrumentation.api;
 	requires transitive io.hotmoka.verification;
 	requires io.hotmoka.whitelisting;
+	requires io.hotmoka.exceptions;
 	requires io.takamaka.code.constants;
 	requires it.univr.bcel;
 }

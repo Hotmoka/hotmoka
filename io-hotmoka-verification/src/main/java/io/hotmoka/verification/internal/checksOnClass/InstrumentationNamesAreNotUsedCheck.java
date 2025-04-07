@@ -23,6 +23,7 @@ import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 
 import io.hotmoka.verification.api.IllegalJarException;
+import io.hotmoka.verification.api.UnknownTypeException;
 import io.hotmoka.verification.api.VerifiedClass;
 import io.hotmoka.verification.errors.IllegalFieldNameError;
 import io.hotmoka.verification.errors.IllegalMethodNameError;
@@ -38,7 +39,7 @@ import io.hotmoka.whitelisting.WhitelistingConstants;
  */
 public class InstrumentationNamesAreNotUsedCheck extends CheckOnClasses {
 
-	public InstrumentationNamesAreNotUsedCheck(VerifiedClassImpl.Verification builder) throws IllegalJarException {
+	public InstrumentationNamesAreNotUsedCheck(VerifiedClassImpl.Verification builder) throws IllegalJarException, UnknownTypeException {
 		super(builder);
 
 		var DUMMY_OT = new ObjectType(WhitelistingConstants.DUMMY_NAME);

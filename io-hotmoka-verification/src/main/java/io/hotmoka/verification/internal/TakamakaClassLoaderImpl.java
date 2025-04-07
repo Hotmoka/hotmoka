@@ -23,8 +23,8 @@ import java.math.BigInteger;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
+import io.hotmoka.verification.api.UnknownTypeException;
 import io.hotmoka.whitelisting.WhiteListingClassLoaders;
 import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 import io.hotmoka.whitelisting.api.WhiteListingClassLoader;
@@ -124,30 +124,114 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	 *                            set of white-listing annotations used by the class loader
 	 * @throws UnsupportedVerificationVersionException if the annotations for the required verification
 	 *                                                 version cannot be found in the white-listing database
-	 * @throws IllegalJarException if some jar is illegal, for instance, their class path does not include the Takamaka runtime
+	 * @throws UnknownTypeException if some type of the Takamaka runtime cannot be resolved
 	 */
-	public TakamakaClassLoaderImpl(Stream<byte[]> jars, long verificationVersion) throws UnsupportedVerificationVersionException, IllegalJarException {
+	public TakamakaClassLoaderImpl(Stream<byte[]> jars, long verificationVersion) throws UnsupportedVerificationVersionException, UnknownTypeException {
 		this.parent = WhiteListingClassLoaders.of(jars, verificationVersion);
 
 		try {
 			this.contract = loadClass(Constants.CONTRACT_NAME);
+		}
+		catch (ClassNotFoundException e) {
+			throw new UnknownTypeException(Constants.CONTRACT_NAME);
+		}
+
+		try {
 			this.externallyOwnedAccount = loadClass(Constants.EOA_NAME);
+		}
+		catch (ClassNotFoundException e) {
+			throw new UnknownTypeException(Constants.EOA_NAME);
+		}
+
+		try {
 			this.abstractValidators = loadClass(Constants.ABSTRACT_VALIDATORS_NAME);
+		}
+		catch (ClassNotFoundException e) {
+			throw new UnknownTypeException(Constants.ABSTRACT_VALIDATORS_NAME);
+		}
+
+		try {
 			this.gamete = loadClass(Constants.GAMETE_NAME);
+		}
+		catch (ClassNotFoundException e) {
+			throw new UnknownTypeException(Constants.GAMETE_NAME);
+		}
+
+		try {
 			this.account = loadClass(Constants.ACCOUNT_NAME);
+		}
+		catch (ClassNotFoundException e) {
+			throw new UnknownTypeException(Constants.ACCOUNT_NAME);
+		}
+
+		try {
 			this.accountED25519 = loadClass(Constants.ACCOUNT_ED25519_NAME);
+		}
+		catch (ClassNotFoundException e) {
+			throw new UnknownTypeException(Constants.ACCOUNT_ED25519_NAME);
+		}
+
+		try {
 			this.accountQTESLA1 = loadClass(Constants.ACCOUNT_QTESLA1_NAME);
+		}
+		catch (ClassNotFoundException e) {
+			throw new UnknownTypeException(Constants.ACCOUNT_QTESLA1_NAME);
+		}
+
+		try {
 			this.accountQTESLA3 = loadClass(Constants.ACCOUNT_QTESLA3_NAME);
+		}
+		catch (ClassNotFoundException e) {
+			throw new UnknownTypeException(Constants.ACCOUNT_QTESLA3_NAME);
+		}
+
+		try {
 			this.accountSHA256DSA = loadClass(Constants.ACCOUNT_SHA256DSA_NAME);
+		}
+		catch (ClassNotFoundException e) {
+			throw new UnknownTypeException(Constants.ACCOUNT_SHA256DSA_NAME);
+		}
+
+		try {
 			this.manifest = loadClass(Constants.MANIFEST_NAME);
+		}
+		catch (ClassNotFoundException e) {
+			throw new UnknownTypeException(Constants.MANIFEST_NAME);
+		}
+
+		try {
 			this.storage = loadClass(Constants.STORAGE_NAME);
+		}
+		catch (ClassNotFoundException e) {
+			throw new UnknownTypeException(Constants.STORAGE_NAME);
+		}
+
+		try {
 			this.consensusUpdateEvent = loadClass(Constants.CONSENSUS_UPDATE_NAME);
+		}
+		catch (ClassNotFoundException e) {
+			throw new UnknownTypeException(Constants.CONSENSUS_UPDATE_NAME);
+		}
+
+		try {
 			this.gasPriceUpdateEvent = loadClass(Constants.GAS_PRICE_UPDATE_NAME);
+		}
+		catch (ClassNotFoundException e) {
+			throw new UnknownTypeException(Constants.GAS_PRICE_UPDATE_NAME);
+		}
+
+		try {
 			this.inflationUpdateEvent = loadClass(Constants.INFLATION_UPDATE_NAME);
+		}
+		catch (ClassNotFoundException e) {
+			throw new UnknownTypeException(Constants.INFLATION_UPDATE_NAME);
+		}
+
+		try {
 			this.validatorsUpdateEvent = loadClass(Constants.VALIDATORS_UPDATE_NAME);
 		}
 		catch (ClassNotFoundException e) {
-			throw new IllegalJarException(e);
+			throw new UnknownTypeException(Constants.VALIDATORS_UPDATE_NAME);
 		}
 	}
 

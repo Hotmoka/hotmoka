@@ -31,6 +31,7 @@ import io.hotmoka.verification.BcelToClassTransformers;
 import io.hotmoka.verification.api.AnnotationUtility;
 import io.hotmoka.verification.api.BcelToClassTransformer;
 import io.hotmoka.verification.api.TakamakaClassLoader;
+import io.hotmoka.verification.api.UnknownTypeException;
 import io.hotmoka.whitelisting.WhitelistingConstants;
 import io.takamaka.code.constants.Constants;
 
@@ -62,29 +63,29 @@ public class AnnotationUtilityImpl implements AnnotationUtility {
 	}
 
 	@Override
-	public final boolean isPayable(String className, String methodName, Type[] formals, Type returnType) throws ClassNotFoundException {
+	public final boolean isPayable(String className, String methodName, Type[] formals, Type returnType) throws UnknownTypeException {
 		return getAnnotation(className, methodName, formals, returnType, Constants.PAYABLE_NAME).isPresent()
 			|| getAnnotation(className, methodName, expandFormals(formals), returnType, Constants.PAYABLE_NAME).isPresent();
 	}
 
 	@Override
-	public final boolean isWhiteListedDuringInitialization(String className) throws ClassNotFoundException {
+	public final boolean isWhiteListedDuringInitialization(String className) throws UnknownTypeException {
 		return classIsAnnotatedAs(className, Constants.WHITE_LISTED_DURING_INITIALIZATION_NAME);
 	}
 
 	@Override
-	public final boolean isThrowsExceptions(String className, String methodName, Type[] formals, Type returnType) throws ClassNotFoundException {
+	public final boolean isThrowsExceptions(String className, String methodName, Type[] formals, Type returnType) throws UnknownTypeException {
 		return getAnnotation(className, methodName, formals, returnType, Constants.THROWS_EXCEPTIONS_NAME).isPresent()
 			|| getAnnotation(className, methodName, expandFormals(formals), returnType, Constants.THROWS_EXCEPTIONS_NAME).isPresent();
 	}
 
 	@Override
-	public final boolean isFromContract(String className, String methodName, Type[] formals, Type returnType) throws ClassNotFoundException {
+	public final boolean isFromContract(String className, String methodName, Type[] formals, Type returnType) throws UnknownTypeException {
 		return getFromContractArgument(className, methodName, formals, returnType).isPresent();
 	}
 
 	@Override
-	public final Optional<Class<?>> getFromContractArgument(String className, String methodName, Type[] formals, Type returnType) throws ClassNotFoundException {
+	public final Optional<Class<?>> getFromContractArgument(String className, String methodName, Type[] formals, Type returnType) throws UnknownTypeException {
 		Optional<Annotation> annotation = getAnnotation(className, methodName, formals, returnType, Constants.FROM_CONTRACT_NAME);
 		if (annotation.isEmpty())
 			// the method might have been already instrumented, since it comes from
@@ -134,25 +135,41 @@ public class AnnotationUtilityImpl implements AnnotationUtility {
 	 * @return the annotation, if any
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 	 */
-	private Optional<Annotation> getAnnotation(String className, String methodName, Type[] formals, Type returnType, String annotationName) throws ClassNotFoundException {
+	private Optional<Annotation> getAnnotation(String className, String methodName, Type[] formals, Type returnType, String annotationName) throws UnknownTypeException {
 		if (methodName.equals(Const.CONSTRUCTOR_NAME))
 			return getAnnotationOfConstructor(className, formals, annotationName);
 		else
 			return getAnnotationOfMethod(className, methodName, formals, returnType, annotationName);
 	}
 
-	private Optional<Annotation> getAnnotationOfConstructor(String className, Type[] formals, String annotationName) throws ClassNotFoundException {
+	private Optional<Annotation> getAnnotationOfConstructor(String className, Type[] formals, String annotationName) throws UnknownTypeException {
 		Class<?>[] formalsClass = bcelToClass.of(formals);
+		Class<?> clazz;
 
-		return Stream.of(classLoader.loadClass(className).getDeclaredConstructors())
+		try {
+			clazz = classLoader.loadClass(className);
+		}
+		catch (ClassNotFoundException e) {
+			throw new UnknownTypeException(className);
+		}
+
+		return Stream.of(clazz.getDeclaredConstructors())
 				.filter(constructor -> Arrays.equals(constructor.getParameterTypes(), formalsClass))
 				.flatMap(constructor -> Stream.of(constructor.getAnnotations()))
 				.filter(annotation -> annotation.annotationType().getName().equals(annotationName))
 				.findFirst();
 	}
 
-	private boolean classIsAnnotatedAs(String className, String annotationName) throws ClassNotFoundException {
-		Class<?> clazz = classLoader.loadClass(className);
+	private boolean classIsAnnotatedAs(String className, String annotationName) throws UnknownTypeException {
+		Class<?> clazz;
+
+		try {
+			clazz = classLoader.loadClass(className);
+		}
+		catch (ClassNotFoundException e) {
+			throw new UnknownTypeException(className);
+		}
+
 		boolean explicitly = Stream.of(clazz.getAnnotations())
 			.map(annotation -> annotation.annotationType().getName())
 			.anyMatch(annotationName::equals);
@@ -161,10 +178,17 @@ public class AnnotationUtilityImpl implements AnnotationUtility {
 		return explicitly || ((superclass = clazz.getSuperclass()) != null && classIsAnnotatedAs(superclass.getName(), annotationName));
 	}
 
-	private Optional<Annotation> getAnnotationOfMethod(String className, String methodName, Type[] formals, Type returnType, String annotationName) throws ClassNotFoundException {
+	private Optional<Annotation> getAnnotationOfMethod(String className, String methodName, Type[] formals, Type returnType, String annotationName) throws UnknownTypeException {
 		Class<?> returnTypeClass = bcelToClass.of(returnType);
 		Class<?>[] formalsClass = bcelToClass.of(formals);
-		Class<?> clazz = classLoader.loadClass(className);
+		Class<?> clazz;
+
+		try {
+			clazz = classLoader.loadClass(className);
+		}
+		catch (ClassNotFoundException e) {
+			throw new UnknownTypeException(className);
+		}
 
 		Optional<Method> definition = Stream.of(clazz.getDeclaredMethods())
 			.filter(m -> m.getName().equals(methodName) && m.getReturnType() == returnTypeClass && Arrays.equals(m.getParameterTypes(), formalsClass))

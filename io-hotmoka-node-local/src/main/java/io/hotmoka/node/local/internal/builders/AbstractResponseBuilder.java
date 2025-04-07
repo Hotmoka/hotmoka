@@ -23,6 +23,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.api.ClassLoaderCreationException;
 import io.hotmoka.node.api.DeserializationException;
 import io.hotmoka.node.api.OutOfGasException;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -34,7 +35,6 @@ import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.local.api.ClassLoaderCreationException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.ResponseBuilder;
@@ -163,6 +163,8 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 
 				if (cause instanceof TransactionRejectedException tre)
 					throw tre;
+				else if (cause instanceof StoreException se)
+					throw se;
 				else
 					throw new StoreException(cause);
 			}

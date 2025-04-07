@@ -19,7 +19,7 @@ package io.hotmoka.verification.internal.checksOnMethods;
 import org.apache.bcel.Const;
 import org.apache.bcel.generic.MethodGen;
 
-import io.hotmoka.verification.api.IllegalJarException;
+import io.hotmoka.verification.api.UnknownTypeException;
 import io.hotmoka.verification.errors.IllegalStaticInitializationError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
@@ -29,7 +29,7 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class IsNotStaticInitializerCheck extends CheckOnMethods {
 
-	public IsNotStaticInitializerCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
+	public IsNotStaticInitializerCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws UnknownTypeException {
 		super(builder, method);
 
 		if (Const.STATIC_INITIALIZER_NAME.equals(methodName))

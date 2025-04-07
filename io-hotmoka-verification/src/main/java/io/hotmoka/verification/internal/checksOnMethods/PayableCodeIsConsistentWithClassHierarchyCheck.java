@@ -22,7 +22,7 @@ import java.util.Arrays;
 import org.apache.bcel.Const;
 import org.apache.bcel.generic.MethodGen;
 
-import io.hotmoka.verification.api.IllegalJarException;
+import io.hotmoka.verification.api.UnknownTypeException;
 import io.hotmoka.verification.errors.InconsistentPayableError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
@@ -33,14 +33,14 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class PayableCodeIsConsistentWithClassHierarchyCheck extends CheckOnMethods {
 
-	public PayableCodeIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
+	public PayableCodeIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws UnknownTypeException {
 		super(builder, method);
 
 		if (!Const.CONSTRUCTOR_NAME.equals(methodName) && !method.isPrivate())
 			isIdenticallyPayableInSupertypesOf(clazz, methodIsPayableIn(className), methodReturnTypeClass, methodArgsClasses);
 	}
 
-	private void isIdenticallyPayableInSupertypesOf(Class<?> clazz, boolean wasPayable, Class<?> rt, Class<?>[] args) throws IllegalJarException {
+	private void isIdenticallyPayableInSupertypesOf(Class<?> clazz, boolean wasPayable, Class<?> rt, Class<?>[] args) throws UnknownTypeException {
 		for (var method: clazz.getDeclaredMethods())
 			if (!Modifier.isPrivate(method.getModifiers()) && methodName.equals(method.getName())
 					&& method.getReturnType() == rt && Arrays.equals(method.getParameterTypes(), args)

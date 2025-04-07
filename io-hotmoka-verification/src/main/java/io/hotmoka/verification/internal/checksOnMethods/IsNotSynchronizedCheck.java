@@ -18,7 +18,7 @@ package io.hotmoka.verification.internal.checksOnMethods;
 
 import org.apache.bcel.generic.MethodGen;
 
-import io.hotmoka.verification.api.IllegalJarException;
+import io.hotmoka.verification.api.UnknownTypeException;
 import io.hotmoka.verification.errors.IllegalSynchronizationError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
@@ -28,7 +28,7 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class IsNotSynchronizedCheck extends CheckOnMethods {
 
-	public IsNotSynchronizedCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
+	public IsNotSynchronizedCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws UnknownTypeException {
 		super(builder, method);
 
 		if (method.isSynchronized())

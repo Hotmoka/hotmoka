@@ -33,4 +33,13 @@ public class UnknownTypeException extends HotmokaException {
 	public UnknownTypeException(StorageType type) {
 		super("Unknown type " + type);
 	}
+
+	/**
+	 * Creates the exception with the given cause.
+	 * 
+	 * @param cause the cause
+	 */
+	public UnknownTypeException(io.hotmoka.verification.api.UnknownTypeException cause) {
+		super(cause.getMessage(), cause);
+	}
 }

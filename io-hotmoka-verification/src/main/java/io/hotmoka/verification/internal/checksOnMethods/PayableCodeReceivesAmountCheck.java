@@ -22,7 +22,7 @@ import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
-import io.hotmoka.verification.api.IllegalJarException;
+import io.hotmoka.verification.api.UnknownTypeException;
 import io.hotmoka.verification.errors.PayableWithoutAmountError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
@@ -32,7 +32,7 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class PayableCodeReceivesAmountCheck extends CheckOnMethods {
 
-	public PayableCodeReceivesAmountCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
+	public PayableCodeReceivesAmountCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws UnknownTypeException {
 		super(builder, method);
 
 		if (methodIsPayableIn(className) && !startsWithAmount())

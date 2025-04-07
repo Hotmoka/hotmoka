@@ -22,7 +22,7 @@ import java.util.Arrays;
 import org.apache.bcel.Const;
 import org.apache.bcel.generic.MethodGen;
 
-import io.hotmoka.verification.api.IllegalJarException;
+import io.hotmoka.verification.api.UnknownTypeException;
 import io.hotmoka.verification.errors.InconsistentThrowsExceptionsError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
@@ -33,14 +33,14 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class ThrowsExceptionsIsConsistentWithClassHierarchyCheck extends CheckOnMethods {
 
-	public ThrowsExceptionsIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
+	public ThrowsExceptionsIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws UnknownTypeException {
 		super(builder, method);
 
 		if (!Const.CONSTRUCTOR_NAME.equals(methodName) && method.isPublic())
 			isIdenticallyThrowsExceptionsInSupertypesOf(clazz, methodIsThrowsExceptionsIn(className), methodReturnTypeClass, methodArgsClasses);
 	}
 
-	private void isIdenticallyThrowsExceptionsInSupertypesOf(Class<?> clazz, boolean wasThrowsExceptions, Class<?> rt, Class<?>[] args) throws IllegalJarException {
+	private void isIdenticallyThrowsExceptionsInSupertypesOf(Class<?> clazz, boolean wasThrowsExceptions, Class<?> rt, Class<?>[] args) throws UnknownTypeException {
 		for (var method: clazz.getDeclaredMethods())
 			if (!Modifier.isPrivate(method.getModifiers()) && methodName.equals(method.getName())
 					&& method.getReturnType() == rt && Arrays.equals(method.getParameterTypes(), args)

@@ -23,6 +23,7 @@ import org.apache.bcel.generic.Type;
 
 import io.hotmoka.verification.api.BcelToClassTransformer;
 import io.hotmoka.verification.api.TakamakaClassLoader;
+import io.hotmoka.verification.api.UnknownTypeException;
 
 /**
  * A utility that transforms a BCEL type into its corresponding class tag.
@@ -44,7 +45,7 @@ public class BcelToClassTransformerImpl implements BcelToClassTransformer {
 	}
 
 	@Override
-	public final Class<?> of(Type type) throws ClassNotFoundException {
+	public final Class<?> of(Type type) throws UnknownTypeException {
 		if (type == BasicType.BOOLEAN)
 			return boolean.class;
 		else if (type == BasicType.BYTE)
@@ -63,8 +64,14 @@ public class BcelToClassTransformerImpl implements BcelToClassTransformer {
 			return short.class;
 		else if (type == BasicType.VOID)
 			return void.class;
-		else if (type instanceof ObjectType)
-			return classLoader.loadClass(type.toString());
+		else if (type instanceof ObjectType) {
+			try {
+				return classLoader.loadClass(type.getClassName());
+			}
+			catch (ClassNotFoundException e) {
+				throw new UnknownTypeException(type.getClassName());
+			}
+		}
 		else { // array
 			Class<?> elementsClass = of(((ArrayType) type).getElementType());
 			// we build an array of 0 elements just to access its class token
@@ -73,7 +80,7 @@ public class BcelToClassTransformerImpl implements BcelToClassTransformer {
 	}
 
 	@Override
-	public final Class<?>[] of(Type[] types) throws ClassNotFoundException {
+	public final Class<?>[] of(Type[] types) throws UnknownTypeException {
 		Class<?>[] result = new Class<?>[types.length];
 		for (int pos = 0; pos < types.length; pos++)
 			result[pos] = of(types[pos]);

@@ -39,6 +39,7 @@ import java.util.zip.ZipInputStream;
 import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.instrumentation.api.InstrumentationFields;
 import io.hotmoka.node.StorageTypes;
+import io.hotmoka.node.api.ClassLoaderCreationException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.responses.JarStoreTransactionResponseWithInstrumentedJar;
@@ -47,13 +48,12 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.local.api.ClassLoaderCreationException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.Reverification;
 import io.hotmoka.verification.TakamakaClassLoaders;
-import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
+import io.hotmoka.verification.api.UnknownTypeException;
 import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 import io.hotmoka.whitelisting.api.WhiteListingWizard;
 
@@ -209,8 +209,8 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		catch (UnsupportedVerificationVersionException e) {
 			throw new StoreException(e);
 		}
-		catch (IllegalJarException e) {
-			throw new ClassLoaderCreationException(e);
+		catch (UnknownTypeException e) {
+			throw new ClassLoaderCreationException(e.getMessage());
 		}
 	}
 
@@ -276,8 +276,13 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 						else if (previously != pos)
 							if (packageName.isEmpty())
 								throw new ClassLoaderCreationException("The default package cannot be split across more jars");
-							else
-								throw new ClassLoaderCreationException("Package " + packageName + " cannot be split across more jars");
+							else {
+								String trimmedPackageName = packageName;
+								if (trimmedPackageName.length() > 200)
+									trimmedPackageName = trimmedPackageName.substring(0, 200) + "...";
+
+								throw new ClassLoaderCreationException("Package " + trimmedPackageName + " cannot be split across more jars");
+							}
 	
 						// if the transaction reference is null, it means that the class comes from a jar that is being installed
 						// by the transaction that created this class loader. In that case, the storage reference of the class is not used
@@ -288,7 +293,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	        }
 			catch (IOException e) {
 				// some jar seems corrupted
-				throw new ClassLoaderCreationException("Corrupted jar", e);
+				throw new ClassLoaderCreationException("Corrupted jar");
 			}
 	
 			pos++;

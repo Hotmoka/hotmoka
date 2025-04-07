@@ -36,6 +36,7 @@ import io.hotmoka.instrumentation.api.InstrumentationFields;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
 import io.hotmoka.verification.api.IllegalJarException;
+import io.hotmoka.verification.api.UnknownTypeException;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -49,8 +50,10 @@ public class ReplaceFieldAccessesWithAccessors extends MethodLevelInstrumentatio
 	 * @param builder the builder of the class being instrumented
 	 * @param method the method being instrumented
 	 * @throws IllegalJarException if the jar under instrumentation is illegal
+	 * @throws UnknownTypeException if some type cannot be resolved
+	 * @throws ClassNotFoundException 
 	 */
-	public ReplaceFieldAccessesWithAccessors(InstrumentedClassImpl.Builder builder, MethodGen method) throws IllegalJarException {
+	public ReplaceFieldAccessesWithAccessors(InstrumentedClassImpl.Builder builder, MethodGen method) throws IllegalJarException, UnknownTypeException {
 		builder.super(method);
 
 		var il = method.getInstructionList();
@@ -68,19 +71,22 @@ public class ReplaceFieldAccessesWithAccessors extends MethodLevelInstrumentatio
 	 * @param ih the instruction handle
 	 * @return the instruction in {@code ih}, if it accesses a lazily loaded field of a storage class
 	 * @throws IllegalJarException if the jar under instrumentation is illegal
+	 * @throws UnknownTypeException if some type cannot be resolved
+	 * @throws ClassNotFoundException 
 	 */
-	private Optional<FieldInstruction> getFieldInstructionAccessingLazilyLoadedFieldInStorageClass(InstructionHandle ih) throws IllegalJarException {
+	private Optional<FieldInstruction> getFieldInstructionAccessingLazilyLoadedFieldInStorageClass(InstructionHandle ih) throws IllegalJarException, UnknownTypeException {
 		var instruction = ih.getInstruction();
 
 		if (instruction instanceof FieldInstruction fi && (instruction instanceof GETFIELD || instruction instanceof PUTFIELD)) {
 			if (!(fi.getReferenceType(cpg) instanceof ObjectType receiverType))
-				// impossible since the field access was white-listed hence resolved
-				throw new RuntimeException("Attempt to read a field of a non-object reference");
+				throw new IllegalJarException("Attempt to read a field of a non-object reference");
 
 			String receiverClassName = receiverType.getClassName();
 			Class<?> fieldType;
+
+			// we do not consider field accesses added by instrumentation in class Storage
+
 			try {
-				// we do not consider field accesses added by instrumentation in class Storage
 				if (!Constants.STORAGE_NAME.equals(receiverClassName)
 						&& classLoader.isStorage(receiverClassName)
 						&& classLoader.isLazilyLoaded(fieldType = bcelToClass.of(fi.getFieldType(cpg)))
@@ -89,7 +95,7 @@ public class ReplaceFieldAccessesWithAccessors extends MethodLevelInstrumentatio
 					return Optional.of(fi);
 			}
 			catch (ClassNotFoundException e) {
-				throw new IllegalJarException(e);
+				throw new UnknownTypeException(receiverClassName);
 			}
 		}
 
@@ -102,8 +108,9 @@ public class ReplaceFieldAccessesWithAccessors extends MethodLevelInstrumentatio
 	 * @param fieldInstruction the field access instruction
 	 * @return the corresponding accessor call instruction
 	 * @throws IllegalJarException if the jar under instrumentation is illegal
+	 * @throws UnknownTypeException if some type cannot be resolved
 	 */
-	private Instruction accessorCorrespondingTo(FieldInstruction fieldInstruction) throws IllegalJarException {
+	private Instruction accessorCorrespondingTo(FieldInstruction fieldInstruction) throws UnknownTypeException {
 		ObjectType referencedClass = (ObjectType) fieldInstruction.getReferenceType(cpg); // cast already checked above
 		Type fieldType = fieldInstruction.getFieldType(cpg);
 		String fieldName = fieldInstruction.getFieldName(cpg);
@@ -114,7 +121,7 @@ public class ReplaceFieldAccessesWithAccessors extends MethodLevelInstrumentatio
 			resolvedField = classLoader.resolveField(className, fieldName, bcelToClass.of(fieldType)).get();
 		}
 		catch (ClassNotFoundException e) {
-			throw new IllegalJarException(e);
+			throw new UnknownTypeException(className);
 		}
 
 		String resolvedClassName = resolvedField.getDeclaringClass().getName();
@@ -134,15 +141,16 @@ public class ReplaceFieldAccessesWithAccessors extends MethodLevelInstrumentatio
 	 * @param condition the condition on the modifiers of the field
 	 * @return true if and only if that condition holds
 	 * @throws IllegalJarException if the jar under instrumentation is illegal
+	 * @throws UnknownTypeException if some type cannot be resolved
 	 */
-	private boolean modifiersSatisfy(String className, String fieldName, Class<?> fieldType, Predicate<Integer> condition) throws IllegalJarException {
+	private boolean modifiersSatisfy(String className, String fieldName, Class<?> fieldType, Predicate<Integer> condition) throws IllegalJarException, UnknownTypeException {
 		Class<?> clazz, previous;
 		
 		try {
 			clazz = classLoader.loadClass(className);
 		}
 		catch (ClassNotFoundException e) {
-			throw new IllegalJarException(e);
+			throw new UnknownTypeException(className);
 		}
 
 		Class<?> storage = classLoader.getStorage();

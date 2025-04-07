@@ -23,6 +23,8 @@ import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -33,10 +35,11 @@ import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.util.ClassLoaderRepository;
 
-import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.verification.api.Error;
 import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
+import io.hotmoka.verification.api.UnknownTypeException;
+import io.hotmoka.verification.api.VerificationException;
 import io.hotmoka.verification.api.VerifiedClass;
 import io.hotmoka.verification.api.VerifiedJar;
 import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
@@ -57,26 +60,22 @@ public class VerifiedJarImpl implements VerifiedJar {
 	 */
 	private final SortedSet<VerifiedClass> classes = new TreeSet<>();
 
-	/**
-	 * The ordered set of errors generated while verifying the classes of the jar.
-	 */
-	private final SortedSet<io.hotmoka.verification.api.Error> errors = new TreeSet<>(); // TODO: remove
+	private final static Logger LOGGER = Logger.getLogger(VerifiedJarImpl.class.getName());
 
 	/**
 	 * Creates a verified jar from the given file. Calls the given task for each error
 	 * generated during the verification. At the end, throws an exception if there is at least an error.
 	 * 
-	 * @param <E> the type of the exception thrown if there is at least an error during verification
-	 * @param origin the jar file to verify, given as an array of bytes
+	 * @param jar the jar file to verify, given as an array of bytes
 	 * @param classLoader the class loader that can be used to resolve the classes of the program, including those of {@code origin}
 	 * @param duringInitialization true if and only if verification occurs during the node initialization
 	 * @param onError a task to execute for each error found during the verification
 	 * @param skipsVerification true if and only if the static verification of the classes of the jar must be skipped
-	 * @param ifError the creator of the exception thrown if there is at least an error during verification
-	 * @throws E if verification fails
+	 * @throws VerificationException if verification fails
 	 * @throws IllegalJarException if the jar under verification is illegal
+	 * @throws UnknownTypeException if some type of the jar under verification cannot be resolved
 	 */
-	public <E extends Exception> VerifiedJarImpl(byte[] origin, TakamakaClassLoader classLoader, boolean duringInitialization, Consumer<Error> onError, boolean skipsVerification, ExceptionSupplier<? extends E> ifError) throws E, IllegalJarException {
+	public VerifiedJarImpl(byte[] jar, TakamakaClassLoader classLoader, boolean duringInitialization, Consumer<Error> onError, boolean skipsVerification) throws VerificationException, IllegalJarException, UnknownTypeException {
 		this.classLoader = classLoader;
 
 		// we set the BCEL repository so that it matches the class path made up of the jar to
@@ -85,12 +84,13 @@ public class VerifiedJarImpl implements VerifiedJar {
 		// whole hierarchy of classes must be available to BCEL through its repository
 		Repository.setRepository(new ClassLoaderRepository(classLoader.getJavaClassLoader()));
 
-		new Initializer(origin, duringInitialization, skipsVerification, ifError);
+		SortedSet<io.hotmoka.verification.api.Error> errors = new TreeSet<>();
+		new Initializer(jar, duringInitialization, skipsVerification, errors);
 
 		errors.forEach(onError);
 
 		if (!errors.isEmpty())
-			throw ifError.apply(errors.getFirst().getMessage());
+			throw new VerificationException(errors.getFirst().getMessage());
 	}
 
 	@Override
@@ -127,15 +127,14 @@ public class VerifiedJarImpl implements VerifiedJar {
 		/**
 		 * Performs the verification of the given jar file.
 		 * 
-		 * @param <E> the type of the exception thrown if there is at least an error during verification
 		 * @param origin the jar file to verify, as an array of bytes
 		 * @param duringInitialization true if and only if the verification is performed during the initialization of the node
 		 * @param skipsVerification true if and only if the static verification of the classes of the jar must be skipped
-		 * @param ifError the creator of the exception thrown if there is at least an error during verification
-		 * @throws E if verification fails
+		 * @param errors the container where new errors must be added
 		 * @throws IllegalJarException if the jar under verification is illegal
+		 * @throws UnknownTypeException if some type of the jar under verification cannot be resolved
 		 */
-		private <E extends Exception> Initializer(byte[] origin, boolean duringInitialization, boolean skipsVerification, ExceptionSupplier<? extends E> ifError) throws E, IllegalJarException {
+		private Initializer(byte[] origin, boolean duringInitialization, boolean skipsVerification, SortedSet<io.hotmoka.verification.api.Error> errors) throws IllegalJarException, UnknownTypeException {
 			this.duringInitialization = duringInitialization;
 
 			try {
@@ -156,11 +155,12 @@ public class VerifiedJarImpl implements VerifiedJar {
     			while ((entry = zis.getNextEntry()) != null) {
     				String name = entry.getName();
     				if (name.endsWith(".class") && !"module-info.class".equals(name))
-    					buildVerifiedClass(entry, zis).ifPresent(classes::add);
+    					buildVerifiedClass(entry, zis, errors).ifPresent(classes::add);
     			}
 			}
 			catch (IOException e) {
-				throw new IllegalJarException(e);
+				LOGGER.log(Level.WARNING, "cannot unzip the jar file", e);
+				throw new IllegalJarException("Cannot unzip the jar file");
 			}
 		}
 
@@ -171,21 +171,23 @@ public class VerifiedJarImpl implements VerifiedJar {
 		 * 
 		 * @param entry the entry
 		 * @param input the stream of the jar in the entry
+		 * @param errors a container where new errors must be added
 		 * @return the BCEL class, if the class for {@code entry} did verify
-		 * @throws IllegalJarException of the jar under verification is illegal
+		 * @throws IllegalJarException if the jar under verification is illegal
+		 * @throws UnknownTypeException if some type of the jar under verification cannot be resolved
 		 */
-		private Optional<VerifiedClass> buildVerifiedClass(ZipEntry entry, InputStream input) throws IllegalJarException {
+		private Optional<VerifiedClass> buildVerifiedClass(ZipEntry entry, InputStream input, SortedSet<io.hotmoka.verification.api.Error> errors) throws IllegalJarException, UnknownTypeException {
 			JavaClass parsedClass;
 
 			try {
 				parsedClass = new ClassParser(input, entry.getName()).parse();
 			}
 			catch (ClassFormatException | IOException e) {
-				throw new IllegalJarException(e);
+				LOGGER.log(Level.WARNING, "cannot parse " + entry.getName(), e);
+				throw new IllegalJarException("Cannot parse " + entry.getName());
 			}
 
 			try {
-				// generates a RAM image of the class file, by using the BCEL library for bytecode manipulation
 				return Optional.of(new VerifiedClassImpl(parsedClass, VerifiedJarImpl.this, versionsManager, errors::add, duringInitialization, skipsVerification));
 			}
 			catch (VerificationException e) {

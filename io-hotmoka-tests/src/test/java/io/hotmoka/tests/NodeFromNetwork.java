@@ -38,9 +38,9 @@ import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.api.ClassLoaderCreationException;
 import io.hotmoka.node.api.JarFuture;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.VerificationException;
@@ -212,13 +212,12 @@ public class NodeFromNetwork extends HotmokaTest {
         	// we try to install a jar, but we forget to add its dependency (lambdas.jar needs takamakaCode() as dependency);
         	// this means that the request fails and the future refers to a failed request; since this is a post,
         	// the execution does not stop, nor throws anything
-        	TransactionRejectedException e = assertThrows(TransactionRejectedException.class, () ->
+        	throwsTransactionRejectedWithCause(ClassLoaderCreationException.class.getName(), () ->
         		remote.addJarStoreTransaction(TransactionRequests.jarStore
        				(signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0),
 					ZERO, chainId(), _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar")
 					// , takamakaCode() // <-- forgot that
 			)));
-        	assertTrue(e.getMessage().contains(ClassNotFoundException.class.getName()));
         }
     }
 
@@ -226,13 +225,10 @@ public class NodeFromNetwork extends HotmokaTest {
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to addJarStoreTransactionRequest for a request that fails")
     void testRemoteAddJarStoreTransactionFailed() throws Exception {
         try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
-        	TransactionException e = assertThrows(TransactionException.class, () ->
+        	throwsTransactionExceptionWithCauseAndMessageContaining(VerificationException.class, "caller() can only be called on \"this\"", () ->
         		remote.addJarStoreTransaction(TransactionRequests.jarStore
         			(signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0),
         			ZERO, chainId(), _100_000, ONE, takamakaCode(), bytesOf("callernotonthis.jar"), takamakaCode())));
-
-        	assertTrue(e.getMessage().contains(VerificationException.class.getName())); // TODO
-        	assertTrue(e.getMessage().contains("caller() can only be called on \"this\""));
         }
     }
 
@@ -264,8 +260,7 @@ public class NodeFromNetwork extends HotmokaTest {
 
         	// we wait until the request has been processed; this will throw a TransactionRejectedException at the end,
         	// since the request failed and its transaction was rejected
-        	TransactionRejectedException e = assertThrows(TransactionRejectedException.class, future::get);
-        	assertTrue(e.getMessage().contains(ClassNotFoundException.class.getName()));
+        	throwsTransactionRejectedWithCause(ClassLoaderCreationException.class.getName(), future::get);
         }
     }
 
@@ -282,9 +277,7 @@ public class NodeFromNetwork extends HotmokaTest {
 
         	// we wait until the request has been processed; this will throw a TransactionException at the end,
         	// since the request was accepted but its execution failed
-        	TransactionException e = assertThrows(TransactionException.class, future::get);
-        	assertTrue(e.getMessage().contains(VerificationException.class.getName())); // TODO
-        	assertTrue(e.getMessage().contains("caller() can only be called on \"this\""));
+        	throwsTransactionExceptionWithCauseAndMessageContaining(VerificationException.class, "caller() can only be called on \"this\"", future::get);
         }
     }
 

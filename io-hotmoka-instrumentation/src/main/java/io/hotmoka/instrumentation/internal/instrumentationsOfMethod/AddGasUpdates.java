@@ -58,6 +58,7 @@ import io.hotmoka.instrumentation.internal.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
 import io.hotmoka.verification.api.IllegalJarException;
+import io.hotmoka.verification.api.UnknownTypeException;
 import io.hotmoka.whitelisting.WhitelistingConstants;
 
 /**
@@ -78,8 +79,9 @@ public class AddGasUpdates extends MethodLevelInstrumentation {
 	 * @param builder the builder of the class being instrumented
 	 * @param method the method being instrumented
 	 * @throws IllegalJarException if the jar under instrumentation is not legal
+	 * @throws UnknownTypeException if some type of the jar under instrumentation cannot be resolved
 	 */
-	public AddGasUpdates(InstrumentedClassImpl.Builder builder, MethodGen method) throws IllegalJarException {
+	public AddGasUpdates(InstrumentedClassImpl.Builder builder, MethodGen method) throws IllegalJarException, UnknownTypeException {
 		builder.super(method);
 
 		if (!method.isAbstract()) {
@@ -114,7 +116,7 @@ public class AddGasUpdates extends MethodLevelInstrumentation {
 			|| Stream.of(ih.getTargeters()).anyMatch(targeter -> targeter instanceof BranchInstruction || targeter instanceof CodeExceptionGen);
 	}
 
-	private void addRamGasUpdate(InstructionHandle ih, InstructionList il, CodeExceptionGen[] ceg) throws IllegalJarException {
+	private void addRamGasUpdate(InstructionHandle ih, InstructionList il, CodeExceptionGen[] ceg) throws IllegalJarException, UnknownTypeException {
 		Instruction bytecode = ih.getInstruction();
 
 		if (bytecode instanceof InvokeInstruction invoke) {
@@ -267,7 +269,7 @@ public class AddGasUpdates extends MethodLevelInstrumentation {
 		}
 	}
 
-	private int numberOfInstanceFieldsOf(ObjectType type) throws IllegalJarException {
+	private int numberOfInstanceFieldsOf(ObjectType type) throws UnknownTypeException {
 		int size = 0;
 
 		try {
@@ -275,7 +277,7 @@ public class AddGasUpdates extends MethodLevelInstrumentation {
 				size += Stream.of(clazz.getDeclaredFields()).filter(field -> !Modifier.isStatic(field.getModifiers())).count();
 		}
 		catch (ClassNotFoundException e) {
-			throw new IllegalJarException(e);
+			throw new UnknownTypeException(type.getClassName());
 		}
 
 		return size;

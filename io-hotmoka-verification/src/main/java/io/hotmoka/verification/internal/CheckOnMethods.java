@@ -30,7 +30,7 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.PUTFIELD;
 import org.apache.bcel.generic.Type;
 
-import io.hotmoka.verification.api.IllegalJarException;
+import io.hotmoka.verification.api.UnknownTypeException;
 
 /**
  * A verification check on a specific method of a class.
@@ -49,24 +49,17 @@ public abstract class CheckOnMethods extends CheckOnClasses {
 	 * 
 	 * @param builder the verification context
 	 * @param method the method to verify
-	 * @throws IllegalJarException if the jar under verification is illegal
+	 * @throws UnknownTypeException if some type of the jar under verification cannot be resolved
 	 */
-	protected CheckOnMethods(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
+	protected CheckOnMethods(VerifiedClassImpl.Verification builder, MethodGen method) throws UnknownTypeException {
 		super(builder);
 
 		this.method = method;
 		this.methodName = method.getName();
 		this.methodArgs = method.getArgumentTypes();
 		this.methodReturnType = method.getReturnType();
-
-		try {
-			this.methodReturnTypeClass = bcelToClass.of(methodReturnType);
-			this.methodArgsClasses = bcelToClass.of(methodArgs);
-		}
-		catch (ClassNotFoundException e) { // they submitted a jar with an incomplete classpath
-			throw new IllegalJarException(e);
-		}
-
+		this.methodReturnTypeClass = bcelToClass.of(methodReturnType);
+		this.methodArgsClasses = bcelToClass.of(methodArgs);
 		this.isConstructorOfInnerNonStaticClass = isConstructorOfInstanceInnerClass();
 	}
 
@@ -79,40 +72,20 @@ public abstract class CheckOnMethods extends CheckOnClasses {
 		return instructions().findFirst().map(this::lineOf).orElse(-1);
 	}
 
-	protected final boolean methodIsFromContractIn(String className) throws IllegalJarException {
-		try {
-			return annotations.isFromContract(className, methodName, methodArgs, methodReturnType);
-		}
-		catch (ClassNotFoundException e) { // they submitted a jar with an incomplete classpath
-			throw new IllegalJarException(e);
-		}
+	protected final boolean methodIsFromContractIn(String className) throws UnknownTypeException {
+		return annotations.isFromContract(className, methodName, methodArgs, methodReturnType);
 	}
 
-	protected final boolean methodIsPayableIn(String className) throws IllegalJarException {
-		try {
-			return annotations.isPayable(className, methodName, methodArgs, methodReturnType);
-		}
-		catch (ClassNotFoundException e) { // they submitted a jar with an incomplete classpath
-			throw new IllegalJarException(e);
-		}
+	protected final boolean methodIsPayableIn(String className) throws UnknownTypeException {
+		return annotations.isPayable(className, methodName, methodArgs, methodReturnType);
 	}
 
-	protected final boolean methodIsThrowsExceptionsIn(String className) throws IllegalJarException {
-		try {
-			return annotations.isThrowsExceptions(className, methodName, methodArgs, methodReturnType);
-		}
-		catch (ClassNotFoundException e) { // they submitted a jar with an incomplete classpath
-			throw new IllegalJarException(e);
-		}
+	protected final boolean methodIsThrowsExceptionsIn(String className) throws UnknownTypeException {
+		return annotations.isThrowsExceptions(className, methodName, methodArgs, methodReturnType);
 	}
 
-	protected final Optional<Class<?>> getMethodFromContractArgumentIn(String className) throws IllegalJarException {
-		try {
-			return annotations.getFromContractArgument(className, methodName, methodArgs, methodReturnType);
-		}
-		catch (ClassNotFoundException e) { // they submitted a jar with an incomplete classpath
-			throw new IllegalJarException(e);
-		}
+	protected final Optional<Class<?>> getMethodFromContractArgumentIn(String className) throws UnknownTypeException {
+		return annotations.getFromContractArgument(className, methodName, methodArgs, methodReturnType);
 	}
 
 	private boolean isConstructorOfInstanceInnerClass() {

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.local.api;
+package io.hotmoka.node.api;
 
 import java.util.Objects;
 
@@ -22,7 +22,7 @@ import java.util.Objects;
  * An exception stating that the creation of a class loader failed.
  */
 @SuppressWarnings("serial")
-public class ClassLoaderCreationException extends Exception {
+public class ClassLoaderCreationException extends HotmokaException {
 
 	/**
 	 * Creates a new exception with the given message.
@@ -31,24 +31,5 @@ public class ClassLoaderCreationException extends Exception {
 	 */
 	public ClassLoaderCreationException(String message) {
 		super(Objects.requireNonNull(message, "message cannot be null"));
-	}
-
-	/**
-	 * Creates a new exception with the given cause.
-	 * 
-	 * @param cause the cause
-	 */
-	public ClassLoaderCreationException(Throwable cause) {
-		super(String.valueOf(cause.getMessage()), cause);
-	}
-
-	/**
-	 * Creates a new exception with the given message and cause.
-	 * 
-	 * @param message the message
-	 * @param cause the cause
-	 */
-	public ClassLoaderCreationException(String message, Throwable cause) {
-		super(Objects.requireNonNull(message, "message cannot be null"), Objects.requireNonNull(cause, "cause cannot be null"));
 	}
 }

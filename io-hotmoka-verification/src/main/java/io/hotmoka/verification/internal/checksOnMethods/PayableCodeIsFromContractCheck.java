@@ -18,7 +18,7 @@ package io.hotmoka.verification.internal.checksOnMethods;
 
 import org.apache.bcel.generic.MethodGen;
 
-import io.hotmoka.verification.api.IllegalJarException;
+import io.hotmoka.verification.api.UnknownTypeException;
 import io.hotmoka.verification.errors.PayableNotInContractError;
 import io.hotmoka.verification.errors.PayableWithoutFromContractError;
 import io.hotmoka.verification.internal.CheckOnMethods;
@@ -29,7 +29,7 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class PayableCodeIsFromContractCheck extends CheckOnMethods {
 
-	public PayableCodeIsFromContractCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
+	public PayableCodeIsFromContractCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws UnknownTypeException {
 		super(builder, method);
 
 		if (methodIsPayableIn(className)) {

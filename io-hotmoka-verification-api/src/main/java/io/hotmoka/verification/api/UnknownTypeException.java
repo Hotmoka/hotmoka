@@ -14,29 +14,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.api;
+package io.hotmoka.verification.api;
+
+import java.util.Objects;
 
 /**
- * An exception thrown when the verification of code to install in the node failed.
+ * An exception thrown when a jar file refers to an unknown type, that cannot be resolved from the classpath.
  */
 @SuppressWarnings("serial")
-public class VerificationException extends HotmokaException {
+public class UnknownTypeException extends Exception {
 
 	/**
-	 * Creates the exception with the given message.
+	 * Creates an exception.
 	 * 
-	 * @param message the message
+	 * @param name the name of the unknown type
 	 */
-	public VerificationException(String message) {
-		super(message);
-	}
-
-	/**
-	 * Creates the exception with the given cause.
-	 * 
-	 * @param cause the cause
-	 */
-	public VerificationException(io.hotmoka.verification.api.VerificationException cause) {
-		super(cause.getMessage(), cause);
+	public UnknownTypeException(String name) {
+		super("Unknown type " + Objects.requireNonNull(name));
 	}
 }

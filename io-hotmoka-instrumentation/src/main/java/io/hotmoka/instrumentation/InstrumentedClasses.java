@@ -20,6 +20,7 @@ import io.hotmoka.instrumentation.api.GasCostModel;
 import io.hotmoka.instrumentation.api.InstrumentedClass;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.verification.api.IllegalJarException;
+import io.hotmoka.verification.api.UnknownTypeException;
 import io.hotmoka.verification.api.VerifiedClass;
 
 /**
@@ -36,8 +37,9 @@ public final class InstrumentedClasses {
 	 * @param gasCostModel the gas cost model used for the instrumentation
 	 * @return the instrumented class
 	 * @throws IllegalJarException if the jar under instrumentation, containing this class, is illegal
+	 * @throws UnknownTypeException if some type cannot be resolved
 	 */
-	public static InstrumentedClass of(VerifiedClass clazz, GasCostModel gasCostModel) throws IllegalJarException {
+	public static InstrumentedClass of(VerifiedClass clazz, GasCostModel gasCostModel) throws IllegalJarException, UnknownTypeException {
 		return new InstrumentedClassImpl(clazz, gasCostModel);
 	}
 }

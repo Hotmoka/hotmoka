@@ -49,6 +49,7 @@ import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
 import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.AddExtraArgsToCallsToFromContract.LoadCaller;
 import io.hotmoka.verification.api.IllegalJarException;
+import io.hotmoka.verification.api.UnknownTypeException;
 import io.hotmoka.whitelisting.WhitelistingConstants;
 
 /**
@@ -75,8 +76,9 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 	 * @param builder the builder of the class being instrumented
 	 * @param method the method being instrumented
 	 * @throws IllegalJarException if the jar under instrumentation is illegal
+	 * @throws UnknownTypeException if the jar under instrumentation refers to a type that cannot be resolved
 	 */
-	public SetCallerAndBalanceAtTheBeginningOfFromContracts(InstrumentedClassImpl.Builder builder, MethodGen method) throws IllegalJarException {
+	public SetCallerAndBalanceAtTheBeginningOfFromContracts(InstrumentedClassImpl.Builder builder, MethodGen method) throws IllegalJarException, UnknownTypeException {
 		builder.super(method);
 
 		if (isStorage || isInterface) {
@@ -84,16 +86,11 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 			Type[] args = method.getArgumentTypes();
 			Type returnType = method.getReturnType();
 
-			try {
-				Optional<Class<?>> ann = annotations.getFromContractArgument(className, name, args, returnType);
-				if (ann.isPresent()) {
-					boolean isPayable = annotations.isPayable(className, name, args, returnType);
-					instrumentFromContract(method, ann.get(), isPayable);
-				};
-			}
-			catch (ClassNotFoundException e) {
-				throw new IllegalJarException(e);
-			}
+			Optional<Class<?>> ann = annotations.getFromContractArgument(className, name, args, returnType);
+			if (ann.isPresent()) {
+				boolean isPayable = annotations.isPayable(className, name, args, returnType);
+				instrumentFromContract(method, ann.get(), isPayable);
+			};
 		}
 	}
 
@@ -104,8 +101,9 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 	 * @param callerContract the class of the caller contract
 	 * @param isPayable true if and only if the {@code @@FromContract} method or constructor is payable
 	 * @throws IllegalJarException if the jar under instrumentation is illegal
+	 * @throws UnknownTypeException if some type of the jar under instrumentation cannot be resolved
 	 */
-	private void instrumentFromContract(MethodGen method, Class<?> callerContract, boolean isPayable) throws IllegalJarException {
+	private void instrumentFromContract(MethodGen method, Class<?> callerContract, boolean isPayable) throws IllegalJarException, UnknownTypeException {
 		// slotForCaller is the local variable used for the extra "caller" parameter;
 		int slotForCaller = addExtraParameters(method);
 		if (!method.isAbstract()) {
@@ -140,8 +138,9 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 	 * @param slotForCaller the local variable for the caller implicit argument
 	 * @param isPayable true if and only if {@code method} is payable
 	 * @throws IllegalJarException if the jar under instrumentation is illegal
+	 * @throws UnknownTypeException if some ytpe of the jar under instrumentation cannot be resolved
 	 */
-	private void setCallerAndBalance(MethodGen method, Class<?> callerContract, int slotForCaller, boolean isPayable) throws IllegalJarException {
+	private void setCallerAndBalance(MethodGen method, Class<?> callerContract, int slotForCaller, boolean isPayable) throws IllegalJarException, UnknownTypeException {
 		InstructionList il = method.getInstructionList();
 		InstructionHandle start = il.getStart();
 
@@ -157,7 +156,7 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 			isConstructorOfInstanceInnerClass = isConstructorOfInstanceInnerClass();
 			InstructionHandle callToSuperConstructor = callToSuperConstructor(method, il, slotForCaller, isConstructorOfInstanceInnerClass);
 			if (!(callToSuperConstructor.getInstruction() instanceof INVOKESPECIAL invokespecial))
-				throw new IllegalJarException("Expected invokespecial to call a superclass' constructor");
+				throw new IllegalJarException("Missing an invokespecial that calls the superclass' constructor");
 
 			// if the superconstructor is @FromContract, then it will take care of setting the caller for us
 			String classNameOfSuperConstructor = invokespecial.getClassName(cpg);
@@ -169,13 +168,8 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 				argumentTypes = copy;
 			}
 
-			try {
-				superconstructorIsFromContract = annotations.isFromContract(classNameOfSuperConstructor, Const.CONSTRUCTOR_NAME, argumentTypes, Type.VOID);
-				superconstructorIsPayable = annotations.isPayable(classNameOfSuperConstructor, Const.CONSTRUCTOR_NAME, argumentTypes, Type.VOID);
-			}
-			catch (ClassNotFoundException e) {
-				throw new IllegalJarException(e);
-			}
+			superconstructorIsFromContract = annotations.isFromContract(classNameOfSuperConstructor, Const.CONSTRUCTOR_NAME, argumentTypes, Type.VOID);
+			superconstructorIsPayable = annotations.isPayable(classNameOfSuperConstructor, Const.CONSTRUCTOR_NAME, argumentTypes, Type.VOID);
 
 			where = callToSuperConstructor.getNext();
 			if (where == null)
@@ -321,10 +315,10 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 						if (callsForConstructorChaining == null)
 							callsForConstructorChaining = current.ih;
 						else
-							throw new IllegalJarException("Cannot identify a unique call to constructor chaining inside a constructor ot " + className);
+							throw new IllegalJarException("Cannot identify a unique call to constructor chaining inside a constructor of " + className);
 					}
 					else
-						throw new IllegalJarException("Unexpected consumer of local 0 " + bytecode + " before initialization of " + className);
+						throw new IllegalJarException("Unexpected consumer of local 0 " + bytecode + " before the initialization of " + className);
 				}
 				else if (bytecode instanceof GotoInstruction gi) {
 					var added = new HeightAtBytecode(gi.getTarget(), stackHeightAfterBytecode);
@@ -340,8 +334,14 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 					if (seen.add(added))
 						workingSet.add(added);
 				}
-				else if (bytecode instanceof BranchInstruction || bytecode instanceof ATHROW || bytecode instanceof RETURN || bytecode instanceof RET)
-					throw new IllegalJarException("Unexpected instruction " + bytecode + " before initialization of " + className);
+				else if (bytecode instanceof BranchInstruction)
+					throw new IllegalJarException("Unexpected branch instruction before the initialization of " + className);
+				else if (bytecode instanceof ATHROW)
+					throw new IllegalJarException("Unexpected athrow instruction before the initialization of " + className);
+				else if (bytecode instanceof RETURN)
+					throw new IllegalJarException("Unexpected return instruction before the initialization of " + className);
+				else if (bytecode instanceof RET)
+					throw new IllegalJarException("Unexpected ret instruction before the initialization of " + className);
 				else {
 					var added = new HeightAtBytecode(current.ih.getNext(), stackHeightAfterBytecode);
 					if (seen.add(added))

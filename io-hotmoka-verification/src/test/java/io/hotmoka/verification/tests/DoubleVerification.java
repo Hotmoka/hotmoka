@@ -43,7 +43,7 @@ class DoubleVerification extends AbstractLoggedTests {
 		var bytesOfOrigin = Files.readAllBytes(origin);
 		var bytesOfClasspath = Files.readAllBytes(classpath);
     	var classLoader = TakamakaClassLoaders.of(Stream.of(bytesOfClasspath, bytesOfOrigin), 0);
-    	VerifiedJars.of(bytesOfOrigin, classLoader, false, _error -> {}, false, __ -> new RuntimeException("Unexpected exception: verified was expected to succeed"));
-    	VerifiedJars.of(bytesOfOrigin, classLoader, false, _error -> {}, false, __ -> new RuntimeException("Unexpected exception: verified was expected to succeed"));
+    	VerifiedJars.of(bytesOfOrigin, classLoader, false, _error -> {}, false);
+    	VerifiedJars.of(bytesOfOrigin, classLoader, false, _error -> {}, false);
 	}
 }

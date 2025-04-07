@@ -60,6 +60,7 @@ import io.hotmoka.verification.api.BcelToClassTransformer;
 import io.hotmoka.verification.api.Bootstraps;
 import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
+import io.hotmoka.verification.api.UnknownTypeException;
 import io.hotmoka.verification.api.VerifiedClass;
 import it.univr.bcel.StackMapReplacer;
 
@@ -87,8 +88,9 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 	 * @param clazz the class to instrument
 	 * @param gasCostModel the gas cost model used for the instrumentation
 	 * @throws IllegalJarException if the jar under instrumentation is illegal
+	 * @throws UnknownTypeException if some type cannot be resolved
 	 */
-	public InstrumentedClassImpl(VerifiedClass clazz, GasCostModel gasCostModel) throws IllegalJarException {
+	public InstrumentedClassImpl(VerifiedClass clazz, GasCostModel gasCostModel) throws IllegalJarException, UnknownTypeException {
 		this.javaClass = new Builder(clazz, gasCostModel).classGen.getJavaClass();
 	}
 
@@ -207,8 +209,9 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		 * @param clazz the class to instrument
 		 * @param gasCostModel the gas cost model used for the instrumentation
 		 * @throws IllegalJarException if the jar under instrumentation is illegal
+		 * @throws UnknownTypeException if some type cannot be resolved
 		 */
-		private Builder(VerifiedClass clazz, GasCostModel gasCostModel) throws IllegalJarException {
+		private Builder(VerifiedClass clazz, GasCostModel gasCostModel) throws IllegalJarException, UnknownTypeException {
 			this.verifiedClass = clazz;
 			this.classLoader = clazz.getJar().getClassLoader();
 			this.bcelToClass = BcelToClassTransformers.of(classLoader);
@@ -230,7 +233,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 				this.isInterface = classLoader.isInterface(className);
 			}
 			catch (ClassNotFoundException e) {
-				throw new IllegalJarException(e);
+				throw new UnknownTypeException(className);
 			}
 
 			partitionFieldsIfStorageClass();
@@ -264,15 +267,16 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		/**
 		 * Partitions the fields of a storage class into eager and lazy.
 		 * If the class is not storage, it does not do anything.
-		 * @throws IllegalJarException if the jar under instrumentation is illegal
+		 *
+		 * @throws UnknownTypeException if some type cannot be resolved
 		 */
-		private void partitionFieldsIfStorageClass() throws IllegalJarException {
+		private void partitionFieldsIfStorageClass() throws UnknownTypeException {
 			if (isStorage) {
 				try {
 					collectNonTransientInstanceFieldsOf(classLoader.loadClass(classGen.getClassName()), true);
 				}
 				catch (ClassNotFoundException e) {
-					throw new IllegalJarException(e);
+					throw new UnknownTypeException(classGen.getClassName());
 				}
 			}
 		}
@@ -553,8 +557,9 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		 * Performs method-level instrumentations.
 		 * 
 		 * @throws IllegalJarException if the jar under instrumentation is illegal
+		 * @throws UnknownTypeException if the jar under instrumentation refers to a type that cannot be resolved
 		 */
-		private void methodLevelInstrumentations() throws IllegalJarException {
+		private void methodLevelInstrumentations() throws IllegalJarException, UnknownTypeException {
 			for (var method: new ArrayList<>(methods)) { // we copy since the instrumentation might modify the set of methods itself
 				new InstrumentMethodsOfSupportClasses(this, method);
 				new ReplaceFieldAccessesWithAccessors(this, method);

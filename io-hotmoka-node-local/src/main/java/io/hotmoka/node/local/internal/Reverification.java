@@ -27,8 +27,8 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import io.hotmoka.node.TransactionResponses;
+import io.hotmoka.node.api.ClassLoaderCreationException;
 import io.hotmoka.node.api.UnknownReferenceException;
-import io.hotmoka.node.api.VerificationException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.GenericJarStoreTransactionRequest;
 import io.hotmoka.node.api.requests.InitialTransactionRequest;
@@ -41,12 +41,13 @@ import io.hotmoka.node.api.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.AbstractStoreTransformation;
-import io.hotmoka.node.local.api.ClassLoaderCreationException;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.builders.ExecutionEnvironment;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.VerifiedJars;
 import io.hotmoka.verification.api.IllegalJarException;
+import io.hotmoka.verification.api.UnknownTypeException;
+import io.hotmoka.verification.api.VerificationException;
 import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 
 /**
@@ -222,22 +223,16 @@ public class Reverification {
 
 			try {
 				var tcl = TakamakaClassLoaders.of(jars.stream(), consensus.getVerificationVersion());
-
-				try {
-					VerifiedJars.of(jar, tcl, gjstr instanceof InitialTransactionRequest, _error -> {}, consensus.skipsVerification(), VerificationException::new);
-				}
-				catch (VerificationException e) {
-					return transformIntoFailed(response, transaction, e.getMessage());
-				}
-
-				return updateVersion(response, transaction);
+				VerifiedJars.of(jar, tcl, gjstr instanceof InitialTransactionRequest, _error -> {}, consensus.skipsVerification());
 			}
 			catch (UnsupportedVerificationVersionException e) {
 				throw new StoreException(e);
 			}
-			catch (IllegalJarException e) {
-				return transformIntoFailed(response, transaction, "The requested jar is illegal according to the current version of the verification module");
+			catch (VerificationException | IllegalJarException | UnknownTypeException e) {
+				return transformIntoFailed(response, transaction, e.getMessage());
 			}
+
+			return updateVersion(response, transaction);
 		}
 		else
 			throw new StoreException("Transaction " + transaction + " under reverification has a response in store that installed a jar but its request is not for a jar installation");

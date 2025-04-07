@@ -330,7 +330,6 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		}
 	}
 
-	@SuppressWarnings("unused")
 	private static Node mkTendermintNode() throws NodeException, InterruptedException {
 		try {
 			consensus = fillConsensusConfig(ValidatorsConsensusConfigBuilders.defaults()).build();
@@ -408,7 +407,6 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		}
 	}
 
-	@SuppressWarnings("unused")
 	private static Node mkMokamintNetwork(int howManyNodes) throws NodeException, InterruptedException, ApplicationTimeoutException, TransactionRejectedException, TransactionException, CodeExecutionException, TimeoutException, WrongKeyException {
 		if (howManyNodes < 1)
 			throw new IllegalArgumentException("A network needs at least a node");
@@ -498,7 +496,6 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		}
 	}
 	
-	@SuppressWarnings("unused")
 	private static Node mkDiskNode() throws NodeException, InterruptedException {
 		try {
 			consensus = fillConsensusConfig(ConsensusConfigBuilders.defaults()).build();
@@ -519,7 +516,6 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		}
 	}
 
-	@SuppressWarnings("unused")
 	private static Node mkRemoteNode(Node exposed) throws NodeException {
 		NodeServices.of(exposed, 8000); // it will be closed when exposed will be closed
 		return RemoteNodes.of(URI.create("ws://localhost:8000"), 100_000);

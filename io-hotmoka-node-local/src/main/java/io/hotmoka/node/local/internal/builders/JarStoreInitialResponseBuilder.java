@@ -18,18 +18,19 @@ package io.hotmoka.node.local.internal.builders;
 
 import io.hotmoka.instrumentation.InstrumentedJars;
 import io.hotmoka.node.TransactionResponses;
+import io.hotmoka.node.api.ClassLoaderCreationException;
 import io.hotmoka.node.api.HotmokaException;
+import io.hotmoka.node.api.IllegalJarException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownTypeException;
 import io.hotmoka.node.api.VerificationException;
 import io.hotmoka.node.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.node.api.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.AbstractInitialResponseBuilder;
-import io.hotmoka.node.local.api.ClassLoaderCreationException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.verification.VerifiedJars;
-import io.hotmoka.verification.api.IllegalJarException;
 
 /**
  * Builds the creator of response for a transaction that installs a jar in the node, during its initialization.
@@ -63,10 +64,11 @@ public class JarStoreInitialResponseBuilder extends AbstractInitialResponseBuild
 				checkConsistency();
 
 				try {
-					byte[] instrumentedJarBytes = InstrumentedJars.of(VerifiedJars.of(request.getJar(), classLoader, true, _error -> {}, consensus.skipsVerification(), VerificationException::new), consensus.getGasCostModel()).toBytes();
+					var verifiedJar = VerifiedJars.of(request.getJar(), classLoader, true, _error -> {}, consensus.skipsVerification(), VerificationException::new, IllegalJarException::new, UnknownTypeException::new);
+					byte[] instrumentedJarBytes = InstrumentedJars.of(verifiedJar, consensus.getGasCostModel(), IllegalJarException::new, UnknownTypeException::new).toBytes();
 					return TransactionResponses.jarStoreInitial(instrumentedJarBytes, request.getDependencies(), consensus.getVerificationVersion());
 				}
-				catch (IllegalJarException | HotmokaException e) {
+				catch (HotmokaException e) {
 					throw new TransactionRejectedException(e, consensus);
 				}
 			}

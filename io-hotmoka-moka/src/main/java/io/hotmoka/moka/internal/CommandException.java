@@ -26,12 +26,14 @@ public class CommandException extends RuntimeException {
 	private static final long serialVersionUID = 3026861370427646020L;
 
 	CommandException(Throwable wrapped) {
-		super(wrapped);
+		super(Objects.requireNonNull(wrapped));
+	}
 
-		Objects.requireNonNull(wrapped);
+	CommandException(String message, Throwable wrapped) {
+		super(Objects.requireNonNull(message), Objects.requireNonNull(wrapped));
 	}
 
 	CommandException(String message) {
-		super(message);
+		super(Objects.requireNonNull(message));
 	}
 }

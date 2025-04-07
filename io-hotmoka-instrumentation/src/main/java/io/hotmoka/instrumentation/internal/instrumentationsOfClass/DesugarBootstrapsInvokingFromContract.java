@@ -42,6 +42,7 @@ import io.hotmoka.instrumentation.internal.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.ClassLevelInstrumentation;
 import io.hotmoka.verification.api.IllegalJarException;
+import io.hotmoka.verification.api.UnknownTypeException;
 
 /**
  * An instrumentation that desugars bootstrap methods that invoke {@code @@FromContract} code.
@@ -57,15 +58,17 @@ public class DesugarBootstrapsInvokingFromContract extends ClassLevelInstrumenta
 	 * Builds the instrumentation.
 	 * 
 	 * @param builder the builder of the class being instrumented
+	 * @throws IllegalJarException if the jar under instrumentation is illegal
+	 * @throws UnknownTypeException if some type cannot be resolved
 	 */
-	public DesugarBootstrapsInvokingFromContract(InstrumentedClassImpl.Builder builder) throws IllegalJarException {
+	public DesugarBootstrapsInvokingFromContract(InstrumentedClassImpl.Builder builder) throws IllegalJarException, UnknownTypeException {
 		builder.super();
 
 		for (var bootstrap: bootstraps.getBootstrapsLeadingToFromContract().toArray(BootstrapMethod[]::new))
 			desugarBootstrapCallingFromContract(bootstrap);
 	}
 
-	private void desugarBootstrapCallingFromContract(BootstrapMethod bootstrap) throws IllegalJarException {
+	private void desugarBootstrapCallingFromContract(BootstrapMethod bootstrap) throws IllegalJarException, UnknownTypeException {
 		if (bootstraps.lambdaIsFromContract(bootstrap))
 			desugarLambdaFromContract(bootstrap);
 		else

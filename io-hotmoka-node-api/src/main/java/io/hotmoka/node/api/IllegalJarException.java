@@ -17,26 +17,18 @@ limitations under the License.
 package io.hotmoka.node.api;
 
 /**
- * An exception thrown when the verification of code to install in the node failed.
+ * An exception thrown when a jar to install in a node is illegal.
+ * For instance, it is not valid Java bytecode.
  */
 @SuppressWarnings("serial")
-public class VerificationException extends HotmokaException {
-
-	/**
-	 * Creates the exception with the given message.
-	 * 
-	 * @param message the message
-	 */
-	public VerificationException(String message) {
-		super(message);
-	}
+public class IllegalJarException extends HotmokaException {
 
 	/**
 	 * Creates the exception with the given cause.
 	 * 
 	 * @param cause the cause
 	 */
-	public VerificationException(io.hotmoka.verification.api.VerificationException cause) {
+	public IllegalJarException(io.hotmoka.verification.api.IllegalJarException cause) {
 		super(cause.getMessage(), cause);
 	}
 }

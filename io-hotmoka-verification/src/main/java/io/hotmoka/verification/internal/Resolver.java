@@ -37,6 +37,7 @@ import io.hotmoka.verification.api.BcelToClassTransformer;
 import io.hotmoka.verification.api.Bootstraps;
 import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
+import io.hotmoka.verification.api.UnknownTypeException;
 import io.hotmoka.verification.api.VerifiedJar;
 import io.hotmoka.whitelisting.Dummy;
 
@@ -84,18 +85,19 @@ public class Resolver {
 	 * 
 	 * @param fi the instruction
 	 * @return the signature, if any
-	 * @throws IllegalJarException if some class of the Takamaka program cannot be found
+	 * @throws UnknownTypeException if some class cannot be resolved
 	 */
-	public Optional<Field> resolvedFieldFor(FieldInstruction fi) throws IllegalJarException {
+	public Optional<Field> resolvedFieldFor(FieldInstruction fi) throws UnknownTypeException {
 		if (fi.getReferenceType(cpg) instanceof ObjectType ot) {
 			String name = fi.getFieldName(cpg);
 
+			Class<?> type = bcelToClass.of(fi.getFieldType(cpg));
+
 			try {
-				Class<?> type = bcelToClass.of(fi.getFieldType(cpg));
 				return classLoader.resolveField(ot.getClassName(), name, type);
 			}
 			catch (ClassNotFoundException e) {
-				throw new IllegalJarException(e);
+				throw new UnknownTypeException(ot.getClassName());
 			}
 		}
 	
@@ -109,8 +111,9 @@ public class Resolver {
 	 * @param invoke the instruction
 	 * @return the signature
 	 * @throws IllegalJarException if some class of the Takamaka program cannot be found
+	 * @throws UnknownTypeException if some type cannot be resolved
 	 */
-	public Optional<? extends Executable> resolvedExecutableFor(InvokeInstruction invoke) throws IllegalJarException {
+	public Optional<? extends Executable> resolvedExecutableFor(InvokeInstruction invoke) throws IllegalJarException, UnknownTypeException {
 		if (invoke instanceof INVOKEDYNAMIC invokedynamic) {
 			Bootstraps bootstraps = verifiedClass.getBootstraps();
 			return bootstraps.getTargetOf(bootstraps.getBootstrapFor(invokedynamic));
@@ -121,22 +124,17 @@ public class Resolver {
 		// it is possible to call a method on an array: in that case, the callee is a method of java.lang.Object
 		String receiverClassName = receiver instanceof ObjectType ot ? ot.getClassName() : "java.lang.Object";
 
-		try {
-			Class<?>[] args = bcelToClass.of(invoke.getArgumentTypes(cpg));
+		Class<?>[] args = bcelToClass.of(invoke.getArgumentTypes(cpg));
 
-			if (invoke instanceof INVOKESPECIAL && Const.CONSTRUCTOR_NAME.equals(methodName))
-				return resolveConstructorWithPossiblyExpandedArgs(receiverClassName, args);
-			else {
-				Class<?> returnType = bcelToClass.of(invoke.getReturnType(cpg));
+		if (invoke instanceof INVOKESPECIAL && Const.CONSTRUCTOR_NAME.equals(methodName))
+			return resolveConstructorWithPossiblyExpandedArgs(receiverClassName, args);
+		else {
+			Class<?> returnType = bcelToClass.of(invoke.getReturnType(cpg));
 
-				if (invoke instanceof INVOKEINTERFACE)
-					return resolveInterfaceMethodWithPossiblyExpandedArgs(receiverClassName, methodName, args, returnType);
-				else
-					return resolveMethodWithPossiblyExpandedArgs(receiverClassName, methodName, args, returnType);
-			}
-		}
-		catch (ClassNotFoundException e) {
-			throw new IllegalJarException(e);
+			if (invoke instanceof INVOKEINTERFACE)
+				return resolveInterfaceMethodWithPossiblyExpandedArgs(receiverClassName, methodName, args, returnType);
+			else
+				return resolveMethodWithPossiblyExpandedArgs(receiverClassName, methodName, args, returnType);
 		}
 	}
 
@@ -148,15 +146,21 @@ public class Resolver {
 	 * @param className the name of the class where the constructor is looked for
 	 * @param args the arguments types of the constructor
 	 * @return the constructor, if any
-	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
+	 * @throws UnknownTypeException if some class of the Takamaka program cannot be found
 	 */
-	Optional<Constructor<?>> resolveConstructorWithPossiblyExpandedArgs(String className, Class<?>[] args) throws ClassNotFoundException {
-		Optional<Constructor<?>> result = classLoader.resolveConstructor(className, args);
-		// we try to add the instrumentation arguments. This is important when
-		// a bootstrap calls a from contract of a jar already installed (and instrumented)
-		// in the node. In that case, it will find the target only with these
-		// extra arguments added during instrumentation
-		return result.isPresent() ? result : classLoader.resolveConstructor(className, expandArgsForFromContract(args));
+	Optional<Constructor<?>> resolveConstructorWithPossiblyExpandedArgs(String className, Class<?>[] args) throws UnknownTypeException {
+		try {
+			Optional<Constructor<?>> result = classLoader.resolveConstructor(className, args);
+
+			// we try to add the instrumentation arguments. This is important when
+			// a bootstrap calls a from contract of a jar already installed (and instrumented)
+			// in the node. In that case, it will find the target only with these
+			// extra arguments added during instrumentation
+			return result.isPresent() ? result : classLoader.resolveConstructor(className, expandArgsForFromContract(args));
+		}
+		catch (ClassNotFoundException e) {
+			throw new UnknownTypeException(className);
+		}
 	}
 
 	/**
@@ -169,11 +173,16 @@ public class Resolver {
 	 * @param args the arguments types of the method
 	 * @param returnType the return type of the method
 	 * @return the method, if any
-	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
+	 * @throws UnknownTypeException if some class of the Takamaka program cannot be found
 	 */
-	Optional<Method> resolveMethodWithPossiblyExpandedArgs(String className, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
-		Optional<Method> result = classLoader.resolveMethod(className, methodName, args, returnType);
-		return result.isPresent() ? result : classLoader.resolveMethod(className, methodName, expandArgsForFromContract(args), returnType);
+	Optional<Method> resolveMethodWithPossiblyExpandedArgs(String className, String methodName, Class<?>[] args, Class<?> returnType) throws UnknownTypeException {
+		try {
+			Optional<Method> result = classLoader.resolveMethod(className, methodName, args, returnType);
+			return result.isPresent() ? result : classLoader.resolveMethod(className, methodName, expandArgsForFromContract(args), returnType);
+		}
+		catch (ClassNotFoundException e) {
+			throw new UnknownTypeException(className);
+		}
 	}
 
 	/**
@@ -186,11 +195,16 @@ public class Resolver {
 	 * @param args the arguments types of the method
 	 * @param returnType the return type of the method
 	 * @return the method, if any
-	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
+	 * @throws UnknownTypeException if some class of the Takamaka program cannot be found
 	 */
-	Optional<Method> resolveInterfaceMethodWithPossiblyExpandedArgs(String className, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
-		Optional<Method> result = classLoader.resolveInterfaceMethod(className, methodName, args, returnType);
-		return result.isPresent() ? result : classLoader.resolveInterfaceMethod(className, methodName, expandArgsForFromContract(args), returnType);
+	Optional<Method> resolveInterfaceMethodWithPossiblyExpandedArgs(String className, String methodName, Class<?>[] args, Class<?> returnType) throws UnknownTypeException {
+		try {
+			Optional<Method> result = classLoader.resolveInterfaceMethod(className, methodName, args, returnType);
+			return result.isPresent() ? result : classLoader.resolveInterfaceMethod(className, methodName, expandArgsForFromContract(args), returnType);
+		}
+		catch (ClassNotFoundException e) {
+			throw new UnknownTypeException(className);
+		}
 	}
 
 	private Class<?>[] expandArgsForFromContract(Class<?>[] args) {

@@ -21,18 +21,19 @@ import java.util.stream.Stream;
 
 import io.hotmoka.instrumentation.InstrumentedJars;
 import io.hotmoka.node.TransactionResponses;
+import io.hotmoka.node.api.ClassLoaderCreationException;
 import io.hotmoka.node.api.HotmokaException;
+import io.hotmoka.node.api.IllegalJarException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownTypeException;
 import io.hotmoka.node.api.VerificationException;
 import io.hotmoka.node.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.node.api.responses.JarStoreTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.AbstractNonInitialResponseBuilder;
-import io.hotmoka.node.local.api.ClassLoaderCreationException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.verification.VerifiedJars;
-import io.hotmoka.verification.api.IllegalJarException;
 
 /**
  * The creator of a response for a transaction that installs a jar in the node.
@@ -64,8 +65,7 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 
 	private class ResponseCreator extends AbstractNonInitialResponseBuilder<JarStoreTransactionRequest, JarStoreTransactionResponse>.ResponseCreator {
 		
-		private ResponseCreator() throws TransactionRejectedException, StoreException {
-		}
+		private ResponseCreator() throws TransactionRejectedException, StoreException {}
 
 		@Override
 		protected JarStoreTransactionResponse body() throws TransactionRejectedException, StoreException {
@@ -76,15 +76,15 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 				int jarLength = request.getJarLength();
 				chargeGasForCPU(gasCostModel.cpuCostForInstallingJar(jarLength));
 				chargeGasForRAM(gasCostModel.ramCostForInstallingJar(jarLength));
-				var verifiedJar = VerifiedJars.of(request.getJar(), classLoader, false, _error -> {}, consensus.skipsVerification(), VerificationException::new);
-				byte[] instrumentedJarBytes = InstrumentedJars.of(verifiedJar, gasCostModel).toBytes();
+				var verifiedJar = VerifiedJars.of(request.getJar(), classLoader, false, _error -> {}, consensus.skipsVerification(), VerificationException::new, IllegalJarException::new, UnknownTypeException::new);
+				byte[] instrumentedJarBytes = InstrumentedJars.of(verifiedJar, gasCostModel, IllegalJarException::new, UnknownTypeException::new).toBytes();
 				chargeGasForStorageOf(TransactionResponses.jarStoreSuccessful(instrumentedJarBytes, request.getDependencies(), consensus.getVerificationVersion(), updates(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 				refundCallerForAllRemainingGas();
 				return TransactionResponses.jarStoreSuccessful(instrumentedJarBytes, request.getDependencies(), consensus.getVerificationVersion(), updates(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			}
-			catch (HotmokaException | IllegalJarException t) {
-				logFailure(t);
-				return TransactionResponses.jarStoreFailed(updatesInCaseOfFailure(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), t.getClass().getName(), getMessageForResponse(t));
+			catch (HotmokaException e) {
+				logFailure(e);
+				return TransactionResponses.jarStoreFailed(updatesInCaseOfFailure(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), e.getClass().getName(), getMessageForResponse(e));
 			}
 		}
 

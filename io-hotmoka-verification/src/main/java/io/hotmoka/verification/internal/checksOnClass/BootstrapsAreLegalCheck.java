@@ -19,6 +19,7 @@ package io.hotmoka.verification.internal.checksOnClass;
 import org.apache.bcel.classfile.BootstrapMethod;
 
 import io.hotmoka.verification.api.IllegalJarException;
+import io.hotmoka.verification.api.UnknownTypeException;
 import io.hotmoka.verification.errors.IllegalBootstrapMethodError;
 import io.hotmoka.verification.internal.CheckOnClasses;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
@@ -28,7 +29,7 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class BootstrapsAreLegalCheck extends CheckOnClasses {
 
-	public BootstrapsAreLegalCheck(VerifiedClassImpl.Verification builder) throws IllegalJarException {
+	public BootstrapsAreLegalCheck(VerifiedClassImpl.Verification builder) throws IllegalJarException, UnknownTypeException {
 		super(builder);
 
 		for (var bootstrap: bootstraps.getBootstraps().toArray(BootstrapMethod[]::new))

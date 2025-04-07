@@ -32,13 +32,4 @@ public class IllegalJarException extends Exception {
 	public IllegalJarException(String message) {
 		super(Objects.requireNonNull(message));
 	}
-
-	/**
-	 * Creates an exception.
-	 * 
-	 * @param cause the cause of the exception
-	 */
-	public IllegalJarException(Exception cause) { // TODO: remove
-		super(cause);
-	}
 }

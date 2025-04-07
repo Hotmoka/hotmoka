@@ -40,6 +40,7 @@ import org.apache.bcel.generic.Type;
 
 import io.hotmoka.verification.PushersIterators;
 import io.hotmoka.verification.api.IllegalJarException;
+import io.hotmoka.verification.api.UnknownTypeException;
 import io.hotmoka.verification.errors.IllegalCallToFromContractError;
 import io.hotmoka.verification.errors.IllegalCallToFromContractOnThisError;
 import io.hotmoka.verification.errors.IllegalCallToPayableConstructorOnThis;
@@ -53,7 +54,7 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasses {
 
-	public FromContractCodeIsCalledInCorrectContextCheck(VerifiedClassImpl.Verification builder) throws IllegalJarException {
+	public FromContractCodeIsCalledInCorrectContextCheck(VerifiedClassImpl.Verification builder) throws IllegalJarException, UnknownTypeException {
 		super(builder);
 
 		var methods = getMethods().toArray(MethodGen[]::new);
@@ -112,22 +113,12 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 						issue(new IllegalCallToPayableConstructorOnThis(inferSourceFile(), method.getName(), lineOf(method, ih)));
 	}
 
-	private boolean isFromContract(MethodGen method) throws IllegalJarException {
-		try {
-			return annotations.isFromContract(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
-		}
-		catch (ClassNotFoundException e) {
-			throw new IllegalJarException(e);
-		}
+	private boolean isFromContract(MethodGen method) throws UnknownTypeException {
+		return annotations.isFromContract(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
 	}
 
-	private boolean isPayable(MethodGen method) throws IllegalJarException {
-		try {
-			return annotations.isPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
-		}
-		catch (ClassNotFoundException e) {
-			throw new IllegalJarException(e);
-		}
+	private boolean isPayable(MethodGen method) throws UnknownTypeException {
+		return annotations.isPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
 	}
 
 	private Set<MethodGen> computeLambdasUnreachableFromStaticMethods(MethodGen[] methods) throws IllegalJarException {
@@ -173,41 +164,30 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 	 * @return the invoke instruction to a {@code @@FromContract} contained in {@code ih}, if any
 	 * @throws IllegalJarException if the jar under verification is illegal
 	 */
-	private Optional<InvokeInstruction> getInvokeToFromContract(InstructionHandle ih) throws IllegalJarException {
+	private Optional<InvokeInstruction> getInvokeToFromContract(InstructionHandle ih) throws IllegalJarException, UnknownTypeException {
 		Instruction instruction = ih.getInstruction();
 
 		if (instruction instanceof INVOKEDYNAMIC invokedynamic) {
 			if (bootstraps.lambdaIsFromContract(bootstraps.getBootstrapFor(invokedynamic)))
 				return Optional.of(invokedynamic);
 		}
-		else if (instruction instanceof InvokeInstruction invoke && !(invoke instanceof INVOKESTATIC) && invoke.getReferenceType(cpg) instanceof ObjectType receiver) {
-			try {
-				if (annotations.isFromContract(receiver.getClassName(), invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg)))
-					return Optional.of(invoke);
-			}
-			catch (ClassNotFoundException e) {
-				throw new IllegalJarException(e);
-			}
-		}
+		else if (instruction instanceof InvokeInstruction invoke && !(invoke instanceof INVOKESTATIC) && invoke.getReferenceType(cpg) instanceof ObjectType receiver)
+			if (annotations.isFromContract(receiver.getClassName(), invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg)))
+				return Optional.of(invoke);
 
 		return Optional.empty();
 	}
 
-	private Optional<InvokeInstruction> getInvokeToFromContractOnThis(InstructionHandle ih, MethodGen method) throws IllegalJarException {
+	private Optional<InvokeInstruction> getInvokeToFromContractOnThis(InstructionHandle ih, MethodGen method) throws IllegalJarException, UnknownTypeException {
 		if (ih.getInstruction() instanceof InvokeInstruction invoke && !(invoke instanceof INVOKESTATIC) && !(invoke instanceof INVOKEDYNAMIC)) {
 			Type[] args = invoke.getArgumentTypes(cpg);
 			int slots = Stream.of(args).mapToInt(Type::getSize).sum();
 
-			try {
-				boolean callsFromContract = invoke.getReferenceType(cpg) instanceof ObjectType receiver && annotations.isFromContract
+			boolean callsFromContract = invoke.getReferenceType(cpg) instanceof ObjectType receiver && annotations.isFromContract
 					(receiver.getClassName(), invoke.getMethodName(cpg), args, invoke.getReturnType(cpg));
 
-				if (callsFromContract && pusherIsLoad0(ih, slots + 1, method))
-					return Optional.of(invoke);
-			}
-			catch (ClassNotFoundException e) {
-				throw new IllegalJarException(e);
-			}
+			if (callsFromContract && pusherIsLoad0(ih, slots + 1, method))
+				return Optional.of(invoke);
 		}
 
 		return Optional.empty();
@@ -223,7 +203,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 		return true;
 	}
 
-	private boolean callsPayableFromContractConstructorOnThis(InstructionHandle ih, MethodGen method) throws IllegalJarException {
+	private boolean callsPayableFromContractConstructorOnThis(InstructionHandle ih, MethodGen method) throws IllegalJarException, UnknownTypeException {
 		if (ih.getInstruction() instanceof INVOKESPECIAL invokespecial) {
 			String methodName = invokespecial.getMethodName(cpg);
 			if (Const.CONSTRUCTOR_NAME.equals(methodName)) {
@@ -232,15 +212,8 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 					int slots = Stream.of(argumentTypes).mapToInt(Type::getSize).sum();
 					String classNameOfReceiver = receiver.getClassName();
 					Type returnType = invokespecial.getReturnType(cpg);
-					boolean callsPayableFromContract;
-
-					try {
-						callsPayableFromContract = annotations.isFromContract(classNameOfReceiver, methodName, argumentTypes, returnType) &&
-								annotations.isPayable(classNameOfReceiver, methodName, argumentTypes, returnType);
-					}
-					catch (ClassNotFoundException e) {
-						throw new IllegalJarException(e);
-					}
+					boolean callsPayableFromContract = annotations.isFromContract(classNameOfReceiver, methodName, argumentTypes, returnType) &&
+							annotations.isPayable(classNameOfReceiver, methodName, argumentTypes, returnType);
 
 					return callsPayableFromContract && pusherIsLoad0(ih, slots + 1, method);
 				}

@@ -31,6 +31,7 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 
 import io.hotmoka.verification.api.IllegalJarException;
+import io.hotmoka.verification.api.UnknownTypeException;
 import io.hotmoka.verification.errors.IllegalAccessToNonWhiteListedFieldError;
 import io.hotmoka.verification.errors.IllegalCallToNonWhiteListedConstructorError;
 import io.hotmoka.verification.errors.IllegalCallToNonWhiteListedMethodError;
@@ -42,7 +43,7 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class UsedCodeIsWhiteListedCheck extends CheckOnMethods {
 
-	public UsedCodeIsWhiteListedCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
+	public UsedCodeIsWhiteListedCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws UnknownTypeException, IllegalJarException {
 		super(builder, method);
 
 		if (!duringInitialization || !isWhiteListedDuringInitialization)
@@ -50,7 +51,7 @@ public class UsedCodeIsWhiteListedCheck extends CheckOnMethods {
 				checkSingleInstruction(ih);
 	}
 
-	private void checkSingleInstruction(InstructionHandle ih) throws IllegalJarException {
+	private void checkSingleInstruction(InstructionHandle ih) throws UnknownTypeException, IllegalJarException {
 		Instruction ins = ih.getInstruction();
 
 		if (ins instanceof FieldInstruction fi) {

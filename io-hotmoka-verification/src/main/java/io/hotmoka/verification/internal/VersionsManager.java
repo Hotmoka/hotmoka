@@ -19,6 +19,7 @@ package io.hotmoka.verification.internal;
 import org.apache.bcel.generic.MethodGen;
 
 import io.hotmoka.verification.api.IllegalJarException;
+import io.hotmoka.verification.api.UnknownTypeException;
 import io.hotmoka.verification.internal.checksOnClass.BootstrapsAreLegalCheck;
 import io.hotmoka.verification.internal.checksOnClass.FromContractCodeIsCalledInCorrectContextCheck;
 import io.hotmoka.verification.internal.checksOnClass.InstrumentationNamesAreNotUsedCheck;
@@ -66,8 +67,9 @@ final class VersionsManager {
 	 * 
 	 * @param builder the context of the checks
 	 * @throws IllegalJarException if the jar under verification is illegal
+	 * @throws UnknownTypeException if some type of the jar under verification cannot be resolved
 	 */
-	void applyAllClassChecks(VerifiedClassImpl.Verification builder) throws IllegalJarException {
+	void applyAllClassChecks(VerifiedClassImpl.Verification builder) throws IllegalJarException, UnknownTypeException {
 		if (verificationVersion == 0L) {
 			new PackagesAreLegalCheck(builder);
 			new InstrumentationNamesAreNotUsedCheck(builder);
@@ -83,8 +85,9 @@ final class VersionsManager {
 	 * @param context the context of the checks
 	 * @param method the method to check
 	 * @throws IllegalJarException if the jar under verification is illegal
+	 * @throws UnknownTypeException if some type of the jar under verification cannot be resolved
 	 */
-	void applyAllMethodChecks(VerifiedClassImpl.Verification context, MethodGen method) throws IllegalJarException {
+	void applyAllMethodChecks(VerifiedClassImpl.Verification context, MethodGen method) throws IllegalJarException, UnknownTypeException {
 		if (verificationVersion == 0L) {
 			new PayableCodeReceivesAmountCheck(context, method);
 			new ThrowsExceptionsCodeIsPublicCheck(context, method);

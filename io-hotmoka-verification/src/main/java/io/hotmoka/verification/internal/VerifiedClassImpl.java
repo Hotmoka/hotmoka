@@ -35,6 +35,8 @@ import org.apache.bcel.generic.MethodGen;
 
 import io.hotmoka.verification.api.Bootstraps;
 import io.hotmoka.verification.api.IllegalJarException;
+import io.hotmoka.verification.api.UnknownTypeException;
+import io.hotmoka.verification.api.VerificationException;
 import io.hotmoka.verification.api.VerifiedClass;
 import io.hotmoka.verification.api.VerifiedJar;
 
@@ -74,9 +76,9 @@ public class VerifiedClassImpl implements VerifiedClass {
 	 * @param skipsVerification true if and only if the static verification of the class must be skipped
 	 * @throws IllegalJarException if {@code jar} is illegal, because incomplete or containing an illegal bytecode
 	 * @throws VerificationException if the Takamaka verification of the class failed
-	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
+	 * @throws UnknownTypeException if some class of the Takamaka program cannot be loaded
 	 */
-	public VerifiedClassImpl(JavaClass clazz, VerifiedJarImpl jar, VersionsManager versionsManager, Consumer<AbstractError> issueHandler, boolean duringInitialization, boolean skipsVerification) throws VerificationException, IllegalJarException {
+	public VerifiedClassImpl(JavaClass clazz, VerifiedJarImpl jar, VersionsManager versionsManager, Consumer<AbstractError> issueHandler, boolean duringInitialization, boolean skipsVerification) throws VerificationException, IllegalJarException, UnknownTypeException {
 		this.clazz = new ClassGen(clazz);
 		this.jar = jar;
 		ConstantPoolGen cpg = getConstantPool();
@@ -198,8 +200,9 @@ public class VerifiedClassImpl implements VerifiedClass {
 		 * @param versionsManager the manager of the versions of the verification module
 		 * @throws VerificationException if some verification error occurs
 		 * @throws IllegalJarException if the jar under verification is illegal
+		 * @throws UnknownTypeException if some type of the jar under verification cannot be resolved
 		 */
-		private Verification(Consumer<AbstractError> issueHandler, MethodGen[] methods, boolean duringInitialization, VersionsManager versionsManager) throws VerificationException, IllegalJarException {
+		private Verification(Consumer<AbstractError> issueHandler, MethodGen[] methods, boolean duringInitialization, VersionsManager versionsManager) throws VerificationException, IllegalJarException, UnknownTypeException {
 			this.issueHandler = issueHandler;
 			ConstantPoolGen cpg = getConstantPool();
 			this.methods = methods;
@@ -210,14 +213,14 @@ public class VerifiedClassImpl implements VerifiedClass {
 			applyAllChecksToTheMethodsOfTheClass(versionsManager);
 
 			if (hasErrors)
-				throw new VerificationException();
+				throw new VerificationException("Class verification failed");
 		}
 
-		private void applyAllChecksToTheClass(VersionsManager versionsManager) throws IllegalJarException {
+		private void applyAllChecksToTheClass(VersionsManager versionsManager) throws IllegalJarException, UnknownTypeException {
 			versionsManager.applyAllClassChecks(this);
 		}
 
-		private void applyAllChecksToTheMethodsOfTheClass(VersionsManager versionsManager) throws IllegalJarException {
+		private void applyAllChecksToTheMethodsOfTheClass(VersionsManager versionsManager) throws IllegalJarException, UnknownTypeException {
 			for (var method: methods)
 				versionsManager.applyAllMethodChecks(this, method);
 		}

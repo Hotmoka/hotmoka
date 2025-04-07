@@ -23,7 +23,7 @@ import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.NOP;
 import org.apache.bcel.generic.ObjectType;
 
-import io.hotmoka.verification.api.IllegalJarException;
+import io.hotmoka.verification.api.UnknownTypeException;
 import io.hotmoka.verification.errors.CallerNotOnThisError;
 import io.hotmoka.verification.errors.CallerOutsideFromContractError;
 import io.hotmoka.verification.internal.CheckOnMethods;
@@ -36,7 +36,7 @@ import io.takamaka.code.constants.Constants;
  */
 public class CallerIsUsedOnThisAndInFromContractCheck extends CheckOnMethods {
 
-	public CallerIsUsedOnThisAndInFromContractCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
+	public CallerIsUsedOnThisAndInFromContractCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws UnknownTypeException, UnknownTypeException {
 		super(builder, method);
 
 		boolean isFromContract = methodIsFromContractIn(className) || bootstraps.isPartOfFromContract(method);
@@ -63,16 +63,20 @@ public class CallerIsUsedOnThisAndInFromContractCheck extends CheckOnMethods {
 	 */
 	private final static String TAKAMAKA_CALLER_SIG = "()L" + Constants.CONTRACT_NAME.replace('.', '/') + ";";
 
-	private boolean isCallToStorageCaller(InstructionHandle ih) throws IllegalJarException {
-		try {
-			return ih.getInstruction() instanceof InvokeInstruction invoke
+	private boolean isCallToStorageCaller(InstructionHandle ih) throws UnknownTypeException {
+		if (ih.getInstruction() instanceof InvokeInstruction invoke
 				&& "caller".equals(invoke.getMethodName(cpg))
 				&& TAKAMAKA_CALLER_SIG.equals(invoke.getSignature(cpg))
-				&& invoke.getReferenceType(cpg) instanceof ObjectType receiver
-				&& classLoader.isStorage(receiver.getClassName());
+				&& invoke.getReferenceType(cpg) instanceof ObjectType receiver) {
+
+			try {
+				return classLoader.isStorage(receiver.getClassName());
+			}
+			catch (ClassNotFoundException e) {
+				throw new UnknownTypeException(receiver.getClassName());
+			}
 		}
-		catch (ClassNotFoundException e) {
-			throw new IllegalJarException(e);
-		}
+		else
+			return false;
 	}
 }

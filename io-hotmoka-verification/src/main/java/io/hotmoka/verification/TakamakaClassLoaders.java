@@ -18,8 +18,8 @@ package io.hotmoka.verification;
 
 import java.util.stream.Stream;
 
-import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
+import io.hotmoka.verification.api.UnknownTypeException;
 import io.hotmoka.verification.internal.TakamakaClassLoaderImpl;
 import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 
@@ -39,9 +39,9 @@ public final class TakamakaClassLoaders {
 	 * @return the class loader
 	 * @throws UnsupportedVerificationVersionException if the annotations for the required verification
 	 *                                                 version cannot be found in the white-listing database
-	 * @throws IllegalJarException if some jar is illegal, for instance, their class path does not include the Takamaka runtime
+	 * @throws UnknownTypeException if some type of the Takamaka runtime cannot be resolved
 	 */
-	public static TakamakaClassLoader of(Stream<byte[]> jars, long verificationVersion) throws UnsupportedVerificationVersionException, IllegalJarException {
+	public static TakamakaClassLoader of(Stream<byte[]> jars, long verificationVersion) throws UnsupportedVerificationVersionException, UnknownTypeException {
 		return new TakamakaClassLoaderImpl(jars, verificationVersion);
 	}
 }

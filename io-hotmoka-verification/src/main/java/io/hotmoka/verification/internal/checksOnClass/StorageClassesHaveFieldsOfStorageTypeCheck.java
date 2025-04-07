@@ -19,7 +19,7 @@ package io.hotmoka.verification.internal.checksOnClass;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 
-import io.hotmoka.verification.api.IllegalJarException;
+import io.hotmoka.verification.api.UnknownTypeException;
 import io.hotmoka.verification.errors.IllegalTypeForStorageFieldError;
 import io.hotmoka.verification.internal.CheckOnClasses;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
@@ -29,7 +29,7 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class StorageClassesHaveFieldsOfStorageTypeCheck extends CheckOnClasses {
 
-	public StorageClassesHaveFieldsOfStorageTypeCheck(VerifiedClassImpl.Verification builder) throws IllegalJarException {
+	public StorageClassesHaveFieldsOfStorageTypeCheck(VerifiedClassImpl.Verification builder) throws UnknownTypeException {
 		super(builder);
 
 		if (isStorage)
@@ -38,7 +38,7 @@ public class StorageClassesHaveFieldsOfStorageTypeCheck extends CheckOnClasses {
 					issue(new IllegalTypeForStorageFieldError(inferSourceFile(), field.getName()));
 	}
 
-	private boolean isTypeAllowedForStorageFields(Class<?> type) throws IllegalJarException {
+	private boolean isTypeAllowedForStorageFields(Class<?> type) throws UnknownTypeException {
 		// we allow Object since it can be the erasure of a generic type: the runtime of Takamaka
 		// will check later if the actual type of the object in this field is allowed
 		// (see the {@code UpdatesExtractor} class);
@@ -49,7 +49,7 @@ public class StorageClassesHaveFieldsOfStorageTypeCheck extends CheckOnClasses {
 				|| (!type.isArray() && classLoader.isStorage(type.getName())); // TODO: provide isStorage for class?
 		}
 		catch (ClassNotFoundException e) {
-			throw new IllegalJarException(e);
+			throw new UnknownTypeException(type.getName());
 		}
 	}
 }

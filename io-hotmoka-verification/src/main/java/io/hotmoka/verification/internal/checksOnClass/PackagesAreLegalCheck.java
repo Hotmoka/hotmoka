@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnClass;
 
-import io.hotmoka.verification.api.IllegalJarException;
+import io.hotmoka.verification.api.UnknownTypeException;
 import io.hotmoka.verification.errors.IllegalPackageNameError;
 import io.hotmoka.verification.internal.CheckOnClasses;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
@@ -26,7 +26,7 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class PackagesAreLegalCheck extends CheckOnClasses {
 
-	public PackagesAreLegalCheck(VerifiedClassImpl.Verification builder) throws IllegalJarException {
+	public PackagesAreLegalCheck(VerifiedClassImpl.Verification builder) throws UnknownTypeException {
 		super(builder);
 
 		if (className.startsWith("java.") || className.startsWith("javax."))

@@ -14,15 +14,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.verification.internal;
+package io.hotmoka.verification.api;
 
 /**
  * An exception thrown if a class cannot be verified.
  */
 @SuppressWarnings("serial")
-class VerificationException extends Exception {
+public class VerificationException extends Exception {
 
-	VerificationException() {
-		super("Class verification failed");
+	/**
+	 * Creates an exception with the given message.
+	 * 
+	 * @param message the message
+	 */
+	public VerificationException(String message) {
+		super(message);
 	}
 }

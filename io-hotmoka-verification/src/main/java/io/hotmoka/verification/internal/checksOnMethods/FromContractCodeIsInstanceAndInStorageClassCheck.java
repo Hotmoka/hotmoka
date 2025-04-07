@@ -18,7 +18,7 @@ package io.hotmoka.verification.internal.checksOnMethods;
 
 import org.apache.bcel.generic.MethodGen;
 
-import io.hotmoka.verification.api.IllegalJarException;
+import io.hotmoka.verification.api.UnknownTypeException;
 import io.hotmoka.verification.errors.FromContractNotInStorageError;
 import io.hotmoka.verification.errors.IllegalFromContractArgumentError;
 import io.hotmoka.verification.internal.CheckOnMethods;
@@ -29,7 +29,7 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class FromContractCodeIsInstanceAndInStorageClassCheck extends CheckOnMethods {
 
-	public FromContractCodeIsInstanceAndInStorageClassCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws IllegalJarException {
+	public FromContractCodeIsInstanceAndInStorageClassCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws UnknownTypeException {
 		super(builder, method);
 
 		getMethodFromContractArgumentIn(className).ifPresent(fromContractArgument -> {

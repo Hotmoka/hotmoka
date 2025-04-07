@@ -36,6 +36,7 @@ import io.hotmoka.instrumentation.api.GasCostModel;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.Updates;
+import io.hotmoka.node.api.ClassLoaderCreationException;
 import io.hotmoka.node.api.DeserializationException;
 import io.hotmoka.node.api.HotmokaException;
 import io.hotmoka.node.api.IllegalAssignmentToFieldInStorage;
@@ -50,7 +51,6 @@ import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.updates.UpdateOfField;
-import io.hotmoka.node.local.api.ClassLoaderCreationException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.StoreException;
@@ -127,6 +127,10 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 */
 		private BigInteger gasConsumedForStorage = ZERO;
 
+		/**
+		 * The set of updates if the transaction fails. They are the update to the nonce
+		 * and to the balance of the caller, if any.
+		 */
 		private final SortedSet<Update> updatesInCaseOfFailure = new TreeSet<>();
 
 		/**
@@ -160,10 +164,9 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 			chargeGasForStorage(BigInteger.valueOf(request.size()));
 			chargeGasForClassLoader();	
 			this.coinsInitiallyPaidForGas = chargePayerForAllGasPromised();
-			BigInteger balanceOfCallerInCaseOfTransactionException = classLoader.getBalanceOf(deserializedCaller, StoreException::new);
-			if (!balanceOfCallerInCaseOfTransactionException.equals(initialBalance))
-				updatesInCaseOfFailure.add(Updates.ofBigInteger(request.getCaller(), FieldSignatures.BALANCE_FIELD, balanceOfCallerInCaseOfTransactionException)); // TODO
-
+			BigInteger balanceOfCallerInCaseOfFailure = classLoader.getBalanceOf(deserializedCaller, StoreException::new);
+			if (!balanceOfCallerInCaseOfFailure.equals(initialBalance))
+				updatesInCaseOfFailure.add(Updates.ofBigInteger(request.getCaller(), FieldSignatures.BALANCE_FIELD, balanceOfCallerInCaseOfFailure));
 		}
 
 		/**
@@ -179,12 +182,8 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		protected final String getMessageForResponse(Throwable throwable) {
 			var clazz = throwable.getClass();
 
-			if (HotmokaException.class.isAssignableFrom(clazz) ||
-				//clazz.getName().equals(IllegalJarException.class.getName()) || // TODO: make message deterministic before
-				clazz.getClassLoader() instanceof WhiteListingClassLoader) {
-
+			if (HotmokaException.class.isAssignableFrom(clazz) || clazz.getClassLoader() instanceof WhiteListingClassLoader)
 				return throwable.getMessage();
-			}
 			else
 				return "";
 		}

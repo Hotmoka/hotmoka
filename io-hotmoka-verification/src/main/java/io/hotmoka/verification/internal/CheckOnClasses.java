@@ -43,6 +43,7 @@ import io.hotmoka.verification.api.BcelToClassTransformer;
 import io.hotmoka.verification.api.Bootstraps;
 import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
+import io.hotmoka.verification.api.UnknownTypeException;
 
 /**
  * A verification check on a class.
@@ -63,7 +64,7 @@ public abstract class CheckOnClasses {
 	protected final boolean isInterface;
 	protected final boolean isWhiteListedDuringInitialization;
 
-	protected CheckOnClasses(VerifiedClassImpl.Verification builder) throws IllegalJarException {
+	protected CheckOnClasses(VerifiedClassImpl.Verification builder) throws UnknownTypeException {
 		this.builder = builder;
 		VerifiedClassImpl verifiedClass = builder.getVerifiedClass();
 		this.classLoader = verifiedClass.getJar().getClassLoader();
@@ -74,8 +75,7 @@ public abstract class CheckOnClasses {
 			this.isInterface = classLoader.isInterface(className);
 		}
 		catch (ClassNotFoundException e) {
-			// the class was loaded with this class loader, therefore this exception should never occur
-			throw new RuntimeException(e);
+			throw new UnknownTypeException(className);
 		}
 
 		this.annotations = AnnotationUtilities.of(classLoader);
@@ -83,12 +83,12 @@ public abstract class CheckOnClasses {
 		try {
 			this.isContract = classLoader.isContract(className);
 			this.isStorage = classLoader.isStorage(className);
-			this.isWhiteListedDuringInitialization = annotations.isWhiteListedDuringInitialization(className);
 		}
 		catch (ClassNotFoundException e) {
-			// this might be due to an incomplete jar classpath
-			throw new IllegalJarException(e);
+			throw new UnknownTypeException(className);
 		}
+
+		this.isWhiteListedDuringInitialization = annotations.isWhiteListedDuringInitialization(className);
 
 		this.bootstraps = verifiedClass.getBootstraps();
 		this.resolver = verifiedClass.getResolver();
@@ -102,12 +102,12 @@ public abstract class CheckOnClasses {
 		builder.setHasErrors();
 	}
 
-	protected final boolean hasWhiteListingModel(FieldInstruction fi) throws IllegalJarException {
+	protected final boolean hasWhiteListingModel(FieldInstruction fi) throws UnknownTypeException {
 		Optional<Field> field = resolver.resolvedFieldFor(fi);
 		return field.isPresent() && classLoader.getWhiteListingWizard().whiteListingModelOf(field.get()).isPresent();
 	}
 
-	protected final boolean hasWhiteListingModel(InvokeInstruction invoke) throws IllegalJarException {
+	protected final boolean hasWhiteListingModel(InvokeInstruction invoke) throws IllegalJarException, UnknownTypeException {
 		Optional<? extends Executable> executable = resolver.resolvedExecutableFor(invoke);
 		return executable.isPresent() && builder.getVerifiedClass().whiteListingModelOf(executable.get(), invoke).isPresent();
 	}
