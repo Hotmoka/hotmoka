@@ -22,19 +22,16 @@ import static java.math.BigInteger.ZERO;
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Consumer;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.instrumentation.api.GasCostModel;
 import io.hotmoka.node.FieldSignatures;
-import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.ClassLoaderCreationException;
 import io.hotmoka.node.api.DeserializationException;
@@ -62,8 +59,6 @@ import io.hotmoka.whitelisting.api.WhiteListingClassLoader;
  * the validity of all these elements.
  */
 public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTransactionRequest<Response>, Response extends NonInitialTransactionResponse> extends AbstractResponseBuilder<Request, Response> {
-
-	private final static Logger LOGGER = Logger.getLogger(NonInitialResponseBuilderImpl.class.getName());
 
 	/**
 	 * Creates a the builder of the response.
@@ -189,25 +184,6 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		}
 
 		/**
-		 * Logs the message of the given exception, in a way that can be safely reported in the logs.
-		 * The idea is that the message is truncated if it is too long, so that there is no risk
-		 * of log flooding for exceptions whose message is, for instance, generated programmatically
-		 * in order to be too long.
-		 * 
-		 * @param throwable the exception
-		 */
-		protected final void logFailure(Throwable throwable) {
-			String message = throwable.getMessage();
-			if (message == null)
-				message = "<no message>";
-			else
-				message = message.substring(0, Math.min(message.length(), 200));
-
-			var reference = TransactionReferences.of(environment.getHasher().hash(getRequest()));
-			LOGGER.warning(reference + ": failed with message: \"" + message + "\"");
-		}
-
-		/**
 		 * Yields the deserialized caller of the transaction.
 		 * 
 		 * @return the deserialized caller
@@ -302,7 +278,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * @return the updates, sorted
 		 */
 		protected final Stream<Update> updates() throws IllegalAssignmentToFieldInStorage, StoreException {
-			List<Object> potentiallyAffectedObjects = new ArrayList<>();
+			var potentiallyAffectedObjects = new ArrayList<Object>();
 			scanPotentiallyAffectedObjects(potentiallyAffectedObjects::add);
 			return updatesExtractor.extractUpdatesFrom(potentiallyAffectedObjects);
 		}

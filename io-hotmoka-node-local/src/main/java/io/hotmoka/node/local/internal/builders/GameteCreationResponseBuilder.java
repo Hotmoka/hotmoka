@@ -64,8 +64,8 @@ public class GameteCreationResponseBuilder extends AbstractInitialResponseBuilde
 					classLoader.setBalanceOf(gamete, request.getInitialAmount(), StoreException::new);
 					return TransactionResponses.gameteCreation(updatesExtractor.extractUpdatesFrom(List.of(gamete)), classLoader.getStorageReferenceOf(gamete, StoreException::new));
 				}
-				catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | IllegalAssignmentToFieldInStorage e) {
-					throw new StoreException("The constructor of the gamete unexpectedly failed", e);
+				catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | IllegalAssignmentToFieldInStorage e) {
+					throw new StoreException("Could not call the constructor of the gamete", e);
 				}
 			}
 		}

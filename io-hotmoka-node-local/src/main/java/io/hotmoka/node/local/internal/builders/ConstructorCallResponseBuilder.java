@@ -19,6 +19,7 @@ package io.hotmoka.node.local.internal.builders;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
+import java.util.logging.Level;
 import java.util.stream.Stream;
 
 import io.hotmoka.node.TransactionResponses;
@@ -106,9 +107,9 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 					// a constructor can only create an object, represented as a storage reference in Hotmoka
 					throw new StoreException("The return value of a constructor should be an object");
 			}
-			catch (HotmokaException t) {
-				logFailure(t);
-				return TransactionResponses.constructorCallFailed(updatesInCaseOfFailure(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), t.getClass().getName(), getMessageForResponse(t), where(t));
+			catch (HotmokaException e) {
+				logFailure(Level.INFO, e);
+				return TransactionResponses.constructorCallFailed(updatesInCaseOfFailure(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), e.getClass().getName(), getMessageForResponse(e), where(e));
 			}
 		}
 
@@ -142,7 +143,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 				return TransactionResponses.constructorCallException(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), causeClassName, message, where);
 			}
 			else {
-				logFailure(cause);
+				logFailure(Level.WARNING, cause);
 				return TransactionResponses.constructorCallFailed(updatesInCaseOfFailure(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), causeClassName, message, where);
 			}
 		}

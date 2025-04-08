@@ -21,8 +21,11 @@ import static io.hotmoka.node.local.internal.runtime.Runtime.responseCreators;
 import java.math.BigInteger;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.ClassLoaderCreationException;
 import io.hotmoka.node.api.DeserializationException;
 import io.hotmoka.node.api.OutOfGasException;
@@ -67,6 +70,8 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * The consensus parameters when this builder was created.
 	 */
 	protected final ConsensusConfig<?,?> consensus;
+
+	private final static Logger LOGGER = Logger.getLogger(AbstractResponseBuilder.class.getName());
 
 	/**
 	 * Creates the builder of a response.
@@ -286,6 +291,26 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 */
 		public final EngineClassLoader getClassLoader() {
 			return classLoader;
+		}
+
+		/**
+		 * Logs the message of the given exception, in a way that can be safely reported in the logs.
+		 * The idea is that the message is truncated if it is too long, so that there is no risk
+		 * of log flooding for exceptions whose message is, for instance, generated programmatically
+		 * in order to be too long.
+		 * 
+		 * @param level the level of the log
+		 * @param throwable the exception
+		 */
+		protected final void logFailure(Level level, Throwable throwable) {
+			String message = throwable.getMessage();
+			if (message == null)
+				message = "<no message>";
+			else
+				message = message.substring(0, Math.min(message.length(), 200));
+
+			var reference = TransactionReferences.of(environment.getHasher().hash(getRequest()));
+			LOGGER.log(level, reference + ": failed with message: \"" + message + "\"");
 		}
 
 		/**

@@ -55,16 +55,11 @@ public class InitializationResponseBuilder extends AbstractInitialResponseBuilde
 			}
 
 			@Override
-			protected final void checkConsistency() throws TransactionRejectedException, StoreException {
-				super.checkConsistency();
+			protected final void checkBeforeExecution() throws TransactionRejectedException, StoreException {
+				super.checkBeforeExecution();
 				manifestMustExistAndBeOfManifestClass();
 			}
 
-			/**
-			 * Checks if the caller is an externally owned account or subclass.
-			 *
-			 * @throws TransactionRejectedException if the caller is not an externally owned account
-			 */
 			private void manifestMustExistAndBeOfManifestClass() throws TransactionRejectedException, StoreException {
 				String className;
 			
@@ -78,7 +73,7 @@ public class InitializationResponseBuilder extends AbstractInitialResponseBuilde
 				try {
 					Class<?> clazz = classLoader.loadClass(className);
 					if (!classLoader.getManifest().isAssignableFrom(clazz))
-						throw new TransactionRejectedException("The manifest of an initialization request must actually be of type " + Constants.MANIFEST_NAME, consensus);
+						throw new TransactionRejectedException("The manifest of an initialization request must be of type " + Constants.MANIFEST_NAME, consensus);
 				}
 				catch (ClassNotFoundException e) {
 					throw new TransactionRejectedException("The class " + className + " of the manifest cannot be resolved", consensus);

@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.local.internal.builders;
 
 import java.math.BigInteger;
+import java.util.logging.Level;
 
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.InitialTransactionRequest;
@@ -45,8 +46,7 @@ public abstract class InitialResponseBuilderImpl<Request extends InitialTransact
 
 	protected abstract class ResponseCreator extends AbstractResponseBuilder<Request, Response>.ResponseCreator {
 
-		protected ResponseCreator() throws TransactionRejectedException, StoreException {
-		}
+		protected ResponseCreator() throws TransactionRejectedException, StoreException {}
 
 		@Override
 		public final void chargeGasForCPU(BigInteger amount) {
@@ -63,6 +63,33 @@ public abstract class InitialResponseBuilderImpl<Request extends InitialTransact
 		@Override
 		public final void event(Object event) {
 			// initial transactions do not generate events
+		}
+
+		/**
+		 * Checks if the request should be rejected, even before trying to execute it.
+		 * 
+		 * @throws TransactionRejectedException if the request should be rejected
+		 * @throws StoreException if the store is misbehaving
+		 */
+		protected void checkBeforeExecution() throws TransactionRejectedException, StoreException {
+			if (environment.getManifest().isPresent())
+				throw new TransactionRejectedException("Cannot run an initial transaction request in an already initialized node", consensus);
+		}
+
+		/**
+		 * Checks if the request should be rejected, even before trying to execute it.
+		 * 
+		 * @throws TransactionRejectedException if the request should be rejected
+		 * @throws StoreException if the store is misbehaving
+		 */
+		protected final void checkConsistency() throws TransactionRejectedException, StoreException {
+			try {
+				checkBeforeExecution();
+			}
+			catch (TransactionRejectedException e) {
+				logFailure(Level.SEVERE, e);
+				throw e;
+			}
 		}
 	}
 }

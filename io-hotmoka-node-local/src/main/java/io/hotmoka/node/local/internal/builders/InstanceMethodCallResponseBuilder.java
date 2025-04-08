@@ -21,12 +21,11 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.logging.Logger;
+import java.util.logging.Level;
 import java.util.stream.Stream;
 
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
-import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.AbstractInstanceMethodCallTransactionRequest;
@@ -45,7 +44,6 @@ import io.takamaka.code.constants.Constants;
  * The builder of the response of a transaction that executes an instance method of Takamaka code.
  */
 public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder<AbstractInstanceMethodCallTransactionRequest> {
-	private final static Logger LOGGER = Logger.getLogger(InstanceMethodCallResponseBuilder.class.getName());
 
 	/**
 	 * Creates the builder of the response.
@@ -86,8 +84,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		 */
 		private Object[] deserializedActuals;
 
-		private ResponseCreator() throws TransactionRejectedException, StoreException {
-		}
+		private ResponseCreator() throws TransactionRejectedException, StoreException {}
 
 		@Override
 		protected void checkConsistency() throws TransactionRejectedException, StoreException {
@@ -164,7 +161,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				}
 			}
 			catch (Throwable t) {
-				LOGGER.warning(TransactionReferences.of(environment.getHasher().hash(getRequest())) + ": failed with message: \"" + t.getMessage() + "\"");
+				logFailure(Level.INFO, t);
 				return TransactionResponses.methodCallFailed(updatesInCaseOfFailure(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), t.getClass().getName(), getMessageForResponse(t), where(t));
 			}
 		}

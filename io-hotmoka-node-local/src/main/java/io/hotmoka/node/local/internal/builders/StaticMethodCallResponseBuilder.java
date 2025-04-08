@@ -19,6 +19,7 @@ package io.hotmoka.node.local.internal.builders;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.logging.Level;
 import java.util.stream.Stream;
 
 import io.hotmoka.node.TransactionResponses;
@@ -58,8 +59,7 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 		 */
 		private Object[] deserializedActuals;
 
-		private ResponseCreator() throws TransactionRejectedException, StoreException {
-		}
+		private ResponseCreator() throws TransactionRejectedException, StoreException {}
 
 		@Override
 		protected MethodCallTransactionResponse body() throws TransactionRejectedException, StoreException {
@@ -106,9 +106,9 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 					return TransactionResponses.nonVoidMethodCallSuccessful(serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 				}
 			}
-			catch (Throwable t) {
-				logFailure(t);
-				return TransactionResponses.methodCallFailed(updatesInCaseOfFailure(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), t.getClass().getName(), getMessageForResponse(t), where(t));
+			catch (Throwable e) {
+				logFailure(Level.INFO, e);
+				return TransactionResponses.methodCallFailed(updatesInCaseOfFailure(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), e.getClass().getName(), getMessageForResponse(e), where(e));
 			}
 		}
 

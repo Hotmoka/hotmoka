@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.local.internal.builders;
 
 import java.math.BigInteger;
+import java.util.logging.Level;
 import java.util.stream.Stream;
 
 import io.hotmoka.instrumentation.InstrumentedJars;
@@ -83,7 +84,7 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 				return TransactionResponses.jarStoreSuccessful(instrumentedJarBytes, request.getDependencies(), consensus.getVerificationVersion(), updates(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			}
 			catch (HotmokaException e) {
-				logFailure(e);
+				logFailure(Level.INFO, e);
 				return TransactionResponses.jarStoreFailed(updatesInCaseOfFailure(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), e.getClass().getName(), getMessageForResponse(e));
 			}
 		}

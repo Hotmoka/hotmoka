@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.node.local.internal.builders;
 
+import java.util.logging.Level;
+
 import io.hotmoka.instrumentation.InstrumentedJars;
 import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.ClassLoaderCreationException;
@@ -69,6 +71,7 @@ public class JarStoreInitialResponseBuilder extends AbstractInitialResponseBuild
 					return TransactionResponses.jarStoreInitial(instrumentedJarBytes, request.getDependencies(), consensus.getVerificationVersion());
 				}
 				catch (HotmokaException e) {
+					logFailure(Level.SEVERE, e);
 					throw new TransactionRejectedException(e, consensus);
 				}
 			}
