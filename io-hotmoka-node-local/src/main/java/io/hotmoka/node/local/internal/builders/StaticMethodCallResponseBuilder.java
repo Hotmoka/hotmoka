@@ -22,7 +22,9 @@ import java.lang.reflect.Modifier;
 import java.util.logging.Level;
 
 import io.hotmoka.node.TransactionResponses;
+import io.hotmoka.node.api.HotmokaException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnmatchedTargetException;
 import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -63,8 +65,8 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 				deserializeActuals();
 
 				Method methodJVM = getMethod();
-				boolean isView = hasAnnotation(methodJVM, Constants.VIEW_NAME);
-				validateCallee(methodJVM, isView);
+				boolean calleeIsAnnotatedAsView = hasAnnotation(methodJVM, Constants.VIEW_NAME);
+				calleeIsConsistent(methodJVM, calleeIsAnnotatedAsView);
 				ensureWhiteListingOf(methodJVM, getDeserializedActuals());
 
 				Object result;
@@ -72,52 +74,45 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 					result = methodJVM.invoke(null, getDeserializedActuals()); // no receiver
 				}
 				catch (InvocationTargetException e) {
-					Throwable cause = e.getCause();
-					if (isCheckedForThrowsExceptions(cause, methodJVM)) {
-						if (isView)
-							onlySideEffectsAreToBalanceAndNonceOfCaller(isView);
-
-						chargeGasForStorageOf(TransactionResponses.methodCallException(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), cause.getClass().getName(), getMessageForResponse(cause), where(cause)));
-						refundCallerForAllRemainingGas();
-						return TransactionResponses.methodCallException(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), cause.getClass().getName(), getMessageForResponse(cause), where(cause));
-					}
-					else
-						throw cause;
+					return failure(methodJVM, calleeIsAnnotatedAsView, e);
+				}
+				catch (IllegalArgumentException e) {
+					throw new UnmatchedTargetException("Illegal argument passed to " + request.getStaticTarget());
+				}
+				catch (IllegalAccessException e) {
+					throw new UnmatchedTargetException("Cannot access " + request.getStaticTarget());
+				}
+				catch (ExceptionInInitializerError e) {
+					// Takamaka code verification bans static initializers and the white-listed library classes
+					// should not have static initializers that might fail
+					throw new StoreException("Unexpected failed execution of a static initializer of " + request.getStaticTarget());
 				}
 
-				if (isView)
+				if (calleeIsAnnotatedAsView)
 					onlySideEffectsAreToBalanceAndNonceOfCaller(result);
 
-				if (methodJVM.getReturnType() == void.class) {
-					chargeGasForStorageOf(TransactionResponses.voidMethodCallSuccessful(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-					refundCallerForAllRemainingGas();
-					return TransactionResponses.voidMethodCallSuccessful(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-				}
-				else {
-					chargeGasForStorageOf(TransactionResponses.nonVoidMethodCallSuccessful(serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-					refundCallerForAllRemainingGas();
-					return TransactionResponses.nonVoidMethodCallSuccessful(serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-				}
+				return success(methodJVM, result);
 			}
-			catch (Throwable e) {
+			catch (HotmokaException e) {
 				logFailure(Level.INFO, e);
 				return TransactionResponses.methodCallFailed(updatesInCaseOfFailure(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), e.getClass().getName(), getMessageForResponse(e), where(e));
 			}
 		}
 
 		/**
-		 * Checks that the called method respects the expected constraints.
+		 * Checks that the callee is static and that
+		 * a view request actually executes a method annotated as {@code @@View}.
 		 * 
 		 * @param methodJVM the method
-		 * @param isView true if the method is annotated as view
-		 * @throws NoSuchMethodException if the constraints are not satisfied
+		 * @param calleeIsAnnotatedAsView true if the callee is annotated as {@code @@View}
+		 * @throws UnmatchedTargetException if that condition is not satisfied
 		 */
-		private void validateCallee(Method methodJVM, boolean isView) throws NoSuchMethodException {
+		private void calleeIsConsistent(Method methodJVM, boolean calleeIsAnnotatedAsView) throws UnmatchedTargetException {
 			if (!Modifier.isStatic(methodJVM.getModifiers()))
-				throw new NoSuchMethodException("cannot call an instance method");
+				throw new UnmatchedTargetException("Cannot call an instance method");
 
-			if (!isView && StaticMethodCallResponseBuilder.this.isView())
-				throw new NoSuchMethodException("cannot call a method not annotated as @View");
+			if (!calleeIsAnnotatedAsView && isView())
+				throw new UnmatchedTargetException("Cannot call a method not annotated as @View");
 		}
 	}
 }

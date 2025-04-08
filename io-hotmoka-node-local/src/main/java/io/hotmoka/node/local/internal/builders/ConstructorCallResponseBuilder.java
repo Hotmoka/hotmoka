@@ -151,7 +151,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		 * @throws UnknownTypeException if the class of the constructor or of some parameter cannot be found
 		 */
 		private Constructor<?> getConstructor() throws UnknownTypeException, UnmatchedTargetException {
-			Class<?>[] argTypes = formalsAsClass2();
+			Class<?>[] argTypes = formalsAsClass();
 			ConstructorSignature constructor = request.getStaticTarget();
 
 			try {
@@ -171,7 +171,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		 * @throws UnknownTypeException if the class of the constructor or of some parameter cannot be found
 		 */
 		private Constructor<?> getFromContractConstructor() throws UnknownTypeException, UnmatchedTargetException {
-			Class<?>[] argTypes = formalsAsClassForFromContract2();
+			Class<?>[] argTypes = formalsAsClassForFromContract();
 			ConstructorSignature constructor = request.getStaticTarget();
 
 			try {

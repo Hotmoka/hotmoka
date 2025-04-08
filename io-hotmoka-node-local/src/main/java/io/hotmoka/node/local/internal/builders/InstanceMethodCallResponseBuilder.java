@@ -106,7 +106,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 
 				try {
 					// we first try to call the method with exactly the parameter types explicitly provided
-					methodJVM = getMethod2();
+					methodJVM = getMethod();
 					deserializedActuals = getDeserializedActuals();
 				}
 				catch (UnmatchedTargetException e) {
@@ -115,8 +115,8 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 					deserializedActuals = getDeserializedActualsForFromContract();
 				}
 
-				boolean calleeIsAnnotatedAsIsView = hasAnnotation(methodJVM, Constants.VIEW_NAME);
-				calleeIsConsistent(methodJVM, calleeIsAnnotatedAsIsView);
+				boolean calleeIsAnnotatedAsView = hasAnnotation(methodJVM, Constants.VIEW_NAME);
+				calleeIsConsistent(methodJVM, calleeIsAnnotatedAsView);
 				ensureWhiteListingOf(methodJVM, deserializedActuals);
 				mintCoinsForRewardToValidators();
 
@@ -126,7 +126,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 					result = methodJVM.invoke(deserializedReceiver, deserializedActuals);
 				}
 				catch (InvocationTargetException e) {
-					return failure(methodJVM, e);						
+					return failure(methodJVM, calleeIsAnnotatedAsView, e);
 				}
 				catch (IllegalArgumentException e) {
 					throw new UnmatchedTargetException("Illegal argument passed to " + request.getStaticTarget());
@@ -140,7 +140,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 					throw new StoreException("Unexpected failed execution of a static initializer of " + request.getStaticTarget());
 				}
 
-				if (calleeIsAnnotatedAsIsView)
+				if (calleeIsAnnotatedAsView)
 					onlySideEffectsAreToBalanceAndNonceOfCaller(result);
 
 				return success(methodJVM, result);
@@ -148,36 +148,6 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 			catch (HotmokaException e) {
 				logFailure(Level.INFO, e);
 				return TransactionResponses.methodCallFailed(updatesInCaseOfFailure(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), e.getClass().getName(), getMessageForResponse(e), where(e));
-			}
-		}
-
-		private MethodCallTransactionResponse success(Method methodJVM, Object result) throws HotmokaException, StoreException {
-			if (methodJVM.getReturnType() == void.class) {
-				chargeGasForStorageOf(TransactionResponses.voidMethodCallSuccessful(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-				refundCallerForAllRemainingGas();
-				return TransactionResponses.voidMethodCallSuccessful(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-			}
-			else {
-				chargeGasForStorageOf(TransactionResponses.nonVoidMethodCallSuccessful(serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-				refundCallerForAllRemainingGas();
-				return TransactionResponses.nonVoidMethodCallSuccessful(serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-			}
-		}
-
-		private MethodCallTransactionResponse failure(Method methodJVM, InvocationTargetException e) throws HotmokaException, StoreException {
-			Throwable cause = e.getCause();
-			String message = getMessageForResponse(cause);
-			String causeClassName = cause.getClass().getName();
-			String where = where(cause);
-
-			if (isCheckedForThrowsExceptions(cause, methodJVM)) {
-				chargeGasForStorageOf(TransactionResponses.methodCallException(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), causeClassName, message, where));
-				refundCallerForAllRemainingGas();
-				return TransactionResponses.methodCallException(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), causeClassName, message, where);
-			}
-			else {
-				logFailure(Level.INFO, cause);
-				return TransactionResponses.methodCallFailed(updatesInCaseOfFailure(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), causeClassName, message, where);
 			}
 		}
 
@@ -206,7 +176,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		 */
 		private Method getFromContractMethod() throws UnmatchedTargetException, UnknownTypeException {
 			MethodSignature method = request.getStaticTarget();
-			Class<?>[] argTypes = formalsAsClassForFromContract2();
+			Class<?>[] argTypes = formalsAsClassForFromContract();
 			Class<?> returnType;
 
 			if (method instanceof NonVoidMethodSignature nvms) {

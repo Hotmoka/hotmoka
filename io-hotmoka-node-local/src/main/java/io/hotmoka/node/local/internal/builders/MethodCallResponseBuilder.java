@@ -16,11 +16,14 @@ limitations under the License.
 
 package io.hotmoka.node.local.internal.builders;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
+import java.util.logging.Level;
 import java.util.stream.Stream;
 
 import io.hotmoka.node.TransactionResponses;
+import io.hotmoka.node.api.HotmokaException;
 import io.hotmoka.node.api.IllegalAssignmentToFieldInStorageException;
 import io.hotmoka.node.api.NonWhiteListedCallException;
 import io.hotmoka.node.api.SideEffectsInViewMethodException;
@@ -79,23 +82,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 				.orElseThrow(() -> new NonWhiteListedCallException(request.getStaticTarget()));
 		}
 
-		/**
-		 * Resolves the method that must be called.
-		 * 
-		 * @return the method
-		 * @throws NoSuchMethodException if the method could not be found
-		 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
-		 */
-		protected final Method getMethod() throws ClassNotFoundException, NoSuchMethodException {
-			MethodSignature method = request.getStaticTarget();
-			Class<?> returnType = method instanceof NonVoidMethodSignature nvms ? classLoader.loadClass(nvms.getReturnType()) : void.class;
-			Class<?>[] argTypes = formalsAsClass();
-		
-			return classLoader.resolveMethod(method.getDefiningClass().getName(), method.getName(), argTypes, returnType)
-				.orElseThrow(() -> new NoSuchMethodException(method.toString()));
-		}
-
-		protected final Method getMethod2() throws UnmatchedTargetException, UnknownTypeException { // TODO: rename
+		protected final Method getMethod() throws UnmatchedTargetException, UnknownTypeException {
 			MethodSignature method = request.getStaticTarget();
 			Class<?> returnType;
 
@@ -110,7 +97,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 			else
 				returnType = void.class;
 
-			Class<?>[] argTypes = formalsAsClass2();
+			Class<?>[] argTypes = formalsAsClass();
 
 			try {
 				return classLoader.resolveMethod(method.getDefiningClass().getName(), method.getName(), argTypes, returnType)
@@ -118,6 +105,39 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 			}
 			catch (ClassNotFoundException e) {
 				throw new UnknownTypeException(method.getDefiningClass());
+			}
+		}
+
+		protected final MethodCallTransactionResponse success(Method methodJVM, Object result) throws HotmokaException, StoreException {
+			if (methodJVM.getReturnType() == void.class) {
+				chargeGasForStorageOf(TransactionResponses.voidMethodCallSuccessful(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+				refundCallerForAllRemainingGas();
+				return TransactionResponses.voidMethodCallSuccessful(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+			}
+			else {
+				chargeGasForStorageOf(TransactionResponses.nonVoidMethodCallSuccessful(serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+				refundCallerForAllRemainingGas();
+				return TransactionResponses.nonVoidMethodCallSuccessful(serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+			}
+		}
+
+		protected final MethodCallTransactionResponse failure(Method methodJVM, boolean calleeIsAnnotatedAsView, InvocationTargetException e) throws HotmokaException, StoreException {
+			Throwable cause = e.getCause();
+			String message = getMessageForResponse(cause);
+			String causeClassName = cause.getClass().getName();
+			String where = where(cause);
+
+			if (isCheckedForThrowsExceptions(cause, methodJVM)) {
+				if (calleeIsAnnotatedAsView)
+					onlySideEffectsAreToBalanceAndNonceOfCaller(calleeIsAnnotatedAsView);
+
+				chargeGasForStorageOf(TransactionResponses.methodCallException(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), causeClassName, message, where));
+				refundCallerForAllRemainingGas();
+				return TransactionResponses.methodCallException(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), causeClassName, message, where);
+			}
+			else {
+				logFailure(Level.INFO, cause);
+				return TransactionResponses.methodCallFailed(updatesInCaseOfFailure(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), causeClassName, message, where);
 			}
 		}
 

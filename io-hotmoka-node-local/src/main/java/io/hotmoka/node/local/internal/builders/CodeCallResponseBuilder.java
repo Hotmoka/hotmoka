@@ -198,25 +198,9 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 * Yields the classes of the formal arguments of the method or constructor.
 		 * 
 		 * @return the array of classes, in the same order as the formals
-		 * @throws ClassNotFoundException if some class cannot be found
+		 * @throws UnknownTypeException if some type cannot be resolved
 		 */
-		protected final Class<?>[] formalsAsClass() throws ClassNotFoundException {
-			var formals = request.getStaticTarget().getFormals().toArray(StorageType[]::new);
-			var classes  = new Class<?>[formals.length];
-			int pos = 0;
-			for (var formal: formals)
-				classes[pos++] = classLoader.loadClass(formal);
-		
-			return classes;
-		}
-
-		/**
-		 * Yields the classes of the formal arguments of the method or constructor.
-		 * 
-		 * @return the array of classes, in the same order as the formals
-		 * @throws ClassNotFoundException if some class cannot be found
-		 */
-		protected final Class<?>[] formalsAsClass2() throws UnknownTypeException { // TODO: rename at then end
+		protected final Class<?>[] formalsAsClass() throws UnknownTypeException {
 			var formals = request.getStaticTarget().getFormals().toArray(StorageType[]::new);
 			var classes  = new Class<?>[formals.length];
 			int pos = 0;
@@ -234,34 +218,13 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 
 		/**
 		 * Yields the classes of the formal arguments of the method or constructor, assuming that it is
-		 * an {@link io.takamaka.code.lang.FromContract}. These are instrumented with the addition of a
+		 * an {@code io.takamaka.code.lang.FromContract}. These are instrumented with the addition of a
 		 * trailing contract formal argument (the caller) and of a dummy type.
 		 * 
 		 * @return the array of classes, in the same order as the formals
-		 * @throws ClassNotFoundException if some class cannot be found
+		 * @throws UnknownTypeException if some type cannot be resolved
 		 */
-		protected final Class<?>[] formalsAsClassForFromContract() throws ClassNotFoundException {
-			var formals = request.getStaticTarget().getFormals().toArray(StorageType[]::new);
-			var classes  = new Class<?>[formals.length + 2];
-			int pos = 0;
-			for (var formal: formals)
-				classes[pos++] = classLoader.loadClass(formal);
-
-			classes[pos++] = classLoader.getContract();
-			classes[pos] = Dummy.class;
-		
-			return classes;
-		}
-
-		/**
-		 * Yields the classes of the formal arguments of the method or constructor, assuming that it is
-		 * an {@link io.takamaka.code.lang.FromContract}. These are instrumented with the addition of a
-		 * trailing contract formal argument (the caller) and of a dummy type.
-		 * 
-		 * @return the array of classes, in the same order as the formals
-		 * @throws UnknownTypeException if some class cannot be found
-		 */
-		protected final Class<?>[] formalsAsClassForFromContract2() throws UnknownTypeException { // TODO: rename at the end
+		protected final Class<?>[] formalsAsClassForFromContract() throws UnknownTypeException {
 			var formals = request.getStaticTarget().getFormals().toArray(StorageType[]::new);
 			var classes  = new Class<?>[formals.length + 2];
 			int pos = 0;
@@ -354,7 +317,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 * @param t the throwable
 		 * @return true if and only if {@code t} is a checked exception
 		 */
-		private boolean isChecked(Throwable t) {
+		private static boolean isChecked(Throwable t) {
 			return !(t instanceof RuntimeException || t instanceof Error);
 		}
 

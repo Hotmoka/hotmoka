@@ -157,7 +157,7 @@ class Basic extends HotmokaTest {
 
 	@Test @DisplayName("Sub.m5() throws TransactionException since NoSuchMethodException")
 	void callInstanceAsStatic() {
-		throwsTransactionExceptionWithCause(NoSuchMethodException.class, () ->
+		throwsTransactionExceptionWithCause(UnmatchedTargetException.class, () ->
 			runStaticVoidMethodCallTransaction(master, _200_000, classpath, SUB_M5)
 		);
 	}
