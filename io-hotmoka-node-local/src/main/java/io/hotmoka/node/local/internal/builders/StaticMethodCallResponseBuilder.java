@@ -20,14 +20,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.logging.Level;
-import java.util.stream.Stream;
 
 import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.local.api.StoreException;
 import io.takamaka.code.constants.Constants;
 
@@ -54,11 +52,6 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 
 	private class ResponseCreator extends MethodCallResponseBuilder<StaticMethodCallTransactionRequest>.ResponseCreator {
 
-		/**
-		 * The deserialized actual arguments of the call.
-		 */
-		private Object[] deserializedActuals;
-
 		private ResponseCreator() throws TransactionRejectedException, StoreException {}
 
 		@Override
@@ -67,24 +60,23 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 
 			try {
 				init();
-				var actuals = request.actuals().toArray(StorageValue[]::new);
-				this.deserializedActuals = new Object[actuals.length];
-				for (int pos = 0; pos < actuals.length; pos++)
-					deserializedActuals[pos] = deserializer.deserialize(actuals[pos]);
+				deserializeActuals();
 
 				Method methodJVM = getMethod();
 				boolean isView = hasAnnotation(methodJVM, Constants.VIEW_NAME);
 				validateCallee(methodJVM, isView);
-				ensureWhiteListingOf(methodJVM, deserializedActuals);
+				ensureWhiteListingOf(methodJVM, getDeserializedActuals());
 
 				Object result;
 				try {
-					result = methodJVM.invoke(null, deserializedActuals); // no receiver
+					result = methodJVM.invoke(null, getDeserializedActuals()); // no receiver
 				}
 				catch (InvocationTargetException e) {
 					Throwable cause = e.getCause();
 					if (isCheckedForThrowsExceptions(cause, methodJVM)) {
-						viewMustBeSatisfied(isView, null);
+						if (isView)
+							onlySideEffectsAreToBalanceAndNonceOfCaller(isView);
+
 						chargeGasForStorageOf(TransactionResponses.methodCallException(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), cause.getClass().getName(), getMessageForResponse(cause), where(cause)));
 						refundCallerForAllRemainingGas();
 						return TransactionResponses.methodCallException(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), cause.getClass().getName(), getMessageForResponse(cause), where(cause));
@@ -93,7 +85,8 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 						throw cause;
 				}
 
-				viewMustBeSatisfied(isView, result);
+				if (isView)
+					onlySideEffectsAreToBalanceAndNonceOfCaller(result);
 
 				if (methodJVM.getReturnType() == void.class) {
 					chargeGasForStorageOf(TransactionResponses.voidMethodCallSuccessful(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
@@ -110,11 +103,6 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 				logFailure(Level.INFO, e);
 				return TransactionResponses.methodCallFailed(updatesInCaseOfFailure(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), e.getClass().getName(), getMessageForResponse(e), where(e));
 			}
-		}
-
-		@Override
-		protected final Stream<Object> getDeserializedActuals() {
-			return Stream.of(deserializedActuals);
 		}
 
 		/**

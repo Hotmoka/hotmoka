@@ -33,7 +33,7 @@ import io.hotmoka.instrumentation.api.InstrumentationFields;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.Updates;
-import io.hotmoka.node.api.IllegalAssignmentToFieldInStorage;
+import io.hotmoka.node.api.IllegalAssignmentToFieldInStorageException;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
@@ -71,11 +71,11 @@ public class UpdatesExtractor {
 	 *                loaded with the class loader provided to the constructor and to be
 	 *                instances of {@code io.takamaka.code.lang.Storage}
 	 * @return the updates, sorted
-	 * @throws IllegalAssignmentToFieldInStorage if the updates cannot be extracted, because an illegal
+	 * @throws IllegalAssignmentToFieldInStorageException if the updates cannot be extracted, because an illegal
 	 *                                           value has been stored into some field
 	 * @throws StoreException if the operation cannot be completed
 	 */
-	Stream<Update> extractUpdatesFrom(Iterable<Object> objects) throws IllegalAssignmentToFieldInStorage, StoreException {
+	Stream<Update> extractUpdatesFrom(Iterable<Object> objects) throws IllegalAssignmentToFieldInStorageException, StoreException {
 		return new Processor(objects).updates.stream();
 	}
 
@@ -105,11 +105,11 @@ public class UpdatesExtractor {
 		 * 
 		 * @param objects the storage objects whose updates must be computed (for them and
 		 *                for the objects recursively reachable from them)
-		 * @throws IllegalAssignmentToFieldInStorage if the updates cannot be extracted, because an illegal
+		 * @throws IllegalAssignmentToFieldInStorageException if the updates cannot be extracted, because an illegal
 		 *                                           value has been stored into some field
 		 * @throws StoreException if the operation cannot be completed
 		 */
-		private Processor(Iterable<Object> objects) throws IllegalAssignmentToFieldInStorage, StoreException {
+		private Processor(Iterable<Object> objects) throws IllegalAssignmentToFieldInStorageException, StoreException {
 			for (var object: objects)
 				if (seen.add(classLoader.getStorageReferenceOf(object, StoreException::new)))
 					workingSet.add(object);
@@ -141,11 +141,11 @@ public class UpdatesExtractor {
 			 * Builds the scope to extract the updates to a given storage object.
 			 * 
 			 * @param object the storage object
-			 * @throws IllegalAssignmentToFieldInStorage if the updates cannot be extracted, because an illegal
+			 * @throws IllegalAssignmentToFieldInStorageException if the updates cannot be extracted, because an illegal
 			 *                                           value has been stored into some field
 			 * @throws StoreException if the operation cannot be completed
 			 */
-			private ExtractedUpdatesSingleObject(Object object) throws IllegalAssignmentToFieldInStorage, StoreException {
+			private ExtractedUpdatesSingleObject(Object object) throws IllegalAssignmentToFieldInStorageException, StoreException {
 				Class<?> clazz = object.getClass();
 				this.storageReference = classLoader.getStorageReferenceOf(object, StoreException::new);
 				this.inStorage = classLoader.getInStorageOf(object, StoreException::new);
@@ -176,11 +176,11 @@ public class UpdatesExtractor {
 			 * @param fieldName the name of the field
 			 * @param fieldClassName the name of the type of the field
 			 * @param newValue the value set to the field
-			 * @throws IllegalAssignmentToFieldInStorage if the updates cannot be extracted, because an illegal
+			 * @throws IllegalAssignmentToFieldInStorageException if the updates cannot be extracted, because an illegal
 			 *                                           value has been stored into some field
 			 * @throws StoreException if the operation cannot be completed
 			 */
-			private void addUpdateFor(ClassType fieldDefiningClass, String fieldName, String fieldClassName, Object newValue) throws IllegalAssignmentToFieldInStorage, StoreException {
+			private void addUpdateFor(ClassType fieldDefiningClass, String fieldName, String fieldClassName, Object newValue) throws IllegalAssignmentToFieldInStorageException, StoreException {
 				var field = FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.classNamed(fieldClassName));
 
 				if (newValue == null)
@@ -202,7 +202,7 @@ public class UpdatesExtractor {
 				else if (newValue instanceof BigInteger bi)
 					updates.add(Updates.ofBigInteger(storageReference, field, bi));
 				else
-					throw new IllegalAssignmentToFieldInStorage(field, storageReference, newValue);
+					throw new IllegalAssignmentToFieldInStorageException(field, storageReference, newValue);
 			}
 
 			/**
@@ -210,11 +210,11 @@ public class UpdatesExtractor {
 			 * 
 			 * @param clazz the class
 			 * @param object the object
-			 * @throws IllegalAssignmentToFieldInStorage if the updates cannot be extracted, because an illegal
+			 * @throws IllegalAssignmentToFieldInStorageException if the updates cannot be extracted, because an illegal
 			 *                                           value has been stored into some field
 			 * @throws StoreException if the operation cannot be completed
 			 */
-			private void addUpdatesForFieldsDefinedInClass(Class<?> clazz, Object object) throws IllegalAssignmentToFieldInStorage, StoreException {
+			private void addUpdatesForFieldsDefinedInClass(Class<?> clazz, Object object) throws IllegalAssignmentToFieldInStorageException, StoreException {
 				Field[] declaredFields;
 
 				try {
@@ -283,10 +283,10 @@ public class UpdatesExtractor {
 			 * 
 			 * @param field the field
 			 * @param newValue the new value of the field
-			 * @throws IllegalAssignmentToFieldInStorage if the updates cannot be extracted, because an illegal value has been stored into some field
+			 * @throws IllegalAssignmentToFieldInStorageException if the updates cannot be extracted, because an illegal value has been stored into some field
 			 * @throws StoreException if the operation cannot be completed
 			 */
-			private void addUpdateFor(Field field, Object newValue) throws IllegalAssignmentToFieldInStorage, StoreException {
+			private void addUpdateFor(Field field, Object newValue) throws IllegalAssignmentToFieldInStorageException, StoreException {
 				Class<?> fieldType = field.getType();
 				// the field is defined in a storage object, hence the subsequent conversion cannot fail
 				ClassType fieldDefiningClass = StorageTypes.classFromClass(field.getDeclaringClass());

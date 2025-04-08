@@ -38,10 +38,11 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.IllegalAssignmentToFieldInStorage;
+import io.hotmoka.node.api.IllegalAssignmentToFieldInStorageException;
 import io.hotmoka.node.api.SideEffectsInViewMethodException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnmatchedTargetException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.signatures.VoidMethodSignature;
@@ -140,11 +141,11 @@ class Basic extends HotmokaTest {
 		runInstanceVoidMethodCallTransaction(master, _200_000, classpath, MethodSignatures.ofVoid(SUB, "m1"), sub);
 	}
 
-	@Test @DisplayName("new Sub().ms() throws TransactionException since NoSuchMethodException")
+	@Test @DisplayName("new Sub().ms() throws TransactionException since UnmatchedTargetException")
 	void callStaticAsInstance() throws Exception {
 		StorageReference sub = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, ConstructorSignatures.of(SUB));
 
-		throwsTransactionExceptionWithCause(NoSuchMethodException.class, () ->
+		throwsTransactionExceptionWithCause(UnmatchedTargetException.class, () ->
 			runInstanceVoidMethodCallTransaction(master, _200_000, classpath, SUB_MS, sub)
 		);
 	}
@@ -326,7 +327,7 @@ class Basic extends HotmokaTest {
 	void updatesExtractionException() throws Exception {
 		StorageReference wl = addConstructorCallTransaction(key, master, _200_000, ONE, classpath, ConstructorSignatures.of(WITH_LIST));
 		
-		throwsTransactionExceptionWithCause(IllegalAssignmentToFieldInStorage.class, () ->
+		throwsTransactionExceptionWithCause(IllegalAssignmentToFieldInStorageException.class, () ->
 			addInstanceVoidMethodCallTransaction(key, master, _200_000, ONE, classpath, MethodSignatures.ofVoid(WITH_LIST, "illegal"), wl)
 		);
 	}

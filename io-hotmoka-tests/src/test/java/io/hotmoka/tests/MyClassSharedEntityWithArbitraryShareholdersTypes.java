@@ -34,6 +34,7 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.api.UnmatchedTargetException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
@@ -120,14 +121,14 @@ class MyClassSharedEntityWithArbitraryShareholdersTypes extends HotmokaTest {
 
         // the buyer is an account (EOA) and he accepts the offer
         // case 1: ClassCastException
-        throwsTransactionExceptionWithCause("java.lang.ClassCastException", () ->
+        throwsTransactionExceptionWithCause(ClassCastException.class, () ->
         	addInstanceVoidMethodCallTransaction(privateKey(2), buyer, _200_000, panarea(1), classpath,
                 		MethodSignatures.ofVoid(MY_CLASS_SHARED_ENTITY_2, "accept", BIG_INTEGER, StorageTypes.PAYABLE_CONTRACT, OFFER),
                         sharedEntity, StorageValues.bigIntegerOf(2), buyer, offer)
         );
 
-        // case 2: IllegalArgumentException
-        throwsTransactionExceptionWithCause("java.lang.IllegalArgumentException", () ->
+        // case 2: UnmatchedTargetException because of illegal argument
+        throwsTransactionExceptionWithCause(UnmatchedTargetException.class, () ->
         	addInstanceVoidMethodCallTransaction(privateKey(2), buyer, _200_000, panarea(1), classpath,
                 		MethodSignatures.ofVoid(MY_CLASS_SHARED_ENTITY_2, "accept", BIG_INTEGER, MY_CLASS, OFFER),
                         sharedEntity, StorageValues.bigIntegerOf(2), buyer, offer)

@@ -22,12 +22,14 @@ import java.lang.reflect.Modifier;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
-import java.util.stream.Stream;
 
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.TransactionResponses;
+import io.hotmoka.node.api.HotmokaException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownTypeException;
+import io.hotmoka.node.api.UnmatchedTargetException;
 import io.hotmoka.node.api.requests.AbstractInstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
@@ -79,11 +81,6 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		 */
 		private Object deserializedReceiver;
 
-		/**
-		 * The deserialized actual arguments of the call.
-		 */
-		private Object[] deserializedActuals;
-
 		private ResponseCreator() throws TransactionRejectedException, StoreException {}
 
 		@Override
@@ -101,109 +98,139 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 
 			try {
 				init();
-				this.deserializedReceiver = deserializer.deserialize(request.getReceiver());
-				var actuals = request.actuals().toArray(StorageValue[]::new);
-				this.deserializedActuals = new Object[actuals.length];
-				for (int pos = 0; pos < actuals.length; pos++)
-					deserializedActuals[pos] = deserializer.deserialize(actuals[pos]);
+				deserializedReceiver = deserializer.deserialize(request.getReceiver());
+				deserializeActuals();
 
 				Object[] deserializedActuals;
 				Method methodJVM;
 
 				try {
 					// we first try to call the method with exactly the parameter types explicitly provided
-					methodJVM = getMethod();
-					deserializedActuals = this.deserializedActuals;
+					methodJVM = getMethod2();
+					deserializedActuals = getDeserializedActuals();
 				}
-				catch (NoSuchMethodException e) {
-					// if not found, we try to add the trailing types that characterize the @Entry methods
-					try {
-						methodJVM = getFromContractMethod();
-						deserializedActuals = addExtraActualsForFromContract();
-					}
-					catch (NoSuchMethodException ee) {
-						throw e; // the message must be relative to the method as the user sees it
-					}
+				catch (UnmatchedTargetException e) {
+					// if not found, we try to add the trailing types that characterize the @FromContract methods
+					methodJVM = getFromContractMethod();
+					deserializedActuals = getDeserializedActualsForFromContract();
 				}
 
-				boolean isView = hasAnnotation(methodJVM, Constants.VIEW_NAME);
-				validateCallee(methodJVM, isView);
+				boolean calleeIsAnnotatedAsIsView = hasAnnotation(methodJVM, Constants.VIEW_NAME);
+				calleeIsConsistent(methodJVM, calleeIsAnnotatedAsIsView);
 				ensureWhiteListingOf(methodJVM, deserializedActuals);
 				mintCoinsForRewardToValidators();
 
 				Object result;
 				try {
+					// deserializedReceiver is always non-null since it is the deserialization of a storage reference
 					result = methodJVM.invoke(deserializedReceiver, deserializedActuals);
 				}
 				catch (InvocationTargetException e) {
-					Throwable cause = e.getCause();
-					if (isCheckedForThrowsExceptions(cause, methodJVM)) {
-						viewMustBeSatisfied(isView, null);
-						chargeGasForStorageOf(TransactionResponses.methodCallException(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), cause.getClass().getName(), getMessageForResponse(cause), where(cause)));
-						refundCallerForAllRemainingGas();
-						return TransactionResponses.methodCallException(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), cause.getClass().getName(), getMessageForResponse(cause), where(cause));
-					}
-					else
-						throw cause;
+					return failure(methodJVM, e);						
+				}
+				catch (IllegalArgumentException e) {
+					throw new UnmatchedTargetException("Illegal argument passed to " + request.getStaticTarget());
+				}
+				catch (IllegalAccessException e) {
+					throw new UnmatchedTargetException("Cannot access " + request.getStaticTarget());
+				}
+				catch (ExceptionInInitializerError e) {
+					// Takamaka code verification bans static initializers and the white-listed library classes
+					// should not have static initializers that might fail
+					throw new StoreException("Unexpected failed execution of a static initializer of " + request.getStaticTarget());
 				}
 
-				viewMustBeSatisfied(isView, result);
+				if (calleeIsAnnotatedAsIsView)
+					onlySideEffectsAreToBalanceAndNonceOfCaller(result);
 
-				if (methodJVM.getReturnType() == void.class) {
-					chargeGasForStorageOf(TransactionResponses.voidMethodCallSuccessful(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-					refundCallerForAllRemainingGas();
-					return TransactionResponses.voidMethodCallSuccessful(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-				}
-				else {
-					chargeGasForStorageOf(TransactionResponses.nonVoidMethodCallSuccessful(serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-					refundCallerForAllRemainingGas();
-					return TransactionResponses.nonVoidMethodCallSuccessful(serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-				}
+				return success(methodJVM, result);
 			}
-			catch (Throwable t) {
-				logFailure(Level.INFO, t);
-				return TransactionResponses.methodCallFailed(updatesInCaseOfFailure(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), t.getClass().getName(), getMessageForResponse(t), where(t));
+			catch (HotmokaException e) {
+				logFailure(Level.INFO, e);
+				return TransactionResponses.methodCallFailed(updatesInCaseOfFailure(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), e.getClass().getName(), getMessageForResponse(e), where(e));
+			}
+		}
+
+		private MethodCallTransactionResponse success(Method methodJVM, Object result) throws HotmokaException, StoreException {
+			if (methodJVM.getReturnType() == void.class) {
+				chargeGasForStorageOf(TransactionResponses.voidMethodCallSuccessful(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+				refundCallerForAllRemainingGas();
+				return TransactionResponses.voidMethodCallSuccessful(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+			}
+			else {
+				chargeGasForStorageOf(TransactionResponses.nonVoidMethodCallSuccessful(serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+				refundCallerForAllRemainingGas();
+				return TransactionResponses.nonVoidMethodCallSuccessful(serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+			}
+		}
+
+		private MethodCallTransactionResponse failure(Method methodJVM, InvocationTargetException e) throws HotmokaException, StoreException {
+			Throwable cause = e.getCause();
+			String message = getMessageForResponse(cause);
+			String causeClassName = cause.getClass().getName();
+			String where = where(cause);
+
+			if (isCheckedForThrowsExceptions(cause, methodJVM)) {
+				chargeGasForStorageOf(TransactionResponses.methodCallException(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), causeClassName, message, where));
+				refundCallerForAllRemainingGas();
+				return TransactionResponses.methodCallException(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), causeClassName, message, where);
+			}
+			else {
+				logFailure(Level.INFO, cause);
+				return TransactionResponses.methodCallFailed(updatesInCaseOfFailure(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), causeClassName, message, where);
 			}
 		}
 
 		/**
-		 * Checks that the called method respects the expected constraints.
+		 * Checks that the callee is not static and that
+		 * a view request actually executes a method annotated as {@code @@View}.
 		 * 
 		 * @param methodJVM the method
-		 * @param isView true if the method is annotated as view
-		 * @throws NoSuchMethodException if the constraints are not satisfied
+		 * @param calleeIsAnnotatedAsView true if the callee is annotated as {@code @@View}
+		 * @throws UnmatchedTargetException if that condition is not satisfied
 		 */
-		private void validateCallee(Method methodJVM, boolean isView) throws NoSuchMethodException {
+		private void calleeIsConsistent(Method methodJVM, boolean calleeIsAnnotatedAsView) throws UnmatchedTargetException {
 			if (Modifier.isStatic(methodJVM.getModifiers()))
-				throw new NoSuchMethodException("cannot call a static method");
+				throw new UnmatchedTargetException("Cannot call a static method");
 
-			if (!isView && InstanceMethodCallResponseBuilder.this.isView())
-				throw new NoSuchMethodException("cannot call a method not annotated as @View");
+			if (!calleeIsAnnotatedAsView && isView())
+				throw new UnmatchedTargetException("Cannot call a method not annotated as @View");
 		}
 
 		/**
 		 * Resolves the method that must be called, assuming that it is annotated as {@code @@FromContract}.
 		 * 
 		 * @return the method
-		 * @throws NoSuchMethodException if the method could not be found
-		 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
+		 * @throws UnmatchedTargetException if the method could not be found
+		 * @throws UnknownTypeException if the class of the method or of some parameter or return type cannot be found
 		 */
-		private Method getFromContractMethod() throws NoSuchMethodException, ClassNotFoundException {
+		private Method getFromContractMethod() throws UnmatchedTargetException, UnknownTypeException {
 			MethodSignature method = request.getStaticTarget();
-			Class<?> returnType = method instanceof NonVoidMethodSignature nvms ? classLoader.loadClass(nvms.getReturnType()) : void.class;
-			Class<?>[] argTypes = formalsAsClassForFromContract();
-		
-			return classLoader.resolveMethod(method.getDefiningClass().getName(), method.getName(), argTypes, returnType)
-				.orElseThrow(() -> new NoSuchMethodException(method.toString()));
+			Class<?>[] argTypes = formalsAsClassForFromContract2();
+			Class<?> returnType;
+
+			if (method instanceof NonVoidMethodSignature nvms) {
+				try {
+					returnType = classLoader.loadClass(nvms.getReturnType());
+				}
+				catch (ClassNotFoundException e) {
+					throw new UnknownTypeException(nvms.getReturnType());
+				}
+			}
+			else
+				returnType = void.class;
+
+			try {
+				return classLoader.resolveMethod(method.getDefiningClass().getName(), method.getName(), argTypes, returnType)
+						.orElseThrow(() -> new UnmatchedTargetException(method.toString()));
+			}
+			catch (ClassNotFoundException e) {
+				throw new UnknownTypeException(method.getDefiningClass());
+			}
 		}
 
 		private void receiverIsExported() throws TransactionRejectedException, StoreException {
 			enforceExported(request.getReceiver());
-		}
-
-		@Override
-		protected final Stream<Object> getDeserializedActuals() {
-			return Stream.of(deserializedActuals);
 		}
 
 		@Override
@@ -220,39 +247,25 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		}
 
 		/**
-		 * For system calls to the rewarding methods of the validators.
+		 * For system calls to the rewarding methods of the validators, it increases the balance of the caller
+		 * by the mount of minted coins.
 		 */
 		private void mintCoinsForRewardToValidators() throws StoreException {
-			Optional<StorageReference> manifest;
 			if (isSystemCall()) {
 				var staticTarget = request.getStaticTarget();
-				if ((staticTarget.equals(MethodSignatures.VALIDATORS_REWARD) || staticTarget.equals(MethodSignatures.VALIDATORS_REWARD_MOKAMINT_NODE) || staticTarget.equals(MethodSignatures.VALIDATORS_REWARD_MOKAMINT_MINER))
+				Optional<StorageReference> manifest;
+
+				if ((staticTarget.equals(MethodSignatures.VALIDATORS_REWARD) || staticTarget.equals(MethodSignatures.VALIDATORS_REWARD_MOKAMINT_NODE))
 						&& (manifest = environment.getManifest()).isPresent() && request.getCaller().equals(manifest.get())) {
 
-					Optional<StorageValue> firstArg = request.actuals().findFirst();
-					if (firstArg.isPresent() && firstArg.get() instanceof BigIntegerValue biv) {
+					// the minted coins are passed as second argument
+					var actuals = request.actuals().toArray(StorageValue[]::new);
+					if (actuals.length >= 2 && actuals[1] instanceof BigIntegerValue biv) {
 						Object caller = getDeserializedCaller();
 						classLoader.setBalanceOf(caller, classLoader.getBalanceOf(caller, StoreException::new).add(biv.getValue()), StoreException::new);
 					}
 				}
 			}
-		}
-
-		/**
-		 * Adds to the actual parameters the implicit actuals that are passed
-		 * to {@link io.takamaka.code.lang.FromContract} methods or constructors. They are the caller of
-		 * the entry and {@code null} for the dummy argument.
-		 * 
-		 * @return the resulting actual parameters
-		 */
-		private Object[] addExtraActualsForFromContract() {
-			int al = deserializedActuals.length;
-			var result = new Object[al + 2];
-			System.arraycopy(deserializedActuals, 0, result, 0, al);
-			result[al] = getDeserializedCaller();
-			result[al + 1] = null; // Dummy is not used
-
-			return result;
 		}
 	}
 }

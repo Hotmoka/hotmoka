@@ -25,7 +25,8 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.IllegalAssignmentToFieldInStorage;
+import io.hotmoka.node.api.HotmokaException;
+import io.hotmoka.node.api.IllegalAssignmentToFieldInStorageException;
 import io.hotmoka.node.api.SerializationException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
@@ -70,6 +71,11 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 */
 		private final List<Object> events = new ArrayList<>();
 
+		/**
+		 * The deserialized actual arguments of the method or constructor.
+		 */
+		private Object[] deserializedActuals;
+
 		protected ResponseCreator() throws TransactionRejectedException, StoreException {}
 
 		@Override
@@ -86,7 +92,37 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 * 
 		 * @return the actual arguments
 		 */
-		protected abstract Stream<Object> getDeserializedActuals();
+		protected final Object[] getDeserializedActuals() {
+			return deserializedActuals;
+		}
+
+		/**
+		 * Yields the actual arguments of the call, followed by the implicit actuals that are passed
+		 * to {@code io.takamaka.code.lang.FromContract} methods or constructors. They are the caller of
+		 * the method or constructor and {@code null} for the dummy argument.
+		 * 
+		 * @return the actual arguments, followed by the implicit actuals
+		 */
+		protected final Object[] getDeserializedActualsForFromContract() {
+			int al = getDeserializedActuals().length;
+			var result = new Object[al + 2];
+			System.arraycopy(getDeserializedActuals(), 0, result, 0, al);
+			result[al] = getDeserializedCaller();
+			result[al + 1] = null; // Dummy is not used
+		
+			return result;
+		}
+
+		/**
+		 * Deserialize the actual arguments of the call.
+		 */
+		protected final void deserializeActuals() throws HotmokaException, StoreException {
+			var actuals = request.actuals().toArray(StorageValue[]::new);
+			deserializedActuals = new Object[actuals.length];
+			int pos = 0;
+			for (StorageValue actual: actuals)
+				deserializedActuals[pos++] = deserializer.deserialize(actual);
+		}
 
 		/**
 		 * Enforces that the given transaction reference points to an exported object in store.
@@ -327,9 +363,9 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 			super.scanPotentiallyAffectedObjects(consumer);
 
 			Class<?> storage = classLoader.getStorage();
-			getDeserializedActuals()
-				.filter(actual -> actual != null && storage.isAssignableFrom(actual.getClass()))
-				.forEach(consumer);
+			for (Object actual: getDeserializedActuals())
+				if (actual != null && storage.isAssignableFrom(actual.getClass()))
+					consumer.accept(actual);
 		
 			// events are accessible from outside, hence they count as side-effects
 			events.forEach(consumer);
@@ -342,7 +378,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 * @param result the returned value or created object
 		 * @return the updates, sorted
 		 */
-		protected final Stream<Update> updates(Object result) throws IllegalAssignmentToFieldInStorage, StoreException {
+		protected final Stream<Update> updates(Object result) throws IllegalAssignmentToFieldInStorageException, StoreException {
 			List<Object> potentiallyAffectedObjects = new ArrayList<>();
 
 			Class<?> storage = classLoader.getStorage();

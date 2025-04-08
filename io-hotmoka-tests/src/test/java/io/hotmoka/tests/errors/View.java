@@ -28,6 +28,7 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.SideEffectsInViewMethodException;
+import io.hotmoka.node.api.UnmatchedTargetException;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.tests.HotmokaTest;
@@ -50,7 +51,7 @@ class View extends HotmokaTest {
 	void callNo1() throws Exception {
 		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), ConstructorSignatures.of(C));
 
-		throwsTransactionExceptionWithCause(NoSuchMethodException.class, () -> 
+		throwsTransactionExceptionWithCause(UnmatchedTargetException.class, () -> 
 			runInstanceNonVoidMethodCallTransaction(account(0), _100_000, jar(),
 				MethodSignatures.ofNonVoid(C, "no1", StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
 				c, StorageValues.intOf(13), StorageValues.intOf(17)));

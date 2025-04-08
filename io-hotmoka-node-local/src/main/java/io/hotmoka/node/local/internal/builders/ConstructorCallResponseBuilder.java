@@ -33,7 +33,6 @@ import io.hotmoka.node.api.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.local.api.StoreException;
 
 /**
@@ -59,11 +58,6 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 
 	private class ResponseCreator extends CodeCallResponseBuilder<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse>.ResponseCreator {
 
-		/**
-		 * The deserialized actual arguments of the constructor.
-		 */
-		private Object[] deserializedActuals;
-
 		private ResponseCreator() throws TransactionRejectedException, StoreException {}
 
 		@Override
@@ -72,7 +66,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 
 			try {
 				init();
-				deserializedActuals = deserializedActuals();
+				deserializeActuals();
 
 				Object[] deserializedActuals;
 				Constructor<?> constructorJVM;
@@ -80,12 +74,12 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 				try {
 					// we first try to call the constructor with exactly the parameter types explicitly provided
 					constructorJVM = getConstructor();
-					deserializedActuals = this.deserializedActuals;
+					deserializedActuals = getDeserializedActuals();
 				}
 				catch (UnmatchedTargetException e) {
 					// if not found, we try to add the trailing types that characterize the @FromContract constructors
 					constructorJVM = getFromContractConstructor();
-					deserializedActuals = addExtraActualsForFromContract();
+					deserializedActuals = getDeserializedActualsForFromContract();
 				}
 		
 				ensureWhiteListingOf(constructorJVM, deserializedActuals);
@@ -94,11 +88,22 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 				try {
 					result = constructorJVM.newInstance(deserializedActuals);
 				}
-				catch (InstantiationException | IllegalAccessException e) {
-					throw new UnmatchedTargetException("Cannot instantiate class " + request.getStaticTarget().getDefiningClass());
-				}
 				catch (InvocationTargetException e) {
 					return failure(constructorJVM, e);						
+				}
+				catch (IllegalArgumentException e) {
+					throw new UnmatchedTargetException("Illegal argument passed to " + request.getStaticTarget());
+				}
+				catch (InstantiationException e) {
+					throw new UnmatchedTargetException("Cannot instantiate class " + request.getStaticTarget().getDefiningClass());
+				}
+				catch (IllegalAccessException e) {
+					throw new UnmatchedTargetException("Cannot access " + request.getStaticTarget());
+				}
+				catch (ExceptionInInitializerError e) {
+					// Takamaka code verification bans static initializers and the white-listed library classes
+					// should not have static initializers that might fail
+					throw new StoreException("Unexpected failed execution of a static initializer");
 				}
 
 				if (serialize(result) instanceof StorageReference sr)
@@ -111,16 +116,6 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 				logFailure(Level.INFO, e);
 				return TransactionResponses.constructorCallFailed(updatesInCaseOfFailure(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), e.getClass().getName(), getMessageForResponse(e), where(e));
 			}
-		}
-
-		private Object[] deserializedActuals() throws HotmokaException, StoreException {
-			var actuals = request.actuals().toArray(StorageValue[]::new);
-			var deserializedActuals = new Object[actuals.length];
-			int pos = 0;
-			for (StorageValue actual: actuals)
-				deserializedActuals[pos++] = deserializer.deserialize(actual);
-
-			return deserializedActuals;
 		}
 
 		private ConstructorCallTransactionResponse success(Object result, StorageReference reference) throws HotmokaException, StoreException {
@@ -143,7 +138,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 				return TransactionResponses.constructorCallException(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), causeClassName, message, where);
 			}
 			else {
-				logFailure(Level.WARNING, cause);
+				logFailure(Level.INFO, cause);
 				return TransactionResponses.constructorCallFailed(updatesInCaseOfFailure(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), causeClassName, message, where);
 			}
 		}
@@ -189,23 +184,6 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		}
 
 		/**
-		 * Adds to the actual parameters the implicit actuals that are passed
-		 * to {@link io.takamaka.code.lang.FromContract} methods or constructors. They are the caller of
-		 * the method or constructor and {@code null} for the dummy argument.
-		 * 
-		 * @return the resulting actual parameters
-		 */
-		private Object[] addExtraActualsForFromContract() {
-			int al = deserializedActuals.length;
-			Object[] result = new Object[al + 2];
-			System.arraycopy(deserializedActuals, 0, result, 0, al);
-			result[al] = getDeserializedCaller();
-			result[al + 1] = null; // Dummy is not used
-		
-			return result;
-		}
-
-		/**
 		 * Checks that the constructor called by this transaction is white-listed.
 		 * 
 		 * @param executable the constructor
@@ -215,11 +193,6 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		private void ensureWhiteListingOf(Constructor<?> executable, Object[] actuals) throws NonWhiteListedCallException {
 			classLoader.getWhiteListingWizard().whiteListingModelOf(executable)
 				.orElseThrow(() -> new NonWhiteListedCallException(request.getStaticTarget()));
-		}
-
-		@Override
-		protected final Stream<Object> getDeserializedActuals() {
-			return Stream.of(deserializedActuals);
 		}
 
 		@Override

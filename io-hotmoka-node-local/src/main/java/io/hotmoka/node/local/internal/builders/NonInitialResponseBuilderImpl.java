@@ -36,7 +36,7 @@ import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.ClassLoaderCreationException;
 import io.hotmoka.node.api.DeserializationException;
 import io.hotmoka.node.api.HotmokaException;
-import io.hotmoka.node.api.IllegalAssignmentToFieldInStorage;
+import io.hotmoka.node.api.IllegalAssignmentToFieldInStorageException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.OutOfGasException;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -176,11 +176,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 */
 		protected final String getMessageForResponse(Throwable throwable) {
 			var clazz = throwable.getClass();
-
-			if (HotmokaException.class.isAssignableFrom(clazz) || clazz.getClassLoader() instanceof WhiteListingClassLoader)
-				return throwable.getMessage();
-			else
-				return "";
+			return HotmokaException.class.isAssignableFrom(clazz) || clazz.getClassLoader() instanceof WhiteListingClassLoader ? throwable.getMessage() : "";
 		}
 
 		/**
@@ -277,7 +273,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * 
 		 * @return the updates, sorted
 		 */
-		protected final Stream<Update> updates() throws IllegalAssignmentToFieldInStorage, StoreException {
+		protected final Stream<Update> updates() throws IllegalAssignmentToFieldInStorageException, StoreException {
 			var potentiallyAffectedObjects = new ArrayList<Object>();
 			scanPotentiallyAffectedObjects(potentiallyAffectedObjects::add);
 			return updatesExtractor.extractUpdatesFrom(potentiallyAffectedObjects);

@@ -21,10 +21,12 @@ import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import io.hotmoka.node.TransactionResponses;
-import io.hotmoka.node.api.IllegalAssignmentToFieldInStorage;
+import io.hotmoka.node.api.IllegalAssignmentToFieldInStorageException;
 import io.hotmoka.node.api.NonWhiteListedCallException;
 import io.hotmoka.node.api.SideEffectsInViewMethodException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownTypeException;
+import io.hotmoka.node.api.UnmatchedTargetException;
 import io.hotmoka.node.api.requests.MethodCallTransactionRequest;
 import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.node.api.signatures.MethodSignature;
@@ -57,12 +59,11 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 		/**
 		 * Checks that the view annotation, if any, is satisfied.
 		 * 
-		 * @param isView true if and only if the method is annotated as view
 		 * @param result the returned value of the method, if any
 		 * @throws SideEffectsInViewMethodException if the method is annotated as view, but generated side-effects
 		 */
-		protected final void viewMustBeSatisfied(boolean isView, Object result) throws SideEffectsInViewMethodException, IllegalAssignmentToFieldInStorage, StoreException {
-			if (isView && !onlyAffectedBalanceOrNonceOfCaller(result))
+		protected final void onlySideEffectsAreToBalanceAndNonceOfCaller(Object result) throws SideEffectsInViewMethodException, IllegalAssignmentToFieldInStorageException, StoreException {
+			if (!onlyAffectedBalanceOrNonceOfCaller(result))
 				throw new SideEffectsInViewMethodException(request.getStaticTarget());
 		}
 
@@ -94,6 +95,32 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 				.orElseThrow(() -> new NoSuchMethodException(method.toString()));
 		}
 
+		protected final Method getMethod2() throws UnmatchedTargetException, UnknownTypeException { // TODO: rename
+			MethodSignature method = request.getStaticTarget();
+			Class<?> returnType;
+
+			if (method instanceof NonVoidMethodSignature nvms) {
+				try {
+					returnType = classLoader.loadClass(nvms.getReturnType());
+				}
+				catch (ClassNotFoundException e) {
+					throw new UnknownTypeException(nvms.getReturnType());
+				}
+			}
+			else
+				returnType = void.class;
+
+			Class<?>[] argTypes = formalsAsClass2();
+
+			try {
+				return classLoader.resolveMethod(method.getDefiningClass().getName(), method.getName(), argTypes, returnType)
+						.orElseThrow(() -> new UnmatchedTargetException(method));
+			}
+			catch (ClassNotFoundException e) {
+				throw new UnknownTypeException(method.getDefiningClass());
+			}
+		}
+
 		@Override
 		protected final int gasForStoringFailedResponse() {
 			BigInteger gas = request.getGasLimit();
@@ -108,7 +135,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 		 * @param result the returned value for method calls or created object for constructor calls, if any
 		 * @return true if and only if that condition holds
 		 */
-		private boolean onlyAffectedBalanceOrNonceOfCaller(Object result) throws IllegalAssignmentToFieldInStorage, StoreException {
+		private boolean onlyAffectedBalanceOrNonceOfCaller(Object result) throws IllegalAssignmentToFieldInStorageException, StoreException {
 			return updates(result).allMatch(this::isUpdateToBalanceOrNonceOfCaller);
 		}
 	}

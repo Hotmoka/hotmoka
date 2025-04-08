@@ -30,7 +30,7 @@ import io.hotmoka.node.api.values.StorageReference;
  * throw this exception.
  */
 @SuppressWarnings("serial")
-public class IllegalAssignmentToFieldInStorage extends HotmokaException {
+public class IllegalAssignmentToFieldInStorageException extends HotmokaException {
 
 	/**
 	 * Creates an exception about an illegal assignment of a value to a field.
@@ -39,7 +39,7 @@ public class IllegalAssignmentToFieldInStorage extends HotmokaException {
 	 * @param reference the reference of the object whose field is assigned
 	 * @param assignedValue to value assigned to {@code field} of {@code reference}
 	 */
-	public IllegalAssignmentToFieldInStorage(FieldSignature field, StorageReference reference, Object assignedValue) {
+	public IllegalAssignmentToFieldInStorageException(FieldSignature field, StorageReference reference, Object assignedValue) {
 		super("Field " + field + " of " + reference + " cannot hold a " + assignedValue.getClass().getName());
 	}
 }

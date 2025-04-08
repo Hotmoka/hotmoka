@@ -21,7 +21,7 @@ import java.util.List;
 
 import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.ClassLoaderCreationException;
-import io.hotmoka.node.api.IllegalAssignmentToFieldInStorage;
+import io.hotmoka.node.api.IllegalAssignmentToFieldInStorageException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.node.api.responses.GameteCreationTransactionResponse;
@@ -64,7 +64,7 @@ public class GameteCreationResponseBuilder extends AbstractInitialResponseBuilde
 					classLoader.setBalanceOf(gamete, request.getInitialAmount(), StoreException::new);
 					return TransactionResponses.gameteCreation(updatesExtractor.extractUpdatesFrom(List.of(gamete)), classLoader.getStorageReferenceOf(gamete, StoreException::new));
 				}
-				catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | IllegalAssignmentToFieldInStorage e) {
+				catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | IllegalAssignmentToFieldInStorageException e) {
 					throw new StoreException("Could not call the constructor of the gamete", e);
 				}
 			}
