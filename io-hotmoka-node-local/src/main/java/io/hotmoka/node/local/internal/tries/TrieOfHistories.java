@@ -33,7 +33,7 @@ import io.hotmoka.patricia.api.UnknownKeyException;
 /**
  * A map from storage references to an array of transaction references (their <i>history</i>),
  * backed by a Merkle-Patricia trie.
- * It uses sha256 as hashing algorithm for the trie's nodes and an array of 0's to represent
+ * It uses the sha256 hashing algorithm for the trie's nodes and an array of 0's to represent
  * the empty trie.
  */
 public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stream<TransactionReference>, TrieOfHistories> {
@@ -44,7 +44,7 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 	 * 
 	 * @param store the supporting key/value store
 	 * @param root the root of the trie to check out; use empty to create the empty trie
-	 * @throws UnknownKeyException 
+	 * @throws UnknownKeyException if {@code root} cannot be found in the trie
 	 */
 	public TrieOfHistories(KeyValueStore store, byte[] root) throws TrieException, UnknownKeyException {
 		super(store, root, sha256().getHasher(StorageReference::toByteArrayWithoutSelector),
@@ -62,7 +62,7 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 	}
 
 	private static byte[] historyToBytes(Stream<TransactionReference> history) {
-		TransactionReference[] toConcat = history.toArray(TransactionReference[]::new);
+		var toConcat = history.toArray(TransactionReference[]::new);
 		int requestHashLength = TransactionReference.REQUEST_HASH_LENGTH;
 		byte[] result = new byte[toConcat.length * requestHashLength];
 
@@ -108,7 +108,8 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 
 		var transactions = result.get().toArray(TransactionReference[]::new);
 		// histories always end with the transaction that created the object,
-		// hence with the transaction of the storage reference of the object
+		// hence with the transaction of the storage reference of the object;
+		// that last transaction is not stored, since it can be implicitly recovered
 		var withLast = new TransactionReference[transactions.length + 1];
 		System.arraycopy(transactions, 0, withLast, 0, transactions.length);
 		withLast[transactions.length] = key.getTransaction();

@@ -29,7 +29,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.GuardedBy;
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.exceptions.functions.ConsumerWithExceptions3;
+import io.hotmoka.exceptions.functions.ConsumerWithExceptions2;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.local.AbstractLocalNode;
 import io.hotmoka.node.local.StateIds;
@@ -46,7 +46,7 @@ import io.hotmoka.xodus.env.Environment;
 import io.hotmoka.xodus.env.Transaction;
 
 /**
- * Partial implementation of a local (ie., non-remote) node.
+ * Partial implementation of a local (ie., non-remote) node based on tries.
  * 
  * @param <N> the type of this node
  * @param <C> the type of the configuration of this node
@@ -183,7 +183,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 * @param the cache to use for the store; if missing, it gets extracted from the store itself (which might be expensive)
 	 * @return the entered store
 	 * @throws UnknownStateIdException if the required state identifier does not exist
-	 *                                 (also if it has been garbage-collected already)
+	 *                                 (for instance also if it has been garbage-collected already)
 	 * @throws InterruptedException if the operation has been interrupted before being completed
 	 * @throws NodeException if the operation could not be completed correctly
 	 */
@@ -263,15 +263,15 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 
 	private void gc(StateIdAndTime stateIdAndTime) throws InterruptedException {
 		try {
-			ConsumerWithExceptions3<Transaction, StoreException, NodeException, UnknownStateIdException> gc = txn -> {
+			ConsumerWithExceptions2<Transaction, NodeException, UnknownStateIdException> gc = txn -> {
 				free(stateIdAndTime.stateId, txn);
 				removeFromStores(STORES_TO_GC, stateIdAndTime, txn);
 			};
 
-			env.executeInTransaction(StoreException.class, NodeException.class, UnknownStateIdException.class, gc);
+			env.executeInTransaction(NodeException.class, UnknownStateIdException.class, gc);
 			LOGGER.info("garbage-collected store " + stateIdAndTime);
 		}
-		catch (NodeException | UnknownStateIdException | StoreException | ExodusException e) {
+		catch (NodeException | UnknownStateIdException | ExodusException e) {
 			LOGGER.log(Level.SEVERE, "cannot garbage-collect store " + stateIdAndTime, e);
 		}
 	}
@@ -281,9 +281,9 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 * 
 	 * @param stateId the identifier of the vision of the store to deallocate
 	 * @param txn the database transaction where the operation is performed
-	 * @throws StoreException if the operation cannot be completed correctly
+	 * @throws NodeException if the operation cannot be completed correctly
 	 */
-	private void free(StateId stateId, Transaction txn) throws UnknownStateIdException, StoreException {
+	private void free(StateId stateId, Transaction txn) throws UnknownStateIdException, NodeException {
 		var bytes = stateId.getBytes();
 		var rootOfResponses = new byte[32];
 		System.arraycopy(bytes, 0, rootOfResponses, 0, 32);
@@ -300,8 +300,8 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 			mkTrieOfHistories(txn, rootOfHistories).free();
 			mkTrieOfInfo(txn, rootOfInfo).free();
 		}
-		catch (TrieException e) {
-			throw new StoreException(e);
+		catch (TrieException | StoreException e) {
+			throw new NodeException(e);
 		}
 		catch (UnknownKeyException e) {
 			throw new UnknownStateIdException(stateId);
@@ -456,9 +456,9 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 			if (id.time < limitCreationTime)
 				removedIds.add(id);
 			else
-				break; // they are sorted in non-decreasing creation time
+				break; // since id's are sorted in non-decreasing creation time
 
-		if (removedIds.size() > 0) {
+		if (!removedIds.isEmpty()) {
 			ids.removeAll(removedIds);
 			storeStateIdsAndTimes(which, ids, txn);
 		}
