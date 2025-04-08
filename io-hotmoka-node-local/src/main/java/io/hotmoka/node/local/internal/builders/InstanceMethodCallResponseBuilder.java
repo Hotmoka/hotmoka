@@ -26,6 +26,7 @@ import java.util.logging.Level;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.TransactionResponses;
+import io.hotmoka.node.api.DeserializationException;
 import io.hotmoka.node.api.HotmokaException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownTypeException;
@@ -98,7 +99,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 
 			try {
 				init();
-				deserializedReceiver = deserializer.deserialize(request.getReceiver());
+				deserializeReceiver();
 				deserializeActuals();
 
 				Object[] deserializedActuals;
@@ -149,6 +150,10 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				logFailure(Level.INFO, e);
 				return TransactionResponses.methodCallFailed(updatesInCaseOfFailure(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), e.getClass().getName(), getMessageForResponse(e), where(e));
 			}
+		}
+
+		private void deserializeReceiver() throws DeserializationException, StoreException {
+			deserializedReceiver = deserializer.deserialize(request.getReceiver());
 		}
 
 		/**
@@ -211,26 +216,26 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		@Override
 		protected void scanPotentiallyAffectedObjects(Consumer<Object> consumer) {
 			super.scanPotentiallyAffectedObjects(consumer);
-
-			// the receiver is accessible from environment of the caller
 			consumer.accept(deserializedReceiver);
 		}
 
 		/**
-		 * For system calls to the rewarding methods of the validators, it increases the balance of the caller
-		 * by the mount of minted coins.
+		 * Charges the caller of system calls for rewarding the validators, with the amount
+		 * of coins that must be rewarded. That is, it creates "out of thin-air" as many coins
+		 * as must be distributed to the validators.
 		 */
 		private void mintCoinsForRewardToValidators() throws StoreException {
 			if (isSystemCall()) {
 				var staticTarget = request.getStaticTarget();
 				Optional<StorageReference> manifest;
 
-				if ((staticTarget.equals(MethodSignatures.VALIDATORS_REWARD) || staticTarget.equals(MethodSignatures.VALIDATORS_REWARD_MOKAMINT_NODE))
+				if ((staticTarget.equals(MethodSignatures.VALIDATORS_REWARD) || staticTarget.equals(MethodSignatures.VALIDATORS_REWARD_MOKAMINT_NODE)
+						|| staticTarget.equals(MethodSignatures.VALIDATORS_REWARD_MOKAMINT_MINER))
 						&& (manifest = environment.getManifest()).isPresent() && request.getCaller().equals(manifest.get())) {
 
-					// the minted coins are passed as second argument
+					// the rewarded coins are passed as first argument
 					var actuals = request.actuals().toArray(StorageValue[]::new);
-					if (actuals.length >= 2 && actuals[1] instanceof BigIntegerValue biv) {
+					if (actuals.length >= 1 && actuals[0] instanceof BigIntegerValue biv) {
 						Object caller = getDeserializedCaller();
 						classLoader.setBalanceOf(caller, classLoader.getBalanceOf(caller, StoreException::new).add(biv.getValue()), StoreException::new);
 					}

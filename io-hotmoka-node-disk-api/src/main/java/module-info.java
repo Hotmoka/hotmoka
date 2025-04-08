@@ -22,6 +22,5 @@ module io.hotmoka.node.disk.api {
 	exports io.hotmoka.node.disk.api;
 
 	requires io.hotmoka.annotations;
-	requires io.hotmoka.node.api;
 	requires transitive io.hotmoka.node.local.api;
 }

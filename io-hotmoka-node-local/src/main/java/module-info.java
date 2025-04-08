@@ -21,24 +21,21 @@ module io.hotmoka.node.local {
 	exports io.hotmoka.node.local;
 	
 	// classes inside this package will be used only at run time,
-	// by instrumented Takamaka code: we do not want to export it:
-	// we make them visible at compile time only instead
+	// by instrumented Takamaka code: we do not want to export them:
+	// instead, we make them visible at compile time only
 	opens io.hotmoka.node.local.internal.runtime;
 
 	requires transitive io.hotmoka.node.local.api;
-	requires transitive io.hotmoka.node;
-	requires transitive io.hotmoka.closeables.api;
+	requires io.hotmoka.node;
 	requires io.hotmoka.crypto;
 	requires io.hotmoka.patricia;
 	requires io.hotmoka.annotations;
 	requires io.hotmoka.xodus;
 	requires io.hotmoka.instrumentation;
 	requires io.hotmoka.whitelisting;
-	requires transitive io.hotmoka.whitelisting.api;
 	requires io.hotmoka.exceptions;
 	requires io.hotmoka.closeables;
 	requires io.takamaka.code.constants;
 	requires toml4j;
 	requires java.logging;
-	requires io.hotmoka.node.api;
 }

@@ -98,11 +98,6 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		private Object deserializedCaller;
 
 		/**
-		 * The deserialized validators contract, if the node is already initialized.
-		 */
-		private Optional<Object> deserializedValidators;
-
-		/**
 		 * The remaining amount of gas for the current transaction, not yet consumed.
 		 */
 		private BigInteger gas;
@@ -152,8 +147,6 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		protected final void init() throws StoreException, DeserializationException, OutOfGasException {
 			this.deserializedCaller = deserializer.deserialize(request.getCaller());
 			BigInteger initialBalance = classLoader.getBalanceOf(deserializedCaller, StoreException::new);
-			var validators = environment.getValidators();
-			this.deserializedValidators = validators.isPresent() ? Optional.of(deserializer.deserialize(validators.get())) : Optional.empty();
 			increaseNonceOfCaller();
 			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
 			chargeGasForStorage(BigInteger.valueOf(request.size()));
@@ -186,17 +179,6 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 */
 		protected final Object getDeserializedCaller() {
 			return deserializedCaller;
-		}
-
-		/**
-		 * Yields the contract that collects the validators of the node.
-		 * After each transaction that consumes gas, the price of the gas is sent to this
-		 * contract, that can later redistribute the reward to all validators.
-		 * 
-		 * @return the contract, inside the store of the node, if the node is already initialized
-		 */
-		protected final Optional<Object> getDeserializedValidators() {
-			return deserializedValidators;
 		}
 
 		/**
@@ -289,7 +271,6 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 */
 		protected void scanPotentiallyAffectedObjects(Consumer<Object> consumer) {
 			consumer.accept(getDeserializedCaller());
-			getDeserializedValidators().ifPresent(consumer);
 		}
 
 		/**

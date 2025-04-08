@@ -281,6 +281,10 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 			catch (TimeoutException | InterruptedException | NodeException e) {
 				sendExceptionAsync(session, e, message.getId());
 			}
+    		catch (RuntimeException e) {
+    			LOGGER.log(Level.SEVERE, "getInfo() threw exception", e);
+    			sendExceptionAsync(session, new NodeException("getInfo() threw exception", e), message.getId());
+    		}
     	}
     	else if (message instanceof RunInstanceMethodCallTransactionMessage rimctm) {
     		try {

@@ -33,5 +33,5 @@ module io.hotmoka.node.api {
 	requires transitive io.hotmoka.instrumentation.api;
 	requires transitive io.hotmoka.verification.api;
 	requires io.hotmoka.annotations;
-	requires io.hotmoka.closeables.api;
+	requires transitive io.hotmoka.closeables.api;
 }

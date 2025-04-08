@@ -17,7 +17,8 @@ limitations under the License.
 package io.hotmoka.tests;
 
 /*
- * MODIFY AT LINE 153 TO SELECT THE NODE IMPLEMENTATION TO TEST.
+ * A superclass of all tests.
+ * Check at line 156 to select the node implementation to test.
  */
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -155,12 +156,20 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	    		String requestedNodeType = System.getProperty("nodeType");
 	    		if ("tendermint".equals(requestedNodeType))
 	    			node = wrapped = mkTendermintNode();
+	    		else if ("tendermint-remote".equals(requestedNodeType))
+	    			node = mkRemoteNode(wrapped = mkTendermintNode());
 	    		else if ("mokamint".equals(requestedNodeType) || "mokamint1".equals(requestedNodeType))
 	    			node = wrapped = mkMokamintNetwork(1);
+	    		else if ("mokamint-remote".equals(requestedNodeType) || "mokamint1-remote".equals(requestedNodeType))
+	    			node = wrapped = mkRemoteNode(mkMokamintNetwork(1));
 	    		else if ("mokamint4".equals(requestedNodeType))
 	    			node = wrapped = mkMokamintNetwork(4);
+	    		else if ("mokamint4-remote".equals(requestedNodeType))
+	    			node = wrapped = mkRemoteNode(mkMokamintNetwork(4));
 	    		else if ("disk".equals(requestedNodeType))
 	    			node = wrapped = mkDiskNode();
+	    		else if ("disk-remote".equals(requestedNodeType))
+	    			node = mkRemoteNode(wrapped = mkDiskNode());
 	    		else {
 	    			//node = wrapped = mkDiskNode();
 	    			//node = wrapped = mkMokamintNodeConnectedToPeer();
@@ -414,7 +423,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		// if the block creation time is too small, the nodes might lose synchronization
 		// because the time for whispering is higher than the time for mining new blocks
 		final var TARGET_BLOCK_CREATION_TIME = 4_000;
-		final var PLOT_LENGTH = 500L; // TODO
+		final var PLOT_LENGTH = 500L;
 		final var MAX_HISTORY_CHANGE = 15L * 60 * 1000; // fifteen minutes, so that it is possible to see the effects of garbage-collection during the tests
 
 		MokamintNode firstNode = null;
@@ -466,8 +475,6 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 				MokamintNode node = MokamintNodes.init(config, mokamintConfig, nodeKeys, nodeNum == 1); // we create a brand new genesis block, but only in node 1
 				nodes.add(node);
 
-				NodeServices.of(node, 8000 + nodeNum);
-				System.out.println("Hotmoka node " + nodeNum + " published at ws://localhost:" + (8000 + nodeNum));
 				int nodeNumCopy = nodeNum;
 				node.getMokamintNode().add(miner).orElseThrow(() -> new NodeException("Could not add the miner to test node " + nodeNumCopy));
 
@@ -518,6 +525,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	private static Node mkRemoteNode(Node exposed) throws NodeException {
 		NodeServices.of(exposed, 8000); // it will be closed when exposed will be closed
+		System.out.println("Hotmoka node published at ws://localhost:8000");
 		return RemoteNodes.of(URI.create("ws://localhost:8000"), 100_000);
 	}
 
@@ -542,23 +550,23 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		}
 	}
 
-	protected final void setAccounts(BigInteger... coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
+	protected final void setAccounts(BigInteger... coins) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
 		nodeWithAccountsView = AccountsNodes.of(node, localGamete, privateKeyOfLocalGamete, coins);
 	}
 
-	protected final void setAccounts(String containerClassName, TransactionReference classpath, BigInteger... coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException, NodeException, NoSuchElementException, TimeoutException, InterruptedException, UnknownReferenceException {
+	protected final void setAccounts(String containerClassName, TransactionReference classpath, BigInteger... coins) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, NoSuchElementException, TimeoutException, InterruptedException, UnknownReferenceException {
 		nodeWithAccountsView = AccountsNodes.of(node, localGamete, privateKeyOfLocalGamete, containerClassName, classpath, coins);
 	}
 
-	protected final void setAccounts(Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
+	protected final void setAccounts(Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
 		setAccounts(coins.toArray(BigInteger[]::new));
 	}
 
-	protected final static AccountsNode mkAccounts(Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
+	protected final static AccountsNode mkAccounts(Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
 		return AccountsNodes.of(node, localGamete, privateKeyOfLocalGamete, coins.toArray(BigInteger[]::new));
 	}
 
-	protected final void setAccounts(String containerClassName, TransactionReference classpath, Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException, NodeException, NoSuchElementException, TimeoutException, InterruptedException, UnknownReferenceException {
+	protected final void setAccounts(String containerClassName, TransactionReference classpath, Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, NoSuchElementException, TimeoutException, InterruptedException, UnknownReferenceException {
 		setAccounts(containerClassName, classpath, coins.toArray(BigInteger[]::new));
 	}
 

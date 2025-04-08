@@ -375,7 +375,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	 */
 	protected final BigInteger getCoinsMinted(StorageReference validators) throws StoreException {
 		// we determine how many coins have been minted during the last reward:
-		// it is the price of the gas distributed minus the same price without inflation
+		// it is the price of the gas consumed minus the same price without inflation
 		BigInteger minted = reward.subtract(rewardWithoutInflation);
 
 		// it might happen that the last distribution goes beyond the limit imposed
