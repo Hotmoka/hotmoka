@@ -45,7 +45,7 @@ public interface TendermintNodeConfigBuilder extends LocalNodeConfigBuilder<Tend
 	 * @param maxPingAttempts the max number of attempts
 	 * @return this builder
 	 */
-	TendermintNodeConfigBuilder setMaxPingAttempts(long maxPingAttempts);
+	TendermintNodeConfigBuilder setMaxPingAttempts(int maxPingAttempts);
 
 	/**
 	 * Sets the delay between two successive ping attempts, in milliseconds. It defaults to 200.
@@ -53,5 +53,5 @@ public interface TendermintNodeConfigBuilder extends LocalNodeConfigBuilder<Tend
 	 * @param pingDelay the delay
 	 * @return this builder
 	 */
-	TendermintNodeConfigBuilder setPingDelay(long pingDelay);
+	TendermintNodeConfigBuilder setPingDelay(int pingDelay);
 }

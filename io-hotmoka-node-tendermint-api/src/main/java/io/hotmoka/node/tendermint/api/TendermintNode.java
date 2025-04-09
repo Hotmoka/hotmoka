@@ -20,7 +20,7 @@ import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.local.api.LocalNode;
 
 /**
- * A node of a blockchain that relies on a Tendermint process.
+ * A node of a blockchain build over a Tendermint process.
  */
 @ThreadSafe
 public interface TendermintNode extends LocalNode<TendermintNodeConfig> {

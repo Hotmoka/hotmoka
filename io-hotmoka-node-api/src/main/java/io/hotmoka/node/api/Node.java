@@ -75,7 +75,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	TransactionReference getTakamakaCode() throws NodeException, TimeoutException, InterruptedException;
+	TransactionReference getTakamakaCode() throws NodeException, TimeoutException, InterruptedException; // TODO: throw UnknownReferenceException if uninitialized
 
 	/**
 	 * Yields the manifest installed in the store of the node, when the node was initialized.
@@ -90,7 +90,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	StorageReference getManifest() throws NodeException, TimeoutException, InterruptedException;
+	StorageReference getManifest() throws NodeException, TimeoutException, InterruptedException; // TODO: throw UnknownReferenceException if uninitialized
 
 	/**
 	 * Yields node-specific information about the node. This is likely different for each node

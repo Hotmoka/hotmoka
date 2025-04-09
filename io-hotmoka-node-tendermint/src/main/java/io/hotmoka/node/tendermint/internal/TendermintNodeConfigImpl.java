@@ -47,12 +47,12 @@ public class TendermintNodeConfigImpl extends AbstractLocalNodeConfig<Tendermint
 	 * The maximal number of connection attempts to the Tendermint process during ping.
 	 * Defaults to 20.
 	 */
-	public final long maxPingAttempts;
+	public final int maxPingAttempts;
 
 	/**
 	 * The delay between two successive ping attempts, in milliseconds. Defaults to 200.
 	 */
-	public final long pingDelay;
+	public final int pingDelay;
 
 	/**
 	 * Creates a new configuration object from its builder.
@@ -73,12 +73,12 @@ public class TendermintNodeConfigImpl extends AbstractLocalNodeConfig<Tendermint
 	}
 
 	@Override
-	public long getMaxPingAttempts() {
+	public int getMaxPingAttempts() {
 		return maxPingAttempts;
 	}
 
 	@Override
-	public long getPingDelay() {
+	public int getPingDelay() {
 		return pingDelay;
 	}
 
@@ -110,8 +110,8 @@ public class TendermintNodeConfigImpl extends AbstractLocalNodeConfig<Tendermint
 	 * The builder of a configuration object.
 	 */
 	public static class TendermintNodeConfigBuilderImpl extends AbstractLocalNodeConfigBuilder<TendermintNodeConfig, TendermintNodeConfigBuilder> implements TendermintNodeConfigBuilder {
-		private long maxPingAttempts = 20;
-		private long pingDelay = 200;
+		private int maxPingAttempts = 20;
+		private int pingDelay = 200;
 		private Path tendermintConfigurationToClone;
 
 		/**
@@ -172,7 +172,7 @@ public class TendermintNodeConfigImpl extends AbstractLocalNodeConfig<Tendermint
 		}
 
 		@Override
-		public TendermintNodeConfigBuilder setMaxPingAttempts(long maxPingAttempts) {
+		public TendermintNodeConfigBuilder setMaxPingAttempts(int maxPingAttempts) {
 			if (maxPingAttempts <= 0)
 				throw new IllegalArgumentException("maxPingAttempts must be positive");
 
@@ -180,12 +180,28 @@ public class TendermintNodeConfigImpl extends AbstractLocalNodeConfig<Tendermint
 			return getThis();
 		}
 
+		private TendermintNodeConfigBuilder setMaxPingAttempts(long maxPingAttempts) {
+			if (maxPingAttempts <= 0 || maxPingAttempts > Integer.MAX_VALUE)
+				throw new IllegalArgumentException("maxPingAttempts must be between 1 and " + Integer.MAX_VALUE + " included");
+
+			this.maxPingAttempts = (int) maxPingAttempts;
+			return getThis();
+		}
+
 		@Override
-		public TendermintNodeConfigBuilder setPingDelay(long pingDelay) {
+		public TendermintNodeConfigBuilder setPingDelay(int pingDelay) {
 			if (pingDelay < 0)
 				throw new IllegalArgumentException("pingDelay cannot be negative");
 
 			this.pingDelay = pingDelay;
+			return getThis();
+		}
+
+		private TendermintNodeConfigBuilder setPingDelay(long pingDelay) {
+			if (pingDelay < 0 || pingDelay > Integer.MAX_VALUE)
+				throw new IllegalArgumentException("pingDelay must be between 1 and " + Integer.MAX_VALUE + " included");
+
+			this.pingDelay = (int) pingDelay;
 			return getThis();
 		}
 

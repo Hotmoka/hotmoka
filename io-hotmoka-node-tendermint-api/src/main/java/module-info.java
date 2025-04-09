@@ -21,6 +21,6 @@ limitations under the License.
 module io.hotmoka.node.tendermint.api {
 	exports io.hotmoka.node.tendermint.api;
 
-	requires io.hotmoka.annotations;
 	requires transitive io.hotmoka.node.local.api;
+	requires io.hotmoka.annotations;
 }

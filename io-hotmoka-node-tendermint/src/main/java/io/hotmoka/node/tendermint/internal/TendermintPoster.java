@@ -26,12 +26,12 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -51,7 +51,7 @@ import io.hotmoka.node.tendermint.internal.beans.TxError;
  * An object that posts requests to a Tendermint process.
  */
 public class TendermintPoster {
-	private final static Logger logger = Logger.getLogger(TendermintPoster.class.getName());
+	private final static Logger LOGGER = Logger.getLogger(TendermintPoster.class.getName());
 
 	private final TendermintNodeConfig config;
 
@@ -76,67 +76,100 @@ public class TendermintPoster {
 	 * Sends the given {@code request} to the Tendermint process, inside a {@code broadcast_tx_async} Tendermint request.
 	 * 
 	 * @param request the request to send
-	 * @throws InterruptedException 
-	 * @throws TimeoutException 
+	 * @throws NodeException if the node is misbehaving
+	 * @throws TimeoutException if the operation could not be completed on time
+	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 */
-	void postRequest(TransactionRequest<?> request) throws NodeException, TimeoutException, InterruptedException {
-		try {
-			String jsonTendermintRequest = "{\"method\": \"broadcast_tx_async\", \"params\": {\"tx\": \"" + Base64.toBase64String(request.toByteArray()) + "\"}, \"id\": " + nextId.getAndIncrement() + "}";
-			String response = postToTendermint(jsonTendermintRequest);
+	void postRequest(TransactionRequest<?> request) throws NodeException, InterruptedException, TimeoutException {
+		String jsonTendermintRequest = "{\"method\": \"broadcast_tx_async\", \"params\": {\"tx\": \"" + Base64.toBase64String(request.toByteArray()) + "\"}, \"id\": " + nextId.getAndIncrement() + "}";
+		TendermintBroadcastTxResponse response;
 
-			TendermintBroadcastTxResponse parsedResponse = gson.fromJson(response, TendermintBroadcastTxResponse.class);
-			TxError error = parsedResponse.error;
-			if (error != null)
-				throw new NodeException("Tendermint transaction failed: " + error.message + ": " + error.data);
+		try {
+			response = gson.fromJson(postToTendermint(jsonTendermintRequest), TendermintBroadcastTxResponse.class);
 		}
-		catch (IOException e) {
-			throw new NodeException(e);
+		catch (IOException | JsonSyntaxException e) {
+			LOGGER.log(Level.WARNING, "the Tendermint engine did not provide information about a request", e);
+			throw new NodeException("The Tendermint engine did not provide information about a request", e);
 		}
+
+		if (response == null) {
+			LOGGER.severe("empty response about a request, from the underlying Tendermint engine");
+			throw new NodeException("Empty response about a request, from the underlying Tendermint engine");
+		}
+
+		TxError error = response.error;
+		if (error != null)
+			throw new NodeException("Tendermint transaction failed: " + error.message + ": " + error.data);
 	}
 
-	String getTendermintChainId() {
+	/**
+	 * Yields the chain id of the underlying Tendermint engine.
+	 * 
+	 * @return the chain id
+	 * @throws NodeException if the node is misbehaving
+	 * @throws TimeoutException if the operation could not be completed on time
+	 * @throws InterruptedException if the current thread is interrupted while performing the operation
+	 */
+	String getTendermintChainId() throws NodeException, TimeoutException, InterruptedException {
 		TendermintGenesisResponse response;
 
 		try {
 			response = gson.fromJson(genesis(), TendermintGenesisResponse.class);
 		}
-		catch (IOException | TimeoutException | InterruptedException e) {
-			logger.log(Level.WARNING, "could not determine the Tendermint chain id for this node", e);
-			throw new RuntimeException(e);
+		catch (IOException | JsonSyntaxException e) {
+			LOGGER.log(Level.SEVERE, "the Tendermint engine did not answer a request about its chain id", e);
+			throw new NodeException("The Tendermint engine did not answer a request about its chain id", e);
+		}
+
+		if (response == null) {
+			LOGGER.severe("no chain id in Tendermint response");
+			throw new NodeException("No chain id in Tendermint response");
 		}
 
 		if (response.error != null)
-			throw new RuntimeException(response.error);
+			throw new NodeException(response.error);
 
-		String chainId = response.result.genesis.chain_id;
-		if (chainId == null)
-			throw new RuntimeException("no chain id in Tendermint response");
+		String chainId;
+		if (response.result == null || response.result.genesis == null || (chainId = response.result.genesis.chain_id) == null) {
+			LOGGER.severe("no chain id in Tendermint response");
+			throw new NodeException("No chain id in Tendermint response");
+		}
 
 		return chainId;
 	}
 
 	/**
-	 * Yields the genesis time, in UTC pattern.
+	 * Yields the genesis time of the underlying Tendermint engine, in UTC pattern.
 	 * 
 	 * @return the genesis time, in UTC pattern
+	 * @throws NodeException if the node is misbehaving
+	 * @throws TimeoutException if the operation could not be completed on time
+	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 */
-	String getGenesisTime() {
+	String getGenesisTime() throws NodeException, TimeoutException, InterruptedException {
 		TendermintGenesisResponse response;
 
 		try {
 			response = gson.fromJson(genesis(), TendermintGenesisResponse.class);
 		}
-		catch (IOException | TimeoutException | InterruptedException e) {
-			logger.log(Level.WARNING, "could not determine the Tendermint genesis time for this node", e);
-			throw new RuntimeException("unexpected exception", e);
+		catch (IOException | JsonSyntaxException e) {
+			LOGGER.log(Level.WARNING, "the Tendermint engine did not answer a request about its genesis time", e);
+			throw new NodeException("The Tendermint engine did not answer a request about its genesis time", e);
+		}
+
+		if (response == null) {
+			LOGGER.severe("no genesis time in Tendermint response");
+			throw new NodeException("No genesis time in Tendermint response");
 		}
 
 		if (response.error != null)
-			throw new RuntimeException(response.error);
+			throw new NodeException(response.error);
 
-		String genesisTime = response.result.genesis.genesis_time;
-		if (genesisTime == null)
-			throw new RuntimeException("no genesis time in Tendermint response");
+		String genesisTime;
+		if (response.result == null || response.result.genesis == null || (genesisTime = response.result.genesis.genesis_time) == null) {
+			LOGGER.severe("no genesis time in Tendermint response");
+			throw new NodeException("No genesis time in Tendermint response");
+		}
 
 		return genesisTime;
 	}
@@ -146,60 +179,87 @@ public class TendermintPoster {
 	 * hash of the public key of the node and is used to identify the node as a peer in the network.
 	 * 
 	 * @return the hexadecimal ID of the node
-	 * @throws IOException 
-	 * @throws InterruptedException 
-	 * @throws TimeoutException 
-	 * @throws JsonSyntaxException 
+	 * @throws NodeException if the node is misbehaving
+	 * @throws TimeoutException if the operation could not be completed on time
+	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 */
-	String getNodeID() throws IOException, JsonSyntaxException, TimeoutException, InterruptedException {
-		TendermintStatusResponse response = gson.fromJson(status(), TendermintStatusResponse.class);
+	String getNodeID() throws NodeException, TimeoutException, InterruptedException {
+		TendermintStatusResponse response;
 
-		if (response == null)
-			throw new IOException("null Tendermint status response");
+		try {
+			response = gson.fromJson(status(), TendermintStatusResponse.class);
+		}
+		catch (IOException | JsonSyntaxException e) {
+			LOGGER.log(Level.WARNING, "the Tendermint engine did not answer a request about its identifier", e);
+			throw new NodeException("The Tendermint engine did not answer a request about its identifier", e);
+		}
+
+		if (response == null) {
+			LOGGER.severe("no node identifier in Tendermint response");
+			throw new NodeException("No node identifier in Tendermint response");
+		}
 
 		if (response.error != null)
-			throw new IOException(response.error);
+			throw new NodeException(response.error);
 
-		if (response.result == null)
-			throw new IOException("null Tendermint status result");
-
-		if (response.result.node_info == null)
-			throw new IOException("null Tendermint status node info");
-
-		String id = response.result.node_info.id;
-		if (id == null)
-			throw new IOException("no node ID in Tendermint response");
+		String id;
+		if (response.result == null || response.result.node_info == null || (id = response.result.node_info.id) == null) {
+			LOGGER.severe("no node identifier in Tendermint response");
+			throw new NodeException("No node identifier in Tendermint response");
+		}
 
 		return id;
 	}
 
-	Stream<TendermintValidator> getTendermintValidators() {
-		String jsonResponse;
+	/**
+	 * Yields the information about the validators of the underlying Tendermint engine.
+	 * 
+	 * @return the information
+	 * @throws NodeException if the node is misbehaving
+	 * @throws TimeoutException if the operation could not be completed on time
+	 * @throws InterruptedException if the current thread is interrupted while performing the operation
+	 */
+	TendermintValidator[] getTendermintValidators() throws NodeException, TimeoutException, InterruptedException {
+		TendermintValidatorsResponse response;
 
 		try {
-			// the parameters of the validators() query seem to be ignored, no count nor total is returned
-			jsonResponse = validators(1, 100);
+			response = gson.fromJson(validators(1, 100), TendermintValidatorsResponse.class);
 		}
-		catch (IOException | TimeoutException | InterruptedException e) {
-			logger.log(Level.WARNING, "failed retrieving the validators of this node", e);
-			throw new RuntimeException(e);
-		} 
+		catch (IOException | JsonSyntaxException e) {
+			LOGGER.log(Level.WARNING, "the Tendermint engine did not provide information about its validators", e);
+			throw new NodeException("The Tendermint engine did not provide information about its validators", e);
+		}
 
-		TendermintValidatorsResponse response = gson.fromJson(jsonResponse, TendermintValidatorsResponse.class);
+		if (response == null) {
+			LOGGER.severe("no validators in Tendermint response");
+			throw new NodeException("No validators in Tendermint response");
+		}
+
 		if (response.error != null)
-			throw new RuntimeException(response.error);
+			throw new NodeException(response.error);
 
-		return response.result.validators.stream().map(TendermintPoster::intoTendermintValidator);
+		List<TendermintValidatorPriority> validators;
+		if (response.result == null || (validators = response.result.validators) == null) {
+			LOGGER.severe("no validators in Tendermint response");
+			throw new NodeException("No validators in Tendermint response");
+		}
+
+		TendermintValidator[] result = new TendermintValidator[validators.size()];
+		int pos = 0;
+		for (var validator: validators)
+			result[pos++] = intoTendermintValidator(validator);
+
+		return result;
 	}
 
 	/**
-	 * Opens a http POST connection to the Tendermint process.
+	 * Opens a http POST connection to the underlying Tendermint engine.
 	 * 
 	 * @return the connection
 	 * @throws IOException if the connection cannot be opened
 	 */
 	HttpURLConnection openPostConnectionToTendermint() throws IOException {
-		HttpURLConnection con = (HttpURLConnection) url().openConnection();
+		var con = (HttpURLConnection) url().openConnection();
 		con.setRequestMethod("POST");
 		con.setRequestProperty("Content-Type", "application/json; UTF-8");
 		con.setRequestProperty("Accept", "application/json");
@@ -218,17 +278,11 @@ public class TendermintPoster {
 		return URI.create("http://127.0.0.1:" + tendermintPort).toURL();
 	}
 
-	private static TendermintValidator intoTendermintValidator(TendermintValidatorPriority validatorPriority) {
-		if (validatorPriority.address == null)
-			throw new RuntimeException("unexpected null address in Tendermint validator");
-		else if (validatorPriority.voting_power <= 0L)
-			throw new RuntimeException("unexpected non-positive voting power in Tendermint validator");
-		else if (validatorPriority.pub_key.value == null)
-			throw new RuntimeException("unexpected null public key for Tendermint validator");
-		else if (validatorPriority.pub_key.type == null)
-			throw new RuntimeException("unexpected null public key type for Tendermint validator");
+	private static TendermintValidator intoTendermintValidator(TendermintValidatorPriority validatorPriority) throws NodeException {
+		if (validatorPriority.pub_key == null)
+			throw new NodeException("null pub_key in Tendermint validator information");
 		else
-			return new TendermintValidator(validatorPriority.address, validatorPriority.voting_power, validatorPriority.pub_key.value, validatorPriority.pub_key.type);
+			return new TendermintValidator(validatorPriority.address, validatorPriority.voting_power, validatorPriority.pub_key.value, validatorPriority.pub_key.type, NodeException::new);
 	}
 
 	/**
@@ -319,6 +373,7 @@ public class TendermintPoster {
 				return;
 			}
 			catch (ConnectException e) {
+				System.out.println("!!!!!!!!!!!!!!!!!");
 				// not sure why this happens, randomly. It seems that the connection to the Tendermint process is flaky
 				Thread.sleep(config.getPingDelay());
 			}

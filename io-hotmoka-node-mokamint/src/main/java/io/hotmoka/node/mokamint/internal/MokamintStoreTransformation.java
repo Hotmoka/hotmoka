@@ -124,11 +124,12 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 			response = deliverTransaction(request);
 		}
 		catch (TransactionRejectedException e) {
-			throw new StoreException("The transaction for rewarding the node that created the new block failed", e);
+			LOGGER.log(Level.SEVERE, "the coinbase transaction for rewarding the node that created the new block has been rejected", e);
+			throw new StoreException("The coinbase transaction for rewarding the node that created the new block has been rejected", e);
 		}
 
 		if (response instanceof MethodCallTransactionFailedResponse responseAsFailed)
-			LOGGER.log(Level.SEVERE, "coinbase: could not reward the node: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
+			LOGGER.severe("coinbase: the coinbase transaction to reward the node that created the new block failed: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
 		else {
 			LOGGER.info("coinbase: units of coin minted since the previous reward: " + minted);
 			BigInteger rewardForMiner = reward.subtract(rewardForNode);
@@ -145,11 +146,12 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 				response = deliverTransaction(request);
 			}
 			catch (TransactionRejectedException e) {
-				throw new StoreException("The transaction for rewarding the miner that provided the deadline in the new block failed", e);
+				LOGGER.log(Level.SEVERE, "the coinbase transaction for rewarding the miner that provided the deadline in the new block has been rejected", e);
+				throw new StoreException("The coinbase transaction for rewarding the miner that provided the deadline in the new block has been rejected", e);
 			}
 
 			if (response instanceof MethodCallTransactionFailedResponse responseAsFailed)
-				LOGGER.log(Level.SEVERE, "coinbase: could not reward the miner: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
+				LOGGER.severe("coinbase: the coinbase transaction to reward the miner that provided the deadline in the new block failed: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
 		}
 	}
 }

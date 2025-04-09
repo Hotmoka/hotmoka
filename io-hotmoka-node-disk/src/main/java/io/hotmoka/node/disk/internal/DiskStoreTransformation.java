@@ -112,11 +112,12 @@ public class DiskStoreTransformation extends AbstractStoreTransformation<DiskNod
 				response = deliverTransaction(request);
 		}
 		catch (TransactionRejectedException e) {
-			throw new StoreException("Could not perform the coinbase transaction", e);
+			LOGGER.log(Level.SEVERE, "the coinbase transaction has been rejected", e);
+			throw new StoreException("The coinbase transaction has been rejected", e);
 		}
 
 		if (response instanceof MethodCallTransactionFailedResponse responseAsFailed)
-			LOGGER.log(Level.SEVERE, "coinbase: could not perform transaction: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
+			LOGGER.severe("coinbase: the coinbase transaction failed: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
 		else
 			LOGGER.info("coinbase: units of coin minted since the previous reward: " + minted);
 	}

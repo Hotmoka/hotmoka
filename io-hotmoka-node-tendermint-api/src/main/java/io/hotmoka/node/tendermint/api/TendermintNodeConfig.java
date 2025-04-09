@@ -44,12 +44,12 @@ public interface TendermintNodeConfig extends LocalNodeConfig<TendermintNodeConf
 	 * 
 	 * @return the maximal number of connection attempts
 	 */
-	long getMaxPingAttempts();
+	int getMaxPingAttempts();
 
 	/**
 	 * Yields the delay between two successive ping attempts, in milliseconds.
 	 * 
 	 * @return the delay between two successive ping attempts
 	 */
-	long getPingDelay();
+	int getPingDelay();
 }

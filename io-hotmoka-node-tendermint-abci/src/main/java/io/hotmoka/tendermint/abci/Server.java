@@ -48,7 +48,7 @@ public class Server {
 	/**
 	 * Checks if the server is shutdown.
 	 * 
-	 * @return true if and only if that conditoin holds
+	 * @return true if and only if that condition holds
 	 */
 	public boolean isShutdown() {
 		return server.isShutdown();

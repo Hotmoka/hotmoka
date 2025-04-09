@@ -23,6 +23,8 @@ limitations under the License.
 
 package io.hotmoka.tendermint.abci;
 
+import java.util.concurrent.TimeoutException;
+
 import io.grpc.stub.StreamObserver;
 import io.hotmoka.node.api.NodeException;
 import tendermint.abci.ABCIApplicationGrpc;
@@ -87,8 +89,12 @@ public abstract class ABCI {
 				responseObserver.onNext(ABCI.this.info(request));
 				responseObserver.onCompleted();
 			}
-			catch (NodeException e) {
-				responseObserver.onError(e); // TODO: do the same for the other methods of the ABCI
+			catch (NodeException | TimeoutException e) {
+				responseObserver.onError(e);
+			}
+			catch (InterruptedException e) {
+				responseObserver.onError(e);
+				Thread.currentThread().interrupt();
 			}
 	    }
 
@@ -100,8 +106,17 @@ public abstract class ABCI {
 
 		@Override
 	    public final void beginBlock(RequestBeginBlock request, StreamObserver<ResponseBeginBlock> responseObserver) {
-	        responseObserver.onNext(ABCI.this.beginBlock(request));
-	        responseObserver.onCompleted();
+			try {
+				responseObserver.onNext(ABCI.this.beginBlock(request));
+				responseObserver.onCompleted();
+			}
+			catch (NodeException | TimeoutException e) {
+				responseObserver.onError(e);
+			}
+			catch (InterruptedException e) {
+				responseObserver.onError(e);
+				Thread.currentThread().interrupt();
+			}
 	    }
 
 		@Override
@@ -162,8 +177,10 @@ public abstract class ABCI {
 	 * @param request the request
 	 * @return the response
 	 * @throws NodeException if the node is not able to complete the operation correctly
+	 * @throws TimeoutException if the operation did not complete on time
+	 * @throws InterruptedException if the current thread gets interrupted before completing the operation
 	 */
-	protected abstract ResponseInfo info(RequestInfo request) throws NodeException;
+	protected abstract ResponseInfo info(RequestInfo request) throws NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Executes a preliminary check about the validity of a transaction request.
@@ -178,8 +195,11 @@ public abstract class ABCI {
 	 * 
 	 * @param request the request
 	 * @return the response
+	 * @throws NodeException if the node is not able to complete the operation correctly
+	 * @throws TimeoutException if the operation did not complete on time
+	 * @throws InterruptedException if the current thread gets interrupted before completing the operation
 	 */
-	protected abstract ResponseBeginBlock beginBlock(RequestBeginBlock request);
+	protected abstract ResponseBeginBlock beginBlock(RequestBeginBlock request) throws NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Executes a transaction request.

@@ -117,7 +117,7 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 
 	private static InitializedNode mkParent(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, Path takamakaCode) throws NodeException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException {
 		var tendermintConfigFile = new TendermintConfigFile(parent.getLocalConfig());
-		var poster = new TendermintPoster(parent.getLocalConfig(), tendermintConfigFile.tendermintPort);
+		var poster = new TendermintPoster(parent.getLocalConfig(), tendermintConfigFile.getTendermintPort());
 
 		// we modify the consensus parameters, by setting the chain identifier and the genesis time to that of the underlying Tendermint network
 		consensus = consensus.toBuilder()
@@ -132,7 +132,7 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 
 	private static InitializedNode mkParent(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStationBuilder, Path takamakaCode) throws NodeException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException {
 		var tendermintConfigFile = new TendermintConfigFile(parent.getLocalConfig());
-		var poster = new TendermintPoster(parent.getLocalConfig(), tendermintConfigFile.tendermintPort);
+		var poster = new TendermintPoster(parent.getLocalConfig(), tendermintConfigFile.getTendermintPort());
 
 		// we modify the consensus parameters, by setting the chain identifier and the genesis time to that of the underlying Tendermint network
 		consensus = consensus.toBuilder()
@@ -155,7 +155,7 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 		try {
 			nonceOfGamete = node.runInstanceMethodCallTransaction(getNonceRequest)
 				.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
-				.asBigInteger(value -> new NodeException(MethodSignatures.NONCE + " should return a BigInteger, not a " + value.getClass().getName()));
+				.asReturnedBigInteger(MethodSignatures.NONCE, NodeException::new);
 		}
 		catch (CodeExecutionException | TransactionException e) {
 			// this run call cannot fail for the gamete, unless the node is corrupted
@@ -163,7 +163,7 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 		}
 
 		// we create validators corresponding to those declared in the configuration file of the Tendermint node
-		var tendermintValidators = poster.getTendermintValidators().toArray(TendermintValidator[]::new);
+		var tendermintValidators = poster.getTendermintValidators();
 
 		// we create the builder of the validators
 		var _200_000 = BigInteger.valueOf(200_000);

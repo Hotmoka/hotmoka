@@ -33,7 +33,6 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.google.gson.JsonSyntaxException;
 import com.google.protobuf.ByteString;
 
 import io.hotmoka.annotations.ThreadSafe;
@@ -156,12 +155,12 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 				checkOutRootBranch();
 
 			var tendermintConfigFile = new TendermintConfigFile(config);
-			this.poster = new TendermintPoster(config, tendermintConfigFile.tendermintPort);
-			this.abci = new Server(tendermintConfigFile.abciPort, new TendermintApplication());
+			this.poster = new TendermintPoster(config, tendermintConfigFile.getTendermintPort());
+			this.abci = new Server(tendermintConfigFile.getAbciPort(), new TendermintApplication());
 			this.abci.start();
-			LOGGER.info("Tendermint ABCI started at port " + tendermintConfigFile.abciPort);
+			LOGGER.info("Tendermint ABCI started at port " + tendermintConfigFile.getAbciPort());
 			this.tendermint = new Tendermint(config);
-			LOGGER.info("Tendermint started at port " + tendermintConfigFile.tendermintPort);
+			LOGGER.info("Tendermint started at port " + tendermintConfigFile.getTendermintPort());
 		}
 		catch (IOException | TimeoutException e) {
 			LOGGER.log(Level.SEVERE, "the creation of the Tendermint node failed. Is Tendermint installed?", e);
@@ -174,9 +173,6 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	public NodeInfo getInfo() throws NodeException, TimeoutException, InterruptedException {
 		try (var scope = mkScope()) {
 			return NodeInfos.of(TendermintNode.class.getName(), HOTMOKA_VERSION, poster.getNodeID());
-		}
-		catch (JsonSyntaxException | IOException e) {
-			throw new NodeException(e);
 		}
 	}
 
@@ -440,11 +436,11 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 			try {
 				close();
 			}
-			catch (Exception e) {
+			catch (IOException e) {
 				LOGGER.log(Level.SEVERE, "cannot close the Tendermint process", e);
 			}
 	
-			throw new TimeoutException("Cannot connect to Tendermint process at " + poster.url() + ". Tried " + config.getMaxPingAttempts() + " times");
+			throw new TimeoutException("Cannot connect to the Tendermint process at " + poster.url() + ". Tried " + config.getMaxPingAttempts() + " times");
 		}
 	}
 
@@ -513,9 +509,6 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		}
 
 		private static void removeCurrentValidatorsThatAreNotNextValidators(TendermintValidator[] currentValidators, TendermintValidator[] nextValidators, ResponseEndBlock.Builder builder) {
-			/*String current = Stream.of(currentValidators).map(validator -> validator.address).collect(Collectors.joining(",", "[", "]"));
-			String next = Stream.of(nextValidators).map(validator -> validator.address).collect(Collectors.joining(",", "[", "]"));
-			LOGGER.info("validators remove: " + current + " -> " + next);*/
 			Stream.of(currentValidators)
 				.filter(validator -> isNotContained(validator.address, nextValidators))
 				.forEachOrdered(validator -> removeValidator(validator, builder));
@@ -605,11 +598,12 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 
 		@Override
 		protected ResponseCheckTx checkTx(RequestCheckTx request) {
+			// nothing to check in Hotmoka
 	        return ResponseCheckTx.newBuilder().build();
 		}
 
 		@Override
-		protected ResponseBeginBlock beginBlock(RequestBeginBlock request) {
+		protected ResponseBeginBlock beginBlock(RequestBeginBlock request) throws NodeException, TimeoutException, InterruptedException {
 			behaving = spaceSeparatedSequenceOfBehavingValidatorsAddresses(request);
 	    	misbehaving = spaceSeparatedSequenceOfMisbehavingValidatorsAddresses(request);
 
@@ -617,12 +611,12 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	    		transformation = storeOfHead.beginTransformation(timeOfBlock(request));
 	    	}
 	    	catch (StoreException e) {
-	    		throw new RuntimeException(e); // TODO
+	    		throw new NodeException(e);
 	    	}
 
 	    	// the ABCI might start too early, before the Tendermint process is up
 	        if (validatorsAtPreviousBlock == null)
-	        	validatorsAtPreviousBlock = poster.getTendermintValidators().toArray(TendermintValidator[]::new);
+	        	validatorsAtPreviousBlock = poster.getTendermintValidators();
 
 	        return ResponseBeginBlock.newBuilder().build();
 		}
@@ -701,7 +695,6 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 				throw new NodeException(e);
 			}
 			catch (InterruptedException e) {
-				LOGGER.log(Level.WARNING, "commit interrupted", e);
 				Thread.currentThread().interrupt();
 				throw new NodeException(e);
 			}

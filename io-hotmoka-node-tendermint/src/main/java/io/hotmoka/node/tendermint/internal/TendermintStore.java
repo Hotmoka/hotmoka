@@ -53,7 +53,7 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
     }
 
     /**
-	 * Creates a clone of a store, up to cache and roots.
+	 * Creates a clone of a store, up to cache and state identifier.
 	 * 
 	 * @param toClone the store to clone
 	 * @param cache to caches to use in the cloned store
@@ -68,7 +68,7 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
 	}
 
 	/**
-	 * Creates a clone of a store, up to cache.
+	 * Creates a clone of a store, up to its cache.
 	 * 
 	 * @param toClone the store to clone
 	 * @param cache the cache to use in the cloned store

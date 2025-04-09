@@ -16,15 +16,11 @@ limitations under the License.
 
 package io.hotmoka.node.tendermint.internal;
 
-import static io.hotmoka.exceptions.CheckSupplier.check;
-import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
-
 import java.math.BigInteger;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
@@ -68,6 +64,7 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 	 * @param consensus the consensus to use for the execution of transactions in the transformation
 	 * @param now the current time to use for the execution of transactions in the transformation
 	 * @param validators the Tendermint validators at the beginning of the transformation
+	 * @throws StoreException if the store is misbehaving
 	 */
 	protected TendermintStoreTransformation(TendermintStore store, ConsensusConfig<?,?> consensus, long now, Optional<TendermintValidator[]> validators) throws StoreException {
 		super(store, consensus, now);
@@ -150,11 +147,12 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 				response = deliverTransaction(request);
 		}
 		catch (TransactionRejectedException e) {
-			throw new StoreException("Could not perform the coinbase transactions", e);
+			LOGGER.log(Level.SEVERE, "the coinbase transaction has been rejected", e);
+			throw new StoreException("The coinbase transaction has been rejected", e);
 		}
 
 		if (response instanceof MethodCallTransactionFailedResponse responseAsFailed)
-			LOGGER.log(Level.SEVERE, "coinbase: could not reward the validators: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
+			LOGGER.severe("coinbase: the coinbase transaction failed: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
 		else {
 			LOGGER.info("coinbase: units of coin minted since the previous reward: " + minted);
 			LOGGER.info("coinbase: units of coin rewarded to the validators for their work since the previous reward: " + reward);
@@ -200,7 +198,7 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 						.asReturnedBigInteger(MethodSignatures.STORAGE_MAP_VIEW_GET, StoreException::new)
 						.longValueExact();
 
-				result[num] = new TendermintValidator(id, power, getPublicKey(validator), "tendermint/PubKeyEd25519");
+				result[num] = new TendermintValidator(id, power, getPublicKey(validator), "tendermint/PubKeyEd25519", StoreException::new);
 			}
 
 			this.validators = Optional.of(result);
@@ -222,16 +220,16 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 		if (response instanceof InitializationTransactionResponse)
 			return true;
 		// we check if there are events of type ValidatorsUpdate triggered by the validators
-		else if (response instanceof TransactionResponseWithEvents trwe && trwe.getEvents().findAny().isPresent()) {
+		else if (response instanceof TransactionResponseWithEvents trwe && trwe.hasEvents()) {
 			Optional<StorageReference> maybeManifest = getManifest();
 
 			if (maybeManifest.isPresent()) {
 				StorageReference validators = getValidators().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
 
-				return check(StoreException.class, () ->
-					trwe.getEvents().filter(uncheck(StoreException.class, event -> isValidatorsUpdateEvent(event, classLoader)))
-						.map(UncheckFunction.uncheck(StoreException.class, this::getCreatorOfEvent))
-						.anyMatch(validators::equals));
+				var events = trwe.getEvents().toArray(StorageReference[]::new);
+				for (var event: events)
+					if (isValidatorsUpdateEvent(event, classLoader) && validators.equals(getCreatorOfEvent(event)))
+						return true;
 			}
 		}
 
