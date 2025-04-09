@@ -15,8 +15,8 @@ limitations under the License.
 */
 
 /**
- * This module implements Hotmoka nodes that store their data on the disk.
- * They do not form a blockchain network, since there is no synchronization nor mining.
+ * This module implements Hotmoka nodes that store their data on disk.
+ * They do not form a blockchain network, since there is no networking nor mining.
  */
 module io.hotmoka.node.disk {
 	exports io.hotmoka.node.disk;
@@ -25,8 +25,6 @@ module io.hotmoka.node.disk {
 	requires io.hotmoka.node;
 	requires io.hotmoka.annotations;
 	requires io.hotmoka.node.local;
-	requires io.hotmoka.crypto;
-	requires io.hotmoka.exceptions;
 	requires toml4j;
 	requires java.logging;
 }

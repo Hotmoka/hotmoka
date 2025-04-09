@@ -31,7 +31,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
@@ -46,7 +45,7 @@ import io.hotmoka.node.local.api.StoreException;
 /**
  * The store of a disk blockchain. It is not transactional and just writes
  * everything immediately into files. It keeps requests and responses into
- * persistent memory, while the histories are kept in RAM.
+ * persistent memory, while object histories are kept in RAM.
  */
 @Immutable
 class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, DiskStoreTransformation> {
@@ -97,20 +96,16 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
 	private final int height;
 
 	/**
-     * Creates an empty disk store for a node, with empyt caches.
+     * Creates an empty disk store for a node, with empty caches.
 	 * 
 	 * @param node the node for which the store is created
+	 * @param dir the path where the blocks of the node must be saved on disk
 	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-    DiskStore(DiskNodeImpl node) throws StoreException {
+    DiskStore(DiskNodeImpl node, Path dir) throws StoreException {
     	super(node);
 
-    	try {
-    		this.dir = node.getLocalConfig().getDir().resolve("hotmoka").resolve("store");
-    	}
-    	catch (NodeException e) {
-    		throw new StoreException(e);
-    	}
+    	this.dir = dir;
     	this.previousForRequests = Optional.empty();
     	this.previousForResponses = Optional.empty();
     	this.previousForHistories = Optional.empty();
@@ -208,6 +203,15 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
     }
 
     @Override
+	public TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException {
+		var request = deltaRequests.get(reference);
+		if (request != null)
+			return request;
+		else
+			return previousForRequests.orElseThrow(() -> new UnknownReferenceException(reference)).getRequest(reference);
+	}
+
+	@Override
     public TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException {
     	var response = deltaResponses.get(reference);
     	if (response != null)
@@ -228,15 +232,6 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
 	@Override
 	public Optional<StorageReference> getManifest() {
 		return manifest;
-	}
-
-	@Override
-	public TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException {
-		var request = deltaRequests.get(reference);
-    	if (request != null)
-    		return request;
-    	else
-    		return previousForRequests.orElseThrow(() -> new UnknownReferenceException(reference)).getRequest(reference);
 	}
 
 	@Override

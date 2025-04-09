@@ -6,7 +6,7 @@
   <packaging>jar</packaging>
   <name>io-hotmoka-node-disk</name>
   <version>${hotmoka.version}</version>
-  <description>This module implements Hotmoka nodes that store their data on the disk. They do not form a blockchain network, since there is no synchronization nor mining.</description>
+  <description> This module implements Hotmoka nodes that store their data on disk. They do not form a blockchain network, since there is no networking nor mining.</description>
 
   <parent>
     <groupId>io.hotmoka</groupId>
@@ -22,18 +22,13 @@
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-node-api</artifactId>
+      <artifactId>io-hotmoka-node</artifactId>
       <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-node-local</artifactId>
       <version>${hotmoka.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.hotmoka</groupId>
-      <artifactId>io-takamaka-code-constants</artifactId>
-      <version>${io.takamaka.code.version}</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka.annotations</groupId>

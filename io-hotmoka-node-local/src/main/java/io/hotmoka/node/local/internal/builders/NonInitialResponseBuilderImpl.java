@@ -376,8 +376,8 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * @throws TransactionRejectedException if the nonce of the caller is not equal to that in {@code request}
 		 */
 		private void callerAndRequestMustAgreeOnNonce() throws TransactionRejectedException, StoreException {
-			// calls to @View methods do not check the nonce
-			if (!isView()) {
+			// calls to @View methods or system calls do not check the nonce
+			if (!isView() && !isSystemCall()) {
 				BigInteger expected;
 
 				try {

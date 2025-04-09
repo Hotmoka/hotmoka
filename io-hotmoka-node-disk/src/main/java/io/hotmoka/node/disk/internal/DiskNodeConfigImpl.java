@@ -127,7 +127,11 @@ public class DiskNodeConfigImpl extends AbstractLocalNodeConfig<DiskNodeConfig, 
 
 		@Override
 		public DiskNodeConfigBuilder setTransactionsPerBlock(int transactionsPerBlock) {
-			return setTransactionsPerBlock((long) transactionsPerBlock);
+			if (transactionsPerBlock <= 0L)
+				throw new IllegalArgumentException("transactionsPerBlock cannot be negative");
+
+			this.transactionsPerBlock = transactionsPerBlock;
+			return getThis();
 		}
 
 		private DiskNodeConfigBuilder setTransactionsPerBlock(long transactionsPerBlock) {

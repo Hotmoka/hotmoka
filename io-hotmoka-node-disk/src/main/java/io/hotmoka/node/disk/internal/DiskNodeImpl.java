@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.disk.internal;
 
+import java.nio.file.Path;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
@@ -55,16 +56,21 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 	private volatile DiskStore storeOfHead;
 
 	/**
+	 * The path where the blocks of this node are saved on disk.
+	 */
+	private final Path storePath;
+
+	/**
 	 * Builds a new disk memory node.
 	 * 
 	 * @param config the configuration of the node
 	 * @throws NodeException if the operation cannot be completed correctly
-	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 */
-	public DiskNodeImpl(DiskNodeConfig config) throws NodeException, InterruptedException {
+	public DiskNodeImpl(DiskNodeConfig config) throws NodeException {
 		super(config, true);
 
 		try {
+			this.storePath = getLocalConfig().getDir().resolve("hotmoka").resolve("store");
 			this.storeOfHead = mkEmptyStore();
 			this.mempool = new Mempool();
 		}
@@ -84,7 +90,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 	@Override
 	protected DiskStore mkEmptyStore() throws NodeException {
 		try {
-			return new DiskStore(this);
+			return new DiskStore(this, storePath);
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);
@@ -121,25 +127,18 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 		private final static Logger LOGGER = Logger.getLogger(Mempool.class.getName());
 
 		/**
-		 * The queue of requests to check.
+		 * The queue of requests to deliver.
 		 */
 		private final BlockingQueue<TransactionRequest<?>> mempool = new LinkedBlockingDeque<>(MAX_CAPACITY);
 
 		/**
-		 * The queue of the already checked requests, that still need to be executed.
-		 */
-		private final BlockingQueue<TransactionRequest<?>> checkedMempool = new LinkedBlockingDeque<>(MAX_CAPACITY);
-
-		/**
-		 * The thread that checks requests when they are submitted.
-		 */
-		private final Thread checker;
-
-		/**
-		 * The thread the execution requests that have already been checked.
+		 * The thread that executes requests that have already been checked.
 		 */
 		private final Thread deliverer;
 
+		/**
+		 * The maximal number of transactions to fit in a block.
+		 */
 		private final int transactionsPerBlock;
 	
 		/**
@@ -147,8 +146,6 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 		 */
 		private Mempool() throws NodeException {
 			this.transactionsPerBlock = getLocalConfig().getTransactionsPerBlock();
-			this.checker = new Thread(this::check);
-			this.checker.start();
 			this.deliverer = new Thread(this::deliver);
 			this.deliverer.start();
 		}
@@ -166,36 +163,10 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 		}
 
 		/**
-		 * Stops the mempool, by stopping its working threads.
+		 * Stops the mempool, by stopping its working thread.
 		 */
 		private void stop() {
-			checker.interrupt();
 			deliverer.interrupt();
-		}
-
-		/**
-		 * The body of the checking thread. Its pops a request from the mempool and checks it.
-		 */
-		private void check() {
-			try {
-				while (true) {
-					TransactionRequest<?> current = mempool.take();
-
-					if (!checkedMempool.offer(current)) {
-						deliverer.interrupt();
-						throw new NodeException("Mempool overflow");
-					}
-				}
-			}
-			catch (NodeException e) {
-				LOGGER.log(Level.SEVERE, "transaction check failure", e);
-			}
-			catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-			}
-			catch (RuntimeException e) {
-				LOGGER.log(Level.SEVERE, "Unexpected exception", e);
-			}
 		}
 
 		/**
@@ -206,8 +177,10 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 				DiskStoreTransformation transaction = storeOfHead.beginTransformation(System.currentTimeMillis());
 
 				while (true) {
-					TransactionRequest<?> current = checkedMempool.poll(2, TimeUnit.MILLISECONDS);
+					TransactionRequest<?> current = mempool.poll(2, TimeUnit.MILLISECONDS);
 					if (current == null)
+						// if no request is available, we create a block, which increases the timestamp of the topmost block:
+						// this simulates the passing of the time
 						transaction = restartTransaction(transaction);
 					else {
 						try {
@@ -228,11 +201,17 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 			}
-			catch (RuntimeException e) {
-				LOGGER.log(Level.SEVERE, "Unexpected exception", e);
-			}
 		}
 
+		/**
+		 * Creates a block with all transactions executed since the last block, including the coinbase
+		 * transaction, and restarts a new store transformation for the next block.
+		 * 
+		 * @param transformation the store transformation containing all executed transactions since the last block
+		 * @return a new store transformation, where the subsequent transactions can be accumulated
+		 * @throws NodeException if the node is misbehaving
+		 * @throws InterruptedException if the current thread is interrupted while the coinbase transaction is executing
+		 */
 		private DiskStoreTransformation restartTransaction(DiskStoreTransformation transformation) throws NodeException, InterruptedException {
 			try {
 				// if we delivered zero transactions, we prefer to avoid the creation of an empty block

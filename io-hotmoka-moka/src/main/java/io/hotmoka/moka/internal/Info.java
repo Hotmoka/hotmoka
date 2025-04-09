@@ -33,7 +33,7 @@ public class Info extends AbstractCommand {
 
 	@Override
 	protected void execute() throws Exception {
-		try (var node = RemoteNodes.of(uri, 10_000)) {
+		try (var node = RemoteNodes.of(uri, 100_000)) {
 			System.out.println("\nInfo about the node:\n" + ManifestHelpers.of(node));
 		}
 	}
