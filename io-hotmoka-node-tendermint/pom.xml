@@ -19,7 +19,7 @@
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-node-tendermint-api</artifactId>
       <version>${hotmoka.version}</version>
-    </dependency>
+    </dependency>    
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-node-tendermint-abci</artifactId>
@@ -45,20 +45,20 @@
       <artifactId>io-hotmoka-node-local</artifactId>
       <version>${hotmoka.version}</version>
     </dependency>
-    <dependency>
+	<dependency>
       <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-helpers-api</artifactId>
-      <version>${hotmoka.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-node-api</artifactId>
+      <artifactId>io-hotmoka-node</artifactId>
       <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka.exceptions</groupId>
       <artifactId>io-hotmoka-exceptions</artifactId>
       <version>${io.hotmoka.exceptions.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka.crypto</groupId>
+      <artifactId>io-hotmoka-crypto</artifactId>
+      <version>${io.hotmoka.crypto.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.protobuf</groupId>

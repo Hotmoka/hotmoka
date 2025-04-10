@@ -121,8 +121,17 @@ public abstract class ABCI {
 
 		@Override
 	    public final void deliverTx(RequestDeliverTx request, StreamObserver<ResponseDeliverTx> responseObserver) {
-	        responseObserver.onNext(ABCI.this.deliverTx(request));
-	        responseObserver.onCompleted();
+			try {
+				responseObserver.onNext(ABCI.this.deliverTx(request));
+				responseObserver.onCompleted();
+			}
+			catch (NodeException e) {
+				responseObserver.onError(e);
+			}
+			catch (InterruptedException e) {
+				responseObserver.onError(e);
+				Thread.currentThread().interrupt();
+			}
 	    }
 
 		@Override
@@ -139,6 +148,10 @@ public abstract class ABCI {
 			}
 			catch (NodeException e) {
 				responseObserver.onError(e);
+			}
+			catch (InterruptedException e) {
+				responseObserver.onError(e);
+				Thread.currentThread().interrupt();
 			}
 	    }
 
@@ -206,8 +219,10 @@ public abstract class ABCI {
 	 * 
 	 * @param request the request
 	 * @return the response
+	 * @throws NodeException if the node is not able to complete the operation correctly
+	 * @throws InterruptedException if the current thread gets interrupted before completing the operation
 	 */
-	protected abstract ResponseDeliverTx deliverTx(RequestDeliverTx request);
+	protected abstract ResponseDeliverTx deliverTx(RequestDeliverTx request) throws NodeException, InterruptedException;
 
 	/**
 	 * Called when the construction of a block ends.
@@ -223,8 +238,9 @@ public abstract class ABCI {
 	 * @param request the request
 	 * @return the response
 	 * @throws NodeException if the node is not able to complete the operation correctly
+	 * @throws InterruptedException if the current thread gets interrupted before completing the operation
 	 */
-	protected abstract ResponseCommit commit(RequestCommit request) throws NodeException;
+	protected abstract ResponseCommit commit(RequestCommit request) throws NodeException, InterruptedException;
 
 	/**
 	 * Executes a query request.

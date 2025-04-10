@@ -18,6 +18,7 @@ package io.hotmoka.node.tendermint.internal;
 
 import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.exceptions.Objects;
+import io.hotmoka.crypto.Base64;
 
 /**
  * The description of a validator of a Tendermint network.
@@ -37,7 +38,12 @@ public final class TendermintValidator {
 	/**
 	 * The public key of the validator.
 	 */
-	public final String publicKey;
+	private final String publicKey;
+
+	/**
+	 * The public key of the validator, encoded as an array of bytes.
+	 */
+	private final byte[] publicKeyEncoded;
 
 	/**
 	 * The type of public key of the validator.
@@ -59,6 +65,7 @@ public final class TendermintValidator {
 		this.address = Objects.requireNonNull(address, "address cannot be null", ifIllegal).toUpperCase();
 		this.power = power;
 		this.publicKey = Objects.requireNonNull(publicKey, "publicKey cannot be null", ifIllegal);
+		this.publicKeyEncoded = Base64.fromBase64String(publicKey, ifIllegal);
 		this.publicKeyType = Objects.requireNonNull(publicKeyType, "publicKeyType cannot be null", ifIllegal);
 
 		if (address.contains(" "))
@@ -72,6 +79,15 @@ public final class TendermintValidator {
 
 		if (publicKeyType.contains(" "))
 			ifIllegal.apply("The public key type of a validator cannot contain spaces");	
+	}
+
+	/**
+	 * Yields the public key of the validator, as an array of bytes.
+	 * 
+	 * @return the public key of the validator, as an array of bytes
+	 */
+	public byte[] getPubliKeyEncoded() {
+		return publicKeyEncoded.clone();
 	}
 
 	@Override

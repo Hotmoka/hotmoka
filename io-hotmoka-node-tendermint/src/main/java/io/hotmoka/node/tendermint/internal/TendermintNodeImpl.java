@@ -36,11 +36,7 @@ import java.util.stream.Stream;
 import com.google.protobuf.ByteString;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.crypto.Base64;
-import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.Hex;
-import io.hotmoka.exceptions.CheckSupplier;
-import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.TransactionRequests;
@@ -98,12 +94,12 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	private final static Logger LOGGER = Logger.getLogger(TendermintNodeImpl.class.getName());
 
 	/**
-	 * The key used inside {@link #storeOfNode} to keep the height of the head of this node.
+	 * The key used inside {@link #storeOfHead} to keep the height of the head of this node.
 	 */
 	private final static ByteIterable HEIGHT = ByteIterable.fromBytes("height".getBytes());
 
 	/**
-	 * The key used inside {@link #storeOfNode} to keep the root of the store of this node.
+	 * The key used inside {@link #storeOfHead} to keep the root of the store of this node.
 	 */
 	private final static ByteIterable ROOT = ByteIterable.fromBytes("root".getBytes());
 
@@ -224,7 +220,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	private void checkOutRootBranch() throws NodeException, InterruptedException {
 		try {
 			var root = getEnvironment().computeInTransaction(txn -> Optional.ofNullable(getStoreOfNode().get(txn, ROOT)).map(ByteIterable::getBytes))
-				.orElseThrow(() -> new NodeException("Cannot find the root of the saved store of the node"));
+				.orElseThrow(() -> new NodeException("Cannot find the root of the store of the node"));
 
 			storeOfHead = mkStore(StateIds.of(root), Optional.empty());
 		}
@@ -274,6 +270,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	private void closeABCI() {
 		if (abci != null && !abci.isShutdown()) {
 			abci.shutdown();
+
 			try {
 				abci.awaitTermination();
 			}
@@ -325,6 +322,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	 * 
 	 * @param config the configuration of the node
 	 * @throws NodeException 
+	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 */
 	private void initWorkingDirectoryOfTendermintProcess(TendermintNodeConfig config) throws InterruptedException, NodeException {
 		Optional<Path> tendermintConfigurationToClone = config.getTendermintConfigurationToClone();
@@ -385,6 +383,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 
 			try {
 				process.waitFor();
+
 				if (isWindows)
 					// this seems important under Windows
 					try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
@@ -450,16 +449,20 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	 */
 	private class TendermintApplication extends ABCI {
 
-		private final static Logger LOGGER = Logger.getLogger(TendermintApplication.class.getName());
-
 		/**
 		 * The Tendermint validators at the time of the last {@link #beginBlock(RequestBeginBlock, StreamObserver)}
 		 * that has been executed.
 		 */
 		private volatile TendermintValidator[] validatorsAtPreviousBlock;
 
+		/**
+		 * The space-separated behaving validators of the last block.
+		 */
 		private volatile String behaving;
 
+		/**
+		 * The space-separated misbehaving validators of the last block.
+		 */
 		private volatile String misbehaving;
 
 		/**
@@ -530,15 +533,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	    }
 
 	    private static ValidatorUpdate intoValidatorUpdate(TendermintValidator validator, long newPower) {
-	    	byte[] raw;
-
-	    	try {
-	    		raw = Base64.fromBase64String(validator.publicKey);
-	    	}
-	    	catch (Base64ConversionException e) {
-	    		throw new RuntimeException(e); // TODO
-	    	}
-	    	PublicKey publicKey = PublicKey.newBuilder().setEd25519(ByteString.copyFrom(raw)).build();
+	    	PublicKey publicKey = PublicKey.newBuilder().setEd25519(ByteString.copyFrom(validator.getPubliKeyEncoded())).build();
 
 	    	return ValidatorUpdate.newBuilder()
 	    		.setPubKey(publicKey)
@@ -580,7 +575,6 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 
 		@Override
 		protected ResponseInitChain initChain(RequestInitChain request) {
-			request.getInitialHeight();
 			return ResponseInitChain.newBuilder().build();
 		}
 
@@ -622,12 +616,13 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		}
 
 		@Override
-		protected ResponseDeliverTx deliverTx(RequestDeliverTx request) {
-			var tx = request.getTx();
+		protected ResponseDeliverTx deliverTx(RequestDeliverTx request) throws NodeException, InterruptedException {
 	        ResponseDeliverTx.Builder responseBuilder = ResponseDeliverTx.newBuilder();
 
-	        try (var context = NodeUnmarshallingContexts.of(new ByteArrayInputStream(tx.toByteArray()))) {
-	        	var hotmokaRequest = TransactionRequests.from(context);
+	        try (var context = NodeUnmarshallingContexts.of(new ByteArrayInputStream(request.getTx().toByteArray()))) {
+	        	TransactionRequest<?> hotmokaRequest;
+
+	        	hotmokaRequest = TransactionRequests.from(context);
 
 	        	try {
 	        		transformation.deliverTransaction(hotmokaRequest);
@@ -638,8 +633,11 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	        		responseBuilder.setCode(1);
 	            	responseBuilder.setData(ByteString.copyFromUtf8(e.getMessage()));
 	        	}
+	        	catch (StoreException e) {
+	        		throw new NodeException(e);
+	        	}
 	        }
-	        catch (Throwable t) {
+	        catch (IOException t) {
 	        	responseBuilder.setCode(2);
 	        	responseBuilder.setData(ByteString.copyFromUtf8(t.getMessage()));
 	        }
@@ -671,17 +669,22 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		}
 
 		@Override
-		protected ResponseCommit commit(RequestCommit request) throws NodeException {
+		protected ResponseCommit commit(RequestCommit request) throws NodeException, InterruptedException {
 			try {
 				transformation.deliverCoinbaseTransactions(behaving, misbehaving);
 
-				StateId idOfNewStoreOfHead = CheckSupplier.check(NodeException.class, StoreException.class, () -> getEnvironment().computeInTransaction(UncheckFunction.uncheck(txn -> {
-					StateId stateIdOfFinalStore = transformation.getIdOfFinalStore(txn);
-					setRootBranch(stateIdOfFinalStore, txn);
-					persist(stateIdOfFinalStore, transformation.getNow(), txn);
-					keepPersistedOnlyNotOlderThan(transformation.getNow(), txn);
-					return stateIdOfFinalStore;
-				})));
+				StateId idOfNewStoreOfHead = getEnvironment().computeInTransaction(NodeException.class, txn -> {
+					try {
+						StateId stateIdOfFinalStore = transformation.getIdOfFinalStore(txn);
+						setRootBranch(stateIdOfFinalStore, txn);
+						persist(stateIdOfFinalStore, transformation.getNow(), txn);
+						keepPersistedOnlyNotOlderThan(transformation.getNow(), txn);
+						return stateIdOfFinalStore;
+					}
+					catch (StoreException e) {
+						throw new NodeException(e);
+					}
+				});
 
 				storeOfHead = mkStore(idOfNewStoreOfHead, Optional.of(transformation.getCache()));
 				publishAllTransactionsDeliveredIn(transformation, storeOfHead);
@@ -692,10 +695,6 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 			}
 			catch (StoreException | ExodusException | UnknownStateIdException e) {
 				LOGGER.log(Level.SEVERE, "commit failed", e);
-				throw new NodeException(e);
-			}
-			catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
 				throw new NodeException(e);
 			}
 		}

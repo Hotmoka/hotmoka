@@ -32,7 +32,7 @@ public class TendermintTopLevelResult {
 	public long height;
 
 	/**
-	 * The hash of the trasaction.
+	 * The hash of the transaction.
 	 */
 	public String hash;
 
