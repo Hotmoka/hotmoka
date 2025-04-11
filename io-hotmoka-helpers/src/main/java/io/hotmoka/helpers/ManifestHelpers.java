@@ -20,6 +20,7 @@ import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.helpers.api.ManifestHelper;
 import io.hotmoka.helpers.internal.ManifestHelperImpl;
+import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
@@ -42,8 +43,9 @@ public abstract class ManifestHelpers {
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws NodeException if the node is not able to complete the operation
+	 * @throws CodeExecutionException if some transaction throws an exception
 	 */
-	public static ManifestHelper of(Node node) throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException {
+	public static ManifestHelper of(Node node) throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, CodeExecutionException {
 		return new ManifestHelperImpl(node);
 	}
 }

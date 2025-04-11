@@ -54,8 +54,9 @@ public abstract class InitializedNodes {
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
+	 * @throws CodeExecutionException if some transaction throws an exception
 	 */
-	public static InitializedNode of(Node parent, ConsensusConfig<?,?> consensus, Path takamakaCode) throws TransactionRejectedException, TransactionException, IOException, NodeException, TimeoutException, InterruptedException {
+	public static InitializedNode of(Node parent, ConsensusConfig<?,?> consensus, Path takamakaCode) throws TransactionRejectedException, TransactionException, IOException, NodeException, TimeoutException, InterruptedException, CodeExecutionException {
 		return new InitializedNodeImpl(parent, consensus, takamakaCode);
 	}
 

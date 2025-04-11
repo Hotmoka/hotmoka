@@ -37,6 +37,7 @@ module io.hotmoka.moka {
 	requires io.hotmoka.instrumentation;
 	requires io.hotmoka.whitelisting.api;
 	requires io.hotmoka.cli;
+	requires io.hotmoka.crypto;
 	requires io.hotmoka.exceptions;
 	requires io.takamaka.code.constants;
 	requires io.mokamint.node.local;

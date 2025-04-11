@@ -40,5 +40,5 @@ public interface JarsNode extends Node {
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	TransactionReference jar(int i) throws NoSuchElementException, NodeException, TimeoutException, InterruptedException;
+	TransactionReference jar(int i) throws NoSuchElementException, TimeoutException, InterruptedException, NodeException;
 }

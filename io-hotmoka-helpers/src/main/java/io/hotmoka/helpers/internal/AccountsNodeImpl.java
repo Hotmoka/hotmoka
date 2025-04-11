@@ -49,7 +49,6 @@ import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
-import io.takamaka.code.constants.Constants;
 
 /**
  * A decorator of a node, that creates some initial accounts in it.
@@ -73,33 +72,6 @@ public class AccountsNodeImpl extends AbstractNodeDecorator<Node> implements Acc
 
 	/**
 	 * Creates a decorated node by creating initial accounts. The transactions get paid by a given account.
-	 * The standard accounts container is used.
-	 * 
-	 * @param parent the node that gets decorated
-	 * @param payer the account that pays for the transactions that initialize the new accounts
-	 * @param privateKeyOfPayer the private key of the account that pays for the transactions;
-	 *                          it will be used to sign requests for initializing the accounts;
-	 *                          the account must have enough coins to initialize the required accounts
-	 * @param classpath the classpath where {@code containerClassName} must be resolved
-	 * @param funds the initial funds of the accounts that are created
-	 * @throws TransactionRejectedException if some transaction that creates the accounts is rejected
-	 * @throws TransactionException if some transaction that creates the accounts fails
-	 * @throws SignatureException if some request could not be signed
-	 * @throws InvalidKeyException if some key used for signing transactions is invalid
-	 * @throws NoSuchAlgorithmException if the signature algorithm of {@code payer} is not available
-	 * @throws NodeException if the node is not able to perform the operation
-	 * @throws InterruptedException if the current thread is interrupted while performing the operation
-	 * @throws TimeoutException if the operation does not complete within the expected time window
-	 * @throws UnknownReferenceException if the payer is unknown
-	 */
-	public static AccountsNodeImpl mk(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, TransactionReference classpath, BigInteger... funds)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, NodeException, UnknownReferenceException, TimeoutException, InterruptedException {
-
-		return new AccountsNodeImpl(parent, payer, privateKeyOfPayer, Constants.EXTERNALLY_OWNED_ACCOUNTS_NAME, classpath, funds);
-	}
-
-	/**
-	 * Creates a decorated node by creating initial accounts. The transactions get paid by a given account.
 	 * It allows one to specify the class of the accounts container.
 	 * 
 	 * @param parent the node that gets decorated
@@ -111,12 +83,11 @@ public class AccountsNodeImpl extends AbstractNodeDecorator<Node> implements Acc
 	 *                           this must be {@code io.takamaka.code.lang.Accounts} or subclass
 	 * @param classpath the classpath where {@code containerClassName} must be resolved
 	 * @param funds the initial funds of the accounts that are created
-	 * @throws TransactionRejectedException if some transaction that creates the accounts is rejected
-	 * @throws TransactionException if some transaction that creates the accounts fails
-	 * @throws CodeExecutionException if some transaction that creates the accounts throws an exception
-	 * @throws SignatureException if some request could not be signed
-	 * @throws InvalidKeyException if some key used for signing transactions is invalid
-	 * @throws NoSuchAlgorithmException if the payer uses an unknown signature algorithm
+	 * @throws TransactionRejectedException if some transaction is rejected
+	 * @throws TransactionException if some transaction fails
+	 * @throws CodeExecutionException if some transaction throws an exception
+	 * @throws SignatureException if a signature with {@code privateKeyOfPayer} fails
+	 * @throws InvalidKeyException if {@code privateKeyOfPayer} is invalid
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
@@ -140,17 +111,9 @@ public class AccountsNodeImpl extends AbstractNodeDecorator<Node> implements Acc
 		String chainId = parent.getConfig().getChainId();
 
 		// we get the nonce of the payer
-		BigInteger nonce;
-
-		try {
-			nonce = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(payer, _100_000, classpath, MethodSignatures.NONCE, payer))
-				.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
-				.asReturnedBigInteger(MethodSignatures.NONCE, NodeException::new);
-		}
-		catch (CodeExecutionException e) {
-			// the nonce() method does not throw exceptions
-			throw new NodeException(e);
-		}
+		BigInteger nonce = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(payer, _100_000, classpath, MethodSignatures.NONCE, payer))
+			.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
+			.asReturnedBigInteger(MethodSignatures.NONCE, NodeException::new);
 
 		var gasHelper = GasHelpers.of(this);
 		BigInteger sum = ZERO;
@@ -177,21 +140,21 @@ public class AccountsNodeImpl extends AbstractNodeDecorator<Node> implements Acc
 			balances.append(i == 0 ? fund.toString() : (' ' + fund.toString()));
 		}
 
-		// we provide an amount of gas that grows linearly with the number of accounts that get created, and set the green balances of the accounts
+		// we provide an amount of gas that grows linearly with the number of accounts that get created
 		BigInteger gas = _200_000.multiply(BigInteger.valueOf(funds.length));
 
 		this.container = addConstructorCallTransaction(TransactionRequests.constructorCall
-				(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getSafeGasPrice(), classpath,
-						// TODO: check exception below
-						ConstructorSignatures.of(StorageTypes.classNamed(containerClassName), StorageTypes.BIG_INTEGER, StorageTypes.STRING, StorageTypes.STRING),
-						StorageValues.bigIntegerOf(sum), StorageValues.stringOf(balances.toString()), StorageValues.stringOf(publicKeys.toString())));
+			(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getSafeGasPrice(), classpath,
+			// TODO: check exception below
+			ConstructorSignatures.of(StorageTypes.classNamed(containerClassName), StorageTypes.BIG_INTEGER, StorageTypes.STRING, StorageTypes.STRING),
+			StorageValues.bigIntegerOf(sum), StorageValues.stringOf(balances.toString()), StorageValues.stringOf(publicKeys.toString())));
 
 		var get = MethodSignatures.ofNonVoid(StorageTypes.ACCOUNTS, "get", StorageTypes.EOA, StorageTypes.INT);
 
 		for (int i = 0; i < funds.length; i++)
 			this.accounts[i] = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(payer, _100_000, classpath, get, container, StorageValues.intOf(i)))
 				.orElseThrow(() -> new NodeException(get + " should not return void"))
-				.asReference(value -> new NodeException(get + " should return a reference, not a " + value.getClass().getName()));
+				.asReturnedReference(get, NodeException::new);
 	}
 
 	@Override

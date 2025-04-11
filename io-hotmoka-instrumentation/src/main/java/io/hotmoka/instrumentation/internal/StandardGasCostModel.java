@@ -56,7 +56,7 @@ public class StandardGasCostModel implements GasCostModel {
 	}
 
 	@Override
-	public BigInteger ramCostForInstallingJar(int numBytes) {
+	public BigInteger ramCostForInstallingJar(int numBytes) { // TODO: increase the cost of ram and cpu for jars
 		return BigInteger.valueOf(numBytes / 20);
 	}
 

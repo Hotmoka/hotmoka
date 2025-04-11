@@ -19,13 +19,12 @@ limitations under the License.
  */
 module io.hotmoka.helpers {
 	exports io.hotmoka.helpers;
+
 	requires transitive io.hotmoka.helpers.api;
 	requires io.hotmoka.whitelisting.api;
 	requires transitive io.hotmoka.node;
 	requires transitive io.hotmoka.verification;
 	requires transitive io.hotmoka.crypto;
 	requires io.takamaka.code.constants;
-	requires io.hotmoka.closeables.api;
-	requires io.hotmoka.exceptions;
 	requires java.logging;
 }

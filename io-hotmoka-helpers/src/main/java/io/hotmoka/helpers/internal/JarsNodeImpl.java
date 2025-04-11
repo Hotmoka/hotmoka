@@ -59,9 +59,8 @@ public class JarsNodeImpl extends AbstractNodeDecorator<Node> implements JarsNod
 	private final TransactionReference[] jars;
 
 	/**
-	 * Installs the given set of jars in the parent node and
-	 * creates a view that provides access to a set of previously installed jars.
-	 * The given account pays for the transactions.
+	 * Installs the given set of jars in the parent node and creates an object that provides
+	 * access to a set of such installed jars. The given account pays for the transactions.
 	 * 
 	 * @param parent the node to decorate
 	 * @param payer the account that pays for the transactions that initialize the new accounts
@@ -69,15 +68,15 @@ public class JarsNodeImpl extends AbstractNodeDecorator<Node> implements JarsNod
 	 *                          It will be used to sign requests for installing the jars;
 	 *                          the account must have enough coins for those transactions
 	 * @param jars the jars to install in the node
-	 * @throws TransactionException if some transaction that installs the jars fails
-	 * @throws CodeExecutionException if some transaction that installs the jars throws an exception
+	 * @throws TransactionRejectedException if some transaction is rejected
+	 * @throws TransactionException if some transaction fails
+	 * @throws CodeExecutionException if some transaction throws an exception
 	 * @throws IOException if the jar file cannot be accessed
-	 * @throws SignatureException if some request could not be signed
-	 * @throws InvalidKeyException if some key used for signing transactions is invalid
+	 * @throws SignatureException if a signature with {@code privateKeyOfPayer} failed
+	 * @throws InvalidKeyException if {@code privateKeyOfPayer} failed
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
-	 * @throws NodeException if the node is not able to complete the operation
 	 * @throws UnknownReferenceException if {@code payer} cannot be found in {@code parent}
 	 * @throws NoSuchAlgorithmException if the signature algorithm of {@code payer} is not available
      */
@@ -93,16 +92,15 @@ public class JarsNodeImpl extends AbstractNodeDecorator<Node> implements JarsNod
 
 		// we get the chainId of the parent
 		String chainId = parent.getConfig().getChainId();
-
 		var gasHelper = GasHelpers.of(this);
 		var jarSuppliers = new JarFuture[jars.length];
 		int pos = 0;
+
 		for (Path jar: jars) {
 			byte[] bytes = Files.readAllBytes(jar);
-			jarSuppliers[pos] = postJarStoreTransaction(TransactionRequests.jarStore
+			jarSuppliers[pos++] = postJarStoreTransaction(TransactionRequests.jarStore
 				(signerOnBehalfOfPayer, payer, nonce, chainId, BigInteger.valueOf(10000 + bytes.length * 200L), gasHelper.getSafeGasPrice(), takamakaCode, bytes, takamakaCode));
 			nonce = nonce.add(ONE);
-			pos++;
 		}
 
 		// we wait for them

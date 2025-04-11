@@ -72,10 +72,11 @@ public interface SendCoinsHelper {
 	 * @param requestsHandler a handler called with the paid requests used for this operation. This can be useful for logging or computing costs
 	 * @throws TransactionRejectedException if some transaction was rejected
 	 * @throws TransactionException if some transaction failed
+	 * @throws CodeExecutionException if some transaction throws an exception
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws InterruptedException if the current thread gets interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 */
 	void sendFromFaucet(StorageReference destination, BigInteger amount, Consumer<BigInteger> gasHandler, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, NodeException, InterruptedException, TimeoutException;
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException, TimeoutException;
 }

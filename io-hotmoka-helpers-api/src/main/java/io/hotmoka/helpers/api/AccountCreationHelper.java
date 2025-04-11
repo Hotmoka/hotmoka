@@ -59,20 +59,19 @@ public interface AccountCreationHelper {
 	 * @throws TransactionException if some transaction failed
 	 * @throws CodeExecutionException if some transaction generated an exception
 	 * @throws InvalidKeyException if the key is invalid
-	 * @throws SignatureException if some signature failed
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws InterruptedException if the current thread gets interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 */
 	StorageReference paidByFaucet(SignatureAlgorithm signatureAlgorithm, PublicKey publicKey,
 			BigInteger balance, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NodeException, InterruptedException, TimeoutException;
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, NodeException, InterruptedException, TimeoutException;
 
 	/**
 	 * Creates a new account by letting another account pay.
 	 * 
-	 * @param payer the payer of the account creation
-	 * @param keysOfPayer the keys of the {@code payer}
+	 * @param payer the account that pays for the creation
+	 * @param keysOfPayer the keys of {@code payer}
 	 * @param signatureAlgorithm the signature algorithm for the new account
 	 * @param publicKey the public key of the new account
 	 * @param balance the balance of the new account
@@ -85,7 +84,7 @@ public interface AccountCreationHelper {
 	 * @throws TransactionException if some transaction failed
 	 * @throws CodeExecutionException if some transaction generated an exception
 	 * @throws InvalidKeyException if the key is invalid
-	 * @throws SignatureException if some signature failed
+	 * @throws SignatureException if the signature of the transaction requests with {@code keysOfPayer} fails
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws NodeException if the node is not able to complete the operation
@@ -111,13 +110,13 @@ public interface AccountCreationHelper {
 	 * @throws TransactionException if some transaction failed
 	 * @throws CodeExecutionException if some transaction throws an exception
 	 * @throws InvalidKeyException if the key is invalid
-	 * @throws SignatureException if some signature failed
+	 * @throws NoSuchAlgorithmException if the ed25519 signature algorithm is not available
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws InterruptedException if the current thread gets interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 */
 	StorageReference tendermintValidatorPaidByFaucet(PublicKey publicKey, BigInteger balance, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NodeException, InterruptedException, TimeoutException;
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, NoSuchAlgorithmException, NodeException, InterruptedException, TimeoutException;
 
 	/**
 	 * Creates a new Tendermint validator by letting another account pay.
@@ -133,12 +132,12 @@ public interface AccountCreationHelper {
 	 * @throws TransactionException if some transaction failed
 	 * @throws CodeExecutionException if some transaction generated an exception
 	 * @throws InvalidKeyException if the key is invalid
-	 * @throws SignatureException if some signature failed
+	 * @throws SignatureException if the signature of the transaction requests with {@code keysOfPayer} fails
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws NodeException if the node is not able to complete the operation
 	 * @throws UnknownReferenceException if {@code payer} cannot be found in the node
-	 * @throws NoSuchAlgorithmException if the signature algorithm of {@code payer} is not available
+	 * @throws NoSuchAlgorithmException if the ed25519 signature algorithm is not available
 	 */
 	StorageReference tendermintValidatorPaidBy(StorageReference payer, KeyPair keysOfPayer, PublicKey publicKey, BigInteger balance, Consumer<BigInteger> gasHandler,
 			Consumer<TransactionRequest<?>[]> requestsHandler)

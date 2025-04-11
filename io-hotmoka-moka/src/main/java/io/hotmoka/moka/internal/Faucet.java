@@ -25,7 +25,6 @@ import java.net.URI;
 import java.security.KeyPair;
 
 import io.hotmoka.helpers.GasHelpers;
-import io.hotmoka.helpers.ManifestHelpers;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.node.Accounts;
@@ -33,6 +32,7 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.RemoteNodes;
@@ -74,8 +74,13 @@ public class Faucet extends AbstractCommand {
 		}
 
 		private void openFaucet() throws Exception {
-			var manifestHelper = ManifestHelpers.of(node);
-			StorageReference gamete = manifestHelper.getGamete();
+			StorageReference manifest = node.getManifest();
+			var gamete = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+					(manifest, _100_000, node.getTakamakaCode(), MethodSignatures.GET_GAMETE, manifest))
+					.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"))
+					.asReturnedReference(MethodSignatures.GET_GAMETE, NodeException::new);
+
+			String chainId = node.getConfig().getChainId();
 			KeyPair keys;
 
 			try {
@@ -92,7 +97,7 @@ public class Faucet extends AbstractCommand {
 			node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall
 				(SignatureHelpers.of(node).signatureAlgorithmFor(gamete).getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
 				gamete, NonceHelpers.of(node).getNonceOf(gamete),
-				manifestHelper.getChainId(), _100_000, GasHelpers.of(node).getGasPrice(), takamakaCode,
+				chainId, _100_000, GasHelpers.of(node).getGasPrice(), takamakaCode,
 				MethodSignatures.ofVoid(GAMETE, "setMaxFaucet", BIG_INTEGER), gamete,
 				StorageValues.bigIntegerOf(max)));
 		}

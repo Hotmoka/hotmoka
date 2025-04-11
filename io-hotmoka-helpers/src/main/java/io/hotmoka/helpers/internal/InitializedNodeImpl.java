@@ -42,6 +42,7 @@ import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
+import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 
@@ -136,8 +137,9 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 * @throws TransactionException if some transaction fails
+	 * @throws CodeExecutionException if some transaction throws an exception
 	 */
-	public InitializedNodeImpl(Node parent, ConsensusConfig<?,?> consensus, Path takamakaCode) throws TransactionRejectedException, TransactionException, IOException, NodeException, TimeoutException, InterruptedException {
+	public InitializedNodeImpl(Node parent, ConsensusConfig<?,?> consensus, Path takamakaCode) throws TransactionRejectedException, TransactionException, IOException, NodeException, TimeoutException, InterruptedException, CodeExecutionException {
 		super(parent);
 
 		// we install the jar containing the basic Takamaka classes
@@ -169,15 +171,7 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 				StorageValues.stringOf(consensus.getSignatureForRequests().getName()), gamete, StorageValues.longOf(consensus.getVerificationVersion()),
 				builderOfValidators, builderOfGasStation);
 
-		StorageReference manifest;
-
-		try {
-			manifest = parent.addConstructorCallTransaction(request);
-		}
-		catch (CodeExecutionException e) {
-			// the called method does not throw exceptions
-			throw new NodeException(e);
-		}
+		StorageReference manifest = parent.addConstructorCallTransaction(request);
 
 		// we install the manifest and initialize the node
 		parent.addInitializationTransaction(TransactionRequests.initialization(takamakaCodeReference, manifest));
@@ -185,10 +179,11 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 
 	private BigInteger getNonceOfGamete(Node node, TransactionReference takamakaCode) throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException {
 		var _1_000_000 = BigInteger.valueOf(1_000_000);
-		var getNonceRequest = TransactionRequests.instanceViewMethodCall(gamete, _1_000_000, takamakaCode, MethodSignatures.NONCE, gamete);
+		InstanceMethodCallTransactionRequest request;
+		request = TransactionRequests.instanceViewMethodCall(gamete, _1_000_000, takamakaCode, MethodSignatures.NONCE, gamete);
 
 		try {
-			return node.runInstanceMethodCallTransaction(getNonceRequest)
+			return node.runInstanceMethodCallTransaction(request)
 				.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
 				.asReturnedBigInteger(MethodSignatures.NONCE, NodeException::new);
 		}

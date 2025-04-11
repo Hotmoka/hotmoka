@@ -574,7 +574,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		try {
 			HotmokaTest.jar = JarsNodes.of(node, localGamete, privateKeyOfLocalGamete, pathOfExample(jar)).jar(0);
 		}
-		catch (NoSuchElementException e) { // TODO: ?
+		catch (NoSuchElementException e) {
 			throw new NodeException(e); // we installed exactly one jar
 		}
 		catch (UnknownReferenceException e) {

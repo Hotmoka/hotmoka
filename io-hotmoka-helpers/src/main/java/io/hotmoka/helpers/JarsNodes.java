@@ -53,17 +53,16 @@ public abstract class JarsNodes {
 	 *                          the account must have enough coins for those transactions
 	 * @param jars the jars to install in the node
 	 * @return a decorated view of {@code parent}
-	 * @throws TransactionRejectedException if some transaction that installs the jars is rejected
-	 * @throws TransactionException if some transaction that installs the jars fails
+	 * @throws TransactionRejectedException if some transaction is rejected
+	 * @throws TransactionException if some transaction fails
+	 * @throws CodeExecutionException if some transaction throws an exception
 	 * @throws IOException if the jar file cannot be accessed
-	 * @throws SignatureException if some request could not be signed
-	 * @throws InvalidKeyException if some key used for signing transactions is invalid
+	 * @throws SignatureException if a signature with {@code privateKeyOfPayer} failed
+	 * @throws InvalidKeyException if {@code privateKeyOfPayer} failed
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
-	 * @throws NodeException if the node is not able to complete the operation
 	 * @throws UnknownReferenceException if {@code payer} cannot be found in {@code parent}
-	 * @throws CodeExecutionException if some transaction throws an exception
 	 * @throws NoSuchAlgorithmException if the signature algorithm of {@code payer} is not available
      */
 	public static JarsNode of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path... jars) throws TransactionRejectedException, TransactionException, IOException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException, CodeExecutionException, NoSuchAlgorithmException {

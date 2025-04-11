@@ -33,6 +33,7 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
+import io.takamaka.code.constants.Constants;
 
 /**
  * Providers of nodes that install a bunch of accounts and give access to them.
@@ -53,19 +54,19 @@ public abstract class AccountsNodes {
 	 *                          the account must have enough coins to initialize the required accounts
 	 * @param funds the initial funds of the accounts to create
 	 * @return a decorated view of {@code parent}
-	 * @throws TransactionRejectedException if some transaction that creates the accounts is rejected
-	 * @throws TransactionException if some transaction that creates the accounts fails
-	 * @throws SignatureException if some request could not be signed
-	 * @throws InvalidKeyException if some key used for signing transactions is invalid
+	 * @throws TransactionRejectedException if some transaction is rejected
+	 * @throws TransactionException if some transaction fails
+	 * @throws CodeExecutionException if some transaction throws an exception
+	 * @throws SignatureException if a signature with {@code privateKeyOfPayer} fails
+	 * @throws InvalidKeyException if {@code privateKeyOfPayer} is invalid
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws UnknownReferenceException if the payer is unknown
-	 * @throws CodeExecutionException if some transaction throws an exception
 	 * @throws NoSuchAlgorithmException if the signature algorithm of {@code payer} is not available
      */
 	public static AccountsNode of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, BigInteger... funds) throws TransactionRejectedException, TransactionException, InvalidKeyException, SignatureException, NodeException, UnknownReferenceException, TimeoutException, InterruptedException, NoSuchAlgorithmException, CodeExecutionException {
-		return AccountsNodeImpl.mk(parent, payer, privateKeyOfPayer, parent.getTakamakaCode(), funds);
+		return new AccountsNodeImpl(parent, payer, privateKeyOfPayer, Constants.EXTERNALLY_OWNED_ACCOUNTS_NAME, parent.getTakamakaCode(), funds);
 	}
 
 	/**
@@ -82,11 +83,11 @@ public abstract class AccountsNodes {
 	 * @param classpath the classpath where {@code containerClassName} must be resolved
 	 * @param funds the initial funds of the accounts to create
 	 * @return a decorated view of {@code parent}
-	 * @throws TransactionRejectedException if some transaction that creates the accounts is rejected
-	 * @throws TransactionException if some transaction that creates the accounts fails
-	 * @throws CodeExecutionException if some transaction that creates the accounts throws an exception
-	 * @throws SignatureException if some request could not be signed
-	 * @throws InvalidKeyException if some key used for signing transactions is invalid
+	 * @throws TransactionRejectedException if some transaction is rejected
+	 * @throws TransactionException if some transaction fails
+	 * @throws CodeExecutionException if some transaction throws an exception
+	 * @throws SignatureException if a signature with {@code privateKeyOfPayer} fails
+	 * @throws InvalidKeyException if {@code privateKeyOfPayer} is invalid
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
