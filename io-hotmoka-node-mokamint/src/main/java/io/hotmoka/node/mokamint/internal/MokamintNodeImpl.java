@@ -64,13 +64,12 @@ import io.mokamint.node.api.Block;
 import io.mokamint.node.api.NonGenesisBlock;
 import io.mokamint.node.api.Transaction;
 import io.mokamint.node.local.AbstractLocalNode;
-import io.mokamint.node.local.ApplicationTimeoutException;
 import io.mokamint.node.local.api.LocalNode;
 import io.mokamint.node.local.api.LocalNodeConfig;
 import io.mokamint.nonce.api.Deadline;
 
 /**
- * An implementation of a blockchain nodes that rely on the Mokamint proof of space engine.
+ * An implementation of blockchain nodes that rely on the Mokamint proof of space engine.
  */
 @ThreadSafe
 public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImpl, MokamintNodeConfig, MokamintStore, MokamintStoreTransformation> implements MokamintNode {
@@ -91,6 +90,11 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 	 */
 	private final Object headLock = new Object();
 
+	/**
+	 * A cache for the caches at a given state identifier. This allows to reuse
+	 * a previous cache if an old state identifier is checked out. The alternative
+	 * is to recompute the cache at the state identifier, which is expensive.
+	 */
 	private final LRUCache<StateId, StoreCache> lastCaches = new LRUCache<>(100, 1000);
 
 	/**
@@ -114,13 +118,17 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 	 * and connects it to an application for handling its transactions.
 	 * 
 	 * @param config the configuration of the Hotmoka node
-	 * @param mokamintConfig the configuration of the underlying Mokamint node
+	 * @param mokamintConfig the configuration of the underlying Mokamint engine
 	 * @param keyPair the keys of the Mokamint node, used to sign the blocks that it mines
+	 * @param init if true, the working directory of the node gets initialized
+	 * @param createGenesis if true, creates a genesis block and starts mining on top of it
+	 *                      (initial synchronization is consequently skipped), otherwise it
+	 *                      synchronizes, waits for whispered blocks and then starts mining on top of them
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 * @throws NodeException if the operation cannot be completed correctly
-	 * @throws ApplicationTimeoutException if the application of the Mokamint node is unresponsive
+	 * @throws TimeoutException if the application of the Mokamint node is unresponsive
 	 */
-	public MokamintNodeImpl(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair, boolean init, boolean createGenesis) throws NodeException, InterruptedException, ApplicationTimeoutException {
+	public MokamintNodeImpl(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair, boolean init, boolean createGenesis) throws NodeException, InterruptedException, TimeoutException {
 		super(config, init);
 
 		try {
@@ -137,8 +145,6 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			};
 		}
 		catch (io.mokamint.node.api.NodeException e) {
-			// if the application is not working properly or is not answering in time, we consider it as a Hotmoka node exception,
-			// since the application is actually part of this kind of Hotmoka nodes
 			throw new NodeException(e);
 		}
 
@@ -155,6 +161,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		}
 	}
 
+	@Override
 	public LocalNode getMokamintNode() {
 		return mokamintNode;
 	}
@@ -192,6 +199,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			return result;
 		}
 		catch (io.mokamint.node.api.NodeException | TimeoutException | UnknownStateIdException e) {
+			// a time-out in the Mokamint engine is seen as a misbehavior of the whole node
 			throw new NodeException(e);
 		}
 	}
@@ -224,6 +232,8 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 	}
 
 	private void publishBlocks() {
+		var hasher = getHasher();
+
 		try {
 			while (true) {
 				NonGenesisBlock next = toPublish.take();
@@ -232,28 +242,35 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 				try {
 					MokamintStore store = mkStore(si, Optional.ofNullable(lastCaches.get(si)));
 	
-					var hasher = getHasher();
 					for (var tx: next.getTransactions().toArray(Transaction[]::new)) {
 						try {
 							publish(TransactionReferences.of(hasher.hash(intoHotmokaRequest(tx))), store);
 						}
 						catch (UnknownReferenceException e) {
 							// the transactions have been delivered, if they cannot be found then there is a problem in the database
-							throw new NodeException("Delivered transactions should be in store", e);
+							throw new NodeException("Already delivered transactions should be in store", e);
+						}
+						catch (io.mokamint.node.api.TransactionRejectedException e) {
+							// the transactions have been delivered, they must be legal
+							throw new NodeException("Already delivered transactions should not be rejected", e);
 						}
 					}
 				}
-				catch (ApplicationException | NodeException | io.mokamint.node.api.TransactionRejectedException | UnknownStateIdException e) {
+				catch (UnknownStateIdException e) { // TODO: would this be a bug? in that case it should exit the thread
 					LOGGER.log(Level.SEVERE, "failed to publish the transactions in block " + next.getHexHash(), e);
 				}
 			}
 		}
 		catch (InterruptedException e) {
+			LOGGER.log(Level.SEVERE, "The block publishing thread exits because of interruption", e);
 			Thread.currentThread().interrupt();
+		}
+		catch (RuntimeException | NodeException | IOException e) {
+			LOGGER.log(Level.SEVERE, "The block publishing thread exist because of exception", e);
 		}
 	}
 
-	private TransactionRequest<?> intoHotmokaRequest(Transaction transaction) throws io.mokamint.node.api.TransactionRejectedException, ApplicationException {
+	private TransactionRequest<?> intoHotmokaRequest(Transaction transaction) throws io.mokamint.node.api.TransactionRejectedException, IOException {
 		try (var context = NodeUnmarshallingContexts.of(new ByteArrayInputStream(transaction.getBytes()))) {
 			try {
         		return TransactionRequests.from(context);
@@ -262,9 +279,6 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
         		throw new io.mokamint.node.api.TransactionRejectedException(e.getMessage(), e);
         	}
         }
-		catch (IOException e) {
-			throw new ApplicationException(e);
-		}
 	}
 
 	private class MokamintHotmokaApplication extends AbstractApplication {
@@ -280,12 +294,12 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		private final AtomicInteger nextId = new AtomicInteger();
 
 		@Override
-		public boolean checkPrologExtra(byte[] extra) throws ApplicationException {
+		public boolean checkPrologExtra(byte[] extra) {
 			return extra.length == 0; // no extra used by this application
 		}
 
 		@Override
-		public void checkTransaction(Transaction transaction) throws io.mokamint.node.api.TransactionRejectedException, ApplicationException, TimeoutException, InterruptedException {
+		public void checkTransaction(Transaction transaction) {
 			// nothing, there is nothing we can check for Hotmoka
 		}
 
@@ -296,7 +310,12 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 		@Override
 		public String getRepresentation(Transaction transaction) throws io.mokamint.node.api.TransactionRejectedException, ApplicationException {
-			return intoHotmokaRequest(transaction).toString();
+			try {
+				return intoHotmokaRequest(transaction).toString();
+			}
+			catch (IOException e) {
+				throw new ApplicationException(e);
+			}
 		}
 
 		@Override
@@ -341,7 +360,14 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 		@Override
 		public void deliverTransaction(int groupId, Transaction transaction) throws io.mokamint.node.api.TransactionRejectedException, UnknownGroupIdException, ApplicationException, InterruptedException {
-			TransactionRequest<?> hotmokaRequest = intoHotmokaRequest(transaction);
+			TransactionRequest<?> hotmokaRequest;
+
+			try {
+				hotmokaRequest = intoHotmokaRequest(transaction);
+			}
+			catch (IOException e) {
+				throw new ApplicationException(e);
+			}
 
 			MokamintStoreTransformation transformation = getTransformation(groupId);
 
@@ -407,14 +433,14 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		}
 
 		@Override
-		public void keepFrom(LocalDateTime start) {
+		public void keepFrom(LocalDateTime start) throws ApplicationException {
 			long limitOfTimeForGC = start.toInstant(ZoneOffset.UTC).toEpochMilli();
 
 			try {
 				getEnvironment().executeInTransaction(NodeException.class, txn -> keepPersistedOnlyNotOlderThan(limitOfTimeForGC, txn));
 			}
-			catch (NodeException e) {
-				LOGGER.log(Level.SEVERE, "could not keep persistent only stores older than " + limitOfTimeForGC, e);
+			catch (NodeException | ExodusException e) {
+				throw new ApplicationException(e);
 			}
 		}
 

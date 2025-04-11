@@ -6,7 +6,7 @@
   <packaging>jar</packaging>
   <name>io-hotmoka-node-mokamint</name>
   <version>${hotmoka.version}</version>
-  <description>This module implements Hotmoka nodes based on the Mokamint proof of space engine.</description>
+  <description>This module implements Hotmoka nodes running over the Mokamint engine. They can be used to build an actual blockchain network based on proof of space.</description>
 
   <parent>
     <groupId>io.hotmoka</groupId>
@@ -29,6 +29,21 @@
       <groupId>io.hotmoka.annotations</groupId>
       <artifactId>io-hotmoka-annotations</artifactId>
       <version>${io.hotmoka.annotations.version}</version>
+    </dependency>
+     <dependency>
+      <groupId>io.hotmoka.exceptions</groupId>
+      <artifactId>io-hotmoka-exceptions</artifactId>
+      <version>${io.hotmoka.exceptions.version}</version>
+    </dependency>
+     <dependency>
+      <groupId>io.hotmoka.xodus</groupId>
+      <artifactId>io-hotmoka-xodus</artifactId>
+      <version>${io.hotmoka.xodus.version}</version>
+    </dependency>
+     <dependency>
+      <groupId>io.hotmoka.crypto</groupId>
+      <artifactId>io-hotmoka-crypto</artifactId>
+      <version>${io.hotmoka.crypto.version}</version>
     </dependency>
     <dependency>
       <groupId>io.mokamint</groupId>

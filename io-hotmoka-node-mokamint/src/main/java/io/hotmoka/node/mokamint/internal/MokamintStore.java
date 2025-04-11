@@ -28,8 +28,7 @@ import io.hotmoka.node.local.api.UnknownStateIdException;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
 
 /**
- * A partial trie-based store. Errors and requests are recovered by asking
- * Tendermint, since it keeps such information inside its blocks.
+ * A trie-based store for Mokamint.
  */
 @Immutable
 public class MokamintStore extends AbstractTrieBasedStore<MokamintNodeImpl, MokamintNodeConfig, MokamintStore, MokamintStoreTransformation> {

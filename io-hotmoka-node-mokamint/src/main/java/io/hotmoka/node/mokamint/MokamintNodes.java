@@ -17,12 +17,12 @@ limitations under the License.
 package io.hotmoka.node.mokamint;
 
 import java.security.KeyPair;
+import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.mokamint.api.MokamintNode;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
 import io.hotmoka.node.mokamint.internal.MokamintNodeImpl;
-import io.mokamint.node.local.ApplicationTimeoutException;
 import io.mokamint.node.local.api.LocalNodeConfig;
 
 /**
@@ -33,21 +33,22 @@ public abstract class MokamintNodes {
 	private MokamintNodes() {}
 
 	/**
-	 * Creates and starts a node with a brand new store, of a blockchain based on Mokamint.
+	 * Creates and starts a node, with a brand new store, of a blockchain based on Mokamint.
 	 * It spawns the Mokamint engine with an application for handling its transactions.
 	 * 
 	 * @param config the configuration of the Hotmoka node
-	 * @param mokamintConfig the configuration of the underlying Mokamint node
+	 * @param mokamintConfig the configuration of the underlying Mokamint engine
 	 * @param keyPair the keys of the Mokamint node, used to sign the blocks that it mines
-	 * @param createGenesis if true, creates a genesis block and starts mining on top
-	 *                      (initial synchronization is consequently skipped), otherwise it waits
+	 * @param createGenesis if true, creates a genesis block and starts mining on top of it
+	 *                      (initial synchronization is consequently skipped), otherwise it
+	 *                      synchronizes, waits
 	 *                      for whispered blocks and then starts mining on top of them
 	 * @return the Mokamint node
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 * @throws NodeException if the operation cannot be completed correctly
-	 * @throws ApplicationTimeoutException if the application of the Mokamint node is unresponsive
+	 * @throws TimeoutException if the operation does not complete in time
 	 */
-	public static MokamintNode init(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair, boolean createGenesis) throws NodeException, InterruptedException, ApplicationTimeoutException {
+	public static MokamintNode init(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair, boolean createGenesis) throws NodeException, InterruptedException, TimeoutException {
 		return new MokamintNodeImpl(config, mokamintConfig, keyPair, true, createGenesis);
 	}
 
@@ -58,14 +59,14 @@ public abstract class MokamintNodes {
 	 * and connects it to an application for handling its transactions.
 	 * 
 	 * @param config the configuration of the Hotmoka node
-	 * @param mokamintConfig the configuration of the underlying Mokamint node
+	 * @param mokamintConfig the configuration of the underlying Mokamint engine
 	 * @param keyPair the keys of the Mokamint node, used to sign the blocks that it mines
 	 * @return the Mokamint node
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 * @throws NodeException if the operation cannot be completed correctly
-	 * @throws ApplicationTimeoutException if the application of the Mokamint node is unresponsive
+	 * @throws TimeoutException if the operation does not complete in time
 	 */
-	public static MokamintNode resume(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws NodeException, InterruptedException, ApplicationTimeoutException {
+	public static MokamintNode resume(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws NodeException, InterruptedException, TimeoutException {
 		return new MokamintNodeImpl(config, mokamintConfig, keyPair, false, false);
 	}
 }

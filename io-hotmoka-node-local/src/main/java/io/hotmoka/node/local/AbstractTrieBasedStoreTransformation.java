@@ -32,7 +32,7 @@ import io.hotmoka.node.local.internal.tries.AbstractTrieBasedStoreTransformation
 public abstract class AbstractTrieBasedStoreTransformation<N extends AbstractTrieBasedLocalNode<N,C,S,T>, C extends LocalNodeConfig<C,?>, S extends AbstractTrieBasedStore<N,C,S,T>, T extends AbstractTrieBasedStoreTransformation<N,C,S,T>> extends AbstractTrieBasedStoreTransformationImpl<N,C,S,T> {
 
 	/**
-	 * Creates a transformation whose transaction are executed with the given executors.
+	 * Creates a transformation whose transactions are executed from the given store.
 	 * 
 	 * @param store the initial store of the transformation
 	 * @param consensus the consensus to use for the execution of transactions in the transformation

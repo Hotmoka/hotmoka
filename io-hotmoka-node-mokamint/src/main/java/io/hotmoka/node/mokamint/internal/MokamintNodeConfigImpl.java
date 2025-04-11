@@ -33,7 +33,7 @@ import io.hotmoka.node.mokamint.api.MokamintNodeConfigBuilder;
 public class MokamintNodeConfigImpl extends AbstractLocalNodeConfig<MokamintNodeConfig, MokamintNodeConfigBuilder> implements MokamintNodeConfig {
 
 	/**
-	 * Creates a new configuration object from its builder.
+	 * Creates a configuration object from its builder.
 	 * 
 	 * @param the builder
 	 */

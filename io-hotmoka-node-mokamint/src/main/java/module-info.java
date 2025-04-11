@@ -20,11 +20,9 @@ limitations under the License.
  */
 module io.hotmoka.node.mokamint {
 	exports io.hotmoka.node.mokamint;
-	//exports io.hotmoka.node.mokamint.internal.beans to com.google.gson;
 
 	requires transitive io.hotmoka.node.mokamint.api;
-	requires transitive io.hotmoka.node.api;
-	requires io.hotmoka.node.local.api;
+	requires transitive io.hotmoka.node.local.api;
 	requires io.hotmoka.node;
 	requires io.hotmoka.node.local;
 	requires io.hotmoka.annotations;

@@ -135,7 +135,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	    public void beforeAll(ExtensionContext context) throws Exception {
 	    	if (!started) {
 	    		started = true;
-	    		context.getRoot().getStore(org.junit.jupiter.api.extension.ExtensionContext.Namespace.GLOBAL).put("any unique name", this);
+	    		context.getRoot().getStore(ExtensionContext.Namespace.GLOBAL).put("any unique name", this);
 
 	    		// we use always the same entropy and password, so that the tests become deterministic (if they are not explicitly non-deterministic)
 	    		var entropy = Entropies.of(new byte[16]);

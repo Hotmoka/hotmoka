@@ -41,14 +41,14 @@ import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
 import io.mokamint.nonce.api.Prolog;
 
 /**
- * A transformation of a store of a Tendermint node.
+ * A transformation of a store of a Mokamint node.
  */
 public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransformation<MokamintNodeImpl, MokamintNodeConfig, MokamintStore, MokamintStoreTransformation> {
 
 	private final static Logger LOGGER = Logger.getLogger(MokamintStoreTransformation.class.getName());
 
 	/**
-	 * Creates a transformation whose transaction are executed with the given executors.
+	 * Creates a transformation whose transaction from the given initial store.
 	 * 
 	 * @param store the initial store of the transformation
 	 * @param consensus the consensus to use for the execution of transactions in the transformation
@@ -70,7 +70,7 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 	 * in this store transformation, consequently updates the inflation and the total supply.
 	 * 
 	 * @param prolog the prolog of the block; this contains information about the public keys
-	 *               that identify the creator of the node and the miner
+	 *               that identify the creator of the node and the miner of the deadline of the block
 	 * @throws StoreException if the store is not able to complete the operation correctly
 	 * @throws InterruptedException if the current thread is interrupted before delivering the transaction
 	 */
@@ -108,7 +108,6 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 		BigInteger percenteForNodeAsBI = BigInteger.valueOf(percentForNode);
 		BigInteger reward = getReward();
 		BigInteger rewardForNode = reward.multiply(percenteForNodeAsBI).divide(_100_000_000);
-		LOGGER.info("coinbase: rewarding " + rewardForNode + " to a node with public key " + publicKeyOfNodeBase58 + " (" + prolog.getSignatureForBlocks() + ", base58)");
 
 		var request = TransactionRequests.instanceSystemMethodCall
 				(manifest, nonce, _100_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD_MOKAMINT_NODE, validators,
@@ -122,6 +121,7 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 
 		try {
 			response = deliverTransaction(request);
+			LOGGER.info("coinbase: rewarded " + rewardForNode + " to a node with public key " + publicKeyOfNodeBase58 + " (" + prolog.getSignatureForBlocks() + ", base58)");
 		}
 		catch (TransactionRejectedException e) {
 			LOGGER.log(Level.SEVERE, "the coinbase transaction for rewarding the node that created the new block has been rejected", e);
@@ -133,8 +133,6 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 		else {
 			LOGGER.info("coinbase: units of coin minted since the previous reward: " + minted);
 			BigInteger rewardForMiner = reward.subtract(rewardForNode);
-			LOGGER.info("coinbase: rewarding " + rewardForMiner + " to a miner with public key " + publicKeyOfMinerBase58 + " (" + prolog.getSignatureForDeadlines() + ", base58)");
-
 			nonce = nonce.add(BigInteger.ONE);
 
 			request = TransactionRequests.instanceSystemMethodCall
@@ -144,6 +142,7 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 
 			try {
 				response = deliverTransaction(request);
+				LOGGER.info("coinbase: rewarded " + rewardForMiner + " to a miner with public key " + publicKeyOfMinerBase58 + " (" + prolog.getSignatureForDeadlines() + ", base58)");
 			}
 			catch (TransactionRejectedException e) {
 				LOGGER.log(Level.SEVERE, "the coinbase transaction for rewarding the miner that provided the deadline in the new block has been rejected", e);

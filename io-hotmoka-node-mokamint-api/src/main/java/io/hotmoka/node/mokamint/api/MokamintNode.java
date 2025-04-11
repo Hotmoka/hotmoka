@@ -26,7 +26,7 @@ import io.hotmoka.node.local.api.LocalNode;
 public interface MokamintNode extends LocalNode<MokamintNodeConfig> {
 
 	/**
-	 * Yields the Mokamint engine supporting this Hotmoka node.
+	 * Yields the Mokamint engine underlying this Hotmoka node.
 	 * 
 	 * @return the Mokamint engine
 	 */

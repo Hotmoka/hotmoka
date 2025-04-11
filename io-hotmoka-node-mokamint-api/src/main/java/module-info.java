@@ -22,7 +22,6 @@ module io.hotmoka.node.mokamint.api {
 	exports io.hotmoka.node.mokamint.api;
 
 	requires io.hotmoka.annotations;
-	requires io.hotmoka.node.api;
 	requires transitive io.hotmoka.node.local.api;
 	requires transitive io.mokamint.node.local.api;
 }
