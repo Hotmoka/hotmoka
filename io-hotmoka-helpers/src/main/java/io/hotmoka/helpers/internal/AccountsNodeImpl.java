@@ -86,22 +86,16 @@ public class AccountsNodeImpl extends AbstractNodeDecorator<Node> implements Acc
 	 * @throws TransactionException if some transaction that creates the accounts fails
 	 * @throws SignatureException if some request could not be signed
 	 * @throws InvalidKeyException if some key used for signing transactions is invalid
-	 * @throws NoSuchAlgorithmException if the payer uses an unknown signature algorithm
+	 * @throws NoSuchAlgorithmException if the signature algorithm of {@code payer} is not available
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws UnknownReferenceException if the payer is unknown
 	 */
 	public static AccountsNodeImpl mk(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, TransactionReference classpath, BigInteger... funds)
-			throws TransactionRejectedException, TransactionException, InvalidKeyException, SignatureException, NodeException, UnknownReferenceException, TimeoutException, InterruptedException {
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, NodeException, UnknownReferenceException, TimeoutException, InterruptedException {
 
-		try {
-			return new AccountsNodeImpl(parent, payer, privateKeyOfPayer, Constants.EXTERNALLY_OWNED_ACCOUNTS_NAME, classpath, funds);
-		}
-		catch (CodeExecutionException e) {
-			// the container class is fixed, hence this exception cannot occur
-			throw new NodeException(e);
-		}
+		return new AccountsNodeImpl(parent, payer, privateKeyOfPayer, Constants.EXTERNALLY_OWNED_ACCOUNTS_NAME, classpath, funds);
 	}
 
 	/**
@@ -127,9 +121,10 @@ public class AccountsNodeImpl extends AbstractNodeDecorator<Node> implements Acc
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws UnknownReferenceException if the payer is unknown
+	 * @throws NoSuchAlgorithmException if the signature algorithm of {@code payer} is not available
 	 */
 	public AccountsNodeImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, String containerClassName, TransactionReference classpath, BigInteger... funds)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NodeException, UnknownReferenceException, TimeoutException, InterruptedException {
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NodeException, UnknownReferenceException, TimeoutException, InterruptedException, NoSuchAlgorithmException {
 
 		super(parent);
 

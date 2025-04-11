@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.helpers.api;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.annotations.ThreadSafe;
@@ -39,6 +40,7 @@ public interface SignatureHelper {
 	 * @throws InterruptedException if the current thread gets interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws UnknownReferenceException if {@code account} cannot be found in the node
+	 * @throws NoSuchAlgorithmException if the signature algorithm used by {@code account} is not available
 	 */
-	SignatureAlgorithm signatureAlgorithmFor(StorageReference account) throws NodeException, InterruptedException, TimeoutException, UnknownReferenceException;
+	SignatureAlgorithm signatureAlgorithmFor(StorageReference account) throws NodeException, InterruptedException, TimeoutException, UnknownReferenceException, NoSuchAlgorithmException;
 }

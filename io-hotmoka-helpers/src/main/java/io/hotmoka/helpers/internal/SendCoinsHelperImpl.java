@@ -23,6 +23,7 @@ import static io.hotmoka.node.StorageTypes.PAYABLE_CONTRACT;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
@@ -68,8 +69,11 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws NodeException if the node is not able to complete the operation
+	 * @throws CodeExecutionException if some transaction threw an exception
+	 * @throws TransactionException if some transaction failed
+	 * @throws TransactionRejectedException if some transaction was rejected
 	 */
-	public SendCoinsHelperImpl(Node node) throws NodeException, TimeoutException, InterruptedException {
+	public SendCoinsHelperImpl(Node node) throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, CodeExecutionException {
 		this.node = node;
 		this.manifest = node.getManifest();
 		this.takamakaCode = node.getTakamakaCode();
@@ -82,7 +86,7 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 	public void sendFromPayer(StorageReference payer, KeyPair keysOfPayer,
 			StorageReference destination, BigInteger amount,
 			Consumer<BigInteger> gasHandler, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
+			throws TransactionRejectedException, TransactionException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException, CodeExecutionException, NoSuchAlgorithmException {
 
 		var signature = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
 		Signer<SignedTransactionRequest<?>> signer = signature.getSigner(keysOfPayer.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);

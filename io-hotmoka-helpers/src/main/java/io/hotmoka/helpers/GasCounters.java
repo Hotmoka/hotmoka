@@ -22,7 +22,6 @@ import io.hotmoka.helpers.api.GasCounter;
 import io.hotmoka.helpers.internal.GasCounterImpl;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.TransactionRequest;
 
@@ -42,10 +41,9 @@ public abstract class GasCounters {
 	 * @throws InterruptedException if the execution gets interrupted
 	 * @throws TimeoutException if no answer arrives within the expected time window
 	 * @throws UnknownReferenceException if some request has not been processed by the node
-	 * @throws TransactionRejectedException if some request has been rejected by the node
 	 * @throws NodeException if the node is not able to complete the operation correctly
 	 */
-	public static GasCounter of(Node node, TransactionRequest<?>... requests) throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, UnknownReferenceException {
+	public static GasCounter of(Node node, TransactionRequest<?>... requests) throws NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
 		return new GasCounterImpl(node, requests);
 	}
 }

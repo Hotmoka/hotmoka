@@ -28,7 +28,6 @@ import io.hotmoka.node.api.requests.GenericJarStoreTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.api.TakamakaClassLoader;
-import io.hotmoka.node.api.UnknownTypeException;
 import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 
 /**
@@ -52,7 +51,7 @@ public class ClassLoaderHelperImpl implements ClassLoaderHelper {
 	}
 
 	@Override
-	public TakamakaClassLoader classloaderFor(TransactionReference jar) throws NodeException, TimeoutException, InterruptedException, UnknownReferenceException, UnknownTypeException {
+	public TakamakaClassLoader classloaderFor(TransactionReference jar) throws NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
 		var ws = new ArrayList<TransactionReference>();
 		var seen = new HashSet<TransactionReference>();
 		var jars = new ArrayList<byte[]>();
@@ -84,7 +83,10 @@ public class ClassLoaderHelperImpl implements ClassLoaderHelper {
 			throw new NodeException(e);
 		}
 		catch (io.hotmoka.verification.api.UnknownTypeException e) {
-			throw new UnknownTypeException(e);
+			// when jar was installed in the store of the node, a classloader was created without problems,
+			// hence the classes of the Takamaka runtime were accessible from its classpath;
+			// therefore, it is impossible that this is not true anymore now
+			throw new NodeException(e);
 		}
 	}
 }

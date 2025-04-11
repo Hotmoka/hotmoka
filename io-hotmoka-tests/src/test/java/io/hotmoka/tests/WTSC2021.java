@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.util.Random;
@@ -131,7 +132,7 @@ class WTSC2021 extends HotmokaTest {
 		}
 		catch (InvalidKeyException | SignatureException | TransactionException | CodeExecutionException
 				| TransactionRejectedException | InterruptedException | ExecutionException
-				| UnknownReferenceException | IOException | NodeException | TimeoutException e) {
+				| UnknownReferenceException | IOException | NodeException | TimeoutException | NoSuchAlgorithmException e) {
 			throw new RuntimeException(e);
 		}
 	}

@@ -21,7 +21,6 @@ import java.util.concurrent.TimeoutException;
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
-import io.hotmoka.node.api.UnknownTypeException;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 
@@ -41,7 +40,6 @@ public interface ClassLoaderHelper {
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 * @throws UnknownReferenceException if {@code jar} is not found in store or did not install a jar
-	 * @throws UnknownTypeException if some types of the Takamaka's runtime cannot be resolved
 	 */
-	TakamakaClassLoader classloaderFor(TransactionReference jar) throws NodeException, TimeoutException, InterruptedException, UnknownReferenceException, UnknownTypeException;
+	TakamakaClassLoader classloaderFor(TransactionReference jar) throws NodeException, TimeoutException, InterruptedException, UnknownReferenceException;
 }

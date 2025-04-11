@@ -28,7 +28,6 @@ import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
-import io.hotmoka.node.api.UnknownTypeException;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.verification.api.TakamakaClassLoader;
@@ -46,46 +45,42 @@ public class SignatureHelperImpl implements SignatureHelper {
 	}
 
 	@Override
-	public SignatureAlgorithm signatureAlgorithmFor(StorageReference account) throws NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
+	public SignatureAlgorithm signatureAlgorithmFor(StorageReference account) throws NodeException, TimeoutException, InterruptedException, UnknownReferenceException, NoSuchAlgorithmException {
 		var tag = node.getClassTag(account);
 
+		// first we try without creating a class loader, which is faster and works under Android as well...
+		ClassType classOfTag = tag.getClazz();
+		if (classOfTag.equals(StorageTypes.EOA_ED25519))
+			return SignatureAlgorithms.ed25519();
+		else if (classOfTag.equals(StorageTypes.EOA_SHA256DSA))
+			return SignatureAlgorithms.sha256dsa();
+		else if (classOfTag.equals(StorageTypes.EOA_QTESLA1))
+			return SignatureAlgorithms.qtesla1();
+		else if (classOfTag.equals(StorageTypes.EOA_QTESLA3))
+			return SignatureAlgorithms.qtesla3();
+		else if (classOfTag.equals(StorageTypes.EOA) || classOfTag.equals(StorageTypes.GAMETE))
+			return node.getConfig().getSignatureForRequests();
+
+		TakamakaClassLoader classLoader = classLoaderHelper.classloaderFor(tag.getJar());
+		Class<?> clazz;
+
 		try {
-			// first we try without creating a class loader, which is faster and works under Android as well...
-			ClassType classOfTag = tag.getClazz();
-			if (classOfTag.equals(StorageTypes.EOA_ED25519))
-				return SignatureAlgorithms.ed25519();
-			else if (classOfTag.equals(StorageTypes.EOA_SHA256DSA))
-				return SignatureAlgorithms.sha256dsa();
-			else if (classOfTag.equals(StorageTypes.EOA_QTESLA1))
-				return SignatureAlgorithms.qtesla1();
-			else if (classOfTag.equals(StorageTypes.EOA_QTESLA3))
-				return SignatureAlgorithms.qtesla3();
-			else if (classOfTag.equals(StorageTypes.EOA) || tag.getClazz().equals(StorageTypes.GAMETE))
-				return node.getConfig().getSignatureForRequests();
-
-			TakamakaClassLoader classLoader = classLoaderHelper.classloaderFor(tag.getJar());
-			Class<?> clazz = classLoader.loadClass(tag.getClazz().getName());
-
-			if (classLoader.getAccountED25519().isAssignableFrom(clazz))
-				return SignatureAlgorithms.ed25519();
-			else if (classLoader.getAccountSHA256DSA().isAssignableFrom(clazz))
-				return SignatureAlgorithms.sha256dsa();
-			else if (classLoader.getAccountQTESLA1().isAssignableFrom(clazz))
-				return SignatureAlgorithms.qtesla1();
-			else if (classLoader.getAccountQTESLA3().isAssignableFrom(clazz))
-				return SignatureAlgorithms.qtesla3();
-			else
-				return node.getConfig().getSignatureForRequests();
+			clazz = classLoader.loadClass(tag.getClazz().getName());
 		}
 		catch (ClassNotFoundException e) {
+			// this should not happen since the account has been previously successfully created
 			throw new NodeException("Reference " + account + " has a class that cannot be found in its classpath", e);
 		}
-		catch (NoSuchAlgorithmException e) {
-			throw new NodeException(e);
-		}
-		catch (UnknownTypeException e) {
-			// the jar, if already installed in the node, must be legal, since it has been already installed there
-			throw new NodeException(e);
-		}
+
+		if (classLoader.getAccountED25519().isAssignableFrom(clazz))
+			return SignatureAlgorithms.ed25519();
+		else if (classLoader.getAccountSHA256DSA().isAssignableFrom(clazz))
+			return SignatureAlgorithms.sha256dsa();
+		else if (classLoader.getAccountQTESLA1().isAssignableFrom(clazz))
+			return SignatureAlgorithms.qtesla1();
+		else if (classLoader.getAccountQTESLA3().isAssignableFrom(clazz))
+			return SignatureAlgorithms.qtesla3();
+		else
+			return node.getConfig().getSignatureForRequests();
 	}
 }

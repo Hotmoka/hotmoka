@@ -73,8 +73,11 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws NodeException if the node is not able to complete the operation
+	 * @throws CodeExecutionException 
+	 * @throws TransactionException 
+	 * @throws TransactionRejectedException 
 	 */
-	public AccountCreationHelperImpl(Node node) throws NodeException, TimeoutException, InterruptedException {
+	public AccountCreationHelperImpl(Node node) throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, CodeExecutionException {
 		this.node = node;
 		this.manifest = node.getManifest();
 		this.takamakaCode = node.getTakamakaCode();
@@ -86,7 +89,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 	@Override
 	public StorageReference paidByFaucet(SignatureAlgorithm signatureAlgorithm, PublicKey publicKey,
 			BigInteger balance, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, InvalidKeyException, SignatureException, NodeException, InterruptedException, TimeoutException {
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NodeException, InterruptedException, TimeoutException {
 
 		StorageReference gamete;
 
@@ -155,7 +158,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 			boolean addToLedger,
 			Consumer<BigInteger> gasHandler,
 			Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException, NoSuchAlgorithmException {
 
 		ClassType eoaType;
 		String signature = signatureAlgorithm.getName();
@@ -223,20 +226,12 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 
 	@Override
 	public StorageReference tendermintValidatorPaidByFaucet(PublicKey publicKey, BigInteger balance, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, InvalidKeyException, SignatureException, NodeException, InterruptedException, TimeoutException {
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NodeException, InterruptedException, TimeoutException {
 
-		StorageReference gamete;
-		
-		try {
-			gamete = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
-					.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"))
-					.asReturnedReference(MethodSignatures.GET_GAMETE, NodeException::new);
-		}
-		catch (CodeExecutionException e) {
-			// the method gamete() does not throw exceptions
-			throw new NodeException(e);
-		}
+		StorageReference gamete = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+			(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
+			.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"))
+			.asReturnedReference(MethodSignatures.GET_GAMETE, NodeException::new);
 
 		SignatureAlgorithm ed25519;
 
@@ -282,7 +277,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 	@Override
 	public StorageReference tendermintValidatorPaidBy(StorageReference payer, KeyPair keysOfPayer, PublicKey publicKey, BigInteger balance, Consumer<BigInteger> gasHandler,
 			Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException, NoSuchAlgorithmException {
 
 		var signatureForPayer = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
 

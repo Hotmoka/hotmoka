@@ -33,7 +33,6 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
-import io.hotmoka.node.api.UnknownTypeException;
 import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.whitelisting.api.WhiteListingWizard;
@@ -44,17 +43,11 @@ class PrintAPI {
 	private final WhiteListingWizard whiteListingWizard;
 
 	PrintAPI(Node node, ClassTag tag) throws ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
-		try {
-			TakamakaClassLoader classloader = ClassLoaderHelpers.of(node).classloaderFor(tag.getJar());
-			this.clazz = classloader.loadClass(tag.getClazz().getName());
-			this.whiteListingWizard = classloader.getWhiteListingWizard();
-			printConstructors();
-			printMethods();
-		}
-		catch (UnknownTypeException e) {
-			// a jar, if in the store of the node, must be legal because it has already been installed there
-			throw new NodeException(e);
-		}
+		TakamakaClassLoader classloader = ClassLoaderHelpers.of(node).classloaderFor(tag.getJar());
+		this.clazz = classloader.loadClass(tag.getClazz().getName());
+		this.whiteListingWizard = classloader.getWhiteListingWizard();
+		printConstructors();
+		printMethods();
 	}
 
 	private void printMethods() throws ClassNotFoundException {

@@ -27,7 +27,6 @@ import io.hotmoka.helpers.api.GasCounter;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.FailedTransactionResponse;
@@ -65,17 +64,17 @@ public class GasCounterImpl implements GasCounter {
 	private final BigInteger forPenalty;
 
 	/**
-	 * Creates the counter of the gas consumed for the execution of a set of requests.
+	 * Creates the counter of the gas consumed for the given set of requests,
+	 * that have been already executed with the given node.
 	 * 
 	 * @param node the node that executed the requests
 	 * @param requests the requests whose consumed gas must be computed
 	 * @throws InterruptedException if the execution gets interrupted
 	 * @throws TimeoutException if no answer arrives within the expected time window
 	 * @throws UnknownReferenceException if some request has not been processed by the node
-	 * @throws TransactionRejectedException if some request has been rejected by the node
 	 * @throws NodeException if the node is not able to complete the operation correctly
 	 */
-	public GasCounterImpl(Node node, TransactionRequest<?>... requests) throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, UnknownReferenceException {
+	public GasCounterImpl(Node node, TransactionRequest<?>... requests) throws NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
 		Hasher<TransactionRequest<?>> hasher;
 
 		try {
