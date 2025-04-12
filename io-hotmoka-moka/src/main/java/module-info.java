@@ -23,9 +23,12 @@ module io.hotmoka.moka {
 	// for injecting CLI options
 	opens io.hotmoka.moka to info.picocli;
     opens io.hotmoka.moka.internal to info.picocli;
-    opens io.hotmoka.moka.internal.config to info.picocli;
+    opens io.hotmoka.moka.internal.jars to info.picocli, com.google.gson;
+    opens io.hotmoka.moka.internal.keys to info.picocli, com.google.gson;
     opens io.hotmoka.moka.internal.node to info.picocli;
+    opens io.hotmoka.moka.internal.node.config to info.picocli;
     opens io.hotmoka.moka.internal.node.manifest to info.picocli;
+    opens io.hotmoka.moka.internal.node.takamaka to info.picocli;
 
     requires io.hotmoka.helpers;
     requires io.hotmoka.node.tendermint;
@@ -47,5 +50,6 @@ module io.hotmoka.moka {
 	requires jakarta.websocket.client;
 	requires io.hotmoka.websockets.client.api;
 	requires info.picocli;
+	requires com.google.gson;
 	requires java.logging;
 }

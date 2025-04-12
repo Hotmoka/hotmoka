@@ -209,7 +209,7 @@ public abstract class StorageValues {
 	/**
 	 * Yields a storage value from the given string and of the given type.
 	 * 
-	 * @param s the string; use "null" (without quotes) for {@code null}
+	 * @param s the string; use the string "null" (without quotes) for {@code null}
 	 * @param type the type of the storage value
 	 * @return the resulting storage value
 	 */

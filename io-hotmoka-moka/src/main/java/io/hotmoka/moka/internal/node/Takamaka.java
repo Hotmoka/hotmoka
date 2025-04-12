@@ -16,31 +16,15 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.node;
 
-import java.util.concurrent.TimeoutException;
-
-import io.hotmoka.cli.CommandException;
-import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
-import io.hotmoka.node.TransactionReferences;
-import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.remote.api.RemoteNode;
-import jakarta.websocket.EncodeException;
+import io.hotmoka.moka.internal.node.takamaka.Address;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.HelpCommand;
 
-@Command(name = "takamaka", description = "Show the transaction that installed the Takamaka runtime in a node.")
-public class Takamaka extends AbstractMokaRpcCommand {
-
-	private void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
-		try {
-			var takamaka = remote.getTakamakaCode();
-			System.out.println(json() ? new TransactionReferences.Encoder().encode(takamaka) : takamaka);
-		}
-		catch (EncodeException e) {
-			throw new CommandException("Cannot encode in JSON format the transaction that installed the Takamaka runtime of the node at \"" + uri() + "\".", e);
-		}
-	}
-
-	@Override
-	protected void execute() throws CommandException {
-		execute(this::body);
-	}
+@Command(name = "takamaka",
+description = "Manage the Takamaka runtime of a node.",
+subcommands = {
+	HelpCommand.class,
+	Address.class
+})
+public class Takamaka {
 }

@@ -23,13 +23,10 @@ import java.util.logging.LogManager;
 import io.hotmoka.moka.internal.BindKey;
 import io.hotmoka.moka.internal.BuyValidation;
 import io.hotmoka.moka.internal.Call;
-import io.hotmoka.moka.internal.Config;
 import io.hotmoka.moka.internal.Create;
 import io.hotmoka.moka.internal.CreateAccount;
-import io.hotmoka.moka.internal.CreateKey;
 import io.hotmoka.moka.internal.Faucet;
 import io.hotmoka.moka.internal.ImportAccount;
-import io.hotmoka.moka.internal.Info;
 import io.hotmoka.moka.internal.InitDisk;
 import io.hotmoka.moka.internal.InitMokamint;
 import io.hotmoka.moka.internal.InitTendermint;
@@ -46,8 +43,6 @@ import io.hotmoka.moka.internal.ShowAccount;
 import io.hotmoka.moka.internal.StartMokamint;
 import io.hotmoka.moka.internal.StartTendermint;
 import io.hotmoka.moka.internal.State;
-import io.hotmoka.moka.internal.Verify;
-import io.hotmoka.moka.internal.Version;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
@@ -63,14 +58,11 @@ import picocli.CommandLine.Command;
 	subcommands = { BindKey.class,
 					BuyValidation.class,
 					Call.class,
-					Config.class,
 					Create.class,
 					CreateAccount.class,
-					CreateKey.class,
 					CommandLine.HelpCommand.class,
 					Faucet.class,
 					ImportAccount.class,
-					Info.class,
 					InitDisk.class,
 					InitMokamint.class,
 					InitTendermint.class,
@@ -85,9 +77,7 @@ import picocli.CommandLine.Command;
 			        ShowAccount.class,
 			        StartMokamint.class,
 			        StartTendermint.class,
-			        State.class,
-			        Verify.class,
-			        Version.class }, 
+			        State.class }, 
 
 	description = "This is the command-line interface of Hotmoka.",
 

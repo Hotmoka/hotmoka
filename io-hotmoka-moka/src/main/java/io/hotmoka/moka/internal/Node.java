@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.moka.internal;
 
+import io.hotmoka.moka.internal.node.Config;
 import io.hotmoka.moka.internal.node.Info;
 import io.hotmoka.moka.internal.node.Manifest;
 import io.hotmoka.moka.internal.node.Takamaka;
@@ -26,6 +27,7 @@ import picocli.CommandLine.HelpCommand;
 	description = "Manage a Hotmoka node.",
 	subcommands = {
 		HelpCommand.class,
+		Config.class,
 		Info.class,
 		Manifest.class,
 		Takamaka.class

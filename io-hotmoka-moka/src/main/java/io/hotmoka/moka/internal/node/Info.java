@@ -35,7 +35,7 @@ public class Info extends AbstractMokaRpcCommand {
 			System.out.println(json() ? new NodeInfos.Encoder().encode(info) : info);
 		}
 		catch (EncodeException e) {
-			throw new CommandException("Cannot encode in JSON format the local information about the node at \"" + uri() + "\".", e);
+			throw new NodeException("Cannot encode in JSON format the local information about the node at \"" + uri() + "\".", e);
 		}
 	}
 

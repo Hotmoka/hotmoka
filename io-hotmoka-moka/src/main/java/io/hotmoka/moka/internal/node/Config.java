@@ -1,5 +1,5 @@
 /*
-Copyright 2023 Fausto Spoto
+Copyright 2025 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,14 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal;
+package io.hotmoka.moka.internal.node;
 
-import io.hotmoka.moka.internal.config.Show;
+import io.hotmoka.moka.internal.node.config.Show;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
 
 @Command(name = "config",
-	description = "Display the configuration of a node.",
+	description = "Manage the configuration of a node.",
 	subcommands = {
 		HelpCommand.class,
 		Show.class

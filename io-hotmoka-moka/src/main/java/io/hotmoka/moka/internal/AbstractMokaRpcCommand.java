@@ -49,7 +49,7 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 	}
 
 	/**
-	 * Opens a remote node connected to the uri of a remote Hotmoka node service, specified thorugh the {@code --uri} option,
+	 * Opens a remote node connected to the uri of a remote Hotmoka node service, specified through the {@code --uri} option,
 	 * and runs the given command body.
 	 * 
 	 * @param what the body

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal.config;
+package io.hotmoka.moka.internal.node.config;
 
 import java.util.concurrent.TimeoutException;
 
@@ -39,7 +39,7 @@ public class Show extends AbstractMokaRpcCommand {
 				System.out.println(config);
 		}
 		catch (EncodeException e) {
-			throw new CommandException("Cannot encode the configuration of the node at \"" + uri() + "\" in JSON format.", e);
+			throw new NodeException("Cannot encode the configuration of the node at \"" + uri() + "\" in JSON format.", e);
 		}
 	}
 
