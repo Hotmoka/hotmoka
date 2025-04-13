@@ -28,11 +28,9 @@ import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.node.Accounts;
-import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.remote.RemoteNodes;
@@ -81,13 +79,9 @@ public class Install extends AbstractCommand {
 
 			try (var node = RemoteNodes.of(uri, 10_000)) {
 				var takamakaCode = node.getTakamakaCode();
-				var manifest = node.getManifest();
 				checkStorageReference(payer);
 				var payer = StorageValues.reference(Install.this.payer);
-				String chainId = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
-					.orElseThrow(() -> new CommandException(MethodSignatures.GET_CHAIN_ID + " should not return void"))
-					.asReturnedString(MethodSignatures.GET_CHAIN_ID, NodeException::new);
+				String chainId = node.getConfig().getChainId();
 				var gasHelper = GasHelpers.of(node);
 				var nonceHelper = NonceHelpers.of(node);
 				var bytes = Files.readAllBytes(jar);

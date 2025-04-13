@@ -22,7 +22,7 @@ import io.hotmoka.cli.AbstractCLI;
 import io.hotmoka.cli.AbstractPropertyFileVersionProvider;
 import io.hotmoka.moka.MokaNew.POMVersionProvider;
 import io.hotmoka.moka.internal.Jars;
-import io.hotmoka.moka.internal.Keys;
+import io.hotmoka.moka.internal.Accounts;
 import io.hotmoka.moka.internal.Node;
 import picocli.CommandLine.Command;
 
@@ -40,7 +40,7 @@ import picocli.CommandLine.Command;
 	versionProvider = POMVersionProvider.class,
 	subcommands = {
 		Jars.class,
-		Keys.class,
+		Accounts.class,
 		Node.class
 	}
 )

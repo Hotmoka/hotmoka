@@ -14,13 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal;
+package io.hotmoka.moka.internal.accounts;
 
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.util.function.Function;
 
+import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.HashingAlgorithms;
@@ -35,10 +36,10 @@ public class KeysInfo {
 	private final transient SignatureAlgorithm signature;
 	private final String publicKeyBase58;
 	private final String publicKeyBase64;
+	private final String tendermintAddress;
 	private final String privateKeyBase58;
 	private final String privateKeyBase64;
 	private final String concatenatedBase64;
-	private final String tendermintAddress;
 
 	/**
 	 * The maximal length for the printed keys. After this length, the printout of the key gets truncated.
@@ -85,37 +86,37 @@ public class KeysInfo {
 		String result;
 
 		if (publicKeyBase58.length() > MAX_PRINTED_KEY)
-			result = "* public key: " + publicKeyBase58.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base58)\n";
+			result = "* public key: " + publicKeyBase58.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base58)";
 		else
-			result = "* public key: " + publicKeyBase58 + " (" + signature + ", base58)\n";
+			result = "* public key: " + publicKeyBase58 + " (" + signature + ", base58)";
 
 		if (publicKeyBase64.length() > MAX_PRINTED_KEY)
-			result += "* public key: " + publicKeyBase64.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base64)\n";
+			result += "\n* public key: " + publicKeyBase64.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base64)";
 		else
-			result += "* public key: " + publicKeyBase64 + " (" + signature + ", base64)\n";
+			result += "\n* public key: " + publicKeyBase64 + " (" + signature + ", base64)";
+
+		result += "\n* Tendermint-like address: " + tendermintAddress;
 
 		if (privateKeyBase58 != null) {
 			if (privateKeyBase58.length() > MAX_PRINTED_KEY)
-				result += "* private key: " + privateKeyBase58.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base58)\n";
+				result += "\n* private key: " + privateKeyBase58.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base58)";
 			else
-				result += "* private key: " + privateKeyBase58 + " (" + signature + ", base58)\n";
+				result += "\n* private key: " + privateKeyBase58 + " (" + signature + ", base58)";
 		}
 
 		if (privateKeyBase64 != null) {
 			if (privateKeyBase64.length() > MAX_PRINTED_KEY)
-				result += "* private key: " + privateKeyBase64.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base64)\n";
+				result += "\n* private key: " + privateKeyBase64.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base64)";
 			else
-				result += "* private key: " + privateKeyBase64 + " (" + signature + ", base64)\n";
+				result += "\n* private key: " + privateKeyBase64 + " (" + signature + ", base64)";
 		}
 
 		if (concatenatedBase64 != null) {
 			if (concatenatedBase64.length() > MAX_PRINTED_KEY * 2)
-				result += "* concatenated private+public key: " + concatenatedBase64.substring(0, MAX_PRINTED_KEY * 2) + "..." + " (base64)\n";
+				result += "\n* concatenated private+public key: " + concatenatedBase64.substring(0, MAX_PRINTED_KEY * 2) + "..." + " (base64)";
 			else
-				result += "* concatenated private+public key: " + concatenatedBase64 + " (base64)\n";
+				result += "\n* concatenated private+public key: " + concatenatedBase64 + " (base64)";
 		}
-
-		result += "* Tendermint-like address: " + tendermintAddress;
 
 		return result;
 	}

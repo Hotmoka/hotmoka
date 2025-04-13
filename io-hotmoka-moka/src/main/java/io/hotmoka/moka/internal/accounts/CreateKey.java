@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal.keys;
+package io.hotmoka.moka.internal.accounts;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -27,16 +27,15 @@ import io.hotmoka.cli.AbstractCommand;
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.moka.internal.KeysInfo;
 import io.hotmoka.moka.internal.SignatureOptionConverter;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "create", description = "Create a new key pair")
-public class Create extends AbstractCommand {
+@Command(name = "create-key", description = "Create a new key pair that can later be bound to an account")
+public class CreateKey extends AbstractCommand {
 
-	@Parameters(index = "0", description = "the file where the key pair will be stored")
+	@Parameters(index = "0", description = "the file where the key pair will be saved")
 	private Path path;
 
 	@Option(names = "--password", description = "the password that will be needed later to use the key pair", interactive = true, defaultValue = "")
@@ -46,8 +45,8 @@ public class Create extends AbstractCommand {
 			converter = SignatureOptionConverter.class, defaultValue = "ed25519")
 	private SignatureAlgorithm signature;
 
-	@Option(names = { "--private-key" }, description = "show the private key of the account")
-	private boolean privateKey;
+	@Option(names = { "--show-private" }, description = "show the private key")
+	private boolean showPrivate;
 
 	@Option(names = "--json", description = "print the output in JSON", defaultValue = "false")
 	private boolean json;
@@ -60,13 +59,13 @@ public class Create extends AbstractCommand {
 			var entropy = Entropies.random();
 			passwordAsString = new String(password);
 			KeyPair keys = entropy.keys(passwordAsString, signature);
-			var keysInfo = new KeysInfo(signature, keys, privateKey);
+			var keysInfo = new KeysInfo(signature, keys, showPrivate);
 
 			try {
 				entropy.dump(path);
 			}
 			catch (IOException e) {
-				throw new CommandException("The key pair could not be dumped into " + path + "!", e);
+				throw new CommandException("The key pair could not be saved into " + path + "!", e);
 			}
 
 			if (json)

@@ -1,5 +1,5 @@
 /*
-Copyright 2023 Fausto Spoto
+Copyright 2025 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,15 +16,15 @@ limitations under the License.
 
 package io.hotmoka.moka.internal;
 
-import io.hotmoka.moka.internal.keys.Create;
+import io.hotmoka.moka.internal.accounts.CreateKey;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
 
-@Command(name = "keys",
-	description = "Manage Hotmoka keys.",
+@Command(name = "accounts",
+	description = "Manage Hotmoka accounts.",
 	subcommands = {
 		HelpCommand.class,
-		Create.class
+		CreateKey.class
 	})
-public class Keys {
+public class Accounts {
 }
