@@ -116,11 +116,18 @@ public class WhiteListingClassLoaderImpl extends ClassLoader implements WhiteLis
 	}
 
 	@Override
-	public final Optional<Field> resolveField(Class<?> clazz, String name, Class<?> type) {
+	public final Optional<Field> resolveField(Class<?> clazz, String name, Class<?> type) throws ClassNotFoundException {
 		for (Class<?> cursor = clazz; cursor != null; cursor = cursor.getSuperclass()) {
-			Optional<Field> result = Stream.of(cursor.getDeclaredFields())
-					.filter(field -> field.getType() == type && field.getName().equals(name))
-					.findFirst();
+			Optional<Field> result;
+
+			try {
+				result = Stream.of(cursor.getDeclaredFields())
+						.filter(field -> field.getType() == type && field.getName().equals(name))
+						.findFirst();
+			}
+			catch (NoClassDefFoundError e) {
+				throw new ClassNotFoundException(e.getMessage());
+			}
 
 			if (result.isPresent())
 				return result;
@@ -135,12 +142,15 @@ public class WhiteListingClassLoaderImpl extends ClassLoader implements WhiteLis
 	}
 
 	@Override
-	public final Optional<Constructor<?>> resolveConstructor(Class<?> clazz, Class<?>[] args) {
+	public final Optional<Constructor<?>> resolveConstructor(Class<?> clazz, Class<?>[] args) throws ClassNotFoundException {
 		try {
 			return Optional.of(clazz.getDeclaredConstructor(args));
 		}
 		catch (NoSuchMethodException e) {
 			return Optional.empty();
+		}
+		catch (NoClassDefFoundError e) {
+			throw new ClassNotFoundException(e.getMessage());
 		}
 	}
 
@@ -150,7 +160,7 @@ public class WhiteListingClassLoaderImpl extends ClassLoader implements WhiteLis
 	}
 
 	@Override
-	public final Optional<Method> resolveMethod(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) {
+	public final Optional<Method> resolveMethod(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
 		for (Class<?> cursor = clazz; cursor != null; cursor = cursor.getSuperclass()) {
 			Optional<Method> result = resolveMethodExact(cursor, methodName, args, returnType);
 			if (result.isPresent())
@@ -166,7 +176,7 @@ public class WhiteListingClassLoaderImpl extends ClassLoader implements WhiteLis
 	}
 
 	@Override
-	public final Optional<Method> resolveInterfaceMethod(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) {
+	public final Optional<Method> resolveInterfaceMethod(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
 		// we first try to resolve the method in Object, since all implementations of the interface must extend Object
 		var maybeMethod = resolveInterfaceMethodInObject(methodName, args, returnType);
 		if (maybeMethod.isPresent())
@@ -188,7 +198,7 @@ public class WhiteListingClassLoaderImpl extends ClassLoader implements WhiteLis
 	 * @param args the formal arguments of the method
 	 * @param returnType the return type of the method
 	 * @return the method, if any
-	 * @throws ClassNotFoundException if {@code className} could not be found during resolution
+	 * @throws ClassNotFoundException if some class could not be resolved
 	 */
 	Optional<Method> resolveMethodExact(String className, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
 		return resolveMethodExact(loadClass(className), methodName, args, returnType);
@@ -257,13 +267,8 @@ public class WhiteListingClassLoaderImpl extends ClassLoader implements WhiteLis
 		return Optional.empty();
 	}
 
-	private Optional<Method> resolveInterfaceMethodInObject(String methodName, Class<?>[] args, Class<?> returnType) {
-		try {
-			return resolveMethodExact(loadClass(Object.class.getName()), methodName, args, returnType);
-		}
-		catch (ClassNotFoundException e) {
-			return Optional.empty();
-		}
+	private Optional<Method> resolveInterfaceMethodInObject(String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
+		return resolveMethodExact(loadClass(Object.class.getName()), methodName, args, returnType);
 	}
 
 	private Optional<InputStream> getResourceAsStreamFromJarsInNode(String name) {
@@ -322,12 +327,18 @@ public class WhiteListingClassLoaderImpl extends ClassLoader implements WhiteLis
 	 * @param args the formal arguments of the method
 	 * @param returnType the return type of the method
 	 * @return the method, if any
+	 * @throws ClassNotFoundException if some class cannot be resolved
 	 */
-	private Optional<Method> resolveMethodInInterfacesOf(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) {
-		for (Class<?> interf: clazz.getInterfaces()) {
-			Optional<Method> result = resolveInterfaceMethod(interf, methodName, args, returnType);
-			if (result.isPresent())
-				return result;
+	private Optional<Method> resolveMethodInInterfacesOf(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
+		try {
+			for (Class<?> interf: clazz.getInterfaces()) {
+				Optional<Method> result = resolveInterfaceMethod(interf, methodName, args, returnType);
+				if (result.isPresent())
+					return result;
+			}
+		}
+		catch (NoClassDefFoundError e) {
+			throw new ClassNotFoundException(e.getMessage());
 		}
 	
 		return Optional.empty();
@@ -342,10 +353,16 @@ public class WhiteListingClassLoaderImpl extends ClassLoader implements WhiteLis
 	 * @param args the formal arguments of the method
 	 * @param returnType the return type of the method
 	 * @return the method, if any
+	 * @throws ClassNotFoundException if some class cannot be resolved
 	 */
-	private static Optional<Method> resolveMethodExact(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) {
-		return Stream.of(clazz.getDeclaredMethods())
-				.filter(method -> method.getReturnType() == returnType && method.getName().equals(methodName) && Arrays.equals(method.getParameterTypes(), args))
-				.findFirst();
+	private static Optional<Method> resolveMethodExact(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
+		try {
+			return Stream.of(clazz.getDeclaredMethods())
+					.filter(method -> method.getReturnType() == returnType && method.getName().equals(methodName) && Arrays.equals(method.getParameterTypes(), args))
+					.findFirst();
+		}
+		catch (NoClassDefFoundError e) {
+			throw new ClassNotFoundException(e.getMessage());
+		}
 	}
 }

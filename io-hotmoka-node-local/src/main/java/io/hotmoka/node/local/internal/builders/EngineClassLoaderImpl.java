@@ -254,7 +254,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	private void processClassesInJars(List<byte[]> jars, List<TransactionReference> transactionsOfJars, ExecutionEnvironment environment) throws ClassLoaderCreationException {
 		// a map from each package name to the jar that defines it
 		var packages = new HashMap<String, Integer>();
-	
+
 		int pos = 0;
 		for (byte[] jar: jars) {
 			TransactionReference reference = transactionsOfJars.get(pos);
@@ -267,7 +267,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 						className = className.substring(0, className.length() - CLASS_END_LENGTH).replace('/', '.');
 						int lastDot = className.lastIndexOf('.');
 						if (lastDot == 0)
-							throw new ClassLoaderCreationException("Package names cannot start with a dot");
+							throw new ClassLoaderCreationException("Package names cannot start with a dot"); // TODO: maybe move all these checks inside the constructor of TakamakaClassLoader?
 	
 						String packageName = lastDot < 0 ? "" : className.substring(0, lastDot);
 						Integer previously = packages.get(packageName);
@@ -531,7 +531,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
-	public Optional<Field> resolveField(Class<?> clazz, String name, Class<?> type) {
+	public Optional<Field> resolveField(Class<?> clazz, String name, Class<?> type) throws ClassNotFoundException {
 		return parent.resolveField(clazz, name, type);
 	}
 
@@ -541,7 +541,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
-	public Optional<Constructor<?>> resolveConstructor(Class<?> clazz, Class<?>[] args) {
+	public Optional<Constructor<?>> resolveConstructor(Class<?> clazz, Class<?>[] args) throws ClassNotFoundException {
 		return parent.resolveConstructor(clazz, args);
 	}
 
@@ -551,7 +551,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
-	public Optional<Method> resolveMethod(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) {
+	public Optional<Method> resolveMethod(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
 		return parent.resolveMethod(clazz, methodName, args, returnType);
 	}
 
@@ -561,7 +561,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
-	public Optional<Method> resolveInterfaceMethod(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) {
+	public Optional<Method> resolveInterfaceMethod(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
 		return parent.resolveInterfaceMethod(clazz, methodName, args, returnType);
 	}
 

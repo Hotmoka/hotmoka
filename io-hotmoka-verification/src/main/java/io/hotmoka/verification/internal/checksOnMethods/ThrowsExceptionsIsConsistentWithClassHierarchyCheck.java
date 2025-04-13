@@ -41,11 +41,16 @@ public class ThrowsExceptionsIsConsistentWithClassHierarchyCheck extends CheckOn
 	}
 
 	private void isIdenticallyThrowsExceptionsInSupertypesOf(Class<?> clazz, boolean wasThrowsExceptions, Class<?> rt, Class<?>[] args) throws UnknownTypeException {
-		for (var method: clazz.getDeclaredMethods())
-			if (!Modifier.isPrivate(method.getModifiers()) && methodName.equals(method.getName())
-					&& method.getReturnType() == rt && Arrays.equals(method.getParameterTypes(), args)
-					&& wasThrowsExceptions != methodIsThrowsExceptionsIn(clazz.getName()))
-				issue(new InconsistentThrowsExceptionsError(inferSourceFile(), methodName, clazz.getName()));
+		try {
+			for (var method: clazz.getDeclaredMethods())
+				if (!Modifier.isPrivate(method.getModifiers()) && methodName.equals(method.getName())
+						&& method.getReturnType() == rt && Arrays.equals(method.getParameterTypes(), args)
+						&& wasThrowsExceptions != methodIsThrowsExceptionsIn(clazz.getName()))
+					issue(new InconsistentThrowsExceptionsError(inferSourceFile(), methodName, clazz.getName()));
+		}
+		catch (NoClassDefFoundError e) {
+			throw new UnknownTypeException(e.getMessage());
+		}
 				
 		Class<?> superclass = clazz.getSuperclass();
 		if (superclass != null)

@@ -41,11 +41,16 @@ public class PayableCodeIsConsistentWithClassHierarchyCheck extends CheckOnMetho
 	}
 
 	private void isIdenticallyPayableInSupertypesOf(Class<?> clazz, boolean wasPayable, Class<?> rt, Class<?>[] args) throws UnknownTypeException {
-		for (var method: clazz.getDeclaredMethods())
-			if (!Modifier.isPrivate(method.getModifiers()) && methodName.equals(method.getName())
-					&& method.getReturnType() == rt && Arrays.equals(method.getParameterTypes(), args)
-					&& wasPayable != methodIsPayableIn(clazz.getName()))
-				issue(new InconsistentPayableError(inferSourceFile(), methodName, clazz.getName()));
+		try {
+			for (var method: clazz.getDeclaredMethods())
+				if (!Modifier.isPrivate(method.getModifiers()) && methodName.equals(method.getName())
+						&& method.getReturnType() == rt && Arrays.equals(method.getParameterTypes(), args)
+						&& wasPayable != methodIsPayableIn(clazz.getName()))
+					issue(new InconsistentPayableError(inferSourceFile(), methodName, clazz.getName()));
+		}
+		catch (NoClassDefFoundError e) {
+			throw new UnknownTypeException(e.getMessage());
+		}
 	
 		Class<?> superclass = clazz.getSuperclass();
 		if (superclass != null)

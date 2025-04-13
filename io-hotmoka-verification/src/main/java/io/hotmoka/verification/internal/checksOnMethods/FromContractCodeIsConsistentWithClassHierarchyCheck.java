@@ -44,10 +44,15 @@ public class FromContractCodeIsConsistentWithClassHierarchyCheck extends CheckOn
 	}
 
 	private void isIdenticallyFromContractInSupertypesOf(Class<?> clazz, Optional<Class<?>> contractTypeForEntry) throws UnknownTypeException {
-		for (Method method: clazz.getDeclaredMethods())
-			if (!Modifier.isPrivate(method.getModifiers()) && method.getName().equals(methodName) && method.getReturnType() == methodReturnTypeClass && Arrays.equals(method.getParameterTypes(), methodArgsClasses)
-					&& !compatibleFromContracts(contractTypeForEntry, getMethodFromContractArgumentIn(clazz.getName())))
-				issue(new InconsistentFromContractError(inferSourceFile(), methodName, clazz.getName()));
+		try {
+			for (Method method: clazz.getDeclaredMethods())
+				if (!Modifier.isPrivate(method.getModifiers()) && method.getName().equals(methodName) && method.getReturnType() == methodReturnTypeClass && Arrays.equals(method.getParameterTypes(), methodArgsClasses)
+				&& !compatibleFromContracts(contractTypeForEntry, getMethodFromContractArgumentIn(clazz.getName())))
+					issue(new InconsistentFromContractError(inferSourceFile(), methodName, clazz.getName()));
+		}
+		catch (NoClassDefFoundError e) {
+			throw new UnknownTypeException(e.getMessage());
+		}
 			
 		Class<?> superclass = clazz.getSuperclass();
 		if (superclass != null)

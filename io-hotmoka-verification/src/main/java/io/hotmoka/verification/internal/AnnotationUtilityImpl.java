@@ -190,9 +190,15 @@ public class AnnotationUtilityImpl implements AnnotationUtility {
 			throw new UnknownTypeException(className);
 		}
 
-		Optional<Method> definition = Stream.of(clazz.getDeclaredMethods())
-			.filter(m -> m.getName().equals(methodName) && m.getReturnType() == returnTypeClass && Arrays.equals(m.getParameterTypes(), formalsClass))
-			.findFirst();
+		Optional<Method> definition;
+		try {
+			definition = Stream.of(clazz.getDeclaredMethods())
+					.filter(m -> m.getName().equals(methodName) && m.getReturnType() == returnTypeClass && Arrays.equals(m.getParameterTypes(), formalsClass))
+					.findFirst();
+		}
+		catch (NoClassDefFoundError e) {
+			throw new UnknownTypeException(e.getMessage());
+		}
 
 		if (definition.isPresent()) {
 			Method method = definition.get();

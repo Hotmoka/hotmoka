@@ -19,37 +19,36 @@ package io.hotmoka.moka.internal.jars;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 
 import io.hotmoka.cli.AbstractCommand;
 import io.hotmoka.cli.CommandException;
+import io.hotmoka.instrumentation.GasCostModels;
+import io.hotmoka.instrumentation.InstrumentedJars;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.VerifiedJars;
 import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.verification.api.UnknownTypeException;
-import io.hotmoka.verification.api.VerificationException;
 import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "verify",
-	description = "Verify a jar.",
+@Command(name = "instrument",
+	description = "Instrument a jar.",
 	showDefaultValues = true)
-public class Verify extends AbstractCommand {
+public class Instrument extends AbstractCommand {
 
-	@Parameters(index = "0", description = "the jar to verify")
+	@Parameters(description = "the jar to instrument")
 	private Path jar;
 
 	@Option(names = { "--libs" }, description = "the already instrumented dependencies of the jar")
 	private List<Path> libs;
+
+	@Parameters(description = "the name of the instrument jar")
+	private Path destination;
 
 	@Option(names = { "--init" }, description = "verify as during node initialization")
 	private boolean init;
@@ -57,8 +56,8 @@ public class Verify extends AbstractCommand {
 	@Option(names = { "--version" }, description = "use the given version of the verification rules", defaultValue = "0")
 	private int version;
 
-	@Option(names = "--json", description = "print the output in JSON", defaultValue = "false")
-	private boolean json;
+	@Option(names = { "--skip-verification" }, description = "skip the preliminary verification of the jar")
+	private boolean skipVerification;
 
 	@Override
 	protected void execute() throws CommandException {
@@ -94,59 +93,22 @@ public class Verify extends AbstractCommand {
 			throw new CommandException("Verification version " + version + " is not supported");
 		}
 
-		var gson = new Gson();
-		var errorsJSON = new ArrayList<JsonElement>();
-
-		class OnError implements Consumer<io.hotmoka.verification.api.Error> {
-			private int counter;
-
-			@Override
-			public void accept(io.hotmoka.verification.api.Error error) {
-				counter++;
-
-				if (json)
-					errorsJSON.add(gson.toJsonTree(new ErrorJSON(error)));
-				else {
-					if (counter == 1)
-						System.out.println("Verification failed with the following errors:");
-
-					System.out.println(counter + ": " + error);
-				}
-			}
-		}
+		var verifiedJar = VerifiedJars.of(classpath[0], classLoader, init, __error -> {}, skipVerification,
+				e -> new CommandException(e.getMessage() + ": no instrumented jar was generated", e),
+				e -> new CommandException(e.getMessage() + ": no instrumented jar was generated", e),
+				e -> new CommandException(e.getMessage() + ": no instrumented jar was generated", e));
 
 		try {
-			VerifiedJars.of(classpath[0], classLoader, init, new OnError(), false);
-			if (!json)
-				System.out.println("Verification succeeded");
+			Path parent = destination.getParent();
+			if (parent != null)
+				Files.createDirectories(parent);
+			InstrumentedJars.of(verifiedJar, GasCostModels.standard()).dump(destination);
 		}
-		catch (UnknownTypeException e) {
-			if (json)
-				System.out.println(errorsJSON);
-
-			throw new CommandException("Some type cannot be resolved: " + e.getMessage(), e);
+		catch (UnknownTypeException | IllegalJarException e) {
+			throw new CommandException("Cannot instrument the jar: " + e.getMessage(), e);
 		}
-		catch (IllegalJarException e) {
-			if (json)
-				System.out.println(errorsJSON);
-
-			throw new CommandException("The jar file is illegal: " + e.getMessage(), e);
-		}
-		catch (VerificationException e) {
-			if (json)
-				System.out.println(errorsJSON);
-		}
-	}
-
-	private static class ErrorJSON {
-		@SuppressWarnings("unused")
-		private final String where;
-		@SuppressWarnings("unused")
-		private final String message;
-
-		private ErrorJSON(io.hotmoka.verification.api.Error error) {
-			this.where = error.getWhere();
-			this.message = error.getMessage();
+		catch (IOException e) {
+			throw new CommandException("Cannot create file " + destination + ": " + e.getMessage());
 		}
 	}
 }

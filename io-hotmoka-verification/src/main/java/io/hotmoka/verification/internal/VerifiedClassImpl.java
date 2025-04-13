@@ -152,10 +152,11 @@ public class VerifiedClassImpl implements VerifiedClass {
 	 * @param executable the method or constructor whose model is looked for
 	 * @param invoke the call to the method or constructor
 	 * @return the model of its white-listing, if it exists
+	 * @throws UnknownTypeException if some type cannot be resolved
 	 */
-	Optional<? extends Executable> whiteListingModelOf(Executable executable, InvokeInstruction invoke) {
-		if (executable instanceof Constructor<?>)
-			return jar.getClassLoader().getWhiteListingWizard().whiteListingModelOf((Constructor<?>) executable);
+	Optional<? extends Executable> whiteListingModelOf(Executable executable, InvokeInstruction invoke) throws UnknownTypeException {
+		if (executable instanceof Constructor<?> con)
+			return jar.getClassLoader().getWhiteListingWizard().whiteListingModelOf(con);
 		else
 			return jar.getClassLoader().getWhiteListingWizard().whiteListingModelOf((Method) executable);
 	}

@@ -381,7 +381,7 @@ public class Call extends AbstractCommand {
 			System.out.print(methodAsString(method));
 		}
 
-		private String methodAsString(Method method) {
+		private String methodAsString(Method method) throws ClassNotFoundException {
 			return annotationsAsString(method) + AbstractCommand.ANSI_GREEN
 				+ method.toString().replace(method.getDeclaringClass().getName() + "." + method.getName(), method.getName())
 				+ (whiteListingWizard.whiteListingModelOf(method).isEmpty() ? (AbstractCommand.ANSI_RED + " \u274c" + AbstractCommand.ANSI_RESET) : AbstractCommand.ANSI_RESET);

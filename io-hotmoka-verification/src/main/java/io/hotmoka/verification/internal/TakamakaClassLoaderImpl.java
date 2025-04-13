@@ -366,7 +366,7 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	}
 
 	@Override
-	public final Optional<Field> resolveField(Class<?> clazz, String name, Class<?> type) {
+	public final Optional<Field> resolveField(Class<?> clazz, String name, Class<?> type) throws ClassNotFoundException {
 		return parent.resolveField(clazz, name, type);
 	}
 
@@ -376,7 +376,7 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	}
 
 	@Override
-	public final Optional<Constructor<?>> resolveConstructor(Class<?> clazz, Class<?>[] args) {
+	public final Optional<Constructor<?>> resolveConstructor(Class<?> clazz, Class<?>[] args) throws ClassNotFoundException {
 		return parent.resolveConstructor(clazz, args);
 	}
 
@@ -386,7 +386,7 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	}
 
 	@Override
-	public final Optional<java.lang.reflect.Method> resolveMethod(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) {
+	public final Optional<java.lang.reflect.Method> resolveMethod(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
 		return parent.resolveMethod(clazz, methodName, args, returnType);
 	}
 
@@ -396,7 +396,7 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	}
 
 	@Override
-	public final Optional<Method> resolveInterfaceMethod(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) {
+	public final Optional<Method> resolveInterfaceMethod(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
 		return parent.resolveInterfaceMethod(clazz, methodName, args, returnType);
 	}
 

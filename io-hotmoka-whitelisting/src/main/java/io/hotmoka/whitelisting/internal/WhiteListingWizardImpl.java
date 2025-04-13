@@ -98,21 +98,27 @@ class WhiteListingWizardImpl implements WhiteListingWizard {
 					superclass = Object.class;
 
 				if (superclass != null) {
-					Optional<Method> overridden = classLoader.resolveMethod(superclass, method.getName(), method.getParameterTypes(), method.getReturnType());
-					if (overridden.isPresent()) {
-						result = whiteListingModelOf(overridden.get());
-						if (result.isPresent())
-							return result;
+					try {
+						Optional<Method> overridden = classLoader.resolveMethod(superclass, method.getName(), method.getParameterTypes(), method.getReturnType());
+						if (overridden.isPresent()) {
+							result = whiteListingModelOf(overridden.get());
+							if (result.isPresent())
+								return result;
+						}
 					}
+					catch (ClassNotFoundException e) {}
 				}
 
 				for (Class<?> superinterface: declaringClass.getInterfaces()) {
-					Optional<Method> overridden = classLoader.resolveMethod(superinterface, method.getName(), method.getParameterTypes(), method.getReturnType());
-					if (overridden.isPresent()) {
-						result = whiteListingModelOf(overridden.get());
-						if (result.isPresent())
-							return result;
+					try {
+						Optional<Method> overridden = classLoader.resolveMethod(superinterface, method.getName(), method.getParameterTypes(), method.getReturnType());
+						if (overridden.isPresent()) {
+							result = whiteListingModelOf(overridden.get());
+							if (result.isPresent())
+								return result;
+						}
 					}
+					catch (ClassNotFoundException e) {}
 				}
 			}
 		}

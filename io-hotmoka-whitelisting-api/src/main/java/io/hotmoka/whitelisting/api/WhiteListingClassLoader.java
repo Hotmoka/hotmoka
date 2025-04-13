@@ -75,8 +75,9 @@ public interface WhiteListingClassLoader {
 	 * @param name the name of the field
 	 * @param type the type of the field
 	 * @return the resolved field, if any
+	 * @throws ClassNotFoundException if some class cannot be resolved
 	 */
-	Optional<Field> resolveField(Class<?> clazz, String name, Class<?> type);
+	Optional<Field> resolveField(Class<?> clazz, String name, Class<?> type) throws ClassNotFoundException;
 
 	/**
 	 * Yields the constructor resolved from the given static description.
@@ -85,7 +86,7 @@ public interface WhiteListingClassLoader {
 	 * @param className the name of the class declaring the constructor
 	 * @param args the arguments of the constructor
 	 * @return the resolved constructor, if any
-	 * @throws ClassNotFoundException if {@code className} cannot be found
+	 * @throws ClassNotFoundException if some class cannot be resolved
 	 */
 	Optional<Constructor<?>> resolveConstructor(String className, Class<?>[] args) throws ClassNotFoundException;
 
@@ -96,8 +97,9 @@ public interface WhiteListingClassLoader {
 	 * @param clazz the class declaring the constructor
 	 * @param args the arguments of the constructor
 	 * @return the resolved constructor, if any
+	 * @throws ClassNotFoundException if some class cannot be resolved
 	 */
-	Optional<Constructor<?>> resolveConstructor(Class<?> clazz, Class<?>[] args);
+	Optional<Constructor<?>> resolveConstructor(Class<?> clazz, Class<?>[] args) throws ClassNotFoundException;
 
 	/**
 	 * Yields the method resolved from the given static description.
@@ -107,7 +109,7 @@ public interface WhiteListingClassLoader {
 	 * @param args the arguments of the method
 	 * @param returnType the return type of the method
 	 * @return the resolved method, if any. It is defined in {@code className} or in one of its superclasses or implemented interfaces
-	 * @throws ClassNotFoundException if {@code className} cannot be found
+	 * @throws ClassNotFoundException if some class cannot be resolved
 	 */
 	Optional<Method> resolveMethod(String className, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException;
 
@@ -119,8 +121,9 @@ public interface WhiteListingClassLoader {
 	 * @param args the arguments of the method
 	 * @param returnType the return type of the method
 	 * @return the resolved method, if any. It is defined in {@code className} or in one of its superclasses or implemented interfaces
+	 * @throws ClassNotFoundException if some class cannot be resolved
 	 */
-	Optional<Method> resolveMethod(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType);
+	Optional<Method> resolveMethod(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException;
 
 	/**
 	 * Yields the interface method resolved from the given static description.
@@ -130,7 +133,7 @@ public interface WhiteListingClassLoader {
 	 * @param args the arguments of the method
 	 * @param returnType the return type of the method
 	 * @return the resolved method, if any. It is defined in {@code className} or in one of its implemented interfaces
-	 * @throws ClassNotFoundException if {@code className} cannot be found
+	 * @throws ClassNotFoundException if some class cannot be resolved
 	 */
 	Optional<Method> resolveInterfaceMethod(String className, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException;
 
@@ -142,6 +145,7 @@ public interface WhiteListingClassLoader {
 	 * @param args the arguments of the method
 	 * @param returnType the return type of the method
 	 * @return the resolved method, if any. It is defined in {@code className} or in one of its implemented interfaces
+	 * @throws ClassNotFoundException if some class cannot be resolved
 	 */
-	Optional<Method> resolveInterfaceMethod(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType);
+	Optional<Method> resolveInterfaceMethod(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException;
 }
