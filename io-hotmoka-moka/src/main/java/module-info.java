@@ -52,4 +52,5 @@ module io.hotmoka.moka {
 	requires info.picocli;
 	requires com.google.gson;
 	requires java.logging;
+	requires io.hotmoka.node.api;
 }

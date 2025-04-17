@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.logging.LogManager;
 
-import io.hotmoka.moka.internal.BindKey;
 import io.hotmoka.moka.internal.BuyValidation;
 import io.hotmoka.moka.internal.Call;
 import io.hotmoka.moka.internal.Create;
@@ -54,12 +53,10 @@ import picocli.CommandLine.Command;
  */
 @Command(name = "moka",
 
-	subcommands = { BindKey.class,
-					BuyValidation.class,
+	subcommands = { BuyValidation.class,
 					Call.class,
 					Create.class,
 					CreateAccount.class,
-					CommandLine.HelpCommand.class,
 					Faucet.class,
 					ImportAccount.class,
 					InitDisk.class,

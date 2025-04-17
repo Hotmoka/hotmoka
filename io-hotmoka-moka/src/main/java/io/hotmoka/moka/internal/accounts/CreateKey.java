@@ -18,6 +18,8 @@ package io.hotmoka.moka.internal.accounts;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.util.Arrays;
 
@@ -25,18 +27,15 @@ import com.google.gson.Gson;
 
 import io.hotmoka.cli.AbstractCommand;
 import io.hotmoka.cli.CommandException;
+import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.moka.internal.SignatureOptionConverter;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
-import picocli.CommandLine.Parameters;
 
 @Command(name = "create-key", description = "Create a new key pair that can later be bound to an account")
 public class CreateKey extends AbstractCommand {
-
-	@Parameters(index = "0", description = "the file where the key pair will be saved")
-	private Path path;
 
 	@Option(names = "--password", description = "the password that will be needed later to use the key pair", interactive = true, defaultValue = "")
     private char[] password;
@@ -61,17 +60,26 @@ public class CreateKey extends AbstractCommand {
 			KeyPair keys = entropy.keys(passwordAsString, signature);
 			var keysInfo = new KeysInfo(signature, keys, showPrivate);
 
+			Path path;
+			try {
+				path = Paths.get(Base58.toBase58String(signature.encodingOf(keys.getPublic())) + ".pem");
+			}
+			catch (InvalidKeyException e) {
+				// this should not happen since we created the keys with the signature algorithm
+				throw new RuntimeException(e);
+			}
+
 			try {
 				entropy.dump(path);
 			}
 			catch (IOException e) {
-				throw new CommandException("The key pair could not be saved into " + path + "!", e);
+				throw new CommandException("Cannot write the key pair into " + path + "!", e);
 			}
 
 			if (json)
 				System.out.println(new Gson().toJsonTree(keysInfo));
 			else {
-				System.out.println("The new key pair has been saved into \"" + path + "\":");
+				System.out.println("The new key pair has been written into \"" + path + "\":");
 				System.out.println(keysInfo);
 			}
 		}
