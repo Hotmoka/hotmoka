@@ -49,12 +49,22 @@ public class MokaNew extends AbstractCLI {
 	private MokaNew() {}
 
 	/**
-	 * Entry point from the shell.
+	 * Entry point from the shell. At its end, the status message
+	 * returned from the tool is returned to the shell.
 	 * 
 	 * @param args the command-line arguments provided to this tool
 	 */
 	public static void main(String[] args) {
-		main(MokaNew::new, args);
+		System.exit(main(MokaNew::new, args));
+	}
+
+	/**
+	 * Entry point from the shell.
+	 * 
+	 * @param args the command-line arguments provided to this tool
+	 */
+	public static void main(String args) {
+		main(MokaNew::new, args.split(" "));
 	}
 
 	static {

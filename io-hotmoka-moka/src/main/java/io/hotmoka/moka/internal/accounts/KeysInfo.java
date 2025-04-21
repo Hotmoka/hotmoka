@@ -21,6 +21,7 @@ import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.util.function.Function;
 
+import io.hotmoka.annotations.Immutable;
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Base64;
@@ -32,14 +33,15 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 /**
  * Information about a key pair.
  */
+@Immutable
 public class KeysInfo {
-	private final transient SignatureAlgorithm signature;
-	private final String publicKeyBase58;
-	private final String publicKeyBase64;
-	private final String tendermintAddress;
-	private final String privateKeyBase58;
-	private final String privateKeyBase64;
-	private final String concatenatedBase64;
+	public final String signature;
+	public final String publicKeyBase58;
+	public final String publicKeyBase64;
+	public final String tendermintAddress;
+	public final String privateKeyBase58;
+	public final String privateKeyBase64;
+	public final String concatenatedBase64;
 
 	/**
 	 * The maximal length for the printed keys. After this length, the printout of the key gets truncated.
@@ -47,7 +49,7 @@ public class KeysInfo {
 	public final static int MAX_PRINTED_KEY = 200;
 
 	public KeysInfo(SignatureAlgorithm signature, KeyPair keys, boolean alsoPrivate) throws CommandException {
-		this.signature = signature;
+		this.signature = signature.getName();
 
 		try {
 			byte[] publicKeyBytes = signature.encodingOf(keys.getPublic());
@@ -79,6 +81,16 @@ public class KeysInfo {
 			// this should not happen since we created the keys from the signature algorithm
 			throw new RuntimeException("The new key pair is invalid!", e);
 		}
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		return other instanceof KeysInfo ki
+			&& ki.signature.equals(signature)
+			&& ki.privateKeyBase58.equals(privateKeyBase58)
+			&& ki.privateKeyBase64.equals(privateKeyBase64)
+			&& ki.publicKeyBase58.equals(publicKeyBase58)
+			&& ki.publicKeyBase64.equals(publicKeyBase64);
 	}
 
 	@Override

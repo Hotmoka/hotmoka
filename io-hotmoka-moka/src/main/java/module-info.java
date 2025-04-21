@@ -42,6 +42,7 @@ module io.hotmoka.moka {
 	requires io.hotmoka.cli;
 	requires io.hotmoka.crypto;
 	requires io.hotmoka.exceptions;
+	requires io.hotmoka.annotations;
 	requires io.takamaka.code.constants;
 	requires io.mokamint.node.local;
 	requires io.mokamint.plotter;

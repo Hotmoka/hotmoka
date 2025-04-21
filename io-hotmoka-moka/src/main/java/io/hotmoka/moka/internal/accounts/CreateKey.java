@@ -18,7 +18,6 @@ package io.hotmoka.moka.internal.accounts;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.util.Arrays;
@@ -36,6 +35,9 @@ import picocli.CommandLine.Option;
 
 @Command(name = "create-key", description = "Create a new key pair that can later be bound to an account")
 public class CreateKey extends AbstractCommand {
+
+	@Option(names = "--dir", description = "the directory where the PEM file of the new key must be written", defaultValue = "")
+    private Path dir;
 
 	@Option(names = "--password", description = "the password that will be needed later to use the key pair", interactive = true, defaultValue = "")
     private char[] password;
@@ -62,7 +64,7 @@ public class CreateKey extends AbstractCommand {
 
 			Path path;
 			try {
-				path = Paths.get(Base58.toBase58String(signature.encodingOf(keys.getPublic())) + ".pem");
+				path = dir.resolve(Base58.toBase58String(signature.encodingOf(keys.getPublic())) + ".pem");
 			}
 			catch (InvalidKeyException e) {
 				// this should not happen since we created the keys with the signature algorithm
