@@ -19,6 +19,7 @@ package io.hotmoka.moka.internal.accounts;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
+import java.util.Objects;
 import java.util.function.Function;
 
 import io.hotmoka.annotations.Immutable;
@@ -87,10 +88,11 @@ public class KeysInfo {
 	public boolean equals(Object other) {
 		return other instanceof KeysInfo ki
 			&& ki.signature.equals(signature)
-			&& ki.privateKeyBase58.equals(privateKeyBase58)
-			&& ki.privateKeyBase64.equals(privateKeyBase64)
 			&& ki.publicKeyBase58.equals(publicKeyBase58)
-			&& ki.publicKeyBase64.equals(publicKeyBase64);
+			&& ki.publicKeyBase64.equals(publicKeyBase64)
+			&& Objects.equals(ki.privateKeyBase58, privateKeyBase58)
+			&& Objects.equals(ki.privateKeyBase64, privateKeyBase64)
+			&& Objects.equals(ki.concatenatedBase64, concatenatedBase64);
 	}
 
 	@Override

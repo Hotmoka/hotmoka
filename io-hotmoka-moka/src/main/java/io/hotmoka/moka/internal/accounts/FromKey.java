@@ -19,14 +19,16 @@ package io.hotmoka.moka.internal.accounts;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Path;
+import java.security.InvalidKeyException;
+import java.util.Arrays;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.cli.CommandException;
-import io.hotmoka.crypto.Base58;
-import io.hotmoka.crypto.Base58ConversionException;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Entropies;
+import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
+import io.hotmoka.moka.internal.SignatureOptionConverter;
 import io.hotmoka.moka.internal.StorageReferenceOptionConverter;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.MethodSignatures;
@@ -46,48 +48,52 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "from-key",
-	description = "Build an account file from key and reference",
+	description = "Create an account file from key and reference",
 	showDefaultValues = true)
 public class FromKey extends AbstractMokaRpcCommand {
 
 	@Parameters(index = "0", description = "the file holding the key of the account")
     private Path key;
 
-	@Option(names = { "--reference"}, description = "the reference of the account; if not specified, it means that the account was created anonymously and the reference must be recovered from the accounts ledger of the Hotmoka node", converter = StorageReferenceOptionConverter.class)
+	@Option(names = "--reference", description = "the reference of the account; if missing, it means that the account was created anonymously and the reference must be recovered from the accounts ledger of the Hotmoka node", converter = StorageReferenceOptionConverter.class)
     private StorageReference reference;
+
+	@Option(names = "--password", description = "the password of the key pair; this is used only if --reference is not provided", interactive = true, defaultValue = "")
+    private char[] password;
+
+	@Option(names = "--signature", description = "the signature algorithm for the key pair (ed25519, sha256dsa, qtesla1, qtesla3); this is used only if --reference is not provided",
+			converter = SignatureOptionConverter.class, defaultValue = "ed25519")
+	private SignatureAlgorithm signature;
 
 	@Override
 	protected void execute() throws CommandException {
-		if (reference == null)
-			execute(this::body);
-		else {
-			// not strictly necessary, but we check that the name of the file holding the key is encoded in Base58
-			try {
-				Base58.fromBase58String(key.getFileName().toString());
-			}
-			catch (Base58ConversionException e) {
-				throw new CommandException("The key file should be named as its Base58-encoded public key");
-			}
-
+		if (reference != null)
 			createAccountFile(reference);
-		}
+		else
+			execute(this::body);
 	}
 
 	private void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
 		var manifest = remote.getManifest();
 		var takamakaCode = remote.getTakamakaCode();
 
-		// we must translate the key from Base58 to Base64
-		String keyAsString;
-
+		String passwordAsString, publicKeyAsBase64String;
 		try {
-			keyAsString = Base64.toBase64String(Base58.fromBase58String(key.getFileName().toString()));
+			passwordAsString = new String(password);
+			publicKeyAsBase64String = Base64.toBase64String(signature.encodingOf(Entropies.load(key).keys(passwordAsString, signature).getPublic()));
 		}
-		catch (Base58ConversionException e) {
-			throw new CommandException("The key file should be named as its Base58-encoded public key");
+		catch (IOException e) {
+			throw new CommandException("Cannot read the file \"" + key + "\"");
+		}
+		catch (InvalidKeyException e) {
+			throw new CommandException("The file \"" + key + "\" contains a key invalid for the signature algorithm " + signature);
+		}
+		finally {
+			passwordAsString = null;
+			Arrays.fill(password, ' ');
 		}
 
-		BigInteger _100_000 = BigInteger.valueOf(100_000L);
+		var _100_000 = BigInteger.valueOf(100_000L);
 		StorageValue result;
 
 		try {
@@ -98,7 +104,7 @@ public class FromKey extends AbstractMokaRpcCommand {
 					.asReturnedReference(MethodSignatures.GET_ACCOUNTS_LEDGER, CommandException::new);
 
 			result = remote.runInstanceMethodCallTransaction
-					(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, MethodSignatures.GET_FROM_ACCOUNTS_LEDGER, ledger, StorageValues.stringOf(keyAsString)))
+					(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, MethodSignatures.GET_FROM_ACCOUNTS_LEDGER, ledger, StorageValues.stringOf(publicKeyAsBase64String)))
 					.orElseThrow(() -> new CommandException(MethodSignatures.GET_FROM_ACCOUNTS_LEDGER + " should not return void"));
 		}
 		catch (CodeExecutionException | TransactionException | TransactionRejectedException e) {
@@ -109,7 +115,7 @@ public class FromKey extends AbstractMokaRpcCommand {
 		if (result instanceof StorageReference sr)
 			createAccountFile(sr);
 		else if (result instanceof NullValue)
-			throw new CommandException("Cannot bind: nobody has paid anonymously to the key " + this.key + " up to now.");
+			throw new CommandException("Cannot bind: nobody has paid anonymously to the key " + key + " up to now.");
 		else
 			throw new NodeException("An unexpected value of type " + result.getClass().getSimpleName() + " has been found in the accounts ledger");
 	}
@@ -124,7 +130,7 @@ public class FromKey extends AbstractMokaRpcCommand {
 			account = Accounts.of(Entropies.load(key), reference);
 		}
 		catch (IOException e) {
-			throw new CommandException("Cannot read file \"" + key + "\"");
+			throw new CommandException("Cannot read the file \"" + key + "\"");
 		}
 
 		try {

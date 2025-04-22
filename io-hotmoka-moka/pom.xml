@@ -97,6 +97,18 @@
       <artifactId>picocli</artifactId>
       <version>4.7.2</version>
 	</dependency>
+	<dependency>
+      <groupId>org.jboss.shrinkwrap.resolver</groupId>
+      <artifactId>shrinkwrap-resolver-api-maven</artifactId>
+      <version>3.3.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.shrinkwrap.resolver</groupId>
+      <artifactId>shrinkwrap-resolver-impl-maven</artifactId>
+      <version>3.3.0</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

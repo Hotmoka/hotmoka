@@ -29,8 +29,9 @@ import io.hotmoka.instrumentation.InstrumentedJars;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.VerifiedJars;
 import io.hotmoka.verification.api.IllegalJarException;
-import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.verification.api.UnknownTypeException;
+import io.hotmoka.verification.api.VerificationException;
+import io.hotmoka.verification.api.VerifiedJar;
 import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -41,23 +42,26 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class Instrument extends AbstractCommand {
 
-	@Parameters(description = "the jar to instrument")
+	@Parameters(description = "the path of the jar to instrument")
 	private Path jar;
 
-	@Option(names = { "--libs" }, description = "the already instrumented dependencies of the jar")
-	private List<Path> libs;
-
-	@Parameters(description = "the name of the instrument jar")
+	@Parameters(description = "the path of the instrumented jar")
 	private Path destination;
 
-	@Option(names = { "--init" }, description = "verify as during node initialization")
+	@Option(names = "--libs", description = "the path of the already instrumented dependencies of the jar")
+	private List<Path> libs;
+
+	@Option(names = "--init", description = "verify as during node initialization")
 	private boolean init;
 
-	@Option(names = { "--version" }, description = "use the given version of the verification rules", defaultValue = "0")
+	@Option(names = "--version", description = "use the given version of the verification rules", defaultValue = "0")
 	private int version;
 
-	@Option(names = { "--skip-verification" }, description = "skip the preliminary verification of the jar")
+	@Option(names = "--skip-verification", description = "skip the preliminary verification of the jar")
 	private boolean skipVerification;
+
+	@Option(names = "--json", description = "print the output in JSON", defaultValue = "false")
+	private boolean json;
 
 	@Override
 	protected void execute() throws CommandException {
@@ -81,31 +85,24 @@ public class Instrument extends AbstractCommand {
 				}
 			}
 
-		TakamakaClassLoader classLoader;
+		VerifiedJar verifiedJar;
 
 		try {
-			classLoader = TakamakaClassLoaders.of(Stream.of(classpath), version);
-		}
-		catch (UnknownTypeException e) {
-			throw new CommandException("The Takamaka runtime is not reachable from the classpath", e);
-		}
-		catch (UnsupportedVerificationVersionException e) {
-			throw new CommandException("Verification version " + version + " is not supported");
-		}
-
-		var verifiedJar = VerifiedJars.of(classpath[0], classLoader, init, __error -> {}, skipVerification,
-				e -> new CommandException(e.getMessage() + ": no instrumented jar was generated", e),
-				e -> new CommandException(e.getMessage() + ": no instrumented jar was generated", e),
-				e -> new CommandException(e.getMessage() + ": no instrumented jar was generated", e));
-
-		try {
+			var classLoader = TakamakaClassLoaders.of(Stream.of(classpath), version);
+			verifiedJar = VerifiedJars.of(classpath[0], classLoader, init, __error -> {}, skipVerification);
 			Path parent = destination.getParent();
 			if (parent != null)
 				Files.createDirectories(parent);
+
 			InstrumentedJars.of(verifiedJar, GasCostModels.standard()).dump(destination);
+			if (json)
+				System.out.println("{}");
 		}
-		catch (UnknownTypeException | IllegalJarException e) {
-			throw new CommandException("Cannot instrument the jar: " + e.getMessage(), e);
+		catch (UnknownTypeException | VerificationException | IllegalJarException e) {
+			throw new CommandException(e.getMessage() + ": no instrumented jar was generated", e);
+		}
+		catch (UnsupportedVerificationVersionException e) {
+			throw new CommandException("Verification version " + version + " is not supported");
 		}
 		catch (IOException e) {
 			throw new CommandException("Cannot create file " + destination + ": " + e.getMessage());

@@ -20,7 +20,7 @@ import io.hotmoka.whitelisting.Dummy;
 
 public class C {
 
-	//// the use of DUmmy is forbidden, to avoid clashes with the instrumented code
+	//// the use of Dummy is forbidden, to avoid clashes with the instrumented code
 	public C(Dummy dummy) {
 	}
 }

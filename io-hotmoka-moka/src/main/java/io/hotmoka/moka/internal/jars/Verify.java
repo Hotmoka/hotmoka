@@ -45,16 +45,16 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class Verify extends AbstractCommand {
 
-	@Parameters(index = "0", description = "the jar to verify")
+	@Parameters(index = "0", description = "the path of the jar to verify")
 	private Path jar;
 
-	@Option(names = { "--libs" }, description = "the already instrumented dependencies of the jar")
+	@Option(names = "--libs", description = "the paths of the already instrumented dependencies of the jar")
 	private List<Path> libs;
 
-	@Option(names = { "--init" }, description = "verify as during node initialization")
+	@Option(names = "--init", description = "verify as during node initialization")
 	private boolean init;
 
-	@Option(names = { "--version" }, description = "use the given version of the verification rules", defaultValue = "0")
+	@Option(names = "--version", description = "use the given version of the verification rules", defaultValue = "0")
 	private int version;
 
 	@Option(names = "--json", description = "print the output in JSON", defaultValue = "false")
@@ -88,7 +88,7 @@ public class Verify extends AbstractCommand {
 			classLoader = TakamakaClassLoaders.of(Stream.of(classpath), version);
 		}
 		catch (UnknownTypeException e) {
-			throw new CommandException("The Takamaka runtime is not reachable from the classpath", e);
+			throw new CommandException("Some type cannot be resolved: " + e.getMessage(), e);
 		}
 		catch (UnsupportedVerificationVersionException e) {
 			throw new CommandException("Verification version " + version + " is not supported");
@@ -117,7 +117,10 @@ public class Verify extends AbstractCommand {
 
 		try {
 			VerifiedJars.of(classpath[0], classLoader, init, new OnError(), false);
-			if (!json)
+
+			if (json)
+				System.out.println(errorsJSON);
+			else
 				System.out.println("Verification succeeded");
 		}
 		catch (UnknownTypeException e) {

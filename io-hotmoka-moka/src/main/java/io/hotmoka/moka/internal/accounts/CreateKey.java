@@ -36,8 +36,11 @@ import picocli.CommandLine.Option;
 @Command(name = "create-key", description = "Create a new key pair that can later be bound to an account")
 public class CreateKey extends AbstractCommand {
 
-	@Option(names = "--dir", description = "the directory where the PEM file of the new key must be written", defaultValue = "")
+	@Option(names = "--dir", description = "the path of the directory where the PEM file of the new key pair must be written", defaultValue = "")
     private Path dir;
+
+	@Option(names = "--name", description = "the name of the PEM file of the new key pair must be written; if missing, the first characters of the Base58-encoded public key will be used, followed by \".pem\"")
+    private String name;
 
 	@Option(names = "--password", description = "the password that will be needed later to use the key pair", interactive = true, defaultValue = "")
     private char[] password;
@@ -46,7 +49,7 @@ public class CreateKey extends AbstractCommand {
 			converter = SignatureOptionConverter.class, defaultValue = "ed25519")
 	private SignatureAlgorithm signature;
 
-	@Option(names = { "--show-private" }, description = "show the private key")
+	@Option(names = "--show-private", description = "show the private key")
 	private boolean showPrivate;
 
 	@Option(names = "--json", description = "print the output in JSON", defaultValue = "false")
@@ -62,14 +65,22 @@ public class CreateKey extends AbstractCommand {
 			KeyPair keys = entropy.keys(passwordAsString, signature);
 			var keysInfo = new KeysInfo(signature, keys, showPrivate);
 
-			Path path;
-			try {
-				path = dir.resolve(Base58.toBase58String(signature.encodingOf(keys.getPublic())) + ".pem");
+			String name = this.name;
+			if (name == null) {
+				try {
+					name = Base58.toBase58String(signature.encodingOf(keys.getPublic()));
+					if (name.length() > 100)
+						name = name.substring(0, 100);
+				}
+				catch (InvalidKeyException e) {
+					// this should not happen since we created the keys with the signature algorithm
+					throw new RuntimeException(e);
+				}
+
+				name = name + ".pem";
 			}
-			catch (InvalidKeyException e) {
-				// this should not happen since we created the keys with the signature algorithm
-				throw new RuntimeException(e);
-			}
+
+			Path path = dir.resolve(name);
 
 			try {
 				entropy.dump(path);
