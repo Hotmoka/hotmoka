@@ -1,5 +1,5 @@
 /*
-Copyright 2023 Fausto Spoto
+Copyright 2025 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,21 +14,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal;
+package io.hotmoka.moka.internal.converters;
 
-import java.security.NoSuchAlgorithmException;
-
-import io.hotmoka.crypto.SignatureAlgorithms;
-import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.node.TransactionReferences;
+import io.hotmoka.node.api.transactions.TransactionReference;
 import picocli.CommandLine.ITypeConverter;
 
 /**
- * A converter of a string option into the signature algorithm with that name.
+ * A converter of a string option into a transaction reference.
  */
-public class SignatureOptionConverter implements ITypeConverter<SignatureAlgorithm> {
+public class TransactionReferenceOptionConverter implements ITypeConverter<TransactionReference> {
 
 	@Override
-	public SignatureAlgorithm convert(String value) throws NoSuchAlgorithmException {
-		return SignatureAlgorithms.of(value);
+	public TransactionReference convert(String value) throws IllegalArgumentException {
+		return TransactionReferences.of(value);
 	}
 }

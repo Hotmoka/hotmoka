@@ -18,9 +18,9 @@ package io.hotmoka.moka.internal;
 
 import io.hotmoka.moka.internal.nodes.Config;
 import io.hotmoka.moka.internal.nodes.Info;
-import io.hotmoka.moka.internal.nodes.InitDisk;
 import io.hotmoka.moka.internal.nodes.Manifest;
 import io.hotmoka.moka.internal.nodes.Takamaka;
+import io.hotmoka.moka.internal.nodes.disk.Init;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
 
@@ -30,7 +30,7 @@ import picocli.CommandLine.HelpCommand;
 		HelpCommand.class,
 		Config.class,
 		Info.class,
-		InitDisk.class,
+		Init.class,
 		Manifest.class,
 		Takamaka.class
 	})

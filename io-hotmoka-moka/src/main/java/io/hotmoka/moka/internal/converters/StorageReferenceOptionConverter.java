@@ -14,19 +14,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal;
+package io.hotmoka.moka.internal.converters;
 
-import io.hotmoka.node.TransactionReferences;
-import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.api.values.StorageReference;
 import picocli.CommandLine.ITypeConverter;
 
 /**
- * A converter of a string option into a transaction reference.
+ * A converter of a string option into a storage reference.
  */
-public class TransactionReferenceOptionConverter implements ITypeConverter<TransactionReference> {
+public class StorageReferenceOptionConverter implements ITypeConverter<StorageReference> {
 
 	@Override
-	public TransactionReference convert(String value) throws IllegalArgumentException {
-		return TransactionReferences.of(value);
+	public StorageReference convert(String value) throws IllegalArgumentException {
+		return StorageValues.reference(value);
 	}
 }

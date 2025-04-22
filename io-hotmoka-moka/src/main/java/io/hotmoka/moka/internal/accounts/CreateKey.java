@@ -29,7 +29,7 @@ import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.moka.internal.SignatureOptionConverter;
+import io.hotmoka.moka.internal.converters.SignatureOptionConverter;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 

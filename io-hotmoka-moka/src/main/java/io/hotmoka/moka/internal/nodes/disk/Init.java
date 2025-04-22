@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal.nodes;
+package io.hotmoka.moka.internal.nodes.disk;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -32,7 +32,7 @@ import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Base58ConversionException;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.InitializedNodes;
-import io.hotmoka.moka.internal.SignatureOptionConverter;
+import io.hotmoka.moka.internal.converters.SignatureOptionConverter;
 import io.hotmoka.node.ConsensusConfigBuilders;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
@@ -47,10 +47,10 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "init-disk",
+@Command(name = "init",
 	description = "Initialize a new disk node and publish a service to it.",
 	showDefaultValues = true)
-public class InitDisk extends AbstractCommand {
+public class Init extends AbstractCommand {
 
 	@Parameters(description = "the initial supply of coins of the node, which goes to the gamete")
     private BigInteger initialSupply;
@@ -152,7 +152,7 @@ public class InitDisk extends AbstractCommand {
 				System.out.println("The owner of the key of the gamete can bind it to its address now with:");
 				System.out.println("  moka accounts from-key file_containing_the_key_pair_of_the_gamete --password --url url_of_this_node");
 				System.out.println("or with");
-				System.out.println("  moka accounts from-key file_containing_the_key_pair_of_the_gamete --reference " + gamete);
+				System.out.println("  moka accounts from-key file_containing_the_key_pair_of_the_gamete --password --reference " + gamete);
 				System.out.println("\nPress the enter key to stop the process and close the node");
 			}
 

@@ -26,6 +26,7 @@ import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.helpers.SignatureHelpers;
+import io.hotmoka.moka.internal.converters.AccountOptionConverter;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.Account;

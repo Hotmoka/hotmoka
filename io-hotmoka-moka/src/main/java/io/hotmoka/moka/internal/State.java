@@ -20,6 +20,7 @@ import java.net.URI;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 
+import io.hotmoka.moka.internal.converters.StorageReferenceOptionConverter;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;

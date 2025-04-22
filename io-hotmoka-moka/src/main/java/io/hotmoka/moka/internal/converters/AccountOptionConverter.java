@@ -14,19 +14,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal;
+package io.hotmoka.moka.internal.converters;
 
+import java.io.IOException;
+
+import io.hotmoka.node.Accounts;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.Account;
 import picocli.CommandLine.ITypeConverter;
 
 /**
- * A converter of a string option into a storage reference.
+ * A converter of a string option into an account.
  */
-public class StorageReferenceOptionConverter implements ITypeConverter<StorageReference> {
+public class AccountOptionConverter implements ITypeConverter<Account> {
 
 	@Override
-	public StorageReference convert(String value) throws IllegalArgumentException {
-		return StorageValues.reference(value);
+	public Account convert(String value) throws IllegalArgumentException, IOException {
+		return Accounts.of(StorageValues.reference(value));
 	}
 }
