@@ -105,7 +105,7 @@ public class Instrument extends AbstractCommand {
 			throw new CommandException("Verification version " + version + " is not supported");
 		}
 		catch (IOException e) {
-			throw new CommandException("Cannot create file " + destination + ": " + e.getMessage());
+			throw new CommandException("Cannot create file " + destination, e);
 		}
 	}
 }

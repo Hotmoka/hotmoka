@@ -14,17 +14,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal.node;
+package io.hotmoka.moka.internal;
 
-import io.hotmoka.moka.internal.node.config.Show;
+import io.hotmoka.moka.internal.nodes.Config;
+import io.hotmoka.moka.internal.nodes.Info;
+import io.hotmoka.moka.internal.nodes.InitDisk;
+import io.hotmoka.moka.internal.nodes.Manifest;
+import io.hotmoka.moka.internal.nodes.Takamaka;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
 
-@Command(name = "config",
-	description = "Manage the configuration of a node.",
+@Command(name = "nodes",
+	description = "Manage Hotmoka nodes.",
 	subcommands = {
 		HelpCommand.class,
-		Show.class
+		Config.class,
+		Info.class,
+		InitDisk.class,
+		Manifest.class,
+		Takamaka.class
 	})
-public class Config {
+public class Nodes {
 }

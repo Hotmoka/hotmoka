@@ -1,5 +1,5 @@
 /*
-Copyright 2025 Fausto Spoto
+Copyright 2021 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,28 +14,33 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal.node.manifest;
+package io.hotmoka.moka.internal.nodes.manifest;
 
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.cli.CommandException;
+import io.hotmoka.helpers.ManifestHelpers;
 import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
-import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.remote.api.RemoteNode;
-import jakarta.websocket.EncodeException;
 import picocli.CommandLine.Command;
 
-@Command(name = "address", description = "Show the address of the manifest of a node.")
-public class Address extends AbstractMokaRpcCommand {
+@Command(name = "show", description = "Show the manifest of a node.")
+public class Show extends AbstractMokaRpcCommand {
 
 	private void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+		if (json())
+			throw new CommandException("JSON output is not yet implemented for this command");
+
 		try {
-			var manifest = remote.getManifest();
-			System.out.println(json() ? new StorageValues.Encoder().encode(manifest) : manifest);
+			System.out.println(ManifestHelpers.of(remote));
 		}
-		catch (EncodeException e) {
-			throw new NodeException("Cannot encode in JSON format the address of the manifest of the node at \"" + uri() + "\".", e);
+		catch (CodeExecutionException | TransactionRejectedException | TransactionException e) {
+			// this should not happen on a working node
+			throw new CommandException("A transaction failed while accessing the manifest of the node", e);
 		}
 	}
 

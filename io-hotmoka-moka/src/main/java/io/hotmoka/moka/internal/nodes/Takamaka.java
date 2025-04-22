@@ -14,9 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal.node;
+package io.hotmoka.moka.internal.nodes;
 
-import io.hotmoka.moka.internal.node.takamaka.Address;
+import io.hotmoka.moka.internal.nodes.takamaka.Address;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
 

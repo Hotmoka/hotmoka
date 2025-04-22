@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal.node.config;
+package io.hotmoka.moka.internal.nodes.config;
 
 import java.util.concurrent.TimeoutException;
 
@@ -30,17 +30,18 @@ import picocli.CommandLine.Command;
 public class Show extends AbstractMokaRpcCommand {
 
 	private void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
-		try {
-			var config = remote.getConfig();
+		var config = remote.getConfig();
 
-			if (json())
+		if (json()) {
+			try {
 				System.out.println(new ConsensusConfigBuilders.Encoder().encode(config));
-			else
-				System.out.println(config);
+			}
+			catch (EncodeException e) {
+				throw new CommandException("Cannot encode the configuration of the node at \"" + uri() + "\" in JSON format.", e);
+			}
 		}
-		catch (EncodeException e) {
-			throw new NodeException("Cannot encode the configuration of the node at \"" + uri() + "\" in JSON format.", e);
-		}
+		else
+			System.out.println(config);
 	}
 
 	@Override

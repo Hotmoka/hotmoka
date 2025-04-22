@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal.node;
+package io.hotmoka.moka.internal.nodes;
 
 import java.util.concurrent.TimeoutException;
 
@@ -35,7 +35,7 @@ public class Info extends AbstractMokaRpcCommand {
 			System.out.println(json() ? new NodeInfos.Encoder().encode(info) : info);
 		}
 		catch (EncodeException e) {
-			throw new NodeException("Cannot encode in JSON format the local information about the node at \"" + uri() + "\".", e);
+			throw new CommandException("Cannot encode in JSON format the local information about the node at \"" + uri() + "\".", e);
 		}
 	}
 

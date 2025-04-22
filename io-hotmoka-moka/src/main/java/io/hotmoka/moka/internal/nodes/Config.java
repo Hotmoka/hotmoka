@@ -1,5 +1,5 @@
 /*
-Copyright 2024 Fausto Spoto
+Copyright 2025 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,19 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal.node;
+package io.hotmoka.moka.internal.nodes;
 
-import io.hotmoka.moka.internal.node.manifest.Address;
-import io.hotmoka.moka.internal.node.manifest.Show;
+import io.hotmoka.moka.internal.nodes.config.Show;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
 
-@Command(name = "manifest",
-	description = "Manage the manifest of a node.",
+@Command(name = "config",
+	description = "Manage the configuration of a node.",
 	subcommands = {
 		HelpCommand.class,
-		Address.class,
 		Show.class
 	})
-public class Manifest {
+public class Config {
 }

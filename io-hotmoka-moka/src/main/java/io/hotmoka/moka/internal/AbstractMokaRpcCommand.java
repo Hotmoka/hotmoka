@@ -36,7 +36,7 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 		super(NodeException.class);
 	}
 
-	@Option(names = { "--uri" }, description = "the network URI where the API of the Hotmoka node service is published", defaultValue = "ws://localhost:8001")
+	@Option(names = "--uri", description = "the network URI where the API of the Hotmoka node service is published", defaultValue = "ws://localhost:8001")
 	private URI uri;
 
 	/**

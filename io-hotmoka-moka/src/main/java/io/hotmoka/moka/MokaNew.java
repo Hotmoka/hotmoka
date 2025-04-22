@@ -21,9 +21,9 @@ import java.io.IOException;
 import io.hotmoka.cli.AbstractCLI;
 import io.hotmoka.cli.AbstractPropertyFileVersionProvider;
 import io.hotmoka.moka.MokaNew.POMVersionProvider;
-import io.hotmoka.moka.internal.Jars;
 import io.hotmoka.moka.internal.Accounts;
-import io.hotmoka.moka.internal.Node;
+import io.hotmoka.moka.internal.Jars;
+import io.hotmoka.moka.internal.Nodes;
 import picocli.CommandLine.Command;
 
 /**
@@ -41,7 +41,7 @@ import picocli.CommandLine.Command;
 	subcommands = {
 		Jars.class,
 		Accounts.class,
-		Node.class
+		Nodes.class
 	}
 )
 public class MokaNew extends AbstractCLI {
@@ -59,7 +59,7 @@ public class MokaNew extends AbstractCLI {
 	}
 
 	/**
-	 * Entry point from the shell.
+	 * Entry point for executing a command.
 	 * 
 	 * @param args the command-line arguments provided to this tool
 	 */

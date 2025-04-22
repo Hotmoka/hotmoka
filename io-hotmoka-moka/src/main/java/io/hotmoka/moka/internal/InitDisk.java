@@ -51,16 +51,16 @@ public class InitDisk extends AbstractCommand {
     private BigInteger initialSupply;
 
 	private final static String DELTA_SUPPLY_DEFAULT = "equals to the initial supply";
-	@Option(names = { "--delta-supply" }, description = "the amount of coins that can be minted during the life of the node, after which inflation becomes 0", defaultValue = DELTA_SUPPLY_DEFAULT)
+	@Option(names = "--delta-supply", description = "the amount of coins that can be minted during the life of the node, after which inflation becomes 0", defaultValue = DELTA_SUPPLY_DEFAULT)
     private String deltaSupply;
 
-	@Option(names = { "--chain-id" }, description = "the chain identifier of the network", defaultValue = "")
+	@Option(names = "--chain-id", description = "the chain identifier of the network", defaultValue = "")
 	private String chainId;
 
-	@Option(names = { "--key-of-gamete" }, description = "the Base58-encoded public key of the gamete account")
+	@Option(names = "--key-of-gamete", description = "the Base58-encoded public key of the gamete account")
     private String keyOfGamete;
 
-	@Option(names = { "--open-unsigned-faucet" }, description = "opens the unsigned faucet of the gamete") 
+	@Option(names = "--open-unsigned-faucet", description = "opens the unsigned faucet of the gamete") 
 	private boolean openUnsignedFaucet;
 
 	@Option(names = { "--initial-gas-price" }, description = "the initial price of a unit of gas", defaultValue = "100") 
@@ -160,7 +160,7 @@ public class InitDisk extends AbstractCommand {
 			System.out.println("\nThe owner of the key of the gamete can bind it to its address now:");
 			System.out.println("  moka bind-key " + keyOfGamete + " --url url_of_this_node");
 			System.out.println("or");
-			System.out.println("  moka bind-key " + keyOfGamete + " --reference " + initialized.gamete() + "\n");
+			System.out.println("  moka bind-key " + keyOfGamete + " --reference " + initialized.gamete());
 		}
 	}
 }
