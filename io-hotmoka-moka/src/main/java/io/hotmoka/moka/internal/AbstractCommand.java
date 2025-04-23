@@ -90,7 +90,6 @@ public abstract class AbstractCommand implements Runnable {
 	 * @throws IllegalArgumentException if the password is not correct (it does  not match what stored in the account in the node)
 	 * @throws IOException
 	 * @throws NoSuchAlgorithmException
-	 * @throws ClassNotFoundException
 	 * @throws TransactionRejectedException
 	 * @throws TransactionException
 	 * @throws CodeExecutionException
@@ -99,7 +98,7 @@ public abstract class AbstractCommand implements Runnable {
 	 * @throws TimeoutException 
 	 * @throws UnknownReferenceException 
 	 */
-	protected KeyPair readKeys(Account account, Node node, String password) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, InvalidKeyException, TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
+	protected KeyPair readKeys(Account account, Node node, String password) throws IOException, NoSuchAlgorithmException, InvalidKeyException, TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
 		StorageReference reference = account.getReference();
 		var algorithm = SignatureHelpers.of(node).signatureAlgorithmFor(reference);
 		var keys = account.keys(password, algorithm);

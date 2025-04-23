@@ -14,10 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal.accounts;
+package io.hotmoka.moka.internal.keys;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.nio.file.Path;
 import java.security.InvalidKeyException;
 import java.util.Arrays;
@@ -47,22 +46,21 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "create-from-keys",
-	description = "Create an account file from key and reference.",
+@Command(name = "bind",
+	description = "Bind a key pair to a reference, thus creating an account's keys file.",
 	showDefaultValues = true)
-public class CreateFromKeys extends AbstractMokaRpcCommand {
+public class Bind extends AbstractMokaRpcCommand {
 
-	@Parameters(index = "0", description = "the file holding the key pair of the account")
+	@Parameters(index = "0", description = "the file holding the key pair")
     private Path key;
 
-	@Option(names = "--reference", description = "the reference of the account; if missing, it means that the account was created anonymously and its reference must be recovered from the accounts ledger of the Hotmoka node", converter = StorageReferenceOfAccountOptionConverter.class)
+	@Option(names = "--reference", description = "the reference of the account; if missing, it means that the account was created anonymously and its reference will be recovered from the accounts ledger of the Hotmoka node", converter = StorageReferenceOfAccountOptionConverter.class)
     private StorageReference reference;
 
 	@Option(names = "--password", description = "the password of the key pair", interactive = true, defaultValue = "")
     private char[] password;
 
-	@Option(names = "--signature", description = "the signature algorithm for the key pair (ed25519, sha256dsa, qtesla1, qtesla3); this is used only if --reference is not provided",
-			converter = SignatureOptionConverter.class, defaultValue = "ed25519")
+	@Option(names = "--signature", description = "the signature algorithm for the key pair (ed25519, sha256dsa, qtesla1, qtesla3)", converter = SignatureOptionConverter.class, defaultValue = "ed25519")
 	private SignatureAlgorithm signature;
 
 	@Override
@@ -75,15 +73,15 @@ public class CreateFromKeys extends AbstractMokaRpcCommand {
 	}
 
 	/**
-	 * Checks if {@link reference} exists in the remote node and its public key coincides with that in the {@link key} file.
+	 * Checks if {@link #reference} exists in the remote node and its public key coincides with that in the {@link key} file.
 	 * 
 	 * @param remote the remote node
-	 * @return {@link reference} itself
-	 * @throws TimeoutException if the operation times-out
+	 * @return {@link #reference} itself
+	 * @throws TimeoutException if the operation times out
 	 * @throws InterruptedException of the operation gets interrupted
 	 * @throws NodeException if the node is misbehaving
-	 * @throws CommandException if {@link reference} does not exist in the remote node or its public key does not
-	 *                          coincide with that in the {@link key} file
+	 * @throws CommandException if {@link #reference} does not exist in the remote node or its public key does not
+	 *                          coincide with that in the {@link #key} file
 	 */
 	private StorageReference verifyPublicKey(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
 		var manifest = remote.getManifest();
@@ -112,7 +110,6 @@ public class CreateFromKeys extends AbstractMokaRpcCommand {
 		var manifest = remote.getManifest();
 		var takamakaCode = remote.getTakamakaCode();
 		String publicKeyBase64FromKeyFile = publicKeyBase64FromKeyFile();
-		var _100_000 = BigInteger.valueOf(100_000L);
 		StorageValue result;
 
 		try {

@@ -24,7 +24,6 @@ import io.hotmoka.moka.internal.BuyValidation;
 import io.hotmoka.moka.internal.Call;
 import io.hotmoka.moka.internal.Create;
 import io.hotmoka.moka.internal.CreateAccount;
-import io.hotmoka.moka.internal.Faucet;
 import io.hotmoka.moka.internal.ImportAccount;
 import io.hotmoka.moka.internal.InitMokamint;
 import io.hotmoka.moka.internal.InitTendermint;
@@ -55,7 +54,6 @@ import picocli.CommandLine.Command;
 					Call.class,
 					Create.class,
 					CreateAccount.class,
-					Faucet.class,
 					ImportAccount.class,
 					InitMokamint.class,
 					InitTendermint.class,

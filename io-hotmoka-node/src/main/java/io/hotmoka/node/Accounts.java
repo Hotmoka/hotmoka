@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node;
 
 import java.io.IOException;
+import java.nio.file.Path;
 
 import io.hotmoka.crypto.api.Entropy;
 import io.hotmoka.node.api.Account;
@@ -66,6 +67,20 @@ public final class Accounts {
 	 * @throws IOException if the PEM file cannot be read
 	 */
 	public static Account of(StorageReference reference, String dir) throws IOException {
+		return new AccountImpl(reference, dir);
+	}
+
+	/**
+	 * Yields an account in a Hotmoka node.
+	 * The entropy of the account is recovered from its PEM file.
+	 * 
+	 * @param reference the reference to the account. This is limited to have 0 as progressive,
+	 *                  in order to reduce the information needed to represent an account as BIP39 words
+	 * @param dir the directory where the PEM file must be looked for
+	 * @return the account
+	 * @throws IOException if the PEM file cannot be read
+	 */
+	public static Account of(StorageReference reference, Path dir) throws IOException {
 		return new AccountImpl(reference, dir);
 	}
 

@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.moka.internal;
 
+import io.hotmoka.moka.internal.keys.Bind;
 import io.hotmoka.moka.internal.keys.Create;
 import io.hotmoka.moka.internal.keys.Show;
 import picocli.CommandLine.Command;
@@ -25,6 +26,7 @@ import picocli.CommandLine.HelpCommand;
 	description = "Manage cryptographic key pairs.",
 	subcommands = {
 		HelpCommand.class,
+		Bind.class,
 		Create.class,
 		Show.class
 	})

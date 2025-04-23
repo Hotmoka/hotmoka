@@ -18,6 +18,7 @@ package io.hotmoka.node.internal;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.file.Path;
 
 import io.hotmoka.crypto.AbstractAccount;
 import io.hotmoka.crypto.api.Entropy;
@@ -72,6 +73,22 @@ public class AccountImpl extends AbstractAccount<StorageReference> implements Ac
 	 * @throws IOException if the PEM file cannot be read
 	 */
 	public AccountImpl(StorageReference reference, String dir) throws IOException {
+		super(reference, dir);
+
+		if (reference.getProgressive().signum() != 0)
+			throw new IllegalArgumentException("Accounts are limited to have 0 as progressive index");
+	}
+
+	/**
+	 * Creates the information to control an account in a Hotmoka node.
+	 * The entropy of the account is recovered from its PEM file.
+	 * 
+	 * @param reference the reference to the account. This is limited to have 0 as progressive,
+	 *                  in order to reduce the information needed to represent an account as BIP39 words
+	 * @param dir the directory where the PEM file must be looked for
+	 * @throws IOException if the PEM file cannot be read
+	 */
+	public AccountImpl(StorageReference reference, Path dir) throws IOException {
 		super(reference, dir);
 
 		if (reference.getProgressive().signum() != 0)
