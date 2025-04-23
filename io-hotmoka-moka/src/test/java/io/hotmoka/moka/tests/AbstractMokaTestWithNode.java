@@ -43,11 +43,18 @@ import io.takamaka.code.constants.Constants;
 public abstract class AbstractMokaTestWithNode extends AbstractMokaTest {
 	public final static String passwordOfGamete = "password";
 	public static Node node;
+
+	/**
+	 * The directory where the chain and the keys are saved.
+	 */
+	public static Path dir;
+
 	public static StorageReference gamete;
 	public static KeyPair keysOfGamete;
 
 	@BeforeAll
 	public static void beforeAll(@TempDir Path dir) throws Exception {
+		AbstractMokaTestWithNode.dir = dir;
 		var nodeConfig = DiskNodeConfigBuilders.defaults().setDir(dir.resolve("chain")).build();
 		var signature = SignatureAlgorithms.ed25519();
 		var entropy = Entropies.random();

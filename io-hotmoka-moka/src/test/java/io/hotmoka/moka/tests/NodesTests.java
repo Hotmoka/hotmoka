@@ -16,19 +16,43 @@ limitations under the License.
 
 package io.hotmoka.moka.tests;
 
-import java.nio.file.Path;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.math.BigInteger;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+
+import io.hotmoka.cli.CommandException;
+import io.hotmoka.node.MethodSignatures;
+import io.hotmoka.node.TransactionRequests;
 
 /**
  * Tests for the moka nodes command.
  */
 public class NodesTests extends AbstractMokaTestWithNode {
-	
+
 	@Test
-	@DisplayName("description")
-	public void test(@TempDir Path dir) throws Exception {
+	@DisplayName("[moka nodes set-faucet] the description of the gamete account is correct")
+	public void openingOfFaucetWorks() throws Exception {
+		var takamakaCode = node.getTakamakaCode();
+
+		// we read the current threshold for the faucet
+		BigInteger currentMaxFaucet = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+			(gamete, BigInteger.valueOf(100_000L), takamakaCode, MethodSignatures.GET_MAX_FAUCET, gamete))
+				.orElseThrow(() -> new CommandException(MethodSignatures.GET_MAX_FAUCET + " should not return void"))
+				.asReturnedBigInteger(MethodSignatures.GET_MAX_FAUCET, CommandException::new);
+
+		// we add 10000 to the threshold
+		BigInteger expected = currentMaxFaucet.add(BigInteger.valueOf(10_000L));
+		runWithRedirectedStandardOutput("nodes set-faucet " + expected + " --dir=" + dir + " --password=" + passwordOfGamete);
+
+		// we read the current threshold again: it should have been increased by 10000
+		BigInteger actual = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+				(gamete, BigInteger.valueOf(100_000L), takamakaCode, MethodSignatures.GET_MAX_FAUCET, gamete))
+					.orElseThrow(() -> new CommandException(MethodSignatures.GET_MAX_FAUCET + " should not return void"))
+					.asReturnedBigInteger(MethodSignatures.GET_MAX_FAUCET, CommandException::new);
+
+		assertEquals(expected, actual);
 	}
 }

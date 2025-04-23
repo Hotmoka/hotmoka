@@ -51,10 +51,10 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "faucet",
+@Command(name = "set-faucet",
 	description = "Set the threshold for the faucet of the gamete of a node.",
 	showDefaultValues = true)
-public class Faucet extends AbstractMokaRpcCommand {
+public class SetFaucet extends AbstractMokaRpcCommand {
 
 	@Parameters(description = "the maximal amount of coins sent at each call to the faucet of the node")
     private BigInteger max;
