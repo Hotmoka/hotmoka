@@ -21,7 +21,7 @@ import io.hotmoka.node.api.values.StorageReference;
 import picocli.CommandLine.ITypeConverter;
 
 /**
- * A converter of a string option into a storage reference.
+ * A converter of an option into a storage reference.
  */
 public class StorageReferenceOptionConverter implements ITypeConverter<StorageReference> {
 

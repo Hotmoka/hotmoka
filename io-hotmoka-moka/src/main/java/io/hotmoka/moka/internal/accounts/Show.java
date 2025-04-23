@@ -16,63 +16,87 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.accounts;
 
-import java.io.IOException;
-import java.security.KeyPair;
-import java.util.Arrays;
+import java.math.BigInteger;
+import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.TimeoutException;
 
 import com.google.gson.Gson;
 
-import io.hotmoka.cli.AbstractCommand;
 import io.hotmoka.cli.CommandException;
-import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.moka.internal.converters.AccountOptionConverter;
-import io.hotmoka.moka.internal.converters.SignatureOptionConverter;
-import io.hotmoka.node.api.Account;
+import io.hotmoka.helpers.SignatureHelpers;
+import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
+import io.hotmoka.moka.internal.converters.StorageReferenceOfAccountOptionConverter;
+import io.hotmoka.node.MethodSignatures;
+import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
+import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.remote.api.RemoteNode;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "show", description = "Shows information about an account")
-public class Show extends AbstractCommand {
+@Command(name = "show", description = "Show information about an account.")
+public class Show extends AbstractMokaRpcCommand {
 
-	@Parameters(index = "0", description = "the account", converter = AccountOptionConverter.class)
-    private Account account;
+	@Parameters(index = "0", description = "the storage reference of the account", converter = StorageReferenceOfAccountOptionConverter.class)
+    private StorageReference account;
 
-	@Option(names = "--password", description = "the password of the account", interactive = true, defaultValue = "")
-    private char[] password;
-
-	@Option(names = "--signature", description = "the signature algorithm for the key pair (ed25519, sha256dsa, qtesla1, qtesla3)",
-			converter = SignatureOptionConverter.class, defaultValue = "ed25519")
-	private SignatureAlgorithm signature;
-
-	@Option(names = "--show-private", description = "show the private key")
-	private boolean showPrivate;
-
-	@Option(names = "--json", description = "print the output in JSON", defaultValue = "false")
-	private boolean json;
+	/**
+	 * The maximal length for the printed keys. After this length, the printout of the key gets truncated.
+	 */
+	public final static int MAX_PRINTED_KEY = 200;
 
 	@Override
 	protected void execute() throws CommandException {
-		/*String passwordAsString;
+		execute(this::body);
+	}
+
+	private void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+		SignatureAlgorithm signature;
 
 		try {
-			var entropy = Entropies.load(key);
-			passwordAsString = new String(password);
-			KeyPair keys = entropy.keys(passwordAsString, signature);
-			var keysInfo = new KeysInfo(signature, keys, showPrivate);
+			signature = SignatureHelpers.of(remote).signatureAlgorithmFor(account);
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw new CommandException("The account uses a non-available signature algorithm", e);
+		}
+		catch (UnknownReferenceException e) {
+			throw new CommandException("The account object does not exist in the node");
+		}
 
-			if (json)
-				System.out.println(new Gson().toJsonTree(keysInfo));
-			else
-				System.out.println(keysInfo);
+		var takamakaCode = remote.getTakamakaCode();
+		BigInteger balance;
+
+		try {
+			balance = remote.runInstanceMethodCallTransaction(
+					TransactionRequests.instanceViewMethodCall(account, _100_000, takamakaCode, MethodSignatures.BALANCE, account))
+					.orElseThrow(() -> new NodeException(MethodSignatures.BALANCE + " should not return void"))
+					.asReturnedBigInteger(MethodSignatures.BALANCE, NodeException::new);
 		}
-		catch (IOException e) {
-			throw new CommandException("Cannot access file \"" + key + "\"", e);
+		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
+			throw new CommandException("Could not access the balance of the account", e);
 		}
-		finally {
-			passwordAsString = null;
-			Arrays.fill(password, ' ');
-		}*/
+
+		String publicKeyBase64;
+		try {
+			publicKeyBase64 = remote.runInstanceMethodCallTransaction(
+					TransactionRequests.instanceViewMethodCall(account, _100_000, takamakaCode, MethodSignatures.PUBLIC_KEY, account))
+					.orElseThrow(() -> new NodeException(MethodSignatures.PUBLIC_KEY + " should not return void"))
+					.asReturnedString(MethodSignatures.PUBLIC_KEY, NodeException::new);
+		}
+		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
+			throw new CommandException("Could not access the balance of the account", e);
+		}
+
+		var accountInfo = new AccountInfo(balance, signature, publicKeyBase64);
+
+		if (json())
+			System.out.println(new Gson().toJsonTree(accountInfo));
+		else
+			System.out.println(accountInfo);
 	}
 }

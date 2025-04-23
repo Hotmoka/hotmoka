@@ -29,7 +29,7 @@ import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
 import io.hotmoka.moka.internal.converters.SignatureOptionConverter;
-import io.hotmoka.moka.internal.converters.StorageReferenceOptionConverter;
+import io.hotmoka.moka.internal.converters.StorageReferenceOfAccountOptionConverter;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
@@ -47,15 +47,15 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "from-key",
-	description = "Create an account file from key and reference",
+@Command(name = "create-from-keys",
+	description = "Create an account file from key and reference.",
 	showDefaultValues = true)
-public class FromKey extends AbstractMokaRpcCommand {
+public class CreateFromKeys extends AbstractMokaRpcCommand {
 
 	@Parameters(index = "0", description = "the file holding the key pair of the account")
     private Path key;
 
-	@Option(names = "--reference", description = "the reference of the account; if missing, it means that the account was created anonymously and its reference must be recovered from the accounts ledger of the Hotmoka node", converter = StorageReferenceOptionConverter.class)
+	@Option(names = "--reference", description = "the reference of the account; if missing, it means that the account was created anonymously and its reference must be recovered from the accounts ledger of the Hotmoka node", converter = StorageReferenceOfAccountOptionConverter.class)
     private StorageReference reference;
 
 	@Option(names = "--password", description = "the password of the key pair", interactive = true, defaultValue = "")
@@ -90,7 +90,6 @@ public class FromKey extends AbstractMokaRpcCommand {
 		var takamakaCode = remote.getTakamakaCode();
 		String publicKeyBase64FromKeyFile = publicKeyBase64FromKeyFile();
 		String publicKeyFromAccount;
-		var _100_000 = BigInteger.valueOf(100_000L);
 
 		try {
 			// we look for the public key in the account
@@ -159,9 +158,6 @@ public class FromKey extends AbstractMokaRpcCommand {
 	}
 
 	private void createAccountFile(StorageReference reference) throws CommandException {
-		if (reference.getProgressive().signum() != 0)
-			throw new CommandException("Accounts must have references whose progressive is 0!");
-
 		Account account;
 
 		try {

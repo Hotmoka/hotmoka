@@ -17,10 +17,10 @@ limitations under the License.
 package io.hotmoka.moka.internal;
 
 import io.hotmoka.moka.internal.nodes.Config;
+import io.hotmoka.moka.internal.nodes.Disk;
 import io.hotmoka.moka.internal.nodes.Info;
 import io.hotmoka.moka.internal.nodes.Manifest;
 import io.hotmoka.moka.internal.nodes.Takamaka;
-import io.hotmoka.moka.internal.nodes.disk.Init;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
 
@@ -29,8 +29,8 @@ import picocli.CommandLine.HelpCommand;
 	subcommands = {
 		HelpCommand.class,
 		Config.class,
+		Disk.class,
 		Info.class,
-		Init.class,
 		Manifest.class,
 		Takamaka.class
 	})

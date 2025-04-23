@@ -36,7 +36,7 @@ import io.hotmoka.moka.internal.keys.KeysInfo;
 public class KeysTests extends AbstractMokaTest {
 
 	@Test
-	@DisplayName("the creation of a key generates a pem file that contains the entropy of the key")
+	@DisplayName("[moka keys create] the creation of a key generates a pem file that contains the entropy of the key")
 	public void createKeyPEMHoldsEntropyOfKey(@TempDir Path dir) throws Exception {
 		var signature = SignatureAlgorithms.sha256dsa();
 		var password = "mypassword";
@@ -50,7 +50,7 @@ public class KeysTests extends AbstractMokaTest {
 	}
 
 	@Test
-	@DisplayName("information about a key pem file is correctly reported")
+	@DisplayName("[moka keys create] information about a key pem file is correctly reported")
 	public void showKeyFromPEMWorksCorrectly(@TempDir Path dir) throws Exception {
 		var signature = SignatureAlgorithms.sha256dsa();
 		var password = "mypassword";

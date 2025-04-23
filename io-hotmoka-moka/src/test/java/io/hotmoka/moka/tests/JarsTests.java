@@ -39,7 +39,7 @@ import io.takamaka.code.constants.Constants;
 public class JarsTests extends AbstractMokaTest {
 
 	@Test
-	@DisplayName("the verification of a jar without errors terminates without errors")
+	@DisplayName("[moka jars verify] the verification of a jar without errors terminates without errors")
 	public void verifyJarWorksIfNoErrors(@TempDir Path dir) throws Exception {
 		var examplesBasic = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-basic.jar");
 		var examplesBasicDependency = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-basicdependency.jar");
@@ -50,7 +50,7 @@ public class JarsTests extends AbstractMokaTest {
 	}
 
 	@Test
-	@DisplayName("the verification of a jar with errors terminates with errors")
+	@DisplayName("[moka jars verify] the verification of a jar with errors terminates with errors")
 	public void verifyJarWorksIfErrors(@TempDir Path dir) throws Exception {
 		var callerNotOnThis = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-callernotonthis.jar");
 		var takamakaCode = Maven.resolver().resolve("io.hotmoka:io-takamaka-code:" + Constants.TAKAMAKA_VERSION).withoutTransitivity().asSingleFile().toPath();
@@ -63,7 +63,7 @@ public class JarsTests extends AbstractMokaTest {
 	}
 
 	@Test
-	@DisplayName("the instrumentation of a jar without errors terminates without errors")
+	@DisplayName("[moka jars instrument] the instrumentation of a jar without errors terminates without errors")
 	public void instrumentJarWorksIfNoErrors(@TempDir Path dir) throws Exception {
 		var examplesBasic = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-basic.jar");
 		var examplesBasicDependency = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-basicdependency.jar");

@@ -150,9 +150,9 @@ public class Init extends AbstractCommand {
 			else {
 				System.out.println("The node has been published at ws://localhost:" + port + "\n");
 				System.out.println("The owner of the key of the gamete can bind it to its address now with:");
-				System.out.println("  moka accounts from-key file_containing_the_key_pair_of_the_gamete --password --url url_of_this_node");
+				System.out.println("  moka accounts create-from-keys file_containing_the_key_pair_of_the_gamete --password --url url_of_this_node");
 				System.out.println("or with");
-				System.out.println("  moka accounts from-key file_containing_the_key_pair_of_the_gamete --password --reference " + gamete);
+				System.out.println("  moka accounts create-from-keys file_containing_the_key_pair_of_the_gamete --password --reference " + gamete);
 				System.out.println("\nPress the enter key to stop the process and close the node");
 			}
 

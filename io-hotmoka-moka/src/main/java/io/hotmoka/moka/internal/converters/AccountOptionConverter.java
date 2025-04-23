@@ -24,7 +24,7 @@ import io.hotmoka.node.api.Account;
 import picocli.CommandLine.ITypeConverter;
 
 /**
- * A converter of a string option into an account.
+ * A converter of an option into an account.
  */
 public class AccountOptionConverter implements ITypeConverter<Account> {
 

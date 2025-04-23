@@ -33,7 +33,7 @@ import io.hotmoka.moka.internal.converters.SignatureOptionConverter;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
-@Command(name = "create", description = "Create a new key pair that can later be bound to an account")
+@Command(name = "create", description = "Create a new key pair.")
 public class Create extends AbstractCommand {
 
 	@Option(names = "--dir", description = "the path of the directory where the PEM file of the new key pair must be written", defaultValue = "")

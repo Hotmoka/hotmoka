@@ -24,7 +24,7 @@ module io.hotmoka.moka {
 	opens io.hotmoka.moka to info.picocli;
     opens io.hotmoka.moka.internal to info.picocli;
     opens io.hotmoka.moka.internal.converters to info.picocli;
-    opens io.hotmoka.moka.internal.accounts to info.picocli;
+    opens io.hotmoka.moka.internal.accounts to info.picocli, com.google.gson;
     opens io.hotmoka.moka.internal.jars to info.picocli, com.google.gson;
     opens io.hotmoka.moka.internal.keys to info.picocli, com.google.gson;
     opens io.hotmoka.moka.internal.nodes to info.picocli;

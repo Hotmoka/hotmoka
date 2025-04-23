@@ -576,7 +576,12 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 * @throws NodeException if this node is not able to perform the operation
 	 */
 	protected void closeResources() throws NodeException {
-		executors.shutdownNow();
+		try {
+			callCloseHandlers();
+		}
+		finally {
+			executors.shutdownNow();
+		}
 	}
 
 	/**

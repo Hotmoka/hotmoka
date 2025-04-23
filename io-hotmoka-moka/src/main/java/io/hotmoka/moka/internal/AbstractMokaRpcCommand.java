@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.moka.internal;
 
+import java.math.BigInteger;
 import java.net.URI;
 
 import io.hotmoka.cli.AbstractRpcCommand;
@@ -31,6 +32,7 @@ import picocli.CommandLine.Option;
  * to the public API of the remote.
  */
 public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNode, NodeException> {
+	protected final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
 
 	protected AbstractMokaRpcCommand() {
 		super(NodeException.class);

@@ -32,7 +32,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "show", description = "Shows information about an existing key pair")
+@Command(name = "show", description = "Show information about a key pair.")
 public class Show extends AbstractCommand {
 
 	@Parameters(index = "0", description = "the file holding the key pair")
