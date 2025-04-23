@@ -52,7 +52,7 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class FromKey extends AbstractMokaRpcCommand {
 
-	@Parameters(index = "0", description = "the file holding the key of the account")
+	@Parameters(index = "0", description = "the file holding the key pair of the account")
     private Path key;
 
 	@Option(names = "--reference", description = "the reference of the account; if missing, it means that the account was created anonymously and its reference must be recovered from the accounts ledger of the Hotmoka node", converter = StorageReferenceOptionConverter.class)

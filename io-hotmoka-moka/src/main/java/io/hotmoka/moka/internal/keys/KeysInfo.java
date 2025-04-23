@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal.accounts;
+package io.hotmoka.moka.internal.keys;
 
 import java.security.InvalidKeyException;
 import java.security.KeyPair;

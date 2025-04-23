@@ -1,5 +1,5 @@
 /*
-Copyright 2023 Fausto Spoto
+Copyright 2025 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,11 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal.accounts;
+package io.hotmoka.moka.internal.keys;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.util.Arrays;
 
@@ -26,23 +25,20 @@ import com.google.gson.Gson;
 
 import io.hotmoka.cli.AbstractCommand;
 import io.hotmoka.cli.CommandException;
-import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.moka.internal.converters.SignatureOptionConverter;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
+import picocli.CommandLine.Parameters;
 
-@Command(name = "create-key", description = "Create a new key pair that can later be bound to an account")
-public class CreateKey extends AbstractCommand {
+@Command(name = "show", description = "Shows information about an existing key pair")
+public class Show extends AbstractCommand {
 
-	@Option(names = "--dir", description = "the path of the directory where the PEM file of the new key pair must be written", defaultValue = "")
-    private Path dir;
+	@Parameters(index = "0", description = "the file holding the key pair")
+    private Path key;
 
-	@Option(names = "--name", description = "the name of the PEM file of the new key pair must be written; if missing, the first characters of the Base58-encoded public key will be used, followed by \".pem\"")
-    private String name;
-
-	@Option(names = "--password", description = "the password that will be needed later to use the key pair", interactive = true, defaultValue = "")
+	@Option(names = "--password", description = "the password of the key pair", interactive = true, defaultValue = "")
     private char[] password;
 
 	@Option(names = "--signature", description = "the signature algorithm for the key pair (ed25519, sha256dsa, qtesla1, qtesla3)",
@@ -60,41 +56,18 @@ public class CreateKey extends AbstractCommand {
 		String passwordAsString;
 
 		try {
-			var entropy = Entropies.random();
+			var entropy = Entropies.load(key);
 			passwordAsString = new String(password);
 			KeyPair keys = entropy.keys(passwordAsString, signature);
 			var keysInfo = new KeysInfo(signature, keys, showPrivate);
 
-			String name = this.name;
-			if (name == null) {
-				try {
-					name = Base58.toBase58String(signature.encodingOf(keys.getPublic()));
-					if (name.length() > 100)
-						name = name.substring(0, 100);
-				}
-				catch (InvalidKeyException e) {
-					// this should not happen since we created the keys with the signature algorithm
-					throw new RuntimeException(e);
-				}
-
-				name = name + ".pem";
-			}
-
-			Path path = dir.resolve(name);
-
-			try {
-				entropy.dump(path);
-			}
-			catch (IOException e) {
-				throw new CommandException("Cannot write the key pair into " + path + "!", e);
-			}
-
 			if (json)
 				System.out.println(new Gson().toJsonTree(keysInfo));
-			else {
-				System.out.println("The new key pair has been written into \"" + path + "\":");
+			else
 				System.out.println(keysInfo);
-			}
+		}
+		catch (IOException e) {
+			throw new CommandException("Cannot access file \"" + key + "\"", e);
 		}
 		finally {
 			passwordAsString = null;

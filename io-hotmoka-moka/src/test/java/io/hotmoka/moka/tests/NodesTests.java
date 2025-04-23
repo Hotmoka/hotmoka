@@ -44,7 +44,6 @@ import io.takamaka.code.constants.Constants;
  */
 public class NodesTests extends AbstractMokaTest {
 	public final static String passwordOfGamete = "password";
-	public static KeyPair keysOfGamete;
 	public static Node node;
 	public static StorageReference gamete;
 
@@ -53,7 +52,7 @@ public class NodesTests extends AbstractMokaTest {
 		var nodeConfig = DiskNodeConfigBuilders.defaults().setDir(dir.resolve("chain")).build();
 		var signature = SignatureAlgorithms.ed25519();
 		var entropy = Entropies.random();
-		keysOfGamete = entropy.keys(passwordOfGamete, signature);
+		KeyPair keysOfGamete = entropy.keys(passwordOfGamete, signature);
 
 		ConsensusConfig<?, ?> consensus = ConsensusConfigBuilders.defaults(signature)
 			.allowUnsignedFaucet(true)

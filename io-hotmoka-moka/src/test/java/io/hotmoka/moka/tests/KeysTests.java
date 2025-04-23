@@ -28,12 +28,12 @@ import com.google.gson.Gson;
 
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.SignatureAlgorithms;
-import io.hotmoka.moka.internal.accounts.KeysInfo;
+import io.hotmoka.moka.internal.keys.KeysInfo;
 
 /**
- * Tests for the moka accounts command.
+ * Tests for the moka keys command.
  */
-public class AccountsTests extends AbstractMokaTest {
+public class KeysTests extends AbstractMokaTest {
 
 	@Test
 	@DisplayName("the creation of a key generates a pem file that contains the entropy of the key")
@@ -41,11 +41,27 @@ public class AccountsTests extends AbstractMokaTest {
 		var signature = SignatureAlgorithms.sha256dsa();
 		var password = "mypassword";
 		var name = "mykey.pem";
-		String result = runWithRedirectedStandardOutput("accounts create-key --dir=" + dir + " --name=" + name + " --signature=" + signature + " --password=" + password + " --show-private --json");
+		String result = runWithRedirectedStandardOutput("keys create --dir=" + dir + " --name=" + name + " --signature=" + signature + " --password=" + password + " --show-private --json");
 		KeysInfo actual = new Gson().fromJson(result, KeysInfo.class);
 		var entropy = Entropies.load(dir.resolve(name));
 		var keys = entropy.keys(password, signature);
 		var expected = new KeysInfo(signature, keys, true);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("information about a key pem file is correctly reported")
+	public void showKeyFromPEMWorksCorrectly(@TempDir Path dir) throws Exception {
+		var signature = SignatureAlgorithms.sha256dsa();
+		var password = "mypassword";
+		var name = "mykey.pem";
+		runWithRedirectedStandardOutput("keys create --dir=" + dir + " --name=" + name + " --signature=" + signature + " --password=" + password + " --show-private --json");
+		Path key = dir.resolve(name);
+		var entropy = Entropies.load(key);
+		var keys = entropy.keys(password, signature);
+		var expected = new KeysInfo(signature, keys, true);
+		String result = runWithRedirectedStandardOutput("keys show " + key + " --signature=" + signature + " --password=" + password + " --show-private --json");
+		KeysInfo actual = new Gson().fromJson(result, KeysInfo.class);
 		assertEquals(expected, actual);
 	}
 }

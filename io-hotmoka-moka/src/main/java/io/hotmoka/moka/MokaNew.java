@@ -23,6 +23,7 @@ import io.hotmoka.cli.AbstractPropertyFileVersionProvider;
 import io.hotmoka.moka.MokaNew.POMVersionProvider;
 import io.hotmoka.moka.internal.Accounts;
 import io.hotmoka.moka.internal.Jars;
+import io.hotmoka.moka.internal.Keys;
 import io.hotmoka.moka.internal.Nodes;
 import picocli.CommandLine.Command;
 
@@ -39,8 +40,9 @@ import picocli.CommandLine.Command;
 	footer = "Copyright (c) 2025 Fausto Spoto (fausto.spoto@hotmoka.io)",
 	versionProvider = POMVersionProvider.class,
 	subcommands = {
-		Jars.class,
 		Accounts.class,
+		Jars.class,
+		Keys.class,
 		Nodes.class
 	}
 )
