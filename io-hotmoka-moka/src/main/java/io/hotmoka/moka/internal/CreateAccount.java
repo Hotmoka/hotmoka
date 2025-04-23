@@ -115,7 +115,6 @@ public class CreateAccount extends AbstractCommand {
 				var account = Accounts.of(entropy, accountReference);
 	            System.out.println("A new account " + account + " has been created.");
 	            System.out.println("Its entropy has been saved into the file \"" + account.dump() + "\".");
-	            printPassphrase(account);
 			}
 		}
 

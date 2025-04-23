@@ -59,7 +59,7 @@ public class SetFaucet extends AbstractMokaRpcCommand {
 	@Parameters(description = "the maximal amount of coins sent at each call to the faucet of the node")
     private BigInteger max;
 
-	@Option(names = "--dir", description = "the path of the directory where the PEM file of the gamete can be found", defaultValue = "")
+	@Option(names = "--dir", description = "the path of the directory where the key pair of the gamete can be found", defaultValue = "")
     private Path dir;
 
 	@Option(names = "--password", description = "the password of the gamete account", interactive = true, defaultValue = "")
@@ -104,7 +104,7 @@ public class SetFaucet extends AbstractMokaRpcCommand {
 
 		try {
 			passwordAsString = new String(password);
-			keys = Accounts.of(gamete, dir).keys(passwordAsString, signature); //readKeys(Accounts.of(gamete), remote, password);
+			keys = Accounts.of(gamete, dir).keys(passwordAsString, signature);
 		}
 		catch (IOException e) {
 			throw new CommandException("Cannot read the key pair of the gamete: it was expected to be in file " + gamete + ".pem", e);

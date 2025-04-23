@@ -24,11 +24,9 @@ import io.hotmoka.moka.internal.BuyValidation;
 import io.hotmoka.moka.internal.Call;
 import io.hotmoka.moka.internal.Create;
 import io.hotmoka.moka.internal.CreateAccount;
-import io.hotmoka.moka.internal.ImportAccount;
 import io.hotmoka.moka.internal.InitMokamint;
 import io.hotmoka.moka.internal.InitTendermint;
 import io.hotmoka.moka.internal.Install;
-import io.hotmoka.moka.internal.PrintExceptionMessageHandler;
 import io.hotmoka.moka.internal.ResumeMokamint;
 import io.hotmoka.moka.internal.ResumeTendermint;
 import io.hotmoka.moka.internal.RotateKey;
@@ -53,7 +51,6 @@ import picocli.CommandLine.Command;
 					Call.class,
 					Create.class,
 					CreateAccount.class,
-					ImportAccount.class,
 					InitMokamint.class,
 					InitTendermint.class,
 					Install.class,
@@ -99,7 +96,7 @@ public class Moka {
 	 * @param args the arguments
 	 */
 	public static void main(String[] args) {
-		System.exit(new CommandLine(new Moka()).setExecutionExceptionHandler(new PrintExceptionMessageHandler()).execute(args));
+		System.exit(new CommandLine(new Moka()).execute(args));
 	}
 
 	/**
@@ -108,6 +105,6 @@ public class Moka {
 	 * @param command the arguments' line
 	 */
 	public static void run(String command) {
-		new CommandLine(new Moka()).setExecutionExceptionHandler(new PrintExceptionMessageHandler()).execute(command.split(" "));
+		new CommandLine(new Moka()).execute(command.split(" "));
 	}
 }

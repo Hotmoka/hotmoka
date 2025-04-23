@@ -109,7 +109,6 @@ public class RotateKey extends AbstractCommand {
 					var rotatedAccount = Accounts.of(entropy, account);
 		            System.out.println("The key of the account " + rotatedAccount + " has been rotated.");
 		            System.out.println("Its new entropy has been saved into the file \"" + rotatedAccount.dump() + "\".");
-		            printPassphrase(rotatedAccount);
 				}
 				finally {
 					if (printCosts)

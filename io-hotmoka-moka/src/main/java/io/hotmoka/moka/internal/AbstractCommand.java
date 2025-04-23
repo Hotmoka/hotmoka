@@ -23,7 +23,6 @@ import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.util.Scanner;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -195,13 +194,6 @@ public abstract class AbstractCommand implements Runnable {
 				return ask("Please specify the password of " + actor + ": ");
 		else
 			return password;
-	}
-
-	protected void printPassphrase(Account account) {
-		System.out.println("Please take note of the following passphrase of 36 words,");
-        System.out.println("you will need it to reinstall the account in this or another machine or application in the future:\n");
-        var counter = new AtomicInteger(0);
-        account.bip39Words().stream().forEachOrdered(word -> System.out.printf("%2d: %s\n", counter.incrementAndGet(), word));
 	}
 
 	protected boolean looksLikePublicKey(String s) {
