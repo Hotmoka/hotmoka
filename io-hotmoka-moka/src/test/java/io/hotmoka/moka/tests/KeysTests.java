@@ -32,6 +32,8 @@ import com.google.gson.Gson;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.moka.internal.keys.KeysInfo;
+import io.hotmoka.moka.keys.KeysExportOutput;
+import io.hotmoka.moka.keys.KeysImportOutput;
 import io.hotmoka.node.StorageValues;
 
 /**
@@ -74,20 +76,17 @@ public class KeysTests extends AbstractMokaTest {
 	public void exportImportKeyPairOfAccountWorksCorrectly(@TempDir Path dir) throws Exception {
 		var signature = SignatureAlgorithms.sha256dsa();
 		var password = "mypassword";
-		// we name the key pair file as a storage reference, so that it is already the key pair file of an account
 		var expectedReference = StorageValues.reference("3e79b7ee8d8ef89bc6768c1c985ff09f60e167c515ea6c49236d3e22c2070089#0");
+		// we name the key pair file as a storage reference, so that it is already the key pair file of an account
 		runWithRedirectedStandardOutput("keys create --dir=" + dir + " --name=" + expectedReference + ".pem --signature=" + signature + " --password=" + password);
 		var expectedEntropy = Entropies.load(dir.resolve(expectedReference + ".pem"));
-		// words is a JSON array of strings
-		String wordsAsJSOnArray = runWithRedirectedStandardOutput("keys export " + expectedReference + " --dir=" + dir + " --json");
-		var gson = new Gson();
-		String spaceSeparatedWords = Stream.of(gson.fromJson(wordsAsJSOnArray, String[].class)).collect(Collectors.joining(" "));
-		// we re-import the key file into a difference directory, so that it does not override the original one
+		var keysExportOutput = KeysExportOutput.of(runWithRedirectedStandardOutput("keys export " + expectedReference + " --dir=" + dir + " --json"));
+		String spaceSeparatedWords = Stream.of(keysExportOutput.getBip39Words()).collect(Collectors.joining(" "));
+		// we re-import the key file into a difference directory, so that it does not override the original file
 		Path copy = dir.resolve("copy");
 		Files.createDirectories(copy);
-		String result = runWithRedirectedStandardOutput("keys import " + spaceSeparatedWords + " --dir=" + copy + " --json");
-		// the result is a JSON string, representing the storage reference of the account
-		var actualReference = StorageValues.reference(gson.fromJson(result, String.class));
+		var keysImportOutput = KeysImportOutput.of(runWithRedirectedStandardOutput("keys import " + spaceSeparatedWords + " --dir=" + copy + " --json"));
+		var actualReference = keysImportOutput.getReference();
 		var actualEntropy = Entropies.load(copy.resolve(actualReference + ".pem"));
 
 		// both the accounts references and their entropies must match

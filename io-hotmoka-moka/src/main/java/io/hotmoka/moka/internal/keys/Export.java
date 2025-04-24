@@ -18,14 +18,14 @@ package io.hotmoka.moka.internal.keys;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
 
 import io.hotmoka.cli.AbstractCommand;
 import io.hotmoka.cli.CommandException;
+import io.hotmoka.crypto.api.BIP39Mnemonic;
 import io.hotmoka.moka.internal.converters.StorageReferenceOfAccountOptionConverter;
+import io.hotmoka.moka.keys.KeysExportOutput;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.api.Account;
 import io.hotmoka.node.api.values.StorageReference;
@@ -58,11 +58,44 @@ public class Export extends AbstractCommand {
         	throw new CommandException("Cannot read the key pair of the account: it was expected to be in file " + reference + ".pem", e);
         }
 
-        if (json)
-        	System.out.println(new Gson().toJson(account.bip39Words().stream().collect(Collectors.toList())));
-        else {
-        	var counter = new AtomicInteger(0);
-        	account.bip39Words().stream().forEachOrdered(word -> System.out.printf("%2d: %s\n", counter.incrementAndGet(), word));
-        }
+        System.out.println(new Output(account.bip39Words()).toString(json));
+	}
+
+	/**
+	 * The output of this command.
+	 */
+	public static class Output implements KeysExportOutput {
+		private final String[] bip39Words;
+
+		private Output(BIP39Mnemonic bip39Words) {
+			this.bip39Words = bip39Words.stream().toArray(String[]::new);
+		}
+
+		/**
+		 * Yields the output of this command from its JSON representation.
+		 * 
+		 * @param json the JSON representation
+		 */
+		public Output(String json) {
+			this.bip39Words = new Gson().fromJson(json, String[].class);
+		}
+
+		@Override
+		public String[] getBip39Words() {
+			return bip39Words.clone();
+		}
+
+		@Override
+		public String toString(boolean json) {
+			if (json)
+				return new Gson().toJson(bip39Words);
+	        else {
+	        	var result = new StringBuilder();
+	        	for (int pos = 0; pos < bip39Words.length; pos++)
+	        		result.append(String.format("%s%2d: %s", pos == 0 ? "" : "\n", pos + 1, bip39Words[pos]));
+
+	        	return result.toString();
+	        }
+		}
 	}
 }

@@ -27,7 +27,10 @@ import io.hotmoka.cli.AbstractCommand;
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.BIP39Dictionaries;
 import io.hotmoka.crypto.BIP39Mnemonics;
+import io.hotmoka.moka.keys.KeysImportOutput;
 import io.hotmoka.node.Accounts;
+import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.api.values.StorageReference;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -65,9 +68,39 @@ public class Import extends AbstractCommand {
 			throw new CommandException("Could not write the key pair file of the account into " + file + ".pem", e);
 		}
 
-		if (json)
-			System.out.println(new Gson().toJson(account.toString()));
-		else
-			System.out.println("The key pair of the account has been imported into the file \"" + file + "\".");
+		System.out.println(new Output(account.getReference()).toString(dir, json));
+	}
+
+	/**
+	 * The output of this command.
+	 */
+	public static class Output implements KeysImportOutput {
+		private final StorageReference reference;
+
+		private Output(StorageReference reference) {
+			this.reference = reference;
+		}
+
+		/**
+		 * Yields the output of this command from its JSON representation.
+		 * 
+		 * @param json the JSON representation
+		 */
+		public Output(String json) {
+			this.reference = StorageValues.reference(new Gson().fromJson(json, String.class));
+		}
+
+		@Override
+		public StorageReference getReference() {
+			return reference;
+		}
+
+		@Override
+		public String toString(Path dir, boolean json) {
+			if (json)
+				return new Gson().toJson(reference.toString());
+			else
+				return "The key pair of the account has been imported into the file \"" + dir.resolve(reference + ".pem") + "\".";
+		}
 	}
 }
