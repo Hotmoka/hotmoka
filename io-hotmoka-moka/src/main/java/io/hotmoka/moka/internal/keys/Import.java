@@ -29,7 +29,6 @@ import io.hotmoka.crypto.BIP39Dictionaries;
 import io.hotmoka.crypto.BIP39Mnemonics;
 import io.hotmoka.moka.keys.KeysImportOutput;
 import io.hotmoka.node.Accounts;
-import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.values.StorageReference;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -75,10 +74,10 @@ public class Import extends AbstractCommand {
 	 * The output of this command.
 	 */
 	public static class Output implements KeysImportOutput {
-		private final StorageReference reference;
+		private final String reference;
 
 		private Output(StorageReference reference) {
-			this.reference = reference;
+			this.reference = reference.toString();
 		}
 
 		/**
@@ -86,19 +85,19 @@ public class Import extends AbstractCommand {
 		 * 
 		 * @param json the JSON representation
 		 */
-		public Output(String json) {
-			this.reference = StorageValues.reference(new Gson().fromJson(json, String.class));
+		public static Output of(String json) {
+			return new Gson().fromJson(json, Output.class);
 		}
 
 		@Override
-		public StorageReference getReference() {
+		public String getReference() {
 			return reference;
 		}
 
 		@Override
 		public String toString(Path dir, boolean json) {
 			if (json)
-				return new Gson().toJson(reference.toString());
+				return new Gson().toJson(this);
 			else
 				return "The key pair of the account has been imported into the file \"" + dir.resolve(reference + ".pem") + "\".";
 		}

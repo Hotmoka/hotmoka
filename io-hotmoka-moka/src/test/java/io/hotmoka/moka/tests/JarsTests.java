@@ -45,7 +45,7 @@ public class JarsTests extends AbstractMokaTest {
 		var examplesBasic = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-basic.jar");
 		var examplesBasicDependency = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-basicdependency.jar");
 		var takamakaCode = Maven.resolver().resolve("io.hotmoka:io-takamaka-code:" + Constants.TAKAMAKA_VERSION).withoutTransitivity().asSingleFile().toPath();
-		String result = MokaNew.runInSandbox("jars verify " + examplesBasic + " --libs " + examplesBasicDependency + " --libs " + takamakaCode + " --json");
+		String result = MokaNew.run("jars verify " + examplesBasic + " --libs " + examplesBasicDependency + " --libs " + takamakaCode + " --json");
 		ArrayList<?> actual = new Gson().fromJson(result, ArrayList.class);
 		assertTrue(actual.isEmpty());
 	}
@@ -55,7 +55,7 @@ public class JarsTests extends AbstractMokaTest {
 	public void verifyJarWorksIfErrors(@TempDir Path dir) throws Exception {
 		var callerNotOnThis = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-callernotonthis.jar");
 		var takamakaCode = Maven.resolver().resolve("io.hotmoka:io-takamaka-code:" + Constants.TAKAMAKA_VERSION).withoutTransitivity().asSingleFile().toPath();
-		String result = MokaNew.runInSandbox("jars verify " + callerNotOnThis + " --libs " + takamakaCode + " --json");
+		String result = MokaNew.run("jars verify " + callerNotOnThis + " --libs " + takamakaCode + " --json");
 		ArrayList<?> actual = new Gson().fromJson(result, ArrayList.class);
 		assertTrue(actual.size() == 1);
 		Object error = actual.get(0);
@@ -70,7 +70,7 @@ public class JarsTests extends AbstractMokaTest {
 		var examplesBasicDependency = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-basicdependency.jar");
 		var takamakaCode = Maven.resolver().resolve("io.hotmoka:io-takamaka-code:" + Constants.TAKAMAKA_VERSION).withoutTransitivity().asSingleFile().toPath();
 		Path instrumented = dir.resolve("basic-instrumented.jar");
-		String result = MokaNew.runInSandbox("jars instrument " + examplesBasic + " " + instrumented + " --libs " + examplesBasicDependency + " --libs " + takamakaCode + " --json").trim();
+		String result = MokaNew.run("jars instrument " + examplesBasic + " " + instrumented + " --libs " + examplesBasicDependency + " --libs " + takamakaCode + " --json").trim();
 		assertEquals("{}", result);
 	}
 }

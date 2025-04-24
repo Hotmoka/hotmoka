@@ -39,7 +39,7 @@ public class AccountsTests extends AbstractMokaTestWithNode {
 	@DisplayName("[moka accounts show] the description of the gamete account is correct")
 	public void descriptionOfGameteIsCorrect() throws Exception {
 		// TODO: this should actually be applied to a brand account created in the test from new keys
-		String result = MokaNew.runInSandbox("accounts show " + gamete + " --json");
+		String result = MokaNew.run("accounts show " + gamete + " --json");
 		AccountInfo actual = new Gson().fromJson(result, AccountInfo.class);
 		var ed25519 = SignatureAlgorithms.ed25519();
 		AccountInfo expected = new AccountInfo(BigInteger.valueOf(1000000000000000000L), ed25519, Base64.toBase64String(ed25519.encodingOf(keysOfGamete.getPublic())));

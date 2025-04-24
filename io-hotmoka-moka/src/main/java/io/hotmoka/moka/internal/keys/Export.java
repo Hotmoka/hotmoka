@@ -75,9 +75,10 @@ public class Export extends AbstractCommand {
 		 * Yields the output of this command from its JSON representation.
 		 * 
 		 * @param json the JSON representation
+		 * @return the output
 		 */
-		public Output(String json) {
-			this.bip39Words = new Gson().fromJson(json, String[].class);
+		public static Output of(String json) {
+			return new Gson().fromJson(json, Output.class);
 		}
 
 		@Override
@@ -88,7 +89,7 @@ public class Export extends AbstractCommand {
 		@Override
 		public String toString(boolean json) {
 			if (json)
-				return new Gson().toJson(bip39Words);
+				return new Gson().toJson(this);
 	        else {
 	        	var result = new StringBuilder();
 	        	for (int pos = 0; pos < bip39Words.length; pos++)

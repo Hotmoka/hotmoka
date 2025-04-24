@@ -70,7 +70,7 @@ public class MokaNew extends AbstractCLI {
 	 * @return what the moka tool has written into the standard output
 	 * @throws IOException if the construction of the return value failed
 	 */
-	public static String runInSandbox(String command) throws IOException {
+	public static String run(String command) throws IOException {
 		var originalOut = System.out;
 
 		try (var baos = new ByteArrayOutputStream(); var out = new PrintStream(baos)) {

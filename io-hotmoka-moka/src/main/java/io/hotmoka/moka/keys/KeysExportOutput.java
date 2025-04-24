@@ -30,11 +30,13 @@ public interface KeysExportOutput {
 	 * @return the output of the command
 	 */
 	static KeysExportOutput of(String json) {
-		return new Export.Output(json);
+		return Export.Output.of(json);
 	}
 
 	/**
-	 * Yields the BIP39 words in the output of the command
+	 * Yields the BIP39 words in the output of the command.
+	 * 
+	 * @return the BIP39 words in the output of the command
 	 */
 	String[] getBip39Words();
 

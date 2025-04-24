@@ -19,7 +19,6 @@ package io.hotmoka.moka.keys;
 import java.nio.file.Path;
 
 import io.hotmoka.moka.internal.keys.Import;
-import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * The output of the moka keys import command.
@@ -33,7 +32,7 @@ public interface KeysImportOutput {
 	 * @return the output of the command
 	 */
 	static KeysImportOutput of(String json) {
-		return new Import.Output(json);
+		return Import.Output.of(json);
 	}
 
 	/**
@@ -41,7 +40,7 @@ public interface KeysImportOutput {
 	 * 
 	 * @return the reference of the account that has been imported
 	 */
-	StorageReference getReference();
+	String getReference();
 
 	/**
 	 * Yields the output of the command as a string.
