@@ -31,6 +31,7 @@ import com.google.gson.Gson;
 
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.SignatureAlgorithms;
+import io.hotmoka.moka.MokaNew;
 import io.hotmoka.moka.internal.keys.KeysInfo;
 import io.hotmoka.moka.keys.KeysExportOutput;
 import io.hotmoka.moka.keys.KeysImportOutput;
@@ -47,7 +48,7 @@ public class KeysTests extends AbstractMokaTest {
 		var signature = SignatureAlgorithms.sha256dsa();
 		var password = "mypassword";
 		var name = "mykey.pem";
-		String result = runWithRedirectedStandardOutput("keys create --dir=" + dir + " --name=" + name + " --signature=" + signature + " --password=" + password + " --show-private --json");
+		String result = MokaNew.runInSandbox("keys create --dir=" + dir + " --name=" + name + " --signature=" + signature + " --password=" + password + " --show-private --json");
 		KeysInfo actual = new Gson().fromJson(result, KeysInfo.class);
 		var entropy = Entropies.load(dir.resolve(name));
 		var keys = entropy.keys(password, signature);
@@ -61,12 +62,12 @@ public class KeysTests extends AbstractMokaTest {
 		var signature = SignatureAlgorithms.sha256dsa();
 		var password = "mypassword";
 		var name = "mykey.pem";
-		runWithRedirectedStandardOutput("keys create --dir=" + dir + " --name=" + name + " --signature=" + signature + " --password=" + password);
+		MokaNew.runInSandbox("keys create --dir=" + dir + " --name=" + name + " --signature=" + signature + " --password=" + password);
 		Path key = dir.resolve(name);
 		var entropy = Entropies.load(key);
 		var keys = entropy.keys(password, signature);
 		var expected = new KeysInfo(signature, keys, true);
-		String result = runWithRedirectedStandardOutput("keys show " + key + " --signature=" + signature + " --password=" + password + " --show-private --json");
+		String result = MokaNew.runInSandbox("keys show " + key + " --signature=" + signature + " --password=" + password + " --show-private --json");
 		KeysInfo actual = new Gson().fromJson(result, KeysInfo.class);
 		assertEquals(expected, actual);
 	}
@@ -78,14 +79,14 @@ public class KeysTests extends AbstractMokaTest {
 		var password = "mypassword";
 		var expectedReference = StorageValues.reference("3e79b7ee8d8ef89bc6768c1c985ff09f60e167c515ea6c49236d3e22c2070089#0");
 		// we name the key pair file as a storage reference, so that it is already the key pair file of an account
-		runWithRedirectedStandardOutput("keys create --dir=" + dir + " --name=" + expectedReference + ".pem --signature=" + signature + " --password=" + password);
+		MokaNew.runInSandbox("keys create --dir=" + dir + " --name=" + expectedReference + ".pem --signature=" + signature + " --password=" + password);
 		var expectedEntropy = Entropies.load(dir.resolve(expectedReference + ".pem"));
-		var keysExportOutput = KeysExportOutput.of(runWithRedirectedStandardOutput("keys export " + expectedReference + " --dir=" + dir + " --json"));
+		var keysExportOutput = KeysExportOutput.of(MokaNew.runInSandbox("keys export " + expectedReference + " --dir=" + dir + " --json"));
 		String spaceSeparatedWords = Stream.of(keysExportOutput.getBip39Words()).collect(Collectors.joining(" "));
 		// we re-import the key file into a difference directory, so that it does not override the original file
 		Path copy = dir.resolve("copy");
 		Files.createDirectories(copy);
-		var keysImportOutput = KeysImportOutput.of(runWithRedirectedStandardOutput("keys import " + spaceSeparatedWords + " --dir=" + copy + " --json"));
+		var keysImportOutput = KeysImportOutput.of(MokaNew.runInSandbox("keys import " + spaceSeparatedWords + " --dir=" + copy + " --json"));
 		var actualReference = keysImportOutput.getReference();
 		var actualEntropy = Entropies.load(copy.resolve(actualReference + ".pem"));
 

@@ -16,7 +16,9 @@ limitations under the License.
 
 package io.hotmoka.moka;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 
 import io.hotmoka.cli.AbstractCLI;
 import io.hotmoka.cli.AbstractPropertyFileVersionProvider;
@@ -61,12 +63,24 @@ public class MokaNew extends AbstractCLI {
 	}
 
 	/**
-	 * Entry point for executing a command.
+	 * Runs the given command-line with the moka tool, inside a sand-box where the
+	 * standard output is redirected into the resulting string. It performs as calling "moka command".
 	 * 
-	 * @param args the command-line arguments provided to this tool
+	 * @param command the command to run with moka
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
 	 */
-	public static void main(String args) {
-		main(MokaNew::new, args.split(" "));
+	public static String runInSandbox(String command) throws IOException {
+		var originalOut = System.out;
+
+		try (var baos = new ByteArrayOutputStream(); var out = new PrintStream(baos)) {
+			System.setOut(out);
+			main(MokaNew::new, command.split(" "));
+			return new String(baos.toByteArray());
+		}
+		finally {
+			System.setOut(originalOut);
+		}
 	}
 
 	static {
