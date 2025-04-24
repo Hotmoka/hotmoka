@@ -36,10 +36,10 @@ import picocli.CommandLine.Option;
 @Command(name = "create", description = "Create a new key pair.")
 public class Create extends AbstractCommand {
 
-	@Option(names = "--dir", description = "the path of the directory where the PEM file of the new key pair must be written", defaultValue = "")
+	@Option(names = "--dir", description = "the path of the directory where the key pair file of the new key pair must be written", defaultValue = "")
     private Path dir;
 
-	@Option(names = "--name", description = "the name of the PEM file of the new key pair must be written; if missing, the first characters of the Base58-encoded public key will be used, followed by \".pem\"")
+	@Option(names = "--name", description = "the name of the file where the new key pair must be written; if missing, the first characters of the Base58-encoded public key will be used, followed by \".pem\"")
     private String name;
 
 	@Option(names = "--password", description = "the password that will be needed later to use the key pair", interactive = true, defaultValue = "")

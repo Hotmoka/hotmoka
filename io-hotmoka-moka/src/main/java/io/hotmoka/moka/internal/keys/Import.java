@@ -17,8 +17,11 @@ limitations under the License.
 package io.hotmoka.moka.internal.keys;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.google.gson.Gson;
 
 import io.hotmoka.cli.AbstractCommand;
 import io.hotmoka.cli.CommandException;
@@ -26,15 +29,22 @@ import io.hotmoka.crypto.BIP39Dictionaries;
 import io.hotmoka.crypto.BIP39Mnemonics;
 import io.hotmoka.node.Accounts;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "import",
-	description = "Import an account",
+	description = "Import the key pair file of an account from BIP39 words.",
 	showDefaultValues = true)
 public class Import extends AbstractCommand {
 
 	@Parameters(description = "the 36 BIP39 words of the account to import")
     private List<String> words = new ArrayList<>();
+
+	@Option(names = "--dir", description = "the directory where the key pair file of the account must be written", defaultValue = "")
+    private Path dir;
+
+	@Option(names = "--json", description = "print the output in JSON", defaultValue = "false")
+	private boolean json;
 
 	@Override
 	protected void execute() throws CommandException {
@@ -46,12 +56,18 @@ public class Import extends AbstractCommand {
 				throw new CommandException("The word \"" + word + "\" does not exist in the BIP39 English dictionary");
 
 		var account = BIP39Mnemonics.of(words.toArray(String[]::new)).toAccount(Accounts::of);
+		Path file = dir.resolve(account.getReference() + ".pem");
 
 		try {
-			System.out.println("The key pair of the account has been imported into the file \"" + account.dump() + "\".");
+			account.dump(file);
 		}
 		catch (IOException e) {
-			throw new CommandException("Could not write the key pair file for the account", e);
+			throw new CommandException("Could not write the key pair file of the account into " + file + ".pem", e);
 		}
+
+		if (json)
+			System.out.println(new Gson().toJson(account.toString()));
+		else
+			System.out.println("The key pair of the account has been imported into the file \"" + file + "\".");
 	}
 }
