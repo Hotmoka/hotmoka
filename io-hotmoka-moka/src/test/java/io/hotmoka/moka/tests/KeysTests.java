@@ -27,14 +27,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.google.gson.Gson;
-
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.moka.MokaNew;
-import io.hotmoka.moka.internal.keys.KeysInfo;
+import io.hotmoka.moka.keys.KeysCreateOutput;
 import io.hotmoka.moka.keys.KeysExportOutput;
 import io.hotmoka.moka.keys.KeysImportOutput;
+import io.hotmoka.moka.keys.KeysShowOutput;
 import io.hotmoka.node.StorageValues;
 
 /**
@@ -48,11 +47,10 @@ public class KeysTests extends AbstractMokaTest {
 		var signature = SignatureAlgorithms.sha256dsa();
 		var password = "mypassword";
 		var name = "mykey.pem";
-		String result = MokaNew.run("keys create --dir=" + dir + " --name=" + name + " --signature=" + signature + " --password=" + password + " --show-private --json");
-		KeysInfo actual = new Gson().fromJson(result, KeysInfo.class);
+		var actual = KeysCreateOutput.of(MokaNew.run("keys create --dir=" + dir + " --name=" + name + " --signature=" + signature + " --password=" + password + " --show-private --json"));
 		var entropy = Entropies.load(dir.resolve(name));
 		var keys = entropy.keys(password, signature);
-		var expected = new KeysInfo(signature, keys, true);
+		var expected = KeysCreateOutput.of(signature, keys, true);
 		assertEquals(expected, actual);
 	}
 
@@ -66,9 +64,8 @@ public class KeysTests extends AbstractMokaTest {
 		Path key = dir.resolve(name);
 		var entropy = Entropies.load(key);
 		var keys = entropy.keys(password, signature);
-		var expected = new KeysInfo(signature, keys, true);
-		String result = MokaNew.run("keys show " + key + " --signature=" + signature + " --password=" + password + " --show-private --json");
-		KeysInfo actual = new Gson().fromJson(result, KeysInfo.class);
+		var expected = KeysShowOutput.of(signature, keys, true);
+		var actual = KeysShowOutput.of(MokaNew.run("keys show " + key + " --signature=" + signature + " --password=" + password + " --show-private --json"));
 		assertEquals(expected, actual);
 	}
 

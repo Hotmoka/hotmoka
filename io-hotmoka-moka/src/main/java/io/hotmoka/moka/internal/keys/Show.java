@@ -18,16 +18,26 @@ package io.hotmoka.moka.internal.keys;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.security.InvalidKeyException;
 import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Objects;
+import java.util.function.Function;
 
 import com.google.gson.Gson;
 
 import io.hotmoka.cli.AbstractCommand;
 import io.hotmoka.cli.CommandException;
+import io.hotmoka.crypto.Base58;
+import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Entropies;
+import io.hotmoka.crypto.HashingAlgorithms;
+import io.hotmoka.crypto.Hex;
+import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.moka.internal.converters.SignatureOptionConverter;
+import io.hotmoka.moka.keys.KeysShowOutput;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -59,12 +69,13 @@ public class Show extends AbstractCommand {
 			var entropy = Entropies.load(key);
 			passwordAsString = new String(password);
 			KeyPair keys = entropy.keys(passwordAsString, signature);
-			var keysInfo = new KeysInfo(signature, keys, showPrivate);
 
-			if (json)
-				System.out.println(new Gson().toJsonTree(keysInfo));
-			else
-				System.out.println(keysInfo);
+			try {
+				System.out.println(new Output(signature, keys, showPrivate).toString(json));
+			}
+			catch (NoSuchAlgorithmException e) {
+				throw new CommandException("The sha256 hashing algorithm is not available in this machine!");
+			}
 		}
 		catch (IOException e) {
 			throw new CommandException("Cannot access file \"" + key + "\"", e);
@@ -72,6 +83,155 @@ public class Show extends AbstractCommand {
 		finally {
 			passwordAsString = null;
 			Arrays.fill(password, ' ');
+		}
+	}
+
+	/**
+	 * The output of this command.
+	 */
+	public static class Output implements KeysShowOutput {
+		private final String signature;
+		private final String publicKeyBase58;
+		private final String publicKeyBase64;
+		private final String tendermintAddress;
+		private final String privateKeyBase58;
+		private final String privateKeyBase64;
+		private final String concatenatedBase64;
+
+		/**
+		 * Yields the output of this command from its JSON representation.
+		 * 
+		 * @param json the JSON representation
+		 */
+		public static Output of(String json) {
+			return new Gson().fromJson(json, Output.class);
+		}
+
+		public Output(SignatureAlgorithm signature, KeyPair keys, boolean alsoPrivate) throws NoSuchAlgorithmException {
+			this.signature = signature.getName();
+
+			try {
+				byte[] publicKeyBytes = signature.encodingOf(keys.getPublic());
+				byte[] privateKey = signature.encodingOf(keys.getPrivate());
+				var concatenated = new byte[privateKey.length + publicKeyBytes.length];
+				System.arraycopy(privateKey, 0, concatenated, 0, privateKey.length);
+				System.arraycopy(publicKeyBytes, 0, concatenated, privateKey.length, publicKeyBytes.length);
+				byte[] sha256HashedKey = HashingAlgorithms.sha256().getHasher(Function.identity()).hash(publicKeyBytes);
+				this.publicKeyBase58 = Base58.toBase58String(publicKeyBytes);
+				this.publicKeyBase64 = Base64.toBase64String(publicKeyBytes);
+
+				if (alsoPrivate) {
+					this.privateKeyBase58 = Base58.toBase58String(privateKey);
+					this.privateKeyBase64 = Base64.toBase64String(privateKey);
+					this.concatenatedBase64 = Base64.toBase64String(concatenated);
+				}
+				else {
+					this.privateKeyBase58 = null;
+					this.privateKeyBase64 = null;
+					this.concatenatedBase64 = null;
+				}
+
+				this.tendermintAddress = Hex.toHexString(sha256HashedKey, 0, 20).toUpperCase();
+			}
+			catch (InvalidKeyException | HexConversionException e) {
+				// this should not happen since we created the keys from the signature algorithm
+				throw new RuntimeException("The new key pair is invalid!", e);
+			}
+		}
+
+		@Override
+		public boolean equals(Object other) {
+			return other instanceof KeysShowOutput kso
+					&& kso.getSignature().equals(signature)
+					&& kso.getPublicKeyBase58().equals(publicKeyBase58)
+					&& kso.getPublicKeyBase64().equals(publicKeyBase64)
+					&& Objects.equals(kso.getPrivateKeyBase58(), privateKeyBase58)
+					&& Objects.equals(kso.getPrivateKeyBase64(), privateKeyBase64)
+					&& Objects.equals(kso.getConcatenatedBase64(), concatenatedBase64);
+		}
+
+		@Override
+		public int hashCode() {
+			return signature.hashCode() ^ publicKeyBase58.hashCode() ^ privateKeyBase58.hashCode();
+		}
+
+		@Override
+		public String getSignature() {
+			return signature;
+		}
+
+		@Override
+		public String getPublicKeyBase58() {
+			return publicKeyBase58;
+		}
+
+		@Override
+		public String getPublicKeyBase64() {
+			return publicKeyBase64;
+		}
+
+		@Override
+		public String getTendermintAddress() {
+			return tendermintAddress;
+		}
+
+		@Override
+		public String getPrivateKeyBase58() {
+			return privateKeyBase58;
+		}
+
+		@Override
+		public String getPrivateKeyBase64() {
+			return privateKeyBase64;
+		}
+
+		@Override
+		public String getConcatenatedBase64() {
+			return concatenatedBase64;
+		}
+
+		@Override
+		public String toString(boolean json) {
+			if (json)
+				return new Gson().toJson(this);
+			else {
+				String result = "";
+
+				if (publicKeyBase58.length() > MAX_PRINTED_KEY)
+					result = "* public key: " + publicKeyBase58.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base58)";
+				else
+					result = "* public key: " + publicKeyBase58 + " (" + signature + ", base58)";
+
+				if (publicKeyBase64.length() > MAX_PRINTED_KEY)
+					result += "\n* public key: " + publicKeyBase64.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base64)";
+				else
+					result += "\n* public key: " + publicKeyBase64 + " (" + signature + ", base64)";
+
+				result += "\n* Tendermint-like address: " + tendermintAddress;
+
+				if (privateKeyBase58 != null) {
+					if (privateKeyBase58.length() > MAX_PRINTED_KEY)
+						result += "\n* private key: " + privateKeyBase58.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base58)";
+					else
+						result += "\n* private key: " + privateKeyBase58 + " (" + signature + ", base58)";
+				}
+
+				if (privateKeyBase64 != null) {
+					if (privateKeyBase64.length() > MAX_PRINTED_KEY)
+						result += "\n* private key: " + privateKeyBase64.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base64)";
+					else
+						result += "\n* private key: " + privateKeyBase64 + " (" + signature + ", base64)";
+				}
+
+				if (concatenatedBase64 != null) {
+					if (concatenatedBase64.length() > MAX_PRINTED_KEY * 2)
+						result += "\n* concatenated private+public key: " + concatenatedBase64.substring(0, MAX_PRINTED_KEY * 2) + "..." + " (base64)";
+					else
+						result += "\n* concatenated private+public key: " + concatenatedBase64 + " (base64)";
+				}
+
+				return result;
+			}
 		}
 	}
 }

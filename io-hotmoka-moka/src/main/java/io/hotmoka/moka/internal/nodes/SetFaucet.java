@@ -29,12 +29,15 @@ import java.security.SignatureException;
 import java.util.Arrays;
 import java.util.concurrent.TimeoutException;
 
+import com.google.gson.Gson;
+
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
+import io.hotmoka.moka.nodes.NodesSetFaucetOutput;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
@@ -136,6 +139,33 @@ public class SetFaucet extends AbstractMokaRpcCommand {
 		}
 		catch (UnknownReferenceException e) {
 			throw new CommandException("The gamete object cannot be found in the node");
+		}
+
+		System.out.println(new Output().toString(max, json()));
+	}
+
+	/**
+	 * The output of this command.
+	 */
+	public static class Output implements NodesSetFaucetOutput {
+
+		private Output() {}
+
+		/**
+		 * Yields the output of this command from its JSON representation.
+		 * 
+		 * @param json the JSON representation
+		 */
+		public static Output of(String json) {
+			return new Gson().fromJson(json, Output.class);
+		}
+
+		@Override
+		public String toString(BigInteger threshold, boolean json) {
+			if (json)
+				return new Gson().toJson(this);
+			else
+				return "The threshold of the faucet has been set to " + threshold;
 		}
 	}
 }

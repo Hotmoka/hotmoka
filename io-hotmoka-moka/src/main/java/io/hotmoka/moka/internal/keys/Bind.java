@@ -22,6 +22,8 @@ import java.security.InvalidKeyException;
 import java.util.Arrays;
 import java.util.concurrent.TimeoutException;
 
+import com.google.gson.Gson;
+
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Entropies;
@@ -29,6 +31,7 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
 import io.hotmoka.moka.internal.converters.SignatureOptionConverter;
 import io.hotmoka.moka.internal.converters.StorageReferenceOfAccountOptionConverter;
+import io.hotmoka.moka.keys.KeysBindOutput;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
@@ -164,11 +167,40 @@ public class Bind extends AbstractMokaRpcCommand {
 			throw new CommandException("Cannot read the file \"" + key + "\"");
 		}
 
+		Path file;
+
 		try {
-			System.out.println("The account information has been written into the file \"" + account.dump() + "\".");
+			file = account.dump();
 		}
 		catch (IOException e) {
 			throw new CommandException("Cannot write the account information file");
+		}
+
+		System.out.println(new Output().toString(file, json()));
+	}
+
+	/**
+	 * The output of this command.
+	 */
+	public static class Output implements KeysBindOutput {
+
+		private Output() {}
+
+		/**
+		 * Yields the output of this command from its JSON representation.
+		 * 
+		 * @param json the JSON representation
+		 */
+		public static Output of(String json) {
+			return new Gson().fromJson(json, Output.class);
+		}
+
+		@Override
+		public String toString(Path file, boolean json) {
+			if (json)
+				return new Gson().toJson(this);
+			else
+				return "The account information has been written into the file \"" + file + "\".";
 		}
 	}
 }
