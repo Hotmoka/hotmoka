@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.moka.keys;
 
+import java.io.PrintStream;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 
@@ -114,10 +115,10 @@ public interface KeysShowOutput {
 	String getConcatenatedBase64();
 
 	/**
-	 * Yields the output of the command as a string.
+	 * Prints this output as a string.
 	 * 
+	 * @param out the destination print stream
 	 * @param json true if and only if the string must be in JSON format
-	 * @return the output of the command as a string
 	 */
-	String toString(boolean json);
+	void println(PrintStream out, boolean json);
 }

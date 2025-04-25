@@ -31,8 +31,8 @@ module io.hotmoka.moka {
     opens io.hotmoka.moka.internal.nodes to info.picocli;
     opens io.hotmoka.moka.internal.nodes.config to info.picocli;
     opens io.hotmoka.moka.internal.nodes.disk to info.picocli, com.google.gson;
-    opens io.hotmoka.moka.internal.nodes.manifest to info.picocli;
-    opens io.hotmoka.moka.internal.nodes.takamaka to info.picocli;
+    opens io.hotmoka.moka.internal.nodes.manifest to info.picocli, com.google.gson;
+    opens io.hotmoka.moka.internal.nodes.takamaka to info.picocli, com.google.gson;
 
     requires io.hotmoka.helpers;
     requires io.hotmoka.node.tendermint;
@@ -57,5 +57,5 @@ module io.hotmoka.moka {
 	requires info.picocli;
 	requires com.google.gson;
 	requires java.logging;
-	requires io.hotmoka.node.api;
+	requires transitive io.hotmoka.node.api;
 }

@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.moka.internal.keys;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Path;
 import java.security.InvalidKeyException;
 import java.util.Arrays;
@@ -146,7 +147,7 @@ public class Bind extends AbstractMokaRpcCommand {
 			return Base64.toBase64String(signature.encodingOf(Entropies.load(key).keys(passwordAsString, signature).getPublic()));
 		}
 		catch (IOException e) {
-			throw new CommandException("Cannot read the file \"" + key + "\"");
+			throw new CommandException("Cannot read the file \"" + key + "\"", e);
 		}
 		catch (InvalidKeyException e) {
 			throw new CommandException("The file \"" + key + "\" contains an invalid key for the signature algorithm " + signature);
@@ -164,7 +165,7 @@ public class Bind extends AbstractMokaRpcCommand {
 			account = Accounts.of(Entropies.load(key), reference);
 		}
 		catch (IOException e) {
-			throw new CommandException("Cannot read the file \"" + key + "\"");
+			throw new CommandException("Cannot read the file \"" + key + "\"", e);
 		}
 
 		Path file;
@@ -173,10 +174,10 @@ public class Bind extends AbstractMokaRpcCommand {
 			file = account.dump();
 		}
 		catch (IOException e) {
-			throw new CommandException("Cannot write the account information file");
+			throw new CommandException("Cannot write the account information file", e);
 		}
 
-		System.out.println(new Output().toString(file, json()));
+		new Output().println(System.out, file, json());
 	}
 
 	/**
@@ -196,11 +197,11 @@ public class Bind extends AbstractMokaRpcCommand {
 		}
 
 		@Override
-		public String toString(Path file, boolean json) {
+		public void println(PrintStream out, Path file, boolean json) {
 			if (json)
-				return new Gson().toJson(this);
+				out.println(new Gson().toJson(this));
 			else
-				return "The account information has been written into the file \"" + file + "\".";
+				out.println("The account information has been written into the file \"" + file + "\".");
 		}
 	}
 }

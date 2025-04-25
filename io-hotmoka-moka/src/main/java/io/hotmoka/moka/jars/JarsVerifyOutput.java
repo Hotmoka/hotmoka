@@ -14,17 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.keys;
+package io.hotmoka.moka.jars;
 
 import java.io.PrintStream;
-import java.nio.file.Path;
+import java.util.stream.Stream;
 
-import io.hotmoka.moka.internal.keys.Bind;
+import io.hotmoka.moka.internal.jars.Verify;
 
 /**
- * The output of the moka keys bind command.
+ * The output of the moka jars verify command.
  */
-public interface KeysBindOutput {
+public interface JarsVerifyOutput {
 
 	/**
 	 * Yields the output of the command from its JSON representation.
@@ -32,16 +32,37 @@ public interface KeysBindOutput {
 	 * @param json the JSON representation
 	 * @return the output of the command
 	 */
-	static KeysBindOutput of(String json) {
-		return Bind.Output.of(json);
+	static JarsVerifyOutput of(String json) {
+		return Verify.Output.of(json);
 	}
+
+	/**
+	 * Yields the errors in this output.
+	 * 
+	 * @return the errors in this output
+	 */
+	Stream<ErrorJSON> getErrors();
 
 	/**
 	 * Prints this output as a string.
 	 * 
 	 * @param out the destination print stream
-	 * @param file the path of the account that has been written
 	 * @param json true if and only if the string must be in JSON format
 	 */
-	void println(PrintStream out, Path file, boolean json);
+	void println(PrintStream out, boolean json);
+
+	class ErrorJSON {
+		public final String where;
+		public final String message;
+
+		public ErrorJSON(io.hotmoka.verification.api.Error error) {
+			this.where = error.getWhere();
+			this.message = error.getMessage();
+		}
+
+		@Override
+		public String toString() {
+			return where + ": " + message;
+		}
+	}
 }

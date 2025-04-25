@@ -16,31 +16,57 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.nodes.manifest;
 
+import java.io.PrintStream;
 import java.util.concurrent.TimeoutException;
+
+import com.google.gson.Gson;
 
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
-import io.hotmoka.node.StorageValues;
+import io.hotmoka.moka.nodes.manifest.NodesManifestAddressOutput;
 import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.api.RemoteNode;
-import jakarta.websocket.EncodeException;
 import picocli.CommandLine.Command;
 
 @Command(name = "address", description = "Show the address of the manifest of a node.")
 public class Address extends AbstractMokaRpcCommand {
 
 	private void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
-		try {
-			var manifest = remote.getManifest();
-			System.out.println(json() ? new StorageValues.Encoder().encode(manifest) : manifest);
-		}
-		catch (EncodeException e) {
-			throw new CommandException("Cannot encode in JSON format the address of the manifest of the node at \"" + uri() + "\".", e);
-		}
+		var manifest = remote.getManifest();
+		new Output(manifest).println(System.out, json());
 	}
 
 	@Override
 	protected void execute() throws CommandException {
 		execute(this::body);
+	}
+
+	/**
+	 * The output of this command.
+	 */
+	public static class Output implements NodesManifestAddressOutput {
+		private final String reference;
+
+		private Output(StorageReference reference) {
+			this.reference = reference.toString();
+		}
+
+		/**
+		 * Yields the output of this command from its JSON representation.
+		 * 
+		 * @param json the JSON representation
+		 */
+		public static Output of(String json) {
+			return new Gson().fromJson(json, Output.class);
+		}
+
+		@Override
+		public void println(PrintStream out, boolean json) {
+			if (json)
+				out.println(new Gson().toJson(this));
+			else
+				out.println(reference);
+		}
 	}
 }

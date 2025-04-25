@@ -17,15 +17,19 @@ limitations under the License.
 package io.hotmoka.moka.internal.jars;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Stream;
 
+import com.google.gson.Gson;
+
 import io.hotmoka.cli.AbstractCommand;
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.instrumentation.GasCostModels;
 import io.hotmoka.instrumentation.InstrumentedJars;
+import io.hotmoka.moka.jars.JarsInstrumentOutput;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.VerifiedJars;
 import io.hotmoka.verification.api.IllegalJarException;
@@ -95,17 +99,39 @@ public class Instrument extends AbstractCommand {
 				Files.createDirectories(parent);
 
 			InstrumentedJars.of(verifiedJar, GasCostModels.standard()).dump(destination);
-			if (json)
-				System.out.println("{}");
+			new Output().println(System.out, json);
 		}
 		catch (UnknownTypeException | VerificationException | IllegalJarException e) {
-			throw new CommandException(e.getMessage() + ": no instrumented jar was generated", e);
+			throw new CommandException("Instrumentation failed", e);
 		}
 		catch (UnsupportedVerificationVersionException e) {
 			throw new CommandException("Verification version " + version + " is not supported");
 		}
 		catch (IOException e) {
 			throw new CommandException("Cannot create file " + destination, e);
+		}
+	}
+
+	/**
+	 * The output of this command.
+	 */
+	public static class Output implements JarsInstrumentOutput {
+
+		private Output() {}
+
+		/**
+		 * Yields the output of this command from its JSON representation.
+		 * 
+		 * @param json the JSON representation
+		 */
+		public static Output of(String json) {
+			return new Gson().fromJson(json, Output.class);
+		}
+
+		@Override
+		public void println(PrintStream out, boolean json) {
+			if (json)
+				out.println(new Gson().toJson(this));
 		}
 	}
 }

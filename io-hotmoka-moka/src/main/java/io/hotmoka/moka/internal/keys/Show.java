@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.moka.internal.keys;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Path;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
@@ -71,7 +72,7 @@ public class Show extends AbstractCommand {
 			KeyPair keys = entropy.keys(passwordAsString, signature);
 
 			try {
-				System.out.println(new Output(signature, keys, showPrivate).toString(json));
+				new Output(signature, keys, showPrivate).println(System.out, json);
 			}
 			catch (NoSuchAlgorithmException e) {
 				throw new CommandException("The sha256 hashing algorithm is not available in this machine!");
@@ -191,46 +192,42 @@ public class Show extends AbstractCommand {
 		}
 
 		@Override
-		public String toString(boolean json) {
+		public void println(PrintStream out, boolean json) {
 			if (json)
-				return new Gson().toJson(this);
+				out.println(new Gson().toJson(this));
 			else {
-				String result = "";
-
 				if (publicKeyBase58.length() > MAX_PRINTED_KEY)
-					result = "* public key: " + publicKeyBase58.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base58)";
+					out.println("* public key: " + publicKeyBase58.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base58)");
 				else
-					result = "* public key: " + publicKeyBase58 + " (" + signature + ", base58)";
+					out.println("* public key: " + publicKeyBase58 + " (" + signature + ", base58)");
 
 				if (publicKeyBase64.length() > MAX_PRINTED_KEY)
-					result += "\n* public key: " + publicKeyBase64.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base64)";
+					out.println("* public key: " + publicKeyBase64.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base64)");
 				else
-					result += "\n* public key: " + publicKeyBase64 + " (" + signature + ", base64)";
+					out.println("* public key: " + publicKeyBase64 + " (" + signature + ", base64)");
 
-				result += "\n* Tendermint-like address: " + tendermintAddress;
+				out.println("* Tendermint-like address: " + tendermintAddress);
 
 				if (privateKeyBase58 != null) {
 					if (privateKeyBase58.length() > MAX_PRINTED_KEY)
-						result += "\n* private key: " + privateKeyBase58.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base58)";
+						out.println("* private key: " + privateKeyBase58.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base58)");
 					else
-						result += "\n* private key: " + privateKeyBase58 + " (" + signature + ", base58)";
+						out.println("* private key: " + privateKeyBase58 + " (" + signature + ", base58)");
 				}
 
 				if (privateKeyBase64 != null) {
 					if (privateKeyBase64.length() > MAX_PRINTED_KEY)
-						result += "\n* private key: " + privateKeyBase64.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base64)";
+						out.println("* private key: " + privateKeyBase64.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base64)");
 					else
-						result += "\n* private key: " + privateKeyBase64 + " (" + signature + ", base64)";
+						out.println("* private key: " + privateKeyBase64 + " (" + signature + ", base64)");
 				}
 
 				if (concatenatedBase64 != null) {
 					if (concatenatedBase64.length() > MAX_PRINTED_KEY * 2)
-						result += "\n* concatenated private+public key: " + concatenatedBase64.substring(0, MAX_PRINTED_KEY * 2) + "..." + " (base64)";
+						out.println("* concatenated private+public key: " + concatenatedBase64.substring(0, MAX_PRINTED_KEY * 2) + "..." + " (base64)");
 					else
-						result += "\n* concatenated private+public key: " + concatenatedBase64 + " (base64)";
+						out.println("* concatenated private+public key: " + concatenatedBase64 + " (base64)");
 				}
-
-				return result;
 			}
 		}
 	}

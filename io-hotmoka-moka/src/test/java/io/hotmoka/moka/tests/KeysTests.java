@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -79,7 +78,7 @@ public class KeysTests extends AbstractMokaTest {
 		MokaNew.run("keys create --dir=" + dir + " --name=" + expectedReference + ".pem --signature=" + signature + " --password=" + password);
 		var expectedEntropy = Entropies.load(dir.resolve(expectedReference + ".pem"));
 		var keysExportOutput = KeysExportOutput.of(MokaNew.run("keys export " + expectedReference + " --dir=" + dir + " --json"));
-		String spaceSeparatedWords = Stream.of(keysExportOutput.getBip39Words()).collect(Collectors.joining(" "));
+		String spaceSeparatedWords = keysExportOutput.getBip39Words().collect(Collectors.joining(" "));
 		// we re-import the key file into a difference directory, so that it does not override the original file
 		Path copy = dir.resolve("copy");
 		Files.createDirectories(copy);

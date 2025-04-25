@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.moka.internal.keys;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,7 +68,7 @@ public class Import extends AbstractCommand {
 			throw new CommandException("Could not write the key pair file of the account into " + file + ".pem", e);
 		}
 
-		System.out.println(new Output(account.getReference()).toString(dir, json));
+		new Output(account.getReference()).println(System.out, dir, json);
 	}
 
 	/**
@@ -95,11 +96,11 @@ public class Import extends AbstractCommand {
 		}
 
 		@Override
-		public String toString(Path dir, boolean json) {
+		public void println(PrintStream out, Path dir, boolean json) {
 			if (json)
-				return new Gson().toJson(this);
+				out.println(new Gson().toJson(this));
 			else
-				return "The key pair of the account has been imported into the file \"" + dir.resolve(reference + ".pem") + "\".";
+				out.println("The key pair of the account has been imported into the file \"" + dir.resolve(reference + ".pem") + "\".");
 		}
 	}
 }

@@ -17,18 +17,18 @@ limitations under the License.
 package io.hotmoka.moka.internal.jars;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 
 import io.hotmoka.cli.AbstractCommand;
 import io.hotmoka.cli.CommandException;
+import io.hotmoka.moka.jars.JarsVerifyOutput;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.VerifiedJars;
 import io.hotmoka.verification.api.IllegalJarException;
@@ -88,68 +88,68 @@ public class Verify extends AbstractCommand {
 			classLoader = TakamakaClassLoaders.of(Stream.of(classpath), version);
 		}
 		catch (UnknownTypeException e) {
-			throw new CommandException("Some type cannot be resolved: " + e.getMessage(), e);
+			throw new CommandException("Some type cannot be resolved", e);
 		}
 		catch (UnsupportedVerificationVersionException e) {
 			throw new CommandException("Verification version " + version + " is not supported");
 		}
 
-		var gson = new Gson();
-		var errorsJSON = new ArrayList<JsonElement>();
-
-		class OnError implements Consumer<io.hotmoka.verification.api.Error> {
-			private int counter;
-
-			@Override
-			public void accept(io.hotmoka.verification.api.Error error) {
-				counter++;
-
-				if (json)
-					errorsJSON.add(gson.toJsonTree(new ErrorJSON(error)));
-				else {
-					if (counter == 1)
-						System.out.println("Verification failed with the following errors:");
-
-					System.out.println(counter + ": " + error);
-				}
-			}
-		}
+		var errors = new ArrayList<io.hotmoka.verification.api.Error>();
 
 		try {
-			VerifiedJars.of(classpath[0], classLoader, init, new OnError(), false);
-
-			if (json)
-				System.out.println(errorsJSON);
-			else
-				System.out.println("Verification succeeded");
+			VerifiedJars.of(classpath[0], classLoader, init, errors::add, false);
 		}
 		catch (UnknownTypeException e) {
-			if (json)
-				System.out.println(errorsJSON);
-
-			throw new CommandException("Some type cannot be resolved: " + e.getMessage(), e);
+			throw new CommandException("Some type cannot be resolved", e);
 		}
 		catch (IllegalJarException e) {
-			if (json)
-				System.out.println(errorsJSON);
-
-			throw new CommandException("The jar file is illegal: " + e.getMessage(), e);
+			throw new CommandException("The jar file is illegal", e);
 		}
 		catch (VerificationException e) {
-			if (json)
-				System.out.println(errorsJSON);
+		}
+		finally {
+			new Output(errors).println(System.out, json);
 		}
 	}
 
-	private static class ErrorJSON {
-		@SuppressWarnings("unused")
-		private final String where;
-		@SuppressWarnings("unused")
-		private final String message;
+	/**
+	 * The output of this command.
+	 */
+	public static class Output implements JarsVerifyOutput {
+		private final ErrorJSON[] errors;
 
-		private ErrorJSON(io.hotmoka.verification.api.Error error) {
-			this.where = error.getWhere();
-			this.message = error.getMessage();
+		private Output(List<io.hotmoka.verification.api.Error> errors) {
+			this.errors = errors.stream().map(ErrorJSON::new).toArray(ErrorJSON[]::new);
+		}
+
+		/**
+		 * Yields the output of this command from its JSON representation.
+		 * 
+		 * @param json the JSON representation
+		 */
+		public static Output of(String json) {
+			return new Gson().fromJson(json, Output.class);
+		}
+
+		@Override
+		public Stream<ErrorJSON> getErrors() {
+			return Stream.of(errors);
+		}
+
+		@Override
+		public void println(PrintStream out, boolean json) {
+			if (json)
+				out.println(new Gson().toJson(this));
+			else {
+				if (errors.length == 0)
+					out.println("Verification succeeded");
+				else {
+					out.println("Verification failed with the following errors:");
+					int counter = 1;
+					for (var error: errors)
+						out.println(counter++ + ": " + error);
+				}
+			}
 		}
 	}
 }

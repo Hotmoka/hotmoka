@@ -14,17 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.keys;
+package io.hotmoka.moka.nodes.takamaka;
 
 import java.io.PrintStream;
-import java.nio.file.Path;
 
-import io.hotmoka.moka.internal.keys.Bind;
+import io.hotmoka.moka.internal.nodes.takamaka.Address;
 
 /**
- * The output of the moka keys bind command.
+ * The output of the moka nodes takamaka address command.
  */
-public interface KeysBindOutput {
+public interface NodesTakamakaAddressOutput {
 
 	/**
 	 * Yields the output of the command from its JSON representation.
@@ -32,16 +31,15 @@ public interface KeysBindOutput {
 	 * @param json the JSON representation
 	 * @return the output of the command
 	 */
-	static KeysBindOutput of(String json) {
-		return Bind.Output.of(json);
+	static NodesTakamakaAddressOutput of(String json) {
+		return Address.Output.of(json);
 	}
 
 	/**
 	 * Prints this output as a string.
 	 * 
 	 * @param out the destination print stream
-	 * @param file the path of the account that has been written
 	 * @param json true if and only if the string must be in JSON format
 	 */
-	void println(PrintStream out, Path file, boolean json);
+	void println(PrintStream out, boolean json);
 }

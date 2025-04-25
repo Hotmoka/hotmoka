@@ -17,7 +17,9 @@ limitations under the License.
 package io.hotmoka.moka.internal.keys;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Path;
+import java.util.stream.Stream;
 
 import com.google.gson.Gson;
 
@@ -55,10 +57,10 @@ public class Export extends AbstractCommand {
         	account = Accounts.of(reference, dir);
         }
         catch (IOException e) {
-        	throw new CommandException("Cannot read the key pair of the account: it was expected to be in file " + reference + ".pem", e);
+        	throw new CommandException("Cannot read the key pair of the account: it was expected to be in file \"" + reference + ".pem\"", e);
         }
 
-        System.out.println(new Output(account.bip39Words()).toString(json));
+        new Output(account.bip39Words()).println(System.out, reference, json);
 	}
 
 	/**
@@ -82,20 +84,18 @@ public class Export extends AbstractCommand {
 		}
 
 		@Override
-		public String[] getBip39Words() {
-			return bip39Words.clone();
+		public Stream<String> getBip39Words() {
+			return Stream.of(bip39Words);
 		}
 
 		@Override
-		public String toString(boolean json) {
+		public void println(PrintStream out, StorageReference reference, boolean json) {
 			if (json)
-				return new Gson().toJson(this);
+				out.println(new Gson().toJson(this));
 	        else {
-	        	var result = new StringBuilder();
+	        	out.println("The following BIP39 words represent the key pair of account " + reference + ":");
 	        	for (int pos = 0; pos < bip39Words.length; pos++)
-	        		result.append(String.format("%s%2d: %s", pos == 0 ? "" : "\n", pos + 1, bip39Words[pos]));
-
-	        	return result.toString();
+	        		out.println(String.format("%2d: %s", pos + 1, bip39Words[pos]));
 	        }
 		}
 	}

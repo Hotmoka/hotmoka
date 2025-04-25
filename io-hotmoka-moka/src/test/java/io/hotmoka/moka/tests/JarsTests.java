@@ -21,16 +21,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.google.gson.Gson;
-
 import io.hotmoka.moka.MokaNew;
+import io.hotmoka.moka.jars.JarsVerifyOutput;
+import io.hotmoka.moka.jars.JarsVerifyOutput.ErrorJSON;
 import io.hotmoka.node.local.AbstractLocalNode;
 import io.takamaka.code.constants.Constants;
 
@@ -45,9 +44,8 @@ public class JarsTests extends AbstractMokaTest {
 		var examplesBasic = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-basic.jar");
 		var examplesBasicDependency = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-basicdependency.jar");
 		var takamakaCode = Maven.resolver().resolve("io.hotmoka:io-takamaka-code:" + Constants.TAKAMAKA_VERSION).withoutTransitivity().asSingleFile().toPath();
-		String result = MokaNew.run("jars verify " + examplesBasic + " --libs " + examplesBasicDependency + " --libs " + takamakaCode + " --json");
-		ArrayList<?> actual = new Gson().fromJson(result, ArrayList.class);
-		assertTrue(actual.isEmpty());
+		var actual = JarsVerifyOutput.of(MokaNew.run("jars verify " + examplesBasic + " --libs " + examplesBasicDependency + " --libs " + takamakaCode + " --json"));
+		assertTrue(actual.getErrors().count() == 0);
 	}
 
 	@Test
@@ -55,12 +53,11 @@ public class JarsTests extends AbstractMokaTest {
 	public void verifyJarWorksIfErrors(@TempDir Path dir) throws Exception {
 		var callerNotOnThis = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-callernotonthis.jar");
 		var takamakaCode = Maven.resolver().resolve("io.hotmoka:io-takamaka-code:" + Constants.TAKAMAKA_VERSION).withoutTransitivity().asSingleFile().toPath();
-		String result = MokaNew.run("jars verify " + callerNotOnThis + " --libs " + takamakaCode + " --json");
-		ArrayList<?> actual = new Gson().fromJson(result, ArrayList.class);
-		assertTrue(actual.size() == 1);
-		Object error = actual.get(0);
-		// a bit fragile, it would be better to add a Gson deserializer for Error
-		assertEquals("{where=io/hotmoka/examples/errors/callernotonthis/C.java:30, message=caller() can only be called on \"this\"}", error.toString());
+		var actual = JarsVerifyOutput.of(MokaNew.run("jars verify " + callerNotOnThis + " --libs " + takamakaCode + " --json"));
+		assertTrue(actual.getErrors().count() == 1);
+		ErrorJSON error = actual.getErrors().findFirst().get();
+		assertEquals("io/hotmoka/examples/errors/callernotonthis/C.java:30", error.where);
+		assertEquals("caller() can only be called on \"this\"", error.message);
 	}
 
 	@Test
