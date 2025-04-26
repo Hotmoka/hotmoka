@@ -14,26 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.nodes.manifest;
+package io.hotmoka.moka.api.jars;
 
 import java.io.PrintStream;
 
-import io.hotmoka.moka.internal.nodes.manifest.Address;
+import io.hotmoka.annotations.Immutable;
 
 /**
- * The output of the moka nodes manifest address command.
+ * The output of the {@code moka jars instrument} command.
  */
-public interface NodesManifestAddressOutput {
-
-	/**
-	 * Yields the output of the command from its JSON representation.
-	 * 
-	 * @param json the JSON representation
-	 * @return the output of the command
-	 */
-	static NodesManifestAddressOutput of(String json) {
-		return Address.Output.of(json);
-	}
+@Immutable
+public interface JarsInstrumentOutput {
 
 	/**
 	 * Prints this output as a string.

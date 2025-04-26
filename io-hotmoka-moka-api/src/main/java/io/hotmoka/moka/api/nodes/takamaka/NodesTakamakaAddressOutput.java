@@ -18,11 +18,13 @@ package io.hotmoka.moka.api.nodes.takamaka;
 
 import java.io.PrintStream;
 
+import io.hotmoka.annotations.Immutable;
 import io.hotmoka.node.api.transactions.TransactionReference;
 
 /**
  * The output of the {@code moka nodes takamaka address} command.
  */
+@Immutable
 public interface NodesTakamakaAddressOutput {
 
 	/**

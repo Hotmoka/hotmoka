@@ -14,26 +14,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.jars;
+package io.hotmoka.moka.api.nodes.manifest;
 
 import java.io.PrintStream;
 
-import io.hotmoka.moka.internal.jars.Instrument;
+import io.hotmoka.annotations.Immutable;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
- * The output of the moka jars instrument command.
+ * The output of the {@code moka nodes manifest address} command.
  */
-public interface JarsInstrumentOutput {
+@Immutable
+public interface NodesManifestAddressOutput {
 
 	/**
-	 * Yields the output of the command from its JSON representation.
+	 * Yields the reference to the manifest.
 	 * 
-	 * @param json the JSON representation
-	 * @return the output of the command
+	 * @return the reference to the manifest
 	 */
-	static JarsInstrumentOutput of(String json) {
-		return Instrument.Output.of(json);
-	}
+	StorageReference getManifest();
 
 	/**
 	 * Prints this output as a string.

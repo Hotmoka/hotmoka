@@ -16,17 +16,26 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.accounts;
 
+import java.io.PrintStream;
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeoutException;
 
-import com.google.gson.Gson;
-
+import io.hotmoka.annotations.Immutable;
 import io.hotmoka.cli.CommandException;
+import io.hotmoka.crypto.Base58;
+import io.hotmoka.crypto.Base64;
+import io.hotmoka.crypto.Base64ConversionException;
+import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.helpers.SignatureHelpers;
+import io.hotmoka.moka.AccountsShowOutputs;
+import io.hotmoka.moka.api.accounts.AccountsShowOutput;
 import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
 import io.hotmoka.moka.internal.converters.StorageReferenceOfAccountOptionConverter;
+import io.hotmoka.moka.internal.json.AccountsShowOutputJson;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.CodeExecutionException;
@@ -36,6 +45,8 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.api.RemoteNode;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
+import jakarta.websocket.EncodeException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 
@@ -92,11 +103,99 @@ public class Show extends AbstractMokaRpcCommand {
 			throw new CommandException("Could not access the balance of the account", e);
 		}
 
-		var accountInfo = new AccountInfo(balance, signature, publicKeyBase64);
+		try {
+			new Output(balance, signature, publicKeyBase64).println(System.out, json());
+		}
+		catch (Base64ConversionException e) {
+			throw new CommandException("The key in the account object is not in base64 format", e);
+		}
+	}
 
-		if (json())
-			System.out.println(new Gson().toJsonTree(accountInfo));
-		else
-			System.out.println(accountInfo);
+	/**
+	 * The output of this command.
+	 */
+	@Immutable
+	public static class Output implements AccountsShowOutput {
+		private final BigInteger balance;
+		private final SignatureAlgorithm signature;
+		private final String publicKeyBase58;
+		private final String publicKeyBase64;
+
+		/**
+		 * The maximal length for the printed keys. After this length, the printout of the key gets truncated.
+		 */
+		public final static int MAX_PRINTED_KEY = 200;
+
+		private Output(BigInteger balance, SignatureAlgorithm signature, String publicKeyBase64) throws Base64ConversionException {
+			this.balance = balance;
+			this.signature = signature;
+			this.publicKeyBase64 = publicKeyBase64;
+			this.publicKeyBase58 = Base58.toBase58String(Base64.fromBase64String(publicKeyBase64));
+		}
+
+		/**
+		 * Builds the output of the command from its JSON representation.
+		 * 
+		 * @param json the JSON representation
+		 * @throws InconsistentJsonException if {@code json} is inconsistent
+		 * @throws NoSuchAlgorithmException if {@code json} refers to a non-available cryptographic algorithm
+		 */
+		public Output(AccountsShowOutputJson json) throws InconsistentJsonException, NoSuchAlgorithmException {
+			ExceptionSupplier<InconsistentJsonException> exp = InconsistentJsonException::new;
+
+			this.balance = Objects.requireNonNull(json.getBalance(), "balance cannot be null", exp);
+			if (balance.signum() < 0)
+				throw new InconsistentJsonException("The balance of the account cannot be negative");
+
+			this.signature = SignatureAlgorithms.of(Objects.requireNonNull(json.getSignature(), "signature cannot be null", exp));
+			this.publicKeyBase58 = Base58.requireBase58(Objects.requireNonNull(json.getPublicKeyBase58(), "publicKeyBase58 cannot be null", exp), exp);
+			this.publicKeyBase64 = Base64.requireBase64(Objects.requireNonNull(json.getPublicKeyBase64(), "publicKeyBase64 cannot be null", exp), exp);
+		}
+
+		@Override
+		public BigInteger getBalance() {
+			return balance;
+		}
+
+		@Override
+		public SignatureAlgorithm getSignature() {
+			return signature;
+		}
+
+		@Override
+		public String getPublicKeyBase58() {
+			return publicKeyBase58;
+		}
+
+		@Override
+		public String getPublicKeyBase64() {
+			return publicKeyBase64;
+		}
+
+		@Override
+		public void println(PrintStream out, boolean json) {
+			if (json) {
+				try {
+					out.println(new AccountsShowOutputs.Encoder().encode(this));
+				}
+				catch (EncodeException e) {
+					// this should not happen, since the constructor of the JSON representation never throws exceptions
+					throw new RuntimeException("Cannot encode the output of the command in JSON format", e);
+				}
+			}
+			else {
+				out.println("* balance: " + balance);
+
+				if (publicKeyBase58.length() > MAX_PRINTED_KEY)
+					out.println("* public key: " + publicKeyBase58.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base58)");
+				else
+					out.println("* public key: " + publicKeyBase58 + " (" + signature + ", base58)");
+
+				if (publicKeyBase64.length() > MAX_PRINTED_KEY)
+					out.println("* public key: " + publicKeyBase64.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base64)");
+				else
+					out.println("* public key: " + publicKeyBase64 + " (" + signature + ", base64)");
+			}
+		}
 	}
 }

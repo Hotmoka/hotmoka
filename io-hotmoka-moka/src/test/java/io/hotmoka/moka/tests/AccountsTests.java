@@ -23,12 +23,11 @@ import java.math.BigInteger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.google.gson.Gson;
-
+import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.SignatureAlgorithms;
+import io.hotmoka.moka.AccountsShowOutputs;
 import io.hotmoka.moka.MokaNew;
-import io.hotmoka.moka.internal.accounts.AccountInfo;
 
 /**
  * Tests for the moka nodes command.
@@ -39,10 +38,12 @@ public class AccountsTests extends AbstractMokaTestWithNode {
 	@DisplayName("[moka accounts show] the description of the gamete account is correct")
 	public void descriptionOfGameteIsCorrect() throws Exception {
 		// TODO: this should actually be applied to a brand account created in the test from new keys
-		String result = MokaNew.accountsShow(gamete + " --json");
-		AccountInfo actual = new Gson().fromJson(result, AccountInfo.class);
+		var output = AccountsShowOutputs.of(MokaNew.accountsShow(gamete + " --json"));
 		var ed25519 = SignatureAlgorithms.ed25519();
-		AccountInfo expected = new AccountInfo(BigInteger.valueOf(1000000000000000000L), ed25519, Base64.toBase64String(ed25519.encodingOf(keysOfGamete.getPublic())));
-		assertEquals(expected, actual);
+		assertEquals(ed25519, output.getSignature());
+		assertEquals(BigInteger.valueOf(1000000000000000000L), output.getBalance());
+		byte[] encodingOfPublicKey = ed25519.encodingOf(keysOfGamete.getPublic());
+		assertEquals(Base64.toBase64String(encodingOfPublicKey), output.getPublicKeyBase64());
+		assertEquals(Base58.toBase58String(encodingOfPublicKey), output.getPublicKeyBase58());
 	}
 }

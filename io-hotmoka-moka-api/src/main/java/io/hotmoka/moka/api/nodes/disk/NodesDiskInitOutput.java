@@ -14,25 +14,31 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.api.keys;
+package io.hotmoka.moka.api.nodes.disk;
 
 import java.io.PrintStream;
-import java.nio.file.Path;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
- * The output of the {@code moka keys bind} command.
+ * The output of the {@code moka nodes disk init} command.
  */
 @Immutable
-public interface KeysBindOutput {
+public interface NodesDiskInitOutput {
+
+	/**
+	 * Yields the reference to the gamete of the initialized node.
+	 * 
+	 * @return the reference to the gamete of the initialized node
+	 */
+	StorageReference getGamete();
 
 	/**
 	 * Prints this output as a string.
 	 * 
 	 * @param out the destination print stream
-	 * @param file the path of the created key pair file for the account that has been bound
 	 * @param json true if and only if the string must be in JSON format
 	 */
-	void println(PrintStream out, Path file, boolean json);
+	void println(PrintStream out, boolean json);
 }

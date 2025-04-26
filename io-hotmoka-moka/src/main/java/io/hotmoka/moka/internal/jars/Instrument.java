@@ -29,14 +29,18 @@ import io.hotmoka.cli.AbstractCommand;
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.instrumentation.GasCostModels;
 import io.hotmoka.instrumentation.InstrumentedJars;
-import io.hotmoka.moka.jars.JarsInstrumentOutput;
+import io.hotmoka.moka.JarsInstrumentOutputs;
+import io.hotmoka.moka.api.jars.JarsInstrumentOutput;
+import io.hotmoka.moka.internal.json.JarsInstrumentOutputJson;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.VerifiedJars;
 import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.api.UnknownTypeException;
 import io.hotmoka.verification.api.VerificationException;
 import io.hotmoka.verification.api.VerifiedJar;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
+import jakarta.websocket.EncodeException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -128,10 +132,25 @@ public class Instrument extends AbstractCommand {
 			return new Gson().fromJson(json, Output.class);
 		}
 
+		/**
+		 * Builds the output of the command from its JSON representation.
+		 * 
+		 * @param json the JSON representation
+		 * @throws InconsistentJsonException if {@code json} is inconsistent
+		 */
+		public Output(JarsInstrumentOutputJson json) throws InconsistentJsonException {}
+
 		@Override
 		public void println(PrintStream out, boolean json) {
-			if (json)
-				out.println(new Gson().toJson(this));
+			if (json) {
+				try {
+					out.println(new JarsInstrumentOutputs.Encoder().encode(this));
+				}
+				catch (EncodeException e) {
+					// this should not happen, since the constructor of the JSON representation never throws exceptions
+					throw new RuntimeException("Cannot encode the output of the command in JSON format", e);
+				}
+			}
 		}
 	}
 }

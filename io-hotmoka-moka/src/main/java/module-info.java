@@ -24,15 +24,15 @@ module io.hotmoka.moka {
 	opens io.hotmoka.moka to info.picocli;
     opens io.hotmoka.moka.internal to info.picocli;
     opens io.hotmoka.moka.internal.converters to info.picocli;
-    opens io.hotmoka.moka.internal.accounts to info.picocli, com.google.gson;
+    opens io.hotmoka.moka.internal.accounts to info.picocli;
     opens io.hotmoka.moka.internal.jars to info.picocli, com.google.gson;
-    opens io.hotmoka.moka.internal.keys to info.picocli, com.google.gson;
+    opens io.hotmoka.moka.internal.keys to info.picocli;
     opens io.hotmoka.moka.internal.nodes to info.picocli;
     opens io.hotmoka.moka.internal.json to com.google.gson;
     opens io.hotmoka.moka.internal.nodes.config to info.picocli;
     opens io.hotmoka.moka.internal.nodes.disk to info.picocli, com.google.gson;
-    opens io.hotmoka.moka.internal.nodes.manifest to info.picocli, com.google.gson;
-    opens io.hotmoka.moka.internal.nodes.takamaka to info.picocli, com.google.gson;
+    opens io.hotmoka.moka.internal.nodes.manifest to info.picocli;
+    opens io.hotmoka.moka.internal.nodes.takamaka to info.picocli;
 
     requires transitive io.hotmoka.moka.api;
     requires io.hotmoka.helpers;

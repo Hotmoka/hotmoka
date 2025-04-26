@@ -19,9 +19,12 @@ package io.hotmoka.moka.api.nodes;
 import java.io.PrintStream;
 import java.math.BigInteger;
 
+import io.hotmoka.annotations.Immutable;
+
 /**
  * The output of the {@code moka nodes set-faucet} command.
  */
+@Immutable
 public interface NodesSetFaucetOutput {
 
 	/**

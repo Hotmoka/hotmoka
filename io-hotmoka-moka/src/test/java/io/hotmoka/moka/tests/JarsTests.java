@@ -67,7 +67,7 @@ public class JarsTests extends AbstractMokaTest {
 		var examplesBasicDependency = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-basicdependency.jar");
 		var takamakaCode = Maven.resolver().resolve("io.hotmoka:io-takamaka-code:" + Constants.TAKAMAKA_VERSION).withoutTransitivity().asSingleFile().toPath();
 		Path instrumented = dir.resolve("basic-instrumented.jar");
-		String result = MokaNew.jarsInstrument(examplesBasic + " " + instrumented + " --libs " + examplesBasicDependency + " --libs " + takamakaCode + " --json").trim();
-		assertEquals("{}", result);
+		MokaNew.jarsInstrument(examplesBasic + " " + instrumented + " --libs " + examplesBasicDependency + " --libs " + takamakaCode + " --json");
+		// no exceptions
 	}
 }

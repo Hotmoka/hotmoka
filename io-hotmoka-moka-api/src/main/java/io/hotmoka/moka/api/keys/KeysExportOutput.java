@@ -19,11 +19,13 @@ package io.hotmoka.moka.api.keys;
 import java.io.PrintStream;
 import java.util.stream.Stream;
 
+import io.hotmoka.annotations.Immutable;
 import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * The output of the {@code moka keys export} command.
  */
+@Immutable
 public interface KeysExportOutput {
 
 	/**
