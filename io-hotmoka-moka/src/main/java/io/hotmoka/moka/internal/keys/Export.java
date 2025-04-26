@@ -21,16 +21,18 @@ import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
-import com.google.gson.Gson;
-
 import io.hotmoka.cli.AbstractCommand;
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.api.BIP39Mnemonic;
+import io.hotmoka.moka.KeysExportOutputs;
+import io.hotmoka.moka.api.keys.KeysExportOutput;
 import io.hotmoka.moka.internal.converters.StorageReferenceOfAccountOptionConverter;
-import io.hotmoka.moka.keys.KeysExportOutput;
+import io.hotmoka.moka.internal.json.KeysExportOutputJson;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.api.Account;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
+import jakarta.websocket.EncodeException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -74,13 +76,15 @@ public class Export extends AbstractCommand {
 		}
 
 		/**
-		 * Yields the output of this command from its JSON representation.
+		 * Builds the output of the command from its JSON representation.
 		 * 
 		 * @param json the JSON representation
-		 * @return the output
+		 * @throws InconsistentJsonException if {@code json} is inconsistent
 		 */
-		public static Output of(String json) {
-			return new Gson().fromJson(json, Output.class);
+		public Output(KeysExportOutputJson json) throws InconsistentJsonException {
+			this.bip39Words = json.getBip39Words().toArray(String[]::new);
+			if (bip39Words.length != 36)
+				throw new InconsistentJsonException("Hotmoka accounts are represented by 36 BIP39 words, but " + bip39Words.length + " words have been provided instead");
 		}
 
 		@Override
@@ -90,8 +94,15 @@ public class Export extends AbstractCommand {
 
 		@Override
 		public void println(PrintStream out, StorageReference reference, boolean json) {
-			if (json)
-				out.println(new Gson().toJson(this));
+			if (json) {
+				try {
+					out.println(new KeysExportOutputs.Encoder().encode(this));
+				}
+				catch (EncodeException e) {
+					// this should not happen, since the constructor of the JSON representation never throws exceptions
+					throw new RuntimeException("Cannot encode the output of the command in JSON format", e);
+				}
+			}
 	        else {
 	        	out.println("The following BIP39 words represent the key pair of account " + reference + ":");
 	        	for (int pos = 0; pos < bip39Words.length; pos++)

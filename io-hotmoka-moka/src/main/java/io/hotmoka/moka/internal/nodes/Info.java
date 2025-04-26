@@ -16,13 +16,21 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.nodes;
 
+import java.io.PrintStream;
+import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeoutException;
 
+import io.hotmoka.annotations.Immutable;
 import io.hotmoka.cli.CommandException;
+import io.hotmoka.exceptions.Objects;
+import io.hotmoka.moka.NodesInfoOutputs;
+import io.hotmoka.moka.api.nodes.NodesInfoOutput;
 import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
-import io.hotmoka.node.NodeInfos;
+import io.hotmoka.moka.internal.json.NodesInfoOutputJson;
 import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.remote.api.RemoteNode;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import jakarta.websocket.EncodeException;
 import picocli.CommandLine.Command;
 
@@ -30,17 +38,63 @@ import picocli.CommandLine.Command;
 public class Info extends AbstractMokaRpcCommand {
 
 	private void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
-		try {
-			var info = remote.getInfo();
-			System.out.println(json() ? new NodeInfos.Encoder().encode(info) : info);
-		}
-		catch (EncodeException e) {
-			throw new CommandException("Cannot encode in JSON format the local information about the node at \"" + uri() + "\".", e);
-		}
+		new Output(remote.getInfo()).println(System.out, json());
 	}
 
 	@Override
 	protected void execute() throws CommandException {
 		execute(this::body);
+	}
+
+	/**
+	 * Implementation of the output of this command.
+	 */
+	@Immutable
+	public static class Output implements NodesInfoOutput {
+
+		/**
+		 * The node information in the output.
+		 */
+		private final NodeInfo info;
+
+		/**
+		 * Builds the output of the command.
+		 * 
+		 * @param info the node information in the output
+		 */
+		private Output(NodeInfo info) {
+			this.info = info;
+		}
+
+		/**
+		 * Builds the output of the command from its JSON representation.
+		 * 
+		 * @param json the JSON representation
+		 * @throws InconsistentJsonException if {@code json} is inconsistent
+		 * @throws NoSuchAlgorithmException if {@code json} refers to a non-available cryptographic algorithm
+		 */
+		public Output(NodesInfoOutputJson json) throws InconsistentJsonException {
+			this.info = Objects.requireNonNull(json.getInfo(), "info cannot be null", InconsistentJsonException::new).unmap();
+		}
+
+		@Override
+		public NodeInfo getInfo() {
+			return info;
+		}
+
+		@Override
+		public void println(PrintStream out, boolean json) {
+			if (json) {
+				try {
+					out.println(new NodesInfoOutputs.Encoder().encode(this));
+				}
+				catch (EncodeException e) {
+					// this should not happen, since the constructor of the JSON representation never throws exceptions
+					throw new RuntimeException("Cannot encode the output of the command in JSON format", e);
+				}
+			}
+			else
+				out.println(info);
+		}
 	}
 }

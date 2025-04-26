@@ -38,7 +38,7 @@ import picocli.CommandLine.Command;
 public class Show extends AbstractMokaRpcCommand {
 
 	private void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException {
-		new Show.Output(remote.getConfig()).println(System.out, json());
+		new Output(remote.getConfig()).println(System.out, json());
 	}
 
 	@Override

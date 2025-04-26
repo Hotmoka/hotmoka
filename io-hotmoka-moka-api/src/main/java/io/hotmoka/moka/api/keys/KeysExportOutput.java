@@ -14,28 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.keys;
+package io.hotmoka.moka.api.keys;
 
 import java.io.PrintStream;
 import java.util.stream.Stream;
 
-import io.hotmoka.moka.internal.keys.Export;
 import io.hotmoka.node.api.values.StorageReference;
 
 /**
- * The output of the moka {@code keys export} command.
+ * The output of the {@code moka keys export} command.
  */
 public interface KeysExportOutput {
-
-	/**
-	 * Yields the output of the command from its JSON representation.
-	 * 
-	 * @param json the JSON representation
-	 * @return the output of the command
-	 */
-	static KeysExportOutput of(String json) {
-		return Export.Output.of(json);
-	}
 
 	/**
 	 * Yields the BIP39 words in the output of the command.

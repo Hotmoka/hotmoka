@@ -23,7 +23,7 @@ import io.hotmoka.websockets.beans.MappedEncoder;
 import jakarta.websocket.DecodeException;
 
 /**
- * Providers of outputs for the {@code nodes config show} command.
+ * Providers of outputs for the {@code moka nodes config show} command.
  */
 public abstract class NodesConfigShowOutputs {
 

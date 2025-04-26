@@ -19,7 +19,6 @@ limitations under the License.
  */
 module io.hotmoka.moka {
 	exports io.hotmoka.moka;
-	exports io.hotmoka.moka.keys;
 
 	// for injecting CLI options
 	opens io.hotmoka.moka to info.picocli;

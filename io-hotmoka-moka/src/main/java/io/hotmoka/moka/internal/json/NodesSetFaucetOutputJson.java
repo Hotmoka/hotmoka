@@ -16,20 +16,20 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.json;
 
-import io.hotmoka.moka.api.keys.KeysBindOutput;
-import io.hotmoka.moka.internal.keys.Bind;
+import io.hotmoka.moka.api.nodes.NodesSetFaucetOutput;
+import io.hotmoka.moka.internal.nodes.SetFaucet;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**
- * The JSON representation of the output of the {@code moka keys bind} command.
+ * The JSON representation of the output of the {@code moka nodes set-faucet} command.
  */
-public abstract class KeysBindOutputJson implements JsonRepresentation<KeysBindOutput> {
+public abstract class NodesSetFaucetOutputJson implements JsonRepresentation<NodesSetFaucetOutput> {
 
-	protected KeysBindOutputJson(KeysBindOutput output) {}
+	protected NodesSetFaucetOutputJson(NodesSetFaucetOutput output) {}
 
 	@Override
-	public KeysBindOutput unmap() throws InconsistentJsonException {
-		return new Bind.Output(this);
+	public NodesSetFaucetOutput unmap() throws InconsistentJsonException {
+		return new SetFaucet.Output(this);
 	}
 }

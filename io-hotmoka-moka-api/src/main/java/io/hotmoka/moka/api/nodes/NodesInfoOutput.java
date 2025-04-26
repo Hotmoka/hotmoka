@@ -14,33 +14,31 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.nodes;
+package io.hotmoka.moka.api.nodes;
 
-import java.math.BigInteger;
+import java.io.PrintStream;
 
-import io.hotmoka.moka.internal.nodes.SetFaucet;
+import io.hotmoka.annotations.Immutable;
+import io.hotmoka.node.api.nodes.NodeInfo;
 
 /**
- * The output of the moka nodes set-faucet command.
+ * The output of the {@code moka nodes info} command.
  */
-public interface NodesSetFaucetOutput {
+@Immutable
+public interface NodesInfoOutput {
 
 	/**
-	 * Yields the output of the command from its JSON representation.
+	 * Yields the node information in this output.
 	 * 
-	 * @param json the JSON representation
-	 * @return the output of the command
+	 * @return the node information in this output
 	 */
-	static NodesSetFaucetOutput of(String json) {
-		return SetFaucet.Output.of(json);
-	}
+	NodeInfo getInfo();
 
 	/**
-	 * Yields the output of the command as a string.
+	 * Prints this output as a string.
 	 * 
-	 * @param threshold the value of the threshold set for the faucet
+	 * @param out the destination print stream
 	 * @param json true if and only if the string must be in JSON format
-	 * @return the output of the command as a string
 	 */
-	String toString(BigInteger threshold, boolean json);
+	void println(PrintStream out, boolean json);
 }

@@ -20,6 +20,7 @@ import static io.hotmoka.node.StorageTypes.BIG_INTEGER;
 import static io.hotmoka.node.StorageTypes.GAMETE;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.math.BigInteger;
 import java.nio.file.Path;
 import java.security.InvalidKeyException;
@@ -29,15 +30,15 @@ import java.security.SignatureException;
 import java.util.Arrays;
 import java.util.concurrent.TimeoutException;
 
-import com.google.gson.Gson;
-
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
+import io.hotmoka.moka.NodesSetFaucetOutputs;
+import io.hotmoka.moka.api.nodes.NodesSetFaucetOutput;
 import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
-import io.hotmoka.moka.nodes.NodesSetFaucetOutput;
+import io.hotmoka.moka.internal.json.NodesSetFaucetOutputJson;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
@@ -50,6 +51,8 @@ import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.api.RemoteNode;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
+import jakarta.websocket.EncodeException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -141,7 +144,7 @@ public class SetFaucet extends AbstractMokaRpcCommand {
 			throw new CommandException("The gamete object cannot be found in the node");
 		}
 
-		System.out.println(new Output().toString(max, json()));
+		new Output().println(System.out, max, json());
 	}
 
 	/**
@@ -152,20 +155,26 @@ public class SetFaucet extends AbstractMokaRpcCommand {
 		private Output() {}
 
 		/**
-		 * Yields the output of this command from its JSON representation.
+		 * Builds the output of the command from its JSON representation.
 		 * 
 		 * @param json the JSON representation
+		 * @throws InconsistentJsonException if {@code json} is inconsistent
 		 */
-		public static Output of(String json) {
-			return new Gson().fromJson(json, Output.class);
-		}
+		public Output(NodesSetFaucetOutputJson json) throws InconsistentJsonException {}
 
 		@Override
-		public String toString(BigInteger threshold, boolean json) {
-			if (json)
-				return new Gson().toJson(this);
+		public void println(PrintStream out, BigInteger threshold, boolean json) {
+			if (json) {
+				try {
+					out.println(new NodesSetFaucetOutputs.Encoder().encode(this));
+				}
+				catch (EncodeException e) {
+					// this should not happen, since the constructor of the JSON representation never throws exceptions
+					throw new RuntimeException("Cannot encode the output of the command in JSON format", e);
+				}
+			}
 			else
-				return "The threshold of the faucet has been set to " + threshold;
+				out.println("The threshold of the faucet has been set to " + threshold);
 		}
 	}
 }

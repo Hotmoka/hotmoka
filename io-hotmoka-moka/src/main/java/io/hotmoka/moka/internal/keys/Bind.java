@@ -23,8 +23,6 @@ import java.security.InvalidKeyException;
 import java.util.Arrays;
 import java.util.concurrent.TimeoutException;
 
-import com.google.gson.Gson;
-
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Entropies;
@@ -192,8 +190,7 @@ public class Bind extends AbstractMokaRpcCommand {
 		/**
 		 * Builds the output of the command.
 		 */
-		private Output() {
-		}
+		private Output() {}
 
 		/**
 		 * Builds the output of the command from its JSON representation.
@@ -201,17 +198,7 @@ public class Bind extends AbstractMokaRpcCommand {
 		 * @param json the JSON representation
 		 * @throws InconsistentJsonException if {@code json} is inconsistent
 		 */
-		public Output(KeysBindOutputJson json) throws InconsistentJsonException {
-		}
-
-		/**
-		 * Yields the output of this command from its JSON representation.
-		 * 
-		 * @param json the JSON representation
-		 */
-		public static Output of(String json) {
-			return new Gson().fromJson(json, Output.class);
-		}
+		public Output(KeysBindOutputJson json) throws InconsistentJsonException {}
 
 		@Override
 		public void println(PrintStream out, Path file, boolean json) {

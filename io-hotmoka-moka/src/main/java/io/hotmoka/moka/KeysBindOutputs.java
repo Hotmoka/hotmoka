@@ -23,7 +23,7 @@ import io.hotmoka.websockets.beans.MappedEncoder;
 import jakarta.websocket.DecodeException;
 
 /**
- * Providers of outputs for the {@code keys bind} command.
+ * Providers of outputs for the {@code moka keys bind} command.
  */
 public abstract class KeysBindOutputs {
 

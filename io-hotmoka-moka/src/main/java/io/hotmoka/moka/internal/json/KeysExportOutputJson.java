@@ -16,20 +16,29 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.json;
 
-import io.hotmoka.moka.api.keys.KeysBindOutput;
-import io.hotmoka.moka.internal.keys.Bind;
+import java.util.stream.Stream;
+
+import io.hotmoka.moka.api.keys.KeysExportOutput;
+import io.hotmoka.moka.internal.keys.Export;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**
- * The JSON representation of the output of the {@code moka keys bind} command.
+ * The JSON representation of the output of the {@code moka keys export} command.
  */
-public abstract class KeysBindOutputJson implements JsonRepresentation<KeysBindOutput> {
+public abstract class KeysExportOutputJson implements JsonRepresentation<KeysExportOutput> {
+	private final String[] bip39Words;
 
-	protected KeysBindOutputJson(KeysBindOutput output) {}
+	protected KeysExportOutputJson(KeysExportOutput output) {
+		this.bip39Words = output.getBip39Words().toArray(String[]::new);
+	}
+
+	public Stream<String> getBip39Words() {
+		return Stream.of(bip39Words);
+	}
 
 	@Override
-	public KeysBindOutput unmap() throws InconsistentJsonException {
-		return new Bind.Output(this);
+	public KeysExportOutput unmap() throws InconsistentJsonException {
+		return new Export.Output(this);
 	}
 }

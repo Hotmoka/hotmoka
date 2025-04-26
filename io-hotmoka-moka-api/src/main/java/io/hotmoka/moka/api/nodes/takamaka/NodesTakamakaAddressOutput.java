@@ -14,26 +14,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.nodes.takamaka;
+package io.hotmoka.moka.api.nodes.takamaka;
 
 import java.io.PrintStream;
 
-import io.hotmoka.moka.internal.nodes.takamaka.Address;
+import io.hotmoka.node.api.transactions.TransactionReference;
 
 /**
- * The output of the moka nodes takamaka address command.
+ * The output of the {@code moka nodes takamaka address} command.
  */
 public interface NodesTakamakaAddressOutput {
 
 	/**
-	 * Yields the output of the command from its JSON representation.
+	 * Yields the reference to the jar that contains the basic Takamaka classes.
 	 * 
-	 * @param json the JSON representation
-	 * @return the output of the command
+	 * @return the reference to the jar that contains the basic Takamaka classes
 	 */
-	static NodesTakamakaAddressOutput of(String json) {
-		return Address.Output.of(json);
-	}
+	TransactionReference getTakamakaCode();
 
 	/**
 	 * Prints this output as a string.

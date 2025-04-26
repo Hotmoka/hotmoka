@@ -25,7 +25,7 @@ import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**
- * The JSON representation of the output of the {@code keys create} command.
+ * The JSON representation of the output of the {@code moka keys create} command.
  */
 public abstract class KeysCreateOutputJson implements JsonRepresentation<KeysCreateOutput> {
 	private final String signature;

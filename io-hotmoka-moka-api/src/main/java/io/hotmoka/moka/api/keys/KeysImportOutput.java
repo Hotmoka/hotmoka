@@ -14,31 +14,31 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.api.nodes.config;
+package io.hotmoka.moka.api.keys;
 
 import java.io.PrintStream;
+import java.nio.file.Path;
 
-import io.hotmoka.annotations.Immutable;
-import io.hotmoka.node.api.nodes.ConsensusConfig;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
- * The output of the {@code moka nodes config show} command.
+ * The output of the {@code moka keys import} command.
  */
-@Immutable
-public interface NodesConfigShowOutput {
+public interface KeysImportOutput {
 
 	/**
-	 * Yields the node configuration in this output.
+	 * Yields the reference of the account that has been imported.
 	 * 
-	 * @return the node configuration in this output
+	 * @return the reference of the account that has been imported
 	 */
-	ConsensusConfig<?,?> getConfig();
+	StorageReference getReference();
 
 	/**
 	 * Prints this output as a string.
 	 * 
 	 * @param out the destination print stream
+	 * @param dir the directory where the key pair of the account has been written
 	 * @param json true if and only if the string must be in JSON format
 	 */
-	void println(PrintStream out, boolean json);
+	void println(PrintStream out, Path dir, boolean json);
 }

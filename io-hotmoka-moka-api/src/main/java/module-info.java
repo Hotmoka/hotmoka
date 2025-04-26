@@ -19,7 +19,9 @@ limitations under the License.
  */
 module io.hotmoka.moka.api {
 	exports io.hotmoka.moka.api.keys;
+	exports io.hotmoka.moka.api.nodes;
 	exports io.hotmoka.moka.api.nodes.config;
+	exports io.hotmoka.moka.api.nodes.takamaka;
 
 	requires transitive io.hotmoka.node.api;
 	requires io.hotmoka.annotations;

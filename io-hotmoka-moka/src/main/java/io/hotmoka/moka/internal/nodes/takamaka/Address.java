@@ -19,14 +19,17 @@ package io.hotmoka.moka.internal.nodes.takamaka;
 import java.io.PrintStream;
 import java.util.concurrent.TimeoutException;
 
-import com.google.gson.Gson;
-
 import io.hotmoka.cli.CommandException;
+import io.hotmoka.exceptions.Objects;
+import io.hotmoka.moka.NodesTakamakaAddressOutputs;
+import io.hotmoka.moka.api.nodes.takamaka.NodesTakamakaAddressOutput;
 import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
-import io.hotmoka.moka.nodes.takamaka.NodesTakamakaAddressOutput;
+import io.hotmoka.moka.internal.json.NodesTakamakaAddressOutputJson;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.remote.api.RemoteNode;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
+import jakarta.websocket.EncodeException;
 import picocli.CommandLine.Command;
 
 @Command(name = "address", description = "Show the transaction that installed the Takamaka runtime in a node.")
@@ -46,27 +49,40 @@ public class Address extends AbstractMokaRpcCommand {
 	 * The output of this command.
 	 */
 	public static class Output implements NodesTakamakaAddressOutput {
-		private final String reference;
+		private final TransactionReference takamakaCode;
 
-		private Output(TransactionReference reference) {
-			this.reference = reference.toString();
+		private Output(TransactionReference takamakaCode) {
+			this.takamakaCode = takamakaCode;
 		}
 
 		/**
-		 * Yields the output of this command from its JSON representation.
+		 * Builds the output of the command from its JSON representation.
 		 * 
 		 * @param json the JSON representation
+		 * @throws InconsistentJsonException if {@code json} is inconsistent
 		 */
-		public static Output of(String json) {
-			return new Gson().fromJson(json, Output.class);
+		public Output(NodesTakamakaAddressOutputJson json) throws InconsistentJsonException {
+			this.takamakaCode = Objects.requireNonNull(json.getTakamakaCode(), "takamakaCode cannot be null", InconsistentJsonException::new).unmap();
+		}
+
+		@Override
+		public TransactionReference getTakamakaCode() {
+			return takamakaCode;
 		}
 
 		@Override
 		public void println(PrintStream out, boolean json) {
-			if (json)
-				out.println(new Gson().toJson(this));
+			if (json) {
+				try {
+					out.println(new NodesTakamakaAddressOutputs.Encoder().encode(this));
+				}
+				catch (EncodeException e) {
+					// this should not happen, since the constructor of the JSON representation never throws exceptions
+					throw new RuntimeException("Cannot encode the output of the command in JSON format", e);
+				}
+			}
 			else
-				out.println(reference);
+				out.println(takamakaCode);
 		}
 	}
 }

@@ -34,10 +34,10 @@ import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.moka.KeysCreateOutputs;
+import io.hotmoka.moka.KeysExportOutputs;
+import io.hotmoka.moka.KeysImportOutputs;
 import io.hotmoka.moka.KeysShowOutputs;
 import io.hotmoka.moka.MokaNew;
-import io.hotmoka.moka.keys.KeysExportOutput;
-import io.hotmoka.moka.keys.KeysImportOutput;
 import io.hotmoka.node.StorageValues;
 
 /**
@@ -114,13 +114,13 @@ public class KeysTests extends AbstractMokaTest {
 		// we name the key pair file as a storage reference, so that it is already the key pair file of an account
 		MokaNew.keysCreate("--dir=" + dir + " --name=" + expectedReference + ".pem --signature=" + signature + " --password=" + password);
 		var expectedEntropy = Entropies.load(dir.resolve(expectedReference + ".pem"));
-		var keysExportOutput = KeysExportOutput.of(MokaNew.keysExport(expectedReference + " --dir=" + dir + " --json"));
+		var keysExportOutput = KeysExportOutputs.of(MokaNew.keysExport(expectedReference + " --dir=" + dir + " --json"));
 		String spaceSeparatedWords = keysExportOutput.getBip39Words().collect(Collectors.joining(" "));
 		// we re-import the key file into a difference directory, so that it does not override the original file
 		Path copy = dir.resolve("copy");
 		Files.createDirectories(copy);
-		var keysImportOutput = KeysImportOutput.of(MokaNew.keysImport(spaceSeparatedWords + " --dir=" + copy + " --json"));
-		var actualReference = StorageValues.reference(keysImportOutput.getReference());
+		var keysImportOutput = KeysImportOutputs.of(MokaNew.keysImport(spaceSeparatedWords + " --dir=" + copy + " --json"));
+		var actualReference = keysImportOutput.getReference();
 		var actualEntropy = Entropies.load(copy.resolve(actualReference + ".pem"));
 
 		// both the accounts references and their entropies must match

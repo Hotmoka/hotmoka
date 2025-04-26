@@ -14,41 +14,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.keys;
+package io.hotmoka.moka.api.nodes;
 
 import java.io.PrintStream;
-import java.nio.file.Path;
-
-import io.hotmoka.moka.internal.keys.Import;
+import java.math.BigInteger;
 
 /**
- * The output of the moka {@code keys import} command.
+ * The output of the {@code moka nodes set-faucet} command.
  */
-public interface KeysImportOutput {
-
-	/**
-	 * Yields the output of the command from its JSON representation.
-	 * 
-	 * @param json the JSON representation
-	 * @return the output of the command
-	 */
-	static KeysImportOutput of(String json) {
-		return Import.Output.of(json);
-	}
-
-	/**
-	 * Yields the reference of the account that has been imported.
-	 * 
-	 * @return the reference of the account that has been imported
-	 */
-	String getReference();
+public interface NodesSetFaucetOutput {
 
 	/**
 	 * Prints this output as a string.
 	 * 
 	 * @param out the destination print stream
-	 * @param dir the directory where the key pair of the account has been written
+	 * @param threshold the value of the threshold set for the faucet
 	 * @param json true if and only if the string must be in JSON format
 	 */
-	void println(PrintStream out, Path dir, boolean json);
+	void println(PrintStream out, BigInteger threshold, boolean json);
 }

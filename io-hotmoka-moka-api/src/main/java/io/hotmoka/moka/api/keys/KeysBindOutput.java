@@ -20,7 +20,7 @@ import java.io.PrintStream;
 import java.nio.file.Path;
 
 /**
- * The output of the moka keys bind command.
+ * The output of the {@code moka keys bind} command.
  */
 public interface KeysBindOutput {
 

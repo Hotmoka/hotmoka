@@ -22,15 +22,19 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.gson.Gson;
-
 import io.hotmoka.cli.AbstractCommand;
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.BIP39Dictionaries;
 import io.hotmoka.crypto.BIP39Mnemonics;
-import io.hotmoka.moka.keys.KeysImportOutput;
+import io.hotmoka.exceptions.Objects;
+import io.hotmoka.moka.KeysImportOutputs;
+import io.hotmoka.moka.api.keys.KeysImportOutput;
+import io.hotmoka.moka.internal.json.KeysImportOutputJson;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
+import jakarta.websocket.EncodeException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -75,30 +79,42 @@ public class Import extends AbstractCommand {
 	 * The output of this command.
 	 */
 	public static class Output implements KeysImportOutput {
-		private final String reference;
+		private final StorageReference reference;
 
 		private Output(StorageReference reference) {
-			this.reference = reference.toString();
+			this.reference = reference;
 		}
 
 		/**
-		 * Yields the output of this command from its JSON representation.
+		 * Builds the output of the command from its JSON representation.
 		 * 
 		 * @param json the JSON representation
+		 * @throws InconsistentJsonException if {@code json} is inconsistent
 		 */
-		public static Output of(String json) {
-			return new Gson().fromJson(json, Output.class);
+		public Output(KeysImportOutputJson json) throws InconsistentJsonException {
+			StorageValue value = Objects.requireNonNull(json.getReference(), "reference cannot be null", InconsistentJsonException::new).unmap();
+			if (value instanceof StorageReference sr)
+				this.reference = sr;
+			else
+				throw new InconsistentJsonException("The reference of the imported account must be a storage reference, not a " + value.getClass().getName());
 		}
 
 		@Override
-		public String getReference() {
+		public StorageReference getReference() {
 			return reference;
 		}
 
 		@Override
 		public void println(PrintStream out, Path dir, boolean json) {
-			if (json)
-				out.println(new Gson().toJson(this));
+			if (json) {
+				try {
+					out.println(new KeysImportOutputs.Encoder().encode(this));
+				}
+				catch (EncodeException e) {
+					// this should not happen, since the constructor of the JSON representation never throws exceptions
+					throw new RuntimeException("Cannot encode the output of the command in JSON format", e);
+				}
+			}
 			else
 				out.println("The key pair of the account has been imported into the file \"" + dir.resolve(reference + ".pem") + "\".");
 		}
