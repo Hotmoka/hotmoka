@@ -46,7 +46,7 @@ public class NodesTests extends AbstractMokaTestWithNode {
 
 		// we add 10000 to the threshold
 		BigInteger expected = currentMaxFaucet.add(BigInteger.valueOf(10_000L));
-		MokaNew.run("nodes set-faucet " + expected + " --dir=" + dir + " --password=" + passwordOfGamete);
+		MokaNew.nodesSetFaucet(expected + " --dir=" + dir + " --password=" + passwordOfGamete);
 
 		// we read the current threshold again: it should have been increased by 10000
 		BigInteger actual = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall

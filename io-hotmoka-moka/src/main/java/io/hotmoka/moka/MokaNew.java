@@ -63,6 +63,94 @@ public class MokaNew extends AbstractCLI {
 	}
 
 	/**
+	 * Runs the {@code accounts show} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String accountsShow(String args) throws IOException {
+		return run("accounts show " + args);
+	}
+
+	/**
+	 * Runs the {@code keys create} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String keysCreate(String args) throws IOException {
+		return run("keys create " + args);
+	}
+
+	/**
+	 * Runs the {@code keys show} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String keysShow(String args) throws IOException {
+		return run("keys show " + args);
+	}
+
+	/**
+	 * Runs the {@code keys export} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String keysExport(String args) throws IOException {
+		return run("keys export " + args);
+	}
+
+	/**
+	 * Runs the {@code keys import} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String keysImport(String args) throws IOException {
+		return run("keys import " + args);
+	}
+
+	/**
+	 * Runs the {@code jars verify} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String jarsVerify(String args) throws IOException {
+		return run("jars verify " + args);
+	}
+
+	/**
+	 * Runs the {@code jars instrument} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String jarsInstrument(String args) throws IOException {
+		return run("jars instrument " + args);
+	}
+
+	/**
+	 * Runs the {@code nodes set-faucet} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String nodesSetFaucet(String args) throws IOException {
+		return run("nodes set-faucet " + args);
+	}
+
+	/**
 	 * Runs the given command-line with the moka tool, inside a sand-box where the
 	 * standard output is redirected into the resulting string. It performs as calling "moka command".
 	 * 
@@ -70,9 +158,9 @@ public class MokaNew extends AbstractCLI {
 	 * @return what the moka tool has written into the standard output
 	 * @throws IOException if the construction of the return value failed
 	 */
-	public static String run(String command) throws IOException {
+	private static String run(String command) throws IOException {
 		var originalOut = System.out;
-
+	
 		try (var baos = new ByteArrayOutputStream(); var out = new PrintStream(baos)) {
 			System.setOut(out);
 			main(MokaNew::new, command.split(" "));

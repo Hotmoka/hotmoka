@@ -46,9 +46,25 @@ public abstract class NodesConfigShowOutputs {
 	 * 
 	 * @param json the JSON representation of the output
 	 * @return the output of the command
+	 * @throws DecodeException if {@code json} cannot be decoded into the output
 	 */
 	public static NodesConfigShowOutput of(String json) throws DecodeException {
 		return new Decoder().decode(json);
+	}
+
+	/**
+	 * JSON representation.
+	 */
+	public static class Json extends NodesConfigShowOutputJson {
+	
+		/**
+		 * Creates the JSON representation for the given output.
+		 * 
+		 * @param output the output
+		 */
+		public Json(NodesConfigShowOutput output) {
+			super(output);
+		}
 	}
 
 	/**
@@ -56,6 +72,9 @@ public abstract class NodesConfigShowOutputs {
 	 */
 	public static class Encoder extends MappedEncoder<NodesConfigShowOutput, Json> {
 
+		/**
+		 * Creates a new encoder.
+		 */
 		public Encoder() {
 			super(Json::new);
 		}
@@ -73,19 +92,4 @@ public abstract class NodesConfigShowOutputs {
 			super(Json.class);
 		}
 	}
-
-    /**
-     * JSON representation.
-     */
-    public static class Json extends NodesConfigShowOutputJson {
-
-    	/**
-    	 * Creates the JSON representation for the given output.
-    	 * 
-    	 * @param output the output
-    	 */
-    	public Json(NodesConfigShowOutput output) {
-    		super(output);
-    	}
-    }
 }
