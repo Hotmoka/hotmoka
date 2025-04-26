@@ -38,7 +38,8 @@ public interface NodesDiskInitOutput {
 	 * Prints this output as a string.
 	 * 
 	 * @param out the destination print stream
+	 * @param port the TCP port where the service to the node has been published
 	 * @param json true if and only if the string must be in JSON format
 	 */
-	void println(PrintStream out, boolean json);
+	void println(PrintStream out, int port, boolean json);
 }

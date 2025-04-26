@@ -30,7 +30,7 @@ module io.hotmoka.moka {
     opens io.hotmoka.moka.internal.nodes to info.picocli;
     opens io.hotmoka.moka.internal.json to com.google.gson;
     opens io.hotmoka.moka.internal.nodes.config to info.picocli;
-    opens io.hotmoka.moka.internal.nodes.disk to info.picocli, com.google.gson;
+    opens io.hotmoka.moka.internal.nodes.disk to info.picocli;
     opens io.hotmoka.moka.internal.nodes.manifest to info.picocli;
     opens io.hotmoka.moka.internal.nodes.takamaka to info.picocli;
 

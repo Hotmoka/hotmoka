@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.moka.internal.nodes.disk;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.math.BigInteger;
 import java.nio.file.Path;
 import java.security.InvalidKeyException;
@@ -24,15 +25,17 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.concurrent.TimeoutException;
 
-import com.google.gson.Gson;
-
 import io.hotmoka.cli.AbstractCommand;
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Base58ConversionException;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.helpers.InitializedNodes;
+import io.hotmoka.moka.NodesDiskInitOutputs;
+import io.hotmoka.moka.api.nodes.disk.NodesDiskInitOutput;
 import io.hotmoka.moka.internal.converters.SignatureOptionConverter;
+import io.hotmoka.moka.internal.json.NodesDiskInitOutputJson;
 import io.hotmoka.node.ConsensusConfigBuilders;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
@@ -40,9 +43,12 @@ import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.disk.DiskNodeConfigBuilders;
 import io.hotmoka.node.disk.DiskNodes;
 import io.hotmoka.node.service.NodeServices;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
+import jakarta.websocket.EncodeException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -86,7 +92,7 @@ public class Init extends AbstractCommand {
 	@Option(names = "--max-gas-per-view", description = "the maximal gas limit accepted for calls to @View methods", defaultValue = "1000000") 
 	private BigInteger maxGasPerView;
 
-	@Option(names = "--yes", description = "assume yes when asked for confirmation")
+	@Option(names = "--yes", description = "assume yes when asked for confirmation; this is implied if --json is used")
 	private boolean yes;
 
 	@Option(names = "--port", description = "the network port where the service must be published", defaultValue="8001")
@@ -100,6 +106,9 @@ public class Init extends AbstractCommand {
 
 	@Override
 	protected void execute() throws CommandException {
+		if (json)
+			yes = true;
+
 		askForConfirmation();
 
 		var nodeConfig = DiskNodeConfigBuilders.defaults()
@@ -143,19 +152,7 @@ public class Init extends AbstractCommand {
 			var initialized = InitializedNodes.of(node, consensus, takamakaCode);
 			var service = NodeServices.of(node, port)) {
 
-			StorageReference gamete = initialized.gamete();
-
-			if (json)
-				System.out.println(new Gson().toJson(new Result(gamete)));
-			else {
-				System.out.println("The node has been published at ws://localhost:" + port + "\n");
-				System.out.println("The owner of the key of the gamete can bind it to its address now with:");
-				System.out.println("  moka keys bind file_containing_the_key_pair_of_the_gamete --password --url url_of_this_node");
-				System.out.println("or with");
-				System.out.println("  moka keys bind file_containing_the_key_pair_of_the_gamete --password --reference " + gamete);
-				System.out.println("\nPress the enter key to stop the process and close the node");
-			}
-
+			new Output(initialized.gamete()).println(System.out, port, json);
 			waitForEnterKey();
 		}
 		catch (IOException e) {
@@ -181,13 +178,54 @@ public class Init extends AbstractCommand {
 			throw new CommandException("Stopped");
 	}
 
-	private static class Result {
+	/**
+	 * The output of this command.
+	 */
+	public static class Output implements NodesDiskInitOutput {
+		private final StorageReference gamete;
 
-		@SuppressWarnings("unused")
-		private final String gamete;
+		private Output(StorageReference gamete) {
+			this.gamete = gamete;
+		}
 
-		private Result(StorageReference gamete) {
-			this.gamete = gamete.toString();
+		/**
+		 * Builds the output of the command from its JSON representation.
+		 * 
+		 * @param json the JSON representation
+		 * @throws InconsistentJsonException if {@code json} is inconsistent
+		 */
+		public Output(NodesDiskInitOutputJson json) throws InconsistentJsonException {
+			StorageValue gamete = Objects.requireNonNull(json.getManifest(), "gamete cannot be null", InconsistentJsonException::new).unmap();
+			if (gamete instanceof StorageReference sr)
+				this.gamete = sr;
+			else
+				throw new InconsistentJsonException("The reference to the gamete must be a storage reference, not a " + gamete.getClass().getName());
+		}
+
+		@Override
+		public StorageReference getGamete() {
+			return gamete;
+		}
+
+		@Override
+		public void println(PrintStream out, int port, boolean json) {
+			if (json) {
+				try {
+					out.println(new NodesDiskInitOutputs.Encoder().encode(this));
+				}
+				catch (EncodeException e) {
+					// this should not happen, since the constructor of the JSON representation never throws exceptions
+					throw new RuntimeException("Cannot encode the output of the command in JSON format", e);
+				}
+			}
+			else {
+				System.out.println("The node has been published at ws://localhost:" + port + "\n");
+				System.out.println("The owner of the key of the gamete can bind it to its address now with:");
+				System.out.println("  moka keys bind file_containing_the_key_pair_of_the_gamete --password --url url_of_this_node");
+				System.out.println("or with");
+				System.out.println("  moka keys bind file_containing_the_key_pair_of_the_gamete --password --reference " + gamete);
+				System.out.println("\nPress the enter key to stop the process and close the node");
+			}
 		}
 	}
 }
