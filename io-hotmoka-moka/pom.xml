@@ -17,6 +17,11 @@
   <dependencies>
     <dependency>
       <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-moka-api</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-instrumentation</artifactId>
       <version>${hotmoka.version}</version>
     </dependency>
@@ -40,6 +45,11 @@
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-node-mokamint</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-node-api</artifactId>
       <version>${hotmoka.version}</version>
     </dependency>
     <dependency>

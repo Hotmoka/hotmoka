@@ -1,5 +1,5 @@
 /*
-Copyright 2023 Fausto Spoto
+Copyright 2025 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,15 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.internal.gson;
+/**
+ * This module defines the API of the command-line tool for running basic commands against a Hotmoka node.
+ */
+module io.hotmoka.moka.api {
+	exports io.hotmoka.moka.api.nodes.config;
 
-import io.hotmoka.node.ConsensusConfigBuilders;
-import io.hotmoka.node.api.nodes.ConsensusConfig;
-import io.hotmoka.websockets.beans.MappedEncoder;
-
-public class ConsensusConfigEncoder extends MappedEncoder<ConsensusConfig<?,?>, ConsensusConfigBuilders.Json> {
-
-	public ConsensusConfigEncoder() {
-		super(ConsensusConfigBuilders.Json::new);
-	}
+	requires transitive io.hotmoka.node.api;
+	requires io.hotmoka.annotations;
 }

@@ -29,11 +29,13 @@ module io.hotmoka.moka {
     opens io.hotmoka.moka.internal.jars to info.picocli, com.google.gson;
     opens io.hotmoka.moka.internal.keys to info.picocli, com.google.gson;
     opens io.hotmoka.moka.internal.nodes to info.picocli;
+    opens io.hotmoka.moka.internal.json to com.google.gson;
     opens io.hotmoka.moka.internal.nodes.config to info.picocli;
     opens io.hotmoka.moka.internal.nodes.disk to info.picocli, com.google.gson;
     opens io.hotmoka.moka.internal.nodes.manifest to info.picocli, com.google.gson;
     opens io.hotmoka.moka.internal.nodes.takamaka to info.picocli, com.google.gson;
 
+    requires transitive io.hotmoka.moka.api;
     requires io.hotmoka.helpers;
     requires io.hotmoka.node.tendermint;
     requires io.hotmoka.node.mokamint;
@@ -41,6 +43,7 @@ module io.hotmoka.moka {
 	requires io.hotmoka.node.local;
 	requires io.hotmoka.node.service;
 	requires io.hotmoka.node.remote;
+	requires io.hotmoka.node.api;
 	requires io.hotmoka.instrumentation;
 	requires io.hotmoka.whitelisting.api;
 	requires io.hotmoka.cli;
@@ -54,8 +57,8 @@ module io.hotmoka.moka {
 	requires io.mokamint.node.service;
 	requires jakarta.websocket.client;
 	requires io.hotmoka.websockets.client.api;
+	requires io.hotmoka.websockets.beans;
 	requires info.picocli;
 	requires com.google.gson;
 	requires java.logging;
-	requires transitive io.hotmoka.node.api;
 }
