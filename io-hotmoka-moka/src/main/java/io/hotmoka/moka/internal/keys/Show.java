@@ -23,10 +23,8 @@ import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
-
-import com.google.gson.Gson;
 
 import io.hotmoka.cli.AbstractCommand;
 import io.hotmoka.cli.CommandException;
@@ -36,9 +34,16 @@ import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.HexConversionException;
+import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.Objects;
+import io.hotmoka.moka.KeysShowOutputs;
+import io.hotmoka.moka.api.keys.KeysShowOutput;
 import io.hotmoka.moka.internal.converters.SignatureOptionConverter;
-import io.hotmoka.moka.keys.KeysShowOutput;
+import io.hotmoka.moka.internal.json.KeysShowOutputJson;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
+import jakarta.websocket.EncodeException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -77,6 +82,10 @@ public class Show extends AbstractCommand {
 			catch (NoSuchAlgorithmException e) {
 				throw new CommandException("The sha256 hashing algorithm is not available in this machine!");
 			}
+			catch (InvalidKeyException e) {
+				// this should be impossible, since we have created the keys with the same signature algorithm
+				throw new RuntimeException(e);
+			}
 		}
 		catch (IOException e) {
 			throw new CommandException("Cannot access file \"" + key + "\"", e);
@@ -91,7 +100,7 @@ public class Show extends AbstractCommand {
 	 * The output of this command.
 	 */
 	public static class Output implements KeysShowOutput {
-		private final String signature;
+		private final SignatureAlgorithm signature;
 		private final String publicKeyBase58;
 		private final String publicKeyBase64;
 		private final String tendermintAddress;
@@ -100,64 +109,58 @@ public class Show extends AbstractCommand {
 		private final String concatenatedBase64;
 
 		/**
-		 * Yields the output of this command from its JSON representation.
+		 * Builds the output of the command from its JSON representation.
 		 * 
 		 * @param json the JSON representation
+		 * @throws InconsistentJsonException if {@code json} is inconsistent
+		 * @throws NoSuchAlgorithmException if {@code json} refers to a non-available cryptographic algorithm
 		 */
-		public static Output of(String json) {
-			return new Gson().fromJson(json, Output.class);
+		public Output(KeysShowOutputJson json) throws InconsistentJsonException, NoSuchAlgorithmException {
+			ExceptionSupplier<InconsistentJsonException> exp = InconsistentJsonException::new;
+			this.signature = SignatureAlgorithms.of(Objects.requireNonNull(json.getSignature(), "signature cannot be null", exp));
+			this.publicKeyBase58 = Base58.requireBase58(Objects.requireNonNull(json.getPublicKeyBase58(), "publicKeyBase58 cannot be null", exp), exp);
+			this.publicKeyBase64 = Base64.requireBase64(Objects.requireNonNull(json.getPublicKeyBase64(), "publicKeyBase64 cannot be null", exp), exp);
+			this.tendermintAddress = Objects.requireNonNull(json.getTendermintAddress(), "tendermintAddress cannot be null", exp);
+			if ((this.privateKeyBase58 = json.getPrivateKeyBase58().orElse(null)) != null)
+				Base58.requireBase58(privateKeyBase58, exp);
+			if ((this.privateKeyBase64 = json.getPrivateKeyBase64().orElse(null)) != null)
+				Base64.requireBase64(privateKeyBase64, exp);
+			this.concatenatedBase64 = json.getConcatenatedBase64().orElse(null);
 		}
 
-		public Output(SignatureAlgorithm signature, KeyPair keys, boolean alsoPrivate) throws NoSuchAlgorithmException {
-			this.signature = signature.getName();
+		private Output(SignatureAlgorithm signature, KeyPair keys, boolean alsoPrivate) throws NoSuchAlgorithmException, InvalidKeyException {
+			this.signature = signature;
+			byte[] publicKeyBytes = signature.encodingOf(keys.getPublic());
+			this.publicKeyBase58 = Base58.toBase58String(publicKeyBytes);
+			this.publicKeyBase64 = Base64.toBase64String(publicKeyBytes);
 
+			byte[] sha256HashedKey = HashingAlgorithms.sha256().getHasher(Function.identity()).hash(publicKeyBytes);
 			try {
-				byte[] publicKeyBytes = signature.encodingOf(keys.getPublic());
-				byte[] privateKey = signature.encodingOf(keys.getPrivate());
-				var concatenated = new byte[privateKey.length + publicKeyBytes.length];
-				System.arraycopy(privateKey, 0, concatenated, 0, privateKey.length);
-				System.arraycopy(publicKeyBytes, 0, concatenated, privateKey.length, publicKeyBytes.length);
-				byte[] sha256HashedKey = HashingAlgorithms.sha256().getHasher(Function.identity()).hash(publicKeyBytes);
-				this.publicKeyBase58 = Base58.toBase58String(publicKeyBytes);
-				this.publicKeyBase64 = Base64.toBase64String(publicKeyBytes);
-
-				if (alsoPrivate) {
-					this.privateKeyBase58 = Base58.toBase58String(privateKey);
-					this.privateKeyBase64 = Base64.toBase64String(privateKey);
-					this.concatenatedBase64 = Base64.toBase64String(concatenated);
-				}
-				else {
-					this.privateKeyBase58 = null;
-					this.privateKeyBase64 = null;
-					this.concatenatedBase64 = null;
-				}
-
 				this.tendermintAddress = Hex.toHexString(sha256HashedKey, 0, 20).toUpperCase();
 			}
-			catch (InvalidKeyException | HexConversionException e) {
-				// this should not happen since we created the keys from the signature algorithm
-				throw new RuntimeException("The new key pair is invalid!", e);
+			catch (HexConversionException e) {
+				// this should not happen since the output of the sha256 algorithm can be converted into a hex string
+				throw new RuntimeException("The otuput of the sha256 algorithm is invalid!", e);
+			}
+
+			if (alsoPrivate) {
+				byte[] privateKeyBytes = signature.encodingOf(keys.getPrivate());
+				var concatenated = new byte[privateKeyBytes.length + publicKeyBytes.length];
+				System.arraycopy(privateKeyBytes, 0, concatenated, 0, privateKeyBytes.length);
+				System.arraycopy(publicKeyBytes, 0, concatenated, privateKeyBytes.length, publicKeyBytes.length);
+				this.privateKeyBase58 = Base58.toBase58String(privateKeyBytes);
+				this.privateKeyBase64 = Base64.toBase64String(privateKeyBytes);
+				this.concatenatedBase64 = Base64.toBase64String(concatenated);
+			}
+			else {
+				this.privateKeyBase58 = null;
+				this.privateKeyBase64 = null;
+				this.concatenatedBase64 = null;
 			}
 		}
 
 		@Override
-		public boolean equals(Object other) {
-			return other instanceof KeysShowOutput kso
-					&& kso.getSignature().equals(signature)
-					&& kso.getPublicKeyBase58().equals(publicKeyBase58)
-					&& kso.getPublicKeyBase64().equals(publicKeyBase64)
-					&& Objects.equals(kso.getPrivateKeyBase58(), privateKeyBase58)
-					&& Objects.equals(kso.getPrivateKeyBase64(), privateKeyBase64)
-					&& Objects.equals(kso.getConcatenatedBase64(), concatenatedBase64);
-		}
-
-		@Override
-		public int hashCode() {
-			return signature.hashCode() ^ publicKeyBase58.hashCode() ^ privateKeyBase58.hashCode();
-		}
-
-		@Override
-		public String getSignature() {
+		public SignatureAlgorithm getSignature() {
 			return signature;
 		}
 
@@ -177,24 +180,31 @@ public class Show extends AbstractCommand {
 		}
 
 		@Override
-		public String getPrivateKeyBase58() {
-			return privateKeyBase58;
+		public Optional<String> getPrivateKeyBase58() {
+			return Optional.ofNullable(privateKeyBase58);
 		}
 
 		@Override
-		public String getPrivateKeyBase64() {
-			return privateKeyBase64;
+		public Optional<String> getPrivateKeyBase64() {
+			return Optional.ofNullable(privateKeyBase64);
 		}
 
 		@Override
-		public String getConcatenatedBase64() {
-			return concatenatedBase64;
+		public Optional<String> getConcatenatedBase64() {
+			return Optional.ofNullable(concatenatedBase64);
 		}
 
 		@Override
 		public void println(PrintStream out, boolean json) {
-			if (json)
-				out.println(new Gson().toJson(this));
+			if (json) {
+				try {
+					out.println(new KeysShowOutputs.Encoder().encode(this));
+				}
+				catch (EncodeException e) {
+					// this should not happen, since the constructor of the JSON representation never throws exceptions
+					throw new RuntimeException("Cannot encode the output of the command in JSON format", e);
+				}
+			}
 			else {
 				if (publicKeyBase58.length() > MAX_PRINTED_KEY)
 					out.println("* public key: " + publicKeyBase58.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base58)");

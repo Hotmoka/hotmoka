@@ -16,18 +16,18 @@ limitations under the License.
 
 package io.hotmoka.moka;
 
-import io.hotmoka.moka.api.nodes.config.NodesConfigShowOutput;
-import io.hotmoka.moka.internal.json.NodesConfigShowOutputJson;
+import io.hotmoka.moka.api.keys.KeysCreateOutput;
+import io.hotmoka.moka.internal.json.KeysCreateOutputJson;
 import io.hotmoka.websockets.beans.MappedDecoder;
 import io.hotmoka.websockets.beans.MappedEncoder;
 import jakarta.websocket.DecodeException;
 
 /**
- * Providers of outputs for the {@code nodes config show} command.
+ * Providers of outputs for the {@code keys create} command.
  */
-public abstract class NodesConfigShowOutputs {
+public abstract class KeysCreateOutputs {
 
-	private NodesConfigShowOutputs() {}
+	private KeysCreateOutputs() {}
 
 	/**
 	 * Yields the output of the command from its JSON representation.
@@ -36,21 +36,21 @@ public abstract class NodesConfigShowOutputs {
 	 * @return the output of the command
 	 * @throws DecodeException if {@code json} cannot be decoded into the output
 	 */
-	public static NodesConfigShowOutput of(String json) throws DecodeException {
+	public static KeysCreateOutput of(String json) throws DecodeException {
 		return new Decoder().decode(json);
 	}
 
 	/**
 	 * JSON representation.
 	 */
-	public static class Json extends NodesConfigShowOutputJson {
+	public static class Json extends KeysCreateOutputJson {
 	
 		/**
 		 * Creates the JSON representation for the given output.
 		 * 
 		 * @param output the output
 		 */
-		public Json(NodesConfigShowOutput output) {
+		public Json(KeysCreateOutput output) {
 			super(output);
 		}
 	}
@@ -58,7 +58,7 @@ public abstract class NodesConfigShowOutputs {
 	/**
 	 * JSON encoder.
 	 */
-	public static class Encoder extends MappedEncoder<NodesConfigShowOutput, Json> {
+	public static class Encoder extends MappedEncoder<KeysCreateOutput, Json> {
 
 		/**
 		 * Creates a new encoder.
@@ -71,7 +71,7 @@ public abstract class NodesConfigShowOutputs {
 	/**
 	 * JSON decoder.
 	 */
-	public static class Decoder extends MappedDecoder<NodesConfigShowOutput, Json> {
+	public static class Decoder extends MappedDecoder<KeysCreateOutput, Json> {
 
 		/**
 		 * Creates a new decoder.

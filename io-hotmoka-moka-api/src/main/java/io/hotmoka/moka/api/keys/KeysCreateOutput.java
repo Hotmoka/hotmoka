@@ -14,19 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.keys;
+package io.hotmoka.moka.api.keys;
 
 import java.io.PrintStream;
 import java.nio.file.Path;
-import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
+import java.util.Optional;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.moka.internal.keys.Create;
 
 /**
- * The output of the moka keys create command.
+ * The output of the {@code moka keys create} command.
  */
 @Immutable
 public interface KeysCreateOutput {
@@ -37,41 +35,11 @@ public interface KeysCreateOutput {
 	final static int MAX_PRINTED_KEY = 200;
 
 	/**
-	 * Yields the output of the command from its JSON representation.
+	 * Yields the signature algorithm of the key pair.
 	 * 
-	 * @param json the JSON representation
-	 * @return the output of the command
+	 * @return the signature algorithm of the key pair
 	 */
-	static KeysCreateOutput of(String json) {
-		return Create.Output.of(json);
-	}
-
-	/**
-	 * Yields the output of a command that created the given key pair
-	 * with the given signature algorithm.
-	 * 
-	 * @param signature the signature algorithm
-	 * @param keys the key pair
-	 * @param alsoPrivate true if and only if also the private key must be reported in the output
-	 * @return the resulting output
-	 * @throws NoSuchAlgorithmException if the sha256 hashing algorithm is not available
-	 */
-	static KeysCreateOutput of(SignatureAlgorithm signature, KeyPair keys, boolean alsoPrivate) throws NoSuchAlgorithmException {
-		return new Create.Output(signature, keys, alsoPrivate);
-	}
-
-	@Override
-	boolean equals(Object other);
-
-	@Override
-	int hashCode();
-
-	/**
-	 * Yields the name of the signature algorithm of the key pair.
-	 * 
-	 * @return the name of the signature algorithm of the key pair
-	 */
-	String getSignature();
+	SignatureAlgorithm getSignature();
 
 	/**
 	 * The base58-encoded public key.
@@ -97,23 +65,23 @@ public interface KeysCreateOutput {
 	/**
 	 * The base58-encoded private key.
 	 * 
-	 * @return the base58-encoded private key
+	 * @return the base58-encoded private key, if this output reports it
 	 */
-	String getPrivateKeyBase58();
+	Optional<String> getPrivateKeyBase58();
 
 	/**
 	 * The base64-encoded private key.
 	 * 
-	 * @return the base64-encoded private key
+	 * @return the base64-encoded private key, if this output reports it
 	 */
-	String getPrivateKeyBase64();
+	Optional<String> getPrivateKeyBase64();
 
 	/**
 	 * The base64-encoded concatenated private and public key.
 	 * 
-	 * @return the base64-encoded concatenated private and public key
+	 * @return the base64-encoded concatenated private and public key, if this output reports it
 	 */
-	String getConcatenatedBase64();
+	Optional<String> getConcatenatedBase64();
 
 	/**
 	 * Prints this output as a string.

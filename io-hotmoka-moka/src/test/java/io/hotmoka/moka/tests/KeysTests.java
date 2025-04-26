@@ -20,19 +20,24 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import io.hotmoka.crypto.Base58;
+import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Entropies;
+import io.hotmoka.crypto.HashingAlgorithms;
+import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.SignatureAlgorithms;
+import io.hotmoka.moka.KeysCreateOutputs;
+import io.hotmoka.moka.KeysShowOutputs;
 import io.hotmoka.moka.MokaNew;
-import io.hotmoka.moka.keys.KeysCreateOutput;
 import io.hotmoka.moka.keys.KeysExportOutput;
 import io.hotmoka.moka.keys.KeysImportOutput;
-import io.hotmoka.moka.keys.KeysShowOutput;
 import io.hotmoka.node.StorageValues;
 
 /**
@@ -46,11 +51,27 @@ public class KeysTests extends AbstractMokaTest {
 		var signature = SignatureAlgorithms.sha256dsa();
 		var password = "mypassword";
 		var name = "mykey.pem";
-		var actual = KeysCreateOutput.of(MokaNew.keysCreate("--dir=" + dir + " --name=" + name + " --signature=" + signature + " --password=" + password + " --show-private --json"));
+		var actual = KeysCreateOutputs.of(MokaNew.keysCreate("--dir=" + dir + " --name=" + name + " --signature=" + signature + " --password=" + password + " --show-private --json"));
 		var entropy = Entropies.load(dir.resolve(name));
 		var keys = entropy.keys(password, signature);
-		var expected = KeysCreateOutput.of(signature, keys, true);
-		assertEquals(expected, actual);
+		byte[] publicKeyBytes = signature.encodingOf(keys.getPublic());
+		byte[] privateKeyBytes = signature.encodingOf(keys.getPrivate());
+		var concatenated = new byte[privateKeyBytes.length + publicKeyBytes.length];
+		System.arraycopy(privateKeyBytes, 0, concatenated, 0, privateKeyBytes.length);
+		System.arraycopy(publicKeyBytes, 0, concatenated, privateKeyBytes.length, publicKeyBytes.length);
+		String expectedConcatenatedBase64 = Base64.toBase64String(concatenated);
+		String expectedPublicKeyBase58 = Base58.toBase58String(publicKeyBytes);
+		String expectedPublicKeyBase64 = Base64.toBase64String(publicKeyBytes);
+		byte[] sha256HashedKey = HashingAlgorithms.sha256().getHasher(Function.identity()).hash(publicKeyBytes);
+		String expectedTendermintAddress = Hex.toHexString(sha256HashedKey, 0, 20).toUpperCase();
+		String expectedPrivateKeyBase58 = Base58.toBase58String(privateKeyBytes);
+		String expectedPrivateKeyBase64 = Base64.toBase64String(privateKeyBytes);
+		assertEquals(expectedConcatenatedBase64, actual.getConcatenatedBase64().get());
+		assertEquals(expectedPublicKeyBase58, actual.getPublicKeyBase58());
+		assertEquals(expectedPublicKeyBase64, actual.getPublicKeyBase64());
+		assertEquals(expectedTendermintAddress, actual.getTendermintAddress());
+		assertEquals(expectedPrivateKeyBase58, actual.getPrivateKeyBase58().get());
+		assertEquals(expectedPrivateKeyBase64, actual.getPrivateKeyBase64().get());
 	}
 
 	@Test
@@ -61,11 +82,27 @@ public class KeysTests extends AbstractMokaTest {
 		var name = "mykey.pem";
 		MokaNew.keysCreate("--dir=" + dir + " --name=" + name + " --signature=" + signature + " --password=" + password);
 		Path key = dir.resolve(name);
+		var actual = KeysShowOutputs.of(MokaNew.keysShow(key + " --signature=" + signature + " --password=" + password + " --show-private --json"));
 		var entropy = Entropies.load(key);
 		var keys = entropy.keys(password, signature);
-		var expected = KeysShowOutput.of(signature, keys, true);
-		var actual = KeysShowOutput.of(MokaNew.keysShow(key + " --signature=" + signature + " --password=" + password + " --show-private --json"));
-		assertEquals(expected, actual);
+		byte[] publicKeyBytes = signature.encodingOf(keys.getPublic());
+		byte[] privateKeyBytes = signature.encodingOf(keys.getPrivate());
+		var concatenated = new byte[privateKeyBytes.length + publicKeyBytes.length];
+		System.arraycopy(privateKeyBytes, 0, concatenated, 0, privateKeyBytes.length);
+		System.arraycopy(publicKeyBytes, 0, concatenated, privateKeyBytes.length, publicKeyBytes.length);
+		String expectedConcatenatedBase64 = Base64.toBase64String(concatenated);
+		String expectedPublicKeyBase58 = Base58.toBase58String(publicKeyBytes);
+		String expectedPublicKeyBase64 = Base64.toBase64String(publicKeyBytes);
+		byte[] sha256HashedKey = HashingAlgorithms.sha256().getHasher(Function.identity()).hash(publicKeyBytes);
+		String expectedTendermintAddress = Hex.toHexString(sha256HashedKey, 0, 20).toUpperCase();
+		String expectedPrivateKeyBase58 = Base58.toBase58String(privateKeyBytes);
+		String expectedPrivateKeyBase64 = Base64.toBase64String(privateKeyBytes);
+		assertEquals(expectedConcatenatedBase64, actual.getConcatenatedBase64().get());
+		assertEquals(expectedPublicKeyBase58, actual.getPublicKeyBase58());
+		assertEquals(expectedPublicKeyBase64, actual.getPublicKeyBase64());
+		assertEquals(expectedTendermintAddress, actual.getTendermintAddress());
+		assertEquals(expectedPrivateKeyBase58, actual.getPrivateKeyBase58().get());
+		assertEquals(expectedPrivateKeyBase64, actual.getPrivateKeyBase64().get());
 	}
 
 	@Test

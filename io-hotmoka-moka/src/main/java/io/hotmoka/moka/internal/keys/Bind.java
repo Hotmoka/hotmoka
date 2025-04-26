@@ -29,10 +29,12 @@ import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.moka.KeysBindOutputs;
+import io.hotmoka.moka.api.keys.KeysBindOutput;
 import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
 import io.hotmoka.moka.internal.converters.SignatureOptionConverter;
 import io.hotmoka.moka.internal.converters.StorageReferenceOfAccountOptionConverter;
-import io.hotmoka.moka.keys.KeysBindOutput;
+import io.hotmoka.moka.internal.json.KeysBindOutputJson;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
@@ -46,6 +48,8 @@ import io.hotmoka.node.api.values.NullValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.remote.api.RemoteNode;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
+import jakarta.websocket.EncodeException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -185,7 +189,20 @@ public class Bind extends AbstractMokaRpcCommand {
 	 */
 	public static class Output implements KeysBindOutput {
 
-		private Output() {}
+		/**
+		 * Builds the output of the command.
+		 */
+		private Output() {
+		}
+
+		/**
+		 * Builds the output of the command from its JSON representation.
+		 * 
+		 * @param json the JSON representation
+		 * @throws InconsistentJsonException if {@code json} is inconsistent
+		 */
+		public Output(KeysBindOutputJson json) throws InconsistentJsonException {
+		}
 
 		/**
 		 * Yields the output of this command from its JSON representation.
@@ -198,8 +215,15 @@ public class Bind extends AbstractMokaRpcCommand {
 
 		@Override
 		public void println(PrintStream out, Path file, boolean json) {
-			if (json)
-				out.println(new Gson().toJson(this));
+			if (json) {
+				try {
+					out.println(new KeysBindOutputs.Encoder().encode(this));
+				}
+				catch (EncodeException e) {
+					// this should not happen, since the constructor of the JSON representation never throws exceptions
+					throw new RuntimeException("Cannot encode the output of the command in JSON format", e);
+				}
+			}
 			else
 				out.println("The account information has been written into the file \"" + file + "\".");
 		}

@@ -22,7 +22,7 @@ import java.nio.file.Path;
 import io.hotmoka.moka.internal.keys.Import;
 
 /**
- * The output of the moka keys import command.
+ * The output of the moka {@code keys import} command.
  */
 public interface KeysImportOutput {
 

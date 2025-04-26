@@ -23,7 +23,7 @@ import io.hotmoka.moka.internal.keys.Export;
 import io.hotmoka.node.api.values.StorageReference;
 
 /**
- * The output of the moka keys export command.
+ * The output of the moka {@code keys export} command.
  */
 public interface KeysExportOutput {
 
