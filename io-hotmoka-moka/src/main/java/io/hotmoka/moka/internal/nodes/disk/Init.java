@@ -43,7 +43,6 @@ import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.disk.DiskNodeConfigBuilders;
 import io.hotmoka.node.disk.DiskNodes;
 import io.hotmoka.node.service.NodeServices;
@@ -196,12 +195,8 @@ public class Init extends AbstractMokaCommand {
 		 * @throws InconsistentJsonException if {@code json} is inconsistent
 		 */
 		public Output(NodesDiskInitOutputJson json) throws InconsistentJsonException {
-			StorageValue gamete = Objects.requireNonNull(json.getManifest(), "gamete cannot be null", InconsistentJsonException::new).unmap();
-			if (gamete instanceof StorageReference sr)
-				this.gamete = sr;
-			else
-				throw new InconsistentJsonException("The reference to the gamete must be a storage reference, not a " + gamete.getClass().getName());
-
+			this.gamete = Objects.requireNonNull(json.getManifest(), "gamete cannot be null", InconsistentJsonException::new).unmap()
+				.asReference(value -> new InconsistentJsonException("The reference to the gamete must be a storage reference, not a " + value.getClass().getName()));
 			this.uri = json.getURI();
 		}
 

@@ -120,7 +120,7 @@ public class KeysTests extends AbstractMokaTest {
 		Path copy = dir.resolve("copy");
 		Files.createDirectories(copy);
 		var keysImportOutput = KeysImportOutputs.from(MokaNew.keysImport(spaceSeparatedWords + " --dir=" + copy + " --json"));
-		var actualReference = keysImportOutput.getReference();
+		var actualReference = keysImportOutput.getAccount();
 		var actualEntropy = Entropies.load(copy.resolve(actualReference + ".pem"));
 
 		// both the accounts references and their entropies must match

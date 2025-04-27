@@ -27,19 +27,19 @@ import io.hotmoka.websockets.beans.api.JsonRepresentation;
  */
 public abstract class KeysImportOutputJson implements JsonRepresentation<KeysImportOutput> {
 	private final String file;
-	private final StorageValues.Json reference;
+	private final StorageValues.Json account;
 
 	protected KeysImportOutputJson(KeysImportOutput output) {
 		this.file = output.getFile().toString();
-		this.reference = new StorageValues.Json(output.getReference());
+		this.account = new StorageValues.Json(output.getAccount());
 	}
 
 	public String getFile() {
 		return file;
 	}
 
-	public StorageValues.Json getReference() {
-		return reference;
+	public StorageValues.Json getAccount() {
+		return account;
 	}
 
 	@Override

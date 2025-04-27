@@ -26,7 +26,6 @@ import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
 import io.hotmoka.moka.internal.json.NodesManifestAddressOutputJson;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import picocli.CommandLine.Command;
@@ -60,11 +59,8 @@ public class Address extends AbstractMokaRpcCommand {
 		 * @throws InconsistentJsonException if {@code json} is inconsistent
 		 */
 		public Output(NodesManifestAddressOutputJson json) throws InconsistentJsonException {
-			StorageValue manifest = Objects.requireNonNull(json.getManifest(), "manifest cannot be null", InconsistentJsonException::new).unmap();
-			if (manifest instanceof StorageReference sr)
-				this.manifest = sr;
-			else
-				throw new InconsistentJsonException("The reference to the manifest must be a storage reference, not a " + manifest.getClass().getName());
+			this.manifest = Objects.requireNonNull(json.getManifest(), "manifest cannot be null", InconsistentJsonException::new).unmap()
+				.asReference(value -> new InconsistentJsonException("The reference to the manifest must be a storage reference, not a " + value.getClass().getName()));
 		}
 
 		@Override

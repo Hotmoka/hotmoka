@@ -39,5 +39,5 @@ public interface KeysImportOutput {
 	 * 
 	 * @return the reference of the account that has been imported
 	 */
-	StorageReference getReference();
+	StorageReference getAccount();
 }

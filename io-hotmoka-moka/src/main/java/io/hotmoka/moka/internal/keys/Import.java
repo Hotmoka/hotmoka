@@ -79,11 +79,11 @@ public class Import extends AbstractMokaCommand {
 	 */
 	public static class Output implements KeysImportOutput {
 		private final Path file;
-		private final StorageReference reference;
+		private final StorageReference account;
 
-		private Output(Path file, StorageReference reference) {
+		private Output(Path file, StorageReference account) {
 			this.file = file;
-			this.reference = reference;
+			this.account = account;
 		}
 
 		/**
@@ -100,7 +100,7 @@ public class Import extends AbstractMokaCommand {
 				throw new InconsistentJsonException(e);
 			}
 
-			this.reference = Objects.requireNonNull(json.getReference(), "reference cannot be null", InconsistentJsonException::new).unmap()
+			this.account = Objects.requireNonNull(json.getAccount(), "account cannot be null", InconsistentJsonException::new).unmap()
 				.asReference(value -> new InconsistentJsonException("The reference of the imported account must be a storage reference, not a " + value.getClass().getName()));
 		}
 
@@ -110,8 +110,8 @@ public class Import extends AbstractMokaCommand {
 		}
 
 		@Override
-		public StorageReference getReference() {
-			return reference;
+		public StorageReference getAccount() {
+			return account;
 		}
 
 		@Override
