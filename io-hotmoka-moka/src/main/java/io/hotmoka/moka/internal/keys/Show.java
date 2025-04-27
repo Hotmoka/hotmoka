@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.moka.internal.keys;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.nio.file.Path;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
@@ -26,7 +25,6 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Function;
 
-import io.hotmoka.cli.AbstractCommand;
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Base64;
@@ -40,16 +38,16 @@ import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.moka.KeysShowOutputs;
 import io.hotmoka.moka.api.keys.KeysShowOutput;
+import io.hotmoka.moka.internal.AbstractMokaCommand;
 import io.hotmoka.moka.internal.converters.SignatureOptionConverter;
 import io.hotmoka.moka.internal.json.KeysShowOutputJson;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
-import jakarta.websocket.EncodeException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "show", description = "Show information about a key pair.")
-public class Show extends AbstractCommand {
+public class Show extends AbstractMokaCommand {
 
 	@Parameters(index = "0", description = "the file holding the key pair")
     private Path key;
@@ -77,7 +75,7 @@ public class Show extends AbstractCommand {
 			KeyPair keys = entropy.keys(passwordAsString, signature);
 
 			try {
-				new Output(signature, keys, showPrivate).println(System.out, json);
+				report(json, new Output(signature, keys, showPrivate), KeysShowOutputs.Encoder::new);
 			}
 			catch (NoSuchAlgorithmException e) {
 				throw new CommandException("The sha256 hashing algorithm is not available in this machine!");
@@ -195,50 +193,43 @@ public class Show extends AbstractCommand {
 		}
 
 		@Override
-		public void println(PrintStream out, boolean json) {
-			if (json) {
-				try {
-					out.println(new KeysShowOutputs.Encoder().encode(this));
-				}
-				catch (EncodeException e) {
-					// this should not happen, since the constructor of the JSON representation never throws exceptions
-					throw new RuntimeException("Cannot encode the output of the command in JSON format", e);
-				}
-			}
-			else {
-				if (publicKeyBase58.length() > MAX_PRINTED_KEY)
-					out.println("* public key: " + publicKeyBase58.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base58)");
+		public String toString() {
+			var sb = new StringBuilder();
+
+			if (publicKeyBase58.length() > MAX_PRINTED_KEY)
+				sb.append("* public key: " + publicKeyBase58.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base58)\n");
+			else
+				sb.append("* public key: " + publicKeyBase58 + " (" + signature + ", base58)\n");
+
+			if (publicKeyBase64.length() > MAX_PRINTED_KEY)
+				sb.append("* public key: " + publicKeyBase64.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base64)\n");
+			else
+				sb.append("* public key: " + publicKeyBase64 + " (" + signature + ", base64)\n");
+
+			sb.append("* Tendermint-like address: " + tendermintAddress + "\n");
+
+			if (privateKeyBase58 != null) {
+				if (privateKeyBase58.length() > MAX_PRINTED_KEY)
+					sb.append("* private key: " + privateKeyBase58.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base58)\n");
 				else
-					out.println("* public key: " + publicKeyBase58 + " (" + signature + ", base58)");
-
-				if (publicKeyBase64.length() > MAX_PRINTED_KEY)
-					out.println("* public key: " + publicKeyBase64.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base64)");
-				else
-					out.println("* public key: " + publicKeyBase64 + " (" + signature + ", base64)");
-
-				out.println("* Tendermint-like address: " + tendermintAddress);
-
-				if (privateKeyBase58 != null) {
-					if (privateKeyBase58.length() > MAX_PRINTED_KEY)
-						out.println("* private key: " + privateKeyBase58.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base58)");
-					else
-						out.println("* private key: " + privateKeyBase58 + " (" + signature + ", base58)");
-				}
-
-				if (privateKeyBase64 != null) {
-					if (privateKeyBase64.length() > MAX_PRINTED_KEY)
-						out.println("* private key: " + privateKeyBase64.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base64)");
-					else
-						out.println("* private key: " + privateKeyBase64 + " (" + signature + ", base64)");
-				}
-
-				if (concatenatedBase64 != null) {
-					if (concatenatedBase64.length() > MAX_PRINTED_KEY * 2)
-						out.println("* concatenated private+public key: " + concatenatedBase64.substring(0, MAX_PRINTED_KEY * 2) + "..." + " (base64)");
-					else
-						out.println("* concatenated private+public key: " + concatenatedBase64 + " (base64)");
-				}
+					sb.append("* private key: " + privateKeyBase58 + " (" + signature + ", base58)\n");
 			}
+
+			if (privateKeyBase64 != null) {
+				if (privateKeyBase64.length() > MAX_PRINTED_KEY)
+					sb.append("* private key: " + privateKeyBase64.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base64)\n");
+				else
+					sb.append("* private key: " + privateKeyBase64 + " (" + signature + ", base64)\n");
+			}
+
+			if (concatenatedBase64 != null) {
+				if (concatenatedBase64.length() > MAX_PRINTED_KEY * 2)
+					sb.append("* concatenated private+public key: " + concatenatedBase64.substring(0, MAX_PRINTED_KEY * 2) + "..." + " (base64)\n");
+				else
+					sb.append("* concatenated private+public key: " + concatenatedBase64 + " (base64)\n");
+			}
+
+			return sb.toString();
 		}
 	}
 }

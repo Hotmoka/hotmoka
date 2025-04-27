@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.moka.api.keys;
 
-import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.Optional;
 
@@ -89,12 +88,4 @@ public interface KeysCreateOutput {
 	 * @return the base64-encoded concatenated private and public key, if this output reports it
 	 */
 	Optional<String> getConcatenatedBase64();
-
-	/**
-	 * Prints this output as a string.
-	 * 
-	 * @param out the destination print stream
-	 * @param json true if and only if the string must be in JSON format
-	 */
-	void println(PrintStream out, boolean json);
 }

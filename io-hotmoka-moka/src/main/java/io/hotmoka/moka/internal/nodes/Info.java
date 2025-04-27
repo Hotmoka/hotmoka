@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.nodes;
 
-import java.io.PrintStream;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeoutException;
 
@@ -31,14 +30,13 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
-import jakarta.websocket.EncodeException;
 import picocli.CommandLine.Command;
 
 @Command(name = "info", description = "Show node-specific information about a node.")
 public class Info extends AbstractMokaRpcCommand {
 
 	private void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
-		new Output(remote.getInfo()).println(System.out, json());
+		report(json(), new Output(remote.getInfo()), NodesInfoOutputs.Encoder::new);
 	}
 
 	@Override
@@ -83,18 +81,8 @@ public class Info extends AbstractMokaRpcCommand {
 		}
 
 		@Override
-		public void println(PrintStream out, boolean json) {
-			if (json) {
-				try {
-					out.println(new NodesInfoOutputs.Encoder().encode(this));
-				}
-				catch (EncodeException e) {
-					// this should not happen, since the constructor of the JSON representation never throws exceptions
-					throw new RuntimeException("Cannot encode the output of the command in JSON format", e);
-				}
-			}
-			else
-				out.println(info);
+		public String toString() {
+			return info.toString() + "\n";
 		}
 	}
 }

@@ -17,22 +17,20 @@ limitations under the License.
 package io.hotmoka.moka.internal.keys;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
-import io.hotmoka.cli.AbstractCommand;
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.api.BIP39Mnemonic;
 import io.hotmoka.moka.KeysExportOutputs;
 import io.hotmoka.moka.api.keys.KeysExportOutput;
+import io.hotmoka.moka.internal.AbstractMokaCommand;
 import io.hotmoka.moka.internal.converters.StorageReferenceOfAccountOptionConverter;
 import io.hotmoka.moka.internal.json.KeysExportOutputJson;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.api.Account;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
-import jakarta.websocket.EncodeException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -40,7 +38,7 @@ import picocli.CommandLine.Parameters;
 @Command(name = "export",
 	description = "Export a key pair file of an account as BIP39 words.",
 	showDefaultValues = true)
-public class Export extends AbstractCommand {
+public class Export extends AbstractMokaCommand {
 
 	@Parameters(index = "0", description = "the reference of the account to export in BIP39 words", converter = StorageReferenceOfAccountOptionConverter.class)
     private StorageReference reference;
@@ -62,7 +60,7 @@ public class Export extends AbstractCommand {
         	throw new CommandException("Cannot read the key pair of the account: it was expected to be in file \"" + reference + ".pem\"", e);
         }
 
-        new Output(account.bip39Words()).println(System.out, json);
+        report(json, new Output(account.bip39Words()), KeysExportOutputs.Encoder::new);
 	}
 
 	/**
@@ -93,21 +91,14 @@ public class Export extends AbstractCommand {
 		}
 
 		@Override
-		public void println(PrintStream out, boolean json) {
-			if (json) {
-				try {
-					out.println(new KeysExportOutputs.Encoder().encode(this));
-				}
-				catch (EncodeException e) {
-					// this should not happen, since the constructor of the JSON representation never throws exceptions
-					throw new RuntimeException("Cannot encode the output of the command in JSON format", e);
-				}
-			}
-	        else {
-	        	out.println("The following BIP39 words represent the key pair of the account:");
-	        	for (int pos = 0; pos < bip39Words.length; pos++)
-	        		out.println(String.format("%2d: %s", pos + 1, bip39Words[pos]));
-	        }
+		public String toString() {
+			var sb = new StringBuilder();
+
+			sb.append("The following BIP39 words represent the key pair of the account:\n");
+        	for (int pos = 0; pos < bip39Words.length; pos++)
+        		sb.append(String.format("%2d: %s\n", pos + 1, bip39Words[pos]));
+
+        	return sb.toString();
 		}
 	}
 }

@@ -20,7 +20,6 @@ import static io.hotmoka.node.StorageTypes.BIG_INTEGER;
 import static io.hotmoka.node.StorageTypes.GAMETE;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.math.BigInteger;
 import java.nio.file.Path;
 import java.security.InvalidKeyException;
@@ -52,7 +51,6 @@ import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
-import jakarta.websocket.EncodeException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -144,7 +142,7 @@ public class SetFaucet extends AbstractMokaRpcCommand {
 			throw new CommandException("The gamete object cannot be found in the node");
 		}
 
-		new Output().println(System.out, json());
+		report(json(), new Output(), NodesSetFaucetOutputs.Encoder::new);
 	}
 
 	/**
@@ -163,18 +161,8 @@ public class SetFaucet extends AbstractMokaRpcCommand {
 		public Output(NodesSetFaucetOutputJson json) throws InconsistentJsonException {}
 
 		@Override
-		public void println(PrintStream out, boolean json) {
-			if (json) {
-				try {
-					out.println(new NodesSetFaucetOutputs.Encoder().encode(this));
-				}
-				catch (EncodeException e) {
-					// this should not happen, since the constructor of the JSON representation never throws exceptions
-					throw new RuntimeException("Cannot encode the output of the command in JSON format", e);
-				}
-			}
-			else
-				out.println("The threshold of the faucet has been set");
+		public String toString() {
+			return "The threshold of the faucet has been set\n";
 		}
 	}
 }

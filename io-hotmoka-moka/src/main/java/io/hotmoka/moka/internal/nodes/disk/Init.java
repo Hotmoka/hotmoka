@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.moka.internal.nodes.disk;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.math.BigInteger;
 import java.net.URI;
 import java.nio.file.Path;
@@ -26,7 +25,6 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.concurrent.TimeoutException;
 
-import io.hotmoka.cli.AbstractCommand;
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Base58ConversionException;
@@ -35,6 +33,7 @@ import io.hotmoka.exceptions.Objects;
 import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.moka.NodesDiskInitOutputs;
 import io.hotmoka.moka.api.nodes.disk.NodesDiskInitOutput;
+import io.hotmoka.moka.internal.AbstractMokaCommand;
 import io.hotmoka.moka.internal.converters.SignatureOptionConverter;
 import io.hotmoka.moka.internal.json.NodesDiskInitOutputJson;
 import io.hotmoka.node.ConsensusConfigBuilders;
@@ -49,7 +48,6 @@ import io.hotmoka.node.disk.DiskNodeConfigBuilders;
 import io.hotmoka.node.disk.DiskNodes;
 import io.hotmoka.node.service.NodeServices;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
-import jakarta.websocket.EncodeException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -57,7 +55,7 @@ import picocli.CommandLine.Parameters;
 @Command(name = "init",
 	description = "Initialize a new disk node and publish a service to it.",
 	showDefaultValues = true)
-public class Init extends AbstractCommand {
+public class Init extends AbstractMokaCommand {
 
 	@Parameters(description = "the initial supply of coins of the node, which goes to the gamete")
     private BigInteger initialSupply;
@@ -153,7 +151,7 @@ public class Init extends AbstractCommand {
 			var initialized = InitializedNodes.of(node, consensus, takamakaCode);
 			var service = NodeServices.of(node, port)) {
 
-			new Output(initialized.gamete(), URI.create("ws://localhost:" + port)).println(System.out, json);
+			report(json, new Output(initialized.gamete(), URI.create("ws://localhost:" + port)), NodesDiskInitOutputs.Encoder::new);
 			waitForEnterKey();
 		}
 		catch (IOException e) {
@@ -218,24 +216,17 @@ public class Init extends AbstractCommand {
 		}
 
 		@Override
-		public void println(PrintStream out, boolean json) {
-			if (json) {
-				try {
-					out.println(new NodesDiskInitOutputs.Encoder().encode(this));
-				}
-				catch (EncodeException e) {
-					// this should not happen, since the constructor of the JSON representation never throws exceptions
-					throw new RuntimeException("Cannot encode the output of the command in JSON format", e);
-				}
-			}
-			else {
-				System.out.println("The node has been published at " + uri + "\n");
-				System.out.println("The owner of the key of the gamete can bind it to its address now with:");
-				System.out.println("  moka keys bind file_containing_the_key_pair_of_the_gamete --password --url url_of_this_node");
-				System.out.println("or with");
-				System.out.println("  moka keys bind file_containing_the_key_pair_of_the_gamete --password --reference " + gamete);
-				System.out.println("\nPress the enter key to stop the process and close the node");
-			}
+		public String toString() {
+			var sb = new StringBuilder();
+
+			sb.append("The node has been published at " + uri + ".\n");
+			sb.append("\nThe owner of the key of the gamete can bind it to its address now with:\n");
+			sb.append("  moka keys bind file_containing_the_key_pair_of_the_gamete --password --url url_of_this_node\n");
+			sb.append("or with:\n");
+			sb.append("  moka keys bind file_containing_the_key_pair_of_the_gamete --password --reference " + gamete + "\n");
+			sb.append("\nPress the enter key to stop the process and close the node.\n");
+
+			return sb.toString();
 		}
 	}
 }

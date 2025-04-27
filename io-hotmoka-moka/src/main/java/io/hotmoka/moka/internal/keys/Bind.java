@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.moka.internal.keys;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -50,7 +49,6 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
-import jakarta.websocket.EncodeException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -180,7 +178,7 @@ public class Bind extends AbstractMokaRpcCommand {
 			throw new CommandException("Cannot write the account information file", e);
 		}
 
-		new Output(reference, file).println(System.out, json());
+		report(json(), new Output(reference, file), KeysBindOutputs.Encoder::new);
 	}
 
 	/**
@@ -220,11 +218,8 @@ public class Bind extends AbstractMokaRpcCommand {
 				throw new InconsistentJsonException(e);
 			}
 
-			StorageValue value = Objects.requireNonNull(json.getAccount(), "account cannot be null", InconsistentJsonException::new).unmap();
-			if (value instanceof StorageReference sr)
-				this.account = sr;
-			else
-				throw new InconsistentJsonException("The reference of the bound account must be a storage reference, not a " + value.getClass().getName());
+			this.account = Objects.requireNonNull(json.getAccount(), "account cannot be null", InconsistentJsonException::new).unmap()
+				.asReference(value -> new InconsistentJsonException("The reference of the bound account must be a storage reference, not a " + value.getClass().getName()));
 		}
 
 		@Override
@@ -238,18 +233,8 @@ public class Bind extends AbstractMokaRpcCommand {
 		}
 
 		@Override
-		public void println(PrintStream out, boolean json) {
-			if (json) {
-				try {
-					out.println(new KeysBindOutputs.Encoder().encode(this));
-				}
-				catch (EncodeException e) {
-					// this should not happen, since the constructor of the JSON representation never throws exceptions
-					throw new RuntimeException("Cannot encode the output of the command in JSON format", e);
-				}
-			}
-			else
-				out.println("The account information has been written into the file \"" + file + "\".");
+		public String toString() {
+			return "The account information has been written into the file \"" + file + "\".\n";
 		}
 	}
 }

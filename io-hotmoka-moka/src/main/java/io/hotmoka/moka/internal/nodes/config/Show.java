@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.nodes.config;
 
-import java.io.PrintStream;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeoutException;
 
@@ -31,14 +30,13 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
-import jakarta.websocket.EncodeException;
 import picocli.CommandLine.Command;
 
 @Command(name = "show", description = "Show the configuration of a node.")
 public class Show extends AbstractMokaRpcCommand {
 
-	private void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException {
-		new Output(remote.getConfig()).println(System.out, json());
+	private void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, NodeException {
+		report(json(), new Output(remote.getConfig()), NodesConfigShowOutputs.Encoder::new);
 	}
 
 	@Override
@@ -83,18 +81,8 @@ public class Show extends AbstractMokaRpcCommand {
 		}
 
 		@Override
-		public void println(PrintStream out, boolean json) {
-			if (json) {
-				try {
-					out.println(new NodesConfigShowOutputs.Encoder().encode(this));
-				}
-				catch (EncodeException e) {
-					// this should not happen, since the constructor of the JSON representation never throws exceptions
-					throw new RuntimeException("Cannot encode the output of the command in JSON format", e);
-				}
-			}
-			else
-				out.println(config);
+		public String toString() {
+			return config.toString();
 		}
 	}
 }

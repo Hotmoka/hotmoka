@@ -16,8 +16,6 @@ limitations under the License.
 
 package io.hotmoka.moka.api.nodes.takamaka;
 
-import java.io.PrintStream;
-
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.node.api.transactions.TransactionReference;
 
@@ -33,12 +31,4 @@ public interface NodesTakamakaAddressOutput {
 	 * @return the reference to the jar that contains the basic Takamaka classes
 	 */
 	TransactionReference getTakamakaCode();
-
-	/**
-	 * Prints this output as a string.
-	 * 
-	 * @param out the destination print stream
-	 * @param json true if and only if the string must be in JSON format
-	 */
-	void println(PrintStream out, boolean json);
 }

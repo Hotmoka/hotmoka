@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.nodes.manifest;
 
-import java.io.PrintStream;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.cli.CommandException;
@@ -30,14 +29,13 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
-import jakarta.websocket.EncodeException;
 import picocli.CommandLine.Command;
 
 @Command(name = "address", description = "Show the address of the manifest of a node.")
 public class Address extends AbstractMokaRpcCommand {
 
 	private void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
-		new Output(remote.getManifest()).println(System.out, json());
+		report(json(), new Output(remote.getManifest()), NodesManifestAddressOutputs.Encoder::new);
 	}
 
 	@Override
@@ -75,18 +73,8 @@ public class Address extends AbstractMokaRpcCommand {
 		}
 
 		@Override
-		public void println(PrintStream out, boolean json) {
-			if (json) {
-				try {
-					out.println(new NodesManifestAddressOutputs.Encoder().encode(this));
-				}
-				catch (EncodeException e) {
-					// this should not happen, since the constructor of the JSON representation never throws exceptions
-					throw new RuntimeException("Cannot encode the output of the command in JSON format", e);
-				}
-			}
-			else
-				out.println(manifest);
+		public String toString() {
+			return manifest.toString() + "\n";
 		}
 	}
 }

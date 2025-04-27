@@ -17,26 +17,23 @@ limitations under the License.
 package io.hotmoka.moka.internal.keys;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.hotmoka.cli.AbstractCommand;
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.BIP39Dictionaries;
 import io.hotmoka.crypto.BIP39Mnemonics;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.moka.KeysImportOutputs;
 import io.hotmoka.moka.api.keys.KeysImportOutput;
+import io.hotmoka.moka.internal.AbstractMokaCommand;
 import io.hotmoka.moka.internal.json.KeysImportOutputJson;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
-import jakarta.websocket.EncodeException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -44,7 +41,7 @@ import picocli.CommandLine.Parameters;
 @Command(name = "import",
 	description = "Import the key pair file of an account from BIP39 words.",
 	showDefaultValues = true)
-public class Import extends AbstractCommand {
+public class Import extends AbstractMokaCommand {
 
 	@Parameters(description = "the 36 BIP39 words of the account to import")
     private List<String> words = new ArrayList<>();
@@ -74,7 +71,7 @@ public class Import extends AbstractCommand {
 			throw new CommandException("Could not write the key pair file of the account into " + file + ".pem", e);
 		}
 
-		new Output(file, account.getReference()).println(System.out, json);
+		report(json, new Output(file, account.getReference()), KeysImportOutputs.Encoder::new);
 	}
 
 	/**
@@ -103,11 +100,8 @@ public class Import extends AbstractCommand {
 				throw new InconsistentJsonException(e);
 			}
 
-			StorageValue value = Objects.requireNonNull(json.getReference(), "reference cannot be null", InconsistentJsonException::new).unmap();
-			if (value instanceof StorageReference sr)
-				this.reference = sr;
-			else
-				throw new InconsistentJsonException("The reference of the imported account must be a storage reference, not a " + value.getClass().getName());
+			this.reference = Objects.requireNonNull(json.getReference(), "reference cannot be null", InconsistentJsonException::new).unmap()
+				.asReference(value -> new InconsistentJsonException("The reference of the imported account must be a storage reference, not a " + value.getClass().getName()));
 		}
 
 		@Override
@@ -121,18 +115,8 @@ public class Import extends AbstractCommand {
 		}
 
 		@Override
-		public void println(PrintStream out, boolean json) {
-			if (json) {
-				try {
-					out.println(new KeysImportOutputs.Encoder().encode(this));
-				}
-				catch (EncodeException e) {
-					// this should not happen, since the constructor of the JSON representation never throws exceptions
-					throw new RuntimeException("Cannot encode the output of the command in JSON format", e);
-				}
-			}
-			else
-				out.println("The key pair of the account has been imported into the file \"" + file + "\".");
+		public String toString() {
+			return "The key pair of the account has been imported into the file \"" + file + "\".\n";
 		}
 	}
 }
