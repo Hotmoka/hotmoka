@@ -19,9 +19,9 @@ package io.hotmoka.node.messages;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.messages.api.AddGameteCreationTransactionResultMessage;
 import io.hotmoka.node.messages.internal.AddGameteCreationTransactionResultMessageImpl;
-import io.hotmoka.node.messages.internal.gson.AddGameteCreationTransactionResultMessageDecoder;
-import io.hotmoka.node.messages.internal.gson.AddGameteCreationTransactionResultMessageEncoder;
-import io.hotmoka.node.messages.internal.gson.AddGameteCreationTransactionResultMessageJson;
+import io.hotmoka.node.messages.internal.json.AddGameteCreationTransactionResultMessageDecoder;
+import io.hotmoka.node.messages.internal.json.AddGameteCreationTransactionResultMessageEncoder;
+import io.hotmoka.node.messages.internal.json.AddGameteCreationTransactionResultMessageJson;
 
 /**
  * A provider of {@link AddGameteCreationTransactionResultMessage}.

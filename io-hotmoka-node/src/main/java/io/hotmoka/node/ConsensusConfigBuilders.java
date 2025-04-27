@@ -26,9 +26,9 @@ import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.nodes.ConsensusConfigBuilder;
-import io.hotmoka.node.internal.gson.ConsensusConfigDecoder;
-import io.hotmoka.node.internal.gson.ConsensusConfigEncoder;
-import io.hotmoka.node.internal.gson.ConsensusConfigJson;
+import io.hotmoka.node.internal.json.ConsensusConfigDecoder;
+import io.hotmoka.node.internal.json.ConsensusConfigEncoder;
+import io.hotmoka.node.internal.json.ConsensusConfigJson;
 import io.hotmoka.node.internal.nodes.BasicConsensusConfigBuilder;
 
 /**

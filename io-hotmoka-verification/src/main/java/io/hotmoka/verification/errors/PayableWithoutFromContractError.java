@@ -16,12 +16,12 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-import io.hotmoka.verification.internal.AbstractError;
+import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
  * An error issued when {@code @@Payable} is used without {@code @@FromContract}.
  */
-public class PayableWithoutFromContractError extends AbstractError {
+public class PayableWithoutFromContractError extends AbstractVerificationError {
 
 	/**
 	 * Builds the error.

@@ -28,7 +28,7 @@ import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.NodeMarshallingContexts;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.internal.gson.TransactionReferenceJson;
+import io.hotmoka.node.internal.json.TransactionReferenceJson;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**

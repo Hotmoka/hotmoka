@@ -19,9 +19,9 @@ package io.hotmoka.node.messages;
 import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.node.messages.api.AddConstructorCallTransactionMessage;
 import io.hotmoka.node.messages.internal.AddConstructorCallTransactionMessageImpl;
-import io.hotmoka.node.messages.internal.gson.AddConstructorCallTransactionMessageDecoder;
-import io.hotmoka.node.messages.internal.gson.AddConstructorCallTransactionMessageEncoder;
-import io.hotmoka.node.messages.internal.gson.AddConstructorCallTransactionMessageJson;
+import io.hotmoka.node.messages.internal.json.AddConstructorCallTransactionMessageDecoder;
+import io.hotmoka.node.messages.internal.json.AddConstructorCallTransactionMessageEncoder;
+import io.hotmoka.node.messages.internal.json.AddConstructorCallTransactionMessageJson;
 
 /**
  * A provider of {@link AddConstructorCallTransactionMessage}.

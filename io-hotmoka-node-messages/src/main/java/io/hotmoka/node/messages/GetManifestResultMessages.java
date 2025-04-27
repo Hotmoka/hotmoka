@@ -19,9 +19,9 @@ package io.hotmoka.node.messages;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.messages.api.GetManifestResultMessage;
 import io.hotmoka.node.messages.internal.GetManifestResultMessageImpl;
-import io.hotmoka.node.messages.internal.gson.GetManifestResultMessageDecoder;
-import io.hotmoka.node.messages.internal.gson.GetManifestResultMessageEncoder;
-import io.hotmoka.node.messages.internal.gson.GetManifestResultMessageJson;
+import io.hotmoka.node.messages.internal.json.GetManifestResultMessageDecoder;
+import io.hotmoka.node.messages.internal.json.GetManifestResultMessageEncoder;
+import io.hotmoka.node.messages.internal.json.GetManifestResultMessageJson;
 
 /**
  * A provider of {@link GetManifestResultMessage}.

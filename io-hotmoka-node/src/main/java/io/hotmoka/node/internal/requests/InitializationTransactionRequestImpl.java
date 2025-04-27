@@ -28,7 +28,7 @@ import io.hotmoka.node.api.requests.InitializationTransactionRequest;
 import io.hotmoka.node.api.responses.InitializationTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.internal.gson.TransactionRequestJson;
+import io.hotmoka.node.internal.json.TransactionRequestJson;
 import io.hotmoka.node.internal.values.StorageReferenceImpl;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 

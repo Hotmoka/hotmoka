@@ -19,9 +19,9 @@ package io.hotmoka.node.messages;
 import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.messages.api.GetClassTagResultMessage;
 import io.hotmoka.node.messages.internal.GetClassTagResultMessageImpl;
-import io.hotmoka.node.messages.internal.gson.GetClassTagResultMessageDecoder;
-import io.hotmoka.node.messages.internal.gson.GetClassTagResultMessageEncoder;
-import io.hotmoka.node.messages.internal.gson.GetClassTagResultMessageJson;
+import io.hotmoka.node.messages.internal.json.GetClassTagResultMessageDecoder;
+import io.hotmoka.node.messages.internal.json.GetClassTagResultMessageEncoder;
+import io.hotmoka.node.messages.internal.json.GetClassTagResultMessageJson;
 
 /**
  * A provider of {@link GetClassTagResultMessage}.

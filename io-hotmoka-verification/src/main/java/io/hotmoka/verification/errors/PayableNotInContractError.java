@@ -16,13 +16,13 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-import io.hotmoka.verification.internal.AbstractError;
+import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
  * An error issued when {@code @@Payable} is not applied to a method or
  * constructor of a contract or interface,
  */
-public class PayableNotInContractError extends AbstractError {
+public class PayableNotInContractError extends AbstractVerificationError {
 
 	/**
 	 * Builds the error.

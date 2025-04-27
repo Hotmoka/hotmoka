@@ -94,7 +94,7 @@ public class Verify extends AbstractCommand {
 			throw new CommandException("Verification version " + version + " is not supported");
 		}
 
-		var errors = new ArrayList<io.hotmoka.verification.api.Error>();
+		var errors = new ArrayList<io.hotmoka.verification.api.VerificationError>();
 
 		try {
 			VerifiedJars.of(classpath[0], classLoader, init, errors::add, false);
@@ -118,7 +118,7 @@ public class Verify extends AbstractCommand {
 	public static class Output implements JarsVerifyOutput {
 		private final ErrorJSON[] errors;
 
-		private Output(List<io.hotmoka.verification.api.Error> errors) {
+		private Output(List<io.hotmoka.verification.api.VerificationError> errors) {
 			this.errors = errors.stream().map(ErrorJSON::new).toArray(ErrorJSON[]::new);
 		}
 

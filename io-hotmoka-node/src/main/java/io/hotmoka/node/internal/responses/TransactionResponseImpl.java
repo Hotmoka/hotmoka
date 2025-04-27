@@ -44,7 +44,7 @@ import io.hotmoka.node.api.responses.VoidMethodCallTransactionSuccessfulResponse
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.internal.gson.TransactionResponseJson;
+import io.hotmoka.node.internal.json.TransactionResponseJson;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**

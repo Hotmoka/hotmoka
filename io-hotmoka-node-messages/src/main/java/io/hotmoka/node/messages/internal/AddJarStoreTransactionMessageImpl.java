@@ -21,7 +21,7 @@ import io.hotmoka.exceptions.Objects;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.node.messages.api.AddJarStoreTransactionMessage;
-import io.hotmoka.node.messages.internal.gson.AddJarStoreTransactionMessageJson;
+import io.hotmoka.node.messages.internal.json.AddJarStoreTransactionMessageJson;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 

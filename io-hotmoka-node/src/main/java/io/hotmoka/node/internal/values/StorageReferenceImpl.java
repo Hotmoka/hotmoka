@@ -33,7 +33,7 @@ import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
-import io.hotmoka.node.internal.gson.StorageValueJson;
+import io.hotmoka.node.internal.json.StorageValueJson;
 import io.hotmoka.node.internal.references.TransactionReferenceImpl;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 

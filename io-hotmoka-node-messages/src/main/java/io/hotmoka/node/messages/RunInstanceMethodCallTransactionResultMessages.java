@@ -21,9 +21,9 @@ import java.util.Optional;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.messages.api.RunInstanceMethodCallTransactionResultMessage;
 import io.hotmoka.node.messages.internal.RunInstanceMethodCallTransactionResultMessageImpl;
-import io.hotmoka.node.messages.internal.gson.RunInstanceMethodCallTransactionResultMessageDecoder;
-import io.hotmoka.node.messages.internal.gson.RunInstanceMethodCallTransactionResultMessageEncoder;
-import io.hotmoka.node.messages.internal.gson.RunInstanceMethodCallTransactionResultMessageJson;
+import io.hotmoka.node.messages.internal.json.RunInstanceMethodCallTransactionResultMessageDecoder;
+import io.hotmoka.node.messages.internal.json.RunInstanceMethodCallTransactionResultMessageEncoder;
+import io.hotmoka.node.messages.internal.json.RunInstanceMethodCallTransactionResultMessageJson;
 
 /**
  * A provider of {@link RunInstanceMethodCallTransactionResultMessage}.

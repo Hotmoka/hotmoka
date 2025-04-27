@@ -30,7 +30,7 @@ import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.internal.gson.UpdateJson;
+import io.hotmoka.node.internal.json.UpdateJson;
 import io.hotmoka.node.internal.types.ClassTypeImpl;
 import io.hotmoka.node.internal.values.StorageReferenceImpl;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;

@@ -21,7 +21,7 @@ import io.hotmoka.exceptions.Objects;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.node.messages.api.AddConstructorCallTransactionMessage;
-import io.hotmoka.node.messages.internal.gson.AddConstructorCallTransactionMessageJson;
+import io.hotmoka.node.messages.internal.json.AddConstructorCallTransactionMessageJson;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 

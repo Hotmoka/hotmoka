@@ -16,13 +16,13 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-import io.hotmoka.verification.internal.AbstractError;
+import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
  * An error issued when {@code caller()} is used in a method or constructor
  * that is not annotated as {@code @@FromContract}.
  */
-public class CallerOutsideFromContractError extends AbstractError {
+public class CallerOutsideFromContractError extends AbstractVerificationError {
 
 	/**
 	 * Builds the error.

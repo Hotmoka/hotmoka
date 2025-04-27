@@ -19,9 +19,9 @@ package io.hotmoka.node.messages;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.messages.api.GetTakamakaCodeResultMessage;
 import io.hotmoka.node.messages.internal.GetTakamakaCodeResultMessageImpl;
-import io.hotmoka.node.messages.internal.gson.GetTakamakaCodeResultMessageDecoder;
-import io.hotmoka.node.messages.internal.gson.GetTakamakaCodeResultMessageEncoder;
-import io.hotmoka.node.messages.internal.gson.GetTakamakaCodeResultMessageJson;
+import io.hotmoka.node.messages.internal.json.GetTakamakaCodeResultMessageDecoder;
+import io.hotmoka.node.messages.internal.json.GetTakamakaCodeResultMessageEncoder;
+import io.hotmoka.node.messages.internal.json.GetTakamakaCodeResultMessageJson;
 
 /**
  * A provider of {@link GetTakamakaCodeResultMessage}.

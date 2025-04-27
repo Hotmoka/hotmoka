@@ -16,12 +16,12 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-import io.hotmoka.verification.internal.AbstractError;
+import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
  * An error issued when an exception handler for an unchecked exception is used.
  */
-public class UncheckedExceptionHandlerError extends AbstractError {
+public class UncheckedExceptionHandlerError extends AbstractVerificationError {
 
 	/**
 	 * Builds the error.

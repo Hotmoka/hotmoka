@@ -78,7 +78,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 	 * @throws VerificationException if the Takamaka verification of the class failed
 	 * @throws UnknownTypeException if some class of the Takamaka program cannot be loaded
 	 */
-	public VerifiedClassImpl(JavaClass clazz, VerifiedJarImpl jar, VersionsManager versionsManager, Consumer<AbstractError> issueHandler, boolean duringInitialization, boolean skipsVerification) throws VerificationException, IllegalJarException, UnknownTypeException {
+	public VerifiedClassImpl(JavaClass clazz, VerifiedJarImpl jar, VersionsManager versionsManager, Consumer<AbstractVerificationError> issueHandler, boolean duringInitialization, boolean skipsVerification) throws VerificationException, IllegalJarException, UnknownTypeException {
 		this.clazz = new ClassGen(clazz);
 		this.jar = jar;
 		ConstantPoolGen cpg = getConstantPool();
@@ -170,7 +170,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 		/**
 		 * The handler that must be notified of issues found in the class.
 		 */
-		final Consumer<AbstractError> issueHandler;
+		final Consumer<AbstractVerificationError> issueHandler;
 
 		/**
 		 * True if and only if the code verification occurs during blockchain initialization.
@@ -203,7 +203,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 		 * @throws IllegalJarException if the jar under verification is illegal
 		 * @throws UnknownTypeException if some type of the jar under verification cannot be resolved
 		 */
-		private Verification(Consumer<AbstractError> issueHandler, MethodGen[] methods, boolean duringInitialization, VersionsManager versionsManager) throws VerificationException, IllegalJarException, UnknownTypeException {
+		private Verification(Consumer<AbstractVerificationError> issueHandler, MethodGen[] methods, boolean duringInitialization, VersionsManager versionsManager) throws VerificationException, IllegalJarException, UnknownTypeException {
 			this.issueHandler = issueHandler;
 			ConstantPoolGen cpg = getConstantPool();
 			this.methods = methods;

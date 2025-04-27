@@ -21,7 +21,7 @@ import io.hotmoka.exceptions.Objects;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.node.messages.api.AddGameteCreationTransactionMessage;
-import io.hotmoka.node.messages.internal.gson.AddGameteCreationTransactionMessageJson;
+import io.hotmoka.node.messages.internal.json.AddGameteCreationTransactionMessageJson;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 

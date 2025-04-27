@@ -19,9 +19,9 @@ package io.hotmoka.node.messages;
 import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.messages.api.AddStaticMethodCallTransactionMessage;
 import io.hotmoka.node.messages.internal.AddStaticMethodCallTransactionMessageImpl;
-import io.hotmoka.node.messages.internal.gson.AddStaticMethodCallTransactionMessageDecoder;
-import io.hotmoka.node.messages.internal.gson.AddStaticMethodCallTransactionMessageEncoder;
-import io.hotmoka.node.messages.internal.gson.AddStaticMethodCallTransactionMessageJson;
+import io.hotmoka.node.messages.internal.json.AddStaticMethodCallTransactionMessageDecoder;
+import io.hotmoka.node.messages.internal.json.AddStaticMethodCallTransactionMessageEncoder;
+import io.hotmoka.node.messages.internal.json.AddStaticMethodCallTransactionMessageJson;
 
 /**
  * A provider of {@link AddStaticMethodCallTransactionMessage}.

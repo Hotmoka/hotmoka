@@ -21,5 +21,6 @@ module io.hotmoka.verification.api {
 	exports io.hotmoka.verification.api;
 	
 	requires io.hotmoka.whitelisting.api;
+	requires io.hotmoka.annotations;
 	requires transitive org.apache.bcel;
 }

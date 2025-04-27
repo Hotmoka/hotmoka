@@ -30,7 +30,7 @@ import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.responses.GameteCreationTransactionResponse;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.internal.gson.TransactionResponseJson;
+import io.hotmoka.node.internal.json.TransactionResponseJson;
 import io.hotmoka.node.internal.values.StorageReferenceImpl;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 

@@ -21,9 +21,9 @@ import java.util.Optional;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.messages.api.AddStaticMethodCallTransactionResultMessage;
 import io.hotmoka.node.messages.internal.AddStaticMethodCallTransactionResultMessageImpl;
-import io.hotmoka.node.messages.internal.gson.AddStaticMethodCallTransactionResultMessageDecoder;
-import io.hotmoka.node.messages.internal.gson.AddStaticMethodCallTransactionResultMessageEncoder;
-import io.hotmoka.node.messages.internal.gson.AddStaticMethodCallTransactionResultMessageJson;
+import io.hotmoka.node.messages.internal.json.AddStaticMethodCallTransactionResultMessageDecoder;
+import io.hotmoka.node.messages.internal.json.AddStaticMethodCallTransactionResultMessageEncoder;
+import io.hotmoka.node.messages.internal.json.AddStaticMethodCallTransactionResultMessageJson;
 
 /**
  * A provider of {@link AddStaticMethodCallTransactionResultMessage}.

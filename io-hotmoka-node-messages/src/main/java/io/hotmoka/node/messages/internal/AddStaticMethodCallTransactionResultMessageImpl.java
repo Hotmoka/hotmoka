@@ -25,7 +25,7 @@ import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.messages.api.AddStaticMethodCallTransactionResultMessage;
-import io.hotmoka.node.messages.internal.gson.AddStaticMethodCallTransactionResultMessageJson;
+import io.hotmoka.node.messages.internal.json.AddStaticMethodCallTransactionResultMessageJson;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 

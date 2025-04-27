@@ -16,12 +16,12 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-import io.hotmoka.verification.internal.AbstractError;
+import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
  * An error issued if a non-white-listed constructor is called.
  */
-public class IllegalCallToNonWhiteListedConstructorError extends AbstractError {
+public class IllegalCallToNonWhiteListedConstructorError extends AbstractVerificationError {
 
 	/**
 	 * Builds the error.

@@ -18,9 +18,9 @@ package io.hotmoka.node.messages;
 
 import io.hotmoka.node.messages.api.GetManifestMessage;
 import io.hotmoka.node.messages.internal.GetManifestMessageImpl;
-import io.hotmoka.node.messages.internal.gson.GetManifestMessageDecoder;
-import io.hotmoka.node.messages.internal.gson.GetManifestMessageEncoder;
-import io.hotmoka.node.messages.internal.gson.GetManifestMessageJson;
+import io.hotmoka.node.messages.internal.json.GetManifestMessageDecoder;
+import io.hotmoka.node.messages.internal.json.GetManifestMessageEncoder;
+import io.hotmoka.node.messages.internal.json.GetManifestMessageJson;
 
 /**
  * A provider of {@link GetManifestMessage}.

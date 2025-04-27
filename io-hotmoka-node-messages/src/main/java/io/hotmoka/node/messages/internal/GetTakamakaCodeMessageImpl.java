@@ -20,7 +20,7 @@ import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.messages.api.GetTakamakaCodeMessage;
-import io.hotmoka.node.messages.internal.gson.GetTakamakaCodeMessageJson;
+import io.hotmoka.node.messages.internal.json.GetTakamakaCodeMessageJson;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 

@@ -19,9 +19,9 @@ package io.hotmoka.node.messages;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.messages.api.GetConsensusConfigResultMessage;
 import io.hotmoka.node.messages.internal.GetConsensusConfigResultMessageImpl;
-import io.hotmoka.node.messages.internal.gson.GetConsensusConfigResultMessageDecoder;
-import io.hotmoka.node.messages.internal.gson.GetConsensusConfigResultMessageEncoder;
-import io.hotmoka.node.messages.internal.gson.GetConsensusConfigResultMessageJson;
+import io.hotmoka.node.messages.internal.json.GetConsensusConfigResultMessageDecoder;
+import io.hotmoka.node.messages.internal.json.GetConsensusConfigResultMessageEncoder;
+import io.hotmoka.node.messages.internal.json.GetConsensusConfigResultMessageJson;
 
 /**
  * A provider of {@link GetConsensusConfigResultMessage}.

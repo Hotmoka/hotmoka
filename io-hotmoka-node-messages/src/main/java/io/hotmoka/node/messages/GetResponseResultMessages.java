@@ -19,9 +19,9 @@ package io.hotmoka.node.messages;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.messages.api.GetResponseResultMessage;
 import io.hotmoka.node.messages.internal.GetResponseResultMessageImpl;
-import io.hotmoka.node.messages.internal.gson.GetResponseResultMessageDecoder;
-import io.hotmoka.node.messages.internal.gson.GetResponseResultMessageEncoder;
-import io.hotmoka.node.messages.internal.gson.GetResponseResultMessageJson;
+import io.hotmoka.node.messages.internal.json.GetResponseResultMessageDecoder;
+import io.hotmoka.node.messages.internal.json.GetResponseResultMessageEncoder;
+import io.hotmoka.node.messages.internal.json.GetResponseResultMessageJson;
 
 /**
  * A provider of {@link GetResponseResultMessage}.

@@ -24,7 +24,7 @@ import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.api.types.StorageType;
-import io.hotmoka.node.internal.gson.StorageTypeJson;
+import io.hotmoka.node.internal.json.StorageTypeJson;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**

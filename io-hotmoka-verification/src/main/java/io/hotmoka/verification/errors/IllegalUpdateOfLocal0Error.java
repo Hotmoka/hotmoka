@@ -16,12 +16,12 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-import io.hotmoka.verification.internal.AbstractError;
+import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
  * An error issued when the Takamaka code attempts to modify local variable 0.
  */
-public class IllegalUpdateOfLocal0Error extends AbstractError {
+public class IllegalUpdateOfLocal0Error extends AbstractVerificationError {
 
 	/**
 	 * Builds the error.

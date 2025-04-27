@@ -16,12 +16,12 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-import io.hotmoka.verification.internal.AbstractError;
+import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
  * An error issued when the Takamaka code contains a {@code ret} bytecode.
  */
-public class IllegalRetInstructionError extends AbstractError {
+public class IllegalRetInstructionError extends AbstractVerificationError {
 
 	/**
 	 * Builds the error.

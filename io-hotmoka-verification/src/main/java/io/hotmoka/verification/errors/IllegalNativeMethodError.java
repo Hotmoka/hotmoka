@@ -16,12 +16,12 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-import io.hotmoka.verification.internal.AbstractError;
+import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
  * An error issued when a native method occurs in Takamaka code.
  */
-public class IllegalNativeMethodError extends AbstractError {
+public class IllegalNativeMethodError extends AbstractVerificationError {
 
 	/**
 	 * Builds the error.

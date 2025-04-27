@@ -19,7 +19,7 @@ package io.hotmoka.verification;
 import java.util.function.Consumer;
 
 import io.hotmoka.exceptions.ExceptionReplacer;
-import io.hotmoka.verification.api.Error;
+import io.hotmoka.verification.api.VerificationError;
 import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.verification.api.UnknownTypeException;
@@ -48,7 +48,7 @@ public abstract class VerifiedJars {
 	 * @throws IllegalJarException if the jar under verification is illegal
 	 * @throws UnknownTypeException if some type of the jar under verification cannot be resolved
 	 */
-	public static VerifiedJar of(byte[] jar, TakamakaClassLoader classLoader, boolean duringInitialization, Consumer<Error> onError, boolean skipsVerification) throws VerificationException, IllegalJarException, UnknownTypeException {
+	public static VerifiedJar of(byte[] jar, TakamakaClassLoader classLoader, boolean duringInitialization, Consumer<VerificationError> onError, boolean skipsVerification) throws VerificationException, IllegalJarException, UnknownTypeException {
 		return new VerifiedJarImpl(jar, classLoader, duringInitialization, onError, skipsVerification);
 	}
 
@@ -72,7 +72,7 @@ public abstract class VerifiedJars {
 	 * @throws E2 if the jar under verification is illegal
 	 * @throws E3 if the jar under verification refers to a type that cannot be resolved
 	 */
-	public static <E1 extends Exception, E2 extends Exception, E3 extends Exception> VerifiedJar of(byte[] jar, TakamakaClassLoader classLoader, boolean duringInitialization, Consumer<Error> onError, boolean skipsVerification,
+	public static <E1 extends Exception, E2 extends Exception, E3 extends Exception> VerifiedJar of(byte[] jar, TakamakaClassLoader classLoader, boolean duringInitialization, Consumer<VerificationError> onError, boolean skipsVerification,
 			ExceptionReplacer<? super VerificationException, ? extends E1> verificationExceptionReplacer,
 			ExceptionReplacer<? super IllegalJarException, ? extends E2> illegalJarExceptionReplacer,
 			ExceptionReplacer<? super UnknownTypeException, ? extends E3> unknownTypeExceptionReplacer) throws E1, E2, E3 {

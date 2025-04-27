@@ -22,9 +22,9 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
-import io.hotmoka.node.internal.gson.FieldSignatureDecoder;
-import io.hotmoka.node.internal.gson.FieldSignatureEncoder;
-import io.hotmoka.node.internal.gson.FieldSignatureJson;
+import io.hotmoka.node.internal.json.FieldSignatureDecoder;
+import io.hotmoka.node.internal.json.FieldSignatureEncoder;
+import io.hotmoka.node.internal.json.FieldSignatureJson;
 import io.hotmoka.node.internal.signatures.FieldSignatureImpl;
 
 /**

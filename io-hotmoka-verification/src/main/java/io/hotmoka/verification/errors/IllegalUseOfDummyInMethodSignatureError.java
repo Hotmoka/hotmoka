@@ -16,14 +16,14 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-import io.hotmoka.verification.internal.AbstractError;
+import io.hotmoka.verification.internal.AbstractVerificationError;
 import io.hotmoka.whitelisting.WhitelistingConstants;
 
 /**
  * An error issued when a method has a name not allowed in Takamaka,
  * for instance starting with an instrumentation prefix.
  */
-public class IllegalUseOfDummyInMethodSignatureError extends AbstractError {
+public class IllegalUseOfDummyInMethodSignatureError extends AbstractVerificationError {
 
 	/**
 	 * Builds the error.

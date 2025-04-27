@@ -19,9 +19,9 @@ package io.hotmoka.node.messages;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.messages.api.EventMessage;
 import io.hotmoka.node.messages.internal.EventMessageImpl;
-import io.hotmoka.node.messages.internal.gson.EventMessageDecoder;
-import io.hotmoka.node.messages.internal.gson.EventMessageEncoder;
-import io.hotmoka.node.messages.internal.gson.EventMessageJson;
+import io.hotmoka.node.messages.internal.json.EventMessageDecoder;
+import io.hotmoka.node.messages.internal.json.EventMessageEncoder;
+import io.hotmoka.node.messages.internal.json.EventMessageJson;
 
 /**
  * A provider of {@link EventMessage}.

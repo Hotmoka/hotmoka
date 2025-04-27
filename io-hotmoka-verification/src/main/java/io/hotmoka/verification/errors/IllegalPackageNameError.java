@@ -16,12 +16,12 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-import io.hotmoka.verification.internal.AbstractError;
+import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
  * An error issued when a package has an illegal name.
  */
-public class IllegalPackageNameError extends AbstractError {
+public class IllegalPackageNameError extends AbstractVerificationError {
 
 	/**
 	 * Builds the error.

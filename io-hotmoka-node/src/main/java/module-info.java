@@ -20,7 +20,7 @@ limitations under the License.
 module io.hotmoka.node {
 	exports io.hotmoka.node;
 	// beans must be accessible, encoded and decoded by reflection through Gson
-	opens io.hotmoka.node.internal.gson to com.google.gson;
+	opens io.hotmoka.node.internal.json to com.google.gson;
 
 	requires transitive io.hotmoka.node.api;
 	requires io.hotmoka.crypto;

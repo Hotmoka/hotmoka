@@ -19,9 +19,9 @@ package io.hotmoka.node.messages;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.messages.api.GetPolledResponseResultMessage;
 import io.hotmoka.node.messages.internal.GetPolledResponseResultMessageImpl;
-import io.hotmoka.node.messages.internal.gson.GetPolledResponseResultMessageDecoder;
-import io.hotmoka.node.messages.internal.gson.GetPolledResponseResultMessageEncoder;
-import io.hotmoka.node.messages.internal.gson.GetPolledResponseResultMessageJson;
+import io.hotmoka.node.messages.internal.json.GetPolledResponseResultMessageDecoder;
+import io.hotmoka.node.messages.internal.json.GetPolledResponseResultMessageEncoder;
+import io.hotmoka.node.messages.internal.json.GetPolledResponseResultMessageJson;
 
 /**
  * A provider of {@link GetPolledResponseResultMessage}.

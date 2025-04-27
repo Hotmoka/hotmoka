@@ -31,7 +31,7 @@ import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.node.AbstractConsensusConfigBuilder;
-import io.hotmoka.node.internal.gson.ConsensusConfigJson;
+import io.hotmoka.node.internal.json.ConsensusConfigJson;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 

@@ -16,12 +16,12 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-import io.hotmoka.verification.internal.AbstractError;
+import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
  * An error issued if {@code @@ThrowsExceptions} is applied to a non-public method or constructor.
  */
-public class ThrowsExceptionsOnNonPublicError extends AbstractError {
+public class ThrowsExceptionsOnNonPublicError extends AbstractVerificationError {
 
 	/**
 	 * Builds the error.

@@ -21,9 +21,9 @@ import java.util.stream.Stream;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.messages.api.GetStateResultMessage;
 import io.hotmoka.node.messages.internal.GetStateResultMessageImpl;
-import io.hotmoka.node.messages.internal.gson.GetStateResultMessageDecoder;
-import io.hotmoka.node.messages.internal.gson.GetStateResultMessageEncoder;
-import io.hotmoka.node.messages.internal.gson.GetStateResultMessageJson;
+import io.hotmoka.node.messages.internal.json.GetStateResultMessageDecoder;
+import io.hotmoka.node.messages.internal.json.GetStateResultMessageEncoder;
+import io.hotmoka.node.messages.internal.json.GetStateResultMessageJson;
 
 /**
  * A provider of {@link GetStateResultMessage}.

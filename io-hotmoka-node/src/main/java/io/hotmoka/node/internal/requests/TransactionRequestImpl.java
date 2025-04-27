@@ -35,7 +35,7 @@ import io.hotmoka.node.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
-import io.hotmoka.node.internal.gson.TransactionRequestJson;
+import io.hotmoka.node.internal.json.TransactionRequestJson;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**

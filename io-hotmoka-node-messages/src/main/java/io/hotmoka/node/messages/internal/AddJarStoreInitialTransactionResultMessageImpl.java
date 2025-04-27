@@ -22,7 +22,7 @@ import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.messages.api.AddJarStoreInitialTransactionResultMessage;
-import io.hotmoka.node.messages.internal.gson.AddJarStoreInitialTransactionResultMessageJson;
+import io.hotmoka.node.messages.internal.json.AddJarStoreInitialTransactionResultMessageJson;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 

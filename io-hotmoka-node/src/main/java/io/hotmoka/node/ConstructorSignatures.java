@@ -22,9 +22,9 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
-import io.hotmoka.node.internal.gson.ConstructorSignatureDecoder;
-import io.hotmoka.node.internal.gson.ConstructorSignatureEncoder;
-import io.hotmoka.node.internal.gson.ConstructorSignatureJson;
+import io.hotmoka.node.internal.json.ConstructorSignatureDecoder;
+import io.hotmoka.node.internal.json.ConstructorSignatureEncoder;
+import io.hotmoka.node.internal.json.ConstructorSignatureJson;
 import io.hotmoka.node.internal.signatures.ConstructorSignatureImpl;
 
 /**

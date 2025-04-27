@@ -16,12 +16,12 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-import io.hotmoka.verification.internal.AbstractError;
+import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
  * An error issued when a field of a non-white-listed class is accessed.
  */
-public class IllegalAccessToNonWhiteListedFieldError extends AbstractError {
+public class IllegalAccessToNonWhiteListedFieldError extends AbstractVerificationError {
 
 	/**
 	 * Builds the error.

@@ -30,7 +30,7 @@ import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.node.api.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.internal.gson.TransactionRequestJson;
+import io.hotmoka.node.internal.json.TransactionRequestJson;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**

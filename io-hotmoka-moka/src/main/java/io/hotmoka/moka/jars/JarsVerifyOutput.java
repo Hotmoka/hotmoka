@@ -55,7 +55,7 @@ public interface JarsVerifyOutput {
 		public final String where;
 		public final String message;
 
-		public ErrorJSON(io.hotmoka.verification.api.Error error) {
+		public ErrorJSON(io.hotmoka.verification.api.VerificationError error) {
 			this.where = error.getWhere();
 			this.message = error.getMessage();
 		}

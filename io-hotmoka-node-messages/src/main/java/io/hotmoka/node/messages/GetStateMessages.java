@@ -19,9 +19,9 @@ package io.hotmoka.node.messages;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.messages.api.GetStateMessage;
 import io.hotmoka.node.messages.internal.GetStateMessageImpl;
-import io.hotmoka.node.messages.internal.gson.GetStateMessageDecoder;
-import io.hotmoka.node.messages.internal.gson.GetStateMessageEncoder;
-import io.hotmoka.node.messages.internal.gson.GetStateMessageJson;
+import io.hotmoka.node.messages.internal.json.GetStateMessageDecoder;
+import io.hotmoka.node.messages.internal.json.GetStateMessageEncoder;
+import io.hotmoka.node.messages.internal.json.GetStateMessageJson;
 
 /**
  * A provider of {@link GetStateMessage}.

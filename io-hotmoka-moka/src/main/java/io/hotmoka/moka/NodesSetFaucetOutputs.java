@@ -36,7 +36,7 @@ public abstract class NodesSetFaucetOutputs {
 	 * @return the output of the command
 	 * @throws DecodeException if {@code json} cannot be decoded into the output
 	 */
-	public static NodesSetFaucetOutput of(String json) throws DecodeException {
+	public static NodesSetFaucetOutput from(String json) throws DecodeException {
 		return new Decoder().decode(json);
 	}
 

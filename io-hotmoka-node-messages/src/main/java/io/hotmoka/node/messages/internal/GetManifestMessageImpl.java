@@ -20,7 +20,7 @@ import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.messages.api.GetManifestMessage;
-import io.hotmoka.node.messages.internal.gson.GetManifestMessageJson;
+import io.hotmoka.node.messages.internal.json.GetManifestMessageJson;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 

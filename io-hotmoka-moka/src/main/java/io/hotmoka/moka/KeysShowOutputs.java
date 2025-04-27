@@ -36,7 +36,7 @@ public abstract class KeysShowOutputs {
 	 * @return the output of the command
 	 * @throws DecodeException if {@code json} cannot be decoded into the output
 	 */
-	public static KeysShowOutput of(String json) throws DecodeException {
+	public static KeysShowOutput from(String json) throws DecodeException {
 		return new Decoder().decode(json);
 	}
 

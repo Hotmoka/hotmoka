@@ -21,7 +21,7 @@ module io.hotmoka.node.messages {
 	exports io.hotmoka.node.messages;
 	// beans must be accessible, encoded and decoded by reflection through Gson
 	opens io.hotmoka.node.messages.internal to com.google.gson;
-	opens io.hotmoka.node.messages.internal.gson to com.google.gson;
+	opens io.hotmoka.node.messages.internal.json to com.google.gson;
 
 	requires transitive io.hotmoka.node.messages.api;
 	requires transitive io.hotmoka.node.api;

@@ -16,12 +16,12 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-import io.hotmoka.verification.internal.AbstractError;
+import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
  * An error issued if a finalizer method is defined.
  */
-public class IllegalFinalizerError extends AbstractError {
+public class IllegalFinalizerError extends AbstractVerificationError {
 
 	/**
 	 * Builds the error.

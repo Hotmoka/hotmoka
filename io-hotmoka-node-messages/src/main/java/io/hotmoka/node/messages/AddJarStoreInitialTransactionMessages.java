@@ -19,9 +19,9 @@ package io.hotmoka.node.messages;
 import io.hotmoka.node.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.node.messages.api.AddJarStoreInitialTransactionMessage;
 import io.hotmoka.node.messages.internal.AddJarStoreInitialTransactionMessageImpl;
-import io.hotmoka.node.messages.internal.gson.AddJarStoreInitialTransactionMessageDecoder;
-import io.hotmoka.node.messages.internal.gson.AddJarStoreInitialTransactionMessageEncoder;
-import io.hotmoka.node.messages.internal.gson.AddJarStoreInitialTransactionMessageJson;
+import io.hotmoka.node.messages.internal.json.AddJarStoreInitialTransactionMessageDecoder;
+import io.hotmoka.node.messages.internal.json.AddJarStoreInitialTransactionMessageEncoder;
+import io.hotmoka.node.messages.internal.json.AddJarStoreInitialTransactionMessageJson;
 
 /**
  * A provider of {@link AddJarStoreInitialTransactionMessage}.

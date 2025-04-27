@@ -22,7 +22,7 @@ import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.messages.api.PostConstructorCallTransactionResultMessage;
-import io.hotmoka.node.messages.internal.gson.PostConstructorCallTransactionResultMessageJson;
+import io.hotmoka.node.messages.internal.json.PostConstructorCallTransactionResultMessageJson;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 

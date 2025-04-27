@@ -19,9 +19,9 @@ package io.hotmoka.node.messages;
 import io.hotmoka.node.api.requests.InitializationTransactionRequest;
 import io.hotmoka.node.messages.api.AddInitializationTransactionMessage;
 import io.hotmoka.node.messages.internal.AddInitializationTransactionMessageImpl;
-import io.hotmoka.node.messages.internal.gson.AddInitializationTransactionMessageDecoder;
-import io.hotmoka.node.messages.internal.gson.AddInitializationTransactionMessageEncoder;
-import io.hotmoka.node.messages.internal.gson.AddInitializationTransactionMessageJson;
+import io.hotmoka.node.messages.internal.json.AddInitializationTransactionMessageDecoder;
+import io.hotmoka.node.messages.internal.json.AddInitializationTransactionMessageEncoder;
+import io.hotmoka.node.messages.internal.json.AddInitializationTransactionMessageJson;
 
 /**
  * A provider of {@link AddInitializationTransactionMessage}.

@@ -16,13 +16,13 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-import io.hotmoka.verification.internal.AbstractError;
+import io.hotmoka.verification.internal.AbstractVerificationError;
 import io.hotmoka.whitelisting.WhitelistingConstants;
 
 /**
  * An error issued when a field type is the special class used to mark some instrumented code.
  */
-public class IllegalUseOfDummyInFieldSignatureError extends AbstractError {
+public class IllegalUseOfDummyInFieldSignatureError extends AbstractVerificationError {
 
 	/**
 	 * Builds the error.

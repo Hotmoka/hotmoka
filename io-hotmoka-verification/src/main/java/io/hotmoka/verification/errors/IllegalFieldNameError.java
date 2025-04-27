@@ -16,13 +16,13 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-import io.hotmoka.verification.internal.AbstractError;
+import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
  * An error issued when a field has a name not allowed in Takamaka,
  * for instance because it starts with an instrumentation prefix.
  */
-public class IllegalFieldNameError extends AbstractError {
+public class IllegalFieldNameError extends AbstractVerificationError {
 
 	/**
 	 * Builds the error.

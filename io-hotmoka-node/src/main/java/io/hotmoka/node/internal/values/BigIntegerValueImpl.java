@@ -28,7 +28,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageValue;
-import io.hotmoka.node.internal.gson.StorageValueJson;
+import io.hotmoka.node.internal.json.StorageValueJson;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**

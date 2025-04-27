@@ -51,7 +51,7 @@ public class KeysTests extends AbstractMokaTest {
 		var signature = SignatureAlgorithms.sha256dsa();
 		var password = "mypassword";
 		var name = "mykey.pem";
-		var actual = KeysCreateOutputs.of(MokaNew.keysCreate("--dir=" + dir + " --name=" + name + " --signature=" + signature + " --password=" + password + " --show-private --json"));
+		var actual = KeysCreateOutputs.from(MokaNew.keysCreate("--dir=" + dir + " --name=" + name + " --signature=" + signature + " --password=" + password + " --show-private --json"));
 		var entropy = Entropies.load(dir.resolve(name));
 		var keys = entropy.keys(password, signature);
 		byte[] publicKeyBytes = signature.encodingOf(keys.getPublic());
@@ -82,7 +82,7 @@ public class KeysTests extends AbstractMokaTest {
 		var name = "mykey.pem";
 		MokaNew.keysCreate("--dir=" + dir + " --name=" + name + " --signature=" + signature + " --password=" + password);
 		Path key = dir.resolve(name);
-		var actual = KeysShowOutputs.of(MokaNew.keysShow(key + " --signature=" + signature + " --password=" + password + " --show-private --json"));
+		var actual = KeysShowOutputs.from(MokaNew.keysShow(key + " --signature=" + signature + " --password=" + password + " --show-private --json"));
 		var entropy = Entropies.load(key);
 		var keys = entropy.keys(password, signature);
 		byte[] publicKeyBytes = signature.encodingOf(keys.getPublic());
@@ -114,12 +114,12 @@ public class KeysTests extends AbstractMokaTest {
 		// we name the key pair file as a storage reference, so that it is already the key pair file of an account
 		MokaNew.keysCreate("--dir=" + dir + " --name=" + expectedReference + ".pem --signature=" + signature + " --password=" + password);
 		var expectedEntropy = Entropies.load(dir.resolve(expectedReference + ".pem"));
-		var keysExportOutput = KeysExportOutputs.of(MokaNew.keysExport(expectedReference + " --dir=" + dir + " --json"));
+		var keysExportOutput = KeysExportOutputs.from(MokaNew.keysExport(expectedReference + " --dir=" + dir + " --json"));
 		String spaceSeparatedWords = keysExportOutput.getBip39Words().collect(Collectors.joining(" "));
 		// we re-import the key file into a difference directory, so that it does not override the original file
 		Path copy = dir.resolve("copy");
 		Files.createDirectories(copy);
-		var keysImportOutput = KeysImportOutputs.of(MokaNew.keysImport(spaceSeparatedWords + " --dir=" + copy + " --json"));
+		var keysImportOutput = KeysImportOutputs.from(MokaNew.keysImport(spaceSeparatedWords + " --dir=" + copy + " --json"));
 		var actualReference = keysImportOutput.getReference();
 		var actualEntropy = Entropies.load(copy.resolve(actualReference + ".pem"));
 

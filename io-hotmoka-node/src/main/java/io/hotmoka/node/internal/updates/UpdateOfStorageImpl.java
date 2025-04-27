@@ -28,7 +28,7 @@ import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.updates.UpdateOfStorage;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.internal.gson.UpdateJson;
+import io.hotmoka.node.internal.json.UpdateJson;
 import io.hotmoka.node.internal.values.StorageReferenceImpl;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 

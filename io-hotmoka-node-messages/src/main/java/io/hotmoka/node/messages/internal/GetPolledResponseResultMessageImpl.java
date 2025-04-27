@@ -22,7 +22,7 @@ import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.messages.api.GetPolledResponseResultMessage;
-import io.hotmoka.node.messages.internal.gson.GetPolledResponseResultMessageJson;
+import io.hotmoka.node.messages.internal.json.GetPolledResponseResultMessageJson;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 

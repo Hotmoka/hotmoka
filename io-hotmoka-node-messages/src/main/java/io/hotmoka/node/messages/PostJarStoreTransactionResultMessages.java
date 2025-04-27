@@ -19,9 +19,9 @@ package io.hotmoka.node.messages;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.messages.api.PostJarStoreTransactionResultMessage;
 import io.hotmoka.node.messages.internal.PostJarStoreTransactionResultMessageImpl;
-import io.hotmoka.node.messages.internal.gson.PostJarStoreTransactionResultMessageDecoder;
-import io.hotmoka.node.messages.internal.gson.PostJarStoreTransactionResultMessageEncoder;
-import io.hotmoka.node.messages.internal.gson.PostJarStoreTransactionResultMessageJson;
+import io.hotmoka.node.messages.internal.json.PostJarStoreTransactionResultMessageDecoder;
+import io.hotmoka.node.messages.internal.json.PostJarStoreTransactionResultMessageEncoder;
+import io.hotmoka.node.messages.internal.json.PostJarStoreTransactionResultMessageJson;
 
 /**
  * A provider of {@link PostJarStoreTransactionResultMessage}.

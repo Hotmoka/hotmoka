@@ -33,7 +33,7 @@ import io.hotmoka.node.api.responses.CodeExecutionTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
-import io.hotmoka.node.internal.gson.TransactionRequestJson;
+import io.hotmoka.node.internal.json.TransactionRequestJson;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**

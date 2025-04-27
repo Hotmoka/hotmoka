@@ -16,12 +16,12 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-import io.hotmoka.verification.internal.AbstractError;
+import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
  * An error issued when a {@code jsr} bytecode is present in the Takamaka code.
  */
-public class IllegalJsrInstructionError extends AbstractError {
+public class IllegalJsrInstructionError extends AbstractVerificationError {
 
 	/**
 	 * Builds the error.

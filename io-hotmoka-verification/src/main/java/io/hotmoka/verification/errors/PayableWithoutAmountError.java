@@ -16,12 +16,12 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-import io.hotmoka.verification.internal.AbstractError;
+import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
  * An error issued when a {@code @@Payable} method has not a first argument for the paid amount.
  */
-public class PayableWithoutAmountError extends AbstractError {
+public class PayableWithoutAmountError extends AbstractVerificationError {
 
 	/**
 	 * Builds the error.

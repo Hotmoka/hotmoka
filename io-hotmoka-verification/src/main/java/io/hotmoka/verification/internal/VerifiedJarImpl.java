@@ -35,7 +35,7 @@ import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.util.ClassLoaderRepository;
 
-import io.hotmoka.verification.api.Error;
+import io.hotmoka.verification.api.VerificationError;
 import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.verification.api.UnknownTypeException;
@@ -75,7 +75,7 @@ public class VerifiedJarImpl implements VerifiedJar {
 	 * @throws IllegalJarException if the jar under verification is illegal
 	 * @throws UnknownTypeException if some type of the jar under verification cannot be resolved
 	 */
-	public VerifiedJarImpl(byte[] jar, TakamakaClassLoader classLoader, boolean duringInitialization, Consumer<Error> onError, boolean skipsVerification) throws VerificationException, IllegalJarException, UnknownTypeException {
+	public VerifiedJarImpl(byte[] jar, TakamakaClassLoader classLoader, boolean duringInitialization, Consumer<VerificationError> onError, boolean skipsVerification) throws VerificationException, IllegalJarException, UnknownTypeException {
 		this.classLoader = classLoader;
 
 		// we set the BCEL repository so that it matches the class path made up of the jar to
@@ -84,7 +84,7 @@ public class VerifiedJarImpl implements VerifiedJar {
 		// whole hierarchy of classes must be available to BCEL through its repository
 		Repository.setRepository(new ClassLoaderRepository(classLoader.getJavaClassLoader()));
 
-		SortedSet<io.hotmoka.verification.api.Error> errors = new TreeSet<>();
+		SortedSet<io.hotmoka.verification.api.VerificationError> errors = new TreeSet<>();
 		new Initializer(jar, duringInitialization, skipsVerification, errors);
 
 		errors.forEach(onError);
@@ -134,7 +134,7 @@ public class VerifiedJarImpl implements VerifiedJar {
 		 * @throws IllegalJarException if the jar under verification is illegal
 		 * @throws UnknownTypeException if some type of the jar under verification cannot be resolved
 		 */
-		private Initializer(byte[] origin, boolean duringInitialization, boolean skipsVerification, SortedSet<io.hotmoka.verification.api.Error> errors) throws IllegalJarException, UnknownTypeException {
+		private Initializer(byte[] origin, boolean duringInitialization, boolean skipsVerification, SortedSet<io.hotmoka.verification.api.VerificationError> errors) throws IllegalJarException, UnknownTypeException {
 			this.duringInitialization = duringInitialization;
 
 			try {
@@ -176,7 +176,7 @@ public class VerifiedJarImpl implements VerifiedJar {
 		 * @throws IllegalJarException if the jar under verification is illegal
 		 * @throws UnknownTypeException if some type of the jar under verification cannot be resolved
 		 */
-		private Optional<VerifiedClass> buildVerifiedClass(ZipEntry entry, InputStream input, SortedSet<io.hotmoka.verification.api.Error> errors) throws IllegalJarException, UnknownTypeException {
+		private Optional<VerifiedClass> buildVerifiedClass(ZipEntry entry, InputStream input, SortedSet<io.hotmoka.verification.api.VerificationError> errors) throws IllegalJarException, UnknownTypeException {
 			JavaClass parsedClass;
 
 			try {

@@ -17,9 +17,9 @@ limitations under the License.
 package io.hotmoka.node;
 
 import io.hotmoka.node.api.nodes.NodeInfo;
-import io.hotmoka.node.internal.gson.NodeInfoDecoder;
-import io.hotmoka.node.internal.gson.NodeInfoEncoder;
-import io.hotmoka.node.internal.gson.NodeInfoJson;
+import io.hotmoka.node.internal.json.NodeInfoDecoder;
+import io.hotmoka.node.internal.json.NodeInfoEncoder;
+import io.hotmoka.node.internal.json.NodeInfoJson;
 import io.hotmoka.node.internal.nodes.NodeInfoImpl;
 
 /**

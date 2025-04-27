@@ -22,7 +22,7 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.api.responses.InitializationTransactionResponse;
-import io.hotmoka.node.internal.gson.TransactionResponseJson;
+import io.hotmoka.node.internal.json.TransactionResponseJson;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**

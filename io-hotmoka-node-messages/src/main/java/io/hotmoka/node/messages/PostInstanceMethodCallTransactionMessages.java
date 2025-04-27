@@ -19,9 +19,9 @@ package io.hotmoka.node.messages;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.messages.api.PostInstanceMethodCallTransactionMessage;
 import io.hotmoka.node.messages.internal.PostInstanceMethodCallTransactionMessageImpl;
-import io.hotmoka.node.messages.internal.gson.PostInstanceMethodCallTransactionMessageDecoder;
-import io.hotmoka.node.messages.internal.gson.PostInstanceMethodCallTransactionMessageEncoder;
-import io.hotmoka.node.messages.internal.gson.PostInstanceMethodCallTransactionMessageJson;
+import io.hotmoka.node.messages.internal.json.PostInstanceMethodCallTransactionMessageDecoder;
+import io.hotmoka.node.messages.internal.json.PostInstanceMethodCallTransactionMessageEncoder;
+import io.hotmoka.node.messages.internal.json.PostInstanceMethodCallTransactionMessageJson;
 
 /**
  * A provider of {@link PostInstanceMethodCallTransactionMessage}.

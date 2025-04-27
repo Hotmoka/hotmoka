@@ -28,7 +28,7 @@ import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
-import io.hotmoka.node.internal.gson.FieldSignatureJson;
+import io.hotmoka.node.internal.json.FieldSignatureJson;
 import io.hotmoka.node.internal.types.AbstractStorageType;
 import io.hotmoka.node.internal.types.ClassTypeImpl;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;

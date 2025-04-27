@@ -16,12 +16,12 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-import io.hotmoka.verification.internal.AbstractError;
+import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
  * An error generated when the method {@code caller()} is not called on {@code this}.
  */
-public class CallerNotOnThisError extends AbstractError {
+public class CallerNotOnThisError extends AbstractVerificationError {
 
 	/**
 	 * Builds the error.

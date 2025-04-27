@@ -97,7 +97,7 @@ public abstract class CheckOnClasses {
 		this.duringInitialization = builder.duringInitialization;
 	}
 
-	protected final void issue(AbstractError error) {
+	protected final void issue(AbstractVerificationError error) {
 		builder.issueHandler.accept(error);
 		builder.setHasErrors();
 	}

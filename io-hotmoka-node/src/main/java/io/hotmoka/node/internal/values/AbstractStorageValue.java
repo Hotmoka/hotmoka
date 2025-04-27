@@ -33,7 +33,7 @@ import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
-import io.hotmoka.node.internal.gson.StorageValueJson;
+import io.hotmoka.node.internal.json.StorageValueJson;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**

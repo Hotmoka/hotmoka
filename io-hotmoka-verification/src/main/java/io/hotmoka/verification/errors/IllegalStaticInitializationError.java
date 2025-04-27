@@ -16,12 +16,12 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-import io.hotmoka.verification.internal.AbstractError;
+import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
  * An error issued if a static initializer is used.
  */
-public class IllegalStaticInitializationError extends AbstractError {
+public class IllegalStaticInitializationError extends AbstractVerificationError {
 
 	/**
 	 * Builds the error.

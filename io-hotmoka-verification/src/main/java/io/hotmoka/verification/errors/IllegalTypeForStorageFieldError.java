@@ -16,12 +16,12 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-import io.hotmoka.verification.internal.AbstractError;
+import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
  * An error issued when a field has a type not allowed in storage.
  */
-public class IllegalTypeForStorageFieldError extends AbstractError {
+public class IllegalTypeForStorageFieldError extends AbstractVerificationError {
 
 	/**
 	 * Builds the error.

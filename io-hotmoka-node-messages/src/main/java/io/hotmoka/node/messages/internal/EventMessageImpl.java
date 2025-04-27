@@ -20,7 +20,7 @@ import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.messages.api.EventMessage;
-import io.hotmoka.node.messages.internal.gson.EventMessageJson;
+import io.hotmoka.node.messages.internal.json.EventMessageJson;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**

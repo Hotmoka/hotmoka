@@ -36,7 +36,7 @@ public abstract class AccountsShowOutputs {
 	 * @return the output of the command
 	 * @throws DecodeException if {@code json} cannot be decoded into the output
 	 */
-	public static AccountsShowOutput of(String json) throws DecodeException {
+	public static AccountsShowOutput from(String json) throws DecodeException {
 		return new Decoder().decode(json);
 	}
 

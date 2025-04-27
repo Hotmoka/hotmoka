@@ -26,7 +26,7 @@ import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.messages.api.GetStateResultMessage;
-import io.hotmoka.node.messages.internal.gson.GetStateResultMessageJson;
+import io.hotmoka.node.messages.internal.json.GetStateResultMessageJson;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 

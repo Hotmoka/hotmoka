@@ -16,13 +16,13 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-import io.hotmoka.verification.internal.AbstractError;
+import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
  * An error issued when a {@code @@Payable} constructor is not called by constructor chaining
  * from another {@code @@Payable} constructor.
  */
-public class IllegalCallToPayableConstructorOnThis extends AbstractError {
+public class IllegalCallToPayableConstructorOnThis extends AbstractVerificationError {
 
 	/**
 	 * Builds the error.

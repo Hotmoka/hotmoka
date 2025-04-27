@@ -23,7 +23,7 @@ import io.hotmoka.exceptions.Objects;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.messages.api.GetConsensusConfigResultMessage;
-import io.hotmoka.node.messages.internal.gson.GetConsensusConfigResultMessageJson;
+import io.hotmoka.node.messages.internal.json.GetConsensusConfigResultMessageJson;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
