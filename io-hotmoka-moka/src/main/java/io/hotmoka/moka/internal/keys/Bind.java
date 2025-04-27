@@ -18,7 +18,9 @@ package io.hotmoka.moka.internal.keys;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.util.Arrays;
 import java.util.concurrent.TimeoutException;
@@ -27,6 +29,7 @@ import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.moka.KeysBindOutputs;
 import io.hotmoka.moka.api.keys.KeysBindOutput;
 import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
@@ -162,7 +165,6 @@ public class Bind extends AbstractMokaRpcCommand {
 
 	private void createAccountFile(StorageReference reference) throws CommandException {
 		Account account;
-
 		try {
 			account = Accounts.of(Entropies.load(key), reference);
 		}
@@ -171,7 +173,6 @@ public class Bind extends AbstractMokaRpcCommand {
 		}
 
 		Path file;
-
 		try {
 			file = account.dump();
 		}
@@ -179,7 +180,7 @@ public class Bind extends AbstractMokaRpcCommand {
 			throw new CommandException("Cannot write the account information file", e);
 		}
 
-		new Output().println(System.out, file, json());
+		new Output(reference, file).println(System.out, json());
 	}
 
 	/**
@@ -188,9 +189,22 @@ public class Bind extends AbstractMokaRpcCommand {
 	public static class Output implements KeysBindOutput {
 
 		/**
+		 * The path of the created key pair file for the account that has been bound.
+		 */
+		private final Path file;
+
+		/**
+		 * The reference of the bound account.
+		 */
+		private final StorageReference account;
+
+		/**
 		 * Builds the output of the command.
 		 */
-		private Output() {}
+		private Output(StorageReference account, Path file) {
+			this.account = account;
+			this.file = file;
+		}
 
 		/**
 		 * Builds the output of the command from its JSON representation.
@@ -198,10 +212,33 @@ public class Bind extends AbstractMokaRpcCommand {
 		 * @param json the JSON representation
 		 * @throws InconsistentJsonException if {@code json} is inconsistent
 		 */
-		public Output(KeysBindOutputJson json) throws InconsistentJsonException {}
+		public Output(KeysBindOutputJson json) throws InconsistentJsonException {
+			try {
+				this.file = Paths.get(Objects.requireNonNull(json.getFile(), "file cannot be null", InconsistentJsonException::new));
+			}
+			catch (InvalidPathException e) {
+				throw new InconsistentJsonException(e);
+			}
+
+			StorageValue value = Objects.requireNonNull(json.getAccount(), "account cannot be null", InconsistentJsonException::new).unmap();
+			if (value instanceof StorageReference sr)
+				this.account = sr;
+			else
+				throw new InconsistentJsonException("The reference of the bound account must be a storage reference, not a " + value.getClass().getName());
+		}
 
 		@Override
-		public void println(PrintStream out, Path file, boolean json) {
+		public Path getFile() {
+			return file;
+		}
+
+		@Override
+		public StorageReference getAccount() {
+			return account;
+		}
+
+		@Override
+		public void println(PrintStream out, boolean json) {
 			if (json) {
 				try {
 					out.println(new KeysBindOutputs.Encoder().encode(this));

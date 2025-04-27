@@ -20,7 +20,6 @@ import java.io.PrintStream;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * The output of the {@code moka keys export} command.
@@ -39,8 +38,7 @@ public interface KeysExportOutput {
 	 * Prints this output as a string.
 	 * 
 	 * @param out the destination print stream
-	 * @param reference the reference of the account that is being exported
 	 * @param json true if and only if the string must be in JSON format
 	 */
-	void println(PrintStream out, StorageReference reference, boolean json);
+	void println(PrintStream out, boolean json);
 }

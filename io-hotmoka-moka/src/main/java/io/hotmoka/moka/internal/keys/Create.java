@@ -18,7 +18,9 @@ package io.hotmoka.moka.internal.keys;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
@@ -104,7 +106,7 @@ public class Create extends AbstractCommand {
 			}
 
 			try {
-				new Output(signature, keys, showPrivate).println(System.out, file, json);
+				new Output(file, signature, keys, showPrivate).println(System.out, json);
 			}
 			catch (NoSuchAlgorithmException e) {
 				throw new CommandException("The sha256 hashing algorithm is not available in this machine!");
@@ -125,6 +127,7 @@ public class Create extends AbstractCommand {
 	 */
 	@Immutable
 	public static class Output implements KeysCreateOutput {
+		private final Path file;
 		private final SignatureAlgorithm signature;
 		private final String publicKeyBase58;
 		private final String publicKeyBase64;
@@ -142,6 +145,14 @@ public class Create extends AbstractCommand {
 		 */
 		public Output(KeysCreateOutputJson json) throws InconsistentJsonException, NoSuchAlgorithmException {
 			ExceptionSupplier<InconsistentJsonException> exp = InconsistentJsonException::new;
+
+			try {
+				this.file = Paths.get(Objects.requireNonNull(json.getFile(), "file cannot be null", InconsistentJsonException::new));
+			}
+			catch (InvalidPathException e) {
+				throw new InconsistentJsonException(e);
+			}
+
 			this.signature = SignatureAlgorithms.of(Objects.requireNonNull(json.getSignature(), "signature cannot be null", exp));
 			this.publicKeyBase58 = Base58.requireBase58(Objects.requireNonNull(json.getPublicKeyBase58(), "publicKeyBase58 cannot be null", exp), exp);
 			this.publicKeyBase64 = Base64.requireBase64(Objects.requireNonNull(json.getPublicKeyBase64(), "publicKeyBase64 cannot be null", exp), exp);
@@ -153,7 +164,8 @@ public class Create extends AbstractCommand {
 			this.concatenatedBase64 = json.getConcatenatedBase64().orElse(null);
 		}
 
-		private Output(SignatureAlgorithm signature, KeyPair keys, boolean alsoPrivate) throws NoSuchAlgorithmException, InvalidKeyException {
+		private Output(Path file, SignatureAlgorithm signature, KeyPair keys, boolean alsoPrivate) throws NoSuchAlgorithmException, InvalidKeyException {
+			this.file = file;
 			this.signature = signature;
 			byte[] publicKeyBytes = signature.encodingOf(keys.getPublic());
 			this.publicKeyBase58 = Base58.toBase58String(publicKeyBytes);
@@ -182,6 +194,11 @@ public class Create extends AbstractCommand {
 				this.privateKeyBase64 = null;
 				this.concatenatedBase64 = null;
 			}
+		}
+
+		@Override
+		public Path getFile() {
+			return file;
 		}
 
 		@Override
@@ -220,7 +237,7 @@ public class Create extends AbstractCommand {
 		}
 
 		@Override
-		public void println(PrintStream out, Path file, boolean json) {
+		public void println(PrintStream out, boolean json) {
 			if (json) {
 				try {
 					out.println(new KeysCreateOutputs.Encoder().encode(this));

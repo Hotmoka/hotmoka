@@ -18,6 +18,7 @@ package io.hotmoka.moka.internal.json;
 
 import io.hotmoka.moka.api.keys.KeysBindOutput;
 import io.hotmoka.moka.internal.keys.Bind;
+import io.hotmoka.node.StorageValues;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
@@ -25,8 +26,21 @@ import io.hotmoka.websockets.beans.api.JsonRepresentation;
  * The JSON representation of the output of the {@code moka keys bind} command.
  */
 public abstract class KeysBindOutputJson implements JsonRepresentation<KeysBindOutput> {
+	private final StorageValues.Json account;
+	private final String file;
 
-	protected KeysBindOutputJson(KeysBindOutput output) {}
+	protected KeysBindOutputJson(KeysBindOutput output) {
+		this.account = new StorageValues.Json(output.getAccount());
+		this.file = output.getFile().toString();
+	}
+
+	public StorageValues.Json getAccount() {
+		return account;
+	}
+
+	public String getFile() {
+		return file;
+	}
 
 	@Override
 	public KeysBindOutput unmap() throws InconsistentJsonException {

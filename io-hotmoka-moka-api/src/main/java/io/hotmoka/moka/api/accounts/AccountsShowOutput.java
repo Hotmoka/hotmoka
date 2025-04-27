@@ -29,6 +29,11 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 public interface AccountsShowOutput {
 
 	/**
+	 * The maximal length for the printed keys. After this length, the printout of the key gets truncated.
+	 */
+	final static int MAX_PRINTED_KEY = 200;
+
+	/**
 	 * Yields the balance of the account.
 	 * 
 	 * @return the balance of the account
@@ -55,11 +60,6 @@ public interface AccountsShowOutput {
 	 * @return the base64-encoded public key of the account
 	 */
 	String getPublicKeyBase64();
-
-	/**
-	 * The maximal length for the printed keys. After this length, the printout of the key gets truncated.
-	 */
-	final static int MAX_PRINTED_KEY = 200;
 
 	/**
 	 * Prints this output as a string.

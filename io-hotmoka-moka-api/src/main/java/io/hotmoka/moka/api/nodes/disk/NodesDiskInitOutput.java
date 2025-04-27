@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.moka.api.nodes.disk;
 
 import java.io.PrintStream;
+import java.net.URI;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.node.api.values.StorageReference;
@@ -26,6 +27,13 @@ import io.hotmoka.node.api.values.StorageReference;
  */
 @Immutable
 public interface NodesDiskInitOutput {
+
+	/**
+	 * Yields the URI of the published node service.
+	 * 
+	 * @return the URI of the published node service
+	 */
+	URI getURI();
 
 	/**
 	 * Yields the reference to the gamete of the initialized node.
@@ -38,8 +46,7 @@ public interface NodesDiskInitOutput {
 	 * Prints this output as a string.
 	 * 
 	 * @param out the destination print stream
-	 * @param port the TCP port where the service to the node has been published
 	 * @param json true if and only if the string must be in JSON format
 	 */
-	void println(PrintStream out, int port, boolean json);
+	void println(PrintStream out, boolean json);
 }

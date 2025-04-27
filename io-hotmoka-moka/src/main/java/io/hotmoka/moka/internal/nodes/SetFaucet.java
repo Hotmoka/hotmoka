@@ -144,7 +144,7 @@ public class SetFaucet extends AbstractMokaRpcCommand {
 			throw new CommandException("The gamete object cannot be found in the node");
 		}
 
-		new Output().println(System.out, max, json());
+		new Output().println(System.out, json());
 	}
 
 	/**
@@ -163,7 +163,7 @@ public class SetFaucet extends AbstractMokaRpcCommand {
 		public Output(NodesSetFaucetOutputJson json) throws InconsistentJsonException {}
 
 		@Override
-		public void println(PrintStream out, BigInteger threshold, boolean json) {
+		public void println(PrintStream out, boolean json) {
 			if (json) {
 				try {
 					out.println(new NodesSetFaucetOutputs.Encoder().encode(this));
@@ -174,7 +174,7 @@ public class SetFaucet extends AbstractMokaRpcCommand {
 				}
 			}
 			else
-				out.println("The threshold of the faucet has been set to " + threshold);
+				out.println("The threshold of the faucet has been set");
 		}
 	}
 }

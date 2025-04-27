@@ -28,6 +28,7 @@ import io.hotmoka.websockets.beans.api.JsonRepresentation;
  * The JSON representation of the output of the {@code moka keys create} command.
  */
 public abstract class KeysCreateOutputJson implements JsonRepresentation<KeysCreateOutput> {
+	private final String file;
 	private final String signature;
 	private final String publicKeyBase58;
 	private final String publicKeyBase64;
@@ -37,6 +38,7 @@ public abstract class KeysCreateOutputJson implements JsonRepresentation<KeysCre
 	private final String concatenatedBase64;
 
 	protected KeysCreateOutputJson(KeysCreateOutput output) {
+		this.file = output.getFile().toString();
 		this.signature = output.getSignature().getName();
 		this.publicKeyBase58 = output.getPublicKeyBase58();
 		this.publicKeyBase64 = output.getPublicKeyBase64();
@@ -44,6 +46,10 @@ public abstract class KeysCreateOutputJson implements JsonRepresentation<KeysCre
 		this.privateKeyBase58 = output.getPrivateKeyBase58().orElse(null);
 		this.privateKeyBase64 = output.getPrivateKeyBase64().orElse(null);
 		this.concatenatedBase64 = output.getConcatenatedBase64().orElse(null);
+	}
+
+	public String getFile() {
+		return file;
 	}
 
 	public String getSignature() {

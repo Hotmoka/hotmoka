@@ -19,6 +19,7 @@ package io.hotmoka.moka.internal.nodes.disk;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.math.BigInteger;
+import java.net.URI;
 import java.nio.file.Path;
 import java.security.InvalidKeyException;
 import java.security.PublicKey;
@@ -152,7 +153,7 @@ public class Init extends AbstractCommand {
 			var initialized = InitializedNodes.of(node, consensus, takamakaCode);
 			var service = NodeServices.of(node, port)) {
 
-			new Output(initialized.gamete()).println(System.out, port, json);
+			new Output(initialized.gamete(), URI.create("ws://localhost:" + port)).println(System.out, json);
 			waitForEnterKey();
 		}
 		catch (IOException e) {
@@ -183,9 +184,11 @@ public class Init extends AbstractCommand {
 	 */
 	public static class Output implements NodesDiskInitOutput {
 		private final StorageReference gamete;
+		private final URI uri;
 
-		private Output(StorageReference gamete) {
+		private Output(StorageReference gamete, URI uri) {
 			this.gamete = gamete;
+			this.uri = uri;
 		}
 
 		/**
@@ -200,6 +203,8 @@ public class Init extends AbstractCommand {
 				this.gamete = sr;
 			else
 				throw new InconsistentJsonException("The reference to the gamete must be a storage reference, not a " + gamete.getClass().getName());
+
+			this.uri = json.getURI();
 		}
 
 		@Override
@@ -208,7 +213,12 @@ public class Init extends AbstractCommand {
 		}
 
 		@Override
-		public void println(PrintStream out, int port, boolean json) {
+		public URI getURI() {
+			return uri;
+		}
+
+		@Override
+		public void println(PrintStream out, boolean json) {
 			if (json) {
 				try {
 					out.println(new NodesDiskInitOutputs.Encoder().encode(this));
@@ -219,7 +229,7 @@ public class Init extends AbstractCommand {
 				}
 			}
 			else {
-				System.out.println("The node has been published at ws://localhost:" + port + "\n");
+				System.out.println("The node has been published at " + uri + "\n");
 				System.out.println("The owner of the key of the gamete can bind it to its address now with:");
 				System.out.println("  moka keys bind file_containing_the_key_pair_of_the_gamete --password --url url_of_this_node");
 				System.out.println("or with");

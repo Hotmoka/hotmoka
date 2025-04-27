@@ -35,6 +35,13 @@ public interface KeysCreateOutput {
 	final static int MAX_PRINTED_KEY = 200;
 
 	/**
+	 * Yields the path where the file of the keys has been saved.
+	 * 
+	 * @return the path where the file of the keys has been saved
+	 */
+	Path getFile();
+
+	/**
 	 * Yields the signature algorithm of the key pair.
 	 * 
 	 * @return the signature algorithm of the key pair
@@ -87,8 +94,7 @@ public interface KeysCreateOutput {
 	 * Prints this output as a string.
 	 * 
 	 * @param out the destination print stream
-	 * @param file the path where the key pair file has been written
 	 * @param json true if and only if the string must be in JSON format
 	 */
-	void println(PrintStream out, Path file, boolean json);
+	void println(PrintStream out, boolean json);
 }

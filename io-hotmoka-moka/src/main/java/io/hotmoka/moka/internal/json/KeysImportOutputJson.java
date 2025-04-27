@@ -26,10 +26,16 @@ import io.hotmoka.websockets.beans.api.JsonRepresentation;
  * The JSON representation of the output of the {@code moka keys export} command.
  */
 public abstract class KeysImportOutputJson implements JsonRepresentation<KeysImportOutput> {
+	private final String file;
 	private final StorageValues.Json reference;
 
 	protected KeysImportOutputJson(KeysImportOutput output) {
+		this.file = output.getFile().toString();
 		this.reference = new StorageValues.Json(output.getReference());
+	}
+
+	public String getFile() {
+		return file;
 	}
 
 	public StorageValues.Json getReference() {

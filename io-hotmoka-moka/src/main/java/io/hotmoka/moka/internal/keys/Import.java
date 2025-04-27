@@ -18,7 +18,9 @@ package io.hotmoka.moka.internal.keys;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -72,16 +74,18 @@ public class Import extends AbstractCommand {
 			throw new CommandException("Could not write the key pair file of the account into " + file + ".pem", e);
 		}
 
-		new Output(account.getReference()).println(System.out, dir, json);
+		new Output(file, account.getReference()).println(System.out, json);
 	}
 
 	/**
 	 * The output of this command.
 	 */
 	public static class Output implements KeysImportOutput {
+		private final Path file;
 		private final StorageReference reference;
 
-		private Output(StorageReference reference) {
+		private Output(Path file, StorageReference reference) {
+			this.file = file;
 			this.reference = reference;
 		}
 
@@ -92,6 +96,13 @@ public class Import extends AbstractCommand {
 		 * @throws InconsistentJsonException if {@code json} is inconsistent
 		 */
 		public Output(KeysImportOutputJson json) throws InconsistentJsonException {
+			try {
+				this.file = Paths.get(Objects.requireNonNull(json.getFile(), "file cannot be null", InconsistentJsonException::new));
+			}
+			catch (InvalidPathException e) {
+				throw new InconsistentJsonException(e);
+			}
+
 			StorageValue value = Objects.requireNonNull(json.getReference(), "reference cannot be null", InconsistentJsonException::new).unmap();
 			if (value instanceof StorageReference sr)
 				this.reference = sr;
@@ -100,12 +111,17 @@ public class Import extends AbstractCommand {
 		}
 
 		@Override
+		public Path getFile() {
+			return file;
+		}
+
+		@Override
 		public StorageReference getReference() {
 			return reference;
 		}
 
 		@Override
-		public void println(PrintStream out, Path dir, boolean json) {
+		public void println(PrintStream out, boolean json) {
 			if (json) {
 				try {
 					out.println(new KeysImportOutputs.Encoder().encode(this));
@@ -116,7 +132,7 @@ public class Import extends AbstractCommand {
 				}
 			}
 			else
-				out.println("The key pair of the account has been imported into the file \"" + dir.resolve(reference + ".pem") + "\".");
+				out.println("The key pair of the account has been imported into the file \"" + file + "\".");
 		}
 	}
 }

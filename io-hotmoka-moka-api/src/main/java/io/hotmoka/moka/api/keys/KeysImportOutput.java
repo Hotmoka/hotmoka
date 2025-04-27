@@ -29,6 +29,13 @@ import io.hotmoka.node.api.values.StorageReference;
 public interface KeysImportOutput {
 
 	/**
+	 * Yields the path where the file of the import account has been saved.
+	 * 
+	 * @return the path where the file of the import account has been saved
+	 */
+	Path getFile();
+
+	/**
 	 * Yields the reference of the account that has been imported.
 	 * 
 	 * @return the reference of the account that has been imported
@@ -39,8 +46,7 @@ public interface KeysImportOutput {
 	 * Prints this output as a string.
 	 * 
 	 * @param out the destination print stream
-	 * @param dir the directory where the key pair of the account has been written
 	 * @param json true if and only if the string must be in JSON format
 	 */
-	void println(PrintStream out, Path dir, boolean json);
+	void println(PrintStream out, boolean json);
 }

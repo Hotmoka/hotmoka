@@ -62,7 +62,7 @@ public class Export extends AbstractCommand {
         	throw new CommandException("Cannot read the key pair of the account: it was expected to be in file \"" + reference + ".pem\"", e);
         }
 
-        new Output(account.bip39Words()).println(System.out, reference, json);
+        new Output(account.bip39Words()).println(System.out, json);
 	}
 
 	/**
@@ -93,7 +93,7 @@ public class Export extends AbstractCommand {
 		}
 
 		@Override
-		public void println(PrintStream out, StorageReference reference, boolean json) {
+		public void println(PrintStream out, boolean json) {
 			if (json) {
 				try {
 					out.println(new KeysExportOutputs.Encoder().encode(this));
@@ -104,7 +104,7 @@ public class Export extends AbstractCommand {
 				}
 			}
 	        else {
-	        	out.println("The following BIP39 words represent the key pair of account " + reference + ":");
+	        	out.println("The following BIP39 words represent the key pair of the account:");
 	        	for (int pos = 0; pos < bip39Words.length; pos++)
 	        		out.println(String.format("%2d: %s", pos + 1, bip39Words[pos]));
 	        }

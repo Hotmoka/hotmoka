@@ -638,7 +638,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_VERIFICATION_VERSION + " should not return void"))
 				.asReturnedLong(MethodSignatures.GET_VERIFICATION_VERSION, NodeException::new);
 
-		builder.append("      └─ verificationVersion: ").append(verificationVersion).append("\n");
+		builder.append("      └─ verificationVersion: ").append(verificationVersion);
 
 		return builder.toString();
 	}

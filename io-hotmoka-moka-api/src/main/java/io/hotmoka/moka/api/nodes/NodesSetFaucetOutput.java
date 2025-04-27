@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.moka.api.nodes;
 
 import java.io.PrintStream;
-import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
 
@@ -31,8 +30,7 @@ public interface NodesSetFaucetOutput {
 	 * Prints this output as a string.
 	 * 
 	 * @param out the destination print stream
-	 * @param threshold the value of the threshold set for the faucet
 	 * @param json true if and only if the string must be in JSON format
 	 */
-	void println(PrintStream out, BigInteger threshold, boolean json);
+	void println(PrintStream out, boolean json);
 }

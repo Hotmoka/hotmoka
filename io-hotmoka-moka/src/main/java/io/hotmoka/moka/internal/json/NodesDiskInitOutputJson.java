@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.json;
 
+import java.net.URI;
+
 import io.hotmoka.moka.api.nodes.disk.NodesDiskInitOutput;
 import io.hotmoka.moka.internal.nodes.disk.Init;
 import io.hotmoka.node.StorageValues;
@@ -26,14 +28,20 @@ import io.hotmoka.websockets.beans.api.JsonRepresentation;
  * The JSON representation of the output of the {@code moka disk init} command.
  */
 public abstract class NodesDiskInitOutputJson implements JsonRepresentation<NodesDiskInitOutput> {
+	private final URI uri;
 	private final StorageValues.Json gamete;
 
 	protected NodesDiskInitOutputJson(NodesDiskInitOutput output) {
+		this.uri = output.getURI();
 		this.gamete = new StorageValues.Json(output.getGamete());
 	}
 
 	public StorageValues.Json getManifest() {
 		return gamete;
+	}
+
+	public URI getURI() {
+		return uri;
 	}
 
 	@Override
