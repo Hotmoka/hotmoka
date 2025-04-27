@@ -52,19 +52,19 @@ public class InstrumentationNamesAreNotUsedCheck extends CheckOnClasses {
 			.filter(name -> name.startsWith(forbiddenPrefixAsString))
 			.forEachOrdered(name -> issue(new IllegalFieldNameError(inferSourceFile(), name)));
 
-		getMethods().map(MethodGen::getName)
-			.filter(name -> name.startsWith(forbiddenPrefixAsString))
-			.forEachOrdered(name -> issue(new IllegalMethodNameError(inferSourceFile(), name)));
+		getMethods()
+			.filter(method -> method.getName().startsWith(forbiddenPrefixAsString))
+			.forEachOrdered(method -> issue(new IllegalMethodNameError(inferSourceFile(), method)));
 
 		// the deserialization constructor used a special Dummy type at the end of its signature:
 		// we guarantee that that is not used in non-instrumented methods, constructors or fields
 		getFields()
 			.filter(field -> DUMMY_OT.equals(field.getType()))
-			.forEachOrdered(field -> issue(new IllegalUseOfDummyInFieldSignatureError(inferSourceFile(), field.getName())));
+			.forEachOrdered(field -> issue(new IllegalUseOfDummyInFieldSignatureError(inferSourceFile(), field)));
 
 		getMethods()
 			.filter(this::signatureUsesDummy)
-			.forEachOrdered(field -> issue(new IllegalUseOfDummyInMethodSignatureError(inferSourceFile(), field.getName())));
+			.forEachOrdered(method -> issue(new IllegalUseOfDummyInMethodSignatureError(inferSourceFile(), method)));
 
 		// there is no need to check that the code does not use instrumentation fields, constructors or methods,
 		// since the verification that such operations are white-listed is enough to conclude that they do not use

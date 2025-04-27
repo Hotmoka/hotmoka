@@ -48,7 +48,7 @@ public class FromContractCodeIsConsistentWithClassHierarchyCheck extends CheckOn
 			for (Method method: clazz.getDeclaredMethods())
 				if (!Modifier.isPrivate(method.getModifiers()) && method.getName().equals(methodName) && method.getReturnType() == methodReturnTypeClass && Arrays.equals(method.getParameterTypes(), methodArgsClasses)
 				&& !compatibleFromContracts(contractTypeForEntry, getMethodFromContractArgumentIn(clazz.getName())))
-					issue(new InconsistentFromContractError(inferSourceFile(), methodName, clazz.getName()));
+					issue(new InconsistentFromContractError(inferSourceFile(), this.method, clazz.getName()));
 		}
 		catch (NoClassDefFoundError e) {
 			throw new UnknownTypeException(e.getMessage());

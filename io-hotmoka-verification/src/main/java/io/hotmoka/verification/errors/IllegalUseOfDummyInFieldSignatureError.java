@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
+import org.apache.bcel.classfile.Field;
+
 import io.hotmoka.verification.internal.AbstractVerificationError;
 import io.hotmoka.whitelisting.WhitelistingConstants;
 
@@ -28,9 +30,19 @@ public class IllegalUseOfDummyInFieldSignatureError extends AbstractVerification
 	 * Builds the error.
 	 * 
 	 * @param where the description of the program point where the error occurs
-	 * @param fieldName the name of the field where the error occurs
+	 * @param field the field where the error occurs
 	 */
-	public IllegalUseOfDummyInFieldSignatureError(String where, String fieldName) {
-		super(where, fieldName, "the type " + WhitelistingConstants.DUMMY_NAME + " of \"" + fieldName + "\" is not allowed");
+	public IllegalUseOfDummyInFieldSignatureError(String where, Field field) {
+		super(where, field, "the type " + WhitelistingConstants.DUMMY_NAME + " of \"" + field.getName() + "\" is not allowed");
+	}
+
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point where the error occurs
+	 * @param message the message of the error
+	 */
+	public IllegalUseOfDummyInFieldSignatureError(String where, String message) {
+		super(where, message);
 	}
 }

@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
+import org.apache.bcel.classfile.Field;
+
 import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
@@ -27,9 +29,19 @@ public class IllegalTypeForStorageFieldError extends AbstractVerificationError {
 	 * Builds the error.
 	 * 
 	 * @param where the description of the program point where the error occurs
-	 * @param fieldName the name of the field where the error occurs
+	 * @param field the field where the error occurs
 	 */
-	public IllegalTypeForStorageFieldError(String where, String fieldName) {
-		super(where, fieldName, "type not allowed for a field of a storage class");
+	public IllegalTypeForStorageFieldError(String where, Field field) {
+		super(where, field, "type not allowed for a field of a storage class");
+	}
+
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point where the error occurs
+	 * @param message the message of the error
+	 */
+	public IllegalTypeForStorageFieldError(String where, String message) {
+		super(where, message);
 	}
 }

@@ -54,14 +54,14 @@ public class BytecodesAreLegalCheck extends CheckOnMethods {
 		Instruction ins = ih.getInstruction();
 
 		if (ins instanceof PUTSTATIC)
-			issue(new IllegalPutstaticInstructionError(inferSourceFile(), methodName, lineOf(ih)));
+			issue(new IllegalPutstaticInstructionError(inferSourceFile(), method, lineOf(ih)));
 		else if (ins instanceof JsrInstruction)
-			issue(new IllegalJsrInstructionError(inferSourceFile(), methodName, lineOf(ih)));
+			issue(new IllegalJsrInstructionError(inferSourceFile(), method, lineOf(ih)));
 		else if (ins instanceof RET)
-			issue(new IllegalRetInstructionError(inferSourceFile(), methodName, lineOf(ih)));
+			issue(new IllegalRetInstructionError(inferSourceFile(), method, lineOf(ih)));
 		else if (!method.isStatic() && ins instanceof StoreInstruction si && si.getIndex() == 0)
-			issue(new IllegalUpdateOfLocal0Error(inferSourceFile(), methodName, lineOf(ih)));					
+			issue(new IllegalUpdateOfLocal0Error(inferSourceFile(), method, lineOf(ih)));					
 		else if (ins instanceof MONITORENTER || ins instanceof MONITOREXIT)
-			issue(new IllegalSynchronizationError(inferSourceFile(), methodName, lineOf(ih)));
+			issue(new IllegalSynchronizationError(inferSourceFile(), method, lineOf(ih)));
 	}
 }

@@ -34,7 +34,7 @@ public class FromContractCodeIsInstanceAndInStorageClassCheck extends CheckOnMet
 
 		getMethodFromContractArgumentIn(className).ifPresent(fromContractArgument -> {
 			if (!classLoader.getContract().isAssignableFrom(fromContractArgument))
-				issue(new IllegalFromContractArgumentError(inferSourceFile(), methodName));
+				issue(new IllegalFromContractArgumentError(inferSourceFile(), method));
 
 			if (method.isStatic())
 				issue(new FromContractNotInStorageError(inferSourceFile(), methodName));

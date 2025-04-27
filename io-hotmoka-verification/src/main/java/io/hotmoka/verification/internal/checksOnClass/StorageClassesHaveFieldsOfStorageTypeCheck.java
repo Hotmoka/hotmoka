@@ -16,8 +16,11 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnClass;
 
-import java.lang.reflect.Modifier;
 import java.math.BigInteger;
+
+import org.apache.bcel.generic.ObjectType;
+import org.apache.bcel.generic.Type;
+import org.apache.bcel.classfile.Field;
 
 import io.hotmoka.verification.api.UnknownTypeException;
 import io.hotmoka.verification.errors.IllegalTypeForStorageFieldError;
@@ -25,7 +28,7 @@ import io.hotmoka.verification.internal.CheckOnClasses;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
 
 /**
- * A checks that payable methods have an amount first argument.
+ * A checks that storage classes only define fields whose type is storage as well.
  */
 public class StorageClassesHaveFieldsOfStorageTypeCheck extends CheckOnClasses {
 
@@ -33,23 +36,25 @@ public class StorageClassesHaveFieldsOfStorageTypeCheck extends CheckOnClasses {
 		super(builder);
 
 		if (isStorage)
-			for (var field: clazz.getDeclaredFields())
-				if (!Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers()) && !isTypeAllowedForStorageFields(field.getType()))
-					issue(new IllegalTypeForStorageFieldError(inferSourceFile(), field.getName()));
+			for (var field: getFields().toArray(Field[]::new))
+				if (!field.isTransient() && !field.isStatic() && !isTypeAllowedForStorageFields(field.getType()))
+					issue(new IllegalTypeForStorageFieldError(inferSourceFile(), field));
 	}
 
-	private boolean isTypeAllowedForStorageFields(Class<?> type) throws UnknownTypeException {
+	private boolean isTypeAllowedForStorageFields(Type type) throws UnknownTypeException {
 		// we allow Object since it can be the erasure of a generic type: the runtime of Takamaka
 		// will check later if the actual type of the object in this field is allowed
 		// (see the {@code UpdatesExtractor} class);
 		// we also allow interfaces since they cannot extend Storage and only at run time it will
 		// be possible to determine if the content is a storage value
 		try {
-			return type.isPrimitive() || type == Object.class || type.isInterface() || type == String.class || type == BigInteger.class
-				|| (!type.isArray() && classLoader.isStorage(type.getName())); // TODO: provide isStorage for class?
+			return type == Type.BOOLEAN || type == Type.BYTE || type == Type.CHAR || type == Type.DOUBLE ||
+					type == Type.SHORT || type == Type.FLOAT || type == Type.INT || type == Type.LONG ||
+					type.equals(Type.OBJECT) || type.equals(Type.STRING) || type.equals(new ObjectType(BigInteger.class.getName()))
+				|| (type instanceof ObjectType ot && (classLoader.isStorage(ot.getClassName()) || classLoader.isInterface(ot.getClassName())));
 		}
 		catch (ClassNotFoundException e) {
-			throw new UnknownTypeException(type.getName());
+			throw new UnknownTypeException(type.toString());
 		}
 	}
 }

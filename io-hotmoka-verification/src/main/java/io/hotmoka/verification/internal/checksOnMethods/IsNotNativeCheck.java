@@ -32,6 +32,6 @@ public class IsNotNativeCheck extends CheckOnMethods {
 		super(builder, method);
 
 		if (method.isNative())
-			issue(new IllegalNativeMethodError(inferSourceFile(), methodName));
+			issue(new IllegalNativeMethodError(inferSourceFile(), method));
 	}
 }

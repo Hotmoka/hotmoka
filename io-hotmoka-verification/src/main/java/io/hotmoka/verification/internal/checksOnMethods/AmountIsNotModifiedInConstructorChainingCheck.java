@@ -56,7 +56,7 @@ public class AmountIsNotModifiedInConstructorChainingCheck extends CheckOnMethod
 			for (var ih: instructionsOf(method)) {
 				var maybeInvoke = getInvokeToPayableFromContractConstructorOnThis(ih);
 				if (maybeInvoke.isPresent() && amountMightBeChanged(ih, maybeInvoke.get()))
-					issue(new IllegalModificationOfAmountInConstructorChaining(inferSourceFile(), method.getName(), lineOf(ih)));
+					issue(new IllegalModificationOfAmountInConstructorChaining(inferSourceFile(), method, lineOf(ih)));
 			}
 	}
 

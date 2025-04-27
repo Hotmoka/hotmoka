@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
+import org.apache.bcel.generic.MethodGen;
+
 import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
@@ -27,9 +29,19 @@ public class PayableWithoutAmountError extends AbstractVerificationError {
 	 * Builds the error.
 	 * 
 	 * @param where the description of the program point where the error occurs
-	 * @param methodName the name of the method where the error occurs
+	 * @param method the method where the error occurs
 	 */
-	public PayableWithoutAmountError(String where, String methodName) {
-		super(where, methodName, -1, "a @Payable method must have a first argument for the paid amount, of type int, long or BigInteger");
+	public PayableWithoutAmountError(String where, MethodGen method) {
+		super(where, method, -1, "a @Payable method must have a first argument for the paid amount, of type int, long or BigInteger");
+	}
+
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point where the error occurs
+	 * @param message the message of the error
+	 */
+	public PayableWithoutAmountError(String where, String message) {
+		super(where, message);
 	}
 }

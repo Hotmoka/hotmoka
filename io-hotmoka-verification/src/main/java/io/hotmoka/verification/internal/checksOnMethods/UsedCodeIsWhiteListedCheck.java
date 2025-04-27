@@ -56,7 +56,7 @@ public class UsedCodeIsWhiteListedCheck extends CheckOnMethods {
 
 		if (ins instanceof FieldInstruction fi) {
 			if (!hasWhiteListingModel(fi))
-				issue(new IllegalAccessToNonWhiteListedFieldError(inferSourceFile(), methodName, lineOf(ih), fi.getLoadClassType(cpg).getClassName(), fi.getFieldName(cpg)));
+				issue(new IllegalAccessToNonWhiteListedFieldError(inferSourceFile(), method, lineOf(ih), fi.getLoadClassType(cpg).getClassName(), fi.getFieldName(cpg)));
 		}
 		else if (ins instanceof InvokeInstruction invoke) {
 			if (!hasWhiteListingModel(invoke)) {
@@ -65,9 +65,9 @@ public class UsedCodeIsWhiteListedCheck extends CheckOnMethods {
 				if (target.isPresent()) {
 					Executable executable = target.get();
 					if (executable instanceof Constructor<?>)
-						issue(new IllegalCallToNonWhiteListedConstructorError(inferSourceFile(), methodName, lineOf(ih), executable.getDeclaringClass().getName()));
+						issue(new IllegalCallToNonWhiteListedConstructorError(inferSourceFile(), method, lineOf(ih), executable.getDeclaringClass().getName()));
 					else
-						issue(new IllegalCallToNonWhiteListedMethodError(inferSourceFile(), methodName, lineOf(ih), executable.getDeclaringClass().getName(), executable.getName()));
+						issue(new IllegalCallToNonWhiteListedMethodError(inferSourceFile(), method, lineOf(ih), executable.getDeclaringClass().getName(), executable.getName()));
 				}
 				else {
 					// the call seems not resolvable
@@ -76,9 +76,9 @@ public class UsedCodeIsWhiteListedCheck extends CheckOnMethods {
 					String calledMethodName = invoke.getMethodName(cpg);
 
 					if (invoke instanceof INVOKESPECIAL && Const.CONSTRUCTOR_NAME.equals(calledMethodName))
-						issue(new IllegalCallToNonWhiteListedConstructorError(inferSourceFile(), methodName, lineOf(ih), receiverClassName));
+						issue(new IllegalCallToNonWhiteListedConstructorError(inferSourceFile(), method, lineOf(ih), receiverClassName));
 					else
-						issue(new IllegalCallToNonWhiteListedMethodError(inferSourceFile(), methodName, lineOf(ih), receiverClassName, calledMethodName));
+						issue(new IllegalCallToNonWhiteListedMethodError(inferSourceFile(), method, lineOf(ih), receiverClassName, calledMethodName));
 				}
 			}
 		}

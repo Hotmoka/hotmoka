@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
+import org.apache.bcel.generic.MethodGen;
+
 import io.hotmoka.verification.internal.AbstractVerificationError;
 import io.hotmoka.whitelisting.WhitelistingConstants;
 
@@ -29,9 +31,19 @@ public class IllegalUseOfDummyInMethodSignatureError extends AbstractVerificatio
 	 * Builds the error.
 	 * 
 	 * @param where the description of the program point where the error occurs
-	 * @param methodName the name of the method where the error occurs
+	 * @param method the method where the error occurs
 	 */
-	public IllegalUseOfDummyInMethodSignatureError(String where, String methodName) {
-		super(where, methodName, -1, "the type " + WhitelistingConstants.DUMMY_NAME + " in the signature of \"" + methodName + "\" is not allowed");
+	public IllegalUseOfDummyInMethodSignatureError(String where, MethodGen method) {
+		super(where, method, -1, "the type " + WhitelistingConstants.DUMMY_NAME + " in the signature of \"" + method.getName() + "\" is not allowed");
+	}
+
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point where the error occurs
+	 * @param message the message of the error
+	 */
+	public IllegalUseOfDummyInMethodSignatureError(String where, String message) {
+		super(where, message);
 	}
 }

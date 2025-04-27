@@ -70,7 +70,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 				for (var ih: instructionsOf(method)) {
 					var maybeInvoke = getInvokeToFromContract(ih);
 					if (maybeInvoke.isPresent())
-						issue(new IllegalCallToFromContractError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(maybeInvoke.get()), lineOf(method, ih)));
+						issue(new IllegalCallToFromContractError(inferSourceFile(), method, nameOfFromContractCalledDirectly(maybeInvoke.get()), lineOf(method, ih)));
 				}
 
 		// @FromContract code not called on this can only be called from a contract
@@ -79,7 +79,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 				for (var ih: instructionsOf(method)) {
 					var maybeInvoke = getInvokeToFromContract(ih);
 					if (maybeInvoke.isPresent() && (method.isStatic() || getInvokeToFromContractOnThis(ih, method).isEmpty()))
-						issue(new IllegalCallToFromContractError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(maybeInvoke.get()), lineOf(method, ih)));
+						issue(new IllegalCallToFromContractError(inferSourceFile(), method, nameOfFromContractCalledDirectly(maybeInvoke.get()), lineOf(method, ih)));
 				}
 
 		// @FromContract code called on this can only be called from a storage object
@@ -89,7 +89,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 					for (var ih: instructionsOf(method)) {
 						var maybeInvoke = getInvokeToFromContractOnThis(ih, method);
 						if (maybeInvoke.isPresent())
-							issue(new IllegalCallToFromContractError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(maybeInvoke.get()), lineOf(method, ih)));
+							issue(new IllegalCallToFromContractError(inferSourceFile(), method, nameOfFromContractCalledDirectly(maybeInvoke.get()), lineOf(method, ih)));
 					}
 
 		// @FromContract code called on this can only be called inside @FromContract code
@@ -101,7 +101,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 					for (var ih: instructionsOf(method)) {
 						var maybeInvoke = getInvokeToFromContractOnThis(ih, method);
 						if (maybeInvoke.isPresent())
-							issue(new IllegalCallToFromContractOnThisError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(maybeInvoke.get()), lineOf(method, ih)));
+							issue(new IllegalCallToFromContractOnThisError(inferSourceFile(), method, nameOfFromContractCalledDirectly(maybeInvoke.get()), lineOf(method, ih)));
 					}
 			}
 
@@ -110,7 +110,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 			if (!method.isStatic() && Const.CONSTRUCTOR_NAME.equals(method.getName()) && !isPayable(method))
 				for (var ih: instructionsOf(method))
 					if (callsPayableFromContractConstructorOnThis(ih, method))
-						issue(new IllegalCallToPayableConstructorOnThis(inferSourceFile(), method.getName(), lineOf(method, ih)));
+						issue(new IllegalCallToPayableConstructorOnThis(inferSourceFile(), method, lineOf(method, ih)));
 	}
 
 	private boolean isFromContract(MethodGen method) throws UnknownTypeException {

@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
+import org.apache.bcel.generic.MethodGen;
+
 import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
@@ -28,9 +30,19 @@ public class IllegalMethodNameError extends AbstractVerificationError {
 	 * Builds the error.
 	 * 
 	 * @param where the description of the program point where the error occurs
-	 * @param methodName the name of the method where the error occurs
+	 * @param method the method where the error occurs
 	 */
-	public IllegalMethodNameError(String where, String methodName) {
-		super(where, methodName, -1, "method name \"" + methodName + "\" is not allowed");
+	public IllegalMethodNameError(String where, MethodGen method) {
+		super(where, method, -1, "method name \"" + method.getName() + "\" is not allowed");
+	}
+
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point where the error occurs
+	 * @param message the message of the error
+	 */
+	public IllegalMethodNameError(String where, String message) {
+		super(where, message);
 	}
 }

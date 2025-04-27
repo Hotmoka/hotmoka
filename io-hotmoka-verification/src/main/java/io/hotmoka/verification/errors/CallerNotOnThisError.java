@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
+import org.apache.bcel.generic.MethodGen;
+
 import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
@@ -27,10 +29,20 @@ public class CallerNotOnThisError extends AbstractVerificationError {
 	 * Builds the error.
 	 * 
 	 * @param where the description of the program point where the error occurs
-	 * @param methodName the name of the method where the error occurs
+	 * @param method the method where the error occurs
 	 * @param line the program line where the error occurs
 	 */
-	public CallerNotOnThisError(String where, String methodName, int line) {
-		super(where, methodName, line, "caller() can only be called on \"this\"");
+	public CallerNotOnThisError(String where, MethodGen method, int line) {
+		super(where, method, line, "caller() can only be called on \"this\"");
+	}
+
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point where the error occurs
+	 * @param message the message of the error
+	 */
+	public CallerNotOnThisError(String where, String message) {
+		super(where, message);
 	}
 }

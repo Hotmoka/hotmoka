@@ -229,7 +229,7 @@ public abstract class StorageValues {
 	}
 
 	/**
-	 * Gson encoder.
+	 * JSON encoder.
 	 */
 	public static class Encoder extends StorageValueEncoder {
 
@@ -240,7 +240,7 @@ public abstract class StorageValues {
 	}
 
 	/**
-	 * Gson decoder.
+	 * JSON decoder.
 	 */
 	public static class Decoder extends StorageValueDecoder {
 

@@ -34,10 +34,10 @@ public class PayableCodeIsFromContractCheck extends CheckOnMethods {
 
 		if (methodIsPayableIn(className)) {
 			if (!methodIsFromContractIn(className))
-				issue(new PayableWithoutFromContractError(inferSourceFile(), methodName));
+				issue(new PayableWithoutFromContractError(inferSourceFile(), method));
 
 			if (!isContract && !isInterface)
-				issue(new PayableNotInContractError(inferSourceFile(), methodName));
+				issue(new PayableNotInContractError(inferSourceFile(), method));
 		}
 	}
 }

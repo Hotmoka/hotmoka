@@ -27,10 +27,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import io.hotmoka.moka.JarsVerifyOutputs;
 import io.hotmoka.moka.MokaNew;
-import io.hotmoka.moka.jars.JarsVerifyOutput;
-import io.hotmoka.moka.jars.JarsVerifyOutput.ErrorJSON;
 import io.hotmoka.node.local.AbstractLocalNode;
+import io.hotmoka.verification.api.VerificationError;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -44,7 +44,7 @@ public class JarsTests extends AbstractMokaTest {
 		var examplesBasic = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-basic.jar");
 		var examplesBasicDependency = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-basicdependency.jar");
 		var takamakaCode = Maven.resolver().resolve("io.hotmoka:io-takamaka-code:" + Constants.TAKAMAKA_VERSION).withoutTransitivity().asSingleFile().toPath();
-		var actual = JarsVerifyOutput.of(MokaNew.jarsVerify(examplesBasic + " --libs " + examplesBasicDependency + " --libs " + takamakaCode + " --json"));
+		var actual = JarsVerifyOutputs.from(MokaNew.jarsVerify(examplesBasic + " --libs " + examplesBasicDependency + " --libs " + takamakaCode + " --json"));
 		assertTrue(actual.getErrors().count() == 0);
 	}
 
@@ -53,11 +53,11 @@ public class JarsTests extends AbstractMokaTest {
 	public void verifyJarWorksIfErrors(@TempDir Path dir) throws Exception {
 		var callerNotOnThis = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-callernotonthis.jar");
 		var takamakaCode = Maven.resolver().resolve("io.hotmoka:io-takamaka-code:" + Constants.TAKAMAKA_VERSION).withoutTransitivity().asSingleFile().toPath();
-		var actual = JarsVerifyOutput.of(MokaNew.jarsVerify(callerNotOnThis + " --libs " + takamakaCode + " --json"));
+		var actual = JarsVerifyOutputs.from(MokaNew.jarsVerify(callerNotOnThis + " --libs " + takamakaCode + " --json"));
 		assertTrue(actual.getErrors().count() == 1);
-		ErrorJSON error = actual.getErrors().findFirst().get();
-		assertEquals("io/hotmoka/examples/errors/callernotonthis/C.java:30", error.where);
-		assertEquals("caller() can only be called on \"this\"", error.message);
+		VerificationError error = actual.getErrors().findFirst().get();
+		assertEquals("io/hotmoka/examples/errors/callernotonthis/C.java:30", error.getWhere());
+		assertEquals("caller() can only be called on \"this\"", error.getMessage());
 	}
 
 	@Test

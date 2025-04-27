@@ -36,7 +36,7 @@ public class PayableCodeReceivesAmountCheck extends CheckOnMethods {
 		super(builder, method);
 
 		if (methodIsPayableIn(className) && !startsWithAmount())
-			issue(new PayableWithoutAmountError(inferSourceFile(), methodName));
+			issue(new PayableWithoutAmountError(inferSourceFile(), method));
 	}
 
 	private final static ObjectType BIG_INTEGER_OT = new ObjectType(BigInteger.class.getName());

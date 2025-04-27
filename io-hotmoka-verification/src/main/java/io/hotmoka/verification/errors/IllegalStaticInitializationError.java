@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
+import org.apache.bcel.generic.MethodGen;
+
 import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
@@ -27,10 +29,20 @@ public class IllegalStaticInitializationError extends AbstractVerificationError 
 	 * Builds the error.
 	 * 
 	 * @param where the description of the program point where the error occurs
-	 * @param methodName the name of the method where the error occurs
+	 * @param method the method where the error occurs
 	 * @param line the program line where the error occurs
 	 */
-	public IllegalStaticInitializationError(String where, String methodName, int line) {
-		super(where, methodName, line, "illegal static initialization: only primitive or string final static fields bound to constants are allowed");
+	public IllegalStaticInitializationError(String where, MethodGen method, int line) {
+		super(where, method, line, "illegal static initialization: only primitive or string final static fields bound to constants are allowed");
+	}
+
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point where the error occurs
+	 * @param message the message of the error
+	 */
+	public IllegalStaticInitializationError(String where, String message) {
+		super(where, message);
 	}
 }

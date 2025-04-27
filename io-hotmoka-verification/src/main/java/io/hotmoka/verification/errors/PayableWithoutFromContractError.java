@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
+import org.apache.bcel.generic.MethodGen;
+
 import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
@@ -27,9 +29,19 @@ public class PayableWithoutFromContractError extends AbstractVerificationError {
 	 * Builds the error.
 	 * 
 	 * @param where the description of the program point where the error occurs
-	 * @param methodName the name of the method where the error occurs
+	 * @param method the method where the error occurs
 	 */
-	public PayableWithoutFromContractError(String where, String methodName) {
-		super(where, methodName, -1, "@Payable can only be applied to a @FromContract method or constructor");
+	public PayableWithoutFromContractError(String where, MethodGen method) {
+		super(where, method, -1, "@Payable can only be applied to a @FromContract method or constructor");
+	}
+
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point where the error occurs
+	 * @param message the message of the error
+	 */
+	public PayableWithoutFromContractError(String where, String message) {
+		super(where, message);
 	}
 }

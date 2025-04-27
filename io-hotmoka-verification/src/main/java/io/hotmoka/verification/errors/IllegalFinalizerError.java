@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
+import org.apache.bcel.generic.MethodGen;
+
 import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
@@ -27,10 +29,20 @@ public class IllegalFinalizerError extends AbstractVerificationError {
 	 * Builds the error.
 	 * 
 	 * @param where the description of the program point where the error occurs
-	 * @param methodName the name of the method where the error occurs
+	 * @param method the method where the error occurs
 	 * @param line the line of the method where the error occurs
 	 */
-	public IllegalFinalizerError(String where, String methodName, int line) {
-		super(where, methodName, line, "finalizers are not allowed");
+	public IllegalFinalizerError(String where, MethodGen method, int line) {
+		super(where, method, line, "finalizers are not allowed");
+	}
+
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point where the error occurs
+	 * @param message the message of the error
+	 */
+	public IllegalFinalizerError(String where, String message) {
+		super(where, message);
 	}
 }

@@ -14,34 +14,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.jars;
+package io.hotmoka.moka.api.jars;
 
 import java.io.PrintStream;
 import java.util.stream.Stream;
 
-import io.hotmoka.moka.internal.jars.Verify;
+import io.hotmoka.annotations.Immutable;
+import io.hotmoka.verification.api.VerificationError;
 
 /**
- * The output of the moka jars verify command.
+ * The output of the {@code moka jars verify} command.
  */
+@Immutable
 public interface JarsVerifyOutput {
 
 	/**
-	 * Yields the output of the command from its JSON representation.
+	 * Yields the errors resulting from the verification of the code.
 	 * 
-	 * @param json the JSON representation
-	 * @return the output of the command
+	 * @return the errors resulting from the verification of the code
 	 */
-	static JarsVerifyOutput of(String json) {
-		return Verify.Output.of(json);
-	}
-
-	/**
-	 * Yields the errors in this output.
-	 * 
-	 * @return the errors in this output
-	 */
-	Stream<ErrorJSON> getErrors();
+	Stream<VerificationError> getErrors();
 
 	/**
 	 * Prints this output as a string.
@@ -50,19 +42,4 @@ public interface JarsVerifyOutput {
 	 * @param json true if and only if the string must be in JSON format
 	 */
 	void println(PrintStream out, boolean json);
-
-	class ErrorJSON {
-		public final String where;
-		public final String message;
-
-		public ErrorJSON(io.hotmoka.verification.api.VerificationError error) {
-			this.where = error.getWhere();
-			this.message = error.getMessage();
-		}
-
-		@Override
-		public String toString() {
-			return where + ": " + message;
-		}
-	}
 }

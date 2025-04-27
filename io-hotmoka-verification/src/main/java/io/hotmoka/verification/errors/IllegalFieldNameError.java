@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
+import org.apache.bcel.classfile.Field;
+
 import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
@@ -28,9 +30,19 @@ public class IllegalFieldNameError extends AbstractVerificationError {
 	 * Builds the error.
 	 * 
 	 * @param where the description of the program point where the error occurs
-	 * @param fieldName the name of the field where the error occurs
+	 * @param field the field where the error occurs
 	 */
-	public IllegalFieldNameError(String where, String fieldName) {
-		super(where, fieldName, "field name \"" + fieldName + "\" is not allowed");
+	public IllegalFieldNameError(String where, Field field) {
+		super(where, field, "field name \"" + field.getName() + "\" is not allowed");
+	}
+
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point where the error occurs
+	 * @param message the message of the error
+	 */
+	public IllegalFieldNameError(String where, String message) {
+		super(where, message);
 	}
 }

@@ -46,7 +46,7 @@ public class ThrowsExceptionsIsConsistentWithClassHierarchyCheck extends CheckOn
 				if (!Modifier.isPrivate(method.getModifiers()) && methodName.equals(method.getName())
 						&& method.getReturnType() == rt && Arrays.equals(method.getParameterTypes(), args)
 						&& wasThrowsExceptions != methodIsThrowsExceptionsIn(clazz.getName()))
-					issue(new InconsistentThrowsExceptionsError(inferSourceFile(), methodName, clazz.getName()));
+					issue(new InconsistentThrowsExceptionsError(inferSourceFile(), this.method, clazz.getName()));
 		}
 		catch (NoClassDefFoundError e) {
 			throw new UnknownTypeException(e.getMessage());

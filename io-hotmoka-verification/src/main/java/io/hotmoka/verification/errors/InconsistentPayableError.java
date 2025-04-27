@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
+import org.apache.bcel.generic.MethodGen;
+
 import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
@@ -28,10 +30,20 @@ public class InconsistentPayableError extends AbstractVerificationError {
 	 * Builds the error.
 	 * 
 	 * @param where the description of the program point where the error occurs
-	 * @param methodName the name of the method where the error occurs
+	 * @param method the method where the error occurs
 	 * @param classWhereItWasDefined the name of the class where the same method was defined
 	 */
-	public InconsistentPayableError(String where, String methodName, String classWhereItWasDefined) {
-		super(where, methodName, -1, "@Payable is inconsistent with definition of the same method in class " + classWhereItWasDefined);
+	public InconsistentPayableError(String where, MethodGen method, String classWhereItWasDefined) {
+		super(where, method, -1, "@Payable is inconsistent with definition of the same method in class " + classWhereItWasDefined);
+	}
+
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point where the error occurs
+	 * @param message the message of the error
+	 */
+	public InconsistentPayableError(String where, String message) {
+		super(where, message);
 	}
 }

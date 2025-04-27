@@ -36,6 +36,16 @@
       <version>${io.hotmoka.exceptions.version}</version>
     </dependency>
     <dependency>
+      <groupId>io.hotmoka.annotations</groupId>
+      <artifactId>io-hotmoka-annotations</artifactId>
+      <version>${io.hotmoka.annotations.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka.websockets</groupId>
+      <artifactId>io-hotmoka-websockets-beans</artifactId>
+      <version>${io.hotmoka.websockets.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.bcel</groupId>
       <artifactId>bcel</artifactId>
       <version>${bcel.version}</version>

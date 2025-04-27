@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
+import org.apache.bcel.generic.MethodGen;
+
 import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
@@ -27,9 +29,19 @@ public class IllegalNativeMethodError extends AbstractVerificationError {
 	 * Builds the error.
 	 * 
 	 * @param where the description of the program point where the error occurs
-	 * @param methodName the name of the method where the error occurs
+	 * @param method the method where the error occurs
 	 */
-	public IllegalNativeMethodError(String where, String methodName) {
-		super(where, methodName, -1, "native code is not allowed");
+	public IllegalNativeMethodError(String where, MethodGen method) {
+		super(where, method, -1, "native code is not allowed");
+	}
+
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point where the error occurs
+	 * @param message the message of the error
+	 */
+	public IllegalNativeMethodError(String where, String message) {
+		super(where, message);
 	}
 }

@@ -20,11 +20,19 @@ limitations under the License.
 module io.hotmoka.verification {
 	exports io.hotmoka.verification;
 	exports io.hotmoka.verification.errors;
+	opens io.hotmoka.verification.internal.json to com.google.gson;
 
 	requires transitive io.hotmoka.verification.api;
 	requires io.takamaka.code.constants;
 	requires io.hotmoka.whitelisting;
 	requires io.hotmoka.exceptions;
+	requires io.hotmoka.annotations;
+	requires io.hotmoka.websockets.beans;
 	requires org.apache.bcel;
 	requires java.logging;
+	requires com.google.gson;
+
+	// this makes sun.misc.Unsafe accessible, so that Gson can instantiate
+	// classes without the no-args constructor
+	requires jdk.unsupported;
 }

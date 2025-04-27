@@ -32,6 +32,6 @@ public class IsNotSynchronizedCheck extends CheckOnMethods {
 		super(builder, method);
 
 		if (method.isSynchronized())
-			issue(new IllegalSynchronizationError(inferSourceFile(), methodName, getLineNumber()));
+			issue(new IllegalSynchronizationError(inferSourceFile(), method, getLineNumber()));
 	}
 }

@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
+import org.apache.bcel.generic.MethodGen;
+
 import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
@@ -27,12 +29,22 @@ public class IllegalAccessToNonWhiteListedFieldError extends AbstractVerificatio
 	 * Builds the error.
 	 * 
 	 * @param where the description of the program point where the error occurs
-	 * @param methodName the name of the method where the error occurs
+	 * @param method the method where the error occurs
 	 * @param line the program line where the error occurs
 	 * @param definingClassName the name of the class that defines the non-white-listed field
 	 * @param fieldName the name of the non-white-listed field
 	 */
-	public IllegalAccessToNonWhiteListedFieldError(String where, String methodName, int line, String definingClassName, String fieldName) {
-		super(where, methodName, line, "illegal access to non-white-listed field " + definingClassName + "." + fieldName);
+	public IllegalAccessToNonWhiteListedFieldError(String where, MethodGen method, int line, String definingClassName, String fieldName) {
+		super(where, method, line, "illegal access to non-white-listed field " + definingClassName + "." + fieldName);
+	}
+
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point where the error occurs
+	 * @param message the message of the error
+	 */
+	public IllegalAccessToNonWhiteListedFieldError(String where, String message) {
+		super(where, message);
 	}
 }

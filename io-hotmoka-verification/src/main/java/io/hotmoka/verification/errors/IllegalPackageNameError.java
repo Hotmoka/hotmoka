@@ -31,4 +31,14 @@ public class IllegalPackageNameError extends AbstractVerificationError {
 	public IllegalPackageNameError(String where) {
 		super(where, "package name is not allowed");
 	}
+
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point where the error occurs
+	 * @param message the message of the error
+	 */
+	public IllegalPackageNameError(String where, String message) {
+		super(where, message);
+	}
 }

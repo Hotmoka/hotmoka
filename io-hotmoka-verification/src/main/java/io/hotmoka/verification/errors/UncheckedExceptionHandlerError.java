@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
+import org.apache.bcel.generic.MethodGen;
+
 import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
@@ -27,11 +29,21 @@ public class UncheckedExceptionHandlerError extends AbstractVerificationError {
 	 * Builds the error.
 	 * 
 	 * @param where the description of the program point where the error occurs
-	 * @param methodName the name of the method where the error occurs
+	 * @param method the method where the error occurs
 	 * @param line the program line where the error occurs
 	 * @param exceptionName the name of the caught exception
 	 */
-	public UncheckedExceptionHandlerError(String where, String methodName, int line, String exceptionName) {
-		super(where, methodName, line, "exception handler for unchecked exception " + exceptionName);
+	public UncheckedExceptionHandlerError(String where, MethodGen method, int line, String exceptionName) {
+		super(where, method, line, "exception handler for unchecked exception " + exceptionName);
+	}
+
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point where the error occurs
+	 * @param message the message of the error
+	 */
+	public UncheckedExceptionHandlerError(String where, String message) {
+		super(where, message);
 	}
 }

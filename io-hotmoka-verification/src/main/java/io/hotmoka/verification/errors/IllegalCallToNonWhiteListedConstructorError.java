@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
+import org.apache.bcel.generic.MethodGen;
+
 import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
@@ -27,11 +29,21 @@ public class IllegalCallToNonWhiteListedConstructorError extends AbstractVerific
 	 * Builds the error.
 	 * 
 	 * @param where the description of the program point where the error occurs
-	 * @param methodName the name of the method where the error occurs
+	 * @param method the method where the error occurs
 	 * @param line the program line where the error occurs
 	 * @param declaringClassName the name of the class declaring the constructor
 	 */
-	public IllegalCallToNonWhiteListedConstructorError(String where, String methodName, int line, String declaringClassName) {
-		super(where, methodName, line, "illegal call to non-white-listed constructor of " + declaringClassName);
+	public IllegalCallToNonWhiteListedConstructorError(String where, MethodGen method, int line, String declaringClassName) {
+		super(where, method, line, "illegal call to non-white-listed constructor of " + declaringClassName);
+	}
+
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point where the error occurs
+	 * @param message the message of the error
+	 */
+	public IllegalCallToNonWhiteListedConstructorError(String where, String message) {
+		super(where, message);
 	}
 }

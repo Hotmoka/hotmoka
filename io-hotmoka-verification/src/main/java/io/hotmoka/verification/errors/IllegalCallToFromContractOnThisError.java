@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
+import org.apache.bcel.generic.MethodGen;
+
 import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
@@ -28,11 +30,21 @@ public class IllegalCallToFromContractOnThisError extends AbstractVerificationEr
 	 * Builds the error.
 	 * 
 	 * @param where the description of the program point where the error occurs
-	 * @param methodName the name of the method where the error occurs
+	 * @param method the method where the error occurs
 	 * @param fromContractMethodName the name of the {@code @@FromContract} method
 	 * @param line the program line where the error occurs
 	 */
-	public IllegalCallToFromContractOnThisError(String where, String methodName, String fromContractMethodName, int line) {
-		super(where, methodName, line, "\"" + fromContractMethodName + "\" is @FromContract and called on \"this\", hence it can only be called from a @FromContract method or constructor");
+	public IllegalCallToFromContractOnThisError(String where, MethodGen method, String fromContractMethodName, int line) {
+		super(where, method, line, "\"" + fromContractMethodName + "\" is @FromContract and called on \"this\", hence it can only be called from a @FromContract method or constructor");
+	}
+
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point where the error occurs
+	 * @param message the message of the error
+	 */
+	public IllegalCallToFromContractOnThisError(String where, String message) {
+		super(where, message);
 	}
 }

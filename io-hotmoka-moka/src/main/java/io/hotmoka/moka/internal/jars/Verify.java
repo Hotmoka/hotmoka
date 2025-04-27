@@ -20,22 +20,27 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import com.google.gson.Gson;
-
 import io.hotmoka.cli.AbstractCommand;
 import io.hotmoka.cli.CommandException;
-import io.hotmoka.moka.jars.JarsVerifyOutput;
+import io.hotmoka.moka.JarsVerifyOutputs;
+import io.hotmoka.moka.api.jars.JarsVerifyOutput;
+import io.hotmoka.moka.internal.json.JarsVerifyOutputJson;
 import io.hotmoka.verification.TakamakaClassLoaders;
+import io.hotmoka.verification.VerificationErrors;
 import io.hotmoka.verification.VerifiedJars;
 import io.hotmoka.verification.api.IllegalJarException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.verification.api.UnknownTypeException;
+import io.hotmoka.verification.api.VerificationError;
 import io.hotmoka.verification.api.VerificationException;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
+import jakarta.websocket.EncodeException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -94,7 +99,7 @@ public class Verify extends AbstractCommand {
 			throw new CommandException("Verification version " + version + " is not supported");
 		}
 
-		var errors = new ArrayList<io.hotmoka.verification.api.VerificationError>();
+		var errors = new ArrayList<VerificationError>();
 
 		try {
 			VerifiedJars.of(classpath[0], classLoader, init, errors::add, false);
@@ -116,30 +121,42 @@ public class Verify extends AbstractCommand {
 	 * The output of this command.
 	 */
 	public static class Output implements JarsVerifyOutput {
-		private final ErrorJSON[] errors;
+		private final VerificationError[] errors;
 
-		private Output(List<io.hotmoka.verification.api.VerificationError> errors) {
-			this.errors = errors.stream().map(ErrorJSON::new).toArray(ErrorJSON[]::new);
+		private Output(List<VerificationError> errors) {
+			this.errors = errors.toArray(VerificationError[]::new);
 		}
 
 		/**
-		 * Yields the output of this command from its JSON representation.
+		 * Builds the output of the command from its JSON representation.
 		 * 
 		 * @param json the JSON representation
+		 * @throws InconsistentJsonException if {@code json} is inconsistent
+		 * @throws NoSuchAlgorithmException if {@code json} refers to a non-available cryptographic algorithm
 		 */
-		public static Output of(String json) {
-			return new Gson().fromJson(json, Output.class);
+		public Output(JarsVerifyOutputJson json) throws InconsistentJsonException {
+			var errorsJson = json.getErrors().toArray(VerificationErrors.Json[]::new);
+			this.errors = new VerificationError[errorsJson.length];
+			for (int pos = 0; pos < errorsJson.length; pos++)
+				this.errors[pos] = errorsJson[pos].unmap();
 		}
 
 		@Override
-		public Stream<ErrorJSON> getErrors() {
+		public Stream<VerificationError> getErrors() {
 			return Stream.of(errors);
 		}
 
 		@Override
 		public void println(PrintStream out, boolean json) {
-			if (json)
-				out.println(new Gson().toJson(this));
+			if (json) {
+				try {
+					out.println(new JarsVerifyOutputs.Encoder().encode(this));
+				}
+				catch (EncodeException e) {
+					// this should not happen, since the constructor of the JSON representation never throws exceptions
+					throw new RuntimeException("Cannot encode the output of the command in JSON format", e);
+				}
+			}
 			else {
 				if (errors.length == 0)
 					out.println("Verification succeeded");

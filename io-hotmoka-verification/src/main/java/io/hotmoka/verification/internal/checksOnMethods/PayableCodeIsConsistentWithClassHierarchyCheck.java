@@ -46,7 +46,7 @@ public class PayableCodeIsConsistentWithClassHierarchyCheck extends CheckOnMetho
 				if (!Modifier.isPrivate(method.getModifiers()) && methodName.equals(method.getName())
 						&& method.getReturnType() == rt && Arrays.equals(method.getParameterTypes(), args)
 						&& wasPayable != methodIsPayableIn(clazz.getName()))
-					issue(new InconsistentPayableError(inferSourceFile(), methodName, clazz.getName()));
+					issue(new InconsistentPayableError(inferSourceFile(), this.method, clazz.getName()));
 		}
 		catch (NoClassDefFoundError e) {
 			throw new UnknownTypeException(e.getMessage());

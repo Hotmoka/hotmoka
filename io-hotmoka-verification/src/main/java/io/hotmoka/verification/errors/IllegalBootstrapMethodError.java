@@ -32,4 +32,14 @@ public class IllegalBootstrapMethodError extends AbstractVerificationError {
 	public IllegalBootstrapMethodError(String where) {
 		super(where, "Illegal bootstrap method");
 	}
+
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point where the error occurs
+	 * @param message the message of the error
+	 */
+	public IllegalBootstrapMethodError(String where, String message) {
+		super(where, message);
+	}
 }

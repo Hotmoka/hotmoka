@@ -44,10 +44,10 @@ public class CallerIsUsedOnThisAndInFromContractCheck extends CheckOnMethods {
 		for (var ih: instructionsOf(method))
 			if (isCallToStorageCaller(ih)) {
 				if (!isFromContract)
-					issue(new CallerOutsideFromContractError(inferSourceFile(), methodName, lineOf(ih)));
+					issue(new CallerOutsideFromContractError(inferSourceFile(), method, lineOf(ih)));
 
 				if (!previousIsLoad0(ih))
-					issue(new CallerNotOnThisError(inferSourceFile(), methodName, lineOf(ih)));
+					issue(new CallerNotOnThisError(inferSourceFile(), method, lineOf(ih)));
 			}
 	}
 

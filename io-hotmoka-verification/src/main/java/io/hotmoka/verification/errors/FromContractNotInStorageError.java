@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
+import org.apache.bcel.generic.MethodGen;
+
 import io.hotmoka.verification.internal.AbstractVerificationError;
 
 /**
@@ -28,9 +30,19 @@ public class FromContractNotInStorageError extends AbstractVerificationError {
 	 * Builds the error.
 	 * 
 	 * @param where the description of the program point where the error occurs
-	 * @param methodName the name of the method where the error occurs
+	 * @param method the method where the error occurs
 	 */
-	public FromContractNotInStorageError(String where, String methodName) {
-		super(where, methodName, -1, "@FromContract can only be applied to constructors or instance methods of a storage class or of an interface");
+	public FromContractNotInStorageError(String where, MethodGen method) {
+		super(where, method, -1, "@FromContract can only be applied to constructors or instance methods of a storage class or of an interface");
+	}
+
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point where the error occurs
+	 * @param message the message of the error
+	 */
+	public FromContractNotInStorageError(String where, String message) {
+		super(where, message);
 	}
 }

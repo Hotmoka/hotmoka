@@ -38,7 +38,7 @@ public class ExceptionHandlersAreForCheckedExceptionsCheck extends CheckOnMethod
 			String exceptionName = catchType == null ? "java.lang.Throwable" : catchType.getClassName();
 
 			if (canCatchUncheckedExceptions(exceptionName))
-				issue(new UncheckedExceptionHandlerError(inferSourceFile(), methodName, lineOf(exc.getHandlerPC()), exceptionName));
+				issue(new UncheckedExceptionHandlerError(inferSourceFile(), method, lineOf(exc.getHandlerPC()), exceptionName));
 		}
 	}
 

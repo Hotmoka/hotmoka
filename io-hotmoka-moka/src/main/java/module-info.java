@@ -25,16 +25,22 @@ module io.hotmoka.moka {
     opens io.hotmoka.moka.internal to info.picocli;
     opens io.hotmoka.moka.internal.converters to info.picocli;
     opens io.hotmoka.moka.internal.accounts to info.picocli;
-    opens io.hotmoka.moka.internal.jars to info.picocli, com.google.gson;
+    opens io.hotmoka.moka.internal.jars to info.picocli;
     opens io.hotmoka.moka.internal.keys to info.picocli;
     opens io.hotmoka.moka.internal.nodes to info.picocli;
-    opens io.hotmoka.moka.internal.json to com.google.gson;
     opens io.hotmoka.moka.internal.nodes.config to info.picocli;
     opens io.hotmoka.moka.internal.nodes.disk to info.picocli;
     opens io.hotmoka.moka.internal.nodes.manifest to info.picocli;
     opens io.hotmoka.moka.internal.nodes.takamaka to info.picocli;
 
-    requires transitive io.hotmoka.moka.api;
+    // for parsing JSON through gson
+    opens io.hotmoka.moka.internal.json to com.google.gson; // for parsing JSON through gson
+
+    requires com.google.gson;
+    // this makes sun.misc.Unsafe accessible, so that Gson can instantiate classes without the no-args constructor
+ 	requires jdk.unsupported;
+
+ 	requires transitive io.hotmoka.moka.api;
     requires io.hotmoka.helpers;
     requires io.hotmoka.node.tendermint;
     requires io.hotmoka.node.mokamint;
@@ -58,6 +64,5 @@ module io.hotmoka.moka {
 	requires io.hotmoka.websockets.client.api;
 	requires io.hotmoka.websockets.beans;
 	requires info.picocli;
-	requires com.google.gson;
 	requires java.logging;
 }
