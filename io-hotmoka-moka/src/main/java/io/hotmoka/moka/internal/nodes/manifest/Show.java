@@ -31,7 +31,8 @@ import picocli.CommandLine.Command;
 @Command(name = "show", description = "Show the manifest of a node.")
 public class Show extends AbstractMokaRpcCommand {
 
-	private void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+	@Override
+	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
 		if (json())
 			throw new CommandException("JSON output is not yet implemented for this command");
 
@@ -42,10 +43,5 @@ public class Show extends AbstractMokaRpcCommand {
 			// this should not happen on a working node
 			throw new CommandException("A transaction failed while accessing the manifest of the node", e);
 		}
-	}
-
-	@Override
-	protected void execute() throws CommandException {
-		execute(this::body);
 	}
 }

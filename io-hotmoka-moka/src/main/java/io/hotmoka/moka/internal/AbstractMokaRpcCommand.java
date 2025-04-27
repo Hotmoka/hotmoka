@@ -18,11 +18,11 @@ package io.hotmoka.moka.internal;
 
 import java.math.BigInteger;
 import java.net.URI;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 
 import io.hotmoka.cli.AbstractRpcCommand;
 import io.hotmoka.cli.CommandException;
-import io.hotmoka.cli.RpcCommandBody;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.remote.RemoteNodes;
 import io.hotmoka.node.remote.api.RemoteNode;
@@ -54,16 +54,21 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 		return uri;
 	}
 
+	@Override
+	protected final void execute() throws CommandException {
+		execute(RemoteNodes::of, this::body, uri);
+	}
+
 	/**
-	 * Opens a remote node connected to the uri of a remote Hotmoka node service, specified through the {@code --uri} option,
-	 * and runs the given command body.
+	 * Runs the main body of the command, with a remote connected to the uri of a remote Hotmoka node service,
+	 * specified through the {@code --uri} option.
 	 * 
-	 * @param what the body
+	 * @throws TimeoutException if the execution times out
+	 * @throws InterruptedException if the execution gets interrupted before completion
+	 * @throws NodeException if the node is misbehaving
 	 * @throws CommandException if something erroneous must be logged and the user must be informed
 	 */
-	protected void execute(RpcCommandBody<RemoteNode, NodeException> what) throws CommandException {
-		execute(RemoteNodes::of, what, uri);
-	}
+	protected abstract void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException;
 
 	/**
 	 * Reports on the standard output the given output of a command.

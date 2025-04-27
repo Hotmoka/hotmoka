@@ -70,11 +70,7 @@ public class SetFaucet extends AbstractMokaRpcCommand {
     private char[] password;
 
 	@Override
-	protected void execute() throws CommandException {
-		execute(this::body);
-	}
-
-	private void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
 		var manifest = remote.getManifest();
 		var takamakaCode = remote.getTakamakaCode();
 

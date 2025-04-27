@@ -71,11 +71,7 @@ public class Bind extends AbstractMokaRpcCommand {
 	private SignatureAlgorithm signature;
 
 	@Override
-	protected void execute() throws CommandException {
-		execute(this::body);
-	}
-
-	private void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
 		createAccountFile(reference != null ? verifyPublicKey(remote) : getFromAccountsLedger(remote));
 	}
 

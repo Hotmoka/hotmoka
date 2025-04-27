@@ -60,11 +60,7 @@ public class Show extends AbstractMokaRpcCommand {
 	public final static int MAX_PRINTED_KEY = 200;
 
 	@Override
-	protected void execute() throws CommandException {
-		execute(this::body);
-	}
-
-	private void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
 		SignatureAlgorithm signature;
 
 		try {

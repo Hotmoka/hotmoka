@@ -33,13 +33,9 @@ import picocli.CommandLine.Command;
 @Command(name = "address", description = "Show the transaction that installed the Takamaka runtime in a node.")
 public class Address extends AbstractMokaRpcCommand {
 
-	private void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
-		report(json(), new Output(remote.getTakamakaCode()), NodesTakamakaAddressOutputs.Encoder::new);
-	}
-
 	@Override
-	protected void execute() throws CommandException {
-		execute(this::body);
+	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+		report(json(), new Output(remote.getTakamakaCode()), NodesTakamakaAddressOutputs.Encoder::new);
 	}
 
 	/**

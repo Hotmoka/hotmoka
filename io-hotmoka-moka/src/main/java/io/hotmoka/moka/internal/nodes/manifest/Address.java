@@ -33,13 +33,9 @@ import picocli.CommandLine.Command;
 @Command(name = "address", description = "Show the address of the manifest of a node.")
 public class Address extends AbstractMokaRpcCommand {
 
-	private void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
-		report(json(), new Output(remote.getManifest()), NodesManifestAddressOutputs.Encoder::new);
-	}
-
 	@Override
-	protected void execute() throws CommandException {
-		execute(this::body);
+	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+		report(json(), new Output(remote.getManifest()), NodesManifestAddressOutputs.Encoder::new);
 	}
 
 	/**
