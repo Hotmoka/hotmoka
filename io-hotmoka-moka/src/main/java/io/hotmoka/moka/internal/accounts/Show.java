@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.accounts;
 
-import java.io.PrintStream;
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeoutException;
@@ -46,7 +45,6 @@ import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
-import jakarta.websocket.EncodeException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 
@@ -104,7 +102,7 @@ public class Show extends AbstractMokaRpcCommand {
 		}
 
 		try {
-			new Output(balance, signature, publicKeyBase64).println(System.out, json());
+			report(json(), new Output(balance, signature, publicKeyBase64), AccountsShowOutputs.Encoder::new);
 		}
 		catch (Base64ConversionException e) {
 			throw new CommandException("The key in the account object is not in base64 format", e);
@@ -173,29 +171,22 @@ public class Show extends AbstractMokaRpcCommand {
 		}
 
 		@Override
-		public void println(PrintStream out, boolean json) {
-			if (json) {
-				try {
-					out.println(new AccountsShowOutputs.Encoder().encode(this));
-				}
-				catch (EncodeException e) {
-					// this should not happen, since the constructor of the JSON representation never throws exceptions
-					throw new RuntimeException("Cannot encode the output of the command in JSON format", e);
-				}
-			}
-			else {
-				out.println("* balance: " + balance);
+		public String toString() {
+			var sb = new StringBuilder();
+	
+			sb.append("* balance: " + balance + "\n");
 
-				if (publicKeyBase58.length() > MAX_PRINTED_KEY)
-					out.println("* public key: " + publicKeyBase58.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base58)");
-				else
-					out.println("* public key: " + publicKeyBase58 + " (" + signature + ", base58)");
+			if (publicKeyBase58.length() > MAX_PRINTED_KEY)
+				sb.append("* public key: " + publicKeyBase58.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base58)\n");
+			else
+				sb.append("* public key: " + publicKeyBase58 + " (" + signature + ", base58)\n");
 
-				if (publicKeyBase64.length() > MAX_PRINTED_KEY)
-					out.println("* public key: " + publicKeyBase64.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base64)");
-				else
-					out.println("* public key: " + publicKeyBase64 + " (" + signature + ", base64)");
-			}
+			if (publicKeyBase64.length() > MAX_PRINTED_KEY)
+				sb.append("* public key: " + publicKeyBase64.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base64)\n");
+			else
+				sb.append("* public key: " + publicKeyBase64 + " (" + signature + ", base64)\n");
+
+			return sb.toString();
 		}
 	}
 }

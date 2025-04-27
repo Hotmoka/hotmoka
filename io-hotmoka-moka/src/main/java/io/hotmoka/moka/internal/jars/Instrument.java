@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.moka.internal.jars;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -25,12 +24,12 @@ import java.util.stream.Stream;
 
 import com.google.gson.Gson;
 
-import io.hotmoka.cli.AbstractCommand;
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.instrumentation.GasCostModels;
 import io.hotmoka.instrumentation.InstrumentedJars;
 import io.hotmoka.moka.JarsInstrumentOutputs;
 import io.hotmoka.moka.api.jars.JarsInstrumentOutput;
+import io.hotmoka.moka.internal.AbstractMokaCommand;
 import io.hotmoka.moka.internal.json.JarsInstrumentOutputJson;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.VerifiedJars;
@@ -40,7 +39,6 @@ import io.hotmoka.verification.api.VerificationException;
 import io.hotmoka.verification.api.VerifiedJar;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
-import jakarta.websocket.EncodeException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -48,7 +46,7 @@ import picocli.CommandLine.Parameters;
 @Command(name = "instrument",
 	description = "Instrument a jar.",
 	showDefaultValues = true)
-public class Instrument extends AbstractCommand {
+public class Instrument extends AbstractMokaCommand {
 
 	@Parameters(description = "the path of the jar to instrument")
 	private Path jar;
@@ -103,7 +101,6 @@ public class Instrument extends AbstractCommand {
 				Files.createDirectories(parent);
 
 			InstrumentedJars.of(verifiedJar, GasCostModels.standard()).dump(destination);
-			new Output().println(System.out, json);
 		}
 		catch (UnknownTypeException | VerificationException | IllegalJarException e) {
 			throw new CommandException("Instrumentation failed", e);
@@ -114,6 +111,8 @@ public class Instrument extends AbstractCommand {
 		catch (IOException e) {
 			throw new CommandException("Cannot create file " + destination, e);
 		}
+
+		report(json, new Output(), JarsInstrumentOutputs.Encoder::new);
 	}
 
 	/**
@@ -141,16 +140,8 @@ public class Instrument extends AbstractCommand {
 		public Output(JarsInstrumentOutputJson json) throws InconsistentJsonException {}
 
 		@Override
-		public void println(PrintStream out, boolean json) {
-			if (json) {
-				try {
-					out.println(new JarsInstrumentOutputs.Encoder().encode(this));
-				}
-				catch (EncodeException e) {
-					// this should not happen, since the constructor of the JSON representation never throws exceptions
-					throw new RuntimeException("Cannot encode the output of the command in JSON format", e);
-				}
-			}
+		public String toString() {
+			return "";
 		}
 	}
 }

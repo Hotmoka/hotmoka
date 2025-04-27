@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.moka.api.jars;
 
-import java.io.PrintStream;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
@@ -34,12 +33,4 @@ public interface JarsVerifyOutput {
 	 * @return the errors resulting from the verification of the code
 	 */
 	Stream<VerificationError> getErrors();
-
-	/**
-	 * Prints this output as a string.
-	 * 
-	 * @param out the destination print stream
-	 * @param json true if and only if the string must be in JSON format
-	 */
-	void println(PrintStream out, boolean json);
 }

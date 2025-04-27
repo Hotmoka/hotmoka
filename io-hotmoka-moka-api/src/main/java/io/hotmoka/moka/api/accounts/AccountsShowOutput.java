@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.moka.api.accounts;
 
-import java.io.PrintStream;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
@@ -60,12 +59,4 @@ public interface AccountsShowOutput {
 	 * @return the base64-encoded public key of the account
 	 */
 	String getPublicKeyBase64();
-
-	/**
-	 * Prints this output as a string.
-	 * 
-	 * @param out the destination print stream
-	 * @param json true if and only if the string must be in JSON format
-	 */
-	void println(PrintStream out, boolean json);
 }

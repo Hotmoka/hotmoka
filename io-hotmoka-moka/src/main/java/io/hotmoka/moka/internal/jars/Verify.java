@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.moka.internal.jars;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
@@ -25,10 +24,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import io.hotmoka.cli.AbstractCommand;
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.moka.JarsVerifyOutputs;
 import io.hotmoka.moka.api.jars.JarsVerifyOutput;
+import io.hotmoka.moka.internal.AbstractMokaCommand;
 import io.hotmoka.moka.internal.json.JarsVerifyOutputJson;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.VerificationErrors;
@@ -40,7 +39,6 @@ import io.hotmoka.verification.api.VerificationError;
 import io.hotmoka.verification.api.VerificationException;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
-import jakarta.websocket.EncodeException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -48,7 +46,7 @@ import picocli.CommandLine.Parameters;
 @Command(name = "verify",
 	description = "Verify a jar.",
 	showDefaultValues = true)
-public class Verify extends AbstractCommand {
+public class Verify extends AbstractMokaCommand {
 
 	@Parameters(index = "0", description = "the path of the jar to verify")
 	private Path jar;
@@ -113,7 +111,7 @@ public class Verify extends AbstractCommand {
 		catch (VerificationException e) {
 		}
 		finally {
-			new Output(errors).println(System.out, json);
+			report(json, new Output(errors), JarsVerifyOutputs.Encoder::new);
 		}
 	}
 
@@ -147,25 +145,17 @@ public class Verify extends AbstractCommand {
 		}
 
 		@Override
-		public void println(PrintStream out, boolean json) {
-			if (json) {
-				try {
-					out.println(new JarsVerifyOutputs.Encoder().encode(this));
-				}
-				catch (EncodeException e) {
-					// this should not happen, since the constructor of the JSON representation never throws exceptions
-					throw new RuntimeException("Cannot encode the output of the command in JSON format", e);
-				}
-			}
+		public String toString() {
+			if (errors.length == 0)
+				return "Verification succeeded\n";
 			else {
-				if (errors.length == 0)
-					out.println("Verification succeeded");
-				else {
-					out.println("Verification failed with the following errors:");
-					int counter = 1;
-					for (var error: errors)
-						out.println(counter++ + ": " + error);
-				}
+				var sb = new StringBuilder();
+				sb.append("Verification failed with the following errors:\n");
+				int counter = 1;
+				for (var error: errors)
+					sb.append(counter++ + ": " + error + "\n");
+
+				return sb.toString();
 			}
 		}
 	}
