@@ -48,17 +48,17 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StringValue;
 
 public abstract class AbstractCommand implements Runnable {
-	protected static final BigInteger _100_000 = BigInteger.valueOf(100_000L);
-	protected static final BigInteger _100_000_000 = BigInteger.valueOf(100_000_000L);
-	protected static final String ANSI_RESET = "\u001B[0m";
-	protected static final String ANSI_BLACK = "\u001B[30m";
-	protected static final String ANSI_RED = "\u001B[31m";
-	protected static final String ANSI_GREEN = "\u001B[32m";
-	protected static final String ANSI_YELLOW = "\u001B[33m";
-	protected static final String ANSI_BLUE = "\u001B[34m";
-	protected static final String ANSI_PURPLE = "\u001B[35m";
-	protected static final String ANSI_CYAN = "\u001B[36m";
-	protected static final String ANSI_WHITE = "\u001B[37m";
+	public static final BigInteger _100_000 = BigInteger.valueOf(100_000L);
+	public static final BigInteger _100_000_000 = BigInteger.valueOf(100_000_000L);
+	public static final String ANSI_RESET = "\u001B[0m";
+	public static final String ANSI_BLACK = "\u001B[30m";
+	public static final String ANSI_RED = "\u001B[31m";
+	public static final String ANSI_GREEN = "\u001B[32m";
+	public static final String ANSI_YELLOW = "\u001B[33m";
+	public static final String ANSI_BLUE = "\u001B[34m";
+	public static final String ANSI_PURPLE = "\u001B[35m";
+	public static final String ANSI_CYAN = "\u001B[36m";
+	public static final String ANSI_WHITE = "\u001B[37m";
 
 	private final static Logger LOGGER = Logger.getLogger(AbstractCommand.class.getName());
 

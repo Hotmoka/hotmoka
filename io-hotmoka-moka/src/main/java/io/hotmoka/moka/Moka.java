@@ -33,7 +33,6 @@ import io.hotmoka.moka.internal.SellValidation;
 import io.hotmoka.moka.internal.Send;
 import io.hotmoka.moka.internal.StartMokamint;
 import io.hotmoka.moka.internal.StartTendermint;
-import io.hotmoka.moka.internal.State;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
@@ -58,8 +57,7 @@ import picocli.CommandLine.Command;
 			        SellValidation.class,
 			        Send.class,
 			        StartMokamint.class,
-			        StartTendermint.class,
-			        State.class }, 
+			        StartTendermint.class }, 
 
 	description = "This is the command-line interface of Hotmoka.",
 

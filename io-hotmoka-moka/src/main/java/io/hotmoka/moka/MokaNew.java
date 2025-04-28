@@ -27,6 +27,7 @@ import io.hotmoka.moka.internal.Accounts;
 import io.hotmoka.moka.internal.Jars;
 import io.hotmoka.moka.internal.Keys;
 import io.hotmoka.moka.internal.Nodes;
+import io.hotmoka.moka.internal.Objects;
 import picocli.CommandLine.Command;
 
 /**
@@ -45,7 +46,8 @@ import picocli.CommandLine.Command;
 		Accounts.class,
 		Jars.class,
 		Keys.class,
-		Nodes.class
+		Nodes.class,
+		Objects.class
 	}
 )
 public class MokaNew extends AbstractCLI {

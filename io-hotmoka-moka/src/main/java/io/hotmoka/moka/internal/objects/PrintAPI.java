@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal;
+package io.hotmoka.moka.internal.objects;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.helpers.ClassLoaderHelpers;
+import io.hotmoka.moka.internal.AbstractCommand;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
