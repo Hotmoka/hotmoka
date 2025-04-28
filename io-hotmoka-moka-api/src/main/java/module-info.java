@@ -25,6 +25,7 @@ module io.hotmoka.moka.api {
 	exports io.hotmoka.moka.api.nodes.config;
 	exports io.hotmoka.moka.api.nodes.disk;
 	exports io.hotmoka.moka.api.nodes.manifest;
+	exports io.hotmoka.moka.api.nodes.mokamint;
 	exports io.hotmoka.moka.api.nodes.takamaka;
 
 	requires transitive io.hotmoka.node.api;

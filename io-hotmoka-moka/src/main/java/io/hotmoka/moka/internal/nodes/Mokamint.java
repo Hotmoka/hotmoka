@@ -1,5 +1,5 @@
 /*
-Copyright 2025 Fausto Spoto
+Copyright 2024 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,29 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal;
+package io.hotmoka.moka.internal.nodes;
 
-import io.hotmoka.moka.internal.nodes.Config;
-import io.hotmoka.moka.internal.nodes.Disk;
-import io.hotmoka.moka.internal.nodes.Info;
-import io.hotmoka.moka.internal.nodes.Manifest;
-import io.hotmoka.moka.internal.nodes.Mokamint;
-import io.hotmoka.moka.internal.nodes.SetFaucet;
-import io.hotmoka.moka.internal.nodes.Takamaka;
+import io.hotmoka.moka.internal.nodes.mokamint.Init;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
 
-@Command(name = "nodes",
-	description = "Manage Hotmoka nodes.",
+@Command(name = "mokamint",
+	description = "Manage Mokamint nodes.",
 	subcommands = {
 		HelpCommand.class,
-		Config.class,
-		Disk.class,
-		Info.class,
-		Manifest.class,
-		Mokamint.class,
-		SetFaucet.class,
-		Takamaka.class
+		Init.class,
 	})
-public class Nodes {
+public class Mokamint {
 }

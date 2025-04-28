@@ -18,21 +18,25 @@ package io.hotmoka.moka.internal.json;
 
 import java.net.URI;
 
-import io.hotmoka.moka.api.nodes.disk.NodesDiskInitOutput;
-import io.hotmoka.moka.internal.nodes.disk.Init;
+import io.hotmoka.moka.api.nodes.mokamint.NodesMokamintInitOutput;
+import io.hotmoka.moka.internal.nodes.mokamint.Init;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**
- * The JSON representation of the output of the {@code moka disk init} command.
+ * The JSON representation of the output of the {@code moka mokamint init} command.
  */
-public abstract class NodesDiskInitOutputJson implements JsonRepresentation<NodesDiskInitOutput> {
+public abstract class NodesMokamintInitOutputJson implements JsonRepresentation<NodesMokamintInitOutput> {
 	private final URI uri;
+	private final URI uriMokamintPublic;
+	private final URI uriMokamintRestricted;
 	private final StorageValues.Json gamete;
 
-	protected NodesDiskInitOutputJson(NodesDiskInitOutput output) {
+	protected NodesMokamintInitOutputJson(NodesMokamintInitOutput output) {
 		this.uri = output.getURI();
+		this.uriMokamintPublic = output.getURIMokamintPublic();
+		this.uriMokamintRestricted = output.getURIMokamintRestricted();
 		this.gamete = new StorageValues.Json(output.getGamete());
 	}
 
@@ -44,8 +48,16 @@ public abstract class NodesDiskInitOutputJson implements JsonRepresentation<Node
 		return uri;
 	}
 
+	public URI getURIMokamintPublic() {
+		return uriMokamintPublic;
+	}
+
+	public URI getURIMokamintRestricted() {
+		return uriMokamintRestricted;
+	}
+
 	@Override
-	public NodesDiskInitOutput unmap() throws InconsistentJsonException {
+	public NodesMokamintInitOutput unmap() throws InconsistentJsonException {
 		return new Init.Output(this);
 	}
 }

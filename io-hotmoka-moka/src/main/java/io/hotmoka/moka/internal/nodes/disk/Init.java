@@ -75,7 +75,7 @@ public class Init extends AbstractMokaCommand {
 			converter = SignatureOptionConverter.class, defaultValue = "ed25519")
 	private SignatureAlgorithm signature;
 	
-	@Option(names = "--open-unsigned-faucet", description = "opens the unsigned faucet of the gamete") 
+	@Option(names = "--open-unsigned-faucet", description = "open the unsigned faucet of the gamete") 
 	private boolean openUnsignedFaucet;
 
 	@Option(names = "--initial-gas-price", description = "the initial price of a unit of gas", defaultValue = "100") 
@@ -123,7 +123,7 @@ public class Init extends AbstractMokaCommand {
 			throw new CommandException("The public key of the gamete is not in Base58 format", e);
 		}
 		catch (InvalidKeySpecException e) {
-			throw new CommandException("The public key is not valid for the " + signature + " signature algorithm");
+			throw new CommandException("The public key of the gamete is not valid for the " + signature + " signature algorithm");
 		}
 			
 		ConsensusConfig<?, ?> consensus;
@@ -154,7 +154,7 @@ public class Init extends AbstractMokaCommand {
 			waitForEnterKey();
 		}
 		catch (IOException e) {
-			throw new CommandException("Cannot access " + takamakaCode, e);
+			throw new CommandException("Cannot access file \"" + takamakaCode + "\"!", e);
 		}
 		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
 			throw new CommandException("Could not initialize the node", e);
@@ -195,9 +195,9 @@ public class Init extends AbstractMokaCommand {
 		 * @throws InconsistentJsonException if {@code json} is inconsistent
 		 */
 		public Output(NodesDiskInitOutputJson json) throws InconsistentJsonException {
-			this.gamete = Objects.requireNonNull(json.getManifest(), "gamete cannot be null", InconsistentJsonException::new).unmap()
+			this.gamete = Objects.requireNonNull(json.getGamete(), "gamete cannot be null", InconsistentJsonException::new).unmap()
 				.asReference(value -> new InconsistentJsonException("The reference to the gamete must be a storage reference, not a " + value.getClass().getName()));
-			this.uri = json.getURI();
+			this.uri = Objects.requireNonNull(json.getURI(), "uri cannot be null", InconsistentJsonException::new);
 		}
 
 		@Override
@@ -214,12 +214,14 @@ public class Init extends AbstractMokaCommand {
 		public String toString() {
 			var sb = new StringBuilder();
 
-			sb.append("The node has been published at " + uri + ".\n");
-			sb.append("\nThe owner of the key of the gamete can bind it to its address now with:\n");
-			sb.append("  moka keys bind file_containing_the_key_pair_of_the_gamete --password --url url_of_this_node\n");
+			sb.append("The Hotmoka node has been published at " + uri + ".\n");
+			sb.append("\n");
+			sb.append("The owner of the key of the gamete can bind it to its address now with:\n");
+			sb.append("  moka keys bind file_containing_the_key_pair_of_the_gamete --password --url url_of_this_Hotmoka_node\n");
 			sb.append("or with:\n");
 			sb.append("  moka keys bind file_containing_the_key_pair_of_the_gamete --password --reference " + gamete + "\n");
-			sb.append("\nPress the enter key to stop the process and close the node.\n");
+			sb.append("\n");
+			sb.append("Press the enter key to stop the process and close the node.\n");
 
 			return sb.toString();
 		}
