@@ -20,32 +20,21 @@ import java.net.URI;
 
 import io.hotmoka.moka.api.nodes.mokamint.NodesMokamintInitOutput;
 import io.hotmoka.moka.internal.nodes.mokamint.Init;
-import io.hotmoka.node.StorageValues;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**
  * The JSON representation of the output of the {@code moka mokamint init} command.
  */
-public abstract class NodesMokamintInitOutputJson implements JsonRepresentation<NodesMokamintInitOutput> {
-	private final URI uri;
+public abstract class NodesMokamintInitOutputJson extends NodesInitOutputJson implements JsonRepresentation<NodesMokamintInitOutput> {
 	private final URI uriMokamintPublic;
 	private final URI uriMokamintRestricted;
-	private final StorageValues.Json gamete;
 
 	protected NodesMokamintInitOutputJson(NodesMokamintInitOutput output) {
-		this.uri = output.getURI();
+		super(output);
+
 		this.uriMokamintPublic = output.getURIMokamintPublic();
 		this.uriMokamintRestricted = output.getURIMokamintRestricted();
-		this.gamete = new StorageValues.Json(output.getGamete());
-	}
-
-	public StorageValues.Json getGamete() {
-		return gamete;
-	}
-
-	public URI getURI() {
-		return uri;
 	}
 
 	public URI getURIMokamintPublic() {

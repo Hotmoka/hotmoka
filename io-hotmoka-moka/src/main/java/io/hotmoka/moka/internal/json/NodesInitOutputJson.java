@@ -14,14 +14,30 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.api.nodes.disk;
+package io.hotmoka.moka.internal.json;
 
-import io.hotmoka.annotations.Immutable;
+import java.net.URI;
+
 import io.hotmoka.moka.api.nodes.NodesInitOutput;
+import io.hotmoka.node.StorageValues;
 
 /**
- * The output of the {@code moka nodes disk init} command.
+ * The JSON representation of the output of a command that initializes a new Hotmoka node.
  */
-@Immutable
-public interface NodesDiskInitOutput extends NodesInitOutput {
+public abstract class NodesInitOutputJson {
+	private final URI uri;
+	private final StorageValues.Json gamete;
+
+	protected NodesInitOutputJson(NodesInitOutput output) {
+		this.uri = output.getURI();
+		this.gamete = new StorageValues.Json(output.getGamete());
+	}
+
+	public StorageValues.Json getGamete() {
+		return gamete;
+	}
+
+	public URI getURI() {
+		return uri;
+	}
 }

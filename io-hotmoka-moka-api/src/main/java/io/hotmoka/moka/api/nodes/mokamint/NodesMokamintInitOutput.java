@@ -19,20 +19,13 @@ package io.hotmoka.moka.api.nodes.mokamint;
 import java.net.URI;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.moka.api.nodes.NodesInitOutput;
 
 /**
  * The output of the {@code moka nodes mokamint init} command.
  */
 @Immutable
-public interface NodesMokamintInitOutput {
-
-	/**
-	 * Yields the URI of the published node service.
-	 * 
-	 * @return the URI of the published node service
-	 */
-	URI getURI();
+public interface NodesMokamintInitOutput extends NodesInitOutput {
 
 	/**
 	 * Yields the URI of the public part of the published Mokamint node service.
@@ -47,11 +40,4 @@ public interface NodesMokamintInitOutput {
 	 * @return the URI of the restricted part of the published Mokamint node service
 	 */
 	URI getURIMokamintRestricted();
-
-	/**
-	 * Yields the reference to the gamete of the initialized node.
-	 * 
-	 * @return the reference to the gamete of the initialized node
-	 */
-	StorageReference getGamete();
 }

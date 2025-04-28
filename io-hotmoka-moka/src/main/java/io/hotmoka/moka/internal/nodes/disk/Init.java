@@ -17,26 +17,16 @@ limitations under the License.
 package io.hotmoka.moka.internal.nodes.disk;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.net.URI;
-import java.nio.file.Path;
-import java.security.InvalidKeyException;
-import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.cli.CommandException;
-import io.hotmoka.crypto.Base58;
-import io.hotmoka.crypto.Base58ConversionException;
-import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.exceptions.Objects;
 import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.moka.NodesDiskInitOutputs;
 import io.hotmoka.moka.api.nodes.disk.NodesDiskInitOutput;
-import io.hotmoka.moka.internal.AbstractMokaCommand;
-import io.hotmoka.moka.internal.converters.SignatureOptionConverter;
+import io.hotmoka.moka.internal.converters.DiskNodeConfigOptionConverter;
 import io.hotmoka.moka.internal.json.NodesDiskInitOutputJson;
-import io.hotmoka.node.ConsensusConfigBuilders;
+import io.hotmoka.moka.internal.nodes.AbstractInit;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
@@ -45,116 +35,35 @@ import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.disk.DiskNodeConfigBuilders;
 import io.hotmoka.node.disk.DiskNodes;
+import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.service.NodeServices;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
-import picocli.CommandLine.Parameters;
 
 @Command(name = "init",
-	description = "Initialize a new disk node and publish a service to it.",
+	description = "Initialize a new disk node and publish a service to it. The configurations of the node can be provided through --node-local-config and --node-consensus-config, which, when missing, rely to defaults. In any case, such configuration can be updated with explicit values, such as --initial-supply.",
 	showDefaultValues = true)
-public class Init extends AbstractMokaCommand {
+public class Init extends AbstractInit {
 
-	@Parameters(description = "the initial supply of coins of the node, which goes to the gamete")
-    private BigInteger initialSupply;
-
-	@Parameters(description = "the Base58-encoded ed25519 public key to use for the gamete account")
-    private String publicKeyOfGamete;
-
-	@Parameters(description = "the path of the jar with the basic Takamaka classes that will be installed in the node")
-	private Path takamakaCode;
-
-	@Option(names = "--delta-supply", description = "the amount of coins that can be minted during the life of the node, after which inflation becomes 0", defaultValue = "0")
-    private BigInteger deltaSupply;
-
-	@Option(names = "--chain-id", description = "the chain identifier of the network", defaultValue = "")
-	private String chainId;
-
-	@Option(names = "--signature", description = "the default signature algorithm to use for signing the requests to the node (ed25519, sha256dsa, qtesla1, qtesla3)",
-			converter = SignatureOptionConverter.class, defaultValue = "ed25519")
-	private SignatureAlgorithm signature;
-	
-	@Option(names = "--open-unsigned-faucet", description = "open the unsigned faucet of the gamete") 
-	private boolean openUnsignedFaucet;
-
-	@Option(names = "--initial-gas-price", description = "the initial price of a unit of gas", defaultValue = "100") 
-	private BigInteger initialGasPrice;
-
-	@Option(names = "--oblivion", description = "how quick the gas consumed at previous rewards is forgotten (0 = never, 1000000 = immediately); use 0 to keep the gas price constant", defaultValue = "250000") 
-	private long oblivion;
-
-	@Option(names = "--ignore-gas-price", description = "accept transactions regardless of their gas price") 
-	private boolean ignoreGasPrice;
-
-	@Option(names = "--max-gas-per-view", description = "the maximal gas limit accepted for calls to @View methods", defaultValue = "1000000") 
-	private BigInteger maxGasPerView;
-
-	@Option(names = "--yes", description = "assume yes when asked for confirmation; this is implied if --json is used")
-	private boolean yes;
-
-	@Option(names = "--port", description = "the network port where the service must be published", defaultValue="8001")
-	private int port;
-
-	@Option(names = "--dir", description = "the directory that will contain blocks and state of the node", defaultValue = "chain")
-	private Path dir;
-
-	@Option(names = "--json", description = "print the output in JSON", defaultValue = "false")
-	private boolean json;
+	@Option(names = "--node-local-config", description = "the local configuration of the Hotmoka node, in TOML format", converter = DiskNodeConfigOptionConverter.class)
+	private DiskNodeConfig nodeLocalConfig;
 
 	@Override
 	protected void execute() throws CommandException {
-		if (json)
-			yes = true;
-
-		askForConfirmation();
-
-		var nodeConfig = DiskNodeConfigBuilders.defaults()
-			.setMaxGasPerViewTransaction(maxGasPerView)
-			.setDir(dir)
-			.build();
-
-		PublicKey publicKey;
-
-		try {
-			publicKey = signature.publicKeyFromEncoding(Base58.fromBase58String(publicKeyOfGamete));
-		}
-		catch (Base58ConversionException e) {
-			throw new CommandException("The public key of the gamete is not in Base58 format", e);
-		}
-		catch (InvalidKeySpecException e) {
-			throw new CommandException("The public key of the gamete is not valid for the " + signature + " signature algorithm");
-		}
+		DiskNodeConfig localNodeConfig = mkLocalNodeConfig();
+		ConsensusConfig<?, ?> consensus = mkConsensusNodeConfig();
+		askForConfirmation(localNodeConfig.getDir());
 			
-		ConsensusConfig<?, ?> consensus;
+		try (var node = DiskNodes.init(localNodeConfig);
+			var initialized = InitializedNodes.of(node, consensus, getTakamakaCode());
+			var service = NodeServices.of(node, getPort())) {
 
-		try {
-			consensus = ConsensusConfigBuilders.defaults(signature)
-				.allowUnsignedFaucet(openUnsignedFaucet)
-				.setInitialGasPrice(initialGasPrice)
-				.setSignatureForRequests(signature)
-				.setOblivion(oblivion)
-				.ignoreGasPrice(ignoreGasPrice)
-				.setChainId(chainId)
-				.setInitialSupply(initialSupply)
-				.setFinalSupply(initialSupply.add(deltaSupply))
-				.setPublicKeyOfGamete(publicKey)
-				.build();
-		}
-		catch (InvalidKeyException e) {
-			// this should not happen since we have created the public key with the same signature algorithm
-			throw new RuntimeException(e);
-		}
-
-		try (var node = DiskNodes.init(nodeConfig);
-			var initialized = InitializedNodes.of(node, consensus, takamakaCode);
-			var service = NodeServices.of(node, port)) {
-
-			report(json, new Output(initialized.gamete(), URI.create("ws://localhost:" + port)), NodesDiskInitOutputs.Encoder::new);
+			report(json(), new Output(initialized.gamete(), URI.create("ws://localhost:" + getPort())), NodesDiskInitOutputs.Encoder::new);
 			waitForEnterKey();
 		}
 		catch (IOException e) {
-			throw new CommandException("Cannot access file \"" + takamakaCode + "\"!", e);
+			throw new CommandException("Cannot access file \"" + getTakamakaCode() + "\"!", e);
 		}
 		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
 			throw new CommandException("Could not initialize the node", e);
@@ -171,21 +80,31 @@ public class Init extends AbstractMokaCommand {
 		}
 	}
 
-	private void askForConfirmation() throws CommandException {
-		if (!yes && !answerIsYes("Do you really want to start a new node at \"" + dir + "\" (old blocks and store will be lost) [Y/N] "))
-			throw new CommandException("Stopped");
+	/**
+	 * Yields the local configuration of the Hotmoka node.
+	 * 
+	 * @return the local configuration of the Hotmoka node
+	 * @throws CommandException if the configuration cannot be built
+	 */
+	private DiskNodeConfig mkLocalNodeConfig() throws CommandException {
+		var builder = nodeLocalConfig != null ? nodeLocalConfig.toBuilder() : DiskNodeConfigBuilders.defaults();
+
+		if (getMaxGasPerView() != null)
+			builder = builder.setMaxGasPerViewTransaction(getMaxGasPerView());
+
+		if (getDir() != null)
+			builder = builder.setDir(getDir());
+
+		return builder.build();
 	}
 
 	/**
 	 * The output of this command.
 	 */
-	public static class Output implements NodesDiskInitOutput {
-		private final StorageReference gamete;
-		private final URI uri;
+	public static class Output extends AbstractInitOutput implements NodesDiskInitOutput {
 
 		private Output(StorageReference gamete, URI uri) {
-			this.gamete = gamete;
-			this.uri = uri;
+			super(gamete, uri);
 		}
 
 		/**
@@ -195,36 +114,13 @@ public class Init extends AbstractMokaCommand {
 		 * @throws InconsistentJsonException if {@code json} is inconsistent
 		 */
 		public Output(NodesDiskInitOutputJson json) throws InconsistentJsonException {
-			this.gamete = Objects.requireNonNull(json.getGamete(), "gamete cannot be null", InconsistentJsonException::new).unmap()
-				.asReference(value -> new InconsistentJsonException("The reference to the gamete must be a storage reference, not a " + value.getClass().getName()));
-			this.uri = Objects.requireNonNull(json.getURI(), "uri cannot be null", InconsistentJsonException::new);
+			super(json);
 		}
 
 		@Override
-		public StorageReference getGamete() {
-			return gamete;
-		}
-
-		@Override
-		public URI getURI() {
-			return uri;
-		}
-
-		@Override
-		public String toString() {
-			var sb = new StringBuilder();
-
+		protected void toStringServices(StringBuilder sb) {
 			sb.append("The following service has been published:\n");
-			sb.append(" * " + asUri(uri) + ": the API of this Hotmoka node\n");
-			sb.append("\n");
-			sb.append("The owner of the key of the gamete can bind it now to its address with:\n");
-			sb.append(asCommand("  moka keys bind file_containing_the_key_pair_of_the_gamete --password --url url_of_this_Hotmoka_node\n"));
-			sb.append("or with:\n");
-			sb.append(asCommand("  moka keys bind file_containing_the_key_pair_of_the_gamete --password --reference " + gamete + "\n"));
-			sb.append("\n");
-			sb.append(asInteraction("Press the enter key to stop this process and close this node: "));
-
-			return sb.toString();
+			sb.append(" * " + asUri(getURI()) + ": the API of this Hotmoka node\n");
 		}
 	}
 }
