@@ -17,22 +17,24 @@ limitations under the License.
 package io.hotmoka.moka.internal.converters;
 
 import java.io.FileNotFoundException;
-import java.net.URISyntaxException;
 import java.nio.file.Paths;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 
-import io.mokamint.node.local.LocalNodeConfigBuilders;
-import io.mokamint.node.local.api.LocalNodeConfig;
+import io.hotmoka.crypto.Base64ConversionException;
+import io.hotmoka.node.ConsensusConfigBuilders;
+import io.hotmoka.node.api.nodes.ConsensusConfig;
 import picocli.CommandLine.ITypeConverter;
 
 /**
- * A converter of a string option into a Mokamint engine local configuration.
+ * A converter of a string option into a Hotmoka node consensus configuration.
  */
-public class MokamintLocalNodeConfigOptionConverter implements ITypeConverter<LocalNodeConfig> {
+public class ConsensusConfigOptionConverter implements ITypeConverter<ConsensusConfig<?, ?>> {
 
 	@Override
-	public LocalNodeConfig convert(String value) throws FileNotFoundException, NoSuchAlgorithmException, URISyntaxException {
-		return LocalNodeConfigBuilders.load(Paths.get(value))
+	public ConsensusConfig<?, ?> convert(String value) throws FileNotFoundException, InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, Base64ConversionException {
+		return ConsensusConfigBuilders.load(Paths.get(value))
 			.build();
 	}
 }

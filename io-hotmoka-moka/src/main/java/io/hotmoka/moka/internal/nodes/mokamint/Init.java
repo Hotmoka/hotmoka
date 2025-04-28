@@ -39,7 +39,9 @@ import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.moka.NodesMokamintInitOutputs;
 import io.hotmoka.moka.api.nodes.mokamint.NodesMokamintInitOutput;
 import io.hotmoka.moka.internal.AbstractMokaCommand;
+import io.hotmoka.moka.internal.converters.ConsensusConfigOptionConverter;
 import io.hotmoka.moka.internal.converters.MokamintLocalNodeConfigOptionConverter;
+import io.hotmoka.moka.internal.converters.MokamintNodeConfigOptionConverter;
 import io.hotmoka.moka.internal.converters.SignatureOptionConverter;
 import io.hotmoka.moka.internal.json.NodesMokamintInitOutputJson;
 import io.hotmoka.node.ConsensusConfigBuilders;
@@ -51,9 +53,11 @@ import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.mokamint.MokamintNodeConfigBuilders;
 import io.hotmoka.node.mokamint.MokamintNodes;
+import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
 import io.hotmoka.node.service.NodeServices;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.mokamint.miner.local.LocalMiners;
+import io.mokamint.node.local.LocalNodeConfigBuilders;
 import io.mokamint.node.local.api.LocalNodeConfig;
 import io.mokamint.node.service.PublicNodeServices;
 import io.mokamint.node.service.RestrictedNodeServices;
@@ -66,15 +70,9 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "init",
-	description = "Initialize a new disk node and publish a service to it.",
+	description = "Initialize a new Mokamint node and publish a service to it. This spawns both a Mokamint engine and a Mokamint node on top of that engine. The configurations of both can be provided through the --mokamint-config and (--node-local-config and --node-consensus-config), respectively, which, when missing, rely to defaults. In any case, such configurations can be updated with explicit values, such as --initial-supply.",
 	showDefaultValues = true)
 public class Init extends AbstractMokaCommand {
-
-	@Parameters(description = "the initial supply of coins of the node, which goes to the gamete")
-    private BigInteger initialSupply;
-
-	@Parameters(description = "the Base58-encoded ed25519 public key to use for the gamete account")
-    private String publicKeyOfGamete;
 
 	@Parameters(description = "the path of the jar with the basic Takamaka classes that will be installed in the node")
 	private Path takamakaCode;
@@ -88,38 +86,49 @@ public class Init extends AbstractMokaCommand {
 	@Parameters(description = "the path of the key pair of the plot file, used to sign the deadlines that the miner creates with that plot file")
 	private Path keysOfPlot;
 
-	@Parameters(description = "the path to the Mokamint configuration of the node", converter = MokamintLocalNodeConfigOptionConverter.class)
+	@Option(names = "--mokamint-config", description = "the configuration of the underlying Mokamint engine", converter = MokamintLocalNodeConfigOptionConverter.class)
 	private LocalNodeConfig mokamintConfig;
 
-	@Option(names = "--delta-supply", description = "the amount of coins that can be minted during the life of the node, after which inflation becomes 0", defaultValue = "0")
-    private BigInteger deltaSupply;
+	@Option(names = "--node-local-config", description = "the local configuration of the Hotmoka node", converter = MokamintNodeConfigOptionConverter.class)
+	private MokamintNodeConfig nodeLocalConfig;
 
-	@Option(names = "--chain-id", description = "the chain identifier of the network; if missing, the chain identifier from the underlying Mokamint engine will be used, as reported with --mokamint-config")
+	@Option(names = "--node-consensus-config", description = "the local configuration of the Hotmoka node", converter = ConsensusConfigOptionConverter.class)
+	private ConsensusConfig<?, ?> nodeConsensusConfig;
+
+	@Option(names = "--initial-supply", description = "the initial supply of coins of the node, which goes to the gamete")
+	private BigInteger initialSupply;
+
+	@Option(names = "--final-supply", description = "the final supply of coins of the node, after which inflation becomes 0")
+	private BigInteger finalSupply;
+
+	@Option(names = "--public-key-of-gamete", description = "the Base58-encoded ed25519 public key to use for the gamete account")
+	private String publicKeyOfGamete;
+
+	@Option(names = "--chain-id", description = "the chain identifier of the Hotmoka network")
 	private String chainId;
 
-	@Option(names = "--signature", description = "the default signature algorithm to use for signing the requests to the node (ed25519, sha256dsa, qtesla1, qtesla3)",
-			converter = SignatureOptionConverter.class, defaultValue = "ed25519")
+	@Option(names = "--signature", description = "the default signature algorithm to use for signing the requests to the node (ed25519, sha256dsa, qtesla1, qtesla3)", converter = SignatureOptionConverter.class)
 	private SignatureAlgorithm signature;
 	
 	@Option(names = "--open-unsigned-faucet", description = "open the unsigned faucet of the gamete") 
-	private boolean openUnsignedFaucet;
+	private Boolean openUnsignedFaucet;
 
-	@Option(names = "--initial-gas-price", description = "the initial price of a unit of gas", defaultValue = "100") 
+	@Option(names = "--initial-gas-price", description = "the initial price of a unit of gas") 
 	private BigInteger initialGasPrice;
 
-	@Option(names = "--oblivion", description = "how quick the gas consumed at previous rewards is forgotten (0 = never, 1000000 = immediately); use 0 to keep the gas price constant", defaultValue = "250000") 
-	private long oblivion;
+	@Option(names = "--oblivion", description = "how quick the gas consumed at previous rewards is forgotten (0 = never, 1000000 = immediately); use 0 to keep the gas price constant") 
+	private Long oblivion;
 
 	@Option(names = "--ignore-gas-price", description = "accept transactions regardless of their gas price") 
-	private boolean ignoreGasPrice;
+	private Boolean ignoreGasPrice;
 
-	@Option(names = "--max-gas-per-view", description = "the maximal gas limit accepted for calls to @View methods", defaultValue = "1000000") 
+	@Option(names = "--max-gas-per-view", description = "the maximal gas limit accepted for calls to @View methods") 
 	private BigInteger maxGasPerView;
 
 	@Option(names = "--yes", description = "assume yes when asked for confirmation; this is implied if --json is used")
 	private boolean yes;
 
-	@Option(names = "--port", description = "the network port where the service must be published", defaultValue="8001")
+	@Option(names = "--port", description = "the network port where the service must be published", defaultValue = "8001")
 	private int port;
 
 	@Option(names = "--dir", description = "the directory that will contain blocks and state of the node", defaultValue = "chain")
@@ -142,99 +151,29 @@ public class Init extends AbstractMokaCommand {
 
 	@Override
 	protected void execute() throws CommandException {
-		String passwordOfKeysOfMokamintNodeAsString, passwordOfKeysOfPlotAsString;
-
 		try {
-			passwordOfKeysOfMokamintNodeAsString = new String(passwordOfKeysOfMokamintNode);
-			passwordOfKeysOfPlotAsString = new String(passwordOfKeysOfPlot);
+			LocalNodeConfig mokamintConfig = mkMokamintConfig();
+			MokamintNodeConfig localNodeConfig = mkLocalNodeConfig();
+			ConsensusConfig<?, ?> consensus = mkConsensusNodeConfig();
+			KeyPair keysOfNode = mkKeysOfMokamintNode(mokamintConfig);
+			KeyPair keysOfPlot = mkKeysOfPlot(mokamintConfig);
+			askForConfirmation(localNodeConfig.getDir());
 
-			if (json)
-				yes = true;
-
-			askForConfirmation();
-
-			// the local configuration of the Hotmoka Mokamint node
-			var mokamintNodeConfig = MokamintNodeConfigBuilders.defaults()
-					.setMaxGasPerViewTransaction(maxGasPerView)
-					.setDir(dir)
-					.build();
-
-			PublicKey publicKey;
-
-			try {
-				publicKey = signature.publicKeyFromEncoding(Base58.fromBase58String(publicKeyOfGamete));
-			}
-			catch (Base58ConversionException e) {
-				throw new CommandException("The public key of the gamete is not in Base58 format", e);
-			}
-			catch (InvalidKeySpecException e) {
-				throw new CommandException("The public key of the gamete is not valid for the " + signature + " signature algorithm");
-			}
-
-			// the configuration of the underlying Mokamint engine
-			LocalNodeConfig mokamintConfig = this.mokamintConfig.toBuilder()
-				.setDir(dir.resolve("mokamint")) // we replace the directory configuration
-				.build();
-
-			ConsensusConfig<?, ?> consensus;
-
-			try {
-				// the consensus configuration of the Hotmoka Mokamint node
-				consensus = ConsensusConfigBuilders.defaults(signature)
-						.allowUnsignedFaucet(openUnsignedFaucet)
-						.setInitialGasPrice(initialGasPrice)
-						.setSignatureForRequests(signature)
-						.setOblivion(oblivion)
-						.ignoreGasPrice(ignoreGasPrice)
-						.setChainId(chainId != null ? chainId : mokamintConfig.getChainId())
-						.setInitialSupply(initialSupply)
-						.setFinalSupply(initialSupply.add(deltaSupply))
-						.setPublicKeyOfGamete(publicKey)
-						.build();
-			}
-			catch (InvalidKeyException e) {
-				// this should not happen since we have created the public key with the same signature algorithm
-				throw new RuntimeException(e);
-			}
-
-			KeyPair keysOfNode;
-			try {
-				keysOfNode = Entropies.load(keysOfMokamintNode).keys(passwordOfKeysOfMokamintNodeAsString, mokamintConfig.getSignatureForBlocks());
-			}
-			catch (IOException e) {
-				throw new CommandException("Cannot access file \"" + keysOfMokamintNode + "\"!", e);
-			}
-
-			KeyPair keysOfPlot;
-			try {
-				keysOfPlot = Entropies.load(this.keysOfPlot).keys(passwordOfKeysOfPlotAsString, mokamintConfig.getSignatureForDeadlines());
-			}
-			catch (IOException e) {
-				throw new CommandException("Cannot access file \"" + this.keysOfPlot + "\"!", e);
-			}
-
-			try (var node = MokamintNodes.init(mokamintNodeConfig, mokamintConfig, keysOfNode, true)) {
-				try (var plot = Plots.load(this.plot)) {
-				var mokamintNode = node.getMokamintNode();
-				var pakp = PlotAndKeyPairs.of(plot, keysOfPlot);
-
-				try (var miner = LocalMiners.of(new PlotAndKeyPair[] { pakp })) {
+			try (var node = MokamintNodes.init(localNodeConfig, mokamintConfig, keysOfNode, true); var plot = Plots.load(this.plot)) {
+				try (var miner = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, keysOfPlot) })) {
+					var mokamintNode = node.getMokamintNode();
 					mokamintNode.add(miner).orElseThrow(() -> new CommandException("Could not add a miner to the Mokamint node"));
 
 					// the next services will be closed when the node will be closed
-					PublicNodeServices.open(mokamintNode, mokamintPort, 1800000, 1000, Optional.of(URI.create("ws://localhost:" + mokamintPort)));
+					var mokamintNodePublicURI = URI.create("ws://localhost:" + mokamintPort);
+					PublicNodeServices.open(mokamintNode, mokamintPort, 1800000, 1000, Optional.of(mokamintNodePublicURI));
 					RestrictedNodeServices.open(mokamintNode, mokamintPortRestricted);
 
 					try (var initialized = InitializedNodes.of(node, consensus, takamakaCode); var service = NodeServices.of(node, port)) {
-						var output = new Output(initialized.gamete(),
-								URI.create("ws://localhost:" + port),
-								URI.create("ws://localhost:" + mokamintPort),
-								URI.create("ws://localhost:" + mokamintPortRestricted));
-
+						var output = new Output(initialized.gamete(), URI.create("ws://localhost:" + port), mokamintNodePublicURI, URI.create("ws://localhost:" + mokamintPortRestricted));
 						report(json, output, NodesMokamintInitOutputs.Encoder::new);
 						waitForEnterKey();
 					}
-				}
 				}
 			}
 			catch (WrongKeyException e) {
@@ -261,15 +200,134 @@ public class Init extends AbstractMokaCommand {
 			}
 		}
 		finally {
-			passwordOfKeysOfMokamintNodeAsString = null;
-			passwordOfKeysOfPlotAsString = null;
 			Arrays.fill(passwordOfKeysOfMokamintNode, ' ');
 			Arrays.fill(passwordOfKeysOfPlot, ' ');
 		}
 	}
 
-	private void askForConfirmation() throws CommandException {
-		if (!yes && !answerIsYes("Do you really want to start a new node at \"" + dir + "\" (old blocks and store will be lost) [Y/N] "))
+	private PublicKey mkPublicKeyOfGamete(SignatureAlgorithm signature) throws CommandException {
+		try {
+			return signature.publicKeyFromEncoding(Base58.fromBase58String(publicKeyOfGamete));
+		}
+		catch (Base58ConversionException e) {
+			throw new CommandException("The public key of the gamete is not in Base58 format", e);
+		}
+		catch (InvalidKeySpecException e) {
+			throw new CommandException("The public key of the gamete is not valid for the " + signature + " signature algorithm");
+		}
+	}
+
+	/**
+	 * Yields the configuration of the underlying Mokamint engine.
+	 * 
+	 * @return the configuration of the underlying Mokamint engine
+	 * @throws CommandException if the configuration cannot be built
+	 */
+	private LocalNodeConfig mkMokamintConfig() throws CommandException {
+		try {
+			var builder = mokamintConfig != null ? mokamintConfig.toBuilder() : LocalNodeConfigBuilders.defaults();
+			if (dir != null)
+				builder = builder.setDir(dir.resolve("mokamint"));
+
+			return builder.build();
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw new CommandException("Some cryptographic algorithm is not available", e);
+		}
+	}
+
+	/**
+	 * Yields the local configuration of the Hotmoka node.
+	 * 
+	 * @return the local configuration of the Hotmoka node
+	 * @throws CommandException if the configuration cannot be built
+	 */
+	private MokamintNodeConfig mkLocalNodeConfig() throws CommandException {
+		var builder = nodeLocalConfig != null ? nodeLocalConfig.toBuilder() : MokamintNodeConfigBuilders.defaults();
+
+		if (maxGasPerView != null)
+			builder = builder.setMaxGasPerViewTransaction(maxGasPerView);
+
+		if (dir != null)
+			builder = builder.setDir(dir);
+
+		return builder.build();
+	}
+
+	private ConsensusConfig<?, ?> mkConsensusNodeConfig() throws CommandException {
+		try {
+			var defaults = nodeConsensusConfig != null ? nodeConsensusConfig : ConsensusConfigBuilders.defaults().build();
+			var builder = defaults.toBuilder();
+
+			if (openUnsignedFaucet != null)
+				builder = builder.allowUnsignedFaucet(openUnsignedFaucet);
+
+			if (signature != null)
+				builder = builder.setSignatureForRequests(signature);
+
+			if (initialGasPrice != null)
+				builder = builder.setInitialGasPrice(initialGasPrice);
+
+			if (oblivion != null)
+				builder = builder.setOblivion(oblivion);
+
+			if (ignoreGasPrice != null)
+				builder = builder.ignoreGasPrice(ignoreGasPrice);
+
+			if (chainId != null)
+				builder = builder.setChainId(chainId);
+
+			if (initialSupply != null)
+				builder = builder.setInitialSupply(initialSupply);
+
+			if (finalSupply != null)
+				builder = builder.setFinalSupply(finalSupply);
+
+			if (publicKeyOfGamete != null)
+				builder = builder.setPublicKeyOfGamete(mkPublicKeyOfGamete(signature != null ? signature : defaults.getSignatureForRequests()));
+
+			return builder.build();
+		}
+		catch (InvalidKeyException e) {
+			throw new CommandException("The public key is invalid for the selected signature algorithm", e);
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw new CommandException("Some cryptographic algorithm is not available", e);
+		}
+	}
+
+	private KeyPair mkKeysOfMokamintNode(LocalNodeConfig mokamintConfig) throws CommandException {
+		String passwordOfKeysOfMokamintNodeAsString = new String(passwordOfKeysOfMokamintNode);
+
+		try {
+			return Entropies.load(keysOfMokamintNode).keys(passwordOfKeysOfMokamintNodeAsString, mokamintConfig.getSignatureForBlocks());
+		}
+		catch (IOException e) {
+			throw new CommandException("Cannot access file \"" + keysOfMokamintNode + "\"!", e);
+		}
+		finally {
+			passwordOfKeysOfMokamintNodeAsString = null;
+			Arrays.fill(passwordOfKeysOfMokamintNode, ' ');
+		}
+	}
+
+	private KeyPair mkKeysOfPlot(LocalNodeConfig mokamintConfig) throws CommandException {
+		String passwordOfKeysOfPlotAsString = new String(passwordOfKeysOfPlot);
+
+		try {
+			return Entropies.load(keysOfPlot).keys(passwordOfKeysOfPlotAsString, mokamintConfig.getSignatureForDeadlines());
+		}
+		catch (IOException e) {
+			throw new CommandException("Cannot access file \"" + keysOfPlot + "\"!", e);
+		}
+		finally {
+			passwordOfKeysOfPlotAsString = null;
+			Arrays.fill(passwordOfKeysOfPlot, ' ');
+		}
+	}
+
+	private void askForConfirmation(Path dir) throws CommandException {
+		if (!yes && !json && !answerIsYes(asInteraction("Do you really want to start a new node at \"" + dir + "\" (old blocks and store will be lost) [Y/N] ")))
 			throw new CommandException("Stopped");
 	}
 

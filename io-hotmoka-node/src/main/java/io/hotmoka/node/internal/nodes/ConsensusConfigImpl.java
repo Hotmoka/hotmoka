@@ -444,8 +444,8 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		private long oblivion = 250_000L;
 		private long initialInflation = 100_000L; // 0.1%
 		private long verificationVersion = 0L;
-		private BigInteger initialSupply = BigInteger.ZERO;
-		private BigInteger finalSupply = BigInteger.ZERO;
+		private BigInteger initialSupply = new BigInteger("1000000000000000000000000000000000000000000");
+		private BigInteger finalSupply = initialSupply.multiply(BigInteger.TWO);
 		private PublicKey publicKeyOfGamete;
 		private String publicKeyOfGameteBase64;
 		private BigInteger ticketForNewPoll = BigInteger.valueOf(100);

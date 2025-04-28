@@ -17,22 +17,20 @@ limitations under the License.
 package io.hotmoka.moka.internal.converters;
 
 import java.io.FileNotFoundException;
-import java.net.URISyntaxException;
 import java.nio.file.Paths;
-import java.security.NoSuchAlgorithmException;
 
-import io.mokamint.node.local.LocalNodeConfigBuilders;
-import io.mokamint.node.local.api.LocalNodeConfig;
+import io.hotmoka.node.mokamint.MokamintNodeConfigBuilders;
+import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
 import picocli.CommandLine.ITypeConverter;
 
 /**
- * A converter of a string option into a Mokamint engine local configuration.
+ * A converter of a string option into a Mokamint Hotmoka node configuration.
  */
-public class MokamintLocalNodeConfigOptionConverter implements ITypeConverter<LocalNodeConfig> {
+public class MokamintNodeConfigOptionConverter implements ITypeConverter<MokamintNodeConfig> {
 
 	@Override
-	public LocalNodeConfig convert(String value) throws FileNotFoundException, NoSuchAlgorithmException, URISyntaxException {
-		return LocalNodeConfigBuilders.load(Paths.get(value))
+	public MokamintNodeConfig convert(String value) throws FileNotFoundException {
+		return MokamintNodeConfigBuilders.load(Paths.get(value))
 			.build();
 	}
 }
