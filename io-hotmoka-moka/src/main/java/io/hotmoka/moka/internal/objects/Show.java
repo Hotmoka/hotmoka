@@ -16,9 +16,15 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.objects;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
+import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
+import java.util.Comparator;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
@@ -30,26 +36,25 @@ import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.exceptions.ExceptionSupplier;
 import io.hotmoka.exceptions.Objects;
+import io.hotmoka.helpers.ClassLoaderHelpers;
 import io.hotmoka.moka.api.accounts.AccountsShowOutput;
-import io.hotmoka.moka.internal.AbstractCommand;
 import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
 import io.hotmoka.moka.internal.converters.StorageReferenceOptionConverter;
 import io.hotmoka.moka.internal.json.AccountsShowOutputJson;
-import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.signatures.FieldSignature;
-import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.updates.UpdateOfField;
 import io.hotmoka.node.api.updates.UpdateOfString;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.api.RemoteNode;
+import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
+import io.hotmoka.whitelisting.api.WhiteListingWizard;
+import io.takamaka.code.constants.Constants;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -69,14 +74,12 @@ public class Show extends AbstractMokaRpcCommand {
 	}
 
 	private class Run {
-		private final Node node;
 		private final Update[] updates;
 		private final ClassTag tag;
 
 		private Run(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
-			this.node = remote;
 			try {
-				this.updates = node.getState(object).sorted().toArray(Update[]::new);
+				this.updates = remote.getState(object).sorted().toArray(Update[]::new);
 			}
 			catch (UnknownReferenceException e) {
 				throw new CommandException("The object " + object + " cannot be found in the store of the node.");
@@ -87,26 +90,18 @@ public class Show extends AbstractMokaRpcCommand {
 			printHeader();
 			printFieldsInClass();
 			printFieldsInherited();
-			try {
-				printAPI();
-			}
-			catch (ClassNotFoundException | TransactionRejectedException | TransactionException | CodeExecutionException | UnknownReferenceException e) {
-				e.printStackTrace();
-			}
+			printAPI(remote);
 		}
 
-		private void printAPI() throws ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException, UnknownReferenceException, NodeException, TimeoutException, InterruptedException {
-			System.out.println();
-			if (api)
-				new PrintAPI(node, tag);
+		private ClassTag getClassTag() throws CommandException {
+			return Stream.of(updates)
+					.filter(update -> update instanceof ClassTag)
+					.map(update -> (ClassTag) update)
+					.findFirst().orElseThrow(() -> new CommandException("Object " + object + " has no class tag in the store of the node!"));
 		}
 
-		private void printFieldsInherited() {
-			Stream.of(updates)
-				.filter(update -> update instanceof UpdateOfField)
-				.map(update -> (UpdateOfField) update)
-				.filter(update -> !update.getField().getDefiningClass().equals(tag.getClazz()))
-				.forEachOrdered(this::printUpdate);
+		private void printHeader() {
+			System.out.println(green("class " + tag.getClazz() + " (from jar installed at " + tag.getJar() + ")"));
 		}
 
 		private void printFieldsInClass() {
@@ -114,35 +109,124 @@ public class Show extends AbstractMokaRpcCommand {
 				.filter(update -> update instanceof UpdateOfField)
 				.map(update -> (UpdateOfField) update)
 				.filter(update -> update.getField().getDefiningClass().equals(tag.getClazz()))
-				.forEachOrdered(this::printUpdate);
+				.forEachOrdered(this::printUpdateInClass);
 		}
 
-		private void printHeader() {
-			ClassType clazz = tag.getClazz();
-			System.out.println(AbstractCommand.ANSI_RED + "\nThis is the state of object " + object + "@" + uri() + "\n");
-			System.out.println(AbstractCommand.ANSI_RESET + "class " + clazz + " (from jar installed at " + tag.getJar() + ")");
+		private void printFieldsInherited() {
+			Stream.of(updates)
+				.filter(update -> update instanceof UpdateOfField)
+				.map(update -> (UpdateOfField) update)
+				.filter(update -> !update.getField().getDefiningClass().equals(tag.getClazz()))
+				.forEachOrdered(this::printUpdateInherited);
 		}
 
-		private ClassTag getClassTag() {
-			return Stream.of(updates)
-					.filter(update -> update instanceof ClassTag)
-					.map(update -> (ClassTag) update)
-					.findFirst().get();
-		}
-
-		private void printUpdate(UpdateOfField update) {
+		private void printUpdateInClass(UpdateOfField update) {
 			FieldSignature field = update.getField();
-			if (tag.getClazz().equals(field.getDefiningClass()))
-				System.out.println(AbstractCommand.ANSI_RESET + "  " + field.getName() + ":" + field.getType() + " = " + valueToPrint(update));
-			else
-				System.out.println(AbstractCommand.ANSI_CYAN + "\u25b2 " + field.getName() + ":" + field.getType() + " = " + valueToPrint(update) + AbstractCommand.ANSI_GREEN + " (inherited from " + field.getDefiningClass() + ")");
+			System.out.println("  " + field.getName() + ":" + field.getType() + " = " + valueToPrint(update));
+		}
+
+		private void printUpdateInherited(UpdateOfField update) {
+			FieldSignature field = update.getField();
+			System.out.println("  " + field.getName() + ":" + field.getType() + " = " + valueToPrint(update) + green(" (inherited from " + field.getDefiningClass() + ")"));
 		}
 
 		private String valueToPrint(UpdateOfField update) {
 			if (update instanceof UpdateOfString)
-				return '\"' + update.getValue().toString() + '\"';
+				return cyan('\"' + update.getValue().toString() + '\"');
 			else
-				return update.getValue().toString();
+				return cyan(update.getValue().toString());
+		}
+
+		private void printAPI(Node node) throws NodeException, TimeoutException, InterruptedException, CommandException {
+			if (api) {
+				System.out.println();
+				new PrintAPI(node);
+			}
+		}
+
+		private class PrintAPI {
+			private final Class<?> clazz;
+			private final WhiteListingWizard whiteListingWizard;
+
+			private PrintAPI(Node node) throws NodeException, TimeoutException, InterruptedException, CommandException {
+				TakamakaClassLoader classLoader;
+
+				try {
+					classLoader = ClassLoaderHelpers.of(node).classloaderFor(tag.getJar());
+				}
+				catch (UnknownReferenceException e) {
+					throw new CommandException("The object " + object + " has been installed by transaction " + tag.getJar() + " but the latter cannot be found in the node!");
+				}
+
+				try {
+					this.clazz = classLoader.loadClass(tag.getClazz().getName());
+				}
+				catch (ClassNotFoundException e) {
+					throw new CommandException("Cannot find the class of object " + object + " although it is in store!");
+				}
+
+				this.whiteListingWizard = classLoader.getWhiteListingWizard();
+
+				printConstructors();
+				printMethods();
+			}
+
+			private void printConstructors() {
+				Constructor<?>[] constructors = clazz.getConstructors();
+
+				Stream.of(constructors)
+					.filter(constructor -> whiteListingWizard.whiteListingModelOf(constructor).isPresent())
+					.forEachOrdered(this::printConstructor);
+			
+				if (constructors.length > 0)
+					System.out.println();
+			}
+
+			private void printMethods() {
+				Comparator<Method> comparator = Comparator.comparing(Method::getName)
+					.thenComparing(Method::toString);
+
+				Method[] methods = clazz.getMethods();
+
+				Stream.of(methods)
+					.sorted(comparator)
+					.filter(method -> method.getDeclaringClass() == clazz)
+					.filter(method -> whiteListingWizard.whiteListingModelOf(method).isPresent())
+					.forEachOrdered(this::printMethod);
+
+				Stream.of(methods)
+					.sorted(comparator)
+					.filter(method -> method.getDeclaringClass() != clazz)
+					.filter(method -> whiteListingWizard.whiteListingModelOf(method).isPresent())
+					.forEachOrdered(this::printInheritedMethod);
+			}
+
+			private void printConstructor(Constructor<?> constructor) {
+				System.out.println("  " + annotationsAsString(constructor) + constructor.toString().replace(clazz.getName() + "(", clazz.getSimpleName() + "("));
+			}
+
+			private void printMethod(Method method) {
+				System.out.println("  " + annotationsAsString(method) + method.toString().replace(method.getDeclaringClass().getName() + "." + method.getName(), method.getName()));
+			}
+
+			private void printInheritedMethod(Method method) {
+				Class<?> definingClass = method.getDeclaringClass();
+				System.out.println("  " + annotationsAsString(method) + method.toString().replace(method.getDeclaringClass().getName() + "." + method.getName(), method.getName())
+						+ green(" (inherited from " + definingClass.getName() + ")"));
+			}
+
+			private String annotationsAsString(Executable executable) {
+				String prefix = Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME;
+				String result = Stream.of(executable.getAnnotations())
+					.filter(annotation -> annotation.annotationType().getName().startsWith(prefix))
+					.map(Annotation::toString)
+					.collect(Collectors.joining(" "))
+					.replace(prefix, "")
+					.replace("()", "")
+					.replace("(Contract.class)", "");
+
+				return result.isEmpty() ? "" : (red(result) + ' ');
+			}
 		}
 	}
 

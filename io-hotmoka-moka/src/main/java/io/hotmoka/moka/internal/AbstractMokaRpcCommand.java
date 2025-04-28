@@ -96,6 +96,36 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 	}
 
 	/**
+	 * Styles the given string in red.
+	 * 
+	 * @param text the text to style
+	 * @return the colored text
+	 */
+	protected static String red(String text) {
+		return Ansi.AUTO.string("@|red " + text + "|@");
+	}
+
+	/**
+	 * Styles the given string in green.
+	 * 
+	 * @param text the text to style
+	 * @return the colored text
+	 */
+	protected static String green(String text) {
+		return Ansi.AUTO.string("@|green " + text + "|@");
+	}
+
+	/**
+	 * Styles the given string in cyan.
+	 * 
+	 * @param text the text to style
+	 * @return the colored text
+	 */
+	protected static String cyan(String text) {
+		return Ansi.AUTO.string("@|cyan " + text + "|@");
+	}
+
+	/**
 	 * Styles the given string as for the command style.
 	 * 
 	 * @param text the text to style
