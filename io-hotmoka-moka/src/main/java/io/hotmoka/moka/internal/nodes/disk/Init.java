@@ -214,14 +214,15 @@ public class Init extends AbstractMokaCommand {
 		public String toString() {
 			var sb = new StringBuilder();
 
-			sb.append("The Hotmoka node has been published at " + uri + ".\n");
+			sb.append("The following service has been published:\n");
+			sb.append(" * " + asUri(uri) + ": the API of this Hotmoka node\n");
 			sb.append("\n");
-			sb.append("The owner of the key of the gamete can bind it to its address now with:\n");
-			sb.append("  moka keys bind file_containing_the_key_pair_of_the_gamete --password --url url_of_this_Hotmoka_node\n");
+			sb.append("The owner of the key of the gamete can bind it now to its address with:\n");
+			sb.append(asCommand("  moka keys bind file_containing_the_key_pair_of_the_gamete --password --url url_of_this_Hotmoka_node\n"));
 			sb.append("or with:\n");
-			sb.append("  moka keys bind file_containing_the_key_pair_of_the_gamete --password --reference " + gamete + "\n");
+			sb.append(asCommand("  moka keys bind file_containing_the_key_pair_of_the_gamete --password --reference " + gamete + "\n"));
 			sb.append("\n");
-			sb.append("Press the enter key to stop the process and close the node.\n");
+			sb.append(asInteraction("Press the enter key to stop this process and close this node: "));
 
 			return sb.toString();
 		}

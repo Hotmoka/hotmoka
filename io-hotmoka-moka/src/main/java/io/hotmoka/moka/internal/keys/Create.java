@@ -238,7 +238,7 @@ public class Create extends AbstractMokaCommand {
 		public String toString() {
 			var sb = new StringBuilder();
 
-			sb.append("The new key pair has been written into \"" + file + "\":\n");
+			sb.append("The new key pair has been written into " + asPath(file) + ":\n");
 
 			if (publicKeyBase58.length() > MAX_PRINTED_KEY)
 				sb.append("* public key: " + publicKeyBase58.substring(0, MAX_PRINTED_KEY) + "..." + " (" + signature + ", base58)\n");

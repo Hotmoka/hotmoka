@@ -116,7 +116,7 @@ public class Import extends AbstractMokaCommand {
 
 		@Override
 		public String toString() {
-			return "The key pair of the account has been imported into the file \"" + file + "\".\n";
+			return "The key pair of the account has been imported into " + asPath(file) + ".\n";
 		}
 	}
 }

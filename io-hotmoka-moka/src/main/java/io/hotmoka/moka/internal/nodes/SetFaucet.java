@@ -158,7 +158,7 @@ public class SetFaucet extends AbstractMokaRpcCommand {
 
 		@Override
 		public String toString() {
-			return "The threshold of the faucet has been set\n";
+			return "The threshold of the faucet has been set.\n";
 		}
 	}
 }

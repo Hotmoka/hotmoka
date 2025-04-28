@@ -230,7 +230,7 @@ public class Bind extends AbstractMokaRpcCommand {
 
 		@Override
 		public String toString() {
-			return "The account information has been written into the file \"" + file + "\".\n";
+			return "The account information has been written into " + asPath(file) + ".\n";
 		}
 	}
 }

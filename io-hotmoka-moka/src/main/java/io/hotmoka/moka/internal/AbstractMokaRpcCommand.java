@@ -18,6 +18,7 @@ package io.hotmoka.moka.internal;
 
 import java.math.BigInteger;
 import java.net.URI;
+import java.nio.file.Path;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 
@@ -29,6 +30,7 @@ import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.websockets.beans.MappedEncoder;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 import jakarta.websocket.EncodeException;
+import picocli.CommandLine.Help.Ansi;
 import picocli.CommandLine.Option;
 
 /**
@@ -91,5 +93,45 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 		}
 		else
 			System.out.print(output);
+	}
+
+	/**
+	 * Styles the given string as for the command style.
+	 * 
+	 * @param text the text to style
+	 * @return the styled text
+	 */
+	protected static String asCommand(String text) {
+		return Ansi.AUTO.string("@|bold " + text + "|@");
+	}
+
+	/**
+	 * Styles the given URI in URI style.
+	 * 
+	 * @param uri the URI to style
+	 * @return the styled URI text
+	 */
+	protected static String asUri(URI uri) {
+		return Ansi.AUTO.string("@|blue " + uri + "|@");
+	}
+
+	/**
+	 * Styles the given path in path style.
+	 * 
+	 * @param path the path
+	 * @return the styled path
+	 */
+	protected static String asPath(Path path) {
+		return Ansi.AUTO.string("@|red \"" + path + "\"|@");
+	}
+
+	/**
+	 * Styles the given string as for the user interaction style.
+	 * 
+	 * @param text the text to style
+	 * @return the styled text
+	 */
+	protected static String asInteraction(String text) {
+		return Ansi.AUTO.string("@|bold,red " + text + "|@");
 	}
 }
