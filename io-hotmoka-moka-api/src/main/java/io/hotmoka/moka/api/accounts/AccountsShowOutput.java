@@ -22,7 +22,7 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 
 /**
- * The output of the {@code moka jars instrument} command.
+ * The output of the {@code moka accounts show} command.
  */
 @Immutable
 public interface AccountsShowOutput {
