@@ -20,7 +20,8 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
-import java.security.NoSuchAlgorithmException;
+import java.util.Collection;
+import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.TimeoutException;
@@ -28,12 +29,18 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.cli.CommandException;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.helpers.ClassLoaderHelpers;
+import io.hotmoka.moka.ObjectsShowOutputs;
 import io.hotmoka.moka.api.objects.ObjectsShowOutput;
 import io.hotmoka.moka.api.objects.ObjectsShowOutput.ConstructorDescription;
 import io.hotmoka.moka.api.objects.ObjectsShowOutput.MethodDescription;
 import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
 import io.hotmoka.moka.internal.converters.StorageReferenceOptionConverter;
+import io.hotmoka.moka.internal.json.ObjectsShowOutputJson;
+import io.hotmoka.moka.internal.json.ObjectsShowOutputJson.ConstructorDescriptionJson;
+import io.hotmoka.moka.internal.json.ObjectsShowOutputJson.MethodDescriptionJson;
+import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.updates.ClassTag;
@@ -61,7 +68,7 @@ public class Show extends AbstractMokaRpcCommand {
 
 	@Override
 	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
-		System.out.print(new Output(remote, object, api));
+		report(json(), new Output(remote, object, api), ObjectsShowOutputs.Encoder::new);
 	}
 
 	private static String annotationsAsString(Executable executable) {
@@ -75,19 +82,28 @@ public class Show extends AbstractMokaRpcCommand {
 			.replace("(Contract.class)", "");
 	}
 
+	/**
+	 * Implementation of the description of a constructor.
+	 */
 	public static class ConstructorDescriptionImpl implements ConstructorDescription {
 		private final String annotations;
 		private final String signature;
-
-		private ConstructorDescriptionImpl(String annotations, String signature) {
-			this.annotations = annotations;
-			this.signature = signature;
-		}
 
 		private ConstructorDescriptionImpl(Constructor<?> constructor) {
 			this.annotations = annotationsAsString(constructor);
 			var declaringClass = constructor.getDeclaringClass();
 			this.signature = constructor.toString().replace(declaringClass.getName() + "(", declaringClass.getSimpleName() + "(");
+		}
+
+		/**
+		 * Builds a constructor description from its JSON representation.
+		 * 
+		 * @param json the JSON representation
+		 * @throws InconsistentJsonException if {@code json} is inconsistent
+		 */
+		public ConstructorDescriptionImpl(ConstructorDescriptionJson json) throws InconsistentJsonException {
+			this.annotations = Objects.requireNonNull(json.getAnnotations(), "annotations cannot be null", InconsistentJsonException::new);
+			this.signature = Objects.requireNonNull(json.getSignature(), "signature cannot be null", InconsistentJsonException::new);
 		}
 
 		@Override
@@ -116,16 +132,13 @@ public class Show extends AbstractMokaRpcCommand {
 		}
 	}
 
-	private static class MethodDescriptionImpl implements MethodDescription {
+	/**
+	 * Implementation of the description of a method.
+	 */
+	public static class MethodDescriptionImpl implements MethodDescription {
 		private final String annotations;
 		private final String declaringClass;
 		private final String signature;
-
-		private MethodDescriptionImpl(String annotations, String definingClass, String signature) {
-			this.annotations = annotations;
-			this.declaringClass = definingClass;
-			this.signature = signature;
-		}
 
 		private MethodDescriptionImpl(Method method) {
 			this.annotations = annotationsAsString(method);
@@ -134,13 +147,25 @@ public class Show extends AbstractMokaRpcCommand {
 			this.signature = method.toString().replace(declaringClass + "." + method.getName(), method.getName());
 		}
 
+		/**
+		 * Builds a method description from its JSON representation.
+		 * 
+		 * @param json the JSON representation
+		 * @throws InconsistentJsonException if {@code json} is inconsistent
+		 */
+		public MethodDescriptionImpl(MethodDescriptionJson json) throws InconsistentJsonException {
+			this.annotations = Objects.requireNonNull(json.getAnnotations(), "annotations cannot be null", InconsistentJsonException::new);
+			this.declaringClass = Objects.requireNonNull(json.getDeclaringClass(), "declaringClass cannot be null", InconsistentJsonException::new);
+			this.signature = Objects.requireNonNull(json.getSignature(), "signature cannot be null", InconsistentJsonException::new);
+		}
+
 		@Override
 		public String getAnnotations() {
 			return annotations;
 		}
 
 		@Override
-		public String getDefiningClass() {
+		public String getDeclaringClass() {
 			return declaringClass;
 		}
 
@@ -150,7 +175,7 @@ public class Show extends AbstractMokaRpcCommand {
 
 		@Override
 		public int compareTo(MethodDescription other) {
-			int diff = declaringClass.compareTo(other.getDefiningClass());
+			int diff = declaringClass.compareTo(other.getDeclaringClass());
 			if (diff != 0)
 				return diff;
 			else
@@ -159,7 +184,7 @@ public class Show extends AbstractMokaRpcCommand {
 
 		@Override
 		public boolean equals(Object other) {
-			return other instanceof MethodDescription md && declaringClass.equals(md.getDefiningClass()) && signature.equals(md.getSignature());
+			return other instanceof MethodDescription md && declaringClass.equals(md.getDeclaringClass()) && signature.equals(md.getSignature());
 		}
 
 		@Override
@@ -195,6 +220,52 @@ public class Show extends AbstractMokaRpcCommand {
 			}
 		}
 
+		/**
+		 * Builds the output of the command from its JSON representation.
+		 * 
+		 * @param json the JSON representation
+		 * @throws InconsistentJsonException if {@code json} is inconsistent
+		 */
+		public Output(ObjectsShowOutputJson json) throws InconsistentJsonException {
+			var unmappedTag = Objects.requireNonNull(json.getTag(), "tag cannot be null", InconsistentJsonException::new).unmap();
+			if (unmappedTag instanceof ClassTag tag)
+				this.tag = tag;
+			else
+				throw new InconsistentJsonException("The class tag information should be a ClassTag update, not a " + unmappedTag.getClass().getSimpleName());
+
+			var fieldsJson = json.getFields().toArray(Updates.Json[]::new);
+			this.fields = new TreeSet<>();
+			for (Updates.Json updateJson: fieldsJson) {
+				var unmappedUpdate = Objects.requireNonNull(updateJson, "fields cannot hold a null element", InconsistentJsonException::new).unmap();
+				if (unmappedUpdate instanceof UpdateOfField uof)
+					this.fields.add(uof);
+				else
+					throw new InconsistentJsonException("A field update should be an UpdateOfField object, not a " + unmappedUpdate.getClass().getSimpleName());
+			}
+
+			if (json.getConstructorDescriptions().isPresent()) {
+				this.constructors = new TreeSet<>();
+
+				for (var constructorJson: json.getConstructorDescriptions().get().toArray(ConstructorDescriptionJson[]::new)) {
+					var unmappedConstructor = Objects.requireNonNull(constructorJson, "constructors cannot hold a null element", InconsistentJsonException::new).unmap();
+					this.constructors.add(unmappedConstructor);
+				}
+			}
+			else
+				this.constructors = null;
+
+			if (json.getMethodDescriptions().isPresent()) {
+				this.methods = new TreeSet<>();
+
+				for (var methodJson: json.getMethodDescriptions().get().toArray(MethodDescriptionJson[]::new)) {
+					var unmappedMethod = Objects.requireNonNull(methodJson, "methods cannot hold a null element", InconsistentJsonException::new).unmap();
+					this.methods.add(unmappedMethod);
+				}
+			}
+			else
+				this.methods = null;
+		}
+
 		@Override
 		public ClassTag getClassTag() {
 			return tag;
@@ -206,39 +277,20 @@ public class Show extends AbstractMokaRpcCommand {
 		}
 
 		@Override
-		public Stream<ConstructorDescription> getConstructorDescriptions() {
-			return constructors.stream();
+		public Optional<Stream<ConstructorDescription>> getConstructorDescriptions() {
+			return Optional.ofNullable(constructors).map(Collection::stream);
 		}
 
 		@Override
-		public Stream<MethodDescription> getMethodDescriptions() {
-			return methods.stream();
+		public Optional<Stream<MethodDescription>> getMethodDescriptions() {
+			return Optional.ofNullable(methods).map(Collection::stream);
 		}
-
-		/**
-		 * Builds the output of the command from its JSON representation.
-		 * 
-		 * @param json the JSON representation
-		 * @throws InconsistentJsonException if {@code json} is inconsistent
-		 * @throws NoSuchAlgorithmException if {@code json} refers to a non-available cryptographic algorithm
-		 */
-		/*public Output(AccountsShowOutputJson json) throws InconsistentJsonException, NoSuchAlgorithmException {
-			ExceptionSupplier<InconsistentJsonException> exp = InconsistentJsonException::new;
-
-			this.balance = Objects.requireNonNull(json.getBalance(), "balance cannot be null", exp);
-			if (balance.signum() < 0)
-				throw new InconsistentJsonException("The balance of the account cannot be negative");
-
-			this.signature = SignatureAlgorithms.of(Objects.requireNonNull(json.getSignature(), "signature cannot be null", exp));
-			this.publicKeyBase58 = Base58.requireBase58(Objects.requireNonNull(json.getPublicKeyBase58(), "publicKeyBase58 cannot be null", exp), exp);
-			this.publicKeyBase64 = Base64.requireBase64(Objects.requireNonNull(json.getPublicKeyBase64(), "publicKeyBase64 cannot be null", exp), exp);
-		}*/
 
 		@Override
 		public String toString() {
 			var sb = new StringBuilder();
 
-			sb.append(green("class " + tag.getClazz() + " (from jar installed at " + tag.getJar() + ")\n"));
+			sb.append(red("class " + tag.getClazz() + " (from jar installed at " + tag.getJar() + ")\n"));
 
 			getFields().filter(update -> update.getField().getDefiningClass().equals(tag.getClazz()))
 				.forEachOrdered(update -> sb.append("  " + update.getField().getName() + ":" + update.getField().getType() + " = " + valueToPrint(update) + "\n"));
@@ -246,14 +298,14 @@ public class Show extends AbstractMokaRpcCommand {
 			getFields().filter(update -> !update.getField().getDefiningClass().equals(tag.getClazz()))
 				.forEachOrdered(update -> sb.append("  " + green(update.getField().getDefiningClass().toString()) + "." + update.getField().getName() + ":" + update.getField().getType() + " = " + valueToPrint(update) + "\n"));
 
-			if (!constructors.isEmpty()) {
+			if (constructors != null && !constructors.isEmpty()) {
 				sb.append("\n");
-				getConstructorDescriptions().forEachOrdered(constructor -> printConstructor(constructor, sb));
+				constructors.stream().forEachOrdered(constructor -> printConstructor(constructor, sb));
 			}
 
-			if (!methods.isEmpty()) {
+			if (methods != null && !methods.isEmpty()) {
 				sb.append("\n");
-				getMethodDescriptions().forEachOrdered(constructor -> printMethod(constructor, sb));
+				methods.stream().forEachOrdered(constructor -> printMethod(constructor, sb));
 			}
 
 			return sb.toString();
@@ -323,19 +375,19 @@ public class Show extends AbstractMokaRpcCommand {
 
 		private void printMethod(MethodDescription method, StringBuilder sb) {
 			if (method.getAnnotations().isEmpty())
-				if (tag.getClazz().getName().equals(method.getDefiningClass()))
+				if (tag.getClazz().getName().equals(method.getDeclaringClass()))
 					sb.append("  " + method.getSignature() + "\n");
 				else {
 					int lastSpace = method.getSignature().lastIndexOf(' ');
-					String methodAsString = method.getSignature().substring(0, lastSpace + 1) + green(method.getDefiningClass()) + "." + method.getSignature().substring(lastSpace + 1);
+					String methodAsString = method.getSignature().substring(0, lastSpace + 1) + green(method.getDeclaringClass()) + "." + method.getSignature().substring(lastSpace + 1);
 					sb.append("  " + methodAsString + "\n");
 				}
 			else
-				if (tag.getClazz().getName().equals(method.getDefiningClass()))
+				if (tag.getClazz().getName().equals(method.getDeclaringClass()))
 					sb.append("  " + red(method.getAnnotations()) + " " + method.getSignature() + "\n");
 				else {
 					int lastSpace = method.getSignature().lastIndexOf(' ');
-					String methodAsString = method.getSignature().substring(0, lastSpace + 1) + green(method.getDefiningClass()) + "." + method.getSignature().substring(lastSpace + 1);
+					String methodAsString = method.getSignature().substring(0, lastSpace + 1) + green(method.getDeclaringClass()) + "." + method.getSignature().substring(lastSpace + 1);
 					sb.append("  " + red(method.getAnnotations()) + " " + methodAsString + "\n");
 				}
 		}

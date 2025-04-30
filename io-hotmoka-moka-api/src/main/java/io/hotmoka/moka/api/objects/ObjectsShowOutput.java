@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.moka.api.objects;
 
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
@@ -43,19 +44,21 @@ public interface ObjectsShowOutput {
 	Stream<UpdateOfField> getFields();
 
 	/**
-	 * Yields the descriptions of the white-listed constructors of the object.
+	 * Yields the descriptions of the public white-listed constructors of the object.
+	 * This is missing if the public API of the object has not been requested.
 	 * 
-	 * @return the descriptions of the constructors
+	 * @return the descriptions of the constructors, if any
 	 */
-	Stream<ConstructorDescription> getConstructorDescriptions();
+	Optional<Stream<ConstructorDescription>> getConstructorDescriptions();
 
 	/**
-	 * Yields the descriptions of the instance white-listed methods of the object,
+	 * Yields the descriptions of the public instance white-listed methods of the object,
 	 * including those inherited from superclasses.
+	 *  This is missing if the public API of the object has not been requested.
 	 * 
-	 * @return the descriptions of the methods
+	 * @return the descriptions of the methods, if any
 	 */
-	Stream<MethodDescription> getMethodDescriptions();
+	Optional<Stream<MethodDescription>> getMethodDescriptions();
 
 	/**
 	 * The description of a constructor.
@@ -92,11 +95,11 @@ public interface ObjectsShowOutput {
 		String getAnnotations();
 
 		/**
-		 * Yields the description of the class defining the method.
+		 * Yields the description of the class declaring the method.
 		 * 
-		 * @return the description of the class defining the method
+		 * @return the description of the class declaring the method
 		 */
-		String getDefiningClass();
+		String getDeclaringClass();
 
 		/**
 		 * Yields the description of the signature of the method.
