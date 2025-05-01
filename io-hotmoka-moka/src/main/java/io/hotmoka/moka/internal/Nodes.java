@@ -23,6 +23,7 @@ import io.hotmoka.moka.internal.nodes.Manifest;
 import io.hotmoka.moka.internal.nodes.Mokamint;
 import io.hotmoka.moka.internal.nodes.SetFaucet;
 import io.hotmoka.moka.internal.nodes.Takamaka;
+import io.hotmoka.moka.internal.nodes.Tendermint;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
 
@@ -36,7 +37,8 @@ import picocli.CommandLine.HelpCommand;
 		Manifest.class,
 		Mokamint.class,
 		SetFaucet.class,
-		Takamaka.class
+		Takamaka.class,
+		Tendermint.class
 	})
 public class Nodes {
 }

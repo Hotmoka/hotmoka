@@ -18,15 +18,18 @@ package io.hotmoka.moka.internal.nodes.disk;
 
 import java.io.IOException;
 import java.net.URI;
+import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.moka.NodesDiskInitOutputs;
 import io.hotmoka.moka.api.nodes.disk.NodesDiskInitOutput;
+import io.hotmoka.moka.internal.converters.ConsensusConfigOptionConverter;
 import io.hotmoka.moka.internal.converters.DiskNodeConfigOptionConverter;
 import io.hotmoka.moka.internal.json.NodesDiskInitOutputJson;
 import io.hotmoka.moka.internal.nodes.AbstractInit;
+import io.hotmoka.node.ConsensusConfigBuilders;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
@@ -48,6 +51,9 @@ public class Init extends AbstractInit {
 
 	@Option(names = "--node-local-config", description = "the local configuration of the Hotmoka node, in TOML format", converter = DiskNodeConfigOptionConverter.class)
 	private DiskNodeConfig nodeLocalConfig;
+
+	@Option(names = "--node-consensus-config", description = "the local configuration of the Hotmoka node, in TOML format", converter = ConsensusConfigOptionConverter.class)
+	private ConsensusConfig<?, ?> nodeConsensusConfig;
 
 	@Override
 	protected void execute() throws CommandException {
@@ -98,6 +104,17 @@ public class Init extends AbstractInit {
 		return builder.build();
 	}
 
+	private ConsensusConfig<?, ?> mkConsensusNodeConfig() throws CommandException {
+		try {
+			var builder = nodeConsensusConfig != null ? nodeConsensusConfig.toBuilder() : ConsensusConfigBuilders.defaults();
+			fillConsensusNodeConfig(builder);
+			return builder.build();
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw new CommandException("A cyrptographic algorithm is not available", e);
+		}
+	}
+
 	/**
 	 * The output of this command.
 	 */
@@ -118,9 +135,10 @@ public class Init extends AbstractInit {
 		}
 
 		@Override
-		protected void toStringServices(StringBuilder sb) {
+		protected void toString(StringBuilder sb) {
 			sb.append("The following service has been published:\n");
 			sb.append(" * " + asUri(getURI()) + ": the API of this Hotmoka node\n");
+			sb.append("\n");
 		}
 	}
 }

@@ -24,7 +24,6 @@ import io.hotmoka.moka.internal.BuyValidation;
 import io.hotmoka.moka.internal.Call;
 import io.hotmoka.moka.internal.Create;
 import io.hotmoka.moka.internal.CreateAccount;
-import io.hotmoka.moka.internal.InitTendermint;
 import io.hotmoka.moka.internal.Install;
 import io.hotmoka.moka.internal.ResumeMokamint;
 import io.hotmoka.moka.internal.ResumeTendermint;
@@ -49,7 +48,6 @@ import picocli.CommandLine.Command;
 					Call.class,
 					Create.class,
 					CreateAccount.class,
-					InitTendermint.class,
 					Install.class,
 					ResumeMokamint.class,
 			        ResumeTendermint.class,

@@ -20,7 +20,6 @@ import java.math.BigInteger;
 import java.net.URI;
 import java.nio.file.Path;
 import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 
@@ -31,11 +30,9 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.moka.api.nodes.NodesInitOutput;
 import io.hotmoka.moka.internal.AbstractMokaCommand;
-import io.hotmoka.moka.internal.converters.ConsensusConfigOptionConverter;
 import io.hotmoka.moka.internal.converters.SignatureOptionConverter;
 import io.hotmoka.moka.internal.json.NodesInitOutputJson;
-import io.hotmoka.node.ConsensusConfigBuilders;
-import io.hotmoka.node.api.nodes.ConsensusConfig;
+import io.hotmoka.node.api.nodes.ConsensusConfigBuilder;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import picocli.CommandLine.Option;
@@ -48,9 +45,6 @@ public abstract class AbstractInit extends AbstractMokaCommand {
 
 	@Parameters(description = "the path of the jar with the basic Takamaka classes that will be installed in the node")
 	private Path takamakaCode;
-
-	@Option(names = "--node-consensus-config", description = "the local configuration of the Hotmoka node, in TOML format", converter = ConsensusConfigOptionConverter.class)
-	private ConsensusConfig<?, ?> nodeConsensusConfig;
 
 	@Option(names = "--initial-supply", description = "the initial supply of coins of the node, which goes to the gamete")
 	private BigInteger initialSupply;
@@ -95,17 +89,14 @@ public abstract class AbstractInit extends AbstractMokaCommand {
 	private boolean json;
 
 	/**
-	 * Builds the consensus configuration, either from the explicit configuration file or
+	 * Fills the consensus configuration, either from the explicit configuration file or
 	 * from defaults. In any case, applies the specific updates contained in the options of this command.
 	 * 
-	 * @return the consensus configuration
+	 * @param builder the builder that will get enriched with the parameters of the consensus configuration
 	 * @throws CommandException if the consensus configuration cannot built
 	 */
-	protected final ConsensusConfig<?, ?> mkConsensusNodeConfig() throws CommandException {
+	protected void fillConsensusNodeConfig(ConsensusConfigBuilder<?,?> builder) throws CommandException {
 		try {
-			var defaults = nodeConsensusConfig != null ? nodeConsensusConfig : ConsensusConfigBuilders.defaults().build();
-			var builder = defaults.toBuilder();
-
 			if (openUnsignedFaucet != null)
 				builder = builder.allowUnsignedFaucet(openUnsignedFaucet);
 
@@ -131,15 +122,10 @@ public abstract class AbstractInit extends AbstractMokaCommand {
 				builder = builder.setFinalSupply(finalSupply);
 
 			if (publicKeyOfGamete != null)
-				builder = builder.setPublicKeyOfGamete(mkPublicKeyOfGamete(signature != null ? signature : defaults.getSignatureForRequests()));
-
-			return builder.build();
+				builder = builder.setPublicKeyOfGamete(mkPublicKeyOfGamete(signature != null ? signature : builder.build().getSignatureForRequests()));
 		}
 		catch (InvalidKeyException e) {
 			throw new CommandException("The public key is invalid for the selected signature algorithm", e);
-		}
-		catch (NoSuchAlgorithmException e) {
-			throw new CommandException("Some cryptographic algorithm is not available", e);
 		}
 	}
 
@@ -224,9 +210,8 @@ public abstract class AbstractInit extends AbstractMokaCommand {
 		public String toString() {
 			var sb = new StringBuilder();
 
-			toStringServices(sb);
+			toString(sb);
 
-			sb.append("\n");
 			sb.append("The owner of the key of the gamete can bind it now to its address with:\n");
 			sb.append(asCommand("  moka keys bind file_containing_the_key_pair_of_the_gamete --password --url url_of_this_Hotmoka_node\n"));
 			sb.append("or with:\n");
@@ -237,6 +222,11 @@ public abstract class AbstractInit extends AbstractMokaCommand {
 			return sb.toString();
 		}
 
-		protected abstract void toStringServices(StringBuilder sb);
+		/**
+		 * Appends data to the given string builder. That data will appear at the beginning of the {@link #toString()} of this output.
+		 * 
+		 * @param sb the string builder
+		 */
+		protected abstract void toString(StringBuilder sb);
 	}
 }

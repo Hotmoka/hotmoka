@@ -31,10 +31,12 @@ import io.hotmoka.exceptions.Objects;
 import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.moka.NodesMokamintInitOutputs;
 import io.hotmoka.moka.api.nodes.mokamint.NodesMokamintInitOutput;
+import io.hotmoka.moka.internal.converters.ConsensusConfigOptionConverter;
 import io.hotmoka.moka.internal.converters.MokamintLocalNodeConfigOptionConverter;
 import io.hotmoka.moka.internal.converters.MokamintNodeConfigOptionConverter;
 import io.hotmoka.moka.internal.json.NodesMokamintInitOutputJson;
 import io.hotmoka.moka.internal.nodes.AbstractInit;
+import io.hotmoka.node.ConsensusConfigBuilders;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
@@ -78,6 +80,9 @@ public class Init extends AbstractInit {
 
 	@Option(names = "--node-local-config", description = "the local configuration of the Hotmoka node, in TOML format", converter = MokamintNodeConfigOptionConverter.class)
 	private MokamintNodeConfig nodeLocalConfig;
+
+	@Option(names = "--node-consensus-config", description = "the local configuration of the Hotmoka node, in TOML format", converter = ConsensusConfigOptionConverter.class)
+	private ConsensusConfig<?, ?> nodeConsensusConfig;
 
 	@Option(names = { "--mokamint-port", "--mokamint-port-public" }, description = "the network port where the public Mokamint service must be published", defaultValue="8030")
 	private int mokamintPort;
@@ -184,6 +189,17 @@ public class Init extends AbstractInit {
 		return builder.build();
 	}
 
+	private ConsensusConfig<?, ?> mkConsensusNodeConfig() throws CommandException {
+		try {
+			var builder = nodeConsensusConfig != null ? nodeConsensusConfig.toBuilder() : ConsensusConfigBuilders.defaults();
+			fillConsensusNodeConfig(builder);
+			return builder.build();
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw new CommandException("A cyrptographic algorithm is not available", e);
+		}
+	}
+
 	private KeyPair mkKeysOfMokamintNode(LocalNodeConfig mokamintConfig) throws CommandException {
 		String passwordOfKeysOfMokamintNodeAsString = new String(passwordOfKeysOfMokamintNode);
 
@@ -252,11 +268,12 @@ public class Init extends AbstractInit {
 		}
 
 		@Override
-		protected void toStringServices(StringBuilder sb) {
+		protected void toString(StringBuilder sb) {
 			sb.append("The following services have been published:\n");
 			sb.append(" * " + asUri(getURI()) + ": the API of this Hotmoka node\n");
 			sb.append(" * " + asUri(uriMokamintPublic) + ": the public API of the underlying Mokamint engine\n");
 			sb.append(" * " + asUri(uriMokamintRestricted) + ": the restricted API of the underlying Mokamint engine\n");
+			sb.append("\n");
 		}
 	}
 }

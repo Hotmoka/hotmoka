@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.moka.internal;
 
+import java.math.BigInteger;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.function.Supplier;
@@ -30,6 +31,8 @@ import picocli.CommandLine.Help.Ansi;
  * Shared code among the commands that do not need to connect to a remote Hotmoka node.
  */
 public abstract class AbstractMokaCommand extends io.hotmoka.cli.AbstractCommand {
+
+	protected final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
 
 	/**
 	 * Reports on the standard output the given output of a command.

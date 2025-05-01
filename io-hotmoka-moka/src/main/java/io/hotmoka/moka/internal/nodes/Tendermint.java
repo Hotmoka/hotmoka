@@ -16,15 +16,15 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.nodes;
 
-import io.hotmoka.moka.internal.nodes.mokamint.Init;
+import io.hotmoka.moka.internal.nodes.tendermint.Init;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
 
-@Command(name = "mokamint",
-	description = "Manage Mokamint nodes.",
+@Command(name = "tendermint",
+	description = "Manage Tendermint nodes.",
 	subcommands = {
 		HelpCommand.class,
 		Init.class,
 	})
-public class Mokamint {
+public class Tendermint {
 }
