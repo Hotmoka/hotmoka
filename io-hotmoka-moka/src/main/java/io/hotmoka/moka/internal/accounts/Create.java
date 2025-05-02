@@ -41,8 +41,8 @@ import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
-import io.hotmoka.moka.internal.converters.AccountOptionConverter;
 import io.hotmoka.moka.internal.converters.SignatureOptionConverter;
+import io.hotmoka.moka.internal.converters.StorageReferenceOfAccountOptionConverter;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.StorageTypes;
@@ -59,6 +59,7 @@ import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
+import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.api.RemoteNode;
@@ -73,8 +74,11 @@ public class Create extends AbstractMokaRpcCommand {
 	@Parameters(description = "the initial balance of the new account; this will be deduced from the balance of the payer", defaultValue = "0")
 	private BigInteger balance;
 
-	@Option(names = "--payer", description = "the account that pays for the creation; if missing, the faucet of the network will be used, if it is open", converter = AccountOptionConverter.class)
-    private Account payer;
+	@Option(names = "--payer", description = "the account that pays for the creation; if missing, the faucet of the network will be used, if it is open", converter = StorageReferenceOfAccountOptionConverter.class)
+    private StorageReference payer;
+
+	@Option(names = "--dir", description = "the path of the directory where the key pair of the payer can be found", defaultValue = "")
+    private Path dir;
 
 	@Option(names = "--password-of-payer", description = "the password of the payer; this is not used if the payer is the faucet", interactive = true, defaultValue = "")
     private char[] passwordOfPayer;
@@ -132,46 +136,131 @@ public class Create extends AbstractMokaRpcCommand {
 	@Override
 	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
 		if (payer != null)
-			createFromPayer(remote);
+			new CreationFromPayer(remote);
 	}
 
-	private void createFromPayer(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
-		SignatureAlgorithm signatureOfNewAccount = this.signature != null ? this.signature : remote.getConfig().getSignatureForRequests();
-		String passwordOfNewAccountAsString = new String(password);
-		String passwordOfPayerAsString = new String(passwordOfPayer);
-		PublicKey publicKeyOfNewAccount = publicKeyIdentifier.getPublicKey(signatureOfNewAccount, passwordOfNewAccountAsString);
+	private class CreationFromPayer {
+		private final RemoteNode remote;
+		private final Account payerAccount;
+		private final SignatureAlgorithm signatureOfPayer;
+		private final SignatureAlgorithm signatureOfNewAccount;
+		private final PublicKey publicKeyOfNewAccount;
+		private final String publicKetOfNewAccountBase64;
+		private final ClassType eoaType;
+		private final BigInteger proposedGas;
+		private final BigInteger nonce;
+		private final BigInteger gasPrice;
+		private final ConstructorCallTransactionRequest request;
+		private final TransactionReference referenceOfRequest;
+		private final StorageReference referenceOfNewAccount;
 
-		try {
-			ClassType eoaType;
-			BigInteger proposedGas;
+		private CreationFromPayer(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+			this.remote = remote;
 
+			String passwordOfNewAccountAsString = new String(password);
+			String passwordOfPayerAsString = new String(passwordOfPayer);
+
+			try {
+				this.signatureOfNewAccount = signature != null ? signature : remote.getConfig().getSignatureForRequests();
+				this.publicKeyOfNewAccount = publicKeyIdentifier.getPublicKey(signatureOfNewAccount, passwordOfNewAccountAsString);
+				this.payerAccount = mkPayerAccount();
+				this.signatureOfPayer = determineSignatureOfPayer();
+				this.nonce = determineNonceOfPayer();
+				this.gasPrice = determineGasPrice();
+				this.publicKetOfNewAccountBase64 = mkPublicKeyOfNewAccountBase64();
+				this.eoaType = determineEOAType();
+				this.proposedGas = computeProposedGas();
+				this.request = mkRequest(passwordOfPayerAsString);
+				askForConfirmation(proposedGas);
+				this.referenceOfNewAccount = executeRequest();
+				System.out.println("A new account " + referenceOfNewAccount + " has been created.");
+				this.referenceOfRequest = computeReferenceOfRequest();
+				System.out.println("Creation transaction: " + asTransactionReference(referenceOfRequest));
+				printCosts(remote, new TransactionRequest[] { request });
+
+				if (publicKeyIdentifier.keys != null)
+					bindKeysToNewAccount();
+			}
+			finally {
+				passwordOfNewAccountAsString = null;
+				passwordOfPayerAsString = null;
+				Arrays.fill(password, ' ');
+				Arrays.fill(passwordOfPayer, ' ');
+			}
+		}
+
+		private void bindKeysToNewAccount() throws CommandException {
+			Entropy entropy;
+
+			try {
+				entropy = Entropies.load(publicKeyIdentifier.keys);
+			}
+			catch (IOException e) {
+				throw new CommandException("Cannot access file \"" + publicKeyIdentifier.keys + "\"!", e);
+			}
+
+			var newAccount = Accounts.of(entropy, referenceOfNewAccount);
+			try {
+				System.out.println("Its key pair has been saved into the file \"" + newAccount.dump() + "\".");
+			}
+			catch (IOException e) {
+				throw new CommandException("Cannot save the key pair of the account in file \"" + newAccount + ".pem\"!");
+			}
+		}
+
+		private StorageReference executeRequest() throws NodeException, TimeoutException, InterruptedException, CommandException {
+			try {
+				return remote.addConstructorCallTransaction(request);
+			}
+			catch (CodeExecutionException | TransactionRejectedException | TransactionException e) {
+				throw new CommandException("The creation transaction failed!", e);
+			}
+		}
+
+		private ConstructorCallTransactionRequest mkRequest(String passwordOfPayerAsString) throws NodeException, TimeoutException, InterruptedException {
+			try {
+				Signer<SignedTransactionRequest<?>> signer = signatureOfPayer.getSigner(payerAccount.keys(passwordOfPayerAsString, signatureOfPayer).getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
+				return TransactionRequests.constructorCall
+						(signer, payer, nonce, remote.getConfig().getChainId(), proposedGas, gasPrice, remote.getTakamakaCode(),
+								ConstructorSignatures.of(eoaType, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
+								StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKetOfNewAccountBase64));
+			}
+			catch (InvalidKeyException | SignatureException e) {
+				// the key has been created with the same signature algorithm, it cannot be invalid
+				throw new RuntimeException(e);
+			}
+		}
+
+		private BigInteger computeProposedGas() throws CommandException {
 			switch (signatureOfNewAccount.getName()) {
 			case "ed25519":
-				proposedGas = _100_000;
-				eoaType = StorageTypes.classNamed(StorageTypes.EOA + signatureOfNewAccount.getName().toUpperCase());
-				break;
+				return _100_000.add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
 			case "sha256dsa":
-				proposedGas = BigInteger.valueOf(200_000L);
-				eoaType = StorageTypes.classNamed(StorageTypes.EOA + signatureOfNewAccount.getName().toUpperCase());
-				break;
+				return BigInteger.valueOf(200_000L).add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
 			case "qtesla1":
-				proposedGas = BigInteger.valueOf(3_000_000L);
-				eoaType = StorageTypes.classNamed(StorageTypes.EOA + signatureOfNewAccount.getName().toUpperCase());
-				break;
+				return BigInteger.valueOf(3_000_000L).add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
 			case "qtesla3":
-				proposedGas = BigInteger.valueOf(6_000_000L);
-				eoaType = StorageTypes.classNamed(StorageTypes.EOA + signatureOfNewAccount.getName().toUpperCase());
-				break;
+				return BigInteger.valueOf(6_000_000L).add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
 			default:
 				throw new CommandException("Cannot create accounts with signature algorithm " + signatureOfNewAccount);
 			}
+		}
 
-			SignatureAlgorithm signatureOfPayer;
-			BigInteger nonce, gasPrice;
+		private ClassType determineEOAType() throws CommandException {
+			switch (signatureOfNewAccount.getName()) {
+			case "ed25519":
+			case "sha256dsa":
+			case "qtesla1":
+			case "qtesla3":
+				return StorageTypes.classNamed(StorageTypes.EOA + signatureOfNewAccount.getName().toUpperCase());
+			default:
+				throw new CommandException("Cannot create accounts with signature algorithm " + signatureOfNewAccount);
+			}
+		}
+
+		private SignatureAlgorithm determineSignatureOfPayer() throws CommandException, NodeException, InterruptedException, TimeoutException {
 			try {
-				signatureOfPayer = SignatureHelpers.of(remote).signatureAlgorithmFor(payer.getReference());
-				nonce = NonceHelpers.of(remote).getNonceOf(payer.getReference());
-				gasPrice = GasHelpers.of(remote).getGasPrice();
+				return SignatureHelpers.of(remote).signatureAlgorithmFor(payer);
 			}
 			catch (NoSuchAlgorithmException e) {
 				throw new CommandException(payer + " uses a non-available signature algorithm", e);
@@ -179,82 +268,56 @@ public class Create extends AbstractMokaRpcCommand {
 			catch (UnknownReferenceException e) {
 				throw new CommandException(payer + " cannot be found in the store of the node");
 			}
+		}
+
+		private BigInteger determineNonceOfPayer() throws CommandException, NodeException, InterruptedException, TimeoutException {
+			try {
+				return NonceHelpers.of(remote).getNonceOf(payer);
+			}
+			catch (UnknownReferenceException e) {
+				throw new CommandException(payer + " cannot be found in the store of the node");
+			}
 			catch (CodeExecutionException | TransactionRejectedException | TransactionException e) {
 				throw new CommandException("Cannot determine the nonce of the payer and the current gas price!", e);
 			}
+		}
 
-			proposedGas = proposedGas.add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
-
-			String publicKeyEncoded;
+		private BigInteger determineGasPrice() throws CommandException, NodeException, TimeoutException, InterruptedException {
 			try {
-				publicKeyEncoded = Base64.toBase64String(signatureOfNewAccount.encodingOf(publicKeyOfNewAccount));
+				return GasHelpers.of(remote).getGasPrice();
+			}
+			catch (CodeExecutionException | TransactionRejectedException | TransactionException e) {
+				throw new CommandException("Cannot determine the nonce of the payer and the current gas price!", e);
+			}
+		}
+
+		private String mkPublicKeyOfNewAccountBase64() {
+			try {
+				return Base64.toBase64String(signatureOfNewAccount.encodingOf(publicKeyOfNewAccount));
 			}
 			catch (InvalidKeyException e) {
 				// the key has been created with the same signature algorithm, it cannot be invalid
 				throw new RuntimeException(e);
 			}
+		}
 
-			Signer<SignedTransactionRequest<?>> signer = signatureOfPayer.getSigner(payer.keys(passwordOfPayerAsString, signatureOfPayer).getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
-
-			askForConfirmation(proposedGas);
-
-			ConstructorCallTransactionRequest request;
+		private Account mkPayerAccount() throws CommandException {
 			try {
-				request = TransactionRequests.constructorCall
-						(signer, payer.getReference(), nonce, remote.getConfig().getChainId(), proposedGas, gasPrice, remote.getTakamakaCode(),
-							ConstructorSignatures.of(eoaType, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
-							StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyEncoded));
+				return Accounts.of(payer, dir);
 			}
-			catch (InvalidKeyException | SignatureException e) {
-				// the key has been created with the same signature algorithm, it cannot be invalid
-				throw new RuntimeException(e);
+			catch (IOException e) {
+				throw new CommandException("Cannot read the key pair of the account: it was expected to be in file \"" + dir.resolve(payer.toString()) + ".pem\"", e);
 			}
+		}
 
-			StorageReference newAccount;
-			try {
-				newAccount = remote.addConstructorCallTransaction(request);
-			}
-			catch (CodeExecutionException | TransactionRejectedException | TransactionException e) {
-				throw new CommandException("The creation transaction failed!", e);
-			}
-
-			System.out.println("A new account " + newAccount + " has been created.");
-
-			Path keys = publicKeyIdentifier.keys;
-			if (keys != null) {
-				Entropy entropy;
-
-				try {
-					entropy = Entropies.load(keys);
-				}
-				catch (IOException e) {
-					throw new CommandException("Cannot access file \"" + keys + "\"!", e);
-				}
-
-				var account = Accounts.of(entropy, newAccount);
-				try {
-					System.out.println("Its key pair has been saved into the file \"" + account.dump() + "\".");
-				}
-				catch (IOException e) {
-					throw new CommandException("Cannot save the key pair of the account in file \"" + account + ".pem\"!");
-				}
-			}
-
+		private TransactionReference computeReferenceOfRequest() throws CommandException {
 			try {
 				Hasher<TransactionRequest<?>> hasher = HashingAlgorithms.sha256().getHasher(TransactionRequest::toByteArray);
-				System.out.println("Creation transaction: " + asTransactionReference(TransactionReferences.of(hasher.hash(request))));
+				return TransactionReferences.of(hasher.hash(request));
 			}
 			catch (NoSuchAlgorithmException e) {
 				throw new CommandException("The sha256 hashing algorithm is not available");
 			}
-
-			printCosts(remote, new TransactionRequest[] { request });
-		}
-		finally {
-			passwordOfNewAccountAsString = null;
-			passwordOfPayerAsString = null;
-			Arrays.fill(password, ' ');
-			Arrays.fill(passwordOfPayer, ' ');
 		}
 	}
 
@@ -264,7 +327,7 @@ public class Create extends AbstractMokaRpcCommand {
 	 * @param gas the amount of gas
 	 * @throws CommandException if the user replies negatively
 	 */
-	protected final void askForConfirmation(BigInteger gas) throws CommandException {
+	private void askForConfirmation(BigInteger gas) throws CommandException {
 		if (!yes && !json() && !answerIsYes(asInteraction("Do you really want to spend up to " + gas + " gas units to create a new account [Y/N] ")))
 			throw new CommandException("Stopped");
 	}
@@ -280,7 +343,7 @@ public class Create extends AbstractMokaRpcCommand {
 		}
 	}
 
-	private void printCosts(Node node, TransactionRequest<?>... requests) {
+	private static void printCosts(Node node, TransactionRequest<?>... requests) throws CommandException, InterruptedException, NodeException, TimeoutException {
 		try {
 			var gasCounter = GasCounters.of(node, requests);
 			String result = "Total gas consumed: " + gasCounter.total() + "\n";
@@ -290,11 +353,11 @@ public class Create extends AbstractMokaRpcCommand {
 			result += "  for penalty: " + gasCounter.forPenalty();
 			System.out.println(result);
 		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
+		catch (UnknownReferenceException e) {
+			throw new CommandException("Cannot find the creation request in the store of the node, maybe a sudden history change has occurred", e);
 		}
-		catch (NodeException | TimeoutException | UnknownReferenceException | NoSuchAlgorithmException e) {
-			throw new RuntimeException(e); // TODO
+		catch (NoSuchAlgorithmException e) {
+			throw new CommandException("A cryptographic algorithm is not available");
 		}
 	}
 

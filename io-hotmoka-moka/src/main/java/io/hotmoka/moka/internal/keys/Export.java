@@ -57,7 +57,7 @@ public class Export extends AbstractMokaCommand {
         	account = Accounts.of(reference, dir);
         }
         catch (IOException e) {
-        	throw new CommandException("Cannot read the key pair of the account: it was expected to be in file \"" + reference + ".pem\"", e);
+        	throw new CommandException("Cannot read the key pair of the account: it was expected to be in file \"" + dir.resolve(reference.toString()) + ".pem\"", e);
         }
 
         report(json, new Output(account.bip39Words()), KeysExportOutputs.Encoder::new);
