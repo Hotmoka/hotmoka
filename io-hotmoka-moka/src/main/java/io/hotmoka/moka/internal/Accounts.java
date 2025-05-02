@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.moka.internal;
 
+import io.hotmoka.moka.internal.accounts.Create;
 import io.hotmoka.moka.internal.accounts.Show;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
@@ -24,6 +25,7 @@ import picocli.CommandLine.HelpCommand;
 	description = "Manage Hotmoka accounts.",
 	subcommands = {
 		HelpCommand.class,
+		Create.class,
 		Show.class
 	})
 public class Accounts {

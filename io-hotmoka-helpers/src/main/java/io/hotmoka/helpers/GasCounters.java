@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.helpers;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.helpers.api.GasCounter;
@@ -42,8 +43,9 @@ public abstract class GasCounters {
 	 * @throws TimeoutException if no answer arrives within the expected time window
 	 * @throws UnknownReferenceException if some request has not been processed by the node
 	 * @throws NodeException if the node is not able to complete the operation correctly
+	 * @throws NoSuchAlgorithmException if some cryptographic algorithm is not available
 	 */
-	public static GasCounter of(Node node, TransactionRequest<?>... requests) throws NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
+	public static GasCounter of(Node node, TransactionRequest<?>... requests) throws NodeException, TimeoutException, InterruptedException, UnknownReferenceException, NoSuchAlgorithmException {
 		return new GasCounterImpl(node, requests);
 	}
 }

@@ -152,7 +152,7 @@ public abstract class AbstractCommand implements Runnable {
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
-		catch (NodeException | TimeoutException | UnknownReferenceException e) {
+		catch (NodeException | TimeoutException | UnknownReferenceException | NoSuchAlgorithmException e) {
 			LOGGER.log(Level.SEVERE, "cannot compute the gas costs", e);
 			throw new RuntimeException(e); // TODO
 		}

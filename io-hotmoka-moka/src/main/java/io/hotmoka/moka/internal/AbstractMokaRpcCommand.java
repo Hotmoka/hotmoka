@@ -25,6 +25,7 @@ import java.util.function.Supplier;
 import io.hotmoka.cli.AbstractRpcCommand;
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.remote.RemoteNodes;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.websockets.beans.MappedEncoder;
@@ -153,6 +154,16 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 	 */
 	protected static String asPath(Path path) {
 		return Ansi.AUTO.string("@|red \"" + path + "\"|@");
+	}
+
+	/**
+	 * Styles the given transaction reference in transaction reference style.
+	 * 
+	 * @param reference the reference
+	 * @return the styled text
+	 */
+	protected static String asTransactionReference(TransactionReference reference) {
+		return Ansi.AUTO.string("@|magenta " + reference + "|@");
 	}
 
 	/**

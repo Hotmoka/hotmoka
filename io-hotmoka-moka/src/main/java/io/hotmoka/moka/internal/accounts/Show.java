@@ -48,7 +48,7 @@ import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "show", description = "Show information about an account.")
+@Command(name = "show", description = "Show information about an account.", showDefaultValues = true)
 public class Show extends AbstractMokaRpcCommand {
 
 	@Parameters(index = "0", description = "the storage reference of the account", converter = StorageReferenceOfAccountOptionConverter.class)
@@ -62,7 +62,6 @@ public class Show extends AbstractMokaRpcCommand {
 	@Override
 	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
 		SignatureAlgorithm signature;
-
 		try {
 			signature = SignatureHelpers.of(remote).signatureAlgorithmFor(account);
 		}

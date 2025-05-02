@@ -71,18 +71,12 @@ public class GasCounterImpl implements GasCounter {
 	 * @param requests the requests whose consumed gas must be computed
 	 * @throws InterruptedException if the execution gets interrupted
 	 * @throws TimeoutException if no answer arrives within the expected time window
-	 * @throws UnknownReferenceException if some request has not been processed by the node
+	 * @throws UnknownReferenceException if some request cannot be found in the store of the node
 	 * @throws NodeException if the node is not able to complete the operation correctly
+	 * @throws NoSuchAlgorithmException if some cryptographic algoirthm is not available
 	 */
-	public GasCounterImpl(Node node, TransactionRequest<?>... requests) throws NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
-		Hasher<TransactionRequest<?>> hasher;
-
-		try {
-			hasher = HashingAlgorithms.sha256().getHasher(TransactionRequest::toByteArray);
-		}
-		catch (NoSuchAlgorithmException e) {
-			throw new NodeException(e);
-		}
+	public GasCounterImpl(Node node, TransactionRequest<?>... requests) throws NodeException, TimeoutException, InterruptedException, UnknownReferenceException, NoSuchAlgorithmException {
+		Hasher<TransactionRequest<?>> hasher = HashingAlgorithms.sha256().getHasher(TransactionRequest::toByteArray);
 
 		// the hashing algorithm generates hashes of the correct length, hence no checked exception
 		var references = Stream.of(requests).map(hasher::hash).map(TransactionReferences::of).toArray(TransactionReference[]::new);
