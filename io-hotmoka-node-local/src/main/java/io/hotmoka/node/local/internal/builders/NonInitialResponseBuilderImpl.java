@@ -247,7 +247,18 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * @return true if and only if the request is signed and the transaction is not a view transaction
 		 */
 		protected boolean transactionIsSigned() throws StoreException {
-			return !isView() && request instanceof SignedTransactionRequest;
+			return !isView() && !isCallToFaucet() && request instanceof SignedTransactionRequest;
+		}
+
+		/**
+		 * Determines if this is a call to the unsigned faucet of the node.
+		 * This always returns false if the network has no open unsigned faucet.
+		 * 
+		 * @return true if and only if the faucet is open and this is a call to the faucet
+		 * @throws StoreException if the store is misbehaving
+		 */
+		protected boolean isCallToFaucet() throws StoreException {
+			return false;
 		}
 
 		/**
@@ -377,7 +388,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 */
 		private void callerAndRequestMustAgreeOnNonce() throws TransactionRejectedException, StoreException {
 			// calls to @View methods do not check the nonce
-			if (!isView()) {
+			if (!isView() && !isCallToFaucet()) {
 				BigInteger expected;
 
 				try {
@@ -584,7 +595,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * @throws StoreException if the store is misbehaving
 		 */
 		private void increaseNonceOfCaller() throws StoreException {
-			if (!isView()) {
+			if (!isView() && !isCallToFaucet()) {
 				BigInteger increasedNonce = request.getNonce().add(ONE);
 				classLoader.setNonceOf(deserializedCaller, increasedNonce, StoreException::new);
 				updatesInCaseOfFailure.add(Updates.ofBigInteger(request.getCaller(), FieldSignatures.EOA_NONCE_FIELD, increasedNonce));

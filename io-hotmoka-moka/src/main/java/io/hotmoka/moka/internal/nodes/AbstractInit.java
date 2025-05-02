@@ -212,7 +212,7 @@ public abstract class AbstractInit extends AbstractMokaCommand {
 
 			toString(sb);
 
-			sb.append("The owner of the key of the gamete can bind it now to its address with:\n");
+			sb.append("The owner of the key pair of the gamete can bind it now to its address with:\n");
 			sb.append(asCommand("  moka keys bind file_containing_the_key_pair_of_the_gamete --password --url url_of_this_Hotmoka_node\n"));
 			sb.append("or with:\n");
 			sb.append(asCommand("  moka keys bind file_containing_the_key_pair_of_the_gamete --password --reference " + gamete + "\n"));

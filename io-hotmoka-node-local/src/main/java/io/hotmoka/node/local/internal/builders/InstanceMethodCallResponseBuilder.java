@@ -69,12 +69,6 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		return maybeGamete.isPresent() && maybeGamete.get().equals(request.getCaller());
 	}
 
-	private boolean isCallToFaucet() throws StoreException {
-		return consensus.allowsUnsignedFaucet() && request.getStaticTarget().getName().startsWith("faucet")
-			&& request.getStaticTarget().getDefiningClass().equals(StorageTypes.GAMETE) && request.getCaller().equals(request.getReceiver())
-			&& callerIsGameteOfTheNode();
-	}
-
 	private class ResponseCreator extends MethodCallResponseBuilder<InstanceMethodCallTransactionRequest>.ResponseCreator {
 
 		/**
@@ -156,6 +150,13 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 			deserializedReceiver = deserializer.deserialize(request.getReceiver());
 		}
 
+		@Override
+		protected boolean isCallToFaucet() throws StoreException {
+			return consensus.allowsUnsignedFaucet() && request.getStaticTarget().getName().startsWith("faucet")
+				&& request.getStaticTarget().getDefiningClass().equals(StorageTypes.GAMETE) && request.getCaller().equals(request.getReceiver())
+				&& callerIsGameteOfTheNode();
+		}
+
 		/**
 		 * Checks that the callee is not static and that
 		 * a view request actually executes a method annotated as {@code @@View}.
@@ -206,11 +207,6 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 
 		private void receiverIsExported() throws TransactionRejectedException, StoreException {
 			enforceExported(request.getReceiver());
-		}
-
-		@Override
-		protected boolean transactionIsSigned() throws StoreException {
-			return super.transactionIsSigned() && !isCallToFaucet();
 		}
 
 		@Override

@@ -104,7 +104,7 @@ public class Bind extends AbstractMokaRpcCommand {
 		}
 
 		if (!publicKeyBase64FromKeyFile.equals(publicKeyFromAccount))
-			throw new CommandException("The public key in file " + key + " does not match the public key of object " + reference + " in the node: are you sure that reference, key file and password are correct?");
+			throw new CommandException("The public key in file " + key + " does not match the public key of object " + reference + " in the node: are you sure that reference, key pair file and password are correct?");
 
 		return reference;
 	}
