@@ -153,7 +153,7 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 	 * @return the styled path
 	 */
 	protected static String asPath(Path path) {
-		return Ansi.AUTO.string("@|red \"" + path + "\"|@");
+		return Ansi.AUTO.string("@|fg(3;5;2) \"" + path + "\"|@");
 	}
 
 	/**
@@ -163,7 +163,7 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 	 * @return the styled text
 	 */
 	protected static String asTransactionReference(TransactionReference reference) {
-		return Ansi.AUTO.string("@|magenta " + reference + "|@");
+		return Ansi.AUTO.string("@|fg(5;3;2) " + reference + "|@");
 	}
 
 	/**

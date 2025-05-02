@@ -18,7 +18,9 @@ package io.hotmoka.moka.internal.accounts;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
@@ -27,6 +29,7 @@ import java.security.SecureRandom;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.cli.CommandException;
@@ -39,13 +42,18 @@ import io.hotmoka.crypto.api.Entropy;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.api.Signer;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.helpers.GasCounters;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
+import io.hotmoka.helpers.api.GasCounter;
+import io.hotmoka.moka.AccountsCreateOutputs;
+import io.hotmoka.moka.api.accounts.AccountsCreateOutput;
 import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
 import io.hotmoka.moka.internal.converters.SignatureOptionConverter;
 import io.hotmoka.moka.internal.converters.StorageReferenceOfAccountOptionConverter;
+import io.hotmoka.moka.internal.json.AccountsCreateOutputJson;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
@@ -55,7 +63,6 @@ import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.Account;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -69,6 +76,7 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.api.RemoteNode;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -151,16 +159,12 @@ public class Create extends AbstractMokaRpcCommand {
 		private final RemoteNode remote;
 		private final Account payerAccount;
 		private final SignatureAlgorithm signatureOfPayer;
-		private final SignatureAlgorithm signatureOfNewAccount;
-		private final PublicKey publicKeyOfNewAccount;
 		private final String publicKetOfNewAccountBase64;
 		private final ClassType eoaType;
 		private final BigInteger proposedGas;
 		private final BigInteger nonce;
 		private final BigInteger gasPrice;
 		private final ConstructorCallTransactionRequest request;
-		private final TransactionReference referenceOfRequest;
-		private final StorageReference referenceOfNewAccount;
 
 		private CreationFromPayer(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
 			this.remote = remote;
@@ -169,8 +173,8 @@ public class Create extends AbstractMokaRpcCommand {
 			String passwordOfPayerAsString = new String(passwordOfPayer);
 
 			try {
-				this.signatureOfNewAccount = signature != null ? signature : remote.getConfig().getSignatureForRequests();
-				this.publicKeyOfNewAccount = publicKeyIdentifier.getPublicKey(signatureOfNewAccount, passwordOfNewAccountAsString);
+				SignatureAlgorithm signatureOfNewAccount = signature != null ? signature : remote.getConfig().getSignatureForRequests();
+				PublicKey publicKeyOfNewAccount = publicKeyIdentifier.getPublicKey(signatureOfNewAccount, passwordOfNewAccountAsString);
 				this.payerAccount = mkPayerAccount();
 				this.signatureOfPayer = determineSignatureOfPayer();
 				this.nonce = determineNonceOfPayer();
@@ -180,12 +184,10 @@ public class Create extends AbstractMokaRpcCommand {
 				this.proposedGas = computeProposedGas(signatureOfNewAccount, signatureOfPayer);
 				this.request = mkRequest(passwordOfPayerAsString);
 				askForConfirmation(proposedGas);
-				this.referenceOfNewAccount = executeRequest();
-				System.out.println("A new account " + referenceOfNewAccount + " has been created.");
-				this.referenceOfRequest = computeReferenceOfRequest(request);
-				System.out.println("Creation transaction: " + asTransactionReference(referenceOfRequest));
-				printCosts(remote, new TransactionRequest[] { request });
-				dealWithBindingOfKeysToNewAccount(referenceOfNewAccount);
+				StorageReference referenceOfNewAccount = executeRequest();
+				TransactionReference transaction = computeTransaction(request);
+				Optional<Path> file = dealWithBindingOfKeysToNewAccount(referenceOfNewAccount);
+				report(json(), new Output(transaction, referenceOfNewAccount, file, computeGasCosts(remote, request)), AccountsCreateOutputs.Encoder::new);
 			}
 			finally {
 				passwordOfNewAccountAsString = null;
@@ -255,17 +257,12 @@ public class Create extends AbstractMokaRpcCommand {
 	private class CreationFromFaucet {
 		private final RemoteNode remote;
 		private final StorageReference gamete;
-		private SignatureAlgorithm signatureOfNewAccount;
-		private PublicKey publicKeyOfNewAccount;
-		private final ClassType eoaType;
 		private final String publicKetOfNewAccountBase64;
 		private final SignatureAlgorithm signatureOfFaucet;
 		private final BigInteger proposedGas;
 		private final BigInteger gasPrice;
 		private final InstanceMethodCallTransactionRequest request;
 		private final NonVoidMethodSignature faucetMethod;
-		private final StorageReference referenceOfNewAccount;
-		private final TransactionReference referenceOfRequest;
 
 		private CreationFromFaucet(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
 			this.remote = remote;
@@ -274,21 +271,19 @@ public class Create extends AbstractMokaRpcCommand {
 
 			try {
 				this.gamete = getGamete();
-				this.signatureOfNewAccount = signature != null ? signature : remote.getConfig().getSignatureForRequests();
-				this.publicKeyOfNewAccount = publicKeyIdentifier.getPublicKey(signatureOfNewAccount, passwordOfNewAccountAsString);
-				this.eoaType = determineEOAType(signatureOfNewAccount);
+				SignatureAlgorithm signatureOfNewAccount = signature != null ? signature : remote.getConfig().getSignatureForRequests();
+				PublicKey publicKeyOfNewAccount = publicKeyIdentifier.getPublicKey(signatureOfNewAccount, passwordOfNewAccountAsString);
+				ClassType eoaType = determineEOAType(signatureOfNewAccount);
 				this.publicKetOfNewAccountBase64 = mkPublicKeyOfNewAccountBase64(signatureOfNewAccount, publicKeyOfNewAccount);
 				this.signatureOfFaucet = SignatureAlgorithms.empty(); // we use an empty signature algorithm, since the faucet is unsigned
 				this.faucetMethod = MethodSignatures.ofNonVoid(StorageTypes.GAMETE, "faucet" + signatureOfNewAccount.getName().toUpperCase(), eoaType, StorageTypes.BIG_INTEGER, StorageTypes.STRING);
 				this.proposedGas = computeProposedGas(signatureOfNewAccount, signatureOfFaucet);
 				this.gasPrice = determineGasPrice(remote);
 				this.request = mkRequest();
-				this.referenceOfNewAccount = executeRequest();
-				System.out.println("A new account " + referenceOfNewAccount + " has been created from the unsigned faucet.");
-				this.referenceOfRequest = computeReferenceOfRequest(request);
-				System.out.println("Creation transaction: " + asTransactionReference(referenceOfRequest));
-				printCosts(remote, new TransactionRequest[] { request });
-				dealWithBindingOfKeysToNewAccount(referenceOfNewAccount);
+				StorageReference referenceOfNewAccount = executeRequest();
+				TransactionReference transaction = computeTransaction(request);
+				Optional<Path> file = dealWithBindingOfKeysToNewAccount(referenceOfNewAccount);
+				report(json(), new Output(transaction, referenceOfNewAccount, file, computeGasCosts(remote, request)), AccountsCreateOutputs.Encoder::new);
 			}
 			finally {
 				passwordOfNewAccountAsString = null;
@@ -399,7 +394,7 @@ public class Create extends AbstractMokaRpcCommand {
 		}
 	}
 
-	private static TransactionReference computeReferenceOfRequest(TransactionRequest<?> request) throws CommandException {
+	private static TransactionReference computeTransaction(TransactionRequest<?> request) throws CommandException {
 		try {
 			Hasher<TransactionRequest<?>> hasher = HashingAlgorithms.sha256().getHasher(TransactionRequest::toByteArray);
 			return TransactionReferences.of(hasher.hash(request));
@@ -419,7 +414,7 @@ public class Create extends AbstractMokaRpcCommand {
 		}
 	}
 
-	private void dealWithBindingOfKeysToNewAccount(StorageReference referenceOfNewAccount) throws CommandException {
+	private Optional<Path> dealWithBindingOfKeysToNewAccount(StorageReference referenceOfNewAccount) throws CommandException {
 		if (publicKeyIdentifier.keys != null) {
 			Entropy entropy;
 
@@ -432,27 +427,19 @@ public class Create extends AbstractMokaRpcCommand {
 
 			var newAccount = Accounts.of(entropy, referenceOfNewAccount);
 			try {
-				System.out.println("Its key pair has been saved into the file \"" + newAccount.dump() + "\".");
+				return Optional.of(newAccount.dump());
 			}
 			catch (IOException e) {
 				throw new CommandException("Cannot save the key pair of the account in file \"" + newAccount + ".pem\"!");
 			}
 		}
-		else {
-			System.out.println("The owner of the key pair " + publicKeyIdentifier.key + " can bind it now to its address with:\n");
-			System.out.println(asCommand("  moka keys bind file_containing_the_key_pair_of_the_gamete --password --reference " + referenceOfNewAccount + "\n"));
-		}
+		else
+			return Optional.empty();
 	}
 
-	private static void printCosts(Node node, TransactionRequest<?>... requests) throws CommandException, InterruptedException, NodeException, TimeoutException {
+	private static GasCounter computeGasCosts(RemoteNode remote, TransactionRequest<?> requests) throws CommandException, InterruptedException, NodeException, TimeoutException {
 		try {
-			var gasCounter = GasCounters.of(node, requests);
-			String result = "Total gas consumed: " + gasCounter.total() + "\n";
-			result += "  for CPU: " + gasCounter.forCPU() + "\n";
-			result += "  for RAM: " + gasCounter.forRAM() + "\n";
-			result += "  for storage: " + gasCounter.forStorage() + "\n";
-			result += "  for penalty: " + gasCounter.forPenalty();
-			System.out.println(result);
+			return GasCounters.of(remote, new TransactionRequest<?>[] { requests });
 		}
 		catch (UnknownReferenceException e) {
 			throw new CommandException("Cannot find the creation request in the store of the node, maybe a sudden history change has occurred", e);
@@ -462,53 +449,131 @@ public class Create extends AbstractMokaRpcCommand {
 		}
 	}
 
-	/*private class Run {
-		private final Node node;
-		private final PublicKey publicKey;
-		private final AccountCreationHelper accountCreationHelper;
-		private final SignatureAlgorithm signatureAlgorithmOfNewAccount;
+	/**
+	 * The output of this command.
+	 */
+	public static class Output implements AccountsCreateOutput {
 
-		private Run() throws Exception {
-			passwordOfPayer = ensurePassword(passwordOfPayer, "the payer account", interactive, "faucet".equals(payer));
-			if (keyOfNewAccount != null)
-				checkPublicKey(keyOfNewAccount);
-			else
-				passwordOfNewAccount = ensurePassword(passwordOfNewAccount, "the new account", interactive, false);
-	
-			try (var node = this.node = RemoteNodes.of(uri, 10_000)) {
-				String nameOfSignatureAlgorithmOfNewAccount = "default".equals(signature) ? node.getConfig().getSignatureForRequests().getName() : signature;
-				signatureAlgorithmOfNewAccount = SignatureAlgorithms.of(nameOfSignatureAlgorithmOfNewAccount);
+		/**
+		 * The transaction that created the account.
+		 */
+		private final TransactionReference transaction;
 
-				Entropy entropy;
-				if (keyOfNewAccount == null) {
-					entropy = Entropies.random();
-					publicKey = entropy.keys(passwordOfNewAccount, signatureAlgorithmOfNewAccount).getPublic();
-				}
-				else {
-					entropy = Entropies.load(Paths.get(keyOfNewAccount + ".pem"));
-					publicKey = signatureAlgorithmOfNewAccount.publicKeyFromEncoding(Base58.fromBase58String(keyOfNewAccount));
-				}
+		/**
+		 * The reference of the bound account.
+		 */
+		private final StorageReference account;
 
-				accountCreationHelper = AccountCreationHelpers.of(node);
-				StorageReference accountReference = "faucet".equals(payer) ? createAccountFromFaucet() : createAccountFromPayer();
-				var account = Accounts.of(entropy, accountReference);
-	            System.out.println("A new account " + account + " has been created.");
-	            System.out.println("Its entropy has been saved into the file \"" + account.dump() + "\".");
-			}
+		/**
+		 * The path of the created key pair file for the account that has been bound.
+		 * This is missing if the account has been created for a public key, not for a key pair,
+		 * so that it remains to be bound to the key pair.
+		 */
+		private final Optional<Path> file;
+
+		/**
+		 * The amount of gas consumed for the CPU cost for creating the account.
+		 */
+		private final BigInteger gasConsumedForCPU;
+
+		/**
+		 * The amount of gas consumed for the RAM cost for creating the account.
+		 */
+		private final BigInteger gasConsumedForRAM;
+
+		/**
+		 * The amount of gas consumed for the storage cost for creating the account.
+		 */
+		private final BigInteger gasConsumedForStorage;
+
+		/**
+		 * Builds the output of the command.
+		 */
+		private Output(TransactionReference transaction, StorageReference account, Optional<Path> file, GasCounter gasCounter) {
+			this.transaction = transaction;
+			this.account = account;
+			this.file = file;
+			this.gasConsumedForCPU = gasCounter.forCPU();
+			this.gasConsumedForRAM = gasCounter.forRAM();
+			this.gasConsumedForStorage = gasCounter.forStorage();
 		}
 
-		private StorageReference createAccountFromFaucet() throws Exception {
-			System.out.println("Free account creation will succeed only if the gamete of the node supports an open unsigned faucet.");
-			
+		/**
+		 * Builds the output of the command from its JSON representation.
+		 * 
+		 * @param json the JSON representation
+		 * @throws InconsistentJsonException if {@code json} is inconsistent
+		 */
+		public Output(AccountsCreateOutputJson json) throws InconsistentJsonException {
+			this.transaction = Objects.requireNonNull(json.getTransaction(), "transaction cannot be null", InconsistentJsonException::new).unmap();
+			this.account = Objects.requireNonNull(json.getAccount(), "account cannot be null", InconsistentJsonException::new).unmap()
+					.asReference(value -> new InconsistentJsonException("The reference of the created account must be a storage reference, not a " + value.getClass().getName()));
+
 			try {
-				return accountCreationHelper.paidByFaucet(signatureAlgorithmOfNewAccount, publicKey, balance, this::printCosts);
+				this.file = Optional.ofNullable(json.getFile()).map(Paths::get);
 			}
-			catch (TransactionRejectedException e) {
-				if (e.getMessage().contains("invalid request signature"))
-					throw new IllegalStateException("invalid request signature: is the unsigned faucet of the node open?");
+			catch (InvalidPathException e) {
+				throw new InconsistentJsonException(e);
+			}
 
-				throw e;
-			}
+			this.gasConsumedForCPU = Objects.requireNonNull(json.getGasConsumedForCPU(), "gasConsumedForCPU cannot be null", InconsistentJsonException::new);
+			this.gasConsumedForRAM = Objects.requireNonNull(json.getGasConsumedForRAM(), "gasConsumedForRAM cannot be null", InconsistentJsonException::new);
+			this.gasConsumedForStorage = Objects.requireNonNull(json.getGasConsumedForStorage(), "gasConsumedForStorage cannot be null", InconsistentJsonException::new);
 		}
-	}*/
+
+		@Override
+		public TransactionReference getTransaction() {
+			return transaction;
+		}
+
+		@Override
+		public StorageReference getAccount() {
+			return account;
+		}
+
+		@Override
+		public Optional<Path> getFile() {
+			return file;
+		}
+
+		@Override
+		public BigInteger getGasConsumedForCPU() {
+			return gasConsumedForCPU;
+		}
+
+		@Override
+		public BigInteger getGasConsumedForRAM() {
+			return gasConsumedForRAM;
+		}
+
+		@Override
+		public BigInteger getGasConsumedForStorage() {
+			return gasConsumedForStorage;
+		}
+
+		@Override
+		public String toString() {
+			var sb = new StringBuilder();
+
+			sb.append("A new account " + account + " has been created by transaction " + asTransactionReference(transaction) + ".\n");
+
+			if (file.isPresent())
+				sb.append("Its key pair has been saved into the file " + asPath(file.get()) + ".\n");
+			else {
+				sb.append("The owner of the key pair can bind it now to its address with:\n");
+				sb.append("\n");
+				sb.append(asCommand("  moka keys bind file_containing_the_key_pair_of_the_account --password --reference " + account + "\n"));
+			}
+
+			sb.append("\n");
+
+			sb.append("Gas consumption:\n");
+			sb.append(" * total: " + gasConsumedForCPU.add(gasConsumedForRAM).add(gasConsumedForStorage) + "\n");
+			sb.append(" * for CPU: " + gasConsumedForCPU + "\n");
+			sb.append(" * for RAM: " + gasConsumedForRAM + "\n");
+			sb.append(" * for storage: " + gasConsumedForStorage + "\n");
+
+			return sb.toString();
+		}
+	}
 }

@@ -30,7 +30,7 @@ public interface KeysBindOutput {
 	/**
 	 * Yields the reference of the bound account.
 	 * 
-	 * @return the reference of the bpund account
+	 * @return the reference of the bound account
 	 */
 	StorageReference getAccount();
 
