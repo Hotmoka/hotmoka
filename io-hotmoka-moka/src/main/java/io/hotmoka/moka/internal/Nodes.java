@@ -28,7 +28,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
 
 @Command(name = "nodes",
-	description = "Manage Hotmoka nodes.",
+	header = "Manage Hotmoka nodes.",
 	subcommands = {
 		HelpCommand.class,
 		Config.class,

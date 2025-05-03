@@ -21,7 +21,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
 
 @Command(name = "takamaka",
-description = "Manage the Takamaka runtime of a node.",
+header = "Manage the Takamaka runtime of a node.",
 subcommands = {
 	HelpCommand.class,
 	Address.class

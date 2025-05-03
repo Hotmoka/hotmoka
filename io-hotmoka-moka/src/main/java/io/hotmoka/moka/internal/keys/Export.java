@@ -36,7 +36,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "export",
-	description = "Export a key pair file of an account as BIP39 words.",
+	header = "Export a key pair file of an account as BIP39 words.",
 	showDefaultValues = true)
 public class Export extends AbstractMokaCommand {
 

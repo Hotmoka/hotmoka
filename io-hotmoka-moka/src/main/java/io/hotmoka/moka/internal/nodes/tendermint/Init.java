@@ -65,7 +65,8 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 @Command(name = "init",
-	description = "Initialize a new Tendermint node and publish a service to it. This spawns both a Tendermint engine and a Tendermint node on top of that engine. The configurations of both can be provided through the --tendermint-config and (--node-local-config and --node-consensus-config), respectively, which, when missing, rely to defaults. In any case, such configurations can be updated with explicit values, such as --initial-supply.",
+	header = "Initialize a new Tendermint node and publish a service to it.",
+	description = "This command spawns both a Tendermint engine and a Tendermint node on top of that engine. The configurations of both can be provided through the --tendermint-config and (--node-local-config and --node-consensus-config), respectively, which, when missing, rely on defaults. In any case, such configurations can be updated with explicit values, such as --initial-supply.",
 	showDefaultValues = true)
 public class Init extends AbstractInit {
 
@@ -78,16 +79,16 @@ public class Init extends AbstractInit {
 	@Option(names = "--node-consensus-config", description = "the local configuration of the Hotmoka node, in TOML format", converter = ValidatorsConsensusConfigOptionConverter.class)
 	private ValidatorsConsensusConfig<?, ?> nodeConsensusConfig;
 
-	@Option(names = "--percent-staked", description = "amount of validators' rewards that gets staked; the rest is sent to the validators immediately (0 = 0%, 1000000 = 1%)")
+	@Option(names = "--percent-staked", description = "amount of validators' rewards that gets staked; the rest is sent to the validators immediately (0 = 0%%, 1000000 = 1%%)")
 	private Integer percentStaked;
 
-	@Option(names = "--buyer-surcharge", description = "extra tax paid when a validator acquires the shares of another validator (in percent of the offer cost) (0 = 0%, 1000000 = 1%)")
+	@Option(names = "--buyer-surcharge", description = "extra tax paid when a validator acquires the shares of another validator (in percent of the offer cost) (0 = 0%%, 1000000 = 1%%)")
 	private Integer buyerSurcharge;
 
-	@Option(names = "--slashing-for-misbehaving", description = "the percent of stake that gets slashed for misbehaving validators (0 = 0%, 1000000 = 1%)")
+	@Option(names = "--slashing-for-misbehaving", description = "the percent of stake that gets slashed for misbehaving validators (0 = 0%%, 1000000 = 1%%)")
 	private Integer slashingForMisbehaving;
 
-	@Option(names = "--slashing-for-not-behaving", description = "the percent of stake that gets slashed for validators that do not behave (or do not vote) (0 = 0%, 1000000 = 1%)")
+	@Option(names = "--slashing-for-not-behaving", description = "the percent of stake that gets slashed for validators that do not behave (or do not vote) (0 = 0%%, 1000000 = 1%%)")
 	private Integer slashingForNotBehaving;
 
 	@Option(names = "--delete-tendermint-config", description = "delete the directory specified by --tendermint-config after starting the node and copying it inside the directory specified by --dir")

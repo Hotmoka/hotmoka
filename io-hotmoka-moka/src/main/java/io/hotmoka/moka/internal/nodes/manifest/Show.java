@@ -28,7 +28,7 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.remote.api.RemoteNode;
 import picocli.CommandLine.Command;
 
-@Command(name = "show", description = "Show the manifest of a node.")
+@Command(name = "show", header = "Show the manifest of a node.", showDefaultValues = true)
 public class Show extends AbstractMokaRpcCommand {
 
 	@Override

@@ -30,7 +30,7 @@ import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import picocli.CommandLine.Command;
 
-@Command(name = "address", description = "Show the transaction that installed the Takamaka runtime in a node.")
+@Command(name = "address", header = "Show the transaction that installed the Takamaka runtime in a node.", showDefaultValues = true)
 public class Address extends AbstractMokaRpcCommand {
 
 	@Override

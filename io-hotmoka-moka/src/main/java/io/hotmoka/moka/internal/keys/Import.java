@@ -39,7 +39,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "import",
-	description = "Import the key pair file of an account from BIP39 words.",
+	header = "Import the key pair file of an account from BIP39 words.",
 	showDefaultValues = true)
 public class Import extends AbstractMokaCommand {
 

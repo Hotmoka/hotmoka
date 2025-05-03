@@ -48,7 +48,7 @@ import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
-@Command(name = "create", description = "Create a new key pair.")
+@Command(name = "create", header = "Create a new key pair.", showDefaultValues = true)
 public class Create extends AbstractMokaCommand {
 
 	@Option(names = "--output-dir", description = "the path of the directory where the key pair file of the new key pair will be written", defaultValue = "")

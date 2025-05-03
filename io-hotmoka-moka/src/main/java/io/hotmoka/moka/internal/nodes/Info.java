@@ -32,7 +32,7 @@ import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import picocli.CommandLine.Command;
 
-@Command(name = "info", description = "Show node-specific information about a node.")
+@Command(name = "info", header = "Show node-specific information about a node.", showDefaultValues = true)
 public class Info extends AbstractMokaRpcCommand {
 
 	@Override

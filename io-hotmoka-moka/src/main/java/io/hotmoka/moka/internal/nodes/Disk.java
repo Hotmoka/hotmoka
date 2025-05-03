@@ -21,7 +21,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
 
 @Command(name = "disk",
-	description = "Manage disk nodes.",
+	header = "Manage disk nodes.",
 	subcommands = {
 		HelpCommand.class,
 		Init.class,

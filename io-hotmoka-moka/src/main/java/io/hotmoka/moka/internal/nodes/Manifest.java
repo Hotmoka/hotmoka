@@ -22,7 +22,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
 
 @Command(name = "manifest",
-	description = "Manage the manifest of a node.",
+	header = "Manage the manifest of a node.",
 	subcommands = {
 		HelpCommand.class,
 		Address.class,

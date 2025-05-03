@@ -44,7 +44,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "verify",
-	description = "Verify a jar.",
+	header = "Verify a jar.",
 	showDefaultValues = true)
 public class Verify extends AbstractMokaCommand {
 

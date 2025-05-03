@@ -62,7 +62,8 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "init",
-	description = "Initialize a new Mokamint node and publish a service to it. This spawns both a Mokamint engine and a Mokamint node on top of that engine. The configurations of both can be provided through the --mokamint-config and (--node-local-config and --node-consensus-config), respectively, which, when missing, rely to defaults. In any case, such configurations can be updated with explicit values, such as --initial-supply.",
+	header = "Initialize a new Mokamint node and publish a service to it.",
+	description = "This command spawns both a Mokamint engine and a Mokamint node on top of that engine. The configurations of both can be provided through the --mokamint-config and (--node-local-config and --node-consensus-config), respectively, which, when missing, rely on defaults. In any case, such configurations can be updated with explicit values, such as --initial-supply.",
 	showDefaultValues = true)
 public class Init extends AbstractInit {
 

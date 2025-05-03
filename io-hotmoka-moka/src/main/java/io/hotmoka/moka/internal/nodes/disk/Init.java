@@ -45,7 +45,8 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 @Command(name = "init",
-	description = "Initialize a new disk node and publish a service to it. The configurations of the node can be provided through --node-local-config and --node-consensus-config, which, when missing, rely to defaults. In any case, such configuration can be updated with explicit values, such as --initial-supply.",
+	header = "Initialize a new disk node and publish a service to it.",
+	description = "This command spawns a disk node, whose configurations can be provided through --node-local-config and --node-consensus-config, which, when missing, rely on defaults. In any case, such configuration can be updated with explicit values, such as --initial-supply.",
 	showDefaultValues = true)
 public class Init extends AbstractInit {
 

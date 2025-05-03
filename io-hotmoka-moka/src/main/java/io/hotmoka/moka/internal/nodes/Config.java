@@ -21,7 +21,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
 
 @Command(name = "config",
-	description = "Manage the configuration of a node.",
+	header = "Manage the configuration of a node.",
 	subcommands = {
 		HelpCommand.class,
 		Show.class

@@ -22,7 +22,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
 
 @Command(name = "jars",
-	description = "Manage jars of Takamaka classes.",
+	header = "Manage jars of Takamaka classes.",
 	subcommands = {
 		HelpCommand.class,
 		Instrument.class,

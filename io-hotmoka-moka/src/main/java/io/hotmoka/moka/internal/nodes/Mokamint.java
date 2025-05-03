@@ -21,7 +21,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
 
 @Command(name = "mokamint",
-	description = "Manage Mokamint nodes.",
+	header = "Manage Mokamint nodes.",
 	subcommands = {
 		HelpCommand.class,
 		Init.class,

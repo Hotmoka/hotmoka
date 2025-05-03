@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal.accounts;
+package io.hotmoka.moka.internal.nodes.tendermint;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -82,8 +82,8 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "create", header = "Create a new account object.", showDefaultValues = true)
-public class Create extends AbstractMokaRpcCommand {
+@Command(name = "create-validator", header = "Create a new validator account object.", showDefaultValues = true)
+public class CreateValidator extends AbstractMokaRpcCommand {
 
 	@Parameters(description = "the initial balance of the new account; this will be deduced from the balance of the payer", defaultValue = "0")
 	private BigInteger balance;

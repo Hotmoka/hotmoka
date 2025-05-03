@@ -57,7 +57,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "show", description = "Show the state of a storage object.")
+@Command(name = "show", header = "Show the state of a storage object.", showDefaultValues = true)
 public class Show extends AbstractMokaRpcCommand {
 
 	@Parameters(index = "0", description = "the storage reference of the object", converter = StorageReferenceOptionConverter.class)

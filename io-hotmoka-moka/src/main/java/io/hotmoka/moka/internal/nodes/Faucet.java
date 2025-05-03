@@ -56,7 +56,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "faucet",
-	description = "Set the threshold for the faucet of the gamete of a node.",
+	header = "Set the threshold for the faucet of the gamete of a node.",
 	showDefaultValues = true)
 public class Faucet extends AbstractMokaRpcCommand {
 

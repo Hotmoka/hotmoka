@@ -16,14 +16,16 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.nodes;
 
+import io.hotmoka.moka.internal.nodes.tendermint.CreateValidator;
 import io.hotmoka.moka.internal.nodes.tendermint.Init;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
 
 @Command(name = "tendermint",
-	description = "Manage Tendermint nodes.",
+	header = "Manage Tendermint nodes.",
 	subcommands = {
 		HelpCommand.class,
+		CreateValidator.class,
 		Init.class,
 	})
 public class Tendermint {
