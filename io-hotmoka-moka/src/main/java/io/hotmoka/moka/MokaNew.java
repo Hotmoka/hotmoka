@@ -164,6 +164,28 @@ public class MokaNew extends AbstractCLI {
 	}
 
 	/**
+	 * Runs the {@code nodes tendermint validators create} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String nodesTendermintValidatorsCreate(String args) throws IOException {
+		return run("nodes tendermint validators create " + args);
+	}
+
+	/**
+	 * Runs the {@code objects show} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String objectsShow(String args) throws IOException {
+		return run("objects show " + args);
+	}
+
+	/**
 	 * Runs the given command-line with the moka tool, inside a sand-box where the
 	 * standard output is redirected into the resulting string. It performs as calling "moka command".
 	 * 
