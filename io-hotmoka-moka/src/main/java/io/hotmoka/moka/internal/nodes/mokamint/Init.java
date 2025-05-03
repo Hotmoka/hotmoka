@@ -161,8 +161,8 @@ public class Init extends AbstractInit {
 	private LocalNodeConfig mkMokamintConfig() throws CommandException {
 		try {
 			var builder = mokamintConfig != null ? mokamintConfig.toBuilder() : LocalNodeConfigBuilders.defaults();
-			if (getDir() != null)
-				builder = builder.setDir(getDir().resolve("mokamint"));
+			if (getChainDir() != null)
+				builder = builder.setDir(getChainDir().resolve("mokamint"));
 
 			return builder.build();
 		}
@@ -183,8 +183,8 @@ public class Init extends AbstractInit {
 		if (getMaxGasPerView() != null)
 			builder = builder.setMaxGasPerViewTransaction(getMaxGasPerView());
 
-		if (getDir() != null)
-			builder = builder.setDir(getDir());
+		if (getChainDir() != null)
+			builder = builder.setDir(getChainDir());
 
 		return builder.build();
 	}

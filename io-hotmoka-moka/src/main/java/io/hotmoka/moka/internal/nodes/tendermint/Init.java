@@ -142,8 +142,8 @@ public class Init extends AbstractInit {
 		if (getMaxGasPerView() != null)
 			builder = builder.setMaxGasPerViewTransaction(getMaxGasPerView());
 
-		if (getDir() != null)
-			builder = builder.setDir(getDir());
+		if (getChainDir() != null)
+			builder = builder.setDir(getChainDir());
 
 		return builder.build();
 	}
@@ -227,7 +227,7 @@ public class Init extends AbstractInit {
 					try {
 						var entropy = Entropies.load(path);
 						var account = Accounts.of(entropy, validator);
-						var pathOfAccount = getDir().resolve(account + ".pem");
+						var pathOfAccount = getChainDir().resolve(account + ".pem");
 						account.dump(pathOfAccount);
 						Files.delete(path);
 					}

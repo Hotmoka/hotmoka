@@ -65,6 +65,17 @@ public class MokaNew extends AbstractCLI {
 	}
 
 	/**
+	 * Runs the {@code accounts create} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String accountsCreate(String args) throws IOException {
+		return run("accounts create " + args);
+	}
+
+	/**
 	 * Runs the {@code accounts show} command with the given arguments.
 	 * 
 	 * @param args the arguments
@@ -142,14 +153,14 @@ public class MokaNew extends AbstractCLI {
 	}
 
 	/**
-	 * Runs the {@code nodes set-faucet} command with the given arguments.
+	 * Runs the {@code nodes faucet} command with the given arguments.
 	 * 
 	 * @param args the arguments
 	 * @return what the moka tool has written into the standard output
 	 * @throws IOException if the construction of the return value failed
 	 */
-	public static String nodesSetFaucet(String args) throws IOException {
-		return run("nodes set-faucet " + args);
+	public static String nodesFaucet(String args) throws IOException {
+		return run("nodes faucet " + args);
 	}
 
 	/**

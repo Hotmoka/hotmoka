@@ -78,8 +78,8 @@ public class Show extends AbstractMokaRpcCommand {
 		try {
 			balance = remote.runInstanceMethodCallTransaction(
 					TransactionRequests.instanceViewMethodCall(account, _100_000, takamakaCode, MethodSignatures.BALANCE, account))
-					.orElseThrow(() -> new NodeException(MethodSignatures.BALANCE + " should not return void"))
-					.asReturnedBigInteger(MethodSignatures.BALANCE, NodeException::new);
+					.orElseThrow(() -> new CommandException(MethodSignatures.BALANCE + " should not return void"))
+					.asReturnedBigInteger(MethodSignatures.BALANCE, CommandException::new);
 		}
 		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
 			throw new CommandException("Could not access the balance of the account", e);
@@ -89,8 +89,8 @@ public class Show extends AbstractMokaRpcCommand {
 		try {
 			publicKeyBase64 = remote.runInstanceMethodCallTransaction(
 					TransactionRequests.instanceViewMethodCall(account, _100_000, takamakaCode, MethodSignatures.PUBLIC_KEY, account))
-					.orElseThrow(() -> new NodeException(MethodSignatures.PUBLIC_KEY + " should not return void"))
-					.asReturnedString(MethodSignatures.PUBLIC_KEY, NodeException::new);
+					.orElseThrow(() -> new CommandException(MethodSignatures.PUBLIC_KEY + " should not return void"))
+					.asReturnedString(MethodSignatures.PUBLIC_KEY, CommandException::new);
 		}
 		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
 			throw new CommandException("Could not access the balance of the account", e);

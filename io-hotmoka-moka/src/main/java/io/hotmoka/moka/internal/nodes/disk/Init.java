@@ -98,8 +98,8 @@ public class Init extends AbstractInit {
 		if (getMaxGasPerView() != null)
 			builder = builder.setMaxGasPerViewTransaction(getMaxGasPerView());
 
-		if (getDir() != null)
-			builder = builder.setDir(getDir());
+		if (getChainDir() != null)
+			builder = builder.setDir(getChainDir());
 
 		return builder.build();
 	}

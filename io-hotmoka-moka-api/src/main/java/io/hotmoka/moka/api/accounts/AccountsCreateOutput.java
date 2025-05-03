@@ -47,7 +47,7 @@ public interface AccountsCreateOutput {
 	/**
 	 * Yields the path of the key pair file generated for the created account.
 	 * 
-	 * @return the path of the key pair file generated for the created account.
+	 * @return the path of the key pair file generated for the created account
 	 */
 	Optional<Path> getFile();
 

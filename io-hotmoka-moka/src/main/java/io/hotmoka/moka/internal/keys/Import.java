@@ -46,8 +46,8 @@ public class Import extends AbstractMokaCommand {
 	@Parameters(description = "the 36 BIP39 words of the account to import")
     private List<String> words = new ArrayList<>();
 
-	@Option(names = "--dir", description = "the directory where the key pair file of the account must be written", defaultValue = "")
-    private Path dir;
+	@Option(names = "--output-dir", description = "the directory where the key pair file of the account will be written", defaultValue = "")
+    private Path outputDir;
 
 	@Option(names = "--json", description = "print the output in JSON", defaultValue = "false")
 	private boolean json;
@@ -62,8 +62,8 @@ public class Import extends AbstractMokaCommand {
 				throw new CommandException("The word \"" + word + "\" does not exist in the BIP39 English dictionary");
 
 		var account = BIP39Mnemonics.of(words.toArray(String[]::new)).toAccount(Accounts::of);
-		Path file = dir.resolve(account.getReference() + ".pem");
 
+		Path file = outputDir.resolve(account + ".pem");
 		try {
 			account.dump(file);
 		}

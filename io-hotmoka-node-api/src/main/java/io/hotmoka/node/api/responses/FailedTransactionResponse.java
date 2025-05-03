@@ -21,7 +21,9 @@ import java.math.BigInteger;
 /**
  * The response of a failed transaction. This means that the transaction
  * could not be executed until its end. Some gas provided to the
- * transaction has been consumed, as a form of penalty.
+ * transaction has been consumed, as a form of penalty. NOte that transactions
+ * that executed some code that threw exceptions allowed by their
+ * {@code @@ThrowsException} annotation are not considered as failed.
  */
 public interface FailedTransactionResponse extends TransactionResponse {
 

@@ -82,8 +82,8 @@ public abstract class AbstractInit extends AbstractMokaCommand {
 	@Option(names = "--port", description = "the network port where the service must be published", defaultValue="8001")
 	private int port;
 
-	@Option(names = "--dir", description = "the directory that will contain blocks and state of the node", defaultValue = "chain")
-	private Path dir;
+	@Option(names = "--chain-dir", description = "the directory that will contain blocks and state of the node", defaultValue = "chain")
+	private Path chainDir;
 
 	@Option(names = "--json", description = "print the output in JSON", defaultValue = "false")
 	private boolean json;
@@ -164,8 +164,8 @@ public abstract class AbstractInit extends AbstractMokaCommand {
 		return port;
 	}
 
-	protected Path getDir() {
-		return dir;
+	protected Path getChainDir() {
+		return chainDir;
 	}
 
 	protected BigInteger getMaxGasPerView() {

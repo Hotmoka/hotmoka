@@ -16,10 +16,13 @@ limitations under the License.
 
 package io.hotmoka.moka.tests;
 
+import java.math.BigInteger;
+
 import io.hotmoka.testing.AbstractLoggedTests;
 
 /**
  * Shared code of the tests for the moka tool.
  */
 public abstract class AbstractMokaTest extends AbstractLoggedTests {
+	public final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
 }

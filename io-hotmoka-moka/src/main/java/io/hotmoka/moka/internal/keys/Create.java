@@ -51,8 +51,8 @@ import picocli.CommandLine.Option;
 @Command(name = "create", description = "Create a new key pair.")
 public class Create extends AbstractMokaCommand {
 
-	@Option(names = "--dir", description = "the path of the directory where the key pair file of the new key pair must be written", defaultValue = "")
-    private Path dir;
+	@Option(names = "--output-dir", description = "the path of the directory where the key pair file of the new key pair will be written", defaultValue = "")
+    private Path outputDir;
 
 	@Option(names = "--name", description = "the name of the file where the new key pair must be written; if missing, the first characters of the Base58-encoded public key will be used, followed by \".pem\"")
     private String name;
@@ -94,8 +94,7 @@ public class Create extends AbstractMokaCommand {
 				name = name + ".pem";
 			}
 
-			Path file = dir.resolve(name);
-
+			Path file = outputDir.resolve(name);
 			try {
 				entropy.dump(file);
 			}

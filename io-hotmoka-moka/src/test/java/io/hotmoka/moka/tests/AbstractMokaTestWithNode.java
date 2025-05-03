@@ -28,9 +28,11 @@ import org.junit.jupiter.api.io.TempDir;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.helpers.InitializedNodes;
+import io.hotmoka.moka.MokaNew;
 import io.hotmoka.node.ConsensusConfigBuilders;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
+import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.disk.DiskNodeConfigBuilders;
 import io.hotmoka.node.disk.DiskNodes;
@@ -50,6 +52,7 @@ public abstract class AbstractMokaTestWithNode extends AbstractMokaTest {
 	public static Path dir;
 
 	public static StorageReference gamete;
+	public static TransactionReference takamakaCode; 
 	public static KeyPair keysOfGamete;
 
 	@BeforeAll
@@ -72,10 +75,13 @@ public abstract class AbstractMokaTestWithNode extends AbstractMokaTest {
 			.build();
 
 		node = DiskNodes.init(nodeConfig);
-		var takamakaCode = Maven.resolver().resolve("io.hotmoka:io-takamaka-code:" + Constants.TAKAMAKA_VERSION).withoutTransitivity().asSingleFile().toPath();
-		gamete = InitializedNodes.of(node, consensus, takamakaCode).gamete();
-		entropy.dump(dir.resolve(gamete.toString() + ".pem")); // we save the entropy in a file named as the address of the gamete, that is, as an account
+		var takamakaCodePath = Maven.resolver().resolve("io.hotmoka:io-takamaka-code:" + Constants.TAKAMAKA_VERSION).withoutTransitivity().asSingleFile().toPath();
+		gamete = InitializedNodes.of(node, consensus, takamakaCodePath).gamete();
+		takamakaCode = node.getTakamakaCode();
+		entropy.dump(dir.resolve(gamete + ".pem")); // we save the entropy in a file named as the address of the gamete, that is, as an account
 		NodeServices.of(node, 8001);
+		// the faucet is opened at initialization time, but we still need to set its threshold
+		MokaNew.nodesFaucet("100000 --dir=" + dir + " --password=" + passwordOfGamete);
 	}
 	
 	@AfterAll

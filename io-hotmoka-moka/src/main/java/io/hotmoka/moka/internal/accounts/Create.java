@@ -94,6 +94,9 @@ public class Create extends AbstractMokaRpcCommand {
 	@Option(names = "--dir", description = "the path of the directory where the key pair of the payer can be found", defaultValue = "")
     private Path dir;
 
+	@Option(names = "--output-dir", description = "the path of the directory where the key pair of the new account will be written", defaultValue = "")
+    private Path outputDir;
+
 	@Option(names = "--password-of-payer", description = "the password of the payer; this is not used if the payer is the faucet", interactive = true, defaultValue = "")
     private char[] passwordOfPayer;
 
@@ -202,7 +205,7 @@ public class Create extends AbstractMokaRpcCommand {
 				return remote.addConstructorCallTransaction(request);
 			}
 			catch (CodeExecutionException | TransactionRejectedException | TransactionException e) {
-				throw new CommandException("The creation transaction failed!", e);
+				throw new CommandException("The creation transaction failed! are you sure that the key pair of the payer and its password are correct?", e);
 			}
 		}
 
@@ -426,12 +429,15 @@ public class Create extends AbstractMokaRpcCommand {
 			}
 
 			var newAccount = Accounts.of(entropy, referenceOfNewAccount);
+			Path file = outputDir.resolve(newAccount + ".pem");
 			try {
-				return Optional.of(newAccount.dump());
+				newAccount.dump(file);
 			}
 			catch (IOException e) {
 				throw new CommandException("Cannot save the key pair of the account in file \"" + newAccount + ".pem\"!");
 			}
+
+			return Optional.of(file);
 		}
 		else
 			return Optional.empty();

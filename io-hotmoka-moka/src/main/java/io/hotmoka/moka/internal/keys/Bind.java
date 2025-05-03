@@ -61,6 +61,9 @@ public class Bind extends AbstractMokaRpcCommand {
 	@Parameters(index = "0", description = "the file holding the key pair")
     private Path key;
 
+	@Option(names = "--output-dir", description = "the path of the directory where the key pair of the bound account will be written", defaultValue = "")
+    private Path outputDir;
+
 	@Option(names = "--reference", description = "the reference of the account; if missing, it means that the account was created anonymously and its reference will be recovered from the accounts ledger of the Hotmoka node", converter = StorageReferenceOfAccountOptionConverter.class)
     private StorageReference reference;
 
@@ -166,9 +169,9 @@ public class Bind extends AbstractMokaRpcCommand {
 			throw new CommandException("Cannot read the file \"" + key + "\"", e);
 		}
 
-		Path file;
+		Path file = outputDir.resolve(reference + ".pem");
 		try {
-			file = account.dump();
+			account.dump(file);
 		}
 		catch (IOException e) {
 			throw new CommandException("Cannot write the account information file", e);
