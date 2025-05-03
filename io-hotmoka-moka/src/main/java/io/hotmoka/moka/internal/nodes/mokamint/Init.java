@@ -31,11 +31,11 @@ import io.hotmoka.exceptions.Objects;
 import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.moka.NodesMokamintInitOutputs;
 import io.hotmoka.moka.api.nodes.mokamint.NodesMokamintInitOutput;
+import io.hotmoka.moka.internal.AbstractNodeInit;
 import io.hotmoka.moka.internal.converters.ConsensusConfigOptionConverter;
 import io.hotmoka.moka.internal.converters.MokamintLocalNodeConfigOptionConverter;
 import io.hotmoka.moka.internal.converters.MokamintNodeConfigOptionConverter;
 import io.hotmoka.moka.internal.json.NodesMokamintInitOutputJson;
-import io.hotmoka.moka.internal.shared.AbstractInitNode;
 import io.hotmoka.node.ConsensusConfigBuilders;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
@@ -65,7 +65,7 @@ import picocli.CommandLine.Parameters;
 	header = "Initialize a new Mokamint node and publish a service to it.",
 	description = "This command spawns both a Mokamint engine and a Mokamint node on top of that engine. The configurations of both can be provided through the --mokamint-config and (--node-local-config and --node-consensus-config), respectively, which, when missing, rely on defaults. In any case, such configurations can be updated with explicit values, such as --initial-supply.",
 	showDefaultValues = true)
-public class Init extends AbstractInitNode {
+public class Init extends AbstractNodeInit {
 
 	@Parameters(description = "the path of the plot file that the Mokamint miner will use for mining deadlines")
 	private Path plot;
@@ -234,7 +234,7 @@ public class Init extends AbstractInitNode {
 	/**
 	 * The output of this command.
 	 */
-	public static class Output extends AbstractInitOutput implements NodesMokamintInitOutput {
+	public static class Output extends AbstractNodeInitOutput implements NodesMokamintInitOutput {
 		private final URI uriMokamintPublic;
 		private final URI uriMokamintRestricted;
 

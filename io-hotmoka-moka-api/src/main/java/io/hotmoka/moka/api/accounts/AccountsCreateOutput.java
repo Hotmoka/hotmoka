@@ -16,59 +16,12 @@ limitations under the License.
 
 package io.hotmoka.moka.api.accounts;
 
-import java.math.BigInteger;
-import java.nio.file.Path;
-import java.util.Optional;
-
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.moka.api.AccountCreationOutput;
 
 /**
  * The output of the {@code moka accounts create} command.
  */
 @Immutable
-public interface AccountsCreateOutput {
-
-	/**
-	 * Yields the transaction that created the account.
-	 * 
-	 * @return the transaction that created the account
-	 */
-	TransactionReference getTransaction();
-
-	/**
-	 * Yields the reference of the created account.
-	 * 
-	 * @return the reference of the created account
-	 */
-	StorageReference getAccount();
-
-	/**
-	 * Yields the path of the key pair file generated for the created account.
-	 * 
-	 * @return the path of the key pair file generated for the created account
-	 */
-	Optional<Path> getFile();
-
-	/**
-	 * Yields the amount of gas consumed for the CPU cost for creating the account.
-	 * 
-	 * @return the amount of gas consumed for the CPU cost for creating the account
-	 */
-	BigInteger getGasConsumedForCPU();
-
-	/**
-	 * Yields the amount of gas consumed for the RAM cost for creating the account.
-	 * 
-	 * @return the amount of gas consumed for the RAM cost for creating the account
-	 */
-	BigInteger getGasConsumedForRAM();
-
-	/**
-	 * Yields the amount of gas consumed for the storage cost for creating the account.
-	 * 
-	 * @return the amount of gas consumed for the storage cost for creating the account
-	 */
-	BigInteger getGasConsumedForStorage();
+public interface AccountsCreateOutput extends AccountCreationOutput {
 }

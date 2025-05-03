@@ -14,30 +14,30 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal.json;
+package io.hotmoka.moka.api;
 
 import java.net.URI;
 
-import io.hotmoka.moka.api.NodeInitOutput;
-import io.hotmoka.node.StorageValues;
+import io.hotmoka.annotations.Immutable;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
- * The JSON representation of the output of a command that initializes a new Hotmoka node.
+ * The output of a command that initializes a new Hotmoka node.
  */
-public abstract class NodesInitOutputJson {
-	private final URI uri;
-	private final StorageValues.Json gamete;
+@Immutable
+public interface NodeInitOutput {
 
-	protected NodesInitOutputJson(NodeInitOutput output) {
-		this.uri = output.getURI();
-		this.gamete = new StorageValues.Json(output.getGamete());
-	}
+	/**
+	 * Yields the URI of the published node service.
+	 * 
+	 * @return the URI of the published node service
+	 */
+	URI getURI();
 
-	public StorageValues.Json getGamete() {
-		return gamete;
-	}
-
-	public URI getURI() {
-		return uri;
-	}
+	/**
+	 * Yields the reference to the gamete of the initialized node.
+	 * 
+	 * @return the reference to the gamete of the initialized node
+	 */
+	StorageReference getGamete();
 }

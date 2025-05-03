@@ -16,22 +16,22 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.json;
 
-import io.hotmoka.moka.api.accounts.AccountsCreateOutput;
-import io.hotmoka.moka.internal.accounts.Create;
+import io.hotmoka.moka.api.nodes.tendermint.validators.NodesTendermintValidatorsCreateOutput;
+import io.hotmoka.moka.internal.nodes.tendermint.validators.Create;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**
- * The JSON representation of the output of the {@code moka accounts create} command.
+ * The JSON representation of the output of the {@code moka nodes tendermint validators create} command.
  */
-public abstract class AccountsCreateOutputJson extends AccountCreationOutputJson implements JsonRepresentation<AccountsCreateOutput> {
+public abstract class NodesTendermintValidatorsCreateOutputJson extends AccountCreationOutputJson implements JsonRepresentation<NodesTendermintValidatorsCreateOutput> {
 
-	protected AccountsCreateOutputJson(AccountsCreateOutput output) {
+	protected NodesTendermintValidatorsCreateOutputJson(NodesTendermintValidatorsCreateOutput output) {
 		super(output);
 	}
 
 	@Override
-	public AccountsCreateOutput unmap() throws InconsistentJsonException {
+	public NodesTendermintValidatorsCreateOutput unmap() throws InconsistentJsonException {
 		return new Create.Output(this);
 	}
 }

@@ -17,17 +17,23 @@ limitations under the License.
 package io.hotmoka.moka.internal.accounts;
 
 import java.math.BigInteger;
+import java.nio.file.Path;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.SecureRandom;
 import java.security.SignatureException;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.api.Signer;
+import io.hotmoka.helpers.api.GasCounter;
+import io.hotmoka.moka.AccountsCreateOutputs;
+import io.hotmoka.moka.api.accounts.AccountsCreateOutput;
+import io.hotmoka.moka.internal.AbstractAccountCreation;
 import io.hotmoka.moka.internal.converters.SignatureOptionConverter;
-import io.hotmoka.moka.internal.shared.AbstractCreateAccount;
+import io.hotmoka.moka.internal.json.AccountsCreateOutputJson;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
@@ -39,13 +45,15 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
+import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.api.RemoteNode;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 @Command(name = "create", header = "Create a new account object.", showDefaultValues = true)
-public class Create extends AbstractCreateAccount {
+public class Create extends AbstractAccountCreation {
 
 	@Option(names = "--signature", description = "the signature algorithm of the new account (ed25519, sha256dsa, qtesla1, qtesla3); if missing, the deafult request signature of the node will be used", converter = SignatureOptionConverter.class)
 	private SignatureAlgorithm signature;
@@ -60,7 +68,12 @@ public class Create extends AbstractCreateAccount {
 		new CreationFromFaucet(remote);
 	}
 
-	private class CreationFromPayer extends AbstractCreateAccount.CreationFromPayer {
+	@Override
+	protected void reportOutput(TransactionReference transaction, StorageReference referenceOfNewAccount, Optional<Path> file, GasCounter gasCosts) throws CommandException {
+		report(json(), new Output(transaction, referenceOfNewAccount, file, gasCosts), AccountsCreateOutputs.Encoder::new);
+	}
+
+	private class CreationFromPayer extends AbstractAccountCreation.CreationFromPayer {
 
 		private CreationFromPayer(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
 			super(remote);
@@ -77,13 +90,12 @@ public class Create extends AbstractCreateAccount {
 		}
 
 		@Override
-		protected ConstructorCallTransactionRequest mkRequest(StorageReference payer, String passwordOfPayerAsString, BigInteger balance) throws NodeException, TimeoutException, InterruptedException {
+		protected ConstructorCallTransactionRequest mkRequest(StorageReference payer, Signer<SignedTransactionRequest<?>> signer, BigInteger balance) throws NodeException, TimeoutException, InterruptedException {
 			try {
-				Signer<SignedTransactionRequest<?>> signer = signatureOfPayer.getSigner(payerAccount.keys(passwordOfPayerAsString, signatureOfPayer).getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 				return TransactionRequests.constructorCall
 						(signer, payer, nonce, remote.getConfig().getChainId(), proposedGas, gasPrice, remote.getTakamakaCode(),
 								ConstructorSignatures.of(eoaType, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
-								StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKetOfNewAccountBase64));
+								StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyOfNewAccountBase64));
 			}
 			catch (InvalidKeyException | SignatureException e) {
 				// the key has been created with the same signature algorithm, it cannot be invalid
@@ -97,7 +109,7 @@ public class Create extends AbstractCreateAccount {
 		}
 	}
 
-	private class CreationFromFaucet extends AbstractCreateAccount.CreationFromFaucet {
+	private class CreationFromFaucet extends AbstractAccountCreation.CreationFromFaucet {
 
 		private CreationFromFaucet(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
 			super(remote);
@@ -137,6 +149,23 @@ public class Create extends AbstractCreateAccount {
 			catch (CodeExecutionException | TransactionRejectedException | TransactionException e) {
 				throw new CommandException("The creation transaction failed! Is the unsigned faucet open?", e);
 			}
+		}
+	}
+
+	/**
+	 * The output of this command.
+	 */
+	public static class Output extends AbstractAccountCreation.AbstractAccountCreationOutput implements AccountsCreateOutput {
+
+		/**
+		 * Builds the output of the command.
+		 */
+		private Output(TransactionReference transaction, StorageReference account, Optional<Path> file, GasCounter gasCounter) {
+			super(transaction, account, file, gasCounter);
+		}
+
+		public Output(AccountsCreateOutputJson json) throws InconsistentJsonException {
+			super(json);
 		}
 	}
 }

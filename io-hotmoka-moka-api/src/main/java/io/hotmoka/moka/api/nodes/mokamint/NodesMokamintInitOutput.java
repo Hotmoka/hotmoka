@@ -19,13 +19,13 @@ package io.hotmoka.moka.api.nodes.mokamint;
 import java.net.URI;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.moka.api.nodes.NodesInitOutput;
+import io.hotmoka.moka.api.NodeInitOutput;
 
 /**
  * The output of the {@code moka nodes mokamint init} command.
  */
 @Immutable
-public interface NodesMokamintInitOutput extends NodesInitOutput {
+public interface NodesMokamintInitOutput extends NodeInitOutput {
 
 	/**
 	 * Yields the URI of the public part of the published Mokamint node service.

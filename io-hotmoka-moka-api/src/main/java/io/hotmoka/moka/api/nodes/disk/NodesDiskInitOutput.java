@@ -17,11 +17,11 @@ limitations under the License.
 package io.hotmoka.moka.api.nodes.disk;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.moka.api.nodes.NodesInitOutput;
+import io.hotmoka.moka.api.NodeInitOutput;
 
 /**
  * The output of the {@code moka nodes disk init} command.
  */
 @Immutable
-public interface NodesDiskInitOutput extends NodesInitOutput {
+public interface NodesDiskInitOutput extends NodeInitOutput {
 }

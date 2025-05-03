@@ -19,14 +19,14 @@ package io.hotmoka.moka.api.nodes.tendermint;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.moka.api.nodes.NodesInitOutput;
+import io.hotmoka.moka.api.NodeInitOutput;
 import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * The output of the {@code moka nodes tendermint init} command.
  */
 @Immutable
-public interface NodesTendermintInitOutput extends NodesInitOutput {
+public interface NodesTendermintInitOutput extends NodeInitOutput {
 
 	/**
 	 * Yields the description of the validators of the initialized node.

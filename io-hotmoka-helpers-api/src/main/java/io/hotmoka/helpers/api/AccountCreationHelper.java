@@ -98,49 +98,4 @@ public interface AccountCreationHelper {
 			Consumer<TransactionRequest<?>[]> requestsHandler)
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException,
 					NodeException, TimeoutException, InterruptedException, UnknownReferenceException, NoSuchAlgorithmException;
-
-	/**
-	 * Creates a new Tendermint validator by letting the faucet pay.
-	 * 
-	 * @param publicKey the public key of the new validator
-	 * @param balance the balance of the new validator
-	 * @param requestsHandler a handler called with the paid requests used for this operation. This can be useful for logging or computing costs
-	 * @return the storage reference of the validator
-	 * @throws TransactionRejectedException if some transaction was rejected
-	 * @throws TransactionException if some transaction failed
-	 * @throws CodeExecutionException if some transaction throws an exception
-	 * @throws InvalidKeyException if the key is invalid
-	 * @throws NoSuchAlgorithmException if the ed25519 signature algorithm is not available
-	 * @throws NodeException if the node is not able to perform the operation
-	 * @throws InterruptedException if the current thread gets interrupted while performing the operation
-	 * @throws TimeoutException if the operation does not complete within the expected time window
-	 */
-	StorageReference tendermintValidatorPaidByFaucet(PublicKey publicKey, BigInteger balance, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, NoSuchAlgorithmException, NodeException, InterruptedException, TimeoutException;
-
-	/**
-	 * Creates a new Tendermint validator by letting another account pay.
-	 * 
-	 * @param payer the payer of the validator creation
-	 * @param keysOfPayer the keys of the {@code payer}
-	 * @param publicKey the public key of the new validator
-	 * @param balance the balance of the new validator
-	 * @param gasHandler a handler called with the total gas used for this operation. This can be useful for logging
-	 * @param requestsHandler a handler called with the paid requests used for this operation. This can be useful for logging or computing costs
-	 * @return the storage reference of the new validator
-	 * @throws TransactionRejectedException if some transaction was rejected
-	 * @throws TransactionException if some transaction failed
-	 * @throws CodeExecutionException if some transaction generated an exception
-	 * @throws InvalidKeyException if the key is invalid
-	 * @throws SignatureException if the signature of the transaction requests with {@code keysOfPayer} fails
-	 * @throws InterruptedException if the current thread is interrupted while performing the operation
-	 * @throws TimeoutException if the operation does not complete within the expected time window
-	 * @throws NodeException if the node is not able to complete the operation
-	 * @throws UnknownReferenceException if {@code payer} cannot be found in the node
-	 * @throws NoSuchAlgorithmException if the ed25519 signature algorithm is not available
-	 */
-	StorageReference tendermintValidatorPaidBy(StorageReference payer, KeyPair keysOfPayer, PublicKey publicKey, BigInteger balance, Consumer<BigInteger> gasHandler,
-			Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException,
-				NodeException, TimeoutException, InterruptedException, UnknownReferenceException, NoSuchAlgorithmException;
 }

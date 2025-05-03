@@ -18,6 +18,7 @@ limitations under the License.
  * This module defines the API of the command-line tool for running basic commands against a Hotmoka node.
  */
 module io.hotmoka.moka.api {
+	exports io.hotmoka.moka.api;
 	exports io.hotmoka.moka.api.accounts;
 	exports io.hotmoka.moka.api.jars;
 	exports io.hotmoka.moka.api.keys;
@@ -28,6 +29,7 @@ module io.hotmoka.moka.api {
 	exports io.hotmoka.moka.api.nodes.mokamint;
 	exports io.hotmoka.moka.api.nodes.takamaka;
 	exports io.hotmoka.moka.api.nodes.tendermint;
+	exports io.hotmoka.moka.api.nodes.tendermint.validators;
 	exports io.hotmoka.moka.api.objects;
 
 	requires transitive io.hotmoka.node.api;

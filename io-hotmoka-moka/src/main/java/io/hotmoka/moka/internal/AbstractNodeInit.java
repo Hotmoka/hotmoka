@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal.shared;
+package io.hotmoka.moka.internal;
 
 import java.math.BigInteger;
 import java.net.URI;
@@ -28,8 +28,7 @@ import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Base58ConversionException;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.exceptions.Objects;
-import io.hotmoka.moka.api.nodes.NodesInitOutput;
-import io.hotmoka.moka.internal.AbstractMokaCommand;
+import io.hotmoka.moka.api.NodeInitOutput;
 import io.hotmoka.moka.internal.converters.SignatureOptionConverter;
 import io.hotmoka.moka.internal.json.NodesInitOutputJson;
 import io.hotmoka.node.api.nodes.ConsensusConfigBuilder;
@@ -41,7 +40,7 @@ import picocli.CommandLine.Parameters;
 /**
  * Shared code for the moka commands that initialize a new Hotmoka node.
  */
-public abstract class AbstractInitNode extends AbstractMokaCommand {
+public abstract class AbstractNodeInit extends AbstractMokaCommand {
 
 	@Parameters(description = "the path of the jar with the basic Takamaka classes that will be installed in the node")
 	private Path takamakaCode;
@@ -175,11 +174,11 @@ public abstract class AbstractInitNode extends AbstractMokaCommand {
 	/**
 	 * The output of this command.
 	 */
-	protected abstract static class AbstractInitOutput implements NodesInitOutput {
+	protected abstract static class AbstractNodeInitOutput implements NodeInitOutput {
 		private final StorageReference gamete;
 		private final URI uri;
 
-		protected AbstractInitOutput(StorageReference gamete, URI uri) {
+		protected AbstractNodeInitOutput(StorageReference gamete, URI uri) {
 			this.gamete = gamete;
 			this.uri = uri;
 		}
@@ -190,7 +189,7 @@ public abstract class AbstractInitNode extends AbstractMokaCommand {
 		 * @param json the JSON representation
 		 * @throws InconsistentJsonException if {@code json} is inconsistent
 		 */
-		public AbstractInitOutput(NodesInitOutputJson json) throws InconsistentJsonException {
+		public AbstractNodeInitOutput(NodesInitOutputJson json) throws InconsistentJsonException {
 			this.gamete = Objects.requireNonNull(json.getGamete(), "gamete cannot be null", InconsistentJsonException::new).unmap()
 				.asReference(value -> new InconsistentJsonException("The reference to the gamete must be a storage reference, not a " + value.getClass().getName()));
 			this.uri = Objects.requireNonNull(json.getURI(), "uri cannot be null", InconsistentJsonException::new);

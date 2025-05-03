@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal.shared;
+package io.hotmoka.moka.internal;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -38,17 +38,16 @@ import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.Entropy;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.helpers.GasCounters;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.helpers.api.GasCounter;
-import io.hotmoka.moka.AccountsCreateOutputs;
-import io.hotmoka.moka.api.accounts.AccountsCreateOutput;
-import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
+import io.hotmoka.moka.api.AccountCreationOutput;
 import io.hotmoka.moka.internal.converters.StorageReferenceOfAccountOptionConverter;
-import io.hotmoka.moka.internal.json.AccountsCreateOutputJson;
+import io.hotmoka.moka.internal.json.AccountCreationOutputJson;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
@@ -62,6 +61,7 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -76,7 +76,7 @@ import picocli.CommandLine.Parameters;
 /**
  * Shared code for the creation of an account.
  */
-public abstract class AbstractCreateAccount extends AbstractMokaRpcCommand {
+public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 
 	@Parameters(description = "the initial balance of the new account; this will be deduced from the balance of the payer", defaultValue = "0")
 	private BigInteger balance;
@@ -110,7 +110,7 @@ public abstract class AbstractCreateAccount extends AbstractMokaRpcCommand {
 		@Option(names = "--key", description = "the Base58-encoded public key of the new account")
 		private String key;
 	
-		@Option(names = "--keys", description = "the key pair of the new account")
+		@Option(names = "--keys", description = "the key pair file of the new account")
 	    private Path keys;
 
 		/**
@@ -162,11 +162,22 @@ public abstract class AbstractCreateAccount extends AbstractMokaRpcCommand {
 	 */
 	protected abstract void mkCreationFromFaucet(RemoteNode remote) throws CommandException, TimeoutException, InterruptedException, NodeException;
 
+	/**
+	 * Reports the output of this command to the user.
+	 * 
+	 * @param transaction the transaction that created the new account
+	 * @param referenceOfNewAccount the reference of the new account
+	 * @param file the file where the key pair of the new account has been saved, if any
+	 * @param gasCosts the gas costs incurred for the creation of the new account
+	 * @throws CommandException if the report fails
+	 */
+	protected abstract void reportOutput(TransactionReference transaction, StorageReference referenceOfNewAccount, Optional<Path> file, GasCounter gasCosts) throws CommandException;
+
 	protected abstract class CreationFromPayer {
 		protected final RemoteNode remote;
 		protected final Account payerAccount;
 		protected final SignatureAlgorithm signatureOfPayer;
-		protected final String publicKetOfNewAccountBase64;
+		protected final String publicKeyOfNewAccountBase64;
 		protected final ClassType eoaType;
 		protected final BigInteger proposedGas;
 		protected final BigInteger nonce;
@@ -184,17 +195,19 @@ public abstract class AbstractCreateAccount extends AbstractMokaRpcCommand {
 				PublicKey publicKeyOfNewAccount = publicKeyIdentifier.getPublicKey(signatureOfNewAccount, passwordOfNewAccountAsString);
 				this.payerAccount = mkPayerAccount();
 				this.signatureOfPayer = determineSignatureOfPayer();
-				this.publicKetOfNewAccountBase64 = mkPublicKeyOfNewAccountBase64(signatureOfNewAccount, publicKeyOfNewAccount);
+				this.publicKeyOfNewAccountBase64 = mkPublicKeyOfNewAccountBase64(signatureOfNewAccount, publicKeyOfNewAccount);
 				this.eoaType = determineEOAType(signatureOfNewAccount);
 				this.proposedGas = computeProposedGas(signatureOfNewAccount, signatureOfPayer);
 				askForConfirmation(proposedGas);
 				this.nonce = determineNonceOfPayer();
 				this.gasPrice = determineGasPrice(remote);
-				this.request = mkRequest(payer, passwordOfPayerAsString, balance);
+				Signer<SignedTransactionRequest<?>> signer = signatureOfPayer.getSigner(payerAccount.keys(passwordOfPayerAsString, signatureOfPayer).getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
+				this.request = mkRequest(payer, signer, balance);
 				StorageReference referenceOfNewAccount = executeRequest();
 				TransactionReference transaction = computeTransaction(request);
 				Optional<Path> file = dealWithBindingOfKeysToNewAccount(referenceOfNewAccount);
-				report(json(), new Output(transaction, referenceOfNewAccount, file, computeGasCosts(remote, request)), AccountsCreateOutputs.Encoder::new);
+				GasCounter gasCosts = computeGasCosts(remote, request);
+				reportOutput(transaction, referenceOfNewAccount, file, gasCosts);
 			}
 			finally {
 				passwordOfNewAccountAsString = null;
@@ -210,11 +223,11 @@ public abstract class AbstractCreateAccount extends AbstractMokaRpcCommand {
 		 * @param remote the node for which the account is being created
 		 * @return the signature algorithm
 		 */
-		protected abstract SignatureAlgorithm getSignatureAlgorithmOfNewAccount() throws NodeException, TimeoutException, InterruptedException;
+		protected abstract SignatureAlgorithm getSignatureAlgorithmOfNewAccount() throws CommandException, NodeException, TimeoutException, InterruptedException;
 
 		protected abstract StorageReference executeRequest() throws NodeException, TimeoutException, InterruptedException, CommandException;
 
-		protected abstract ConstructorCallTransactionRequest mkRequest(StorageReference payer, String passwordOfPayerAsString, BigInteger balance) throws NodeException, TimeoutException, InterruptedException;
+		protected abstract ConstructorCallTransactionRequest mkRequest(StorageReference payer, Signer<SignedTransactionRequest<?>> signer, BigInteger balance) throws NodeException, TimeoutException, InterruptedException;
 
 		private SignatureAlgorithm determineSignatureOfPayer() throws CommandException, NodeException, InterruptedException, TimeoutException {
 			try {
@@ -279,7 +292,8 @@ public abstract class AbstractCreateAccount extends AbstractMokaRpcCommand {
 				StorageReference referenceOfNewAccount = executeRequest();
 				TransactionReference transaction = computeTransaction(request);
 				Optional<Path> file = dealWithBindingOfKeysToNewAccount(referenceOfNewAccount);
-				report(json(), new Output(transaction, referenceOfNewAccount, file, computeGasCosts(remote, request)), AccountsCreateOutputs.Encoder::new);
+				GasCounter gasCosts = computeGasCosts(remote, request);
+				reportOutput(transaction, referenceOfNewAccount, file, gasCosts);
 			}
 			finally {
 				passwordOfNewAccountAsString = null;
@@ -292,7 +306,7 @@ public abstract class AbstractCreateAccount extends AbstractMokaRpcCommand {
 		 * 
 		 * @return the signature algorithm
 		 */
-		protected abstract SignatureAlgorithm getSignatureAlgorithmOfNewAccount() throws NodeException, TimeoutException, InterruptedException;	
+		protected abstract SignatureAlgorithm getSignatureAlgorithmOfNewAccount() throws CommandException, NodeException, TimeoutException, InterruptedException;	
 
 		protected abstract InstanceMethodCallTransactionRequest mkRequest(BigInteger balance) throws NodeException, TimeoutException, InterruptedException;
 
@@ -433,7 +447,7 @@ public abstract class AbstractCreateAccount extends AbstractMokaRpcCommand {
 	/**
 	 * The output of this command.
 	 */
-	public static class Output implements AccountsCreateOutput {
+	protected static abstract class AbstractAccountCreationOutput implements AccountCreationOutput {
 
 		/**
 		 * The transaction that created the account.
@@ -470,7 +484,7 @@ public abstract class AbstractCreateAccount extends AbstractMokaRpcCommand {
 		/**
 		 * Builds the output of the command.
 		 */
-		private Output(TransactionReference transaction, StorageReference account, Optional<Path> file, GasCounter gasCounter) {
+		protected AbstractAccountCreationOutput(TransactionReference transaction, StorageReference account, Optional<Path> file, GasCounter gasCounter) {
 			this.transaction = transaction;
 			this.account = account;
 			this.file = file;
@@ -485,7 +499,7 @@ public abstract class AbstractCreateAccount extends AbstractMokaRpcCommand {
 		 * @param json the JSON representation
 		 * @throws InconsistentJsonException if {@code json} is inconsistent
 		 */
-		public Output(AccountsCreateOutputJson json) throws InconsistentJsonException {
+		public AbstractAccountCreationOutput(AccountCreationOutputJson json) throws InconsistentJsonException {
 			this.transaction = Objects.requireNonNull(json.getTransaction(), "transaction cannot be null", InconsistentJsonException::new).unmap();
 			this.account = Objects.requireNonNull(json.getAccount(), "account cannot be null", InconsistentJsonException::new).unmap()
 					.asReference(value -> new InconsistentJsonException("The reference of the created account must be a storage reference, not a " + value.getClass().getName()));
