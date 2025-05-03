@@ -16,36 +16,24 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.accounts;
 
-import java.math.BigInteger;
 import java.nio.file.Path;
-import java.security.InvalidKeyException;
-import java.security.KeyPair;
-import java.security.SecureRandom;
-import java.security.SignatureException;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.api.GasCounter;
 import io.hotmoka.moka.AccountsCreateOutputs;
 import io.hotmoka.moka.api.accounts.AccountsCreateOutput;
 import io.hotmoka.moka.internal.AbstractAccountCreation;
 import io.hotmoka.moka.internal.converters.SignatureOptionConverter;
 import io.hotmoka.moka.internal.json.AccountsCreateOutputJson;
-import io.hotmoka.node.ConstructorSignatures;
+import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
-import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.node.api.requests.SignedTransactionRequest;
+import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
@@ -59,97 +47,31 @@ public class Create extends AbstractAccountCreation {
 	private SignatureAlgorithm signature;
 
 	@Override
-	protected void mkCreationFromPayer(RemoteNode remote) throws CommandException, TimeoutException, InterruptedException, NodeException {
-		new CreationFromPayer(remote);
+	protected SignatureAlgorithm getSignatureAlgorithmOfNewAccount(RemoteNode remote) throws NodeException, TimeoutException, InterruptedException {
+		return signature != null ? signature : remote.getConfig().getSignatureForRequests();
 	}
 
 	@Override
-	protected void mkCreationFromFaucet(RemoteNode remote) throws CommandException, TimeoutException, InterruptedException, NodeException {
-		new CreationFromFaucet(remote);
+	protected NonVoidMethodSignature getFaucetMethod(SignatureAlgorithm signatureOfNewAccount, ClassType eoaType) {
+		return MethodSignatures.ofNonVoid(StorageTypes.GAMETE, "faucet" + signatureOfNewAccount.getName().toUpperCase(), eoaType, StorageTypes.BIG_INTEGER, StorageTypes.STRING);
+	}
+
+	@Override
+	protected ClassType getEOAType(SignatureAlgorithm signatureOfNewAccount) throws CommandException {
+		switch (signatureOfNewAccount.getName()) {
+		case "ed25519":
+		case "sha256dsa":
+		case "qtesla1":
+		case "qtesla3":
+			return StorageTypes.classNamed(StorageTypes.EOA + signatureOfNewAccount.getName().toUpperCase());
+		default:
+			throw new CommandException("Cannot create accounts with signature algorithm " + signatureOfNewAccount);
+		}
 	}
 
 	@Override
 	protected void reportOutput(TransactionReference transaction, StorageReference referenceOfNewAccount, Optional<Path> file, GasCounter gasCosts) throws CommandException {
 		report(json(), new Output(transaction, referenceOfNewAccount, file, gasCosts), AccountsCreateOutputs.Encoder::new);
-	}
-
-	private class CreationFromPayer extends AbstractAccountCreation.CreationFromPayer {
-
-		private CreationFromPayer(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
-			super(remote);
-		}
-
-		@Override
-		protected StorageReference executeRequest() throws NodeException, TimeoutException, InterruptedException, CommandException {
-			try {
-				return remote.addConstructorCallTransaction(request);
-			}
-			catch (CodeExecutionException | TransactionRejectedException | TransactionException e) {
-				throw new CommandException("The creation transaction failed! are the key pair of the payer and its password correct?", e);
-			}
-		}
-
-		@Override
-		protected ConstructorCallTransactionRequest mkRequest(StorageReference payer, Signer<SignedTransactionRequest<?>> signer, BigInteger balance) throws NodeException, TimeoutException, InterruptedException {
-			try {
-				return TransactionRequests.constructorCall
-						(signer, payer, nonce, remote.getConfig().getChainId(), proposedGas, gasPrice, remote.getTakamakaCode(),
-								ConstructorSignatures.of(eoaType, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
-								StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyOfNewAccountBase64));
-			}
-			catch (InvalidKeyException | SignatureException e) {
-				// the key has been created with the same signature algorithm, it cannot be invalid
-				throw new RuntimeException(e);
-			}
-		}
-
-		@Override
-		protected SignatureAlgorithm getSignatureAlgorithmOfNewAccount() throws NodeException, TimeoutException, InterruptedException {
-			return signature != null ? signature : remote.getConfig().getSignatureForRequests();
-		}
-	}
-
-	private class CreationFromFaucet extends AbstractAccountCreation.CreationFromFaucet {
-
-		private CreationFromFaucet(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
-			super(remote);
-		}
-
-		@Override
-		protected SignatureAlgorithm getSignatureAlgorithmOfNewAccount() throws NodeException, TimeoutException, InterruptedException {
-			return signature != null ? signature : remote.getConfig().getSignatureForRequests();
-		}
-
-		@Override
-		protected InstanceMethodCallTransactionRequest mkRequest(BigInteger balance) throws NodeException, TimeoutException, InterruptedException {
-			try {
-				// we use an empty signature algorithm and an arbitrary key, since the faucet is unsigned
-				KeyPair keyPair = signatureOfFaucet.getKeyPair();
-				Signer<SignedTransactionRequest<?>> signer = signatureOfFaucet.getSigner(keyPair.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
-
-				// we use a random nonce: although the nonce is not checked for calls to the faucet,
-				// this avoids the risk of the request being rejected because it is repeated
-				return TransactionRequests.instanceMethodCall
-						(signer, gamete, new BigInteger(64, new SecureRandom()), remote.getConfig().getChainId(), proposedGas, gasPrice, remote.getTakamakaCode(),
-						faucetMethod, gamete, StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKetOfNewAccountBase64));
-			}
-			catch (InvalidKeyException | SignatureException e) {
-				// the key has been created with the same (empty!) signature algorithm, thus it cannot be invalid
-				throw new RuntimeException(e);
-			}
-		}
-
-		@Override
-		protected StorageReference executeRequest() throws NodeException, TimeoutException, InterruptedException, CommandException {
-			try {
-				return remote.addInstanceMethodCallTransaction(request)
-						.orElseThrow(() -> new CommandException(faucetMethod + " should not return void"))
-						.asReturnedReference(faucetMethod, CommandException::new);
-			}
-			catch (CodeExecutionException | TransactionRejectedException | TransactionException e) {
-				throw new CommandException("The creation transaction failed! Is the unsigned faucet open?", e);
-			}
-		}
 	}
 
 	/**

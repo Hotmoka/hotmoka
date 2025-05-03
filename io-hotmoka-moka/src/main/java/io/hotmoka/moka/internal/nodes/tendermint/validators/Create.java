@@ -16,38 +16,23 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.nodes.tendermint.validators;
 
-import java.math.BigInteger;
 import java.nio.file.Path;
-import java.security.InvalidKeyException;
-import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.security.SignatureException;
 import java.util.Optional;
-import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.api.GasCounter;
 import io.hotmoka.moka.NodesTendermintValidatorsCreateOutputs;
 import io.hotmoka.moka.api.nodes.tendermint.validators.NodesTendermintValidatorsCreateOutput;
 import io.hotmoka.moka.internal.AbstractAccountCreation;
 import io.hotmoka.moka.internal.json.NodesTendermintValidatorsCreateOutputJson;
-import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
-import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.node.api.requests.SignedTransactionRequest;
+import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
@@ -57,13 +42,24 @@ import picocli.CommandLine.Command;
 public class Create extends AbstractAccountCreation {
 
 	@Override
-	protected void mkCreationFromPayer(RemoteNode remote) throws CommandException, TimeoutException, InterruptedException, NodeException {
-		new CreationFromPayer(remote);
+	protected SignatureAlgorithm getSignatureAlgorithmOfNewAccount(RemoteNode remote) throws CommandException {
+		// Tendermint can only use the ed25519 signature
+		try {
+			return SignatureAlgorithms.ed25519();
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw new CommandException("Tendermint uses the ed25519 signature algorithm, but the latter is not available");
+		}
 	}
 
 	@Override
-	protected void mkCreationFromFaucet(RemoteNode remote) throws CommandException, TimeoutException, InterruptedException, NodeException {
-		new CreationFromFaucet(remote);
+	protected NonVoidMethodSignature getFaucetMethod(SignatureAlgorithm signatureOfNewAccount, ClassType eoaType) {
+		return MethodSignatures.ofNonVoid(StorageTypes.GAMETE, "faucetTendermintED25519Validator", StorageTypes.TENDERMINT_ED25519_VALIDATOR, StorageTypes.BIG_INTEGER, StorageTypes.STRING);
+	}
+
+	@Override
+	protected ClassType getEOAType(SignatureAlgorithm signatureOfNewAccount) {
+		return StorageTypes.TENDERMINT_ED25519_VALIDATOR;
 	}
 
 	@Override
@@ -71,99 +67,10 @@ public class Create extends AbstractAccountCreation {
 		report(json(), new Output(transaction, referenceOfNewAccount, file, gasCosts), NodesTendermintValidatorsCreateOutputs.Encoder::new);
 	}
 
-	private class CreationFromPayer extends AbstractAccountCreation.CreationFromPayer {
-
-		private CreationFromPayer(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
-			super(remote);
-		}
-
-		protected StorageReference executeRequest() throws NodeException, TimeoutException, InterruptedException, CommandException {
-			try {
-				return remote.addConstructorCallTransaction(request);
-			}
-			catch (CodeExecutionException | TransactionRejectedException | TransactionException e) {
-				throw new CommandException("The creation transaction failed! are the key pair of the payer and its password correct?", e);
-			}
-		}
-
-		@Override
-		protected ConstructorCallTransactionRequest mkRequest(StorageReference payer, Signer<SignedTransactionRequest<?>> signer, BigInteger balance) throws NodeException, TimeoutException, InterruptedException {
-			try {
-				return TransactionRequests.constructorCall
-						(signer, payer, nonce, remote.getConfig().getChainId(), proposedGas, gasPrice, remote.getTakamakaCode(),
-						ConstructorSignatures.of(StorageTypes.TENDERMINT_ED25519_VALIDATOR, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
-						StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyOfNewAccountBase64));
-			}
-			catch (InvalidKeyException | SignatureException e) {
-				// the key has been created with the same signature algorithm, it cannot be invalid
-				throw new RuntimeException(e);
-			}
-		}
-
-		@Override
-		protected SignatureAlgorithm getSignatureAlgorithmOfNewAccount() throws CommandException, NodeException, TimeoutException, InterruptedException {
-			// Tendermint can only use the ed25519 signature
-			try {
-				return SignatureAlgorithms.ed25519();
-			}
-			catch (NoSuchAlgorithmException e) {
-				throw new CommandException("Tendermint uses the ed25519 signature algorithm, but the latter is not available");
-			}
-		}
-	}
-
-	private class CreationFromFaucet extends AbstractAccountCreation.CreationFromFaucet {
-
-		private CreationFromFaucet(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
-			super(remote);
-		}
-
-		protected InstanceMethodCallTransactionRequest mkRequest(BigInteger balance) throws NodeException, TimeoutException, InterruptedException {
-			try {
-				// we use an empty signature algorithm and an arbitrary key, since the faucet is unsigned
-				KeyPair keyPair = signatureOfFaucet.getKeyPair();
-				Signer<SignedTransactionRequest<?>> signer = signatureOfFaucet.getSigner(keyPair.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
-				var method = MethodSignatures.ofNonVoid(StorageTypes.GAMETE, "faucetTendermintED25519Validator", StorageTypes.TENDERMINT_ED25519_VALIDATOR, StorageTypes.BIG_INTEGER, StorageTypes.STRING);
-
-				// we use a random nonce: although the nonce is not checked for calls to the faucet,
-				// this avoids the risk of the request being rejected because it is repeated
-				return TransactionRequests.instanceMethodCall
-						(signer, gamete, new BigInteger(64, new SecureRandom()), remote.getConfig().getChainId(), proposedGas, gasPrice, remote.getTakamakaCode(), method, gamete,
-						StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKetOfNewAccountBase64));
-			}
-			catch (InvalidKeyException | SignatureException e) {
-				// the key has been created with the same (empty!) signature algorithm, thus it cannot be invalid
-				throw new RuntimeException(e);
-			}
-		}
-
-		protected StorageReference executeRequest() throws NodeException, TimeoutException, InterruptedException, CommandException {
-			try {
-				return remote.addInstanceMethodCallTransaction(request)
-						.orElseThrow(() -> new CommandException(faucetMethod + " should not return void"))
-						.asReturnedReference(faucetMethod, CommandException::new);
-			}
-			catch (CodeExecutionException | TransactionRejectedException | TransactionException e) {
-				throw new CommandException("The creation transaction failed! Is the unsigned faucet open?", e);
-			}
-		}
-
-		@Override
-		protected SignatureAlgorithm getSignatureAlgorithmOfNewAccount() throws CommandException, NodeException, TimeoutException, InterruptedException {
-			// Tendermint can only use the ed25519 signature
-			try {
-				return SignatureAlgorithms.ed25519();
-			}
-			catch (NoSuchAlgorithmException e) {
-				throw new CommandException("Tendermint uses the ed25519 signature algorithm, but the latter is not available");
-			}
-		}
-	}
-
 	/**
 	 * The output of this command.
 	 */
-	public static class Output extends AbstractAccountCreation.AbstractAccountCreationOutput implements NodesTendermintValidatorsCreateOutput {
+	public static class Output extends AbstractAccountCreationOutput implements NodesTendermintValidatorsCreateOutput {
 
 		/**
 		 * Builds the output of the command.

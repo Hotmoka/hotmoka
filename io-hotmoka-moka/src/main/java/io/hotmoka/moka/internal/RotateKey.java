@@ -74,9 +74,6 @@ public class RotateKey extends AbstractCommand {
 	@Option(names = { "--print-costs" }, description = "print the incurred gas costs", defaultValue = "true") 
 	private boolean printCosts;
 
-	@Option(names = { "--use-colors" }, description = "use colors in the output", defaultValue = "true") 
-	private boolean useColors;
-
 	@Override
 	protected void execute() throws Exception {
 		new Run();
