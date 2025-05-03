@@ -19,8 +19,8 @@ package io.hotmoka.moka.api.nodes;
 import io.hotmoka.annotations.Immutable;
 
 /**
- * The output of the {@code moka nodes set-faucet} command.
+ * The output of the {@code moka nodes faucet} command.
  */
 @Immutable
-public interface NodesSetFaucetOutput {
+public interface NodesFaucetOutput {
 }

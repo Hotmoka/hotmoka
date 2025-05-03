@@ -34,10 +34,10 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
-import io.hotmoka.moka.NodesSetFaucetOutputs;
-import io.hotmoka.moka.api.nodes.NodesSetFaucetOutput;
+import io.hotmoka.moka.NodesFaucetOutputs;
+import io.hotmoka.moka.api.nodes.NodesFaucetOutput;
 import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
-import io.hotmoka.moka.internal.json.NodesSetFaucetOutputJson;
+import io.hotmoka.moka.internal.json.NodesFaucetOutputJson;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
@@ -55,10 +55,10 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "set-faucet",
+@Command(name = "faucet",
 	description = "Set the threshold for the faucet of the gamete of a node.",
 	showDefaultValues = true)
-public class SetFaucet extends AbstractMokaRpcCommand {
+public class Faucet extends AbstractMokaRpcCommand {
 
 	@Parameters(description = "the maximal amount of coins sent at each call to the faucet of the node")
     private BigInteger max;
@@ -138,13 +138,13 @@ public class SetFaucet extends AbstractMokaRpcCommand {
 			throw new CommandException("The gamete object cannot be found in the node");
 		}
 
-		report(json(), new Output(), NodesSetFaucetOutputs.Encoder::new);
+		report(json(), new Output(), NodesFaucetOutputs.Encoder::new);
 	}
 
 	/**
 	 * The output of this command.
 	 */
-	public static class Output implements NodesSetFaucetOutput {
+	public static class Output implements NodesFaucetOutput {
 
 		private Output() {}
 
@@ -154,7 +154,7 @@ public class SetFaucet extends AbstractMokaRpcCommand {
 		 * @param json the JSON representation
 		 * @throws InconsistentJsonException if {@code json} is inconsistent
 		 */
-		public Output(NodesSetFaucetOutputJson json) throws InconsistentJsonException {}
+		public Output(NodesFaucetOutputJson json) throws InconsistentJsonException {}
 
 		@Override
 		public String toString() {

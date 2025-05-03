@@ -21,7 +21,7 @@ import io.hotmoka.moka.internal.nodes.Disk;
 import io.hotmoka.moka.internal.nodes.Info;
 import io.hotmoka.moka.internal.nodes.Manifest;
 import io.hotmoka.moka.internal.nodes.Mokamint;
-import io.hotmoka.moka.internal.nodes.SetFaucet;
+import io.hotmoka.moka.internal.nodes.Faucet;
 import io.hotmoka.moka.internal.nodes.Takamaka;
 import io.hotmoka.moka.internal.nodes.Tendermint;
 import picocli.CommandLine.Command;
@@ -36,7 +36,7 @@ import picocli.CommandLine.HelpCommand;
 		Info.class,
 		Manifest.class,
 		Mokamint.class,
-		SetFaucet.class,
+		Faucet.class,
 		Takamaka.class,
 		Tendermint.class
 	})

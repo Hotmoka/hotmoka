@@ -359,7 +359,7 @@ public class Create extends AbstractMokaRpcCommand {
 		}
 	}
 
-	private BigInteger determineGasPrice(RemoteNode remote) throws CommandException, NodeException, TimeoutException, InterruptedException {
+	private static BigInteger determineGasPrice(RemoteNode remote) throws CommandException, NodeException, TimeoutException, InterruptedException {
 		try {
 			return GasHelpers.of(remote).getGasPrice();
 		}
@@ -404,7 +404,7 @@ public class Create extends AbstractMokaRpcCommand {
 		}
 	}
 
-	private String mkPublicKeyOfNewAccountBase64(SignatureAlgorithm signatureOfNewAccount, PublicKey publicKeyOfNewAccount) {
+	private static String mkPublicKeyOfNewAccountBase64(SignatureAlgorithm signatureOfNewAccount, PublicKey publicKeyOfNewAccount) {
 		try {
 			return Base64.toBase64String(signatureOfNewAccount.encodingOf(publicKeyOfNewAccount));
 		}
@@ -437,15 +437,15 @@ public class Create extends AbstractMokaRpcCommand {
 			return Optional.empty();
 	}
 
-	private static GasCounter computeGasCosts(RemoteNode remote, TransactionRequest<?> requests) throws CommandException, InterruptedException, NodeException, TimeoutException {
+	private static GasCounter computeGasCosts(RemoteNode remote, TransactionRequest<?> request) throws CommandException, InterruptedException, NodeException, TimeoutException {
 		try {
-			return GasCounters.of(remote, new TransactionRequest<?>[] { requests });
+			return GasCounters.of(remote, new TransactionRequest<?>[] { request });
 		}
 		catch (UnknownReferenceException e) {
-			throw new CommandException("Cannot find the creation request in the store of the node, maybe a sudden history change has occurred", e);
+			throw new CommandException("Cannot find the creation request in the store of the node, maybe a sudden history change has occurred?", e);
 		}
 		catch (NoSuchAlgorithmException e) {
-			throw new CommandException("A cryptographic algorithm is not available");
+			throw new CommandException("A cryptographic algorithm is not available", e);
 		}
 	}
 
