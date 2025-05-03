@@ -28,7 +28,7 @@ import io.hotmoka.moka.api.nodes.disk.NodesDiskInitOutput;
 import io.hotmoka.moka.internal.converters.ConsensusConfigOptionConverter;
 import io.hotmoka.moka.internal.converters.DiskNodeConfigOptionConverter;
 import io.hotmoka.moka.internal.json.NodesDiskInitOutputJson;
-import io.hotmoka.moka.internal.nodes.AbstractInit;
+import io.hotmoka.moka.internal.shared.AbstractInitNode;
 import io.hotmoka.node.ConsensusConfigBuilders;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
@@ -48,7 +48,7 @@ import picocli.CommandLine.Option;
 	header = "Initialize a new disk node and publish a service to it.",
 	description = "This command spawns a disk node, whose configurations can be provided through --node-local-config and --node-consensus-config, which, when missing, rely on defaults. In any case, such configuration can be updated with explicit values, such as --initial-supply.",
 	showDefaultValues = true)
-public class Init extends AbstractInit {
+public class Init extends AbstractInitNode {
 
 	@Option(names = "--node-local-config", description = "the local configuration of the Hotmoka node, in TOML format", converter = DiskNodeConfigOptionConverter.class)
 	private DiskNodeConfig nodeLocalConfig;

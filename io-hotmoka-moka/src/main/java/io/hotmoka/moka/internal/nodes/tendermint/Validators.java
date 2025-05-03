@@ -14,19 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal.nodes;
+package io.hotmoka.moka.internal.nodes.tendermint;
 
-import io.hotmoka.moka.internal.nodes.tendermint.Init;
-import io.hotmoka.moka.internal.nodes.tendermint.Validators;
+import io.hotmoka.moka.internal.nodes.tendermint.validators.Create;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
 
-@Command(name = "tendermint",
-	header = "Manage Tendermint nodes.",
+@Command(name = "validators",
+	header = "Manage the validators of Tendermint nodes.",
 	subcommands = {
 		HelpCommand.class,
-		Init.class,
-		Validators.class
+		Create.class
 	})
-public class Tendermint {
+public class Validators {
 }

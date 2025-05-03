@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal.nodes;
+package io.hotmoka.moka.internal.shared;
 
 import java.math.BigInteger;
 import java.net.URI;
@@ -41,7 +41,7 @@ import picocli.CommandLine.Parameters;
 /**
  * Shared code for the moka commands that initialize a new Hotmoka node.
  */
-public abstract class AbstractInit extends AbstractMokaCommand {
+public abstract class AbstractInitNode extends AbstractMokaCommand {
 
 	@Parameters(description = "the path of the jar with the basic Takamaka classes that will be installed in the node")
 	private Path takamakaCode;

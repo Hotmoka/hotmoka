@@ -59,7 +59,7 @@ import picocli.CommandLine.Parameters;
 @Command(name = "create",
 	description = "Create an object in the store of a node",
 	showDefaultValues = true)
-public class Create extends AbstractCommand {
+public class CreateOld extends AbstractCommand {
 
 	@Parameters(index = "0", description = "the name of the class that gets instantiated")
     private String className;
@@ -104,7 +104,7 @@ public class Create extends AbstractCommand {
 			try (Node node = RemoteNodes.of(uri, 10_000)) {
 				var takamakaCode = node.getTakamakaCode();
 				var manifest = node.getManifest();
-				var payer = StorageValues.reference(Create.this.payer);
+				var payer = StorageValues.reference(CreateOld.this.payer);
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
 					.orElseThrow(() -> new CommandException(MethodSignatures.GET_CHAIN_ID + " should not return void"))).getValue();
@@ -112,8 +112,8 @@ public class Create extends AbstractCommand {
 				var nonceHelper = NonceHelpers.of(node);
 				KeyPair keys = readKeys(Accounts.of(payer), node, passwordOfPayer);
 
-				TransactionReference classpath = "takamakaCode".equals(Create.this.classpath) ? takamakaCode :
-					TransactionReferences.of(Create.this.classpath);
+				TransactionReference classpath = "takamakaCode".equals(CreateOld.this.classpath) ? takamakaCode :
+					TransactionReferences.of(CreateOld.this.classpath);
 				TakamakaClassLoader classloader = ClassLoaderHelpers.of(node).classloaderFor(classpath);
 				this.clazz = classloader.loadClass(className);
 				this.whiteListingWizard = classloader.getWhiteListingWizard();

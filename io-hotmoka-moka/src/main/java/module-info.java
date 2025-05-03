@@ -34,7 +34,9 @@ module io.hotmoka.moka {
     opens io.hotmoka.moka.internal.nodes.mokamint to info.picocli;
     opens io.hotmoka.moka.internal.nodes.takamaka to info.picocli;
     opens io.hotmoka.moka.internal.nodes.tendermint to info.picocli;
+    opens io.hotmoka.moka.internal.nodes.tendermint.validators to info.picocli;
     opens io.hotmoka.moka.internal.objects to info.picocli;
+    opens io.hotmoka.moka.internal.shared to info.picocli;
 
     // for parsing JSON through gson
     opens io.hotmoka.moka.internal.json to com.google.gson; // for parsing JSON through gson

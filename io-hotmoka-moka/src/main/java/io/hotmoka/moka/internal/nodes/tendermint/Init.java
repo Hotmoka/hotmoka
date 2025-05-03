@@ -42,7 +42,7 @@ import io.hotmoka.moka.internal.converters.TendermintNodeConfigOptionConverter;
 import io.hotmoka.moka.internal.converters.ValidatorsConsensusConfigOptionConverter;
 import io.hotmoka.moka.internal.json.NodesTendermintInitOutputJson;
 import io.hotmoka.moka.internal.json.NodesTendermintInitOutputJson.ValidatorDescriptionJson;
-import io.hotmoka.moka.internal.nodes.AbstractInit;
+import io.hotmoka.moka.internal.shared.AbstractInitNode;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
@@ -68,7 +68,7 @@ import picocli.CommandLine.Option;
 	header = "Initialize a new Tendermint node and publish a service to it.",
 	description = "This command spawns both a Tendermint engine and a Tendermint node on top of that engine. The configurations of both can be provided through the --tendermint-config and (--node-local-config and --node-consensus-config), respectively, which, when missing, rely on defaults. In any case, such configurations can be updated with explicit values, such as --initial-supply.",
 	showDefaultValues = true)
-public class Init extends AbstractInit {
+public class Init extends AbstractInitNode {
 
 	@Option(names = "--tendermint-config", description = "the directory containing the configuration of the underlying Tendermint engine; this is a directory containing config/ and data/ that can be generated, for instance, by the tendermint init command of Tendermint; if missing, a default configuration for a one-validator network will be used; this will be copied inside the directory specified by --dir")
 	private Path tendermintConfig;
