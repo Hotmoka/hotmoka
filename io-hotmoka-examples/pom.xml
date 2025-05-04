@@ -215,6 +215,12 @@
             </configuration>
           </execution>
 
+		  <execution><id>specialaccount</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>specialaccount</classifier>
+              <includes><include>io/hotmoka/examples/specialaccount/**</include></includes>
+            </configuration>
+          </execution>
+
 		  <execution><id>remotepurchase</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>remotepurchase</classifier>
               <includes><include>io/hotmoka/examples/remotepurchase/**</include></includes>

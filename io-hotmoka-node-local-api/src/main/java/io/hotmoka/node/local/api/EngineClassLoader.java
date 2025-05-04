@@ -61,6 +61,17 @@ public interface EngineClassLoader extends TakamakaClassLoader {
 	Optional<TransactionReference> transactionThatInstalledJarFor(Class<?> clazz);
 
 	/**
+	 * Determines if the given classpath includes the given dependency. That is,
+	 * if that classpath is the reference of a transaction that installed a jar from
+	 * which it is possible to reach the given dependency, possibly reflexively and transitively.
+	 * 
+	 * @param classpath the classpath
+	 * @param dependency the dependency
+	 * @return true if and only if that condition holds
+	 */
+	boolean includes(TransactionReference classpath, TransactionReference dependency);
+
+	/**
 	 * Replaces all reverified responses into the store of the node for which
 	 * the class loader has been built.
 	 * 

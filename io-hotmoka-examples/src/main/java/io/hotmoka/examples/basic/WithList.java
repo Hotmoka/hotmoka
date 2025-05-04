@@ -38,7 +38,7 @@ public class WithList extends Storage {
 	}
 
 	public void illegal() {
-		// we add a non-Storage object: this is illegal
+		// we add a non-Storage object: this is illegal and will be caught at run time
 		list.add(new Object());
 	}
 }

@@ -532,7 +532,7 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 		 * @param json the JSON representation
 		 * @throws InconsistentJsonException if {@code json} is inconsistent
 		 */
-		public AbstractAccountCreationOutput(AccountCreationOutputJson json) throws InconsistentJsonException {
+		protected AbstractAccountCreationOutput(AccountCreationOutputJson json) throws InconsistentJsonException {
 			this.transaction = Objects.requireNonNull(json.getTransaction(), "transaction cannot be null", InconsistentJsonException::new).unmap();
 			this.account = Objects.requireNonNull(json.getAccount(), "account cannot be null", InconsistentJsonException::new).unmap()
 					.asReference(value -> new InconsistentJsonException("The reference of the created account must be a storage reference, not a " + value.getClass().getName()));

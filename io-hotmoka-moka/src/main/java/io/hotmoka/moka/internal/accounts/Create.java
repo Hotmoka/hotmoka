@@ -43,7 +43,7 @@ import picocli.CommandLine.Option;
 @Command(name = "create", header = "Create a new account object.", showDefaultValues = true)
 public class Create extends AbstractAccountCreation {
 
-	@Option(names = "--signature", description = "the signature algorithm of the new account (ed25519, sha256dsa, qtesla1, qtesla3); if missing, the deafult request signature of the node will be used", converter = SignatureOptionConverter.class)
+	@Option(names = "--signature", description = "the signature algorithm of the new account (ed25519, sha256dsa, qtesla1, qtesla3); if missing, the default request signature of the node will be used", converter = SignatureOptionConverter.class)
 	private SignatureAlgorithm signature;
 
 	@Override
@@ -77,7 +77,7 @@ public class Create extends AbstractAccountCreation {
 	/**
 	 * The output of this command.
 	 */
-	public static class Output extends AbstractAccountCreation.AbstractAccountCreationOutput implements AccountsCreateOutput {
+	public static class Output extends AbstractAccountCreationOutput implements AccountsCreateOutput {
 
 		/**
 		 * Builds the output of the command.

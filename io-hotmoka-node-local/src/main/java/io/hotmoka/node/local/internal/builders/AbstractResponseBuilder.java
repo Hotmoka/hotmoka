@@ -138,7 +138,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 			}
 
 			this.deserializer = new Deserializer(environment, classLoader);
-			this.updatesExtractor = new UpdatesExtractor(classLoader);
+			this.updatesExtractor = new UpdatesExtractor(classLoader, environment, request);
 		}
 
 		public final ResponseCreation<Response> create() throws TransactionRejectedException, StoreException, InterruptedException {

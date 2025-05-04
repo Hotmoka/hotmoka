@@ -22,19 +22,24 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.math.BigInteger;
+import java.security.KeyPair;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.hotmoka.crypto.Base64;
+import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.api.IllegalAssignmentToFieldInStorageException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.signatures.VoidMethodSignature;
+import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
 
@@ -108,5 +113,27 @@ class Distributor extends HotmokaTest {
 		BigInteger difference = BigInteger.valueOf(distributed / numPayees);
 		for (int payee = 1; payee <= numPayees; payee++)
 			assertEquals(finalBalances[payee - 1], initialBalances[payee - 1].add(difference));
+	}
+
+	@Test @DisplayName("new Distributor() then add a special payee with its own classpath unrelated to that of the distributor and distributes")
+	void createDistributorAddsSpecialPayeeWithOwnClasspathThenDistributes() throws Exception {
+		// we create the distributor with classpath distributor.jar and then takamakaCode.jar
+		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), ConstructorSignatures.of(DISTRIBUTOR));
+
+		// we install specialaccount.jar with dependency distributor.jar and then takamakaCode.jar
+		TransactionReference classpathOfSpecialAccount = addJarStoreTransaction(privateKey(0), account(0), _100_000, ONE, takamakaCode(), bytesOf("specialaccount.jar"), jar());
+
+		// we create a special account with classpath specialaccount.jar then distributor.jar and then takamakaCode.jar
+		var signature = SignatureAlgorithms.ed25519();
+		KeyPair keysOfSpecialAccount = signature.getKeyPair();
+		var specialAccountClass = StorageTypes.classNamed("io.hotmoka.examples.specialaccount.SpecialAccount");
+		StorageReference specialAccount = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ZERO, classpathOfSpecialAccount,
+				ConstructorSignatures.of(specialAccountClass, StorageTypes.INT, StorageTypes.STRING),
+				StorageValues.intOf(1_000_000),
+				StorageValues.stringOf(Base64.toBase64String(signature.encodingOf(keysOfSpecialAccount.getPublic()))));
+
+		// we add the special account as a payee of the distributor: this will fail since the classpath of the creation transaction
+		// of the special account is not reachable from the classpath of the creation transaction of the distributor
+		throwsTransactionExceptionWithCause(IllegalAssignmentToFieldInStorageException.class, () -> addInstanceVoidMethodCallTransaction(keysOfSpecialAccount.getPrivate(), specialAccount, _50_000, ONE, classpathOfSpecialAccount, ADD_AS_PAYEE, distributor));
 	}
 }

@@ -25,8 +25,10 @@ import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -123,6 +125,11 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * A map from each class name to the transaction that installed the jar it belongs to.
 	 */
 	private final ConcurrentMap<String, TransactionReference> transactionsThatInstalledJarForClasses = new ConcurrentHashMap<>();
+
+	/**
+	 * The relation among the dependency jars that compose this class loader (who depends from whom).
+	 */
+	private final ConcurrentMap<TransactionReference, Set<TransactionReference>> dependencyTree = new ConcurrentHashMap<>();
 
 	/**
 	 * List of reverification that has been performed on the responses of the transactions that installed
@@ -233,8 +240,11 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		JarStoreTransactionResponseWithInstrumentedJar responseWithInstrumentedJar = getResponseWithInstrumentedJarAt(classpath, environment);
 
 		// we consider its dependencies before as well, recursively
-		for (var dependency: responseWithInstrumentedJar.getDependencies().toArray(TransactionReference[]::new))
+		for (var dependency: responseWithInstrumentedJar.getDependencies().toArray(TransactionReference[]::new)) {
+			// a jar reaches its immediate dependencies
+			dependencyTree.computeIfAbsent(classpath, _classpath -> new HashSet<TransactionReference>()).add(dependency);
 			addJars(dependency, consensus, jars, jarTransactions, environment, counter);
+		}
 
 		jars.add(responseWithInstrumentedJar.getInstrumentedJar());
 		jarTransactions.add(classpath);
@@ -366,6 +376,21 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	@Override
 	public Optional<TransactionReference> transactionThatInstalledJarFor(Class<?> clazz) {
 		return Optional.ofNullable(transactionsThatInstalledJarForClasses.get(clazz.getName()));
+	}
+
+	@Override
+	public boolean includes(TransactionReference classpath, TransactionReference dependency) {
+		if (classpath.equals(dependency))
+			return true;
+
+		var immediateDependencies = dependencyTree.get(classpath);
+		if (immediateDependencies != null)
+			// the dependency graph is acyclic since it is impossible to install a jar if its dependencies are not yet installed
+			for (TransactionReference immediateDependency: immediateDependencies)
+				if (includes(immediateDependency, dependency))
+					return true;
+
+		return false;
 	}
 
 	@Override

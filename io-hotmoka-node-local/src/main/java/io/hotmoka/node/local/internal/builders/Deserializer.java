@@ -235,7 +235,7 @@ public class Deserializer {
 			clazz = classLoader.loadClass(classTag.getClazz().getName());
 		}
 		catch (ClassNotFoundException e) {
-			throw new StoreException(e);
+			throw new DeserializationException("Cannot resolve class " + e.getMessage());
 		}
 
 		TransactionReference actual = classLoader.transactionThatInstalledJarFor(clazz)

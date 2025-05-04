@@ -34,6 +34,11 @@ import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.IllegalAssignmentToFieldInStorageException;
+import io.hotmoka.node.api.UnknownReferenceException;
+import io.hotmoka.node.api.requests.CodeExecutionTransactionRequest;
+import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
+import io.hotmoka.node.api.requests.TransactionRequest;
+import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
@@ -53,13 +58,19 @@ public class UpdatesExtractor {
 	 */
 	private final EngineClassLoader classLoader;
 
+	private final ExecutionEnvironment environment;
+
+	private final TransactionRequest<?> request;
+
 	/**
 	 * Builds an extractor of the updates to the state reachable from some storage objects.
 	 * 
-	 * @param classLoader the class loader used to load the objects later passed to {@link #extractUpdatesFrom(Stream)}
+	 * @param classLoader the class loader used to load the objects later passed to {@link #extractUpdatesFrom(Iterable)}
 	 */
-	public UpdatesExtractor(EngineClassLoader classLoader) {
+	public UpdatesExtractor(EngineClassLoader classLoader, ExecutionEnvironment environment, TransactionRequest<?> request) {
 		this.classLoader = classLoader;
+		this.environment = environment;
+		this.request = request;
 	}
 
 	/**
@@ -138,6 +149,11 @@ public class UpdatesExtractor {
 			private final boolean inStorage;
 
 			/**
+			 * The classpath used for creating the object.
+			 */
+			private final TransactionReference classpathAtCreationTimeOfObject;
+
+			/**
 			 * Builds the scope to extract the updates to a given storage object.
 			 * 
 			 * @param object the storage object
@@ -148,6 +164,7 @@ public class UpdatesExtractor {
 			private ExtractedUpdatesSingleObject(Object object) throws IllegalAssignmentToFieldInStorageException, StoreException {
 				Class<?> clazz = object.getClass();
 				this.storageReference = classLoader.getStorageReferenceOf(object, StoreException::new);
+				this.classpathAtCreationTimeOfObject = getClasspathAtCreationTimeOf(storageReference);
 				this.inStorage = classLoader.getInStorageOf(object, StoreException::new);
 
 				if (!inStorage)
@@ -176,8 +193,7 @@ public class UpdatesExtractor {
 			 * @param fieldName the name of the field
 			 * @param fieldClassName the name of the type of the field
 			 * @param newValue the value set to the field
-			 * @throws IllegalAssignmentToFieldInStorageException if the updates cannot be extracted, because an illegal
-			 *                                           value has been stored into some field
+			 * @throws IllegalAssignmentToFieldInStorageException if the updates cannot be extracted, because an illegal value has been stored into some field
 			 * @throws StoreException if the operation cannot be completed
 			 */
 			private void addUpdateFor(ClassType fieldDefiningClass, String fieldName, String fieldClassName, Object newValue) throws IllegalAssignmentToFieldInStorageException, StoreException {
@@ -188,11 +204,18 @@ public class UpdatesExtractor {
 					updates.add(Updates.toNull(storageReference, field, false));
 				else if (classLoader.getStorage().isAssignableFrom(newValue.getClass())) {
 					// the field has been set to a storage object
-					var storageReference2 = classLoader.getStorageReferenceOf(newValue, StoreException::new);
-					updates.add(Updates.ofStorage(storageReference, field, storageReference2));
+					var storageReferenceOfNewValue = classLoader.getStorageReferenceOf(newValue, StoreException::new);
+					updates.add(Updates.ofStorage(storageReference, field, storageReferenceOfNewValue));
+
+					TransactionReference classpathAtCreationOfNewValue = getClasspathAtCreationTimeOf(storageReferenceOfNewValue);
+
+					if (!classLoader.includes(classpathAtCreationTimeOfObject, classpathAtCreationOfNewValue))
+						throw new IllegalAssignmentToFieldInStorageException("Field " + field + " of "
+								+ storageReference + " (created with classpath " + classpathAtCreationTimeOfObject + ") cannot hold a "
+								+ newValue.getClass().getName() + " created with classpath " + classpathAtCreationOfNewValue + ": " + classpathAtCreationTimeOfObject + " does not include " + classpathAtCreationOfNewValue);
 
 					// if the new value has not yet been considered, we put it in the list of object still to be processed
-					if (seen.add(storageReference2))
+					if (seen.add(storageReferenceOfNewValue))
 						workingSet.add(newValue);
 				}
 				// the following two cases occur if the declared type of the field is Object but it is updated
@@ -202,7 +225,24 @@ public class UpdatesExtractor {
 				else if (newValue instanceof BigInteger bi)
 					updates.add(Updates.ofBigInteger(storageReference, field, bi));
 				else
-					throw new IllegalAssignmentToFieldInStorageException(field, storageReference, newValue);
+					throw new IllegalAssignmentToFieldInStorageException("Field " + field + " of " + storageReference + " cannot hold a " + newValue.getClass().getName());
+			}
+
+			private TransactionReference getClasspathAtCreationTimeOf(StorageReference storageReference) throws StoreException {
+				TransactionRequest<?> request;
+				try {
+					request = environment.getRequest(storageReference.getTransaction());
+				}
+				catch (UnknownReferenceException e) {
+					request = UpdatesExtractor.this.request;
+				}
+
+				if (request instanceof CodeExecutionTransactionRequest<?> cetr)
+					return cetr.getClasspath();
+				else if (request instanceof GameteCreationTransactionRequest gctr)
+					return gctr.getClasspath();
+				else
+					throw new StoreException("Object " + storageReference + " has been unexpectedly created with a " + request.getClass().getName());
 			}
 
 			/**
