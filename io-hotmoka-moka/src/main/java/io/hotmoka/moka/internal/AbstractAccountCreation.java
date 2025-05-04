@@ -44,9 +44,6 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.helpers.GasCounters;
-import io.hotmoka.helpers.GasHelpers;
-import io.hotmoka.helpers.NonceHelpers;
-import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.helpers.api.GasCounter;
 import io.hotmoka.moka.api.AccountCreationOutput;
 import io.hotmoka.moka.internal.converters.StorageReferenceOfAccountOptionConverter;
@@ -121,22 +118,23 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 		/**
 		 * Yields the public key from this identifier.
 		 * 
-		 * @param signature the signature algorithm of the public key
+		 * @param signatureOfNewAccount the signature algorithm of the public key
+		 * @param passwordOfNewAccount the password of the key pair of the new account
 		 * @return the public key
 		 * @throws CommandException if some option is incorrect
 		 */
-		private PublicKey getPublicKey(SignatureAlgorithm signature, String passwordOfNewAccount) throws CommandException {
+		private PublicKey getPublicKey(SignatureAlgorithm signatureOfNewAccount, String passwordOfNewAccount) throws CommandException {
 			if (key != null) {
 				try {
-					return signature.publicKeyFromEncoding(Base58.fromBase58String(key, message -> new CommandException("The public key specified by --key is not in Base58 format")));
+					return signatureOfNewAccount.publicKeyFromEncoding(Base58.fromBase58String(key, message -> new CommandException("The public key specified by --key is not in Base58 format")));
 				}
 				catch (InvalidKeySpecException e) {
-					throw new CommandException("The public key specified by --key is invalid for the signature algorithm " + signature, e);
+					throw new CommandException("The public key specified by --key is invalid for the signature algorithm " + signatureOfNewAccount, e);
 				}
 			}
 			else {
 				try {
-					return Entropies.load(keys).keys(passwordOfNewAccount, signature).getPublic();
+					return Entropies.load(keys).keys(passwordOfNewAccount, signatureOfNewAccount).getPublic();
 				}
 				catch (IOException e) {
 					throw new CommandException("Cannot access file \"" + keys + "\"!", e);
@@ -196,7 +194,7 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 		private final SignatureAlgorithm signatureOfPayer;
 		private final String publicKeyOfNewAccountBase64;
 		private final ClassType eoaType;
-		private final BigInteger proposedGas;
+		private final BigInteger gasLimit;
 		private final BigInteger nonce;
 		private final BigInteger gasPrice;
 		private final ConstructorCallTransactionRequest request;
@@ -210,14 +208,14 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 			try {
 				SignatureAlgorithm signatureOfNewAccount = getSignatureAlgorithmOfNewAccount(remote);
 				PublicKey publicKeyOfNewAccount = publicKeyIdentifier.getPublicKey(signatureOfNewAccount, passwordOfNewAccountAsString);
-				this.payerAccount = mkPayerAccount();
-				this.signatureOfPayer = determineSignatureOfPayer();
+				this.payerAccount = mkPayerAccount(payer, dir);
+				this.signatureOfPayer = determineSignatureOf(payer, remote);
 				this.publicKeyOfNewAccountBase64 = mkPublicKeyOfNewAccountBase64(signatureOfNewAccount, publicKeyOfNewAccount);
 				this.eoaType = getEOAType(signatureOfNewAccount);
-				this.proposedGas = computeProposedGas(signatureOfNewAccount, signatureOfPayer);
-				askForConfirmation(proposedGas);
-				this.nonce = determineNonceOfPayer();
+				this.gasLimit = computeProposedGas(signatureOfNewAccount, signatureOfPayer);
 				this.gasPrice = determineGasPrice(remote);
+				askForConfirmation("create the new account", gasLimit, gasPrice);
+				this.nonce = determineNonceOf(payer, remote);
 				Signer<SignedTransactionRequest<?>> signer = signatureOfPayer.getSigner(payerAccount.keys(passwordOfPayerAsString, signatureOfPayer).getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 				this.request = mkRequest(payer, signer, balance);
 				StorageReference referenceOfNewAccount = executeRequest();
@@ -243,49 +241,15 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 			}
 		}
 
-		private ConstructorCallTransactionRequest mkRequest(StorageReference payer, Signer<SignedTransactionRequest<?>> signer, BigInteger balance) throws NodeException, TimeoutException, InterruptedException {
+		private ConstructorCallTransactionRequest mkRequest(StorageReference payer, Signer<SignedTransactionRequest<?>> signer, BigInteger balance) throws CommandException, NodeException, TimeoutException, InterruptedException {
 			try {
 				return TransactionRequests.constructorCall
-						(signer, payer, nonce, remote.getConfig().getChainId(), proposedGas, gasPrice, remote.getTakamakaCode(),
+						(signer, payer, nonce, remote.getConfig().getChainId(), gasLimit, gasPrice, remote.getTakamakaCode(),
 								ConstructorSignatures.of(eoaType, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
 								StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyOfNewAccountBase64));
 			}
 			catch (InvalidKeyException | SignatureException e) {
-				// the key has been created with the same signature algorithm, it cannot be invalid
-				throw new RuntimeException(e);
-			}
-		}
-
-		private SignatureAlgorithm determineSignatureOfPayer() throws CommandException, NodeException, InterruptedException, TimeoutException {
-			try {
-				return SignatureHelpers.of(remote).signatureAlgorithmFor(payer);
-			}
-			catch (NoSuchAlgorithmException e) {
-				throw new CommandException(payer + " uses a non-available signature algorithm", e);
-			}
-			catch (UnknownReferenceException e) {
-				throw new CommandException(payer + " cannot be found in the store of the node");
-			}
-		}
-
-		private BigInteger determineNonceOfPayer() throws CommandException, NodeException, InterruptedException, TimeoutException {
-			try {
-				return NonceHelpers.of(remote).getNonceOf(payer);
-			}
-			catch (UnknownReferenceException e) {
-				throw new CommandException(payer + " cannot be found in the store of the node");
-			}
-			catch (CodeExecutionException | TransactionRejectedException | TransactionException e) {
-				throw new CommandException("Cannot determine the nonce of the payer and the current gas price!", e);
-			}
-		}
-
-		private Account mkPayerAccount() throws CommandException {
-			try {
-				return Accounts.of(payer, dir);
-			}
-			catch (IOException e) {
-				throw new CommandException("Cannot read the key pair of the account: it was expected to be in file \"" + dir.resolve(payer.toString()) + ".pem\"", e);
+				throw new CommandException("The key pair of " + payer + " seems corrupted!", e);
 			}
 		}
 	}
@@ -376,24 +340,16 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 	/**
 	 * Asks the user about the real intention to spend some gas.
 	 * 
-	 * @param gas the amount of gas
+	 * @param gasLimit the amount of gas
+	 * @param gasPrice the proposed price for a unit of gas
 	 * @throws CommandException if the user replies negatively
 	 */
-	private void askForConfirmation(BigInteger gas) throws CommandException {
-		if (!yes && !json() && !answerIsYes(asInteraction("Do you really want to spend up to " + gas + " gas units to create a new account [Y/N] ")))
+	private void askForConfirmation(String goal, BigInteger gasLimit, BigInteger gasPrice) throws CommandException {
+		if (!yes && !json() && !answerIsYes(asInteraction("Do you really want to " + goal + " at the price of " + gasLimit + " gas units at the price of " + gasPrice + " per unit [Y/N] ")))
 			throw new CommandException("Stopped");
 	}
 
-	private static BigInteger determineGasPrice(RemoteNode remote) throws CommandException, NodeException, TimeoutException, InterruptedException {
-		try {
-			return GasHelpers.of(remote).getGasPrice();
-		}
-		catch (CodeExecutionException | TransactionRejectedException | TransactionException e) {
-			throw new CommandException("Cannot determine the nonce of the payer and the current gas price!", e);
-		}
-	}
-
-	private static BigInteger computeProposedGas(SignatureAlgorithm signatureOfNewAccount, SignatureAlgorithm signatureOfPayer) throws CommandException {
+	private BigInteger computeProposedGas(SignatureAlgorithm signatureOfNewAccount, SignatureAlgorithm signatureOfPayer) throws CommandException {
 		switch (signatureOfNewAccount.getName()) {
 		case "ed25519":
 			return _100_000.add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
@@ -405,17 +361,6 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 			return BigInteger.valueOf(6_000_000L).add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
 		default:
 			throw new CommandException("Cannot create accounts with signature algorithm " + signatureOfNewAccount);
-		}
-	}
-
-	private static BigInteger gasForTransactionWhosePayerHasSignature(SignatureAlgorithm signature) {
-		switch (signature.getName()) {
-		case "qtesla1":
-			return BigInteger.valueOf(300_000L);
-		case "qtesla3":
-			return BigInteger.valueOf(400_000L);
-		default:
-			return _100_000;
 		}
 	}
 

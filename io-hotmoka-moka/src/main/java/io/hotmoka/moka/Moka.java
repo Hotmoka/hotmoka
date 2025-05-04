@@ -23,7 +23,6 @@ import java.util.logging.LogManager;
 import io.hotmoka.moka.internal.BuyValidation;
 import io.hotmoka.moka.internal.Call;
 import io.hotmoka.moka.internal.CreateOld;
-import io.hotmoka.moka.internal.Install;
 import io.hotmoka.moka.internal.ResumeMokamint;
 import io.hotmoka.moka.internal.ResumeTendermint;
 import io.hotmoka.moka.internal.RotateKey;
@@ -46,7 +45,6 @@ import picocli.CommandLine.Command;
 	subcommands = { BuyValidation.class,
 					Call.class,
 					CreateOld.class,
-					Install.class,
 					ResumeMokamint.class,
 			        ResumeTendermint.class,
 			        RotateKey.class,

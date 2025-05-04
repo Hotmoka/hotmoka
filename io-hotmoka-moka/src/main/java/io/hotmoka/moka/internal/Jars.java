@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.moka.internal;
 
+import io.hotmoka.moka.internal.jars.Install;
 import io.hotmoka.moka.internal.jars.Instrument;
 import io.hotmoka.moka.internal.jars.Verify;
 import picocli.CommandLine.Command;
@@ -25,6 +26,7 @@ import picocli.CommandLine.HelpCommand;
 	header = "Manage jars of Takamaka classes.",
 	subcommands = {
 		HelpCommand.class,
+		Install.class,
 		Instrument.class,
 		Verify.class
 	})

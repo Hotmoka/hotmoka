@@ -228,6 +228,7 @@ public class UpdatesExtractor {
 					throw new IllegalAssignmentToFieldInStorageException("Field " + field + " of " + storageReference + " cannot hold a " + newValue.getClass().getName());
 			}
 
+			// TODO: add a component to the ClassTag of the object, so that we do not need to look for the classpath of the creation transaction of the objects
 			private TransactionReference getClasspathAtCreationTimeOf(StorageReference storageReference) throws StoreException {
 				TransactionRequest<?> request;
 				try {

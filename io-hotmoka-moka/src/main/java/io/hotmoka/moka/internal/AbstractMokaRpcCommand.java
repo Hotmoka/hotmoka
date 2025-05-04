@@ -16,16 +16,32 @@ limitations under the License.
 
 package io.hotmoka.moka.internal;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.net.URI;
 import java.nio.file.Path;
+import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 
 import io.hotmoka.cli.AbstractRpcCommand;
 import io.hotmoka.cli.CommandException;
+import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.helpers.GasHelpers;
+import io.hotmoka.helpers.NonceHelpers;
+import io.hotmoka.helpers.SignatureHelpers;
+import io.hotmoka.node.Accounts;
+import io.hotmoka.node.api.Account;
+import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
+import io.hotmoka.node.api.requests.CodeExecutionTransactionRequest;
+import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
+import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.RemoteNodes;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.websockets.beans.MappedEncoder;
@@ -94,6 +110,111 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 		}
 		else
 			System.out.print(output);
+	}
+
+	protected Account mkPayerAccount(StorageReference reference, Path dir) throws CommandException {
+		try {
+			return Accounts.of(reference, dir);
+		}
+		catch (IOException e) {
+			throw new CommandException("Cannot read the key pair of the " + reference + " : it was expected to be in file \"" + dir.resolve(reference.toString()) + ".pem\"", e);
+		}
+	}
+
+	/**
+	 * Yields the reference to the transaction that created the given object in store.
+	 * 
+	 * @param object the object
+	 * @param node the node where the object should be stored
+	 * @return the reference to the transaction that created {@code object}
+	 * @throws NodeException if the node is misbehaving
+	 * @throws TimeoutException if no answer arrives by a given time window
+	 * @throws InterruptedException if the operation gets interrupted before completion
+	 * @throws CommandException if {@code object} does not exist in store, or if it has not been created with a transaction that creates object, in which case the remote node is corrupted
+	 */
+	// TODO: add a component to the ClassTag of the object, so that we do not need to look for the classpath of the creation transaction of the objects
+	protected TransactionReference getClasspathAtCreationTimeOf(StorageReference object, RemoteNode node) throws NodeException, TimeoutException, InterruptedException, CommandException {
+		TransactionRequest<?> request;
+
+		try {
+			request = node.getRequest(object.getTransaction());
+		}
+		catch (UnknownReferenceException e) {
+			throw new CommandException(object + " cannot be found in the store of the node");
+		}
+
+		if (request instanceof CodeExecutionTransactionRequest<?> cetr)
+			return cetr.getClasspath();
+		else if (request instanceof GameteCreationTransactionRequest gctr)
+			return gctr.getClasspath();
+		else
+			throw new CommandException("Object " + object + " has been unexpectedly created with a " + request.getClass().getName());
+	}
+
+	protected BigInteger determineGasPrice(RemoteNode remote) throws CommandException, NodeException, TimeoutException, InterruptedException {
+		try {
+			return GasHelpers.of(remote).getGasPrice();
+		}
+		catch (CodeExecutionException | TransactionRejectedException | TransactionException e) {
+			throw new CommandException("Cannot determine the current gas price!", e);
+		}
+	}
+
+	protected BigInteger gasForTransactionWhosePayerHasSignature(SignatureAlgorithm signature) {
+		switch (signature.getName()) {
+		case "qtesla1":
+			return BigInteger.valueOf(300_000L);
+		case "qtesla3":
+			return BigInteger.valueOf(400_000L);
+		default:
+			return _100_000;
+		}
+	}
+
+	/**
+	 * Yields the signature algorithm of the account with the given storage reference.
+	 * 
+	 * @param account the storage reference of the account
+	 * @param remote the remote node whose store will be used
+	 * @return the signature algorithm for {@code account}
+	 * @throws CommandException if {@code account} cannot be found in the store of the node or if its signature algorithm is not available
+	 * @throws NodeException if the node is misbehaving
+	 * @throws InterruptedException if the operation gets interrupted while waiting
+	 * @throws TimeoutException if the operation times out
+	 */
+	protected SignatureAlgorithm determineSignatureOf(StorageReference account, RemoteNode remote) throws CommandException, NodeException, InterruptedException, TimeoutException {
+		try {
+			return SignatureHelpers.of(remote).signatureAlgorithmFor(account);
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw new CommandException(account + " uses a non-available signature algorithm", e);
+		}
+		catch (UnknownReferenceException e) {
+			throw new CommandException(account + " cannot be found in the store of the node");
+		}
+	}
+
+	/**
+	 * Yields the nonce of the account with the given storage reference.
+	 * 
+	 * @param account the storage reference of the account
+	 * @param remote the remote node whose store will be used
+	 * @return the nonce of {@code account}
+	 * @throws CommandException if {@code account} cannot be found in the store of the node
+	 * @throws NodeException if the node is misbehaving
+	 * @throws InterruptedException if the operation gets interrupted while waiting
+	 * @throws TimeoutException if the operation times out
+	 */
+	protected BigInteger determineNonceOf(StorageReference account, RemoteNode remote) throws CommandException, NodeException, InterruptedException, TimeoutException {
+		try {
+			return NonceHelpers.of(remote).getNonceOf(account);
+		}
+		catch (UnknownReferenceException e) {
+			throw new CommandException(account + " cannot be found in the store of the node");
+		}
+		catch (CodeExecutionException | TransactionRejectedException | TransactionException e) {
+			throw new CommandException("Cannot determine the nonce of " + account + "!", e);
+		}
 	}
 
 	/**
