@@ -60,9 +60,6 @@ public class Rotate extends AbstractGasCostCommand {
 	@Option(names = { "--password-of-account" }, description = "the password of the account; if not specified, it will be asked interactively")
 	private String passwordOfAccount;
 
-	@Option(names = { "--uri" }, description = "the URI of the node", defaultValue = "ws://localhost:8001")
-    private URI uri;
-
 	@Option(names = "--classpath", description = "the classpath used to interpret the account", defaultValue = "the classpath of the account")
     private String classpath;
 

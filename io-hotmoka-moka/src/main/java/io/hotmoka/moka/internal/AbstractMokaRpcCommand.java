@@ -104,7 +104,7 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 	 *                be used only if {@code json} is true
 	 * @throws CommandException if reporting failed
 	 */
-	protected static <O> void report(boolean json, O output, Supplier<MappedEncoder<O, ? extends JsonRepresentation<O>>> encoder) throws CommandException {
+	protected <O> void report(boolean json, O output, Supplier<MappedEncoder<O, ? extends JsonRepresentation<O>>> encoder) throws CommandException {
 		if (json) {
 			try {
 				System.out.println(encoder.get().encode(output));
@@ -117,7 +117,7 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 			System.out.print(output);
 	}
 
-	protected static TransactionReference computeTransaction(TransactionRequest<?> request) throws CommandException {
+	protected TransactionReference computeTransaction(TransactionRequest<?> request) throws CommandException {
 		try {
 			Hasher<TransactionRequest<?>> hasher = HashingAlgorithms.sha256().getHasher(TransactionRequest::toByteArray);
 			return TransactionReferences.of(hasher.hash(request));
@@ -127,7 +127,7 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 		}
 	}
 
-	protected static GasCost computeIncurredGasCost(RemoteNode remote, TransactionRequest<?> request) throws CommandException, InterruptedException, NodeException, TimeoutException {
+	protected GasCost computeIncurredGasCost(RemoteNode remote, TransactionRequest<?> request) throws CommandException, InterruptedException, NodeException, TimeoutException {
 		try {
 			return GasCosts.of(remote, request);
 		}
@@ -139,7 +139,7 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 		}
 	}
 
-	protected static GasCost computeGasCosts(RemoteNode remote, TransactionReference reference) throws CommandException, InterruptedException, NodeException, TimeoutException {
+	protected GasCost computeGasCosts(RemoteNode remote, TransactionReference reference) throws CommandException, InterruptedException, NodeException, TimeoutException {
 		try {
 			return GasCosts.of(remote, reference);
 		}
@@ -148,7 +148,7 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 		}
 	}
 
-	protected static Account mkPayerAccount(StorageReference reference, Path dir) throws CommandException {
+	protected Account mkPayerAccount(StorageReference reference, Path dir) throws CommandException {
 		try {
 			return Accounts.of(reference, dir);
 		}
@@ -169,7 +169,7 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 	 * @throws CommandException if {@code object} does not exist in store, or if it has not been created with a transaction that creates object, in which case the remote node is corrupted
 	 */
 	// TODO: add a component to the ClassTag of the object, so that we do not need to look for the classpath of the creation transaction of the objects
-	protected static TransactionReference getClasspathAtCreationTimeOf(StorageReference object, RemoteNode node) throws NodeException, TimeoutException, InterruptedException, CommandException {
+	protected TransactionReference getClasspathAtCreationTimeOf(StorageReference object, RemoteNode node) throws NodeException, TimeoutException, InterruptedException, CommandException {
 		TransactionRequest<?> request;
 
 		try {
@@ -187,7 +187,7 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 			throw new CommandException("Object " + object + " has been unexpectedly created with a " + request.getClass().getName());
 	}
 
-	protected static BigInteger determineGasPrice(RemoteNode remote) throws CommandException, NodeException, TimeoutException, InterruptedException {
+	protected BigInteger determineGasPrice(RemoteNode remote) throws CommandException, NodeException, TimeoutException, InterruptedException {
 		try {
 			return GasHelpers.of(remote).getGasPrice();
 		}
@@ -196,7 +196,7 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 		}
 	}
 
-	protected static BigInteger gasForTransactionWhosePayerHasSignature(SignatureAlgorithm signature) {
+	protected BigInteger gasForTransactionWhosePayerHasSignature(SignatureAlgorithm signature) {
 		switch (signature.getName()) {
 		case "qtesla1":
 			return BigInteger.valueOf(300_000L);
@@ -218,7 +218,7 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 	 * @throws InterruptedException if the operation gets interrupted while waiting
 	 * @throws TimeoutException if the operation times out
 	 */
-	protected static SignatureAlgorithm determineSignatureOf(StorageReference account, RemoteNode remote) throws CommandException, NodeException, InterruptedException, TimeoutException {
+	protected SignatureAlgorithm determineSignatureOf(StorageReference account, RemoteNode remote) throws CommandException, NodeException, InterruptedException, TimeoutException {
 		try {
 			return SignatureHelpers.of(remote).signatureAlgorithmFor(account);
 		}
@@ -241,7 +241,7 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 	 * @throws InterruptedException if the operation gets interrupted while waiting
 	 * @throws TimeoutException if the operation times out
 	 */
-	protected static BigInteger determineNonceOf(StorageReference account, RemoteNode remote) throws CommandException, NodeException, InterruptedException, TimeoutException {
+	protected BigInteger determineNonceOf(StorageReference account, RemoteNode remote) throws CommandException, NodeException, InterruptedException, TimeoutException {
 		try {
 			return NonceHelpers.of(remote).getNonceOf(account);
 		}
@@ -262,7 +262,7 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 	 * @param skipped true if the question must be skipped
 	 * @throws CommandException if the user replies negatively
 	 */
-	protected static void askForConfirmation(String goal, BigInteger gasLimit, BigInteger gasPrice, boolean skipped) throws CommandException {
+	protected void askForConfirmation(String goal, BigInteger gasLimit, BigInteger gasPrice, boolean skipped) throws CommandException {
 		if (!skipped && !answerIsYes(asInteraction("Do you really want to " + goal + " spending up to "
 				+ gasUnits(gasLimit) + " at the price of " + panas(gasPrice) + " per unit (that is, up to " + panas(gasLimit.multiply(gasPrice)) + ") [Y/N] ")))
 			throw new CommandException("Stopped");
@@ -272,7 +272,7 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 		return cost.equals(BigInteger.ONE) ? "1 pana" : (cost + " panas");
 	}
 
-	protected static String gasUnits(BigInteger units) {
+	protected String gasUnits(BigInteger units) {
 		return units.equals(BigInteger.ONE) ? "1 gas unit" : (units + " gas units");
 	}
 

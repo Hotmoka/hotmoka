@@ -65,7 +65,7 @@ public class MokaNew extends AbstractCLI {
 	}
 
 	/**
-	 * Runs the {@code accounts create} command with the given arguments.
+	 * Runs the {@code moka accounts create} command with the given arguments.
 	 * 
 	 * @param args the arguments
 	 * @return what the moka tool has written into the standard output
@@ -76,7 +76,7 @@ public class MokaNew extends AbstractCLI {
 	}
 
 	/**
-	 * Runs the {@code accounts show} command with the given arguments.
+	 * Runs the {@code moka accounts show} command with the given arguments.
 	 * 
 	 * @param args the arguments
 	 * @return what the moka tool has written into the standard output
@@ -87,7 +87,7 @@ public class MokaNew extends AbstractCLI {
 	}
 
 	/**
-	 * Runs the {@code keys create} command with the given arguments.
+	 * Runs the {@code moka keys create} command with the given arguments.
 	 * 
 	 * @param args the arguments
 	 * @return what the moka tool has written into the standard output
@@ -98,7 +98,7 @@ public class MokaNew extends AbstractCLI {
 	}
 
 	/**
-	 * Runs the {@code keys show} command with the given arguments.
+	 * Runs the {@code moka keys show} command with the given arguments.
 	 * 
 	 * @param args the arguments
 	 * @return what the moka tool has written into the standard output
@@ -109,7 +109,7 @@ public class MokaNew extends AbstractCLI {
 	}
 
 	/**
-	 * Runs the {@code keys export} command with the given arguments.
+	 * Runs the {@code moka keys export} command with the given arguments.
 	 * 
 	 * @param args the arguments
 	 * @return what the moka tool has written into the standard output
@@ -120,7 +120,7 @@ public class MokaNew extends AbstractCLI {
 	}
 
 	/**
-	 * Runs the {@code keys import} command with the given arguments.
+	 * Runs the {@code moka keys import} command with the given arguments.
 	 * 
 	 * @param args the arguments
 	 * @return what the moka tool has written into the standard output
@@ -131,7 +131,7 @@ public class MokaNew extends AbstractCLI {
 	}
 
 	/**
-	 * Runs the {@code jars verify} command with the given arguments.
+	 * Runs the {@code moka jars verify} command with the given arguments.
 	 * 
 	 * @param args the arguments
 	 * @return what the moka tool has written into the standard output
@@ -142,7 +142,7 @@ public class MokaNew extends AbstractCLI {
 	}
 
 	/**
-	 * Runs the {@code jars instrument} command with the given arguments.
+	 * Runs the {@code moka jars instrument} command with the given arguments.
 	 * 
 	 * @param args the arguments
 	 * @return what the moka tool has written into the standard output
@@ -153,7 +153,18 @@ public class MokaNew extends AbstractCLI {
 	}
 
 	/**
-	 * Runs the {@code nodes faucet} command with the given arguments.
+	 * Runs the {@code moka jars install} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String jarsInstall(String args) throws IOException {
+		return run("jars install " + args);
+	}
+
+	/**
+	 * Runs the {@code moka nodes faucet} command with the given arguments.
 	 * 
 	 * @param args the arguments
 	 * @return what the moka tool has written into the standard output
@@ -164,7 +175,7 @@ public class MokaNew extends AbstractCLI {
 	}
 
 	/**
-	 * Runs the {@code nodes tendermint validators create} command with the given arguments.
+	 * Runs the {@code moka nodes tendermint validators create} command with the given arguments.
 	 * 
 	 * @param args the arguments
 	 * @return what the moka tool has written into the standard output
@@ -175,7 +186,7 @@ public class MokaNew extends AbstractCLI {
 	}
 
 	/**
-	 * Runs the {@code objects show} command with the given arguments.
+	 * Runs the {@code moka objects show} command with the given arguments.
 	 * 
 	 * @param args the arguments
 	 * @return what the moka tool has written into the standard output
@@ -195,14 +206,17 @@ public class MokaNew extends AbstractCLI {
 	 */
 	private static String run(String command) throws IOException {
 		var originalOut = System.out;
+		var originalErr = System.err;
 	
 		try (var baos = new ByteArrayOutputStream(); var out = new PrintStream(baos)) {
 			System.setOut(out);
+			System.setErr(out);
 			main(MokaNew::new, command.split(" "));
 			return new String(baos.toByteArray());
 		}
 		finally {
 			System.setOut(originalOut);
+			System.setErr(originalErr);
 		}
 	}
 
