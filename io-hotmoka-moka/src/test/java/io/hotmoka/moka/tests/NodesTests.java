@@ -34,7 +34,7 @@ import io.hotmoka.node.TransactionRequests;
 public class NodesTests extends AbstractMokaTestWithNode {
 
 	@Test
-	@DisplayName("[moka nodes faucet] the description of the gamete account is correct")
+	@DisplayName("[moka nodes faucet] the opening of the faucet works")
 	public void openingOfFaucetWorks() throws Exception {
 		var takamakaCode = node.getTakamakaCode();
 
@@ -46,7 +46,7 @@ public class NodesTests extends AbstractMokaTestWithNode {
 
 		// we add 10000 to the threshold
 		BigInteger expected = currentMaxFaucet.add(BigInteger.valueOf(10_000L));
-		MokaNew.nodesFaucet(expected + " --dir=" + dir + " --password=" + passwordOfGamete);
+		MokaNew.nodesFaucet(expected + " --dir=" + dir + " --password=" + passwordOfGamete + " --uri=ws://localhost:" + PORT);
 
 		// we read the current threshold again: it should have been increased by 10000
 		BigInteger actual = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall

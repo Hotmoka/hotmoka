@@ -44,6 +44,12 @@ import io.takamaka.code.constants.Constants;
  */
 public abstract class AbstractMokaTestWithNode extends AbstractMokaTest {
 	public final static String passwordOfGamete = "password";
+	
+	/**
+	 * The port where the test node gets published.
+	 */
+	public final static int PORT = 8000;
+
 	public static Node node;
 
 	/**
@@ -79,9 +85,9 @@ public abstract class AbstractMokaTestWithNode extends AbstractMokaTest {
 		gamete = InitializedNodes.of(node, consensus, takamakaCodePath).gamete();
 		takamakaCode = node.getTakamakaCode();
 		entropy.dump(dir.resolve(gamete + ".pem")); // we save the entropy in a file named as the address of the gamete, that is, as an account
-		NodeServices.of(node, 8001);
+		NodeServices.of(node, PORT);
 		// the faucet is opened at initialization time, but we still need to set its threshold
-		MokaNew.nodesFaucet("100000 --dir=" + dir + " --password=" + passwordOfGamete);
+		MokaNew.nodesFaucet("100000 --dir=" + dir + " --password=" + passwordOfGamete + " --uri=ws://localhost:" + PORT);
 	}
 	
 	@AfterAll

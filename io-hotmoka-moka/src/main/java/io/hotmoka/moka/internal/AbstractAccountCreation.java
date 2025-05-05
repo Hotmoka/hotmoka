@@ -23,7 +23,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.SignatureException;
@@ -36,14 +35,11 @@ import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Entropies;
-import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.Entropy;
-import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.exceptions.Objects;
-import io.hotmoka.helpers.GasCounters;
 import io.hotmoka.helpers.api.GasCounter;
 import io.hotmoka.moka.api.AccountCreationOutput;
 import io.hotmoka.moka.internal.converters.StorageReferenceOfAccountOptionConverter;
@@ -53,18 +49,15 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.Account;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
-import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
@@ -364,16 +357,6 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 		}
 	}
 
-	private static TransactionReference computeTransaction(TransactionRequest<?> request) throws CommandException {
-		try {
-			Hasher<TransactionRequest<?>> hasher = HashingAlgorithms.sha256().getHasher(TransactionRequest::toByteArray);
-			return TransactionReferences.of(hasher.hash(request));
-		}
-		catch (NoSuchAlgorithmException e) {
-			throw new CommandException("The sha256 hashing algorithm is not available");
-		}
-	}
-
 	private static String mkPublicKeyOfNewAccountBase64(SignatureAlgorithm signatureOfNewAccount, PublicKey publicKeyOfNewAccount) {
 		try {
 			return Base64.toBase64String(signatureOfNewAccount.encodingOf(publicKeyOfNewAccount));
@@ -408,18 +391,6 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 		}
 		else
 			return Optional.empty();
-	}
-
-	private static GasCounter computeGasCosts(RemoteNode remote, TransactionRequest<?> request) throws CommandException, InterruptedException, NodeException, TimeoutException {
-		try {
-			return GasCounters.of(remote, new TransactionRequest<?>[] { request });
-		}
-		catch (UnknownReferenceException e) {
-			throw new CommandException("Cannot find the creation request in the store of the node, maybe a sudden history change has occurred?", e);
-		}
-		catch (NoSuchAlgorithmException e) {
-			throw new CommandException("A cryptographic algorithm is not available", e);
-		}
 	}
 
 	/**

@@ -26,11 +26,16 @@ import java.util.function.Supplier;
 
 import io.hotmoka.cli.AbstractRpcCommand;
 import io.hotmoka.cli.CommandException;
+import io.hotmoka.crypto.HashingAlgorithms;
+import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.helpers.GasCounters;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
+import io.hotmoka.helpers.api.GasCounter;
 import io.hotmoka.node.Accounts;
+import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.Account;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
@@ -110,6 +115,28 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 		}
 		else
 			System.out.print(output);
+	}
+
+	protected TransactionReference computeTransaction(TransactionRequest<?> request) throws CommandException {
+		try {
+			Hasher<TransactionRequest<?>> hasher = HashingAlgorithms.sha256().getHasher(TransactionRequest::toByteArray);
+			return TransactionReferences.of(hasher.hash(request));
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw new CommandException("The sha256 hashing algorithm is not available");
+		}
+	}
+
+	protected GasCounter computeGasCosts(RemoteNode remote, TransactionRequest<?> request) throws CommandException, InterruptedException, NodeException, TimeoutException {
+		try {
+			return GasCounters.of(remote, new TransactionRequest<?>[] { request });
+		}
+		catch (UnknownReferenceException e) {
+			throw new CommandException("Cannot find the transaction request in the store of the node, maybe a sudden history change has occurred?", e);
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw new CommandException("A cryptographic algorithm is not available", e);
+		}
 	}
 
 	protected Account mkPayerAccount(StorageReference reference, Path dir) throws CommandException {

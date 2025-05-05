@@ -129,7 +129,10 @@ public class Install extends AbstractMokaRpcCommand {
 		}
 
 		System.out.println(jar + " has been installed at " + response);
-
+		TransactionReference transaction = computeTransaction(request);
+		System.out.println("Transaction: " + transaction);
+		var gasCosts = computeGasCosts(remote, request);
+		System.out.println(gasCosts);
 		// report costs and create output
 	}
 
