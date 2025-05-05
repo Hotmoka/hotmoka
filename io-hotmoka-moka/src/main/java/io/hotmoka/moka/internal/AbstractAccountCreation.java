@@ -42,6 +42,7 @@ import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.helpers.api.GasCost;
 import io.hotmoka.moka.api.AccountCreationOutput;
+import io.hotmoka.moka.internal.AbstractGasCostCommand.AbstractGasCostCommandOutput;
 import io.hotmoka.moka.internal.converters.StorageReferenceOfAccountOptionConverter;
 import io.hotmoka.moka.internal.json.AccountCreationOutputJson;
 import io.hotmoka.node.Accounts;
@@ -175,10 +176,11 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 	 * 
 	 * @param referenceOfNewAccount the reference of the new account
 	 * @param file the file where the key pair of the new account has been saved, if any
-	 * @param gasCosts the gas costs incurred for the creation of the new account
+	 * @param gasCost the gas cost incurred for the creation of the new account
+	 * @param gasPrice the gas price used for the account creation transaction
 	 * @throws CommandException if the report fails
 	 */
-	protected abstract void reportOutput(StorageReference referenceOfNewAccount, Optional<Path> file, GasCost gasCosts) throws CommandException;
+	protected abstract void reportOutput(StorageReference referenceOfNewAccount, Optional<Path> file, GasCost gasCost, BigInteger gasPrice) throws CommandException;
 
 	private class CreationFromPayer {
 		private final RemoteNode remote;
@@ -213,7 +215,7 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 				StorageReference referenceOfNewAccount = executeRequest();
 				Optional<Path> file = dealWithBindingOfKeysToNewAccount(referenceOfNewAccount);
 				GasCost gasCosts = computeGasCosts(remote, referenceOfNewAccount.getTransaction());
-				reportOutput(referenceOfNewAccount, file, gasCosts);
+				reportOutput(referenceOfNewAccount, file, gasCosts, gasPrice);
 			}
 			finally {
 				passwordOfNewAccountAsString = null;
@@ -274,7 +276,7 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 				StorageReference referenceOfNewAccount = executeRequest();
 				Optional<Path> file = dealWithBindingOfKeysToNewAccount(referenceOfNewAccount);
 				GasCost gasCosts = computeGasCosts(remote, referenceOfNewAccount.getTransaction());
-				reportOutput(referenceOfNewAccount, file, gasCosts);
+				reportOutput(referenceOfNewAccount, file, gasCosts, gasPrice);
 			}
 			finally {
 				passwordOfNewAccountAsString = null;
@@ -381,44 +383,28 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 	/**
 	 * The output of this command.
 	 */
-	protected static abstract class AbstractAccountCreationOutput implements AccountCreationOutput {
+	protected static abstract class AbstractAccountCreationOutput extends AbstractGasCostCommandOutput implements AccountCreationOutput {
 
 		/**
-		 * The reference of the bound account.
+		 * The reference of the created account.
 		 */
 		private final StorageReference account;
 
 		/**
-		 * The path of the created key pair file for the account that has been bound.
+		 * The path of the created key pair file for the account that has been created.
 		 * This is missing if the account has been created for a public key, not for a key pair,
 		 * so that it remains to be bound to the key pair.
 		 */
 		private final Optional<Path> file;
 
 		/**
-		 * The amount of gas consumed for the CPU cost for creating the account.
-		 */
-		private final BigInteger gasConsumedForCPU;
-
-		/**
-		 * The amount of gas consumed for the RAM cost for creating the account.
-		 */
-		private final BigInteger gasConsumedForRAM;
-
-		/**
-		 * The amount of gas consumed for the storage cost for creating the account.
-		 */
-		private final BigInteger gasConsumedForStorage;
-
-		/**
 		 * Builds the output of the command.
 		 */
-		protected AbstractAccountCreationOutput(StorageReference account, Optional<Path> file, GasCost gasCounter) {
+		protected AbstractAccountCreationOutput(StorageReference account, Optional<Path> file, GasCost gasCost, BigInteger gasPrice) {
+			super(gasCost, gasPrice);
+
 			this.account = account;
 			this.file = file;
-			this.gasConsumedForCPU = gasCounter.forCPU();
-			this.gasConsumedForRAM = gasCounter.forRAM();
-			this.gasConsumedForStorage = gasCounter.forStorage();
 		}
 
 		/**
@@ -428,6 +414,8 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 		 * @throws InconsistentJsonException if {@code json} is inconsistent
 		 */
 		protected AbstractAccountCreationOutput(AccountCreationOutputJson json) throws InconsistentJsonException {
+			super(json);
+
 			this.account = Objects.requireNonNull(json.getAccount(), "account cannot be null", InconsistentJsonException::new).unmap()
 					.asReference(value -> new InconsistentJsonException("The reference of the created account must be a storage reference, not a " + value.getClass().getName()));
 
@@ -437,10 +425,6 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 			catch (InvalidPathException e) {
 				throw new InconsistentJsonException(e);
 			}
-
-			this.gasConsumedForCPU = Objects.requireNonNull(json.getGasConsumedForCPU(), "gasConsumedForCPU cannot be null", InconsistentJsonException::new);
-			this.gasConsumedForRAM = Objects.requireNonNull(json.getGasConsumedForRAM(), "gasConsumedForRAM cannot be null", InconsistentJsonException::new);
-			this.gasConsumedForStorage = Objects.requireNonNull(json.getGasConsumedForStorage(), "gasConsumedForStorage cannot be null", InconsistentJsonException::new);
 		}
 
 		@Override
@@ -459,21 +443,6 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 		}
 
 		@Override
-		public BigInteger getGasConsumedForCPU() {
-			return gasConsumedForCPU;
-		}
-
-		@Override
-		public BigInteger getGasConsumedForRAM() {
-			return gasConsumedForRAM;
-		}
-
-		@Override
-		public BigInteger getGasConsumedForStorage() {
-			return gasConsumedForStorage;
-		}
-
-		@Override
 		public String toString() {
 			var sb = new StringBuilder();
 
@@ -489,11 +458,7 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 
 			sb.append("\n");
 
-			sb.append("Gas consumption:\n");
-			sb.append(" * total: " + gasConsumedForCPU.add(gasConsumedForRAM).add(gasConsumedForStorage) + "\n");
-			sb.append(" * for CPU: " + gasConsumedForCPU + "\n");
-			sb.append(" * for RAM: " + gasConsumedForRAM + "\n");
-			sb.append(" * for storage: " + gasConsumedForStorage + "\n");
+			toStringGasCost(sb);
 
 			return sb.toString();
 		}

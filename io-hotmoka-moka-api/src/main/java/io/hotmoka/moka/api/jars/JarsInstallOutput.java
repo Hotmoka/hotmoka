@@ -14,39 +14,29 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.api;
-
-import java.nio.file.Path;
-import java.util.Optional;
+package io.hotmoka.moka.api.jars;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.moka.api.GasCostOutput;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.api.values.StorageReference;
 
 /**
- * The output of command that creates an account.
+ * The output of the {@code moka jars install} command.
  */
 @Immutable
-public interface AccountCreationOutput extends GasCostOutput {
+public interface JarsInstallOutput extends GasCostOutput {
 
 	/**
-	 * Yields the transaction that created the account.
+	 * Yields the transaction that installed the jar.
 	 * 
-	 * @return the transaction that created the account
+	 * @return the transaction that installed the jar
 	 */
 	TransactionReference getTransaction();
 
 	/**
-	 * Yields the reference of the created account.
+	 * Yields the reference of the installed jar.
 	 * 
-	 * @return the reference of the created account
+	 * @return the reference of the installed jar
 	 */
-	StorageReference getAccount();
-
-	/**
-	 * Yields the path of the key pair file generated for the created account.
-	 * 
-	 * @return the path of the key pair file generated for the created account
-	 */
-	Optional<Path> getFile();
+	TransactionReference getJar();
 }

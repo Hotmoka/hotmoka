@@ -28,9 +28,14 @@ import java.util.concurrent.TimeoutException;
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.api.Signer;
-import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
+import io.hotmoka.exceptions.Objects;
+import io.hotmoka.helpers.api.GasCost;
+import io.hotmoka.moka.JarsInstallOutputs;
+import io.hotmoka.moka.api.jars.JarsInstallOutput;
+import io.hotmoka.moka.internal.AbstractGasCostCommand;
 import io.hotmoka.moka.internal.converters.StorageReferenceOfAccountOptionConverter;
 import io.hotmoka.moka.internal.converters.TransactionReferenceOptionConverter;
+import io.hotmoka.moka.internal.json.JarsInstallOutputJson;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
@@ -40,6 +45,7 @@ import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.api.RemoteNode;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -47,7 +53,7 @@ import picocli.CommandLine.Parameters;
 @Command(name = "install",
 	description = "Install a jar in a node.",
 	showDefaultValues = true)
-public class Install extends AbstractMokaRpcCommand {
+public class Install extends AbstractGasCostCommand {
 
 	@Parameters(description = "the path of the jar to install")
 	private Path jar;
@@ -88,14 +94,63 @@ public class Install extends AbstractMokaRpcCommand {
 		askForConfirmation("install the jar", gasLimit, gasPrice, yes || json());
 		BigInteger nonce = determineNonceOf(payer, remote);
 		JarStoreTransactionRequest request = mkRequest(chainId, bytesOfJar, dependencies, signer, classpath, gasLimit, gasPrice, nonce);
-		TransactionReference response = executeRequest(remote, request);
+		TransactionReference transaction = executeRequest(remote, request);
+		var gasCost = computeIncurredGasCost(remote, request);
+		report(json(), new Output(transaction, gasCost, gasPrice), JarsInstallOutputs.Encoder::new);
+	}
 
-		System.out.println(jar + " has been installed at " + response);
-		TransactionReference transaction = response;
-		System.out.println("Transaction: " + transaction);
-		var gasCosts = computeGasCosts(remote, request);
-		System.out.println(gasCosts);
-		// report costs and create output
+	/**
+	 * The output of this command.
+	 */
+	public static class Output extends AbstractGasCostCommand.AbstractGasCostCommandOutput implements JarsInstallOutput {
+
+		/**
+		 * The reference of the jar installed in the node.
+		 */
+		private final TransactionReference jar;
+
+		/**
+		 * Builds the output of the command.
+		 */
+		private Output(TransactionReference jar, GasCost gasCost, BigInteger gasPrice) {
+			super(gasCost, gasPrice);
+
+			this.jar = jar;
+		}
+
+		/**
+		 * Builds the output of the command from its JSON representation.
+		 * 
+		 * @param json the JSON representation
+		 * @throws InconsistentJsonException if {@code json} is inconsistent
+		 */
+		public Output(JarsInstallOutputJson json) throws InconsistentJsonException {
+			super(json);
+
+			this.jar = Objects.requireNonNull(json.getJar(), "jar cannot be null", InconsistentJsonException::new).unmap();
+		}
+
+		@Override
+		public TransactionReference getTransaction() {
+			return jar;
+		}
+
+		@Override
+		public TransactionReference getJar() {
+			return jar;
+		}
+
+		@Override
+		public String toString() {
+			var sb = new StringBuilder();
+
+			sb.append("The jar has been installed at " + jar + " by transaction " + asTransactionReference(jar) + ".\n");
+			sb.append("\n");
+
+			toStringGasCost(sb);
+
+			return sb.toString();
+		}
 	}
 
 	private TransactionReference executeRequest(RemoteNode remote, JarStoreTransactionRequest request) throws NodeException, TimeoutException, InterruptedException, CommandException {

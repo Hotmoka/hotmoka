@@ -16,8 +16,6 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.json;
 
-import java.math.BigInteger;
-
 import io.hotmoka.moka.api.AccountCreationOutput;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
@@ -25,21 +23,17 @@ import io.hotmoka.node.TransactionReferences;
 /**
  * The JSON representation of the output of the account creation commands.
  */
-public abstract class AccountCreationOutputJson {
+public abstract class AccountCreationOutputJson extends GasCostOutputJson {
 	private final TransactionReferences.Json transaction;
 	private final StorageValues.Json account;
 	private final String file;
-	private final BigInteger gasConsumedForCPU;
-	private final BigInteger gasConsumedForRAM;
-	private final BigInteger gasConsumedForStorage;
 
 	protected AccountCreationOutputJson(AccountCreationOutput output) {
+		super(output);
+
 		this.transaction = new TransactionReferences.Json(output.getTransaction());
 		this.account = new StorageValues.Json(output.getAccount());
 		this.file = output.getFile().map(Object::toString).orElse(null);
-		this.gasConsumedForCPU = output.getGasConsumedForCPU();
-		this.gasConsumedForRAM = output.getGasConsumedForRAM();
-		this.gasConsumedForStorage = output.getGasConsumedForStorage();
 	}
 
 	public TransactionReferences.Json getTransaction() {
@@ -52,17 +46,5 @@ public abstract class AccountCreationOutputJson {
 
 	public String getFile() {
 		return file;
-	}
-
-	public BigInteger getGasConsumedForCPU() {
-		return gasConsumedForCPU;
-	}
-
-	public BigInteger getGasConsumedForRAM() {
-		return gasConsumedForRAM;
-	}
-
-	public BigInteger getGasConsumedForStorage() {
-		return gasConsumedForStorage;
 	}
 }

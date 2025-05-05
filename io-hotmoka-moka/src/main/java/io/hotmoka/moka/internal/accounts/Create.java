@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.accounts;
 
+import java.math.BigInteger;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
@@ -69,8 +70,8 @@ public class Create extends AbstractAccountCreation {
 	}
 
 	@Override
-	protected void reportOutput(StorageReference referenceOfNewAccount, Optional<Path> file, GasCost gasCosts) throws CommandException {
-		report(json(), new Output(referenceOfNewAccount, file, gasCosts), AccountsCreateOutputs.Encoder::new);
+	protected void reportOutput(StorageReference referenceOfNewAccount, Optional<Path> file, GasCost gasCosts, BigInteger gasPrice) throws CommandException {
+		report(json(), new Output(referenceOfNewAccount, file, gasCosts, gasPrice), AccountsCreateOutputs.Encoder::new);
 	}
 
 	/**
@@ -78,8 +79,8 @@ public class Create extends AbstractAccountCreation {
 	 */
 	public static class Output extends AbstractAccountCreationOutput implements AccountsCreateOutput {
 
-		private Output(StorageReference account, Optional<Path> file, GasCost gasCounter) {
-			super(account, file, gasCounter);
+		private Output(StorageReference account, Optional<Path> file, GasCost gasCost, BigInteger gasPrice) {
+			super(account, file, gasCost, gasPrice);
 		}
 
 		public Output(AccountsCreateOutputJson json) throws InconsistentJsonException {
