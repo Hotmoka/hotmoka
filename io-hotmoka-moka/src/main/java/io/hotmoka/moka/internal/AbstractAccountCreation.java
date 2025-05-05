@@ -173,13 +173,12 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 	/**
 	 * Reports the output of this command to the user.
 	 * 
-	 * @param transaction the transaction that created the new account
 	 * @param referenceOfNewAccount the reference of the new account
 	 * @param file the file where the key pair of the new account has been saved, if any
 	 * @param gasCosts the gas costs incurred for the creation of the new account
 	 * @throws CommandException if the report fails
 	 */
-	protected abstract void reportOutput(TransactionReference transaction, StorageReference referenceOfNewAccount, Optional<Path> file, GasCost gasCosts) throws CommandException;
+	protected abstract void reportOutput(StorageReference referenceOfNewAccount, Optional<Path> file, GasCost gasCosts) throws CommandException;
 
 	private class CreationFromPayer {
 		private final RemoteNode remote;
@@ -207,15 +206,14 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 				this.eoaType = getEOAType(signatureOfNewAccount);
 				this.gasLimit = computeProposedGas(signatureOfNewAccount, signatureOfPayer);
 				this.gasPrice = determineGasPrice(remote);
-				askForConfirmation("create the new account", gasLimit, gasPrice);
+				askForConfirmation("create the new account", gasLimit, gasPrice, yes || json());
 				this.nonce = determineNonceOf(payer, remote);
 				Signer<SignedTransactionRequest<?>> signer = signatureOfPayer.getSigner(payerAccount.keys(passwordOfPayerAsString, signatureOfPayer).getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 				this.request = mkRequest(payer, signer, balance);
 				StorageReference referenceOfNewAccount = executeRequest();
-				TransactionReference transaction = referenceOfNewAccount.getTransaction();
 				Optional<Path> file = dealWithBindingOfKeysToNewAccount(referenceOfNewAccount);
-				GasCost gasCosts = computeGasCosts(remote, transaction);
-				reportOutput(transaction, referenceOfNewAccount, file, gasCosts);
+				GasCost gasCosts = computeGasCosts(remote, referenceOfNewAccount.getTransaction());
+				reportOutput(referenceOfNewAccount, file, gasCosts);
 			}
 			finally {
 				passwordOfNewAccountAsString = null;
@@ -274,10 +272,9 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 				this.gasPrice = determineGasPrice(remote);
 				this.request = mkRequest(balance);
 				StorageReference referenceOfNewAccount = executeRequest();
-				TransactionReference transaction = referenceOfNewAccount.getTransaction();
 				Optional<Path> file = dealWithBindingOfKeysToNewAccount(referenceOfNewAccount);
-				GasCost gasCosts = computeGasCosts(remote, transaction);
-				reportOutput(transaction, referenceOfNewAccount, file, gasCosts);
+				GasCost gasCosts = computeGasCosts(remote, referenceOfNewAccount.getTransaction());
+				reportOutput(referenceOfNewAccount, file, gasCosts);
 			}
 			finally {
 				passwordOfNewAccountAsString = null;
@@ -328,18 +325,6 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 				throw new CommandException("Could not determine the gamete of the node");
 			}
 		}
-	}
-
-	/**
-	 * Asks the user about the real intention to spend some gas.
-	 * 
-	 * @param gasLimit the amount of gas
-	 * @param gasPrice the proposed price for a unit of gas
-	 * @throws CommandException if the user replies negatively
-	 */
-	private void askForConfirmation(String goal, BigInteger gasLimit, BigInteger gasPrice) throws CommandException {
-		if (!yes && !json() && !answerIsYes(asInteraction("Do you really want to " + goal + " at the price of " + gasLimit + " gas units at the price of " + gasPrice + " per unit [Y/N] ")))
-			throw new CommandException("Stopped");
 	}
 
 	private BigInteger computeProposedGas(SignatureAlgorithm signatureOfNewAccount, SignatureAlgorithm signatureOfPayer) throws CommandException {
@@ -399,11 +384,6 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 	protected static abstract class AbstractAccountCreationOutput implements AccountCreationOutput {
 
 		/**
-		 * The transaction that created the account.
-		 */
-		private final TransactionReference transaction;
-
-		/**
 		 * The reference of the bound account.
 		 */
 		private final StorageReference account;
@@ -433,8 +413,7 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 		/**
 		 * Builds the output of the command.
 		 */
-		protected AbstractAccountCreationOutput(TransactionReference transaction, StorageReference account, Optional<Path> file, GasCost gasCounter) {
-			this.transaction = transaction;
+		protected AbstractAccountCreationOutput(StorageReference account, Optional<Path> file, GasCost gasCounter) {
 			this.account = account;
 			this.file = file;
 			this.gasConsumedForCPU = gasCounter.forCPU();
@@ -449,7 +428,6 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 		 * @throws InconsistentJsonException if {@code json} is inconsistent
 		 */
 		protected AbstractAccountCreationOutput(AccountCreationOutputJson json) throws InconsistentJsonException {
-			this.transaction = Objects.requireNonNull(json.getTransaction(), "transaction cannot be null", InconsistentJsonException::new).unmap();
 			this.account = Objects.requireNonNull(json.getAccount(), "account cannot be null", InconsistentJsonException::new).unmap()
 					.asReference(value -> new InconsistentJsonException("The reference of the created account must be a storage reference, not a " + value.getClass().getName()));
 
@@ -467,7 +445,7 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 
 		@Override
 		public TransactionReference getTransaction() {
-			return transaction;
+			return account.getTransaction();
 		}
 
 		@Override
@@ -499,7 +477,7 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 		public String toString() {
 			var sb = new StringBuilder();
 
-			sb.append("A new account " + account + " has been created by transaction " + asTransactionReference(transaction) + ".\n");
+			sb.append("A new account " + account + " has been created by transaction " + asTransactionReference(getTransaction()) + ".\n");
 
 			if (file.isPresent())
 				sb.append("Its key pair has been saved into the file " + asPath(file.get()) + ".\n");

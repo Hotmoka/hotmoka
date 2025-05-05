@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.cli.CommandException;
+import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
 import io.hotmoka.moka.internal.converters.StorageReferenceOfAccountOptionConverter;
@@ -74,37 +75,44 @@ public class Install extends AbstractMokaRpcCommand {
 
 	@Override
 	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, NodeException {
-		var takamakaCode = remote.getTakamakaCode();
 		String chainId = remote.getConfig().getChainId();
-
-		byte[] bytes;
-		try {
-			bytes = Files.readAllBytes(jar);
-		}
-		catch (IOException e) {
-			throw new CommandException("Cannot access the jar file!", e);
-		}
-
+		byte[] bytesOfJar = readBytesOfJar();
 		String passwordOfPayerAsString = new String(password);
-
-		TransactionReference[] dependencies;
-		if (libs != null && !libs.isEmpty())
-			dependencies = libs.stream().distinct().toArray(TransactionReference[]::new);
-		else
-			dependencies = new TransactionReference[] { takamakaCode };
-
+		TransactionReference[] dependencies = computeDependencies(remote);
 		var payerAccount = mkPayerAccount(payer, dir);
 		var signatureOfPayer = determineSignatureOf(payer, remote);
 		Signer<SignedTransactionRequest<?>> signer = signatureOfPayer.getSigner(payerAccount.keys(passwordOfPayerAsString, signatureOfPayer).getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 		TransactionReference classpath = getClasspathAtCreationTimeOf(payer, remote);
-		BigInteger gasLimit = this.gasLimit != null ? this.gasLimit : _100_000.add(gasForTransactionWhosePayerHasSignature(signatureOfPayer)).add(BigInteger.valueOf(200).multiply(BigInteger.valueOf(bytes.length)));
+		BigInteger gasLimit = computeGasLimit(bytesOfJar, signatureOfPayer);
 		BigInteger gasPrice = determineGasPrice(remote);
-		askForConfirmation("install the jar", gasLimit, gasPrice);
+		askForConfirmation("install the jar", gasLimit, gasPrice, yes || json());
 		BigInteger nonce = determineNonceOf(payer, remote);
+		JarStoreTransactionRequest request = mkRequest(chainId, bytesOfJar, dependencies, signer, classpath, gasLimit, gasPrice, nonce);
+		TransactionReference response = executeRequest(remote, request);
 
-		JarStoreTransactionRequest request;
+		System.out.println(jar + " has been installed at " + response);
+		TransactionReference transaction = response;
+		System.out.println("Transaction: " + transaction);
+		var gasCosts = computeGasCosts(remote, request);
+		System.out.println(gasCosts);
+		// report costs and create output
+	}
+
+	private TransactionReference executeRequest(RemoteNode remote, JarStoreTransactionRequest request) throws NodeException, TimeoutException, InterruptedException, CommandException {
 		try {
-			request = TransactionRequests.jarStore(
+			return remote.addJarStoreTransaction(request);
+		}
+		catch (TransactionRejectedException | TransactionException e) {
+			throw new CommandException("The jar install transaction failed! are the key pair of the payer and its password correct?", e);
+		}
+	}
+
+	private JarStoreTransactionRequest mkRequest(String chainId, byte[] bytes, TransactionReference[] dependencies,
+			Signer<SignedTransactionRequest<?>> signer, TransactionReference classpath, BigInteger gasLimit,
+			BigInteger gasPrice, BigInteger nonce) throws CommandException {
+
+		try {
+			return TransactionRequests.jarStore(
 					signer,
 					payer,
 					nonce,
@@ -119,32 +127,25 @@ public class Install extends AbstractMokaRpcCommand {
 		catch (InvalidKeyException | SignatureException e) {
 			throw new CommandException("The key pair of " + payer + " seems corrupted!", e);
 		}
-
-		TransactionReference response;
-		try {
-			response = remote.addJarStoreTransaction(request);
-		}
-		catch (TransactionRejectedException | TransactionException e) {
-			throw new CommandException("The jar install transaction failed! are the key pair of the payer and its password correct?", e);
-		}
-
-		System.out.println(jar + " has been installed at " + response);
-		TransactionReference transaction = computeTransaction(request);
-		System.out.println("Transaction: " + transaction);
-		var gasCosts = computeGasCosts(remote, request);
-		System.out.println(gasCosts);
-		// report costs and create output
 	}
 
-	/**
-	 * Asks the user about the real intention to spend some gas.
-	 * 
-	 * @param gasLimit the amount of gas
-	 * @param gasPrice the proposed price for a unit of gas
-	 * @throws CommandException if the user replies negatively
-	 */
-	private void askForConfirmation(String goal, BigInteger gasLimit, BigInteger gasPrice) throws CommandException {
-		if (!yes && !json() && !answerIsYes(asInteraction("Do you really want to " + goal + " at the price of " + gasLimit + " gas units at the price of " + gasPrice + " per unit [Y/N] ")))
-			throw new CommandException("Stopped");
+	private BigInteger computeGasLimit(byte[] bytes, SignatureAlgorithm signatureOfPayer) {
+		return gasLimit != null ? gasLimit : _100_000.add(gasForTransactionWhosePayerHasSignature(signatureOfPayer)).add(BigInteger.valueOf(200).multiply(BigInteger.valueOf(bytes.length)));
+	}
+
+	private TransactionReference[] computeDependencies(RemoteNode remote) throws NodeException, TimeoutException, InterruptedException {
+		if (libs != null && !libs.isEmpty())
+			return libs.stream().distinct().toArray(TransactionReference[]::new);
+		else
+			return new TransactionReference[] { remote.getTakamakaCode() };
+	}
+
+	private byte[] readBytesOfJar() throws CommandException {
+		try {
+			return Files.readAllBytes(jar);
+		}
+		catch (IOException e) {
+			throw new CommandException("Cannot access the jar file!", e);
+		}
 	}
 }

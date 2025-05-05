@@ -254,6 +254,20 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 	}
 
 	/**
+	 * Asks the user about the real intention to spend some gas.
+	 * 
+	 * @param goal the goal why confirmation is being asked
+	 * @param gasLimit the amount of gas
+	 * @param gasPrice the proposed price for a unit of gas
+	 * @param skipped true if the question must be skipped
+	 * @throws CommandException if the user replies negatively
+	 */
+	protected void askForConfirmation(String goal, BigInteger gasLimit, BigInteger gasPrice, boolean skipped) throws CommandException {
+		if (!skipped && !answerIsYes(asInteraction("Do you really want to " + goal + " at the price of " + gasLimit + " gas units at the price of " + gasPrice + " per unit [Y/N] ")))
+			throw new CommandException("Stopped");
+	}
+
+	/**
 	 * Styles the given string in red.
 	 * 
 	 * @param text the text to style

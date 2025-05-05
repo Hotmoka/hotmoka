@@ -31,7 +31,6 @@ import io.hotmoka.moka.internal.json.NodesTendermintValidatorsCreateOutputJson;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
-import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.api.RemoteNode;
@@ -63,8 +62,8 @@ public class Create extends AbstractAccountCreation {
 	}
 
 	@Override
-	protected void reportOutput(TransactionReference transaction, StorageReference referenceOfNewAccount, Optional<Path> file, GasCost gasCosts) throws CommandException {
-		report(json(), new Output(transaction, referenceOfNewAccount, file, gasCosts), NodesTendermintValidatorsCreateOutputs.Encoder::new);
+	protected void reportOutput(StorageReference referenceOfNewAccount, Optional<Path> file, GasCost gasCosts) throws CommandException {
+		report(json(), new Output(referenceOfNewAccount, file, gasCosts), NodesTendermintValidatorsCreateOutputs.Encoder::new);
 	}
 
 	/**
@@ -72,11 +71,8 @@ public class Create extends AbstractAccountCreation {
 	 */
 	public static class Output extends AbstractAccountCreationOutput implements NodesTendermintValidatorsCreateOutput {
 
-		/**
-		 * Builds the output of the command.
-		 */
-		private Output(TransactionReference transaction, StorageReference account, Optional<Path> file, GasCost gasCounter) {
-			super(transaction, account, file, gasCounter);
+		private Output(StorageReference account, Optional<Path> file, GasCost gasCounter) {
+			super(account, file, gasCounter);
 		}
 
 		public Output(NodesTendermintValidatorsCreateOutputJson json) throws InconsistentJsonException {
