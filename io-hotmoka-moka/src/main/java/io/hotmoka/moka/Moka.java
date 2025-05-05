@@ -25,7 +25,6 @@ import io.hotmoka.moka.internal.Call;
 import io.hotmoka.moka.internal.CreateOld;
 import io.hotmoka.moka.internal.ResumeMokamint;
 import io.hotmoka.moka.internal.ResumeTendermint;
-import io.hotmoka.moka.internal.RotateKey;
 import io.hotmoka.moka.internal.SellValidation;
 import io.hotmoka.moka.internal.Send;
 import io.hotmoka.moka.internal.StartMokamint;
@@ -47,7 +46,6 @@ import picocli.CommandLine.Command;
 					CreateOld.class,
 					ResumeMokamint.class,
 			        ResumeTendermint.class,
-			        RotateKey.class,
 			        SellValidation.class,
 			        Send.class,
 			        StartMokamint.class,

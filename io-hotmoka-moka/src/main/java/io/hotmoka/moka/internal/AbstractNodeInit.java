@@ -205,27 +205,18 @@ public abstract class AbstractNodeInit extends AbstractMokaCommand {
 			return uri;
 		}
 
-		@Override
-		public String toString() {
-			var sb = new StringBuilder();
-
-			toString(sb);
-
+		/**
+		 * Reports information on the initialized node in the given string builder.
+		 * 
+		 * @param sb the string builder that gets enriched with the information
+		 */
+		protected void toStringNodeInit(StringBuilder sb) {
 			sb.append("The owner of the key pair of the gamete can bind it now to its address with:\n");
 			sb.append(asCommand("  moka keys bind file_containing_the_key_pair_of_the_gamete --password --url url_of_this_Hotmoka_node\n"));
 			sb.append("or with:\n");
 			sb.append(asCommand("  moka keys bind file_containing_the_key_pair_of_the_gamete --password --reference " + gamete + "\n"));
 			sb.append("\n");
 			sb.append(asInteraction("Press the enter key to stop this process and close this node: "));
-
-			return sb.toString();
 		}
-
-		/**
-		 * Appends data to the given string builder. That data will appear at the beginning of the {@link #toString()} of this output.
-		 * 
-		 * @param sb the string builder
-		 */
-		protected abstract void toString(StringBuilder sb);
 	}
 }

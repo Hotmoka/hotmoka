@@ -14,12 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal;
+package io.hotmoka.moka.internal.accounts;
 
 import java.math.BigInteger;
 import java.net.URI;
 import java.security.KeyPair;
 import java.security.PublicKey;
+import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.Base64;
@@ -28,6 +29,7 @@ import io.hotmoka.crypto.api.Entropy;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
+import io.hotmoka.moka.internal.AbstractGasCostCommand;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
@@ -35,20 +37,22 @@ import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.remote.RemoteNodes;
+import io.hotmoka.node.remote.api.RemoteNode;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "rotate-key",
-	description = "Rotate the key of an account",
+@Command(name = "rotate",
+	description = "Rotate the key of an account.",
 	showDefaultValues = true)
-public class RotateKey extends AbstractCommand {
+public class Rotate extends AbstractGasCostCommand {
 
 	@Parameters(index = "0", description = "the account whose key gets replaced")
     private String account;
@@ -75,27 +79,25 @@ public class RotateKey extends AbstractCommand {
 	private boolean printCosts;
 
 	@Override
-	protected void execute() throws Exception {
-		new Run();
+	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+		new Run(remote);
 	}
 
 	private class Run {
-		private final Node node;
+		/*private final Node node;
 		private final StorageReference account;
 		private final TransactionReference classpath;
 		private final InstanceMethodCallTransactionRequest request;
-		private final Entropy entropy;
+		private final Entropy entropy;*/
 
-		private Run() throws Exception {
-			try (var node = this.node = RemoteNodes.of(uri, 10_000)) {
-				this.account = StorageValues.reference(RotateKey.this.account);
+		private Run(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+			/*this.account = StorageValues.reference(Rotate.this.account);
 
-				if ("the classpath of the account".equals(RotateKey.this.classpath))
+				if ("the classpath of the account".equals(Rotate.this.classpath))
 					this.classpath = node.getClassTag(account).getJar();
 				else
-					this.classpath = TransactionReferences.of(RotateKey.this.classpath);
+					this.classpath = TransactionReferences.of(Rotate.this.classpath);
 
-				passwordOfAccount = ensurePassword(passwordOfAccount, "the account", interactive, false);
 				this.entropy = Entropies.random();
 				
 				askForConfirmation();
@@ -109,16 +111,15 @@ public class RotateKey extends AbstractCommand {
 				}
 				finally {
 					if (printCosts)
-						printCosts(node, request);
-				}
-
-			}
+						{} //printCosts(node, request);
+				}*/
 		}
 
+		/*
 		private InstanceMethodCallTransactionRequest createRequest() throws Exception {
 			var manifest = node.getManifest();
 			var takamakaCode = node.getTakamakaCode();
-			KeyPair keys = readKeys(Accounts.of(account), node, passwordOfAccount);
+			KeyPair keys = null; //readKeys(Accounts.of(account), node, passwordOfAccount);
 			String chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
 				.orElseThrow(() -> new CommandException(MethodSignatures.GET_CHAIN_ID + " should not return void"))).getValue();
@@ -143,13 +144,13 @@ public class RotateKey extends AbstractCommand {
 		}
 
 		private BigInteger getGasPrice() throws Exception {
-			if ("the current price".equals(RotateKey.this.gasPrice))
+			if ("the current price".equals(Rotate.this.gasPrice))
 				return GasHelpers.of(node).getGasPrice();
 			else {
 				BigInteger gasPrice;
 
 				try {
-					gasPrice = new BigInteger(RotateKey.this.gasPrice);
+					gasPrice = new BigInteger(Rotate.this.gasPrice);
 				}
 				catch (NumberFormatException e) {
 					throw new CommandException("The gas price must be a non-negative integer");
@@ -170,5 +171,6 @@ public class RotateKey extends AbstractCommand {
 			if (interactive)
 				yesNo("Do you really want to spend up to " + gasLimit + " gas units to rotate the key of account " + account + " ? [Y/N] ");
 		}
+		*/
 	}
 }

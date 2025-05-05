@@ -51,11 +51,9 @@ public abstract class AbstractCommand implements Runnable {
 	public static final BigInteger _100_000 = BigInteger.valueOf(100_000L);
 	public static final BigInteger _100_000_000 = BigInteger.valueOf(100_000_000L);
 	public static final String ANSI_RESET = "\u001B[0m";
-	public static final String ANSI_BLACK = "\u001B[30m";
 	public static final String ANSI_RED = "\u001B[31m";
 	public static final String ANSI_GREEN = "\u001B[32m";
 	public static final String ANSI_YELLOW = "\u001B[33m";
-	public static final String ANSI_BLUE = "\u001B[34m";
 	public static final String ANSI_CYAN = "\u001B[36m";
 
 	private final static Logger LOGGER = Logger.getLogger(AbstractCommand.class.getName());
@@ -121,22 +119,6 @@ public abstract class AbstractCommand implements Runnable {
 		}
 
 		return keys;
-	}
-
-	protected BigInteger gasForTransactionWhosePayerHasSignature(String signature, Node node) {
-		switch (signature) {
-		case "ed25519":
-		case "sha256dsa":
-			return _100_000;
-		case "qtesla1":
-			return BigInteger.valueOf(300_000L);
-		case "qtesla3":
-			return BigInteger.valueOf(400_000L);
-		case "empty":
-			return _100_000;
-		default:
-			throw new IllegalArgumentException("unknown signature algorithm " + signature);
-		}
 	}
 
 	protected void printCosts(Node node, TransactionRequest<?>... requests) {

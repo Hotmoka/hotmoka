@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.moka.internal;
 
 import io.hotmoka.moka.internal.accounts.Create;
+import io.hotmoka.moka.internal.accounts.Rotate;
 import io.hotmoka.moka.internal.accounts.Show;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
@@ -26,6 +27,7 @@ import picocli.CommandLine.HelpCommand;
 	subcommands = {
 		HelpCommand.class,
 		Create.class,
+		Rotate.class,
 		Show.class
 	})
 public class Accounts {

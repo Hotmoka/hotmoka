@@ -136,10 +136,16 @@ public class Init extends AbstractNodeInit {
 		}
 
 		@Override
-		protected void toString(StringBuilder sb) {
+		public String toString() {
+			var sb = new StringBuilder();
+
 			sb.append("The following service has been published:\n");
 			sb.append(" * " + asUri(getURI()) + ": the API of this Hotmoka node\n");
 			sb.append("\n");
+
+			toStringNodeInit(sb);
+
+			return sb.toString();
 		}
 	}
 }
