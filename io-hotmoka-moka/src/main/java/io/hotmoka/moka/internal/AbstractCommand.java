@@ -29,7 +29,7 @@ import java.util.logging.Logger;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Base58ConversionException;
 import io.hotmoka.crypto.Base64;
-import io.hotmoka.helpers.GasCounters;
+import io.hotmoka.helpers.GasCosts;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
@@ -141,7 +141,7 @@ public abstract class AbstractCommand implements Runnable {
 
 	protected void printCosts(Node node, TransactionRequest<?>... requests) {
 		try {
-			var gasCounter = GasCounters.of(node, requests);
+			var gasCounter = GasCosts.of(node, requests);
 			String result = ANSI_CYAN + "Total gas consumed: " + gasCounter.total() + "\n";
 			result += ANSI_GREEN + "  for CPU: " + gasCounter.forCPU() + "\n";
 			result += "  for RAM: " + gasCounter.forRAM() + "\n";

@@ -62,6 +62,9 @@ public class AccountsTests extends AbstractMokaTestWithNode {
 		// that response must have, as result, the created account
 		assertEquals(accountsCreateOutput.getAccount(), successfulResponse.getResult());
 
+		// the new account must have been created in the reported transaction
+		assertEquals(accountsCreateOutput.getTransaction(), accountsCreateOutput.getAccount().getTransaction());
+
 		BigInteger balance = node.runInstanceMethodCallTransaction(
 				TransactionRequests.instanceViewMethodCall(gamete, _100_000, takamakaCode, MethodSignatures.BALANCE, accountsCreateOutput.getAccount()))
 				.orElseThrow(() -> new IllegalStateException(MethodSignatures.BALANCE + " should not return void"))
@@ -96,6 +99,9 @@ public class AccountsTests extends AbstractMokaTestWithNode {
 		// the response in the output of the command should be successful
 		assertTrue(response instanceof ConstructorCallTransactionSuccessfulResponse);
 		ConstructorCallTransactionSuccessfulResponse successfulResponse = (ConstructorCallTransactionSuccessfulResponse) response;
+
+		// the new account must have been created in the reported transaction
+		assertEquals(accountsCreateOutput.getTransaction(), accountsCreateOutput.getAccount().getTransaction());
 
 		// that response must have, as result, the created account
 		assertEquals(accountsCreateOutput.getAccount(), successfulResponse.getNewObject());

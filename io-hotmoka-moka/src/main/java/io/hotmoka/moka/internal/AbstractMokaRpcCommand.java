@@ -29,11 +29,11 @@ import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.helpers.GasCounters;
+import io.hotmoka.helpers.GasCosts;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
-import io.hotmoka.helpers.api.GasCounter;
+import io.hotmoka.helpers.api.GasCost;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.Account;
@@ -127,15 +127,24 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 		}
 	}
 
-	protected GasCounter computeGasCosts(RemoteNode remote, TransactionRequest<?> request) throws CommandException, InterruptedException, NodeException, TimeoutException {
+	protected GasCost computeGasCosts(RemoteNode remote, TransactionRequest<?> request) throws CommandException, InterruptedException, NodeException, TimeoutException {
 		try {
-			return GasCounters.of(remote, new TransactionRequest<?>[] { request });
+			return GasCosts.of(remote, request);
 		}
 		catch (UnknownReferenceException e) {
 			throw new CommandException("Cannot find the transaction request in the store of the node, maybe a sudden history change has occurred?", e);
 		}
 		catch (NoSuchAlgorithmException e) {
 			throw new CommandException("A cryptographic algorithm is not available", e);
+		}
+	}
+
+	protected GasCost computeGasCosts(RemoteNode remote, TransactionReference reference) throws CommandException, InterruptedException, NodeException, TimeoutException {
+		try {
+			return GasCosts.of(remote, reference);
+		}
+		catch (UnknownReferenceException e) {
+			throw new CommandException("Cannot find the transaction request in the store of the node, maybe a sudden history change has occurred?", e);
 		}
 	}
 

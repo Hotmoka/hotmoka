@@ -21,10 +21,10 @@ import java.math.BigInteger;
 import io.hotmoka.annotations.ThreadSafe;
 
 /**
- * A counter of the gas consumed for the execution of a set of requests.
+ * The gas cost incurred for the some execution.
  */
 @ThreadSafe
-public interface GasCounter {
+public interface GasCost {
 
 	/**
 	 * Yields the total gas consumed.

@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
-import io.hotmoka.helpers.api.GasCounter;
+import io.hotmoka.helpers.api.GasCost;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
@@ -34,9 +34,9 @@ import io.hotmoka.node.api.responses.NonInitialTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 
 /**
- * Implementation of a counter of the gas consumed for the execution of a set of requests.
+ * Implementation of the gas cost incurred for some execution.
  */
-public class GasCounterImpl implements GasCounter {
+public class GasCostImpl implements GasCost {
 
 	/**
 	 * The total gas consumed.
@@ -64,8 +64,26 @@ public class GasCounterImpl implements GasCounter {
 	private final BigInteger forPenalty;
 
 	/**
-	 * Creates the counter of the gas consumed for the given set of requests,
-	 * that have been already executed with the given node.
+	 * Creates the gas cost incurred for the already occurred execution of a set of requests.
+	 * 
+	 * @param node the node that executed the requests
+	 * @param requests the requests whose gas cost must be computed
+	 * @throws InterruptedException if the execution gets interrupted
+	 * @throws TimeoutException if no answer arrives within the expected time window
+	 * @throws UnknownReferenceException if some request cannot be found in the store of the node
+	 * @throws NodeException if the node is not able to complete the operation correctly
+	 * @throws NoSuchAlgorithmException if some cryptographic algorithm is not available
+	 */
+	public GasCostImpl(Node node, TransactionRequest<?>... requests) throws NodeException, TimeoutException, InterruptedException, UnknownReferenceException, NoSuchAlgorithmException {
+		this(node, Stream.of(requests).map(sha256()::hash).map(TransactionReferences::of).toArray(TransactionReference[]::new));
+	}
+
+	private static Hasher<TransactionRequest<?>> sha256() throws NoSuchAlgorithmException {
+		return HashingAlgorithms.sha256().getHasher(TransactionRequest::toByteArray);
+	}
+
+	/**
+	 * Creates the gas cost incurred for the already occurred execution of a set of requests, identified by their references.
 	 * 
 	 * @param node the node that executed the requests
 	 * @param requests the requests whose consumed gas must be computed
@@ -73,13 +91,8 @@ public class GasCounterImpl implements GasCounter {
 	 * @throws TimeoutException if no answer arrives within the expected time window
 	 * @throws UnknownReferenceException if some request cannot be found in the store of the node
 	 * @throws NodeException if the node is not able to complete the operation correctly
-	 * @throws NoSuchAlgorithmException if some cryptographic algoirthm is not available
 	 */
-	public GasCounterImpl(Node node, TransactionRequest<?>... requests) throws NodeException, TimeoutException, InterruptedException, UnknownReferenceException, NoSuchAlgorithmException {
-		Hasher<TransactionRequest<?>> hasher = HashingAlgorithms.sha256().getHasher(TransactionRequest::toByteArray);
-
-		// the hashing algorithm generates hashes of the correct length, hence no checked exception
-		var references = Stream.of(requests).map(hasher::hash).map(TransactionReferences::of).toArray(TransactionReference[]::new);
+	public GasCostImpl(Node node, TransactionReference... references) throws NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
 		var forPenalty = BigInteger.ZERO;
 		var forCPU = BigInteger.ZERO;
 		var forRAM = BigInteger.ZERO;

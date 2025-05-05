@@ -64,6 +64,9 @@ public class NodesTendermintValidatorsTests extends AbstractMokaTestWithNode {
 		// the created account is a Tendermint validator account
 		assertEquals(StorageTypes.TENDERMINT_ED25519_VALIDATOR, node.getClassTag(accountsCreateOutput.getAccount()).getClazz());
 
+		// the new account must have been created in the reported transaction
+		assertEquals(accountsCreateOutput.getTransaction(), accountsCreateOutput.getAccount().getTransaction());
+
 		BigInteger balance = node.runInstanceMethodCallTransaction(
 				TransactionRequests.instanceViewMethodCall(gamete, _100_000, takamakaCode, MethodSignatures.BALANCE, accountsCreateOutput.getAccount()))
 				.orElseThrow(() -> new IllegalStateException(MethodSignatures.BALANCE + " should not return void"))
@@ -104,6 +107,9 @@ public class NodesTendermintValidatorsTests extends AbstractMokaTestWithNode {
 
 		// the created account is a Tendermint validator account
 		assertEquals(StorageTypes.TENDERMINT_ED25519_VALIDATOR, node.getClassTag(accountsCreateOutput.getAccount()).getClazz());
+
+		// the new account must have been created in the reported transaction
+		assertEquals(accountsCreateOutput.getTransaction(), accountsCreateOutput.getAccount().getTransaction());
 
 		BigInteger balance = node.runInstanceMethodCallTransaction(
 				TransactionRequests.instanceViewMethodCall(gamete, _100_000, takamakaCode, MethodSignatures.BALANCE, accountsCreateOutput.getAccount()))

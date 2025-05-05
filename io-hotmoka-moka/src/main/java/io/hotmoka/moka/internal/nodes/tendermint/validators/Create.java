@@ -23,7 +23,7 @@ import java.util.Optional;
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.helpers.api.GasCounter;
+import io.hotmoka.helpers.api.GasCost;
 import io.hotmoka.moka.NodesTendermintValidatorsCreateOutputs;
 import io.hotmoka.moka.api.nodes.tendermint.validators.NodesTendermintValidatorsCreateOutput;
 import io.hotmoka.moka.internal.AbstractAccountCreation;
@@ -63,7 +63,7 @@ public class Create extends AbstractAccountCreation {
 	}
 
 	@Override
-	protected void reportOutput(TransactionReference transaction, StorageReference referenceOfNewAccount, Optional<Path> file, GasCounter gasCosts) throws CommandException {
+	protected void reportOutput(TransactionReference transaction, StorageReference referenceOfNewAccount, Optional<Path> file, GasCost gasCosts) throws CommandException {
 		report(json(), new Output(transaction, referenceOfNewAccount, file, gasCosts), NodesTendermintValidatorsCreateOutputs.Encoder::new);
 	}
 
@@ -75,7 +75,7 @@ public class Create extends AbstractAccountCreation {
 		/**
 		 * Builds the output of the command.
 		 */
-		private Output(TransactionReference transaction, StorageReference account, Optional<Path> file, GasCounter gasCounter) {
+		private Output(TransactionReference transaction, StorageReference account, Optional<Path> file, GasCost gasCounter) {
 			super(transaction, account, file, gasCounter);
 		}
 

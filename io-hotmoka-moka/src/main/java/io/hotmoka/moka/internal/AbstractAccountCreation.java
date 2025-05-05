@@ -40,7 +40,7 @@ import io.hotmoka.crypto.api.Entropy;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.exceptions.Objects;
-import io.hotmoka.helpers.api.GasCounter;
+import io.hotmoka.helpers.api.GasCost;
 import io.hotmoka.moka.api.AccountCreationOutput;
 import io.hotmoka.moka.internal.converters.StorageReferenceOfAccountOptionConverter;
 import io.hotmoka.moka.internal.json.AccountCreationOutputJson;
@@ -179,7 +179,7 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 	 * @param gasCosts the gas costs incurred for the creation of the new account
 	 * @throws CommandException if the report fails
 	 */
-	protected abstract void reportOutput(TransactionReference transaction, StorageReference referenceOfNewAccount, Optional<Path> file, GasCounter gasCosts) throws CommandException;
+	protected abstract void reportOutput(TransactionReference transaction, StorageReference referenceOfNewAccount, Optional<Path> file, GasCost gasCosts) throws CommandException;
 
 	private class CreationFromPayer {
 		private final RemoteNode remote;
@@ -212,9 +212,9 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 				Signer<SignedTransactionRequest<?>> signer = signatureOfPayer.getSigner(payerAccount.keys(passwordOfPayerAsString, signatureOfPayer).getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 				this.request = mkRequest(payer, signer, balance);
 				StorageReference referenceOfNewAccount = executeRequest();
-				TransactionReference transaction = computeTransaction(request);
+				TransactionReference transaction = referenceOfNewAccount.getTransaction();
 				Optional<Path> file = dealWithBindingOfKeysToNewAccount(referenceOfNewAccount);
-				GasCounter gasCosts = computeGasCosts(remote, request);
+				GasCost gasCosts = computeGasCosts(remote, transaction);
 				reportOutput(transaction, referenceOfNewAccount, file, gasCosts);
 			}
 			finally {
@@ -274,9 +274,9 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 				this.gasPrice = determineGasPrice(remote);
 				this.request = mkRequest(balance);
 				StorageReference referenceOfNewAccount = executeRequest();
-				TransactionReference transaction = computeTransaction(request);
+				TransactionReference transaction = referenceOfNewAccount.getTransaction();
 				Optional<Path> file = dealWithBindingOfKeysToNewAccount(referenceOfNewAccount);
-				GasCounter gasCosts = computeGasCosts(remote, request);
+				GasCost gasCosts = computeGasCosts(remote, transaction);
 				reportOutput(transaction, referenceOfNewAccount, file, gasCosts);
 			}
 			finally {
@@ -433,7 +433,7 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 		/**
 		 * Builds the output of the command.
 		 */
-		protected AbstractAccountCreationOutput(TransactionReference transaction, StorageReference account, Optional<Path> file, GasCounter gasCounter) {
+		protected AbstractAccountCreationOutput(TransactionReference transaction, StorageReference account, Optional<Path> file, GasCost gasCounter) {
 			this.transaction = transaction;
 			this.account = account;
 			this.file = file;
