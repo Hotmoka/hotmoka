@@ -22,9 +22,9 @@ import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**
- * The JSON representation of the output of the {@code moka disk init} command.
+ * The JSON representation of the output of the {@code moka nodes disk init} command.
  */
-public abstract class NodesDiskInitOutputJson extends NodesInitOutputJson implements JsonRepresentation<NodesDiskInitOutput> {
+public abstract class NodesDiskInitOutputJson extends NodeInitOutputJson implements JsonRepresentation<NodesDiskInitOutput> {
 
 	protected NodesDiskInitOutputJson(NodesDiskInitOutput output) {
 		super(output);

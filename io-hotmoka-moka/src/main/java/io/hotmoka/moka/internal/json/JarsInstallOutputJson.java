@@ -23,7 +23,7 @@ import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**
- * The JSON representation of the output of the {@code jars install} command.
+ * The JSON representation of the output of the {@code moka jars install} command.
  */
 public class JarsInstallOutputJson extends GasCostOutputJson implements JsonRepresentation<JarsInstallOutput> {
 	private final TransactionReferences.Json jar;

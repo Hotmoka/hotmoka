@@ -24,11 +24,11 @@ import io.hotmoka.node.StorageValues;
 /**
  * The JSON representation of the output of a command that initializes a new Hotmoka node.
  */
-public abstract class NodesInitOutputJson {
+public abstract class NodeInitOutputJson {
 	private final URI uri;
 	private final StorageValues.Json gamete;
 
-	protected NodesInitOutputJson(NodeInitOutput output) {
+	protected NodeInitOutputJson(NodeInitOutput output) {
 		this.uri = output.getURI();
 		this.gamete = new StorageValues.Json(output.getGamete());
 	}

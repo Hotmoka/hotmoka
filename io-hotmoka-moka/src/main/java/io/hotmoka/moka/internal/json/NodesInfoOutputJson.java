@@ -23,7 +23,7 @@ import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**
- * The JSON representation of the output of the {@code moka nodes config show} command.
+ * The JSON representation of the output of the {@code moka nodes info} command.
  */
 public abstract class NodesInfoOutputJson implements JsonRepresentation<NodesInfoOutput> {
 	private final NodeInfos.Json info;

@@ -27,9 +27,9 @@ import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**
- * The JSON representation of the output of the {@code moka tendermint init} command.
+ * The JSON representation of the output of the {@code moka nodes tendermint init} command.
  */
-public abstract class NodesTendermintInitOutputJson extends NodesInitOutputJson implements JsonRepresentation<NodesTendermintInitOutput> {
+public abstract class NodesTendermintInitOutputJson extends NodeInitOutputJson implements JsonRepresentation<NodesTendermintInitOutput> {
 	private final ValidatorDescriptionJson[] validators;
 
 	protected NodesTendermintInitOutputJson(NodesTendermintInitOutput output) {

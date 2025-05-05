@@ -23,7 +23,7 @@ import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**
- * The JSON representation of the output of the {@code moka keys export} command.
+ * The JSON representation of the output of the {@code moka keys import} command.
  */
 public abstract class KeysImportOutputJson implements JsonRepresentation<KeysImportOutput> {
 	private final String file;

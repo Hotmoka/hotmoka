@@ -24,9 +24,9 @@ import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**
- * The JSON representation of the output of the {@code moka mokamint init} command.
+ * The JSON representation of the output of the {@code moka nodes mokamint init} command.
  */
-public abstract class NodesMokamintInitOutputJson extends NodesInitOutputJson implements JsonRepresentation<NodesMokamintInitOutput> {
+public abstract class NodesMokamintInitOutputJson extends NodeInitOutputJson implements JsonRepresentation<NodesMokamintInitOutput> {
 	private final URI uriMokamintPublic;
 	private final URI uriMokamintRestricted;
 

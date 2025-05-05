@@ -30,7 +30,7 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.moka.api.NodeInitOutput;
 import io.hotmoka.moka.internal.converters.SignatureOptionConverter;
-import io.hotmoka.moka.internal.json.NodesInitOutputJson;
+import io.hotmoka.moka.internal.json.NodeInitOutputJson;
 import io.hotmoka.node.api.nodes.ConsensusConfigBuilder;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
@@ -189,7 +189,7 @@ public abstract class AbstractNodeInit extends AbstractMokaCommand {
 		 * @param json the JSON representation
 		 * @throws InconsistentJsonException if {@code json} is inconsistent
 		 */
-		public AbstractNodeInitOutput(NodesInitOutputJson json) throws InconsistentJsonException {
+		public AbstractNodeInitOutput(NodeInitOutputJson json) throws InconsistentJsonException {
 			this.gamete = Objects.requireNonNull(json.getGamete(), "gamete cannot be null", InconsistentJsonException::new).unmap()
 				.asReference(value -> new InconsistentJsonException("The reference to the gamete must be a storage reference, not a " + value.getClass().getName()));
 			this.uri = Objects.requireNonNull(json.getURI(), "uri cannot be null", InconsistentJsonException::new);

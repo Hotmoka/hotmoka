@@ -25,7 +25,7 @@ import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**
- * The JSON representation of the output of the {@code accounts show} command.
+ * The JSON representation of the output of the {@code moka accounts show} command.
  */
 public abstract class AccountsShowOutputJson implements JsonRepresentation<AccountsShowOutput> {
 	private final BigInteger balance;
