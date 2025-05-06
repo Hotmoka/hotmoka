@@ -26,13 +26,11 @@ import java.security.KeyPair;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.SignatureException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.cli.CommandException;
-import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.SignatureAlgorithms;
@@ -42,7 +40,6 @@ import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.helpers.api.GasCost;
 import io.hotmoka.moka.api.AccountCreationOutput;
-import io.hotmoka.moka.internal.AbstractGasCostCommand.AbstractGasCostCommandOutput;
 import io.hotmoka.moka.internal.converters.StorageReferenceOfAccountOptionConverter;
 import io.hotmoka.moka.internal.json.AccountCreationOutputJson;
 import io.hotmoka.node.Accounts;
@@ -72,7 +69,7 @@ import picocli.CommandLine.Parameters;
 /**
  * Shared code for the creation of an account.
  */
-public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
+public abstract class AbstractAccountCreation extends AbstractGasCostCommand {
 
 	@Parameters(description = "the initial balance of the new account; this will be deduced from the balance of the payer", defaultValue = "0")
 	private BigInteger balance;
@@ -89,7 +86,7 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 	@Option(names = "--password-of-payer", description = "the password of the payer; this is not used if the payer is the faucet", interactive = true, defaultValue = "")
 	private char[] passwordOfPayer;
 
-	@ArgGroup(exclusive = true, multiplicity = "1")
+	@ArgGroup(exclusive = true, multiplicity = "1", heading = "The public key of the new account must be specified in either of these two alternative ways:\n")
 	private PublicKeyIdentifier publicKeyIdentifier;
 
 	@Option(names = "--password", description = "the password of the key pair specified through --keys", interactive = true, defaultValue = "")
@@ -97,45 +94,6 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 
 	@Option(names = "--yes", description = "assume yes when asked for confirmation; this is implied if --json is used")
 	private boolean yes;
-
-	/**
-	 * The alternative ways of specifying the public key of the new account.
-	 */
-	private static class PublicKeyIdentifier {
-		
-		@Option(names = "--key", description = "the Base58-encoded public key of the new account")
-		private String key;
-	
-		@Option(names = "--keys", description = "the key pair file of the new account")
-	    private Path keys;
-
-		/**
-		 * Yields the public key from this identifier.
-		 * 
-		 * @param signatureOfNewAccount the signature algorithm of the public key
-		 * @param passwordOfNewAccount the password of the key pair of the new account
-		 * @return the public key
-		 * @throws CommandException if some option is incorrect
-		 */
-		private PublicKey getPublicKey(SignatureAlgorithm signatureOfNewAccount, String passwordOfNewAccount) throws CommandException {
-			if (key != null) {
-				try {
-					return signatureOfNewAccount.publicKeyFromEncoding(Base58.fromBase58String(key, message -> new CommandException("The public key specified by --key is not in Base58 format")));
-				}
-				catch (InvalidKeySpecException e) {
-					throw new CommandException("The public key specified by --key is invalid for the signature algorithm " + signatureOfNewAccount, e);
-				}
-			}
-			else {
-				try {
-					return Entropies.load(keys).keys(passwordOfNewAccount, signatureOfNewAccount).getPublic();
-				}
-				catch (IOException e) {
-					throw new CommandException("Cannot access file \"" + keys + "\"!", e);
-				}
-			}
-		}
-	}
 
 	@Override
 	protected final void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
@@ -206,7 +164,7 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 				this.signatureOfPayer = determineSignatureOf(payer, remote);
 				this.publicKeyOfNewAccountBase64 = mkPublicKeyOfNewAccountBase64(signatureOfNewAccount, publicKeyOfNewAccount);
 				this.eoaType = getEOAType(signatureOfNewAccount);
-				this.gasLimit = computeProposedGas(signatureOfNewAccount, signatureOfPayer);
+				this.gasLimit = determineGasLimit(() -> gasLimitHeuristic(signatureOfNewAccount, signatureOfPayer));
 				this.gasPrice = determineGasPrice(remote);
 				askForConfirmation("create the new account", gasLimit, gasPrice, yes || json());
 				this.nonce = determineNonceOf(payer, remote);
@@ -270,7 +228,7 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 				this.publicKetOfNewAccountBase64 = mkPublicKeyOfNewAccountBase64(signatureOfNewAccount, publicKeyOfNewAccount);
 				this.signatureOfFaucet = SignatureAlgorithms.empty(); // we use an empty signature algorithm, since the faucet is unsigned
 				this.faucetMethod = getFaucetMethod(signatureOfNewAccount, eoaType);
-				this.proposedGas = computeProposedGas(signatureOfNewAccount, signatureOfFaucet);
+				this.proposedGas = determineGasLimit(() -> gasLimitHeuristic(signatureOfNewAccount, signatureOfFaucet));
 				this.gasPrice = determineGasPrice(remote);
 				this.request = mkRequest(balance);
 				StorageReference referenceOfNewAccount = executeRequest();
@@ -329,7 +287,7 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 		}
 	}
 
-	private BigInteger computeProposedGas(SignatureAlgorithm signatureOfNewAccount, SignatureAlgorithm signatureOfPayer) throws CommandException {
+	private BigInteger gasLimitHeuristic(SignatureAlgorithm signatureOfNewAccount, SignatureAlgorithm signatureOfPayer) throws CommandException {
 		switch (signatureOfNewAccount.getName()) {
 		case "ed25519":
 			return _100_000.add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
@@ -355,14 +313,16 @@ public abstract class AbstractAccountCreation extends AbstractMokaRpcCommand {
 	}
 
 	private Optional<Path> dealWithBindingOfKeysToNewAccount(StorageReference referenceOfNewAccount) throws CommandException {
-		if (publicKeyIdentifier.keys != null) {
+		Optional<Path> maybeKeys = publicKeyIdentifier.getPathOfKeyPair();
+
+		if (maybeKeys.isPresent()) {
 			Entropy entropy;
 
 			try {
-				entropy = Entropies.load(publicKeyIdentifier.keys);
+				entropy = Entropies.load(maybeKeys.get());
 			}
 			catch (IOException e) {
-				throw new CommandException("Cannot access file \"" + publicKeyIdentifier.keys + "\"!", e);
+				throw new CommandException("Cannot access file \"" + maybeKeys.get() + "\"!", e);
 			}
 
 			var newAccount = Accounts.of(entropy, referenceOfNewAccount);

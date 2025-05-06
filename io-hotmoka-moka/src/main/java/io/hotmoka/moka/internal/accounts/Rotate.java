@@ -16,20 +16,27 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.accounts;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.net.URI;
+import java.nio.file.Path;
 import java.security.KeyPair;
 import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.cli.CommandException;
+import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.api.Entropy;
+import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.moka.internal.AbstractGasCostCommand;
+import io.hotmoka.moka.internal.PublicKeyIdentifier;
+import io.hotmoka.moka.internal.converters.StorageReferenceOfAccountOptionConverter;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
@@ -45,35 +52,39 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.remote.RemoteNodes;
 import io.hotmoka.node.remote.api.RemoteNode;
+import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "rotate",
-	description = "Rotate the key of an account.",
+	description = "Rotate the public key of an account.",
 	showDefaultValues = true)
 public class Rotate extends AbstractGasCostCommand {
 
-	@Parameters(index = "0", description = "the account whose key gets replaced")
-    private String account;
+	@Parameters(index = "0", description = "the account whose public key gets replaced", converter = StorageReferenceOfAccountOptionConverter.class)
+    private StorageReference account;
 
-	@Option(names = { "--password-of-account" }, description = "the password of the account; if not specified, it will be asked interactively")
-	private String passwordOfAccount;
+	@ArgGroup(exclusive = true, multiplicity = "1", heading = "The new public key of the account must be specified in either of these two alternative ways:\n")
+	private PublicKeyIdentifier publicKeyIdentifier;
 
-	@Option(names = "--classpath", description = "the classpath used to interpret the account", defaultValue = "the classpath of the account")
+	@Option(names = "--password", description = "the password of the new key pair of the account, if --keys is specified", interactive = true, defaultValue = "")
+    private char[] password;
+
+	@Option(names = "--payer", description = "the account that pays for rotating the key; if missing, it will be assumed to coincide with the account itself", converter = StorageReferenceOfAccountOptionConverter.class)
+	private StorageReference payer;
+
+	@Option(names = "--password-of-payer", description = "the password of the payer account, if --payer is specified", interactive = true, defaultValue = "")
+    private char[] passwordOfPayer;
+
+	@Option(names = "--dir", description = "the path of the directory where the current key pairs of the account and of the payer can be found", defaultValue = "")
+	private Path dir;
+
+	@Option(names = "--output-dir", description = "the path of the directory where the new key pair of the account will be written", defaultValue = "")
+	private Path outputDir;
+
+	@Option(names = "--classpath", description = "the classpath used for the rotation transaction; if missing, the transaction that created the account will be used")
     private String classpath;
-
-	@Option(names = { "--gas-price" }, description = "the gas price offered for the rotation", defaultValue = "the current price")
-	private String gasPrice;
-
-	@Option(names = { "--gas-limit" }, description = "the gas limit used for the rotation", defaultValue = "500000") 
-	private BigInteger gasLimit;
-
-	@Option(names = { "--interactive" }, description = "run in interactive mode", defaultValue = "true") 
-	private boolean interactive;
-
-	@Option(names = { "--print-costs" }, description = "print the incurred gas costs", defaultValue = "true") 
-	private boolean printCosts;
 
 	@Override
 	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {

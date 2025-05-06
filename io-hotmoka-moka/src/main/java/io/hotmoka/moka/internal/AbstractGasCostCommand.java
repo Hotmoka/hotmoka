@@ -17,17 +17,79 @@ limitations under the License.
 package io.hotmoka.moka.internal;
 
 import java.math.BigInteger;
+import java.util.concurrent.TimeoutException;
 
+import io.hotmoka.cli.CommandException;
 import io.hotmoka.exceptions.Objects;
+import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.api.GasCost;
 import io.hotmoka.moka.api.GasCostOutput;
 import io.hotmoka.moka.internal.json.GasCostOutputJson;
+import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
+import picocli.CommandLine.Option;
 
 /**
  * Shared implementation of the commands that report their gas cost in their output.
  */
 public abstract class AbstractGasCostCommand extends AbstractMokaRpcCommand {
+
+	@Option(names = "--gas-limit", description = "the gas limit used for the transaction; if missing, it will be determined through a heuristic") 
+	private BigInteger gasLimit;
+
+	@Option(names = "--gas-price", description = "the gas price used for the transaction; if missing, the current gas price of the network will be used") 
+	private BigInteger gasPrice;
+
+	/**
+	 * Yields the gas limit to use for the transaction.
+	 * 
+	 * @param defaultGasLimit the default gas limit to use if the {@code --gas-limit} optin is not specified
+	 * @return the value specified through {@code --gas-limit}, or that provided by the {@code defaultGasLimit} otherwise
+	 * @throws CommandException if the gas limit cannot be determined
+	 */
+	protected BigInteger determineGasLimit(GasLimitHeuristic heuristic) throws CommandException {
+		return gasLimit != null ? gasLimit : heuristic.apply();
+	}
+
+	/**
+	 * A heuristic about the gas limit to use for the transaction of this command.
+	 */
+	protected interface GasLimitHeuristic {
+
+		/**
+		 * Yields the gas limit to use as heuristic for the transaction of the command.
+		 * 
+		 * @return the gas limit to use as heuristic for the transaction of the command
+		 * @throws CommandException if the heuristic cannot be computed
+		 */
+		BigInteger apply() throws CommandException;
+	}
+
+	/**
+	 * Yields the gas price to offer for the transaction.
+	 * 
+	 * @param remote the node where the transaction will be executed
+	 * @return the gas price to offer for the transaction
+	 * @throws CommandException if the gas price cannot be determined
+	 * @throws NodeException if the node is misbehaving
+	 * @throws TimeoutException if the operation times out
+	 * @throws InterruptedException if the operation is interrupted while waiting for a result
+	 */
+	protected BigInteger determineGasPrice(RemoteNode remote) throws CommandException, NodeException, TimeoutException, InterruptedException {
+		if (gasPrice != null)
+			return gasPrice;
+
+		try {
+			return GasHelpers.of(remote).getGasPrice();
+		}
+		catch (CodeExecutionException | TransactionRejectedException | TransactionException e) {
+			throw new CommandException("Cannot determine the current gas price!", e);
+		}
+	}
 
 	/**
 	 * The output of this command.

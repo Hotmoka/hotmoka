@@ -30,7 +30,6 @@ import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.GasCosts;
-import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.helpers.api.GasCost;
@@ -185,15 +184,6 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 			return gctr.getClasspath();
 		else
 			throw new CommandException("Object " + object + " has been unexpectedly created with a " + request.getClass().getName());
-	}
-
-	protected BigInteger determineGasPrice(RemoteNode remote) throws CommandException, NodeException, TimeoutException, InterruptedException {
-		try {
-			return GasHelpers.of(remote).getGasPrice();
-		}
-		catch (CodeExecutionException | TransactionRejectedException | TransactionException e) {
-			throw new CommandException("Cannot determine the current gas price!", e);
-		}
 	}
 
 	protected BigInteger gasForTransactionWhosePayerHasSignature(SignatureAlgorithm signature) {

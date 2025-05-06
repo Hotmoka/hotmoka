@@ -64,17 +64,11 @@ public class Install extends AbstractGasCostCommand {
 	@Option(names = "--dir", description = "the path of the directory where the key pair of the payer can be found", defaultValue = "")
 	private Path dir;
 
-	@Option(names = "--password", description = "the password of the key pair of the payer account", interactive = true, defaultValue = "")
-    private char[] password;
+	@Option(names = "--password-of-payer", description = "the password of the key pair of the payer account", interactive = true, defaultValue = "")
+    private char[] passwordOfPayer;
 
 	@Option(names = "--libs", description = "the references of the transactions that already installed the dependencies of the jar; if missing, takamakaCode will be used", converter = TransactionReferenceOptionConverter.class)
 	private List<TransactionReference> libs;
-
-	@Option(names = "--gas-limit", description = "the gas limit used for the installation; if missing, it will be determined through a heuristic") 
-	private BigInteger gasLimit;
-
-	@Option(names = "--gas-price", description = "the gas price used for the installation; if missing, the current gas price of the network will be used") 
-	private BigInteger gasPrice;
 
 	@Option(names = "--yes", description = "assume yes when asked for confirmation; this is implied if --json is used")
 	private boolean yes;
@@ -83,13 +77,13 @@ public class Install extends AbstractGasCostCommand {
 	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, NodeException {
 		String chainId = remote.getConfig().getChainId();
 		byte[] bytesOfJar = readBytesOfJar();
-		String passwordOfPayerAsString = new String(password);
+		String passwordOfPayerAsString = new String(passwordOfPayer);
 		TransactionReference[] dependencies = computeDependencies(remote);
 		var payerAccount = mkPayerAccount(payer, dir);
 		var signatureOfPayer = determineSignatureOf(payer, remote);
 		Signer<SignedTransactionRequest<?>> signer = signatureOfPayer.getSigner(payerAccount.keys(passwordOfPayerAsString, signatureOfPayer).getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 		TransactionReference classpath = getClasspathAtCreationTimeOf(payer, remote);
-		BigInteger gasLimit = computeGasLimit(bytesOfJar, signatureOfPayer);
+		BigInteger gasLimit = determineGasLimit(() -> gasLimitHeuristic(bytesOfJar, signatureOfPayer));
 		BigInteger gasPrice = determineGasPrice(remote);
 		askForConfirmation("install the jar", gasLimit, gasPrice, yes || json());
 		BigInteger nonce = determineNonceOf(payer, remote);
@@ -97,60 +91,6 @@ public class Install extends AbstractGasCostCommand {
 		TransactionReference transaction = executeRequest(remote, request);
 		var gasCost = computeIncurredGasCost(remote, request);
 		report(json(), new Output(transaction, gasCost, gasPrice), JarsInstallOutputs.Encoder::new);
-	}
-
-	/**
-	 * The output of this command.
-	 */
-	public static class Output extends AbstractGasCostCommand.AbstractGasCostCommandOutput implements JarsInstallOutput {
-
-		/**
-		 * The reference of the jar installed in the node.
-		 */
-		private final TransactionReference jar;
-
-		/**
-		 * Builds the output of the command.
-		 */
-		private Output(TransactionReference jar, GasCost gasCost, BigInteger gasPrice) {
-			super(gasCost, gasPrice);
-
-			this.jar = jar;
-		}
-
-		/**
-		 * Builds the output of the command from its JSON representation.
-		 * 
-		 * @param json the JSON representation
-		 * @throws InconsistentJsonException if {@code json} is inconsistent
-		 */
-		public Output(JarsInstallOutputJson json) throws InconsistentJsonException {
-			super(json);
-
-			this.jar = Objects.requireNonNull(json.getJar(), "jar cannot be null", InconsistentJsonException::new).unmap();
-		}
-
-		@Override
-		public TransactionReference getTransaction() {
-			return jar;
-		}
-
-		@Override
-		public TransactionReference getJar() {
-			return jar;
-		}
-
-		@Override
-		public String toString() {
-			var sb = new StringBuilder();
-
-			sb.append("The jar has been installed at " + jar + " by transaction " + asTransactionReference(jar) + ".\n");
-			sb.append("\n");
-
-			toStringGasCost(sb);
-
-			return sb.toString();
-		}
 	}
 
 	private TransactionReference executeRequest(RemoteNode remote, JarStoreTransactionRequest request) throws NodeException, TimeoutException, InterruptedException, CommandException {
@@ -184,8 +124,8 @@ public class Install extends AbstractGasCostCommand {
 		}
 	}
 
-	private BigInteger computeGasLimit(byte[] bytes, SignatureAlgorithm signatureOfPayer) {
-		return gasLimit != null ? gasLimit : _100_000.add(gasForTransactionWhosePayerHasSignature(signatureOfPayer)).add(BigInteger.valueOf(200).multiply(BigInteger.valueOf(bytes.length)));
+	private BigInteger gasLimitHeuristic(byte[] bytes, SignatureAlgorithm signatureOfPayer) {
+		return _100_000.add(gasForTransactionWhosePayerHasSignature(signatureOfPayer)).add(BigInteger.valueOf(200).multiply(BigInteger.valueOf(bytes.length)));
 	}
 
 	private TransactionReference[] computeDependencies(RemoteNode remote) throws NodeException, TimeoutException, InterruptedException {
@@ -201,6 +141,60 @@ public class Install extends AbstractGasCostCommand {
 		}
 		catch (IOException e) {
 			throw new CommandException("Cannot access the jar file!", e);
+		}
+	}
+
+	/**
+	 * The output of this command.
+	 */
+	public static class Output extends AbstractGasCostCommand.AbstractGasCostCommandOutput implements JarsInstallOutput {
+	
+		/**
+		 * The reference of the jar installed in the node.
+		 */
+		private final TransactionReference jar;
+	
+		/**
+		 * Builds the output of the command.
+		 */
+		private Output(TransactionReference jar, GasCost gasCost, BigInteger gasPrice) {
+			super(gasCost, gasPrice);
+	
+			this.jar = jar;
+		}
+	
+		/**
+		 * Builds the output of the command from its JSON representation.
+		 * 
+		 * @param json the JSON representation
+		 * @throws InconsistentJsonException if {@code json} is inconsistent
+		 */
+		public Output(JarsInstallOutputJson json) throws InconsistentJsonException {
+			super(json);
+	
+			this.jar = Objects.requireNonNull(json.getJar(), "jar cannot be null", InconsistentJsonException::new).unmap();
+		}
+	
+		@Override
+		public TransactionReference getTransaction() {
+			return jar;
+		}
+	
+		@Override
+		public TransactionReference getJar() {
+			return jar;
+		}
+	
+		@Override
+		public String toString() {
+			var sb = new StringBuilder();
+	
+			sb.append("The jar has been installed at " + jar + " by transaction " + asTransactionReference(jar) + ".\n");
+			sb.append("\n");
+	
+			toStringGasCost(sb);
+	
+			return sb.toString();
 		}
 	}
 }
