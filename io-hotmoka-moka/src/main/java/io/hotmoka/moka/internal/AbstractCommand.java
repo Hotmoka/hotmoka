@@ -198,11 +198,6 @@ public abstract class AbstractCommand implements Runnable {
         }
     }
 
-    protected void checkPublicKey(String s) {
-    	if (!looksLikePublicKey(s))
-			throw new IllegalArgumentException("you must specify a Base58-encoded key");
-    }
-
     protected void checkStorageReference(String s) {
 		if (!looksLikeStorageReference(s))
 			throw new IllegalArgumentException("you should specify a storage reference: 64 hex digits followed by # and a progressive number");

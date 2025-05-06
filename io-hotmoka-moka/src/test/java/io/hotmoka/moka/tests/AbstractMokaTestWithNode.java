@@ -75,8 +75,8 @@ public abstract class AbstractMokaTestWithNode extends AbstractMokaTest {
 			.setInitialGasPrice(BigInteger.valueOf(100L))
 			.setSignatureForRequests(signature)
 			.setChainId("mryia")
-			.setInitialSupply(BigInteger.valueOf(1000000000000000000L))
-			.setFinalSupply(BigInteger.valueOf(2000000000000000000L))
+			.setInitialSupply(BigInteger.valueOf(4000000000000000000L))
+			.setFinalSupply(BigInteger.valueOf(8000000000000000000L))
 			.setPublicKeyOfGamete(keysOfGamete.getPublic())
 			.build();
 
@@ -87,7 +87,7 @@ public abstract class AbstractMokaTestWithNode extends AbstractMokaTest {
 		entropy.dump(dir.resolve(gamete + ".pem")); // we save the entropy in a file named as the address of the gamete, that is, as an account
 		NodeServices.of(node, PORT);
 		// the faucet is opened at initialization time, but we still need to set its threshold
-		MokaNew.nodesFaucet("100000 --dir=" + dir + " --password=" + passwordOfGamete + " --uri=ws://localhost:" + PORT);
+		MokaNew.nodesFaucet("10000000000 --dir=" + dir + " --password=" + passwordOfGamete + " --uri=ws://localhost:" + PORT);
 	}
 	
 	@AfterAll

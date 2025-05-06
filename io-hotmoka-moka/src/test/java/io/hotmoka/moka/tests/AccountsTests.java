@@ -29,6 +29,7 @@ import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.moka.AccountsCreateOutputs;
+import io.hotmoka.moka.AccountsRotateOutputs;
 import io.hotmoka.moka.AccountsShowOutputs;
 import io.hotmoka.moka.KeysCreateOutputs;
 import io.hotmoka.moka.MokaNew;
@@ -132,9 +133,9 @@ public class AccountsTests extends AbstractMokaTestWithNode {
 		String passwordOfNewAccount = "abcde";
 
 		// first we create a key pair
-		var keyCreateOutputs = KeysCreateOutputs.from(MokaNew.keysCreate("--signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir));
+		var keysCreateOutput = KeysCreateOutputs.from(MokaNew.keysCreate("--signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir));
 		// then we create a new account with that key pair, and let the faucet pay for it
-		var accountsCreateOutput = AccountsCreateOutputs.from(MokaNew.accountsCreate("12345 --keys=" + keyCreateOutputs.getFile() + " --signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
+		var accountsCreateOutput = AccountsCreateOutputs.from(MokaNew.accountsCreate("12345 --keys=" + keysCreateOutput.getFile() + " --signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
 		// and finally ask to show the account
 		var accountsShowOutput = AccountsShowOutputs.from(MokaNew.accountsShow(accountsCreateOutput.getAccount() + " --json --uri=ws://localhost:" + PORT));
 
@@ -144,5 +145,46 @@ public class AccountsTests extends AbstractMokaTestWithNode {
 		byte[] encodingOfPublicKeyOfNewAccount = signature.encodingOf(keyPairOfNewAccount.getPublic());
 		assertEquals(Base64.toBase64String(encodingOfPublicKeyOfNewAccount), accountsShowOutput.getPublicKeyBase64());
 		assertEquals(Base58.toBase58String(encodingOfPublicKeyOfNewAccount), accountsShowOutput.getPublicKeyBase58());
+	}
+
+	@Test
+	@DisplayName("[moka accounts rotate] the rotation of the keys of an account works")
+	public void rotationOfKeysOfAccountWorks() throws Exception {
+		var signature = SignatureAlgorithms.sha256dsa();
+		String passwordOfFirstKeyPair = "abcde";
+		String passwordOfSecondKeyPair = "caramba";
+
+		// create a first key pair: we provide explicit file names in order to avoid name clashes for long keys that start with the same prefix
+		var firstKeyCreateOutput = KeysCreateOutputs.from(MokaNew.keysCreate("--signature=" + signature + " --password=" + passwordOfFirstKeyPair + " --name first.pem --json --output-dir=" + dir));
+		// create a second key pair
+		var secondKeyCreateOutput = KeysCreateOutputs.from(MokaNew.keysCreate("--signature=" + signature + " --password=" + passwordOfSecondKeyPair + " --name second.pem --json --output-dir=" + dir));
+		// create a new account with the first key pair, letting the faucet pay for it
+		var accountsCreateOutput = AccountsCreateOutputs.from(MokaNew.accountsCreate("50000000 --keys=" + firstKeyCreateOutput.getFile() + " --signature=" + signature + " --password=" + passwordOfFirstKeyPair + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
+		// we show the account
+		var accountsShowOutput = AccountsShowOutputs.from(MokaNew.accountsShow(accountsCreateOutput.getAccount() + " --json --uri=ws://localhost:" + PORT));
+		// the signature algorithm of the account is as required
+		assertEquals(signature, accountsShowOutput.getSignature());
+		// the public key of the account is that of the first key pair
+		assertEquals(firstKeyCreateOutput.getPublicKeyBase64(), accountsShowOutput.getPublicKeyBase64());
+		{
+			// the public key in the key pair of the account is that of the first key pair
+			var keyPairOfAccount = Entropies.load(accountsCreateOutput.getFile().get()).keys(passwordOfFirstKeyPair, signature);
+			byte[] encodingOfPublicKeyOfAccount = signature.encodingOf(keyPairOfAccount.getPublic());
+			assertEquals(Base64.toBase64String(encodingOfPublicKeyOfAccount), accountsShowOutput.getPublicKeyBase64());
+		}
+		// rotate the key pair of the account with the second key pair
+		var accountsRotateOutput = AccountsRotateOutputs.from(MokaNew.accountsRotate(accountsCreateOutput.getAccount() + " --dir=" + dir + " --password-of-account=" + passwordOfFirstKeyPair + " --new-password-of-account=" + passwordOfSecondKeyPair + " --json --output-dir=" + dir + " --keys=" + secondKeyCreateOutput.getFile() + " --uri=ws://localhost:" + PORT));
+		// we show the account again
+		var accountsShowOutputAgain = AccountsShowOutputs.from(MokaNew.accountsShow(accountsCreateOutput.getAccount() + " --json --uri=ws://localhost:" + PORT));
+		// the signature algorithm of the account is still as required
+		assertEquals(signature, accountsShowOutputAgain.getSignature());
+		// the public key of the account is that of the second key pair now
+		assertEquals(secondKeyCreateOutput.getPublicKeyBase64(), accountsShowOutputAgain.getPublicKeyBase64());
+		{
+			// the public key in the new key pair of the account is that of the second key pair now
+			var keyPairOfAccount = Entropies.load(accountsRotateOutput.getFile().get()).keys(passwordOfSecondKeyPair, signature);
+			byte[] encodingOfPublicKeyOfAccount = signature.encodingOf(keyPairOfAccount.getPublic());
+			assertEquals(Base64.toBase64String(encodingOfPublicKeyOfAccount), accountsShowOutputAgain.getPublicKeyBase64());
+		}
 	}
 }
