@@ -35,11 +35,9 @@ import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
 import io.hotmoka.moka.internal.converters.SignatureOptionConverter;
 import io.hotmoka.moka.internal.converters.StorageReferenceOfAccountOptionConverter;
 import io.hotmoka.moka.internal.json.KeysBindOutputJson;
-import io.hotmoka.node.Accounts;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.api.Account;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
@@ -75,7 +73,9 @@ public class Bind extends AbstractMokaRpcCommand {
 
 	@Override
 	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
-		createAccountFile(reference != null ? verifyPublicKey(remote) : getFromAccountsLedger(remote));
+		StorageReference r = reference != null ? verifyPublicKey(remote) : getFromAccountsLedger(remote);
+		Path file = bindKeysToAccount(key, r, outputDir);
+		report(json(), new Output(reference, file), KeysBindOutputs.Encoder::new);
 	}
 
 	/**
@@ -160,26 +160,6 @@ public class Bind extends AbstractMokaRpcCommand {
 		}
 	}
 
-	private void createAccountFile(StorageReference reference) throws CommandException {
-		Account account;
-		try {
-			account = Accounts.of(Entropies.load(key), reference);
-		}
-		catch (IOException e) {
-			throw new CommandException("Cannot read the file \"" + key + "\"", e);
-		}
-
-		Path file = outputDir.resolve(reference + ".pem");
-		try {
-			account.dump(file);
-		}
-		catch (IOException e) {
-			throw new CommandException("Cannot write the account information file", e);
-		}
-
-		report(json(), new Output(reference, file), KeysBindOutputs.Encoder::new);
-	}
-
 	/**
 	 * The output of this command.
 	 */
@@ -233,7 +213,7 @@ public class Bind extends AbstractMokaRpcCommand {
 
 		@Override
 		public String toString() {
-			return "The account information has been written into " + asPath(file) + ".\n";
+			return "The key pair of " + account + " has been saved as " + asPath(file) + ".\n";
 		}
 	}
 }

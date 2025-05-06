@@ -122,6 +122,11 @@ public abstract class MethodSignatures {
 	public final static NonVoidMethodSignature PUBLIC_KEY = AbstractMethodSignature.PUBLIC_KEY;
 
 	/**
+	 * The method {@code rotatePublicKey} of an account.
+	 */
+	public final static VoidMethodSignature ROTATE_PUBLIC_KEY = AbstractMethodSignature.ROTATE_PUBLIC_KEY;
+
+	/**
 	 * The method {@code nonce} of an account.
 	 */
 	public final static NonVoidMethodSignature NONCE = AbstractMethodSignature.NONCE;

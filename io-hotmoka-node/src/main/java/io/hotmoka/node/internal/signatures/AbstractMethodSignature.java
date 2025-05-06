@@ -132,6 +132,10 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 	public final static NonVoidMethodSignature PUBLIC_KEY = MethodSignatures.ofNonVoid(StorageTypes.ACCOUNT, "publicKey", StorageTypes.STRING);
 
 	/**
+	 * The method {@code rotatePublicKey} of an account.
+	 */
+	public final static VoidMethodSignature ROTATE_PUBLIC_KEY = MethodSignatures.ofVoid(StorageTypes.ACCOUNT, "rotatePublicKey", StorageTypes.STRING);
+	/**
 	 * The method {@code nonce} of an account.
 	 */
 	public final static NonVoidMethodSignature NONCE = MethodSignatures.ofNonVoid(StorageTypes.ACCOUNT, "nonce", StorageTypes.BIG_INTEGER);

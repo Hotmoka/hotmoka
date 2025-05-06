@@ -21,14 +21,18 @@ import java.math.BigInteger;
 import java.net.URI;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 
 import io.hotmoka.cli.AbstractRpcCommand;
 import io.hotmoka.cli.CommandException;
+import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.HashingAlgorithms;
+import io.hotmoka.crypto.api.Entropy;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.GasCosts;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
@@ -43,6 +47,7 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.CodeExecutionTransactionRequest;
 import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
+import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
@@ -138,7 +143,7 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 		}
 	}
 
-	protected GasCost computeGasCosts(RemoteNode remote, TransactionReference reference) throws CommandException, InterruptedException, NodeException, TimeoutException {
+	protected GasCost computeIncurredGasCost(RemoteNode remote, TransactionReference reference) throws CommandException, InterruptedException, NodeException, TimeoutException {
 		try {
 			return GasCosts.of(remote, reference);
 		}
@@ -147,13 +152,28 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 		}
 	}
 
-	protected Account mkPayerAccount(StorageReference reference, Path dir) throws CommandException {
+	protected Account mkAccount(StorageReference reference, Path dir) throws CommandException {
 		try {
 			return Accounts.of(reference, dir);
 		}
 		catch (IOException e) {
 			throw new CommandException("Cannot read the key pair of the " + reference + " : it was expected to be in file \"" + dir.resolve(reference.toString()) + ".pem\"", e);
 		}
+	}
+
+	/**
+	 * Yields the signer of a transaction paid by a given account, whose key pair can be found
+	 * in the given directory, uses the given signature algorithm and is unlocked by the given password.
+	 * 
+	 * @param account the storage reference of the account
+	 * @param dir the directory where the key pair of {@code account} can be found
+	 * @param signature the signature algorithm used by {@code account}
+	 * @param password the password of the key pair of {@code account}
+	 * @return the signer
+	 * @throws CommandException if the signer cannot be created
+	 */
+	protected Signer<SignedTransactionRequest<?>> mkSigner(StorageReference account, Path dir, SignatureAlgorithm signature, String password) throws CommandException {
+		return signature.getSigner(mkAccount(account, dir).keys(password, signature).getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 	}
 
 	/**
@@ -256,6 +276,49 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 		if (!skipped && !answerIsYes(asInteraction("Do you really want to " + goal + " spending up to "
 				+ gasUnits(gasLimit) + " at the price of " + panas(gasPrice) + " per unit (that is, up to " + panas(gasLimit.multiply(gasPrice)) + ") [Y/N] ")))
 			throw new CommandException("Stopped");
+	}
+
+	/**
+	 * Binds the key pair specified by the given identifier, if it exists, to the
+	 * given account, and saves the result inside the given directory.
+	 * 
+	 * @param publicKeyIdentifier the key identifier
+	 * @param account the account
+	 * @param dir the directory where the key pair must be saved, for the given {@code account}
+	 * @return the path where the key pair of {@code account} has been saved, if any; this is empty
+	 *         if {@code publicKeyIdentifier} used the --key option rather than the --keys option,
+	 *         because this method performs nothing in that case
+	 * @throws CommandException if the operation fails
+	 */
+	protected Optional<Path> bindKeysToAccount(PublicKeyIdentifier publicKeyIdentifier, StorageReference account, Path dir) throws CommandException {
+		Optional<Path> maybeKeys = publicKeyIdentifier.getPathOfKeyPair();
+
+		if (maybeKeys.isPresent())
+			return Optional.of(bindKeysToAccount(maybeKeys.get(), account, dir));
+		else
+			return Optional.empty();
+	}
+
+	protected Path bindKeysToAccount(Path keys, StorageReference account, Path dir) throws CommandException {
+		Entropy entropy;
+
+		try {
+			entropy = Entropies.load(keys);
+		}
+		catch (IOException e) {
+			throw new CommandException("Cannot access file \"" + keys + "\"!", e);
+		}
+
+		var newAccount = Accounts.of(entropy, account);
+		Path file = dir.resolve(newAccount + ".pem");
+		try {
+			newAccount.dump(file);
+		}
+		catch (IOException e) {
+			throw new CommandException("Cannot save the key pair of " + account + " in file \"" + newAccount + ".pem\"!");
+		}
+
+		return file;
 	}
 
 	protected static String panas(BigInteger cost) {

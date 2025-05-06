@@ -22,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 
@@ -75,22 +76,28 @@ public class Install extends AbstractGasCostCommand {
 
 	@Override
 	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, NodeException {
-		String chainId = remote.getConfig().getChainId();
-		byte[] bytesOfJar = readBytesOfJar();
 		String passwordOfPayerAsString = new String(passwordOfPayer);
-		TransactionReference[] dependencies = computeDependencies(remote);
-		var payerAccount = mkPayerAccount(payer, dir);
-		var signatureOfPayer = determineSignatureOf(payer, remote);
-		Signer<SignedTransactionRequest<?>> signer = signatureOfPayer.getSigner(payerAccount.keys(passwordOfPayerAsString, signatureOfPayer).getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
-		TransactionReference classpath = getClasspathAtCreationTimeOf(payer, remote);
-		BigInteger gasLimit = determineGasLimit(() -> gasLimitHeuristic(bytesOfJar, signatureOfPayer));
-		BigInteger gasPrice = determineGasPrice(remote);
-		askForConfirmation("install the jar", gasLimit, gasPrice, yes || json());
-		BigInteger nonce = determineNonceOf(payer, remote);
-		JarStoreTransactionRequest request = mkRequest(chainId, bytesOfJar, dependencies, signer, classpath, gasLimit, gasPrice, nonce);
-		TransactionReference transaction = executeRequest(remote, request);
-		var gasCost = computeIncurredGasCost(remote, request);
-		report(json(), new Output(transaction, gasCost, gasPrice), JarsInstallOutputs.Encoder::new);
+
+		try {
+			String chainId = remote.getConfig().getChainId();
+			byte[] bytesOfJar = readBytesOfJar();
+			TransactionReference[] dependencies = computeDependencies(remote);
+			var signatureOfPayer = determineSignatureOf(payer, remote);
+			Signer<SignedTransactionRequest<?>> signer = mkSigner(payer, dir, signatureOfPayer, passwordOfPayerAsString);
+			TransactionReference classpath = getClasspathAtCreationTimeOf(payer, remote);
+			BigInteger gasLimit = determineGasLimit(() -> gasLimitHeuristic(bytesOfJar, signatureOfPayer));
+			BigInteger gasPrice = determineGasPrice(remote);
+			askForConfirmation("install the jar", gasLimit, gasPrice, yes || json());
+			BigInteger nonce = determineNonceOf(payer, remote);
+			JarStoreTransactionRequest request = mkRequest(chainId, bytesOfJar, dependencies, signer, classpath, gasLimit, gasPrice, nonce);
+			TransactionReference transaction = executeRequest(remote, request);
+			var gasCost = computeIncurredGasCost(remote, request);
+			report(json(), new Output(transaction, gasCost, gasPrice), JarsInstallOutputs.Encoder::new);
+		}
+		finally {
+			passwordOfPayerAsString = null;
+			Arrays.fill(passwordOfPayer, ' ');
+		}
 	}
 
 	private TransactionReference executeRequest(RemoteNode remote, JarStoreTransactionRequest request) throws NodeException, TimeoutException, InterruptedException, CommandException {

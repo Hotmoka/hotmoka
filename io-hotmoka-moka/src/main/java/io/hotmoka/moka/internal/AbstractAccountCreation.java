@@ -16,14 +16,12 @@ limitations under the License.
 
 package io.hotmoka.moka.internal;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
-import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.SignatureException;
 import java.util.Arrays;
@@ -31,10 +29,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.cli.CommandException;
-import io.hotmoka.crypto.Base64;
-import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.SignatureAlgorithms;
-import io.hotmoka.crypto.api.Entropy;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.exceptions.Objects;
@@ -42,13 +37,11 @@ import io.hotmoka.helpers.api.GasCost;
 import io.hotmoka.moka.api.AccountCreationOutput;
 import io.hotmoka.moka.internal.converters.StorageReferenceOfAccountOptionConverter;
 import io.hotmoka.moka.internal.json.AccountCreationOutputJson;
-import io.hotmoka.node.Accounts;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.api.Account;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
@@ -142,8 +135,6 @@ public abstract class AbstractAccountCreation extends AbstractGasCostCommand {
 
 	private class CreationFromPayer {
 		private final RemoteNode remote;
-		private final Account payerAccount;
-		private final SignatureAlgorithm signatureOfPayer;
 		private final String publicKeyOfNewAccountBase64;
 		private final ClassType eoaType;
 		private final BigInteger gasLimit;
@@ -159,21 +150,19 @@ public abstract class AbstractAccountCreation extends AbstractGasCostCommand {
 
 			try {
 				SignatureAlgorithm signatureOfNewAccount = getSignatureAlgorithmOfNewAccount(remote);
-				PublicKey publicKeyOfNewAccount = publicKeyIdentifier.getPublicKey(signatureOfNewAccount, passwordOfNewAccountAsString);
-				this.payerAccount = mkPayerAccount(payer, dir);
-				this.signatureOfPayer = determineSignatureOf(payer, remote);
-				this.publicKeyOfNewAccountBase64 = mkPublicKeyOfNewAccountBase64(signatureOfNewAccount, publicKeyOfNewAccount);
+				SignatureAlgorithm signatureOfPayer = determineSignatureOf(payer, remote);
+				this.publicKeyOfNewAccountBase64 = publicKeyIdentifier.getPublicKeyBase64(signatureOfNewAccount, passwordOfNewAccountAsString);
 				this.eoaType = getEOAType(signatureOfNewAccount);
 				this.gasLimit = determineGasLimit(() -> gasLimitHeuristic(signatureOfNewAccount, signatureOfPayer));
 				this.gasPrice = determineGasPrice(remote);
 				askForConfirmation("create the new account", gasLimit, gasPrice, yes || json());
 				this.nonce = determineNonceOf(payer, remote);
-				Signer<SignedTransactionRequest<?>> signer = signatureOfPayer.getSigner(payerAccount.keys(passwordOfPayerAsString, signatureOfPayer).getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
+				Signer<SignedTransactionRequest<?>> signer = mkSigner(payer, dir, signatureOfPayer, passwordOfPayerAsString);
 				this.request = mkRequest(payer, signer, balance);
 				StorageReference referenceOfNewAccount = executeRequest();
-				Optional<Path> file = dealWithBindingOfKeysToNewAccount(referenceOfNewAccount);
-				GasCost gasCosts = computeGasCosts(remote, referenceOfNewAccount.getTransaction());
-				reportOutput(referenceOfNewAccount, file, gasCosts, gasPrice);
+				Optional<Path> file = bindKeysToAccount(publicKeyIdentifier, referenceOfNewAccount, outputDir);
+				GasCost gasCost = computeIncurredGasCost(remote, referenceOfNewAccount.getTransaction());
+				reportOutput(referenceOfNewAccount, file, gasCost, gasPrice);
 			}
 			finally {
 				passwordOfNewAccountAsString = null;
@@ -208,9 +197,9 @@ public abstract class AbstractAccountCreation extends AbstractGasCostCommand {
 	private class CreationFromFaucet {
 		private final RemoteNode remote;
 		private final StorageReference gamete;
-		private final String publicKetOfNewAccountBase64;
+		private final String publicKeyOfNewAccountBase64;
 		private final SignatureAlgorithm signatureOfFaucet;
-		private final BigInteger proposedGas;
+		private final BigInteger gasLimit;
 		private final BigInteger gasPrice;
 		private final InstanceMethodCallTransactionRequest request;
 		private final NonVoidMethodSignature faucetMethod;
@@ -223,18 +212,17 @@ public abstract class AbstractAccountCreation extends AbstractGasCostCommand {
 			try {
 				this.gamete = getGamete();
 				SignatureAlgorithm signatureOfNewAccount = getSignatureAlgorithmOfNewAccount(remote);
-				PublicKey publicKeyOfNewAccount = publicKeyIdentifier.getPublicKey(signatureOfNewAccount, passwordOfNewAccountAsString);
+				this.publicKeyOfNewAccountBase64 = publicKeyIdentifier.getPublicKeyBase64(signatureOfNewAccount, passwordOfNewAccountAsString);
 				ClassType eoaType = getEOAType(signatureOfNewAccount);
-				this.publicKetOfNewAccountBase64 = mkPublicKeyOfNewAccountBase64(signatureOfNewAccount, publicKeyOfNewAccount);
 				this.signatureOfFaucet = SignatureAlgorithms.empty(); // we use an empty signature algorithm, since the faucet is unsigned
 				this.faucetMethod = getFaucetMethod(signatureOfNewAccount, eoaType);
-				this.proposedGas = determineGasLimit(() -> gasLimitHeuristic(signatureOfNewAccount, signatureOfFaucet));
+				this.gasLimit = determineGasLimit(() -> gasLimitHeuristic(signatureOfNewAccount, signatureOfFaucet));
 				this.gasPrice = determineGasPrice(remote);
 				this.request = mkRequest(balance);
 				StorageReference referenceOfNewAccount = executeRequest();
-				Optional<Path> file = dealWithBindingOfKeysToNewAccount(referenceOfNewAccount);
-				GasCost gasCosts = computeGasCosts(remote, referenceOfNewAccount.getTransaction());
-				reportOutput(referenceOfNewAccount, file, gasCosts, gasPrice);
+				Optional<Path> file = bindKeysToAccount(publicKeyIdentifier, referenceOfNewAccount, outputDir);
+				GasCost gasCost = computeIncurredGasCost(remote, referenceOfNewAccount.getTransaction());
+				reportOutput(referenceOfNewAccount, file, gasCost, gasPrice);
 			}
 			finally {
 				passwordOfNewAccountAsString = null;
@@ -251,8 +239,8 @@ public abstract class AbstractAccountCreation extends AbstractGasCostCommand {
 				// we use a random nonce: although the nonce is not checked for calls to the faucet,
 				// this avoids the risk of the request being rejected because it is repeated
 				return TransactionRequests.instanceMethodCall
-						(signer, gamete, new BigInteger(64, new SecureRandom()), remote.getConfig().getChainId(), proposedGas, gasPrice, remote.getTakamakaCode(),
-						faucetMethod, gamete, StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKetOfNewAccountBase64));
+						(signer, gamete, new BigInteger(64, new SecureRandom()), remote.getConfig().getChainId(), gasLimit, gasPrice, remote.getTakamakaCode(),
+						faucetMethod, gamete, StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyOfNewAccountBase64));
 			}
 			catch (InvalidKeyException | SignatureException e) {
 				// the key has been created with the same (empty!) signature algorithm, thus it cannot be invalid
@@ -300,44 +288,6 @@ public abstract class AbstractAccountCreation extends AbstractGasCostCommand {
 		default:
 			throw new CommandException("Cannot create accounts with signature algorithm " + signatureOfNewAccount);
 		}
-	}
-
-	private static String mkPublicKeyOfNewAccountBase64(SignatureAlgorithm signatureOfNewAccount, PublicKey publicKeyOfNewAccount) {
-		try {
-			return Base64.toBase64String(signatureOfNewAccount.encodingOf(publicKeyOfNewAccount));
-		}
-		catch (InvalidKeyException e) {
-			// the key has been created with the same signature algorithm, it cannot be invalid
-			throw new RuntimeException(e);
-		}
-	}
-
-	private Optional<Path> dealWithBindingOfKeysToNewAccount(StorageReference referenceOfNewAccount) throws CommandException {
-		Optional<Path> maybeKeys = publicKeyIdentifier.getPathOfKeyPair();
-
-		if (maybeKeys.isPresent()) {
-			Entropy entropy;
-
-			try {
-				entropy = Entropies.load(maybeKeys.get());
-			}
-			catch (IOException e) {
-				throw new CommandException("Cannot access file \"" + maybeKeys.get() + "\"!", e);
-			}
-
-			var newAccount = Accounts.of(entropy, referenceOfNewAccount);
-			Path file = outputDir.resolve(newAccount + ".pem");
-			try {
-				newAccount.dump(file);
-			}
-			catch (IOException e) {
-				throw new CommandException("Cannot save the key pair of the account in file \"" + newAccount + ".pem\"!");
-			}
-
-			return Optional.of(file);
-		}
-		else
-			return Optional.empty();
 	}
 
 	/**

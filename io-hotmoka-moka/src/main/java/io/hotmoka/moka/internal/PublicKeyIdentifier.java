@@ -18,11 +18,14 @@ package io.hotmoka.moka.internal;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.security.InvalidKeyException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Optional;
 
+import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.Base58;
+import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import picocli.CommandLine.Option;
@@ -36,7 +39,7 @@ public class PublicKeyIdentifier {
 	@Option(names = "--key", description = "as a Base58-encoded public key")
 	private String key;
 
-	@Option(names = "--keys", description = "as a key pair file containing private and public key")
+	@Option(names = "--keys", description = "as a key pair file containing private and public key", paramLabel = "<key pair path>")
 	private Path keys;
 
 	/**
@@ -63,6 +66,24 @@ public class PublicKeyIdentifier {
 			catch (IOException e) {
 				throw new CommandException("Cannot access file \"" + keys + "\"!", e);
 			}
+		}
+	}
+
+	/**
+	 * Yields the public key from this identifier, in Base64 format.
+	 * 
+	 * @param signature the signature algorithm of the public key
+	 * @param password the password of the key pair, if {@code --keys} is specified
+	 * @return the public key, in Base64 format
+	 * @throws CommandException if some option is incorrect
+	 */
+	public String getPublicKeyBase64(SignatureAlgorithm signature, String password) throws CommandException {
+		try {
+			return Base64.toBase64String(signature.encodingOf(getPublicKey(signature, password)));
+		}
+		catch (InvalidKeyException e) {
+			// the key has been created with the same signature algorithm, it cannot be invalid
+			throw new RuntimeException(e);
 		}
 	}
 
