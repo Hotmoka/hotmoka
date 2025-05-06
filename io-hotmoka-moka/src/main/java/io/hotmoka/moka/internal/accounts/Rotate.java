@@ -17,19 +17,26 @@ limitations under the License.
 package io.hotmoka.moka.internal.accounts;
 
 import java.math.BigInteger;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.api.Signer;
+import io.hotmoka.exceptions.Objects;
 import io.hotmoka.helpers.api.GasCost;
+import io.hotmoka.moka.AccountsRotateOutputs;
+import io.hotmoka.moka.api.accounts.AccountsRotateOutput;
 import io.hotmoka.moka.internal.AbstractGasCostCommand;
 import io.hotmoka.moka.internal.PublicKeyIdentifier;
 import io.hotmoka.moka.internal.converters.StorageReferenceOfAccountOptionConverter;
+import io.hotmoka.moka.internal.json.AccountsRotateOutputJson;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
@@ -42,6 +49,7 @@ import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.api.RemoteNode;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -75,10 +83,10 @@ public class Rotate extends AbstractGasCostCommand {
 
 	@Override
 	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
-		new Run(remote);
+		new Body(remote);
 	}
 
-	private class Run {
+	private class Body {
 		private final String chainId;
 		private final Signer<SignedTransactionRequest<?>> signer;
 		private final BigInteger gasLimit;
@@ -88,7 +96,7 @@ public class Rotate extends AbstractGasCostCommand {
 		private final BigInteger nonce;
 		private final InstanceMethodCallTransactionRequest request;
 
-		private Run(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+		private Body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
 			String passwordOfAccountAsString = new String(passwordOfAccount);
 			String newPasswordOfAccountAsString = new String(newPasswordOfAccount);
 
@@ -104,9 +112,10 @@ public class Rotate extends AbstractGasCostCommand {
 				this.nonce = determineNonceOf(account, remote);
 				this.request = mkRequest();
 				executeRequest(remote);
+				TransactionReference transaction = computeTransaction(request);
+				Optional<Path> file = bindKeysToAccount(newPublicKeyIdentifier, account, outputDir);
 				GasCost gasCost = computeIncurredGasCost(remote, request);
-				bindKeysToAccount(newPublicKeyIdentifier, account, outputDir).ifPresent(path -> System.out.println("The new key pair of " + account + " has been saved as " + asPath(path)));
-				System.out.println(gasCost);
+				report(json(), new Output(account, transaction, file, gasCost, gasPrice), AccountsRotateOutputs.Encoder::new);
 			}
 			finally {
 				passwordOfAccountAsString = null;
@@ -116,7 +125,7 @@ public class Rotate extends AbstractGasCostCommand {
 			}
 		}
 
-		protected void executeRequest(RemoteNode remote) throws NodeException, TimeoutException, InterruptedException, CommandException {
+		private void executeRequest(RemoteNode remote) throws NodeException, TimeoutException, InterruptedException, CommandException {
 			try {
 				remote.addInstanceMethodCallTransaction(request);
 			}
@@ -125,7 +134,7 @@ public class Rotate extends AbstractGasCostCommand {
 			}
 		}
 
-		protected InstanceMethodCallTransactionRequest mkRequest() throws CommandException {
+		private InstanceMethodCallTransactionRequest mkRequest() throws CommandException {
 			try {
 				return TransactionRequests.instanceMethodCall(
 						signer,
@@ -142,6 +151,100 @@ public class Rotate extends AbstractGasCostCommand {
 			catch (InvalidKeyException | SignatureException e) {
 				throw new CommandException("The current key pair of " + account + " seems corrupted!", e);
 			}
+		}
+	}
+
+	/**
+	 * The output of this command.
+	 */
+	public static class Output extends AbstractGasCostCommandOutput implements AccountsRotateOutput {
+
+		/**
+		 * The account whose keys have been rotated.
+		 */
+		private final StorageReference account;
+
+		/**
+		 * The transaction that rotated the keys of the account.
+		 */
+		private final TransactionReference transaction;
+
+		/**
+		 * The path where the new key pair of the account has been saved, if any.
+		 */
+		private final Optional<Path> file;
+	
+		/**
+		 * Builds the output of the command.
+		 */
+		private Output(StorageReference account, TransactionReference transaction, Optional<Path> file, GasCost gasCost, BigInteger gasPrice) {
+			super(gasCost, gasPrice);
+
+			this.account = account;
+			this.transaction = transaction;
+			this.file = file;
+		}
+	
+		/**
+		 * Builds the output of the command from its JSON representation.
+		 * 
+		 * @param json the JSON representation
+		 * @throws InconsistentJsonException if {@code json} is inconsistent
+		 */
+		public Output(AccountsRotateOutputJson json) throws InconsistentJsonException {
+			super(json);
+
+			this.account = Objects.requireNonNull(json.getAccount(), "account cannot be null", InconsistentJsonException::new).unmap()
+					.asReference(value -> new InconsistentJsonException("The reference to the account must be a storage reference, not a " + value.getClass().getName()));
+			this.transaction = Objects.requireNonNull(json.getTransaction(), "transaction cannot be null", InconsistentJsonException::new).unmap();
+
+			Optional<String> file = json.getFile();
+			if (file.isPresent()) {
+				try {
+					this.file = Optional.of(Paths.get(file.get()));
+				}
+				catch (InvalidPathException e) {
+					throw new InconsistentJsonException(e);
+				}
+			}
+			else
+				this.file = Optional.empty();
+		}
+
+		@Override
+		public StorageReference getAccount() {
+			return account;
+		}
+
+		@Override
+		public Optional<Path> getFile() {
+			return file;
+		}
+
+		@Override
+		public TransactionReference getTransaction() {
+			return transaction;
+		}
+
+		@Override
+		public String toString() {
+			var sb = new StringBuilder();
+	
+			sb.append("The keys of the account " + account + " have been rotated by transaction " + asTransactionReference(transaction) + ".\n");
+			sb.append("\n");
+
+			if (file.isPresent())
+				sb.append("The new key pair of the account " + account + " has been saved as " + asPath(file.get()) + ".\n");
+			else {
+				sb.append("The owner of the new key pair of " + account + " can bind it now to its address with:\n");
+				sb.append(asCommand("  moka keys bind file_containing_the_new_key_pair_of_the_account --password --reference " + account + "\n"));
+			}
+
+			sb.append("\n");
+	
+			toStringGasCost(sb);
+	
+			return sb.toString();
 		}
 	}
 }

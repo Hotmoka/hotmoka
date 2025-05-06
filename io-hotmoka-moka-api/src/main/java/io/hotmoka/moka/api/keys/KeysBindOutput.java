@@ -37,7 +37,7 @@ public interface KeysBindOutput {
 	/**
 	 * Yields the path of the created key pair file for the account that has been bound.
 	 * 
-	 * @return the path of the created key pair file for the account that has been bound.
+	 * @return the path of the created key pair file for the account that has been bound
 	 */
 	Path getFile();
 }

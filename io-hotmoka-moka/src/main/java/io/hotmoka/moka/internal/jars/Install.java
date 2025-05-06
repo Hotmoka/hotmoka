@@ -154,7 +154,7 @@ public class Install extends AbstractGasCostCommand {
 	/**
 	 * The output of this command.
 	 */
-	public static class Output extends AbstractGasCostCommand.AbstractGasCostCommandOutput implements JarsInstallOutput {
+	public static class Output extends AbstractGasCostCommandOutput implements JarsInstallOutput {
 	
 		/**
 		 * The reference of the jar installed in the node.
