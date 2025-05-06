@@ -28,21 +28,13 @@ import java.util.concurrent.TimeoutException;
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.exceptions.Objects;
-import io.hotmoka.helpers.InitializedNodes;
-import io.hotmoka.moka.NodesMokamintInitOutputs;
-import io.hotmoka.moka.api.nodes.mokamint.NodesMokamintInitOutput;
-import io.hotmoka.moka.internal.AbstractNodeInit;
-import io.hotmoka.moka.internal.converters.ConsensusConfigOptionConverter;
+import io.hotmoka.moka.NodesMokamintStartOutputs;
+import io.hotmoka.moka.api.nodes.mokamint.NodesMokamintStartOutput;
+import io.hotmoka.moka.internal.AbstractNodeStart;
 import io.hotmoka.moka.internal.converters.MokamintLocalNodeConfigOptionConverter;
 import io.hotmoka.moka.internal.converters.MokamintNodeConfigOptionConverter;
-import io.hotmoka.moka.internal.json.NodesMokamintInitOutputJson;
-import io.hotmoka.node.ConsensusConfigBuilders;
-import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.moka.internal.json.NodesMokamintStartOutputJson;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.nodes.ConsensusConfig;
-import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.mokamint.MokamintNodeConfigBuilders;
 import io.hotmoka.node.mokamint.MokamintNodes;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
@@ -61,11 +53,11 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "init",
-	header = "Initialize a new Mokamint node and publish a service to it.",
-	description = "This command spawns and initializes both a Mokamint engine and a Mokamint node on top of that engine. The configurations of both can be provided through the --mokamint-config and (--local-config and --consensus-config), respectively, which, when missing, rely on defaults. In any case, such configurations can be updated with explicit values.",
+@Command(name = "start",
+	header = "Start a new Mokamint node and publish a service to it.",
+	description = "This command spawns both a Mokamint engine and a Mokamint node on top of that engine. The configurations of both can be provided through the --mokamint-config and --local-config, respectively, which, when missing, rely on defaults. In any case, such configurations can be updated with explicit values.",
 	showDefaultValues = true)
-public class Init extends AbstractNodeInit {
+public class Start extends AbstractNodeStart {
 
 	@Parameters(description = "the path of the plot file that the Mokamint miner will use for mining deadlines")
 	private Path plot;
@@ -81,9 +73,6 @@ public class Init extends AbstractNodeInit {
 
 	@Option(names = "--local-config", description = "the local configuration of the Hotmoka node, in TOML format", converter = MokamintNodeConfigOptionConverter.class)
 	private MokamintNodeConfig localConfig;
-
-	@Option(names = "--consensus-config", description = "the consensus configuration of the Hotmoka network, in TOML format", converter = ConsensusConfigOptionConverter.class)
-	private ConsensusConfig<?, ?> consensusConfig;
 
 	@Option(names = { "--mokamint-port", "--mokamint-port-public" }, description = "the network port where the public Mokamint service must be published", defaultValue="8030")
 	private int mokamintPort;
@@ -102,12 +91,11 @@ public class Init extends AbstractNodeInit {
 		try {
 			LocalNodeConfig mokamintConfig = mkMokamintConfig();
 			MokamintNodeConfig localNodeConfig = mkLocalConfig();
-			ConsensusConfig<?, ?> consensus = mkConsensusConfig();
 			KeyPair keysOfNode = mkKeysOfMokamintNode(mokamintConfig);
 			KeyPair keysOfPlot = mkKeysOfPlot(mokamintConfig);
 			askForConfirmation(localNodeConfig.getDir());
 
-			try (var node = MokamintNodes.init(localNodeConfig, mokamintConfig, keysOfNode, true); var plot = Plots.load(this.plot)) {
+			try (var node = MokamintNodes.init(localNodeConfig, mokamintConfig, keysOfNode, false); var plot = Plots.load(this.plot)) {
 				try (var miner = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, keysOfPlot) })) {
 					var mokamintNode = node.getMokamintNode();
 					mokamintNode.add(miner).orElseThrow(() -> new CommandException("Could not add a miner to the Mokamint node"));
@@ -117,14 +105,11 @@ public class Init extends AbstractNodeInit {
 					PublicNodeServices.open(mokamintNode, mokamintPort, 1800000, 1000, Optional.empty());
 					RestrictedNodeServices.open(mokamintNode, mokamintPortRestricted);
 
-					try (var initialized = InitializedNodes.of(node, consensus, getTakamakaCode()); var service = NodeServices.of(node, getPort())) {
-						var output = new Output(initialized.gamete(), URI.create("ws://localhost:" + getPort()), mokamintNodePublicURI, URI.create("ws://localhost:" + mokamintPortRestricted));
-						report(json(), output, NodesMokamintInitOutputs.Encoder::new);
+					try (var service = NodeServices.of(node, getPort())) {
+						var output = new Output(URI.create("ws://localhost:" + getPort()), mokamintNodePublicURI, URI.create("ws://localhost:" + mokamintPortRestricted));
+						report(json(), output, NodesMokamintStartOutputs.Encoder::new);
 						waitForEnterKey();
 					}
-				}
-				catch (IOException e) {
-					throw new CommandException("Cannot access file \"" + getTakamakaCode() + "\"!", e);
 				}
 			}
 			catch (WrongKeyException e) {
@@ -135,9 +120,6 @@ public class Init extends AbstractNodeInit {
 			}
 			catch (IOException e) {
 				throw new CommandException("Cannot access file \"" + plot + "\"!", e);
-			}
-			catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
-				throw new CommandException("Could not initialize the node", e);
 			}
 			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
@@ -193,17 +175,6 @@ public class Init extends AbstractNodeInit {
 		return builder.build();
 	}
 
-	private ConsensusConfig<?, ?> mkConsensusConfig() throws CommandException {
-		try {
-			var builder = consensusConfig != null ? consensusConfig.toBuilder() : ConsensusConfigBuilders.defaults();
-			fillConsensusConfig(builder);
-			return builder.build();
-		}
-		catch (NoSuchAlgorithmException e) {
-			throw new CommandException("A cyrptographic algorithm is not available", e);
-		}
-	}
-
 	private KeyPair mkKeysOfMokamintNode(LocalNodeConfig mokamintConfig) throws CommandException {
 		String passwordOfKeysOfMokamintNodeAsString = new String(passwordOfKeysOfMokamintNode);
 
@@ -237,12 +208,12 @@ public class Init extends AbstractNodeInit {
 	/**
 	 * The output of this command.
 	 */
-	public static class Output extends AbstractNodeInitOutput implements NodesMokamintInitOutput {
+	public static class Output extends AbstractNodeStartOutput implements NodesMokamintStartOutput {
 		private final URI uriMokamintPublic;
 		private final URI uriMokamintRestricted;
 
-		private Output(StorageReference gamete, URI uri, URI uriMokamintPublic, URI uriMokamintRestricted) {
-			super(gamete, uri);
+		private Output(URI uri, URI uriMokamintPublic, URI uriMokamintRestricted) {
+			super(uri);
 
 			this.uriMokamintPublic = uriMokamintPublic;
 			this.uriMokamintRestricted = uriMokamintRestricted;
@@ -254,7 +225,7 @@ public class Init extends AbstractNodeInit {
 		 * @param json the JSON representation
 		 * @throws InconsistentJsonException if {@code json} is inconsistent
 		 */
-		public Output(NodesMokamintInitOutputJson json) throws InconsistentJsonException {
+		public Output(NodesMokamintStartOutputJson json) throws InconsistentJsonException {
 			super(json);
 
 			this.uriMokamintPublic = Objects.requireNonNull(json.getURIMokamintPublic(), "uriMokamintPublic cannot be null", InconsistentJsonException::new);
@@ -281,7 +252,7 @@ public class Init extends AbstractNodeInit {
 			sb.append(" * " + asUri(uriMokamintRestricted) + ": the restricted API of the underlying Mokamint engine\n");
 			sb.append("\n");
 
-			toStringNodeInit(sb);
+			toStringNodeStart(sb);
 
 			return sb.toString();
 		}

@@ -21,7 +21,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
 
 @Command(name = "validators",
-	header = "Manage the validators of Tendermint nodes.",
+	header = "Manage the validators of a Tendermint node.",
 	subcommands = {
 		HelpCommand.class,
 		Create.class

@@ -66,18 +66,18 @@ import picocli.CommandLine.Option;
 
 @Command(name = "init",
 	header = "Initialize a new Tendermint node and publish a service to it.",
-	description = "This command spawns both a Tendermint engine and a Tendermint node on top of that engine. The configurations of both can be provided through the --tendermint-config and (--node-local-config and --node-consensus-config), respectively, which, when missing, rely on defaults. In any case, such configurations can be updated with explicit values, such as --initial-supply.",
+	description = "This command spawns and initializes both a Tendermint engine and a Tendermint node on top of that engine. The configurations of both can be provided through the --tendermint-config and (--local-config and --consensus-config), respectively, which, when missing, rely on defaults. In any case, such configurations can be updated with explicit values.",
 	showDefaultValues = true)
 public class Init extends AbstractNodeInit {
 
-	@Option(names = "--tendermint-config", description = "the directory containing the configuration of the underlying Tendermint engine; this is a directory containing config/ and data/ that can be generated, for instance, by the tendermint init command of Tendermint; if missing, a default configuration for a one-validator network will be used; this will be copied inside the directory specified by --dir")
+	@Option(names = "--tendermint-config", description = "the directory containing the configuration of the underlying Tendermint engine; this is a directory containing config/ and data/ that can be generated, for instance, by the tendermint init command of Tendermint; if missing, a default configuration for a one-validator network will be used; this will be copied inside the directory specified by --chain-dir")
 	private Path tendermintConfig;
 
-	@Option(names = "--node-local-config", description = "the local configuration of the Hotmoka node, in TOML format", converter = TendermintNodeConfigOptionConverter.class)
-	private TendermintNodeConfig nodeLocalConfig;
+	@Option(names = "--local-config", description = "the local configuration of the Hotmoka node, in TOML format", converter = TendermintNodeConfigOptionConverter.class)
+	private TendermintNodeConfig localConfig;
 
-	@Option(names = "--node-consensus-config", description = "the local configuration of the Hotmoka node, in TOML format", converter = ValidatorsConsensusConfigOptionConverter.class)
-	private ValidatorsConsensusConfig<?, ?> nodeConsensusConfig;
+	@Option(names = "--consensus-config", description = "the consensus configuration of the Hotmoka network, in TOML format", converter = ValidatorsConsensusConfigOptionConverter.class)
+	private ValidatorsConsensusConfig<?, ?> consensusConfig;
 
 	@Option(names = "--percent-staked", description = "amount of validators' rewards that gets staked; the rest is sent to the validators immediately (0 = 0%%, 1000000 = 1%%)")
 	private Integer percentStaked;
@@ -91,7 +91,7 @@ public class Init extends AbstractNodeInit {
 	@Option(names = "--slashing-for-not-behaving", description = "the percent of stake that gets slashed for validators that do not behave (or do not vote) (0 = 0%%, 1000000 = 1%%)")
 	private Integer slashingForNotBehaving;
 
-	@Option(names = "--delete-tendermint-config", description = "delete the directory specified by --tendermint-config after starting the node and copying it inside the directory specified by --dir")
+	@Option(names = "--delete-tendermint-config", description = "delete the directory specified by --tendermint-config after starting the node and copying it inside the directory specified by --chain-dir")
 	private boolean deleteTendermintConfig;
 
 	@Option(names = "--bind-validators", description = "bind the key pair files of the validators to their storage references, if they exist; this requires the key pairs of the validators to be in files named as their public key, base58 enbcoded, with suffix .pem")
@@ -99,8 +99,8 @@ public class Init extends AbstractNodeInit {
 
 	@Override
 	protected void execute() throws CommandException {
-		TendermintNodeConfig localNodeConfig = mkLocalNodeConfig();
-		ValidatorsConsensusConfig<?, ?> consensus = mkConsensusNodeConfig();
+		TendermintNodeConfig localNodeConfig = mkLocalConfig();
+		ValidatorsConsensusConfig<?, ?> consensus = mkConsensusConfig();
 		askForConfirmation(localNodeConfig.getDir());
 
 		try (var node = TendermintNodes.init(localNodeConfig);
@@ -137,8 +137,8 @@ public class Init extends AbstractNodeInit {
 	 * @return the local configuration of the Hotmoka node
 	 * @throws CommandException if the configuration cannot be built
 	 */
-	private TendermintNodeConfig mkLocalNodeConfig() throws CommandException {
-		var builder = nodeLocalConfig != null ? nodeLocalConfig.toBuilder() : TendermintNodeConfigBuilders.defaults();
+	private TendermintNodeConfig mkLocalConfig() throws CommandException {
+		var builder = localConfig != null ? localConfig.toBuilder() : TendermintNodeConfigBuilders.defaults();
 
 		if (getMaxGasPerView() != null)
 			builder = builder.setMaxGasPerViewTransaction(getMaxGasPerView());
@@ -146,13 +146,16 @@ public class Init extends AbstractNodeInit {
 		if (getChainDir() != null)
 			builder = builder.setDir(getChainDir());
 
+		if (tendermintConfig != null)
+			builder.setTendermintConfigurationToClone(tendermintConfig);
+
 		return builder.build();
 	}
 
-	private ValidatorsConsensusConfig<?, ?> mkConsensusNodeConfig() throws CommandException {
+	private ValidatorsConsensusConfig<?, ?> mkConsensusConfig() throws CommandException {
 		try {
-			var builder = nodeConsensusConfig != null ? nodeConsensusConfig.toBuilder() : ValidatorsConsensusConfigBuilders.defaults();
-			fillConsensusNodeConfig(builder);
+			var builder = consensusConfig != null ? consensusConfig.toBuilder() : ValidatorsConsensusConfigBuilders.defaults();
+			fillConsensusConfig(builder);
 
 			if (percentStaked != null)
 				builder = builder.setPercentStaked(percentStaked);
@@ -245,12 +248,17 @@ public class Init extends AbstractNodeInit {
 		}
 	}
 
-	private void cleanUp() throws IOException {
-		if (deleteTendermintConfig)
-			Files.walk(tendermintConfig)
+	private void cleanUp() throws CommandException {
+		try {
+			if (deleteTendermintConfig)
+				Files.walk(tendermintConfig)
 				.sorted(Comparator.reverseOrder())
 				.map(Path::toFile)
 				.forEach(File::delete);
+		}
+		catch (IOException e) {
+			throw new CommandException("Cannot delete the Tendermint configuration", e);
+		}
 	}
 
 	/**

@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.moka.internal.nodes;
 
 import io.hotmoka.moka.internal.nodes.mokamint.Init;
+import io.hotmoka.moka.internal.nodes.mokamint.Start;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
 
@@ -25,6 +26,7 @@ import picocli.CommandLine.HelpCommand;
 	subcommands = {
 		HelpCommand.class,
 		Init.class,
+		Start.class
 	})
 public class Mokamint {
 }

@@ -46,19 +46,19 @@ import picocli.CommandLine.Option;
 
 @Command(name = "init",
 	header = "Initialize a new disk node and publish a service to it.",
-	description = "This command spawns a disk node, whose configurations can be provided through --node-local-config and --node-consensus-config, which, when missing, rely on defaults. In any case, such configuration can be updated with explicit values, such as --initial-supply.",
+	description = "This command spawns and initializes a disk node, whose configurations can be provided through --local-config and --consensus-config, which, when missing, rely on defaults. In any case, such configuration can be updated with explicit values.",
 	showDefaultValues = true)
 public class Init extends AbstractNodeInit {
 
-	@Option(names = "--node-local-config", description = "the local configuration of the Hotmoka node, in TOML format", converter = DiskNodeConfigOptionConverter.class)
-	private DiskNodeConfig nodeLocalConfig;
+	@Option(names = "--local-config", description = "the local configuration of the Hotmoka node, in TOML format", converter = DiskNodeConfigOptionConverter.class)
+	private DiskNodeConfig localConfig;
 
-	@Option(names = "--node-consensus-config", description = "the local configuration of the Hotmoka node, in TOML format", converter = ConsensusConfigOptionConverter.class)
-	private ConsensusConfig<?, ?> nodeConsensusConfig;
+	@Option(names = "--consensus-config", description = "the consensus configuration of the Hotmoka network, in TOML format", converter = ConsensusConfigOptionConverter.class)
+	private ConsensusConfig<?, ?> consensusConfig;
 
 	@Override
 	protected void execute() throws CommandException {
-		DiskNodeConfig localNodeConfig = mkLocalNodeConfig();
+		DiskNodeConfig localNodeConfig = mkLocalConfig();
 		ConsensusConfig<?, ?> consensus = mkConsensusNodeConfig();
 		askForConfirmation(localNodeConfig.getDir());
 			
@@ -93,8 +93,8 @@ public class Init extends AbstractNodeInit {
 	 * @return the local configuration of the Hotmoka node
 	 * @throws CommandException if the configuration cannot be built
 	 */
-	private DiskNodeConfig mkLocalNodeConfig() throws CommandException {
-		var builder = nodeLocalConfig != null ? nodeLocalConfig.toBuilder() : DiskNodeConfigBuilders.defaults();
+	private DiskNodeConfig mkLocalConfig() throws CommandException {
+		var builder = localConfig != null ? localConfig.toBuilder() : DiskNodeConfigBuilders.defaults();
 
 		if (getMaxGasPerView() != null)
 			builder = builder.setMaxGasPerViewTransaction(getMaxGasPerView());
@@ -107,8 +107,8 @@ public class Init extends AbstractNodeInit {
 
 	private ConsensusConfig<?, ?> mkConsensusNodeConfig() throws CommandException {
 		try {
-			var builder = nodeConsensusConfig != null ? nodeConsensusConfig.toBuilder() : ConsensusConfigBuilders.defaults();
-			fillConsensusNodeConfig(builder);
+			var builder = consensusConfig != null ? consensusConfig.toBuilder() : ConsensusConfigBuilders.defaults();
+			fillConsensusConfig(builder);
 			return builder.build();
 		}
 		catch (NoSuchAlgorithmException e) {

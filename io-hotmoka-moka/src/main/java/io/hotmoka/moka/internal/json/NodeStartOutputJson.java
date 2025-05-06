@@ -14,21 +14,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal.nodes;
+package io.hotmoka.moka.internal.json;
 
-import io.hotmoka.moka.internal.nodes.tendermint.Init;
-import io.hotmoka.moka.internal.nodes.tendermint.Start;
-import io.hotmoka.moka.internal.nodes.tendermint.Validators;
-import picocli.CommandLine.Command;
-import picocli.CommandLine.HelpCommand;
+import java.net.URI;
 
-@Command(name = "tendermint",
-	header = "Manage Tendermint nodes.",
-	subcommands = {
-		HelpCommand.class,
-		Init.class,
-		Start.class,
-		Validators.class
-	})
-public class Tendermint {
+import io.hotmoka.moka.api.NodeStartOutput;
+
+/**
+ * The JSON representation of the output of a command that starts a new Hotmoka node.
+ */
+public abstract class NodeStartOutputJson {
+	private final URI uri;
+
+	protected NodeStartOutputJson(NodeStartOutput output) {
+		this.uri = output.getURI();
+	}
+
+	public URI getURI() {
+		return uri;
+	}
 }

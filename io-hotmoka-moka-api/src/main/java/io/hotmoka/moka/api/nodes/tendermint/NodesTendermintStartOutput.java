@@ -14,21 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal.nodes;
+package io.hotmoka.moka.api.nodes.tendermint;
 
-import io.hotmoka.moka.internal.nodes.tendermint.Init;
-import io.hotmoka.moka.internal.nodes.tendermint.Start;
-import io.hotmoka.moka.internal.nodes.tendermint.Validators;
-import picocli.CommandLine.Command;
-import picocli.CommandLine.HelpCommand;
+import io.hotmoka.annotations.Immutable;
+import io.hotmoka.moka.api.NodeStartOutput;
 
-@Command(name = "tendermint",
-	header = "Manage Tendermint nodes.",
-	subcommands = {
-		HelpCommand.class,
-		Init.class,
-		Start.class,
-		Validators.class
-	})
-public class Tendermint {
+/**
+ * The output of the {@code moka nodes tendermint start} command.
+ */
+@Immutable
+public interface NodesTendermintStartOutput extends NodeStartOutput {
 }

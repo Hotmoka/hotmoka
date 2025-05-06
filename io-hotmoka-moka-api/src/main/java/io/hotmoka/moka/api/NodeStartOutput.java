@@ -14,21 +14,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal.nodes;
+package io.hotmoka.moka.api;
 
-import io.hotmoka.moka.internal.nodes.tendermint.Init;
-import io.hotmoka.moka.internal.nodes.tendermint.Start;
-import io.hotmoka.moka.internal.nodes.tendermint.Validators;
-import picocli.CommandLine.Command;
-import picocli.CommandLine.HelpCommand;
+import java.net.URI;
 
-@Command(name = "tendermint",
-	header = "Manage Tendermint nodes.",
-	subcommands = {
-		HelpCommand.class,
-		Init.class,
-		Start.class,
-		Validators.class
-	})
-public class Tendermint {
+import io.hotmoka.annotations.Immutable;
+
+/**
+ * The output of a command that starts a new Hotmoka node.
+ * The difference with the initialization of a node is that
+ * the initialization creates a new network and installs the
+ * manifest, while started not waits to receive this information
+ * from its peers.
+ */
+@Immutable
+public interface NodeStartOutput {
+
+	/**
+	 * Yields the URI of the published node service.
+	 * 
+	 * @return the URI of the published node service
+	 */
+	URI getURI();
 }

@@ -94,7 +94,7 @@ public abstract class AbstractNodeInit extends AbstractMokaCommand {
 	 * @param builder the builder that will get enriched with the parameters of the consensus configuration
 	 * @throws CommandException if the consensus configuration cannot built
 	 */
-	protected void fillConsensusNodeConfig(ConsensusConfigBuilder<?,?> builder) throws CommandException {
+	protected void fillConsensusConfig(ConsensusConfigBuilder<?,?> builder) throws CommandException {
 		try {
 			if (openUnsignedFaucet != null)
 				builder = builder.allowUnsignedFaucet(openUnsignedFaucet);
