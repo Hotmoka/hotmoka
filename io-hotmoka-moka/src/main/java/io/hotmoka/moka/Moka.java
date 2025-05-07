@@ -22,7 +22,6 @@ import java.util.logging.LogManager;
 
 import io.hotmoka.moka.internal.BuyValidation;
 import io.hotmoka.moka.internal.Call;
-import io.hotmoka.moka.internal.CreateOld;
 import io.hotmoka.moka.internal.SellValidation;
 import io.hotmoka.moka.internal.Send;
 import picocli.CommandLine;
@@ -39,7 +38,6 @@ import picocli.CommandLine.Command;
 
 	subcommands = { BuyValidation.class,
 					Call.class,
-					CreateOld.class,
 			        SellValidation.class,
 			        Send.class }, 
 
