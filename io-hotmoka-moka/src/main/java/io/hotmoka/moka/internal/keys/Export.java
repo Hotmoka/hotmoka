@@ -43,7 +43,7 @@ public class Export extends AbstractMokaCommand {
 	@Parameters(index = "0", description = "the reference of the account to export in BIP39 words", converter = StorageReferenceOfAccountOptionConverter.class)
     private StorageReference reference;
 
-	@Option(names = "--dir", description = "the path of the directory where the key pair of the account can be found", defaultValue = "")
+	@Option(names = "--dir", paramLabel = "<path>", description = "the path of the directory where the key pair of the account can be found", defaultValue = "")
     private Path dir;
 
 	@Option(names = "--json", description = "print the output in JSON", defaultValue = "false")

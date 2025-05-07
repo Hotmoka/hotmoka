@@ -28,6 +28,7 @@ import io.hotmoka.cli.CommandException;
 import io.hotmoka.moka.JarsVerifyOutputs;
 import io.hotmoka.moka.api.jars.JarsVerifyOutput;
 import io.hotmoka.moka.internal.AbstractMokaCommand;
+import io.hotmoka.moka.internal.converters.TransactionReferenceOptionConverter;
 import io.hotmoka.moka.internal.json.JarsVerifyOutputJson;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.VerificationErrors;
@@ -51,7 +52,7 @@ public class Verify extends AbstractMokaCommand {
 	@Parameters(index = "0", description = "the path of the jar to verify")
 	private Path jar;
 
-	@Option(names = "--libs", description = "the paths of the already instrumented dependencies of the jar")
+	@Option(names = "--libs", paramLabel = "<paths>", description = "the already instrumented dependencies of the jar; use --libs repeatedly to include more dependencies", converter = TransactionReferenceOptionConverter.class)
 	private List<Path> libs;
 
 	@Option(names = "--init", description = "verify as during node initialization")

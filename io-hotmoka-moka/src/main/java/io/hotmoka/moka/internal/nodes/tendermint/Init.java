@@ -70,13 +70,13 @@ import picocli.CommandLine.Option;
 	showDefaultValues = true)
 public class Init extends AbstractNodeInit {
 
-	@Option(names = "--tendermint-config", description = "the directory containing the configuration of the underlying Tendermint engine; this is a directory containing config/ and data/ that can be generated, for instance, by the tendermint init command of Tendermint; if missing, a default configuration for a one-validator network will be used; this will be copied inside the directory specified by --chain-dir")
+	@Option(names = "--tendermint-config", paramLabel = "<path>", description = "the directory containing the configuration of the underlying Tendermint engine; this is a directory containing config/ and data/ that can be generated, for instance, by the tendermint init command of Tendermint; if missing, a default configuration for a one-validator network will be used; this will be copied inside the directory specified by --chain-dir")
 	private Path tendermintConfig;
 
-	@Option(names = "--local-config", description = "the local configuration of the Hotmoka node, in TOML format", converter = TendermintNodeConfigOptionConverter.class)
+	@Option(names = "--local-config", paramLabel = "<path>", description = "the local configuration of the Hotmoka node, in TOML format", converter = TendermintNodeConfigOptionConverter.class)
 	private TendermintNodeConfig localConfig;
 
-	@Option(names = "--consensus-config", description = "the consensus configuration of the Hotmoka network, in TOML format", converter = ValidatorsConsensusConfigOptionConverter.class)
+	@Option(names = "--consensus-config", paramLabel = "<path>", description = "the consensus configuration of the Hotmoka network, in TOML format", converter = ValidatorsConsensusConfigOptionConverter.class)
 	private ValidatorsConsensusConfig<?, ?> consensusConfig;
 
 	@Option(names = "--percent-staked", description = "amount of validators' rewards that gets staked; the rest is sent to the validators immediately (0 = 0%%, 1000000 = 1%%)")

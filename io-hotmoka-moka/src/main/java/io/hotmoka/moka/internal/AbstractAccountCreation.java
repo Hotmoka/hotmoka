@@ -67,13 +67,13 @@ public abstract class AbstractAccountCreation extends AbstractGasCostCommand {
 	@Parameters(description = "the initial balance of the new account; this will be deduced from the balance of the payer", defaultValue = "0")
 	private BigInteger balance;
 
-	@Option(names = "--payer", description = "the account that pays for the creation; if missing, the faucet of the network will be used, if it is open", converter = StorageReferenceOfAccountOptionConverter.class)
+	@Option(names = "--payer", paramLabel = "<storage reference>", description = "the account that pays for the creation; if missing, the faucet of the network will be used, if it is open", converter = StorageReferenceOfAccountOptionConverter.class)
 	private StorageReference payer;
 
-	@Option(names = "--dir", description = "the path of the directory where the key pair of the payer can be found", defaultValue = "")
+	@Option(names = "--dir", paramLabel = "<path>", description = "the directory where the key pair of the payer can be found", defaultValue = "")
 	private Path dir;
 
-	@Option(names = "--output-dir", description = "the path of the directory where the key pair of the new account will be written", defaultValue = "")
+	@Option(names = "--output-dir", paramLabel = "<path>", description = "the directory where the key pair of the new account will be written", defaultValue = "")
 	private Path outputDir;
 
 	@Option(names = "--password-of-payer", description = "the password of the payer; this is not used if the payer is the faucet", interactive = true, defaultValue = "")

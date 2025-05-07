@@ -30,6 +30,7 @@ import io.hotmoka.instrumentation.InstrumentedJars;
 import io.hotmoka.moka.JarsInstrumentOutputs;
 import io.hotmoka.moka.api.jars.JarsInstrumentOutput;
 import io.hotmoka.moka.internal.AbstractMokaCommand;
+import io.hotmoka.moka.internal.converters.TransactionReferenceOptionConverter;
 import io.hotmoka.moka.internal.json.JarsInstrumentOutputJson;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.VerifiedJars;
@@ -54,7 +55,7 @@ public class Instrument extends AbstractMokaCommand {
 	@Parameters(description = "the path of the instrumented jar")
 	private Path destination;
 
-	@Option(names = "--libs", description = "the path of the already instrumented dependencies of the jar")
+	@Option(names = "--libs", paramLabel = "<paths>", description = "the already instrumented dependencies of the jar; use --libs repeatedly to include more dependencies", converter = TransactionReferenceOptionConverter.class)
 	private List<Path> libs;
 
 	@Option(names = "--init", description = "verify as during node initialization")

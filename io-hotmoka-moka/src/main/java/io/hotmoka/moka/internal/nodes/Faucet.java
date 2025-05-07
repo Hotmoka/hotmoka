@@ -63,7 +63,7 @@ public class Faucet extends AbstractMokaRpcCommand {
 	@Parameters(description = "the maximal amount of coins sent at each call to the faucet of the node")
     private BigInteger max;
 
-	@Option(names = "--dir", description = "the path of the directory where the key pair of the gamete can be found", defaultValue = "")
+	@Option(names = "--dir", paramLabel = "<path>", description = "the path of the directory where the key pair of the gamete can be found", defaultValue = "")
     private Path dir;
 
 	@Option(names = "--password", description = "the password of the gamete account", interactive = true, defaultValue = "")

@@ -81,7 +81,7 @@ public abstract class AbstractNodeInit extends AbstractMokaCommand {
 	@Option(names = "--port", description = "the network port where the service must be published", defaultValue="8001")
 	private int port;
 
-	@Option(names = "--chain-dir", description = "the directory that will contain blocks and state of the node", defaultValue = "chain")
+	@Option(names = "--chain-dir", paramLabel = "<path>", description = "the directory that will contain blocks and state of the node", defaultValue = "chain")
 	private Path chainDir;
 
 	@Option(names = "--json", description = "print the output in JSON", defaultValue = "false")

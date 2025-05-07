@@ -68,10 +68,10 @@ public class Resume extends AbstractNodeResume {
 	@Parameters(description = "the path of the key pair of the plot file, used to sign the deadlines that the miner creates with that plot file")
 	private Path keysOfPlot;
 
-	@Option(names = "--mokamint-config", description = "the configuration of the underlying Mokamint engine, in TOML format", converter = MokamintLocalNodeConfigOptionConverter.class)
+	@Option(names = "--mokamint-config", paramLabel = "<path>", description = "the configuration of the underlying Mokamint engine, in TOML format", converter = MokamintLocalNodeConfigOptionConverter.class)
 	private LocalNodeConfig mokamintConfig;
 
-	@Option(names = "--local-config", description = "the local configuration of the Hotmoka node, in TOML format", converter = MokamintNodeConfigOptionConverter.class)
+	@Option(names = "--local-config", paramLabel = "<path>", description = "the local configuration of the Hotmoka node, in TOML format", converter = MokamintNodeConfigOptionConverter.class)
 	private MokamintNodeConfig localConfig;
 
 	@Option(names = { "--mokamint-port", "--mokamint-port-public" }, description = "the network port where the public Mokamint service must be published", defaultValue="8030")

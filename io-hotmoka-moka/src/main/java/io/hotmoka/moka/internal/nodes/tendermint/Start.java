@@ -44,10 +44,10 @@ import picocli.CommandLine.Option;
 	showDefaultValues = true)
 public class Start extends AbstractNodeStart {
 
-	@Option(names = "--tendermint-config", description = "the directory containing the configuration of the underlying Tendermint engine; this is a directory containing config/ and data/ that can be generated, for instance, by the tendermint init command of Tendermint; if missing, a default configuration for a one-validator network will be used; this will be copied inside the directory specified by --chain-dir")
+	@Option(names = "--tendermint-config", paramLabel = "<path>", description = "the directory containing the configuration of the underlying Tendermint engine; this is a directory containing config/ and data/ that can be generated, for instance, by the tendermint init command of Tendermint; if missing, a default configuration for a one-validator network will be used; this will be copied inside the directory specified by --chain-dir")
 	private Path tendermintConfig;
 
-	@Option(names = "--local-config", description = "the local configuration of the Hotmoka node, in TOML format", converter = TendermintNodeConfigOptionConverter.class)
+	@Option(names = "--local-config", paramLabel = "<path>", description = "the local configuration of the Hotmoka node, in TOML format", converter = TendermintNodeConfigOptionConverter.class)
 	private TendermintNodeConfig localConfig;
 
 	@Option(names = "--delete-tendermint-config", description = "delete the directory specified by --tendermint-config after starting the node and copying it inside the directory specified by --chain-dir")

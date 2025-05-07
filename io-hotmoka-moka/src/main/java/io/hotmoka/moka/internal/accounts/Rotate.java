@@ -60,7 +60,7 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class Rotate extends AbstractGasCostCommand {
 
-	@Parameters(index = "0", description = "the account whose public key gets rotated and that pays for the rotation", converter = StorageReferenceOfAccountOptionConverter.class)
+	@Parameters(index = "0", description = "the storage reference of the account whose public key gets rotated and that pays for the rotation", converter = StorageReferenceOfAccountOptionConverter.class)
     private StorageReference account;
 
 	@Option(names = { "--password-of-account", "--password-of-payer" }, description = "the password of the current key pair of the account", interactive = true, defaultValue = "")
@@ -72,10 +72,10 @@ public class Rotate extends AbstractGasCostCommand {
 	@ArgGroup(exclusive = true, multiplicity = "1", heading = "The new public key of the account must be specified in either of these two alternative ways:\n")
 	private PublicKeyIdentifier newPublicKeyIdentifier;
 
-	@Option(names = "--dir", description = "the path of the directory where the current key pair of the account can be found", defaultValue = "")
+	@Option(names = "--dir", paramLabel = "<path>", description = "the directory where the current key pair of the account can be found", defaultValue = "")
 	private Path dir;
 
-	@Option(names = "--output-dir", description = "the path of the directory where the new key pair of the account will be written", defaultValue = "")
+	@Option(names = "--output-dir", paramLabel = "<path>", description = "the directory where the new key pair of the account will be written", defaultValue = "")
 	private Path outputDir;
 
 	@Option(names = "--yes", description = "assume yes when asked for confirmation; this is implied if --json is used")

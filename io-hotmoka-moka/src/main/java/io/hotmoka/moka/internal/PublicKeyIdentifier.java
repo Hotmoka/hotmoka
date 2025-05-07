@@ -36,10 +36,10 @@ import picocli.CommandLine.Option;
  */
 public class PublicKeyIdentifier {
 
-	@Option(names = "--key", description = "as a Base58-encoded public key")
+	@Option(names = "--key", paramLabel = "<Base58-encoded string>", description = "as a public key")
 	private String key;
 
-	@Option(names = "--keys", description = "as a key pair file containing private and public key", paramLabel = "<key pair path>")
+	@Option(names = "--keys", paramLabel = "<path>", description = "as a key pair file containing private and public key")
 	private Path keys;
 
 	/**

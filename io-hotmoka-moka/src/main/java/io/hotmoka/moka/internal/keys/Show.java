@@ -49,7 +49,7 @@ import picocli.CommandLine.Parameters;
 @Command(name = "show", header = "Show information about a key pair.", showDefaultValues = true)
 public class Show extends AbstractMokaCommand {
 
-	@Parameters(index = "0", description = "the file holding the key pair")
+	@Parameters(index = "0", description = "the path of the file holding the key pair")
     private Path key;
 
 	@Option(names = "--password", description = "the password of the key pair", interactive = true, defaultValue = "")

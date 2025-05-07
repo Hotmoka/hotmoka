@@ -59,10 +59,10 @@ public class Bind extends AbstractMokaRpcCommand {
 	@Parameters(index = "0", description = "the file holding the key pair")
     private Path key;
 
-	@Option(names = "--output-dir", description = "the path of the directory where the key pair of the bound account will be written", defaultValue = "")
+	@Option(names = "--output-dir", paramLabel = "<path>", description = "the path of the directory where the key pair of the bound account will be written", defaultValue = "")
     private Path outputDir;
 
-	@Option(names = "--reference", description = "the reference of the account; if missing, it means that the account was created anonymously and its reference will be recovered from the accounts ledger of the Hotmoka node", converter = StorageReferenceOfAccountOptionConverter.class)
+	@Option(names = "--reference", paramLabel = "<storage reference>", description = "the account; if missing, it means that the account was created anonymously and its reference will be recovered from the accounts ledger of the Hotmoka node", converter = StorageReferenceOfAccountOptionConverter.class)
     private StorageReference reference;
 
 	@Option(names = "--password", description = "the password of the key pair", interactive = true, defaultValue = "")

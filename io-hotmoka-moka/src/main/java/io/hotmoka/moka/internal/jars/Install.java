@@ -62,13 +62,13 @@ public class Install extends AbstractGasCostCommand {
 	@Parameters(description = "the account that pays for installing the jar", converter = StorageReferenceOfAccountOptionConverter.class)
 	private StorageReference payer;
 
-	@Option(names = "--dir", description = "the path of the directory where the key pair of the payer can be found", defaultValue = "")
+	@Option(names = "--dir", paramLabel = "<path>", description = "the path of the directory where the key pair of the payer can be found", defaultValue = "")
 	private Path dir;
 
 	@Option(names = "--password-of-payer", description = "the password of the key pair of the payer account", interactive = true, defaultValue = "")
     private char[] passwordOfPayer;
 
-	@Option(names = "--libs", description = "the references of the transactions that already installed the dependencies of the jar; if missing, takamakaCode will be used", converter = TransactionReferenceOptionConverter.class)
+	@Option(names = "--libs", paramLabel = "<transaction references>", description = "the already installed dependencies of the jar; use --libs repeatedly to include more dependencies; if missing, takamakaCode will be used", converter = TransactionReferenceOptionConverter.class)
 	private List<TransactionReference> libs;
 
 	@Option(names = "--yes", description = "assume yes when asked for confirmation; this is implied if --json is used")

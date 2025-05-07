@@ -50,10 +50,10 @@ import picocli.CommandLine.Option;
 	showDefaultValues = true)
 public class Init extends AbstractNodeInit {
 
-	@Option(names = "--local-config", description = "the local configuration of the Hotmoka node, in TOML format", converter = DiskNodeConfigOptionConverter.class)
+	@Option(names = "--local-config", paramLabel = "<path>", description = "the local configuration of the Hotmoka node, in TOML format", converter = DiskNodeConfigOptionConverter.class)
 	private DiskNodeConfig localConfig;
 
-	@Option(names = "--consensus-config", description = "the consensus configuration of the Hotmoka network, in TOML format", converter = ConsensusConfigOptionConverter.class)
+	@Option(names = "--consensus-config", paramLabel = "<path>", description = "the consensus configuration of the Hotmoka network, in TOML format", converter = ConsensusConfigOptionConverter.class)
 	private ConsensusConfig<?, ?> consensusConfig;
 
 	@Override

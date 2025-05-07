@@ -46,7 +46,7 @@ public class Import extends AbstractMokaCommand {
 	@Parameters(description = "the 36 BIP39 words of the account to import")
     private List<String> words = new ArrayList<>();
 
-	@Option(names = "--output-dir", description = "the directory where the key pair file of the account will be written", defaultValue = "")
+	@Option(names = "--output-dir", paramLabel = "<path>", description = "the directory where the key pair file of the account will be written", defaultValue = "")
     private Path outputDir;
 
 	@Option(names = "--json", description = "print the output in JSON", defaultValue = "false")

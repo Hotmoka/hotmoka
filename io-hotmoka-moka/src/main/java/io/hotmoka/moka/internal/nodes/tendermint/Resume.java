@@ -39,7 +39,7 @@ import picocli.CommandLine.Option;
 	showDefaultValues = true)
 public class Resume extends AbstractNodeResume {
 
-	@Option(names = "--local-config", description = "the local configuration of the Hotmoka node, in TOML format", converter = TendermintNodeConfigOptionConverter.class)
+	@Option(names = "--local-config", paramLabel = "<path>", description = "the local configuration of the Hotmoka node, in TOML format", converter = TendermintNodeConfigOptionConverter.class)
 	private TendermintNodeConfig localConfig;
 
 	@Override
