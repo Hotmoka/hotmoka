@@ -152,10 +152,6 @@ public abstract class AbstractCommand implements Runnable {
 	protected String ask(String message) {
 		System.out.print(message);
 		return new String(System.console().readPassword());
-
-		/*@SuppressWarnings("resource")
-		Scanner keyboard = new Scanner(System.in);
-		return keyboard.nextLine();*/
 	}
 
 	protected String ensurePassword(String password, String actor, boolean interactive, boolean isFaucet) {

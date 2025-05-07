@@ -94,7 +94,7 @@ public class Init extends AbstractNodeInit {
 	@Option(names = "--delete-tendermint-config", description = "delete the directory specified by --tendermint-config after starting the node and copying it inside the directory specified by --chain-dir")
 	private boolean deleteTendermintConfig;
 
-	@Option(names = "--bind-validators", description = "bind the key pair files of the validators to their storage references, if they exist; this requires the key pairs of the validators to be in files named as their public key, base58 enbcoded, with suffix .pem")
+	@Option(names = "--bind-validators", description = "bind the key pair files of the validators to their storage references, if they exist; this requires the key pairs of the validators to be in files named as their public key, base58 encoded, with suffix .pem")
 	private boolean bindValidators;
 
 	@Override

@@ -14,21 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal.nodes;
+package io.hotmoka.moka.api.nodes.tendermint;
 
-import io.hotmoka.moka.internal.nodes.mokamint.Init;
-import io.hotmoka.moka.internal.nodes.mokamint.Resume;
-import io.hotmoka.moka.internal.nodes.mokamint.Start;
-import picocli.CommandLine.Command;
-import picocli.CommandLine.HelpCommand;
+import io.hotmoka.annotations.Immutable;
+import io.hotmoka.moka.api.NodeResumeOutput;
 
-@Command(name = "mokamint",
-	header = "Manage Mokamint nodes.",
-	subcommands = {
-		HelpCommand.class,
-		Init.class,
-		Resume.class,
-		Start.class
-	})
-public class Mokamint {
+/**
+ * The output of the {@code moka nodes tendermint resume} command.
+ */
+@Immutable
+public interface NodesTendermintResumeOutput extends NodeResumeOutput {
 }

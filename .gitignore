@@ -1,7 +1,7 @@
 lib/
 modules/
 docs/
-chain/
+chain*
 mokamint-chain/
 mokamint_node*
 hotmoka-chain/

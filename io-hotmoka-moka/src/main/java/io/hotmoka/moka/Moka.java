@@ -23,12 +23,8 @@ import java.util.logging.LogManager;
 import io.hotmoka.moka.internal.BuyValidation;
 import io.hotmoka.moka.internal.Call;
 import io.hotmoka.moka.internal.CreateOld;
-import io.hotmoka.moka.internal.ResumeMokamint;
-import io.hotmoka.moka.internal.ResumeTendermint;
 import io.hotmoka.moka.internal.SellValidation;
 import io.hotmoka.moka.internal.Send;
-import io.hotmoka.moka.internal.StartMokamint;
-import io.hotmoka.moka.internal.StartTendermint;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
@@ -44,12 +40,8 @@ import picocli.CommandLine.Command;
 	subcommands = { BuyValidation.class,
 					Call.class,
 					CreateOld.class,
-					ResumeMokamint.class,
-			        ResumeTendermint.class,
 			        SellValidation.class,
-			        Send.class,
-			        StartMokamint.class,
-			        StartTendermint.class }, 
+			        Send.class }, 
 
 	description = "This is the command-line interface of Hotmoka.",
 

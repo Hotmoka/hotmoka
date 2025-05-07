@@ -14,21 +14,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal.nodes;
+package io.hotmoka.moka.api;
 
-import io.hotmoka.moka.internal.nodes.mokamint.Init;
-import io.hotmoka.moka.internal.nodes.mokamint.Resume;
-import io.hotmoka.moka.internal.nodes.mokamint.Start;
-import picocli.CommandLine.Command;
-import picocli.CommandLine.HelpCommand;
+import java.net.URI;
 
-@Command(name = "mokamint",
-	header = "Manage Mokamint nodes.",
-	subcommands = {
-		HelpCommand.class,
-		Init.class,
-		Resume.class,
-		Start.class
-	})
-public class Mokamint {
+import io.hotmoka.annotations.Immutable;
+
+/**
+ * The output of a command that resumes an already initialized Hotmoka node.
+ * The difference with the initialization or start of a node is that
+ * the resume just continues executing the node from its current store,
+ * as saved on disk.
+ */
+@Immutable
+public interface NodeResumeOutput {
+
+	/**
+	 * Yields the URI of the published node service.
+	 * 
+	 * @return the URI of the published node service
+	 */
+	URI getURI();
 }

@@ -85,7 +85,7 @@ public abstract class AbstractMokaCommand extends io.hotmoka.cli.AbstractCommand
 	 * @return the styled path
 	 */
 	protected static String asPath(Path path) {
-		return Ansi.AUTO.string("@|fg(3;5;2) \"" + path + "\"|@");
+		return Ansi.AUTO.string("@|bold,fg(1;3;1) \"" + path + "\"|@");
 	}
 
 	/**

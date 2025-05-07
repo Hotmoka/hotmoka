@@ -14,21 +14,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal.nodes;
+package io.hotmoka.moka.internal.json;
 
-import io.hotmoka.moka.internal.nodes.mokamint.Init;
-import io.hotmoka.moka.internal.nodes.mokamint.Resume;
-import io.hotmoka.moka.internal.nodes.mokamint.Start;
-import picocli.CommandLine.Command;
-import picocli.CommandLine.HelpCommand;
+import java.net.URI;
 
-@Command(name = "mokamint",
-	header = "Manage Mokamint nodes.",
-	subcommands = {
-		HelpCommand.class,
-		Init.class,
-		Resume.class,
-		Start.class
-	})
-public class Mokamint {
+import io.hotmoka.moka.api.NodeResumeOutput;
+
+/**
+ * The JSON representation of the output of a command that resumes a Hotmoka node.
+ */
+public abstract class NodeResumeOutputJson {
+	private final URI uri;
+
+	protected NodeResumeOutputJson(NodeResumeOutput output) {
+		this.uri = output.getURI();
+	}
+
+	public URI getURI() {
+		return uri;
+	}
 }
