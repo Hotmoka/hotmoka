@@ -23,13 +23,10 @@ import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.util.Scanner;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Base58ConversionException;
 import io.hotmoka.crypto.Base64;
-import io.hotmoka.helpers.GasCosts;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
@@ -55,8 +52,6 @@ public abstract class AbstractCommand implements Runnable {
 	public static final String ANSI_GREEN = "\u001B[32m";
 	public static final String ANSI_YELLOW = "\u001B[33m";
 	public static final String ANSI_CYAN = "\u001B[36m";
-
-	private final static Logger LOGGER = Logger.getLogger(AbstractCommand.class.getName());
 
 	@Override
 	public final void run() {
@@ -122,22 +117,6 @@ public abstract class AbstractCommand implements Runnable {
 	}
 
 	protected void printCosts(Node node, TransactionRequest<?>... requests) {
-		try {
-			var gasCounter = GasCosts.of(node, requests);
-			String result = ANSI_CYAN + "Total gas consumed: " + gasCounter.total() + "\n";
-			result += ANSI_GREEN + "  for CPU: " + gasCounter.forCPU() + "\n";
-			result += "  for RAM: " + gasCounter.forRAM() + "\n";
-			result += "  for storage: " + gasCounter.forStorage() + "\n";
-			result += "  for penalty: " + gasCounter.forPenalty() + ANSI_RESET;
-			System.out.println(result);
-		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-		}
-		catch (NodeException | TimeoutException | UnknownReferenceException | NoSuchAlgorithmException e) {
-			LOGGER.log(Level.SEVERE, "cannot compute the gas costs", e);
-			throw new RuntimeException(e); // TODO
-		}
 	}
 
 	protected void yesNo(String message) {

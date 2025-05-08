@@ -16,8 +16,10 @@ limitations under the License.
 
 package io.hotmoka.moka.api.objects;
 
+import java.util.Optional;
+
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.moka.api.GasCostOutput;
+import io.hotmoka.moka.api.GasCost;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 
@@ -25,7 +27,7 @@ import io.hotmoka.node.api.values.StorageReference;
  * The output of the {@code moka objects create} command.
  */
 @Immutable
-public interface ObjectsCreateOutput extends GasCostOutput {
+public interface ObjectsCreateOutput {
 
 	/**
 	 * Yields the transaction that created the object.
@@ -37,7 +39,24 @@ public interface ObjectsCreateOutput extends GasCostOutput {
 	/**
 	 * Yields the reference of the created object.
 	 * 
-	 * @return the reference of the created object
+	 * @return the reference of the created object; this is missing if the transaction has just been posted
+	 *         rather than added, or if the transaction failed
 	 */
-	StorageReference getObject();
+	Optional<StorageReference> getObject();
+
+	/**
+	 * Yields the gas cost of the creation transaction.
+	 * 
+	 * @return the gas cost of the creation transaction; this is missing if the transaction has just been posted
+	 *         rather than added, or if it has been rejected
+	 */
+	Optional<GasCost> getGasCost();
+
+	/**
+	 * Yields the error message of the creation transaction.
+	 * 
+	 * @return the error message of the creation transaction; this is missing if the transaction has just been posted
+	 *         rather than added, or if it was successful, or if it was rejected 
+	 */
+	Optional<String> getErrorMessage();
 }

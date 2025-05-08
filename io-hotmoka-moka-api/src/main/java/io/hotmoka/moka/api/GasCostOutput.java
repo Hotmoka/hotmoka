@@ -53,11 +53,4 @@ public interface GasCostOutput {
 	 * @return the gas price used for the transaction
 	 */
 	BigInteger getGasPrice();
-
-	/**
-	 * Reports, inside the given string builder, the information about the gas cost.
-	 * 
-	 * @param sb the string builder that gets enriched with that information
-	 */
-	void toStringGasCost(StringBuilder sb);
 }

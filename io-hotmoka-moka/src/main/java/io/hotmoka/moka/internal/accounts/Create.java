@@ -23,8 +23,8 @@ import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.helpers.api.GasCost;
 import io.hotmoka.moka.AccountsCreateOutputs;
+import io.hotmoka.moka.api.GasCost;
 import io.hotmoka.moka.api.accounts.AccountsCreateOutput;
 import io.hotmoka.moka.internal.AbstractAccountCreation;
 import io.hotmoka.moka.internal.converters.SignatureOptionConverter;

@@ -33,8 +33,8 @@ import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.exceptions.Objects;
-import io.hotmoka.helpers.api.GasCost;
 import io.hotmoka.moka.api.AccountCreationOutput;
+import io.hotmoka.moka.api.GasCost;
 import io.hotmoka.moka.internal.converters.StorageReferenceOfAccountOptionConverter;
 import io.hotmoka.moka.internal.json.AccountCreationOutputJson;
 import io.hotmoka.node.ConstructorSignatures;
@@ -161,7 +161,7 @@ public abstract class AbstractAccountCreation extends AbstractGasCostCommand {
 				this.request = mkRequest(payer, signer, balance);
 				StorageReference referenceOfNewAccount = executeRequest();
 				Optional<Path> file = bindKeysToAccount(publicKeyIdentifier, referenceOfNewAccount, outputDir);
-				GasCost gasCost = computeIncurredGasCost(remote, referenceOfNewAccount.getTransaction());
+				GasCost gasCost = computeIncurredGasCost(remote, gasPrice, referenceOfNewAccount.getTransaction());
 				reportOutput(referenceOfNewAccount, file, gasCost, gasPrice);
 			}
 			finally {
@@ -221,7 +221,7 @@ public abstract class AbstractAccountCreation extends AbstractGasCostCommand {
 				this.request = mkRequest(balance);
 				StorageReference referenceOfNewAccount = executeRequest();
 				Optional<Path> file = bindKeysToAccount(publicKeyIdentifier, referenceOfNewAccount, outputDir);
-				GasCost gasCost = computeIncurredGasCost(remote, referenceOfNewAccount.getTransaction());
+				GasCost gasCost = computeIncurredGasCost(remote, gasPrice, referenceOfNewAccount.getTransaction());
 				reportOutput(referenceOfNewAccount, file, gasCost, gasPrice);
 			}
 			finally {

@@ -22,7 +22,7 @@ import java.util.concurrent.TimeoutException;
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.helpers.GasHelpers;
-import io.hotmoka.helpers.api.GasCost;
+import io.hotmoka.moka.api.GasCost;
 import io.hotmoka.moka.api.GasCostOutput;
 import io.hotmoka.moka.internal.json.GasCostOutputJson;
 import io.hotmoka.node.api.CodeExecutionException;
@@ -120,9 +120,9 @@ public abstract class AbstractGasCostCommand extends AbstractMokaRpcCommand {
 		 * Builds the output of the command.
 		 */
 		protected AbstractGasCostCommandOutput(GasCost gasCounter, BigInteger gasPrice) {
-			this.gasConsumedForCPU = gasCounter.forCPU();
-			this.gasConsumedForRAM = gasCounter.forRAM();
-			this.gasConsumedForStorage = gasCounter.forStorage();
+			this.gasConsumedForCPU = gasCounter.getForCPU();
+			this.gasConsumedForRAM = gasCounter.getForRAM();
+			this.gasConsumedForStorage = gasCounter.getForStorage();
 			this.gasPrice = gasPrice;
 		}
 
@@ -159,8 +159,12 @@ public abstract class AbstractGasCostCommand extends AbstractMokaRpcCommand {
 			return gasPrice;
 		}
 
-		@Override
-		public void toStringGasCost(StringBuilder sb) {
+		/**
+		 * Reports the gas cost information inside the given string builder.
+		 * 
+		 * @param sb the string builder
+		 */
+		protected void toStringGasCost(StringBuilder sb) {
 			sb.append("Gas consumption:\n");
 			BigInteger totalGasConsumed = gasConsumedForCPU.add(gasConsumedForRAM).add(gasConsumedForStorage);
 			sb.append(" * total: " + totalGasConsumed + "\n");

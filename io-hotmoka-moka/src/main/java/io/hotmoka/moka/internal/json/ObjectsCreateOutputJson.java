@@ -16,26 +16,44 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.json;
 
+import io.hotmoka.moka.GasCosts;
 import io.hotmoka.moka.api.objects.ObjectsCreateOutput;
 import io.hotmoka.moka.internal.objects.Create;
 import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**
  * The JSON representation of the output of the {@code moka objects create} command.
  */
-public class ObjectsCreateOutputJson extends GasCostOutputJson implements JsonRepresentation<ObjectsCreateOutput> {
+public class ObjectsCreateOutputJson implements JsonRepresentation<ObjectsCreateOutput> {
+	private final TransactionReferences.Json transaction;
 	private final StorageValues.Json object;
+	private final GasCosts.Json gasCost;
+	private final String errorMessage;
 
 	protected ObjectsCreateOutputJson(ObjectsCreateOutput output) {
-		super(output);
+		this.transaction = new TransactionReferences.Json(output.getTransaction());
+		this.object = output.getObject().map(StorageValues.Json::new).orElse(null);
+		this.gasCost = output.getGasCost().map(GasCosts.Json::new).orElse(null);
+		this.errorMessage = output.getErrorMessage().orElse(null);
+	}
 
-		this.object = new StorageValues.Json(output.getObject());
+	public TransactionReferences.Json getTransaction() {
+		return transaction;
 	}
 
 	public StorageValues.Json getObject() {
 		return object;
+	}
+
+	public GasCosts.Json getGasCost() {
+		return gasCost;
+	}
+
+	public String getErrorMessage() {
+		return errorMessage;
 	}
 
 	@Override

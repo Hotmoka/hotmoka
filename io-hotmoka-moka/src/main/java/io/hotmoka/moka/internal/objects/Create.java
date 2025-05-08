@@ -27,6 +27,7 @@ import java.security.SignatureException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -37,8 +38,8 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.helpers.ClassLoaderHelpers;
-import io.hotmoka.helpers.api.GasCost;
 import io.hotmoka.moka.ObjectsCreateOutputs;
+import io.hotmoka.moka.api.GasCost;
 import io.hotmoka.moka.api.objects.ObjectsCreateOutput;
 import io.hotmoka.moka.internal.AbstractGasCostCommand;
 import io.hotmoka.moka.internal.converters.StorageReferenceOfAccountOptionConverter;
@@ -54,6 +55,7 @@ import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.signatures.CodeSignature;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -98,95 +100,139 @@ public class Create extends AbstractGasCostCommand {
 	@Option(names = "--yes", description = "assume yes when asked for confirmation; this is implied if --json is used")
 	private boolean yes;
 
+	@Option(names = "--add", description = "add the transaction, that is, wait until its outcome is available (or the --timeout threshold expires) and report its result; otherwise, just post the transaction, without waiting for its outcome")
+	private boolean add;
+
 	@Override
 	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
-		new Run(remote);
+		new Body(remote);
 	}
 
-	private class Run {
-		private Class<?> clazz;
-		private WhiteListingWizard whiteListingWizard;
-		private Constructor<?> constructor;
+	private class Body {
+		private final Class<?> clazz;
+		private final WhiteListingWizard whiteListingWizard;
+		private final Constructor<?> constructor;
+		private final TransactionReference classpath;
+		private final TakamakaClassLoader classloader;
+		private final BigInteger gasPrice;
+		private final Signer<SignedTransactionRequest<?>> signer;
+		private final ConstructorSignature signatureOfConstructor;
+		private final BigInteger nonce;
+		private final ConstructorCallTransactionRequest request;
+		private final String chainId;
+		private final BigInteger gasLimit;
+		private final RemoteNode remote;
 
-		private Run(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+		private Body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
 			String passwordOfPayerAsString = new String(passwordOfPayer);
 
 			try {
-				String chainId = remote.getConfig().getChainId();
+				this.remote = remote;
+				this.chainId = remote.getConfig().getChainId();
 				var signatureOfPayer = determineSignatureOf(payer, remote);
-				Signer<? super ConstructorCallTransactionRequest> signer = mkSigner(payer, dir, signatureOfPayer, passwordOfPayerAsString);
-				BigInteger gasLimit = determineGasLimit(() -> gasLimitHeuristic(signatureOfPayer));
-				TransactionReference classpath;
-				TakamakaClassLoader classloader;
-
-				if (Create.this.classpath != null) {
-					classpath = Create.this.classpath;
-
-					try {
-						classloader = ClassLoaderHelpers.of(remote).classloaderFor(classpath);
-					}
-					catch (UnknownReferenceException e) {
-						throw new CommandException("The classpath " + classpath + " does not match any transaction in the store of the node");
-					}
-				}
-				else {
-					classpath = getClasspathAtCreationTimeOf(payer, remote);
-
-					try {
-						classloader = ClassLoaderHelpers.of(remote).classloaderFor(classpath);
-					}
-					catch (UnknownReferenceException e) {
-						throw new CommandException(payer + " exists in the store of the node but its creation transaction cannot be found");
-					}
-				}
-
-				try {
-					this.clazz = classloader.loadClass(className);
-				}
-				catch (ClassNotFoundException e) {
-					throw new CommandException("Class " + className + " cannot be found; did you correctly specify the classpath with --classpath?");
-				}
-
+				this.signer = mkSigner(payer, dir, signatureOfPayer, passwordOfPayerAsString);
+				this.gasLimit = determineGasLimit(() -> gasLimitHeuristic(signatureOfPayer));
+				this.classpath = mkClasspath();
+				this.classloader = mkClassloader();
+				this.clazz = mkClass();
 				this.whiteListingWizard = classloader.getWhiteListingWizard();
 				this.constructor = identifyConstructor();
-				ConstructorSignature signatureOfConstructor = mkConstructor();
-				BigInteger gasPrice = determineGasPrice(remote);
+				this.signatureOfConstructor = mkConstructor();
+				this.gasPrice = determineGasPrice(remote);
 				askForConfirmation("call a constructor of " + className, gasLimit, gasPrice, yes || json());
-				BigInteger nonce = determineNonceOf(payer, remote);
-
-				ConstructorCallTransactionRequest request;
-
-				try {
-					request = TransactionRequests.constructorCall(
-							signer,
-							payer,
-							nonce,
-							chainId,
-							gasLimit,
-							gasPrice,
-							classpath,
-							signatureOfConstructor,
-							actualsAsStorageValues(signatureOfConstructor));
-				}
-				catch (InvalidKeyException | SignatureException e) {
-					throw new CommandException("The key pair of " + payer + " seems corrupted!", e);
-				}
-
-				StorageReference object;
-				try {
-					object = remote.addConstructorCallTransaction(request);
-				}
-				catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
-					throw new CommandException("The creation transaction failed!", e);
-				}
-
-				GasCost gasCost = computeIncurredGasCost(remote,  object.getTransaction());
-				report(json(), new Output(object, gasCost, gasPrice), ObjectsCreateOutputs.Encoder::new);
+				this.nonce = determineNonceOf(payer, remote);
+				this.request = mkRequest();
+				report(json(), executeRequest(), ObjectsCreateOutputs.Encoder::new);
 			}
 			finally {
 				passwordOfPayerAsString = null;
 				Arrays.fill(passwordOfPayer, ' ');
 			}
+		}
+
+		private Class<?> mkClass() throws CommandException {
+			try {
+				return classloader.loadClass(className);
+			}
+			catch (ClassNotFoundException e) {
+				throw new CommandException("Class " + className + " cannot be found; did you correctly specify the classpath with --classpath?");
+			}
+		}
+
+		private ConstructorCallTransactionRequest mkRequest() throws CommandException {
+			try {
+				return TransactionRequests.constructorCall(
+						signer,
+						payer,
+						nonce,
+						chainId,
+						gasLimit,
+						gasPrice,
+						classpath,
+						signatureOfConstructor,
+						actualsAsStorageValues(signatureOfConstructor));
+			}
+			catch (InvalidKeyException | SignatureException e) {
+				throw new CommandException("The key pair of " + payer + " seems corrupted!", e);
+			}
+		}
+
+		private Output executeRequest() throws CommandException, NodeException, TimeoutException, InterruptedException {
+			TransactionReference transaction = computeTransaction(request);
+			Optional<StorageReference> object = Optional.empty();
+			Optional<GasCost> gasCost = Optional.empty();
+			Optional<String> errorMessage = Optional.empty();
+
+			try {
+				if (add) {
+					if (!json())
+						System.out.print("Adding transaction " + asTransactionReference(transaction) + "... ");
+
+					try {
+						object = Optional.of(remote.addConstructorCallTransaction(request));
+						if (!json())
+							System.out.println("done.");
+					}
+					catch (TransactionException | CodeExecutionException e) {
+						if (!json())
+							System.out.println("failed.");
+
+						errorMessage = Optional.of(e.getMessage());
+					}
+
+					gasCost = Optional.of(computeIncurredGasCost(remote, gasPrice, transaction));
+				}
+				else {
+					if (!json())
+						System.out.print("Posting transaction " + asTransactionReference(transaction) + "... ");
+
+					remote.postConstructorCallTransaction(request);
+
+					if (!json())
+						System.out.println("done.");
+				}
+			}
+			catch (TransactionRejectedException e) {
+				throw new CommandException("Transaction " + transaction + " has been rejected!", e);
+			}
+
+			return new Output(transaction, object, gasCost, errorMessage);
+		}
+
+		private TakamakaClassLoader mkClassloader() throws NodeException, TimeoutException, InterruptedException, CommandException {
+			try {
+				return ClassLoaderHelpers.of(remote).classloaderFor(classpath);
+			}
+			catch (UnknownReferenceException e) {
+				if (classpath != null)
+					throw new CommandException("The classpath " + classpath + " does not match any transaction in the store of the node");
+				else
+					throw new CommandException(payer + " exists in the store of the node but its creation transaction cannot be found");
+			}
+		}
+
+		private TransactionReference mkClasspath() throws CommandException, NodeException, TimeoutException, InterruptedException {
+			return classpath != null ? classpath : getClasspathAtCreationTimeOf(payer, remote);
 		}
 
 		private BigInteger gasLimitHeuristic(SignatureAlgorithm signatureOfPayer) {
@@ -207,13 +253,18 @@ public class Create extends AbstractGasCostCommand {
 		}
 
 		private ConstructorSignature mkConstructor() throws CommandException {
-			Parameter[] parameters = constructor.getParameters();
-			var formals = new StorageType[parameters.length];
-			int pos = 0;
-			for (var parameter: parameters)
-				formals[pos++] = StorageTypes.fromClass(parameter.getType());
+			try {
+				Parameter[] parameters = constructor.getParameters();
+				var formals = new StorageType[parameters.length];
+				int pos = 0;
+				for (var parameter: parameters)
+					formals[pos++] = StorageTypes.fromClass(parameter.getType());
 
-			return ConstructorSignatures.of(StorageTypes.classNamed(className), formals);
+				return ConstructorSignatures.of(StorageTypes.classNamed(className), formals);
+			}
+			catch (IllegalArgumentException e) {
+				throw new CommandException("Cannot build the signature of the constructor", e);
+			}
 		}
 
 		private Constructor<?> identifyConstructor() throws CommandException {
@@ -286,22 +337,41 @@ public class Create extends AbstractGasCostCommand {
 	 * The output of this command.
 	 */
 	@Immutable
-	public static class Output extends AbstractGasCostCommandOutput implements ObjectsCreateOutput {
+	public static class Output implements ObjectsCreateOutput {
 
 		/**
-		 * The object that has been created.
+		 * The creation transaction.
 		 */
-		private final StorageReference object;
+		private final TransactionReference transaction;
+
+		/**
+		 * The object that has been created, if any.
+		 */
+		private final Optional<StorageReference> object;
+
+		/**
+		 * The gas cost of the transaction, if any.
+		 */
+		private final Optional<GasCost> gasCost;
+
+		/**
+		 * The error message of the transaction, if any.
+		 */
+		private final Optional<String> errorMessage;
 
 		/**
 		 * Builds the output of the command.
 		 * 
-		 * @param object the object that has been created
+		 * @param transaction the creation transaction
+		 * @param object the object that has been created, if any
+		 * @param gasCost the gas cost of the transaction, if any
+		 * @param errorMessage the error message of the transaction, if any
 		 */
-		private Output(StorageReference object, GasCost gasCost, BigInteger gasPrice) {
-			super(gasCost, gasPrice);
-
+		private Output(TransactionReference transaction, Optional<StorageReference> object, Optional<GasCost> gasCost, Optional<String> errorMessage) {
+			this.transaction = transaction;
 			this.object = object;
+			this.gasCost = gasCost;
+			this.errorMessage = errorMessage;
 		}
 
 		/**
@@ -311,29 +381,52 @@ public class Create extends AbstractGasCostCommand {
 		 * @throws InconsistentJsonException if {@code json} is inconsistent
 		 */
 		public Output(ObjectsCreateOutputJson json) throws InconsistentJsonException {
-			super(json);
+			this.transaction = Objects.requireNonNull(json.getTransaction().unmap(), "transaction cannot be null", InconsistentJsonException::new);
 
-			this.object = Objects.requireNonNull(json.getObject(), "object cannot be null", InconsistentJsonException::new).unmap()
-					.asReference(value -> new InconsistentJsonException("The reference to the created object must be a storage reference, not a " + value.getClass().getName()));
-		}
+			var object = json.getObject();
+			if (object == null)
+				this.object = Optional.empty();
+			else
+				this.object = Optional.of(object.unmap().asReference(value -> new InconsistentJsonException("The reference to the created object must be a storage reference, not a " + value.getClass().getName())));
 
-		@Override
-		public StorageReference getObject() {
-			return object;
+			var gasCost = json.getGasCost();
+			if (gasCost == null)
+				this.gasCost = Optional.empty();
+			else
+				this.gasCost = Optional.of(gasCost.unmap());
+
+			this.errorMessage = Optional.ofNullable(json.getErrorMessage());
 		}
 
 		@Override
 		public TransactionReference getTransaction() {
-			return object.getTransaction();
+			return transaction;
+		}
+
+		@Override
+		public Optional<StorageReference> getObject() {
+			return object;
+		}
+
+		@Override
+		public Optional<GasCost> getGasCost() {
+			return gasCost;
+		}
+
+		@Override
+		public Optional<String> getErrorMessage() {
+			return errorMessage;
 		}
 
 		@Override
 		public String toString() {
 			var sb = new StringBuilder();
-			sb.append("A new object " + object + " has been created by transaction " + asTransactionReference(getTransaction()) + ".\n");
-			sb.append("\n");
-
-			toStringGasCost(sb);
+			object.ifPresent(o -> sb.append("A new object " + o + " has been created.\n"));
+			errorMessage.ifPresent(m -> sb.append("The transaction failed with message " + m + "\n"));
+			gasCost.ifPresent(g -> {
+				sb.append("\n");
+				g.toString(sb);
+			});
 
 			return sb.toString();
 		}

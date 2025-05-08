@@ -14,50 +14,57 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.helpers.api;
+package io.hotmoka.moka.api;
 
 import java.math.BigInteger;
 
-import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.annotations.Immutable;
 
 /**
  * The gas cost incurred for the some execution.
  */
-@ThreadSafe
+@Immutable
 public interface GasCost {
-
-	/**
-	 * Yields the total gas consumed.
-	 * 
-	 * @return the total gas computed
-	 */
-	BigInteger total();
 
 	/**
 	 * Yields the gas consumed for CPU.
 	 * 
 	 * @return the gas computed for CPU
 	 */
-	BigInteger forCPU();
+	BigInteger getForCPU();
 
 	/**
 	 * Yields the gas consumed for RAM.
 	 * 
 	 * @return the gas computed for RAM
 	 */
-	BigInteger forRAM();
+	BigInteger getForRAM();
 
 	/**
 	 * Yields the gas consumed for storage.
 	 * 
 	 * @return the gas computed for storage
 	 */
-	BigInteger forStorage();
+	BigInteger getForStorage();
 
 	/**
 	 * Yields the gas consumed for penalty.
 	 * 
 	 * @return the gas computed for penalty
 	 */
-	BigInteger forPenalty();
+	BigInteger getForPenalty();
+
+	/**
+	 * Yields the price of a unit of gas used for the execution.
+	 * 
+	 * @return the price of a unit of gas used for the execution
+	 */
+	BigInteger getPrice();
+
+	/**
+	 * Reports this gas cost information inside the given string builder.
+	 * 
+	 * @param sb the string builder
+	 */
+	void toString(StringBuilder sb);
 }
