@@ -27,11 +27,11 @@ import io.hotmoka.node.TransactionReferences;
  * The JSON representation of the output of the account creation commands.
  */
 public abstract class AccountCreationOutputJson {
-	private final TransactionReferences.Json transaction;
 	private final StorageValues.Json account;
+	private final String file;
+	private final TransactionReferences.Json transaction;
 	private final GasCosts.Json gasCost;
 	private final String errorMessage;
-	private final String file;
 
 	protected AccountCreationOutputJson(AccountCreationOutput output) {
 		this.transaction = new TransactionReferences.Json(output.getTransaction());

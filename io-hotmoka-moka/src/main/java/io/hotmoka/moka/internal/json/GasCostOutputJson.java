@@ -16,39 +16,35 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.json;
 
-import java.math.BigInteger;
+import java.util.Optional;
 
+import io.hotmoka.moka.GasCosts;
 import io.hotmoka.moka.api.GasCostOutput;
+import io.hotmoka.node.TransactionReferences;
 
 /**
- * The JSON representation of the output of a command the reports its gas cost in its output.
+ * The JSON representation of the output of a command the reports the gas cost of a transaction in its output.
  */
 public abstract class GasCostOutputJson {
-	private final BigInteger gasConsumedForCPU;
-	private final BigInteger gasConsumedForRAM;
-	private final BigInteger gasConsumedForStorage;
-	private final BigInteger gasPrice;
+	private final TransactionReferences.Json transaction;
+	private final GasCosts.Json gasCost;
+	private final String errorMessage;
 
 	protected GasCostOutputJson(GasCostOutput output) {
-		this.gasConsumedForCPU = output.getGasConsumedForCPU();
-		this.gasConsumedForRAM = output.getGasConsumedForRAM();
-		this.gasConsumedForStorage = output.getGasConsumedForStorage();
-		this.gasPrice = output.getGasPrice();
+		this.transaction = new TransactionReferences.Json(output.getTransaction());
+		this.gasCost = output.getGasCost().map(GasCosts.Json::new).orElse(null);
+		this.errorMessage = output.getErrorMessage().orElse(null);
 	}
 
-	public BigInteger getGasConsumedForCPU() {
-		return gasConsumedForCPU;
+	public TransactionReferences.Json getTransaction() {
+		return transaction;
 	}
 
-	public BigInteger getGasConsumedForRAM() {
-		return gasConsumedForRAM;
+	public Optional<GasCosts.Json> getGasCost() {
+		return Optional.ofNullable(gasCost);
 	}
 
-	public BigInteger getGasConsumedForStorage() {
-		return gasConsumedForStorage;
-	}
-
-	public BigInteger getGasPrice() {
-		return gasPrice;
+	public Optional<String> getErrorMessage() {
+		return Optional.ofNullable(errorMessage);
 	}
 }

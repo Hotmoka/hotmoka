@@ -16,41 +16,37 @@ limitations under the License.
 
 package io.hotmoka.moka.api;
 
-import java.math.BigInteger;
+import java.util.Optional;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.node.api.transactions.TransactionReference;
 
 /**
- * The output of a command that reports its gas cost.
+ * The output of a command that reports the gas cost of a transaction in its output.
  */
 @Immutable
 public interface GasCostOutput {
 
 	/**
-	 * Yields the amount of gas consumed for the CPU cost for installing the jar.
+	 * Yields the transaction that consumed the gas.
 	 * 
-	 * @return the amount of gas consumed for the CPU cost for installing the jar
+	 * @return the transaction that consumed the gas
 	 */
-	BigInteger getGasConsumedForCPU();
+	TransactionReference getTransaction();
 
 	/**
-	 * Yields the amount of gas consumed for the RAM cost for installing the jar.
+	 * Yields the gas cost of the transaction.
 	 * 
-	 * @return the amount of gas consumed for the RAM cost for installing the jar
+	 * @return the gas cost of the transaction; this is missing if the transaction has just been posted
+	 *         rather than added, or if it has been rejected
 	 */
-	BigInteger getGasConsumedForRAM();
+	Optional<GasCost> getGasCost();
 
 	/**
-	 * Yields the amount of gas consumed for the storage cost for installing the jar.
+	 * Yields the error message of the transaction.
 	 * 
-	 * @return the amount of gas consumed for the storage cost for installing the jar
+	 * @return the error message of the transaction; this is missing if the transaction has just been posted
+	 *         rather than added, or if it was successful, or if it was rejected 
 	 */
-	BigInteger getGasConsumedForStorage();
-
-	/**
-	 * The gas price used for the transaction.
-	 * 
-	 * @return the gas price used for the transaction
-	 */
-	BigInteger getGasPrice();
+	Optional<String> getErrorMessage();
 }

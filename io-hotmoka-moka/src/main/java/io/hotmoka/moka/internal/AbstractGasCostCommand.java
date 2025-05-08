@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.moka.internal;
 
 import java.math.BigInteger;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.cli.CommandException;
@@ -29,6 +30,7 @@ import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import picocli.CommandLine.Option;
@@ -110,82 +112,83 @@ public abstract class AbstractGasCostCommand extends AbstractMokaRpcCommand {
 	protected abstract static class AbstractGasCostCommandOutput implements GasCostOutput {
 
 		/**
-		 * The amount of gas consumed for the CPU cost for installing the jar.
+		 * The transaction that consumed the gas.
 		 */
-		private final BigInteger gasConsumedForCPU;
+		private final TransactionReference transaction;
 
 		/**
-		 * The amount of gas consumed for the RAM cost for installing the jar.
+		 * The gas cost of the transaction, if any.
 		 */
-		private final BigInteger gasConsumedForRAM;
+		private final Optional<GasCost> gasCost;
 
 		/**
-		 * The amount of gas consumed for the storage cost for installing the jar.
+		 * The error message of the transaction, if any.
 		 */
-		private final BigInteger gasConsumedForStorage;
-
-		/**
-		 * The gas price used for the transaction.
-		 */
-		private final BigInteger gasPrice;
+		private final Optional<String> errorMessage;
 
 		/**
 		 * Builds the output of the command.
 		 */
-		protected AbstractGasCostCommandOutput(GasCost gasCounter, BigInteger gasPrice) {
-			this.gasConsumedForCPU = gasCounter.getForCPU();
-			this.gasConsumedForRAM = gasCounter.getForRAM();
-			this.gasConsumedForStorage = gasCounter.getForStorage();
-			this.gasPrice = gasPrice;
+		protected AbstractGasCostCommandOutput(TransactionReference transaction, Optional<GasCost> gasCost, Optional<String> errorMessage) {
+			this.transaction = transaction;
+			this.gasCost = gasCost;
+			this.errorMessage = errorMessage;
 		}
-
+	
 		/**
 		 * Builds the output of the command from its JSON representation.
 		 * 
 		 * @param json the JSON representation
 		 * @throws InconsistentJsonException if {@code json} is inconsistent
 		 */
-		protected AbstractGasCostCommandOutput(GasCostOutputJson json) throws InconsistentJsonException {
-			this.gasConsumedForCPU = Objects.requireNonNull(json.getGasConsumedForCPU(), "gasConsumedForCPU cannot be null", InconsistentJsonException::new);
-			this.gasConsumedForRAM = Objects.requireNonNull(json.getGasConsumedForRAM(), "gasConsumedForRAM cannot be null", InconsistentJsonException::new);
-			this.gasConsumedForStorage = Objects.requireNonNull(json.getGasConsumedForStorage(), "gasConsumedForStorage cannot be null", InconsistentJsonException::new);
-			this.gasPrice = Objects.requireNonNull(json.getGasPrice(), "gasPrice cannot be null", InconsistentJsonException::new);
+		public AbstractGasCostCommandOutput(GasCostOutputJson json) throws InconsistentJsonException {
+			this.transaction = Objects.requireNonNull(json.getTransaction(), "transaction cannot be null", InconsistentJsonException::new).unmap();
+
+			var gasCost = json.getGasCost();
+			if (gasCost.isEmpty())
+				this.gasCost = Optional.empty();
+			else
+				this.gasCost = Optional.of(gasCost.get().unmap());
+
+			this.errorMessage = json.getErrorMessage();
 		}
 
 		@Override
-		public BigInteger getGasConsumedForCPU() {
-			return gasConsumedForCPU;
+		public TransactionReference getTransaction() {
+			return transaction;
 		}
 
 		@Override
-		public BigInteger getGasConsumedForRAM() {
-			return gasConsumedForRAM;
+		public Optional<GasCost> getGasCost() {
+			return gasCost;
 		}
 
 		@Override
-		public BigInteger getGasConsumedForStorage() {
-			return gasConsumedForStorage;
+		public Optional<String> getErrorMessage() {
+			return errorMessage;
 		}
 
 		@Override
-		public BigInteger getGasPrice() {
-			return gasPrice;
+		public String toString() {
+			var sb = new StringBuilder();
+
+			errorMessage.ifPresent(m -> sb.append("The transaction failed with message " + m + "\n"));
+
+			toString(sb);
+
+			gasCost.ifPresent(g -> {
+				sb.append("\n");
+				g.toString(sb);
+			});
+
+			return sb.toString();
 		}
 
 		/**
-		 * Reports the gas cost information inside the given string builder.
+		 * Adds, to the given string builder, specific information about this output.
 		 * 
 		 * @param sb the string builder
 		 */
-		protected void toStringGasCost(StringBuilder sb) {
-			sb.append("Gas consumption:\n");
-			BigInteger totalGasConsumed = gasConsumedForCPU.add(gasConsumedForRAM).add(gasConsumedForStorage);
-			sb.append(" * total: " + totalGasConsumed + "\n");
-			sb.append("   * for CPU: " + gasConsumedForCPU + "\n");
-			sb.append("   * for RAM: " + gasConsumedForRAM + "\n");
-			sb.append("   * for storage: " + gasConsumedForStorage + "\n");
-			sb.append(" * price per unit: " + panas(gasPrice) + "\n");
-			sb.append(" * total price: " + panas(gasPrice.multiply(totalGasConsumed)) + "\n");
-		}
+		protected abstract void toString(StringBuilder sb);
 	}
 }
