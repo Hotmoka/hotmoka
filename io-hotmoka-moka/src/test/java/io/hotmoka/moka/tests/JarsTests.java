@@ -33,7 +33,7 @@ import io.hotmoka.moka.MokaNew;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.UnknownTypeException;
 import io.hotmoka.node.api.VerificationException;
 import io.hotmoka.node.local.AbstractLocalNode;
 import io.hotmoka.verification.api.VerificationError;
@@ -89,8 +89,11 @@ public class JarsTests extends AbstractMokaTestWithNode {
 		// then we install basic.jar, letting the gamete pay; we provide basicdependency.jar as dependency
 		var basicInstallOutput = JarsInstallOutputs.from(MokaNew.jarsInstall(examplesBasic + " " + gamete + " --password-of-payer=" + passwordOfGamete + " --libs=" + basicDependencyInstallOutput.getTransaction() + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
 
+		// the jar has been actually installed
+		assertTrue(basicInstallOutput.getJar().isPresent());
+
 		// finally we can call a static method without errors
-		node.runStaticMethodCallTransaction(TransactionRequests.staticViewMethodCall(gamete, _100_000, basicInstallOutput.getTransaction(), MethodSignatures.ofVoid(StorageTypes.classNamed("io.hotmoka.examples.basic.Sub"), "ms")));
+		node.runStaticMethodCallTransaction(TransactionRequests.staticViewMethodCall(gamete, _100_000, basicInstallOutput.getJar().get(), MethodSignatures.ofVoid(StorageTypes.classNamed("io.hotmoka.examples.basic.Sub"), "ms")));
 	}
 
 	@Test
@@ -99,8 +102,8 @@ public class JarsTests extends AbstractMokaTestWithNode {
 		var examplesBasic = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-basic.jar");
 
 		// we try to install basic.jar, letting the gamete pay; we do not provide basicdependency.jar as dependency, therefore this will fail
-		assertTrue(MokaNew.jarsInstall(examplesBasic + " " + gamete + " --password-of-payer=" + passwordOfGamete + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT)
-				.contains(TransactionException.class.getName()));
+		var basicInstallOutput = JarsInstallOutputs.from(MokaNew.jarsInstall(examplesBasic + " " + gamete + " --password-of-payer=" + passwordOfGamete + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
+		assertTrue(basicInstallOutput.getErrorMessage().isPresent() && basicInstallOutput.getErrorMessage().get().startsWith(UnknownTypeException.class.getName()));
 	}
 
 	@Test
@@ -109,7 +112,7 @@ public class JarsTests extends AbstractMokaTestWithNode {
 		var illegalJar = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-illegalcalltofromcontract1.jar");
 
 		// we try to install basic.jar, letting the gamete pay; we do not provide basicdependency.jar as dependency, therefore this will fail
-		assertTrue(MokaNew.jarsInstall(illegalJar + " " + gamete + " --password-of-payer=" + passwordOfGamete + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT)
-				.contains(VerificationException.class.getName()));
+		var illegalJarInstallOutput = JarsInstallOutputs.from(MokaNew.jarsInstall(illegalJar + " " + gamete + " --password-of-payer=" + passwordOfGamete + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
+		assertTrue(illegalJarInstallOutput.getErrorMessage().isPresent() && illegalJarInstallOutput.getErrorMessage().get().startsWith(VerificationException.class.getName()));
 	}
 }

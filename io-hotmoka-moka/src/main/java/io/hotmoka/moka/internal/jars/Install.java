@@ -24,6 +24,7 @@ import java.security.InvalidKeyException;
 import java.security.SignatureException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.cli.CommandException;
@@ -90,9 +91,7 @@ public class Install extends AbstractGasCostCommand {
 			askForConfirmation("install the jar", gasLimit, gasPrice, yes || json());
 			BigInteger nonce = determineNonceOf(payer, remote);
 			JarStoreTransactionRequest request = mkRequest(chainId, bytesOfJar, dependencies, signer, classpath, gasLimit, gasPrice, nonce);
-			TransactionReference transaction = executeRequest(remote, request);
-			var gasCost = computeIncurredGasCost(remote, request);
-			report(json(), new Output(transaction, gasCost, gasPrice), JarsInstallOutputs.Encoder::new);
+			report(json(), executeRequest(remote, request, gasPrice), JarsInstallOutputs.Encoder::new);
 		}
 		finally {
 			passwordOfPayerAsString = null;
@@ -100,13 +99,46 @@ public class Install extends AbstractGasCostCommand {
 		}
 	}
 
-	private TransactionReference executeRequest(RemoteNode remote, JarStoreTransactionRequest request) throws NodeException, TimeoutException, InterruptedException, CommandException {
+	private Output executeRequest(RemoteNode remote, JarStoreTransactionRequest request, BigInteger gasPrice) throws CommandException, NodeException, TimeoutException, InterruptedException {
+		TransactionReference transaction = computeTransaction(request);
+		Optional<TransactionReference> jar = Optional.empty();
+		Optional<GasCost> gasCost = Optional.empty();
+		Optional<String> errorMessage = Optional.empty();
+
 		try {
-			return remote.addJarStoreTransaction(request);
+			if (post()) {
+				if (!json())
+					System.out.print("Posting transaction " + asTransactionReference(transaction) + "... ");
+
+				remote.postJarStoreTransaction(request);
+
+				if (!json())
+					System.out.println("done.");
+			}
+			else {
+				if (!json())
+					System.out.print("Adding transaction " + asTransactionReference(transaction) + "... ");
+
+				try {
+					jar = Optional.of(remote.addJarStoreTransaction(request));
+					if (!json())
+						System.out.println("done.");
+				}
+				catch (TransactionException e) {
+					if (!json())
+						System.out.println("failed. Are the key pair of the payer and its password correct?");
+
+					errorMessage = Optional.of(e.getMessage());
+				}
+
+				gasCost = Optional.of(computeIncurredGasCost(remote, gasPrice, transaction));
+			}
 		}
-		catch (TransactionRejectedException | TransactionException e) {
-			throw new CommandException("The jar install transaction failed! are the key pair of the payer and its password correct?", e);
+		catch (TransactionRejectedException e) {
+			throw new CommandException("Transaction " + transaction + " has been rejected!", e);
 		}
+
+		return new Output(transaction, jar, gasCost, errorMessage);
 	}
 
 	private JarStoreTransactionRequest mkRequest(String chainId, byte[] bytes, TransactionReference[] dependencies,
@@ -154,20 +186,41 @@ public class Install extends AbstractGasCostCommand {
 	/**
 	 * The output of this command.
 	 */
-	public static class Output extends AbstractGasCostCommandOutput implements JarsInstallOutput {
-	
+	public static class Output implements JarsInstallOutput {
+
 		/**
-		 * The reference of the jar installed in the node.
+		 * The install transaction.
 		 */
-		private final TransactionReference jar;
-	
+		private final TransactionReference transaction;
+
+		/**
+		 * The reference of the jar installed in the node, if any.
+		 */
+		private final Optional<TransactionReference> jar;
+
+		/**
+		 * The gas cost of the transaction, if any.
+		 */
+		private final Optional<GasCost> gasCost;
+
+		/**
+		 * The error message of the transaction, if any.
+		 */
+		private final Optional<String> errorMessage;
+
 		/**
 		 * Builds the output of the command.
+		 * 
+		 * @param transaction the creation transaction
+		 * @param object the object that has been created, if any
+		 * @param gasCost the gas cost of the transaction, if any
+		 * @param errorMessage the error message of the transaction, if any
 		 */
-		private Output(TransactionReference jar, GasCost gasCost, BigInteger gasPrice) {
-			super(gasCost, gasPrice);
-	
+		private Output(TransactionReference transaction, Optional<TransactionReference> jar, Optional<GasCost> gasCost, Optional<String> errorMessage) {
+			this.transaction = transaction;
 			this.jar = jar;
+			this.gasCost = gasCost;
+			this.errorMessage = errorMessage;
 		}
 	
 		/**
@@ -177,30 +230,53 @@ public class Install extends AbstractGasCostCommand {
 		 * @throws InconsistentJsonException if {@code json} is inconsistent
 		 */
 		public Output(JarsInstallOutputJson json) throws InconsistentJsonException {
-			super(json);
-	
-			this.jar = Objects.requireNonNull(json.getJar(), "jar cannot be null", InconsistentJsonException::new).unmap();
+			this.transaction = Objects.requireNonNull(json.getTransaction().unmap(), "transaction cannot be null", InconsistentJsonException::new);
+
+			var jar = json.getJar();
+			if (jar.isEmpty())
+				this.jar = Optional.empty();
+			else
+				this.jar = Optional.of(jar.get().unmap());
+
+			var gasCost = json.getGasCost();
+			if (gasCost.isEmpty())
+				this.gasCost = Optional.empty();
+			else
+				this.gasCost = Optional.of(gasCost.get().unmap());
+
+			this.errorMessage = json.getErrorMessage();
 		}
 	
 		@Override
 		public TransactionReference getTransaction() {
-			return jar;
+			return transaction;
 		}
 	
 		@Override
-		public TransactionReference getJar() {
+		public Optional<TransactionReference> getJar() {
 			return jar;
 		}
-	
+
+		@Override
+		public Optional<GasCost> getGasCost() {
+			return gasCost;
+		}
+
+		@Override
+		public Optional<String> getErrorMessage() {
+			return errorMessage;
+		}
+
 		@Override
 		public String toString() {
 			var sb = new StringBuilder();
-	
-			sb.append("The jar has been installed at " + jar + " by transaction " + asTransactionReference(jar) + ".\n");
-			sb.append("\n");
-	
-			toStringGasCost(sb);
-	
+			jar.ifPresent(o -> sb.append("The jar has been installed at " + o + ".\n"));
+			errorMessage.ifPresent(m -> sb.append("The transaction failed with message " + m + "\n"));
+			gasCost.ifPresent(g -> {
+				sb.append("\n");
+				g.toString(sb);
+			});
+
 			return sb.toString();
 		}
 	}

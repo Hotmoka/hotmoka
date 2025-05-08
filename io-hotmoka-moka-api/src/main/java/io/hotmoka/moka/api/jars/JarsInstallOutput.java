@@ -16,15 +16,25 @@ limitations under the License.
 
 package io.hotmoka.moka.api.jars;
 
+import java.util.Optional;
+
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.moka.api.GasCostOutput;
+import io.hotmoka.moka.api.GasCost;
 import io.hotmoka.node.api.transactions.TransactionReference;
 
 /**
  * The output of the {@code moka jars install} command.
  */
 @Immutable
-public interface JarsInstallOutput extends GasCostOutput {
+public interface JarsInstallOutput {
+
+	/**
+	 * Yields the reference of the installed jar, if any.
+	 * 
+	 * @return the reference of the installed jar; this is missing if the transaction has just been posted
+	 *         rather than added, or if the transaction failed
+	 */
+	Optional<TransactionReference> getJar();
 
 	/**
 	 * Yields the transaction that installed the jar.
@@ -34,9 +44,18 @@ public interface JarsInstallOutput extends GasCostOutput {
 	TransactionReference getTransaction();
 
 	/**
-	 * Yields the reference of the installed jar.
+	 * Yields the gas cost of the install transaction.
 	 * 
-	 * @return the reference of the installed jar
+	 * @return the gas cost of the install transaction; this is missing if the transaction has just been posted
+	 *         rather than added, or if it has been rejected
 	 */
-	TransactionReference getJar();
+	Optional<GasCost> getGasCost();
+
+	/**
+	 * Yields the error message of the install transaction.
+	 * 
+	 * @return the error message of the install transaction; this is missing if the transaction has just been posted
+	 *         rather than added, or if it was successful, or if it was rejected 
+	 */
+	Optional<String> getErrorMessage();
 }

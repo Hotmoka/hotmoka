@@ -16,6 +16,9 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.json;
 
+import java.util.Optional;
+
+import io.hotmoka.moka.GasCosts;
 import io.hotmoka.moka.api.jars.JarsInstallOutput;
 import io.hotmoka.moka.internal.jars.Install;
 import io.hotmoka.node.TransactionReferences;
@@ -25,17 +28,33 @@ import io.hotmoka.websockets.beans.api.JsonRepresentation;
 /**
  * The JSON representation of the output of the {@code moka jars install} command.
  */
-public class JarsInstallOutputJson extends GasCostOutputJson implements JsonRepresentation<JarsInstallOutput> {
+public class JarsInstallOutputJson implements JsonRepresentation<JarsInstallOutput> {
 	private final TransactionReferences.Json jar;
+	private final TransactionReferences.Json transaction;
+	private final GasCosts.Json gasCost;
+	private final String errorMessage;
 
 	protected JarsInstallOutputJson(JarsInstallOutput output) {
-		super(output);
-
-		this.jar = new TransactionReferences.Json(output.getJar());
+		this.transaction = new TransactionReferences.Json(output.getTransaction());
+		this.jar = output.getJar().map(TransactionReferences.Json::new).orElse(null);
+		this.gasCost = output.getGasCost().map(GasCosts.Json::new).orElse(null);
+		this.errorMessage = output.getErrorMessage().orElse(null);
 	}
 
-	public TransactionReferences.Json getJar() {
-		return jar;
+	public Optional<TransactionReferences.Json> getJar() {
+		return Optional.ofNullable(jar);
+	}
+
+	public TransactionReferences.Json getTransaction() {
+		return transaction;
+	}
+
+	public Optional<GasCosts.Json> getGasCost() {
+		return Optional.ofNullable(gasCost);
+	}
+
+	public Optional<String> getErrorMessage() {
+		return Optional.ofNullable(errorMessage);
 	}
 
 	@Override
