@@ -57,7 +57,7 @@ public class ObjectsCreateOutputJson implements JsonRepresentation<ObjectsCreate
 	}
 
 	@Override
-	public ObjectsCreateOutput unmap() throws InconsistentJsonException, Exception {
+	public ObjectsCreateOutput unmap() throws InconsistentJsonException {
 		return new Create.Output(this);
 	}
 }

@@ -20,7 +20,7 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.moka.api.GasCostOutput;
+import io.hotmoka.moka.api.GasCost;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 
@@ -28,14 +28,7 @@ import io.hotmoka.node.api.values.StorageReference;
  * The output of the {@code moka accounts rotate} command.
  */
 @Immutable
-public interface AccountsRotateOutput extends GasCostOutput {
-
-	/**
-	 * Yields the reference to the account whose keys have been rotated.
-	 * 
-	 * @return the reference to the account whose keys have been rotated
-	 */
-	StorageReference getAccount();
+public interface AccountsRotateOutput {
 
 	/**
 	 * Yields the transaction that rotated the keys of the account.
@@ -45,9 +38,35 @@ public interface AccountsRotateOutput extends GasCostOutput {
 	TransactionReference getTransaction();
 
 	/**
+	 * Yields the reference to the account whose keys have been rotated.
+	 * 
+	 * @return the reference to the account whose keys have been rotated
+	 */
+	StorageReference getAccount();
+
+	/**
+	 * Yields the gas cost of the rotation transaction.
+	 * 
+	 * @return the gas cost of the rotation transaction; this is missing if the transaction has just been posted
+	 *         rather than added, or if it has been rejected
+	 */
+	Optional<GasCost> getGasCost();
+
+	/**
+	 * Yields the error message of the rotation transaction.
+	 * 
+	 * @return the error message of the rotation transaction; this is missing if the transaction has just been posted
+	 *         rather than added, or if it was successful, or if it was rejected 
+	 */
+	Optional<String> getErrorMessage();
+
+	/**
 	 * Yields the path of the new key pair file for the account whose keys have been rotated.
 	 * 
-	 * @return the path of the new key pair file for the account whose keys have been rotated, if any
+	 * @return the path of the new key pair file for the account whose keys have been rotated; this is
+	 *         missing if the transaction has just been posted
+	 *         rather than added, or if the transaction failed, or if the new key has
+	 *         been specified as an explicit public key rather than as a key pair
 	 */
 	Optional<Path> getFile();
 }

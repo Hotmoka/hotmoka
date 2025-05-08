@@ -111,11 +111,7 @@ public class Rotate extends AbstractGasCostCommand {
 				askForConfirmation("rotate the public key of " + account, gasLimit, gasPrice, yes || json());
 				this.nonce = determineNonceOf(account, remote);
 				this.request = mkRequest();
-				executeRequest(remote);
-				TransactionReference transaction = computeTransaction(request);
-				Optional<Path> file = bindKeysToAccount(newPublicKeyIdentifier, account, outputDir);
-				GasCost gasCost = computeIncurredGasCost(remote, request);
-				report(json(), new Output(account, transaction, file, gasCost, gasPrice), AccountsRotateOutputs.Encoder::new);
+				report(json(), executeRequest(remote), AccountsRotateOutputs.Encoder::new);
 			}
 			finally {
 				passwordOfAccountAsString = null;
@@ -125,13 +121,48 @@ public class Rotate extends AbstractGasCostCommand {
 			}
 		}
 
-		private void executeRequest(RemoteNode remote) throws NodeException, TimeoutException, InterruptedException, CommandException {
+		private Output executeRequest(RemoteNode remote) throws CommandException, NodeException, TimeoutException, InterruptedException {
+			TransactionReference transaction = computeTransaction(request);
+			Optional<GasCost> gasCost = Optional.empty();
+			Optional<String> errorMessage = Optional.empty();
+			Optional<Path> file = Optional.empty();
+
 			try {
-				remote.addInstanceMethodCallTransaction(request);
+				if (post()) {
+					if (!json())
+						System.out.print("Posting transaction " + asTransactionReference(transaction) + "... ");
+
+					remote.postInstanceMethodCallTransaction(request);
+
+					if (!json())
+						System.out.println("done.");
+				}
+				else {
+					if (!json())
+						System.out.print("Adding transaction " + asTransactionReference(transaction) + "... ");
+
+					try {
+						remote.addInstanceMethodCallTransaction(request);
+						if (!json())
+							System.out.println("done.");
+
+						file = bindKeysToAccount(newPublicKeyIdentifier, account, outputDir);
+					}
+					catch (TransactionException | CodeExecutionException e) {
+						if (!json())
+							System.out.println("failed. Are the key pair of the account and its password correct?");
+
+						errorMessage = Optional.of(e.getMessage());
+					}
+
+					gasCost = Optional.of(computeIncurredGasCost(remote, gasPrice, transaction));
+				}
 			}
-			catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
-				throw new CommandException("The public key rotation transaction failed! are the key pair of the account and its password correct?", e);
+			catch (TransactionRejectedException e) {
+				throw new CommandException("Transaction " + transaction + " has been rejected!", e);
 			}
+
+			return new Output(transaction, account, gasCost, errorMessage, file);
 		}
 
 		private InstanceMethodCallTransactionRequest mkRequest() throws CommandException {
@@ -157,7 +188,12 @@ public class Rotate extends AbstractGasCostCommand {
 	/**
 	 * The output of this command.
 	 */
-	public static class Output extends AbstractGasCostCommandOutput implements AccountsRotateOutput {
+	public static class Output implements AccountsRotateOutput {
+
+		/**
+		 * The rotation transaction.
+		 */
+		private final TransactionReference transaction;
 
 		/**
 		 * The account whose keys have been rotated.
@@ -165,9 +201,14 @@ public class Rotate extends AbstractGasCostCommand {
 		private final StorageReference account;
 
 		/**
-		 * The transaction that rotated the keys of the account.
+		 * The gas cost of the transaction, if any.
 		 */
-		private final TransactionReference transaction;
+		private final Optional<GasCost> gasCost;
+
+		/**
+		 * The error message of the transaction, if any.
+		 */
+		private final Optional<String> errorMessage;
 
 		/**
 		 * The path where the new key pair of the account has been saved, if any.
@@ -177,11 +218,11 @@ public class Rotate extends AbstractGasCostCommand {
 		/**
 		 * Builds the output of the command.
 		 */
-		private Output(StorageReference account, TransactionReference transaction, Optional<Path> file, GasCost gasCost, BigInteger gasPrice) {
-			super(gasCost, gasPrice);
-
-			this.account = account;
+		private Output(TransactionReference transaction, StorageReference account, Optional<GasCost> gasCost, Optional<String> errorMessage, Optional<Path> file) {
 			this.transaction = transaction;
+			this.account = account;
+			this.gasCost = gasCost;
+			this.errorMessage = errorMessage;
 			this.file = file;
 		}
 	
@@ -192,11 +233,17 @@ public class Rotate extends AbstractGasCostCommand {
 		 * @throws InconsistentJsonException if {@code json} is inconsistent
 		 */
 		public Output(AccountsRotateOutputJson json) throws InconsistentJsonException {
-			super(json);
-
+			this.transaction = Objects.requireNonNull(json.getTransaction(), "transaction cannot be null", InconsistentJsonException::new).unmap();
 			this.account = Objects.requireNonNull(json.getAccount(), "account cannot be null", InconsistentJsonException::new).unmap()
 					.asReference(value -> new InconsistentJsonException("The reference to the account must be a storage reference, not a " + value.getClass().getName()));
-			this.transaction = Objects.requireNonNull(json.getTransaction(), "transaction cannot be null", InconsistentJsonException::new).unmap();
+
+			var gasCost = json.getGasCost();
+			if (gasCost == null)
+				this.gasCost = Optional.empty();
+			else
+				this.gasCost = Optional.of(gasCost.unmap());
+
+			this.errorMessage = Optional.ofNullable(json.getErrorMessage());
 
 			Optional<String> file = json.getFile();
 			if (file.isPresent()) {
@@ -227,23 +274,34 @@ public class Rotate extends AbstractGasCostCommand {
 		}
 
 		@Override
+		public Optional<GasCost> getGasCost() {
+			return gasCost;
+		}
+
+		@Override
+		public Optional<String> getErrorMessage() {
+			return errorMessage;
+		}
+
+		@Override
 		public String toString() {
 			var sb = new StringBuilder();
-	
-			sb.append("The keys of the account " + account + " have been rotated by transaction " + asTransactionReference(transaction) + ".\n");
-			sb.append("\n");
+
+			sb.append("The keys of the account " + account + " have been rotated.\n");
+			errorMessage.ifPresent(m -> sb.append("The transaction failed with message " + m + "\n"));
 
 			if (file.isPresent())
 				sb.append("The new key pair of the account " + account + " has been saved as " + asPath(file.get()) + ".\n");
-			else {
-				sb.append("The owner of the new key pair of " + account + " can bind it now to its address with:\n");
+			else if (errorMessage.isEmpty()) {
+				sb.append("The owner of the new key pair of " + account + " can bind it to its address with:\n");
 				sb.append(asCommand("  moka keys bind file_containing_the_new_key_pair_of_the_account --password --reference " + account + "\n"));
 			}
 
-			sb.append("\n");
-	
-			toStringGasCost(sb);
-	
+			gasCost.ifPresent(g -> {
+				sb.append("\n");
+				g.toString(sb);
+			});
+
 			return sb.toString();
 		}
 	}

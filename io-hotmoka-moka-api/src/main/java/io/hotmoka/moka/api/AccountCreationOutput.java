@@ -65,7 +65,8 @@ public interface AccountCreationOutput {
 	 * 
 	 * @return the path of the key pair file generated for the created account; this is
 	 *         missing if the transaction has just been posted
-	 *         rather than added, or if the transaction failed
+	 *         rather than added, or if the transaction failed, or if the account has
+	 *         been created with an explicit public key rather than a key pair
 	 */
 	Optional<Path> getFile();
 }

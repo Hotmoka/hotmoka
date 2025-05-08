@@ -18,6 +18,7 @@ package io.hotmoka.moka.internal.json;
 
 import java.util.Optional;
 
+import io.hotmoka.moka.GasCosts;
 import io.hotmoka.moka.api.accounts.AccountsRotateOutput;
 import io.hotmoka.moka.internal.accounts.Rotate;
 import io.hotmoka.node.StorageValues;
@@ -28,25 +29,35 @@ import io.hotmoka.websockets.beans.api.JsonRepresentation;
 /**
  * The JSON representation of the output of the {@code moka accounts rotate} command.
  */
-public class AccountsRotateOutputJson extends GasCostOutputJson implements JsonRepresentation<AccountsRotateOutput> {
-	private final StorageValues.Json account;
+public class AccountsRotateOutputJson implements JsonRepresentation<AccountsRotateOutput> {
 	private final TransactionReferences.Json transaction;
+	private final StorageValues.Json account;
+	private final GasCosts.Json gasCost;
+	private final String errorMessage;
 	private final String file;
 
 	protected AccountsRotateOutputJson(AccountsRotateOutput output) {
-		super(output);
-
-		this.account = new StorageValues.Json(output.getAccount());
 		this.transaction = new TransactionReferences.Json(output.getTransaction());
+		this.account = new StorageValues.Json(output.getAccount());
+		this.gasCost = output.getGasCost().map(GasCosts.Json::new).orElse(null);
+		this.errorMessage = output.getErrorMessage().orElse(null);
 		this.file = output.getFile().map(Object::toString).orElse(null);
+	}
+
+	public TransactionReferences.Json getTransaction() {
+		return transaction;
 	}
 
 	public StorageValues.Json getAccount() {
 		return account;
 	}
 
-	public TransactionReferences.Json getTransaction() {
-		return transaction;
+	public GasCosts.Json getGasCost() {
+		return gasCost;
+	}
+
+	public String getErrorMessage() {
+		return errorMessage;
 	}
 
 	public Optional<String> getFile() {
