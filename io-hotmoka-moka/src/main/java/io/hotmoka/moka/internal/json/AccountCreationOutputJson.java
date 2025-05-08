@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.json;
 
+import io.hotmoka.moka.GasCosts;
 import io.hotmoka.moka.api.AccountCreationOutput;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
@@ -23,16 +24,18 @@ import io.hotmoka.node.TransactionReferences;
 /**
  * The JSON representation of the output of the account creation commands.
  */
-public abstract class AccountCreationOutputJson extends GasCostOutputJson {
-	private final TransactionReferences.Json transaction; // TODO: remove, it's the transaction of account
+public abstract class AccountCreationOutputJson {
+	private final TransactionReferences.Json transaction;
 	private final StorageValues.Json account;
+	private final GasCosts.Json gasCost;
+	private final String errorMessage;
 	private final String file;
 
 	protected AccountCreationOutputJson(AccountCreationOutput output) {
-		super(output);
-
 		this.transaction = new TransactionReferences.Json(output.getTransaction());
-		this.account = new StorageValues.Json(output.getAccount());
+		this.account = output.getAccount().map(StorageValues.Json::new).orElse(null);
+		this.gasCost = output.getGasCost().map(GasCosts.Json::new).orElse(null);
+		this.errorMessage = output.getErrorMessage().orElse(null);
 		this.file = output.getFile().map(Object::toString).orElse(null);
 	}
 
@@ -42,6 +45,14 @@ public abstract class AccountCreationOutputJson extends GasCostOutputJson {
 
 	public StorageValues.Json getAccount() {
 		return account;
+	}
+
+	public GasCosts.Json getGasCost() {
+		return gasCost;
+	}
+
+	public String getErrorMessage() {
+		return errorMessage;
 	}
 
 	public String getFile() {

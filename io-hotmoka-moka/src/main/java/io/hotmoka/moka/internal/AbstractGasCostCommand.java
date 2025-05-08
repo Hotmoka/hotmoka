@@ -44,6 +44,23 @@ public abstract class AbstractGasCostCommand extends AbstractMokaRpcCommand {
 	@Option(names = "--gas-price", description = "the gas price used for the transaction; if missing, the current gas price of the network will be used") 
 	private BigInteger gasPrice;
 
+	@Option(names = "--post", description = "just post the transaction, without waiting and reporting its outcome")
+	private boolean post;
+
+	/**
+	 * A heuristic about the gas limit to use for the transaction of this command.
+	 */
+	protected interface GasLimitHeuristic {
+	
+		/**
+		 * Yields the gas limit to use as heuristic for the transaction of the command.
+		 * 
+		 * @return the gas limit to use as heuristic for the transaction of the command
+		 * @throws CommandException if the heuristic cannot be computed
+		 */
+		BigInteger apply() throws CommandException;
+	}
+
 	/**
 	 * Yields the gas limit to use for the transaction.
 	 * 
@@ -53,20 +70,6 @@ public abstract class AbstractGasCostCommand extends AbstractMokaRpcCommand {
 	 */
 	protected BigInteger determineGasLimit(GasLimitHeuristic heuristic) throws CommandException {
 		return gasLimit != null ? gasLimit : heuristic.apply();
-	}
-
-	/**
-	 * A heuristic about the gas limit to use for the transaction of this command.
-	 */
-	protected interface GasLimitHeuristic {
-
-		/**
-		 * Yields the gas limit to use as heuristic for the transaction of the command.
-		 * 
-		 * @return the gas limit to use as heuristic for the transaction of the command
-		 * @throws CommandException if the heuristic cannot be computed
-		 */
-		BigInteger apply() throws CommandException;
 	}
 
 	/**
@@ -89,6 +92,16 @@ public abstract class AbstractGasCostCommand extends AbstractMokaRpcCommand {
 		catch (CodeExecutionException | TransactionRejectedException | TransactionException e) {
 			throw new CommandException("Cannot determine the current gas price!", e);
 		}
+	}
+
+	/**
+	 * Determine if the user has just requested to post the transaction that consumes the gas, without waiting
+	 * and reporting its output.
+	 * 
+	 * @return true if and only if the user has just requested to post the transaction
+	 */
+	protected boolean post() {
+		return post;
 	}
 
 	/**

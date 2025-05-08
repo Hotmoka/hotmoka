@@ -38,6 +38,7 @@ import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.responses.ConstructorCallTransactionSuccessfulResponse;
 import io.hotmoka.node.api.responses.NonVoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * Tests for the moka nodes command.
@@ -60,14 +61,18 @@ public class AccountsTests extends AbstractMokaTestWithNode {
 		assertTrue(response instanceof NonVoidMethodCallTransactionSuccessfulResponse);
 		NonVoidMethodCallTransactionSuccessfulResponse successfulResponse = (NonVoidMethodCallTransactionSuccessfulResponse) response;
 
+		// the created account is reported in the output
+		assertTrue(accountsCreateOutput.getAccount().isPresent());
+		StorageReference account = accountsCreateOutput.getAccount().get();
+
 		// that response must have, as result, the created account
-		assertEquals(accountsCreateOutput.getAccount(), successfulResponse.getResult());
+		assertEquals(account, successfulResponse.getResult());
 
 		// the new account must have been created in the reported transaction
-		assertEquals(accountsCreateOutput.getTransaction(), accountsCreateOutput.getAccount().getTransaction());
+		assertEquals(accountsCreateOutput.getTransaction(), account.getTransaction());
 
 		BigInteger balance = node.runInstanceMethodCallTransaction(
-				TransactionRequests.instanceViewMethodCall(gamete, _100_000, takamakaCode, MethodSignatures.BALANCE, accountsCreateOutput.getAccount()))
+				TransactionRequests.instanceViewMethodCall(gamete, _100_000, takamakaCode, MethodSignatures.BALANCE, account))
 				.orElseThrow(() -> new IllegalStateException(MethodSignatures.BALANCE + " should not return void"))
 				.asReturnedBigInteger(MethodSignatures.BALANCE, IllegalStateException::new);
 
@@ -75,7 +80,7 @@ public class AccountsTests extends AbstractMokaTestWithNode {
 		assertEquals(BigInteger.valueOf(12345), balance);
 
 		String publicKeyBase64 = node.runInstanceMethodCallTransaction(
-				TransactionRequests.instanceViewMethodCall(gamete, _100_000, takamakaCode, MethodSignatures.PUBLIC_KEY, accountsCreateOutput.getAccount()))
+				TransactionRequests.instanceViewMethodCall(gamete, _100_000, takamakaCode, MethodSignatures.PUBLIC_KEY, account))
 				.orElseThrow(() -> new IllegalStateException(MethodSignatures.PUBLIC_KEY + " should not return void"))
 				.asReturnedString(MethodSignatures.PUBLIC_KEY, IllegalStateException::new);
 
@@ -101,14 +106,18 @@ public class AccountsTests extends AbstractMokaTestWithNode {
 		assertTrue(response instanceof ConstructorCallTransactionSuccessfulResponse);
 		ConstructorCallTransactionSuccessfulResponse successfulResponse = (ConstructorCallTransactionSuccessfulResponse) response;
 
+		// the created account is reported in the output
+		assertTrue(accountsCreateOutput.getAccount().isPresent());
+		StorageReference account = accountsCreateOutput.getAccount().get();
+
 		// the new account must have been created in the reported transaction
-		assertEquals(accountsCreateOutput.getTransaction(), accountsCreateOutput.getAccount().getTransaction());
+		assertEquals(accountsCreateOutput.getTransaction(), account.getTransaction());
 
 		// that response must have, as result, the created account
-		assertEquals(accountsCreateOutput.getAccount(), successfulResponse.getNewObject());
+		assertEquals(account, successfulResponse.getNewObject());
 
 		BigInteger balance = node.runInstanceMethodCallTransaction(
-				TransactionRequests.instanceViewMethodCall(gamete, _100_000, takamakaCode, MethodSignatures.BALANCE, accountsCreateOutput.getAccount()))
+				TransactionRequests.instanceViewMethodCall(gamete, _100_000, takamakaCode, MethodSignatures.BALANCE, account))
 				.orElseThrow(() -> new IllegalStateException(MethodSignatures.BALANCE + " should not return void"))
 				.asReturnedBigInteger(MethodSignatures.BALANCE, IllegalStateException::new);
 
@@ -116,7 +125,7 @@ public class AccountsTests extends AbstractMokaTestWithNode {
 		assertEquals(BigInteger.valueOf(12345), balance);
 
 		String publicKeyBase64 = node.runInstanceMethodCallTransaction(
-				TransactionRequests.instanceViewMethodCall(gamete, _100_000, takamakaCode, MethodSignatures.PUBLIC_KEY, accountsCreateOutput.getAccount()))
+				TransactionRequests.instanceViewMethodCall(gamete, _100_000, takamakaCode, MethodSignatures.PUBLIC_KEY, account))
 				.orElseThrow(() -> new IllegalStateException(MethodSignatures.PUBLIC_KEY + " should not return void"))
 				.asReturnedString(MethodSignatures.PUBLIC_KEY, IllegalStateException::new);
 
@@ -137,7 +146,7 @@ public class AccountsTests extends AbstractMokaTestWithNode {
 		// then we create a new account with that key pair, and let the faucet pay for it
 		var accountsCreateOutput = AccountsCreateOutputs.from(MokaNew.accountsCreate("12345 --keys=" + keysCreateOutput.getFile() + " --signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
 		// and finally ask to show the account
-		var accountsShowOutput = AccountsShowOutputs.from(MokaNew.accountsShow(accountsCreateOutput.getAccount() + " --json --uri=ws://localhost:" + PORT));
+		var accountsShowOutput = AccountsShowOutputs.from(MokaNew.accountsShow(accountsCreateOutput.getAccount().get() + " --json --uri=ws://localhost:" + PORT));
 
 		assertEquals(signature, accountsShowOutput.getSignature());
 		assertEquals(BigInteger.valueOf(12345L), accountsShowOutput.getBalance());
@@ -160,8 +169,10 @@ public class AccountsTests extends AbstractMokaTestWithNode {
 		var secondKeyCreateOutput = KeysCreateOutputs.from(MokaNew.keysCreate("--signature=" + signature + " --password=" + passwordOfSecondKeyPair + " --name second.pem --json --output-dir=" + dir));
 		// create a new account with the first key pair, letting the faucet pay for it
 		var accountsCreateOutput = AccountsCreateOutputs.from(MokaNew.accountsCreate("50000000 --keys=" + firstKeyCreateOutput.getFile() + " --signature=" + signature + " --password=" + passwordOfFirstKeyPair + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
+		var account = accountsCreateOutput.getAccount().get();
+
 		// we show the account
-		var accountsShowOutput = AccountsShowOutputs.from(MokaNew.accountsShow(accountsCreateOutput.getAccount() + " --json --uri=ws://localhost:" + PORT));
+		var accountsShowOutput = AccountsShowOutputs.from(MokaNew.accountsShow(account + " --json --uri=ws://localhost:" + PORT));
 		// the signature algorithm of the account is as required
 		assertEquals(signature, accountsShowOutput.getSignature());
 		// the public key of the account is that of the first key pair
@@ -173,9 +184,9 @@ public class AccountsTests extends AbstractMokaTestWithNode {
 			assertEquals(Base64.toBase64String(encodingOfPublicKeyOfAccount), accountsShowOutput.getPublicKeyBase64());
 		}
 		// rotate the key pair of the account with the second key pair
-		var accountsRotateOutput = AccountsRotateOutputs.from(MokaNew.accountsRotate(accountsCreateOutput.getAccount() + " --dir=" + dir + " --password-of-account=" + passwordOfFirstKeyPair + " --new-password-of-account=" + passwordOfSecondKeyPair + " --json --output-dir=" + dir + " --keys=" + secondKeyCreateOutput.getFile() + " --uri=ws://localhost:" + PORT));
+		var accountsRotateOutput = AccountsRotateOutputs.from(MokaNew.accountsRotate(account + " --dir=" + dir + " --password-of-account=" + passwordOfFirstKeyPair + " --new-password-of-account=" + passwordOfSecondKeyPair + " --json --output-dir=" + dir + " --keys=" + secondKeyCreateOutput.getFile() + " --uri=ws://localhost:" + PORT));
 		// we show the account again
-		var accountsShowOutputAgain = AccountsShowOutputs.from(MokaNew.accountsShow(accountsCreateOutput.getAccount() + " --json --uri=ws://localhost:" + PORT));
+		var accountsShowOutputAgain = AccountsShowOutputs.from(MokaNew.accountsShow(account + " --json --uri=ws://localhost:" + PORT));
 		// the signature algorithm of the account is still as required
 		assertEquals(signature, accountsShowOutputAgain.getSignature());
 		// the public key of the account is that of the second key pair now

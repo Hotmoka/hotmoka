@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.nodes.tendermint.validators;
 
-import java.math.BigInteger;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
@@ -28,10 +27,12 @@ import io.hotmoka.moka.NodesTendermintValidatorsCreateOutputs;
 import io.hotmoka.moka.api.GasCost;
 import io.hotmoka.moka.api.nodes.tendermint.validators.NodesTendermintValidatorsCreateOutput;
 import io.hotmoka.moka.internal.AbstractAccountCreation;
+import io.hotmoka.moka.internal.AbstractAccountCreation.AbstractAccountCreationOutput;
 import io.hotmoka.moka.internal.json.NodesTendermintValidatorsCreateOutputJson;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
+import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.api.RemoteNode;
@@ -39,7 +40,7 @@ import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import picocli.CommandLine.Command;
 
 @Command(name = "create", header = "Create a new validator account object.", showDefaultValues = true)
-public class Create extends AbstractAccountCreation {
+public class Create extends AbstractAccountCreation<Create.Output> {
 
 	@Override
 	protected SignatureAlgorithm getSignatureAlgorithmOfNewAccount(RemoteNode remote) throws CommandException {
@@ -63,8 +64,13 @@ public class Create extends AbstractAccountCreation {
 	}
 
 	@Override
-	protected void reportOutput(StorageReference referenceOfNewAccount, Optional<Path> file, GasCost gasCost, BigInteger gasPrice) throws CommandException {
-		report(json(), new Output(referenceOfNewAccount, file, gasCost, gasPrice), NodesTendermintValidatorsCreateOutputs.Encoder::new);
+	protected Output mkOutput(TransactionReference transaction, Optional<StorageReference> account, Optional<GasCost> gasCost, Optional<String> errorMessage, Optional<Path> file) {
+		return new Output(transaction, account, gasCost, errorMessage, file);
+	}
+
+	@Override
+	protected void reportOutput(Output output) throws CommandException {
+		report(json(), output, NodesTendermintValidatorsCreateOutputs.Encoder::new);
 	}
 
 	/**
@@ -72,8 +78,8 @@ public class Create extends AbstractAccountCreation {
 	 */
 	public static class Output extends AbstractAccountCreationOutput implements NodesTendermintValidatorsCreateOutput {
 
-		private Output(StorageReference account, Optional<Path> file, GasCost gasCost, BigInteger gasPrice) {
-			super(account, file, gasCost, gasPrice);
+		private Output(TransactionReference transaction, Optional<StorageReference> account, Optional<GasCost> gasCost, Optional<String> errorMessage, Optional<Path> file) {
+			super(transaction, account, gasCost, errorMessage, file);
 		}
 
 		public Output(NodesTendermintValidatorsCreateOutputJson json) throws InconsistentJsonException {

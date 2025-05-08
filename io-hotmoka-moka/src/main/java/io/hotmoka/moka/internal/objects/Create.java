@@ -100,9 +100,6 @@ public class Create extends AbstractGasCostCommand {
 	@Option(names = "--yes", description = "assume yes when asked for confirmation; this is implied if --json is used")
 	private boolean yes;
 
-	@Option(names = "--add", description = "add the transaction, that is, wait until its outcome is available (or the --timeout threshold expires) and report its result; otherwise, just post the transaction, without waiting for its outcome")
-	private boolean add;
-
 	@Override
 	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
 		new Body(remote);
@@ -139,7 +136,7 @@ public class Create extends AbstractGasCostCommand {
 				this.constructor = identifyConstructor();
 				this.signatureOfConstructor = mkConstructor();
 				this.gasPrice = determineGasPrice(remote);
-				askForConfirmation("call a constructor of " + className, gasLimit, gasPrice, yes || json());
+				askForConfirmation("call constructor " + constructor, gasLimit, gasPrice, yes || json());
 				this.nonce = determineNonceOf(payer, remote);
 				this.request = mkRequest();
 				report(json(), executeRequest(), ObjectsCreateOutputs.Encoder::new);
@@ -184,7 +181,16 @@ public class Create extends AbstractGasCostCommand {
 			Optional<String> errorMessage = Optional.empty();
 
 			try {
-				if (add) {
+				if (post()) {
+					if (!json())
+						System.out.print("Posting transaction " + asTransactionReference(transaction) + "... ");
+
+					remote.postConstructorCallTransaction(request);
+
+					if (!json())
+						System.out.println("done.");
+				}
+				else {
 					if (!json())
 						System.out.print("Adding transaction " + asTransactionReference(transaction) + "... ");
 
@@ -201,15 +207,6 @@ public class Create extends AbstractGasCostCommand {
 					}
 
 					gasCost = Optional.of(computeIncurredGasCost(remote, gasPrice, transaction));
-				}
-				else {
-					if (!json())
-						System.out.print("Posting transaction " + asTransactionReference(transaction) + "... ");
-
-					remote.postConstructorCallTransaction(request);
-
-					if (!json())
-						System.out.println("done.");
 				}
 			}
 			catch (TransactionRejectedException e) {

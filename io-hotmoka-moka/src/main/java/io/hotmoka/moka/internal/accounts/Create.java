@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.accounts;
 
-import java.math.BigInteger;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
@@ -27,12 +26,14 @@ import io.hotmoka.moka.AccountsCreateOutputs;
 import io.hotmoka.moka.api.GasCost;
 import io.hotmoka.moka.api.accounts.AccountsCreateOutput;
 import io.hotmoka.moka.internal.AbstractAccountCreation;
+import io.hotmoka.moka.internal.AbstractAccountCreation.AbstractAccountCreationOutput;
 import io.hotmoka.moka.internal.converters.SignatureOptionConverter;
 import io.hotmoka.moka.internal.json.AccountsCreateOutputJson;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
+import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.api.RemoteNode;
@@ -41,7 +42,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 @Command(name = "create", header = "Create a new account object.", showDefaultValues = true)
-public class Create extends AbstractAccountCreation {
+public class Create extends AbstractAccountCreation<Create.Output> {
 
 	@Option(names = "--signature", description = "the signature algorithm of the new account (ed25519, sha256dsa, qtesla1, qtesla3); if missing, the default request signature of the node will be used", converter = SignatureOptionConverter.class)
 	private SignatureAlgorithm signature;
@@ -70,8 +71,13 @@ public class Create extends AbstractAccountCreation {
 	}
 
 	@Override
-	protected void reportOutput(StorageReference referenceOfNewAccount, Optional<Path> file, GasCost gasCosts, BigInteger gasPrice) throws CommandException {
-		report(json(), new Output(referenceOfNewAccount, file, gasCosts, gasPrice), AccountsCreateOutputs.Encoder::new);
+	protected Output mkOutput(TransactionReference transaction, Optional<StorageReference> account, Optional<GasCost> gasCost, Optional<String> errorMessage, Optional<Path> file) {
+		return new Output(transaction, account, gasCost, errorMessage, file);
+	}
+
+	@Override
+	protected void reportOutput(Output output) throws CommandException {
+		report(json(), output, AccountsCreateOutputs.Encoder::new);
 	}
 
 	/**
@@ -79,8 +85,8 @@ public class Create extends AbstractAccountCreation {
 	 */
 	public static class Output extends AbstractAccountCreationOutput implements AccountsCreateOutput {
 
-		private Output(StorageReference account, Optional<Path> file, GasCost gasCost, BigInteger gasPrice) {
-			super(account, file, gasCost, gasPrice);
+		private Output(TransactionReference transaction, Optional<StorageReference> account, Optional<GasCost> gasCost, Optional<String> errorMessage, Optional<Path> file) {
+			super(transaction, account, gasCost, errorMessage, file);
 		}
 
 		public Output(AccountsCreateOutputJson json) throws InconsistentJsonException {
