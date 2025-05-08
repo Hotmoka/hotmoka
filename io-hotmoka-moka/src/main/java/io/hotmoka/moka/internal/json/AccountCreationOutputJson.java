@@ -18,43 +18,25 @@ package io.hotmoka.moka.internal.json;
 
 import java.util.Optional;
 
-import io.hotmoka.moka.GasCosts;
 import io.hotmoka.moka.api.AccountCreationOutput;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.TransactionReferences;
 
 /**
  * The JSON representation of the output of the account creation commands.
  */
-public abstract class AccountCreationOutputJson {
+public abstract class AccountCreationOutputJson extends GasCostOutputJson {
 	private final StorageValues.Json account;
 	private final String file;
-	private final TransactionReferences.Json transaction;
-	private final GasCosts.Json gasCost;
-	private final String errorMessage;
 
 	protected AccountCreationOutputJson(AccountCreationOutput output) {
-		this.transaction = new TransactionReferences.Json(output.getTransaction());
-		this.account = output.getAccount().map(StorageValues.Json::new).orElse(null);
-		this.gasCost = output.getGasCost().map(GasCosts.Json::new).orElse(null);
-		this.errorMessage = output.getErrorMessage().orElse(null);
-		this.file = output.getFile().map(Object::toString).orElse(null);
-	}
+		super(output);
 
-	public TransactionReferences.Json getTransaction() {
-		return transaction;
+		this.account = output.getAccount().map(StorageValues.Json::new).orElse(null);
+		this.file = output.getFile().map(Object::toString).orElse(null);
 	}
 
 	public Optional<StorageValues.Json> getAccount() {
 		return Optional.ofNullable(account);
-	}
-
-	public Optional<GasCosts.Json> getGasCost() {
-		return Optional.ofNullable(gasCost);
-	}
-
-	public Optional<String> getErrorMessage() {
-		return Optional.ofNullable(errorMessage);
 	}
 
 	public Optional<String> getFile() {

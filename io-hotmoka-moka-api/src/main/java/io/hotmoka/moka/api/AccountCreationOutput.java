@@ -20,14 +20,13 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * The output of command that creates an account.
  */
 @Immutable
-public interface AccountCreationOutput {
+public interface AccountCreationOutput extends GasCostOutput {
 
 	/**
 	 * Yields the reference of the created account.
@@ -46,27 +45,4 @@ public interface AccountCreationOutput {
 	 *         been created with an explicit public key rather than a key pair
 	 */
 	Optional<Path> getFile();
-
-	/**
-	 * Yields the transaction that created the account.
-	 * 
-	 * @return the transaction that created the account
-	 */
-	TransactionReference getTransaction();
-
-	/**
-	 * Yields the gas cost of the creation transaction.
-	 * 
-	 * @return the gas cost of the creation transaction; this is missing if the transaction has just been posted
-	 *         rather than added, or if it has been rejected
-	 */
-	Optional<GasCost> getGasCost();
-
-	/**
-	 * Yields the error message of the creation transaction.
-	 * 
-	 * @return the error message of the creation transaction; this is missing if the transaction has just been posted
-	 *         rather than added, or if it was successful, or if it was rejected 
-	 */
-	Optional<String> getErrorMessage();
 }

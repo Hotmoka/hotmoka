@@ -29,7 +29,6 @@ import java.util.concurrent.TimeoutException;
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.api.Signer;
-import io.hotmoka.exceptions.Objects;
 import io.hotmoka.moka.AccountsRotateOutputs;
 import io.hotmoka.moka.api.GasCost;
 import io.hotmoka.moka.api.accounts.AccountsRotateOutput;
@@ -190,27 +189,12 @@ public class Rotate extends AbstractGasCostCommand {
 	/**
 	 * The output of this command.
 	 */
-	public static class Output implements AccountsRotateOutput {
-
-		/**
-		 * The rotation transaction.
-		 */
-		private final TransactionReference transaction;
+	public static class Output extends AbstractGasCostCommandOutput implements AccountsRotateOutput {
 
 		/**
 		 * The account whose keys have been rotated, if any.
 		 */
 		private final Optional<StorageReference> account;
-
-		/**
-		 * The gas cost of the transaction, if any.
-		 */
-		private final Optional<GasCost> gasCost;
-
-		/**
-		 * The error message of the transaction, if any.
-		 */
-		private final Optional<String> errorMessage;
 
 		/**
 		 * The path where the new key pair of the account has been saved, if any.
@@ -221,10 +205,9 @@ public class Rotate extends AbstractGasCostCommand {
 		 * Builds the output of the command.
 		 */
 		private Output(TransactionReference transaction, Optional<StorageReference> account, Optional<GasCost> gasCost, Optional<String> errorMessage, Optional<Path> file) {
-			this.transaction = transaction;
+			super(transaction, gasCost, errorMessage);
+
 			this.account = account;
-			this.gasCost = gasCost;
-			this.errorMessage = errorMessage;
 			this.file = file;
 		}
 	
@@ -235,20 +218,13 @@ public class Rotate extends AbstractGasCostCommand {
 		 * @throws InconsistentJsonException if {@code json} is inconsistent
 		 */
 		public Output(AccountsRotateOutputJson json) throws InconsistentJsonException {
-			this.transaction = Objects.requireNonNull(json.getTransaction(), "transaction cannot be null", InconsistentJsonException::new).unmap();
+			super(json);
+
 			var account = json.getAccount();
 			if (account.isEmpty())
 				this.account = Optional.empty();
 			else
 				this.account = Optional.of(account.get().unmap().asReference(value -> new InconsistentJsonException("The reference to the account must be a storage reference, not a " + value.getClass().getName())));
-
-			var gasCost = json.getGasCost();
-			if (gasCost.isEmpty())
-				this.gasCost = Optional.empty();
-			else
-				this.gasCost = Optional.of(gasCost.get().unmap());
-
-			this.errorMessage = json.getErrorMessage();
 
 			Optional<String> file = json.getFile();
 			if (file.isPresent()) {
@@ -274,40 +250,8 @@ public class Rotate extends AbstractGasCostCommand {
 		}
 
 		@Override
-		public TransactionReference getTransaction() {
-			return transaction;
-		}
-
-		@Override
-		public Optional<GasCost> getGasCost() {
-			return gasCost;
-		}
-
-		@Override
-		public Optional<String> getErrorMessage() {
-			return errorMessage;
-		}
-
-		@Override
-		public String toString() {
-			var sb = new StringBuilder();
-
+		protected void toString(StringBuilder sb) {
 			sb.append("The keys of the account " + account + " have been rotated.\n");
-			errorMessage.ifPresent(m -> sb.append("The transaction failed with message " + m + "\n"));
-
-			if (file.isPresent())
-				sb.append("The new key pair of the account " + account + " has been saved as " + asPath(file.get()) + ".\n");
-			else if (errorMessage.isEmpty()) {
-				sb.append("The owner of the new key pair of " + account + " can bind it to its address with:\n");
-				sb.append(asCommand("  moka keys bind file_containing_the_new_key_pair_of_the_account --password --reference " + account + "\n"));
-			}
-
-			gasCost.ifPresent(g -> {
-				sb.append("\n");
-				g.toString(sb);
-			});
-
-			return sb.toString();
 		}
 	}
 }

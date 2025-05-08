@@ -18,44 +18,26 @@ package io.hotmoka.moka.internal.json;
 
 import java.util.Optional;
 
-import io.hotmoka.moka.GasCosts;
 import io.hotmoka.moka.api.objects.ObjectsCreateOutput;
 import io.hotmoka.moka.internal.objects.Create;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**
  * The JSON representation of the output of the {@code moka objects create} command.
  */
-public class ObjectsCreateOutputJson implements JsonRepresentation<ObjectsCreateOutput> {
-	private final TransactionReferences.Json transaction;
+public class ObjectsCreateOutputJson extends GasCostOutputJson implements JsonRepresentation<ObjectsCreateOutput> {
 	private final StorageValues.Json object;
-	private final GasCosts.Json gasCost;
-	private final String errorMessage;
 
 	protected ObjectsCreateOutputJson(ObjectsCreateOutput output) {
-		this.transaction = new TransactionReferences.Json(output.getTransaction());
-		this.object = output.getObject().map(StorageValues.Json::new).orElse(null);
-		this.gasCost = output.getGasCost().map(GasCosts.Json::new).orElse(null);
-		this.errorMessage = output.getErrorMessage().orElse(null);
-	}
+		super(output);
 
-	public TransactionReferences.Json getTransaction() {
-		return transaction;
+		this.object = output.getObject().map(StorageValues.Json::new).orElse(null);
 	}
 
 	public Optional<StorageValues.Json> getObject() {
 		return Optional.ofNullable(object);
-	}
-
-	public Optional<GasCosts.Json> getGasCost() {
-		return Optional.ofNullable(gasCost);
-	}
-
-	public Optional<String> getErrorMessage() {
-		return Optional.ofNullable(errorMessage);
 	}
 
 	@Override

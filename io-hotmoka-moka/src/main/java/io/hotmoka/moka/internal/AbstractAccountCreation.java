@@ -32,7 +32,6 @@ import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.api.Signer;
-import io.hotmoka.exceptions.Objects;
 import io.hotmoka.moka.api.AccountCreationOutput;
 import io.hotmoka.moka.api.GasCost;
 import io.hotmoka.moka.internal.converters.StorageReferenceOfAccountOptionConverter;
@@ -361,27 +360,12 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 	/**
 	 * The output of this command.
 	 */
-	public static abstract class AbstractAccountCreationOutput implements AccountCreationOutput {
-
-		/**
-		 * The creation transaction.
-		 */
-		private final TransactionReference transaction;
+	public static abstract class AbstractAccountCreationOutput extends AbstractGasCostCommandOutput implements AccountCreationOutput {
 
 		/**
 		 * The reference of the created account, if any.
 		 */
 		private final Optional<StorageReference> account;
-
-		/**
-		 * The gas cost of the transaction, if any.
-		 */
-		private final Optional<GasCost> gasCost;
-
-		/**
-		 * The error message of the transaction, if any.
-		 */
-		private final Optional<String> errorMessage;
 
 		/**
 		 * The path of the created key pair file for the account that has been created.
@@ -394,10 +378,9 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 		 * Builds the output of the command.
 		 */
 		protected AbstractAccountCreationOutput(TransactionReference transaction, Optional<StorageReference> account, Optional<GasCost> gasCost, Optional<String> errorMessage, Optional<Path> file) {
-			this.transaction = transaction;
+			super(transaction, gasCost, errorMessage);
+
 			this.account = account;
-			this.gasCost = gasCost;
-			this.errorMessage = errorMessage;
 			this.file = file;
 		}
 
@@ -408,21 +391,13 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 		 * @throws InconsistentJsonException if {@code json} is inconsistent
 		 */
 		protected AbstractAccountCreationOutput(AccountCreationOutputJson json) throws InconsistentJsonException {
-			this.transaction = Objects.requireNonNull(json.getTransaction().unmap(), "transaction cannot be null", InconsistentJsonException::new);
+			super(json);
 
 			var account = json.getAccount();
 			if (account.isEmpty())
 				this.account = Optional.empty();
 			else
 				this.account = Optional.of(account.get().unmap().asReference(value -> new InconsistentJsonException("The reference to the created account must be a storage reference, not a " + value.getClass().getName())));
-
-			var gasCost = json.getGasCost();
-			if (gasCost.isEmpty())
-				this.gasCost = Optional.empty();
-			else
-				this.gasCost = Optional.of(gasCost.get().unmap());
-
-			this.errorMessage = json.getErrorMessage();
 
 			try {
 				this.file = json.getFile().map(Paths::get);
@@ -433,18 +408,8 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 		}
 
 		@Override
-		public TransactionReference getTransaction() {
-			return transaction;
-		}
-
-		@Override
 		public Optional<StorageReference> getAccount() {
 			return account;
-		}
-
-		@Override
-		public Optional<GasCost> getGasCost() {
-			return gasCost;
 		}
 
 		@Override
@@ -452,31 +417,15 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 			return file;
 		}
 
-		@Override
-		public Optional<String> getErrorMessage() {
-			return errorMessage;
-		}
-
-		@Override
-		public String toString() {
-			var sb = new StringBuilder();
+		protected void toString(StringBuilder sb) {
 			account.ifPresent(o -> sb.append("A new account " + o + " has been created.\n"));
-			errorMessage.ifPresent(m -> sb.append("The transaction failed with message " + m + "\n"));
-
 			if (file.isPresent())
 				sb.append("Its key pair has been saved into the file " + asPath(file.get()) + ".\n");
-			else if (errorMessage.isEmpty()) {
+			else if (getErrorMessage().isEmpty()) {
 				sb.append("The owner of the key pair can bind it to its address with:\n");
 				sb.append("\n");
 				sb.append(asCommand("  moka keys bind file_containing_the_key_pair_of_the_account --password --reference " + account + "\n"));
 			}
-
-			gasCost.ifPresent(g -> {
-				sb.append("\n");
-				g.toString(sb);
-			});
-
-			return sb.toString();
 		}
 	}
 }

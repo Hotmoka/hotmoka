@@ -36,7 +36,6 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.api.Signer;
-import io.hotmoka.exceptions.Objects;
 import io.hotmoka.helpers.ClassLoaderHelpers;
 import io.hotmoka.moka.ObjectsCreateOutputs;
 import io.hotmoka.moka.api.GasCost;
@@ -334,27 +333,12 @@ public class Create extends AbstractGasCostCommand {
 	 * The output of this command.
 	 */
 	@Immutable
-	public static class Output implements ObjectsCreateOutput {
-
-		/**
-		 * The creation transaction.
-		 */
-		private final TransactionReference transaction;
+	public static class Output extends AbstractGasCostCommandOutput implements ObjectsCreateOutput {
 
 		/**
 		 * The object that has been created, if any.
 		 */
 		private final Optional<StorageReference> object;
-
-		/**
-		 * The gas cost of the transaction, if any.
-		 */
-		private final Optional<GasCost> gasCost;
-
-		/**
-		 * The error message of the transaction, if any.
-		 */
-		private final Optional<String> errorMessage;
 
 		/**
 		 * Builds the output of the command.
@@ -365,10 +349,9 @@ public class Create extends AbstractGasCostCommand {
 		 * @param errorMessage the error message of the transaction, if any
 		 */
 		private Output(TransactionReference transaction, Optional<StorageReference> object, Optional<GasCost> gasCost, Optional<String> errorMessage) {
-			this.transaction = transaction;
+			super(transaction, gasCost, errorMessage);
+
 			this.object = object;
-			this.gasCost = gasCost;
-			this.errorMessage = errorMessage;
 		}
 
 		/**
@@ -378,26 +361,13 @@ public class Create extends AbstractGasCostCommand {
 		 * @throws InconsistentJsonException if {@code json} is inconsistent
 		 */
 		public Output(ObjectsCreateOutputJson json) throws InconsistentJsonException {
-			this.transaction = Objects.requireNonNull(json.getTransaction().unmap(), "transaction cannot be null", InconsistentJsonException::new);
+			super(json);
 
 			var object = json.getObject();
 			if (object.isEmpty())
 				this.object = Optional.empty();
 			else
 				this.object = Optional.of(object.get().unmap().asReference(value -> new InconsistentJsonException("The reference to the created object must be a storage reference, not a " + value.getClass().getName())));
-
-			var gasCost = json.getGasCost();
-			if (gasCost.isEmpty())
-				this.gasCost = Optional.empty();
-			else
-				this.gasCost = Optional.of(gasCost.get().unmap());
-
-			this.errorMessage = json.getErrorMessage();
-		}
-
-		@Override
-		public TransactionReference getTransaction() {
-			return transaction;
 		}
 
 		@Override
@@ -406,26 +376,8 @@ public class Create extends AbstractGasCostCommand {
 		}
 
 		@Override
-		public Optional<GasCost> getGasCost() {
-			return gasCost;
-		}
-
-		@Override
-		public Optional<String> getErrorMessage() {
-			return errorMessage;
-		}
-
-		@Override
-		public String toString() {
-			var sb = new StringBuilder();
+		protected void toString(StringBuilder sb) {
 			object.ifPresent(o -> sb.append("A new object " + o + " has been created.\n"));
-			errorMessage.ifPresent(m -> sb.append("The transaction failed with message " + m + "\n"));
-			gasCost.ifPresent(g -> {
-				sb.append("\n");
-				g.toString(sb);
-			});
-
-			return sb.toString();
 		}
 	}
 }

@@ -19,14 +19,14 @@ package io.hotmoka.moka.api.jars;
 import java.util.Optional;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.moka.api.GasCost;
+import io.hotmoka.moka.api.GasCostOutput;
 import io.hotmoka.node.api.transactions.TransactionReference;
 
 /**
  * The output of the {@code moka jars install} command.
  */
 @Immutable
-public interface JarsInstallOutput {
+public interface JarsInstallOutput extends GasCostOutput {
 
 	/**
 	 * Yields the reference of the installed jar, if any.
@@ -35,27 +35,4 @@ public interface JarsInstallOutput {
 	 *         rather than added, or if the transaction failed
 	 */
 	Optional<TransactionReference> getJar();
-
-	/**
-	 * Yields the transaction that installed the jar.
-	 * 
-	 * @return the transaction that installed the jar
-	 */
-	TransactionReference getTransaction();
-
-	/**
-	 * Yields the gas cost of the install transaction.
-	 * 
-	 * @return the gas cost of the install transaction; this is missing if the transaction has just been posted
-	 *         rather than added, or if it has been rejected
-	 */
-	Optional<GasCost> getGasCost();
-
-	/**
-	 * Yields the error message of the install transaction.
-	 * 
-	 * @return the error message of the install transaction; this is missing if the transaction has just been posted
-	 *         rather than added, or if it was successful, or if it was rejected 
-	 */
-	Optional<String> getErrorMessage();
 }

@@ -30,7 +30,6 @@ import java.util.concurrent.TimeoutException;
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.api.Signer;
-import io.hotmoka.exceptions.Objects;
 import io.hotmoka.moka.JarsInstallOutputs;
 import io.hotmoka.moka.api.GasCost;
 import io.hotmoka.moka.api.jars.JarsInstallOutput;
@@ -186,12 +185,7 @@ public class Install extends AbstractGasCostCommand {
 	/**
 	 * The output of this command.
 	 */
-	public static class Output implements JarsInstallOutput {
-
-		/**
-		 * The install transaction.
-		 */
-		private final TransactionReference transaction;
+	public static class Output extends AbstractGasCostCommandOutput implements JarsInstallOutput {
 
 		/**
 		 * The reference of the jar installed in the node, if any.
@@ -199,28 +193,17 @@ public class Install extends AbstractGasCostCommand {
 		private final Optional<TransactionReference> jar;
 
 		/**
-		 * The gas cost of the transaction, if any.
-		 */
-		private final Optional<GasCost> gasCost;
-
-		/**
-		 * The error message of the transaction, if any.
-		 */
-		private final Optional<String> errorMessage;
-
-		/**
 		 * Builds the output of the command.
 		 * 
 		 * @param transaction the creation transaction
-		 * @param object the object that has been created, if any
+		 * @param jar the reference to the jar that has been installed, if any
 		 * @param gasCost the gas cost of the transaction, if any
 		 * @param errorMessage the error message of the transaction, if any
 		 */
 		private Output(TransactionReference transaction, Optional<TransactionReference> jar, Optional<GasCost> gasCost, Optional<String> errorMessage) {
-			this.transaction = transaction;
+			super(transaction, gasCost, errorMessage);
+
 			this.jar = jar;
-			this.gasCost = gasCost;
-			this.errorMessage = errorMessage;
 		}
 	
 		/**
@@ -230,26 +213,13 @@ public class Install extends AbstractGasCostCommand {
 		 * @throws InconsistentJsonException if {@code json} is inconsistent
 		 */
 		public Output(JarsInstallOutputJson json) throws InconsistentJsonException {
-			this.transaction = Objects.requireNonNull(json.getTransaction().unmap(), "transaction cannot be null", InconsistentJsonException::new);
+			super(json);
 
 			var jar = json.getJar();
 			if (jar.isEmpty())
 				this.jar = Optional.empty();
 			else
 				this.jar = Optional.of(jar.get().unmap());
-
-			var gasCost = json.getGasCost();
-			if (gasCost.isEmpty())
-				this.gasCost = Optional.empty();
-			else
-				this.gasCost = Optional.of(gasCost.get().unmap());
-
-			this.errorMessage = json.getErrorMessage();
-		}
-	
-		@Override
-		public TransactionReference getTransaction() {
-			return transaction;
 		}
 	
 		@Override
@@ -258,26 +228,8 @@ public class Install extends AbstractGasCostCommand {
 		}
 
 		@Override
-		public Optional<GasCost> getGasCost() {
-			return gasCost;
-		}
-
-		@Override
-		public Optional<String> getErrorMessage() {
-			return errorMessage;
-		}
-
-		@Override
-		public String toString() {
-			var sb = new StringBuilder();
+		protected void toString(StringBuilder sb) {
 			jar.ifPresent(o -> sb.append("The jar has been installed at " + o + ".\n"));
-			errorMessage.ifPresent(m -> sb.append("The transaction failed with message " + m + "\n"));
-			gasCost.ifPresent(g -> {
-				sb.append("\n");
-				g.toString(sb);
-			});
-
-			return sb.toString();
 		}
 	}
 }
