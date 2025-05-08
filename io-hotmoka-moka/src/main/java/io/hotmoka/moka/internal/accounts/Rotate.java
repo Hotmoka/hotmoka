@@ -126,6 +126,7 @@ public class Rotate extends AbstractGasCostCommand {
 			Optional<GasCost> gasCost = Optional.empty();
 			Optional<String> errorMessage = Optional.empty();
 			Optional<Path> file = Optional.empty();
+			Optional<StorageReference> account = Optional.empty();
 
 			try {
 				if (post()) {
@@ -146,7 +147,8 @@ public class Rotate extends AbstractGasCostCommand {
 						if (!json())
 							System.out.println("done.");
 
-						file = bindKeysToAccount(newPublicKeyIdentifier, account, outputDir);
+						account = Optional.of(Rotate.this.account);
+						file = bindKeysToAccount(newPublicKeyIdentifier, account.get(), outputDir);
 					}
 					catch (TransactionException | CodeExecutionException e) {
 						if (!json())
@@ -196,9 +198,9 @@ public class Rotate extends AbstractGasCostCommand {
 		private final TransactionReference transaction;
 
 		/**
-		 * The account whose keys have been rotated.
+		 * The account whose keys have been rotated, if any.
 		 */
-		private final StorageReference account;
+		private final Optional<StorageReference> account;
 
 		/**
 		 * The gas cost of the transaction, if any.
@@ -218,7 +220,7 @@ public class Rotate extends AbstractGasCostCommand {
 		/**
 		 * Builds the output of the command.
 		 */
-		private Output(TransactionReference transaction, StorageReference account, Optional<GasCost> gasCost, Optional<String> errorMessage, Optional<Path> file) {
+		private Output(TransactionReference transaction, Optional<StorageReference> account, Optional<GasCost> gasCost, Optional<String> errorMessage, Optional<Path> file) {
 			this.transaction = transaction;
 			this.account = account;
 			this.gasCost = gasCost;
@@ -234,16 +236,19 @@ public class Rotate extends AbstractGasCostCommand {
 		 */
 		public Output(AccountsRotateOutputJson json) throws InconsistentJsonException {
 			this.transaction = Objects.requireNonNull(json.getTransaction(), "transaction cannot be null", InconsistentJsonException::new).unmap();
-			this.account = Objects.requireNonNull(json.getAccount(), "account cannot be null", InconsistentJsonException::new).unmap()
-					.asReference(value -> new InconsistentJsonException("The reference to the account must be a storage reference, not a " + value.getClass().getName()));
+			var account = json.getAccount();
+			if (account.isEmpty())
+				this.account = Optional.empty();
+			else
+				this.account = Optional.of(account.get().unmap().asReference(value -> new InconsistentJsonException("The reference to the account must be a storage reference, not a " + value.getClass().getName())));
 
 			var gasCost = json.getGasCost();
-			if (gasCost == null)
+			if (gasCost.isEmpty())
 				this.gasCost = Optional.empty();
 			else
-				this.gasCost = Optional.of(gasCost.unmap());
+				this.gasCost = Optional.of(gasCost.get().unmap());
 
-			this.errorMessage = Optional.ofNullable(json.getErrorMessage());
+			this.errorMessage = json.getErrorMessage();
 
 			Optional<String> file = json.getFile();
 			if (file.isPresent()) {
@@ -259,7 +264,7 @@ public class Rotate extends AbstractGasCostCommand {
 		}
 
 		@Override
-		public StorageReference getAccount() {
+		public Optional<StorageReference> getAccount() {
 			return account;
 		}
 

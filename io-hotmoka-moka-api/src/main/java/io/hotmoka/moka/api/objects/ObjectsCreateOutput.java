@@ -30,19 +30,19 @@ import io.hotmoka.node.api.values.StorageReference;
 public interface ObjectsCreateOutput {
 
 	/**
-	 * Yields the transaction that created the object.
-	 * 
-	 * @return the transaction that created the object
-	 */
-	TransactionReference getTransaction();
-
-	/**
 	 * Yields the reference of the created object.
 	 * 
 	 * @return the reference of the created object; this is missing if the transaction has just been posted
 	 *         rather than added, or if the transaction failed
 	 */
 	Optional<StorageReference> getObject();
+
+	/**
+	 * Yields the transaction that created the object.
+	 * 
+	 * @return the transaction that created the object
+	 */
+	TransactionReference getTransaction();
 
 	/**
 	 * Yields the gas cost of the creation transaction.

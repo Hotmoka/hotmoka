@@ -38,7 +38,7 @@ public class AccountsRotateOutputJson implements JsonRepresentation<AccountsRota
 
 	protected AccountsRotateOutputJson(AccountsRotateOutput output) {
 		this.transaction = new TransactionReferences.Json(output.getTransaction());
-		this.account = new StorageValues.Json(output.getAccount());
+		this.account =output.getAccount().map(StorageValues.Json::new).orElse(null);
 		this.gasCost = output.getGasCost().map(GasCosts.Json::new).orElse(null);
 		this.errorMessage = output.getErrorMessage().orElse(null);
 		this.file = output.getFile().map(Object::toString).orElse(null);
@@ -48,16 +48,16 @@ public class AccountsRotateOutputJson implements JsonRepresentation<AccountsRota
 		return transaction;
 	}
 
-	public StorageValues.Json getAccount() {
-		return account;
+	public Optional<StorageValues.Json> getAccount() {
+		return Optional.ofNullable(account);
 	}
 
-	public GasCosts.Json getGasCost() {
-		return gasCost;
+	public Optional<GasCosts.Json> getGasCost() {
+		return Optional.ofNullable(gasCost);
 	}
 
-	public String getErrorMessage() {
-		return errorMessage;
+	public Optional<String> getErrorMessage() {
+		return Optional.ofNullable(errorMessage);
 	}
 
 	public Optional<String> getFile() {

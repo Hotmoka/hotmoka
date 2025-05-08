@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.json;
 
+import java.util.Optional;
+
 import io.hotmoka.moka.GasCosts;
 import io.hotmoka.moka.api.AccountCreationOutput;
 import io.hotmoka.node.StorageValues;
@@ -43,19 +45,19 @@ public abstract class AccountCreationOutputJson {
 		return transaction;
 	}
 
-	public StorageValues.Json getAccount() {
-		return account;
+	public Optional<StorageValues.Json> getAccount() {
+		return Optional.ofNullable(account);
 	}
 
-	public GasCosts.Json getGasCost() {
-		return gasCost;
+	public Optional<GasCosts.Json> getGasCost() {
+		return Optional.ofNullable(gasCost);
 	}
 
-	public String getErrorMessage() {
-		return errorMessage;
+	public Optional<String> getErrorMessage() {
+		return Optional.ofNullable(errorMessage);
 	}
 
-	public String getFile() {
-		return file;
+	public Optional<String> getFile() {
+		return Optional.ofNullable(file);
 	}
 }

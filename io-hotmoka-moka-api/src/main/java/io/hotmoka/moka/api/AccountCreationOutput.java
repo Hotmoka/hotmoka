@@ -30,19 +30,29 @@ import io.hotmoka.node.api.values.StorageReference;
 public interface AccountCreationOutput {
 
 	/**
-	 * Yields the transaction that created the account.
-	 * 
-	 * @return the transaction that created the account
-	 */
-	TransactionReference getTransaction();
-
-	/**
 	 * Yields the reference of the created account.
 	 * 
 	 * @return the reference of the created account; this is missing if the transaction has just been posted
 	 *         rather than added, or if the transaction failed
 	 */
 	Optional<StorageReference> getAccount();
+
+	/**
+	 * Yields the path of the key pair file generated for the created account.
+	 * 
+	 * @return the path of the key pair file generated for the created account; this is
+	 *         missing if the transaction has just been posted
+	 *         rather than added, or if the transaction failed, or if the account has
+	 *         been created with an explicit public key rather than a key pair
+	 */
+	Optional<Path> getFile();
+
+	/**
+	 * Yields the transaction that created the account.
+	 * 
+	 * @return the transaction that created the account
+	 */
+	TransactionReference getTransaction();
 
 	/**
 	 * Yields the gas cost of the creation transaction.
@@ -59,14 +69,4 @@ public interface AccountCreationOutput {
 	 *         rather than added, or if it was successful, or if it was rejected 
 	 */
 	Optional<String> getErrorMessage();
-
-	/**
-	 * Yields the path of the key pair file generated for the created account.
-	 * 
-	 * @return the path of the key pair file generated for the created account; this is
-	 *         missing if the transaction has just been posted
-	 *         rather than added, or if the transaction failed, or if the account has
-	 *         been created with an explicit public key rather than a key pair
-	 */
-	Optional<Path> getFile();
 }

@@ -381,18 +381,18 @@ public class Create extends AbstractGasCostCommand {
 			this.transaction = Objects.requireNonNull(json.getTransaction().unmap(), "transaction cannot be null", InconsistentJsonException::new);
 
 			var object = json.getObject();
-			if (object == null)
+			if (object.isEmpty())
 				this.object = Optional.empty();
 			else
-				this.object = Optional.of(object.unmap().asReference(value -> new InconsistentJsonException("The reference to the created object must be a storage reference, not a " + value.getClass().getName())));
+				this.object = Optional.of(object.get().unmap().asReference(value -> new InconsistentJsonException("The reference to the created object must be a storage reference, not a " + value.getClass().getName())));
 
 			var gasCost = json.getGasCost();
-			if (gasCost == null)
+			if (gasCost.isEmpty())
 				this.gasCost = Optional.empty();
 			else
-				this.gasCost = Optional.of(gasCost.unmap());
+				this.gasCost = Optional.of(gasCost.get().unmap());
 
-			this.errorMessage = Optional.ofNullable(json.getErrorMessage());
+			this.errorMessage = json.getErrorMessage();
 		}
 
 		@Override

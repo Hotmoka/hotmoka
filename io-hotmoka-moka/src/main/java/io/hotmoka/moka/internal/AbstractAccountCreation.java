@@ -411,21 +411,21 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 			this.transaction = Objects.requireNonNull(json.getTransaction().unmap(), "transaction cannot be null", InconsistentJsonException::new);
 
 			var account = json.getAccount();
-			if (account == null)
+			if (account.isEmpty())
 				this.account = Optional.empty();
 			else
-				this.account = Optional.of(account.unmap().asReference(value -> new InconsistentJsonException("The reference to the created account must be a storage reference, not a " + value.getClass().getName())));
+				this.account = Optional.of(account.get().unmap().asReference(value -> new InconsistentJsonException("The reference to the created account must be a storage reference, not a " + value.getClass().getName())));
 
 			var gasCost = json.getGasCost();
-			if (gasCost == null)
+			if (gasCost.isEmpty())
 				this.gasCost = Optional.empty();
 			else
-				this.gasCost = Optional.of(gasCost.unmap());
+				this.gasCost = Optional.of(gasCost.get().unmap());
 
-			this.errorMessage = Optional.ofNullable(json.getErrorMessage());
+			this.errorMessage = json.getErrorMessage();
 
 			try {
-				this.file = Optional.ofNullable(json.getFile()).map(Paths::get);
+				this.file = json.getFile().map(Paths::get);
 			}
 			catch (InvalidPathException e) {
 				throw new InconsistentJsonException(e);
@@ -466,7 +466,7 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 			if (file.isPresent())
 				sb.append("Its key pair has been saved into the file " + asPath(file.get()) + ".\n");
 			else if (errorMessage.isEmpty()) {
-				sb.append("If the transaction is successful, the owner of the key pair can bind it to its address with:\n");
+				sb.append("The owner of the key pair can bind it to its address with:\n");
 				sb.append("\n");
 				sb.append(asCommand("  moka keys bind file_containing_the_key_pair_of_the_account --password --reference " + account + "\n"));
 			}

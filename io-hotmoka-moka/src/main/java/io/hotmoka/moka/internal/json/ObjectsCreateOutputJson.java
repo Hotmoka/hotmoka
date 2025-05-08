@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.json;
 
+import java.util.Optional;
+
 import io.hotmoka.moka.GasCosts;
 import io.hotmoka.moka.api.objects.ObjectsCreateOutput;
 import io.hotmoka.moka.internal.objects.Create;
@@ -44,16 +46,16 @@ public class ObjectsCreateOutputJson implements JsonRepresentation<ObjectsCreate
 		return transaction;
 	}
 
-	public StorageValues.Json getObject() {
-		return object;
+	public Optional<StorageValues.Json> getObject() {
+		return Optional.ofNullable(object);
 	}
 
-	public GasCosts.Json getGasCost() {
-		return gasCost;
+	public Optional<GasCosts.Json> getGasCost() {
+		return Optional.ofNullable(gasCost);
 	}
 
-	public String getErrorMessage() {
-		return errorMessage;
+	public Optional<String> getErrorMessage() {
+		return Optional.ofNullable(errorMessage);
 	}
 
 	@Override

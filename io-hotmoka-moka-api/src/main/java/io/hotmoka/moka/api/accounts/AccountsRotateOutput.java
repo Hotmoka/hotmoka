@@ -40,9 +40,10 @@ public interface AccountsRotateOutput {
 	/**
 	 * Yields the reference to the account whose keys have been rotated.
 	 * 
-	 * @return the reference to the account whose keys have been rotated
+	 * @return the reference to the account whose keys have been rotated; this is missing if the transaction
+	 *         has just been posted rather than added, or if the transaction failed
 	 */
-	StorageReference getAccount();
+	Optional<StorageReference> getAccount();
 
 	/**
 	 * Yields the gas cost of the rotation transaction.
