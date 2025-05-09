@@ -17,21 +17,15 @@ limitations under the License.
 package io.hotmoka.moka.internal;
 
 import java.math.BigInteger;
-import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.crypto.HashingAlgorithms;
-import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.moka.api.GasCost;
 import io.hotmoka.moka.internal.json.GasCostJson;
-import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
-import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.FailedTransactionResponse;
 import io.hotmoka.node.api.responses.NonInitialTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -67,21 +61,6 @@ public class GasCostImpl implements GasCost {
 	 * The price of a unit of gas used for the execution.
 	 */
 	private final BigInteger price;
-
-	/**
-	 * Creates the gas cost incurred for the already occurred execution of a set of requests.
-	 * 
-	 * @param node the node that executed the requests
-	 * @param requests the requests whose gas cost must be computed
-	 * @throws InterruptedException if the execution gets interrupted
-	 * @throws TimeoutException if no answer arrives within the expected time window
-	 * @throws UnknownReferenceException if some request cannot be found in the store of the node
-	 * @throws NodeException if the node is not able to complete the operation correctly
-	 * @throws NoSuchAlgorithmException if hashing algorithm for the transaction requests is not available
-	 */
-	public GasCostImpl(Node node, BigInteger price, TransactionRequest<?>... requests) throws NodeException, TimeoutException, InterruptedException, UnknownReferenceException, NoSuchAlgorithmException {
-		this(node, price, Stream.of(requests).map(sha256()::hash).map(TransactionReferences::of).toArray(TransactionReference[]::new));
-	}
 
 	/**
 	 * Creates the gas cost incurred for the already occurred execution of a set of requests, identified by their references.
@@ -175,10 +154,6 @@ public class GasCostImpl implements GasCost {
 		sb.append("   * for penalty: " + forPenalty + "\n");
 		sb.append(" * price per unit: " + panas(price) + "\n");
 		sb.append(" * total price: " + panas(price.multiply(totalGasConsumed)) + "\n");
-	}
-
-	private static Hasher<TransactionRequest<?>> sha256() throws NoSuchAlgorithmException {
-		return HashingAlgorithms.sha256().getHasher(TransactionRequest::toByteArray);
 	}
 
 	private static String panas(BigInteger cost) {

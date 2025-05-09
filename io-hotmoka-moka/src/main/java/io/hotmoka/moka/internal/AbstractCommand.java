@@ -39,7 +39,6 @@ import io.hotmoka.node.api.OutOfGasException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
-import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StringValue;
@@ -47,11 +46,6 @@ import io.hotmoka.node.api.values.StringValue;
 public abstract class AbstractCommand implements Runnable {
 	public static final BigInteger _100_000 = BigInteger.valueOf(100_000L);
 	public static final BigInteger _100_000_000 = BigInteger.valueOf(100_000_000L);
-	public static final String ANSI_RESET = "\u001B[0m";
-	public static final String ANSI_RED = "\u001B[31m";
-	public static final String ANSI_GREEN = "\u001B[32m";
-	public static final String ANSI_YELLOW = "\u001B[33m";
-	public static final String ANSI_CYAN = "\u001B[36m";
 
 	@Override
 	public final void run() {
@@ -114,9 +108,6 @@ public abstract class AbstractCommand implements Runnable {
 		}
 
 		return keys;
-	}
-
-	protected void printCosts(Node node, TransactionRequest<?>... requests) {
 	}
 
 	protected void yesNo(String message) {

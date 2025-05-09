@@ -32,7 +32,6 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
@@ -41,7 +40,6 @@ import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.remote.RemoteNodes;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -88,7 +86,6 @@ public class SellValidation extends AbstractCommand {
 	}
 
 	private class Run {
-		private final Node node;
 
 		private Run() throws Exception {
 			checkStorageReference(seller);
@@ -110,7 +107,7 @@ public class SellValidation extends AbstractCommand {
 
 			passwordOfSeller = ensurePassword(passwordOfSeller, "the seller validator", interactive, false);
 
-			try (var node = this.node = RemoteNodes.of(uri, 10_000)) {
+			try (var node = RemoteNodes.of(uri, 10_000)) {
 				var gasHelper = GasHelpers.of(node);
 				var nonceHelper = NonceHelpers.of(node);
 				var takamakaCode = node.getTakamakaCode();
@@ -120,9 +117,7 @@ public class SellValidation extends AbstractCommand {
 					.orElseThrow(() -> new CommandException(MethodSignatures.GET_VALIDATORS + " should not return void"));
 				var seller = StorageValues.reference(SellValidation.this.seller);
 				var algorithm = SignatureHelpers.of(node).signatureAlgorithmFor(seller);
-				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
-					.orElseThrow(() -> new NodeException(MethodSignatures.GET_CHAIN_ID + " should not return void"))).getValue();
+				String chainId = node.getConfig().getChainId();
 				KeyPair keys = readKeys(Accounts.of(seller), node, passwordOfSeller);
 				Signer<SignedTransactionRequest<?>> signer = algorithm.getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 
@@ -160,8 +155,6 @@ public class SellValidation extends AbstractCommand {
 		}
 
 		private void printCosts(TransactionRequest<?>... requests) throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, UnknownReferenceException {
-			if (printCosts)
-				SellValidation.this.printCosts(node, requests);
 		}
 	}
 }

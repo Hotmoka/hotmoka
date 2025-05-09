@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.moka.internal;
 
+import io.hotmoka.moka.internal.objects.Call;
 import io.hotmoka.moka.internal.objects.Create;
 import io.hotmoka.moka.internal.objects.Show;
 import picocli.CommandLine.Command;
@@ -25,6 +26,7 @@ import picocli.CommandLine.HelpCommand;
 	header = "Manage Hotmoka objects.",
 	subcommands = {
 		HelpCommand.class,
+		Call.class,
 		Create.class,
 		Show.class
 	})

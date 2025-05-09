@@ -35,7 +35,6 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
-import io.hotmoka.moka.GasCosts;
 import io.hotmoka.moka.api.GasCost;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.TransactionReferences;
@@ -47,7 +46,6 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.CodeExecutionTransactionRequest;
 import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
-import io.hotmoka.node.api.requests.NonInitialTransactionRequest;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -132,21 +130,9 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 		}
 	}
 
-	protected GasCost computeIncurredGasCost(RemoteNode remote, NonInitialTransactionRequest<?> request) throws CommandException, InterruptedException, NodeException, TimeoutException {
-		try {
-			return GasCosts.of(remote, request.getGasPrice(), request);
-		}
-		catch (UnknownReferenceException e) {
-			throw new CommandException("Cannot find the transaction request in the store of the node, maybe a sudden history change has occurred?", e);
-		}
-		catch (NoSuchAlgorithmException e) {
-			throw new CommandException("A cryptographic algorithm is not available", e);
-		}
-	}
-
 	protected GasCost computeIncurredGasCost(RemoteNode remote, BigInteger gasPrice, TransactionReference reference) throws CommandException, InterruptedException, NodeException, TimeoutException {
 		try {
-			return GasCosts.of(remote, gasPrice, reference);
+			return new GasCostImpl(remote, gasPrice, reference);
 		}
 		catch (UnknownReferenceException e) {
 			throw new CommandException("Cannot find the transaction request in the store of the node, maybe a sudden history change has occurred?", e);

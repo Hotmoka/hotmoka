@@ -76,7 +76,6 @@ public class BuyValidation extends AbstractCommand {
 	}
 
 	private class Run {
-		private final Node node;
 
 		private Run() throws Exception {
 			if (passwordOfBuyer != null && interactive)
@@ -84,7 +83,7 @@ public class BuyValidation extends AbstractCommand {
 
 			passwordOfBuyer = ensurePassword(passwordOfBuyer, "the buyer validator", interactive, false);
 
-			try (Node node = this.node = RemoteNodes.of(uri, 10_000)) {
+			try (Node node = RemoteNodes.of(uri, 10_000)) {
 				var gasHelper = GasHelpers.of(node);
 				var nonceHelper = NonceHelpers.of(node);
 				var takamakaCode = node.getTakamakaCode();
@@ -133,8 +132,6 @@ public class BuyValidation extends AbstractCommand {
 		}
 
 		private void printCosts(TransactionRequest<?>... requests) throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, UnknownReferenceException {
-			if (printCosts)
-				BuyValidation.this.printCosts(node, requests);
 		}
 	}
 }

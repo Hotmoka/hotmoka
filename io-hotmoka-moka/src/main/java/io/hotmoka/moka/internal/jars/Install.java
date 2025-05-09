@@ -59,10 +59,10 @@ public class Install extends AbstractGasCostCommand {
 	@Parameters(description = "the path of the jar to install")
 	private Path jar;
 
-	@Parameters(description = "the account that pays for installing the jar", converter = StorageReferenceOfAccountOptionConverter.class)
+	@Parameters(description = "the storage reference of the account that pays for installing the jar", converter = StorageReferenceOfAccountOptionConverter.class)
 	private StorageReference payer;
 
-	@Option(names = "--dir", paramLabel = "<path>", description = "the path of the directory where the key pair of the payer can be found", defaultValue = "")
+	@Option(names = "--dir", paramLabel = "<path>", description = "the directory where the key pair of the payer can be found", defaultValue = "")
 	private Path dir;
 
 	@Option(names = "--password-of-payer", description = "the password of the key pair of the payer account", interactive = true, defaultValue = "")

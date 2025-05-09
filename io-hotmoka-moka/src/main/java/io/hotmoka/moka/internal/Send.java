@@ -142,8 +142,6 @@ public class Send extends AbstractCommand {
 		}
 
 		private void printCosts(TransactionRequest<?>... requests) {
-			if (printCosts)
-				Send.this.printCosts(node, requests);
 		}
 	}
 }

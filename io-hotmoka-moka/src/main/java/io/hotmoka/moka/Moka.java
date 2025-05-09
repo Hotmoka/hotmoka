@@ -21,7 +21,6 @@ import java.net.URL;
 import java.util.logging.LogManager;
 
 import io.hotmoka.moka.internal.BuyValidation;
-import io.hotmoka.moka.internal.Call;
 import io.hotmoka.moka.internal.SellValidation;
 import io.hotmoka.moka.internal.Send;
 import picocli.CommandLine;
@@ -37,7 +36,6 @@ import picocli.CommandLine.Command;
 @Command(name = "moka",
 
 	subcommands = { BuyValidation.class,
-					Call.class,
 			        SellValidation.class,
 			        Send.class }, 
 

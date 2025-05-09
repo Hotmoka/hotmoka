@@ -75,11 +75,11 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class Create extends AbstractGasCostCommand {
 
-	@Parameters(index = "0", description = "the name of the class whose constructor gets called")
-    private String className;
-
-	@Parameters(description = "the account that pays for the creation of the object", converter = StorageReferenceOfAccountOptionConverter.class)
+	@Parameters(index = "0", description = "the storage reference of the account that pays for the creation of the object", converter = StorageReferenceOfAccountOptionConverter.class)
 	private StorageReference payer;
+
+	@Parameters(index = "1", description = "the name of the class whose constructor gets called")
+    private String className;
 
 	@Parameters(index ="2..*", description = "the actual arguments passed to the constructor; use storage references for passing objects")
     private List<String> args;
@@ -228,7 +228,7 @@ public class Create extends AbstractGasCostCommand {
 		}
 
 		private TransactionReference mkClasspath() throws CommandException, NodeException, TimeoutException, InterruptedException {
-			return classpath != null ? classpath : getClasspathAtCreationTimeOf(payer, remote);
+			return Create.this.classpath != null ? Create.this.classpath : getClasspathAtCreationTimeOf(payer, remote);
 		}
 
 		private BigInteger gasLimitHeuristic(SignatureAlgorithm signatureOfPayer) {
