@@ -24,8 +24,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Scanner;
 import java.util.concurrent.TimeoutException;
 
-import io.hotmoka.crypto.Base58;
-import io.hotmoka.crypto.Base58ConversionException;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.node.MethodSignatures;
@@ -119,7 +117,7 @@ public abstract class AbstractCommand implements Runnable {
 			throw new CommandException("Stopped");
 	}
 
-	protected String ask(String message) {
+	private String ask(String message) {
 		System.out.print(message);
 		return new String(System.console().readPassword());
 	}
@@ -142,16 +140,7 @@ public abstract class AbstractCommand implements Runnable {
 			return password;
 	}
 
-	protected boolean looksLikePublicKey(String s) {
-    	try {
-            return s != null && Base58.fromBase58String(s).length == 32;
-        }
-    	catch (Base58ConversionException e) {
-            return false;
-        }
-    }
-
-    protected boolean looksLikeStorageReference(String s) {
+    private boolean looksLikeStorageReference(String s) {
         try {
         	if (s == null)
         		return false;

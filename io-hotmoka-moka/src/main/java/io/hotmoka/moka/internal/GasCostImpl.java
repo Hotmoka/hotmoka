@@ -47,7 +47,7 @@ public class GasCostImpl implements GasCost {
 	 */
 	private final BigInteger forRAM;
 
-	/**structor
+	/**
 	 * The gas consumed for storage.
 	 */
 	private final BigInteger forStorage;

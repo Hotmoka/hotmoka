@@ -18,7 +18,6 @@ package io.hotmoka.moka.internal.json;
 
 import java.util.Optional;
 
-import io.hotmoka.moka.GasCosts;
 import io.hotmoka.moka.api.GasCostOutput;
 import io.hotmoka.node.TransactionReferences;
 
@@ -27,12 +26,12 @@ import io.hotmoka.node.TransactionReferences;
  */
 public abstract class GasCostOutputJson {
 	private final TransactionReferences.Json transaction;
-	private final GasCosts.Json gasCost;
+	private final GasCostJson gasCost;
 	private final String errorMessage;
 
 	protected GasCostOutputJson(GasCostOutput output) {
 		this.transaction = new TransactionReferences.Json(output.getTransaction());
-		this.gasCost = output.getGasCost().map(GasCosts.Json::new).orElse(null);
+		this.gasCost = output.getGasCost().map(GasCostJson::new).orElse(null);
 		this.errorMessage = output.getErrorMessage().orElse(null);
 	}
 
@@ -40,7 +39,7 @@ public abstract class GasCostOutputJson {
 		return transaction;
 	}
 
-	public Optional<GasCosts.Json> getGasCost() {
+	public Optional<GasCostJson> getGasCost() {
 		return Optional.ofNullable(gasCost);
 	}
 

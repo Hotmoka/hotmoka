@@ -26,7 +26,7 @@ import io.hotmoka.websockets.beans.api.JsonRepresentation;
 /**
  * The JSON representation of the gas cost of a transaction execution.
  */
-public abstract class GasCostJson implements JsonRepresentation<GasCost> {
+public class GasCostJson implements JsonRepresentation<GasCost> {
 	private final BigInteger forCPU;
 	private final BigInteger forRAM;
 	private final BigInteger forStorage;
