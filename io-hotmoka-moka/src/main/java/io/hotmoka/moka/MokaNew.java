@@ -197,6 +197,28 @@ public class MokaNew extends AbstractCLI {
 	}
 
 	/**
+	 * Runs the {@code moka objects call} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String objectsCall(String args) throws IOException {
+		return run("objects call " + args);
+	}
+
+	/**
+	 * Runs the {@code moka objects create} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String objectsCreate(String args) throws IOException {
+		return run("objects create " + args);
+	}
+
+	/**
 	 * Runs the {@code moka objects show} command with the given arguments.
 	 * 
 	 * @param args the arguments

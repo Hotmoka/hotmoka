@@ -56,11 +56,11 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class Install extends AbstractGasCostCommand {
 
-	@Parameters(description = "the path of the jar to install")
-	private Path jar;
-
 	@Parameters(description = "the storage reference of the account that pays for installing the jar", converter = StorageReferenceOfAccountOptionConverter.class)
 	private StorageReference payer;
+
+	@Parameters(description = "the path of the jar to install")
+	private Path jar;
 
 	@Option(names = "--dir", paramLabel = "<path>", description = "the directory where the key pair of the payer can be found", defaultValue = "")
 	private Path dir;

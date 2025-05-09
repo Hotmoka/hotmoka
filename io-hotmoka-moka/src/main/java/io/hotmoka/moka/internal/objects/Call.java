@@ -383,7 +383,7 @@ public class Call extends AbstractGasCostCommand {
 			int alternativesCount = alternatives.length;
 
 			if (alternativesCount == 0)
-				throw new CommandException("Cannot find any method with name " + methodName + " and with " + argCount + " formal arguments in class " + className);
+				throw new CommandException("Cannot find any white-listed method with name " + methodName + " and with " + argCount + " formal arguments in class " + className);
 			else if (selection != null && selection >= 1 && selection <= alternativesCount)
 				return alternatives[selection - 1];
 			else if (selection != null)
@@ -391,7 +391,7 @@ public class Call extends AbstractGasCostCommand {
 			else if (alternativesCount == 1)
 				return alternatives[0];
 			else if (json())
-				throw new CommandException("There are " + alternativesCount + " methods in class " + className + " named " + methodName + " and with " + argCount + " formal arguments: use --selection to specify which one must be called");
+				throw new CommandException("There are " + alternativesCount + " white-listed methods in class " + className + " named " + methodName + " and with " + argCount + " formal arguments: use --selection to specify which one must be called");
 			else {
 				System.out.println(asInteraction("Which method do you want to call [" + 1 + "-" + alternativesCount + "] ?"));
 

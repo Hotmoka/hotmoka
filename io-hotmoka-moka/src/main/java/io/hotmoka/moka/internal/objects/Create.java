@@ -278,7 +278,7 @@ public class Create extends AbstractGasCostCommand {
 			int alternativesCount = alternatives.length;
 
 			if (alternativesCount == 0)
-				throw new CommandException("Cannot find any constructor with " + argCount + " formal arguments in class " + className);
+				throw new CommandException("Cannot find any white-listed constructor with " + argCount + " formal arguments in class " + className);
 			else if (selection != null && selection >= 1 && selection <= alternativesCount)
 				return alternatives[selection - 1];
 			else if (selection != null)
@@ -286,7 +286,7 @@ public class Create extends AbstractGasCostCommand {
 			else if (alternativesCount == 1)
 				return alternatives[0];
 			else if (json())
-				throw new CommandException("There are " + alternativesCount + " constructors with " + argCount + " formal arguments: use --selection to specify which one must be called");
+				throw new CommandException("There are " + alternativesCount + " white-listed constructors with " + argCount + " formal arguments: use --selection to specify which one must be called");
 			else {
 				System.out.println(asInteraction("Which constructor do you want to call [" + 1 + "-" + alternativesCount + "] ?"));
 

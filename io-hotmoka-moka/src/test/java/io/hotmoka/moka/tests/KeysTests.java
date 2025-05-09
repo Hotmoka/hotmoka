@@ -41,7 +41,7 @@ import io.hotmoka.moka.MokaNew;
 import io.hotmoka.node.StorageValues;
 
 /**
- * Tests for the moka keys command.
+ * Tests for the moka keys commands.
  */
 public class KeysTests extends AbstractMokaTest {
 

@@ -40,7 +40,7 @@ import io.hotmoka.verification.api.VerificationError;
 import io.takamaka.code.constants.Constants;
 
 /**
- * Tests for the moka jars command.
+ * Tests for the moka jars commands.
  */
 public class JarsTests extends AbstractMokaTestWithNode {
 
@@ -84,10 +84,10 @@ public class JarsTests extends AbstractMokaTestWithNode {
 		var examplesBasicDependency = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-basicdependency.jar");
 
 		// we install basicdependency.jar first, letting the gamete pay; no libs, therefore takamakaCode will be added by default
-		var basicDependencyInstallOutput = JarsInstallOutputs.from(MokaNew.jarsInstall(examplesBasicDependency + " " + gamete + " --password-of-payer=" + passwordOfGamete + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
+		var basicDependencyInstallOutput = JarsInstallOutputs.from(MokaNew.jarsInstall(gamete + " " + examplesBasicDependency + " --password-of-payer=" + passwordOfGamete + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
 
 		// then we install basic.jar, letting the gamete pay; we provide basicdependency.jar as dependency
-		var basicInstallOutput = JarsInstallOutputs.from(MokaNew.jarsInstall(examplesBasic + " " + gamete + " --password-of-payer=" + passwordOfGamete + " --libs=" + basicDependencyInstallOutput.getTransaction() + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
+		var basicInstallOutput = JarsInstallOutputs.from(MokaNew.jarsInstall(gamete + " " + examplesBasic + " --password-of-payer=" + passwordOfGamete + " --libs=" + basicDependencyInstallOutput.getTransaction() + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
 
 		// the jar has been actually installed
 		assertTrue(basicInstallOutput.getJar().isPresent());
@@ -102,7 +102,7 @@ public class JarsTests extends AbstractMokaTestWithNode {
 		var examplesBasic = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-basic.jar");
 
 		// we try to install basic.jar, letting the gamete pay; we do not provide basicdependency.jar as dependency, therefore this will fail
-		var basicInstallOutput = JarsInstallOutputs.from(MokaNew.jarsInstall(examplesBasic + " " + gamete + " --password-of-payer=" + passwordOfGamete + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
+		var basicInstallOutput = JarsInstallOutputs.from(MokaNew.jarsInstall(gamete + " " + examplesBasic + " --password-of-payer=" + passwordOfGamete + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
 		assertTrue(basicInstallOutput.getErrorMessage().isPresent() && basicInstallOutput.getErrorMessage().get().startsWith(UnknownTypeException.class.getName()));
 	}
 
@@ -112,7 +112,7 @@ public class JarsTests extends AbstractMokaTestWithNode {
 		var illegalJar = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-illegalcalltofromcontract1.jar");
 
 		// we try to install basic.jar, letting the gamete pay; we do not provide basicdependency.jar as dependency, therefore this will fail
-		var illegalJarInstallOutput = JarsInstallOutputs.from(MokaNew.jarsInstall(illegalJar + " " + gamete + " --password-of-payer=" + passwordOfGamete + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
+		var illegalJarInstallOutput = JarsInstallOutputs.from(MokaNew.jarsInstall(gamete + " " + illegalJar + " --password-of-payer=" + passwordOfGamete + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
 		assertTrue(illegalJarInstallOutput.getErrorMessage().isPresent() && illegalJarInstallOutput.getErrorMessage().get().startsWith(VerificationException.class.getName()));
 	}
 }

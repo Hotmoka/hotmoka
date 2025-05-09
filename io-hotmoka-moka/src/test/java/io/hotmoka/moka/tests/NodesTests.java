@@ -29,7 +29,7 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.TransactionRequests;
 
 /**
- * Tests for the moka nodes command.
+ * Tests for the moka nodes commands.
  */
 public class NodesTests extends AbstractMokaTestWithNode {
 

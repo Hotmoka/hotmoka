@@ -41,7 +41,7 @@ import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.values.StorageReference;
 
 /**
- * Tests for the moka nodes command.
+ * Tests for the moka accounts commands.
  */
 public class AccountsTests extends AbstractMokaTestWithNode {
 	
@@ -98,7 +98,7 @@ public class AccountsTests extends AbstractMokaTestWithNode {
 
 		// first we create a key pair
 		var keyCreateOutputs = KeysCreateOutputs.from(MokaNew.keysCreate("--signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir));
-		// then we create a new account with that key pair, and let the gamete for it
+		// then we create a new account with that key pair, and let the gamete pay for it
 		var accountsCreateOutput = AccountsCreateOutputs.from(MokaNew.accountsCreate("12345 --payer=" + gamete + " --password-of-payer=" + passwordOfGamete + " --dir=" + dir + " --keys=" + keyCreateOutputs.getFile() + " --signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
 		TransactionResponse response = node.getResponse(accountsCreateOutput.getTransaction());
 

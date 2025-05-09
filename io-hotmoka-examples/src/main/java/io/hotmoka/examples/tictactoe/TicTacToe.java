@@ -21,6 +21,7 @@ import static io.takamaka.code.lang.Takamaka.require;
 import java.math.BigInteger;
 
 import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
@@ -41,6 +42,7 @@ import io.takamaka.code.util.StorageTreeArray;
  */
 public class TicTacToe extends Contract {
 
+	@Exported
 	public class Tile extends Storage {
 		private final char c;
 
