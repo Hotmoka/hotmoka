@@ -1,5 +1,5 @@
 /*
-Copyright 2025 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,22 +16,17 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.converters;
 
-import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.crypto.Base58;
+import io.hotmoka.crypto.Base58ConversionException;
 import picocli.CommandLine.ITypeConverter;
 
 /**
- * A converter of an option into a storage reference for an account.
- * Such a storage reference must have a zero progressive.
+ * A converter of a string option that enforces that it is in Base58 format.
  */
-public class StorageReferenceOfAccountOptionConverter implements ITypeConverter<StorageReference> {
+public class Base58OptionConverter implements ITypeConverter<String> {
 
 	@Override
-	public StorageReference convert(String value) throws IllegalArgumentException {
-		var reference = StorageValues.reference(value);
-		if (reference.getProgressive().signum() != 0)
-			throw new IllegalArgumentException("Accounts are limited to have 0 as progressive index");
-
-		return reference;
+	public String convert(String value) throws Base58ConversionException {
+		return Base58.requireBase58(value, Base58ConversionException::new);
 	}
 }

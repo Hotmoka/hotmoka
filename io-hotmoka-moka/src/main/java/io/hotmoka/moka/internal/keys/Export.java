@@ -25,7 +25,7 @@ import io.hotmoka.crypto.api.BIP39Mnemonic;
 import io.hotmoka.moka.KeysExportOutputs;
 import io.hotmoka.moka.api.keys.KeysExportOutput;
 import io.hotmoka.moka.internal.AbstractMokaCommand;
-import io.hotmoka.moka.internal.converters.StorageReferenceOfAccountOptionConverter;
+import io.hotmoka.moka.internal.converters.StorageReferenceWithZeroProgressiveOptionConverter;
 import io.hotmoka.moka.internal.json.KeysExportOutputJson;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.api.Account;
@@ -40,7 +40,7 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class Export extends AbstractMokaCommand {
 
-	@Parameters(index = "0", description = "the reference of the account to export in BIP39 words", converter = StorageReferenceOfAccountOptionConverter.class)
+	@Parameters(index = "0", description = "the reference of the account to export in BIP39 words", converter = StorageReferenceWithZeroProgressiveOptionConverter.class)
     private StorageReference reference;
 
 	@Option(names = "--dir", paramLabel = "<path>", description = "the path of the directory where the key pair of the account can be found", defaultValue = "")

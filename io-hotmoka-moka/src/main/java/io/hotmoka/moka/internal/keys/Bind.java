@@ -33,7 +33,7 @@ import io.hotmoka.moka.KeysBindOutputs;
 import io.hotmoka.moka.api.keys.KeysBindOutput;
 import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
 import io.hotmoka.moka.internal.converters.SignatureOptionConverter;
-import io.hotmoka.moka.internal.converters.StorageReferenceOfAccountOptionConverter;
+import io.hotmoka.moka.internal.converters.StorageReferenceOptionConverter;
 import io.hotmoka.moka.internal.json.KeysBindOutputJson;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
@@ -62,7 +62,7 @@ public class Bind extends AbstractMokaRpcCommand {
 	@Option(names = "--output-dir", paramLabel = "<path>", description = "the path of the directory where the key pair of the bound account will be written", defaultValue = "")
     private Path outputDir;
 
-	@Option(names = "--reference", paramLabel = "<storage reference>", description = "the account; if missing, it means that the account was created anonymously and its reference will be recovered from the accounts ledger of the Hotmoka node", converter = StorageReferenceOfAccountOptionConverter.class)
+	@Option(names = "--reference", paramLabel = "<storage reference>", description = "the account; if missing, it means that the account was created anonymously and its reference will be recovered from the accounts ledger of the Hotmoka node", converter = StorageReferenceOptionConverter.class)
     private StorageReference reference;
 
 	@Option(names = "--password", description = "the password of the key pair", interactive = true, defaultValue = "")

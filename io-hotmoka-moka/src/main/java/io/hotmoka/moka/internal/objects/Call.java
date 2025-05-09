@@ -42,7 +42,6 @@ import io.hotmoka.moka.ObjectsCallOutputs;
 import io.hotmoka.moka.api.GasCost;
 import io.hotmoka.moka.api.objects.ObjectsCallOutput;
 import io.hotmoka.moka.internal.AbstractGasCostCommand;
-import io.hotmoka.moka.internal.converters.StorageReferenceOfAccountOptionConverter;
 import io.hotmoka.moka.internal.converters.StorageReferenceOptionConverter;
 import io.hotmoka.moka.internal.converters.TransactionReferenceOptionConverter;
 import io.hotmoka.moka.internal.json.ObjectsCallOutputJson;
@@ -79,7 +78,7 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class Call extends AbstractGasCostCommand {
 
-	@Parameters(index = "0", description = "the account that pays for calling the method (if it is not a @View method) and that can be referenced as caller() inside the method", converter = StorageReferenceOfAccountOptionConverter.class)
+	@Parameters(index = "0", description = "the account that pays for calling the method (if it is not a @View method) and that can be referenced as caller() inside the method", converter = StorageReferenceOptionConverter.class)
 	private StorageReference payer;
 
 	@Parameters(index = "1", description = "the name of the class whose method gets called")

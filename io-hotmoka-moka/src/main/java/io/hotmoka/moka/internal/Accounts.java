@@ -18,6 +18,7 @@ package io.hotmoka.moka.internal;
 
 import io.hotmoka.moka.internal.accounts.Create;
 import io.hotmoka.moka.internal.accounts.Rotate;
+import io.hotmoka.moka.internal.accounts.Send;
 import io.hotmoka.moka.internal.accounts.Show;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
@@ -28,6 +29,7 @@ import picocli.CommandLine.HelpCommand;
 		HelpCommand.class,
 		Create.class,
 		Rotate.class,
+		Send.class,
 		Show.class
 	})
 public class Accounts {

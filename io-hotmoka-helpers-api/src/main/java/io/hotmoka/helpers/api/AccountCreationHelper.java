@@ -48,26 +48,6 @@ public interface AccountCreationHelper {
 	public final static BigInteger EXTRA_GAS_FOR_ANONYMOUS = BigInteger.valueOf(500_000L);
 
 	/**
-	 * Creates a new account by letting the faucet pay.
-	 * 
-	 * @param signatureAlgorithm the signature algorithm for the new account
-	 * @param publicKey the public key of the new account
-	 * @param balance the balance of the new account
-	 * @param requestsHandler a handler called with the paid requests used for this operation. This can be useful for logging or computing costs
-	 * @return the storage reference of the account
-	 * @throws TransactionRejectedException if some transaction was rejected
-	 * @throws TransactionException if some transaction failed
-	 * @throws CodeExecutionException if some transaction generated an exception
-	 * @throws InvalidKeyException if the key is invalid
-	 * @throws NodeException if the node is not able to perform the operation
-	 * @throws InterruptedException if the current thread gets interrupted while performing the operation
-	 * @throws TimeoutException if the operation does not complete within the expected time window
-	 */
-	StorageReference paidByFaucet(SignatureAlgorithm signatureAlgorithm, PublicKey publicKey,
-			BigInteger balance, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, NodeException, InterruptedException, TimeoutException;
-
-	/**
 	 * Creates a new account by letting another account pay.
 	 * 
 	 * @param payer the account that pays for the creation

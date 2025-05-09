@@ -26,7 +26,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 import io.hotmoka.crypto.Base64;
-import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.GasHelpers;
@@ -87,66 +86,6 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 	}
 
 	@Override
-	public StorageReference paidByFaucet(SignatureAlgorithm signatureAlgorithm, PublicKey publicKey,
-			BigInteger balance, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, NodeException, InterruptedException, TimeoutException {
-
-		StorageReference gamete = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
-			.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"))
-			.asReference(value -> new NodeException(MethodSignatures.GET_GAMETE + " should return a reference, not a " + value.getClass().getName()));
-
-		String methodName;
-		ClassType eoaType;
-		BigInteger gas = gasForCreatingAccountWithSignature(signatureAlgorithm);
-
-		String signature = signatureAlgorithm.getName();
-		switch (signature) {
-		case "ed25519":
-		case "sha256dsa":
-		case "qtesla1":
-		case "qtesla3":
-			methodName = "faucet" + signature.toUpperCase();
-			eoaType = StorageTypes.classNamed(StorageTypes.EOA + signature.toUpperCase());
-			break;
-		default:
-			throw new NodeException("Unknown signature algorithm " + signature);
-		}
-
-		// we use an empty signature algorithm and an arbitrary key, since the faucet is unsigned
-		var signatureForFaucet = SignatureAlgorithms.empty();
-		KeyPair keyPair = signatureForFaucet.getKeyPair();
-		Signer<SignedTransactionRequest<?>> signer = signatureForFaucet.getSigner(keyPair.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
-		String publicKeyEncoded = Base64.toBase64String(signatureAlgorithm.encodingOf(publicKey));
-		var method = MethodSignatures.ofNonVoid(StorageTypes.GAMETE, methodName, eoaType, StorageTypes.BIG_INTEGER, StorageTypes.STRING);
-		BigInteger nonce;
-
-		try {
-			nonce = nonceHelper.getNonceOf(gamete);
-		}
-		catch (UnknownReferenceException e) {
-			// the gamete exists and is an account
-			throw new NodeException(e);
-		}
-
-		InstanceMethodCallTransactionRequest request;
-
-		try {
-			request = TransactionRequests.instanceMethodCall
-				(signer, gamete, nonce, chainId, gas, gasHelper.getGasPrice(), takamakaCode,
-				method, gamete, StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyEncoded));
-		}
-		catch (SignatureException e) {
-			// the empty signature never fails
-			throw new NodeException(e);
-		}
-
-		return node.addInstanceMethodCallTransaction(request)
-			.orElseThrow(() -> new NodeException(method + " should not return void"))
-			.asReturnedReference(method, NodeException::new);
-	}
-
-	@Override
 	public StorageReference paidBy(StorageReference payer, KeyPair keysOfPayer,
 			SignatureAlgorithm signatureAlgorithm, PublicKey publicKey, BigInteger balance,
 			boolean addToLedger, Consumer<BigInteger> gasHandler, Consumer<TransactionRequest<?>[]> requestsHandler)
@@ -192,7 +131,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 			var method = MethodSignatures.ofNonVoid(StorageTypes.ACCOUNTS_LEDGER, "add", StorageTypes.EOA, StorageTypes.BIG_INTEGER, StorageTypes.STRING);
 			InstanceMethodCallTransactionRequest request = TransactionRequests.instanceMethodCall
 				(signer, payer, nonceHelper.getNonceOf(payer),
-				chainId, gas1.add(gas2).add(EXTRA_GAS_FOR_ANONYMOUS), gasHelper.getGasPrice(), takamakaCode,
+				chainId, totalGas, gasHelper.getGasPrice(), takamakaCode,
 				method,
 				accountsLedger,
 				StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyEncoded));
@@ -206,7 +145,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		else {
 			ConstructorCallTransactionRequest request = TransactionRequests.constructorCall
 				(signer, payer, nonceHelper.getNonceOf(payer),
-				chainId, gas1.add(gas2), gasHelper.getGasPrice(), takamakaCode,
+				chainId, totalGas, gasHelper.getGasPrice(), takamakaCode,
 				ConstructorSignatures.of(eoaType, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
 				StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyEncoded));
 

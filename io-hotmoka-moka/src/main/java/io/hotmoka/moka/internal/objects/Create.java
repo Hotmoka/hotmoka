@@ -41,7 +41,7 @@ import io.hotmoka.moka.ObjectsCreateOutputs;
 import io.hotmoka.moka.api.GasCost;
 import io.hotmoka.moka.api.objects.ObjectsCreateOutput;
 import io.hotmoka.moka.internal.AbstractGasCostCommand;
-import io.hotmoka.moka.internal.converters.StorageReferenceOfAccountOptionConverter;
+import io.hotmoka.moka.internal.converters.StorageReferenceOptionConverter;
 import io.hotmoka.moka.internal.converters.TransactionReferenceOptionConverter;
 import io.hotmoka.moka.internal.json.ObjectsCreateOutputJson;
 import io.hotmoka.node.ConstructorSignatures;
@@ -75,7 +75,7 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class Create extends AbstractGasCostCommand {
 
-	@Parameters(index = "0", description = "the storage reference of the account that pays for the creation of the object", converter = StorageReferenceOfAccountOptionConverter.class)
+	@Parameters(index = "0", description = "the storage reference of the account that pays for the creation of the object", converter = StorageReferenceOptionConverter.class)
 	private StorageReference payer;
 
 	@Parameters(index = "1", description = "the name of the class whose constructor gets called")

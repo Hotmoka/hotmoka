@@ -34,7 +34,7 @@ import io.hotmoka.moka.JarsInstallOutputs;
 import io.hotmoka.moka.api.GasCost;
 import io.hotmoka.moka.api.jars.JarsInstallOutput;
 import io.hotmoka.moka.internal.AbstractGasCostCommand;
-import io.hotmoka.moka.internal.converters.StorageReferenceOfAccountOptionConverter;
+import io.hotmoka.moka.internal.converters.StorageReferenceOptionConverter;
 import io.hotmoka.moka.internal.converters.TransactionReferenceOptionConverter;
 import io.hotmoka.moka.internal.json.JarsInstallOutputJson;
 import io.hotmoka.node.TransactionRequests;
@@ -56,7 +56,7 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class Install extends AbstractGasCostCommand {
 
-	@Parameters(description = "the storage reference of the account that pays for installing the jar", converter = StorageReferenceOfAccountOptionConverter.class)
+	@Parameters(description = "the storage reference of the account that pays for installing the jar", converter = StorageReferenceOptionConverter.class)
 	private StorageReference payer;
 
 	@Parameters(description = "the path of the jar to install")

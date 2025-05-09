@@ -34,7 +34,7 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.moka.api.AccountCreationOutput;
 import io.hotmoka.moka.api.GasCost;
-import io.hotmoka.moka.internal.converters.StorageReferenceOfAccountOptionConverter;
+import io.hotmoka.moka.internal.converters.StorageReferenceOptionConverter;
 import io.hotmoka.moka.internal.json.AccountCreationOutputJson;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
@@ -68,7 +68,7 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 	@Parameters(description = "the initial balance of the new account; this will be deduced from the balance of the payer", defaultValue = "0")
 	private BigInteger balance;
 
-	@Option(names = "--payer", paramLabel = "<storage reference>", description = "the account that pays for the creation; if missing, the faucet of the network will be used, if it is open", converter = StorageReferenceOfAccountOptionConverter.class)
+	@Option(names = "--payer", paramLabel = "<storage reference>", description = "the account that pays for the creation; if missing, the faucet of the network will be used, if it is open", converter = StorageReferenceOptionConverter.class)
 	private StorageReference payer;
 
 	@Option(names = "--dir", paramLabel = "<path>", description = "the directory where the key pair of the payer can be found", defaultValue = "")

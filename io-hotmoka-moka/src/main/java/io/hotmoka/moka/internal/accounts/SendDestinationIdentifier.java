@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal;
+package io.hotmoka.moka.internal.accounts;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -32,10 +32,10 @@ import io.hotmoka.moka.internal.converters.Base58OptionConverter;
 import picocli.CommandLine.Option;
 
 /**
- * The specification of the public key of an account: either
+ * The specification of the destination of a send commandpublic key of an account: either
  * explicitly (in Base58 format) or as the path of key pair.
  */
-public class PublicKeyIdentifier {
+public class SendDestinationIdentifier {
 
 	@Option(names = "--key", paramLabel = "<Base58-encoded string>", description = "as a public key", converter = Base58OptionConverter.class)
 	private String key;

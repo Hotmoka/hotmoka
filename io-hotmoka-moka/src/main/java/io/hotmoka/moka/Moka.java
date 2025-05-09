@@ -22,7 +22,6 @@ import java.util.logging.LogManager;
 
 import io.hotmoka.moka.internal.BuyValidation;
 import io.hotmoka.moka.internal.SellValidation;
-import io.hotmoka.moka.internal.Send;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
@@ -35,9 +34,7 @@ import picocli.CommandLine.Command;
  */
 @Command(name = "moka",
 
-	subcommands = { BuyValidation.class,
-			        SellValidation.class,
-			        Send.class }, 
+	subcommands = { BuyValidation.class, SellValidation.class }, 
 
 	description = "This is the command-line interface of Hotmoka.",
 

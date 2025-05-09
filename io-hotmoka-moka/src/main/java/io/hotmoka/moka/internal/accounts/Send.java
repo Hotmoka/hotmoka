@@ -14,23 +14,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal;
+package io.hotmoka.moka.internal.accounts;
 
 import java.math.BigInteger;
-import java.net.URI;
-import java.security.KeyPair;
+import java.util.concurrent.TimeoutException;
 
-import io.hotmoka.crypto.Base58;
-import io.hotmoka.crypto.SignatureAlgorithms;
-import io.hotmoka.helpers.AccountCreationHelpers;
-import io.hotmoka.helpers.SendCoinsHelpers;
-import io.hotmoka.node.Accounts;
-import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.Node;
-import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.requests.TransactionRequest;
+import io.hotmoka.cli.CommandException;
+import io.hotmoka.moka.internal.AbstractGasCostCommand;
+import io.hotmoka.moka.internal.converters.Base58OptionConverter;
+import io.hotmoka.moka.internal.converters.StorageReferenceOptionConverter;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.remote.RemoteNodes;
+import io.hotmoka.node.remote.api.RemoteNode;
+import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -38,54 +34,55 @@ import picocli.CommandLine.Parameters;
 @Command(name = "send",
 	description = "Send units of coin to a payable contract",
 	showDefaultValues = true)
-public class Send extends AbstractCommand {
+public class Send extends AbstractGasCostCommand {
 
-	@Parameters(index = "0", description = "the amount of coins sent to the contract")
+	@Parameters(index = "0", description = "the amount of coins to send to the destination; this will be deduced from the balance of the payer", defaultValue = "0")
     private BigInteger amount;
 
-	@Parameters(index = "1", description = "the reference to the payable contract or the Base58-encoded key that receives the coins")
-    private String destination;
+	@ArgGroup(exclusive = true, multiplicity = "1", heading = "The destination must be specified in either of these two alternative ways:\n")
+	private DestinationIdentifier destination;
 
-	@Option(names = { "--payer" }, description = "the reference to the account that pays for the creation, or the string \"faucet\"", defaultValue = "faucet")
-    private String payer;
+	@Option(names = "--payer", paramLabel = "<storage reference>", description = "the account that pays for the amount sent to the destination; if missing, the faucet of the network will be used, if it is open", converter = StorageReferenceOptionConverter.class)
+	private StorageReference payer;
 
-	@Option(names = { "--password-of-payer" }, description = "the password of the payer account, if it is not the faucet; if not specified, it will be asked interactively")
-    private String passwordOfPayer;
+	@Option(names = "--password-of-payer", description = "the password of the payer; this is not used if the payer is the faucet", interactive = true, defaultValue = "")
+	private char[] passwordOfPayer;
 
-	@Option(names = { "--uri" }, description = "the URI of the node", defaultValue = "ws://localhost:8001")
-    private URI uri;
+	/**
+	 * The specification of the destination of a send operation: either
+	 * a Base58-encoded public key or a storage reference.
+	 */
+	private static class DestinationIdentifier {
 
-	@Option(names = { "--anonymous" }, description = "send coins anonymously to a key")
-	private boolean anonymous;
+		@Option(names = "--key", paramLabel = "<Base58-encoded string>", description = "as a public key", converter = Base58OptionConverter.class)
+		private String key;
 
-	@Option(names = { "--interactive" }, description = "run in interactive mode", defaultValue = "true") 
-	private boolean interactive;
-
-	@Option(names = { "--print-costs" }, description = "print the incurred gas costs", defaultValue = "true") 
-	private boolean printCosts;
-
-	@Override
-	protected void execute() throws Exception {
-		new Run();
+		@Option(names = "--account", paramLabel = "<storage reference>", description = "as an account", converter = StorageReferenceOptionConverter.class)
+		private StorageReference account;
 	}
 
-	private class Run {
-		private final Node node;
+	@Override
+	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+		new Body(remote);
+	}
 
-		private Run() throws Exception {
-			if (anonymous && "faucet".equals(payer))
+	private class Body {
+		private final RemoteNode remote;
+
+		private Body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+			this.remote = remote;
+
+			/*if (anonymous && "faucet".equals(payer))
 				throw new IllegalArgumentException("you cannot send coins anonymously from the faucet");
 
 			if (anonymous && !looksLikePublicKey(destination))
 				throw new IllegalArgumentException("you can only send coins anonymously to a key");
 
-			if (passwordOfPayer != null && interactive)
+			if (passwordOfPayer != null)
 				throw new IllegalArgumentException("the password of the payer account can be provided as command switch only in non-interactive mode");
 
 			if (passwordOfPayer != null && "faucet".equals(payer))
 				throw new IllegalArgumentException("the password of the payer has no meaning when the payer is the faucet");
-
-			passwordOfPayer = ensurePassword(passwordOfPayer, "the payer account", interactive, "faucet".equals(payer));
 
 			try (var node = this.node = RemoteNodes.of(uri, 10_000)) {
 				if ("faucet".equals(payer))
@@ -102,10 +99,10 @@ public class Send extends AbstractCommand {
 					sendCoinsFromPayer();
 				else
 					throw new IllegalArgumentException("The destination does not look like a storage reference or a Base58-encoded key.");
-			}
+			}*/
 		}
 
-		private void sendCoinsFromPayer() throws Exception {
+		/*private void sendCoinsFromPayer() throws Exception {
 			var sendCoinsHelper = SendCoinsHelpers.of(node);
 			var payer = StorageValues.reference(Send.this.payer);
 			KeyPair keysOfPayer = readKeys(Accounts.of(payer), node, passwordOfPayer);
@@ -137,11 +134,11 @@ public class Send extends AbstractCommand {
 		}
 
 		private void askForConfirmation(BigInteger gas) {
-			if (interactive && !"faucet".equals(payer))
+			if (!"faucet".equals(payer))
 				yesNo("Do you really want to spend up to " + gas + " gas units to send the coins [Y/N] ");
 		}
 
 		private void printCosts(TransactionRequest<?>... requests) {
-		}
+		}*/
 	}
 }

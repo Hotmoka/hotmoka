@@ -33,7 +33,7 @@ import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.moka.AccountsShowOutputs;
 import io.hotmoka.moka.api.accounts.AccountsShowOutput;
 import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
-import io.hotmoka.moka.internal.converters.StorageReferenceOfAccountOptionConverter;
+import io.hotmoka.moka.internal.converters.StorageReferenceOptionConverter;
 import io.hotmoka.moka.internal.json.AccountsShowOutputJson;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.TransactionRequests;
@@ -51,7 +51,7 @@ import picocli.CommandLine.Parameters;
 @Command(name = "show", header = "Show information about an account.", showDefaultValues = true)
 public class Show extends AbstractMokaRpcCommand {
 
-	@Parameters(index = "0", description = "the storage reference of the account", converter = StorageReferenceOfAccountOptionConverter.class)
+	@Parameters(index = "0", description = "the storage reference of the account", converter = StorageReferenceOptionConverter.class)
     private StorageReference account;
 
 	/**

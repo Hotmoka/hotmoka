@@ -16,20 +16,22 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.converters;
 
-import java.io.IOException;
-
-import io.hotmoka.node.Accounts;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.Account;
+import io.hotmoka.node.api.values.StorageReference;
 import picocli.CommandLine.ITypeConverter;
 
 /**
- * A converter of an option into an account.
+ * A converter of an option into a storage reference for an account with zero progressive.
+ * This converter guarantees that the account can be represented in BIP39 format.
  */
-public class AccountOptionConverter implements ITypeConverter<Account> {
+public class StorageReferenceWithZeroProgressiveOptionConverter implements ITypeConverter<StorageReference> {
 
 	@Override
-	public Account convert(String value) throws IllegalArgumentException, IOException {
-		return Accounts.of(StorageValues.reference(value));
+	public StorageReference convert(String value) throws IllegalArgumentException {
+		var reference = StorageValues.reference(value);
+		if (reference.getProgressive().signum() != 0)
+			throw new IllegalArgumentException("Accounts are limited to have 0 as progressive index");
+
+		return reference;
 	}
 }

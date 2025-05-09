@@ -34,7 +34,7 @@ import io.hotmoka.moka.api.GasCost;
 import io.hotmoka.moka.api.accounts.AccountsRotateOutput;
 import io.hotmoka.moka.internal.AbstractGasCostCommand;
 import io.hotmoka.moka.internal.PublicKeyIdentifier;
-import io.hotmoka.moka.internal.converters.StorageReferenceOfAccountOptionConverter;
+import io.hotmoka.moka.internal.converters.StorageReferenceOptionConverter;
 import io.hotmoka.moka.internal.json.AccountsRotateOutputJson;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
@@ -59,7 +59,7 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class Rotate extends AbstractGasCostCommand {
 
-	@Parameters(index = "0", description = "the storage reference of the account whose public key gets rotated and that pays for the rotation", converter = StorageReferenceOfAccountOptionConverter.class)
+	@Parameters(index = "0", description = "the storage reference of the account whose public key gets rotated and that pays for the rotation", converter = StorageReferenceOptionConverter.class)
     private StorageReference account;
 
 	@Option(names = { "--password-of-account", "--password-of-payer" }, description = "the password of the current key pair of the account", interactive = true, defaultValue = "")
