@@ -56,7 +56,7 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class Bind extends AbstractMokaRpcCommand {
 
-	@Parameters(index = "0", description = "the file holding the key pair")
+	@Parameters(index = "0", description = "the path of the key pair")
     private Path key;
 
 	@Option(names = "--output-dir", paramLabel = "<path>", description = "the path of the directory where the key pair of the bound account will be written", defaultValue = "")

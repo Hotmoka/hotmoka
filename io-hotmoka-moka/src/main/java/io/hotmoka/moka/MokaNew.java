@@ -87,6 +87,17 @@ public class MokaNew extends AbstractCLI {
 	}
 
 	/**
+	 * Runs the {@code moka accounts send} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String accountsSend(String args) throws IOException {
+		return run("accounts send " + args);
+	}
+
+	/**
 	 * Runs the {@code moka accounts show} command with the given arguments.
 	 * 
 	 * @param args the arguments
@@ -98,6 +109,17 @@ public class MokaNew extends AbstractCLI {
 	}
 
 	/**
+	 * Runs the {@code moka keys bind} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String keysBind(String args) throws IOException {
+		return run("keys bind " + args);
+	}
+
+	/**
 	 * Runs the {@code moka keys create} command with the given arguments.
 	 * 
 	 * @param args the arguments
@@ -106,17 +128,6 @@ public class MokaNew extends AbstractCLI {
 	 */
 	public static String keysCreate(String args) throws IOException {
 		return run("keys create " + args);
-	}
-
-	/**
-	 * Runs the {@code moka keys show} command with the given arguments.
-	 * 
-	 * @param args the arguments
-	 * @return what the moka tool has written into the standard output
-	 * @throws IOException if the construction of the return value failed
-	 */
-	public static String keysShow(String args) throws IOException {
-		return run("keys show " + args);
 	}
 
 	/**
@@ -139,6 +150,17 @@ public class MokaNew extends AbstractCLI {
 	 */
 	public static String keysImport(String args) throws IOException {
 		return run("keys import " + args);
+	}
+
+	/**
+	 * Runs the {@code moka keys show} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String keysShow(String args) throws IOException {
+		return run("keys show " + args);
 	}
 
 	/**

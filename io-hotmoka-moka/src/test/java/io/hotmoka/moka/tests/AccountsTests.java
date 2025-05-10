@@ -30,7 +30,9 @@ import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.moka.AccountsCreateOutputs;
 import io.hotmoka.moka.AccountsRotateOutputs;
+import io.hotmoka.moka.AccountsSendOutputs;
 import io.hotmoka.moka.AccountsShowOutputs;
+import io.hotmoka.moka.KeysBindOutputs;
 import io.hotmoka.moka.KeysCreateOutputs;
 import io.hotmoka.moka.MokaNew;
 import io.hotmoka.node.MethodSignatures;
@@ -197,5 +199,86 @@ public class AccountsTests extends AbstractMokaTestWithNode {
 			byte[] encodingOfPublicKeyOfAccount = signature.encodingOf(keyPairOfAccount.getPublic());
 			assertEquals(Base64.toBase64String(encodingOfPublicKeyOfAccount), accountsShowOutputAgain.getPublicKeyBase64());
 		}
+	}
+
+	@Test
+	@DisplayName("[moka accounts send] sending coin from account to account works")
+	public void sendFromAccountToAccountWorks() throws Exception {
+		var signature = SignatureAlgorithms.sha256dsa();
+		String passwordOfDestination = "abcde";
+
+		// create the key pair of the destination account: we provide explicit file names in order to avoid name clashes for long keys that start with the same prefix
+		var destinationKeyCreateOutput = KeysCreateOutputs.from(MokaNew.keysCreate("--signature=" + signature + " --password=" + passwordOfDestination + " --name destination.pem --json --output-dir=" + dir));
+		// create a new account with that key pair, letting the faucet pay for it
+		var accountsCreateOutput = AccountsCreateOutputs.from(MokaNew.accountsCreate("0 --keys=" + destinationKeyCreateOutput.getFile() + " --signature=" + signature + " --password=" + passwordOfDestination + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
+		var account = accountsCreateOutput.getAccount().get();
+		// show the account
+		var accountsShowOutput = AccountsShowOutputs.from(MokaNew.accountsShow(account + " --json --uri=ws://localhost:" + PORT));
+		// the balance of the destination account is 0, currently
+		assertEquals(BigInteger.ZERO, accountsShowOutput.getBalance());
+		// send coins from the gamete to the new account
+		var amount = BigInteger.valueOf(12345L);
+		var accountsSendOutput = AccountsSendOutputs.from(MokaNew.accountsSend(amount + " --payer=" + gamete + " --password-of-payer=" + passwordOfGamete + " --account=" + account + " --dir=" + dir + " --json --uri=ws://localhost:" + PORT));
+		// there is no destination account from the accounts ledger, since we paid into a specific account, not into a key
+		assertTrue(accountsSendOutput.getDestinationInAccountsLedger().isEmpty());
+		// show the account again
+		var accountsShowAgainOutput = AccountsShowOutputs.from(MokaNew.accountsShow(account + " --json --uri=ws://localhost:" + PORT));
+		// the balance of the destination account has been increased as expected
+		assertEquals(amount, accountsShowAgainOutput.getBalance());
+	}
+
+	@Test
+	@DisplayName("[moka accounts send] sending coin from faucet to account works")
+	public void sendFromFaucetToAccountWorks() throws Exception {
+		var signature = SignatureAlgorithms.sha256dsa();
+		String passwordOfDestination = "abcde";
+
+		// create the key pair of the destination account: we provide explicit file names in order to avoid name clashes for long keys that start with the same prefix
+		var destinationKeyCreateOutput = KeysCreateOutputs.from(MokaNew.keysCreate("--signature=" + signature + " --password=" + passwordOfDestination + " --name destination.pem --json --output-dir=" + dir));
+		// create a new account with that key pair, letting the faucet pay for it
+		var accountsCreateOutput = AccountsCreateOutputs.from(MokaNew.accountsCreate("0 --keys=" + destinationKeyCreateOutput.getFile() + " --signature=" + signature + " --password=" + passwordOfDestination + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
+		var account = accountsCreateOutput.getAccount().get();
+		// show the account
+		var accountsShowOutput = AccountsShowOutputs.from(MokaNew.accountsShow(account + " --json --uri=ws://localhost:" + PORT));
+		// the balance of the destination account is 0, currently
+		assertEquals(BigInteger.ZERO, accountsShowOutput.getBalance());
+		// send coins from the faucet to the new account
+		var amount = BigInteger.valueOf(12345L);
+		var accountsSendOutput = AccountsSendOutputs.from(MokaNew.accountsSend(amount + " --account=" + account + " --json --uri=ws://localhost:" + PORT));
+		// there is no destination account from the accounts ledger, since we paid into a specific account, not into a key
+		assertTrue(accountsSendOutput.getDestinationInAccountsLedger().isEmpty());
+		// show the account again
+		var accountsShowAgainOutput = AccountsShowOutputs.from(MokaNew.accountsShow(account + " --json --uri=ws://localhost:" + PORT));
+		// the balance of the destination account has been increased as expected
+		assertEquals(amount, accountsShowAgainOutput.getBalance());
+	}
+
+	@Test
+	@DisplayName("[moka accounts send] sending coin from account to public key works")
+	public void sendFromAccountToPublicKeyWorks() throws Exception {
+		var signature = SignatureAlgorithms.ed25519();
+		String passwordOfDestination = "abcde";
+
+		// create the key pair of the destination account: we provide explicit file names in order to avoid name clashes for long keys that start with the same prefix
+		var keysCreateOutput = KeysCreateOutputs.from(MokaNew.keysCreate("--signature=" + signature + " --password=" + passwordOfDestination + " --name destination.pem --json --output-dir=" + dir));
+		var entropy = Entropies.load(keysCreateOutput.getFile());
+		var keys = entropy.keys(passwordOfDestination, signature);
+		String publicKeyBase58 = Base58.toBase58String(signature.encodingOf(keys.getPublic()));
+		// send coins from the gamete to the public key
+		var amount = BigInteger.valueOf(12345L);
+		var accountsSendOutput = AccountsSendOutputs.from(MokaNew.accountsSend(amount + " --payer=" + gamete + " --password-of-payer=" + passwordOfGamete + " --key=" + publicKeyBase58 + " --dir=" + dir + " --json --uri=ws://localhost:" + PORT));
+		// there is a destination account from the accounts ledger, since we paid into a key, not into a specific account
+		assertTrue(accountsSendOutput.getDestinationInAccountsLedger().isPresent());
+		StorageReference account = accountsSendOutput.getDestinationInAccountsLedger().get();
+		// show the account
+		var accountsShowOutput = AccountsShowOutputs.from(MokaNew.accountsShow(account + " --json --uri=ws://localhost:" + PORT));
+		// the balance of the destination account is as expected
+		assertEquals(amount, accountsShowOutput.getBalance());
+		// bind the account to the key pair
+		var keysBindOutput = KeysBindOutputs.from(MokaNew.keysBind(keysCreateOutput.getFile() + " --password=" + passwordOfDestination + " --json --uri=ws://localhost:" + PORT));
+		// the new pem file contains the same entropy as the original key pair
+		var entropyBound = Entropies.load(keysBindOutput.getFile());
+		assertEquals(entropy, entropyBound);
+		
 	}
 }

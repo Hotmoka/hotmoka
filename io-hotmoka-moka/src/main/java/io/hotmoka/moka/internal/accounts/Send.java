@@ -251,7 +251,7 @@ public class Send extends AbstractGasCostCommand {
 				return TransactionRequests.instanceMethodCall
 						(signer, gamete, new BigInteger(64, new SecureRandom()), chainId, gasLimit, gasPrice, classpath,
 						MethodSignatures.ofVoid(GAMETE, "faucet", PAYABLE_CONTRACT, BIG_INTEGER),
-						gamete, StorageValues.bigIntegerOf(amount));
+						gamete, destination.account, StorageValues.bigIntegerOf(amount));
 			}
 			catch (InvalidKeyException | SignatureException e) {
 				// the key has been created with the same (empty!) signature algorithm, thus it cannot be invalid
@@ -483,7 +483,7 @@ public class Send extends AbstractGasCostCommand {
 			super(json);
 
 			var destinationInAccountsLedgerJson = json.getDestinationInAccountsLedger();
-			if (destinationInAccountsLedgerJson != null)
+			if (destinationInAccountsLedgerJson.isPresent())
 				this.destinationInAccountsLedger = Optional.of(destinationInAccountsLedgerJson.get().unmap().asReference(value -> new InconsistentJsonException("destinationInAccountsLedger should be a StorageReference, not a " + value.getClass().getName())));
 			else
 				this.destinationInAccountsLedger = Optional.empty();
