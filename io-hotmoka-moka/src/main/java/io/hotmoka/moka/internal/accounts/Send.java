@@ -448,13 +448,13 @@ public class Send extends AbstractGasCostCommand {
 		private BigInteger gasLimitHeuristic(SignatureAlgorithm signatureOfPayer) throws CommandException {
 			switch (signatureOfDestination.getName()) {
 			case "ed25519":
-				return _100_000.add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
+				return BigInteger.valueOf(600_000L).add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
 			case "sha256dsa":
-				return BigInteger.valueOf(200_000L).add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
+				return BigInteger.valueOf(700_000L).add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
 			case "qtesla1":
-				return BigInteger.valueOf(3_000_000L).add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
+				return BigInteger.valueOf(3_500_000L).add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
 			case "qtesla3":
-				return BigInteger.valueOf(6_000_000L).add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
+				return BigInteger.valueOf(6_500_000L).add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
 			default:
 				throw new CommandException("Cannot create accounts with signature algorithm " + signatureOfDestination);
 			}
