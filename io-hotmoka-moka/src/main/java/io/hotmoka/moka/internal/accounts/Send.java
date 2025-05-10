@@ -16,16 +16,49 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.accounts;
 
+import static io.hotmoka.node.StorageTypes.BIG_INTEGER;
+import static io.hotmoka.node.StorageTypes.GAMETE;
+import static io.hotmoka.node.StorageTypes.PAYABLE_CONTRACT;
+
 import java.math.BigInteger;
+import java.nio.file.Path;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.SignatureException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Arrays;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.cli.CommandException;
+import io.hotmoka.crypto.Base58;
+import io.hotmoka.crypto.Base58ConversionException;
+import io.hotmoka.crypto.Base64;
+import io.hotmoka.crypto.SignatureAlgorithms;
+import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.crypto.api.Signer;
+import io.hotmoka.moka.AccountsSendOutputs;
+import io.hotmoka.moka.api.GasCost;
+import io.hotmoka.moka.api.accounts.AccountsSendOutput;
 import io.hotmoka.moka.internal.AbstractGasCostCommand;
 import io.hotmoka.moka.internal.converters.Base58OptionConverter;
 import io.hotmoka.moka.internal.converters.StorageReferenceOptionConverter;
+import io.hotmoka.moka.internal.converters.TransactionReferenceOptionConverter;
+import io.hotmoka.moka.internal.json.AccountsSendOutputJson;
+import io.hotmoka.node.MethodSignatures;
+import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.node.api.requests.SignedTransactionRequest;
+import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.api.RemoteNode;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -48,6 +81,15 @@ public class Send extends AbstractGasCostCommand {
 	@Option(names = "--password-of-payer", description = "the password of the payer; this is not used if the payer is the faucet", interactive = true, defaultValue = "")
 	private char[] passwordOfPayer;
 
+	@Option(names = "--dir", paramLabel = "<path>", description = "the directory where the current key pair of the payer can be found", defaultValue = "")
+	private Path dir;
+
+	@Option(names = "--classpath", paramLabel = "<transaction reference>", description = "the classpath used to interpret payer and destination; if missing, the reference to the transaction that created the destination account will be used; if the destination is a key, the reference to the transaction that created the payer will be used", converter = TransactionReferenceOptionConverter.class)
+    private TransactionReference classpath;
+
+	@Option(names = "--yes", description = "assume yes when asked for confirmation; this is implied if --json is used")
+	private boolean yes;
+
 	/**
 	 * The specification of the destination of a send operation: either
 	 * a Base58-encoded public key or a storage reference.
@@ -59,86 +101,408 @@ public class Send extends AbstractGasCostCommand {
 
 		@Option(names = "--account", paramLabel = "<storage reference>", description = "as an account", converter = StorageReferenceOptionConverter.class)
 		private StorageReference account;
+
+		@Override
+		public String toString() {
+			return key != null ? ("public key " + key) : account.toString();
+		}
 	}
 
 	@Override
 	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
-		new Body(remote);
+		if (payer != null)
+			if (destination.account != null)
+				new SendFromPayerAccountToDestinationAccount(remote);
+			else
+				new SendFromPayerAccountToDestinationKey(remote);
+		else
+			if(destination.account != null)
+				new SendFromFaucetToDestinationAccount(remote);
+			else
+				throw new CommandException("It is not possible to let the faucet pay to a public key; please specify either --payer or --account");
 	}
 
-	private class Body {
+	private TransactionReference getClasspath(RemoteNode remote) throws NodeException, TimeoutException, InterruptedException, CommandException {
+		if (classpath != null)
+			return classpath;
+		else if (destination.account != null)
+			return getClasspathAtCreationTimeOf(destination.account, remote);
+		else
+			return getClasspathAtCreationTimeOf(payer, remote);
+	}
+
+	private class SendFromPayerAccountToDestinationAccount {
 		private final RemoteNode remote;
-
-		private Body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
-			this.remote = remote;
-
-			/*if (anonymous && "faucet".equals(payer))
-				throw new IllegalArgumentException("you cannot send coins anonymously from the faucet");
-
-			if (anonymous && !looksLikePublicKey(destination))
-				throw new IllegalArgumentException("you can only send coins anonymously to a key");
-
-			if (passwordOfPayer != null)
-				throw new IllegalArgumentException("the password of the payer account can be provided as command switch only in non-interactive mode");
-
-			if (passwordOfPayer != null && "faucet".equals(payer))
-				throw new IllegalArgumentException("the password of the payer has no meaning when the payer is the faucet");
-
-			try (var node = this.node = RemoteNodes.of(uri, 10_000)) {
-				if ("faucet".equals(payer))
-					sendCoinsFromFaucet();
-				else if (looksLikePublicKey(destination)) {
-					StorageReference result = sendCoinsToPublicKey();
-					
-					if (anonymous)
-		            	System.out.println("The owner of the key can now see the new account associated to the key.");
-		            else
-		            	System.out.println("The owner of the key can now associate the address " + result + " of the account to the key.");
-				}
-				else if (looksLikeStorageReference(destination))
-					sendCoinsFromPayer();
-				else
-					throw new IllegalArgumentException("The destination does not look like a storage reference or a Base58-encoded key.");
-			}*/
-		}
-
-		/*private void sendCoinsFromPayer() throws Exception {
-			var sendCoinsHelper = SendCoinsHelpers.of(node);
-			var payer = StorageValues.reference(Send.this.payer);
-			KeyPair keysOfPayer = readKeys(Accounts.of(payer), node, passwordOfPayer);
-			sendCoinsHelper.sendFromPayer(payer, keysOfPayer, StorageValues.reference(destination), amount, this::askForConfirmation, this::printCosts);
-		}
-
-		private StorageReference sendCoinsToPublicKey() throws Exception {
-			var accountCreationHelper = AccountCreationHelpers.of(node);
-			var payer = StorageValues.reference(Send.this.payer);
-			KeyPair keysOfPayer = readKeys(Accounts.of(payer), node, passwordOfPayer);
-			var signatureAlgorithmForNewAccount = SignatureAlgorithms.ed25519();
-			return accountCreationHelper.paidBy(payer, keysOfPayer, signatureAlgorithmForNewAccount,
-				signatureAlgorithmForNewAccount.publicKeyFromEncoding(Base58.fromBase58String(destination)),
-				amount, anonymous, this::askForConfirmation, this::printCosts);
-		}
-
-		private void sendCoinsFromFaucet() throws Exception {
-			var sendCoinsHelper = SendCoinsHelpers.of(node);
-			
+		private final String chainId;
+		private final Signer<SignedTransactionRequest<?>> signer;
+		private final BigInteger gasLimit;
+		private final BigInteger gasPrice;
+		private final TransactionReference classpath;
+		private final BigInteger nonce;
+		private final InstanceMethodCallTransactionRequest request;
+	
+		private SendFromPayerAccountToDestinationAccount(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+			String passwordOfPayerAsString = new String(passwordOfPayer);
+	
 			try {
-				sendCoinsHelper.sendFromFaucet(StorageValues.reference(destination), amount, this::askForConfirmation, this::printCosts);
+				this.remote = remote;
+				this.chainId = remote.getConfig().getChainId();
+				SignatureAlgorithm signatureOfPayer = determineSignatureOf(payer, remote);
+				this.signer = mkSigner(payer, dir, signatureOfPayer, passwordOfPayerAsString);
+				this.gasLimit = determineGasLimit(() -> gasLimitHeuristic(signatureOfPayer));
+				this.gasPrice = determineGasPrice(remote);
+				this.classpath = getClasspath(remote);
+				askForConfirmation("send " + amount + " panas from " + payer + " to " + destination, gasLimit, gasPrice, yes || json());
+				this.nonce = determineNonceOf(payer, remote);
+				this.request = mkRequest();
+				report(json(), executeRequest(), AccountsSendOutputs.Encoder::new);
+			}
+			finally {
+				passwordOfPayerAsString = null;
+				Arrays.fill(passwordOfPayer, ' ');
+			}
+		}
+	
+		private InstanceMethodCallTransactionRequest mkRequest() throws CommandException {
+			try {
+				return TransactionRequests.instanceMethodCall
+						(signer, payer, nonce, chainId, gasLimit, gasPrice, classpath,
+						MethodSignatures.RECEIVE_BIG_INTEGER, destination.account, StorageValues.bigIntegerOf(amount));
+			}
+			catch (InvalidKeyException | SignatureException e) {
+				throw new CommandException("The key pair of " + payer + " seems corrupted!", e);
+			}
+		}
+
+		private Output executeRequest() throws CommandException, NodeException, TimeoutException, InterruptedException {
+			TransactionReference transaction = computeTransaction(request);
+			Optional<GasCost> gasCost = Optional.empty();
+			Optional<String> errorMessage = Optional.empty();
+
+			try {
+				if (post()) {
+					if (!json())
+						System.out.print("Posting transaction " + asTransactionReference(transaction) + "... ");
+
+					remote.postInstanceMethodCallTransaction(request);
+
+					if (!json())
+						System.out.println("done.");
+				}
+				else {
+					if (!json())
+						System.out.print("Adding transaction " + asTransactionReference(transaction) + "... ");
+
+					try {
+						remote.addInstanceMethodCallTransaction(request);
+						if (!json())
+							System.out.println("done.");
+					}
+					catch (TransactionException | CodeExecutionException e) {
+						if (!json())
+							System.out.println("failed. Are the key pair of the payer and its password correct?");
+
+						errorMessage = Optional.of(e.getMessage());
+					}
+
+					gasCost = Optional.of(computeIncurredGasCost(remote, gasPrice, transaction));
+				}
 			}
 			catch (TransactionRejectedException e) {
-				if (e.getMessage().contains("invalid request signature"))
-					throw new IllegalStateException("invalid request signature: is the unsigned faucet of the node open?");
+				throw new CommandException("Transaction " + transaction + " has been rejected!", e);
+			}
 
-				throw e;
+			return new Output(transaction, gasCost, errorMessage, Optional.empty());
+		}
+
+		private BigInteger gasLimitHeuristic(SignatureAlgorithm signatureOfPayer) throws CommandException {
+			return _100_000.add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
+		}
+	}
+
+	private class SendFromFaucetToDestinationAccount {
+		private final RemoteNode remote;
+		private final StorageReference gamete;
+		private final String chainId;
+		private final Signer<SignedTransactionRequest<?>> signer;
+		private final BigInteger gasLimit;
+		private final BigInteger gasPrice;
+		private final TransactionReference classpath;
+		private final InstanceMethodCallTransactionRequest request;
+	
+		private SendFromFaucetToDestinationAccount(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+			this.remote = remote;
+			this.gamete = getGamete();
+			this.chainId = remote.getConfig().getChainId();
+			// we use an empty signature algorithm and an arbitrary key, since the faucet is unsigned
+			SignatureAlgorithm signatureOfFaucet = SignatureAlgorithms.empty();
+			this.signer = signatureOfFaucet.getSigner(signatureOfFaucet.getKeyPair().getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
+			this.gasLimit = determineGasLimit(() -> gasLimitHeuristic(signatureOfFaucet));
+			this.gasPrice = determineGasPrice(remote);
+			this.classpath = getClasspath(remote);
+			this.request = mkRequest();
+			report(json(), executeRequest(), AccountsSendOutputs.Encoder::new);
+		}
+	
+		private InstanceMethodCallTransactionRequest mkRequest() {
+			try {
+				// we use a random nonce: although the nonce is not checked for calls to the faucet,
+				// this avoids the risk of the request being rejected because it is repeated
+				return TransactionRequests.instanceMethodCall
+						(signer, gamete, new BigInteger(64, new SecureRandom()), chainId, gasLimit, gasPrice, classpath,
+						MethodSignatures.ofVoid(GAMETE, "faucet", PAYABLE_CONTRACT, BIG_INTEGER),
+						gamete, StorageValues.bigIntegerOf(amount));
+			}
+			catch (InvalidKeyException | SignatureException e) {
+				// the key has been created with the same (empty!) signature algorithm, thus it cannot be invalid
+				throw new RuntimeException(e);
 			}
 		}
+	
+		private Output executeRequest() throws CommandException, NodeException, TimeoutException, InterruptedException {
+			TransactionReference transaction = computeTransaction(request);
+			Optional<String> errorMessage = Optional.empty();
+	
+			try {
+				if (post()) {
+					if (!json())
+						System.out.print("Posting transaction " + asTransactionReference(transaction) + "... ");
+	
+					remote.postInstanceMethodCallTransaction(request);
+	
+					if (!json())
+						System.out.println("done.");
+				}
+				else {
+					if (!json())
+						System.out.print("Adding transaction " + asTransactionReference(transaction) + "... ");
+	
+					try {
+						remote.addInstanceMethodCallTransaction(request);
+						if (!json())
+							System.out.println("done.");
+					}
+					catch (TransactionException | CodeExecutionException e) {
+						if (!json())
+							System.out.println("failed.");
+	
+						errorMessage = Optional.of(e.getMessage());
+					}
+				}
+			}
+			catch (TransactionRejectedException e) {
+				throw new CommandException("Transaction " + transaction + " has been rejected!", e);
+			}
+	
+			return new Output(transaction, Optional.empty(), errorMessage, Optional.empty());
+		}
+	
+		private StorageReference getGamete() throws NodeException, TimeoutException, InterruptedException, CommandException {
+			var manifest = remote.getManifest();
+			var takamakaCode = remote.getTakamakaCode();
+	
+			try {
+				return remote.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+						(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
+						.orElseThrow(() -> new CommandException(MethodSignatures.GET_GAMETE + " should not return void"))
+						.asReturnedReference(MethodSignatures.GET_GAMETE, CommandException::new);
+			}
+			catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
+				throw new CommandException("Could not determine the gamete of the node");
+			}
+		}
+	
+		private BigInteger gasLimitHeuristic(SignatureAlgorithm signatureOfPayer) throws CommandException {
+			return _100_000.add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
+		}
+	}
 
-		private void askForConfirmation(BigInteger gas) {
-			if (!"faucet".equals(payer))
-				yesNo("Do you really want to spend up to " + gas + " gas units to send the coins [Y/N] ");
+	private class SendFromPayerAccountToDestinationKey {
+		private final RemoteNode remote;
+		private final StorageReference accountsLedger;
+		private final String chainId;
+		private final SignatureAlgorithm signatureOfDestination;
+		private final Signer<SignedTransactionRequest<?>> signer;
+		private final BigInteger gasLimit;
+		private final BigInteger gasPrice;
+		private final TransactionReference classpath;
+		private final BigInteger nonce;
+		private final InstanceMethodCallTransactionRequest request;
+	
+		private SendFromPayerAccountToDestinationKey(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+			String passwordOfPayerAsString = new String(passwordOfPayer);
+	
+			try {
+				this.remote = remote;
+				this.accountsLedger = getAccountsLedger();
+				this.chainId = remote.getConfig().getChainId();
+				SignatureAlgorithm signatureOfPayer = determineSignatureOf(payer, remote);
+				this.signatureOfDestination = determineSignatureOfDestination();
+				this.signer = mkSigner(payer, dir, signatureOfPayer, passwordOfPayerAsString);
+				this.gasLimit = determineGasLimit(() -> gasLimitHeuristic(signatureOfPayer));
+				this.gasPrice = determineGasPrice(remote);
+				this.classpath = getClasspath(remote);
+				askForConfirmation("send " + amount + " panas from " + payer + " to " + destination, gasLimit, gasPrice, yes || json());
+				this.nonce = determineNonceOf(payer, remote);
+				this.request = mkRequest();
+				report(json(), executeRequest(), AccountsSendOutputs.Encoder::new);
+			}
+			finally {
+				passwordOfPayerAsString = null;
+				Arrays.fill(passwordOfPayer, ' ');
+			}
+		}
+	
+		private InstanceMethodCallTransactionRequest mkRequest() throws CommandException {
+			try {
+				String publicKeyEncoded = Base64.toBase64String(signatureOfDestination.encodingOf(signatureOfDestination.publicKeyFromEncoding(Base58.fromBase58String(destination.key))));
+	
+				return TransactionRequests.instanceMethodCall
+					(signer, payer, nonce,
+					chainId, gasLimit, gasPrice, classpath,
+					MethodSignatures.ADD_INTO_ACCOUNTS_LEDGER,
+					accountsLedger,
+					StorageValues.bigIntegerOf(amount), StorageValues.stringOf(publicKeyEncoded));
+			}
+			catch (Base58ConversionException e) {
+				// this should not happen, since the parameter is checked by its converter
+				throw new RuntimeException(e);
+			}
+			catch (InvalidKeyException | SignatureException | InvalidKeySpecException e) {
+				throw new CommandException("The key pair of " + payer + " seems corrupted!", e);
+			}
+		}
+	
+		private Output executeRequest() throws CommandException, NodeException, TimeoutException, InterruptedException {
+			TransactionReference transaction = computeTransaction(request);
+			Optional<GasCost> gasCost = Optional.empty();
+			Optional<String> errorMessage = Optional.empty();
+			Optional<StorageReference> destination = Optional.empty();
+	
+			try {
+				if (post()) {
+					if (!json())
+						System.out.print("Posting transaction " + asTransactionReference(transaction) + "... ");
+	
+					remote.postInstanceMethodCallTransaction(request);
+	
+					if (!json())
+						System.out.println("done.");
+				}
+				else {
+					if (!json())
+						System.out.print("Adding transaction " + asTransactionReference(transaction) + "... ");
+	
+					try {
+						StorageReference destinationInAccountsdLedger = remote.addInstanceMethodCallTransaction(request)
+								.orElseThrow(() -> new CommandException(MethodSignatures.ADD_INTO_ACCOUNTS_LEDGER + " should not return void"))
+								.asReturnedReference(MethodSignatures.ADD_INTO_ACCOUNTS_LEDGER, CommandException::new);
+
+						destination = Optional.of(destinationInAccountsdLedger);
+
+						if (!json())
+							System.out.println("done.");
+					}
+					catch (TransactionException | CodeExecutionException e) {
+						if (!json())
+							System.out.println("failed. Are the key pair of the payer and its password correct?");
+	
+						errorMessage = Optional.of(e.getMessage());
+					}
+	
+					gasCost = Optional.of(computeIncurredGasCost(remote, gasPrice, transaction));
+				}
+			}
+			catch (TransactionRejectedException e) {
+				throw new CommandException("Transaction " + transaction + " has been rejected!", e);
+			}
+	
+			return new Output(transaction, gasCost, errorMessage, destination);
+		}
+	
+		private SignatureAlgorithm determineSignatureOfDestination() throws CommandException {
+			try {
+				// the accounts ledger only allows ed25519 accounts currently
+				return SignatureAlgorithms.ed25519();
+			}
+			catch (NoSuchAlgorithmException e) {
+				throw new CommandException("The ed25119 signature lagorotihm of the destination account is not available");
+			}
+		}
+	
+		private StorageReference getAccountsLedger() throws NodeException, TimeoutException, InterruptedException, CommandException {
+			var manifest = remote.getManifest();
+			var takamakaCode = remote.getTakamakaCode();
+	
+			try {
+				return remote.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+						(manifest, _100_000, takamakaCode, MethodSignatures.GET_ACCOUNTS_LEDGER, manifest))
+						.orElseThrow(() -> new CommandException(MethodSignatures.GET_ACCOUNTS_LEDGER + " should not return void"))
+						.asReturnedReference(MethodSignatures.GET_ACCOUNTS_LEDGER, CommandException::new);
+			}
+			catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
+				throw new CommandException("Could not determine the accounts ledger of the node");
+			}
+		}
+	
+		private BigInteger gasLimitHeuristic(SignatureAlgorithm signatureOfPayer) throws CommandException {
+			switch (signatureOfDestination.getName()) {
+			case "ed25519":
+				return _100_000.add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
+			case "sha256dsa":
+				return BigInteger.valueOf(200_000L).add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
+			case "qtesla1":
+				return BigInteger.valueOf(3_000_000L).add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
+			case "qtesla3":
+				return BigInteger.valueOf(6_000_000L).add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
+			default:
+				throw new CommandException("Cannot create accounts with signature algorithm " + signatureOfDestination);
+			}
+		}
+	}
+
+	/**
+	 * The output of this command.
+	 */
+	public static class Output extends AbstractGasCostCommandOutput implements AccountsSendOutput {
+
+		/**
+		 * The account that received the sent coins, if the payment was into a key; this means that this is the
+		 * account, in the accounts ledger, for that key; this is missing if the payment was not into a key
+		 * or the the transaction has just been posted.
+		 */
+		private final Optional<StorageReference> destinationInAccountsLedger;
+
+		private Output(TransactionReference transaction, Optional<GasCost> gasCost, Optional<String> errorMessage, Optional<StorageReference> destinationInAccountsLedger) {
+			super(transaction, gasCost, errorMessage);
+
+			this.destinationInAccountsLedger = destinationInAccountsLedger;
 		}
 
-		private void printCosts(TransactionRequest<?>... requests) {
-		}*/
+		public Output(AccountsSendOutputJson json) throws InconsistentJsonException {
+			super(json);
+
+			var destinationInAccountsLedgerJson = json.getDestinationInAccountsLedger();
+			if (destinationInAccountsLedgerJson != null)
+				this.destinationInAccountsLedger = Optional.of(destinationInAccountsLedgerJson.get().unmap().asReference(value -> new InconsistentJsonException("destinationInAccountsLedger should be a StorageReference, not a " + value.getClass().getName())));
+			else
+				this.destinationInAccountsLedger = Optional.empty();
+		}
+
+		@Override
+		public Optional<StorageReference> getDestinationInAccountsLedger() {
+			return destinationInAccountsLedger;
+		}
+
+		@Override
+		protected void toString(StringBuilder sb) {
+			destinationInAccountsLedger.ifPresent(account -> {
+				sb.append("The payment went into account " + account + ".\n");
+				sb.append("The owner of the destination key pair can bind it now to its address with:\n");
+				sb.append(asCommand("  moka keys bind file_containing_the_destination_key_pair --password --url url_of_this_Hotmoka_node\n"));
+				sb.append("or with:\n");
+				sb.append(asCommand("  moka keys bind file_containing_the_destination_key_pair --password --reference " + account + "\n"));
+			});
+		}
 	}
 }
