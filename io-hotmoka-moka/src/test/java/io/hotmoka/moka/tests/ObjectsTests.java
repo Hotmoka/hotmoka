@@ -28,7 +28,7 @@ import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.moka.AccountsCreateOutputs;
 import io.hotmoka.moka.JarsInstallOutputs;
 import io.hotmoka.moka.KeysCreateOutputs;
-import io.hotmoka.moka.MokaNew;
+import io.hotmoka.moka.Moka;
 import io.hotmoka.moka.ObjectsCallOutputs;
 import io.hotmoka.moka.ObjectsCreateOutputs;
 import io.hotmoka.node.api.responses.ConstructorCallTransactionSuccessfulResponse;
@@ -49,15 +49,15 @@ public class ObjectsTests extends AbstractMokaTestWithNode {
 		String passwordOfNewAccount = "abcde";
 
 		// create a key pair
-		var keyCreateOutputs = KeysCreateOutputs.from(MokaNew.keysCreate("--signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir));
+		var keyCreateOutputs = KeysCreateOutputs.from(Moka.keysCreate("--signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir));
 		// create a new account with that key pair, letting the gamete pay for it
-		var accountsCreateOutput = AccountsCreateOutputs.from(MokaNew.accountsCreate("1000000000000 --payer=" + gamete + " --password-of-payer=" + passwordOfGamete + " --dir=" + dir + " --keys=" + keyCreateOutputs.getFile() + " --signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
+		var accountsCreateOutput = AccountsCreateOutputs.from(Moka.accountsCreate("1000000000000 --payer=" + gamete + " --password-of-payer=" + passwordOfGamete + " --dir=" + dir + " --keys=" + keyCreateOutputs.getFile() + " --signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
 		StorageReference account = accountsCreateOutput.getAccount().get();
 		// install the jar for TicTacToe contract
 		var ticTacToeJar = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-tictactoe.jar");
-		var jarsInstallOutput = JarsInstallOutputs.from(MokaNew.jarsInstall(account + " " + ticTacToeJar + " --dir=" + dir + " --json --password-of-payer=" + passwordOfNewAccount + " --uri=ws://localhost:" + PORT));
+		var jarsInstallOutput = JarsInstallOutputs.from(Moka.jarsInstall(account + " " + ticTacToeJar + " --dir=" + dir + " --json --password-of-payer=" + passwordOfNewAccount + " --uri=ws://localhost:" + PORT));
 		// create a TicTacToe object, letting the new account pay for it
-		var objectsCreateOutput = ObjectsCreateOutputs.from(MokaNew.objectsCreate(account + " io.hotmoka.examples.tictactoe.TicTacToe --password-of-payer=" + passwordOfNewAccount + " --classpath=" + jarsInstallOutput.getJar().get() + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
+		var objectsCreateOutput = ObjectsCreateOutputs.from(Moka.objectsCreate(account + " io.hotmoka.examples.tictactoe.TicTacToe --password-of-payer=" + passwordOfNewAccount + " --classpath=" + jarsInstallOutput.getJar().get() + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
 
 		// the object has been actually created
 		assertTrue(objectsCreateOutput.getObject().isPresent());
@@ -81,22 +81,22 @@ public class ObjectsTests extends AbstractMokaTestWithNode {
 		String passwordOfNewAccount = "abcde";
 
 		// create a key pair
-		var keyCreateOutputs = KeysCreateOutputs.from(MokaNew.keysCreate("--signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir));
+		var keyCreateOutputs = KeysCreateOutputs.from(Moka.keysCreate("--signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir));
 		// create a new account with that key pair, letting the gamete pay for it
-		var accountsCreateOutput = AccountsCreateOutputs.from(MokaNew.accountsCreate("1000000000000 --payer=" + gamete + " --password-of-payer=" + passwordOfGamete + " --dir=" + dir + " --keys=" + keyCreateOutputs.getFile() + " --signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
+		var accountsCreateOutput = AccountsCreateOutputs.from(Moka.accountsCreate("1000000000000 --payer=" + gamete + " --password-of-payer=" + passwordOfGamete + " --dir=" + dir + " --keys=" + keyCreateOutputs.getFile() + " --signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
 		StorageReference account = accountsCreateOutput.getAccount().get();
 		// install the jar for TicTacToe contract
 		var ticTacToeJar = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-tictactoe.jar");
-		var jarsInstallOutput = JarsInstallOutputs.from(MokaNew.jarsInstall(account + " " + ticTacToeJar + " --dir=" + dir + " --json --password-of-payer=" + passwordOfNewAccount + " --uri=ws://localhost:" + PORT));
+		var jarsInstallOutput = JarsInstallOutputs.from(Moka.jarsInstall(account + " " + ticTacToeJar + " --dir=" + dir + " --json --password-of-payer=" + passwordOfNewAccount + " --uri=ws://localhost:" + PORT));
 		// create a TicTacToe object, letting the new account pay for it
-		var objectsCreateOutput = ObjectsCreateOutputs.from(MokaNew.objectsCreate(account + " io.hotmoka.examples.tictactoe.TicTacToe --password-of-payer=" + passwordOfNewAccount + " --classpath=" + jarsInstallOutput.getJar().get() + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
+		var objectsCreateOutput = ObjectsCreateOutputs.from(Moka.objectsCreate(account + " io.hotmoka.examples.tictactoe.TicTacToe --password-of-payer=" + passwordOfNewAccount + " --classpath=" + jarsInstallOutput.getJar().get() + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
 		var ticTacToe = objectsCreateOutput.getObject().get();
 		// call method play(100, 1, 1) of ticTacToe
-		var playCallOutput = ObjectsCallOutputs.from(MokaNew.objectsCall(account + " io.hotmoka.examples.tictactoe.TicTacToe play 100 1 1 --classpath=" + jarsInstallOutput.getJar().get() + " --password-of-payer=" + passwordOfNewAccount + " --receiver=" + ticTacToe + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
+		var playCallOutput = ObjectsCallOutputs.from(Moka.objectsCall(account + " io.hotmoka.examples.tictactoe.TicTacToe play 100 1 1 --classpath=" + jarsInstallOutput.getJar().get() + " --password-of-payer=" + passwordOfNewAccount + " --receiver=" + ticTacToe + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
 		// the call generates no error
 		assertTrue(playCallOutput.getErrorMessage().isEmpty());
 		// call method at(1, 1) of ticTacToe
-		var atCallOutput = ObjectsCallOutputs.from(MokaNew.objectsCall(account + " io.hotmoka.examples.tictactoe.TicTacToe at 1 1 --classpath=" + jarsInstallOutput.getJar().get() + " --password-of-payer=" + passwordOfNewAccount + " --receiver=" + ticTacToe + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
+		var atCallOutput = ObjectsCallOutputs.from(Moka.objectsCall(account + " io.hotmoka.examples.tictactoe.TicTacToe at 1 1 --classpath=" + jarsInstallOutput.getJar().get() + " --password-of-payer=" + passwordOfNewAccount + " --receiver=" + ticTacToe + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
 		// the call generates no error
 		assertTrue(atCallOutput.getErrorMessage().isEmpty());
 		// there is a result of the last call: the tile CROSS
@@ -104,12 +104,12 @@ public class ObjectsTests extends AbstractMokaTestWithNode {
 		assertTrue(atCallOutput.getResult().get() instanceof StorageReference);
 		var tile = atCallOutput.getResult().get().asReference(__ -> new RuntimeException());
 		// call toString() on the tile
-		var toStringCallOutput = ObjectsCallOutputs.from(MokaNew.objectsCall(account + " io.hotmoka.examples.tictactoe.TicTacToe$Tile toString --classpath=" + jarsInstallOutput.getJar().get() + " --password-of-payer=" + passwordOfNewAccount + " --receiver=" + tile + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
+		var toStringCallOutput = ObjectsCallOutputs.from(Moka.objectsCall(account + " io.hotmoka.examples.tictactoe.TicTacToe$Tile toString --classpath=" + jarsInstallOutput.getJar().get() + " --password-of-payer=" + passwordOfNewAccount + " --receiver=" + tile + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
 		// the result is the String "X"
 		assertTrue(toStringCallOutput.getResult().isPresent());
 		assertEquals("X", toStringCallOutput.getResult().get().asString(__ -> new RuntimeException()));
 		// we try to play again with the same account
-		var playAgainCallOutput = ObjectsCallOutputs.from(MokaNew.objectsCall(account + " io.hotmoka.examples.tictactoe.TicTacToe play 100 2 1 --classpath=" + jarsInstallOutput.getJar().get() + " --password-of-payer=" + passwordOfNewAccount + " --receiver=" + ticTacToe + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
+		var playAgainCallOutput = ObjectsCallOutputs.from(Moka.objectsCall(account + " io.hotmoka.examples.tictactoe.TicTacToe play 100 2 1 --classpath=" + jarsInstallOutput.getJar().get() + " --password-of-payer=" + passwordOfNewAccount + " --receiver=" + ticTacToe + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
 		// this time the call fails with an error
 		assertTrue(playAgainCallOutput.getErrorMessage().isPresent());
 		assertTrue(playAgainCallOutput.getErrorMessage().get().startsWith(RequirementViolationException.class.getName() + ": you cannot play against yourself"));

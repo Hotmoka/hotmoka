@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,68 +16,283 @@ limitations under the License.
 
 package io.hotmoka.moka;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.URL;
-import java.util.logging.LogManager;
+import java.io.PrintStream;
 
-import io.hotmoka.moka.internal.BuyValidation;
-import io.hotmoka.moka.internal.SellValidation;
-import picocli.CommandLine;
+import io.hotmoka.cli.AbstractCLI;
+import io.hotmoka.cli.AbstractPropertyFileVersionProvider;
+import io.hotmoka.moka.Moka.POMVersionProvider;
+import io.hotmoka.moka.internal.Accounts;
+import io.hotmoka.moka.internal.Jars;
+import io.hotmoka.moka.internal.Keys;
+import io.hotmoka.moka.internal.Nodes;
+import io.hotmoka.moka.internal.Objects;
 import picocli.CommandLine.Command;
 
 /**
- * A command-line interface for some basic commands over a Hotmoka node.
+ * A command-line interface for Hotmoka.
  * 
  * This class is meant to be run from the parent directory, after building the project, with this command-line:
  * 
- * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.tools/io.hotmoka.tools.Moka
+ * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.moka/io.hotmoka.moka.Moka
  */
-@Command(name = "moka",
+@Command(
+	name = "moka",
+	header = "This is the command-line interface of Hotmoka.",
+	footer = "Copyright (c) 2021 Fausto Spoto (fausto.spoto@hotmoka.io)",
+	versionProvider = POMVersionProvider.class,
+	subcommands = {
+		Accounts.class,
+		Jars.class,
+		Keys.class,
+		Nodes.class,
+		Objects.class
+	}
+)
+public class Moka extends AbstractCLI {
 
-	subcommands = { BuyValidation.class, SellValidation.class }, 
+	private Moka() {}
 
-	description = "This is the command-line interface of Hotmoka.",
+	/**
+	 * Entry point from the shell. At its end, the status message
+	 * returned from the tool is returned to the shell.
+	 * 
+	 * @param args the command-line arguments provided to this tool
+	 */
+	public static void main(String[] args) {
+		System.exit(main(Moka::new, args));
+	}
 
-	showDefaultValues = true
+	/**
+	 * Runs the {@code moka accounts create} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String accountsCreate(String args) throws IOException {
+		return run("accounts create " + args);
+	}
 
-	)
-public class Moka {
+	/**
+	 * Runs the {@code moka accounts rotate} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String accountsRotate(String args) throws IOException {
+		return run("accounts rotate " + args);
+	}
 
-	static {
-		String current = System.getProperty("java.util.logging.config.file");
-		if (current == null) {
-			// if the property is not set, we provide a default (if it exists)
-			URL resource = Moka.class.getClassLoader().getResource("logging.properties");
-			if (resource != null)
-				try {
-					LogManager.getLogManager().readConfiguration(resource.openStream());
-				}
-				catch (SecurityException | IOException e) {
-					throw new IllegalStateException("Cannot load logging.properties file", e);
-				}
+	/**
+	 * Runs the {@code moka accounts send} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String accountsSend(String args) throws IOException {
+		return run("accounts send " + args);
+	}
+
+	/**
+	 * Runs the {@code moka accounts show} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String accountsShow(String args) throws IOException {
+		return run("accounts show " + args);
+	}
+
+	/**
+	 * Runs the {@code moka keys bind} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String keysBind(String args) throws IOException {
+		return run("keys bind " + args);
+	}
+
+	/**
+	 * Runs the {@code moka keys create} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String keysCreate(String args) throws IOException {
+		return run("keys create " + args);
+	}
+
+	/**
+	 * Runs the {@code moka keys export} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String keysExport(String args) throws IOException {
+		return run("keys export " + args);
+	}
+
+	/**
+	 * Runs the {@code moka keys import} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String keysImport(String args) throws IOException {
+		return run("keys import " + args);
+	}
+
+	/**
+	 * Runs the {@code moka keys show} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String keysShow(String args) throws IOException {
+		return run("keys show " + args);
+	}
+
+	/**
+	 * Runs the {@code moka jars verify} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String jarsVerify(String args) throws IOException {
+		return run("jars verify " + args);
+	}
+
+	/**
+	 * Runs the {@code moka jars instrument} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String jarsInstrument(String args) throws IOException {
+		return run("jars instrument " + args);
+	}
+
+	/**
+	 * Runs the {@code moka jars install} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String jarsInstall(String args) throws IOException {
+		return run("jars install " + args);
+	}
+
+	/**
+	 * Runs the {@code moka nodes faucet} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String nodesFaucet(String args) throws IOException {
+		return run("nodes faucet " + args);
+	}
+
+	/**
+	 * Runs the {@code moka nodes tendermint validators create} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String nodesTendermintValidatorsCreate(String args) throws IOException {
+		return run("nodes tendermint validators create " + args);
+	}
+
+	/**
+	 * Runs the {@code moka objects call} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String objectsCall(String args) throws IOException {
+		return run("objects call " + args);
+	}
+
+	/**
+	 * Runs the {@code moka objects create} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String objectsCreate(String args) throws IOException {
+		return run("objects create " + args);
+	}
+
+	/**
+	 * Runs the {@code moka objects show} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String objectsShow(String args) throws IOException {
+		return run("objects show " + args);
+	}
+
+	/**
+	 * Runs the given command-line with the moka tool, inside a sand-box where the
+	 * standard output is redirected into the resulting string. It performs as calling "moka command".
+	 * 
+	 * @param command the command to run with moka
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	private static String run(String command) throws IOException {
+		var originalOut = System.out;
+		var originalErr = System.err;
+	
+		try (var baos = new ByteArrayOutputStream(); var out = new PrintStream(baos)) {
+			System.setOut(out);
+			System.setErr(out);
+			main(Moka::new, command.split(" "));
+			return new String(baos.toByteArray());
+		}
+		finally {
+			System.setOut(originalOut);
+			System.setErr(originalErr);
 		}
 	}
 
-	/**
-	 * Builds the command-line tool.
-	 */
-	public Moka() {}
-
-	/**
-	 * Runs the command-line tool with the options provided in the given arguments.
-	 * 
-	 * @param args the arguments
-	 */
-	public static void main(String[] args) {
-		System.exit(new CommandLine(new Moka()).execute(args));
+	static {
+		loadLoggingConfig(() -> Moka.class.getModule().getResourceAsStream("logging.properties"));
 	}
 
 	/**
-	 * Runs the command-line tool with the options provided in the given arguments' line.
-	 * 
-	 * @param command the arguments' line
+	 * A provider of the version of this tool, taken from the property
+	 * declaration into the POM file.
 	 */
-	public static void run(String command) {
-		new CommandLine(new Moka()).execute(command.split(" "));
+	public static class POMVersionProvider extends AbstractPropertyFileVersionProvider {
+
+		/**
+		 * Creates the provider.
+		 */
+		public POMVersionProvider() {}
+
+		@Override
+		public String[] getVersion() throws IOException {
+			return getVersion(() -> Moka.class.getModule().getResourceAsStream("maven.properties"), "hotmoka.version");
+		}
 	}
 }

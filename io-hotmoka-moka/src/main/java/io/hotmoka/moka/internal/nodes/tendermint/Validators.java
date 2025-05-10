@@ -16,7 +16,9 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.nodes.tendermint;
 
+import io.hotmoka.moka.internal.nodes.tendermint.validators.Buy;
 import io.hotmoka.moka.internal.nodes.tendermint.validators.Create;
+import io.hotmoka.moka.internal.nodes.tendermint.validators.Sell;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
 
@@ -24,7 +26,9 @@ import picocli.CommandLine.HelpCommand;
 	header = "Manage the validators of a Tendermint node.",
 	subcommands = {
 		HelpCommand.class,
-		Create.class
+		Buy.class,
+		Create.class,
+		Sell.class
 	})
 public class Validators {
 }

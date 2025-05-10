@@ -28,7 +28,7 @@ import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.moka.KeysCreateOutputs;
-import io.hotmoka.moka.MokaNew;
+import io.hotmoka.moka.Moka;
 import io.hotmoka.moka.NodesTendermintValidatorsCreateOutputs;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.MethodSignatures;
@@ -50,9 +50,9 @@ public class NodesTendermintValidatorsTests extends AbstractMokaTestWithNode {
 		String passwordOfNewAccount = "abcde";
 
 		// first we create a key pair
-		var keyCreateOutputs = KeysCreateOutputs.from(MokaNew.keysCreate("--signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir));
+		var keyCreateOutputs = KeysCreateOutputs.from(Moka.keysCreate("--signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir));
 		// then we create a new validator account with that key pair, and let the faucet pay for it
-		var accountsCreateOutput = NodesTendermintValidatorsCreateOutputs.from(MokaNew.nodesTendermintValidatorsCreate("12345 --keys=" + keyCreateOutputs.getFile() + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
+		var accountsCreateOutput = NodesTendermintValidatorsCreateOutputs.from(Moka.nodesTendermintValidatorsCreate("12345 --keys=" + keyCreateOutputs.getFile() + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
 		TransactionResponse response = node.getResponse(accountsCreateOutput.getTransaction());
 
 		// the response in the output of the command should be successful
@@ -98,9 +98,9 @@ public class NodesTendermintValidatorsTests extends AbstractMokaTestWithNode {
 		String passwordOfNewAccount = "abcde";
 
 		// first we create a key pair
-		var keyCreateOutputs = KeysCreateOutputs.from(MokaNew.keysCreate("--signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir));
+		var keyCreateOutputs = KeysCreateOutputs.from(Moka.keysCreate("--signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir));
 		// then we create a new validator account with that key pair, and let the gamete for it
-		var accountsCreateOutput = NodesTendermintValidatorsCreateOutputs.from(MokaNew.nodesTendermintValidatorsCreate("12345 --payer=" + gamete + " --password-of-payer=" + passwordOfGamete + " --dir=" + dir + " --keys=" + keyCreateOutputs.getFile() + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
+		var accountsCreateOutput = NodesTendermintValidatorsCreateOutputs.from(Moka.nodesTendermintValidatorsCreate("12345 --payer=" + gamete + " --password-of-payer=" + passwordOfGamete + " --dir=" + dir + " --keys=" + keyCreateOutputs.getFile() + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
 		TransactionResponse response = node.getResponse(accountsCreateOutput.getTransaction());
 
 		// the response in the output of the command should be successful

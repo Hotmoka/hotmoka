@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal;
+package io.hotmoka.moka.internal.nodes.tendermint.validators;
 
 import java.math.BigInteger;
 import java.net.URI;
@@ -26,6 +26,7 @@ import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
+import io.hotmoka.moka.internal.AbstractCommand;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
@@ -45,10 +46,10 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "sell-validation",
-	description = "Place a sale offer of validation power",
+@Command(name = "sell",
+	description = "Place a sale offer of validation power.",
 	showDefaultValues = true)
-public class SellValidation extends AbstractCommand {
+public class Sell extends AbstractCommand {
 
 	@Parameters(index = "0", description = "the reference to the validator that sells part or all its validation power and pays to create the sale offer")
     private String seller;
@@ -115,7 +116,7 @@ public class SellValidation extends AbstractCommand {
 				var validators = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest))
 					.orElseThrow(() -> new CommandException(MethodSignatures.GET_VALIDATORS + " should not return void"));
-				var seller = StorageValues.reference(SellValidation.this.seller);
+				var seller = StorageValues.reference(Sell.this.seller);
 				var algorithm = SignatureHelpers.of(node).signatureAlgorithmFor(seller);
 				String chainId = node.getConfig().getChainId();
 				KeyPair keys = readKeys(Accounts.of(seller), node, passwordOfSeller);

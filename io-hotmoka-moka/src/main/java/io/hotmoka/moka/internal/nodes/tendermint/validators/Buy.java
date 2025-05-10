@@ -14,16 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal;
+package io.hotmoka.moka.internal.nodes.tendermint.validators;
 
 import java.math.BigInteger;
 import java.net.URI;
 import java.security.KeyPair;
 import java.util.concurrent.TimeoutException;
 
+import io.hotmoka.cli.CommandException;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
+import io.hotmoka.moka.internal.AbstractCommand;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
@@ -44,10 +46,10 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "buy-validation",
-	description = "Accept a sale offer of validation power",
+@Command(name = "buy",
+	description = "Accept a sale offer of validation power.",
 	showDefaultValues = true)
-public class BuyValidation extends AbstractCommand {
+public class Buy extends AbstractCommand {
 
 	@Parameters(index = "0", description = "the reference to the validator that accepts and pays the sale offer of validation power")
     private String buyer;
@@ -91,7 +93,7 @@ public class BuyValidation extends AbstractCommand {
 				var validators = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest))
 					.orElseThrow(() -> new CommandException("getValidators() should not return void"));
-				var buyer = StorageValues.reference(BuyValidation.this.buyer);
+				var buyer = StorageValues.reference(Buy.this.buyer);
 				var algorithm = SignatureHelpers.of(node).signatureAlgorithmFor(buyer);
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
@@ -104,7 +106,7 @@ public class BuyValidation extends AbstractCommand {
 					(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getBuyerSurcharge", StorageTypes.INT), validators))
 					.orElseThrow(() -> new CommandException("getBuyerSurcharge() should not return void"))).getValue();
 
-				StorageReference offer = StorageValues.reference(BuyValidation.this.offer);
+				StorageReference offer = StorageValues.reference(Buy.this.offer);
 
 				var method = MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_OFFER, "getCost", StorageTypes.BIG_INTEGER);
 				BigInteger cost = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, method, offer))

@@ -24,7 +24,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.cli.CommandException;
-import io.hotmoka.moka.MokaNew;
+import io.hotmoka.moka.Moka;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.TransactionRequests;
 
@@ -46,7 +46,7 @@ public class NodesTests extends AbstractMokaTestWithNode {
 
 		// we add 10000 to the threshold
 		BigInteger expected = currentMaxFaucet.add(BigInteger.valueOf(10_000L));
-		MokaNew.nodesFaucet(expected + " --dir=" + dir + " --password=" + passwordOfGamete + " --uri=ws://localhost:" + PORT);
+		Moka.nodesFaucet(expected + " --dir=" + dir + " --password=" + passwordOfGamete + " --uri=ws://localhost:" + PORT);
 
 		// we read the current threshold again: it should have been increased by 10000
 		BigInteger actual = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall

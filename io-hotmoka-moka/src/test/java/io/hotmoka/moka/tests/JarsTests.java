@@ -29,7 +29,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import io.hotmoka.moka.JarsInstallOutputs;
 import io.hotmoka.moka.JarsVerifyOutputs;
-import io.hotmoka.moka.MokaNew;
+import io.hotmoka.moka.Moka;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.TransactionRequests;
@@ -50,7 +50,7 @@ public class JarsTests extends AbstractMokaTestWithNode {
 		var examplesBasic = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-basic.jar");
 		var examplesBasicDependency = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-basicdependency.jar");
 		var takamakaCode = Maven.resolver().resolve("io.hotmoka:io-takamaka-code:" + Constants.TAKAMAKA_VERSION).withoutTransitivity().asSingleFile().toPath();
-		var actual = JarsVerifyOutputs.from(MokaNew.jarsVerify(examplesBasic + " --libs " + examplesBasicDependency + " --libs " + takamakaCode + " --json"));
+		var actual = JarsVerifyOutputs.from(Moka.jarsVerify(examplesBasic + " --libs " + examplesBasicDependency + " --libs " + takamakaCode + " --json"));
 		assertTrue(actual.getErrors().count() == 0);
 	}
 
@@ -59,7 +59,7 @@ public class JarsTests extends AbstractMokaTestWithNode {
 	public void verifyJarWorksIfErrors(@TempDir Path dir) throws Exception {
 		var callerNotOnThis = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-callernotonthis.jar");
 		var takamakaCode = Maven.resolver().resolve("io.hotmoka:io-takamaka-code:" + Constants.TAKAMAKA_VERSION).withoutTransitivity().asSingleFile().toPath();
-		var actual = JarsVerifyOutputs.from(MokaNew.jarsVerify(callerNotOnThis + " --libs " + takamakaCode + " --json"));
+		var actual = JarsVerifyOutputs.from(Moka.jarsVerify(callerNotOnThis + " --libs " + takamakaCode + " --json"));
 		assertTrue(actual.getErrors().count() == 1);
 		VerificationError error = actual.getErrors().findFirst().get();
 		assertEquals("io/hotmoka/examples/errors/callernotonthis/C.java:30", error.getWhere());
@@ -73,7 +73,7 @@ public class JarsTests extends AbstractMokaTestWithNode {
 		var examplesBasicDependency = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-basicdependency.jar");
 		var takamakaCode = Maven.resolver().resolve("io.hotmoka:io-takamaka-code:" + Constants.TAKAMAKA_VERSION).withoutTransitivity().asSingleFile().toPath();
 		Path instrumented = dir.resolve("basic-instrumented.jar");
-		MokaNew.jarsInstrument(examplesBasic + " " + instrumented + " --libs " + examplesBasicDependency + " --libs " + takamakaCode + " --json");
+		Moka.jarsInstrument(examplesBasic + " " + instrumented + " --libs " + examplesBasicDependency + " --libs " + takamakaCode + " --json");
 		// no exceptions
 	}
 
@@ -84,10 +84,10 @@ public class JarsTests extends AbstractMokaTestWithNode {
 		var examplesBasicDependency = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-basicdependency.jar");
 
 		// we install basicdependency.jar first, letting the gamete pay; no libs, therefore takamakaCode will be added by default
-		var basicDependencyInstallOutput = JarsInstallOutputs.from(MokaNew.jarsInstall(gamete + " " + examplesBasicDependency + " --password-of-payer=" + passwordOfGamete + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
+		var basicDependencyInstallOutput = JarsInstallOutputs.from(Moka.jarsInstall(gamete + " " + examplesBasicDependency + " --password-of-payer=" + passwordOfGamete + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
 
 		// then we install basic.jar, letting the gamete pay; we provide basicdependency.jar as dependency
-		var basicInstallOutput = JarsInstallOutputs.from(MokaNew.jarsInstall(gamete + " " + examplesBasic + " --password-of-payer=" + passwordOfGamete + " --libs=" + basicDependencyInstallOutput.getTransaction() + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
+		var basicInstallOutput = JarsInstallOutputs.from(Moka.jarsInstall(gamete + " " + examplesBasic + " --password-of-payer=" + passwordOfGamete + " --libs=" + basicDependencyInstallOutput.getTransaction() + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
 
 		// the jar has been actually installed
 		assertTrue(basicInstallOutput.getJar().isPresent());
@@ -102,7 +102,7 @@ public class JarsTests extends AbstractMokaTestWithNode {
 		var examplesBasic = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-basic.jar");
 
 		// we try to install basic.jar, letting the gamete pay; we do not provide basicdependency.jar as dependency, therefore this will fail
-		var basicInstallOutput = JarsInstallOutputs.from(MokaNew.jarsInstall(gamete + " " + examplesBasic + " --password-of-payer=" + passwordOfGamete + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
+		var basicInstallOutput = JarsInstallOutputs.from(Moka.jarsInstall(gamete + " " + examplesBasic + " --password-of-payer=" + passwordOfGamete + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
 		assertTrue(basicInstallOutput.getErrorMessage().isPresent() && basicInstallOutput.getErrorMessage().get().startsWith(UnknownTypeException.class.getName()));
 	}
 
@@ -112,7 +112,7 @@ public class JarsTests extends AbstractMokaTestWithNode {
 		var illegalJar = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-illegalcalltofromcontract1.jar");
 
 		// we try to install basic.jar, letting the gamete pay; we do not provide basicdependency.jar as dependency, therefore this will fail
-		var illegalJarInstallOutput = JarsInstallOutputs.from(MokaNew.jarsInstall(gamete + " " + illegalJar + " --password-of-payer=" + passwordOfGamete + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
+		var illegalJarInstallOutput = JarsInstallOutputs.from(Moka.jarsInstall(gamete + " " + illegalJar + " --password-of-payer=" + passwordOfGamete + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
 		assertTrue(illegalJarInstallOutput.getErrorMessage().isPresent() && illegalJarInstallOutput.getErrorMessage().get().startsWith(VerificationException.class.getName()));
 	}
 }
