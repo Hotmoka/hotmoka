@@ -17,7 +17,9 @@ limitations under the License.
 package io.hotmoka.moka.internal;
 
 import java.io.IOException;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
@@ -25,23 +27,41 @@ import java.util.Optional;
 
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.Base58;
+import io.hotmoka.crypto.Base58ConversionException;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.moka.internal.converters.Base58OptionConverter;
-import picocli.CommandLine.Option;
 
 /**
  * The specification of the public key of an account: either
- * explicitly (in Base58 format) or as the path of key pair.
+ * explicitly (in Base58 format) or as the path of a key pair.
  */
-public class PublicKeyIdentifier {
+public class PublicKeyOrKeyPair {
+	private final String key;
+	private final Path keys;
 
-	@Option(names = "--key", paramLabel = "<Base58-encoded string>", description = "as a public key", converter = Base58OptionConverter.class)
-	private String key;
+	public PublicKeyOrKeyPair(String s) throws InvalidPathException {
+		String key;
+		Path keys;
 
-	@Option(names = "--keys", paramLabel = "<path>", description = "as a key pair file containing private and public key")
-	private Path keys;
+		try {
+			key = Base58.requireBase58(s, Base58ConversionException::new);
+			keys = null;
+		}
+		catch (Base58ConversionException e) {
+			key = null;
+
+			try {
+				keys = Paths.get(s);
+			}
+			catch (InvalidPathException ee) {
+				throw new IllegalArgumentException(ee);
+			}
+		}
+
+		this.key = key;
+		this.keys = keys;
+	}
 
 	/**
 	 * Yields the public key from this identifier.
@@ -84,7 +104,7 @@ public class PublicKeyIdentifier {
 		}
 		catch (InvalidKeyException e) {
 			// the key has been created with the same signature algorithm, it cannot be invalid
-			throw new RuntimeException(e);
+			throw new CommandException("The key seems invalid for the required signature algorithm", e);
 		}
 	}
 

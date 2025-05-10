@@ -33,7 +33,8 @@ import io.hotmoka.moka.AccountsRotateOutputs;
 import io.hotmoka.moka.api.GasCost;
 import io.hotmoka.moka.api.accounts.AccountsRotateOutput;
 import io.hotmoka.moka.internal.AbstractGasCostCommand;
-import io.hotmoka.moka.internal.PublicKeyIdentifier;
+import io.hotmoka.moka.internal.PublicKeyOrKeyPair;
+import io.hotmoka.moka.internal.converters.PublicKeyOrKeyPairOptionConverter;
 import io.hotmoka.moka.internal.converters.StorageReferenceOptionConverter;
 import io.hotmoka.moka.internal.json.AccountsRotateOutputJson;
 import io.hotmoka.node.MethodSignatures;
@@ -49,7 +50,6 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
-import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -62,14 +62,14 @@ public class Rotate extends AbstractGasCostCommand {
 	@Parameters(index = "0", description = "the storage reference of the account whose public key gets rotated and that pays for the rotation", converter = StorageReferenceOptionConverter.class)
     private StorageReference account;
 
+	@Parameters(index = "1", paramLabel = "<Base58-encoded public key or path>", description = "the new public key of the account, given either as an explicit Base58-encoded public key or as the path of a key pair file containing the public key", converter = PublicKeyOrKeyPairOptionConverter.class)
+	private PublicKeyOrKeyPair newPublicKeyOrKeyPair;
+
 	@Option(names = { "--password-of-account", "--password-of-payer" }, description = "the password of the current key pair of the account", interactive = true, defaultValue = "")
     private char[] passwordOfAccount;
 
 	@Option(names = "--new-password-of-account", description = "the password of the new key pair of the account, only used if --keys is specified", interactive = true, defaultValue = "")
     private char[] newPasswordOfAccount;
-
-	@ArgGroup(exclusive = true, multiplicity = "1", heading = "The new public key of the account must be specified in either of these two alternative ways:\n")
-	private PublicKeyIdentifier newPublicKeyIdentifier;
 
 	@Option(names = "--dir", paramLabel = "<path>", description = "the directory where the current key pair of the account can be found", defaultValue = "")
 	private Path dir;
@@ -106,7 +106,7 @@ public class Rotate extends AbstractGasCostCommand {
 				this.gasLimit = determineGasLimit(() -> gasForTransactionWhosePayerHasSignature(signatureOfAccount));
 				this.gasPrice = determineGasPrice(remote);
 				this.classpath = getClasspathAtCreationTimeOf(account, remote);
-				this.newPublicKeyBase64 = newPublicKeyIdentifier.getPublicKeyBase64(signatureOfAccount, newPasswordOfAccountAsString);
+				this.newPublicKeyBase64 = newPublicKeyOrKeyPair.getPublicKeyBase64(signatureOfAccount, newPasswordOfAccountAsString);
 				askForConfirmation("rotate the public key of " + account, gasLimit, gasPrice, yes || json());
 				this.nonce = determineNonceOf(account, remote);
 				this.request = mkRequest();
@@ -147,7 +147,7 @@ public class Rotate extends AbstractGasCostCommand {
 							System.out.println("done.");
 
 						account = Optional.of(Rotate.this.account);
-						file = bindKeysToAccount(newPublicKeyIdentifier, account.get(), outputDir);
+						file = bindKeysToAccount(newPublicKeyOrKeyPair, account.get(), outputDir);
 					}
 					catch (TransactionException | CodeExecutionException e) {
 						if (!json())

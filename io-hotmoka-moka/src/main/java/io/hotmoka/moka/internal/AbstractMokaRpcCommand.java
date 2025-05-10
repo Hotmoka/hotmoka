@@ -269,7 +269,7 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 	 * Binds the key pair specified by the given identifier, if it exists, to the
 	 * given account, and saves the result inside the given directory.
 	 * 
-	 * @param publicKeyIdentifier the key identifier
+	 * @param publicKeyOrKeyPair the key identifier
 	 * @param account the account
 	 * @param dir the directory where the key pair must be saved, for the given {@code account}
 	 * @return the path where the key pair of {@code account} has been saved, if any; this is empty
@@ -277,8 +277,8 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 	 *         because this method performs nothing in that case
 	 * @throws CommandException if the operation fails
 	 */
-	protected Optional<Path> bindKeysToAccount(PublicKeyIdentifier publicKeyIdentifier, StorageReference account, Path dir) throws CommandException {
-		Optional<Path> maybeKeys = publicKeyIdentifier.getPathOfKeyPair();
+	protected Optional<Path> bindKeysToAccount(PublicKeyOrKeyPair publicKeyOrKeyPair, StorageReference account, Path dir) throws CommandException {
+		Optional<Path> maybeKeys = publicKeyOrKeyPair.getPathOfKeyPair();
 
 		if (maybeKeys.isPresent())
 			return Optional.of(bindKeysToAccount(maybeKeys.get(), account, dir));

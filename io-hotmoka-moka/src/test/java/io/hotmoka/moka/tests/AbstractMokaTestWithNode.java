@@ -34,10 +34,9 @@ import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.disk.DiskNodeConfigBuilders;
 import io.hotmoka.node.disk.DiskNodes;
 import io.hotmoka.node.service.NodeServices;
-import io.hotmoka.node.tendermint.TendermintNodeConfigBuilders;
-import io.hotmoka.node.tendermint.TendermintNodes;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -65,7 +64,7 @@ public abstract class AbstractMokaTestWithNode extends AbstractMokaTest {
 	@BeforeAll
 	public static void beforeAll(@TempDir Path dir) throws Exception {
 		AbstractMokaTestWithNode.dir = dir;
-		var nodeConfig = TendermintNodeConfigBuilders.defaults().setDir(dir.resolve("chain")).build();
+		var nodeConfig = DiskNodeConfigBuilders.defaults().setDir(dir.resolve("chain")).build();
 		var signature = SignatureAlgorithms.ed25519();
 		var entropy = Entropies.random();
 
@@ -81,8 +80,8 @@ public abstract class AbstractMokaTestWithNode extends AbstractMokaTest {
 			.setPublicKeyOfGamete(keysOfGamete.getPublic())
 			.build();
 
-		node = TendermintNodes.init(nodeConfig);
-		//node = DiskNodes.init(nodeConfig);
+		//node = TendermintNodes.init(nodeConfig);
+		node = DiskNodes.init(nodeConfig);
 		var takamakaCodePath = Maven.resolver().resolve("io.hotmoka:io-takamaka-code:" + Constants.TAKAMAKA_VERSION).withoutTransitivity().asSingleFile().toPath();
 		gamete = InitializedNodes.of(node, consensus, takamakaCodePath).gamete();
 		takamakaCode = node.getTakamakaCode();

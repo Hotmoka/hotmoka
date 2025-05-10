@@ -34,6 +34,7 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.moka.api.AccountCreationOutput;
 import io.hotmoka.moka.api.GasCost;
+import io.hotmoka.moka.internal.converters.PublicKeyOrKeyPairOptionConverter;
 import io.hotmoka.moka.internal.converters.StorageReferenceOrFaucetOptionConverter;
 import io.hotmoka.moka.internal.json.AccountCreationOutputJson;
 import io.hotmoka.node.ConstructorSignatures;
@@ -54,7 +55,6 @@ import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
-import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
@@ -71,6 +71,9 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 	@Parameters(index = "1", description = "the initial balance of the new account; this will be deduced from the balance of the payer", defaultValue = "0")
 	private BigInteger balance;
 
+	@Parameters(index = "2", paramLabel = "<Base58-encoded public key or path>", description = "the public key of the new account, given either as an explicit Base58-encoded public key or as the path of a key pair file containing the public key", converter = PublicKeyOrKeyPairOptionConverter.class)
+	private PublicKeyOrKeyPair publicKeyOrKeyPair;
+
 	@Option(names = "--dir", paramLabel = "<path>", description = "the directory where the key pair of the payer can be found", defaultValue = "")
 	private Path dir;
 
@@ -79,9 +82,6 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 
 	@Option(names = "--password-of-payer", description = "the password of the payer; this is not used if the payer is the faucet", interactive = true, defaultValue = "")
 	private char[] passwordOfPayer;
-
-	@ArgGroup(exclusive = true, multiplicity = "1", heading = "The public key of the new account must be specified in either of these two alternative ways:\n")
-	private PublicKeyIdentifier publicKeyIdentifier;
 
 	@Option(names = "--password", description = "the password of the key pair specified through --keys", interactive = true, defaultValue = "")
 	private char[] password;
@@ -153,7 +153,7 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 				this.payer = AbstractAccountCreation.this.payer.asReference().get();
 				SignatureAlgorithm signatureOfNewAccount = getSignatureAlgorithmOfNewAccount(remote);
 				SignatureAlgorithm signatureOfPayer = determineSignatureOf(payer, remote);
-				this.publicKeyOfNewAccountBase64 = publicKeyIdentifier.getPublicKeyBase64(signatureOfNewAccount, passwordOfNewAccountAsString);
+				this.publicKeyOfNewAccountBase64 = publicKeyOrKeyPair.getPublicKeyBase64(signatureOfNewAccount, passwordOfNewAccountAsString);
 				this.eoaType = getEOAType(signatureOfNewAccount);
 				this.gasLimit = determineGasLimit(() -> gasLimitHeuristic(signatureOfNewAccount, signatureOfPayer));
 				this.gasPrice = determineGasPrice(remote);
@@ -197,7 +197,7 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 						if (!json())
 							System.out.println("done.");
 
-						file = bindKeysToAccount(publicKeyIdentifier, account.get(), outputDir);
+						file = bindKeysToAccount(publicKeyOrKeyPair, account.get(), outputDir);
 					}
 					catch (TransactionException | CodeExecutionException e) {
 						if (!json())
@@ -247,7 +247,7 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 			try {
 				this.gamete = getGamete();
 				SignatureAlgorithm signatureOfNewAccount = getSignatureAlgorithmOfNewAccount(remote);
-				this.publicKeyOfNewAccountBase64 = publicKeyIdentifier.getPublicKeyBase64(signatureOfNewAccount, passwordOfNewAccountAsString);
+				this.publicKeyOfNewAccountBase64 = publicKeyOrKeyPair.getPublicKeyBase64(signatureOfNewAccount, passwordOfNewAccountAsString);
 				ClassType eoaType = getEOAType(signatureOfNewAccount);
 				this.signatureOfFaucet = SignatureAlgorithms.empty(); // we use an empty signature algorithm, since the faucet is unsigned
 				this.faucetMethod = getFaucetMethod(signatureOfNewAccount, eoaType);
@@ -309,7 +309,7 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 						if (!json())
 							System.out.println("done.");
 
-						file = bindKeysToAccount(publicKeyIdentifier, account.get(), outputDir);
+						file = bindKeysToAccount(publicKeyOrKeyPair, account.get(), outputDir);
 					}
 					catch (TransactionException | CodeExecutionException e) {
 						if (!json())

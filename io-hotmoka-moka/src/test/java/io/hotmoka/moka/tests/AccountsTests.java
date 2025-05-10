@@ -56,7 +56,7 @@ public class AccountsTests extends AbstractMokaTestWithNode {
 		// first we create a key pair
 		var keyCreateOutputs = KeysCreateOutputs.from(Moka.keysCreate("--signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir));
 		// then we create a new account with that key pair, and let the faucet pay for it
-		var accountsCreateOutput = AccountsCreateOutputs.from(Moka.accountsCreate("faucet 12345 --keys=" + keyCreateOutputs.getFile() + " --signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
+		var accountsCreateOutput = AccountsCreateOutputs.from(Moka.accountsCreate("faucet 12345 " + keyCreateOutputs.getFile() + " --signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
 		TransactionResponse response = node.getResponse(accountsCreateOutput.getTransaction());
 
 		// the response in the output of the command should be successful
@@ -101,7 +101,7 @@ public class AccountsTests extends AbstractMokaTestWithNode {
 		// first we create a key pair
 		var keyCreateOutputs = KeysCreateOutputs.from(Moka.keysCreate("--signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir));
 		// then we create a new account with that key pair, and let the gamete pay for it
-		var accountsCreateOutput = AccountsCreateOutputs.from(Moka.accountsCreate(gamete + " 12345 --password-of-payer=" + passwordOfGamete + " --dir=" + dir + " --keys=" + keyCreateOutputs.getFile() + " --signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
+		var accountsCreateOutput = AccountsCreateOutputs.from(Moka.accountsCreate(gamete + " 12345 " + keyCreateOutputs.getFile() + " --password-of-payer=" + passwordOfGamete + " --dir=" + dir + " --signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
 		TransactionResponse response = node.getResponse(accountsCreateOutput.getTransaction());
 
 		// the response in the output of the command should be successful
@@ -146,7 +146,7 @@ public class AccountsTests extends AbstractMokaTestWithNode {
 		// first we create a key pair
 		var keysCreateOutput = KeysCreateOutputs.from(Moka.keysCreate("--signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir));
 		// then we create a new account with that key pair, and let the faucet pay for it
-		var accountsCreateOutput = AccountsCreateOutputs.from(Moka.accountsCreate("faucet 12345 --keys=" + keysCreateOutput.getFile() + " --signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
+		var accountsCreateOutput = AccountsCreateOutputs.from(Moka.accountsCreate("faucet 12345 " + keysCreateOutput.getFile() + " --signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
 		// and finally ask to show the account
 		var accountsShowOutput = AccountsShowOutputs.from(Moka.accountsShow(accountsCreateOutput.getAccount().get() + " --json --uri=ws://localhost:" + PORT));
 
@@ -170,7 +170,7 @@ public class AccountsTests extends AbstractMokaTestWithNode {
 		// create a second key pair
 		var secondKeyCreateOutput = KeysCreateOutputs.from(Moka.keysCreate("--signature=" + signature + " --password=" + passwordOfSecondKeyPair + " --name second.pem --json --output-dir=" + dir));
 		// create a new account with the first key pair, letting the faucet pay for it
-		var accountsCreateOutput = AccountsCreateOutputs.from(Moka.accountsCreate("faucet 50000000 --keys=" + firstKeyCreateOutput.getFile() + " --signature=" + signature + " --password=" + passwordOfFirstKeyPair + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
+		var accountsCreateOutput = AccountsCreateOutputs.from(Moka.accountsCreate("faucet 50000000 " + firstKeyCreateOutput.getFile() + " --signature=" + signature + " --password=" + passwordOfFirstKeyPair + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
 		var account = accountsCreateOutput.getAccount().get();
 
 		// we show the account
@@ -186,7 +186,7 @@ public class AccountsTests extends AbstractMokaTestWithNode {
 			assertEquals(Base64.toBase64String(encodingOfPublicKeyOfAccount), accountsShowOutput.getPublicKeyBase64());
 		}
 		// rotate the key pair of the account with the second key pair
-		var accountsRotateOutput = AccountsRotateOutputs.from(Moka.accountsRotate(account + " --dir=" + dir + " --password-of-account=" + passwordOfFirstKeyPair + " --new-password-of-account=" + passwordOfSecondKeyPair + " --json --output-dir=" + dir + " --keys=" + secondKeyCreateOutput.getFile() + " --uri=ws://localhost:" + PORT));
+		var accountsRotateOutput = AccountsRotateOutputs.from(Moka.accountsRotate(account + " " + secondKeyCreateOutput.getFile() + " --dir=" + dir + " --password-of-account=" + passwordOfFirstKeyPair + " --new-password-of-account=" + passwordOfSecondKeyPair + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
 		// we show the account again
 		var accountsShowOutputAgain = AccountsShowOutputs.from(Moka.accountsShow(account + " --json --uri=ws://localhost:" + PORT));
 		// the signature algorithm of the account is still as required
@@ -210,7 +210,7 @@ public class AccountsTests extends AbstractMokaTestWithNode {
 		// create the key pair of the destination account: we provide explicit file names in order to avoid name clashes for long keys that start with the same prefix
 		var destinationKeyCreateOutput = KeysCreateOutputs.from(Moka.keysCreate("--signature=" + signature + " --password=" + passwordOfDestination + " --name destination.pem --json --output-dir=" + dir));
 		// create a new account with that key pair, letting the faucet pay for it
-		var accountsCreateOutput = AccountsCreateOutputs.from(Moka.accountsCreate("faucet 0 --keys=" + destinationKeyCreateOutput.getFile() + " --signature=" + signature + " --password=" + passwordOfDestination + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
+		var accountsCreateOutput = AccountsCreateOutputs.from(Moka.accountsCreate("faucet 0 " + destinationKeyCreateOutput.getFile() + " --signature=" + signature + " --password=" + passwordOfDestination + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
 		var account = accountsCreateOutput.getAccount().get();
 		// show the account
 		var accountsShowOutput = AccountsShowOutputs.from(Moka.accountsShow(account + " --json --uri=ws://localhost:" + PORT));
@@ -236,7 +236,7 @@ public class AccountsTests extends AbstractMokaTestWithNode {
 		// create the key pair of the destination account: we provide explicit file names in order to avoid name clashes for long keys that start with the same prefix
 		var destinationKeyCreateOutput = KeysCreateOutputs.from(Moka.keysCreate("--signature=" + signature + " --password=" + passwordOfDestination + " --name destination.pem --json --output-dir=" + dir));
 		// create a new account with that key pair, letting the faucet pay for it
-		var accountsCreateOutput = AccountsCreateOutputs.from(Moka.accountsCreate("faucet 0 --keys=" + destinationKeyCreateOutput.getFile() + " --signature=" + signature + " --password=" + passwordOfDestination + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
+		var accountsCreateOutput = AccountsCreateOutputs.from(Moka.accountsCreate("faucet 0 " + destinationKeyCreateOutput.getFile() + " --signature=" + signature + " --password=" + passwordOfDestination + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
 		var account = accountsCreateOutput.getAccount().get();
 		// show the account
 		var accountsShowOutput = AccountsShowOutputs.from(Moka.accountsShow(account + " --json --uri=ws://localhost:" + PORT));
