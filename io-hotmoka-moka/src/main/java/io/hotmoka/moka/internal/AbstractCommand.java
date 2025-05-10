@@ -27,7 +27,6 @@ import java.util.concurrent.TimeoutException;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.node.MethodSignatures;
-import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.Account;
 import io.hotmoka.node.api.CodeExecutionException;
@@ -139,22 +138,4 @@ public abstract class AbstractCommand implements Runnable {
 		else
 			return password;
 	}
-
-    private boolean looksLikeStorageReference(String s) {
-        try {
-        	if (s == null)
-        		return false;
-
-        	StorageValues.reference(s);
-            return true;
-        }
-        catch (IllegalArgumentException t) {
-            return false;
-        }
-    }
-
-    protected void checkStorageReference(String s) {
-		if (!looksLikeStorageReference(s))
-			throw new IllegalArgumentException("you should specify a storage reference: 64 hex digits followed by # and a progressive number");
-    }
 }

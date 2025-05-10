@@ -38,7 +38,7 @@ public interface GasCostOutput {
 	 * Yields the gas cost of the transaction.
 	 * 
 	 * @return the gas cost of the transaction; this is missing if the transaction has just been posted
-	 *         rather than added, or if it has been rejected
+	 *         rather than added, or if it has failed
 	 */
 	Optional<GasCost> getGasCost();
 
@@ -46,7 +46,7 @@ public interface GasCostOutput {
 	 * Yields the error message of the transaction.
 	 * 
 	 * @return the error message of the transaction; this is missing if the transaction has just been posted
-	 *         rather than added, or if it was successful, or if it was rejected 
+	 *         rather than added, or if it was successful 
 	 */
 	Optional<String> getErrorMessage();
 }

@@ -17,31 +17,37 @@ limitations under the License.
 package io.hotmoka.moka.internal.nodes.tendermint.validators;
 
 import java.math.BigInteger;
-import java.net.URI;
-import java.security.KeyPair;
+import java.nio.file.Path;
+import java.security.InvalidKeyException;
+import java.security.SignatureException;
+import java.util.Arrays;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.cli.CommandException;
+import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.api.Signer;
-import io.hotmoka.helpers.GasHelpers;
-import io.hotmoka.helpers.NonceHelpers;
-import io.hotmoka.helpers.SignatureHelpers;
-import io.hotmoka.moka.internal.AbstractCommand;
-import io.hotmoka.node.Accounts;
-import io.hotmoka.node.ConstructorSignatures;
+import io.hotmoka.moka.NodesTendermintValidatorsSellOutputs;
+import io.hotmoka.moka.api.GasCost;
+import io.hotmoka.moka.api.nodes.tendermint.validators.NodesTendermintValidatorsSellOutput;
+import io.hotmoka.moka.internal.AbstractGasCostCommand;
+import io.hotmoka.moka.internal.converters.StorageReferenceOptionConverter;
+import io.hotmoka.moka.internal.json.NodesTendermintValidatorsSellOutputJson;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.UnknownReferenceException;
-import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
-import io.hotmoka.node.api.requests.TransactionRequest;
+import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
+import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.remote.RemoteNodes;
+import io.hotmoka.node.remote.api.RemoteNode;
+import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -49,12 +55,12 @@ import picocli.CommandLine.Parameters;
 @Command(name = "sell",
 	description = "Place a sale offer of validation power.",
 	showDefaultValues = true)
-public class Sell extends AbstractCommand {
+public class Sell extends AbstractGasCostCommand {
 
-	@Parameters(index = "0", description = "the reference to the validator that sells part or all its validation power and pays to create the sale offer")
-    private String seller;
+	@Parameters(index = "0", description = "the storage reference of the validator that sells part or all its validation power and pays to create the sale offer", converter = StorageReferenceOptionConverter.class)
+    private StorageReference seller;
 
-	@Parameters(index = "1", description = "the validation power that is placed on sale")
+	@Parameters(index = "1", description = "the amount of validation power that is placed on sale")
     private BigInteger power;
 
 	@Parameters(index = "2", description = "the cost of the validation power that is placed on sale")
@@ -63,99 +69,201 @@ public class Sell extends AbstractCommand {
 	@Parameters(index = "3", description = "the duration of validity of the offer, in milliseconds from now")
     private long duration;
 
-	@Option(names = { "--buyer" }, description = "the reference to the only buyer allowed to accept the sale offer; if not specified, everybody can accept the sale offer")
-    private String buyer;
+	@Option(names = "--dir", paramLabel = "<path>", description = "the directory where the key pair of the seller can be found", defaultValue = "")
+	private Path dir;
 
-	@Option(names = { "--password-of-seller" }, description = "the password of the seller validator; if not specified, it will be asked interactively")
-    private String passwordOfSeller;
+	@Option(names = "--buyer", paramLabel = "<storage reference>", description = "the only buyer allowed to accept the sale offer; if not specified, everybody can accept the sale offer", converter = StorageReferenceOptionConverter.class)
+    private StorageReference buyer;
 
-	@Option(names = { "--uri" }, description = "the URI of the node", defaultValue = "ws://localhost:8001")
-    private URI uri;
+	@Option(names = { "--password-of-payer" , "--password-of-seller" }, description = "the password of the seller", interactive = true, defaultValue = "")
+	private char[] passwordOfPayer;
 
-	@Option(names = { "--interactive" }, description = "run in interactive mode", defaultValue = "true") 
-	private boolean interactive;
-
-	@Option(names = { "--gas-limit" }, description = "the gas limit used for placing the sale", defaultValue = "100000") 
-	private BigInteger gasLimit;
-
-	@Option(names = { "--print-costs" }, description = "print the incurred gas costs", defaultValue = "true") 
-	private boolean printCosts;
+	@Option(names = "--yes", description = "assume yes when asked for confirmation; this is implied if --json is used")
+	private boolean yes;
 
 	@Override
-	protected void execute() throws Exception {
-		new Run();
+	protected final void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+		new Body(remote);
 	}
 
-	private class Run {
+	private class Body {
+		private final RemoteNode remote;
+		private final String chainId;
+		private final Signer<SignedTransactionRequest<?>> signer;
+		private final BigInteger gasLimit;
+		private final BigInteger gasPrice;
+		private final TransactionReference classpath;
+		private final BigInteger nonce;
+		private final StorageReference validators;
+		private final InstanceMethodCallTransactionRequest request;
+		private final NonVoidMethodSignature method;
 
-		private Run() throws Exception {
-			checkStorageReference(seller);
+		private Body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+			/*if (power.signum() <= 0)
+			throw new IllegalArgumentException("the validation power to sell must be positive");
 
-			if (buyer != null)
-				checkStorageReference(buyer);
+		if (cost.signum() < 0)
+			throw new IllegalArgumentException("the cost of the sale must be non-negative");
 
-			if (passwordOfSeller != null && interactive)
-				throw new IllegalArgumentException("the password of the seller validator can be provided as command switch only in non-interactive mode");
+		if (duration <= 0L)
+			throw new IllegalArgumentException("the duration of the sale must be positive");*/
 
-			if (power.signum() <= 0)
-				throw new IllegalArgumentException("the validation power to sell must be positive");
-
-			if (cost.signum() < 0)
-				throw new IllegalArgumentException("the cost of the sale must be non-negative");
-
-			if (duration <= 0L)
-				throw new IllegalArgumentException("the duration of the sale must be positive");
-
-			passwordOfSeller = ensurePassword(passwordOfSeller, "the seller validator", interactive, false);
-
-			try (var node = RemoteNodes.of(uri, 10_000)) {
-				var gasHelper = GasHelpers.of(node);
-				var nonceHelper = NonceHelpers.of(node);
-				var takamakaCode = node.getTakamakaCode();
-				var manifest = node.getManifest();
-				var validators = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest))
-					.orElseThrow(() -> new CommandException(MethodSignatures.GET_VALIDATORS + " should not return void"));
-				var seller = StorageValues.reference(Sell.this.seller);
-				var algorithm = SignatureHelpers.of(node).signatureAlgorithmFor(seller);
-				String chainId = node.getConfig().getChainId();
-				KeyPair keys = readKeys(Accounts.of(seller), node, passwordOfSeller);
-				Signer<SignedTransactionRequest<?>> signer = algorithm.getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
-
-				askForConfirmation(gasLimit.multiply(BigInteger.TWO));
-
-				ConstructorCallTransactionRequest request1;
-				if (buyer == null)
-					request1 = TransactionRequests.constructorCall(signer, seller, nonceHelper.getNonceOf(seller), chainId, gasLimit, gasHelper.getSafeGasPrice(), takamakaCode,
-							ConstructorSignatures.of(StorageTypes.SHARED_ENTITY_OFFER, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG),
-							seller, StorageValues.bigIntegerOf(power), StorageValues.bigIntegerOf(cost), StorageValues.longOf(duration));
-				else
-					// the reserved buyer is specified as well
-					request1 = TransactionRequests.constructorCall(signer, seller, nonceHelper.getNonceOf(seller), chainId, gasLimit, gasHelper.getSafeGasPrice(), takamakaCode,
-							ConstructorSignatures.of(StorageTypes.SHARED_ENTITY_OFFER, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG, StorageTypes.PAYABLE_CONTRACT),
-							seller, StorageValues.bigIntegerOf(power), StorageValues.bigIntegerOf(cost), StorageValues.longOf(duration),
-							StorageValues.reference(buyer));
-
-				StorageReference newOffer = node.addConstructorCallTransaction(request1);
-				
-				InstanceMethodCallTransactionRequest request2 = TransactionRequests.instanceMethodCall
-					(signer, seller, nonceHelper.getNonceOf(seller), chainId, gasLimit, gasHelper.getSafeGasPrice(), takamakaCode,
-					MethodSignatures.ofVoid(StorageTypes.SHARED_ENTITY, "place", StorageTypes.BIG_INTEGER, StorageTypes.SHARED_ENTITY_OFFER),
-					validators, StorageValues.bigIntegerOf(BigInteger.ZERO), newOffer);
-
-				node.addInstanceMethodCallTransaction(request2);
-				System.out.println("Offer " + newOffer + " placed");
-
-				printCosts(request1, request2);
+			String passwordOfPayerAsString = new String(passwordOfPayer);
+			
+			try {
+				this.remote = remote;
+				this.chainId = remote.getConfig().getChainId();
+				SignatureAlgorithm signatureOfPayer = determineSignatureOf(seller, remote);
+				this.signer = mkSigner(seller, dir, signatureOfPayer, passwordOfPayerAsString);
+				this.validators = getValidators();
+				this.gasLimit = determineGasLimit(() -> gasLimitHeuristic(signatureOfPayer));
+				this.classpath = getClasspathAtCreationTimeOf(seller, remote);
+				this.method = mkMethod();
+				this.gasPrice = determineGasPrice(remote);
+				askForConfirmation("place a sale offer of " + power + " units of validation power", gasLimit, gasPrice, yes || json());
+				this.nonce = determineNonceOf(seller, remote);
+				this.request = mkRequest();
+				report(json(), executeRequest(), NodesTendermintValidatorsSellOutputs.Encoder::new);
+			}
+			finally {
+				passwordOfPayerAsString = null;
+				Arrays.fill(passwordOfPayer, ' ');
 			}
 		}
 
-		private void askForConfirmation(BigInteger gas) {
-			if (interactive)
-				yesNo("Do you really want to spend up to " + gas + " gas units to place on sale the validation power [Y/N] ");
+		private NonVoidMethodSignature mkMethod() {
+			if (buyer == null)
+				return MethodSignatures.ofNonVoid(StorageTypes.ABSTRACT_VALIDATORS, "place", StorageTypes.SHARED_ENTITY_OFFER, StorageTypes.BIG_INTEGER, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG);
+			else
+				return MethodSignatures.ofNonVoid(StorageTypes.ABSTRACT_VALIDATORS, "place", StorageTypes.SHARED_ENTITY_OFFER, StorageTypes.BIG_INTEGER, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG, StorageTypes.PAYABLE_CONTRACT);
 		}
 
-		private void printCosts(TransactionRequest<?>... requests) throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, UnknownReferenceException {
+		private Output executeRequest() throws CommandException, NodeException, TimeoutException, InterruptedException {
+			TransactionReference transaction = computeTransaction(request);
+			Optional<GasCost> gasCost = Optional.empty();
+			Optional<String> errorMessage = Optional.empty();
+			Optional<StorageReference> offer = Optional.empty();
+
+			try {
+				if (post()) {
+					if (!json())
+						System.out.print("Posting transaction " + asTransactionReference(transaction) + "... ");
+
+					remote.postInstanceMethodCallTransaction(request);
+
+					if (!json())
+						System.out.println("done.");
+				}
+				else {
+					if (!json())
+						System.out.print("Adding transaction " + asTransactionReference(transaction) + "... ");
+
+					try {
+						StorageReference result = remote.addInstanceMethodCallTransaction(request)
+							.orElseThrow(() -> new CommandException(method + " should not return void"))
+							.asReturnedReference(method, CommandException::new);
+
+						if (!json())
+							System.out.println("done.");
+
+						offer = Optional.of(result);
+					}
+					catch (TransactionException | CodeExecutionException e) {
+						if (!json())
+							System.out.println("failed. Are the key pair of the account and its password correct?");
+
+						errorMessage = Optional.of(e.getMessage());
+					}
+
+					gasCost = Optional.of(computeIncurredGasCost(remote, gasPrice, transaction));
+				}
+			}
+			catch (TransactionRejectedException e) {
+				throw new CommandException("Transaction " + transaction + " has been rejected!", e);
+			}
+
+			return new Output(transaction, offer, gasCost, errorMessage);
+		}
+
+		private InstanceMethodCallTransactionRequest mkRequest() throws CommandException {
+			try {
+				if (buyer == null)
+					return TransactionRequests.instanceMethodCall
+						(signer, seller, nonce, chainId, gasLimit, gasPrice, classpath, method,
+								validators, StorageValues.bigIntegerOf(BigInteger.ZERO), seller, StorageValues.bigIntegerOf(power), StorageValues.bigIntegerOf(cost), StorageValues.longOf(duration));
+				else
+					return TransactionRequests.instanceMethodCall
+						(signer, seller, nonce, chainId, gasLimit, gasPrice, classpath, method,
+								validators, StorageValues.bigIntegerOf(BigInteger.ZERO), seller, StorageValues.bigIntegerOf(power), StorageValues.bigIntegerOf(cost), StorageValues.longOf(duration), buyer);
+			}
+			catch (InvalidKeyException | SignatureException e) {
+				throw new CommandException("The current key pair of " + seller + " seems corrupted!", e);
+			}
+		}
+
+		private BigInteger gasLimitHeuristic(SignatureAlgorithm signatureOfPayer) throws CommandException {
+			return BigInteger.TWO.multiply(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
+		}
+
+		private StorageReference getValidators() throws NodeException, TimeoutException, InterruptedException, CommandException {
+			var manifest = remote.getManifest();
+			var takamakaCode = remote.getTakamakaCode();
+
+			try {
+				return remote.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest))
+					.orElseThrow(() -> new CommandException(MethodSignatures.GET_VALIDATORS + " should not return void"))
+					.asReturnedReference(MethodSignatures.GET_VALIDATORS, CommandException::new);
+			}
+			catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
+				throw new CommandException("Cannot access the set of validators of the network");
+			}
+		}
+	}
+
+	/**
+	 * The output of this command.
+	 */
+	public static class Output extends AbstractGasCostCommandOutput implements NodesTendermintValidatorsSellOutput {
+
+		/**
+		 * The sale offer that has been placed, if any.
+		 */
+		private final Optional<StorageReference> offer;
+
+		/**
+		 * Builds the output of the command.
+		 */
+		private Output(TransactionReference transaction, Optional<StorageReference> offer, Optional<GasCost> gasCost, Optional<String> errorMessage) {
+			super(transaction, gasCost, errorMessage);
+
+			this.offer = offer;
+		}
+	
+		/**
+		 * Builds the output of the command from its JSON representation.
+		 * 
+		 * @param json the JSON representation
+		 * @throws InconsistentJsonException if {@code json} is inconsistent
+		 */
+		public Output(NodesTendermintValidatorsSellOutputJson json) throws InconsistentJsonException {
+			super(json);
+
+			var offer = json.getOffer();
+			if (offer.isEmpty())
+				this.offer = Optional.empty();
+			else
+				this.offer = Optional.of(offer.get().unmap().asReference(value -> new InconsistentJsonException("The reference to the offer must be a storage reference, not a " + value.getClass().getName())));
+		}
+
+		@Override
+		public Optional<StorageReference> getOffer() {
+			return offer;
+		}
+
+		@Override
+		protected void toString(StringBuilder sb) {
+			sb.append("A validation power offer " + offer + " has been placed.\n");
 		}
 	}
 }

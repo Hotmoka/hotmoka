@@ -81,7 +81,7 @@ public class Send extends AbstractGasCostCommand {
 	@Option(names = { "--password-of-payer" , "--password-of-sender" }, description = "the password of the sender; this is not used if the sender is the faucet", interactive = true, defaultValue = "")
 	private char[] passwordOfPayer;
 
-	@Option(names = "--dir", paramLabel = "<path>", description = "the directory where the current key pair of the sender can be found", defaultValue = "")
+	@Option(names = "--dir", paramLabel = "<path>", description = "the directory where the key pair of the sender can be found", defaultValue = "")
 	private Path dir;
 
 	@Option(names = "--classpath", paramLabel = "<transaction reference>", description = "the classpath used to interpret sender and receiver; if missing, the reference to the transaction that created the receiver will be used; if the receiver is a key, the reference to the transaction that created the sender will be used", converter = TransactionReferenceOptionConverter.class)
