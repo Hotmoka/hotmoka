@@ -218,7 +218,7 @@ public class AccountsTests extends AbstractMokaTestWithNode {
 		assertEquals(BigInteger.ZERO, accountsShowOutput.getBalance());
 		// send coins from the gamete to the new account
 		var amount = BigInteger.valueOf(12345L);
-		var accountsSendOutput = AccountsSendOutputs.from(Moka.accountsSend(amount + " --payer=" + gamete + " --password-of-payer=" + passwordOfGamete + " --account=" + account + " --dir=" + dir + " --json --uri=ws://localhost:" + PORT));
+		var accountsSendOutput = AccountsSendOutputs.from(Moka.accountsSend(gamete + " " + amount + " " + account + " --password-of-payer=" + passwordOfGamete + " --dir=" + dir + " --json --uri=ws://localhost:" + PORT));
 		// there is no destination account from the accounts ledger, since we paid into a specific account, not into a key
 		assertTrue(accountsSendOutput.getDestinationInAccountsLedger().isEmpty());
 		// show the account again
@@ -244,7 +244,7 @@ public class AccountsTests extends AbstractMokaTestWithNode {
 		assertEquals(BigInteger.ZERO, accountsShowOutput.getBalance());
 		// send coins from the faucet to the new account
 		var amount = BigInteger.valueOf(12345L);
-		var accountsSendOutput = AccountsSendOutputs.from(Moka.accountsSend(amount + " --account=" + account + " --json --uri=ws://localhost:" + PORT));
+		var accountsSendOutput = AccountsSendOutputs.from(Moka.accountsSend("faucet " + amount + " " + account + " --json --uri=ws://localhost:" + PORT));
 		// there is no destination account from the accounts ledger, since we paid into a specific account, not into a key
 		assertTrue(accountsSendOutput.getDestinationInAccountsLedger().isEmpty());
 		// show the account again
@@ -266,7 +266,7 @@ public class AccountsTests extends AbstractMokaTestWithNode {
 		String publicKeyBase58 = Base58.toBase58String(signature.encodingOf(keys.getPublic()));
 		// send coins from the gamete to the public key
 		var amount = BigInteger.valueOf(12345L);
-		var accountsSendOutput = AccountsSendOutputs.from(Moka.accountsSend(amount + " --payer=" + gamete + " --password-of-payer=" + passwordOfGamete + " --key=" + publicKeyBase58 + " --dir=" + dir + " --json --uri=ws://localhost:" + PORT));
+		var accountsSendOutput = AccountsSendOutputs.from(Moka.accountsSend(gamete + " " + amount + " " + publicKeyBase58 + " --password-of-payer=" + passwordOfGamete + " --dir=" + dir + " --json --uri=ws://localhost:" + PORT));
 		// there is a destination account from the accounts ledger, since we paid into a key, not into a specific account
 		assertTrue(accountsSendOutput.getDestinationInAccountsLedger().isPresent());
 		StorageReference account = accountsSendOutput.getDestinationInAccountsLedger().get();

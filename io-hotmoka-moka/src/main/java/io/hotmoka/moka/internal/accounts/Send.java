@@ -42,8 +42,6 @@ import io.hotmoka.moka.AccountsSendOutputs;
 import io.hotmoka.moka.api.GasCost;
 import io.hotmoka.moka.api.accounts.AccountsSendOutput;
 import io.hotmoka.moka.internal.AbstractGasCostCommand;
-import io.hotmoka.moka.internal.converters.Base58OptionConverter;
-import io.hotmoka.moka.internal.converters.StorageReferenceOptionConverter;
 import io.hotmoka.moka.internal.converters.TransactionReferenceOptionConverter;
 import io.hotmoka.moka.internal.json.AccountsSendOutputJson;
 import io.hotmoka.node.MethodSignatures;
@@ -59,8 +57,8 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
-import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.ITypeConverter;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
@@ -69,69 +67,138 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class Send extends AbstractGasCostCommand {
 
-	@Parameters(index = "0", description = "the amount of coins to send to the destination; this will be deduced from the balance of the payer", defaultValue = "0")
+	@Parameters(index = "0", description = "the sender account, that also pays for the transaction; this is either a storage reference or the word \"faucet\"", converter = SenderOptionConverter.class)
+	private Sender payer;
+
+	@Parameters(index = "1", description = "the amount of coins to send to the destination; this will be deduced from the balance of the sender", defaultValue = "0")
     private BigInteger amount;
 
-	@ArgGroup(exclusive = true, multiplicity = "1", heading = "The destination must be specified in either of these two alternative ways:\n")
-	private DestinationIdentifier destination;
+	@Parameters(index = "2", description = "the receiver contract; this is either a storage reference or the Base58-encoded public key of the receiver account, that will be added to the accounts ledger", converter = ReceiverOptionConverter.class)
+	private Receiver receiver;
 
-	@Option(names = "--payer", paramLabel = "<storage reference>", description = "the account that pays for the amount sent to the destination; if missing, the faucet of the network will be used, if it is open", converter = StorageReferenceOptionConverter.class)
-	private StorageReference payer;
-
-	@Option(names = "--password-of-payer", description = "the password of the payer; this is not used if the payer is the faucet", interactive = true, defaultValue = "")
+	@Option(names = { "--password-of-payer" , "--password-of-sender" }, description = "the password of the sender; this is not used if the sender is the faucet", interactive = true, defaultValue = "")
 	private char[] passwordOfPayer;
 
-	@Option(names = "--dir", paramLabel = "<path>", description = "the directory where the current key pair of the payer can be found", defaultValue = "")
+	@Option(names = "--dir", paramLabel = "<path>", description = "the directory where the current key pair of the sender can be found", defaultValue = "")
 	private Path dir;
 
-	@Option(names = "--classpath", paramLabel = "<transaction reference>", description = "the classpath used to interpret payer and destination; if missing, the reference to the transaction that created the destination account will be used; if the destination is a key, the reference to the transaction that created the payer will be used", converter = TransactionReferenceOptionConverter.class)
+	@Option(names = "--classpath", paramLabel = "<transaction reference>", description = "the classpath used to interpret sender and receiver; if missing, the reference to the transaction that created the receiver will be used; if the receiver is a key, the reference to the transaction that created the sender will be used", converter = TransactionReferenceOptionConverter.class)
     private TransactionReference classpath;
 
 	@Option(names = "--yes", description = "assume yes when asked for confirmation; this is implied if --json is used")
 	private boolean yes;
 
 	/**
-	 * The specification of the destination of a send operation: either
-	 * a Base58-encoded public key or a storage reference.
+	 * The specification of the sender (payer): either a storage reference or the faucet.
 	 */
-	private static class DestinationIdentifier {
+	private static class Sender {
+		private final StorageReference reference;
 
-		@Option(names = "--key", paramLabel = "<Base58-encoded string>", description = "as a public key", converter = Base58OptionConverter.class)
-		private String key;
+		private Sender(String s) throws IllegalArgumentException {
+			if ("faucet".equals(s))
+				this.reference = null;
+			else
+				this.reference = StorageValues.reference(s);
+		}
 
-		@Option(names = "--account", paramLabel = "<storage reference>", description = "as an account", converter = StorageReferenceOptionConverter.class)
-		private StorageReference account;
+		private StorageReference asReference() {
+			return reference;
+		}
+
+		private boolean isFaucet() {
+			return reference == null;
+		}
 
 		@Override
 		public String toString() {
-			return key != null ? ("public key " + key) : account.toString();
+			return reference == null ? "faucet" : reference.toString();
+		}
+	}
+
+	/**
+	 * A converter of a string option into a {@link Sender}.
+	 */
+	private static class SenderOptionConverter implements ITypeConverter<Sender> {
+
+		@Override
+		public Sender convert(String value) throws IllegalArgumentException {
+			return new Sender(value);
+		}
+	}
+
+	/**
+	 * The specification of the receiver: either a storage reference or a Base58-encoded public key.
+	 */
+	private static class Receiver {
+		private final StorageReference reference;
+		private final String publicKeyBase58;
+
+		private Receiver(String s) throws IllegalArgumentException, Base58ConversionException {
+			StorageReference reference;
+			String publicKeyBase58;
+
+			try {
+				reference = StorageValues.reference(s);
+				publicKeyBase58 = null;
+			}
+			catch (IllegalArgumentException e) {
+				publicKeyBase58 = Base58.requireBase58(s, Base58ConversionException::new);
+				reference = null;
+			}
+
+			this.reference = reference;
+			this.publicKeyBase58 = publicKeyBase58;
+		}
+
+		private StorageReference asReference() {
+			return reference;
+		}
+
+		private String asBase58PublicKey() {
+			return publicKeyBase58;
+		}
+
+		@Override
+		public String toString() {
+			return reference != null ? reference.toString() : "public key " + publicKeyBase58;
+		}
+	}
+
+	/**
+	 * A converter of a string option into a {@link Receiver}.
+	 */
+	private static class ReceiverOptionConverter implements ITypeConverter<Receiver> {
+
+		@Override
+		public Receiver convert(String value) throws IllegalArgumentException, Base58ConversionException {
+			return new Receiver(value);
 		}
 	}
 
 	@Override
 	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
-		if (payer != null)
-			if (destination.account != null)
-				new SendFromPayerAccountToDestinationAccount(remote);
-			else
-				new SendFromPayerAccountToDestinationKey(remote);
-		else
-			if(destination.account != null)
-				new SendFromFaucetToDestinationAccount(remote);
+		if (payer.isFaucet())
+			if(receiver.asReference() != null)
+				new SendFromFaucetToDestinationContract(remote);
 			else
 				throw new CommandException("It is not possible to let the faucet pay to a public key; please specify either --payer or --account");
+		else
+			if (receiver.asReference() != null)
+				new SendFromPayerAccountToDestinationContract(remote);
+			else
+				new SendFromPayerAccountToDestinationKey(remote);
 	}
 
 	private TransactionReference getClasspath(RemoteNode remote) throws NodeException, TimeoutException, InterruptedException, CommandException {
 		if (classpath != null)
 			return classpath;
-		else if (destination.account != null)
-			return getClasspathAtCreationTimeOf(destination.account, remote);
+		else if (receiver.asReference() != null)
+			return getClasspathAtCreationTimeOf(receiver.asReference(), remote);
 		else
-			return getClasspathAtCreationTimeOf(payer, remote);
+			return getClasspathAtCreationTimeOf(payer.asReference(), remote);
 	}
 
-	private class SendFromPayerAccountToDestinationAccount {
+	private class SendFromPayerAccountToDestinationContract {
 		private final RemoteNode remote;
 		private final String chainId;
 		private final Signer<SignedTransactionRequest<?>> signer;
@@ -141,19 +208,19 @@ public class Send extends AbstractGasCostCommand {
 		private final BigInteger nonce;
 		private final InstanceMethodCallTransactionRequest request;
 	
-		private SendFromPayerAccountToDestinationAccount(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+		private SendFromPayerAccountToDestinationContract(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
 			String passwordOfPayerAsString = new String(passwordOfPayer);
 	
 			try {
 				this.remote = remote;
 				this.chainId = remote.getConfig().getChainId();
-				SignatureAlgorithm signatureOfPayer = determineSignatureOf(payer, remote);
-				this.signer = mkSigner(payer, dir, signatureOfPayer, passwordOfPayerAsString);
+				SignatureAlgorithm signatureOfPayer = determineSignatureOf(payer.asReference(), remote);
+				this.signer = mkSigner(payer.asReference(), dir, signatureOfPayer, passwordOfPayerAsString);
 				this.gasLimit = determineGasLimit(() -> gasLimitHeuristic(signatureOfPayer));
 				this.gasPrice = determineGasPrice(remote);
 				this.classpath = getClasspath(remote);
-				askForConfirmation("send " + amount + " panas from " + payer + " to " + destination, gasLimit, gasPrice, yes || json());
-				this.nonce = determineNonceOf(payer, remote);
+				askForConfirmation("send " + amount + " panas from " + payer + " to " + receiver, gasLimit, gasPrice, yes || json());
+				this.nonce = determineNonceOf(payer.asReference(), remote);
 				this.request = mkRequest();
 				report(json(), executeRequest(), AccountsSendOutputs.Encoder::new);
 			}
@@ -166,8 +233,8 @@ public class Send extends AbstractGasCostCommand {
 		private InstanceMethodCallTransactionRequest mkRequest() throws CommandException {
 			try {
 				return TransactionRequests.instanceMethodCall
-						(signer, payer, nonce, chainId, gasLimit, gasPrice, classpath,
-						MethodSignatures.RECEIVE_BIG_INTEGER, destination.account, StorageValues.bigIntegerOf(amount));
+						(signer, payer.asReference(), nonce, chainId, gasLimit, gasPrice, classpath,
+						MethodSignatures.RECEIVE_BIG_INTEGER, receiver.asReference(), StorageValues.bigIntegerOf(amount));
 			}
 			catch (InvalidKeyException | SignatureException e) {
 				throw new CommandException("The key pair of " + payer + " seems corrupted!", e);
@@ -220,7 +287,7 @@ public class Send extends AbstractGasCostCommand {
 		}
 	}
 
-	private class SendFromFaucetToDestinationAccount {
+	private class SendFromFaucetToDestinationContract {
 		private final RemoteNode remote;
 		private final StorageReference gamete;
 		private final String chainId;
@@ -230,7 +297,7 @@ public class Send extends AbstractGasCostCommand {
 		private final TransactionReference classpath;
 		private final InstanceMethodCallTransactionRequest request;
 	
-		private SendFromFaucetToDestinationAccount(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+		private SendFromFaucetToDestinationContract(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
 			this.remote = remote;
 			this.gamete = getGamete();
 			this.chainId = remote.getConfig().getChainId();
@@ -251,7 +318,7 @@ public class Send extends AbstractGasCostCommand {
 				return TransactionRequests.instanceMethodCall
 						(signer, gamete, new BigInteger(64, new SecureRandom()), chainId, gasLimit, gasPrice, classpath,
 						MethodSignatures.ofVoid(GAMETE, "faucet", PAYABLE_CONTRACT, BIG_INTEGER),
-						gamete, destination.account, StorageValues.bigIntegerOf(amount));
+						gamete, receiver.asReference(), StorageValues.bigIntegerOf(amount));
 			}
 			catch (InvalidKeyException | SignatureException e) {
 				// the key has been created with the same (empty!) signature algorithm, thus it cannot be invalid
@@ -336,14 +403,14 @@ public class Send extends AbstractGasCostCommand {
 				this.remote = remote;
 				this.accountsLedger = getAccountsLedger();
 				this.chainId = remote.getConfig().getChainId();
-				SignatureAlgorithm signatureOfPayer = determineSignatureOf(payer, remote);
+				SignatureAlgorithm signatureOfPayer = determineSignatureOf(payer.asReference(), remote);
 				this.signatureOfDestination = determineSignatureOfDestination();
-				this.signer = mkSigner(payer, dir, signatureOfPayer, passwordOfPayerAsString);
+				this.signer = mkSigner(payer.asReference(), dir, signatureOfPayer, passwordOfPayerAsString);
 				this.gasLimit = determineGasLimit(() -> gasLimitHeuristic(signatureOfPayer));
 				this.gasPrice = determineGasPrice(remote);
 				this.classpath = getClasspath(remote);
-				askForConfirmation("send " + amount + " panas from " + payer + " to " + destination, gasLimit, gasPrice, yes || json());
-				this.nonce = determineNonceOf(payer, remote);
+				askForConfirmation("send " + amount + " panas from " + payer + " to " + receiver, gasLimit, gasPrice, yes || json());
+				this.nonce = determineNonceOf(payer.asReference(), remote);
 				this.request = mkRequest();
 				report(json(), executeRequest(), AccountsSendOutputs.Encoder::new);
 			}
@@ -355,14 +422,12 @@ public class Send extends AbstractGasCostCommand {
 	
 		private InstanceMethodCallTransactionRequest mkRequest() throws CommandException {
 			try {
-				String publicKeyEncoded = Base64.toBase64String(signatureOfDestination.encodingOf(signatureOfDestination.publicKeyFromEncoding(Base58.fromBase58String(destination.key))));
+				String publicKeyBase64Encoded = Base64.toBase64String(signatureOfDestination.encodingOf(signatureOfDestination.publicKeyFromEncoding(Base58.fromBase58String(receiver.asBase58PublicKey()))));
 	
 				return TransactionRequests.instanceMethodCall
-					(signer, payer, nonce,
-					chainId, gasLimit, gasPrice, classpath,
-					MethodSignatures.ADD_INTO_ACCOUNTS_LEDGER,
-					accountsLedger,
-					StorageValues.bigIntegerOf(amount), StorageValues.stringOf(publicKeyEncoded));
+					(signer, payer.asReference(), nonce, chainId, gasLimit, gasPrice, classpath,
+					MethodSignatures.ADD_INTO_ACCOUNTS_LEDGER, accountsLedger,
+					StorageValues.bigIntegerOf(amount), StorageValues.stringOf(publicKeyBase64Encoded));
 			}
 			catch (Base58ConversionException e) {
 				// this should not happen, since the parameter is checked by its converter

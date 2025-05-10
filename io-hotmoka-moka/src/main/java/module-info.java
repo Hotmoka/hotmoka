@@ -52,11 +52,10 @@ module io.hotmoka.moka {
 	requires io.hotmoka.node.local;
 	requires io.hotmoka.node.service;
 	requires io.hotmoka.node.remote;
-	requires io.hotmoka.node.api;
 	requires io.hotmoka.instrumentation;
 	requires io.hotmoka.whitelisting.api;
 	requires io.hotmoka.cli;
-	requires transitive io.hotmoka.crypto;
+	requires io.hotmoka.crypto;
 	requires io.hotmoka.exceptions;
 	requires io.hotmoka.annotations;
 	requires io.takamaka.code.constants;
@@ -64,8 +63,6 @@ module io.hotmoka.moka {
 	requires io.mokamint.plotter;
 	requires io.mokamint.miner.local;
 	requires io.mokamint.node.service;
-	requires jakarta.websocket.client;
-	requires io.hotmoka.websockets.client.api;
 	requires io.hotmoka.websockets.beans;
 	requires info.picocli;
 	requires java.logging;
