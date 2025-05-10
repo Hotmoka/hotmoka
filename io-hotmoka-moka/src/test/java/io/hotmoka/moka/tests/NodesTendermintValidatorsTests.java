@@ -52,7 +52,7 @@ public class NodesTendermintValidatorsTests extends AbstractMokaTestWithNode {
 		// first we create a key pair
 		var keyCreateOutputs = KeysCreateOutputs.from(Moka.keysCreate("--signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir));
 		// then we create a new validator account with that key pair, and let the faucet pay for it
-		var accountsCreateOutput = NodesTendermintValidatorsCreateOutputs.from(Moka.nodesTendermintValidatorsCreate("12345 --keys=" + keyCreateOutputs.getFile() + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
+		var accountsCreateOutput = NodesTendermintValidatorsCreateOutputs.from(Moka.nodesTendermintValidatorsCreate("faucet 12345 --keys=" + keyCreateOutputs.getFile() + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
 		TransactionResponse response = node.getResponse(accountsCreateOutput.getTransaction());
 
 		// the response in the output of the command should be successful
@@ -100,7 +100,7 @@ public class NodesTendermintValidatorsTests extends AbstractMokaTestWithNode {
 		// first we create a key pair
 		var keyCreateOutputs = KeysCreateOutputs.from(Moka.keysCreate("--signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir));
 		// then we create a new validator account with that key pair, and let the gamete for it
-		var accountsCreateOutput = NodesTendermintValidatorsCreateOutputs.from(Moka.nodesTendermintValidatorsCreate("12345 --payer=" + gamete + " --password-of-payer=" + passwordOfGamete + " --dir=" + dir + " --keys=" + keyCreateOutputs.getFile() + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
+		var accountsCreateOutput = NodesTendermintValidatorsCreateOutputs.from(Moka.nodesTendermintValidatorsCreate(gamete + " 12345 --password-of-payer=" + passwordOfGamete + " --dir=" + dir + " --keys=" + keyCreateOutputs.getFile() + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
 		TransactionResponse response = node.getResponse(accountsCreateOutput.getTransaction());
 
 		// the response in the output of the command should be successful

@@ -34,7 +34,7 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.moka.api.AccountCreationOutput;
 import io.hotmoka.moka.api.GasCost;
-import io.hotmoka.moka.internal.converters.StorageReferenceOptionConverter;
+import io.hotmoka.moka.internal.converters.StorageReferenceOrFaucetOptionConverter;
 import io.hotmoka.moka.internal.json.AccountCreationOutputJson;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
@@ -65,11 +65,11 @@ import picocli.CommandLine.Parameters;
  */
 public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.AbstractAccountCreationOutput> extends AbstractGasCostCommand {
 
-	@Parameters(description = "the initial balance of the new account; this will be deduced from the balance of the payer", defaultValue = "0")
-	private BigInteger balance;
+	@Parameters(index = "0", paramLabel = "<storage reference or \"faucet\">", description = "the account that pays for the creation, or \"faucet\" to let the faucet of the network pay, if it is open", converter = StorageReferenceOrFaucetOptionConverter.class)
+	private StorageReferenceOrFaucet payer;
 
-	@Option(names = "--payer", paramLabel = "<storage reference>", description = "the account that pays for the creation; if missing, the faucet of the network will be used, if it is open", converter = StorageReferenceOptionConverter.class)
-	private StorageReference payer;
+	@Parameters(index = "1", description = "the initial balance of the new account; this will be deduced from the balance of the payer", defaultValue = "0")
+	private BigInteger balance;
 
 	@Option(names = "--dir", paramLabel = "<path>", description = "the directory where the key pair of the payer can be found", defaultValue = "")
 	private Path dir;
@@ -91,10 +91,10 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 
 	@Override
 	protected final void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
-		if (payer != null)
-			new CreationFromPayer(remote);
-		else
+		if (payer.isFaucet())
 			new CreationFromFaucet(remote);
+		else
+			new CreationFromPayer(remote);
 	}
 
 	/**
@@ -135,6 +135,7 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 
 	private class CreationFromPayer {
 		private final RemoteNode remote;
+		private final StorageReference payer;
 		private final String publicKeyOfNewAccountBase64;
 		private final ClassType eoaType;
 		private final BigInteger gasLimit;
@@ -149,6 +150,7 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 			String passwordOfPayerAsString = new String(passwordOfPayer);
 
 			try {
+				this.payer = AbstractAccountCreation.this.payer.asReference().get();
 				SignatureAlgorithm signatureOfNewAccount = getSignatureAlgorithmOfNewAccount(remote);
 				SignatureAlgorithm signatureOfPayer = determineSignatureOf(payer, remote);
 				this.publicKeyOfNewAccountBase64 = publicKeyIdentifier.getPublicKeyBase64(signatureOfNewAccount, passwordOfNewAccountAsString);

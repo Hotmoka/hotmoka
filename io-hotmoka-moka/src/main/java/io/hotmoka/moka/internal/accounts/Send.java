@@ -42,6 +42,8 @@ import io.hotmoka.moka.AccountsSendOutputs;
 import io.hotmoka.moka.api.GasCost;
 import io.hotmoka.moka.api.accounts.AccountsSendOutput;
 import io.hotmoka.moka.internal.AbstractGasCostCommand;
+import io.hotmoka.moka.internal.StorageReferenceOrFaucet;
+import io.hotmoka.moka.internal.converters.StorageReferenceOrFaucetOptionConverter;
 import io.hotmoka.moka.internal.converters.TransactionReferenceOptionConverter;
 import io.hotmoka.moka.internal.json.AccountsSendOutputJson;
 import io.hotmoka.node.MethodSignatures;
@@ -67,8 +69,8 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class Send extends AbstractGasCostCommand {
 
-	@Parameters(index = "0", description = "the sender account, that also pays for the transaction; this is either a storage reference or the word \"faucet\"", converter = SenderOptionConverter.class)
-	private Sender payer;
+	@Parameters(index = "0", description = "the sender account, that also pays for the transaction; this is either a storage reference or the word \"faucet\", to let the faucet of the network pay, if it is open", converter = StorageReferenceOrFaucetOptionConverter.class)
+	private StorageReferenceOrFaucet payer;
 
 	@Parameters(index = "1", description = "the amount of coins to send to the destination; this will be deduced from the balance of the sender", defaultValue = "0")
     private BigInteger amount;
@@ -87,44 +89,6 @@ public class Send extends AbstractGasCostCommand {
 
 	@Option(names = "--yes", description = "assume yes when asked for confirmation; this is implied if --json is used")
 	private boolean yes;
-
-	/**
-	 * The specification of the sender (payer): either a storage reference or the faucet.
-	 */
-	private static class Sender {
-		private final StorageReference reference;
-
-		private Sender(String s) throws IllegalArgumentException {
-			if ("faucet".equals(s))
-				this.reference = null;
-			else
-				this.reference = StorageValues.reference(s);
-		}
-
-		private StorageReference asReference() {
-			return reference;
-		}
-
-		private boolean isFaucet() {
-			return reference == null;
-		}
-
-		@Override
-		public String toString() {
-			return reference == null ? "faucet" : reference.toString();
-		}
-	}
-
-	/**
-	 * A converter of a string option into a {@link Sender}.
-	 */
-	private static class SenderOptionConverter implements ITypeConverter<Sender> {
-
-		@Override
-		public Sender convert(String value) throws IllegalArgumentException {
-			return new Sender(value);
-		}
-	}
 
 	/**
 	 * The specification of the receiver: either a storage reference or a Base58-encoded public key.
@@ -195,12 +159,13 @@ public class Send extends AbstractGasCostCommand {
 		else if (receiver.asReference() != null)
 			return getClasspathAtCreationTimeOf(receiver.asReference(), remote);
 		else
-			return getClasspathAtCreationTimeOf(payer.asReference(), remote);
+			return getClasspathAtCreationTimeOf(payer.asReference().get(), remote);
 	}
 
 	private class SendFromPayerAccountToDestinationContract {
 		private final RemoteNode remote;
 		private final String chainId;
+		private final StorageReference payer;
 		private final Signer<SignedTransactionRequest<?>> signer;
 		private final BigInteger gasLimit;
 		private final BigInteger gasPrice;
@@ -214,13 +179,14 @@ public class Send extends AbstractGasCostCommand {
 			try {
 				this.remote = remote;
 				this.chainId = remote.getConfig().getChainId();
-				SignatureAlgorithm signatureOfPayer = determineSignatureOf(payer.asReference(), remote);
-				this.signer = mkSigner(payer.asReference(), dir, signatureOfPayer, passwordOfPayerAsString);
+				this.payer = Send.this.payer.asReference().get();
+				SignatureAlgorithm signatureOfPayer = determineSignatureOf(payer, remote);
+				this.signer = mkSigner(payer, dir, signatureOfPayer, passwordOfPayerAsString);
 				this.gasLimit = determineGasLimit(() -> gasLimitHeuristic(signatureOfPayer));
 				this.gasPrice = determineGasPrice(remote);
 				this.classpath = getClasspath(remote);
 				askForConfirmation("send " + amount + " panas from " + payer + " to " + receiver, gasLimit, gasPrice, yes || json());
-				this.nonce = determineNonceOf(payer.asReference(), remote);
+				this.nonce = determineNonceOf(payer, remote);
 				this.request = mkRequest();
 				report(json(), executeRequest(), AccountsSendOutputs.Encoder::new);
 			}
@@ -233,7 +199,7 @@ public class Send extends AbstractGasCostCommand {
 		private InstanceMethodCallTransactionRequest mkRequest() throws CommandException {
 			try {
 				return TransactionRequests.instanceMethodCall
-						(signer, payer.asReference(), nonce, chainId, gasLimit, gasPrice, classpath,
+						(signer, payer, nonce, chainId, gasLimit, gasPrice, classpath,
 						MethodSignatures.RECEIVE_BIG_INTEGER, receiver.asReference(), StorageValues.bigIntegerOf(amount));
 			}
 			catch (InvalidKeyException | SignatureException e) {
@@ -388,6 +354,7 @@ public class Send extends AbstractGasCostCommand {
 		private final RemoteNode remote;
 		private final StorageReference accountsLedger;
 		private final String chainId;
+		private final StorageReference payer;
 		private final SignatureAlgorithm signatureOfDestination;
 		private final Signer<SignedTransactionRequest<?>> signer;
 		private final BigInteger gasLimit;
@@ -403,14 +370,15 @@ public class Send extends AbstractGasCostCommand {
 				this.remote = remote;
 				this.accountsLedger = getAccountsLedger();
 				this.chainId = remote.getConfig().getChainId();
-				SignatureAlgorithm signatureOfPayer = determineSignatureOf(payer.asReference(), remote);
+				this.payer = Send.this.payer.asReference().get();
+				SignatureAlgorithm signatureOfPayer = determineSignatureOf(payer, remote);
 				this.signatureOfDestination = determineSignatureOfDestination();
-				this.signer = mkSigner(payer.asReference(), dir, signatureOfPayer, passwordOfPayerAsString);
+				this.signer = mkSigner(payer, dir, signatureOfPayer, passwordOfPayerAsString);
 				this.gasLimit = determineGasLimit(() -> gasLimitHeuristic(signatureOfPayer));
 				this.gasPrice = determineGasPrice(remote);
 				this.classpath = getClasspath(remote);
 				askForConfirmation("send " + amount + " panas from " + payer + " to " + receiver, gasLimit, gasPrice, yes || json());
-				this.nonce = determineNonceOf(payer.asReference(), remote);
+				this.nonce = determineNonceOf(payer, remote);
 				this.request = mkRequest();
 				report(json(), executeRequest(), AccountsSendOutputs.Encoder::new);
 			}
@@ -425,7 +393,7 @@ public class Send extends AbstractGasCostCommand {
 				String publicKeyBase64Encoded = Base64.toBase64String(signatureOfDestination.encodingOf(signatureOfDestination.publicKeyFromEncoding(Base58.fromBase58String(receiver.asBase58PublicKey()))));
 	
 				return TransactionRequests.instanceMethodCall
-					(signer, payer.asReference(), nonce, chainId, gasLimit, gasPrice, classpath,
+					(signer, payer, nonce, chainId, gasLimit, gasPrice, classpath,
 					MethodSignatures.ADD_INTO_ACCOUNTS_LEDGER, accountsLedger,
 					StorageValues.bigIntegerOf(amount), StorageValues.stringOf(publicKeyBase64Encoded));
 			}

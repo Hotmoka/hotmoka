@@ -51,7 +51,7 @@ public class ObjectsTests extends AbstractMokaTestWithNode {
 		// create a key pair
 		var keyCreateOutputs = KeysCreateOutputs.from(Moka.keysCreate("--signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir));
 		// create a new account with that key pair, letting the gamete pay for it
-		var accountsCreateOutput = AccountsCreateOutputs.from(Moka.accountsCreate("1000000000000 --payer=" + gamete + " --password-of-payer=" + passwordOfGamete + " --dir=" + dir + " --keys=" + keyCreateOutputs.getFile() + " --signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
+		var accountsCreateOutput = AccountsCreateOutputs.from(Moka.accountsCreate(gamete + " 1000000000000 --password-of-payer=" + passwordOfGamete + " --dir=" + dir + " --keys=" + keyCreateOutputs.getFile() + " --signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
 		StorageReference account = accountsCreateOutput.getAccount().get();
 		// install the jar for TicTacToe contract
 		var ticTacToeJar = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-tictactoe.jar");
@@ -83,7 +83,7 @@ public class ObjectsTests extends AbstractMokaTestWithNode {
 		// create a key pair
 		var keyCreateOutputs = KeysCreateOutputs.from(Moka.keysCreate("--signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir));
 		// create a new account with that key pair, letting the gamete pay for it
-		var accountsCreateOutput = AccountsCreateOutputs.from(Moka.accountsCreate("1000000000000 --payer=" + gamete + " --password-of-payer=" + passwordOfGamete + " --dir=" + dir + " --keys=" + keyCreateOutputs.getFile() + " --signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
+		var accountsCreateOutput = AccountsCreateOutputs.from(Moka.accountsCreate(gamete + " 1000000000000 --password-of-payer=" + passwordOfGamete + " --dir=" + dir + " --keys=" + keyCreateOutputs.getFile() + " --signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
 		StorageReference account = accountsCreateOutput.getAccount().get();
 		// install the jar for TicTacToe contract
 		var ticTacToeJar = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-tictactoe.jar");
