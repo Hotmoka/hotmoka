@@ -57,22 +57,22 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class Sell extends AbstractGasCostCommand {
 
-	@Parameters(index = "0", description = "the storage reference of the validator that sells part or all its validation power and pays to create the sale offer", converter = StorageReferenceOptionConverter.class)
-    private StorageReference seller;
+	@Parameters(index = "0", paramLabel = "<seller>", description = "the storage reference of the validator that sells part or all its validation power and pays to create the sale offer", converter = StorageReferenceOptionConverter.class)
+    private StorageReference payer;
 
 	@Parameters(index = "1", description = "the amount of validation power that is placed on sale")
     private BigInteger power;
 
-	@Parameters(index = "2", description = "the cost of the validation power that is placed on sale")
-    private BigInteger cost;
+	@Parameters(index = "2", description = "the total price of the validation power that is placed on sale")
+    private BigInteger price;
 
-	@Parameters(index = "3", description = "the duration of validity of the offer, in milliseconds from now")
+	@Parameters(index = "3", paramLabel = "<milliseconds>", description = "the duration of validity of the offer from time of placement", defaultValue = "300_000L")
     private long duration;
 
 	@Option(names = "--dir", paramLabel = "<path>", description = "the directory where the key pair of the seller can be found", defaultValue = "")
 	private Path dir;
 
-	@Option(names = "--buyer", paramLabel = "<storage reference>", description = "the only buyer allowed to accept the sale offer; if not specified, everybody can accept the sale offer", converter = StorageReferenceOptionConverter.class)
+	@Option(names = "--buyer", paramLabel = "<storage reference>", description = "the only buyer allowed to accept the sale offer; if missing, everybody can accept the sale offer", converter = StorageReferenceOptionConverter.class)
     private StorageReference buyer;
 
 	@Option(names = { "--password-of-payer" , "--password-of-seller" }, description = "the password of the seller", interactive = true, defaultValue = "")
@@ -97,6 +97,7 @@ public class Sell extends AbstractGasCostCommand {
 		private final StorageReference validators;
 		private final InstanceMethodCallTransactionRequest request;
 		private final NonVoidMethodSignature method;
+		private final SignatureAlgorithm signatureOfPayer;
 
 		private Body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
 			/*if (power.signum() <= 0)
@@ -113,15 +114,15 @@ public class Sell extends AbstractGasCostCommand {
 			try {
 				this.remote = remote;
 				this.chainId = remote.getConfig().getChainId();
-				SignatureAlgorithm signatureOfPayer = determineSignatureOf(seller, remote);
-				this.signer = mkSigner(seller, dir, signatureOfPayer, passwordOfPayerAsString);
+				this.signatureOfPayer = determineSignatureOf(payer, remote);
+				this.signer = mkSigner(payer, dir, signatureOfPayer, passwordOfPayerAsString);
 				this.validators = getValidators();
-				this.gasLimit = determineGasLimit(() -> gasLimitHeuristic(signatureOfPayer));
-				this.classpath = getClasspathAtCreationTimeOf(seller, remote);
+				this.gasLimit = determineGasLimit(this::gasLimitHeuristic);
+				this.classpath = getClasspathAtCreationTimeOf(payer, remote);
 				this.method = mkMethod();
 				this.gasPrice = determineGasPrice(remote);
-				askForConfirmation("place a sale offer of " + power + " units of validation power", gasLimit, gasPrice, yes || json());
-				this.nonce = determineNonceOf(seller, remote);
+				askForConfirmation("place a sale offer of " + power + " units of validation power at the price of " + price + panas(price), gasLimit, gasPrice, yes || json());
+				this.nonce = determineNonceOf(payer, remote);
 				this.request = mkRequest();
 				report(json(), executeRequest(), NodesTendermintValidatorsSellOutputs.Encoder::new);
 			}
@@ -133,9 +134,9 @@ public class Sell extends AbstractGasCostCommand {
 
 		private NonVoidMethodSignature mkMethod() {
 			if (buyer == null)
-				return MethodSignatures.ofNonVoid(StorageTypes.ABSTRACT_VALIDATORS, "place", StorageTypes.SHARED_ENTITY_OFFER, StorageTypes.BIG_INTEGER, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG);
+				return MethodSignatures.ofNonVoid(StorageTypes.ABSTRACT_VALIDATORS, "place", StorageTypes.SHARED_ENTITY_OFFER, StorageTypes.BIG_INTEGER, StorageTypes.VALIDATOR, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG);
 			else
-				return MethodSignatures.ofNonVoid(StorageTypes.ABSTRACT_VALIDATORS, "place", StorageTypes.SHARED_ENTITY_OFFER, StorageTypes.BIG_INTEGER, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG, StorageTypes.PAYABLE_CONTRACT);
+				return MethodSignatures.ofNonVoid(StorageTypes.ABSTRACT_VALIDATORS, "place", StorageTypes.SHARED_ENTITY_OFFER, StorageTypes.BIG_INTEGER, StorageTypes.VALIDATOR, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG, StorageTypes.VALIDATOR);
 		}
 
 		private Output executeRequest() throws CommandException, NodeException, TimeoutException, InterruptedException {
@@ -170,7 +171,7 @@ public class Sell extends AbstractGasCostCommand {
 					}
 					catch (TransactionException | CodeExecutionException e) {
 						if (!json())
-							System.out.println("failed. Are the key pair of the account and its password correct?");
+							System.out.println("failed.");
 
 						errorMessage = Optional.of(e.getMessage());
 					}
@@ -189,19 +190,19 @@ public class Sell extends AbstractGasCostCommand {
 			try {
 				if (buyer == null)
 					return TransactionRequests.instanceMethodCall
-						(signer, seller, nonce, chainId, gasLimit, gasPrice, classpath, method,
-								validators, StorageValues.bigIntegerOf(BigInteger.ZERO), seller, StorageValues.bigIntegerOf(power), StorageValues.bigIntegerOf(cost), StorageValues.longOf(duration));
+						(signer, payer, nonce, chainId, gasLimit, gasPrice, classpath, method,
+								validators, StorageValues.bigIntegerOf(BigInteger.ZERO), payer, StorageValues.bigIntegerOf(power), StorageValues.bigIntegerOf(price), StorageValues.longOf(duration));
 				else
 					return TransactionRequests.instanceMethodCall
-						(signer, seller, nonce, chainId, gasLimit, gasPrice, classpath, method,
-								validators, StorageValues.bigIntegerOf(BigInteger.ZERO), seller, StorageValues.bigIntegerOf(power), StorageValues.bigIntegerOf(cost), StorageValues.longOf(duration), buyer);
+						(signer, payer, nonce, chainId, gasLimit, gasPrice, classpath, method,
+								validators, StorageValues.bigIntegerOf(BigInteger.ZERO), payer, StorageValues.bigIntegerOf(power), StorageValues.bigIntegerOf(price), StorageValues.longOf(duration), buyer);
 			}
 			catch (InvalidKeyException | SignatureException e) {
-				throw new CommandException("The current key pair of " + seller + " seems corrupted!", e);
+				throw new CommandException("The current key pair of " + payer + " seems corrupted!", e);
 			}
 		}
 
-		private BigInteger gasLimitHeuristic(SignatureAlgorithm signatureOfPayer) throws CommandException {
+		private BigInteger gasLimitHeuristic() throws CommandException {
 			return BigInteger.TWO.multiply(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
 		}
 
@@ -263,7 +264,7 @@ public class Sell extends AbstractGasCostCommand {
 
 		@Override
 		protected void toString(StringBuilder sb) {
-			sb.append("A validation power offer " + offer + " has been placed.\n");
+			offer.ifPresent(o -> sb.append("Sale offer of validation power " + o + " has been placed and is ready to be accepted.\n")); // TODO: maybe add acceptance command
 		}
 	}
 }

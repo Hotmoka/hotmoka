@@ -138,4 +138,10 @@ public class NodesTendermintValidatorsTests extends AbstractMokaTestWithNode {
 		// the public key in the account must be as reported in the created key pair file
 		assertEquals(Base64.toBase64String(encodingOfPublicKeyOfNewAccount), publicKeyBase64);
 	}
+
+	@Test
+	@DisplayName("[moka nodes tendermint validators sell] placing a sale offer of validation power works")
+	public void saleOfferOfValidationPowerIsCorrectlyPlaced() throws Exception {
+		Thread.sleep(100_000_000L);
+	}
 }

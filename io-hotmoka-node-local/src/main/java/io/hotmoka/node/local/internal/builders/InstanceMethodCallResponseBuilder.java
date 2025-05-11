@@ -198,7 +198,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 
 			try {
 				return classLoader.resolveMethod(method.getDefiningClass().getName(), method.getName(), argTypes, returnType)
-						.orElseThrow(() -> new UnmatchedTargetException(method.toString()));
+						.orElseThrow(() -> new UnmatchedTargetException("Cannot find method " + method.toString()));
 			}
 			catch (ClassNotFoundException e) {
 				throw new UnknownTypeException(method.getDefiningClass());

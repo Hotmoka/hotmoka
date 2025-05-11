@@ -125,7 +125,7 @@ public class Install extends AbstractGasCostCommand {
 				}
 				catch (TransactionException e) {
 					if (!json())
-						System.out.println("failed. Are the key pair of the payer and its password correct?");
+						System.out.println("failed.");
 
 					errorMessage = Optional.of(e.getMessage());
 				}

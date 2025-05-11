@@ -151,7 +151,7 @@ public class Rotate extends AbstractGasCostCommand {
 					}
 					catch (TransactionException | CodeExecutionException e) {
 						if (!json())
-							System.out.println("failed. Are the key pair of the account and its password correct?");
+							System.out.println("failed.");
 
 						errorMessage = Optional.of(e.getMessage());
 					}

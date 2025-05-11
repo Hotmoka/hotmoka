@@ -50,7 +50,7 @@ import picocli.CommandLine.Parameters;
 public class Show extends AbstractMokaCommand {
 
 	@Parameters(index = "0", description = "the path of the file holding the key pair")
-    private Path key;
+    private Path keys;
 
 	@Option(names = "--password", description = "the password of the key pair", interactive = true, defaultValue = "")
     private char[] password;
@@ -67,12 +67,10 @@ public class Show extends AbstractMokaCommand {
 
 	@Override
 	protected void execute() throws CommandException {
-		String passwordAsString;
+		String passwordAsString = new String(password);
 
 		try {
-			var entropy = Entropies.load(key);
-			passwordAsString = new String(password);
-			KeyPair keys = entropy.keys(passwordAsString, signature);
+			KeyPair keys = Entropies.load(this.keys).keys(passwordAsString, signature);
 
 			try {
 				report(json, new Output(signature, keys, showPrivate), KeysShowOutputs.Encoder::new);
@@ -86,7 +84,7 @@ public class Show extends AbstractMokaCommand {
 			}
 		}
 		catch (IOException e) {
-			throw new CommandException("Cannot access file \"" + key + "\"", e);
+			throw new CommandException("Cannot access file \"" + keys + "\"", e);
 		}
 		finally {
 			passwordAsString = null;
@@ -118,12 +116,13 @@ public class Show extends AbstractMokaCommand {
 			this.signature = SignatureAlgorithms.of(Objects.requireNonNull(json.getSignature(), "signature cannot be null", exp));
 			this.publicKeyBase58 = Base58.requireBase58(Objects.requireNonNull(json.getPublicKeyBase58(), "publicKeyBase58 cannot be null", exp), exp);
 			this.publicKeyBase64 = Base64.requireBase64(Objects.requireNonNull(json.getPublicKeyBase64(), "publicKeyBase64 cannot be null", exp), exp);
-			this.tendermintAddress = Objects.requireNonNull(json.getTendermintAddress(), "tendermintAddress cannot be null", exp);
+			this.tendermintAddress = Hex.requireHex(Objects.requireNonNull(json.getTendermintAddress(), "tendermintAddress cannot be null", exp), exp);
 			if ((this.privateKeyBase58 = json.getPrivateKeyBase58().orElse(null)) != null)
 				Base58.requireBase58(privateKeyBase58, exp);
 			if ((this.privateKeyBase64 = json.getPrivateKeyBase64().orElse(null)) != null)
 				Base64.requireBase64(privateKeyBase64, exp);
-			this.concatenatedBase64 = json.getConcatenatedBase64().orElse(null);
+			if ((this.concatenatedBase64 = json.getConcatenatedBase64().orElse(null)) != null)
+				Base64.requireBase64(concatenatedBase64, exp);
 		}
 
 		private Output(SignatureAlgorithm signature, KeyPair keys, boolean alsoPrivate) throws NoSuchAlgorithmException, InvalidKeyException {
@@ -138,7 +137,7 @@ public class Show extends AbstractMokaCommand {
 			}
 			catch (HexConversionException e) {
 				// this should not happen since the output of the sha256 algorithm can be converted into a hex string
-				throw new RuntimeException("The otuput of the sha256 algorithm is invalid!", e);
+				throw new RuntimeException("The output of the sha256 algorithm is invalid!", e);
 			}
 
 			if (alsoPrivate) {

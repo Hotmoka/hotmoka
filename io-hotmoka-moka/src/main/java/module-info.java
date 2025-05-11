@@ -64,6 +64,7 @@ module io.hotmoka.moka {
 	requires io.mokamint.miner.local;
 	requires io.mokamint.node.service;
 	requires io.hotmoka.websockets.beans;
+	requires io.hotmoka.websockets.client.api;
 	requires info.picocli;
 	requires java.logging;
 }
