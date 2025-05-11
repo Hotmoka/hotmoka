@@ -142,6 +142,5 @@ public class NodesTendermintValidatorsTests extends AbstractMokaTestWithNode {
 	@Test
 	@DisplayName("[moka nodes tendermint validators sell] placing a sale offer of validation power works")
 	public void saleOfferOfValidationPowerIsCorrectlyPlaced() throws Exception {
-		Thread.sleep(100_000_000L);
 	}
 }

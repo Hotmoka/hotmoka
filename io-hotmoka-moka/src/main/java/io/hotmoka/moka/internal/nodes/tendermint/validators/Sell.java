@@ -57,7 +57,7 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class Sell extends AbstractGasCostCommand {
 
-	@Parameters(index = "0", paramLabel = "<seller>", description = "the storage reference of the validator that sells part or all its validation power and pays to create the sale offer", converter = StorageReferenceOptionConverter.class)
+	@Parameters(index = "0", paramLabel = "<seller>", description = "the storage reference of the validator that sells part or all of its validation power; it also pays for the transaction", converter = StorageReferenceOptionConverter.class)
     private StorageReference payer;
 
 	@Parameters(index = "1", description = "the amount of validation power that is placed on sale")
@@ -121,7 +121,7 @@ public class Sell extends AbstractGasCostCommand {
 				this.classpath = getClasspathAtCreationTimeOf(payer, remote);
 				this.method = mkMethod();
 				this.gasPrice = determineGasPrice(remote);
-				askForConfirmation("place a sale offer of " + power + " units of validation power at the price of " + price + panas(price), gasLimit, gasPrice, yes || json());
+				askForConfirmation("place a sale offer of " + power + " units of validation power at the price of " + panas(price), gasLimit, gasPrice, yes || json());
 				this.nonce = determineNonceOf(payer, remote);
 				this.request = mkRequest();
 				report(json(), executeRequest(), NodesTendermintValidatorsSellOutputs.Encoder::new);
