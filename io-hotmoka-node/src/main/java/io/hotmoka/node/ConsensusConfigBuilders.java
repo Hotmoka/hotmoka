@@ -49,7 +49,7 @@ public abstract class ConsensusConfigBuilders {
 	}
 
 	/**
-	 * Creates a builder containing default data. but for the given signature.
+	 * Creates a builder containing default data, but for the given signature.
 	 * 
 	 * @param signatureForRequests the signature algorithm to use for signing the requests
 	 * @return the builder

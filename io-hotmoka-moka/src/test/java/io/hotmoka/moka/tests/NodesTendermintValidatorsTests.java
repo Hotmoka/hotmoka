@@ -17,21 +17,31 @@ limitations under the License.
 package io.hotmoka.moka.tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.SignatureAlgorithms;
+import io.hotmoka.moka.AccountsSendOutputs;
+import io.hotmoka.moka.KeysBindOutputs;
 import io.hotmoka.moka.KeysCreateOutputs;
 import io.hotmoka.moka.Moka;
+import io.hotmoka.moka.NodesTendermintValidatorsBuyOutputs;
 import io.hotmoka.moka.NodesTendermintValidatorsCreateOutputs;
-import io.hotmoka.node.StorageTypes;
+import io.hotmoka.moka.NodesTendermintValidatorsSellOutputs;
 import io.hotmoka.node.MethodSignatures;
+import io.hotmoka.node.StorageTypes;
+import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.responses.ConstructorCallTransactionSuccessfulResponse;
 import io.hotmoka.node.api.responses.NonVoidMethodCallTransactionSuccessfulResponse;
@@ -140,7 +150,94 @@ public class NodesTendermintValidatorsTests extends AbstractMokaTestWithNode {
 	}
 
 	@Test
-	@DisplayName("[moka nodes tendermint validators sell] placing a sale offer of validation power works")
-	public void saleOfferOfValidationPowerIsCorrectlyPlaced() throws Exception {
+	@DisplayName("[moka nodes tendermint validators sell/buy] sale and buy of an offer of validation power works")
+	public void saleBuyOfferOfValidationPowerWorks(@TempDir Path dir) throws Exception {
+		// this test can only work for nodes that actually have at least a validator
+		Optional<StorageReference> maybeValidator = getFirstValidator();
+		if (maybeValidator.isPresent()) {
+			var seller = maybeValidator.get();
+			// create a new key pair
+			var keysCreateOutput = KeysCreateOutputs.from(Moka.keysCreate("--name=buyer.pem --json --output-dir=" + dir));
+			// create the buyer validator
+			var nodesTendermintValidatorsCreateOutput = NodesTendermintValidatorsCreateOutputs.from(Moka.nodesTendermintValidatorsCreate("faucet 0 " + keysCreateOutput.getFile() + " --json --dir=" + dir + " --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
+			// the account has been really created
+			assertTrue(nodesTendermintValidatorsCreateOutput.getAccount().isPresent());
+			var buyer = nodesTendermintValidatorsCreateOutput.getAccount().get();
+			// the buyer is not a validator at the moment
+			assertFalse(isValidator(buyer));
+			// bind the key pair of the validator to the validator object
+			KeysBindOutputs.from(Moka.keysBind(Paths.get("src", "test", "resources", "tendermint_configs", "v1n0", "node0", "validator.pem") + " --reference=" + seller + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
+			// make the seller rich enough to pay for the next transactions
+			AccountsSendOutputs.from(Moka.accountsSend("faucet 10000000 " + seller + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
+			// make the buyer rich enough to pay for the next transactions
+			AccountsSendOutputs.from(Moka.accountsSend("faucet 10000000 " + buyer + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
+			// place a sale offer of 50 units of validation power for a price of 1000 coins
+			var nodesTendermintValidatorsSellOutput = NodesTendermintValidatorsSellOutputs.from(Moka.nodesTendermintValidatorsSell(seller + " 50 1000 1000000 --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
+			// the offer has been really created
+			assertTrue(nodesTendermintValidatorsSellOutput.getOffer().isPresent());
+			var offer = nodesTendermintValidatorsSellOutput.getOffer().get();
+			// read the shares on sale by the seller validator
+			var sharesOnSaleBySeller = sharesOnSaleBy(seller);
+			// the shares on sale are as many as expected
+			assertEquals(BigInteger.valueOf(50), sharesOnSaleBySeller);
+			// let the buyer accept the sale offer of validation power
+			var nodesTendermintValidatorsBuy = NodesTendermintValidatorsBuyOutputs.from(Moka.nodesTendermintValidatorsBuy(buyer + " " + offer + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
+			// the sale has been successfully executed
+			assertTrue(nodesTendermintValidatorsBuy.getErrorMessage().isEmpty());
+			// the buyer is a validator now
+			assertTrue(isValidator(buyer));
+			// the seller validator is still a validator
+			assertTrue(isValidator(seller));
+		}
+	}
+
+	private BigInteger sharesOnSaleBy(StorageReference seller) throws Exception {
+		var manifest = node.getManifest();
+		var validators = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest))
+				.orElseThrow(() -> new IllegalStateException(MethodSignatures.GET_VALIDATORS + " should not return void"))
+				.asReturnedReference(MethodSignatures.GET_VALIDATORS, IllegalStateException::new);
+		var sharesOnSale = MethodSignatures.ofNonVoid(StorageTypes.classNamed("io.takamaka.code.dao.SimpleSharedEntity"), "sharesOnSaleOf", StorageTypes.BIG_INTEGER, StorageTypes.PAYABLE_CONTRACT);
+		return node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+				(manifest, _100_000, takamakaCode, sharesOnSale, validators, seller))
+				.orElseThrow(() -> new IllegalStateException(sharesOnSale + " should not return void"))
+				.asReturnedBigInteger(sharesOnSale, IllegalStateException::new);
+	}
+
+	private boolean isValidator(StorageReference validator) throws Exception {
+		var manifest = node.getManifest();
+		var validators = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest))
+				.orElseThrow(() -> new IllegalStateException(MethodSignatures.GET_VALIDATORS + " should not return void"))
+				.asReturnedReference(MethodSignatures.GET_VALIDATORS, IllegalStateException::new);
+		var isShareholder = MethodSignatures.ofNonVoid(StorageTypes.classNamed("io.takamaka.code.dao.SimpleSharedEntity"), "isShareholder", StorageTypes.BOOLEAN, StorageTypes.OBJECT);
+		return node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+				(manifest, _100_000, takamakaCode, isShareholder, validators, validator))
+				.orElseThrow(() -> new IllegalStateException(isShareholder + " should not return void"))
+				.asReturnedBoolean(isShareholder, IllegalStateException::new);
+	}
+
+	private Optional<StorageReference> getFirstValidator() throws Exception {
+		var manifest = node.getManifest();
+		var validators = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest))
+				.orElseThrow(() -> new IllegalStateException(MethodSignatures.GET_VALIDATORS + " should not return void"))
+				.asReturnedReference(MethodSignatures.GET_VALIDATORS, IllegalStateException::new);
+		var shares = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_SHARES, validators))
+				.orElseThrow(() -> new IllegalStateException(MethodSignatures.GET_SHARES + " should not return void"))
+				.asReturnedReference(MethodSignatures.GET_SHARES, IllegalStateException::new);
+		int numOfValidators = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+				(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SIZE, shares))
+				.orElseThrow(() -> new IllegalStateException(MethodSignatures.STORAGE_MAP_VIEW_SIZE + " should not return void"))
+				.asReturnedInt(MethodSignatures.STORAGE_MAP_VIEW_SIZE, IllegalStateException::new);
+
+		if (numOfValidators > 0)
+			return Optional.of(node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+					(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SELECT, shares, StorageValues.intOf(0)))
+					.orElseThrow(() -> new IllegalStateException(MethodSignatures.STORAGE_MAP_VIEW_SELECT + " should not return void"))
+					.asReturnedReference(MethodSignatures.STORAGE_MAP_VIEW_SELECT, IllegalStateException::new));
+		else
+			return Optional.empty();
 	}
 }

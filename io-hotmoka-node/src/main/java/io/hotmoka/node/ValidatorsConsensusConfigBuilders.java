@@ -92,6 +92,16 @@ public abstract class ValidatorsConsensusConfigBuilders {
 	}
 
 	/**
+	 * Creates a builder containing default data, but for the given signature.
+	 * 
+	 * @param signatureForRequests the signature algorithm to use for signing the requests
+	 * @return the builder
+	 */
+	public static ValidatorsConsensusConfigBuilder<?,?> defaults(SignatureAlgorithm signatureForRequest) {
+		return new MyConsensusConfigBuilder(signatureForRequest);
+	}
+
+	/**
 	 * Creates a builder from the given TOML configuration file.
 	 * The resulting builder will contain the information in the file,
 	 * and use defaults for the data not contained in the file.
