@@ -93,6 +93,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
 
   <!-- specific profiles might add more modules to these -->
   <modules>
+    <module>io-hotmoka-examples</module>
     <module>io-hotmoka-whitelisting-api</module>
     <module>io-hotmoka-whitelisting</module>
     <module>io-hotmoka-verification-api</module>
@@ -290,7 +291,6 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
         <activeByDefault>true</activeByDefault>
       </activation>
       <modules>
-        <module>io-hotmoka-examples</module>
         <module>io-hotmoka-tests</module>
       </modules>
     </profile>
