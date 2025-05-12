@@ -322,12 +322,13 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		try (var scope = mkScope()) {
 			Objects.requireNonNull(reference);
 
-			if (store.getResponse(reference.getTransaction()) instanceof TransactionResponseWithUpdates trwu)
+			if (store.getResponse(reference.getTransaction()) instanceof TransactionResponseWithUpdates trwu) {
 				return trwu.getUpdates()
 					.filter(update -> update instanceof ClassTag && update.getObject().equals(reference))
 					.map(update -> (ClassTag) update)
 					.findFirst()
-					.orElseThrow(() -> new NodeException("Object " + reference + " has no class tag in store"));
+					.orElseThrow(() -> new UnknownReferenceException("Cannot find object " + reference + " in store"));
+			}
 			else
 				throw new NodeException("The transaction that created object " + reference + " does not contain updates");
 		}

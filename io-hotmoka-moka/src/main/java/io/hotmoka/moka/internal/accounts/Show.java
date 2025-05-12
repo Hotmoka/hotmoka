@@ -66,10 +66,10 @@ public class Show extends AbstractMokaRpcCommand {
 			signature = SignatureHelpers.of(remote).signatureAlgorithmFor(account);
 		}
 		catch (NoSuchAlgorithmException e) {
-			throw new CommandException("The account uses a non-available signature algorithm", e);
+			throw new CommandException("The account " + account + " uses a non-available signature algorithm", e);
 		}
 		catch (UnknownReferenceException e) {
-			throw new CommandException("The account object does not exist in the node");
+			throw new CommandException("The account object " + account + " does not exist in the node");
 		}
 
 		var takamakaCode = remote.getTakamakaCode();
@@ -82,7 +82,7 @@ public class Show extends AbstractMokaRpcCommand {
 					.asReturnedBigInteger(MethodSignatures.BALANCE, CommandException::new);
 		}
 		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
-			throw new CommandException("Could not access the balance of the account", e);
+			throw new CommandException("Could not access the balance of account " + account, e);
 		}
 
 		String publicKeyBase64;
@@ -93,14 +93,14 @@ public class Show extends AbstractMokaRpcCommand {
 					.asReturnedString(MethodSignatures.PUBLIC_KEY, CommandException::new);
 		}
 		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
-			throw new CommandException("Could not access the balance of the account", e);
+			throw new CommandException("Could not access the public key of account " + account, e);
 		}
 
 		try {
 			report(json(), new Output(balance, signature, publicKeyBase64), AccountsShowOutputs.Encoder::new);
 		}
 		catch (Base64ConversionException e) {
-			throw new CommandException("The key in the account object is not in base64 format", e);
+			throw new CommandException("The key in the account object " + account + " is not in base64 format", e);
 		}
 	}
 

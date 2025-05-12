@@ -34,6 +34,7 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.moka.api.AccountCreationOutput;
 import io.hotmoka.moka.api.GasCost;
+import io.hotmoka.moka.internal.converters.NonNegativeBigIntegerOptionConverter;
 import io.hotmoka.moka.internal.converters.PublicKeyOrKeyPairOptionConverter;
 import io.hotmoka.moka.internal.converters.StorageReferenceOrFaucetOptionConverter;
 import io.hotmoka.moka.internal.json.AccountCreationOutputJson;
@@ -68,7 +69,7 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 	@Parameters(index = "0", paramLabel = "<storage reference or \"faucet\">", description = "the account that pays for the creation, or \"faucet\" to let the faucet of the network pay, if it is open", converter = StorageReferenceOrFaucetOptionConverter.class)
 	private StorageReferenceOrFaucet payer;
 
-	@Parameters(index = "1", description = "the initial balance of the new account; this will be deduced from the balance of the payer", defaultValue = "0")
+	@Parameters(index = "1", description = "the initial balance of the new account; this will be deduced from the balance of the payer", defaultValue = "0", converter = NonNegativeBigIntegerOptionConverter.class)
 	private BigInteger balance;
 
 	@Parameters(index = "2", paramLabel = "<Base58-encoded public key or path>", description = "the public key of the new account, given either as an explicit Base58-encoded public key or as the path of a key pair file containing the public key", converter = PublicKeyOrKeyPairOptionConverter.class)

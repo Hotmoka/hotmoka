@@ -37,6 +37,7 @@ import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.moka.NodesFaucetOutputs;
 import io.hotmoka.moka.api.nodes.NodesFaucetOutput;
 import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
+import io.hotmoka.moka.internal.converters.NonNegativeBigIntegerOptionConverter;
 import io.hotmoka.moka.internal.json.NodesFaucetOutputJson;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.MethodSignatures;
@@ -60,7 +61,7 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class Faucet extends AbstractMokaRpcCommand {
 
-	@Parameters(description = "the maximal amount of coins sent at each call to the faucet of the node")
+	@Parameters(description = "the maximal amount of coins sent at each call to the faucet of the node", converter = NonNegativeBigIntegerOptionConverter.class)
     private BigInteger max;
 
 	@Option(names = "--dir", paramLabel = "<path>", description = "the path of the directory where the key pair of the gamete can be found", defaultValue = "")

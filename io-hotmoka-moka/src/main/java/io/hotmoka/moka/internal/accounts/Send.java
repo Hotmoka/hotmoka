@@ -43,6 +43,7 @@ import io.hotmoka.moka.api.GasCost;
 import io.hotmoka.moka.api.accounts.AccountsSendOutput;
 import io.hotmoka.moka.internal.AbstractGasCostCommand;
 import io.hotmoka.moka.internal.StorageReferenceOrFaucet;
+import io.hotmoka.moka.internal.converters.NonNegativeBigIntegerOptionConverter;
 import io.hotmoka.moka.internal.converters.StorageReferenceOrFaucetOptionConverter;
 import io.hotmoka.moka.internal.converters.TransactionReferenceOptionConverter;
 import io.hotmoka.moka.internal.json.AccountsSendOutputJson;
@@ -72,7 +73,7 @@ public class Send extends AbstractGasCostCommand {
 	@Parameters(index = "0", description = "the sender account, that also pays for the transaction; this is either a storage reference or the word \"faucet\", to let the faucet of the network pay, if it is open", converter = StorageReferenceOrFaucetOptionConverter.class)
 	private StorageReferenceOrFaucet payer;
 
-	@Parameters(index = "1", description = "the amount of coins to send to the destination; this will be deduced from the balance of the sender", defaultValue = "0")
+	@Parameters(index = "1", description = "the amount of coins to send to the destination; this will be deduced from the balance of the sender", defaultValue = "0", converter = NonNegativeBigIntegerOptionConverter.class)
     private BigInteger amount;
 
 	@Parameters(index = "2", description = "the receiver contract; this is either a storage reference or the Base58-encoded public key of the receiver account, that will be added to the accounts ledger", converter = ReceiverOptionConverter.class)

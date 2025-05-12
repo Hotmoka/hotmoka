@@ -31,6 +31,7 @@ import io.hotmoka.moka.NodesTendermintValidatorsSellOutputs;
 import io.hotmoka.moka.api.GasCost;
 import io.hotmoka.moka.api.nodes.tendermint.validators.NodesTendermintValidatorsSellOutput;
 import io.hotmoka.moka.internal.AbstractGasCostCommand;
+import io.hotmoka.moka.internal.converters.NonNegativeBigIntegerOptionConverter;
 import io.hotmoka.moka.internal.converters.StorageReferenceOptionConverter;
 import io.hotmoka.moka.internal.json.NodesTendermintValidatorsSellOutputJson;
 import io.hotmoka.node.MethodSignatures;
@@ -60,10 +61,10 @@ public class Sell extends AbstractGasCostCommand {
 	@Parameters(index = "0", paramLabel = "<seller>", description = "the storage reference of the validator that sells part or all of its validation power; it also pays for the transaction", converter = StorageReferenceOptionConverter.class)
     private StorageReference payer;
 
-	@Parameters(index = "1", description = "the amount of validation power that is placed on sale")
+	@Parameters(index = "1", description = "the amount of validation power that is placed on sale", converter = NonNegativeBigIntegerOptionConverter.class)
     private BigInteger power;
 
-	@Parameters(index = "2", description = "the total price of the validation power that is placed on sale")
+	@Parameters(index = "2", description = "the total price of the validation power that is placed on sale", converter = NonNegativeBigIntegerOptionConverter.class)
     private BigInteger price;
 
 	@Parameters(index = "3", paramLabel = "<milliseconds>", description = "the duration of validity of the offer from time of placement", defaultValue = "300_000L")
