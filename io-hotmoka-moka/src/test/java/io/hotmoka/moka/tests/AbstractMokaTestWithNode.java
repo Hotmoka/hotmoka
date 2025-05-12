@@ -63,23 +63,27 @@ public abstract class AbstractMokaTestWithNode extends AbstractMokaTest {
 	@BeforeAll
 	public static void beforeAll(@TempDir Path dir) throws Exception {
 		AbstractMokaTestWithNode.dir = dir;
-		//var nodeConfig = TendermintNodeConfigBuilders.defaults().setDir(dir.resolve("chain")).setTendermintConfigurationToClone(Paths.get("src", "test", "resources", "tendermint_configs", "v1n0", "node0")).build();
-		var nodeConfig = DiskNodeConfigBuilders.defaults().setDir(dir.resolve("chain")).build();
 		var signature = SignatureAlgorithms.ed25519();
 		var entropy = Entropies.random();
-
 		keysOfGamete = entropy.keys(passwordOfGamete, signature);
+		var takamakaCodePath = Maven.resolver().resolve("io.hotmoka:io-takamaka-code:" + Constants.TAKAMAKA_VERSION).withoutTransitivity().asSingleFile().toPath();
 
-		/*var consensus = ValidatorsConsensusConfigBuilders.defaults(signature)
-			.allowUnsignedFaucet(true)
-			.setInitialGasPrice(BigInteger.valueOf(100L))
-			.setSignatureForRequests(signature)
-			.setChainId("mryia")
-			.setInitialSupply(BigInteger.valueOf(4000000000000000000L))
-			.setFinalSupply(BigInteger.valueOf(8000000000000000000L))
-			.setPublicKeyOfGamete(keysOfGamete.getPublic())
-			.build();*/
+		/*
+		var nodeConfig = TendermintNodeConfigBuilders.defaults().setDir(dir.resolve("chain")).setTendermintConfigurationToClone(Paths.get("src", "test", "resources", "tendermint_configs", "v1n0", "node0")).build();
+		var consensus = ValidatorsConsensusConfigBuilders.defaults(signature)
+		.allowUnsignedFaucet(true)
+		.setInitialGasPrice(BigInteger.valueOf(100L))
+		.setSignatureForRequests(signature)
+		.setChainId("mryia")
+		.setInitialSupply(BigInteger.valueOf(4000000000000000000L))
+		.setFinalSupply(BigInteger.valueOf(8000000000000000000L))
+		.setPublicKeyOfGamete(keysOfGamete.getPublic())
+		.build();
+		var node = TendermintNodes.init(nodeConfig);
+		var init = TendermintInitializedNodes.of(node, consensus, takamakaCodePath);
+		*/
 
+		var nodeConfig = DiskNodeConfigBuilders.defaults().setDir(dir.resolve("chain")).build();
 		var consensus = ConsensusConfigBuilders.defaults(signature)
 				.allowUnsignedFaucet(true)
 				.setInitialGasPrice(BigInteger.valueOf(100L))
@@ -89,13 +93,10 @@ public abstract class AbstractMokaTestWithNode extends AbstractMokaTest {
 				.setFinalSupply(BigInteger.valueOf(8000000000000000000L))
 				.setPublicKeyOfGamete(keysOfGamete.getPublic())
 				.build();
-
-		//var node = TendermintNodes.init(nodeConfig);
 		var node = DiskNodes.init(nodeConfig);
-		AbstractMokaTestWithNode.node = node;
-		var takamakaCodePath = Maven.resolver().resolve("io.hotmoka:io-takamaka-code:" + Constants.TAKAMAKA_VERSION).withoutTransitivity().asSingleFile().toPath();
-		//var init = TendermintInitializedNodes.of(node, consensus, takamakaCodePath);
 		var init = InitializedNodes.of(node, consensus, takamakaCodePath);
+
+		AbstractMokaTestWithNode.node = node;
 		gamete = init.gamete();
 		takamakaCode = node.getTakamakaCode();
 		entropy.dump(dir.resolve(gamete + ".pem")); // we save the entropy in a file named as the address of the gamete, that is, as an account
