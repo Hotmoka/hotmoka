@@ -1,0 +1,14 @@
+#!/bin/bash
+
+echo
+echo "Starting a Mokamint node as the single initial node of a brand new blockchain"
+
+moka nodes mokamint init \
+	modules/explicit_or_automatic/io-takamaka-code-1.4.1.jar \
+	hotmoka_mokamint/plot.plot \
+	hotmoka_mokamint/node.pem \
+	hotmoka_mokamint/miner.pem \
+	--yes \
+	--mokamint-config=hotmoka_mokamint/mokamint_config.toml \
+	--consensus-config=hotmoka_mokamint/consensus_config.toml \
+	--local-config=hotmoka_mokamint/local_config.toml

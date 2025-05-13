@@ -3,7 +3,8 @@ modules/
 docs/
 chain*
 mokamint-chain/
-mokamint_node*
+hotmoka_mokamint*
+hotmoka_tendermint*
 hotmoka-chain/
 disk-chain/
 .metadata/

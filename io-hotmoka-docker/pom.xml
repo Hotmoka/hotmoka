@@ -161,6 +161,33 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+		<groupId>io.fabric8</groupId>
+  		<artifactId>docker-maven-plugin</artifactId>
+  		<version>0.46.0</version>
+	    <configuration>
+		  <images>
+		    <image>
+		      <name>hotmoka/mokamint-node:${hotmoka.version}</name>
+		      <build>
+		        <contextDir>../../..</contextDir>
+		        <dockerFile>src/main/docker/mokamint-node/mokamint-node</dockerFile>
+		      </build>
+			</image>
+		  </images>
+  		</configuration>
+  		<!-- Adding this part always executes the docker:build during Maven's package phase.
+             No need to execute above mentioned command. -->
+        <executions>
+          <execution>
+            <id>docker:build</id>
+            <phase>package</phase>
+            <goals>
+              <goal>build</goal>
+            </goals>
+          </execution>
+        </executions>
+	  </plugin>
     </plugins>
   </build>
 

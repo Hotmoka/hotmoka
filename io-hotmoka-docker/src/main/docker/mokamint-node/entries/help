@@ -1,0 +1,11 @@
+#!/bin/bash
+
+echo
+echo "This container manages Hotmoka nodes based on Mokamint."
+echo "It understands the following commands:"
+echo
+echo "  help:   print this help"
+echo "  config: create the configuration directory of a node"
+echo "  init:   create a node for a brand new blockchain"
+echo "  start:  create a node that connects to an already existing node of a blockchain"
+echo "  resume: resume a node whose container was previously turned off with \"docker stop\""
