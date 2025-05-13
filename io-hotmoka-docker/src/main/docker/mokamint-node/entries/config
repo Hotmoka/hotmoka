@@ -2,24 +2,46 @@
 
 CHAIN_ID=${CHAIN_ID:-""}
 OPEN_UNSIGNED_FAUCET=${OPEN_UNSIGNED_FAUCET:-false}
-HOTMOKA_NODE_DIR=${HOTMOKA_NODE_DIR:-"hotmoka_mokamint_node"}
 PUBLIC_KEY_OF_GAMETE=${PUBLIC_KEY_OF_GAMETE:-""}
 TARGET_BLOCK_CREATION_TIME=${TARGET_BLOCK_CREATION_TIME:-10000}
 
 echo
-echo "Starting a Mokamint node as the single initial node of a brand new blockchain"
+echo "Creating the configuration directory of a Mokamint node."
+echo
 echo "  CHAIN_ID=$CHAIN_ID"
 echo "  OPEN_UNSIGNED_FAUCET=$OPEN_UNSIGNED_FAUCET"
 echo "  PUBLIC_KEY_OF_GAMETE=$PUBLIC_KEY_OF_GAMETE"
 echo "  TARGET_BLOCK_CREATION_TIME=$TARGET_BLOCK_CREATION_TIME"
+echo
 
-moka nodes mokamint init \
-	modules/explicit_or_automatic/io-takamaka-code-1.4.1.jar \
-	${HOTMOKA_NODE_DIR}/plot.plot \
-	${HOTMOKA_NODE_DIR}/node.pem \
-	${HOTMOKA_NODE_DIR}/miner.pem \
-	--open-unsigned-faucet=${OPEN_UNSIGNED_FAUCET} \
-	--yes \
-	--mokamint-config=${HOTMOKA_NODE_DIR}/mokamint_config.toml \
-	--consensus-config=${HOTMOKA_NODE_DIR}/consensus_config.toml \
-	--local-config=${HOTMOKA_NODE_DIR}/local_config.toml
+echo "Creating directory hotmoka_mokamint:"
+mkdir hotmoka_mokamint
+
+echo
+echo "Creating the node.pem key pair for signing the blocks:"
+moka keys create --output-dir=hotmoka_mokamint --name=node.pem
+
+echo
+echo "Creating the miner.pem key pair for signing the deadlines:"
+moka keys create --output-dir=hotmoka_mokamint --name=miner.pem
+
+echo
+echo "Creating the local Hotmoka node configuration file:"
+touch hotmoka_mokamint/local_config.toml
+
+echo
+echo "Creating the consensus Hotmoka node configuration file:"
+touch hotmoka_mokamint/consensus_config.toml
+
+echo
+echo "Creating the Mokamint configuration file:"
+touch hotmoka_mokamint/mokamint_config.toml
+
+echo
+echo "Creating the plot file for the miner:"
+touch hotmoka_mokamint/plot.plot
+
+echo
+echo "You can now copy the configuration directory into your local file system with:"
+echo "  docker cp THIS_DOCKER_ID:/home/hotmoka/hotmoka_mokamint ."
+echo
