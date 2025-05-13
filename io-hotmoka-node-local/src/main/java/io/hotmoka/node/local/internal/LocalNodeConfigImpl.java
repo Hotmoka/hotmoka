@@ -245,9 +245,8 @@ public abstract class LocalNodeConfigImpl<C extends LocalNodeConfig<C,B>, B exte
 			}
 			catch (RuntimeException e) {
 				// the toml4j library wraps the FileNotFoundException inside a RuntimeException...
-				Throwable cause = e.getCause();
-				if (cause instanceof FileNotFoundException)
-					throw (FileNotFoundException) cause;
+				if (e.getCause() instanceof FileNotFoundException fnfe)
+					throw fnfe;
 				else
 					throw e;
 			}

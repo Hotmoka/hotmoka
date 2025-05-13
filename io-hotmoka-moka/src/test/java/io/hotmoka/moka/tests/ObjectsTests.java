@@ -35,7 +35,7 @@ import io.hotmoka.node.api.responses.ConstructorCallTransactionSuccessfulRespons
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractLocalNode;
-import io.takamaka.code.lang.RequirementViolationException;
+import io.takamaka.code.constants.Constants;
 
 /**
  * Tests for the moka objects commands.
@@ -112,6 +112,6 @@ public class ObjectsTests extends AbstractMokaTestWithNode {
 		var playAgainCallOutput = ObjectsCallOutputs.from(Moka.objectsCall(account + " io.hotmoka.examples.tictactoe.TicTacToe play 100 2 1 --classpath=" + jarsInstallOutput.getJar().get() + " --password-of-payer=" + passwordOfNewAccount + " --receiver=" + ticTacToe + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
 		// this time the call fails with an error
 		assertTrue(playAgainCallOutput.getErrorMessage().isPresent());
-		assertTrue(playAgainCallOutput.getErrorMessage().get().startsWith(RequirementViolationException.class.getName() + ": you cannot play against yourself"));
+		assertTrue(playAgainCallOutput.getErrorMessage().get().startsWith(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME + ": you cannot play against yourself"));
 	}
 }

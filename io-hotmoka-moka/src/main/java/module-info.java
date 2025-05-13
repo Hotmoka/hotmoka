@@ -40,31 +40,31 @@ module io.hotmoka.moka {
     // for parsing JSON through gson
     opens io.hotmoka.moka.internal.json to com.google.gson;
 
-    requires com.google.gson;
+    requires com.google.gson; // OK
     // this makes sun.misc.Unsafe accessible, so that Gson can instantiate classes without the no-args constructor
  	requires jdk.unsupported;
 
  	requires transitive io.hotmoka.moka.api;
-    requires io.hotmoka.helpers;
-    requires io.hotmoka.node.tendermint;
-    requires io.hotmoka.node.mokamint;
-	requires io.hotmoka.node.disk;
-	requires io.hotmoka.node.local;
-	requires io.hotmoka.node.service;
-	requires io.hotmoka.node.remote;
-	requires io.hotmoka.instrumentation;
-	requires io.hotmoka.whitelisting.api;
-	requires io.hotmoka.cli;
-	requires io.hotmoka.crypto;
-	requires io.hotmoka.exceptions;
-	requires io.hotmoka.annotations;
-	requires io.takamaka.code.constants;
-	requires io.mokamint.node.local;
-	requires io.mokamint.plotter;
-	requires io.mokamint.miner.local;
-	requires io.mokamint.node.service;
-	requires io.hotmoka.websockets.beans;
-	requires io.hotmoka.websockets.client.api;
-	requires info.picocli;
+    requires io.hotmoka.helpers; // OK
+    requires io.hotmoka.node.tendermint; // OK
+    requires io.hotmoka.node.mokamint; // OK
+	requires io.hotmoka.node.disk; // OK
+	requires io.hotmoka.node.local; // OK
+	requires io.hotmoka.node.service; // OK
+	requires io.hotmoka.node.remote; // OK
+	requires io.hotmoka.instrumentation; // OK
+	requires io.hotmoka.whitelisting.api; // OK
+	requires io.hotmoka.cli; // OK
+	requires io.hotmoka.crypto; // OK
+	requires io.hotmoka.exceptions; // OK
+	requires io.hotmoka.annotations; // OK
+	requires io.takamaka.code.constants; // OK
+	requires io.mokamint.node.local; // OK
+	requires io.mokamint.plotter; // OK
+	requires io.mokamint.miner.local; // OK
+	requires io.mokamint.node.service; // OK
+	requires io.hotmoka.websockets.beans; // OK
+	requires io.hotmoka.websockets.client.api; // OK
+	requires info.picocli; // OK
 	requires java.logging;
 }

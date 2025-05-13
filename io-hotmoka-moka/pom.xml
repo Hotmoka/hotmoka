@@ -30,13 +30,6 @@
       <artifactId>io-takamaka-code-constants</artifactId>
       <version>${io.takamaka.code.version}</version>
     </dependency>
-    <!-- the next dependency is not used but it is handy to have it in the modules directory -->
-    <!-- since it is useful to the users of moka -->
-    <dependency>
-      <groupId>io.hotmoka</groupId>
-      <artifactId>io-takamaka-code</artifactId>
-      <version>${io.takamaka.code.version}</version>
-    </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-node-tendermint</artifactId>
@@ -45,11 +38,6 @@
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-node-mokamint</artifactId>
-      <version>${hotmoka.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-node-api</artifactId>
       <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
@@ -99,15 +87,50 @@
     </dependency>   
     <dependency>
       <groupId>io.mokamint</groupId>
-      <artifactId>io-mokamint-node-service</artifactId>
+      <artifactId>io-mokamint-node-local</artifactId>
       <version>${mokamint.version}</version>
     </dependency>  
+    <dependency>
+      <groupId>io.mokamint</groupId>
+      <artifactId>io-mokamint-node-service</artifactId>
+      <version>${mokamint.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka.websockets</groupId>
+      <artifactId>io-hotmoka-websockets-beans</artifactId>
+      <version>${io.hotmoka.websockets.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka.websockets</groupId>
+      <artifactId>io-hotmoka-websockets-client-api</artifactId>
+      <version>${io.hotmoka.websockets.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>2.8.9</version>
+    </dependency>
 	<dependency>
       <groupId>info.picocli</groupId>
       <artifactId>picocli</artifactId>
       <version>4.7.2</version>
 	</dependency>
-	<!-- The following must be added explicitly otherwise ends up added as test dependency only, for some reason -->
+ 	<dependency>
+      <groupId>io.hotmoka.crypto</groupId>
+      <artifactId>io-hotmoka-crypto</artifactId>
+      <version>${io.hotmoka.crypto.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka.annotations</groupId>
+      <artifactId>io-hotmoka-annotations</artifactId>
+      <version>${io.hotmoka.annotations.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka.exceptions</groupId>
+      <artifactId>io-hotmoka-exceptions</artifactId>
+      <version>${io.hotmoka.exceptions.version}</version>
+    </dependency>
+	<!-- The next one must be added explicitly otherwise ends up added as test dependency only, for some reason -->
 	<dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>failureaccess</artifactId>
@@ -167,7 +190,7 @@
         <artifactId>maven-jar-plugin</artifactId>
         <version>3.3.0</version>
         <configuration>
-          <outputDirectory>./modules/explicit</outputDirectory>
+          <outputDirectory>./modules/explicit_or_automatic</outputDirectory>
         </configuration>
       </plugin>
       <plugin>
@@ -182,7 +205,7 @@
 		</configuration>
         <executions>
           <execution>
-            <id>copy-unnamed-module</id>
+            <id>copy-unnamed-modules</id>
             <phase>package</phase>
             <goals>
               <goal>copy-dependencies</goal>
@@ -221,31 +244,13 @@
             </configuration>
           </execution>
           <execution>
-            <id>copy-automatic-modules</id>
+            <id>copy-explicit-or-automatic-modules</id>
             <phase>package</phase>
             <goals>
               <goal>copy-dependencies</goal>
             </goals>
             <configuration>
-              <outputDirectory>./modules/automatic</outputDirectory>
-              <includeArtifactIds>
-                bcel,
-                grpc-stub,
-                io-hotmoka-node-tendermint-abci,
-                io-hotmoka-xodus,
-                javax.annotation-api,
-                protobuf-java
-              </includeArtifactIds>
-            </configuration>
-          </execution>
-          <execution>
-            <id>copy-explicit-modules</id>
-            <phase>package</phase>
-            <goals>
-              <goal>copy-dependencies</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>./modules/explicit</outputDirectory>
+              <outputDirectory>./modules/explicit_or_automatic</outputDirectory>
               <excludeArtifactIds>
                 <!-- we exclude all unnamed modules -->
                 animal-sniffer-annotations,
@@ -275,14 +280,6 @@
                 xodus-environment,
                 xodus-openAPI,
                 xodus-utils,
-
-                <!-- we exclude all automatic modules -->
-                bcel,
-                grpc-stub,
-                io-hotmoka-node-tendermint-abci,
-                io-hotmoka-xodus,
-                javax.annotation-api,
-                protobuf-java
               </excludeArtifactIds>
             </configuration>
           </execution>
