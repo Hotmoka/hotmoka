@@ -202,12 +202,12 @@
 			</image>
 		  </images>
   		</configuration>
-  		<!-- Adding this part always executes the docker:build during Maven's package phase.
+  		<!-- Adding this part always executes the docker:build during Maven's deploy phase.
              No need to execute above mentioned command. -->
         <executions>
           <execution>
             <id>docker:build</id>
-            <phase>package</phase>
+            <phase>deploy</phase>
             <goals>
               <goal>build</goal>
             </goals>
