@@ -1,9 +1,18 @@
-# In order to create the image:
+# In order to create the image, from the top level of the module, either
+#   mvn install
+# or
+#   docker buildx build --platform linux/amd64 -t hotmoka/mokamint-node:latest -f src/main/docker/mokamint-node/mokamint-node .
 #
-# docker buildx build --platform linux/amd64 -t hotmoka/mokamint-node:latest -f dockerfiles/mokamint-node/mokamint-node .
+# To create the configuration directory:
+#   docker rm mokamint_node; docker run --name mokamint_node -it -e PUBLIC_KEY_OF_GAMETE="ZgEyMfo89coBtA2i7IMnLzZleFzWLcfDan3dMVDDb38=" hotmoka/mokamint-node:latest config
 #
-# In order to publish a node at port 8001 whose underlying Mokamint node is published at port 8030:
-# create a local directory "mokamint_node" containing the following files, named exactly as follows:
+# then copy the configuration directory on your local machine:
+#   docker cp mokamint_node:/home/hotmoka/hotmoka_mokamint .
+#
+# [Edit the configuration on your local machine, if needed]
+#
+# To publish a node at port 8001 whose underlying Mokamint node is published at port 8030/8031:
+#   docker rm mokamint_node; docker run -it --name mokamint_node -p 8001:8001 -p 8030:8030 -p 8031:8031 -v chain:/home/hotmoka/chain -v ./hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:latest init
 #
 # miner.pem
 # node.pem
@@ -41,6 +50,8 @@ WORKDIR /usr/local/bin
 # install missing packages
 RUN apt-get update \
   && apt-get install -y python3 \
+  && apt-get install -y vim \
+  && apt-get install -y tree \
   && rm -rf /var/lib/apt/lists/*
 
 # create hotmoka user
@@ -55,10 +66,16 @@ RUN mkdir /home/hotmoka/chain \
 COPY modules/ /home/hotmoka/modules/
 
 # we add /home/hotmoka to the classpath in order to find the logging properties file
-RUN echo java -Djava.util.logging.config.file=logging.properties --module-path modules/explicit_or_automatic --class-path \"/home/hotmoka/:modules/unnamed/*\" --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module io.hotmoka.moka/io.hotmoka.moka.Moka \"\$@\" > moka \
+RUN echo "#!/bin/bash" > moka \
+	&& echo "#!/bin/bash" > moka-no-logs \
+	&& echo "#!/bin/bash" > mokamint_plotter
+
+RUN echo java -Djava.util.logging.config.file=logging.properties --module-path modules/explicit_or_automatic --class-path \"/home/hotmoka/:modules/unnamed/*\" --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module io.hotmoka.moka/io.hotmoka.moka.Moka \"\$@\" >> moka \
   && chmod a+x moka \
   && echo java --module-path modules/explicit_or_automatic --class-path \"/home/hotmoka/:modules/unnamed/*\" --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module io.hotmoka.moka/io.hotmoka.moka.Moka \"\$@\" > moka-no-logs \
-  && chmod a+x moka-no-logs
+  && chmod a+x moka-no-logs \
+  && echo java -Djava.util.logging.config.file=logging.properties --module-path modules/explicit_or_automatic --class-path \"/home/hotmoka/:modules/unnamed/*\" --module io.mokamint.plotter.cli/io.mokamint.plotter.cli.MokamintPlotter \"\$@\" > mokamint_plotter \
+  && chmod a+x mokamint_plotter
 
 # install the control scripts
 COPY src/main/docker/mokamint-node/entries/* ./

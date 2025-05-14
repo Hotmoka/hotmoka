@@ -15,16 +15,28 @@
   </parent>
 
   <dependencies>
+
+    <!-- we use moka inside the docker container -->
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-moka</artifactId>
       <version>${hotmoka.version}</version>
     </dependency>
+
+	<!-- we install this jar inside the blockchains, hence we need it -->
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-takamaka-code</artifactId>
       <version>${io.takamaka.code.version}</version>
     </dependency>
+
+    <!-- we use mokamint-plotter inside the docker container -->
+    <dependency>
+      <groupId>io.mokamint</groupId>
+      <artifactId>io-mokamint-plotter-cli</artifactId>
+      <version>${mokamint.version}</version>
+    </dependency>
+
   </dependencies>
 
   <build>
@@ -112,6 +124,7 @@
                 perfmark-api,
                 proto-google-common-protos,
                 slf4j-api,
+                slf4j-nop,
                 xodus-compress,
                 xodus-environment,
                 xodus-openAPI,

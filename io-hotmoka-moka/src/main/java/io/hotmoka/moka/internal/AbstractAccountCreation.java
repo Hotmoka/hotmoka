@@ -424,10 +424,10 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 			account.ifPresent(o -> sb.append("A new account " + o + " has been created.\n"));
 			if (file.isPresent())
 				sb.append("Its key pair has been saved into the file " + asPath(file.get()) + ".\n");
-			else if (getErrorMessage().isEmpty()) {
+			else if (getErrorMessage().isEmpty() && account.isPresent()) {
 				sb.append("The owner of the key pair can bind it to its address with:\n");
 				sb.append("\n");
-				sb.append(asCommand("  moka keys bind file_containing_the_key_pair_of_the_account --password --reference " + account + "\n"));
+				sb.append(asCommand("  moka keys bind file_containing_the_key_pair_of_the_account --password --reference " + account.get() + "\n"));
 			}
 		}
 	}
