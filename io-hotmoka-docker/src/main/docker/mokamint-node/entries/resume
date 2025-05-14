@@ -1,9 +1,18 @@
 #!/bin/bash
 
-MAX_GAS_PER_VIEW=${MAX_GAS_PER_VIEW:-10000000}
-
 echo
-echo "Resuming an already existing node:"
-echo "  MAX_GAS_PER_VIEW=$MAX_GAS_PER_VIEW"
+echo "Resuming an already existing node"
+echo "  VISIBLE_AS=${VISIBLE_AS}"
 
-moka resume-mokamint --interactive=true --mokamint-config=mokamint_node/mokamint_config.cfg --plot mokamint_node/plot.plot --keys mokamint_node/node.pem --keys-of-plot mokamint_node/miner.pem --max-gas-per-view ${MAX_GAS_PER_VIEW}
+if [ ! -z "$VISIBLE_AS" ]
+then
+      VISIBLE_AS="--visible-as ${VISIBLE_AS}"
+fi
+
+moka nodes mokamint resume \
+	hotmoka_mokamint/plot.plot \
+	hotmoka_mokamint/node.pem \
+	hotmoka_mokamint/miner.pem \
+	--mokamint-config=hotmoka_mokamint/mokamint_config.toml \
+	--local-config=hotmoka_mokamint/local_config.toml \
+	$VISIBLE_AS

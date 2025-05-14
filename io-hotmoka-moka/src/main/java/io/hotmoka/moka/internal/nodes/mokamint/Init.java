@@ -91,6 +91,9 @@ public class Init extends AbstractNodeInit {
 	@Option(names = "--mokamint-port-restricted", description = "the network port where the restricted Mokamint service must be published", defaultValue="8031")
 	private int mokamintPortRestricted;
 
+	@Option(names = "--visible-as", description = "the URI that can be used to contact the public Mokamint service from outside; if missing, Mokamint will try to guess its URI, which might fail, especially from inside a Docker container")
+	private URI visibleAs;
+
 	@Option(names = "--password-of-mokamint-node", description = "the password of the key pair of the Mokamint node", interactive = true, defaultValue = "")
     private char[] passwordOfKeysOfMokamintNode;
 
@@ -114,7 +117,7 @@ public class Init extends AbstractNodeInit {
 
 					// the next services will be closed when the node will be closed
 					var mokamintNodePublicURI = URI.create("ws://localhost:" + mokamintPort);
-					PublicNodeServices.open(mokamintNode, mokamintPort, 1800000, 1000, Optional.empty());
+					PublicNodeServices.open(mokamintNode, mokamintPort, 1800000, 1000, Optional.ofNullable(visibleAs));
 					RestrictedNodeServices.open(mokamintNode, mokamintPortRestricted);
 
 					try (var initialized = InitializedNodes.of(node, consensus, getTakamakaCode()); var service = NodeServices.of(node, getPort())) {

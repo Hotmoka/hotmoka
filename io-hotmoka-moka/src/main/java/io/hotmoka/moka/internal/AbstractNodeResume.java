@@ -34,9 +34,6 @@ public abstract class AbstractNodeResume extends AbstractMokaCommand {
 	@Option(names = "--max-gas-per-view", description = "the maximal gas limit accepted for calls to @View methods") 
 	private BigInteger maxGasPerView;
 
-	@Option(names = "--yes", description = "assume yes when asked for confirmation; this is implied if --json is used")
-	private boolean yes;
-
 	@Option(names = "--port", description = "the network port where the service must be published", defaultValue="8001")
 	private int port;
 

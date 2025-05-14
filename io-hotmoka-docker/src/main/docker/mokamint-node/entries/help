@@ -9,3 +9,6 @@ echo "  config: create the configuration directory of a node"
 echo "  init:   create a node for a brand new blockchain"
 echo "  start:  create a node that connects to an already existing node of a blockchain"
 echo "  resume: resume a node whose container was previously turned off with \"docker stop\""
+echo
+echo "  init/start/resume understand the VISIBLE_AS Docker variable, that specify the URI"
+echo "  of the public service of the node, as it is visible from the external world"

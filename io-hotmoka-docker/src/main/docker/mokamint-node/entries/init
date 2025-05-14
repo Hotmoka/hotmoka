@@ -2,6 +2,12 @@
 
 echo
 echo "Starting a Mokamint node as the single initial node of a brand new blockchain"
+echo "  VISIBLE_AS=${VISIBLE_AS}"
+
+if [ ! -z "$VISIBLE_AS" ]
+then
+      VISIBLE_AS="--visible-as ${VISIBLE_AS}"
+fi
 
 moka nodes mokamint init \
 	modules/explicit_or_automatic/io-takamaka-code-1.4.1.jar \
@@ -11,4 +17,5 @@ moka nodes mokamint init \
 	--yes \
 	--mokamint-config=hotmoka_mokamint/mokamint_config.toml \
 	--consensus-config=hotmoka_mokamint/consensus_config.toml \
-	--local-config=hotmoka_mokamint/local_config.toml
+	--local-config=hotmoka_mokamint/local_config.toml \
+	$VISIBLE_AS
