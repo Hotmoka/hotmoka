@@ -185,6 +185,19 @@
 		      <build>
 		        <contextDir>../../..</contextDir>
 		        <dockerFile>src/main/docker/mokamint-node/mokamint-node</dockerFile>
+                <createImageOptions>
+                  <platform>linux/amd64</platform>
+                </createImageOptions>
+		      </build>
+			</image>
+			<image>
+		      <name>hotmoka/mokamint-node-arm64:${hotmoka.version}</name>
+		      <build>
+		        <contextDir>../../..</contextDir>
+		        <dockerFile>src/main/docker/mokamint-node/mokamint-node-arm64</dockerFile>
+                <createImageOptions>
+                  <platform>linux/arm64</platform>
+                </createImageOptions>
 		      </build>
 			</image>
 		  </images>
