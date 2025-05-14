@@ -49,7 +49,7 @@ WORKDIR /usr/local/bin
     
 # install missing packages
 RUN apt-get update \
-  && apt-get install -y python3 vim tree \
+  && apt-get install -y python3 \
   && rm -rf /var/lib/apt/lists/*
 
 # create hotmoka user
