@@ -4,7 +4,9 @@
 #   docker buildx build --platform linux/amd64 -t hotmoka/mokamint-node:latest -f src/main/docker/mokamint-node/mokamint-node .
 #
 # To create the configuration directory:
-#   docker rm mokamint_node; docker run --name mokamint_node -it -e PUBLIC_KEY_OF_GAMETE="ZgEyMfo89coBtA2i7IMnLzZleFzWLcfDan3dMVDDb38=" hotmoka/mokamint-node:latest config
+#   docker rm mokamint_node; docker run --name mokamint_node -it -e PUBLIC_KEY_OF_GAMETE="ZgEyMfo89coBtA2i7IMnLzZleFzWLcfDan3dMVDDb38=" hotmoka/mokamint-node:latest config-init
+# or
+#   docker rm mokamint_node; docker run --name mokamint_node -it -e REMOTE_SERVICE_URI=ws://panarea.hotmoka.io:8030 hotmoka/mokamint-node:latest config-start
 #
 # This configuration directory will contain:
 #
@@ -19,6 +21,7 @@
 # 1) miner.pem and node.pem are key pairs with empty password
 # 2) plot.plot must use node.pem as key for signing the blocks, miner.pem as key for signing the deadlines and the chain identifier in mokamint_config.toml
 # 3) the three toml configuration files must be present but may be completely empty: for the missing options, defaults will be used
+# 4) consensus_config.toml is present only if config_init is used
 #
 # After creating the configuration directory, copy its content to your local machine:
 #   docker cp mokamint_node:/home/hotmoka/hotmoka_mokamint .
@@ -70,20 +73,28 @@ RUN echo "#!/bin/bash" > moka \
 # add /home/hotmoka to the classpath in order to find the logging properties file
 RUN echo java -Djava.util.logging.config.file=logging.properties --module-path /modules/explicit_or_automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module io.hotmoka.moka/io.hotmoka.moka.Moka \"\$@\" >> moka \
   && chmod a+x moka \
-  && echo java --module-path /modules/explicit_or_automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module io.hotmoka.moka/io.hotmoka.moka.Moka \"\$@\" > moka-no-logs \
+  && echo java --module-path /modules/explicit_or_automatic --class-path \"/modules/unnamed/*\" --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module io.hotmoka.moka/io.hotmoka.moka.Moka \"\$@\" > moka-no-logs \
   && chmod a+x moka-no-logs \
-  && echo java -Djava.util.logging.config.file=logging.properties --module-path /modules/explicit_or_automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --module io.mokamint.application.cli/io.mokamint.application.cli.MokamintApplication \"\$@\" > mokamint_application \
-  && chmod a+x mokamint_application \
-  && echo java -Djava.util.logging.config.file=logging.properties --module-path /modules/explicit_or_automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --module io.mokamint.miner.cli/io.mokamint.miner.cli.MokamintMiner \"\$@\" > mokamint_miner \
-  && chmod a+x mokamint_miner \
-  && echo java -Djava.util.logging.config.file=logging.properties --module-path /modules/explicit_or_automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --module io.mokamint.node.cli/io.mokamint.node.cli.MokamintNode \"\$@\" > mokamint_node \
-  && chmod a+x mokamint_node \
-  && echo java -Djava.util.logging.config.file=logging.properties --module-path /modules/explicit_or_automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --module io.mokamint.plotter.cli/io.mokamint.plotter.cli.MokamintPlotter \"\$@\" > mokamint_plotter \
-  && chmod a+x mokamint_plotter
+  && echo java -Djava.util.logging.config.file=logging.properties --module-path /modules/explicit_or_automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --module io.mokamint.application.cli/io.mokamint.application.cli.MokamintApplication \"\$@\" > mokamint-application \
+  && chmod a+x mokamint-application \
+  && echo java --module-path /modules/explicit_or_automatic --class-path \"/modules/unnamed/*\" --module io.mokamint.application.cli/io.mokamint.application.cli.MokamintApplication \"\$@\" > mokamint-application-no-logs \
+  && chmod a+x mokamint-application-no-logs \
+  && echo java -Djava.util.logging.config.file=logging.properties --module-path /modules/explicit_or_automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --module io.mokamint.miner.cli/io.mokamint.miner.cli.MokamintMiner \"\$@\" > mokamint-miner \
+  && chmod a+x mokamint-miner \
+  && echo java --module-path /modules/explicit_or_automatic --class-path \"/modules/unnamed/*\" --module io.mokamint.miner.cli/io.mokamint.miner.cli.MokamintMiner \"\$@\" > mokamint-miner-no-logs \
+  && chmod a+x mokamint-miner-no-logs \
+  && echo java -Djava.util.logging.config.file=logging.properties --module-path /modules/explicit_or_automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --module io.mokamint.node.cli/io.mokamint.node.cli.MokamintNode \"\$@\" > mokamint-node \
+  && chmod a+x mokamint-node \
+  && echo java --module-path /modules/explicit_or_automatic --class-path \"/modules/unnamed/*\" --module io.mokamint.node.cli/io.mokamint.node.cli.MokamintNode \"\$@\" > mokamint-node-no-logs \
+  && chmod a+x mokamint-node-no-logs \
+  && echo java -Djava.util.logging.config.file=logging.properties --module-path /modules/explicit_or_automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --module io.mokamint.plotter.cli/io.mokamint.plotter.cli.MokamintPlotter \"\$@\" > mokamint-plotter \
+  && chmod a+x mokamint-plotter \
+  && echo java --module-path /modules/explicit_or_automatic --class-path \"/modules/unnamed/*\" --module io.mokamint.plotter.cli/io.mokamint.plotter.cli.MokamintPlotter \"\$@\" > mokamint-plotter-no-logs \
+  && chmod a+x mokamint-plotter-no-logs
 
 # install the control scripts
 COPY src/main/docker/mokamint-node/entries/* ./
-RUN chmod 755 help && chmod 755 init && chmod 755 resume && chmod 755 start && chmod 755 config
+RUN chmod 755 help && chmod 755 init && chmod 755 resume && chmod 755 start && chmod 755 config-init && chmod 755 config-start
 
 USER hotmoka
 WORKDIR /home/hotmoka

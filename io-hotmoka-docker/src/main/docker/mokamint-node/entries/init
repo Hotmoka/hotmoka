@@ -10,7 +10,7 @@ then
 fi
 
 moka nodes mokamint init \
-	modules/explicit_or_automatic/io-takamaka-code-1.4.1.jar \
+	/modules/explicit_or_automatic/io-takamaka-code-1.4.1.jar \
 	hotmoka_mokamint/plot.plot \
 	hotmoka_mokamint/node.pem \
 	hotmoka_mokamint/miner.pem \

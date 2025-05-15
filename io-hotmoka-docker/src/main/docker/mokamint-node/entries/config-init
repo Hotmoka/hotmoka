@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# This script creates the configuration directory of a Hotmoka node, with the following structure:
+# This script creates the configuration directory of a Hotmoka node, for starting the first node
+# of a newly initialized blockchain. The configuration directory will have the following structure:
 #
 # miner.pem
 # node.pem
@@ -14,10 +15,10 @@
 # 2) plot.plot uses node.pem as key for signing the blocks, miner.pem as key for signing the deadlines and the chain identifier in mokamint_config.toml
 # 3) options not explicitly reported in the three toml configuration files hold, implicitly, default values
 
+ALLOWS_UNSIGNED_FAUCET=${ALLOWS_UNSIGNED_FAUCET:-false}
 CHAIN_ID=${CHAIN_ID:-""}
 INITIAL_SUPPLY=${INITIAL_SUPPLY:-1000000000000000000000000000000000}
 FINAL_SUPPLY=${FINAL_SUPPLY:-10000000000000000000000000000000000}
-OPEN_UNSIGNED_FAUCET=${OPEN_UNSIGNED_FAUCET:-false}
 PLOT_SIZE=${PLOT_SIZE:-1000}
 PUBLIC_KEY_OF_GAMETE=${PUBLIC_KEY_OF_GAMETE:-""}
 TARGET_BLOCK_CREATION_TIME=${TARGET_BLOCK_CREATION_TIME:-10000}
@@ -25,10 +26,10 @@ TARGET_BLOCK_CREATION_TIME=${TARGET_BLOCK_CREATION_TIME:-10000}
 echo
 echo "I will use the following parameters for the creation of the configuration directory of a Hotmoka Mokamint node:"
 echo
+echo "      ALLOWS_UNSIGNED_FAUCET=$ALLOWS_UNSIGNED_FAUCET"
 echo "                    CHAIN_ID=\"$CHAIN_ID\""
 echo "              INITIAL_SUPPLY=\"$INITIAL_SUPPLY\""
 echo "                FINAL_SUPPLY=\"$FINAL_SUPPLY\""
-echo "        OPEN_UNSIGNED_FAUCET=$OPEN_UNSIGNED_FAUCET"
 echo "                   PLOT_SIZE=$PLOT_SIZE"
 echo "        PUBLIC_KEY_OF_GAMETE=\"$PUBLIC_KEY_OF_GAMETE\""
 echo "  TARGET_BLOCK_CREATION_TIME=$TARGET_BLOCK_CREATION_TIME"
@@ -51,11 +52,11 @@ touch hotmoka_mokamint/local_config.toml
 echo "done"
 
 echo -n "Creating the consensus Hotmoka node configuration file... "
+echo "allows_unsigned_faucet = ${ALLOWS_UNSIGNED_FAUCET}" >> hotmoka_mokamint/consensus_config.toml
 echo "chain_id = \"${CHAIN_ID}\"" > hotmoka_mokamint/consensus_config.toml
 echo "initial_supply = \"${INITIAL_SUPPLY}\"" >> hotmoka_mokamint/consensus_config.toml
 echo "final_supply = \"${FINAL_SUPPLY}\"" >> hotmoka_mokamint/consensus_config.toml
 echo "public_key_of_gamete = \"${PUBLIC_KEY_OF_GAMETE}\"" >> hotmoka_mokamint/consensus_config.toml
-echo "open_unsigned_faucet = ${OPEN_UNSIGNED_FAUCET}" >> hotmoka_mokamint/consensus_config.toml
 echo "done"
 
 echo -n "Creating the Mokamint configuration file... "
@@ -64,7 +65,7 @@ echo "target_block_creation_time = ${TARGET_BLOCK_CREATION_TIME}" >> hotmoka_mok
 echo "done"
 
 echo "Creating a plot file for the miner, containing ${PLOT_SIZE} nonces..."
-mokamint_plotter create hotmoka_mokamint/plot.plot 0 $PLOT_SIZE "$CHAIN_ID" $PUBLIC_KEY_NODE_BASE58 $PUBLIC_KEY_MINER_BASE58
+mokamint-plotter-no-logs create hotmoka_mokamint/plot.plot 0 $PLOT_SIZE "$CHAIN_ID" $PUBLIC_KEY_NODE_BASE58 $PUBLIC_KEY_MINER_BASE58
 echo "done"
 
 echo
