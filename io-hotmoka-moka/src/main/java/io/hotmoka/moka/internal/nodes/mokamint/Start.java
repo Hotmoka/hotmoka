@@ -80,7 +80,7 @@ public class Start extends AbstractNodeStart {
 	@Option(names = "--mokamint-port-restricted", description = "the network port where the restricted Mokamint service must be published", defaultValue="8031")
 	private int mokamintPortRestricted;
 
-	@Option(names = "--visible-as", description = "the URI that can be used to contact the public Mokamint service from outside; if missing, Mokamint will try to guess its URI, which might fail, especially from inside a Docker container")
+	@Option(names = "--visible-as", paramLabel = "<URI>", description = "the URI that can be used to contact the public Mokamint service from outside; if missing, Mokamint will try to guess its URI, which might fail, especially from inside a Docker container")
 	private URI visibleAs;
 
 	@Option(names = "--password-of-mokamint-node", description = "the password of the key pair of the Mokamint node", interactive = true, defaultValue = "")

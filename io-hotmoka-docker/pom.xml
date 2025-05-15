@@ -37,6 +37,27 @@
       <version>${mokamint.version}</version>
     </dependency>
 
+    <!-- we make mokamint-node available in the container -->
+    <dependency>
+      <groupId>io.mokamint</groupId>
+      <artifactId>io-mokamint-node-cli</artifactId>
+      <version>${mokamint.version}</version>
+    </dependency>
+
+    <!-- we make mokamint-miner available in the container -->
+    <dependency>
+      <groupId>io.mokamint</groupId>
+      <artifactId>io-mokamint-miner-cli</artifactId>
+      <version>${mokamint.version}</version>
+    </dependency>
+
+    <!-- we make mokamint-application available in the container -->
+    <dependency>
+      <groupId>io.mokamint</groupId>
+      <artifactId>io-mokamint-application-cli</artifactId>
+      <version>${mokamint.version}</version>
+    </dependency>
+
   </dependencies>
 
   <build>

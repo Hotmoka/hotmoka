@@ -1,9 +1,0 @@
-#!/bin/bash
-
-OPEN_UNSIGNED_FAUCET=${OPEN_UNSIGNED_FAUCET:-false}
-
-echo
-echo "Starting a Mokamint node as the single initial node of a brand new blockchain"
-echo "  OPEN_UNSIGNED_FAUCET=$OPEN_UNSIGNED_FAUCET"
-
-moka nodes mokamint init /modules/explicit/io-takamaka-code-1.4.1.jar mokamint_node/plot.plot mokamint_node/node.pem mokamint_node/miner.pem --open-unsigned-faucet=${OPEN_UNSIGNED_FAUCET} --yes --mokamint-config=mokamint_node/mokamint_config.toml --consensus-config=mokamint_node/consensus_config.toml --local-config=mokamint_node/local_config.toml

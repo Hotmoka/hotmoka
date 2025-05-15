@@ -1,9 +1,0 @@
-#!/bin/bash
-
-MAX_GAS_PER_VIEW=${MAX_GAS_PER_VIEW:-10000000}
-
-echo
-echo "Resuming an already existing node:"
-echo "  MAX_GAS_PER_VIEW=$MAX_GAS_PER_VIEW"
-
-moka resume-mokamint --interactive=true --mokamint-config=mokamint_node/mokamint_config.cfg --plot mokamint_node/plot.plot --keys mokamint_node/node.pem --keys-of-plot mokamint_node/miner.pem --max-gas-per-view ${MAX_GAS_PER_VIEW}
