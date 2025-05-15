@@ -97,8 +97,8 @@ public abstract class ValidatorsConsensusConfigBuilders {
 	 * @param signatureForRequests the signature algorithm to use for signing the requests
 	 * @return the builder
 	 */
-	public static ValidatorsConsensusConfigBuilder<?,?> defaults(SignatureAlgorithm signatureForRequest) {
-		return new MyConsensusConfigBuilder(signatureForRequest);
+	public static ValidatorsConsensusConfigBuilder<?,?> defaults(SignatureAlgorithm signatureForRequests) {
+		return new MyConsensusConfigBuilder(signatureForRequests);
 	}
 
 	/**
