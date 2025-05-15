@@ -1,15 +1,19 @@
 #!/bin/bash
 
-echo
-echo "Resuming an already existing node"
-echo "  VISIBLE_AS=${VISIBLE_AS}"
+RED='\033[0;31m'
+BOLD_GREEN='\033[1;32m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+echo -e "${GREEN}Resuming an already existing node.{$NC}"
+echo -e "  ${BLUE}VISIBLE_AS${NC}=${RED}${VISIBLE_AS}${NC}"
 
 if [ ! -z "$VISIBLE_AS" ]
 then
       VISIBLE_AS="--visible-as ${VISIBLE_AS}"
 fi
 
-moka nodes mokamint resume \
+moka-print-logs nodes mokamint resume \
 	hotmoka_mokamint/plot.plot \
 	hotmoka_mokamint/node.pem \
 	hotmoka_mokamint/miner.pem \

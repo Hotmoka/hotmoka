@@ -1,14 +1,52 @@
 #!/bin/bash
 
+RED='\033[0;31m'
+BOLD_GREEN='\033[1;32m'
+BLUE='\033[0;34m'
+BOLD_CYAN='\033[1;36m'
+NC='\033[0m' # No Color
+
+echo -e "${BOLD_GREEN}This container manages Hotmoka nodes using Mokamint as proof of space consensus engine.${NC}"
 echo
-echo "This container manages Hotmoka nodes based on Mokamint."
 echo "It understands the following commands:"
 echo
-echo "  help:   print this help"
-echo "  config: create the configuration directory of a node"
-echo "  init:   create a node for a brand new blockchain"
-echo "  start:  create a node that connects to an already existing node of a blockchain"
-echo "  resume: resume a node whose container was previously turned off with \"docker stop\""
+echo -e "* ${RED}help:${NC}         print this help"
 echo
-echo "  init/start/resume understand the VISIBLE_AS Docker variable, that specify the URI"
-echo "  of the public service of the node, as it is visible from the external world"
+echo -e "* ${RED}config-init:${NC}  create the configuration directory of the first node of a brand new blockchain"
+echo -e "    ${BLUE}ALLOWS_UNSIGNED_FAUCET:${NC} true if the unsigned faucet must be opened"
+echo -e "    ${BLUE}CHAIN_ID:${NC} the chain identifier of the blockchain"
+echo -e "    ${BLUE}INITIAL_SUPPLY:${NC} the initial supply of coins of the blockchain"
+echo -e "    ${BLUE}FINAL_SUPPLY:${NC} the final supply of coins of the blockchain"
+echo -e "    ${BLUE}PLOT_SIZE:${NC} the number of nonces of the plot that the node will use for mining"
+echo -e "    ${BLUE}PUBLIC_KEY_OF_GAMETE:${NC} the Base64-encoded public key of the gamete of the blockchain"
+echo -e "    ${BLUE}TARGET_BLOCK_CREATION_TIME:${NC} the milliseconds between two successive blocks (on average)"
+echo
+echo "  For instance:"
+echo -e "  ${BOLD_CYAN}docker run -it -e PUBLIC_KEY_OF_GAMETE=\"ZgEyMfo89coBtA2i7IMnLzZleFzWLcfDan3dMVDDb38=\" hotmoka/mokamint-node:VERSION config-init${NC}"
+echo
+echo -e "* ${RED}config-start:${NC} create the configuration directory of a new node of an existing blockchain"
+echo -e "    ${BLUE}MOKAMINT_PUBLIC_SERVICE_URI:${NC} the URI of an already existing node of the blockchain"
+echo -e "    ${BLUE}PLOT_SIZE:${NC} the number of nonces of the plot that the node will use for mining"
+echo
+echo "  For instance:"
+echo -e "  ${BOLD_CYAN}docker run -it -e MOKAMINT_PUBLIC_SERVICE_URI=ws://panarea.hotmoka.io:8030 hotmoka/mokamint-node:VERSION config-start${NC}"
+echo
+echo -e "* ${RED}init:${NC}         create a node for a brand new blockchain"
+echo -e "    ${BLUE}VISIBLE_AS:${NC} a URI that the external world can use to contact the new node"
+echo
+echo "  For instance:"
+echo -e "  ${BOLD_CYAN}docker run -dit -p 8001:8001 -p 8030:8030 -p 8031:8031 -v chain:/home/hotmoka/chain -v ./hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:VERSION init${NC}"
+echo
+echo -e "* ${RED}start:${NC}        create a node that connects to an already existing node of a blockchain"
+echo -e "    ${BLUE}VISIBLE_AS:${NC} a URI that the external world can use to contact the new node"
+echo
+echo "  For instance:"
+echo -e "  ${BOLD_CYAN}docker run -dit -p 8001:8001 -p 8030:8030 -p 8031:8031 -v chain:/home/hotmoka/chain -v ./hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:VERSION start${NC}"
+echo
+echo -e "* ${RED}resume:${NC}       resume a node whose container was previously turned off with \"docker stop\""
+echo -e "    ${BLUE}VISIBLE_AS:${NC} a URI that the external world can use to contact the node"
+echo
+echo "  For instance:"
+echo -e "  ${BOLD_CYAN}docker run -dit -p 8001:8001 -p 8030:8030 -p 8031:8031 -v chain:/home/hotmoka/chain -v ./hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:VERSION resume${NC}"
+echo
+echo -e "${RED}init/start/resume${NC} assume that the configuration directory of the node is available in the same directory where they are executed."

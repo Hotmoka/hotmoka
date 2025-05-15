@@ -1,15 +1,19 @@
 #!/bin/bash
 
-echo
-echo "Starting a Mokamint node as the single initial node of a brand new blockchain"
-echo "  VISIBLE_AS=${VISIBLE_AS}"
+RED='\033[0;31m'
+BOLD_GREEN='\033[1;32m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+echo "${BOLD_GREEN}Starting a Mokamint node as the single initial node of a brand new blockchain.${NC}"
+echo "  ${BLUE}VISIBLE_AS${NC}=${RED}${VISIBLE_AS}${NC}"
 
 if [ ! -z "$VISIBLE_AS" ]
 then
       VISIBLE_AS="--visible-as ${VISIBLE_AS}"
 fi
 
-moka nodes mokamint init \
+moka-print-logs nodes mokamint init \
 	/modules/explicit_or_automatic/io-takamaka-code-1.4.1.jar \
 	hotmoka_mokamint/plot.plot \
 	hotmoka_mokamint/node.pem \

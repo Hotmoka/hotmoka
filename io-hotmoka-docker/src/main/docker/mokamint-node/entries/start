@@ -1,15 +1,19 @@
 #!/bin/bash
 
-echo
-echo "Starting a Mokamint that waits for blocks from peers before starting mining"
-echo "  VISIBLE_AS=${VISIBLE_AS}"
+RED='\033[0;31m'
+BOLD_GREEN='\033[1;32m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+echo -e "${GREEN}Starting a Mokamint that waits for blocks from peers before starting mining.${NC}"
+echo -e "  ${BLUE}VISIBLE_AS${NC}=${RED}${VISIBLE_AS}${NC}"
 
 if [ ! -z "$VISIBLE_AS" ]
 then
       VISIBLE_AS="--visible-as ${VISIBLE_AS}"
 fi
 
-moka nodes mokamint start \
+moka-print-logs nodes mokamint start \
 	hotmoka_mokamint/plot.plot \
 	hotmoka_mokamint/node.pem \
 	hotmoka_mokamint/miner.pem \
