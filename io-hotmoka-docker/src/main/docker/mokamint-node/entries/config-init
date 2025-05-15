@@ -52,8 +52,8 @@ touch hotmoka_mokamint/local_config.toml
 echo "done"
 
 echo -n "Creating the consensus Hotmoka node configuration file... "
-echo "allows_unsigned_faucet = ${ALLOWS_UNSIGNED_FAUCET}" >> hotmoka_mokamint/consensus_config.toml
-echo "chain_id = \"${CHAIN_ID}\"" > hotmoka_mokamint/consensus_config.toml
+echo "allows_unsigned_faucet = ${ALLOWS_UNSIGNED_FAUCET}" > hotmoka_mokamint/consensus_config.toml
+echo "chain_id = \"${CHAIN_ID}\"" >> hotmoka_mokamint/consensus_config.toml
 echo "initial_supply = \"${INITIAL_SUPPLY}\"" >> hotmoka_mokamint/consensus_config.toml
 echo "final_supply = \"${FINAL_SUPPLY}\"" >> hotmoka_mokamint/consensus_config.toml
 echo "public_key_of_gamete = \"${PUBLIC_KEY_OF_GAMETE}\"" >> hotmoka_mokamint/consensus_config.toml
