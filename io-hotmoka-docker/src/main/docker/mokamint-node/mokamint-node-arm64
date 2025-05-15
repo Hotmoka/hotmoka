@@ -1,18 +1,12 @@
 # In order to create the image, from the top level of the module, either
 #   mvn install
 # or
-#   docker buildx build --platform linux/arm64 -t hotmoka/mokamint-node:latest -f src/main/docker/mokamint-node/mokamint-node-arm64 .
+#   docker buildx build --platform linux/amd64 -t hotmoka/mokamint-node:latest -f src/main/docker/mokamint-node/mokamint-node .
 #
 # To create the configuration directory:
 #   docker rm mokamint_node; docker run --name mokamint_node -it -e PUBLIC_KEY_OF_GAMETE="ZgEyMfo89coBtA2i7IMnLzZleFzWLcfDan3dMVDDb38=" hotmoka/mokamint-node:latest config
 #
-# then copy the configuration directory on your local machine:
-#   docker cp mokamint_node:/home/hotmoka/hotmoka_mokamint .
-#
-# [Edit the configuration on your local machine, if needed]
-#
-# To publish a node at port 8001 whose underlying Mokamint node is published at port 8030/8031:
-#   docker rm mokamint_node; docker run -it --name mokamint_node -p 8001:8001 -p 8030:8030 -p 8031:8031 -v chain:/home/hotmoka/chain -v ./hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:latest init
+# This configuration directory will contain:
 #
 # miner.pem
 # node.pem
@@ -26,15 +20,17 @@
 # 2) plot.plot must use node.pem as key for signing the blocks, miner.pem as key for signing the deadlines and the chain identifier in mokamint_config.toml
 # 3) the three toml configuration files must be present but may be completely empty: for the missing options, defaults will be used
 #
-# Then run:
+# After creating the configuration directory, copy its content to your local machine:
+#   docker cp mokamint_node:/home/hotmoka/hotmoka_mokamint .
 #
-# docker run -it --name mokamint_node -p 8001:8001 -p 8030:8030 -p 8031:8031 -v chain:/home/hotmoka/chain -v ./mokamint_node:/home/hotmoka/mokamint_node hotmoka/mokamint-node:latest init
+# Edit the configuration on your local machine, if needed.
 #
-# When the docker container has initialized the node, you can detach from it with CTRL+P CTRL+Q
+# To publish a node at port 8001 whose underlying Mokamint node is published at port 8030/8031:
+#   docker rm mokamint_node; docker run -it --name mokamint_node -p 8001:8001 -p 8030:8030 -p 8031:8031 -v chain:/home/hotmoka/chain -v ./hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:latest init
 #
 # Or run instead:
 #
-# docker run -it --name mokamint_node -p 8001:8001 -p 8030:8030 -p 8031:8031 -v chain:/home/hotmoka/chain -v ./mokamint_node:/home/hotmoka/mokamint_node hotmoka/mokamint-node:latest start
+#   docker run -it --name mokamint_node -p 8001:8001 -p 8030:8030 -p 8031:8031 -v chain:/home/hotmoka/chain -v ./hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:latest start
 #
 # after which you should add a peer to the Mokamint node, or otherwise it will never start mining.
 #
@@ -49,7 +45,7 @@ WORKDIR /usr/local/bin
     
 # install missing packages
 RUN apt-get update \
-  && apt-get install -y python3 \
+  && apt-get install -y python3 tree \
   && rm -rf /var/lib/apt/lists/*
 
 # create hotmoka user
@@ -60,19 +56,29 @@ RUN groupadd -r hotmoka \
 RUN mkdir /home/hotmoka/chain \
   && chmod -R a+w /home/hotmoka/chain
 
-# install moka and its alias moka-no-logs that does not report logs
-COPY modules/ /home/hotmoka/modules/
+# copy the Java modules
+COPY modules/ /modules/
 
-# we add /home/hotmoka to the classpath in order to find the logging properties file
+# install moka and its alias moka-no-logs that does not report logs, together to all Mokamint CLI's
 RUN echo "#!/bin/bash" > moka \
 	&& echo "#!/bin/bash" > moka-no-logs \
+	&& echo "#!/bin/bash" > mokamint_application \
+	&& echo "#!/bin/bash" > mokamint_miner \
+	&& echo "#!/bin/bash" > mokamint_node \
 	&& echo "#!/bin/bash" > mokamint_plotter
 
-RUN echo java -Djava.util.logging.config.file=logging.properties --module-path modules/explicit_or_automatic --class-path \"/home/hotmoka/:modules/unnamed/*\" --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module io.hotmoka.moka/io.hotmoka.moka.Moka \"\$@\" >> moka \
+# add /home/hotmoka to the classpath in order to find the logging properties file
+RUN echo java -Djava.util.logging.config.file=logging.properties --module-path /modules/explicit_or_automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module io.hotmoka.moka/io.hotmoka.moka.Moka \"\$@\" >> moka \
   && chmod a+x moka \
-  && echo java --module-path modules/explicit_or_automatic --class-path \"/home/hotmoka/:modules/unnamed/*\" --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module io.hotmoka.moka/io.hotmoka.moka.Moka \"\$@\" > moka-no-logs \
+  && echo java --module-path /modules/explicit_or_automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module io.hotmoka.moka/io.hotmoka.moka.Moka \"\$@\" > moka-no-logs \
   && chmod a+x moka-no-logs \
-  && echo java -Djava.util.logging.config.file=logging.properties --module-path modules/explicit_or_automatic --class-path \"/home/hotmoka/:modules/unnamed/*\" --module io.mokamint.plotter.cli/io.mokamint.plotter.cli.MokamintPlotter \"\$@\" > mokamint_plotter \
+  && echo java -Djava.util.logging.config.file=logging.properties --module-path /modules/explicit_or_automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --module io.mokamint.application.cli/io.mokamint.application.cli.MokamintApplication \"\$@\" > mokamint_application \
+  && chmod a+x mokamint_application \
+  && echo java -Djava.util.logging.config.file=logging.properties --module-path /modules/explicit_or_automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --module io.mokamint.miner.cli/io.mokamint.miner.cli.MokamintMiner \"\$@\" > mokamint_miner \
+  && chmod a+x mokamint_miner \
+  && echo java -Djava.util.logging.config.file=logging.properties --module-path /modules/explicit_or_automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --module io.mokamint.node.cli/io.mokamint.node.cli.MokamintNode \"\$@\" > mokamint_node \
+  && chmod a+x mokamint_node \
+  && echo java -Djava.util.logging.config.file=logging.properties --module-path /modules/explicit_or_automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --module io.mokamint.plotter.cli/io.mokamint.plotter.cli.MokamintPlotter \"\$@\" > mokamint_plotter \
   && chmod a+x mokamint_plotter
 
 # install the control scripts
