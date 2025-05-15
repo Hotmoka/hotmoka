@@ -28,36 +28,36 @@ COPY modules/ /modules/
 # install moka and its alias moka-no-logs that does not report logs, together to all Mokamint CLI's
 RUN echo "#!/bin/bash" > moka \
 	&& echo "#!/bin/bash" > moka-print-logs \
-	&& echo "#!/bin/bash" > mokamint_application \
-	&& echo "#!/bin/bash" > mokamint_application-print-logs \
-	&& echo "#!/bin/bash" > mokamint_miner \
-	&& echo "#!/bin/bash" > mokamint_miner-print-logs \
-	&& echo "#!/bin/bash" > mokamint_node \
-	&& echo "#!/bin/bash" > mokamint_node-print-logs \
-	&& echo "#!/bin/bash" > mokamint_plotter \
-	&& echo "#!/bin/bash" > mokamint_plotter-print-logs
+	&& echo "#!/bin/bash" > mokamint-application \
+	&& echo "#!/bin/bash" > mokamint-application-print-logs \
+	&& echo "#!/bin/bash" > mokamint-miner \
+	&& echo "#!/bin/bash" > mokamint-miner-print-logs \
+	&& echo "#!/bin/bash" > mokamint-node \
+	&& echo "#!/bin/bash" > mokamint-node-print-logs \
+	&& echo "#!/bin/bash" > mokamint-plotter \
+	&& echo "#!/bin/bash" > mokamint-plotter-print-logs
 
 # add /home/hotmoka to the classpath in order to find the logging properties file that prints logs on the screen:
 # that will replace the logging properties file embedded in the jars
 RUN echo java -Djava.util.logging.config.file=logging.properties --module-path /modules/explicit_or_automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module io.hotmoka.moka/io.hotmoka.moka.Moka \"\$@\" >> moka-print-logs \
   && chmod a+x moka-print-logs \
-  && echo java --module-path /modules/explicit_or_automatic --class-path \"/modules/unnamed/*\" --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module io.hotmoka.moka/io.hotmoka.moka.Moka \"\$@\" > moka \
+  && echo java --module-path /modules/explicit_or_automatic --class-path \"/modules/unnamed/*\" --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module io.hotmoka.moka/io.hotmoka.moka.Moka \"\$@\" >> moka \
   && chmod a+x moka \
-  && echo java -Djava.util.logging.config.file=logging.properties --module-path /modules/explicit_or_automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --module io.mokamint.application.cli/io.mokamint.application.cli.MokamintApplication \"\$@\" > mokamint-application-print-logs \
+  && echo java -Djava.util.logging.config.file=logging.properties --module-path /modules/explicit_or_automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --module io.mokamint.application.cli/io.mokamint.application.cli.MokamintApplication \"\$@\" >> mokamint-application-print-logs \
   && chmod a+x mokamint-application-print-logs \
-  && echo java --module-path /modules/explicit_or_automatic --class-path \"/modules/unnamed/*\" --module io.mokamint.application.cli/io.mokamint.application.cli.MokamintApplication \"\$@\" > mokamint-application \
+  && echo java --module-path /modules/explicit_or_automatic --class-path \"/modules/unnamed/*\" --module io.mokamint.application.cli/io.mokamint.application.cli.MokamintApplication \"\$@\" >> mokamint-application \
   && chmod a+x mokamint-application \
-  && echo java -Djava.util.logging.config.file=logging.properties --module-path /modules/explicit_or_automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --module io.mokamint.miner.cli/io.mokamint.miner.cli.MokamintMiner \"\$@\" > mokamint-miner-print-logs \
+  && echo java -Djava.util.logging.config.file=logging.properties --module-path /modules/explicit_or_automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --module io.mokamint.miner.cli/io.mokamint.miner.cli.MokamintMiner \"\$@\" >> mokamint-miner-print-logs \
   && chmod a+x mokamint-miner-print-logs \
-  && echo java --module-path /modules/explicit_or_automatic --class-path \"/modules/unnamed/*\" --module io.mokamint.miner.cli/io.mokamint.miner.cli.MokamintMiner \"\$@\" > mokamint-miner \
+  && echo java --module-path /modules/explicit_or_automatic --class-path \"/modules/unnamed/*\" --module io.mokamint.miner.cli/io.mokamint.miner.cli.MokamintMiner \"\$@\" >> mokamint-miner \
   && chmod a+x mokamint-miner \
-  && echo java -Djava.util.logging.config.file=logging.properties --module-path /modules/explicit_or_automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --module io.mokamint.node.cli/io.mokamint.node.cli.MokamintNode \"\$@\" > mokamint-node-print-logs \
+  && echo java -Djava.util.logging.config.file=logging.properties --module-path /modules/explicit_or_automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --module io.mokamint.node.cli/io.mokamint.node.cli.MokamintNode \"\$@\" >> mokamint-node-print-logs \
   && chmod a+x mokamint-node-print-logs \
-  && echo java --module-path /modules/explicit_or_automatic --class-path \"/modules/unnamed/*\" --module io.mokamint.node.cli/io.mokamint.node.cli.MokamintNode \"\$@\" > mokamint-node \
+  && echo java --module-path /modules/explicit_or_automatic --class-path \"/modules/unnamed/*\" --module io.mokamint.node.cli/io.mokamint.node.cli.MokamintNode \"\$@\" >> mokamint-node \
   && chmod a+x mokamint-node \
-  && echo java -Djava.util.logging.config.file=logging.properties --module-path /modules/explicit_or_automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --module io.mokamint.plotter.cli/io.mokamint.plotter.cli.MokamintPlotter \"\$@\" > mokamint-plotter-print-logs \
+  && echo java -Djava.util.logging.config.file=logging.properties --module-path /modules/explicit_or_automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --module io.mokamint.plotter.cli/io.mokamint.plotter.cli.MokamintPlotter \"\$@\" >> mokamint-plotter-print-logs \
   && chmod a+x mokamint-plotter-print-logs \
-  && echo java --module-path /modules/explicit_or_automatic --class-path \"/modules/unnamed/*\" --module io.mokamint.plotter.cli/io.mokamint.plotter.cli.MokamintPlotter \"\$@\" > mokamint-plotter \
+  && echo java --module-path /modules/explicit_or_automatic --class-path \"/modules/unnamed/*\" --module io.mokamint.plotter.cli/io.mokamint.plotter.cli.MokamintPlotter \"\$@\" >> mokamint-plotter \
   && chmod a+x mokamint-plotter
 
 # install the control scripts
