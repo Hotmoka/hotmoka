@@ -1,0 +1,93 @@
+#!/bin/bash
+
+# This script creates the configuration directory of a Hotmoka node, for starting the first node
+# of a newly initialized blockchain. The configuration directory will have the following structure:
+#
+# miner.pem
+# node.pem
+# plot.plot
+# mokamint_config.toml
+# local_config.toml
+# consensus_config.toml
+#
+# where:
+# 1) miner.pem and node.pem are key pairs with empty password
+# 2) plot.plot uses node.pem as key for signing the blocks, miner.pem as key for signing the deadlines and the chain identifier in mokamint_config.toml
+# 3) options not explicitly reported in the three toml configuration files hold, implicitly, default values
+
+RED='\033[0;31m'
+BOLD_GREEN='\033[1;32m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+ALLOWS_UNSIGNED_FAUCET=${ALLOWS_UNSIGNED_FAUCET:-false}
+CHAIN_ID=${CHAIN_ID:-""}
+INITIAL_SUPPLY=${INITIAL_SUPPLY:-1000000000000000000000000000000000}
+FINAL_SUPPLY=${FINAL_SUPPLY:-10000000000000000000000000000000000}
+PUBLIC_KEY_OF_GAMETE=${PUBLIC_KEY_OF_GAMETE:-""}
+TARGET_BLOCK_CREATION_TIME=${TARGET_BLOCK_CREATION_TIME:-10000}
+TOTAL_VALIDATION_POWER=${TOTAL_VALIDATION_POWER:-1000000}
+
+echo -e "${BOLD_GREEN}I will use the following parameters for the creation of the configuration directory of a Hotmoka node using Tendermint as byzantine consensus engine:${NC}"
+echo
+echo -e "      ${BLUE}ALLOWS_UNSIGNED_FAUCET${NC}=${RED}$ALLOWS_UNSIGNED_FAUCET${NC}"
+echo -e "                    ${BLUE}CHAIN_ID${NC}=${RED}\"$CHAIN_ID\"${NC}"
+echo -e "              ${BLUE}INITIAL_SUPPLY${NC}=${RED}\"$INITIAL_SUPPLY\"${NC}"
+echo -e "                ${BLUE}FINAL_SUPPLY${NC}=${RED}\"$FINAL_SUPPLY\"${NC}"
+echo -e "        ${BLUE}PUBLIC_KEY_OF_GAMETE${NC}=${RED}\"$PUBLIC_KEY_OF_GAMETE\"${NC}"
+echo -e "  ${BLUE}TARGET_BLOCK_CREATION_TIME${NC}=${RED}$TARGET_BLOCK_CREATION_TIME${NC}"
+echo -e "      ${BLUE}TOTAL_VALIDATION_POWER${NC}=${RED}$TOTAL_VALIDATION_POWER${NC}"
+echo
+
+echo -n "Cleaning the configuration directory..."
+rm -rf hotmoka_tendermint/*
+echo -e "${RED}done${NC}"
+
+echo -n "Creating the validator.pem key pair of the node as validator... "
+VALIDATOR_ACCOUNT_CREATION=$(moka keys create --output-dir=hotmoka_tendermint --name=validator.pem --json)
+PUBLIC_KEY_BASE64=$(echo ${VALIDATOR_ACCOUNT_CREATION} | python3 -c "import sys, json; print(json.load(sys.stdin)['publicKeyBase64'])")
+TENDERMINT_ADDRESS=$(echo ${VALIDATOR_ACCOUNT_CREATION} | python3 -c "import sys, json; print(json.load(sys.stdin)['tendermintAddress'])")
+echo -e "${RED}done${NC}"
+
+echo -n "Creating the local Hotmoka node configuration file... "
+touch hotmoka_tendermint/local_config.toml
+echo -e "${RED}done${NC}"
+
+echo -n "Creating the consensus Hotmoka node configuration file... "
+echo "allows_unsigned_faucet = ${ALLOWS_UNSIGNED_FAUCET}" > hotmoka_tendermint/consensus_config.toml
+echo "chain_id = \"${CHAIN_ID}\"" >> hotmoka_tendermint/consensus_config.toml
+echo "initial_supply = \"${INITIAL_SUPPLY}\"" >> hotmoka_tendermint/consensus_config.toml
+echo "final_supply = \"${FINAL_SUPPLY}\"" >> hotmoka_tendermint/consensus_config.toml
+echo "public_key_of_gamete = \"${PUBLIC_KEY_OF_GAMETE}\"" >> hotmoka_tendermint/consensus_config.toml
+echo -e "${RED}done${NC}"
+
+echo -n "Creating the Tendermint configuration files... "
+
+# create an initial Tendermint configuration, that later will be modified for our needs
+mkdir hotmoka_tendermint/tendermint_config
+tendermint init --home hotmoka_tendermint/tendermint_config >> /dev/null
+
+# replace the validator's key used by Tendermint with that created above
+moka nodes tendermint validators key hotmoka_tendermint/validator.pem --output-dir=hotmoka_tendermint/tendermint_config/config/ >> /dev/null
+
+# set the id of the validator also in the genesis file
+sed -i '/"address": /s/".*"/"address": "'$TENDERMINT_ADDRESS'"/' hotmoka_tendermint/tendermint_config/config/genesis.json
+
+# set the public key of the validator also in the genesis file:
+# we must escape / into \/ otherwise sed complains
+PUBLIC_KEY_BASE64=${PUBLIC_KEY_BASE64//\//\\\/}
+sed -i '/"value": /s/".*"/"value": "'${PUBLIC_KEY_BASE64}'"/' hotmoka_tendermint/tendermint_config/config/genesis.json
+
+# set the power of the only initial validator in the genesis file: it holds all validation power initially
+sed -i '/"power": /s/".*"/"power": "'${TOTAL_VALIDATION_POWER}'"/' hotmoka_tendermint/tendermint_config/config/genesis.json
+
+# set the chain id as requested
+sed -i '/"chain_id": /s/".*"/"chain_id": "'$CHAIN_ID'"/' hotmoka_tendermint/tendermint_config/config/genesis.json
+
+# disable the creation of empty blocks
+sed -i "s/create_empty_blocks = true/create_empty_blocks = false/g" hotmoka_tendermint/tendermint_config/config/config.toml
+
+# set the timeout for commits
+sed -i '/timeout_commit = /s/".*"/"'$((TARGET_BLOCK_CREATION_TIME/1000))s'"/' hotmoka_tendermint/tendermint_config/config/config.toml
+
+echo -e "${RED}done${NC}"

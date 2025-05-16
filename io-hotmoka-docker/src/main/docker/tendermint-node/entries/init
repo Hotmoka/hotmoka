@@ -1,0 +1,15 @@
+#!/bin/bash
+
+RED='\033[0;31m'
+BOLD_GREEN='\033[1;32m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+echo -e "${BOLD_GREEN}Starting a Hotmoka node based on Tendermint as the single initial node of a brand new blockchain.${NC}"
+
+moka-print-logs nodes tendermint init \
+	/modules/explicit_or_automatic/io-takamaka-code-1.4.1.jar \
+	--yes \
+	--tendermint-config=hotmoka_tendermint/tendermint_config \
+	--consensus-config=hotmoka_tendermint/consensus_config.toml \
+	--local-config=hotmoka_tendermint/local_config.toml

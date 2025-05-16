@@ -1,11 +1,11 @@
-# In order to create the image:
-#   docker buildx build --platform linux/amd64 -t hotmoka/tendermint-node:latest -f dockerfiles/tendermint-node/tendermint-node .
+# In order to create the image, from the top level of the module, either
+#   mvn package
+# or
+#   docker buildx build --platform linux/amd64 -t hotmoka/tendermint-node:latest -f src/main/docker/tendermint-node/tednermint-node .
 
-# In order to publish a node at port 80:
-#   moka create-key
-#   docker run -dit -e KEY_OF_GAMETE=key -e CHAIN_ID=id -p 80:8001 -p 26656:26656 -v chain:/home/hotmoka/chain hotmoka/tendermint-node:latest init
+# Tendermint port: 26656
 
-FROM openjdk:19-jdk-slim
+FROM openjdk:21-jdk-slim
 LABEL "maintainer"="fausto.spoto@hotmoka.io"
 
 USER root
@@ -13,8 +13,7 @@ WORKDIR /usr/local/bin
     
 # install missing packages
 RUN apt-get update \
-  && apt-get install -y wget \
-  && apt-get install -y python3 \
+  && apt-get install -y python3 wget tree vim \
   && rm -rf /var/lib/apt/lists/*
 
 # install tendermint
@@ -32,24 +31,33 @@ RUN groupadd -r hotmoka \
 RUN mkdir /home/hotmoka/chain \
   && chmod -R a+w /home/hotmoka/chain
 
-# install moka and its alias moka-no-logs that does not report logs
-COPY io-hotmoka-moka/modules/ /modules/
-# we add /home/hotmoka to the classpath in order to find the logging properties file
-RUN echo java -Djava.util.logging.config.file=logging.properties --module-path /modules/explicit:/modules/automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module io.hotmoka.moka/io.hotmoka.moka.Moka \"\$@\" > moka \
-  && chmod a+x moka \
-  && echo java --module-path /modules/explicit:/modules/automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module io.hotmoka.moka/io.hotmoka.moka.Moka \"\$@\" > moka-no-logs \
-  && chmod a+x moka-no-logs
+# create a volume for the hotmoka_tendermint of this container and make it writable to everyone
+RUN mkdir /home/hotmoka/hotmoka_tendermint \
+  && chmod -R a+w /home/hotmoka/hotmoka_tendermint
+  
+# copy the Java modules
+COPY modules/ /modules/
 
+# install CLI's
+RUN echo "#!/bin/bash" > moka \
+	&& echo "#!/bin/bash" > moka-print-logs
+
+# add /home/hotmoka to the classpath in order to find the logging properties file that prints logs on the screen:
+# that will replace the logging properties file embedded in the jars
+RUN echo java -Djava.util.logging.config.file=logging.properties --module-path /modules/explicit_or_automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module io.hotmoka.moka/io.hotmoka.moka.Moka \"\$@\" >> moka-print-logs \
+  && chmod a+x moka-print-logs \
+  && echo java --module-path /modules/explicit_or_automatic --class-path \"/modules/unnamed/*\" --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module io.hotmoka.moka/io.hotmoka.moka.Moka \"\$@\" >> moka \
+  && chmod a+x moka
+  
 # install the control scripts
-COPY dockerfiles/tendermint-node/help help
-COPY dockerfiles/tendermint-node/init init
-COPY dockerfiles/tendermint-node/resume resume
-COPY dockerfiles/tendermint-node/start start
-RUN chmod 755 help && chmod 755 init && chmod 755 resume && chmod 755 start
+COPY src/main/docker/tendermint-node/entries/* ./
+RUN chmod 755 help && chmod 755 init && chmod 755 resume && chmod 755 start && chmod 755 config-init && chmod 755 config-start
 
 USER hotmoka
 WORKDIR /home/hotmoka
-COPY --chown=hotmoka dockerfiles/logging.properties logging.properties
+
+# install the logging configuration that print logs on the screen
+COPY --chown=hotmoka src/main/resources/logging.properties logging.properties
 
 # by default, print a help message
-CMD help
+CMD ["help"]

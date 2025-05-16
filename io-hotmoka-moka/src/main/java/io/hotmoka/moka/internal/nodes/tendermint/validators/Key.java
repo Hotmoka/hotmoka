@@ -82,7 +82,15 @@ public class Key extends AbstractMokaCommand {
 				throw new CommandException("The Ed25519 signature algorithm is not available");
 			}
 
-			KeyPair keys = Entropies.load(this.keys).keys(passwordAsString, signature);
+			KeyPair keys;
+
+			try {
+				keys = Entropies.load(this.keys).keys(passwordAsString, signature);
+			}
+			catch (IOException e) {
+				throw new CommandException("Cannot access file \"" + this.keys + "\"", e);
+			}
+
 			byte[] publicKeyBytes, privateKeyBytes;
 
 			try {
@@ -119,12 +127,15 @@ public class Key extends AbstractMokaCommand {
 
 			Path path = outputDir.resolve(name);
 			Gson gson = new GsonBuilder().disableHtmlEscaping().create();
-			Files.writeString(path, gson.toJson(new TendermintPrivValidatorJson(publicKeyBase64, tendermintAddress, concatenatedBase64)));
+
+			try {
+				Files.writeString(path, gson.toJson(new TendermintPrivValidatorJson(publicKeyBase64, tendermintAddress, concatenatedBase64)));
+			}
+			catch (IOException e) {
+				throw new CommandException("Cannot write into \"" + path + "\"", e);
+			}
 
 			report(json, new Output(path), NodesTendermintValidatorsKeyOutputs.Encoder::new);
-		}
-		catch (IOException e) {
-			throw new CommandException("Cannot access file \"" + keys + "\"", e);
 		}
 		finally {
 			passwordAsString = null;

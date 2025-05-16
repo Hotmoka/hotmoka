@@ -105,9 +105,9 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 
 		// we split the rewarding in two calls, so that the accounts created inside the accounts ledger have a #0 progressive index
 		long percentForNode = 50_000_000L;
-		BigInteger percenteForNodeAsBI = BigInteger.valueOf(percentForNode);
+		BigInteger percentForNodeAsBI = BigInteger.valueOf(percentForNode);
 		BigInteger reward = getReward();
-		BigInteger rewardForNode = reward.multiply(percenteForNodeAsBI).divide(_100_000_000);
+		BigInteger rewardForNode = reward.multiply(percentForNodeAsBI).divide(_100_000_000);
 
 		var request = TransactionRequests.instanceSystemMethodCall
 				(manifest, nonce, _100_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD_MOKAMINT_NODE, validators,

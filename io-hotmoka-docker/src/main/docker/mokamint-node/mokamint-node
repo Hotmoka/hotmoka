@@ -25,7 +25,7 @@ RUN mkdir /home/hotmoka/chain \
 # copy the Java modules
 COPY modules/ /modules/
 
-# install moka and its alias moka-no-logs that does not report logs, together to all Mokamint CLI's
+# install CLI's
 RUN echo "#!/bin/bash" > moka \
 	&& echo "#!/bin/bash" > moka-print-logs \
 	&& echo "#!/bin/bash" > mokamint-application \
