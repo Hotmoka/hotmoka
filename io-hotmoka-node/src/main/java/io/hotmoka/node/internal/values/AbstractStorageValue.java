@@ -78,12 +78,18 @@ public abstract class AbstractStorageValue extends AbstractMarshallable implemen
 				throw new IllegalArgumentException("Cannot transform the string into a big integer", e);
 			}
 		}
-		else if (StorageTypes.STRING.equals(type))
-			return StorageValues.stringOf(s);
-		else if (type instanceof ClassType)
-			return StorageValues.stringOf(s);
-		else
-			throw new IllegalArgumentException("Cannot transform the string into a storage value");
+		else if (StorageTypes.STRING.equals(type)) {
+			if (s.startsWith("\"") && s.endsWith("\""))
+				return StorageValues.stringOf(s.substring(1, s.length() - 1));
+		}
+		else if (type instanceof ClassType) {
+			if (s.startsWith("\"") && s.endsWith("\""))
+				return StorageValues.stringOf(s.substring(1, s.length() - 1));
+			else
+				return StorageValues.reference(s);
+		}
+
+		throw new IllegalArgumentException("Cannot transform the string into a storage value");
 	}
 
 	/**

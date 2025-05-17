@@ -115,7 +115,7 @@ public class Call extends AbstractGasCostCommand {
 	private class Body {
 		private final RemoteNode remote;
 		private final String chainId;
-		private final Signer<SignedTransactionRequest<?>> signer;
+		private final Optional<Signer<SignedTransactionRequest<?>>> signer;
 		private final BigInteger gasLimit;
 		private final TransactionReference classpath;
 		private final Class<?> clazz;
@@ -126,8 +126,8 @@ public class Call extends AbstractGasCostCommand {
 		private final MethodCallTransactionRequest request;
 		private final TakamakaClassLoader classloader;
 		private final MethodSignature signatureOfMethod;
-		private final BigInteger gasPrice;
-		private final BigInteger nonce;
+		private final Optional<BigInteger> gasPrice;
+		private final Optional<BigInteger> nonce;
 
 		private Body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
 			String passwordOfPayerAsString = new String(passwordOfPayer);
@@ -136,7 +136,6 @@ public class Call extends AbstractGasCostCommand {
 				this.remote = remote;
 				this.chainId = remote.getConfig().getChainId();
 				var signatureOfPayer = determineSignatureOf(payer, remote);
-				this.signer = mkSigner(payer, dir, signatureOfPayer, passwordOfPayerAsString);
 				this.gasLimit = determineGasLimit(() -> gasLimitHeuristic(signatureOfPayer));
 				this.classpath = mkClasspath();
 				this.classloader = mkClassloader();
@@ -145,10 +144,17 @@ public class Call extends AbstractGasCostCommand {
 				this.method = identifyMethod();
 				this.isView = methodIsView();
 				this.isStatic = methodIsStatic();
+				this.signer = isView ? Optional.empty() : Optional.of(mkSigner(payer, dir, signatureOfPayer, passwordOfPayerAsString));
 				this.signatureOfMethod = mkMethod();
-				this.gasPrice = determineGasPrice(remote);
-				askForConfirmation("call method " + method, gasLimit, gasPrice, yes || json());
-				this.nonce = determineNonceOf(payer, remote);
+				if (isView) {
+					this.gasPrice = Optional.empty();
+					this.nonce = Optional.empty();
+				}
+				else {
+					this.gasPrice = Optional.of(determineGasPrice(remote));
+					askForConfirmation("call method " + method, gasLimit, gasPrice.get(), yes || json());
+					this.nonce = Optional.of(determineNonceOf(payer, remote));
+				}
 				this.request = mkRequest();
 				report(json(), executeRequest(), ObjectsCallOutputs.Encoder::new);
 			}
@@ -227,23 +233,23 @@ public class Call extends AbstractGasCostCommand {
 				try {
 					if (isStatic)
 						return TransactionRequests.staticMethodCall(
-								signer,
+								signer.get(),
 								payer,
-								nonce,
+								nonce.get(),
 								chainId,
 								gasLimit,
-								gasPrice,
+								gasPrice.get(),
 								classpath,
 								signatureOfMethod,
 								actuals);
 					else
 						return TransactionRequests.instanceMethodCall(
-								signer,
+								signer.get(),
 								payer,
-								nonce,
+								nonce.get(),
 								chainId,
 								gasLimit,
-								gasPrice,
+								gasPrice.get(),
 								classpath,
 								signatureOfMethod,
 								receiver,
@@ -315,7 +321,7 @@ public class Call extends AbstractGasCostCommand {
 							errorMessage = Optional.of(e.getMessage());
 						}
 
-						gasCost = Optional.of(computeIncurredGasCost(remote, gasPrice, transaction));
+						gasCost = Optional.of(computeIncurredGasCost(remote, gasPrice.get(), transaction));
 					}
 				}
 			}

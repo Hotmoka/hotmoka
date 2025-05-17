@@ -5,7 +5,7 @@ BOLD_GREEN='\033[1;32m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${GREEN}Starting a Mokamint that waits for blocks from peers before starting mining.${NC}"
+echo -e "${BOLD_GREEN}Starting a Mokamint that waits for blocks from peers before starting mining.${NC}"
 echo -e "  ${BLUE}VISIBLE_AS${NC}=${RED}${VISIBLE_AS}${NC}"
 
 if [ ! -z "$VISIBLE_AS" ]

@@ -1,10 +1,11 @@
 #!/bin/bash
 
-MAX_GAS_PER_VIEW=${MAX_GAS_PER_VIEW:-10000000}
+RED='\033[0;31m'
+BOLD_GREEN='\033[1;32m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
 
-echo
-echo "Resuming an already existing node:"
-echo "  MAX_GAS_PER_VIEW=$MAX_GAS_PER_VIEW"
+echo -e "${BOLD_GREEN}Resuming an already existing node.${NC}"
 
-# recycle the same Tendermint configuration that was stored inside the chain directory
-moka resume-tendermint --tendermint-config=chain/blocks --max-gas-per-view ${MAX_GAS_PER_VIEW}
+moka-print-logs nodes tendermint resume \
+	--local-config=hotmoka_tendermint/local_config.toml

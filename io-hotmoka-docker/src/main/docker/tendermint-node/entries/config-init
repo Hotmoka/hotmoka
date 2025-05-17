@@ -1,19 +1,17 @@
 #!/bin/bash
 
-# This script creates the configuration directory of a Hotmoka node, for starting the first node
+# This script creates the configuration directory of a Hotmoka node based on Tendermint, for starting the first node
 # of a newly initialized blockchain. The configuration directory will have the following structure:
 #
-# miner.pem
-# node.pem
-# plot.plot
-# mokamint_config.toml
+# validator.pem
+# tendermint_config/
 # local_config.toml
 # consensus_config.toml
 #
 # where:
-# 1) miner.pem and node.pem are key pairs with empty password
-# 2) plot.plot uses node.pem as key for signing the blocks, miner.pem as key for signing the deadlines and the chain identifier in mokamint_config.toml
-# 3) options not explicitly reported in the three toml configuration files hold, implicitly, default values
+# 1) validator.pem is a key pair with empty password
+# 2) tendermint_config uses validator.pem as key pair for the only initial validator
+# 3) options not explicitly reported in the two toml configuration files hold, implicitly, default values
 
 RED='\033[0;31m'
 BOLD_GREEN='\033[1;32m'

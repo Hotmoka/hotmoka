@@ -135,10 +135,6 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 	 * The method {@code rotatePublicKey} of an account.
 	 */
 	public final static VoidMethodSignature ROTATE_PUBLIC_KEY = MethodSignatures.ofVoid(StorageTypes.ACCOUNT, "rotatePublicKey", StorageTypes.STRING);
-	/**
-	 * The method {@code nonce} of an account.
-	 */
-	public final static NonVoidMethodSignature NONCE = MethodSignatures.ofNonVoid(StorageTypes.ACCOUNT, "nonce", StorageTypes.BIG_INTEGER);
 
 	/**
 	 * The method {@code getGenesisTime} of the manifest.
@@ -211,34 +207,9 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 	public final static NonVoidMethodSignature GET_SIGNATURE = MethodSignatures.ofNonVoid(StorageTypes.MANIFEST, "getSignature", StorageTypes.STRING);
 
 	/**
-	 * The method {@code getGamete} of the manifest.
-	 */
-	public final static NonVoidMethodSignature GET_GAMETE = MethodSignatures.ofNonVoid(StorageTypes.MANIFEST, "getGamete", StorageTypes.GAMETE);
-
-	/**
-	 * The method {@code getGasStation} of the manifest.
-	 */
-	public final static NonVoidMethodSignature GET_GAS_STATION = MethodSignatures.ofNonVoid(StorageTypes.MANIFEST, "getGasStation", StorageTypes.GAS_STATION);
-
-	/**
-	 * The method {@code getVersions} of the manifest.
-	 */
-	public final static NonVoidMethodSignature GET_VERSIONS = MethodSignatures.ofNonVoid(StorageTypes.MANIFEST, "getVersions", StorageTypes.VERSIONS);
-
-	/**
-	 * The method {@code getAccountsLedger} of the manifest.
-	 */
-	public final static NonVoidMethodSignature GET_ACCOUNTS_LEDGER = MethodSignatures.ofNonVoid(StorageTypes.MANIFEST, "getAccountsLedger", StorageTypes.ACCOUNTS_LEDGER);
-
-	/**
 	 * The method {@code get} of the account ledger.
 	 */
 	public final static NonVoidMethodSignature GET_FROM_ACCOUNTS_LEDGER = MethodSignatures.ofNonVoid(StorageTypes.ACCOUNTS_LEDGER, "get", StorageTypes.EOA, StorageTypes.STRING);
-
-	/**
-	 * The method {@code getGasPrice} of the gas station.
-	 */
-	public final static NonVoidMethodSignature GET_GAS_PRICE = MethodSignatures.ofNonVoid(StorageTypes.GAS_STATION, "getGasPrice", StorageTypes.BIG_INTEGER);
 
 	/**
 	 * The method {@code getMaxGasPerTransaction} of the gas station.
@@ -331,24 +302,9 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 	public final static NonVoidMethodSignature ID = MethodSignatures.ofNonVoid(StorageTypes.VALIDATOR, "id", StorageTypes.STRING);
 
 	/**
-	 * The method {@code receive} of a payable contract, with a big integer argument.
-	 */
-	public final static VoidMethodSignature RECEIVE_BIG_INTEGER = MethodSignatures.ofVoid(StorageTypes.PAYABLE_CONTRACT, "receive", StorageTypes.BIG_INTEGER);
-
-	/**
 	 * The method {@code receiveRed} of a payable contract, with a big integer argument.
 	 */
 	public final static VoidMethodSignature RECEIVE_RED_BIG_INTEGER = MethodSignatures.ofVoid(StorageTypes.PAYABLE_CONTRACT, "receiveRed", StorageTypes.BIG_INTEGER);
-
-	/**
-	 * The method {@code receive} of a payable contract, with an {@code int} argument.
-	 */
-	public final static VoidMethodSignature RECEIVE_INT = MethodSignatures.ofVoid(StorageTypes.PAYABLE_CONTRACT, "receive", StorageTypes.INT);
-
-	/**
-	 * The method {@code receive} of a payable contract, with a {@code long} argument.
-	 */
-	public final static VoidMethodSignature RECEIVE_LONG = MethodSignatures.ofVoid(StorageTypes.PAYABLE_CONTRACT, "receive", StorageTypes.LONG);
 
 	/**
 	 * The method {@code reward} of the validators contract.

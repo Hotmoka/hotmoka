@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This script creates the configuration directory of a Hotmoka node, for starting the first node
+# This script creates the configuration directory of a Hotmoka node based on Mokamint, for starting the first node
 # of a newly initialized blockchain. The configuration directory will have the following structure:
 #
 # miner.pem

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This script creates the configuration directory of a Hotmoka node, for starting a node
+# This script creates the configuration directory of a Hotmoka node based on Mokamint, for starting a node
 # of an already existing blockchain. The configuration directory will have the following structure:
 #
 # miner.pem
@@ -22,7 +22,7 @@ NC='\033[0m' # No Color
 MOKAMINT_PUBLIC_SERVICE_URI=${MOKAMINT_PUBLIC_SERVICE_URI:-ws://panarea.hotmoka.io:8030}
 PLOT_SIZE=${PLOT_SIZE:-1000}
 
-echo -e "${BOLD_GREEN}I will use the following parameters for the creation of the configuration directory of a Hotmoka node using Mokamint as proof of space consensus engine:${NC}"
+echo -e "${BOLD_GREEN}Going to create the configuration directory of a Hotmoka node using the Mokamint proof of space consensus engine, with the following parameters:${NC}"
 echo
 echo -e " ${BLUE}MOKAMINT_PUBLIC_SERVICE_URI${NC}=${RED}$MOKAMINT_PUBLIC_SERVICE_URI${NC}"
 echo -e "                   ${BLUE}PLOT_SIZE${NC}=${RED}$PLOT_SIZE${NC}"

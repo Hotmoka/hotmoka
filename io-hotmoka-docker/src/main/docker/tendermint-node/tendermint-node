@@ -49,6 +49,9 @@ WORKDIR /home/hotmoka
 # install the logging configuration that print logs on the screen
 COPY --chown=hotmoka src/main/resources/logging.properties logging.properties
 
+# install the genesis.json that will be edited during configuration
+COPY --chown=hotmoka src/main/resources/genesis.json genesis.json
+
 # create the directories for the chain and the configuration, that might be bound to some volumes
 RUN mkdir chain && mkdir hotmoka_tendermint
 
