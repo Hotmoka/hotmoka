@@ -11,16 +11,12 @@ WORKDIR /usr/local/bin
     
 # install missing packages
 RUN apt-get update \
-  && apt-get install -y python3 tree \
+  && apt-get install -y python3 tree vim \
   && rm -rf /var/lib/apt/lists/*
 
 # create hotmoka user
 RUN groupadd -r hotmoka \
   && useradd --no-log-init -r -m -g hotmoka hotmoka
-
-# create a volume for the chain of this container and make it writable to everyone
-RUN mkdir /home/hotmoka/chain \
-  && chmod -R a+w /home/hotmoka/chain
 
 # copy the Java modules
 COPY modules/ /modules/
@@ -62,7 +58,7 @@ RUN echo java -Djava.util.logging.config.file=logging.properties --module-path /
 
 # install the control scripts
 COPY src/main/docker/mokamint-node/entries/* ./
-RUN chmod 755 help && chmod 755 init && chmod 755 resume && chmod 755 start && chmod 755 config-init && chmod 755 config-start
+RUN chmod 755 info && chmod 755 init && chmod 755 resume && chmod 755 start && chmod 755 config-init && chmod 755 config-start
 
 USER hotmoka
 WORKDIR /home/hotmoka
@@ -70,5 +66,8 @@ WORKDIR /home/hotmoka
 # install the logging configuration that print logs on the screen
 COPY --chown=hotmoka src/main/resources/logging.properties logging.properties
 
-# by default, print a help message
-CMD ["help"]
+# create a volume for the chain of this container and make it writable to everyone
+RUN mkdir chain && mkdir hotmoka_mokamint
+
+# by default, print an info message
+CMD ["info"]

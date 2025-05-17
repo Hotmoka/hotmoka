@@ -8,9 +8,13 @@ NC='\033[0m' # No Color
 
 echo -e "${BOLD_GREEN}This container manages Hotmoka nodes using Mokamint as proof of space consensus engine.${NC}"
 echo
-echo "It understands the following commands:"
+echo "This contained could be run with two volumes, one for the chain directory and another for the configuration"
+echo "directory of the node, and mapping all ports that could be used by Hotmoka or Mokamint:"
+echo -e "  ${BOLD_CYAN}docker run -it -p 8001:8001 -p 8025:8025 -p 8030:8030 -p 8031:8031 -v chain:/home/hotmoka/chain -v hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:VERSION /bin/bash${NC}"
 echo
-echo -e "* ${RED}help:${NC}         print this help"
+echo "The following commands and options are available inside the container:"
+echo
+echo -e "* ${RED}info:${NC}         print this information message"
 echo
 echo -e "* ${RED}config-init:${NC}  create the configuration directory of the first node of a brand new blockchain"
 echo -e "    ${BLUE}ALLOWS_UNSIGNED_FAUCET:${NC} true if the unsigned faucet must be opened"
@@ -35,18 +39,18 @@ echo -e "* ${RED}init:${NC}         create a node for a brand new blockchain"
 echo -e "    ${BLUE}VISIBLE_AS:${NC} a URI that the external world can use to contact the new node"
 echo
 echo "  For instance:"
-echo -e "  ${BOLD_CYAN}docker run -dit -p 8001:8001 -p 8030:8030 -p 8031:8031 -v chain:/home/hotmoka/chain -v ./hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:VERSION init${NC}"
+echo -e "  ${BOLD_CYAN}docker run -dit -p 8001:8001 -p 8025:8025 -p 8030:8030 -p 8031:8031 -v chain:/home/hotmoka/chain -v hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:VERSION init${NC}"
 echo
 echo -e "* ${RED}start:${NC}        create a node that connects to an already existing node of a blockchain"
 echo -e "    ${BLUE}VISIBLE_AS:${NC} a URI that the external world can use to contact the new node"
 echo
 echo "  For instance:"
-echo -e "  ${BOLD_CYAN}docker run -dit -p 8001:8001 -p 8030:8030 -p 8031:8031 -v chain:/home/hotmoka/chain -v ./hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:VERSION start${NC}"
+echo -e "  ${BOLD_CYAN}docker run -dit -p 8001:8001 -p 8025:8025 -p 8030:8030 -p 8031:8031 -v chain:/home/hotmoka/chain -v hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:VERSION start${NC}"
 echo
 echo -e "* ${RED}resume:${NC}       resume a node whose container was previously turned off with \"docker stop\""
 echo -e "    ${BLUE}VISIBLE_AS:${NC} a URI that the external world can use to contact the node"
 echo
 echo "  For instance:"
-echo -e "  ${BOLD_CYAN}docker run -dit -p 8001:8001 -p 8030:8030 -p 8031:8031 -v chain:/home/hotmoka/chain -v ./hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:VERSION resume${NC}"
+echo -e "  ${BOLD_CYAN}docker run -dit -p 8001:8001 -p 8025:8025 -p 8030:8030 -p 8031:8031 -v chain:/home/hotmoka/chain -v hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:VERSION resume${NC}"
 echo
 echo -e "${RED}init/start/resume${NC} assume that the configuration directory of the node is available in the same directory where they are executed."

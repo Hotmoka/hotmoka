@@ -39,8 +39,8 @@ echo -e "        ${BLUE}PUBLIC_KEY_OF_GAMETE${NC}=${RED}\"$PUBLIC_KEY_OF_GAMETE\
 echo -e "  ${BLUE}TARGET_BLOCK_CREATION_TIME${NC}=${RED}$TARGET_BLOCK_CREATION_TIME${NC}"
 echo
 
-echo -n "Creating the directory hotmoka_mokamint... "
-mkdir hotmoka_mokamint
+echo -n "Cleaning the directory hotmoka_mokamint... "
+rm -rf hotmoka_mokamint/*
 echo -e "${RED}done${NC}"
 
 echo -n "Creating the node.pem key pair for signing the blocks... "
@@ -68,7 +68,7 @@ echo "chain_id = \"${CHAIN_ID}\"" > hotmoka_mokamint/mokamint_config.toml
 echo "target_block_creation_time = ${TARGET_BLOCK_CREATION_TIME}" >> hotmoka_mokamint/mokamint_config.toml
 echo -e "${RED}done${NC}"
 
-echo "Creating a plot file for the miner, containing ${PLOT_SIZE} nonces..."
+echo "Creating a plot file for the miner, containing ${PLOT_SIZE} nonces, for the chain id \"${CHAIN_ID}\"..."
 mokamint-plotter create hotmoka_mokamint/plot.plot 0 $PLOT_SIZE "$CHAIN_ID" $PUBLIC_KEY_NODE_BASE58 $PUBLIC_KEY_MINER_BASE58
 echo -e "${RED}done${NC}"
 

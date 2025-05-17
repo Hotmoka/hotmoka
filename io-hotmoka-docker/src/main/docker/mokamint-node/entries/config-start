@@ -28,8 +28,8 @@ echo -e " ${BLUE}MOKAMINT_PUBLIC_SERVICE_URI${NC}=${RED}$MOKAMINT_PUBLIC_SERVICE
 echo -e "                   ${BLUE}PLOT_SIZE${NC}=${RED}$PLOT_SIZE${NC}"
 echo
 
-echo -n "Creating the directory hotmoka_mokamint... "
-mkdir hotmoka_mokamint
+echo -n "Cleaning the directory hotmoka_mokamint... "
+rm -rf hotmoka_mokamint/*
 echo -e "${RED}done${NC}"
 
 echo -n "Creating the node.pem key pair for signing the blocks... "
