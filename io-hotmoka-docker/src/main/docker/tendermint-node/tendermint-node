@@ -1,9 +1,7 @@
 # In order to create the image, from the top level of the module, either
 #   mvn package
 # or
-#   docker buildx build --platform linux/amd64 -t hotmoka/tendermint-node:latest -f src/main/docker/tendermint-node/tednermint-node .
-
-# Tendermint port: 26656
+#   docker buildx build --platform linux/amd64 -t hotmoka/tendermint-node:latest -f src/main/docker/tendermint-node/tendermint-node .
 
 FROM openjdk:21-jdk-slim
 LABEL "maintainer"="fausto.spoto@hotmoka.io"
@@ -27,14 +25,6 @@ RUN wget https://github.com/tendermint/tendermint/releases/download/v0.34.15/ten
 RUN groupadd -r hotmoka \
   && useradd --no-log-init -r -m -g hotmoka hotmoka
 
-# create a volume for the chain of this container and make it writable to everyone
-RUN mkdir /home/hotmoka/chain \
-  && chmod -R a+w /home/hotmoka/chain
-
-# create a volume for the hotmoka_tendermint of this container and make it writable to everyone
-RUN mkdir /home/hotmoka/hotmoka_tendermint \
-  && chmod -R a+w /home/hotmoka/hotmoka_tendermint
-  
 # copy the Java modules
 COPY modules/ /modules/
 
@@ -51,7 +41,7 @@ RUN echo java -Djava.util.logging.config.file=logging.properties --module-path /
   
 # install the control scripts
 COPY src/main/docker/tendermint-node/entries/* ./
-RUN chmod 755 help && chmod 755 init && chmod 755 resume && chmod 755 start && chmod 755 config-init && chmod 755 config-start
+RUN chmod 755 info && chmod 755 init && chmod 755 resume && chmod 755 start && chmod 755 config-init && chmod 755 config-start
 
 USER hotmoka
 WORKDIR /home/hotmoka
@@ -59,5 +49,8 @@ WORKDIR /home/hotmoka
 # install the logging configuration that print logs on the screen
 COPY --chown=hotmoka src/main/resources/logging.properties logging.properties
 
-# by default, print a help message
-CMD ["help"]
+# create the directories for the chain and the configuration, that might be bound to some volumes
+RUN mkdir chain && mkdir hotmoka_tendermint
+
+# by default, print an info message
+CMD ["info"]

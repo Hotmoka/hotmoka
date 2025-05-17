@@ -237,6 +237,18 @@
                 </buildx>
 		      </build>
 			</image>
+			<image>
+		      <name>hotmoka/tendermint-node-arm64:${hotmoka.version}</name>
+		      <build>
+		        <contextDir>../../..</contextDir>
+		        <dockerFile>src/main/docker/tendermint-node/tendermint-node-arm64</dockerFile>
+                <buildx>
+                  <platforms>
+	                <platform>linux/arm64</platform>
+	              </platforms>
+                </buildx>
+		      </build>
+			</image>
 		  </images>
   		</configuration>
   		<!-- Adding this part always executes the docker:build during Maven's package phase -->

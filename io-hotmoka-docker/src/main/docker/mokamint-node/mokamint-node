@@ -66,7 +66,7 @@ WORKDIR /home/hotmoka
 # install the logging configuration that print logs on the screen
 COPY --chown=hotmoka src/main/resources/logging.properties logging.properties
 
-# create a volume for the chain of this container and make it writable to everyone
+# create the directories for the chain and the configuration, that might be bound to some volumes
 RUN mkdir chain && mkdir hotmoka_mokamint
 
 # by default, print an info message
