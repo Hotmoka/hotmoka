@@ -8,7 +8,7 @@ NC='\033[0m' # No Color
 
 echo -e "${BOLD_GREEN}This container manages Hotmoka nodes using Mokamint as proof of space consensus engine.${NC}"
 echo
-echo "This contained could be run with two volumes, one for the chain directory and another for the configuration"
+echo "This container could be run with two volumes, one for the chain directory and another for the configuration"
 echo "directory of the node, and mapping all ports that could be used by Hotmoka or Mokamint:"
 echo -e "  ${BOLD_CYAN}docker run -it -p 8001:8001 -p 8025:8025 -p 8030:8030 -p 8031:8031 -v chain:/home/hotmoka/chain -v hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:VERSION /bin/bash${NC}"
 echo
@@ -35,19 +35,19 @@ echo
 echo "  For instance:"
 echo -e "  ${BOLD_CYAN}docker run -it -e MOKAMINT_PUBLIC_SERVICE_URI=ws://panarea.hotmoka.io:8030 hotmoka/mokamint-node:VERSION config-start${NC}"
 echo
-echo -e "* ${RED}init:${NC}         create a node for a brand new blockchain"
+echo -e "* ${RED}init:${NC}         create a node for a brand new blockchain, whose configuration has been created with config-init"
 echo -e "    ${BLUE}VISIBLE_AS:${NC} a URI that the external world can use to contact the new node"
 echo
 echo "  For instance:"
 echo -e "  ${BOLD_CYAN}docker run -dit -p 8001:8001 -p 8025:8025 -p 8030:8030 -p 8031:8031 -v chain:/home/hotmoka/chain -v hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:VERSION init${NC}"
 echo
-echo -e "* ${RED}start:${NC}        create a node that connects to an already existing node of a blockchain"
+echo -e "* ${RED}start:${NC}        create a node that connects to an already existing node of a blockchain, whose configuration has been created with config-start"
 echo -e "    ${BLUE}VISIBLE_AS:${NC} a URI that the external world can use to contact the new node"
 echo
 echo "  For instance:"
 echo -e "  ${BOLD_CYAN}docker run -dit -p 8001:8001 -p 8025:8025 -p 8030:8030 -p 8031:8031 -v chain:/home/hotmoka/chain -v hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:VERSION start${NC}"
 echo
-echo -e "* ${RED}resume:${NC}       resume a node whose container was previously turned off with \"docker stop\""
+echo -e "* ${RED}resume:${NC}       resume a node whose container was previously turned off"
 echo -e "    ${BLUE}VISIBLE_AS:${NC} a URI that the external world can use to contact the node"
 echo
 echo "  For instance:"

@@ -251,7 +251,7 @@
 			</image>
 		  </images>
   		</configuration>
-  		<!-- Adding this part always executes the docker:build during Maven's package phase -->
+  		<!-- Adding this part makes docker:build execute during Maven's package phase -->
         <executions>
           <execution>
             <id>docker:build</id>
