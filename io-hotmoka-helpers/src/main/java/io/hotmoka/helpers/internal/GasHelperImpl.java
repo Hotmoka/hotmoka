@@ -75,6 +75,6 @@ public class GasHelperImpl implements GasHelper {
 	@Override
 	public BigInteger getSafeGasPrice() throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, CodeExecutionException {
 		// we double the minimal price, to be sure that the transaction won't be rejected
-		return BigInteger.TWO.multiply(getGasPrice());
+		return BigInteger.valueOf(2L).multiply(getGasPrice()); // BigInteger.TWO crashes the Android client
 	}
 }

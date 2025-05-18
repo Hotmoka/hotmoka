@@ -445,7 +445,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		private long initialInflation = 100_000L; // 0.1%
 		private long verificationVersion = 0L;
 		private BigInteger initialSupply = new BigInteger("1000000000000000000000000000000000000000000");
-		private BigInteger finalSupply = initialSupply.multiply(BigInteger.TWO);
+		private BigInteger finalSupply = initialSupply.multiply(BigInteger.valueOf(2L)); // BigInteger.TWO crashes the Android client
 		private PublicKey publicKeyOfGamete;
 		private String publicKeyOfGameteBase64;
 		private BigInteger ticketForNewPoll = BigInteger.valueOf(100);
