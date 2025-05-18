@@ -2,6 +2,7 @@
 #   mvn package
 # or
 #   docker buildx build --platform linux/amd64 -t hotmoka/mokamint-node:latest -f src/main/docker/mokamint-node/mokamint-node .
+#   add --push to push to DockerHub
 
 FROM openjdk:21-jdk-slim
 LABEL "maintainer"="fausto.spoto@hotmoka.io"
