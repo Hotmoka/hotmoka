@@ -5,9 +5,6 @@
 # - ProgrammingHotmoka.pdf: a PDF version of the documentation for Hotmoka
 # - ProgrammingHotmoka.epub: an epub version of the documentation for Hotmoka
 # - ProgrammingHotmoka.mobi: a mobi version of the documentation for Hotmoka
-# - ProgrammingBlueknot.pdf: a PDF version of the documentation for Blueknot
-# - ProgrammingBlueknot.epub: an epub version of the documentation for Blueknot
-# - ProgrammingBlueknot.mobi: a mobi version of the documentation for Blueknot
 
 cp Tutorial.source Tutorial.md
 cp pics/state1.fig state1_copy.fig
@@ -123,8 +120,7 @@ sed -i 's/@docker_diff2/2565/g' Tutorial.md
 sed -i 's/@docker_diff3/2/g' Tutorial.md
 sed -i 's/@docker_sum1/2567/g' Tutorial.md
 
-# we regenerate the png figures, since they might contain some string changed
-# by previous sed commands
+# we regenerate the png figures, since they might contain some string changed by the previous sed commands
 fig2dev -L png -m 4 state1_copy.fig pics/state1.png
 fig2dev -L png -m 4 state2_copy.fig pics/state2.png
 fig2dev -L png -m 4 state3_copy.fig pics/state3.png
@@ -134,9 +130,9 @@ rm *_copy.fig
 cp Tutorial.md ProgrammingHotmoka.md
 sed -i "s/\[Hotmokaonly]://g" ProgrammingHotmoka.md
 
-# These must be edited by hand since, for instance, they depend on accounts created in Mokito or on the configuration (hotmoka/blueknot)
+# These must be edited by hand since, for instance, they depend on accounts created in Mokito
 sed -i 's/@tendermint_version/0.34.15/g' ProgrammingHotmoka.md
-sed -i 's/@takamaka_version/1.3.1/g' ProgrammingHotmoka.md
+sed -i 's/@takamaka_version/1.4.1/g' ProgrammingHotmoka.md
 sed -i 's/@tool_repo/https:\/\/github.com\/Hotmoka\/hotmoka/g' ProgrammingHotmoka.md
 sed -i 's/@tool/moka/g' ProgrammingHotmoka.md
 sed -i 's/@Tool/Moka/g' ProgrammingHotmoka.md
@@ -195,73 +191,5 @@ rm ProgrammingHotmoka.md
 
 # generate the mobi version of the document
 ebook-convert ProgrammingHotmoka.epub ProgrammingHotmoka.mobi
-
-# Blueknot-specific processing now...
-cp Tutorial.md ProgrammingBlueknot.md
-
-# some paragraphs do not exist in the Blueknot version
-sed -i "/^\[Hotmokaonly]:/d" ProgrammingBlueknot.md
-
-# These must be edited by hand since, for instance, they depend on accounts created in Mokito or on the configuration (hotmoka/blueknot)
-sed -i 's/@tendermint_version/0.34.15/g' ProgrammingBlueknot.md
-sed -i 's/@takamaka_version/1.3.0/g' ProgrammingBlueknot.md
-sed -i 's/@tool_repo/https:\/\/github.com\/Vero4Chain\/blueknot/g' ProgrammingBlueknot.md
-sed -i 's/@tool/blue/g' ProgrammingBlueknot.md
-sed -i 's/@Tool/Blue/g' ProgrammingBlueknot.md
-sed -i 's/@app_repo/https:\/\/github.com\/Vero4Chain\/BlueknotAndroid/g' ProgrammingBlueknot.md
-sed -i 's/@app_id_play/it.vero4chain.android.bluewally/g' ProgrammingBlueknot.md
-sed -i 's/@app/bluewally/g' ProgrammingBlueknot.md
-sed -i 's/@App/Bluewally/g' ProgrammingBlueknot.md
-sed -i 's/@type/blueknot/g' ProgrammingBlueknot.md
-sed -i 's/@Type/Blueknot/g' ProgrammingBlueknot.md
-sed -i 's/@docker_hub_user/veroforchain/g' ProgrammingBlueknot.md
-sed -i 's/@docker_user/blueknot/g' ProgrammingBlueknot.md
-sed -i 's/@hotwallet_repo/https:\/\/github.com\/Vero4Chain\/hotwallet-browser/g' ProgrammingBlueknot.md
-sed -i 's/@hotweb3_repo/https:\/\/github.com\/Vero4Chain\/hotweb3/g' ProgrammingBlueknot.md
-sed -i 's/@fausto_email/fausto.spoto@vero4chain.it/g' ProgrammingBlueknot.md
-sed -i 's/@tutorial_repo/https:\/\/github.com\/Vero4Chain\/blueknot_tutorial.git/g' ProgrammingBlueknot.md
-sed -i 's/@tutorial_name/blueknot_tutorial/g' ProgrammingBlueknot.md
-sed -i 's/@account_mokito/701e20be588db820744df467826d67b9fe451406d7f75da6ef8aeb6805a7365f#0/g' ProgrammingBlueknot.md
-sed -i 's/@36words_of_account_mokito/word #1: rail\nword #2: double\nword #3: bag\nword #4: dove\nword #5: fluid\n...\nword #34: bounce\nword #35: deposit\nword #36: hotel/g' ProgrammingBlueknot.md
-
-cp ProgrammingBlueknot.md temp.md
-sed -i "/^\[PDFonly]:/d" ProgrammingBlueknot.md
-sed -i "s/\[Markdownonly]://g" ProgrammingBlueknot.md
-
-# generate the PDF version now
-sed -i "/^\[Markdownonly]:/d" temp.md
-sed -i "s/\[PDFonly]://g" temp.md
-pandoc temp.md -o ProgrammingBlueknot.tex --include-in-header mystylefile_blueknot.tex --include-after-body backcover.tex --toc --highlight-style=kate -V geometry:a4paper -V documentclass:book -V pagestyle:headings -V papersize:a4 -V colorlinks:true
-rm temp.md
-sed -i 's/\\begin{verbatim}/\\begin{myverbatim}\n\\begin{verbatim}/g' ProgrammingBlueknot.tex
-sed -i 's/\\end{verbatim}/\\end{verbatim}\n\\end{myverbatim}/g' ProgrammingBlueknot.tex
-sed -i 's/103 \& alicudi/$10^3$ \& alicudi/g' ProgrammingBlueknot.tex
-sed -i 's/106 \& filicudi/$10^6$ \& filicudi/g' ProgrammingBlueknot.tex
-sed -i 's/109 \& stromboli/$10^9$ \& stromboli/g' ProgrammingBlueknot.tex
-sed -i 's/1012 \& vulcano/$10^{12}$ \& vulcano/g' ProgrammingBlueknot.tex
-sed -i 's/1015 \& salina/$10^{15}$ \& salina/g' ProgrammingBlueknot.tex
-sed -i 's/1018 \& lipari/$10^{18}$ \& lipari/g' ProgrammingBlueknot.tex
-sed -i 's/1021 \& moka/$10^{21}$ \& moka/g' ProgrammingBlueknot.tex
-sed -i 's/\\chapterfont{\\clearpage}//g' ProgrammingBlueknot.tex
-sed -i 's/\\chapter{Table of Contents}/\\begin{comment}\\chapter{Table of Contents}/g' ProgrammingBlueknot.tex
-sed -i 's/\\hypertarget{introduction}/\\end{comment}\n\n\\hypertarget{introduction}/g' ProgrammingBlueknot.tex
-
-# delete the \begin{document}
-sed -i 's/\\begin{document}//g' ProgrammingBlueknot.tex
-# place \begin{document} before \BgThispage
-sed -i 's/\\BgThispage/\\begin{document}\n\\BgThispage/g' ProgrammingBlueknot.tex
-
-pdflatex ProgrammingBlueknot.tex
-
-# mv ProgrammingBlueknot.md ../README.md
-
-# generate the epub version of the document
-# we remove the first lines of the Markdown, that contain Java build information
-tail -n +6 ../README.md > ProgrammingBlueknot.md
-pandoc -o ProgrammingBlueknot.epub metadata-blueknot.yaml ProgrammingBlueknot.md
-rm ProgrammingBlueknot.md
-
-# generate the mobi version of the document
-ebook-convert ProgrammingBlueknot.epub ProgrammingBlueknot.mobi
 
 rm Tutorial.md
