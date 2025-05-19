@@ -128,7 +128,6 @@ rm *_copy.fig
 
 # Hotmoka-specific processing now...
 cp Tutorial.md ProgrammingHotmoka.md
-sed -i "s/\[Hotmokaonly]://g" ProgrammingHotmoka.md
 
 # These must be edited by hand since, for instance, they depend on accounts created in Mokito
 sed -i 's/@tendermint_version/0.34.15/g' ProgrammingHotmoka.md
@@ -174,12 +173,10 @@ sed -i 's/\\chapterfont{\\clearpage}//g' ProgrammingHotmoka.tex
 sed -i 's/\\chapter{Table of Contents}/\\begin{comment}\\chapter{Table of Contents}/g' ProgrammingHotmoka.tex
 sed -i 's/\\hypertarget{introduction}/\\end{comment}\n\n\\hypertarget{introduction}/g' ProgrammingHotmoka.tex
 
-# delete the \begin{document}
-sed -i 's/\\begin{document}//g' ProgrammingHotmoka.tex
-# place \begin{document} before \BgThispage
-sed -i 's/\\BgThispage/\\begin{document}\n\\BgThispage/g' ProgrammingHotmoka.tex
+# place \input{cover_page.tex} after \begin{document}
+sed -i 's/\\begin{document}/\\begin{document}\\input{cover_page.tex}/g' ProgrammingHotmoka.tex
 
-pdflatex ProgrammingHotmoka.tex
+#pdflatex ProgrammingHotmoka.tex
 
 mv ProgrammingHotmoka.md ../README.md
 

@@ -1938,23 +1938,23 @@ constructor of `Person`, the one that assumes `null` as parents. The actual para
 are provided; they must be instances of the `io.hotmoka.node.api.values.StorageValue` interface.
 We provide 50,000 units of gas, which should be enough for a constructor that just initializes a few fields.
 We are ready to pay `panarea(gasHelper.getSafeGasPrice())` units of coin for each unit of gas.
-[Hotmokaonly]:This price could have been specified simply as `gasHelper.getSafeGasPrice()`
-[Hotmokaonly]:but we used the static method `io.hotmoka.helpers.Coin.panarea()`
-[Hotmokaonly]:to generate a `BigInteger` corresponding to the smallest coin unit of @Type nodes, a *panarea*.
-[Hotmokaonly]:Namely, the following units of coin exist:
+This price could have been specified simply as `gasHelper.getSafeGasPrice()`
+but we used the static method `io.hotmoka.helpers.Coin.panarea()`
+to generate a `BigInteger` corresponding to the smallest coin unit of @Type nodes, a *panarea*.
+Namely, the following units of coin exist:
 
-[Hotmokaonly]:| Value (in panas)      | Exponent           | Name | Short Name |
-[Hotmokaonly]:| --------------------- |:-------------:| ----- | ----- |
-[Hotmokaonly]:| 1      | 1 | panarea | pana |
-[Hotmokaonly]:| 1,000  | 10<sup>3</sup> | alicudi | ali |
-[Hotmokaonly]:| 1,000,000 | 10<sup>6</sup> | filicudi | fili |
-[Hotmokaonly]:| 1,000,000,000 | 10<sup>9</sup> | stromboli | strom |
-[Hotmokaonly]:| 1,000,000,000,000 | 10<sup>12</sup> | vulcano | vul |
-[Hotmokaonly]:| 1,000,000,000,000,000 | 10<sup>15</sup> | salina | sali |
-[Hotmokaonly]:| 1,000,000,000,000,000,000 | 10<sup>18</sup> | lipari | lipa |
-[Hotmokaonly]:| 1,000,000,000,000,000,000,000 | 10<sup>21</sup> | moka | moka |
+| Value (in panas)      | Exponent           | Name | Short Name |
+| --------------------- |:-------------:| ----- | ----- |
+| 1      | 1 | panarea | pana |
+| 1,000  | 10<sup>3</sup> | alicudi | ali |
+| 1,000,000 | 10<sup>6</sup> | filicudi | fili |
+| 1,000,000,000 | 10<sup>9</sup> | stromboli | strom |
+| 1,000,000,000,000 | 10<sup>12</sup> | vulcano | vul |
+| 1,000,000,000,000,000 | 10<sup>15</sup> | salina | sali |
+| 1,000,000,000,000,000,000 | 10<sup>18</sup> | lipari | lipa |
+| 1,000,000,000,000,000,000,000 | 10<sup>21</sup> | moka | moka |
 
-[Hotmokaonly]:with corresponding static methods in `io.hotmoka.helpers.Coin`.
+with corresponding static methods in `io.hotmoka.helpers.Coin`.
 
 Run `Family2` from Eclipse.
 You should see the following on the console:
