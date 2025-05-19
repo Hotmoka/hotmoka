@@ -177,18 +177,31 @@ sed -i 's/\\hypertarget{introduction}/\\end{comment}\n\n\\hypertarget{introducti
 
 # place \input{cover_page.tex} after \begin{document}
 echo "8"
-sed -i 's/\\begin{document}/\\begin{document}\\input{src\/main\/latex\/cover_page.tex}/g' target/ProgrammingHotmoka.tex
+sed -i 's/\\begin{document}/\\begin{document}\\input{..\/src\/main\/latex\/cover_page.tex}/g' target/ProgrammingHotmoka.tex
 
-#pdflatex target/ProgrammingHotmoka.tex
+cd target
+pdflatex ProgrammingHotmoka.tex
+pdflatex ProgrammingHotmoka.tex
+rm ProgrammingHotmoka.aux
+rm ProgrammingHotmoka.log
+rm ProgrammingHotmoka.toc
+rm ProgrammingHotmoka.tex
+cd ..
 
-#mv ../md/ProgrammingHotmoka.md ../README.md
-
-# generate the epub version of the document
+# generate the epub version of the document:
 # we remove the first lines of the Markdown, that contain Java build information
 echo "9"
 tail -n +6 target/ProgrammingHotmoka.md > target/temp.md
-#pandoc -o target/ProgrammingHotmoka.epub src/main/resources/metadata-hotmoka.yaml target/temp.md
-rm target/temp.md
+cd target
+pandoc -o ProgrammingHotmoka.epub ../src/main/resources/metadata-hotmoka.yaml temp.md
+rm temp.md
+cd ..
 
 # generate the mobi version of the document
-#ebook-convert target/ProgrammingHotmoka.epub target/ProgrammingHotmoka.mobi
+ebook-convert target/ProgrammingHotmoka.epub target/ProgrammingHotmoka.mobi
+
+# copy the md version into the tutorial-md folder, where it will be available for the README.md file
+rm -rf tutorial-md
+mkdir tutorial-md
+cp -r target/pics tutorial-md
+cp target/ProgrammingHotmoka.md tutorial-md
