@@ -123,6 +123,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <module>io-hotmoka-node-messages</module>
     <module>io-hotmoka-node-mokamint-api</module>
     <module>io-hotmoka-node-mokamint</module>
+    <module>io-hotmoka-tutorial</module>
     <module>io-hotmoka-docker</module>
   </modules>
 
