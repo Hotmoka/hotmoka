@@ -7,22 +7,17 @@
 # to reflect the actual content of the node.
 
 # Run for instance this way:
-# NETWORK_URI="ws://mynode:myport" TYPE="hotmoka" ./update_for_new_node.sh
+# NETWORK_URI="ws://mynode:myport" ./update_for_new_node.sh
 
 # by default, it reflects the panarea.hotmoka.io node
-NETWORK_URI=${NETWORK_URI:=ws://panarea.hotmoka.io}
+NETWORK_URI=${NETWORK_URI:=ws://panarea.hotmoka.io:8001}
 NETWORK_URI_WITHOUT_PROTOCOL=$(echo $NETWORK_URI | sed s/".*:\/\/"/""/g) # remove protocol, if any
 
 # by default, it modifies the shell script for Hotmoka
-TYPE=${TYPE:=hotmoka}
+TYPE=hotmoka
 TYPE_CAPITALIZED=${TYPE^}
 SCRIPT=create_tutorial_from_source.sh
-if [ $TYPE == "hotmoka" ]
-then
-    DOCKER_HUB_USER=hotmoka
-else
-    DOCKER_HUB_USER=veroforchain
-fi
+DOCKER_HUB_USER=hotmoka
 
 RED='\033[1;31m'
 NC='\033[0m'
@@ -30,7 +25,7 @@ message() {
     printf "${RED}$@${NC}\n"
 }
 
-message "Updating file $SCRIPT by replaying its examples on the $TYPE_CAPITALIZED node at ${NETWORK_URI}"
+message "Updating file $SCRIPT by replaying its examples on the Hotmoka node at ${NETWORK_URI}"
 
 echo "  Server = $NETWORK_URI"
 echo "  Script = $SCRIPT"
@@ -521,4 +516,3 @@ message "Running the \"Events.java\" run example from the tutorial"
 cd ../../hotmoka_tutorial/runs
 java --module-path ../../hotmoka/io-hotmoka-moka/modules/explicit/:../../hotmoka/io-hotmoka-moka/modules/automatic:target/runs-0.0.1.jar -classpath ../../hotmoka/io-hotmoka-moka/modules/unnamed"/*" --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module runs/runs.Events
 cd ../../hotmoka/tutorial
-

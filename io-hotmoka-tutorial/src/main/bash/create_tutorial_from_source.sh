@@ -130,21 +130,17 @@ fig2dev -L png -m 4 target/pics/state3.fig target/pics/state3.png
 echo "4"
 sed -i 's/@tendermint_version/0.34.15/g' target/Tutorial.md
 sed -i 's/@takamaka_version/1.4.1/g' target/Tutorial.md
-sed -i 's/@tool_repo/https:\/\/github.com\/Hotmoka\/hotmoka/g' target/Tutorial.md
-sed -i 's/@tool/moka/g' target/Tutorial.md
-sed -i 's/@Tool/Moka/g' target/Tutorial.md
+sed -i 's/@hotmoka_repo/https:\/\/github.com\/Hotmoka\/hotmoka.git/g' target/Tutorial.md
+sed -i 's/@takamaka_repo/https:\/\/github.com\/Hotmoka\/io-takamaka-code.git/g' target/Tutorial.md
 sed -i 's/@app_repo/https:\/\/github.com\/Hotmoka\/HotmokaAndroid/g' target/Tutorial.md
 sed -i 's/@app_id_play/io.hotmoka.android.mokito/g' target/Tutorial.md
 sed -i 's/@app/mokito/g' target/Tutorial.md
 sed -i 's/@App/Mokito/g' target/Tutorial.md
-sed -i 's/@type/hotmoka/g' target/Tutorial.md
-sed -i 's/@Type/Hotmoka/g' target/Tutorial.md
 sed -i 's/@docker_hub_user/hotmoka/g' target/Tutorial.md
 sed -i 's/@docker_user/hotmoka/g' target/Tutorial.md
 sed -i 's/@hotwallet_repo/https:\/\/github.com\/Hotmoka\/hotwallet-browser/g' target/Tutorial.md
 sed -i 's/@hotweb3_repo/https:\/\/github.com\/Hotmoka\/hotweb3/g' target/Tutorial.md
 sed -i 's/@fausto_email/fausto.spoto@hotmoka.io/g' target/Tutorial.md
-sed -i 's/@tutorial_repo/https:\/\/github.com\/Hotmoka\/hotmoka_tutorial.git/g' target/Tutorial.md
 sed -i 's/@tutorial_name/hotmoka_tutorial/g' target/Tutorial.md
 sed -i 's/@account_mokito/701e20be588db820744df467826d67b9fe451406d7f75da6ef8aeb6805a7365f#0/g' target/Tutorial.md
 sed -i 's/@36words_of_account_mokito/word #1: rail\nword #2: double\nword #3: bag\nword #4: dove\nword #5: fluid\n...\nword #34: bounce\nword #35: deposit\nword #36: hotel/g' target/Tutorial.md
