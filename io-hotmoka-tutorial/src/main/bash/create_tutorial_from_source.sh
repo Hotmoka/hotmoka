@@ -134,10 +134,6 @@ sed -i 's/@hotmoka_repo/https:\/\/github.com\/Hotmoka\/hotmoka.git/g' target/Tut
 sed -i 's/@takamaka_repo/https:\/\/github.com\/Hotmoka\/io-takamaka-code.git/g' target/Tutorial.md
 sed -i 's/@app_repo/https:\/\/github.com\/Hotmoka\/HotmokaAndroid/g' target/Tutorial.md
 sed -i 's/@app_id_play/io.hotmoka.android.mokito/g' target/Tutorial.md
-sed -i 's/@app/mokito/g' target/Tutorial.md
-sed -i 's/@App/Mokito/g' target/Tutorial.md
-sed -i 's/@docker_hub_user/hotmoka/g' target/Tutorial.md
-sed -i 's/@docker_user/hotmoka/g' target/Tutorial.md
 sed -i 's/@hotwallet_repo/https:\/\/github.com\/Hotmoka\/hotwallet-browser/g' target/Tutorial.md
 sed -i 's/@hotweb3_repo/https:\/\/github.com\/Hotmoka\/hotweb3/g' target/Tutorial.md
 sed -i 's/@fausto_email/fausto.spoto@hotmoka.io/g' target/Tutorial.md

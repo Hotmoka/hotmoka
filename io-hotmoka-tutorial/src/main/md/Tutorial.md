@@ -24,7 +24,7 @@
     - [Hotmoka in a Nutshell](#hotmoka-in-a-nutshell)
     - [Hotmoka Clients](#hotmoka-clients)
         - [Moka](#moka)
-        - [@App](#@app)
+        - [Mokito](#mokito)
         - [Hotwallet](#hotwallet)
     - [Contacting a Hotmoka Test Node](#contacting-a-hotmoka-test-node)
     - [Creation of a First Account](#creation-of-a-first-account)
@@ -341,7 +341,8 @@ in the call request are the storage references of the receiver and of the payer
 In Hotmoka, a _transaction_ is either
 
 1. the installation of a jar, that modifies the state of the node, and is paid by a payer account, or
-2. the execution of a method on a receiver, that yields a returned
+2. the execution of a constructor, that yields the storage reference of a new object, or
+3. the execution of a method on a receiver, that yields a returned
    value and/or has side-effects that modify the state of the node, and is paid by a payer account.
 
 A Hotmoka node can keep track
@@ -354,16 +355,18 @@ happens in Bitcoin, Ethereum and most other blockchains. There, an account
 is not an object, nor a contract,
 but just a key in the key/value store of the blockchain, whose value is its balance.
 The key used for an account is typically computed by hashing the public key derived from
-the private key of the account. In some sense, accounts, in those blockchain, exist
+the private key of the account. In some sense, accounts, in those blockchains, exist
 independently from the state of the blockchain and can be computed offline: just
 create a random private key, compute the associated public key and hence its hash.
 Hotmoka is radically different: an account is an object that must be allocated in
-state by an explicit transaction (that must be paid, as every transaction).
-The public key is explicitly stored inside the object
+state by an explicit construction transaction (that must be paid, as every transaction).
+The public key is explicitly stored inside the constructed object
 (Base64-encoded in its `publicKey` field, see Figure @fig:receiver_payer).
-That public key was passed as a parameter for the creation of the payer object and
+That public key was passed as a parameter at the creation of the payer object and
 can be passed again for creating more accounts. That is, it is well possible, in Hotmoka,
 to have more accounts in the state of a node, all distinct, but controlled by the same key.
+It is also possible to replace the key of an account with another key, since the
+`publicKey` field is not `final`.
 
 This has a major consequence. In Bitcoin and Ethereum, an account is identified by
 twelve words and a password, by using the BIP39 encoding
@@ -373,10 +376,10 @@ private key of the account and four bits of checksum. In Hotmoka, these 128 bits
 not enough, since they identify the key of the account but not the 32 bytes of its
 storage reference (in this representation, the progressive is assumed to be zero).
 As a consequence, accounts in Hotmoka are identified by
-128+256 bits, plus 12 bits of checksum (and a password), which give rise to 36 words with the BIP39 encoding.
+128+256 bits, plus 12 bits of checksum (and a password), which give rise to 36 words in BIP39 encoding.
 By specifying those 36 words across different clients, one can control the
 same account with all such clients. As usual, those 36 words must be stored in paper
-and kept in a secure place, since losing them amounts to losing access to the account.
+and kept in a secure place, since their lost amounts to losing access to the account.
 
 As shown in Figure @fig:receiver_payer, the code of the objects (contracts) installed in
 the state of a Hotmoka node consists in jars (Java archives) written in a subset of Java
@@ -399,116 +402,90 @@ known as Takamaka. This is done in a way completely different from other blockch
 
 In order to query a Hotmoka node, handle accounts and run transactions on the node,
 one needs a client application. Currently, there are a command-line client, called
-Moka, a mobile client for Android, called @App, and a web client that gets installed
-in the browser (Chrome or Firefox), called Hotwallet. @App and Hotwallet provide
+Moka and a mobile client for Android, called Mokito. Mokito provides
 basic functionalities only (handling accounts, querying the state of the objects in the node,
-running simple transactions), while Moka is the most complete solution, but also the
-most difficult to use.
+running simple transactions), while Moka is the most complete solution.
 
 ### Moka
 
 You can use the `moka` tool to interact with a Hotmoka node,
-install code in the node and run transactions in the node.
-The latest version of the tool can be downloaded from
-[@hotmoka_repo/releases](@hotmoka_repo/releases).
-Its source code is maintained inside the main distribution of the Hotmoka project, at
-[@hotmoka_repo](@hotmoka_repo), in the submodule `io-hotmoka-moka`.
-We report below the installation instructions of `moka`.
-In order to run the tool, you need Java JDK version 11 (or higher) installed in your
-computer and a recent version of Maven.
+install code in the node and run transactions. There are two ways of using `moka`.
+You can either download its source code, compile it and add the `moka` executable to
+the command path; or you can use `moka` inside its Docker container.
+The former approach is more flexible but requires to have
+Java JDK version 21 (or higher) installed in your
+computer, along a recent version of Maven. The latter approach avoids to install
+and compile software on your machine, but you need Docker installed of course.
 
-#### Linux and MacOS
+#### Downloading and compiling `moka`
 
-You should download and untar the latest release into the directory
-where you want to install `moka`. For instance, assuming that
-the latest version is `@hotmoka_version` and that
-you want to install it under `~/Opt/moka`, you can run the following commands:
+If you want to install `moka` under `~/Opt`, under Linux or MacOS you can run the following commands:
 
 ````shell
 $ cd ~/Opt
-$ mkdir moka
-$ cd moka
-$ wget @hotmoka_repo/releases/
-     download/v@hotmoka_version/moka_@hotmoka_version.tar.gz
-$ tar zxf moka_@hotmoka_version.tar.gz
-$ export PATH=$PATH:$(pwd)
+$ git clone https://github.com/Hotmoka/hotmoka.git
+$ cd hotmoka
+$ mvn clean install -DskipTests
+$ export PATH=$PATH:$(pwd)/io-hotmoka-moka
 ````
 
 > The dollar sign is the prompt of the shell.
-> In the shell scripts reported in this book, whenever a line is too long,
-> as that starting with wget above, we go to the next line but you should enter
-> the command in a single line, without newlines or spaces: `...releases/download/v...`
 
-The last `export` command expands the command-path of the shell with
-the `~/Opt/moka` directory, so that `moka` can
+The last `export` command expands the command path of the shell with
+the `~/Opt/hotmoka/io-hotmoka-moka` directory, so that `moka` can
 be invoked from the command shell, regardless of the current directory.
 You might want to add an `export`
-at the end of your `~/.bashrc` configuration file, so that the command-path
+at the end of your `~/.bashrc` configuration file, so that the command path
 will be expanded correctly the next time you open a shell. For instance, I added
 the following command at the end of my `~/.bashrc`:
 
 ```shell
-export PATH=/home/spoto/Opt/moka:$PATH
+$ export PATH=/home/spoto/Opt/hotmoka/io-hotmoka-moka:$PATH
 ```
 
-#### Windows
-
-You should download and untar the latest release
-([@hotmoka_repo/releases](@hotmoka_repo/releases))
-into the directory
-where you want to install `moka`, by using a software tool such as
-`7zip` or `Cygwin`. After that, you should be able to run the tool
-from the command prompt:
+You should now be able to invoke `moka`:
 
 ```shell
-$ cd directory-where-you-installed-moka
-$ moka.bat help
+$ moka --version
+@hotmoka_version
 ```
 
-In the following of this tutorial, remember to use `moka.bat` to invoke the
-tool, where our examples use `moka` instead, which is the Linux name of
-the invocation script.
+The process is similar under Windows. However, where you will add
+the directory containing `moka` to the `PATH` environment variable.
 
-You might want to add, to the command-path,
-the directory where you installed `moka`,
-so that it will be expanded correctly the next time you open
-a command prompt window.
-For that, add that directory to the `PATH` environment variable.
+#### Invoking `moka` from inside its Docker container
+
+There are a few Docker containers embedding `moka` inside of them.
+For instance you can call `moka` as follows:
+
+```shell
+$ docker run -it hotmoka/mokamint-node:@hotmoka_version moka --version
+@hotmoka_version
+```
+
+This time you do not need Java nor Maven, nor to compile anything: Docker will take care
+of downloading the image of the container and run `moka` inside it.
 
 #### First Usage of `moka`
 
-The `moka` tool should be
-in the command-path of your shell now. You can check that it works, by invoking
-`moka` as follows:
+In the following examples, we show direct invocations of `moka`, without the Docker container.
+Remember, however, that you can also run it from inside its Docker container if you prefer.
+
+You can check the options of `moka` as follows:
 
 ```shell
 $ moka help
-Usage: moka [COMMAND]
 This is the command-line interface of Hotmoka.
+Usage: moka [--version] [COMMAND]
+      --version   print version information and exit
 Commands:
-  bind-key           Binds a key to a reference, so that it becomes an account
-  buy-validation     Accept a sale offer of validation power
-  call               Calls a method of an object or class
-  create             Creates an object in the store of a node
-  create-account     Creates a new account
-  create-key         Creates a new key
-  help               Display help information about the specified command.
-  faucet             Sets the thresholds for the faucet of the gamete of a node
-  import-account     Imports an account
-  info               Prints information about a node
-  init-disk          Initializes a new node in disk memory
-  init-tendermint    Initializes a new node based on Tendermint
-  install            Installs a jar in a node
-  instrument         Instruments a jar
-  resume-tendermint  Resumes an existing node based on Tendermint
-  rotate-key         Rotates the key of an account
-  sell-validation    Place a sale offer of validation power
-  send               Sends units of coin to a payable contract
-  show-account       Shows an account
-  start-tendermint   Starts a new node based on Tendermint
-  state              Prints the state of an object
-  verify             Verifies a jar
-  version            Print version information.
+  help      Display help information about the specified command.
+  accounts  Manage Hotmoka accounts.
+  jars      Manage jars of Takamaka classes.
+  keys      Manage cryptographic key pairs.
+  nodes     Manage Hotmoka nodes.
+  objects   Manage Hotmoka objects.
+Copyright (c) 2021 Fausto Spoto (fausto.spoto@hotmoka.io)
 ```
 
 As you can see above, the `moka help` command prints a description
@@ -516,49 +493,59 @@ of the available subcommands and exits.
 You can have a detailed help of a specific subcommand
 by specifying the subcommand after `help`.
 For instance, to print the help of the
-`faucet` subcommand, you can type:
+`objects` subcommand, you can type:
 
 ```shell
-$ moka help faucet
-Usage: moka faucet [--interactive] [--max-red=<maxRed>]
-                   [--password-of-gamete=<passwordOfGamete>] [--uri=<uri>] <max>
-Sets the thresholds for the faucet of the gamete of a node
-      <max>                the maximal amount of coins sent at each call to the
-                             faucet of the node
-                             Default: 0
-      --interactive        run in interactive mode
-      --max-red=<maxRed>   the maximal amount of red coins sent at each call to
-                             the faucet of the node
-                             Default: 0
-      --password-of-gamete=<passwordOfGamete>
-                           the password of the gamete account; if not
-                             specified, it will be asked interactively
-      --uri=<uri>          the URI of the node
-                             Default: ws://localhost:8001
+$ moka help objects
+Manage Hotmoka objects.
+Usage: moka objects [COMMAND]
+Commands:
+  help    Display help information about the specified command.
+  call    Call a method of an object or class.
+  create  Create a storage object.
+  show    Show the state of a storage object.
 ```
 
-### @App
+You can print the help of a specific leaf command by prefixing `help` before it:
+
+```shell
+$ moka objects help show
+Show the state of a storage object.
+Usage: moka objects show [--api] [--json] [--timeout=<milliseconds>]
+                         [--uri=<uri>] <object>
+      <object>      the object
+      --api         print the public API of the object
+      --json        print the output in JSON
+      --timeout=<milliseconds>
+                    the timeout of the connection
+                      Default: 20000
+      --uri=<uri>   the network URI where the API of the Hotmoka node service
+                      is published
+                      Default: ws://localhost:8001
+```
+
+### Mokito
 
 The `moka` tool allows one to perform a large variety of operations
 on a Hotmoka node. However, it is a technical tool, meant for developers.
 Most users will only perform simple tasks with a Hotmoka node.
 For them, it is simpler to use a mobile app, with a simpler user
-interface. That app, called `@App`, is currently available for Android only.
+interface. That app, called `Mokito`, is currently available for Android only.
 You can download it from Google Play and install it in your device, from
-[https://play.google.com/store/apps/details?id=@app_id_play](https://play.google.com/store/apps/details?id=@app_id_play). Developers interested in its Kotlin source code
+[https://play.google.com/store/apps/details?id=mokito_id_play](https://play.google.com/store/apps/details?id=mokito_id_play). Developers interested in its Kotlin source code
 can find it at
-[@app_repo](@app_repo),
+[mokito_repo](@mokito_repo),
 together with a small Android service for connecting to a remote Hotmoka node.
 
-The first time you will use @App on your mobile device,
+The first time you will use Mokito on your mobile device,
 it will connect by default to our testnet Hotmoka node
 and show the screen in Figure @fig:mokito_start. This can be changed
 in the preferences section of the app, accessible through the menu in the
 top left area of the app.
 
-[Markdownonly]: <p align="center"><img width="300" src="pics/mokito_start.png" alt="Figure @fig:mokito_start. The starting screen of the @App app"></p><p align="center">Figure @fig:mokito_start. The starting screen of the @App app.</p>
+[Markdownonly]: <p align="center"><img width="300" src="pics/mokito_start.png" alt="Figure @fig:mokito_start. The starting screen of the Mokito app"></p><p align="center">Figure @fig:mokito_start. The starting screen of the Mokito app.</p>
 
-[PDFonly]: ![Figure @fig:mokito_start. The starting screen of the @App app.](pics/mokito_start.png "Figure @fig:mokito_start. The starting screen of the @App app."){ width=30% }
+[PDFonly]: ![Figure @fig:mokito_start. The starting screen of the Mokito app.](pics/mokito_start.png "Figure @fig:mokito_start. The starting screen of the Mokito app."){ width=30% }
 
 ### Hotwallet
 
@@ -674,19 +661,19 @@ You can think at a storage reference as a machine-independent pointer inside the
 memory, or state, of the node.
 
 We have used the `moka` tool to see the manifest of a node. You can also use the
-@App app for that. Namely, tap on the app menu icon on the top-left corner of the screen
+Mokito app for that. Namely, tap on the app menu icon on the top-left corner of the screen
 and select _Manifest_ from the menu that will appear (see Figure @fig:mokito_menu).
 
-[Markdownonly]: <p align="center"><img width="300" src="pics/mokito_menu.png" alt="Figure @fig:mokito_menu. The menu of the @App app"></p><p align="center">Figure @fig:mokito_menu. The menu of the @App app.</p>
+[Markdownonly]: <p align="center"><img width="300" src="pics/mokito_menu.png" alt="Figure @fig:mokito_menu. The menu of the Mokito app"></p><p align="center">Figure @fig:mokito_menu. The menu of the Mokito app.</p>
 
-[PDFonly]: ![Figure @fig:mokito_menu. The menu of the @App app.](pics/mokito_menu.png "Figure @fig:mokito_menu. The menu of the @App app."){ width=30% }
+[PDFonly]: ![Figure @fig:mokito_menu. The menu of the Mokito app.](pics/mokito_menu.png "Figure @fig:mokito_menu. The menu of the Mokito app."){ width=30% }
 
 After tapping on _Manifest_, a new screen will appear, containing the same information
 that we found with `moka info` (see Figure @fig:mokito_manifest).
 
-[Markdownonly]: <p align="center"><img width="300" src="pics/mokito_manifest.png" alt="Figure @fig:mokito_manifest. The manifest of the Hotmoka node, shown in the @App app"></p><p align="center">Figure @fig:mokito_manifest. The manifest of the Hotmoka node, shown in the @App app.</p>
+[Markdownonly]: <p align="center"><img width="300" src="pics/mokito_manifest.png" alt="Figure @fig:mokito_manifest. The manifest of the Hotmoka node, shown in the Mokito app"></p><p align="center">Figure @fig:mokito_manifest. The manifest of the Hotmoka node, shown in the Mokito app.</p>
 
-[PDFonly]: ![Figure @fig:mokito_manifest. The manifest of the Hotmoka node, shown in the @App app.](pics/mokito_manifest.png "Figure @fig:mokito_manifest. The manifest of the Hotmoka node, shown in the @App app."){ width=30% }
+[PDFonly]: ![Figure @fig:mokito_manifest. The manifest of the Hotmoka node, shown in the Mokito app.](pics/mokito_manifest.png "Figure @fig:mokito_manifest. The manifest of the Hotmoka node, shown in the Mokito app."){ width=30% }
 
 ## Creation of a First Account
 
@@ -806,15 +793,15 @@ $ moka send 200000
 You can then use the `moka state` command to verify that the balance of
 your account has been actually increased with 200000 extra coins.
 
-The creation of a new account from the faucet is possible from the @App app as well.
+The creation of a new account from the faucet is possible from the Mokito app as well.
 Namely, use the menu of the app to tap on the _Accounts_ item to see the
 list of available accounts (Figure @fig:mokito_start). From there, tap on the
 menu icon on the right of the _Faucet_ account and select _Create a new account_
 (see Figure @fig:mokito_new_account).
 
-[Markdownonly]: <p align="center"><img width="300" src="pics/mokito_new_account.png" alt="Figure @fig:mokito_new_account. The menu for creating a new account with @App"></p><p align="center">Figure @fig:mokito_new_account. The menu for creating a new account with @App.</p>
+[Markdownonly]: <p align="center"><img width="300" src="pics/mokito_new_account.png" alt="Figure @fig:mokito_new_account. The menu for creating a new account with Mokito"></p><p align="center">Figure @fig:mokito_new_account. The menu for creating a new account with Mokito.</p>
 
-[PDFonly]: ![Figure @fig:mokito_new_account. The menu for creating a new account with @App.](pics/mokito_new_account.png "Figure @fig:mokito_new_account. The menu for creating a new account with @App."){ width=30% }
+[PDFonly]: ![Figure @fig:mokito_new_account. The menu for creating a new account with Mokito.](pics/mokito_new_account.png "Figure @fig:mokito_new_account. The menu for creating a new account with Mokito."){ width=30% }
 
 A form will appear, where you can specify the
 name for the account, its password and the initial balance (that will be paid by the faucet).
@@ -824,7 +811,7 @@ For instance, you can fill it as in Figure @fig:mokito_elvis_new_account.
 
 [PDFonly]: ![Figure @fig:mokito_elvis_new_account. The form specifying a new account Elvis.](pics/mokito_elvis_new_account.png "Figure @fig:mokito_elvis_new_account. The form specifying a new account Elvis."){ width=30% }
 
-> The name of the accounts is a feature of @App to simplify the identification
+> The name of the accounts is a feature of Mokito to simplify the identification
 > of the accounts. However, keep in mind that accounts have no name in Hotmoka: they
 > are just identified by their storage reference. For instance, `moka` currently does not
 > allow one to associate names to accounts.
@@ -837,7 +824,7 @@ and the presence of a 36 words passphrase.
 
 [PDFonly]: ![Figure @fig:mokito_show_elvis. The new account Elvis.](pics/mokito_show_elvis.png "Figure @fig:mokito_show_elvis. The new account Elvis."){ width=30% }
 
-If you go back to the accounts screen (by using the top-left menu of @App), you will see that Elvis
+If you go back to the accounts screen (by using the top-left menu of Mokito), you will see that Elvis
 has been added to your accounts (see Figure @fig:mokito_added_elvis).
 
 [Markdownonly]: <p align="center"><img width="300" src="pics/mokito_added_elvis.png" alt="Figure @fig:mokito_added_elvis. The new account Elvis has been imported"></p><p align="center">Figure @fig:mokito_added_elvis. The new account Elvis has been imported.</p>
@@ -847,7 +834,7 @@ has been added to your accounts (see Figure @fig:mokito_added_elvis).
 ## Importing Accounts
 
 We have created `@account1` with `moka` and
-`@account_mokito` with @App. We might want to _import_ the former in @App and the latter
+`@account_mokito` with Mokito. We might want to _import_ the former in Mokito and the latter
 in `moka`, and we want to import both inside Hotwallet,
 so that we can operate on both accounts with all three tools. In order to import
 `@account_mokito` in `moka`, we can use the `moka import-account` command and insert its 36 words
@@ -869,9 +856,9 @@ Its entropy has been saved into the file
 
 [PDFonly]: ![Figure @fig:mokito_accounts_menu. The menu of the accounts screen.](pics/mokito_accounts_menu.png "Figure @fig:mokito_accounts_menu. The menu of the accounts menu."){ width=30% }
 
-[Markdownonly]: <p align="center"><img width="300" src="pics/mokito_insert_passphrase.png" alt="Figure @fig:mokito_insert_passphrase. Inserting the 36 words passphrase in @App"></p><p align="center">Figure @fig:mokito_insert_passphrase. Inserting the 36 words passphrase in @App.</p>
+[Markdownonly]: <p align="center"><img width="300" src="pics/mokito_insert_passphrase.png" alt="Figure @fig:mokito_insert_passphrase. Inserting the 36 words passphrase in Mokito"></p><p align="center">Figure @fig:mokito_insert_passphrase. Inserting the 36 words passphrase in Mokito.</p>
 
-[PDFonly]: ![Figure @fig:mokito_insert_passphrase. Inserting the 36 words passphrase in @App.](pics/mokito_insert_passphrase.png "Figure @fig:mokito_insert_passphrase. Inserting the 36 words passphrase in @App."){ width=30% }
+[PDFonly]: ![Figure @fig:mokito_insert_passphrase. Inserting the 36 words passphrase in Mokito.](pics/mokito_insert_passphrase.png "Figure @fig:mokito_insert_passphrase. Inserting the 36 words passphrase in Mokito."){ width=30% }
 
 [Markdownonly]: <p align="center"><img width="300" src="pics/mokito_added_the_boss.png" alt="Figure @fig:mokito_added_the_boss. The new account The Boss has been imported"></p><p align="center">Figure @fig:mokito_added_the_boss. The new account The Boss has been imported.</p>
 
@@ -880,14 +867,14 @@ Its entropy has been saved into the file
 From this moment, it is possible to control that account with `moka` (if we remember
 its password, that is, `chocolate`).
 
-Vice versa, with @App, go to the accounts page, show its
+Vice versa, with Mokito, go to the accounts page, show its
 top-right menu and select _Import account_ (see Figure @fig:mokito_accounts_menu).
 In the screen that will appear, insert the name that you want to give to the account,
 its password and its 36 words passphrase
 (Figure @fig:mokito_insert_passphrase).
 Tap on the _Import Account_ button. The new account will show in the list of available accounts
 (Figure @fig:mokito_added_the_boss). From this moment, it will be possible to control the account
-from @App.
+from Mokito.
 
 In Hotwallet, click on the top-right menu and select _Import account_. From there, you can insert
 the password and the 36 words passphrase of each account and see them imported in Hotwallet. You can see the
@@ -1016,7 +1003,7 @@ hash map, to see if somebody has already bound an account to `@new_key`.
 > if somebody associates a key _K_ to an account _C_, then the public key
 > contained inside _C_ must be _K_.
 
-Anonymous payments are possible with @App and Hotwallet as well. Both clients
+Anonymous payments are possible with Mokito and Hotwallet as well. Both clients
 allow one to create a key and pay to a key.
 
 Should one use anonymous payments, always? The answer is no, since
@@ -7091,7 +7078,7 @@ only requirement.
 ## Starting a Tendermint Hotmoka Node with Docker
 
 We have provided some preconfigured Docker images in Docker Hub, that you can see
-at [https://hub.docker.com/u/@docker_hub_user](https://hub.docker.com/u/@docker_hub_user). By using one of such
+at [https://hub.docker.com/u/hotmoka](https://hub.docker.com/u/hotmoka). By using one of such
 images, we can start our own Tendermint Hotmoka node as follow. First, we need to create the
 key pair of the gamete, as we did in the previous chapter:
 
@@ -7114,8 +7101,8 @@ $ docker run -dit
     -e OPEN_UNSIGNED_FAUCET=true
     -p 8001:8001
     -p 26656:26656
-    -v chain:/home/@docker_user/chain
-    @docker_hub_user/tendermint-node:@hotmoka_version
+    -v chain:/home/hotmoka/chain
+    hotmoka/tendermint-node:@hotmoka_version
     init
 
 @container_id1
@@ -7157,11 +7144,11 @@ to `ws://localhost:8001` instead of `@server`.
 Let us analyze the options passed to `docker`. The `run -dit` command means that we want to
 instantiate, and run as an interactive daemon,
 a Docker image, which is actually specified at the end:
-`@docker_hub_user/tendermint-node:@hotmoka_version`. Docker will download that image from Docker Hub.
+`hotmoka/tendermint-node:@hotmoka_version`. Docker will download that image from Docker Hub.
 
 > That image assumes that you are using a Linux machine based on the amd64 architecture.
 > If you are using a Linux machine based on the arm64 architecture, use the
-> `@docker_hub_user/tendermint-node-arm64:@hotmoka_version` image. If you are using a Windows machine,
+> `hotmoka/tendermint-node-arm64:@hotmoka_version` image. If you are using a Windows machine,
 > you need to run a Linux image inside a Linux virtual machine, as always in Docker.
 > Please refer to the Docker documentation to know how this can be accomplished.
 
@@ -7183,7 +7170,7 @@ Hence those ports must be connected to the Docker image. We do that with the
 and port 26656 of the real machine is bound to port 26656 of the Docker image. If we prefer to use
 port 80 for clients, we should use `-p 80:8001` instead of `-p 8001:8001`.
 
-Finally, the blocks and state created by the node are saved into a `/home/@docker_user/chain`
+Finally, the blocks and state created by the node are saved into a `/home/hotmoka/chain`
 directory inside the container that is implemented as a Docker volume `chain`. That
 volume is visible in the real machine as `/var/lib/docker/volumes/chain/_data/` and will be
 persisted if we turn the Docker container off.
@@ -7223,8 +7210,8 @@ the right command to resume a previously started and stopped blockchain from its
 $ docker run -dit
     -p 8001:8001
     -p 26656:26656
-    -v chain:/home/@docker_user/chain
-    @docker_hub_user/tendermint-node:@hotmoka_version
+    -v chain:/home/hotmoka/chain
+    hotmoka/tendermint-node:@hotmoka_version
     resume
 
 @container_id2
@@ -7253,7 +7240,7 @@ $ docker stop @container_id2
 The Docker image contains a `help` command. Try for instance:
 
 ```shell
-$ docker run --rm -it @docker_hub_user/tendermint-node:@hotmoka_version help
+$ docker run --rm -it hotmoka/tendermint-node:@hotmoka_version help
 
 This container runs a Hotmoka node based on Tendermint.
 It understands the following commands and options:
@@ -7286,8 +7273,8 @@ if you have stopped it before:
 $ docker run -dit
     -p 8001:8001
     -p 26656:26656
-    -v chain:/home/@docker_user/chain
-    @docker_hub_user/tendermint-node:@hotmoka_version
+    -v chain:/home/hotmoka/chain
+    hotmoka/tendermint-node:@hotmoka_version
     resume
 
 @container_id3
@@ -7497,8 +7484,8 @@ ec2$ docker run -dit
        -e CHAIN_ID=caterpillar
        -p 80:8001
        -p 26656:26656
-       -v chain:/home/@docker_user/chain
-       @docker_hub_user/tendermint-node:@hotmoka_version
+       -v chain:/home/hotmoka/chain
+       hotmoka/tendermint-node:@hotmoka_version
        init
 
 5f3799b58c6569b50dbebee6db3061ebf8e3c2c7ac6e0882579129ca66302786
@@ -7595,8 +7582,8 @@ ec2$ docker run -dit
        -e NETWORK_URI=@server
        -p 80:8001
        -p 26656:26656
-       -v chain:/home/@docker_user/chain
-       @docker_hub_user/tendermint-node:@hotmoka_version
+       -v chain:/home/hotmoka/chain
+       hotmoka/tendermint-node:@hotmoka_version
        start
 
 3335d7609ecbd3d6ad42577aee0d0a2fd1bc59ed3c18ae7da2d77febbd776a84
@@ -7790,8 +7777,8 @@ alice.hotmoka.io$ docker run --rm -dit
     -e INITIAL_SUPPLY=1000000000000000000
     -p 80:8001
     -p 26656:26656
-    -v chain:/home/@docker_user/chain
-    @docker_hub_user/tendermint-node:@hotmoka_version
+    -v chain:/home/hotmoka/chain
+    hotmoka/tendermint-node:@hotmoka_version
     init
 
 alice.hotmoka.io$ moka bind-key 8oHse15C9pKUuqFLYRQBPgefdGzGq9mpWPF3dRQg27A5
@@ -7820,8 +7807,8 @@ bob.hotmoka.io$ docker run --rm -dit
     -e NETWORK_URI=alice.hotmoka.io
     -p 80:8001
     -p 26656:26656
-    -v chain:/home/@docker_user/chain
-    @docker_hub_user/tendermint-node:@hotmoka_version
+    -v chain:/home/hotmoka/chain
+    hotmoka/tendermint-node:@hotmoka_version
     start
 
 070abbc643163e6273c6d9da98f4a83bd94e178743c31344321a60c41d3c2d21
