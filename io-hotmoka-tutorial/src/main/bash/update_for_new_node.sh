@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This script updates the "create_tutorial_from_source.sh" script
+# This script updates the "replacements.sh" script
 # so that it reflects the content of a remote node.
 # It is useful after a new node has been deployed, if we want the
 # documentation and the tutorial examples
@@ -16,7 +16,7 @@ NETWORK_URI_WITHOUT_PROTOCOL=$(echo $NETWORK_URI | sed s/".*:\/\/"/""/g) # remov
 # by default, it modifies the shell script for Hotmoka
 TYPE=hotmoka
 TYPE_CAPITALIZED=${TYPE^}
-SCRIPT=create_tutorial_from_source.sh
+SCRIPT=replacements_old.sh
 DOCKER_HUB_USER=hotmoka
 
 RED='\033[1;31m'
@@ -146,76 +146,9 @@ sed -i "/@docker_diff3/s/\/.*\//\/@docker_diff3\/$DOCKER_DIFF3\//" $SCRIPT
 message "Stopping the Docker container"
 docker stop $CONTAINER_ID3 >/dev/null
 
-TAKAMAKA_CODE=$(moka node takamaka --json --uri $NETWORK_URI | python3 -c "import sys, json; print(json.load(sys.stdin)['hash'])")
-echo "  Takamaka code = $TAKAMAKA_CODE"
-sed -i '/@takamakaCode/s/\/.*\//\/@takamakaCode\/'$TAKAMAKA_CODE'\//' $SCRIPT
+# HERE HERE HERE HERE
 
-MANIFEST_TRANSACTION=$(moka node manifest address --json --uri $NETWORK_URI | python3 -c "import sys, json; print(json.load(sys.stdin)['transaction']['hash'])")
-MANIFEST_PROGRESSIVE=$(moka node manifest address --json --uri $NETWORK_URI | python3 -c "import sys, json; print(json.load(sys.stdin)['progressive'])")
-MANIFEST=$MANIFEST_TRANSACTION#$MANIFEST_PROGRESSIVE
-echo "  Manifest = $MANIFEST"
-sed -i '/@manifest/s/\/.*\//\/@manifest\/'$MANIFEST'\//' $SCRIPT
-
-GAMETE=$(moka call $MANIFEST getGamete --uri=$NETWORK_URI --print-costs=false --use-colors=false)
-echo "  Gamete = $GAMETE"
-sed -i '/@gamete/s/\/.*\//\/@gamete\/'$GAMETE'\//' $SCRIPT
-
-GAS_STATION=$(moka call $MANIFEST getGasStation --uri=$NETWORK_URI --print-costs=false --use-colors=false)
-echo "  Gas Station = $GAS_STATION"
-sed -i '/@gasStation/s/\/.*\//\/@gasStation\/'$GAS_STATION'\//' $SCRIPT
-
-VALIDATORS=$(moka call $MANIFEST getValidators --uri=$NETWORK_URI --print-costs=false --use-colors=false)
-echo "  Validators = $VALIDATORS"
-sed -i '/@validators/s/\/.*\//\/@validators\/'$VALIDATORS'\//' $SCRIPT
-
-MAX_FAUCET=$(moka call $GAMETE getMaxFaucet --uri=$NETWORK_URI --print-costs=false --use-colors=false)
-echo "  Max faucet = $MAX_FAUCET"
-sed -i '/@maxFaucet/s/\/.*\//\/@maxFaucet\/'$MAX_FAUCET'\//' $SCRIPT
-
-CHAIN_ID=$(moka call $MANIFEST getChainId --uri=$NETWORK_URI --print-costs=false --use-colors=false)
-echo "  Chain ID = $CHAIN_ID"
-sed -i '/@chainid/s/\/.*\//\/@chainid\/'$CHAIN_ID'\//' $SCRIPT
-
-message "Creating account 1"
-ACCOUNT1_CREATION=$(moka create-account 50000000000 --payer faucet --uri=$NETWORK_URI --password-of-new-account=chocolate --interactive=false)
-LINE2=$(echo "$ACCOUNT1_CREATION"| sed '2!d')
-ACCOUNT1=${LINE2:14:66}
-echo "  Account 1 = $ACCOUNT1"
-sed -i '/@account1/s/\/.*\//\/@account1\/'$ACCOUNT1'\//' $SCRIPT
-ACCOUNT1_SHORT=${ACCOUNT1:0:11}...#0
-echo "  Account 1 short = $ACCOUNT1_SHORT"
-sed -i '/@short_account1/s/\/.*\//\/@short_account1\/'$ACCOUNT1_SHORT'\//' $SCRIPT
-# we replace the new line with the string \\n (ie, escaped \n)
-ACCOUNT1_36WORDS=$(echo "$ACCOUNT1_CREATION" |tail -36|sed ':a;N;$!ba;s/\n/\\\\n/g')
-echo "  Account 1's 36 words = $ACCOUNT1_36WORDS"
-sed -i "/@36words_of_account1/s/\/.*\//\/@36words_of_account1\/$ACCOUNT1_36WORDS\//" $SCRIPT
-
-PUBLICKEYACCOUNT1=$(moka call $ACCOUNT1 publicKey --uri=$NETWORK_URI --print-costs=false --use-colors=false)
-SHORT_PUBLICKEYACCOUNT1=${PUBLICKEYACCOUNT1:0:10}...
-# we replace the / character of Base64 encodings with the (escaped) escape sequence \/ for "sed"
-PUBLICKEYACCOUNT1=$(echo "$PUBLICKEYACCOUNT1" | sed -r 's/\//\\\\\\\//g')
-SHORT_PUBLICKEYACCOUNT1=$(echo "$SHORT_PUBLICKEYACCOUNT1" | sed -r 's/\//\\\\\\\//g')
-echo "  Public key of account 1 = $PUBLICKEYACCOUNT1"
-echo "  Public key of account 1 short = $SHORT_PUBLICKEYACCOUNT1"
-sed -i "/@publickeyaccount1/s/\/.*\//\/@publickeyaccount1\/$PUBLICKEYACCOUNT1\//" $SCRIPT
-sed -i "/@short_publickeyaccount1/s/\/.*\//\/@short_publickeyaccount1\/$SHORT_PUBLICKEYACCOUNT1\//" $SCRIPT
-
-message "Recharging account 1"
-
-moka send 200000 $ACCOUNT1 --payer faucet --uri=$NETWORK_URI --print-costs=false --interactive=false
-
-message "Sending coins to an anonymous key"
-RUN=$(moka create-key --password-of-new-key=kiwis --interactive=false)
-LINE2=$(echo "$RUN"| sed '2!d')
-NEW_KEY=${LINE2:19}
-echo "  new key = $NEW_KEY"
-sed -i "/@new_key/s/\/.*\//\/@new_key\/$NEW_KEY\//" $SCRIPT
-moka send 10000 $NEW_KEY --anonymous --payer=$ACCOUNT1 --uri=$NETWORK_URI --password-of-payer=chocolate --interactive=false --print-costs=false >/dev/null
-RUN=$(moka bind-key $NEW_KEY --uri $NETWORK_URI)
-LINE1=$(echo "$RUN"| sed '1!d')
-ACCOUNT_ANONYMOUS=${LINE1:14:66}
-echo "  anonymous account = $ACCOUNT_ANONYMOUS"
-sed -i "/@account_anonymous/s/\/.*\//\/@account_anonymous\/$ACCOUNT_ANONYMOUS\//" $SCRIPT
+java --module-path modules/explicit_or_automatic --class-path modules/unnamed --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module io.hotmoka.tutorial/io.hotmoka.tutorial.UpdateForNewNode $NETWORK_URI
 
 message "Packaging the \"family\" example from the tutorial"
 # It assumes the tutorial is in a sibling directory of this project

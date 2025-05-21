@@ -208,6 +208,39 @@ public class Moka extends AbstractCLI {
 	}
 
 	/**
+	 * Runs the {@code moka nodes takamaka address} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String nodesTakamakaAddress(String args) throws IOException {
+		return run("nodes takamaka address " + args);
+	}
+
+	/**
+	 * Runs the {@code moka nodes manifest address} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String nodesManifestAddress(String args) throws IOException {
+		return run("nodes manifest address " + args);
+	}
+
+	/**
+	 * Runs the {@code moka nodes manifest show} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String nodesManifestShow(String args) throws IOException {
+		return run("nodes manifest show " + args);
+	}
+
+	/**
 	 * Runs the {@code moka nodes tendermint validators create} command with the given arguments.
 	 * 
 	 * @param args the arguments

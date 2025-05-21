@@ -40,7 +40,7 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class Export extends AbstractMokaCommand {
 
-	@Parameters(index = "0", description = "the reference of the account to export in BIP39 words", converter = StorageReferenceWithZeroProgressiveOptionConverter.class)
+	@Parameters(index = "0", description = "the storage reference of the account to export in BIP39 words", converter = StorageReferenceWithZeroProgressiveOptionConverter.class)
     private StorageReference reference;
 
 	@Option(names = "--dir", paramLabel = "<path>", description = "the path of the directory where the key pair of the account can be found", defaultValue = "")

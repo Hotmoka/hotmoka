@@ -460,7 +460,7 @@ public class Send extends AbstractGasCostCommand {
 				return SignatureAlgorithms.ed25519();
 			}
 			catch (NoSuchAlgorithmException e) {
-				throw new CommandException("The ed25119 signature lagorotihm of the destination account is not available");
+				throw new CommandException("The ed25119 signature algorithm of the destination account is not available");
 			}
 		}
 	
@@ -531,9 +531,9 @@ public class Send extends AbstractGasCostCommand {
 		@Override
 		protected void toString(StringBuilder sb) {
 			destinationInAccountsLedger.ifPresent(account -> {
-				sb.append("The payment went into account " + account + ".\n");
+				sb.append("The payment went to account " + account + ".\n");
 				sb.append("The owner of the destination key pair can bind it now to its address with:\n");
-				sb.append(asCommand("  moka keys bind file_containing_the_destination_key_pair --password --url url_of_this_Hotmoka_node\n"));
+				sb.append(asCommand("  moka keys bind file_containing_the_destination_key_pair --password --uri uri_of_this_Hotmoka_node\n"));
 				sb.append("or with:\n");
 				sb.append(asCommand("  moka keys bind file_containing_the_destination_key_pair --password --reference " + account + "\n"));
 			});

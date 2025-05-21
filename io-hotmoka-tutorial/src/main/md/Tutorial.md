@@ -25,7 +25,6 @@
     - [Hotmoka Clients](#hotmoka-clients)
         - [Moka](#moka)
         - [Mokito](#mokito)
-        - [Hotwallet](#hotwallet)
     - [Contacting a Hotmoka Test Node](#contacting-a-hotmoka-test-node)
     - [Creation of a First Account](#creation-of-a-first-account)
     - [Importing Accounts](#importing-accounts)
@@ -221,8 +220,8 @@ the project of the repository where you can find the related code.
 You can clone that completed tutorial examples repositories as follows:
 
 ```shell
-$ git clone --branch v@takamaka_version @takamaka_repo
-$ git clone --branch v@hotmoka_version @hotmoka_repo
+$ git clone --branch v@takamaka_version @takamaka_repo.git
+$ git clone --branch v@hotmoka_version @hotmoka_repo.git
 ```
 
 You will find the examples of Takamaka smart contracts inside the Maven module
@@ -326,7 +325,7 @@ The payer is accessible inside the method as its _caller_.
 
 Receiver and payer have different roles but are treated identically in Hotmoka:
 they are objects stored in state at their respective state locations, known as
-their _storage references_. For instance the caller in
+their _storage references_. For instance the payer in
 Figure @fig:receiver_payer might be allocated at the storage
 reference `@account1`. A storage reference has two parts, separated
 by a `#` sign. The first part are 64 hexadecimal digits (ie, 32 bytes)
@@ -532,9 +531,9 @@ Most users will only perform simple tasks with a Hotmoka node.
 For them, it is simpler to use a mobile app, with a simpler user
 interface. That app, called `Mokito`, is currently available for Android only.
 You can download it from Google Play and install it in your device, from
-[https://play.google.com/store/apps/details?id=mokito_id_play](https://play.google.com/store/apps/details?id=mokito_id_play). Developers interested in its Kotlin source code
+[https://play.google.com/store/apps/details?id=io.hotmoka.android.mokito](https://play.google.com/store/apps/details?id=io.hotmoka.android.mokito). Developers interested in its Kotlin source code
 can find it at
-[mokito_repo](@mokito_repo),
+[mokito_repo](https://github.com/Hotmoka/HotmokaAndroid),
 together with a small Android service for connecting to a remote Hotmoka node.
 
 The first time you will use Mokito on your mobile device,
@@ -547,69 +546,28 @@ top left area of the app.
 
 [PDFonly]: ![Figure @fig:mokito_start. The starting screen of the Mokito app.](pics/mokito_start.png "Figure @fig:mokito_start. The starting screen of the Mokito app."){ width=30% }
 
-### Hotwallet
-
-Hotwallet is a web client that can be installed as an extension to Chrome and Firefox.
-It performs basic account handling and includes a JavaScript/TypeScript interface that can be queried
-by web applications that need to access the user's accounts. This architecture has been inspired
-by MetaMask for Ethereum. You can install Hotwallet inside the Firefox browser
-as an add-on that can be downloaded from
-[https://addons.mozilla.org/en-US/firefox/addon/hotwallet](https://addons.mozilla.org/en-US/firefox/addon/hotwallet).
-Developers interested in its TypeScript source code can find it at
-[@hotwallet_repo](@hotwallet_repo).
-There is also a Hotweb3 JavaScript/TypeScript library for connecting web applications to the
-Hotwallet browser extension and use its
-accounts programmatically. Its source code can be found at
-[@hotweb3_repo](@hotweb3_repo).
-
-[Markdownonly]: <p align="center"><img width="400" src="pics/hotwallet.png" alt="Figure @fig:hotwallet_start. The starting screen of the Hotwallet extension to the browser"></p><p align="center">Figure @fig:hotwallet_start. The starting screen of the Hotwallet extension to the browser.</p>
-
-[PDFonly]: ![Figure @fig:hotwallet_start. The starting screen of the Hotwallet extension to the browser.](pics/hotwallet.png "Figure @fig:hotwallet_start. The starting screen of the Hotwallet extension to the browser."){ width=40% }
-
-The first time you run Hotwallet, it will ask you to create a key or import an account
-(see Figure @fig:hotwallet_start).
-Hotwallet has a default node to contact,
-but this can be changed with the menu item _Networks_.
-
-Hotwallet is available for Google Chrome as well, but currently not yet through its web store.
-Intead, it must be either compiled by hand
-or installed as an unpacked extension. The latter solution is
-the simplest. Namely, in order to install Hotwallet in Chrome as an unpacked extension,
-do the following:
-
-1. Download its latest release in zip format from [@hotwallet_repo/releases](@hotwallet_repo/releases)
-2. Unzip the file (on Linux, run `unzip hotwallet_1.0.1.zip`)
-3. Go to Chrome and select the menu item _More tools_ and subitem _Extensions_
-4. Activate the _Developer mode_ with the switch in the top-right corner of the screen
-5. Click on _Load unpacked_ (left-top corner of the screen) and select the directory
-   where you unzipped the Hotwallet file
-6. The extension should be installed now. If you want to add its small icon to the extensions
-   bar of Chrome, for quick access, click on the icon of the extensions bar
-   that looks like a puzzle piece and activate the pin mode for Hotwallet.
-
 ## Contacting a Hotmoka Test Node
 
 The examples in this book must be run by a Hotmoka node,
 typically part of a Hotmoka blockchain. We will show you in a later chapter how you
 can install your own local
 node or blockchain. However, for now, it is much simpler to experiment with a node
-that is part of a public
-test blockchain that we provide for experimentation.
-Namely, we have installed a Hotmoka node for testing at the address
-`@server`.
-The peculiarity of this node is that it includes a _faucet_ that gives
+that is part of one of the public
+test blockchains that we provide for experimentation.
+Namely, we have installed Hotmoka nodes for testing at URIs
+`@server_mokamint` and `@server_tendermint`.
+The peculiarity of these nodes is that they include a _faucet_ that gives
 away small amounts of coins, when requested. This is good for experimentation
 but, of course, a real node will not include a faucet.
-In a real node, people must grasp some coins because they have been sent by
-some other user or bought from some source online.
+In a real node, people must grasp some coins because they have been earned through mining,
+sent by some other user or bought from some source.
 
 You can verify that you can contact the test node by typing
-the command `moka info` to print information
-about the node at that address, as you can see below:
+the command `moka nodes manifest show` to print the _manifest_ information
+about a Hotmoka node at an address, as you can see below:
 
 ```shell
-$ moka info --uri @server
-Info about the node:
+$ moka nodes manifest show --uri @server_mokamint
   takamakaCode: @takamakaCode
   manifest: @manifest
     chainId: @chainid
@@ -624,13 +582,13 @@ Info about the node:
       gasPrice: 1
       ...
     validators: @validators
-      totalSupply: 1000000000000000...
+      currentSupply: 1000000000000000...
       ...
 ```
 The details of this information are irrelevant for now, but something must be
 clarified, to understand the following sections better.
-Namely, the `moka info` information is telling us that the node
-already contains some code and Java objects, as shown in Figure @fig:state1.
+Namely, the `moka nodes manifest show` command reports information that tells us that the node
+already contains some code and some Java objects, as shown in Figure @fig:state1.
 
 [Markdownonly]: <p align="center"><img width="650" src="pics/state1.png" alt="Figure @fig:state1. The state of the test network nodes"></p><p align="center">Figure @fig:state1. The state of the test network nodes.</p>
 
@@ -652,8 +610,9 @@ that we will exploit for creating our first account, in
 a minute. The `gasStation` refers to another Java object, that provides
 information about the gas, such as its current `gasPrice`. Finally, there is
 another Java object, called `validators`, that keeps information about the validator nodes of the network
-and contains, for instance, the total supply of the cryptocurrency (how much cryptocurrency has
-been minted up to now).
+(if the network has validators) and contains, as well, the initial, current and final supply of cryptocurrency
+(how much cryptocurrency existed at the beginning of the network, has much has been minted up to now,
+and how much will exist eventually).
 
 As we said in the previous section, Java objects in the Hotmoka node are identified by their
 _storage reference_, such as `@gasStation`.
@@ -669,7 +628,7 @@ and select _Manifest_ from the menu that will appear (see Figure @fig:mokito_men
 [PDFonly]: ![Figure @fig:mokito_menu. The menu of the Mokito app.](pics/mokito_menu.png "Figure @fig:mokito_menu. The menu of the Mokito app."){ width=30% }
 
 After tapping on _Manifest_, a new screen will appear, containing the same information
-that we found with `moka info` (see Figure @fig:mokito_manifest).
+that we found with `moka nodes manifest show` (see Figure @fig:mokito_manifest).
 
 [Markdownonly]: <p align="center"><img width="300" src="pics/mokito_manifest.png" alt="Figure @fig:mokito_manifest. The manifest of the Hotmoka node, shown in the Mokito app"></p><p align="center">Figure @fig:mokito_manifest. The manifest of the Hotmoka node, shown in the Mokito app.</p>
 
@@ -680,40 +639,56 @@ that we found with `moka info` (see Figure @fig:mokito_manifest).
 We need an account in the test network, that we will use later to pay for
 installing code in blockchain and for running transactions. An account in Hotmoka
 is something completely different from an account in other blockchains.
-For instance, in Bitcoin and Ethereum accounts do not really exist, in the sense
+For instance, in Bitcoin and Ethereum, accounts do not really exist, in the sense
 that they are just an address derived from a private key, that can be used to control
-information in blockchain. Their creation does not trigger any operation in blockchain,
+information in blockchain. Their creation does not trigger any operation in blockchain:
 it is performed completely off-chain. Instead, in Hotmoka, an account
 is a Java object, more precisely an instance of the `io.takamaka.code.lang.ExternallyOwnedAccount`
 class. That object must be allocated (_created_) in the memory of the Hotmoka node,
 before it can be used. Moreover, such an object is not special in any way:
 for instance, as for all other objects in the storage of the node, we must pay for its creation.
 Currently, we have no accounts and consequently
-no coins for paying the creation of a new object. In a real blockchain, we could
-earn coins by working for the network, or as payment for some activity,
+no coins for paying the creation of a new object. We could
+earn coins by mining for the network, or as payment for some activity,
 or by buying coins at an exchange.
-In this test network, we will use the faucet of the gamete instead, that is willing
+Since this is a test network, we can more simply use the faucet of the gamete instead, that is willing
 to send us up to @maxFaucet coins, for free. Namely, you can run the
-following command in order to ask the faucet to create your first externally owned account,
-funded with 50000000000 coins, initially. We will execute the following command-line
-inside the `@tutorial_name` directory, so that it will save the _entropy_ of your account
+following commands in order to create a key pair and then ask the faucet to create your first externally owned account
+for that key pair,
+funded with 50000000000 coins, initially, paid by the faucet. Execute the following commands
+inside a `@tutorial_name` directory, so that `moka` will save the key pair of your account
 there, which will simplify your subsequent work:
 
 ```shell
-$ moka create-account 50000000000 --payer faucet --uri @server
+$ moka keys create --name=account1.pem --password
+Enter value for --password
+  (the password that will be needed later to use the key pair): chocolate
+The new key pair has been written into "account1.pem":
+* public key: @publickeybase58account1 (ed25519, base58)
+* public key: @publickeyaccount1 (ed25519, base64)
+* Tendermint-like address: @tendermintaddressaccount1
 
-Please specify the password of the new account: chocolate
-Free account creation succeeds only if the gamete supports an open unsigned faucet.
-Created account @account1.
-Its entropy has been saved into the file
-  "@account1.pem".
-Please take note of the following passphrase of 36 words:
+$ moka accounts create faucet 50000000000 account1.pem --password
+    --uri @server_mokamint
+Enter value for --password
+  (the password of the key pair specified through --keys): chocolate
+Adding transaction @transaction_account1... done.
+A new account @account1 has been created.
+Its key pair has been saved
+  into the file "@account1.pem".
 
-@36words_of_account1
+Gas consumption:
+ * total: 6720
+   * for CPU: 2445
+   * for RAM: 3816
+   * for storage: 459
+   * for penalty: 0
+ * price per unit: 1 pana
+ * total price: 6720 panas
 ```
 
-A *storage reference*
-`@account1` has been created.
+An object has been created in the node, identified by its
+*storage reference*, that in this case is `@account1`.
 
 > Note that this reference will be different in your machine, as well as the 36 words passphrase.
 > Change these accordingly in the subsequent examples.
@@ -721,35 +696,26 @@ A *storage reference*
 This storage reference is a machine-independent pointer to your account Java object, inside
 the node. Moreover, a random sequence of bits, called _entropy_, has been generated
 and saved into a `.pem` file. From that entropy, and the chosen password, it is possible
-to derive private and (hence) public key of the account.
+to derive private and (hence) public key of the account. This is why we use
+_key pair_ to refer to such `.pem.` file.
 You should keep the `.pem` file secret since, together with the
 password of the account (in our case, we chose `chocolate`),
 it allows its owner to control your account and spend its coins.
 Note that the password is not written anywhere: if you lose it, there is
 no way to recover that password.
 
-We will see in a moment what is the use of these 36 words passphrase generated by `moka`. For now,
-let us check that our account really exists at its address,
-by querying the node with the `moka state` command:
+Let us check that our account really exists at its address,
+by querying the node about the state of the object allocated at `@account1`:
 
 ```shell
-$ moka state @account1
-  --uri @server
-
-This is the state of object
-@account1
-@@server
-
-class io.takamaka.code.lang.ExternallyOwnedAccount
-  (from jar installed at
-   @takamakaCode)
-
-  nonce:java.math.BigInteger = 0
-  publicKey:java.lang.String = "@publickeyaccount1"
-  balance:java.math.BigInteger =
-    50000000000 (inherited from io.takamaka.code.lang.Contract)
-  balanceRed:java.math.BigInteger =
-    0 (inherited from io.takamaka.code.lang.Contract)
+$ moka objects show @account1
+    --uri @server_mokamint
+class io.takamaka.code.lang.ExternallyOwnedAccountED25519
+  (from jar installed at @takamakaCode)
+  io.takamaka.code.lang.Contract.balance:java.math.BigInteger = 50000000000
+  io.takamaka.code.lang.ExternallyOwnedAccount.nonce:java.math.BigInteger = 0
+  io.takamaka.code.lang.ExternallyOwnedAccount.publicKey:java.lang.String
+    = "@publickeyaccount1"
 ```
 
 Note that the balance and the public key of the account are
@@ -757,8 +723,7 @@ fields of the account object. Moreover, note that Hotmoka knows
 which is the class of the object at that address
 (it is a `io.takamaka.code.lang.ExternallyOwnedAccount`)
 and where that class is defined (inside the jar
-at address `@takamakaCode`,
-that is, `takamakaCode`).
+at address `@takamakaCode`, that is, `takamakaCode`).
 
 > This is completely different from what happens, for instance,
 > in Ethereum, where externally owned accounts and contract references and untyped at run time,
@@ -769,8 +734,8 @@ that is, `takamakaCode`).
 > need to repeat it every time we instantiate an object. Instead, the new object
 > will refer to the jar that contains its bytecode.
 
-In the following, you can use the `moka state` command on any object,
-not just on your own account, whenever you want to inspect its state
+In the following, you can use the `moka objects show` command on any object,
+not just on your own accounts, whenever you want to inspect its state
 (that includes the state inherited from its superclasses).
 
 [Markdownonly]: <p align="center"><img width="850" src="pics/state2.png" alt="Figure @fig:state2. The state of the test network nodes after the creation of our new account"></p><p align="center">Figure @fig:state2. The state of the test network nodes after the creation of our new account.</p>
@@ -786,11 +751,12 @@ Whenever your account will run out of coins, you can recharge it with the
 if you want to recharge your account with 200000 extra coins, you can type:
 
 ```shell
-$ moka send 200000
+$ moka accounts send faucet 200000
     @account1
-    --payer faucet --uri @server
+    --uri @server_mokamint
+Adding transaction @transaction_recharge_account1... done.
 ```
-You can then use the `moka state` command to verify that the balance of
+You can then use the `moka objects show` command to verify that the balance of
 your account has been actually increased with 200000 extra coins.
 
 The creation of a new account from the faucet is possible from the Mokito app as well.
@@ -835,21 +801,18 @@ has been added to your accounts (see Figure @fig:mokito_added_elvis).
 
 We have created `@account1` with `moka` and
 `@account_mokito` with Mokito. We might want to _import_ the former in Mokito and the latter
-in `moka`, and we want to import both inside Hotwallet,
-so that we can operate on both accounts with all three tools. In order to import
-`@account_mokito` in `moka`, we can use the `moka import-account` command and insert its 36 words
+in `moka`, so that we can operate on both accounts with both tools. In order to import
+`@account_mokito` in `moka`, we can use the `moka keys import` command and insert its 36 words
 passphrase:
 
 
 ```shell
-$ moka import-account
-
-Insert the 36 words of the passphrase of the account to import:
-@36words_of_account_mokito
-The account @account_mokito 
-  has been imported.
-Its entropy has been saved into the file
-  "@account_mokito.pem".
+$ moka keys import around route kit grit ceiling electric negative
+    nice pact dad forum real acid aware west balance return admit
+    beach trip join cute page divert eagle parent remove upgrade
+    surprise jelly close home aisle defy obey method
+The key pair of the account has been imported
+  into "@account_mokito.pem".
 ```
 
 [Markdownonly]: <p align="center"><img width="300" src="pics/mokito_accounts_menu.png" alt="Figure @fig:mokito_accounts_menu. The menu of the accounts screen"></p><p align="center">Figure @fig:mokito_accounts_menu. The menu of the accounts screen.</p>
@@ -864,10 +827,54 @@ Its entropy has been saved into the file
 
 [PDFonly]: ![Figure @fig:mokito_added_the_boss. The new account The Boss has been imported.](pics/mokito_added_the_boss.png "Figure @fig:mokito_added_the_boss. The new account The Boss has been imported."){ width=30% }
 
-From this moment, it is possible to control that account with `moka` (if we remember
+After that, it is possible to control that account with `moka` (if we remember
 its password, that is, `chocolate`).
 
-Vice versa, with Mokito, go to the accounts page, show its
+Vice versa, in order to import into Mokito the account that was created with `moka`,
+first export the 36 words of that account:
+
+```shell
+$ moka keys export @account1
+The following BIP39 words represent the key pair of the account:
+ 1: coconut
+ 2: middle
+ 3: seat
+ 4: select
+ 5: youth
+ 6: seminar
+ 7: swing
+ 8: ethics
+ 9: denial
+10: beach
+11: owner
+12: net
+13: weather
+14: scheme
+15: abandon
+16: puzzle
+17: rule
+18: embrace
+19: lab
+20: fantasy
+21: glow
+22: toast
+23: evoke
+24: situate
+25: bag
+26: jeans
+27: skin
+28: joy
+29: wisdom
+30: sudden
+31: elevator
+32: describe
+33: early
+34: kind
+35: hobby
+36: pony
+```
+
+Then go to the accounts page of Mokito and show its
 top-right menu and select _Import account_ (see Figure @fig:mokito_accounts_menu).
 In the screen that will appear, insert the name that you want to give to the account,
 its password and its 36 words passphrase
@@ -876,17 +883,11 @@ Tap on the _Import Account_ button. The new account will show in the list of ava
 (Figure @fig:mokito_added_the_boss). From this moment, it will be possible to control the account
 from Mokito.
 
-In Hotwallet, click on the top-right menu and select _Import account_. From there, you can insert
-the password and the 36 words passphrase of each account and see them imported in Hotwallet. You can see the
-list of all available accounts with the same menu, if you click on _Account list_. You can click on
-each account and switch from one to the other. Every time you change the account,
-Hotwallet requires to insert its password.
-
-As you have seen, the 36 words and the password of an account are enough for moving accounts around
+As you have seen, the 36 words of an account are enough for moving accounts around
 different clients. Note that clients do not _contain_ accounts but only the cryptographic information
 needed to access the accounts. If a client is uninstalled, the accounts that it used still exist in the remote
 Hotmoka node and can still be re-imported and used
-in some other client, if we have written down their 36 words and still remember their passwords.
+in some other client, if we have written down their 36 words.
 
 ## Anonymous Payments
 
@@ -905,13 +906,13 @@ of 10,000 coins, but still wants to remain unknown. He can receive the payment i
 1. He could send us an anonymous email asking us to pay to a specific account, already existing
    in the state of the node. But this is not anonymous, since, in Hotmoka, an account is an object
    and there must have been a transaction that created that object, whose payer is likely to be
-   Anonymous or somebody in his clique. That is, the identity of Anonymous can
-   be inferred from the creator of the account. Therefore, Anonymous discards this possibility.
+   Anonymous or somebody in his clique. That is, this allows one to infer something
+   aboutthe identity of Anonymous. Therefore, Anonymous would probably discard this possibility.
 2. He could send us an anonymous email asking
-   us to create a new account with a given public key, whose associate
+   us to create a new account with a given public key, whose associated
    private key he controls, and to charge it with 10,000 coins. After that, we are expected
    to send him an email where we notify him the storage reference where
-   `moka create-account` has allocated the account. But this means that we must know his
+   `moka accounts create` has allocated the account. But this means that we must know his
    email address, which is definitely against the idea of anonymity. Therefore,
    Anonymous discards this possibility as well.
 3. He could send us an anonymous email asking us _to pay to a given public key_, whose
@@ -921,95 +922,99 @@ of 10,000 coins, but still wants to remain unknown. He can receive the payment i
    the technique that Anonymous will choose.
 
 Let us show how the third possibility works. Anonymous starts by creating a new private/public key,
-exactly as one would do in Ethereum and other blockchains. He runs the following command:
+exactly as we did before:
 ```shell
-$ moka create-key
-
-Please specify the password of the new key: kiwis
-A new key @new_key has been created.
-Its entropy has been saved into the file
-  "./@new_key.pem".
+$ moka keys create --name=anonymous.pem --password
+Enter value for --password
+  (the password that will be needed later to use the key pair): kiwis
+The new key pair has been written into "anonymous.pem":
+* public key: @publickeybase58anonymous (ed25519, base58)
+* public key: @publickeyanonymous (ed25519, base64)
+* Tendermint-like address: @tendermintaddressanonymous
 ```
-Note that there is no `--uri` part in the `moka create-key` command, since this operation
+Note that there is no `--uri` part in the `moka keys create` command, since this operation
 runs completely off-line: no object gets created in the state of any Hotmoka node for now.
 Anonymous pastes the new key into an anonymous email message to us:
 
 ```
-Please pay 10000 coins to the key @new_key.
+Please pay 10000 coins to the key @publickeybase58anonymous.
 ```
 
-Once we receive this email, we use (for instance) our previous account to send 10000 coins to that key:
+Once we receive that email, we use (for instance) our previous account to send 10000 coins to that key:
 
 ```shell
-$ moka send 10000 @new_key
-    --anonymous
-    --payer @account1
-    --uri @server
+$ moka accounts send @account1
+    10000 @publickeybase58anonymous
+    --password-of-payer
+    --uri @server_mokamint
+Enter value for --password-of-sender (the password of the sender): chocolate
+Adding transaction @transactionsendanonymous... done.
+The payment went to
+  account @account_anonymous.
+The owner of the destination key pair can bind it now to its address with:
+  moka keys bind file_containing_the_destination_key_pair
+    --password --uri uri_of_this_Hotmoka_node
+or with:
+  moka keys bind file_containing_the_destination_key_pair
+    --password --reference @account_anonymous
 
-Please specify the password of the payer account: chocolate
-Do you really want to spend up to 700000 gas units to send the coins [Y/N] Y
-Total gas consumed: 63544
-  for CPU: 985
-  for RAM: 2141
-  for storage: 60418
-  for penalty: 0
-The owner of the key can now see the new account associated to the key.
+Gas consumption:
+ * total: 7281
+   * for CPU: 2756
+   * for RAM: 4150
+   * for storage: 375
+   * for penalty: 0
+ * price per unit: 1 pana
+ * total price: 7281 panas
 ```
 
 And that's all! No other interaction is needed with Anonymous. He will check
-from time to time to see if we have paid, by running the command `moka bind-key`
+from time to time to see if we have paid, by running the command `moka keys bind`
 until it succeeds:
 
 ```shell
-$ moka bind-key @new_key
-    --uri @server
+$ moka keys bind anonymous.pem --password --uri @server_mokamint
+Cannot bind: nobody has paid anonymously to the key anonymous.pem up to now.
 
-Cannot bind: nobody has paid anonymously to the key
-  @new_key up to now.
+$ moka keys bind anonymous.pem --password --uri @server_mokamint
+Cannot bind: nobody has paid anonymously to the key anonymous.pem up to now.
 
-$ moka bind-key @new_key
-    --uri @server
-
-Cannot bind: nobody has paid anonymously to the key
-  @new_key up to now.
-
-$ moka bind-key @new_key
-    --uri @server
-
-A new account @account_anonymous
-  has been created.
-Its entropy has been saved into the file
-  "./@account_anonymous.pem".
+$ moka keys bind anonymous.pem --password --uri @server_mokamint
+Enter value for --password (the password of the key pair): kiwis
+The key pair of @account_anonymous
+  has been saved as "@account_anonymous.pem".
 ```
-Once `moka bind-key` succeeds, Anonymous can enjoy his brand new account, that he
+Once `moka keys bind` succeeds, Anonymous can enjoy his brand new account, that he
 can control with the `kiwis` password.
 
-So how does that work? The answer is that the `--anonymous` option to `moka send`
+So how does that work? The answer is that the `moka accounts send` command
 creates the account `@account_anonymous` with the public key of
 Anonymous inside it, so that Anonymous will be able to control that account.
-But there is more: the `moka send` command will also associate that account to the
-key `@new_key` inside a hash map contained in the manifest of the node,
-called _accounts ledger_. The `moka bind-key` command will simply query that
-hash map, to see if somebody has already bound an account to `@new_key`.
+But there is more: that command
+will also associate the publi key of the account to the account itself,
+inside a hash map contained in the manifest of the node,
+called _accounts ledger_. The `moka keys bind` command will simply consult that
+hash map, to see if somebody has already bound an account that public key.
 
-> If, inside the accounts ledger, there is an account _C_ already associated to the key `@new_key`,
-> then the `moka send` command will not create a new account but will increase the
-> balance of _C_ and the `moka bind-key` command will consequently yield _C_.
+> If, inside the accounts ledger, there is an account _C_ already associated to the
+> public key,
+> then the `moka accounts send` command will not create a new account but will increase the
+> balance of _C_ and the `moka keys bind` command will consequently yield _C_.
 > This is a security measure in order
 > to avoid payment disruptions due to the association of dummy accounts to some keys
 > or to repeated payments to the same key.
-> In any case, the public key of _C_ can only be `@new_key`, since the accounts ledger
+> In any case, the public key of _C_ can only be `@publickeyanonymous`, since the accounts ledger
 > enforces that constraint when it gets populated with accounts:
 > if somebody associates a key _K_ to an account _C_, then the public key
 > contained inside _C_ must be _K_.
 
-Anonymous payments are possible with Mokito and Hotwallet as well. Both clients
-allow one to create a key and pay to a key.
+Anonymous payments are possible with Mokito as well. That client
+allows one to create a key and pay to a key.
 
 Should one use anonymous payments, always? The answer is no, since
-anonymity incurs into an extra gas cost: that of modifying the accounts ledger.
+anonymity comes with an extra gas cost: that for modifying the accounts ledger.
 If there is no explicit need for anonymity, it is cheaper to receive payments
-as described in points 1 and 2 considered above, probably without the need of anonymous emails.
+as described in points 1 and 2 above, probably without the need of anonymous emails.
 
 ## Installation of the Source Code
 
@@ -1030,7 +1035,7 @@ Clone the project with:
 $ git clone --branch v@hotmoka_version @hotmoka_repo.git
 ```
 
-then `cd` to the `moka` directory and
+then `cd` to the `hotmoka` directory and
 compile, package, test and install the Hotmoka jars:
 
 ```shell
@@ -1067,7 +1072,7 @@ All tests should pass and all projects should be successfully installed:
 
 If you want to edit the source code inside an IDE, you can import it in Eclipse, NetBeans or IntelliJ.
 In Eclipse, use the File &rarr; Import &rarr; Existing Maven Projects menu item and import
-the parent Maven project contained in the `moka` directory that you cloned from
+the parent Maven project contained in the `hotmoka` directory that you cloned from
 GitHub. This should create, inside Eclipse, also its submodule projects.
 You should see, inside Eclipse's project explorer, something like Figure @fig:projects.
 You will then be able to compile, package, test and install the Hotmoka jars inside
@@ -1075,52 +1080,6 @@ Eclipse itself, by right-clicking on the `parent` project and selecting
 `Run As` and then the `Mavel install` target. You will also be able to run the tests inside
 the Eclipse JUnit runner, by right-clicking on the `io-hotmoka-tests` subproject
 and selecting `Run As` and then the `JUnit Test` target.
-
-The Maven configuration of the project specifies that all modules and their dependencies
-get copied into the `modules` directory as result of compilation with Maven (also
-from inside Eclipse),
-classified as automatic, explicit and unnamed
-modules (as from Java 9 onwards). You can see this by typing:
-
-```shell
-$ ls -R modules
-
-modules/:
-automatic  explicit  unnamed
-
-modules/automatic:
-bcel-6.7.0.jar
-grpc-stub-1.54.2.jar
-io-hotmoka-node-tendermint-abci-@hotmoka_version.jar
-...
-
-modules/explicit:
-bcprov-jdk15on-1.70.jar
-io-hotmoka-node-local-@hotmoka_version.jar
-io-hotmoka-node-local-api-@hotmoka_version.jar
-io-hotmoka-verification-@hotmoka_version.jar
-io-hotmoka-verification-api-@hotmoka_version.jar
-gson-2.8.9.jar
-io-hotmoka-node-disk-@hotmoka_version.jar
-io-hotmoka-node-disk-api-@hotmoka_version.jar
-io-takamaka-code-@takamaka_version.jar
-it-univr-bcel-1.2.1.jar
-picocli-4.7.2.jar
-...
-
-modules/unnamed:
-animal-sniffer-annotations-1.21.jar
-annotations-13.0.jar
-...
-```
-
-It is not possible to discuss here the difference between
-these kinds of modules (see [[MakB17]](#references) for that).
-Just remember that explicit and
-automatic modules must be put in the module path, while
-unnamed modules must stay in the class path. Eclipse should
-do this automatically for us, as does the `moka` script that we have
-installed previously.
 
 # A First Takamaka Program
 
