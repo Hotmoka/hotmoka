@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// mvn clean install; java --module-path modules/explicit_or_automatic --class-path modules/unnamed --module io.hotmoka.tutorial/io.hotmoka.tutorial.UpdateForNewNode ws://panarea.hotmoka.io:8001
+
 package io.hotmoka.tutorial;
 
 import java.io.BufferedWriter;
@@ -25,6 +27,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.LogManager;
@@ -32,6 +35,7 @@ import java.util.stream.Collectors;
 
 import io.hotmoka.moka.AccountsCreateOutputs;
 import io.hotmoka.moka.AccountsSendOutputs;
+import io.hotmoka.moka.JarsInstallOutputs;
 import io.hotmoka.moka.KeysBindOutputs;
 import io.hotmoka.moka.KeysCreateOutputs;
 import io.hotmoka.moka.KeysExportOutputs;
@@ -62,6 +66,8 @@ public class UpdateForNewNode {
 
 	private static class Experiments {
 		private final PrintWriter writer;
+		private final String hotmokaVersion;
+		private final String takamakaVersion;
 
 		/**
 		 * The working directory where key pairs can be temporarily saved, for instance.
@@ -76,17 +82,20 @@ public class UpdateForNewNode {
 			try (var is = UpdateForNewNode.class.getModule().getResourceAsStream("maven.properties")) {
 				var mavenProperties = new Properties();
 				mavenProperties.load(is);
-				String hotmokaVersion = mavenProperties.getProperty("hotmoka.version");
+				this.hotmokaVersion = mavenProperties.getProperty("hotmoka.version");
 				if (hotmokaVersion == null)
 					throw new IOException("The property file does not contain a hotmoka.version property");
 
 				report("sed -i 's/@hotmoka_version/" + hotmokaVersion + "/g' target/Tutorial.md");
 
-				String takamakaVersion = mavenProperties.getProperty("io.takamaka.code.version");
+				this.takamakaVersion = mavenProperties.getProperty("io.takamaka.code.version");
 				if (takamakaVersion == null)
 					throw new IOException("The property file does not contain a io.takamaka.code.version property");
 
 				report("sed -i 's/@takamaka_version/" + takamakaVersion + "/g' target/Tutorial.md");
+				report("sed -i 's/@takamaka_version/" + takamakaVersion + "/g' target/pics/state1.fig");
+				report("sed -i 's/@takamaka_version/" + takamakaVersion + "/g' target/pics/state2.fig");
+				report("sed -i 's/@takamaka_version/" + takamakaVersion + "/g' target/pics/state3.fig");
 			}
 
 			var output1 = NodesTakamakaAddressOutputs.from(Moka.nodesTakamakaAddress("--uri=" + uri + " --json --timeout=" + TIMEOUT));
@@ -160,6 +169,13 @@ public class UpdateForNewNode {
 			report("sed -i 's/@account_anonymous/" + output13.getDestinationInAccountsLedger().get() + "/g' target/Tutorial.md");
 
 			KeysBindOutputs.from(Moka.keysBind(dir.resolve("anonymous.pem") + " --password=kiwis --uri=" + uri + " --output-dir=" + dir + " --json --timeout=" + TIMEOUT));
+
+			Path jar = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-family/1.4.1/io-takamaka-code-examples-family-1.4.1.jar");
+			var output14 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar + " --password-of-payer=chocolate --dir=" + dir + " --uri=" + uri + " --json --timeout=" + TIMEOUT));
+			report("sed -i 's/@transactioninstallfamily/" + output14.getTransaction() + "/g' target/Tutorial.md");
+			TransactionReference familyAddress = output14.getJar().get();
+			report("sed -i 's/@family_address/" + familyAddress + "/g' target/Tutorial.md");
+			report("sed -i 's/@short_family_address/" + familyAddress.toString().substring(0, 10) + ".../g' target/pics/state3.fig");
 		}
 
 		private void report(String line) {

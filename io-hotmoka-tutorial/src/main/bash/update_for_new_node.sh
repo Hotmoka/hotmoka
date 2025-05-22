@@ -150,19 +150,6 @@ docker stop $CONTAINER_ID3 >/dev/null
 
 java --module-path modules/explicit_or_automatic --class-path modules/unnamed --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module io.hotmoka.tutorial/io.hotmoka.tutorial.UpdateForNewNode $NETWORK_URI
 
-message "Packaging the \"family\" example from the tutorial"
-# It assumes the tutorial is in a sibling directory of this project
-mvn -q -f ../../hotmoka_tutorial/family/pom.xml clean package 2>/dev/null
-
-message "Installing \"family-0.0.1.jar\""
-FAMILY_INSTALLATION=$(moka install ../../hotmoka_tutorial/family/target/family-0.0.1.jar --payer=$ACCOUNT1 --uri=$NETWORK_URI --password-of-payer=chocolate --interactive=false)
-LINE1=$(echo "$FAMILY_INSTALLATION"| sed '1!d')
-FAMILY_ADDRESS=${LINE1: -64}
-echo "  family-0.0.1.jar address = $FAMILY_ADDRESS"
-sed -i "/@family_address/s/\/.*\//\/@family_address\/$FAMILY_ADDRESS\//" $SCRIPT
-SHORT_FAMILY_ADDRESS=${FAMILY_ADDRESS:0:10}...
-sed -i "/@short_family_address/s/\/.*\//\/@short_family_address\/$SHORT_FAMILY_ADDRESS\//" $SCRIPT
-
 message "Editing the \"Family.java\" run example from the tutorial"
 sed -i '/ADDRESS = /s/".*"/"'$ACCOUNT1'"/' ../../hotmoka_tutorial/runs/src/main/java/runs/Family.java
 sed -i '/URI.create(/s/".*"/"ws:\/\/'$NETWORK_URI_WITHOUT_PROTOCOL'"/' ../../hotmoka_tutorial/runs/src/main/java/runs/Family.java

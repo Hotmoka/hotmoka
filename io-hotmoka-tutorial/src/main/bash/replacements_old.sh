@@ -1,6 +1,4 @@
 # These get automatically recomputed with the update script: do not edit!
-sed -i 's/@family_address/2dfdad98c8280fa5834be3fe94db06233146275641540aa179de81c1a9afaec7/g' target/Tutorial.md
-sed -i 's/@short_family_address/2dfdad98c8.../g' target/pics/state3.fig
 sed -i 's/@code_family_address/7b25f645b5213e0a855ce158cedc341a688c01aa77898486ff9f36ce772809a3/g' target/Tutorial.md
 sed -i 's/@family2_address/c4e98a66ab3b4ae598d1ffaab5aa97c93a8fb8d78282abd359658794179788f6/g' target/Tutorial.md
 sed -i 's/@family_exported_address/3d3a8e783941ac4c8ca03fc10e7967a37b9885c9ec4e006ea48eee21fa0a02c9/g' target/Tutorial.md
@@ -25,8 +23,6 @@ sed -i 's/@tictactoe_address/85a234ecc737d83f33659bc94e916e8248274f19dfc6b5f0a29
 sed -i 's/@tictactoe_object/a2bf8656d4979b0f18197f28c2aab4e7dbf58a01cf9d3ed8acf3af496e4bf99b#0/g' target/Tutorial.md
 sed -i 's/@erc20_address/3b8157f04217918a76b48fc0f4388b4bece80ad0e542c42722a887d648cd314d/g' target/Tutorial.md
 sed -i 's/@erc20_object/2daa4ce2dbd152bcb4917fdd1574173373c77b306bcd754309da38a138ebed17#0/g' target/Tutorial.md
-sed -i 's/@server_mokamint/ws:\/\/panarea.hotmoka.io:8001/g' target/Tutorial.md
-sed -i 's/@server_tendermint/ws:\/\/panarea.hotmoka.io:8002/g' target/Tutorial.md
 sed -i 's/@server/ws:\/\/panarea.hotmoka.io/g' target/Tutorial.md
 sed -i 's/@new_docker_key/AsqsX1tBMriz18xvoxvc64K4HAvxgFmwWryKcMeR64oc/g' target/Tutorial.md
 sed -i 's/@container_id1/00a196685e5c8a8d788b892cb09a994e48016d736bfeaf89c1f339d72f7a717b/g' target/Tutorial.md

@@ -656,7 +656,7 @@ to send us up to @maxFaucet coins, for free. Namely, you can run the
 following commands in order to create a key pair and then ask the faucet to create your first externally owned account
 for that key pair,
 funded with 50000000000 coins, initially, paid by the faucet. Execute the following commands
-inside a `@tutorial_name` directory, so that `moka` will save the key pair of your account
+inside a `hotmoka_tutorial` directory, so that `moka` will save the key pair of your account
 there, which will simplify your subsequent work:
 
 ```shell
@@ -1093,7 +1093,7 @@ writing Java code, there is nothing special to learn or install
 before starting writing programs in Takamaka. Just use your
 preferred integrated development environment (IDE) for Java. Or even
 do everything from command-line, if you prefer. Our examples below will be
-shown for the Eclipse IDE, using Java 11 or later, but you can perfectly well
+shown for the Eclipse IDE, using Java 17 or later, but you can perfectly well
 use the IntelliJ IDE instead.
 
 Our goal will be to create a Java class that we will instantiate
@@ -1103,18 +1103,18 @@ call the `toString()` method on that instance in blockchain.
 
 ## Creation of the Eclipse Project
 
-__[See the `family` project inside the `@tutorial_name` repository]__
+__[See `io-takamaka-code-examples-family` in `@takamaka_repo`]__
 
-Let us create a Maven project `family` inside Eclipse,
-in the `@tutorial_name` directory.
+Let us create a Maven project `io-takamaka-code-examples-family` inside Eclipse,
+in the `hotmoka_tutorial` directory.
 For that, in the Eclipse's Maven wizard
 (New &rarr; Maven project) specify the options
 *Create a simple project (skip archetype selection)*
 and deselect the *Use default Workspace directory* option,
-specifying a subdirectory `family` of the `hotmaok_tutorial` directory as *Location* instead.
-Hence, *Location* should be something that ends with `.../tutorial/family`.
+specifying a subdirectory `io-takamaka-code-examples-family` of the `hotmoka_tutorial` directory as *Location* instead.
+Hence, *Location* should be something that ends with `.../hotmoka_tutorial/io-takamaka-code-examples-family`.
 Do not add the project to any working set. Use `io.hotmoka`
-as Group Id and `family` as Artifact Id.
+as Group Id and `io-takamaka-code-examples-family` as Artifact Id.
 
 > The Group Id can be changed as you prefer, but we will stick
 > to `io.hotmoka` to show the exact files that you will see in Eclipse.
@@ -1123,7 +1123,7 @@ By clicking *Finish* in the Eclipse's Maven wizard, you should see
 a new Maven project in the Eclipse's explorer.
 Currently, Eclipse creates a default `pom.xml` file that uses Java 5
 and has no dependencies. Replace hence
-the content of the `pom.xml` file of the `family` project with the code that follows:
+the content of the `pom.xml` file of the `io-takamaka-code-examples-family` project with the code that follows:
 
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -1132,13 +1132,13 @@ the content of the `pom.xml` file of the `family` project with the code that fol
                         http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
-  <groupId>io.hotmoka.tutorial</groupId>
-  <artifactId>family</artifactId>
-  <version>0.0.1</version>
+  <groupId>io.hotmoka</groupId>
+  <artifactId>io-takamaka-code-examples-family</artifactId>
+  <version>@takamaka_version</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.release>11</maven.compiler.release>
+    <maven.compiler.release>17</maven.compiler.release>
   </properties>
 
   <dependencies>
@@ -1162,16 +1162,16 @@ the content of the `pom.xml` file of the `family` project with the code that fol
 </project>
 ```
 
-that specifies to use Java 11 and provides the dependency
+that specifies to use Java 17 and provides the dependency
 to `io-takamaka-code`, that is, the run-time classes of the Takamaka smart contracts.
 
 > We are using `@takamaka_version` here, as version of the Takamaka runtime
-> project. Replace that, if needed, with the latest version of the project.
+> project. You can replace that, if needed, with the latest version of the project.
 
 Since the `pom.xml` file has changed, Eclipse will normally show an error
-in the `family` project. To solve it,
+in the project. To solve it,
 you need to update the Maven dependencies of the project:
-right-click on the `family` project &rarr; Maven &rarr; Update Project...
+right-click on the project &rarr; Maven &rarr; Update Project...
 
 As you can see, we are importing the dependency `io-takamaka-code`,
 that contains the Takamaka runtime. This will be downloaded from Maven
@@ -1184,7 +1184,7 @@ shown in Figure @fig:family.
 [PDFonly]: ![Figure @fig:family. The `family` Eclipse project.](pics/family.png "Figure @fig:family. The family Eclipse project."){ width=40% }
 
 Create a `module-info.java` file inside `src/main/java`
-(right-click on the `family` project &rarr; Configure &rarr; Create module-info.java &rarr; Create),
+(right-click on the project &rarr; Configure &rarr; Create module-info.java &rarr; Create),
 to state that this project depends on the module containing the runtime of Takamaka:
 
 ```java
@@ -1193,11 +1193,11 @@ module family {
 }
 ```
 
-Create a package `io.takamaka.family` inside `src/main/java`. Inside that package,
+Create a package `family` inside `src/main/java`. Inside that package,
 create a Java source `Person.java`, by copying and pasting the following code:
 
 ```java
-package io.takamaka.family;
+package family;
 
 public class Person {
   private final String name;
@@ -1224,7 +1224,7 @@ public class Person {
 
   @Override
   public String toString() {
-    return name + " (" + day + "/" + month + "/" + year + ")";
+    return StringSupport.concat(name, " (", day, "/", month, "/", year, ")");
   }
 }
 ```
@@ -1232,14 +1232,14 @@ public class Person {
 This is a plain old Java class and should not need any comment.
 
 Package the project into a jar, by running the following shell command inside
-the directory of the project (that is, the subdirectory `family` of the
-directory `@tutorial_name`):
+the directory of the project (that is, the subdirectory `io-takamaka-code-examples-family` of the
+directory `hotmoka_tutorial`):
 
 ```shell
 $ mvn package
 ```
 
-A `family-0.0.1.jar` file should appear inside the `target` directory.
+A `io-takamaka-code-examples-family-@takamaka_version.jar` file should appear inside the `target` directory.
 Only the compiled
 class files will be relevant: Hotmoka nodes will ignore source files, manifest
 and any resources in the jar; the same compiled
@@ -1254,7 +1254,7 @@ The result should look as in Figure @fig:family_jar:
 
 ## Installation of the Jar in a Hotmoka Node
 
-__[See the `runs` project inside the `@tutorial_name` repository]__
+__[See `io-hotmoka-tutorial-examples` in `@hotmoka_repo`]__
 
 We have generated the jar containing our code and we want to send it now to a Hotmoka node,
 where it will be installed. This means that it will become available to programmers
@@ -1263,36 +1263,40 @@ In order to install a jar in the Hotmoka node that we have used in the previous 
 we can use the `moka` command-line tool, specifying which account will pay for the
 installation of the jar. The cost of the installation depends on the size of the
 jar and on the number of its dependencies. The `moka` tool uses a heuristics to
-foresee the cost of installation. Move inside the `@tutorial_name` directory, if you are not
+foresee the cost of installation. Move inside the `hotmoka_tutorial` directory, if you are not
 there already, so that
-`moka` will find your saved entropy there, and run the `moka install` command:
+`moka` will find your saved key pair there, and run the `moka jars install` command:
 
 ```shell
 $ cd @tutorial_name
-$ moka install family/target/family-0.0.1.jar
-    --payer @account1
-    --uri @server
+$ moka jars install @account1
+    io-takamaka-code-examples-family/target/io-takamaka-code-examples-family-@takamaka_version.jar
+    --password-of-payer
+    --uri @server_mokamint
 
-Please specify the password of the payer account: chocolate
-Do you really want to spend up to 494900 gas units to install the jar [Y/N] Y
-family/target/family-0.0.1.jar has been installed
-at @family_address
-Total gas consumed: 219355
-  for CPU: 261
-  for RAM: 1299
-  for storage: 217795
-  for penalty: 0
+Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
+Adding transaction @transactioninstallfamily... done.
+The jar has been installed at @family_address.
+
+Gas consumption:
+ * total: 9330
+   * for CPU: 1618
+   * for RAM: 3308
+   * for storage: 4404
+   * for penalty: 0
+ * price per unit: 1 pana
+ * total price: 9330 panas
 ```
 
 As you can see above, the jar has been installed at a reference, that can be used
 later to refer to that jar. This has costed some gas, paid by our account.
 You can verify that the balance of the account has been decreased, through the
-`moka state` command.
+`moka objects show` command.
 
 The state of the Hotmoka nodes of the testnet is now as in Figure @fig:state3.
-As that figure shows, a dependency has been created, automatically, from `family-0.0.1.jar` to
-`io-takamaka-code.jar`. This is because all Takamaka code will use the run-time classes of the Takamaka language,
-hence the `moka install` command adds them, by default. Note that a dependency must already be installed in the node
+As that figure shows, a dependency has been created, automatically, from `io-takamaka-code-examples-family-@takamaka_version.jar` to
+`io-takamaka-code-@takamaka_version.jar`. This is because all Takamaka code will use the run-time classes of the Takamaka language,
+hence the `moka jars install` command adds them, by default. Note that a dependency must already be installed in the node
 before it can be used as dependency of other jars.
 
 [Markdownonly]: <p align="center"><img width="850" src="pics/state3.png" alt="Figure @fig:state3. The state of the test network nodes after the installation of our jar"></p><p align="center">Figure @fig:state3. The state of the test network nodes after the installation of our jar.</p>
@@ -1303,7 +1307,7 @@ What we have done above is probably enough for most users, but sometimes you nee
 to perform the same operation in code, for instance in order to implement a software
 application that connects to a Hotmoka node and runs some transactions.
 Therefore, we describe below how you can write a Java program that installs the
-same jar in the Hotmoka node, without using the `moka install` command.
+same jar in the Hotmoka node, without using the `moka jars install` command.
 A similar translation in code can be performed for all examples in this tutorial,
 but we will report it only for a few of them.
 
