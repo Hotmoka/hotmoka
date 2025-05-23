@@ -22,6 +22,7 @@ import static java.math.BigInteger.ONE;
 import java.math.BigInteger;
 import java.net.URI;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyPair;
 
@@ -37,34 +38,36 @@ import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.RemoteNodes;
+import io.takamaka.code.constants.Constants;
 
 /**
- * Run in the IDE or go inside this project and run
+ * Run it in Maven as (change /home/spoto/hotmoka_tutorial with the directory where you stored the key pairs of the payer account
+ * and change the payer account itself and its password):
  * 
- * mvn clean package
- * java --module-path ../../hotmoka/io-hotmoka-moka/modules/explicit/:../../hotmoka/io-hotmoka-moka/modules/automatic:target/runs-0.0.1.jar -classpath ../../hotmoka/io-hotmoka-moka/modules/unnamed"/*" --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module runs/runs.Family
+ * mvn compile exec:java -Dexec.mainClass="io.hotmoka.tutorial.examples.Family" -Dexec.args="/home/spoto/hotmoka_tutorial b3a367310a195bb888a5b722e8246f8bad6e0fc8dfefcf44a2b8d760b5b655ef#0 chocolate"
  */
 public class Family {
-
-  // change this with your account's storage reference
-  private final static String
-    ADDRESS = "5f705b7dc5869ae39db3bc80b7cd073c2bb55726706749138d16a4a9d0f01766#0";
 
   public static void main(String[] args) throws Exception {
 
 	// the path of the user jar to install
-    var familyPath = Paths.get("../family/target/family-0.0.1.jar");
+	var familyPath = Paths.get(System.getProperty("user.home")
+		+ "/.m2/repository/io/hotmoka/io-takamaka-code-examples-family/"
+		+ Constants.TAKAMAKA_VERSION
+		+ "/io-takamaka-code-examples-family-" + Constants.TAKAMAKA_VERSION + ".jar");
 
-    try (var node = RemoteNodes.of(URI.create("ws://panarea.hotmoka.io"), 20000)) {
+	var dir = Paths.get(args[0]);
+	var payer = StorageValues.reference(args[1]);
+	var password = args[2];
+
+	try (var node = RemoteNodes.of(URI.create("ws://panarea.hotmoka.io:8001"), 80000)) {
     	// we get a reference to where io-takamaka-code-X.Y.Z.jar has been stored
         TransactionReference takamakaCode = node.getTakamakaCode();
-        StorageReference manifest = node.getManifest();
 
         // we get the signing algorithm to use for requests
         var signature = node.getConfig().getSignatureForRequests();
 
-        var account = StorageValues.reference(ADDRESS);
-        KeyPair keys = loadKeys(node, account);
+        KeyPair keys = loadKeys(node, dir, payer, password);
 
         // we create a signer that signs with the private key of our account
         Signer<SignedTransactionRequest<?>> signer = signature.getSigner
@@ -75,22 +78,15 @@ public class Family {
         // a @View method of the account
         BigInteger nonce = node
           .runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-            (account, // payer
+            (payer, // payer
             BigInteger.valueOf(50_000), // gas limit
             takamakaCode, // class path for the execution of the transaction
             MethodSignatures.NONCE, // method
-            account)).get() // receiver of the method call
+            payer)).get() // receiver of the method call
           .asBigInteger(__ -> new ClassCastException());
 
         // we get the chain identifier of the network
-        String chainId = node
-          .runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-            (account, // payer
-            BigInteger.valueOf(50_000), // gas limit
-            takamakaCode, // class path for the execution of the transaction
-            MethodSignatures.GET_CHAIN_ID, // method
-            manifest)).get() // receiver of the method call
-          .asString(__ -> new ClassCastException());
+        String chainId = node.getConfig().getChainId();
 
         var gasHelper = GasHelpers.of(node);
 
@@ -98,7 +94,7 @@ public class Family {
         TransactionReference family = node
           .addJarStoreTransaction(TransactionRequests.jarStore
             (signer, // an object that signs with the payer's private key
-            account, // payer
+            payer, // payer
             nonce, // payer's nonce: relevant since this is not a call to a @View method!
             chainId, // chain identifier: relevant since this is not a call to a @View method!
             BigInteger.valueOf(300_000), // gas limit: enough for this very small jar
@@ -115,7 +111,7 @@ public class Family {
     }
   }
 
-  private static KeyPair loadKeys(Node node, StorageReference account) throws Exception {
-    return Accounts.of(account, "..").keys("chocolate", SignatureHelpers.of(node).signatureAlgorithmFor(account));
+  private static KeyPair loadKeys(Node node, Path dir, StorageReference account, String password) throws Exception {
+    return Accounts.of(account, dir).keys(password, SignatureHelpers.of(node).signatureAlgorithmFor(account));
   }
 }

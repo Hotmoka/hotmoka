@@ -656,7 +656,7 @@ to send us up to @maxFaucet coins, for free. Namely, you can run the
 following commands in order to create a key pair and then ask the faucet to create your first externally owned account
 for that key pair,
 funded with 50000000000 coins, initially, paid by the faucet. Execute the following commands
-inside a `hotmoka_tutorial` directory, so that `moka` will save the key pair of your account
+inside a `hotmoka_tutorial` directory of your home, so that `moka` will save the key pair of your account
 there, which will simplify your subsequent work:
 
 ```shell
