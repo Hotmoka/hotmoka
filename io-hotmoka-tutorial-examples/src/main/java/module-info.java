@@ -19,6 +19,7 @@
  * This module contains the examples of the Hotmoka tutorial.
  */
 module io.hotmoka.tutorial.examples {
+  exports io.hotmoka.tutorial.examples;
   requires io.hotmoka.helpers;
   requires io.hotmoka.node.remote;
   requires io.hotmoka.node.disk;

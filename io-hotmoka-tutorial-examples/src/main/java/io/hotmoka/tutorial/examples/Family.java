@@ -107,7 +107,7 @@ public class Family {
         // transactions having the account as payer
         nonce = nonce.add(ONE);
 
-        System.out.println("family-0.0.1.jar installed at: " + family);
+        System.out.println("jar installed at: " + family);
     }
   }
 

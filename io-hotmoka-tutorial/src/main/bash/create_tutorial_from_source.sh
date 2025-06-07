@@ -127,5 +127,6 @@ ebook-convert target/ProgrammingHotmoka.epub target/ProgrammingHotmoka.mobi
 # copy the md version into the tutorial-md folder, where it will be available for the README.md file
 rm -rf tutorial-md
 mkdir tutorial-md
-cp -r target/pics tutorial-md
+mkdir tutorial-md/pics
+cp -r target/pics/*.png tutorial-md/pics/
 cp target/ProgrammingHotmoka.md tutorial-md

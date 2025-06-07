@@ -19,12 +19,13 @@ limitations under the License.
 package io.hotmoka.tutorial;
 
 import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -43,10 +44,12 @@ import io.hotmoka.moka.Moka;
 import io.hotmoka.moka.NodesManifestAddressOutputs;
 import io.hotmoka.moka.NodesTakamakaAddressOutputs;
 import io.hotmoka.moka.ObjectsCallOutputs;
+import io.hotmoka.moka.ObjectsCreateOutputs;
+import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.tutorial.examples.Family;
 import io.takamaka.code.constants.Constants;
-import jakarta.websocket.DecodeException;
 
 /**
  * This executable runs experiments against a remote Hotmoka node and
@@ -56,7 +59,7 @@ import jakarta.websocket.DecodeException;
 public class UpdateForNewNode {
 	public final static int TIMEOUT = 120000;
 
-	public static void main(String[] args) throws IOException, URISyntaxException, DecodeException {
+	public static void main(String[] args) throws Exception {
 		String server = args.length > 0 ? args[0] : "ws://panarea.hotmoka.io:8001";
 
 		try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter("src/main/bash/replacements.sh")))) {
@@ -74,7 +77,7 @@ public class UpdateForNewNode {
 		 */
 		private final Path dir;
 
-		private Experiments(URI uri, PrintWriter writer) throws IOException, DecodeException {
+		private Experiments(URI uri, PrintWriter writer) throws Exception {
 			this.writer = writer;
 			this.dir = Files.createTempDirectory("tmp");
 			System.out.println(dir);
@@ -170,17 +173,61 @@ public class UpdateForNewNode {
 
 			KeysBindOutputs.from(Moka.keysBind(dir.resolve("anonymous.pem") + " --password=kiwis --uri=" + uri + " --output-dir=" + dir + " --json --timeout=" + TIMEOUT));
 
-			Path jar = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-family/1.4.1/io-takamaka-code-examples-family-1.4.1.jar");
+			Path jar = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-family/" + takamakaVersion + "/io-takamaka-code-examples-family-" + takamakaVersion + ".jar");
 			var output14 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar + " --password-of-payer=chocolate --dir=" + dir + " --uri=" + uri + " --json --timeout=" + TIMEOUT));
 			report("sed -i 's/@transactioninstallfamily/" + output14.getTransaction() + "/g' target/Tutorial.md");
 			TransactionReference familyAddress = output14.getJar().get();
 			report("sed -i 's/@family_address/" + familyAddress + "/g' target/Tutorial.md");
 			report("sed -i 's/@short_family_address/" + familyAddress.toString().substring(0, 10) + ".../g' target/pics/state3.fig");
+			String result = run(() -> Family.main(new String[] { dir.toString(), account1.toString(), "chocolate" }));
+			int start = "jar installed at: ".length();
+			var codeFamilyAddress = TransactionReferences.of(result.substring(start, start + 64));
+			report("sed -i 's/@code_family_address/" + codeFamilyAddress + "/g' target/Tutorial.md");
+
+			var output15 = ObjectsCreateOutputs.from(Moka.objectsCreate(account1 + " family.Person Einstein 14 4 1879 null null --classpath=" + familyAddress + " --uri=" + uri + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate"));
+			report("sed -i 's/@family_creation_transaction_failed/" + output15.getTransaction() + "/g' target/Tutorial.md");
+
+			Path jar2 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-family_storage/" + takamakaVersion + "/io-takamaka-code-examples-family_storage-" + takamakaVersion + ".jar");
+			var output16 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar2 + " --password-of-payer=chocolate --dir=" + dir + " --uri=" + uri + " --json --timeout=" + TIMEOUT));
+			TransactionReference family2Address = output16.getJar().get();
+			report("sed -i 's/@family2_address/" + family2Address + "/g' target/Tutorial.md");
+
+			var output17 = ObjectsCreateOutputs.from(Moka.objectsCreate(account1 + " family.Person Einstein 14 4 1879 null null --classpath=" + family2Address + " --uri=" + uri + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate"));
+			report("sed -i 's/@family_creation_transaction_success/" + output17.getTransaction() + "/g' target/Tutorial.md");
+			report("sed -i 's/@person_object/" + output17.getObject().get() + "/g' target/Tutorial.md");
 		}
 
 		private void report(String line) {
 			writer.println(line);
 			System.out.println(line);
+		}
+
+		private interface Command {
+			void run() throws Exception;
+		}
+
+		/**
+		 * Runs the given command, inside a sand-box where the
+		 * standard output is redirected into the resulting string.
+		 * 
+		 * @param command the command to run
+		 * @return what the command has written into the standard output
+		 * @throws Exception if the command or the construction of the return value failed
+		 */
+		private static String run(Command command) throws Exception {
+			var originalOut = System.out;
+			var originalErr = System.err;
+		
+			try (var baos = new ByteArrayOutputStream(); var out = new PrintStream(baos)) {
+				System.setOut(out);
+				System.setErr(out);
+				command.run();
+				return new String(baos.toByteArray());
+			}
+			finally {
+				System.setOut(originalOut);
+				System.setErr(originalErr);
+			}
 		}
 	}
 

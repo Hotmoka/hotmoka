@@ -44,10 +44,10 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.RemoteNodes;
 
 /**
- * Run in the IDE or go inside this project and run
+ * Run it in Maven as (change /home/spoto/hotmoka_tutorial with the directory where you stored the key pairs of the payer account
+ * and change the payer account itself and its password):
  * 
- * mvn clean package
- * java --module-path ../../hotmoka/io-hotmoka-moka/modules/explicit/:../../hotmoka/io-hotmoka-moka/modules/automatic:target/runs-0.0.1.jar -classpath ../../hotmoka/io-hotmoka-moka/modules/unnamed"/*" --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module runs/runs.Family2
+ * mvn compile exec:java -Dexec.mainClass="io.hotmoka.tutorial.examples.Family2" -Dexec.args="/home/spoto/hotmoka_tutorial b3a367310a195bb888a5b722e8246f8bad6e0fc8dfefcf44a2b8d760b5b655ef#0 chocolate"
  */
 public class Family2 {
 
@@ -133,7 +133,7 @@ public class Family2 {
             ConstructorSignatures.of(PERSON, StorageTypes.STRING, INT, INT, INT),
 
             // actual arguments
-            StorageValues.stringOf("Albert Einstein"), StorageValues.intOf(14),
+            StorageValues.stringOf("Einstein"), StorageValues.intOf(14),
             StorageValues.intOf(4), StorageValues.intOf(1879)
         ));
 

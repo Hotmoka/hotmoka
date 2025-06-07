@@ -1,9 +1,6 @@
 # These get automatically recomputed with the update script: do not edit!
-sed -i 's/@code_family_address/7b25f645b5213e0a855ce158cedc341a688c01aa77898486ff9f36ce772809a3/g' target/Tutorial.md
-sed -i 's/@family2_address/c4e98a66ab3b4ae598d1ffaab5aa97c93a8fb8d78282abd359658794179788f6/g' target/Tutorial.md
 sed -i 's/@family_exported_address/3d3a8e783941ac4c8ca03fc10e7967a37b9885c9ec4e006ea48eee21fa0a02c9/g' target/Tutorial.md
 sed -i 's/@family3_address/a9d69ce22453c912a436e990074fd3493c87667ada85b6881f5566a7efae08e7/g' target/Tutorial.md
-sed -i 's/@person_object/24a92fcb1536caf360906a4a8f7744c1d54b7ccd1396cd1db85896dcfe39f73e#0/g' target/Tutorial.md
 sed -i 's/@person2_object/4e168218952bbfa96a85ca69c1a738d234d95174557f257601a2a3714a3a418f#0/g' target/Tutorial.md
 sed -i 's/@person3_object/c9b88a105236b7400805731390bab5863f44b1d0b9f7d9ae7c057e3f0e832509#0/g' target/Tutorial.md
 sed -i 's/@gradual_ponzi_address/b8b37e6a848dd59ecd091194f234ff6409705a78bc0df774d5716d5d9c611b2e/g' target/Tutorial.md
@@ -23,7 +20,6 @@ sed -i 's/@tictactoe_address/85a234ecc737d83f33659bc94e916e8248274f19dfc6b5f0a29
 sed -i 's/@tictactoe_object/a2bf8656d4979b0f18197f28c2aab4e7dbf58a01cf9d3ed8acf3af496e4bf99b#0/g' target/Tutorial.md
 sed -i 's/@erc20_address/3b8157f04217918a76b48fc0f4388b4bece80ad0e542c42722a887d648cd314d/g' target/Tutorial.md
 sed -i 's/@erc20_object/2daa4ce2dbd152bcb4917fdd1574173373c77b306bcd754309da38a138ebed17#0/g' target/Tutorial.md
-sed -i 's/@server/ws:\/\/panarea.hotmoka.io/g' target/Tutorial.md
 sed -i 's/@new_docker_key/AsqsX1tBMriz18xvoxvc64K4HAvxgFmwWryKcMeR64oc/g' target/Tutorial.md
 sed -i 's/@container_id1/00a196685e5c8a8d788b892cb09a994e48016d736bfeaf89c1f339d72f7a717b/g' target/Tutorial.md
 sed -i 's/@docker_takamaka_code/ae8e94c789fb66784a6cc4208c797c80cbce2721292d636b963184fc266abe42/g' target/Tutorial.md

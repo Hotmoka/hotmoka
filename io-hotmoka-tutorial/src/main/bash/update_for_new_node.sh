@@ -150,26 +150,6 @@ docker stop $CONTAINER_ID3 >/dev/null
 
 java --module-path modules/explicit_or_automatic --class-path modules/unnamed --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module io.hotmoka.tutorial/io.hotmoka.tutorial.UpdateForNewNode $NETWORK_URI
 
-message "Editing the \"Family.java\" run example from the tutorial"
-sed -i '/ADDRESS = /s/".*"/"'$ACCOUNT1'"/' ../../hotmoka_tutorial/runs/src/main/java/runs/Family.java
-sed -i '/URI.create(/s/".*"/"ws:\/\/'$NETWORK_URI_WITHOUT_PROTOCOL'"/' ../../hotmoka_tutorial/runs/src/main/java/runs/Family.java
-
-message "Packaging the \"runs\" example from the tutorial"
-mvn -q -f ../../hotmoka_tutorial/runs/pom.xml package 2>/dev/null
-
-message "Running the \"Family.java\" run example from the tutorial"
-# we provide the private key of account1 so that the run works
-cp $ACCOUNT1.pem ../../hotmoka_tutorial/
-cd ../../hotmoka_tutorial/runs
-RUN=$(java --module-path ../../hotmoka/io-hotmoka-moka/modules/explicit/:../../hotmoka/io-hotmoka-moka/modules/automatic:target/runs-0.0.1.jar -classpath ../../hotmoka/io-hotmoka-moka/modules/unnamed"/*" --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module runs/runs.Family)
-cd ../../hotmoka/tutorial
-CODE_FAMILY_ADDRESS=${RUN: -64}
-echo "  family-0.0.1.jar address = $CODE_FAMILY_ADDRESS"
-sed -i "/@code_family_address/s/\/.*\//\/@code_family_address\/$CODE_FAMILY_ADDRESS\//" $SCRIPT
-
-message "Creating an instance of class \"Person\" (will fail)"
-moka create io.takamaka.family.Person "Albert Einstein" 14 4 1879 null null --payer=$ACCOUNT1 --classpath=$FAMILY_ADDRESS --uri=$NETWORK_URI --password-of-payer=chocolate --interactive=false >/dev/null
-
 message "Packaging the \"family_storage\" example from the tutorial"
 mvn -q -f ../../hotmoka_tutorial/family_storage/pom.xml clean package 2>/dev/null
 

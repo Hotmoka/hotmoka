@@ -21,6 +21,11 @@
       <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-tutorial-examples</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
       <groupId>io.hotmoka.websockets</groupId>
       <artifactId>io-hotmoka-websockets-beans-api</artifactId>
       <version>${io.hotmoka.websockets.version}</version>
