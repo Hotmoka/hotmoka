@@ -243,7 +243,10 @@ public class Send extends AbstractGasCostCommand {
 				}
 			}
 			catch (TransactionRejectedException e) {
-				throw new CommandException("Transaction " + transaction + " has been rejected!", e);
+				if (!json())
+					System.out.println("rejected.");
+
+				errorMessage = Optional.of(e.getMessage());
 			}
 
 			return new Output(transaction, gasCost, errorMessage, Optional.empty());
@@ -325,7 +328,10 @@ public class Send extends AbstractGasCostCommand {
 				}
 			}
 			catch (TransactionRejectedException e) {
-				throw new CommandException("Transaction " + transaction + " has been rejected!", e);
+				if (!json())
+					System.out.println("rejected.");
+
+				errorMessage = Optional.of(e.getMessage());
 			}
 	
 			return new Output(transaction, Optional.empty(), errorMessage, Optional.empty());
@@ -448,7 +454,10 @@ public class Send extends AbstractGasCostCommand {
 				}
 			}
 			catch (TransactionRejectedException e) {
-				throw new CommandException("Transaction " + transaction + " has been rejected!", e);
+				if (!json())
+					System.out.println("rejected.");
+
+				errorMessage = Optional.of(e.getMessage());
 			}
 	
 			return new Output(transaction, gasCost, errorMessage, destination);

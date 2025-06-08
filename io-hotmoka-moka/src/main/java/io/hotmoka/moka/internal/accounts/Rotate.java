@@ -133,7 +133,6 @@ public class Rotate extends AbstractGasCostCommand {
 						System.out.print("Posting transaction " + asTransactionReference(transaction) + "... ");
 
 					remote.postInstanceMethodCallTransaction(request);
-
 					if (!json())
 						System.out.println("done.");
 				}
@@ -148,19 +147,22 @@ public class Rotate extends AbstractGasCostCommand {
 
 						account = Optional.of(Rotate.this.account);
 						file = bindKeysToAccount(newPublicKeyOrKeyPair, account.get(), outputDir);
+						gasCost = Optional.of(computeIncurredGasCost(remote, gasPrice, transaction));
 					}
 					catch (TransactionException | CodeExecutionException e) {
 						if (!json())
 							System.out.println("failed.");
 
 						errorMessage = Optional.of(e.getMessage());
+						gasCost = Optional.of(computeIncurredGasCost(remote, gasPrice, transaction));
 					}
-
-					gasCost = Optional.of(computeIncurredGasCost(remote, gasPrice, transaction));
 				}
 			}
 			catch (TransactionRejectedException e) {
-				throw new CommandException("Transaction " + transaction + " has been rejected!", e);
+				if (!json())
+					System.out.println("rejected.");
+
+				errorMessage = Optional.of(e.getMessage());
 			}
 
 			return new Output(transaction, account, gasCost, errorMessage, file);

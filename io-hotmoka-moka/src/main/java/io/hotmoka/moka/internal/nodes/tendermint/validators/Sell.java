@@ -101,12 +101,7 @@ public class Sell extends AbstractGasCostCommand {
 		private final SignatureAlgorithm signatureOfPayer;
 
 		private Body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
-			/*if (power.signum() <= 0)
-			throw new IllegalArgumentException("the validation power to sell must be positive");
-
-		if (cost.signum() < 0)
-			throw new IllegalArgumentException("the cost of the sale must be non-negative");
-
+			/*
 		if (duration <= 0L)
 			throw new IllegalArgumentException("the duration of the sale must be positive");*/
 
@@ -181,7 +176,10 @@ public class Sell extends AbstractGasCostCommand {
 				}
 			}
 			catch (TransactionRejectedException e) {
-				throw new CommandException("Transaction " + transaction + " has been rejected!", e);
+				if (!json())
+					System.out.println("rejected.");
+
+				errorMessage = Optional.of(e.getMessage());
 			}
 
 			return new Output(transaction, offer, gasCost, errorMessage);

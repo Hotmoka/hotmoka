@@ -45,10 +45,13 @@ import io.hotmoka.moka.NodesManifestAddressOutputs;
 import io.hotmoka.moka.NodesTakamakaAddressOutputs;
 import io.hotmoka.moka.ObjectsCallOutputs;
 import io.hotmoka.moka.ObjectsCreateOutputs;
+import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.tutorial.examples.Family;
+import io.hotmoka.tutorial.examples.FamilyExported;
+import io.hotmoka.tutorial.examples.FamilyStorage;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -179,9 +182,9 @@ public class UpdateForNewNode {
 			TransactionReference familyAddress = output14.getJar().get();
 			report("sed -i 's/@family_address/" + familyAddress + "/g' target/Tutorial.md");
 			report("sed -i 's/@short_family_address/" + familyAddress.toString().substring(0, 10) + ".../g' target/pics/state3.fig");
-			String result = run(() -> Family.main(new String[] { dir.toString(), account1.toString(), "chocolate" }));
-			int start = "jar installed at: ".length();
-			var codeFamilyAddress = TransactionReferences.of(result.substring(start, start + 64));
+			String runFamilyMain = run(() -> Family.main(new String[] { dir.toString(), account1.toString(), "chocolate" }));
+			int start = "jar installed at ".length();
+			var codeFamilyAddress = TransactionReferences.of(runFamilyMain.substring(start, start + 64));
 			report("sed -i 's/@code_family_address/" + codeFamilyAddress + "/g' target/Tutorial.md");
 
 			var output15 = ObjectsCreateOutputs.from(Moka.objectsCreate(account1 + " family.Person Einstein 14 4 1879 null null --classpath=" + familyAddress + " --uri=" + uri + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate"));
@@ -194,7 +197,28 @@ public class UpdateForNewNode {
 
 			var output17 = ObjectsCreateOutputs.from(Moka.objectsCreate(account1 + " family.Person Einstein 14 4 1879 null null --classpath=" + family2Address + " --uri=" + uri + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate"));
 			report("sed -i 's/@family_creation_transaction_success/" + output17.getTransaction() + "/g' target/Tutorial.md");
-			report("sed -i 's/@person_object/" + output17.getObject().get() + "/g' target/Tutorial.md");
+			StorageReference personObject = output17.getObject().get();
+			report("sed -i 's/@person_object/" + personObject + "/g' target/Tutorial.md");
+			String runFamilyStorageMain = run(() -> FamilyStorage.main(new String[] { dir.toString(), account1.toString(), "chocolate" }));
+			start = "new object allocated at ".length();
+			var person2Object = StorageValues.reference(runFamilyStorageMain.substring(start, start + 66));
+			report("sed -i 's/@person2_object/" + person2Object + "/g' target/Tutorial.md");
+			var output18 = ObjectsCallOutputs.from(Moka.objectsCall(account1 + " family.Person toString --uri=" + uri + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate --receiver=" + personObject));
+			report("sed -i 's/@family_transaction_non_exported_failure/" + output18.getTransaction() + "/g' target/Tutorial.md");
+
+			Path jar3 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-family_exported/" + takamakaVersion + "/io-takamaka-code-examples-family_exported-" + takamakaVersion + ".jar");
+			var output19 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar3 + " --password-of-payer=chocolate --dir=" + dir + " --uri=" + uri + " --json --timeout=" + TIMEOUT));
+			TransactionReference familyExportedAddress = output19.getJar().get();
+			report("sed -i 's/@family_exported_address/" + familyExportedAddress + "/g' target/Tutorial.md");
+			var output20 = ObjectsCreateOutputs.from(Moka.objectsCreate(account1 + " family.Person Einstein 14 4 1879 null null --classpath=" + familyExportedAddress + " --uri=" + uri + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate"));
+			report("sed -i 's/@family_exported_creation_transaction_success/" + output20.getTransaction() + "/g' target/Tutorial.md");
+			StorageReference person3Object = output20.getObject().get();
+			report("sed -i 's/@person3_object/" + person3Object + "/g' target/Tutorial.md");
+			var output21 = ObjectsCallOutputs.from(Moka.objectsCall(account1 + " family.Person toString --uri=" + uri + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate --receiver=" + person3Object));
+			report("sed -i 's/@family_exported_call_toString_transaction_success/" + output21.getTransaction() + "/g' target/Tutorial.md");
+			String runFamilyExportedMain = run(() -> FamilyExported.main(new String[] { dir.toString(), account1.toString(), "chocolate" }));
+			// the output contains a new line, to remove, and slashes, that must be escaped
+			report("sed -i 's/@family_exported_call_toString_output/" + runFamilyExportedMain.trim().replace("/", "\\/") + "/g' target/Tutorial.md");
 		}
 
 		private void report(String line) {
