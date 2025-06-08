@@ -654,7 +654,7 @@ Since this is a test network, we can more simply use the faucet of the gamete in
 to send us up to @maxFaucet coins, for free. Namely, you can run the
 following commands in order to create a key pair and then ask the faucet to create your first externally owned account
 for that key pair,
-funded with 50000000000 coins, initially, paid by the faucet. Execute the following commands
+funded with 50000000000000 coins, initially, paid by the faucet. Execute the following commands
 inside a `hotmoka_tutorial` directory of your home, so that `moka` will save the key pair of your account
 there, which will simplify your subsequent work:
 
@@ -667,7 +667,7 @@ The new key pair has been written into "account1.pem":
 * public key: @publickeyaccount1 (ed25519, base64)
 * Tendermint-like address: @tendermintaddressaccount1
 
-$ moka accounts create faucet 50000000000 account1.pem --password
+$ moka accounts create faucet 50000000000000 account1.pem --password
     --uri @server_mokamint
 Enter value for --password
   (the password of the key pair specified through --keys): chocolate
@@ -711,7 +711,7 @@ $ moka objects show @account1
     --uri @server_mokamint
 class io.takamaka.code.lang.ExternallyOwnedAccountED25519
   (from jar installed at @takamakaCode)
-  io.takamaka.code.lang.Contract.balance:java.math.BigInteger = 50000000000
+  io.takamaka.code.lang.Contract.balance:java.math.BigInteger = 50000000000000
   io.takamaka.code.lang.ExternallyOwnedAccount.nonce:java.math.BigInteger = 0
   io.takamaka.code.lang.ExternallyOwnedAccount.publicKey:java.lang.String
     = "@publickeyaccount1"
@@ -1508,7 +1508,7 @@ public class Family {
       // transactions having the account as payer
       nonce = nonce.add(ONE);
 
-      System.out.println("jar installed at: " + family);
+      System.out.println("jar installed at " + family);
     }
   }
 
@@ -1727,7 +1727,8 @@ $ cd @tutorial_name
 $ moka objects show @person_object
     --uri @server_mokamint
 
-class family.Person (from jar installed at @family2_address)
+class family.Person (from jar installed at
+    @family2_address)
   day:int = 14
   month:int = 4
   name:java.lang.String = "Einstein"
@@ -2992,9 +2993,8 @@ to add an element at the beginning of a list, in constant time.
 The size of a list is not fixed: lists grow in size as more elements are added.
 
 Java has many classes for implementing lists, all subclasses
-of `java.util.List<E>`. They can be used in Takamaka, but not as
-fields of a storage class. For that,
-Takamaka provides an implementation of lists with the storage class
+of `java.util.List<E>`. They cannot be used in Takamaka that, instead,
+provides an implementation of lists with the storage class
 `io.takamaka.code.util.StorageLinkedList<E>`. Its instances are storage objects and
 can consequently be held in fields of storage classes and
 can be stored in a Hotmoka node, *as long as only
@@ -3036,7 +3036,7 @@ while method `view()` runs in constant time.
 > To appreciate the difference to a cast, assume to have a `StorageList<E> list` and to write
 > `StorageListView<E> view = (StorageListView<E>) list`. This upwards cast will always succeed.
 > Variable `view` does not allow to call any modification method, since they
-> are not in its type `StorageListView<E>`. But a downwards cast back to `StorageList<E>`
+> are not in its static type `StorageListView<E>`. But a downwards cast back to `StorageList<E>`
 > is enough to circumvent
 > that constraint: `StorageList<E> list2 = (StorageList<E>) view`. This way, the original `list`
 > can be modified by modifying `list2` and it would not be safe to export `view`, since it
@@ -3051,7 +3051,7 @@ Next section shows an example of use for `StorageLinkedList`.
 
 ### A Gradual Ponzi Contract
 
-__[See project `ponzi_gradual` inside the `@tutorial_name` repository]__
+__[See `io-takamaka-code-examples-ponzi_gradual` in `@takamaka_repo`]__
 
 Consider our previous Ponzi contract again. It is somehow irrealistic, since
 an investor gets its investment back in full. In a more realistic scenario,
@@ -3063,11 +3063,11 @@ list of investors, of unbounded size. An implementation of this gradual
 Ponzi contract is reported below and has been
 inspired by a similar Ethereum contract from Iyer and Dannen,
 shown at page 150 of [[IyerD08]](#references).
-Write its code inside package `it.takamaka.ponzi` of
-the `ponzi` project, as a new class `GradualPonzi.java`:
+Write its code inside package `ponzi` of
+the `io-takamaka-code-examples-ponzi` project, as a new class `GradualPonzi.java`:
 
 ```java
-package io.takamaka.ponzi;
+package ponzi;
 
 import static io.takamaka.code.lang.Takamaka.require;
 
@@ -3077,6 +3077,8 @@ import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
+import io.takamaka.code.lang.StringSupport;
+import io.takamaka.code.math.BigIntegerSupport;
 import io.takamaka.code.util.StorageLinkedList;
 import io.takamaka.code.util.StorageList;
 
@@ -3094,10 +3096,12 @@ public class GradualPonzi extends Contract {
   }
 
   public @Payable @FromContract(PayableContract.class) void invest(BigInteger amount) {
-    require(amount.compareTo(MINIMUM_INVESTMENT) >= 0,
-      () -> "you must invest at least " + MINIMUM_INVESTMENT);
-    BigInteger eachInvestorGets = amount.divide(BigInteger.valueOf(investors.size()));
-    investors.stream().forEachOrdered(investor -> investor.receive(eachInvestorGets));
+	 // new investments must be at least 10% greater than current
+    require(BigIntegerSupport.compareTo(amount, MINIMUM_INVESTMENT) >= 0,
+      () -> StringSupport.concat("you must invest at least ", MINIMUM_INVESTMENT));
+    BigInteger eachInvestorGets = BigIntegerSupport.divide
+      (amount, BigInteger.valueOf(investors.size()));
+    investors.forEach(investor -> investor.receive(eachInvestorGets));
     investors.add((PayableContract) caller());
   }
 }
@@ -3115,10 +3119,10 @@ Subsequently, other contracts can invest by calling method `invest()`.
 A minimum investment is required, but this remains constant over time.
 The `amount` invested gets split by the number of the previous investors
 and sent back to each of them. Note that Takamaka allows programmers to use
-Java 8 lambdas and streams.
+Java 8 lambdas.
 Old fashioned Java programmers, who don't feel at home with such treats,
 can exploit the fact that
-storage lists are iterable and replace the single-line `forEachOrdered()` call
+storage lists are iterable and replace the single-line `forEach()` call
 with a more traditional (but gas-hungrier):
 
 ```java
@@ -3189,7 +3193,7 @@ especially expensive in Takamaka, since they are just a method
 invocation in Java bytecode (one bytecode instruction). They are *not* inner transactions.
 They are actually cheaper than
 updating a map of balances. Moreover, avoiding the `widthdraw()` transactions
-means reducing the overall number of transactions;
+reduces the overall number of transactions;
 without using the map supporting the withdrawal pattern, Takamaka contracts
 consume less gas and less storage.
 Hence, the withdrawal pattern is both
@@ -3198,107 +3202,118 @@ useless in Takamaka and more expensive than paying back previous contracts immed
 ### Running the Gradual Ponzi Contract
 
 Let us play with the `GradualPonzi` contract now.
-Run, inside that `ponzi` project, the command `mvn package`.
-A file `ponzi-0.0.1.jar` should appear inside `target`.
+Run, inside that `ponzi` project, the command `mvn install`.
+A file `ponzi-@takamaka_version.jar` should appear inside `target`.
 We can now start by installing that jar in the node:
 
 ```shell
-$ cd @tutorial_name   # if not already there
-$ moka install ponzi/target/ponzi-0.0.1.jar
-    --payer @account1
-    --uri @server
+$ cd @tutorial_name/io-takamaka-code-examples-ponzi   # if not already there
+$ mvn install
+$ cd ..
+$ moka jars install @account1
+    io-takamaka-code-examples-ponzi/target/io-takamaka-code-examples-ponzi-@takamaka_version.jar
+    --password-of-payer
+    --uri @server_mokamint
 
-Please specify the password of the payer account: chocolate
-Do you really want to spend up to 697300 gas units to install the jar [Y/N] Y
+Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
+Do you really want to install the jar spending up to 953600 gas units
+  at the price of 1 pana per unit (that is, up to 953600 panas) [Y/N] Y
+Adding transaction @gradual_ponzi_address... done.
+The jar has been installed at @gradual_ponzi_address.
 
-ponzi/target/ponzi-0.0.1.jar has been installed at
-@gradual_ponzi_address
+Gas consumption:
+ * total: 11283
+   * for CPU: 1628
+   * for RAM: 3351
+   * for storage: 6304
+   * for penalty: 0
+ * price per unit: 1 pana
+ * total price: 11283 panas
 ```
 
-We create two more accounts now, letting our first account pay:
+Create two more accounts now, letting our first account pay:
 
 ```shell
-$ moka create-account
-    10000000
-    --payer @account1
-    --uri @server
-
-Please specify the password of the payer account: chocolate
-Please specify the password of the new account: orange
-Do you really want to spend up to 200000 gas units to create a new account [Y/N] Y
-Total gas consumed: 44574
-  for CPU: 401
-  for RAM: 1352
-  for storage: 42821
-  for penalty: 0
-
-A new account @account2
-has been created.
-Its entropy has been saved into the file
-"@account2.pem".
-Please take note of the following passphrase of 36 words...
-
-$ moka create-account
-    10000000
-    --payer @account1
-    --uri @server
-
-Please specify the password of the payer account: chocolate
-Please specify the password of the new account: apple
-Do you really want to spend up to 200000 gas units to create a new account [Y/N] Y
-Total gas consumed: 44574
-  for CPU: 401
-  for RAM: 1352
-  for storage: 42821
-  for penalty: 0
-
-A new account @account3
-has been created.
-Its entropy has been saved into the file
-"@account3.pem".
-Please take note of the following passphrase of 36 words...
+$ moka keys create --name=account2.pem --password
+Enter value for --password
+  (the password that will be needed later to use the key pair): orange
+$ moka keys create --name=account3.pem --password
+Enter value for --password
+  (the password that will be needed later to use the key pair): apple
+...
+$ moka accounts create @account1
+    50000000000 account2.pem --password --password-of-payer
+    --uri=@server_mokamint
+Enter value for --password (the password of the key pair): orange 
+Enter value for --password-of-payer (the password of the payer): chocolate 
+Do you really want to create the new account spending up to 200000 gas units
+  at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
+Adding transaction @transaction_account2... done.
+A new account @account2 has been created.
+...
+$ moka accounts create @account1
+    10000000 account3.pem --password --password-of-payer
+    --uri=@server_mokamint
+Enter value for --password (the password of the key pair): apple 
+Enter value for --password-of-payer (the password of the payer): chocolate 
+Do you really want to create the new account spending up to 200000 gas units
+  at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
+Adding transaction @transaction_account3... done.
+A new account @account3 has been created.
+...
 ```
 
 We let our first account create an instance of `GradualPonzi` in the node now
 and become the first investor of the contract:
 
 ```shell
-$ moka create
-    io.takamaka.ponzi.GradualPonzi
-    --payer @account1
-    --classpath @gradual_ponzi_address
-    --uri @server
-
-Please specify the password of the payer account: chocolate
-Do you really want to spend up to 500000 gas units to call
-@FromContract(PayableContract.class) public GradualPonzi() ? [Y/N] Y
-
-The new object has been allocated at
-@gradual_ponzi_object
+$ moka objects create @account1
+    ponzi.GradualPonzi
+    --classpath=@gradual_ponzi_address
+    --password-of-payer
+    --uri=@server_mokamint
+Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
+Do you really want to call constructor public ponzi.GradualPonzi() spending up to 200000 gas units
+  at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
+Adding transaction @transaction_creation_gradual_ponzi... done.
+A new object @gradual_ponzi_object has been created.
 ```
 
 We let the other two players invest, in sequence, in the `GradualPonzi` contract:
 
 ```shell
-$ moka call
-    @gradual_ponzi_object
-    invest 5000
-    --payer @account2
-    --uri @server
+$ moka objects call @account2
+    ponzi.GradualPonzi invest 5000
+    --classpath=@gradual_ponzi_address
+    --receiver=@gradual_ponzi_object
+    --password-of-payer
+    --uri=@server_mokamint
+Enter value for --password-of-payer (the password of the key pair of the payer account): orange
+Do you really want to call method public void ponzi.GradualPonzi.invest(java.math.BigInteger)
+  spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
+Adding transaction @transaction_account2_invest... done.
 
-Please specify the password of the payer account: orange
-Do you really want to spend up to 500000 gas units to call
-public void invest(java.math.BigInteger) ? [Y/N] Y
+Gas consumption:
+ * total: 7546
+   * for CPU: 2705
+   * for RAM: 4323
+   * for storage: 518
+   * for penalty: 0
+ * price per unit: 1 pana
+ * total price: 7546 panas
 
-$ moka call
-    @gradual_ponzi_object
-    invest 15000
-    --payer @account3
-    --uri @server
+$ moka objects call @account3
+    ponzi.GradualPonzi invest 15000
+    --classpath=@gradual_ponzi_address
+    --receiver=@gradual_ponzi_object
+    --password-of-payer
+    --uri=@server_mokamint
+Enter value for --password-of-payer (the password of the key pair of the payer account): apple
+Do you really want to call method public void ponzi.GradualPonzi.invest(java.math.BigInteger)
+  spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
+Adding transaction @transaction_account3_invest... done.
 
-Please specify the password of the payer account: apple
-Do you really want to spend up to 500000 gas units to call
-public void invest(java.math.BigInteger) ? [Y/N] Y
+Gas consumption: ...
 ```
 
 We let the first player try to invest again in the contract, this time
@@ -3306,19 +3321,20 @@ with a too small investment, which leads to an exception,
 since the code of the contract requires a minimum investment:
 
 ```shell
-$ moka call
-    @gradual_ponzi_object
-    invest 500
-    --payer @account1
-    --uri @server
+$ moka objects call @account1
+    ponzi.GradualPonzi invest 500
+    --classpath=@gradual_ponzi_address
+    --receiver=@gradual_ponzi_object
+    --password-of-payer
+    --uri=@server_mokamint
 
-Please specify the password of the payer account: chocolate
-Do you really want to spend up to 500000 gas units to call
-public void invest(java.math.BigInteger) ? [Y/N] Y
+Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
+Do you really want to call method public void ponzi.GradualPonzi.invest(java.math.BigInteger)
+  spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
+Adding transaction @transaction_account1_invest... failed.
+The transaction failed with message io.takamaka.code.lang.RequirementViolationException: you must invest at least 1000@GradualPonzi.java:49
 
-io.hotmoka.node.api.TransactionException:
-io.takamaka.code.lang.RequirementViolationException:
-you must invest at least 1000@GradualPonzi.java:46
+Gas consumption: ...
 ```
 
 This exception states that a transaction failed because the last
@@ -3326,46 +3342,34 @@ investor invested less than 1000 units of coin. Note that the
 exception message reports the cause (a `require` failed)
 and includes the source program line
 of the contract where the exception occurred:
-line 46 of `GradualPonzi.java`, that is
+line 49 of `GradualPonzi.java`, that is
 
 ```java
-require(amount.compareTo(MINIMUM_INVESTMENT) >= 0,
-  () -> "you must invest at least " + MINIMUM_INVESTMENT);
+require(BigIntegerSupport.compareTo(amount, MINIMUM_INVESTMENT) >= 0,
+  () -> StringSupport.concat("you must invest at least ", MINIMUM_INVESTMENT));
 ```
 
 Finally, we can check the state of the contract:
 
 ```shell
-$ moka state @gradual_ponzi_object
-    --uri @server
-
-This is the state of object
-@gradual_ponzi_object
-@@server
-
-class io.takamaka.ponzi.GradualPonzi (from jar installed at
+$ moka objects show @gradual_ponzi_object
+    --uri @server_mokamint
+class ponzi.GradualPonzi (from jar installed at
     @gradual_ponzi_address)
-
   MINIMUM_INVESTMENT:java.math.BigInteger = 1000
   investors:io.takamaka.code.util.StorageList
     = @gradual_ponzi_list
-  balance:java.math.BigInteger = 0 (inherited from io.takamaka.code.lang.Contract)
-  balanceRed:java.math.BigInteger = 0 (inherited from io.takamaka.code.lang.Contract)
+  io.takamaka.code.lang.Contract.balance:java.math.BigInteger = 0
 ```
 You can see that the contract keeps no balance. Moreover, its `investors` field is bound to an
 object, whose state can be further investigated:
 
 ```shell
-$ moka state @gradual_ponzi_list
-    --uri @server
-
-This is the state of object
-@gradual_ponzi_list
-@@server
+$ moka objects show @gradual_ponzi_list
+    --uri @server_mokamint
 
 class io.takamaka.code.util.StorageLinkedList (from jar installed at
     @takamakaCode)
-
   first:io.takamaka.code.util.StorageLinkedList$Node
     = @gradual_ponzi_first
   last:io.takamaka.code.util.StorageLinkedList$Node
@@ -3389,7 +3393,7 @@ as fields of storage classes. For that, Takamaka provides class
 can consequently be held in fields of storage classes and
 can be stored in the store of a Hotmoka node, *as long as only
 storage objects are added to the array*. Their size is fixed and decided
-at time of construction. Although we consider `StorageTreeArray<E>` as the storage
+at the time of construction. Although we consider `StorageTreeArray<E>` as the storage
 replacement for Java arrays, it must be stated that the complexity of
 accessing their elements is logarithmic in the size of the array, which is
 a significant deviation from the standard definition of arrays. Nevertheless,
@@ -3419,7 +3423,7 @@ Next section shows an example of use for `StorageTreeArray<E>`.
 
 ### A Tic-Tac-Toe Contract
 
-__[See project `tictactoe` inside the `@tutorial_name` repository]__
+__[See `io-takamaka-code-examples-tictactoe` in `@takamaka_repo`]__
 
 Tic-tac-toe is a game where two players place, alternately,
 a cross and a circle on a 3x3 board, initially empty. The winner is the

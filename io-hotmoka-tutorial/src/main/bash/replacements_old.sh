@@ -1,12 +1,5 @@
 # These get automatically recomputed with the update script: do not edit!
 sed -i 's/@family3_address/a9d69ce22453c912a436e990074fd3493c87667ada85b6881f5566a7efae08e7/g' target/Tutorial.md
-sed -i 's/@gradual_ponzi_address/b8b37e6a848dd59ecd091194f234ff6409705a78bc0df774d5716d5d9c611b2e/g' target/Tutorial.md
-sed -i 's/@gradual_ponzi_object/432d5d75ebb8bcc4f52fa2c6c5b988601b79bb6e1db72e7b591c902a638237d8#0/g' target/Tutorial.md
-sed -i 's/@gradual_ponzi_list/432d5d75ebb8bcc4f52fa2c6c5b988601b79bb6e1db72e7b591c902a638237d8#1/g' target/Tutorial.md
-sed -i 's/@gradual_ponzi_first/432d5d75ebb8bcc4f52fa2c6c5b988601b79bb6e1db72e7b591c902a638237d8#2/g' target/Tutorial.md
-sed -i 's/@gradual_ponzi_last/5bdff31c6151ec5b381e8fc43e76efd382ab20d90b004597cc133b9a1619ea49#0/g' target/Tutorial.md
-sed -i 's/@account2/12441d4a2f52e80f93e726040fbc364b75e7fedbef96887110df678794d791ea#0/g' target/Tutorial.md
-sed -i 's/@account3/eec01b6f22911f76dbd25bda6f850e9af9e8640a4530a46c1909f48b9c7976a3#0/g' target/Tutorial.md
 sed -i 's/@account4/e42def4faba5d93346e4d02a1608c9fb53ba7beea84ffb0064cdfe431d079867#0/g' target/Tutorial.md
 sed -i 's/@account5/fdb930378af70c212649e4f9b888d7c275373cf5b9601b40e4802d29fa27af89#0/g' target/Tutorial.md
 sed -i 's/@account6/b65e5976862d6786ba9a6d2cd62b332bfa7f8859e2c8b9be3bbbe5cd64af6c1e#0/g' target/Tutorial.md

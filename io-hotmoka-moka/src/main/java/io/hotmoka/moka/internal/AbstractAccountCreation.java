@@ -84,7 +84,7 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 	@Option(names = "--password-of-payer", description = "the password of the payer; this is not used if the payer is the faucet", interactive = true, defaultValue = "")
 	private char[] passwordOfPayer;
 
-	@Option(names = "--password", description = "the password of the key pair specified through --keys", interactive = true, defaultValue = "")
+	@Option(names = "--password", description = "the password of the key pair of the new account", interactive = true, defaultValue = "")
 	private char[] password;
 
 	@Option(names = "--yes", description = "assume yes when asked for confirmation; this is implied if --json is used")

@@ -45,10 +45,12 @@ import io.hotmoka.moka.NodesManifestAddressOutputs;
 import io.hotmoka.moka.NodesTakamakaAddressOutputs;
 import io.hotmoka.moka.ObjectsCallOutputs;
 import io.hotmoka.moka.ObjectsCreateOutputs;
+import io.hotmoka.moka.ObjectsShowOutputs;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.tutorial.examples.Family;
 import io.hotmoka.tutorial.examples.FamilyExported;
 import io.hotmoka.tutorial.examples.FamilyStorage;
@@ -145,7 +147,7 @@ public class UpdateForNewNode {
 			report("sed -i \"s/@short_publickeyaccount1/" + publicKeyAccount1Base64Short + ".../g\" target/pics/state2.fig");
 			report("sed -i \"s/@short_publickeyaccount1/" + publicKeyAccount1Base64Short + ".../g\" target/pics/state3.fig");
 
-			var output9 = AccountsCreateOutputs.from(Moka.accountsCreate("faucet 50000000000 " + dir.resolve("account1.pem") + " --dir=" + dir + " --output-dir=" + dir + " --password=chocolate --uri=" + uri + " --json --timeout=" + TIMEOUT));
+			var output9 = AccountsCreateOutputs.from(Moka.accountsCreate("faucet 50000000000000 " + dir.resolve("account1.pem") + " --dir=" + dir + " --output-dir=" + dir + " --password=chocolate --uri=" + uri + " --json --timeout=" + TIMEOUT));
 			StorageReference account1 = output9.getAccount().get();
 			report("sed -i 's/@transaction_account1/" + output9.getTransaction() + "/g' target/Tutorial.md");
 			report("sed -i 's/@account1/" + account1 + "/g' target/Tutorial.md");
@@ -219,6 +221,39 @@ public class UpdateForNewNode {
 			String runFamilyExportedMain = run(() -> FamilyExported.main(new String[] { dir.toString(), account1.toString(), "chocolate" }));
 			// the output contains a new line, to remove, and slashes, that must be escaped
 			report("sed -i 's/@family_exported_call_toString_output/" + runFamilyExportedMain.trim().replace("/", "\\/") + "/g' target/Tutorial.md");
+
+			Path jar4 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-ponzi_gradual/" + takamakaVersion + "/io-takamaka-code-examples-ponzi_gradual-" + takamakaVersion + ".jar");
+			var output22 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar4 + " --password-of-payer=chocolate --dir=" + dir + " --uri=" + uri + " --json --timeout=" + TIMEOUT));
+			TransactionReference gradualPonziAddress = output22.getJar().get();
+			report("sed -i 's/@gradual_ponzi_address/" + gradualPonziAddress + "/g' target/Tutorial.md");
+			KeysCreateOutputs.from(Moka.keysCreate("--name account2.pem --output-dir=" + dir + " --password=orange --json"));
+			KeysCreateOutputs.from(Moka.keysCreate("--name account3.pem --output-dir=" + dir + " --password=apple --json"));
+			var output23 = AccountsCreateOutputs.from(Moka.accountsCreate("faucet 50000000000 " + dir.resolve("account2.pem") + " --dir=" + dir + " --output-dir=" + dir + " --password=orange --password-of-payer=chocolate --uri=" + uri + " --json --timeout=" + TIMEOUT));
+			StorageReference account2 = output23.getAccount().get();
+			report("sed -i 's/@transaction_account2/" + output23.getTransaction() + "/g' target/Tutorial.md");
+			report("sed -i 's/@account2/" + account2 + "/g' target/Tutorial.md");
+			var output24 = AccountsCreateOutputs.from(Moka.accountsCreate("faucet 10000000 " + dir.resolve("account3.pem") + " --dir=" + dir + " --output-dir=" + dir + " --password=apple --password-of-payer=chocolate --uri=" + uri + " --json --timeout=" + TIMEOUT));
+			StorageReference account3 = output24.getAccount().get();
+			report("sed -i 's/@transaction_account3/" + output24.getTransaction() + "/g' target/Tutorial.md");
+			report("sed -i 's/@account3/" + account3 + "/g' target/Tutorial.md");
+			var output25 = ObjectsCreateOutputs.from(Moka.objectsCreate(account1 + " ponzi.GradualPonzi --classpath=" + gradualPonziAddress + " --uri=" + uri + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate"));
+			report("sed -i 's/@transaction_creation_gradual_ponzi/" + output15.getTransaction() + "/g' target/Tutorial.md");
+			StorageReference gradualPonziObject = output25.getObject().get();
+			report("sed -i 's/@gradual_ponzi_object/" + gradualPonziObject + "/g' target/Tutorial.md");
+			var output26 = ObjectsCallOutputs.from(Moka.objectsCall(account2 + " ponzi.GradualPonzi invest 5000 --uri=" + uri + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=orange --receiver=" + gradualPonziObject));
+			report("sed -i 's/@transaction_account2_invest/" + output26.getTransaction() + "/g' target/Tutorial.md");
+			var output27 = ObjectsCallOutputs.from(Moka.objectsCall(account3 + " ponzi.GradualPonzi invest 15000 --uri=" + uri + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=apple --receiver=" + gradualPonziObject));
+			report("sed -i 's/@transaction_account3_invest/" + output27.getTransaction() + "/g' target/Tutorial.md");
+			var output28 = ObjectsCallOutputs.from(Moka.objectsCall(account1 + " ponzi.GradualPonzi invest 500 --uri=" + uri + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate --receiver=" + gradualPonziObject));
+			report("sed -i 's/@transaction_account1_invest/" + output28.getTransaction() + "/g' target/Tutorial.md");
+			var output29 = ObjectsShowOutputs.from(Moka.objectsShow(gradualPonziObject + " --json --uri=" + uri + " --timeout=" + TIMEOUT));
+			StorageValue gradualPonziList = output29.getFields().filter(update -> "investors".equals(update.getField().getName())).map(update -> update.getValue()).findFirst().get();
+			report("sed -i 's/@gradual_ponzi_list/" + gradualPonziList + "/g' target/Tutorial.md");
+			var output30 = ObjectsShowOutputs.from(Moka.objectsShow(gradualPonziList + " --json --uri=" + uri + " --timeout=" + TIMEOUT));
+			StorageValue gradualPonziFirst = output30.getFields().filter(update -> "first".equals(update.getField().getName())).map(update -> update.getValue()).findFirst().get();
+			report("sed -i 's/@gradual_ponzi_first/" + gradualPonziFirst + "/g' target/Tutorial.md");
+			StorageValue gradualPonziLast = output30.getFields().filter(update -> "last".equals(update.getField().getName())).map(update -> update.getValue()).findFirst().get();
+			report("sed -i 's/@gradual_ponzi_last/" + gradualPonziLast + "/g' target/Tutorial.md");
 		}
 
 		private void report(String line) {
