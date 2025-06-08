@@ -43,7 +43,6 @@
     - [Payable Contracts](#payable-contracts)
     - [The `@View` Annotation](#the-view-annotation)
     - [The Hierarchy of Contracts](#the-hierarchy-of-contracts)
-    - [Red and Green Balances](#red-and-green-balances)
 5. [The Support Library](#the-support-library)
     - [Storage Lists](#storage-lists)
         - [A Gradual Ponzi Contract](#a-gradual-ponzi-contract)
@@ -2457,12 +2456,10 @@ the meaning of different language features of Takamaka.
 
 ## A Simple Ponzi Scheme Contract
 
-__[See project `ponzi_simple` inside the `@tutorial_name` repository]__
+__[See `io-takamaka-code-examples-ponzi_simple` in `@takamaka_repo`]__
 
-Create a new Maven Java 11 (or later) project in Eclipse, named `ponzi`.
-You can do this by duplicating the project `family` (make sure to store
-the project inside the `@tutorial_name` directory, as a sibling of `family` and
-`runs`). Use the following `pom.xml`:
+Create a new Maven Java 17 (or later) project in Eclipse, named `ponzi`.
+You can do this by duplicating the project `family`. Use the following `pom.xml`:
 
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -2471,13 +2468,13 @@ the project inside the `@tutorial_name` directory, as a sibling of `family` and
                         http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
-  <groupId>io.hotmoka.tutorial</groupId>
-  <artifactId>ponzi_annotations</artifactId>
-  <version>0.0.1</version>
+  <groupId>io.hotmoka</groupId>
+  <artifactId>io-takamaka-code-examples-ponzi</artifactId>
+  <version>@takamaka_version</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.release>11</maven.compiler.release>
+    <maven.compiler.release>17</maven.compiler.release>
   </properties>
 
   <dependencies>
@@ -2509,15 +2506,19 @@ module ponzi {
 }
 ```
 
-Create package `io.takamaka.ponzi` inside `src/main/java` and add
+Create package `ponzi` inside `src/main/java` and add
 the following `SimplePonzi.java` source inside that package:
 
 ```java
-package io.takamaka.ponzi;
+package ponzi;
 
 import static io.takamaka.code.lang.Takamaka.require;
+
 import java.math.BigInteger;
+
 import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.StringSupport;
+import io.takamaka.code.math.BigIntegerSupport;
 
 public class SimplePonzi extends Contract {
   private final BigInteger _10 = BigInteger.valueOf(10L);
@@ -2527,9 +2528,10 @@ public class SimplePonzi extends Contract {
 
   public void invest(Contract investor, BigInteger amount) {
     // new investments must be at least 10% greater than current
-    BigInteger minimumInvestment = currentInvestment.multiply(_11).divide(_10);
-    require(amount.compareTo(minimumInvestment) >= 0,
-      () -> "you must invest at least " + minimumInvestment);
+    BigInteger minimumInvestment = BigIntegerSupport.divide
+      (BigIntegerSupport.multiply(currentInvestment, _11), _10);
+    require(BigIntegerSupport.compareTo(amount, minimumInvestment) > 0,
+      () -> StringSupport.concat("you must invest more than ", minimumInvestment));
 
     // document new investor
     currentInvestor = investor;
@@ -2544,7 +2546,7 @@ public class SimplePonzi extends Contract {
 Look at the code of `SimplePonzi.java` above. The contract has a single
 method, named `invest`. This method lets a new `investor` invest
 a given `amount` of coins. This amount must be at least 10% higher than
-the current investment. The expression `amount.compareTo(minimumInvestment) >= 0`
+the current investment. The expression `BigIntegerSupport.compareTo(amount, minimumInvestment) > 0`
 is a comparison between two Java `BigInteger`s and should be read as the
 more familiar `amount >= minimumInvestment`: the latter cannot be
 written in this form, since Java does not allow comparison operators
@@ -2556,20 +2558,20 @@ If the new investment is at least 10% higher than the current one, it will be
 saved in the state of the contract, together with the new investor.
 
 > You might wonder why we have written
-> `require(..., () -> "you must invest at least " + minimumInvestment)`
+> `require(..., () -> StringSupport.concat("you must invest more than ", minimumInvestment)`
 > instead of the simpler
-> `require(..., "you must invest at least " + minimumInvestment)`.
+> `require(..., StringSupport.concat("you must invest more than ", minimumInvestment)`.
 > Both are possible and semantically almost identical. However, the former
 > uses a lambda expression that computes the string concatenation lazily, only if
 > the message is needed; the latter always computes the string concatenation, instead.
 > Hence, the first version consumes less gas, in general, and is consequently
-> preferrable. This technique simulates lazy evaluation in a language, like
+> preferred. This technique simulates lazy evaluation in a language, like
 > Java, that has only eager evaluation for actual arguments. This technique
 > has been used since years, for instance in JUnit assertions.
 
 ## The `@FromContract` and `@Payable` Annotations
 
-__[See project `ponzi_annotations` inside the `@tutorial_name` repository]__
+__[See `io-takamaka-code-examples-ponzi_annotations` in `@takamaka_repo`]__
 
 The previous code of `SimplePonzi.java` is unsatisfactory, for at least two
 reasons, that we will overcome in this section:
@@ -2584,7 +2586,7 @@ reasons, that we will overcome in this section:
 Let us rewrite `SimplePonzi.java` in the following way:
 
 ```java
-package io.takamaka.ponzi;
+package ponzi;
 
 import static io.takamaka.code.lang.Takamaka.require;
 
@@ -2592,6 +2594,9 @@ import java.math.BigInteger;
 
 import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.FromContract;
+import io.takamaka.code.lang.Payable;
+import io.takamaka.code.lang.StringSupport;
+import io.takamaka.code.math.BigIntegerSupport;
 
 public class SimplePonzi extends Contract {
   private final BigInteger _10 = BigInteger.valueOf(10L);
@@ -2600,10 +2605,11 @@ public class SimplePonzi extends Contract {
   private BigInteger currentInvestment = BigInteger.ZERO;
 
   public @FromContract void invest(BigInteger amount) {
-    // new investments must be at least 10% greater than current
-    BigInteger minimumInvestment = currentInvestment.multiply(_11).divide(_10);
-    require(amount.compareTo(minimumInvestment) >= 0,
-      () -> "you must invest at least " + minimumInvestment);
+	// new investments must be at least 10% greater than current
+    BigInteger minimumInvestment = BigIntegerSupport.divide
+      (BigIntegerSupport.multiply(currentInvestment, _11), _10);
+    require(BigIntegerSupport.compareTo(amount, minimumInvestment) > 0,
+      () -> StringSupport.concat("you must invest more than ", minimumInvestment));
 
     // document new investor
     currentInvestor = caller();
@@ -2647,7 +2653,7 @@ can be charged `amount` coins at the moment of calling `invest()`.
 This can be achieved with the `@Payable` annotation, that we apply to `invest()`:
 
 ```java
-package io.takamaka.ponzi;
+package ponzi;
 
 import static io.takamaka.code.lang.Takamaka.require;
 
@@ -2656,6 +2662,8 @@ import java.math.BigInteger;
 import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
+import io.takamaka.code.lang.StringSupport;
+import io.takamaka.code.math.BigIntegerSupport;
 
 public class SimplePonzi extends Contract {
   private final BigInteger _10 = BigInteger.valueOf(10L);
@@ -2664,10 +2672,11 @@ public class SimplePonzi extends Contract {
   private BigInteger currentInvestment = BigInteger.ZERO;
 
   public @Payable @FromContract void invest(BigInteger amount) {
-    // new investments must be at least 10% greater than current
-    BigInteger minimumInvestment = currentInvestment.multiply(_11).divide(_10);
-    require(amount.compareTo(minimumInvestment) >= 0,
-      () -> "you must invest at least " + minimumInvestment);
+	// new investments must be at least 10% greater than current
+    BigInteger minimumInvestment = BigIntegerSupport.divide
+      (BigIntegerSupport.multiply(currentInvestment, _11), _10);
+    require(BigIntegerSupport.compareTo(amount, minimumInvestment) > 0,
+      () -> StringSupport.concat("you must invest more than ", minimumInvestment));
 
     // document new investor
     currentInvestor = caller();
@@ -2677,9 +2686,9 @@ public class SimplePonzi extends Contract {
 ```
 
 When a contract calls `invest()` now, that contract will be charged `amount` coins,
-automatically. This means tha these coins will be automatically transferred to the
+automatically. This means that these coins will be automatically transferred to the
 balance of the instance of `SimplePonzi` that receives the call.
-If the balance of the calling contract is too low for that, the call
+If the balance of the calling contract is too little for that, the call
 will be automatically rejected with an insufficient funds exception. The caller
 must be able to pay for both `amount` and the gas needed to run `invest()`. Hence,
 he must hold a bit more than `amount` coins at the moment of calling `invest()`.
@@ -2694,7 +2703,7 @@ he must hold a bit more than `amount` coins at the moment of calling `invest()`.
 
 ## Payable Contracts
 
-__[See project `ponzi_payable` inside the `@tutorial_name` repository]__
+__[See `io-takamaka-code-examples-ponzi_payable` in `@takamaka_repo`]__
 
 The `SimplePonzi.java` class is not ready yet. Namely, the code
 of that class specifies that investors have to pay
@@ -2758,7 +2767,7 @@ Let us hence apply the following small changes to our `SimplePonzi.java` class:
 The result is the following:
 
 ```java
-package io.takamaka.ponzi;
+package ponzi;
 
 import static io.takamaka.code.lang.Takamaka.require;
 
@@ -2768,6 +2777,8 @@ import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
+import io.takamaka.code.lang.StringSupport;
+import io.takamaka.code.math.BigIntegerSupport;
 
 public class SimplePonzi extends Contract {
   private final BigInteger _10 = BigInteger.valueOf(10L);
@@ -2777,13 +2788,14 @@ public class SimplePonzi extends Contract {
 
   public @Payable @FromContract(PayableContract.class) void invest(BigInteger amount) {
     // new investments must be at least 10% greater than current
-    BigInteger minimumInvestment = currentInvestment.multiply(_11).divide(_10);
-    require(amount.compareTo(minimumInvestment) >= 0,
-      () -> "you must invest at least " + minimumInvestment);
+    BigInteger minimumInvestment = BigIntegerSupport.divide
+      (BigIntegerSupport.multiply(currentInvestment, _11), _10);
+    require(BigIntegerSupport.compareTo(amount, minimumInvestment) > 0,
+      () -> StringSupport.concat("you must invest more than ", minimumInvestment));
 
     // document new investor
     if (currentInvestor != null)
-      currentInvestor.receive(amount);
+    	currentInvestor.receive(amount);
 
     currentInvestor = (PayableContract) caller();
     currentInvestment = amount;
@@ -2798,7 +2810,7 @@ is `C` or a subclass of `C`. Otherwise, a run-time exception will occur.
 
 ## The `@View` Annotation
 
-__[See project `ponzi_view` inside the `@tutorial_name` repository]__
+__[See `io-takamaka-code-examples-ponzi_view` in `@takamaka_repo`]__
 
 Our `SimplePonzi.java` code can still be improved. As it is now,
 an investor must call `invest()` and be ready to pay a sufficiently
@@ -2881,9 +2893,9 @@ the nonce of the caller.
 > bytecode verification. That check can only be an approximation of the
 > run-time check.
 
-> If a `@View` method is called through the `moka call` command,
+> If a `@View` method is called through the `moka objects call` command,
 > the `moka` tool will automatically perform a `runInstanceMethodCallTransaction()`
-> internally, to spare gas.
+> internally, to spare gas, and the call will occur for free.
 
 ## The Hierarchy of Contracts
 
@@ -2922,7 +2934,7 @@ amount of coins. As we have seen in sections
 the methods of Hotmoka nodes that start a transaction require to specify a payer
 for that transaction. Such a payer is required to be an instance of
 `ExternallyOwnedAccount`, or an exception will be thrown. In our previous examples,
-we have used, as payer, an account created by the `moka create-account` command,
+we have used, as payer, an account created by the `moka accounts create` command,
 that is an instance of `io.takamaka.code.lang.ExternallyOwnedAccount`.
 `ExternallyOwnedAccount`s have a private field `nonce` that can be accessed through
 the public `@View` method `nonce()`: it yields a `BigInteger`
@@ -2934,7 +2946,7 @@ private `publicKey` field, as a Base64-encoded string,
 that can be accessed through the `publicKey()` method.
 That key is used to verify the signature of the transactions
 having that account as caller. As we will see later, there is a default signature
-algorithms for transactions and that is what `ExternallyOwnedAccount`s use.
+algorithm for transactions and that is what `ExternallyOwnedAccount`s use.
 However, it is possible to require a specific signature algorithm, that overrides the default
 for the node. For that, it is enough to instantiate classes `ExternallyOwnedAccountSHA256DSA`,
 `ExternallyOwnedAccountED25519`, `ExternallyOwnedAccountQTESLA1`
@@ -2944,73 +2956,6 @@ quantum-resistant signature algorithm
 for more details). This means that it is possible
 to mix many signature algorithms for signing transactions inside the same Hotmoka node,
 as we will show later.
-
-## Red and Green Balances
-
-__[See project `redgreen` inside the `@tutorial_name` repository]__
-
-The `Contract` class of Takamaka has a double balance. Namely, it has
-a normal (_green_) balance and an extra, stable _red_ balance.
-That is, contracts have the ability to keep an extra red balance,
-that should be a stable coin, if the underlying blockchain supports
-that feature.
-
-For instance, the following contract allows payees to
-register by calling the `addAsPayee()` method.
-Moreover, the contract distributes green coins sent to
-the `distributeGreen()` method and red coins sent to the
-`distributeRed()` method, sending the rest to the owner of the
-contract (in general, there is a rest because of arithmetic
-approximation). Hence, the contract holds coins only temporarily.
-The `@RedPayable` annotation states that the
-`distributeRed()` method can receive red coins when called.
-Class `StorageLinkedList` holds a list of contracts and will be discussed in the
-next chapter.
-
-```java
-package io.takamaka.redgreen;
-
-import java.math.BigInteger;
-
-import io.takamaka.code.lang.Contract;
-import io.takamaka.code.lang.FromContract;
-import io.takamaka.code.lang.Payable;
-import io.takamaka.code.lang.PayableContract;
-import io.takamaka.code.lang.RedPayable;
-import io.takamaka.code.util.StorageLinkedList;
-import io.takamaka.code.util.StorageList;
-
-public class Distributor extends Contract {
-  private final StorageList<PayableContract> payees = new StorageLinkedList<>();
-  private final PayableContract owner;
-
-  public @FromContract(PayableContract.class) Distributor() {
-    owner = (PayableContract) caller();
-  }
-
-  public @FromContract(PayableContract.class) void addAsPayee() {
-    payees.add((PayableContract) caller());
-  }
-
-  public @Payable @FromContract void distributeGreen(BigInteger amount) {
-    int size = payees.size();
-    if (size > 0) {
-      BigInteger eachGets = amount.divide(BigInteger.valueOf(size));
-      payees.forEach(payee -> payee.receive(eachGets));
-      owner.receive(balance());
-    }
-  }
-
-  public @RedPayable @FromContract void distributeRed(BigInteger amount) {
-    int size = payees.size();
-    if (size > 0) {
-      BigInteger eachGets = amount.divide(BigInteger.valueOf(size));
-      payees.forEach(payee -> payee.receiveRed(eachGets));
-      owner.receiveRed(balanceRed());
-    }
-  }
-}
-```
 
 # The Support Library
 
