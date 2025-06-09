@@ -254,6 +254,48 @@ public class UpdateForNewNode {
 			report("sed -i 's/@gradual_ponzi_first/" + gradualPonziFirst + "/g' target/Tutorial.md");
 			StorageValue gradualPonziLast = output30.getFields().filter(update -> "last".equals(update.getField().getName())).map(update -> update.getValue()).findFirst().get();
 			report("sed -i 's/@gradual_ponzi_last/" + gradualPonziLast + "/g' target/Tutorial.md");
+
+			Path jar5 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-tictactoe_improved/" + takamakaVersion + "/io-takamaka-code-examples-tictactoe_improved-" + takamakaVersion + ".jar");
+			var output31 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar5 + " --password-of-payer=chocolate --dir=" + dir + " --uri=" + uri + " --json --timeout=" + TIMEOUT));
+			TransactionReference ticTacToeAddress = output31.getJar().get();
+			report("sed -i 's/@tictactoe_address/" + ticTacToeAddress + "/g' target/Tutorial.md");
+			var output32 = ObjectsCreateOutputs.from(Moka.objectsCreate(account1 + " tictactoe.TicTacToe --classpath=" + ticTacToeAddress + " --uri=" + uri + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate"));
+			report("sed -i 's/@tictactoe_creation_transaction/" + output32.getTransaction() + "/g' target/Tutorial.md");
+			StorageReference ticTacToeObject = output32.getObject().get();
+			report("sed -i 's/@tictactoe_object/" + ticTacToeObject + "/g' target/Tutorial.md");
+			var output33 = ObjectsCallOutputs.from(Moka.objectsCall(account1 + " tictactoe.TicTacToe play 100 1 1 --uri=" + uri + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate --receiver=" + ticTacToeObject));
+			report("sed -i 's/@tictactoe_play1_transaction/" + output33.getTransaction() + "/g' target/Tutorial.md");
+			var output34 = ObjectsCallOutputs.from(Moka.objectsCall(account1 + " tictactoe.TicTacToe toString --uri=" + uri + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate --receiver=" + ticTacToeObject));
+			report("sed -i 's/@tictactoe_toString1_transaction/" + output34.getTransaction() + "/g' target/Tutorial.md");
+			StorageValue toString1Result = output34.getResult().get();
+			// we replace new lines with the escape sequence \n (that must itself be escaped in Java...)
+			report("sed -i 's/@tictactoe_toString1_result/" + toString1Result.toString().trim().replace("\n", "\\n") + "/g' target/Tutorial.md");
+			var output35 = ObjectsCallOutputs.from(Moka.objectsCall(account2 + " tictactoe.TicTacToe play 100 2 1 --uri=" + uri + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=orange --receiver=" + ticTacToeObject));
+			report("sed -i 's/@tictactoe_play2_transaction/" + output35.getTransaction() + "/g' target/Tutorial.md");
+			var output36 = ObjectsCallOutputs.from(Moka.objectsCall(account2 + " tictactoe.TicTacToe toString --uri=" + uri + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate --receiver=" + ticTacToeObject));
+			report("sed -i 's/@tictactoe_toString2_transaction/" + output36.getTransaction() + "/g' target/Tutorial.md");
+			StorageValue toString2Result = output36.getResult().get();
+			report("sed -i 's/@tictactoe_toString2_result/" + toString2Result.toString().trim().replace("\n", "\\n") + "/g' target/Tutorial.md");
+			var output37 = ObjectsCallOutputs.from(Moka.objectsCall(account1 + " tictactoe.TicTacToe play 0 1 2 --uri=" + uri + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate --receiver=" + ticTacToeObject));
+			report("sed -i 's/@tictactoe_play3_transaction/" + output37.getTransaction() + "/g' target/Tutorial.md");
+			var output38 = ObjectsCallOutputs.from(Moka.objectsCall(account1 + " tictactoe.TicTacToe toString --uri=" + uri + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate --receiver=" + ticTacToeObject));
+			report("sed -i 's/@tictactoe_toString3_transaction/" + output38.getTransaction() + "/g' target/Tutorial.md");
+			StorageValue toString3Result = output38.getResult().get();
+			report("sed -i 's/@tictactoe_toString3_result/" + toString3Result.toString().trim().replace("\n", "\\n") + "/g' target/Tutorial.md");
+			var output39 = ObjectsCallOutputs.from(Moka.objectsCall(account2 + " tictactoe.TicTacToe play 0 2 2 --uri=" + uri + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=orange --receiver=" + ticTacToeObject));
+			report("sed -i 's/@tictactoe_play4_transaction/" + output39.getTransaction() + "/g' target/Tutorial.md");
+			var output40 = ObjectsCallOutputs.from(Moka.objectsCall(account2 + " tictactoe.TicTacToe toString --uri=" + uri + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate --receiver=" + ticTacToeObject));
+			report("sed -i 's/@tictactoe_toString4_transaction/" + output40.getTransaction() + "/g' target/Tutorial.md");
+			StorageValue toString4Result = output40.getResult().get();
+			report("sed -i 's/@tictactoe_toString4_result/" + toString4Result.toString().trim().replace("\n", "\\n") + "/g' target/Tutorial.md");
+			var output41 = ObjectsCallOutputs.from(Moka.objectsCall(account1 + " tictactoe.TicTacToe play 0 1 3 --uri=" + uri + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate --receiver=" + ticTacToeObject));
+			report("sed -i 's/@tictactoe_play5_transaction/" + output41.getTransaction() + "/g' target/Tutorial.md");
+			var output42 = ObjectsCallOutputs.from(Moka.objectsCall(account1 + " tictactoe.TicTacToe toString --uri=" + uri + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate --receiver=" + ticTacToeObject));
+			report("sed -i 's/@tictactoe_toString5_transaction/" + output42.getTransaction() + "/g' target/Tutorial.md");
+			StorageValue toString5Result = output42.getResult().get();
+			report("sed -i 's/@tictactoe_toString5_result/" + toString5Result.toString().trim().replace("\n", "\\n") + "/g' target/Tutorial.md");
+			var output43 = ObjectsCallOutputs.from(Moka.objectsCall(account2 + " tictactoe.TicTacToe play 0 2 3 --uri=" + uri + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=orange --receiver=" + ticTacToeObject));
+			report("sed -i 's/@tictactoe_play6_transaction/" + output43.getTransaction() + "/g' target/Tutorial.md");
 		}
 
 		private void report(String line) {

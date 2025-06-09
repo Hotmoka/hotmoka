@@ -3462,7 +3462,7 @@ for translating the conceptual representation into the internal one.
 
 [PDFonly]: ![Figure @fig:tictactoe_linear. A linear representation of the game.](pics/tictactoe_grid_linear.png "Figure @fig:tictactoe_linear. A linear representation of the game."){ width=30% }
 
-Create hence in Eclipse a new Maven Java 11 (or later) project named `tictactoe`.
+Create hence in Eclipse a new Maven Java 17 (or later) project named `io-takamaka-code-examples-tictactoe`.
 You can do this by duplicating the project `family` (make sure to store
 the project inside the `@tutorial_name` directory, as a sibling of `family`, `ponzi` and
 `runs`). Use the following `pom.xml`:
@@ -3474,13 +3474,13 @@ the project inside the `@tutorial_name` directory, as a sibling of `family`, `po
     http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
-  <groupId>io.hotmoka.tutorial</groupId>
-  <artifactId>family</artifactId>
-  <version>0.0.1</version>
+  <groupId>io.hotmoka</groupId>
+  <artifactId>io-takamaka-code-examples-tictactoe</artifactId>
+  <version>@takamaka-version</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.release>11</maven.compiler.release>
+    <maven.compiler.release>17</maven.compiler.release>
   </properties>
 
   <dependencies>
@@ -3512,29 +3512,30 @@ module tictactoe {
 }
 ```
 
-Create package `io.takamaka.tictactoe` inside `src/main/java` and add
+Create package `tictactoe` inside `src/main/java` and add
 the following `TicTacToe.java` source inside that package:
 
 ```java
-package io.takamaka.tictactoe;
+package tictactoe;
 
 import static io.takamaka.code.lang.Takamaka.require;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.IntStream.rangeClosed;
 
 import java.math.BigInteger;
 
 import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
+import io.takamaka.code.lang.StringSupport;
 import io.takamaka.code.lang.View;
-import io.takamaka.code.util.StorageArray;
+import io.takamaka.code.math.BigIntegerSupport;
 import io.takamaka.code.util.StorageTreeArray;
 
 public class TicTacToe extends Contract {
 
+  @Exported
   public class Tile extends Storage {
     private final char c;
 
@@ -3556,14 +3557,14 @@ public class TicTacToe extends Contract {
   private final Tile CROSS = new Tile('X');
   private final Tile CIRCLE = new Tile('O');
 
-  private final StorageArray<Tile> board = new StorageTreeArray<>(9, EMPTY);
-  private PayableContract crossPlayer, circlePlayer;
+  private final StorageTreeArray<Tile> board = new StorageTreeArray<>(9, EMPTY);
+  private PayableContract crossPlayer;
+  private PayableContract circlePlayer;
   private Tile turn = CROSS; // cross plays first
   private boolean gameOver;
 
   public @View Tile at(int x, int y) {
-    require(1 <= x && x <= 3 && 1 <= y && y <= 3,
-      "coordinates must be between 1 and 3");
+    require(1 <= x && x <= 3 && 1 <= y && y <= 3, "coordinates must be between 1 and 3");
     return board.get((y - 1) * 3 + x - 1);
   }
 
@@ -3571,15 +3572,12 @@ public class TicTacToe extends Contract {
     board.set((y - 1) * 3 + x - 1, tile);
   }
 
-  public @Payable @FromContract(PayableContract.class)
-      void play(long amount, int x, int y) {
-
+  public @Payable @FromContract(PayableContract.class) void play(long amount, int x, int y) {
     require(!gameOver, "the game is over");
-    require(1 <= x && x <= 3 && 1 <= y && y <= 3,
-      "coordinates must be between 1 and 3");
+    require(1 <= x && x <= 3 && 1 <= y && y <= 3, "coordinates must be between 1 and 3");
     require(at(x, y) == EMPTY, "the selected tile is not empty");
 
-    var player = (PayableContract) caller();
+    PayableContract player = (PayableContract) caller();
 
     if (turn == CROSS)
       if (crossPlayer == null)
@@ -3589,9 +3587,10 @@ public class TicTacToe extends Contract {
     else
       if (circlePlayer == null) {
         require(crossPlayer != player, "you cannot play against yourself");
-        long previousBet = balance().subtract(BigInteger.valueOf(amount)).longValue();
+        long previousBet = BigIntegerSupport.subtract
+          (balance(), BigInteger.valueOf(amount)).longValue();
         require(amount >= previousBet,
-          () -> "you must bet at least " + previousBet + " coins");
+          () -> StringSupport.concat("you must bet at least ", previousBet, " coins"));
         circlePlayer = player;
       }
       else
@@ -3605,20 +3604,26 @@ public class TicTacToe extends Contract {
   }
 
   private boolean isGameOver(int x, int y) {
-    return gameOver =
-      rangeClosed(1, 3).allMatch(_y -> at(x, _y) == turn) || // column x
-      rangeClosed(1, 3).allMatch(_x -> at(_x, y) == turn) || // row y
-      (x == y && rangeClosed(1, 3).allMatch(_x -> at(_x, _x) == turn)) || // 1st diagonal
-      (x + y == 4 && rangeClosed(1, 3).allMatch(_x -> at(_x, 4 - _x) == turn)); // 2nd
+    if (at(x, 1) == turn && at(x, 2) == turn && at(x, 3) == turn) // column x
+      return gameOver = true;
+
+    if (at(1, y) == turn && at(2, y) == turn && at(3, y) == turn) // row y
+      return gameOver = true;
+
+    if (x == y && at(1, 1) == turn && at (2, 2) == turn && at(3, 3) == turn) // first diagonal
+      return gameOver = true;
+
+    if (x + y == 4 && at(1, 3) == turn && at(2, 2) == turn && at(3, 1) == turn) // second diagonal
+      return gameOver = true;
+
+    return gameOver = false;
   }
 
   @Override
   public @View String toString() {
-    return rangeClosed(1, 3)
-      .mapToObj(y -> rangeClosed(1, 3)
-                     .mapToObj(x -> at(x, y).toString())
-                     .collect(joining("|")))
-      .collect(joining("\n-----\n"));
+    return StringSupport.concat(at(1, 1), "|", at(2, 1), "|", at(3, 1),
+      "\n-----\n", at(1, 2), "|", at(2, 2), "|", at(3, 2),
+      "\n-----\n", at(1, 3), "|", at(2, 3), "|", at(3, 3));
   }
 }
 ```
@@ -3633,13 +3638,7 @@ The board of the game is represented as a `new StorageTreeArray<>(9, EMPTY)`, wh
 elements are indexed from 0 to 8 (inclusive) and are initialized to `EMPTY`.
 It is also possible to construct the array as `new StorageTreeArray<>(9)`, but then
 its elements would hold the default value `null` and the array would need to be initialized
-inside a constructor for `TicTacToe`:
-
-```java
-public TicTacToe() {
-  rangeClosed(0, 8).forEachOrdered(index -> board.set(index, EMPTY));
-}
-```
+inside a constructor for `TicTacToe`.
 
 Methods `at()` and `set()` read and set the board element
 at indexes (x,y), respectively. They transform the two-dimensional conceptual representation
@@ -3665,7 +3664,8 @@ Note the extensive use of `require()` to check all error situations:
 5. It is not allowed to play against oneself.
 
 The `play()` method ends with a call to `gameOver()` that checks
-if the game is over. In that case, the winner receives the full
+if the game is over, that is, if the current player won.
+In that case, the winner receives the full
 jackpot. Note that the `gameOver()` method receives the coordinates
 where the current player has moved. This allows it to restrict the
 check for game over: the game is over only if the row or column
@@ -3684,30 +3684,9 @@ X|O|
  |X| 
 ```
 
-For those who do not appreciate Java 8 streams, the same result can be obtained with
-a more traditional (and gas-hungrier) code:
-
-```java
-@Override
-public @View String toString() {
-  String result = "";
-  for (int y = 0; y < 3; y++) {
-    for (int x = 0; x < 3; x++) {
-      result += at(x, y);
-      if (x < 2)
-        result += "|";
-    }
-    if (y < 2)
-      result += "\n-----\n"
-  }
-
-  return result;
-}
-```
-
 ### A More Realistic Tic-Tac-Toe Contract
 
-__[See project `tictactoe_improved` inside the `@tutorial_name` repository]__
+__[See `io-takamaka-code-examples-tictactoe_improved` in `@takamaka_repo`]__
 
 The `TicTacToe.java` code implements the rules of a tic-tac-toe game, but has
 a couple of drawbacks that make it still incomplete. Namely:
@@ -3730,25 +3709,26 @@ Note that we added a `@FromContract` constructor, that takes
 note of the `creator` of the game:
 
 ```java
-package io.takamaka.tictactoe;
+package tictactoe;
 
 import static io.takamaka.code.lang.Takamaka.require;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.IntStream.rangeClosed;
 
 import java.math.BigInteger;
 
 import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
+import io.takamaka.code.lang.StringSupport;
 import io.takamaka.code.lang.View;
-import io.takamaka.code.util.StorageArray;
+import io.takamaka.code.math.BigIntegerSupport;
 import io.takamaka.code.util.StorageTreeArray;
 
 public class TicTacToe extends Contract {
 
+  @Exported
   public class Tile extends Storage {
     private final char c;
 
@@ -3770,11 +3750,12 @@ public class TicTacToe extends Contract {
   private final Tile CROSS = new Tile('X');
   private final Tile CIRCLE = new Tile('O');
 
-  private final static long MINIMUM_BET = 100L;
+  private static final long MINIMUM_BET = 100L;
 
-  private final StorageArray<Tile> board = new StorageTreeArray<>(9, EMPTY);
+  private final StorageTreeArray<Tile> board = new StorageTreeArray<>(9, EMPTY);
   private final PayableContract creator;
-  private PayableContract crossPlayer, circlePlayer;
+  private PayableContract crossPlayer;
+  private PayableContract circlePlayer;
   private Tile turn = CROSS; // cross plays first
   private boolean gameOver;
 
@@ -3783,8 +3764,7 @@ public class TicTacToe extends Contract {
   }
 
   public @View Tile at(int x, int y) {
-    require(1 <= x && x <= 3 && 1 <= y && y <= 3,
-      "coordinates must be between 1 and 3");
+    require(1 <= x && x <= 3 && 1 <= y && y <= 3, "coordinates must be between 1 and 3");
     return board.get((y - 1) * 3 + x - 1);
   }
 
@@ -3792,41 +3772,38 @@ public class TicTacToe extends Contract {
     board.set((y - 1) * 3 + x - 1, tile);
   }
 
-  public @Payable @FromContract(PayableContract.class)
-      void play(long amount, int x, int y) {
-
+  public @Payable @FromContract(PayableContract.class) void play(long amount, int x, int y) {
     require(!gameOver, "the game is over");
-    require(1 <= x && x <= 3 && 1 <= y && y <= 3,
-      "coordinates must be between 1 and 3");
+    require(1 <= x && x <= 3 && 1 <= y && y <= 3, "coordinates must be between 1 and 3");
     require(at(x, y) == EMPTY, "the selected tile is not empty");
 
-    var player = (PayableContract) caller();
+    PayableContract player = (PayableContract) caller();
 
     if (turn == CROSS)
       if (crossPlayer == null) {
-        require(amount >= MINIMUM_BET,
-          () -> "you must bet at least " + MINIMUM_BET + " coins");
-        crossPlayer = player;
+        require(amount >= MINIMUM_BET, () -> "you must invest at least " + MINIMUM_BET + " coins");
+         crossPlayer = player;
       }
       else
         require(player == crossPlayer, "it's not your turn");
     else
       if (circlePlayer == null) {
         require(crossPlayer != player, "you cannot play against yourself");
-        long previousBet = balance().subtract(BigInteger.valueOf(amount)).longValue();
+        long previousBet = BigIntegerSupport.subtract
+          (balance(), BigInteger.valueOf(amount)).longValue();
         require(amount >= previousBet,
-          () -> "you must bet at least " + previousBet + " coins");
+          () -> StringSupport.concat("you must bet at least ", previousBet, " coins"));
         circlePlayer = player;
-    }
-    else
-      require(player == circlePlayer, "it's not your turn");
+      }
+      else
+        require(player == circlePlayer, "it's not your turn");
 
     set(x, y, turn);
     if (isGameOver(x, y)) {
       // 90% goes to the winner
-      player.receive(balance().multiply(BigInteger.valueOf(9L))
-                              .divide(BigInteger.valueOf(10L)));
-      // the rest goes to the creator of the game
+      player.receive(BigIntegerSupport.divide
+        (BigIntegerSupport.multiply(balance(), BigInteger.valueOf(9L)), BigInteger.valueOf(10L)));
+      // the rest to the creator of the game
       creator.receive(balance());
     }
     else if (isDraw())
@@ -3837,24 +3814,34 @@ public class TicTacToe extends Contract {
   }
 
   private boolean isGameOver(int x, int y) {
-    return gameOver =
-      rangeClosed(1, 3).allMatch(_y -> at(x, _y) == turn) || // column x
-      rangeClosed(1, 3).allMatch(_x -> at(_x, y) == turn) || // row y
-      (x == y && rangeClosed(1, 3).allMatch(_x -> at(_x, _x) == turn)) || // 1st diagonal
-      (x + y == 4 && rangeClosed(1, 3).allMatch(_x -> at(_x, 4 - _x) == turn)); // 2nd
+    if (at(x, 1) == turn && at(x, 2) == turn && at(x, 3) == turn) // column x
+      return gameOver = true;
+
+    if (at(1, y) == turn && at(2, y) == turn && at(3, y) == turn) // row y
+      return gameOver = true;
+
+    if (x == y && at(1, 1) == turn && at (2, 2) == turn && at(3, 3) == turn) // first diagonal
+      return gameOver = true;
+
+    if (x + y == 4 && at(1, 3) == turn && at(2, 2) == turn && at(3, 1) == turn) // second diagonal
+      return gameOver = true;
+
+    return gameOver = false;
   }
 
   private boolean isDraw() {
-    return rangeClosed(0, 8).mapToObj(board::get).noneMatch(EMPTY::equals);
+    for (var tile: board)
+      if (tile == EMPTY)
+        return false;
+
+    return true;
   }
 
   @Override
   public @View String toString() {
-    return rangeClosed(1, 3)
-      .mapToObj(y -> rangeClosed(1, 3)
-                     .mapToObj(x -> at(x, y).toString())
-                     .collect(joining("|")))
-      .collect(joining("\n-----\n"));
+    return StringSupport.concat(at(1, 1), "|", at(2, 1), "|", at(3, 1),
+      "\n-----\n", at(1, 2), "|", at(2, 2), "|", at(3, 2),
+      "\n-----\n", at(1, 3), "|", at(2, 3), "|", at(3, 3));
   }
 }
 ```
@@ -3863,17 +3850,17 @@ public class TicTacToe extends Contract {
 > it is unlikely that users will want to invest huge quantities of money in this
 > game. This gives us the opportunity to discuss why the computation of the
 > previous bet has been written as
-> `long previousBet = balance().subtract(BigInteger.valueOf(amount)).longValue()`
+> `long previousBet = BigIntegerSupport.subtract(balance(), BigInteger.valueOf(amount)).longValue()`
 > instead of the simpler
 > `long previousBet = balance().longValue() - amount`.
-> The reason is that, when that line is executed, both players have aleady paid
+> The reason is that, when that line is executed, both players have already paid
 > their bet, that accumulates in the balance of the `TicTacToe` contract.
 > Each single bet is a `long`, but their sum could overflow the size of a `long`.
 > Hence, we have to deal with a computation on `BigInteger`. The same situation
 > occurs later, when we have to compute the 90% that goes to the winner:
 > the jackpot might be larger than a `long` and we have to compute over
 > `BigInteger`. As a final remark, note that in the line:
-> `balance().multiply(BigInteger.valueOf(9L)).divide(BigInteger.valueOf(10L))`
+> `BigIntegerSupport.divide(BigIntegerSupport.multiply(balance(), BigInteger.valueOf(9L)), BigInteger.valueOf(10L))`
 > we first multiply by 9 and **then** divide by 10. This reduces the
 > approximation inherent to integer division. For instance, if the jackpot
 > (`balance()`) were 209, we have (with Java's left-to-right evaluation)
@@ -3887,38 +3874,57 @@ public class TicTacToe extends Contract {
 
 ### Running the Tic-Tac-Toe Contract
 
-Let us play with the `TicTacToe` contract. Go inside the `tictactoe` project
-and run the `mvn package` command. A file
-`tictactoe-0.0.1.jar` should appear inside `target`.
-Let us start by installing that jar in the node:
+Let us play with the `TicTacToe` contract. Go inside the `io-takamaka-code-examples-tictactoe` project,
+compile it with Maven and store it in the Hotmoka node:
 
 ```shell
-$ moka install tictactoe/target/tictactoe-0.0.1.jar
-    --payer @account1
-    --uri @server
+$ cd @tutorial_name/io-takamaka-code-examples-tictactoe   # if not already there
+$ mvn install
+$ cd ..
+$ moka jars install @account1
+    io-takamaka-code-examples-tictactoe/target/io-takamaka-code-examples-tictactoe-@takamaka_version.jar
+    --password-of-payer
+    --uri @server_mokamint
 
-Please specify the password of the payer account: chocolate
-Do you really want to spend up to 870600 gas units to install the jar [Y/N] Y
+Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
+Do you really want to install the jar spending up to 1268400 gas units
+  at the price of 1 pana per unit (that is, up to 1268400 panas) [Y/N] Y
+Adding transaction @tictactoe_address... done.
+The jar has been installed at @tictactoe_address.
 
-tictactoe/target/tictactoe-0.0.1.jar has been installed
-at @tictactoe_address
+Gas consumption:
+ * total: 15815
+   * for CPU: 1652
+   * for RAM: 3446
+   * for storage: 10717
+   * for penalty: 0
+ * price per unit: 1 pana
+ * total price: 15815 panas
 ```
 
 Then we create an instance of the contract in the node:
 
 ```shell
-$ moka create
-    io.takamaka.tictactoe.TicTacToe
-    --payer @account1
-    --classpath @tictactoe_address
-    --uri @server
+$ moka objects create @account1
+    tictactoe.TicTacToe
+    --classpath=@tictactoe_address
+    --password-of-payer
+    --uri @server_mokamint
 
-Please specify the password of the payer account: chocolate
-Do you really want to spend up to 500000 gas units to call
-@FromContract(PayableContract.class) public TicTacToe() ? [Y/N] Y
+Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
+Do you really want to call constructor public tictactoe.TicTacToe()
+  spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
+Adding transaction @tictactoe_creation_transaction... done.
+A new object @tictactoe_object has been created.
 
-The new object has been allocated at
-@tictactoe_object
+Gas consumption:
+ * total: 24320
+   * for CPU: 9249
+   * for RAM: 14173
+   * for storage: 898
+   * for penalty: 0
+ * price per unit: 1 pana
+ * total price: 24320 panas
 ```
 
 We use two of our accounts now, that we have already created in the previous section,
@@ -3928,145 +3934,187 @@ We will print the `toString` of the contract after each move.
 The first player starts, by playing at (1,1), and bets 100:
 
 ```shell
-$ moka call
-    @tictactoe_object
-    play 100 1 1
-    --payer @account1
-    --uri @server
+$ moka objects call @account1
+    tictactoe.TicTacToe play 100 1 1
+    --password-of-payer
+    --uri @server_mokamint
+    --receiver=@tictactoe_object
 
-$ moka call
-    @tictactoe_object
-    toString
-    --payer @account1
-    --uri @server
+Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate 
+Do you really want to call method public void tictactoe.TicTacToe.play(long,int,int)
+  spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
+Adding transaction @tictactoe_play1_transaction... done.
 
-X| | 
------
- | | 
------
- | | 
+Gas consumption:
+ * total: 9918
+   * for CPU: 3890
+   * for RAM: 5405
+   * for storage: 623
+   * for penalty: 0
+ * price per unit: 1 pana
+ * total price: 9918 panas
+
+$ moka objects call @account1
+    tictactoe.TicTacToe toString
+    --uri @server_mokamint
+    --receiver=@tictactoe_object
+
+Running transaction @tictactoe_toString1_transaction... done.
+The method returned:
+@tictactoe_toString1_result
 ```
 
-The second player plays after, at (2,1), betting 100:
+Note that the call to `toString()` does not require to provide the password of the key pair of the caller account,
+since that method is a `@View` method, hence `moka` runs a transaction to call it, rather than adding a transaction.
+
+The second player plays now, at (2,1), betting 100:
 
 ```shell
-$ moka call
-    @tictactoe_object
-    play 100 2 1
-    --payer @account2
-    --uri @server
+$ moka objects call @account2
+    tictactoe.TicTacToe play 100 2 1
+    --password-of-payer
+    --uri @server_mokamint
+    --receiver=@tictactoe_object
 
-$ moka call
-    @tictactoe_object
-    toString
-    --payer @account2
-    --uri @server
+Enter value for --password-of-payer (the password of the key pair of the payer account): orange
+Do you really want to call method public void tictactoe.TicTacToe.play(long,int,int)
+  spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
+Adding transaction @tictactoe_play2_transaction... done.
+...
 
-X|O| 
------
- | | 
------
- | | 
+$ moka objects call @account2
+    tictactoe.TicTacToe toString
+    --uri @server_mokamint
+    --receiver=@tictactoe_object
 
+Running transaction @tictactoe_toString2_transaction... done.
+The method returned:
+@tictactoe_toString2_result
 ```
 
 The first player replies, playing at (1,2):
 
 ```shell
-$ moka call
-    @tictactoe_object
-    play 0 1 2
-    --payer @account1
-    --uri @server
+$ moka objects call @account1
+    tictactoe.TicTacToe play 0 1 2
+    --password-of-payer
+    --uri @server_mokamint
+    --receiver=@tictactoe_object
 
-$ moka call
-    @tictactoe_object
-    toString
-    --payer @account1
-    --uri @server
+Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
+Do you really want to call method public void tictactoe.TicTacToe.play(long,int,int)
+  spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
+Adding transaction @tictactoe_play3_transaction... done.
+...
 
-X|O| 
------
-X| | 
------
- | | 
+$ moka objects call @account1
+    tictactoe.TicTacToe toString
+    --uri @server_mokamint
+    --receiver=@tictactoe_object
+
+Running transaction @tictactoe_toString3_transaction... done.
+The method returned:
+@tictactoe_toString3_result
 ```
 
 Then the second player plays at (2,2):
 
 ```shell
-$ moka call
-    @tictactoe_object
-    play 0 2 2
-    --payer @account2
-    --uri @server
+$ moka objects call @account2
+    tictactoe.TicTacToe play 100 2 2
+    --password-of-payer
+    --uri @server_mokamint
+    --receiver=@tictactoe_object
 
-$ moka call
-    @tictactoe_object
-    toString
-    --payer @account2
-    --uri @server
+Enter value for --password-of-payer (the password of the key pair of the payer account): orange
+Do you really want to call method public void tictactoe.TicTacToe.play(long,int,int)
+  spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
+Adding transaction @tictactoe_play4_transaction... done.
+...
 
-X|O| 
------
-X|O| 
------
- | | 
+$ moka objects call @account2
+    tictactoe.TicTacToe toString
+    --uri @server_mokamint
+    --receiver=@tictactoe_object
+
+Running transaction @tictactoe_toString4_transaction... done.
+The method returned:
+@tictactoe_toString4_result
 ```
 
 The first player wins by playing at (1,3):
 
 ```shell
-$ moka call
-    @tictactoe_object
-    play 0 1 3
-    --payer @account1
-    --uri @server
+$ moka objects call @account1
+    tictactoe.TicTacToe play 0 1 3
+    --password-of-payer
+    --uri @server_mokamint
+    --receiver=@tictactoe_object
 
-$ moka call
-    @tictactoe_object
-    toString
-    --payer @account1
-    --uri @server
+Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
+Do you really want to call method public void tictactoe.TicTacToe.play(long,int,int)
+  spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
+Adding transaction @tictactoe_play5_transaction... done.
+...
 
-X|O| 
------
-X|O| 
------
-X| | 
+$ moka objects call @account1
+    tictactoe.TicTacToe toString
+    --uri @server_mokamint
+    --receiver=@tictactoe_object
+
+Running transaction @tictactoe_toString5_transaction... done.
+The method returned:
+@tictactoe_toString5_result
 ```
 We can verify that the game is over now:
 ```shell
-$ moka state @tictactoe_object
-    --uri @server
+$ moka objects show @tictactoe_object
+    --uri @server_mokamint
 
-This is the state of object
-@tictactoe_object
-@@server
-
-class io.takamaka.tictactoe.TicTacToe (from jar installed at
+class tictactoe.TicTacToe (from jar installed at
     @tictactoe_address)
-
-  ...
+  CIRCLE:tictactoe.TicTacToe$Tile = ...
+  CROSS:tictactoe.TicTacToe$Tile = ...
+  EMPTY:tictactoe.TicTacToe$Tile = ...
+  board:io.takamaka.code.util.StorageTreeArray = ...
+  circlePlayer:io.takamaka.code.lang.PayableContract
+    = @account2
+  crossPlayer:io.takamaka.code.lang.PayableContract
+    = @account1
+  creator:io.takamaka.code.lang.PayableContract
+    = @account1
   gameOver:boolean = true
-  balance:java.math.BigInteger = 0 (inherited from io.takamaka.code.lang.Contract)
-  ...
+  turn:tictactoe.TicTacToe$Tile = ...
+  io.takamaka.code.lang.Contract.balance:java.math.BigInteger = 0
 ```
 As you can see, the balance of the contract is zero since it has been distributed to
-the winner and to the creator of the game (that actually coincide, in this specific run).
+the winner and to the creator of the game (that actually coincide to our first account,
+in this specific run).
 
 If the second player attempts to play now, the transaction will be rejected, since the game is over:
 
 ```shell
-$ moka call
-    @tictactoe_object
-    play 0 2 3
-    --payer @account2
-    --uri @server
+$ moka objects call @account2
+    tictactoe.TicTacToe play 0 2 3
+    --password-of-payer
+    --uri @server_mokamint
+    --receiver=@tictactoe_object
 
-io.hotmoka.node.api.TransactionException:
-io.takamaka.code.lang.RequirementViolationException:
-the game is over@TicTacToe.java:79
+Enter value for --password-of-payer (the password of the key pair of the payer account): orange
+Do you really want to call method public void tictactoe.TicTacToe.play(long,int,int)
+  spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
+Adding transaction @tictactoe_play6_transaction... failed.
+The transaction failed with message io.takamaka.code.lang.RequirementViolationException:
+  the game is over@TicTacToe.java:84
+
+Gas consumption:
+ * total: 200000
+   * for CPU: 1991
+   * for RAM: 3597
+   * for storage: 230
+   * for penalty: 194182
+ * price per unit: 1 pana
+ * total price: 200000 panas
 ```
 
 ### Specialized Storage Array Classes
@@ -4119,7 +4167,7 @@ However, most such uses are related to the withdrawal pattern, that is
 not needed in Takamaka. Nevertheless, there are still situations when
 maps are useful in Takamaka code, as we show below.
 
-Java has many implementations of maps, that can be used in Takamaka.
+Java has many implementations of maps.
 However, they are not storage objects and consequently cannot be
 stored in a Hotmoka node. This section describes the
 `io.takamaka.code.util.StorageTreeMap<K,V>` class, that extends `Storage` and
@@ -4142,13 +4190,10 @@ returned value, as in Java maps. Please refer to their JavaDoc).
 Instances of `StorageTreeMap<K,V>` keep keys in increasing order. Namely, if
 type `K` has a natural order, that order is used. Otherwise, keys
 (that must be storage objects) are kept ordered by increasing storage
-reference. Consequently, methods `K min()` and `K max()` yield the
-minimal and the maximal key of a map. Method `List<K> keyList()` yields the
-ordered list of the keys of a map; method `Stream<K> keys()` yields the
-same, as an ordered stream; method `Stream<Entry<K,V>> stream()` yields the
-ordered stream of the entries (ie., key/value pairs) of a map;
-method `Stream<V> values()` yields the ordered stream of the values bound
-to the keys of the map.
+reference. Consequently, methods `forEach(Consumer<? super Entry<K,V>> action)`,
+`forEachKey(Consumer<? super K> action)` and
+`forEachValue(Consumer<? super V> action)`
+perform an internal iteration of the elements of the map, in order.
 
 > Compare this with Solidity, where maps do not know the set of their keys nor the
 > set of their values.
@@ -4169,7 +4214,7 @@ whose keys are `int` values. We refer to their JavaDoc for further information.
 
 ### A Blind Auction Contract
 
-__[See project `auction` inside the `@tutorial_name` repository]__
+__[See `io-takamaka-code-examples-auction` in `@takamaka_repo`]__
 
 This section exemplifies the use of class `StorageTreeMap` for writing a smart
 contract that implements a _blind auction_. That contract allows

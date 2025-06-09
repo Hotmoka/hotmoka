@@ -6,8 +6,6 @@ sed -i 's/@account6/b65e5976862d6786ba9a6d2cd62b332bfa7f8859e2c8b9be3bbbe5cd64af
 sed -i 's/@account7/b37b9c040474fc800079230bc51409201f12f82e220b99e7b6468c5f62591ea8#0/g' target/Tutorial.md
 sed -i 's/@publickeyaccount4/N7hQ0gpmpV46JJlQ+7zEy7r2OTn\/jErqxV9g3+tg2\/o=/g' target/Tutorial.md
 sed -i 's/@short_publickeyaccount5/MIIDRjCCAjkGByqGSM44BAEwggIsAo.../g' target/Tutorial.md
-sed -i 's/@tictactoe_address/85a234ecc737d83f33659bc94e916e8248274f19dfc6b5f0a29dbce7f1f947ed/g' target/Tutorial.md
-sed -i 's/@tictactoe_object/a2bf8656d4979b0f18197f28c2aab4e7dbf58a01cf9d3ed8acf3af496e4bf99b#0/g' target/Tutorial.md
 sed -i 's/@erc20_address/3b8157f04217918a76b48fc0f4388b4bece80ad0e542c42722a887d648cd314d/g' target/Tutorial.md
 sed -i 's/@erc20_object/2daa4ce2dbd152bcb4917fdd1574173373c77b306bcd754309da38a138ebed17#0/g' target/Tutorial.md
 sed -i 's/@new_docker_key/AsqsX1tBMriz18xvoxvc64K4HAvxgFmwWryKcMeR64oc/g' target/Tutorial.md

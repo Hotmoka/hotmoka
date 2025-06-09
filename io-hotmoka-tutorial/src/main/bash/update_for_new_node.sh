@@ -150,42 +150,6 @@ docker stop $CONTAINER_ID3 >/dev/null
 
 java --module-path modules/explicit_or_automatic --class-path modules/unnamed --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module io.hotmoka.tutorial/io.hotmoka.tutorial.UpdateForNewNode $NETWORK_URI
 
-message "Packaging the \"tictactoe_improved\" example from the tutorial"
-mvn -q -f ../../hotmoka_tutorial/tictactoe_improved/pom.xml clean package 2>/dev/null
-
-message "Installing \"tictactoe_improved-0.0.1.jar\""
-TICTACTOE_INSTALLATION=$(moka install ../../hotmoka_tutorial/tictactoe_improved/target/tictactoe_improved-0.0.1.jar --payer=$ACCOUNT1 --uri=$NETWORK_URI --password-of-payer=chocolate --interactive=false)
-LINE1=$(echo "$TICTACTOE_INSTALLATION"| sed '1!d')
-TICTACTOE_ADDRESS=${LINE1: -64}
-echo "  tictactoe_improved-0.0.1.jar address = $TICTACTOE_ADDRESS"
-sed -i "/@tictactoe_address/s/\/.*\//\/@tictactoe_address\/$TICTACTOE_ADDRESS\//" $SCRIPT
-
-message "Creating an instance of class \"TicTacToe\""
-RUN=$(moka create io.takamaka.tictactoe.TicTacToe --payer=$ACCOUNT1 --classpath $TICTACTOE_ADDRESS --uri=$NETWORK_URI --password-of-payer=chocolate --interactive=false)
-LINE1=$(echo "$RUN"| sed '1!d')
-TICTACTOE_OBJECT=${LINE1: -66}
-echo "  TicTacToe instance address = $TICTACTOE_OBJECT"
-sed -i "/@tictactoe_object/s/\/.*\//\/@tictactoe_object\/$TICTACTOE_OBJECT\//" $SCRIPT
-
-message "Account 1 and account 2 play tic-tac-toe"
-moka call $TICTACTOE_OBJECT play 100 1 1 --payer $ACCOUNT1 --uri=$NETWORK_URI --password-of-payer=chocolate --interactive=false >/dev/null
-moka call $TICTACTOE_OBJECT toString --payer $ACCOUNT1 --uri=$NETWORK_URI --print-costs=false
-echo
-moka call $TICTACTOE_OBJECT play 100 2 1 --payer $ACCOUNT2 --uri=$NETWORK_URI --password-of-payer=orange --interactive=false >/dev/null
-moka call $TICTACTOE_OBJECT toString --payer $ACCOUNT2 --uri=$NETWORK_URI --print-costs=false
-echo
-moka call $TICTACTOE_OBJECT play 0 1 2 --payer $ACCOUNT1 --uri=$NETWORK_URI --password-of-payer=chocolate --interactive=false >/dev/null
-moka call $TICTACTOE_OBJECT toString --payer $ACCOUNT1 --uri=$NETWORK_URI --print-costs=false
-echo
-moka call $TICTACTOE_OBJECT play 0 2 2 --payer $ACCOUNT2 --uri=$NETWORK_URI --password-of-payer=orange --interactive=false >/dev/null
-moka call $TICTACTOE_OBJECT toString --payer $ACCOUNT2 --uri=$NETWORK_URI --print-costs=false
-echo
-moka call $TICTACTOE_OBJECT play 0 1 3 --payer $ACCOUNT1 --uri=$NETWORK_URI --password-of-payer=chocolate --interactive=false >/dev/null
-moka call $TICTACTOE_OBJECT toString --payer $ACCOUNT1 --uri=$NETWORK_URI --print-costs=false
-
-message "Account 2 plays tic-tac-toe but it's over (will fail)"
-moka call $TICTACTOE_OBJECT play 0 2 3 --payer $ACCOUNT2 --uri=$NETWORK_URI --password-of-payer=orange --interactive=false >/dev/null
-
 message "Creating account 4"
 ACCOUNT4_CREATION=$(moka create-account 1000000000000 --payer faucet --uri=$NETWORK_URI --password-of-new-account=game --interactive=false)
 LINE2=$(echo "$ACCOUNT4_CREATION"| sed '2!d')
