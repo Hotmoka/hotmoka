@@ -4234,10 +4234,9 @@ checks if the result matches the hash provided at bidding time.
 If not, the bid is considered invalid. Bidders can even place fake offers
 on purpose, in order to confuse other bidders.
 
-Create in Eclipse a new Maven Java 11 (or later) project named `auction`.
-You can do this by duplicating the project `family` (make sure to store
-the project inside the `@tutorial_name` directory, as a sibling of `family`, `ponzi`, `tictactoe` and
-`runs`). Use the following `pom.xml`:
+Create in Eclipse a new Maven Java 17 (or later) project named `io-takamaka-code-examples-auction`.
+You can do this by duplicating the project `io-takamaka-code-examples-family`.
+Use the following `pom.xml`:
 
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -4246,13 +4245,13 @@ the project inside the `@tutorial_name` directory, as a sibling of `family`, `po
                         http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
-  <groupId>io.hotmoka.tutorial</groupId>
-  <artifactId>family</artifactId>
-  <version>0.0.1</version>
+  <groupId>io.hotmoka</groupId>
+  <artifactId>io-takamaka-code-examples-auction</artifactId>
+  <version>@takamaka_version</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.release>11</maven.compiler.release>
+    <maven.compiler.release>17</maven.compiler.release>
   </properties>
 
   <dependencies>
@@ -4284,7 +4283,7 @@ module auction {
 }
 ```
 
-Create package `io.takamaka.auction` inside `src/main/java` and add
+Create package `auction` inside `src/main/java` and add
 the following `BlindAuction.java` inside that package.
 It is a Takamaka contract that implements
 a blind auction. Since each bidder may place more bids and since such bids
@@ -4295,16 +4294,14 @@ Please note that this code will not compile yet, since it misses two classes
 that we will define in the next section.
 
 ```java
-package io.takamaka.auction;
+package auction;
 
 import static io.takamaka.code.lang.Takamaka.event;
 import static io.takamaka.code.lang.Takamaka.now;
 import static io.takamaka.code.lang.Takamaka.require;
 
 import java.math.BigInteger;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.function.Supplier;
 
 import io.takamaka.code.lang.Contract;
@@ -4313,16 +4310,27 @@ import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
+import io.takamaka.code.lang.StringSupport;
+import io.takamaka.code.math.BigIntegerSupport;
+import io.takamaka.code.security.SHA256Digest;
 import io.takamaka.code.util.Bytes32Snapshot;
 import io.takamaka.code.util.StorageLinkedList;
 import io.takamaka.code.util.StorageList;
 import io.takamaka.code.util.StorageMap;
 import io.takamaka.code.util.StorageTreeMap;
 
+/**
+ * A contract for a simple auction. This class is derived from the Solidity code shown at
+ * https://solidity.readthedocs.io/en/v0.5.9/solidity-by-example.html#id2
+ * In this contract, bidders place bids together with a hash. At the end of
+ * the bidding period, bidders are expected to reveal if and which of their bids
+ * were real and their actual value. Fake bids are refunded. Real bids are compared
+ * and the bidder with the highest bid wins.
+ */
 public class BlindAuction extends Contract {
 
   /**
-   * A bid placed by a bidder. The deposit has been paid in full.
+   * A bid placed by a bidder. The deposit has been payed in full.
    * If, later, the bid will be revealed as fake, then the deposit will
    * be fully refunded. If, instead, the bid will be revealed as real, but for
    * a lower amount, then only the difference will be refunded.
@@ -4335,9 +4343,9 @@ public class BlindAuction extends Contract {
     private final Bytes32Snapshot hash;
 
     /**
-      * The value of the bid. Its real value might be lower and known
-      * at real time only.
-      */
+     * The value of the bid. Its real value might be lower and known
+     * at real time only.
+     */
     private final BigInteger deposit;
 
     private Bid(Bytes32Snapshot hash, BigInteger deposit) {
@@ -4354,11 +4362,21 @@ public class BlindAuction extends Contract {
      * @param digest the hasher
      * @return true if and only if the hashes match
      */
-    private boolean matches(RevealedBid revealed, MessageDigest digest) {
-      digest.update(revealed.value.toByteArray());
+    private boolean matches(RevealedBid revealed, SHA256Digest digest) {
+      digest.update(BigIntegerSupport.toByteArray(revealed.value));
       digest.update(revealed.fake ? (byte) 0 : (byte) 1);
       digest.update(revealed.salt.toArray());
-      return Arrays.equals(hash.toArray(), digest.digest());
+      byte[] arr1 = hash.toArray();
+      byte[] arr2 = digest.digest();
+
+      if (arr1.length != arr2.length)
+        return false;
+
+      for (int pos = 0; pos < arr1.length; pos++)
+        if (arr1[pos] != arr2[pos])
+          return false;
+
+      return true;
     }
   }
 
@@ -4430,21 +4448,18 @@ public class BlindAuction extends Contract {
   }
 
   /**
-   * Places a blinded bid with the given hash.
-   * The money sent is only refunded if the bid is correctly
+   * Places a blinded bid the given hash.
+   * The sent money is only refunded if the bid is correctly
    * revealed in the revealing phase. The bid is valid if the
    * money sent together with the bid is at least "value" and
    * "fake" is not true. Setting "fake" to true and sending
    * not the exact amount are ways to hide the real bid but
    * still make the required deposit. The same bidder can place multiple bids.
    */
-  public @Payable @FromContract(PayableContract.class) void bid
-      (BigInteger amount, Bytes32Snapshot hash) {
-
+  public @Payable @FromContract(PayableContract.class) void bid(BigInteger amount, Bytes32Snapshot hash) {
     onlyBefore(biddingEnd);
     bids.computeIfAbsent((PayableContract) caller(),
-        (Supplier<StorageList<Bid>>) StorageLinkedList::new)
-      .add(new Bid(hash, amount));
+     (Supplier<? extends StorageList<Bid>>) StorageLinkedList::new).add(new Bid(hash, amount));
   }
 
   /**
@@ -4454,33 +4469,25 @@ public class BlindAuction extends Contract {
    * @param revealed the revealed bid
    * @throws NoSuchAlgorithmException if the hashing algorithm is not available
    */
-  public @FromContract(PayableContract.class) void reveal
-      (RevealedBid revealed) throws NoSuchAlgorithmException {
-
+  public @FromContract(PayableContract.class) void reveal(RevealedBid revealed)
+      throws NoSuchAlgorithmException {
     onlyAfter(biddingEnd);
     onlyBefore(revealEnd);
-    var bidder = (PayableContract) caller();
+    PayableContract bidder = (PayableContract) caller();
     StorageList<Bid> bids = this.bids.get(bidder);
     require(bids != null && bids.size() > 0, "No bids to reveal");
     require(revealed != null, () -> "The revealed bid cannot be null");
 
-    // any other hashing algorithm will do, as long as
-    // both bidder and auction contract use the same
-    var digest = MessageDigest.getInstance("SHA-256");
-    // by removing the head of the list, it makes it impossible
-    // for the caller to re-claim the same deposits
+    // any other hashing algorithm will do, as long as both bidder and auction contract use the same
+    var digest = new SHA256Digest();
+    // by removing the head of the list, it makes it impossible for the caller to re-claim the same deposits
     bidder.receive(refundFor(bidder, bids.removeFirst(), revealed, digest));
   }
 
-  /**
-   * Ends the auction and sends the highest bid to the beneficiary.
-   * 
-   * @return the highest bidder
-   */
   public PayableContract auctionEnd() {
     onlyAfter(revealEnd);
     PayableContract winner = highestBidder;
-        
+	
     if (winner != null) {
       beneficiary.receive(highestBid);
       event(new AuctionEnd(winner, highestBid));
@@ -4499,21 +4506,18 @@ public class BlindAuction extends Contract {
    * @param digest the hashing algorithm
    * @return the amount to refund
    */
-  private BigInteger refundFor(PayableContract bidder, Bid bid,
-      RevealedBid revealed, MessageDigest digest) {
-
+  private BigInteger refundFor(PayableContract bidder, Bid bid, RevealedBid revealed,
+                               SHA256Digest digest) {
     if (!bid.matches(revealed, digest))
       // the bid was not actually revealed: no refund
       return BigInteger.ZERO;
-    else if (!revealed.fake && bid.deposit.compareTo(revealed.value) >= 0
-        && placeBid(bidder, revealed.value))
-      // the bid was correctly revealed and is the best up to now:
-      // only the difference between promised and provided is refunded;
+    else if (!revealed.fake && BigIntegerSupport.compareTo(bid.deposit, revealed.value) >= 0
+             && placeBid(bidder, revealed.value))
+      // the bid was correctly revealed and is the best up to now: only the difference between promised and provided is refunded;
       // the rest might be refunded later if a better bid will be revealed
-      return bid.deposit.subtract(revealed.value);
+      return BigIntegerSupport.subtract(bid.deposit, revealed.value);
     else
-      // the bid was correctly revealed and is not the best one:
-      // it is fully refunded
+      // the bid was correctly revealed and is not the best one: it is fully refunded
       return bid.deposit;
   }
 
@@ -4525,7 +4529,7 @@ public class BlindAuction extends Contract {
    * @return true if and only if this is the best bid, up to now
    */
   private boolean placeBid(PayableContract bidder, BigInteger value) {
-    if (highestBid != null && value.compareTo(highestBid) <= 0)
+    if (highestBid != null && BigIntegerSupport.compareTo(value, highestBid) <= 0)
       // this is not the best bid seen so far
       return false;
 
@@ -4543,23 +4547,25 @@ public class BlindAuction extends Contract {
   }
 
   private static void onlyBefore(long when) {
-    require(now() < when, "Too late");
+    long diff = now() - when;
+    require(diff <= 0, StringSupport.concat(diff, " ms too late"));
   }
 
   private static void onlyAfter(long when) {
-    require(now() > when, "Too early");
+    long diff = now() - when;
+    require(diff >= 0, StringSupport.concat(-diff, " ms too early"));
   }
 }
 ```
 
 Let us discuss this (long) code, by starting from the inner classes.
 
-Class `Bid` represents a bid placed by a contract that takes part to the auction.
+Class `Bid` represents a bid placed by a contract that takes part in the auction.
 This information will be stored in blockchain at bidding time, hence
 it is known to all other participants. An instance of `Bid` contains
 the `deposit` paid at time of placing the bid. This is not necessarily
 the real value of the offer but must be at least as large as the real offer,
-or otherwise the bid will be considered as invalid at reveal time. Instances
+or otherwise the bid will be considered as invalid and rejected at reveal time. Instances
 of `Bid` contain a `hash` consisting of 32 bytes. As already said, this will
 be recomputed at reveal time and matched against the result.
 Since arrays cannot be stored in blockchain, we use the storage class
@@ -4583,7 +4589,7 @@ It is the contract that created the auction and is consequently
 initialized, in the constructor of `BlindAuction`, to its caller.
 The constructor must be annotated as `@FromContract` because of that.
 The same constructor receives the length of bidding time and reveal time, in
-milliseconds. This allows the contract to compute tha absolute ending time
+milliseconds. This allows the contract to compute the absolute ending time
 for the bidding phase and for the reveal phase, stored into fields
 `biddingEnd` and `revealEnd`, respectively.
 Note, in the constructor of `BlindAuction`, the
@@ -4604,7 +4610,7 @@ first time that a bidder places a bid. For that, it uses method
 `computeIfAbsent()` of `StorageMap`. If it used method `get()`, it would
 run into a null-pointer exception the first time a bidder places a bid.
 That is, storage maps default to `null`, as all Java maps. (But differently to
-Solidity maps, that provide a new value automatically when undefined.)
+Solidity maps, that provide a default value automatically when undefined.)
 
 Method `reveal()` is called by each bidder during the reveal phase.
 It accesses the `bids` placed by the bidder during the bidding time.
@@ -4625,7 +4631,7 @@ that some methods are only run at the right moment.
 
 ### Events
 
-__[See project `auction_events` inside the `@tutorial_name` repository]__
+__[See `io-takamaka-code-examples-auction_events` in `@takamaka_repo`]__
 
 The code in the previous section does not compile since it misses two
 classes `BidIncrease.java` and `AuctionEnd.java`, that we report below.
@@ -4650,10 +4656,10 @@ to create events from the code of contracts only. The creating contract is avail
 through method `creator()` of class `Event`.
 
 In our example, the `BlindAuction` class uses two events, that you can add
-to the `io.takamaka.auction` package and are defined as follows:
+to the `auction` package and are defined as follows:
 
 ```java
-package io.takamaka.auction;
+package auction;
 
 import java.math.BigInteger;
 
@@ -4684,7 +4690,7 @@ public class BidIncrease extends Event {
 and
 
 ```java
-package io.takamaka.auction;
+package auction;
 
 import java.math.BigInteger;
 
@@ -4714,15 +4720,14 @@ public class AuctionEnd extends Event {
 ```
 
 Now that all classes have been completed, the project should compile.
-Go inside the `auction` project and
-run `mvn package`. A file `auction-0.0.1.jar` should appear inside `target`.
+Go inside the `io-takamaka-code-examples-auction` project and run `mvn install`.
 
 ### Running the Blind Auction Contract
 
-__[See project `runs` inside the `@tutorial_name` repository]__
+__[See `io-hotmoka-tutorial-examples` in `@hotmoka_repo`]__
 
-Go to the `runs` Eclipse project and add the following
-class inside that package:
+Go to the `io-hotmoka-tutorial-examples` Eclipse project and add the following
+class inside its package:
 
 ```java
 package runs;
