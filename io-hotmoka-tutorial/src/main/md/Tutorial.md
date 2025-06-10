@@ -5458,12 +5458,12 @@ can be snapshotted. Snapshots are computable in constant time.
 > In the original ERC20 standard and implementation in Ethereum,
 > only specific subclasses allow snapshots, since their creation adds gas costs to all
 > operations, also for token owners that never performed any snapshot.
-> See the arguments and comparison in [[CrosaraOST21]](#references).
+> See the discussion and comparison in [[CrosaraOST21]](#references).
 
 An ERC20 ledger is typically modifiable. Namely, owners
 can sell tokens to other owners
 and can delegate trusted contracts to transfer tokens on their behalf.
-Of course, these operations must be legal, in the sense that a owner cannot sell
+Of course, these operations must be legal, in the sense that an owner cannot sell
 more tokens than it owns and delegated contracts cannot transfer more tokens than the
 cap to their delegation.
 These modification operations are defined in the
@@ -5474,7 +5474,7 @@ that reflects the current state of the original ledger, but without any modifica
 
 The `ERC20` implementation provides a standard implementation for the functions defined
 in the `IERC20View` and `IERC20` interfaces. Moreover, it provides metadata information
-such as the name, symbol and number of decimals for the specific token implementation.
+such as name, symbol and number of decimals for the specific token implementation.
 There are protected implementations for methods that allow one to mint or burn an amount
 of tokens for a given owner (`account`). These are protected since one does not
 want to allow everybody to print or burn money. Instead, subclasses can call into these
@@ -5490,17 +5490,16 @@ is not exceeded and throws an exception otherwise.
 
 ### Implementing Our Own ERC20 Token
 
-__[See project `erc20` inside the `@tutorial_name` repository]__
+__[See `io-takamaka-code-examples-erc20` in `@takamaka_repo`]__
 
 Let us define a token ledger class that allows only its creator the mint or burn tokens.
 We will call it `CryptoBuddy`. As Figure @fig:erc20_hierarchy shows,
 we plug it below the `ERC20` implementation, so that we inherit that implementation
 and do not need to reimplement the methods of the `ERC20` interface.
 
-Create in Eclipse a new Maven Java 11 (or later) project named `erc20`.
-You can do this by duplicating the project `family` (make sure to store
-the project inside the `@tutorial_name` directory, as a sibling of `family`, `ponzi`, `tictactoe`
-and so on). Use the following `pom.xml`:
+Create in Eclipse a new Maven Java 17 (or later) project named `erc20`.
+You can do this by duplicating the project `io-takamaka-code-examples-family`.
+Use the following `pom.xml`:
 
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -5509,13 +5508,13 @@ and so on). Use the following `pom.xml`:
                         http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
-  <groupId>io.hotmoka.tutorial</groupId>
-  <artifactId>family</artifactId>
-  <version>0.0.1</version>
+  <groupId>io.hotmoka</groupId>
+  <artifactId>io-takamaka-code-examples-erc20</artifactId>
+  <version>@takamaka_version</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.release>11</maven.compiler.release>
+    <maven.compiler.release>17</maven.compiler.release>
   </properties>
 
   <dependencies>
@@ -5547,11 +5546,11 @@ module erc20 {
 }
 ```
 
-Create package `io.takamaka.erc20` inside `src/main/java` and add
+Create package `erc20` inside `src/main/java` and add
 the following `CryptoBuddy.java` inside that package:
 
 ```java
-package io.takamaka.erc20;
+package erc20;
 
 import static io.takamaka.code.lang.Takamaka.require;
 
@@ -5591,55 +5590,65 @@ the mint or burn and call the inherited protected methods in that case.
 You can generate the `erc20-0.0.1.jar` file:
 
 ```shell
-$ cd erc20
-$ mvn package
+$ cd io-takamaka-code-examples-erc20
+$ mvn install
 ```
 
 Then you can install that jar in the node, by letting our first account pay:
 
 ```shell
 $ cd ..
-$ moka install erc20/target/erc20-0.0.1.jar
-    --payer @account1
-    --uri @server
+$ moka jars install @account1
+    io-takamaka-code-examples-erc20/target/io-takamaka-code-examples-erc20-@takamaka_version.jar
+    --password-of-payer
+    --uri @server_mokamint
 
-Please specify the password of the payer account: chocolate
-Do you really want to spend up to 504100 gas units to install the jar [Y/N] Y
-erc20/target/erc20-0.0.1.jar has been installed at
-@erc20_address
-Total gas consumed: 244568
-  for CPU: 262
-  for RAM: 1303
-  for storage: 243003
-  for penalty: 0
+Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
+Do you really want to install the jar spending up to 830600 gas units
+  at the price of 1 pana per unit (that is, up to 830600 panas) [Y/N] Y
+Adding transaction @transaction_install_erc20... done.
+The jar has been installed at @erc20_address.
+
+Gas consumption:
+ * total: 9844
+   * for CPU: 1619
+   * for RAM: 3314
+   * for storage: 4911
+   * for penalty: 0
+ * price per unit: 1 pana
+ * total price: 9844 panas
 ```
 
 Finally, you can create an instance of the token class, by always letting our first account pay
 for that:
 
 ```shell
-$ moka create
-  io.takamaka.erc20.CryptoBuddy
-  --payer @account1
-  --classpath @erc20_address
-  --uri @server
+$ moka objects create @account1
+   erc20.CryptoBuddy
+   --classpath @erc20_address
+   --uri @server_mokamint --password-of-payer
 
-Please specify the password of the payer account: chocolate
-Do you really want to spend up to 500000 gas units to call CryptoBuddy() ? [Y/N] Y
-The new object has been allocated at
-@erc20_object
-Total gas consumed: 129369
-  for CPU: 1314
-  for RAM: 2843
-  for storage: 125212
-  for penalty: 0
+Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
+Do you really want to call constructor public erc20.CryptoBuddy() spending up to 200000 gas units
+  at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
+Adding transaction @erc20_creation_transaction... done.
+A new object @erc20_object has been created.
+
+Gas consumption:
+ * total: 9955
+   * for CPU: 3377
+   * for RAM: 5735
+   * for storage: 843
+   * for penalty: 0
+ * price per unit: 1 pana
+ * total price: 9955 panas
 ```
 
 The new ledger instance is installed in the storage of the node now, at the address
 `@erc20_object`. It is possible to start interacting with that ledger instance, by transferring
-tokens between accounts. For instance, this can be done with the `moka call` command,
+tokens between accounts. For instance, this can be done with the `moka objects call` command,
 that allows one to invoke the `transfer` or `transferFrom` methods of the ledger.
-It is possible to show the state of the ledger with the `moka state` command, although specific
+It is possible to show the state of the ledger with the `moka objects show` command, although specific
 utilities will provide a more user-friendly view of the ledger in the future.
 
 ## Richer than Expected
@@ -5744,7 +5753,7 @@ get their `onReceive` method called whenever new tokens are transferred to them.
 
 ### Implementing Our Own ERC721 Token
 
-__[See project `erc721` inside the `@tutorial_name` repository]__
+__[See `io-takamaka-code-examples-erc721` in `@takamaka_repo`]__
 
 Let us define a ledger for non-fungible tokens
 that only allows its creator the mint or burn tokens.
@@ -5754,10 +5763,9 @@ and do not need to reimplement the methods of the `ERC721` interface.
 The code is almost identical to that for the `CryptoBuddy` token defined
 in [Implementing Our Own ERC20 Token](#implementing-our-own-erc20-token).
 
-Create in Eclipse a new Maven Java 11 (or later) project named `erc721`.
-You can do this by duplicating the project `erc20` (make sure to store
-the project inside the `@tutorial_name` directory, as a sibling of `family`, `ponzi`, `tictactoe`
-and so on). Use the following `pom.xml`:
+Create in Eclipse a new Maven Java 17 (or later) project named `erc721`.
+You can do this by duplicating the project `io-takamaka-code-examples-erc20`.
+Use the following `pom.xml`:
 
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -5766,13 +5774,13 @@ and so on). Use the following `pom.xml`:
                         http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
-  <groupId>io.hotmoka.tutorial</groupId>
-  <artifactId>family</artifactId>
-  <version>0.0.1</version>
+  <groupId>io.hotmoka</groupId>
+  <artifactId>io-takamaka-code-examples-erc721</artifactId>
+  <version>@takamaka_version</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.release>11</maven.compiler.release>
+    <maven.compiler.release>17</maven.compiler.release>
   </properties>
 
   <dependencies>
@@ -5804,11 +5812,11 @@ module erc721 {
 }
 ```
 
-Create package `io.takamaka.erc721` inside `src/main/java` and add
+Create package `erc721` inside `src/main/java` and add
 the following `CryptoShark.java` inside that package:
 
 ```java
-package io.takamaka.erc721;
+package erc721;
 
 import static io.takamaka.code.lang.Takamaka.require;
 
@@ -5842,11 +5850,11 @@ The constructor of `CryptoShark` takes note of the creator of the token.
 That creator is the only that is allowed to mint or burn tokens, as
 you can see in methods `mint` and `burn`.
 
-You can generate the `erc721-0.0.1.jar` file:
+You can compile the file:
 
 ```shell
 $ cd erc721
-$ mvn package
+$ mvn install
 ```
 
 Then you can install that jar in the node and create an instance of the token
