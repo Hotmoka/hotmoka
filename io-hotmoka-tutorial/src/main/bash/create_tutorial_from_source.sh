@@ -63,8 +63,6 @@ fig2dev -L png -m 4 target/pics/state3.fig target/pics/state3.png
 
 # These must be edited by hand since, for instance, they depend on accounts created in Mokito
 echo "4"
-sed -i 's/@server_mokamint/ws:\/\/panarea.hotmoka.io:8001/g' target/Tutorial.md
-sed -i 's/@server_tendermint/ws:\/\/panarea.hotmoka.io:8002/g' target/Tutorial.md
 sed -i 's/@tendermint_version/0.34.15/g' target/Tutorial.md
 sed -i 's/@hotmoka_repo/https:\/\/github.com\/Hotmoka\/hotmoka/g' target/Tutorial.md
 sed -i 's/@takamaka_repo/https:\/\/github.com\/Hotmoka\/io-takamaka-code/g' target/Tutorial.md

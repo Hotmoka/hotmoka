@@ -63,11 +63,11 @@ public class FamilyStorage {
       + Constants.TAKAMAKA_VERSION
       + "/io-takamaka-code-examples-family_storage-" + Constants.TAKAMAKA_VERSION + ".jar");
 
-    var dir = Paths.get(args[0]);
-    var payer = StorageValues.reference(args[1]);
-    var password = args[2];
+    var dir = Paths.get(args[1]);
+    var payer = StorageValues.reference(args[2]);
+    var password = args[3];
 
-    try (var node = RemoteNodes.of(URI.create("ws://panarea.hotmoka.io:8001"), 80000)) {
+    try (var node = RemoteNodes.of(new URI(args[0]), 80000)) {
       // we get a reference to where io-takamaka-code-X.Y.Z.jar has been stored
       TransactionReference takamakaCode = node.getTakamakaCode();
 

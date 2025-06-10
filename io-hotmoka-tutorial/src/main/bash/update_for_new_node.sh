@@ -9,7 +9,7 @@
 # Run for instance this way:
 # NETWORK_URI="ws://mynode:myport" ./update_for_new_node.sh
 
-# by default, it reflects the panarea.hotmoka.io node
+# by default, it reflects the panarea.hotmoka.io:8001 node
 NETWORK_URI=${NETWORK_URI:=ws://panarea.hotmoka.io:8001}
 NETWORK_URI_WITHOUT_PROTOCOL=$(echo $NETWORK_URI | sed s/".*:\/\/"/""/g) # remove protocol, if any
 
@@ -31,10 +31,8 @@ echo "  Server = $NETWORK_URI"
 echo "  Script = $SCRIPT"
 echo "  Docker Hub's user = $DOCKER_HUB_USER"
 
-sed -i "/@server/s/\/.*\//\/@server\/ws:\\\\\/\\\\\/$NETWORK_URI_WITHOUT_PROTOCOL\//" $SCRIPT
 VERSION=$(moka node info --json --uri $NETWORK_URI | python3 -c "import sys, json; print(json.load(sys.stdin)['version'])")
 echo "  $TYPE_CAPITALIZED version = $VERSION"
-sed -i '/@hotmoka_version/s/\/.*\//\/@hotmoka_version\/'$VERSION'\//' $SCRIPT
 
 message "Starting Docker container"
 DOCKER_TOTAL_SUPPLY=1000000000000000

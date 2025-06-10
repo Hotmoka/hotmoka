@@ -1,8 +1,5 @@
 # These get automatically recomputed with the update script: do not edit!
 sed -i 's/@family3_address/a9d69ce22453c912a436e990074fd3493c87667ada85b6881f5566a7efae08e7/g' target/Tutorial.md
-sed -i 's/@account4/e42def4faba5d93346e4d02a1608c9fb53ba7beea84ffb0064cdfe431d079867#0/g' target/Tutorial.md
-sed -i 's/@account5/fdb930378af70c212649e4f9b888d7c275373cf5b9601b40e4802d29fa27af89#0/g' target/Tutorial.md
-sed -i 's/@account6/b65e5976862d6786ba9a6d2cd62b332bfa7f8859e2c8b9be3bbbe5cd64af6c1e#0/g' target/Tutorial.md
 sed -i 's/@account7/b37b9c040474fc800079230bc51409201f12f82e220b99e7b6468c5f62591ea8#0/g' target/Tutorial.md
 sed -i 's/@publickeyaccount4/N7hQ0gpmpV46JJlQ+7zEy7r2OTn\/jErqxV9g3+tg2\/o=/g' target/Tutorial.md
 sed -i 's/@short_publickeyaccount5/MIIDRjCCAjkGByqGSM44BAEwggIsAo.../g' target/Tutorial.md

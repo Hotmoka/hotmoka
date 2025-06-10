@@ -670,7 +670,7 @@ The new key pair has been written into "account1.pem":
 $ moka accounts create faucet 50000000000000 account1.pem --password
     --uri @server_mokamint
 Enter value for --password
-  (the password of the key pair specified through --keys): chocolate
+  (the password of the key pair): chocolate
 Adding transaction @transaction_account1... done.
 A new account @account1 has been created.
 Its key pair has been saved
@@ -1457,11 +1457,11 @@ public class Family {
 		+ Constants.TAKAMAKA_VERSION
 		+ "/io-takamaka-code-examples-family-" + Constants.TAKAMAKA_VERSION + ".jar");
 
-	var dir = Paths.get(args[0]);
-	var payer = StorageValues.reference(args[1]);
-	var password = args[2];
+	var dir = Paths.get(args[1]);
+	var payer = StorageValues.reference(args[2]);
+	var password = args[3];
 
-	try (var node = RemoteNodes.of(URI.create("ws://panarea.hotmoka.io:8001"), 80000)) {
+	try (var node = RemoteNodes.of(new URI(args[0]), 80000)) {
     	// we get a reference to where io-takamaka-code-X.Y.Z.jar has been stored
       TransactionReference takamakaCode = node.getTakamakaCode();
 
@@ -1578,10 +1578,12 @@ Namely, the code above performs two transactions:
 > inside the manifest, then the gas price inside the gas station). In order to
 > simplify the code, we have used the `GasHelper` class, that does exactly that for us.
 
-You can run the program with Maven, specifying the class to run and the parameters to pass to its `main` method:
+You can run the program with Maven, specifying the server to contact,
+the class to run and the parameters to pass to its `main` method:
 ```shell
 $ mvn compile exec:java -Dexec.mainClass="io.hotmoka.tutorial.examples.Family"
-     -Dexec.args="hotmoka_tutorial
+     -Dexec.args="ws://panarea.hotmoka.io:8001
+                  hotmoka_tutorial
                   @account1
                   chocolate"
 jar installed at: @code_family_address
@@ -1795,11 +1797,11 @@ public class FamilyStorage {
       + Constants.TAKAMAKA_VERSION
       + "/io-takamaka-code-examples-family-" + Constants.TAKAMAKA_VERSION + ".jar");
 
-    var dir = Paths.get(args[0]);
-    var payer = StorageValues.reference(args[1]);
-    var password = args[2];
+    var dir = Paths.get(args[1]);
+    var payer = StorageValues.reference(args[2]);
+    var password = args[3];
 
-    try (var node = RemoteNodes.of(URI.create("ws://panarea.hotmoka.io:8001"), 80000)) {
+    try (var node = RemoteNodes.of(new URI(args[0]), 80000)) {
       // we get a reference to where io-takamaka-code-X.Y.Z.jar has been stored
       TransactionReference takamakaCode = node.getTakamakaCode();
 
@@ -1913,7 +1915,8 @@ with corresponding static methods in `io.hotmoka.helpers.Coin`.
 By running `FamilyStorage`, you should see the following on the console:
 ```
 $ mvn compile exec:java -Dexec.mainClass="io.hotmoka.tutorial.examples.FamilyStorage"
-     -Dexec.args="hotmoka_tutorial
+     -Dexec.args="ws://panarea.hotmoka.io:8001
+                  hotmoka_tutorial
                   @account1
                   chocolate"
 new object allocated
@@ -2098,11 +2101,11 @@ public class FamilyExported {
       + Constants.TAKAMAKA_VERSION
       + "/io-takamaka-code-examples-family-" + Constants.TAKAMAKA_VERSION + ".jar");
 
-    var dir = Paths.get(args[0]);
-    var payer = StorageValues.reference(args[1]);
-    var password = args[2];
+    var dir = Paths.get(args[1]);
+    var payer = StorageValues.reference(args[2]);
+    var password = args[3];
 
-    try (var node = RemoteNodes.of(URI.create("ws://panarea.hotmoka.io:8001"), 80000)) {
+    try (var node = RemoteNodes.of(new URI(args[0]), 80000)) {
       // we get a reference to where io-takamaka-code-X.Y.Z.jar has been stored
       TransactionReference takamakaCode = node.getTakamakaCode();
 
@@ -4726,11 +4729,56 @@ Go inside the `io-takamaka-code-examples-auction` project and run `mvn install`.
 
 __[See `io-hotmoka-tutorial-examples` in `@hotmoka_repo`]__
 
+This section presents a Java class that connects to a Hotmoka node and runs the blind auction
+contract of the previous section. We could run that contract on the `@server_mokamint` server,
+but that Hotmoka node is based on a proof of space consensus, that generates a block every ten
+seconds _on average_. This means that, for a transaction to be committed, one could have to wait
+more, sometime up to one minute. This would make the test slow and would require larger windows
+for the bidding and for the revealing phases. Instead, we use the `@server_tendermint` server,
+that is a Hotmoka node based on a proof of stake consensus, that generates a block every four seconds.
+This makes the test faster and the timings reliable. However, this means that we must first generate
+some new accounts for our tests, since those that we generated before for
+`@server_mokamint` do not exist in `@server_tendermint`. We do it as previously,
+but swapping the server we are talking to:
+
+```shell
+$ moka keys create --name=account4.pem --password
+Enter value for --password
+  (the password that will be needed later to use the key pair): banana
+...
+$ moka accounts create faucet 50000000000000 account4.pem --password
+    --uri @server_tendermint
+Enter value for --password (the password of the key pair): banana
+Adding transaction @transaction_account4... done.
+A new account @account4 has been created.
+...
+$ moka keys create --name=account5.pem --password
+Enter value for --password
+  (the password that will be needed later to use the key pair): mango
+...
+$ moka accounts create faucet 50000000000000 account5.pem --password
+    --uri @server_tendermint
+Enter value for --password (the password of the key pair): mango
+Adding transaction @transaction_account5... done.
+A new account @account5 has been created.
+...
+$ moka keys create --name=account6.pem --password
+Enter value for --password
+  (the password that will be needed later to use the key pair): strawberry
+...
+$ moka accounts create faucet 50000000000000 account6.pem --password
+    --uri @server_tendermint
+Enter value for --password (the password of the key pair): strawberry
+Adding transaction @transaction_account6... done.
+A new account @account6 has been created.
+...
+```
+
 Go to the `io-hotmoka-tutorial-examples` Eclipse project and add the following
 class inside its package:
 
 ```java
-package runs;
+package io.hotmoka.tutorial.examples;
 
 import static io.hotmoka.helpers.Coin.panarea;
 import static io.hotmoka.node.StorageTypes.BIG_INTEGER;
@@ -4751,8 +4799,7 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.function.Function;
 
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.GasHelpers;
@@ -4769,58 +4816,33 @@ import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
-import io.hotmoka.node.api.signatures.MethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.remote.RemoteNodes;
+import io.takamaka.code.constants.Constants;
 
 public class Auction {
-  // change this with your accounts' storage references
-  private final static String[] ADDRESSES = new String[3];
-  
-  static {
-    ADDRESSES[0] = "@account1";
-    ADDRESSES[1] = "@account2";
-    ADDRESSES[2] = "@account3";
-  }
 
   public final static int NUM_BIDS = 10; // number of bids placed
-  public final static int BIDDING_TIME = 130_000; // in milliseconds
-  public final static int REVEAL_TIME = 170_000; // in milliseconds
+  public final static int BIDDING_TIME = 100_000; // in milliseconds
+  public final static int REVEAL_TIME = 140_000; // in milliseconds
 
   private final static BigInteger _500_000 = BigInteger.valueOf(500_000);
 
   private final static ClassType BLIND_AUCTION
-    = StorageTypes.classNamed("io.takamaka.auction.BlindAuction");
-  private final static ConstructorSignature CONSTRUCTOR_BLIND_AUCTION
-    = ConstructorSignatures.of(BLIND_AUCTION, INT, INT);
+    = StorageTypes.classNamed("auction.BlindAuction");
   private final static ConstructorSignature CONSTRUCTOR_BYTES32_SNAPSHOT
     = ConstructorSignatures.of(BYTES32_SNAPSHOT,
       BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE,
       BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE,
       BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE,
       BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE);
-  private final static ConstructorSignature CONSTRUCTOR_REVEALED_BID
-    = ConstructorSignatures.of(
-      StorageTypes.classNamed("io.takamaka.auction.BlindAuction$RevealedBid"),
-      BIG_INTEGER, BOOLEAN, BYTES32_SNAPSHOT);
-  private final static MethodSignature BID = MethodSignatures.ofVoid
-      (BLIND_AUCTION, "bid", BIG_INTEGER, BYTES32_SNAPSHOT);
-  private final static MethodSignature REVEAL = MethodSignatures.ofVoid
-      (BLIND_AUCTION, "reveal",
-      StorageTypes.classNamed("io.takamaka.auction.BlindAuction$RevealedBid"));
-  private final static MethodSignature AUCTION_END = MethodSignatures.ofNonVoid
-      (BLIND_AUCTION, "auctionEnd", PAYABLE_CONTRACT);
 
-  //the hashing algorithm used to hide the bids
-  private final MessageDigest digest = MessageDigest.getInstance("SHA-256");
-
-  private final Path auctionPath = Paths.get("../auction/target/auction-0.0.1.jar");
   private final TransactionReference takamakaCode;
   private final StorageReference[] accounts;
-  private final List<Signer<SignedTransactionRequest<?>>> signers;
+  private final List<Signer<SignedTransactionRequest<?>>> signers = new ArrayList<>();
   private final String chainId;
   private final long start;  // the time when bids started being placed
   private final Node node;
@@ -4831,8 +4853,11 @@ public class Auction {
   private final NonceHelper nonceHelper;
 
   public static void main(String[] args) throws Exception {
-    try (Node node = RemoteNodes.of(URI.create("@server"), 20000)) {
-      new Auction(node);
+	try (Node node = RemoteNodes.of(new URI(args[0]), 20000)) {
+      new Auction(node, Paths.get(args[1]),
+        StorageValues.reference(args[2]), args[3],
+        StorageValues.reference(args[4]), args[5],
+        StorageValues.reference(args[6]), args[7]);
     }
   }
 
@@ -4872,6 +4897,11 @@ public class Auction {
         byteOf(salt[24]), byteOf(salt[25]), byteOf(salt[26]), byteOf(salt[27]),
         byteOf(salt[28]), byteOf(salt[29]), byteOf(salt[30]), byteOf(salt[31])));
 
+      var CONSTRUCTOR_REVEALED_BID
+        = ConstructorSignatures.of(
+           StorageTypes.classNamed("auction.BlindAuction$RevealedBid"),
+           BIG_INTEGER, BOOLEAN, BYTES32_SNAPSHOT);
+
       return node.addConstructorCallTransaction(TransactionRequests.constructorCall
         (signers.get(player), accounts[player],
         nonceHelper.getNonceOf(accounts[player]), chainId,
@@ -4880,19 +4910,22 @@ public class Auction {
     }
   }
 
-  private Auction(Node node) throws Exception {
+  private Auction(Node node, Path dir, StorageReference account1, String password1,
+      StorageReference account2, String password2, StorageReference account3, String password3)
+      throws Exception {
+
     this.node = node;
     takamakaCode = node.getTakamakaCode();
-    accounts = Stream.of(ADDRESSES).map(StorageValues::reference)
-      .toArray(StorageReference[]::new);
+    accounts = new StorageReference[] { account1, account2, account3 };
     var signature = node.getConfig().getSignatureForRequests();
-    signers = Stream.of(accounts).map(this::loadKeys).map(KeyPair::getPrivate)
-      .map(key -> signature.getSigner
-        (key, SignedTransactionRequest<?>::toByteArrayWithoutSignature))
-      .collect(Collectors.toCollection(ArrayList::new));
+    Function<? super SignedTransactionRequest<?>, byte[]> toBytes
+      = SignedTransactionRequest<?>::toByteArrayWithoutSignature;
+    signers.add(signature.getSigner(loadKeys(node, dir, account1, password1).getPrivate(), toBytes));
+    signers.add(signature.getSigner(loadKeys(node, dir, account2, password2).getPrivate(), toBytes));
+    signers.add(signature.getSigner(loadKeys(node, dir, account3, password3).getPrivate(), toBytes));
     gasHelper = GasHelpers.of(node);
     nonceHelper = NonceHelpers.of(node);
-    chainId = getChainId();
+    chainId = node.getConfig().getChainId();
     classpath = installJar();
     auction = createContract();
     start = System.currentTimeMillis();
@@ -4911,6 +4944,8 @@ public class Auction {
   private StorageReference createContract() throws Exception {
     System.out.println("Creating contract");
 
+    var CONSTRUCTOR_BLIND_AUCTION = ConstructorSignatures.of(BLIND_AUCTION, INT, INT);
+
     return node.addConstructorCallTransaction
       (TransactionRequests.constructorCall(signers.get(0), accounts[0],
       nonceHelper.getNonceOf(accounts[0]), chainId, _500_000, panarea(gasHelper.getSafeGasPrice()),
@@ -4918,19 +4953,14 @@ public class Auction {
       StorageValues.intOf(BIDDING_TIME), StorageValues.intOf(REVEAL_TIME)));
   }
 
-  private String getChainId() throws Exception {
-    StorageReference manifest = node.getManifest();
-   return node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-      (accounts[0], // payer
-      BigInteger.valueOf(50_000), // gas limit
-      takamakaCode, // class path for the execution of the transaction
-      MethodSignatures.GET_CHAIN_ID, // method
-      manifest)).get() // receiver of the method call
-        .asString(__ -> new ClassCastException());
-  }
-
   private TransactionReference installJar() throws Exception {
     System.out.println("Installing jar");
+
+    //the path of the user jar to install
+    var auctionPath = Paths.get(System.getProperty("user.home")
+      + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-auction/"
+      + Constants.TAKAMAKA_VERSION
+      + "/io-takamaka-code-examples-auction-" + Constants.TAKAMAKA_VERSION + ".jar");
 
     return node.addJarStoreTransaction(TransactionRequests.jarStore
       (signers.get(0), // an object that signs with the payer's private key
@@ -4945,13 +4975,14 @@ public class Auction {
   }
 
   private StorageReference placeBids() throws Exception {
-    BigInteger maxBid = BigInteger.ZERO;
+    var maxBid = BigInteger.ZERO;
     StorageReference expectedWinner = null;
-    Random random = new Random();
+    var random = new Random();
+    var BID = MethodSignatures.ofVoid(BLIND_AUCTION, "bid", BIG_INTEGER, BYTES32_SNAPSHOT);
 
     int i = 1;
     while (i <= NUM_BIDS) { // generate NUM_BIDS random bids
-      System.out.println("Placing bid " + i);
+      System.out.println("Placing bid " + i + "/" + NUM_BIDS);
       int player = 1 + random.nextInt(accounts.length - 1);
       var deposit = BigInteger.valueOf(random.nextInt(1000));
       var value = BigInteger.valueOf(random.nextInt(1000));
@@ -4991,10 +5022,14 @@ public class Auction {
   }
 
   private void revealBids() throws Exception {
+    var REVEAL = MethodSignatures.ofVoid
+      (BLIND_AUCTION, "reveal",
+       StorageTypes.classNamed("auction.BlindAuction$RevealedBid"));
+
     // we create the revealed bids in blockchain; this is safe now, since the bidding time is over
     int counter = 1;
     for (BidToReveal bid: bids) {
-      System.out.println("Revealing bid " + counter++ + " out of " + bids.size());
+      System.out.println("Revealing bid " + counter++ + "/" + bids.size());
       int player = bid.player;
       StorageReference bidInBlockchain = bid.intoBlockchain();
       node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall
@@ -5006,6 +5041,9 @@ public class Auction {
   }
 
   private StorageReference askForWinner() throws Exception {
+    var AUCTION_END = MethodSignatures.ofNonVoid
+      (BLIND_AUCTION, "auctionEnd", PAYABLE_CONTRACT);
+
     StorageValue winner = node.addInstanceMethodCallTransaction
       (TransactionRequests.instanceMethodCall
       (signers.get(0), accounts[0], nonceHelper.getNonceOf(accounts[0]),
@@ -5014,33 +5052,38 @@ public class Auction {
 
     // the winner is normally a StorageReference,
     // but it could be a NullValue if all bids were fake
-    return winner instanceof StorageReference ? (StorageReference) winner : null;
+    return winner instanceof StorageReference sr ? sr : null;
   }
 
   private void waitUntilEndOfBiddingTime() {
-    waitUntil(BIDDING_TIME + 5000);
+    waitUntil(BIDDING_TIME + 5000, "Waiting until the end of the bidding time");
   }
 
   private void waitUntilEndOfRevealTime() {
-    waitUntil(BIDDING_TIME + REVEAL_TIME + 5000);
+    waitUntil(BIDDING_TIME + REVEAL_TIME + 5000, "Waiting until the end of the revealing time");
   }
 
   /**
    * Waits until a specific time after start.
    */
-  private void waitUntil(long duration) {
-    try {
+  private void waitUntil(long duration, String forWhat) {
+    long msToWait = start + duration - System.currentTimeMillis();
+    System.out.println(forWhat + " (" + msToWait + "ms still missing)");
+	try {
       Thread.sleep(start + duration - System.currentTimeMillis());
     }
-    catch (InterruptedException e) {}
+    catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
   }
 
   /**
    * Hashes a bid and put it in the store of the node, in hashed form.
    */
-  private StorageReference codeAsBytes32
-      (int player, BigInteger value, boolean fake, byte[] salt) throws Exception {
-    digest.reset();
+  private StorageReference codeAsBytes32(int player, BigInteger value, boolean fake, byte[] salt)
+      throws Exception {
+	// the hashing algorithm used to hide the bids
+	var digest = MessageDigest.getInstance("SHA-256");
     digest.update(value.toByteArray());
     digest.update(fake ? (byte) 0 : (byte) 1);
     digest.update(salt);
@@ -5077,43 +5120,31 @@ public class Auction {
       byteOf(hash[30]), byteOf(hash[31])));
   }
 
-  private KeyPair loadKeys(StorageReference account) {
-    try {
-      String password;
-      if (account.toString().equals(ADDRESSES[0]))
-        password = "chocolate";
-      else if (account.toString().equals(ADDRESSES[1]))
-        password = "orange";
-      else
-        password = "apple";
-
-      return Accounts.of(account, "..").keys
-        (password, SignatureHelpers.of(node).signatureAlgorithmFor(account));
-    }
-    catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+  private static KeyPair loadKeys(Node node, Path dir, StorageReference account, String password)
+      throws Exception {
+    return Accounts.of(account, dir).keys(password,
+      SignatureHelpers.of(node).signatureAlgorithmFor(account));
   }
 }
 ```
 
 This test class is relatively long and complex. Let us start from its beginning.
 The code specifies that the test will place 10 random bids, that the bidding phase
-lasts 130 seconds and that the reveal phase lasts 170 seconds
-(these timings are fine on a blockchain that creates a block every five seconds;
-shorter block creation times allow shorter timings):
+lasts 100 seconds and that the reveal phase lasts 140 seconds
+(these timings are fine on a blockchain that creates a block every four seconds;
+shorter block creation times would allow shorter timings):
 
 ```java
 public final static int NUM_BIDS = 10;
-public final static int BIDDING_TIME = 130_000;
-public final static int REVEAL_TIME = 170_000;
+public final static int BIDDING_TIME = 100_000;
+public final static int REVEAL_TIME = 140_000;
 ```
 
 Some constant signatures follow,
 that simplify the calls to methods and constructors later.
 Method `main()` connects to a remote node and passes it
 as a parameter to the constructor of class `Auction`, that
-installs `auction-0.0.1.jar` inside it. It stores the node in field `node`.
+installs `io-takamaka-code-examples-auction-@takamaka_version.jar` inside it. It stores the node in field `node`.
 Then the constructor of `Auction` creates an `auction` contract in the node
 and calls method `placeBids()` that
 uses the inner class `BidToReveal` to keep track of the bids placed
@@ -5128,9 +5159,9 @@ of the `accounts.length -1` players (the first element of the
 int i = 1;
 while (i <= NUM_BIDS) {
   int player = 1 + random.nextInt(accounts.length - 1);
-  BigInteger deposit = BigInteger.valueOf(random.nextInt(1000));
-  BigInteger value = BigInteger.valueOf(random.nextInt(1000));
-  boolean fake = random.nextBoolean();
+  var deposit = BigInteger.valueOf(random.nextInt(1000));
+  var value = BigInteger.valueOf(random.nextInt(1000));
+  var fake = random.nextBoolean();
   var salt = new byte[32];
   random.nextBytes(salt);
   ...
@@ -5241,36 +5272,30 @@ actually computes the right winner, since they will always print the identical s
 object (different at each run, in general), such as:
 
 ```
-expected winner: @account3
-actual winner: @account3
+expected winner: @account5
+actual winner: @account5
 ```
 
-You can run class `Auction` from Eclipse.
-Please remember that the execution of this test will take a few minutes. Moreover,
-remember to put your accounts at the beginning of `Auction.java` and ensure that they have enough
-balance for this long execution.
+We can run class `Auction` now (please note that the execution of this test will take a few minutes):
+
+```shell
+mvn compile exec:java -Dexec.mainClass="io.hotmoka.tutorial.examples.Auction"
+  -Dexec.args="@server_tendermint
+   @tutorial_name
+   @account4 banana
+   @account5 mango
+   @account6 strawberry"
+```
+
 Its execution should print something like this on the console:
 
 ```
-Installing jar
-Creating contract
-Placing bid 1
-Placing bid 2
-Placing bid 3
-...
-Placing bid 10
-Revealing bid 1 out of 20
-Revealing bid 2 out of 20
-Revealing bid 3 out of 20
-...
-Revealing bid 10 out of 10
-expected winner: @account2
-actual winner: @account2
+@auction_main_output
 ```
 
 ### Listening to Events
 
-__[See project `runs` inside the `@tutorial_name` repository]__
+__[See `io-hotmoka-tutorial-examples` in `@hotmoka_repo`]__
 
 The `BlindAuction` contract generates events during its execution. If an external tool, such
 as a wallet, wants to listen to such events and trigger some activity when they occur,
@@ -5283,6 +5308,7 @@ handler. In our case, this is the `auction` contract. Thus, clone the `Auction.j
 ```java
 ...
 import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.UnknownReferenceException;
 ...
 auction = createAuction();
 start = System.currentTimeMillis();
@@ -5296,6 +5322,12 @@ try (var subscription = node.subscribeToEvents(auction, this::eventHandler)) {
 
   System.out.println("expected winner: " + expectedWinner);
   System.out.println("actual winner: " + winner);
+
+  waitUntilAllEventsAreFlushed();
+}
+
+private void waitUntilAllEventsAreFlushed() {
+  waitUntil(BIDDING_TIME + REVEAL_TIME + 12000, "Waiting until all events are flushed");
 }
 
 private void eventHandler(StorageReference creator, StorageReference event) {
@@ -5315,33 +5347,35 @@ private void eventHandler(StorageReference creator, StorageReference event) {
 ```
 
 The event handler, in this case, simply prints on the console the class of the event and its creator
-(that will coincide with `auction`).
+(that will coincide with `auction`). You can run the `Events` class now:
 
-If you run the `Events` class,
-you should see something like this on the console:
+```shell
+mvn compile exec:java -Dexec.mainClass="io.hotmoka.tutorial.examples.Events"
+  -Dexec.args="@server_tendermint
+   @tutorial_name
+   @account4 banana
+   @account5 mango
+   @account6 strawberry"
+```
+You should see something like this on the console:
 
 ```
-Seen event of class io.takamaka.auction.BidIncrease
-  created by contract 310d241d1f5dbe955f25ede96be324ade...#0
-Seen event of class io.takamaka.auction.BidIncrease
-  created by contract 310d241d1f5dbe955f25ede96be324ade...#0
-Seen event of class io.takamaka.auction.BidIncrease
-  created by contract 310d241d1f5dbe955f25ede96be324ade...#0
-Seen event of class io.takamaka.auction.AuctionEnd
-  created by contract 310d241d1f5dbe955f25ede96be324ade...#0
+@events_main_output
 ```
 
 > The `subscribeToEvents()` method returns a `Subscription` object that should be
 > closed when it is not needed anymore, in order to reduce the overhead on the node.
 > Since it is an `AutoCloseable` resource, the recommended technique is to use a
 > try-with-resource construct, as shown in the previous example.
+> Moreover, our code waits for a few seconds before closing the
+> subscription to the events, in order to give events the time to be forwarded to the client.
 
 In general, event handlers can perform arbitrarily complex operations and even access the
 event object in the store of the node,
 from its storage reference, reading its fields or calling its methods. Please remember, however,
 that event handlers are run in a thread of the node. Hence, they should be fast and shouldn't hang.
 It is good practice to let event handlers add events in a queue, in a non-blocking way.
-A consumer thread, external to the node, then retrieves the events from the queue and process them in turn.
+A consumer thread, external to the node, then retrieves the events from the queue and processes them in turn.
 
 It is possible to subscribe to _all_ events generated by a node,
 by using `null` as creator in the `subscribeToEvents()` method. Think twice before doing that,
@@ -5358,7 +5392,7 @@ by a smart contract and enforced by the underlying blockchain.
 
 > In this context, the term _token_ is used
 > for the smart contract that tracks coin transfers, for the single coin units and for the category
-> of similar coins. This is sometime confusing.
+> of similar coins. This is sometimes confusing.
 
 Native and derived tokens can be categorized in many
 ways [[OliveiraZBS18](#references),[Freni20](#references),[Tapscott20](#references)].
@@ -5366,7 +5400,7 @@ The most popular classification
 is between _fungible_ and _non-fungible_ tokens.
 Fungible tokens are interchangeable with each other, since they have an identical
 nominal value that does not depend on each specific token instance.
-Native tokens and traditional (_fiat_) currencies are both fungible tokens.
+Native tokens and traditional (_fiat_) currencies are both examples of fungible tokens.
 Their main application is in the area of crowdfunding and initial coin offers
 to support startups.
 On the contrary, non-fungible tokens have a value that depends on their specific instance.
