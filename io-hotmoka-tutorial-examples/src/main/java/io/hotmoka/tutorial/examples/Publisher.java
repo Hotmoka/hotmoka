@@ -31,38 +31,36 @@ import io.hotmoka.node.tendermint.TendermintNodes;
 import io.takamaka.code.constants.Constants;
 
 /**
- * Run in the IDE or go inside this project and run
+ * Run it in Maven as:
  * 
- * mvn clean package
- * java --module-path ../../hotmoka/io-hotmoka-moka/modules/explicit/:../../hotmoka/io-hotmoka-moka/modules/automatic:target/runs-0.0.1.jar -classpath ../../hotmoka/io-hotmoka-moka/modules/unnamed"/*" --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module runs/runs.Publisher
+ * mvn exec:exec -Dexec.executable="java" -Dexec.args="-cp %classpath io.hotmoka.tutorial.examples.Publisher"
  */
 public class Publisher {
-  public final static BigInteger SUPPLY = BigInteger.valueOf(100_000_000);
-
   public static void main(String[] args) throws Exception {
     var config = TendermintNodeConfigBuilders.defaults().build();
+
     // the path of the runtime Takamaka jar, inside Maven's cache
     var takamakaCodePath = Paths.get
       (System.getProperty("user.home") +
       "/.m2/repository/io/hotmoka/io-takamaka-code/" + Constants.TAKAMAKA_VERSION +
       "/io-takamaka-code-" + Constants.TAKAMAKA_VERSION + ".jar");
 
-    // create a key pair for the gamete and compute the Base64-encoding of its public key
+    // create a key pair for the gamete
     var signature = SignatureAlgorithms.ed25519();
     var entropy = Entropies.random();
 	KeyPair keys = entropy.keys("password", signature);
 	var consensus = ValidatorsConsensusConfigBuilders.defaults()
-		.setPublicKeyOfGamete(keys.getPublic())
-		.setInitialSupply(SUPPLY)
-		.build();
+      .setPublicKeyOfGamete(keys.getPublic())
+      .setInitialSupply(BigInteger.valueOf(100_000_000))
+      .build();
 
 	try (var original = TendermintNodes.init(config);
-         // remove the next line if you want to publish an uninitialized node
-         var initialized = InitializedNodes.of(original, consensus, takamakaCodePath);
-         var service = NodeServices.of(original, 8001)) {
+      // remove the next line if you want to publish an uninitialized node
+      var initialized = InitializedNodes.of(original, consensus, takamakaCodePath);
+      var service = NodeServices.of(original, 8001)) {
 
-        System.out.println("\nPress ENTER to turn off the server and exit this program");
-        System.in.read();
+      System.out.println("\nPress ENTER to turn off the server and exit this program");
+      System.in.read();
     }
   }
 }

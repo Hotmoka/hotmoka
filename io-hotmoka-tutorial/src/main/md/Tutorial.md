@@ -5971,7 +5971,7 @@ developer only the task to develop the Tendermint app.
 There is a Hotmoka node that implements such a Tendermint app,
 for programming in Takamaka over Tendermint. We have already used that node
 in the previous chapter, since that installed at
-`@server` is a node of that type.
+`@server_tendermint` is a node of that type.
 Figure @fig:hotmoka_tendermint
 shows the architecture of a Tendermint Hotmoka node.
 It consists of a few components.
@@ -5985,26 +5985,26 @@ What is specific here, however, is that transactions are put inside a blockchain
 implemented by Tendermint. The communication occurs, internally, through the two TCP ports
 26657 and 26658, that are the standard choice of Tendermint for communicating with an app.
 Clients can contact the Hotmoka node
-through any port, typically but not exclusively 80 or 8001,
+through any port, typically but not exclusively 8001 or 8002,
 as a service that implements the interface `Node` in Figure @fig:node_hierarchy.
 The node can live alone but is normally integrated with other Hotmoka nodes based on Tendermint, so that
 they execute and verify the same transactions, reaching the same state at the end. This happens through
 the TCP port 26656, that allows Tendermint instances to _gossip_: they exchange transactions and information on peers
 and finally reach consensus.
 Each node can be configured to use a different port to communicate with clients,
-which is useful if, for instance, ports 80 or 8001 (or both)
+which is useful if, for instance, ports 8001 or 8002 (or both)
 are already used by some other service.
 Port 26656 must be the same for all nodes in the network, since they must communicate on
 a standard port.
 
-We can use `@server` to play with
+We can use `@server_tendermint` to play with
 accounts and Takamaka contracts. However, we might want to
-install our own node, part of the same blockchain network of `@server`
+install our own node, part of the same blockchain network of `@server_tendermint`
 or part of a brand new blockchain. In the former case, our own node will execute
-the transactions, exactly as `@server`, so that we can be sure that they are
+the transactions, exactly as `@server_tendermint`, so that we can be sure that they are
 executed according to the rules. In the latter case, we can have our own blockchain that
 executes our transactions only, instead of using a shared blockchain such as that
-at `@server`.
+at `@server_tendermint`.
 
 This section shows how you can start your own Hotmoka Tendermint node,
 consisting of a single validator node, hence part of its own blockchain.
@@ -6060,97 +6060,113 @@ Once this is done, you can create a key pair for the gamete
 of the node that you are going to start. You perform this with `moka`:
 
 ```shell
-$ moka create-key
-
-Please specify the password of the new key: king
-A new key FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ has been created.
-Its entropy has been saved into the file
-  "./FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ.pem".
+$ moka keys create --name gamete.pem --password
+Enter value for --password (the password that will be needed later to use the key pair): mypassword
+The new key pair has been written into "gamete.pem":
+* public key: 677QPRLfS4Mwgy2xA4dSEWmM3Hyb43mdZedSzq2g8Yxt (ed25519, base58)
+* public key: S9so3T9QIAau/zTpsAlKEhkkJOsqV3HDIQCc72ITha0= (ed25519, base64)
+* Tendermint-like address: 8380F3BEC1568BC3A07DE0CA721BA91CD9BC5282
 ```
 
-The entropy is a representation of the key pair. The name of the file
-is the Base58-encoded public key of the pair. While the entropy and the password are secret information
+The key pair is represented as a `gamete.pem` that contains its _entropy_.
+While the entropy and the password are secret information
 that you should not distribute, the public key can be used to create a new node.
 Namely, you can start a Hotmoka node based on Tendermint,
 that uses the Tendermint configuration
-directory that you have just created,
+directory that you have just created, and with a gamete controlled
+by the `gamete.pem` key pair,
 by using the `moka init-tendermint` command. You also need
-to specify how much coins are minted for the gamete
-and where is the jar of the runtime of Takamaka, that will
+to specify the jar of the runtime of Takamaka, that will
 be stored inside the node as `takamakaCode`: we use the
-local Maven's cache for that:
+local Maven's cache for that but you can alternatively download the
+`io.takamaka-code-@takamaka_version.jar` file from Maven and refer to
+it in the following command line:
 
 ```shell
-$ moka init-tendermint 100000000000000
-    --tendermint-config mytestnet/node0
-    --takamaka-code ~/.m2/repository/io/hotmoka/io-takamaka-code/
-                         @takamaka_version/io-takamaka-code-@takamaka_version.jar
-    --key-of-gamete FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ
+$ moka nodes tendermint init ~/.m2/repository/io/hotmoka/io-takamaka-code/@takamaka_version/io-takamaka-code-@takamaka_version.jar
+    --public-key-of-gamete=677QPRLfS4Mwgy2xA4dSEWmM3Hyb43mdZedSzq2g8Yxt
+    --tendermint-config=mytestnet/node0
+Do you really want to start a new node at "chain" (old blocks and store will be lost) [Y/N] Y
+The following service has been published:
+ * ws://localhost:8001: the API of this Hotmoka node
 
-Do you really want to start a new node at this place
-  (old blocks and store will be lost) [Y/N] Y
+The validators are the following accounts:
+ * e8d06a563da12615a39baecf6bb041a9c39d795be094cc5803971f66cf54ecaf#0
+     with public key A5bJbdZWudJv4JxVAmi4QDyDwAyJYc8xxcP1dEdc1Tsh (ed25519, base58)
 
-The following node has been initialized:
-  takamakaCode: b23118aa95fa436f951bdc78d5ffea99a7bd72cf1512bef3df2ea12993f18a70
-  manifest: 21d375ae9bac3b74d1a54a6418f7c70c2c107665fb2066a94dbf65cb3db9cdc6#0
-    chainId: chain-btmZzq
-    ...
-    signature: ed25519
-    gamete: d2fc1b34d6e4b2d2d80f7665d5ef4d5eb81e927cebe2240aec4dda7c1173542b#0
-      balance: 100000000000000
-      maxFaucet: 0
-      ...
-    ...
+The owner of the key pair of the gamete can bind it now to its address with:
+  moka keys bind file_containing_the_key_pair_of_the_gamete --password --url url_of_this_Hotmoka_node
+or with:
+  moka keys bind file_containing_the_key_pair_of_the_gamete --password
+    --reference 686601110429b794e762d7013bad9012289cab0204c357c916db4c8f654aca57#0
 
-The node has been published at ws://localhost:8001
-
-The owner of the key of the gamete can bind it to its address now:
-  moka bind-key FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ
-    --uri uri_of_this_node
-or
-  moka bind-key FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ
-    --reference d2fc1b34d6e4b2d2d80f7665d5ef4d5eb81e927cebe2240aec4dda7c1173542b#0
-
-Press enter to exit this program and turn off the node
+Press the enter key to stop this process and close this node: 
 ```
 
 This command has done a lot! It has created an instance
-of `TendermintBlockchain`; it has stored the `io-takamaka-code` jar
-inside it, at a reference called `takamakaCode`; it has created
+of `TendermintNode`; it has stored the `io-takamaka-code-@takamaka_version.jar` jar
+inside it; it has created
 a Java object, called manifest, that contains other objects, including
 an externally-owned account named `gamete`, whose public key is
-that provided after `--key-of-gamete`;
+that provided after `--public-key-of-gamete`;
 it has initialized the balance of the gamete to
-the value passed after `moka init-tendermint`. Finally, this command
+the a default value, that can be overriden with the option `--initial-supply`. Finally, this command
 has published an internet service at the URI `ws://localhost:8001`,
 reachable through websockets connections, that exports the API
 of the node.
 
-> By default, `init-tendermint` publishes the service at port 8001. This can be changed
-> with its `--port` switch.
+> By default, `moka nodes tendermint init` publishes the service at port 8001. This can be changed
+> with its `--port` option.
 
 > The chain identifier of the blockchain is specified inside the Tendermint configuration
 > files. You can edit such files and set your preferred chain identifier before invoking
-> `init-tendermint`.
+> `moka nodes tendermint init`.
 
 In order to use the gamete, you should bind its key to its actual storage
 reference in the node, on your local machine. Open another shell,
 move inside the directory holding the keys of the gamete and digit:
 
 ```shell
-$ moka bind-key FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ
-
-A new account d2fc1b34d6e4b2d2d80f7665d5ef4d5eb81e927cebe2240aec4dda7c1173542b#0
-  has been created.
-Its entropy has been saved into the file
-  "./d2fc1b34d6e4b2d2d80f7665d5ef4d5eb81e927cebe2240aec4dda7c1173542b#0.pem".
+$ moka keys bind gamete.pem --password
+Enter value for --password (the password of the key pair): mypassword
+The key pair of 686601110429b794e762d7013bad9012289cab0204c357c916db4c8f654aca57#0
+  has been saved
+  as "686601110429b794e762d7013bad9012289cab0204c357c916db4c8f654aca57#0.pem".
 ```
 
 This operation has created a pem file whose name is that of the storage reference of the gamete.
 With this file, it is possible to run transactions on behalf of the gamete.
 
-Your computer exports a Hotmoka node now, running on Tendermint.
-If your computer is reachable at some address `my.machine`, anybody can contact
+Your computer exports a Hotmoka node now, running on Tendermint. You can verify this with:
+```shell
+$ moka nodes manifest show
+   takamakaCode: d840e1fb62c2655e7212c28d8b60ea22b2aab38f1c8eadba64118f61db96130e
+   manifest: 01d03cf28428c89a9b3360477d141ba5716d11630272a52c534675f39f9e3553#0
+      genesisTime: 2025-06-11T07:36:04.421951997Z
+      chainId: chain-d5Y3D3
+      ...
+      allowsUnsignedFaucet: false
+      gamete: 686601110429b794e762d7013bad9012289cab0204c357c916db4c8f654aca57#0
+         balance: 1000000000000000000000000000000000000000000
+         maxFaucet: 0
+      validators: 01d03cf28428c89a9b3360477d141ba5716d11630272a52c534675f39f9e3553#1
+         percent of validators' reward that gets staked: 75000000 (ie. 75.000000%)
+         number of validators: 1
+         validator #0: e8d06a563da12615a39baecf6bb041a9c39d795be094cc5803971f66cf54ecaf#0
+           id: 0BF7FE524C2394DC905EF822B9DC654FB14ADB2E
+           balance: 0
+           staked: 0
+           power: 1
+      initialSupply: 1000000000000000000000000000000000000000000
+      currentSupply: 1000000000000000000000000000000000000000000
+      finalSupply: 2000000000000000000000000000000000000000000
+      initialInflation: 100000 (ie. 0.100000%)
+      currentInflation: 100000 (ie. 0.100000%)
+      height: 1
+      ...
+```
+If your computer is reachable at some address `my.machine` and if its 8001 port is open to the outside world,
+then anybody can contact
 your node at `ws://my.machine:8001`, query your node and run transactions on your node.
 However, what has been created is a Tendermint node where all initial coins are inside
 the gamete. By using the gamete, _you_ can fill the node with objects
@@ -6158,39 +6174,41 @@ and accounts now, and in general run all transactions you want.
 However, other users, who do not know the keys of the gamete,
 will not be able to run any non-`@View` transaction on your node.
 If you want to open a faucet, so that other users can gain droplets of coins,
-you must add the `--open-unsigned-faucet` option to the `moka init-tendermint`
+you must add the `--open-unsigned-faucet` option to the `moka nodes tendermint init`
 command above. If you do that, you can then go _into another shell_ (since the previous one is busy with the
-execution of the node), in a directory holding the keys of the gamete,
+execution of the node), in a directory holding the key pair file of the gamete,
 and type:
 
 ```shell
-$ moka faucet 5000000
-
-Please specify the password of the gamete account: king
+$ moka nodes faucet 5000000 --password
+Enter value for --password (the password of the gamete account): mypassword
+The threshold of the faucet has been set.
 ```
 
 which specifies the maximal amount of coins that
-the faucet is willing to give away at each request (its _flow_). You can re-run the `moka faucet`
+the faucet is willing to give away at each request (its _flow_). You can re-run the `moka nodes faucet`
 command many times, in order to change the flow of the faucet, or close it completely.
-Needless to say, only the owner of the keys of the gamete can run the `moka faucet` command,
-which is why the file with the entropy
-of the gamete must be in the directory where you run `moka faucet`.
+Needless to say, only the owner of the keys of the gamete can run the `moka nodes faucet` command,
+which is why the key pair file of the gamete must be in the directory where you run `moka nodes faucet`.
 
 After opening a faucet with a sufficient flow, anybody can
 re-run the examples of the previous chapters by replacing
-`@server` with `ws://my.machine:8001`: your computer will serve
+`@server_mokamint` and `@server_tendermint` with `ws://my.machine:8001`: your computer will serve
 the requests and run the transactions.
 
 If you turn off your Hotmoka node based on Tendermint, its state remains saved inside the
-`chain` directory: the `chain/blocks` subdirectory is where Tendermint stores the blocks
-of the chain; while `chain/store` contains the Xodus database,
+`chain` directory: the `chain/tendermint` subdirectory is where Tendermint stores the blocks
+of the chain; while `chain/hotmoka` contains the Xodus database,
 consisting of the storage objects created in blockchain.
-Later, you can resume the node from that state, by typing:
+If you stop the Tendermint node now (press enter in the window where it was running), you can subsequently
+resume that node from its latest state, by typing:
 
 ```shell
-$ moka resume-tendermint --tendermint-config mytestnet/node0
-...
-Press enter to exit this program and turn off the node
+$ moka nodes tendermint resume
+The following service has been published:
+ * ws://localhost:8001: the API of this Hotmoka node
+
+Press the enter key to stop this process and close this node: 
 ```
 
 There is a log file that can be useful to check the state of our Hotmoka-Tendermint app.
@@ -6198,24 +6216,19 @@ Namely, `tendermint.log` contains the log of Tendermint itself. It can be intere
 to inspect which blocks are committed and when:
 
 ```
-I[2021-05-05|11:46:00.113] Version info, software=@tendermint_version block=10 p2p=7
-I[2021-05-05|11:46:00.248] Starting Node, impl=Node
-I[2021-05-05|11:46:00.364] Started node, nodeInfo=
-  "{ProtocolVersion:{P2P:7 Block:10 App:0}
-   ID_:6615dcd76f7ecd1bde824c45f316c719b6bfe55c  ListenAddr:tcp://0.0.0.0:26656
-   Network:chain-btmZzq  Version:@tendermint_version  Channels:4020212223303800
-   Moniker:filicudi  Other:{TxIndex:on RPCAddress:tcp://127.0.0.1:26657}}"
-I[2021-05-05|11:46:04.597] Executed block, height=1 validTxs=1 invalidTxs=0
-I[2021-05-05|11:46:04.657] Committed state, height=1 txs=1 appHash=E83360...
-I[2021-05-05|11:46:05.377] Executed block, height=2 validTxs=1 invalidTxs=0
-I[2021-05-05|11:46:05.441] Committed state, height=2 txs=1 appHash=C923A1...
-...
-I[2021-05-05|11:46:15.501] Executed block, height=9 validTxs=3 invalidTxs=0
-I[2021-05-05|11:46:15.568] Committed state, height=9 txs=3 appHash=4876BD...
+I[2025-06-11|10:13:24.143] Version info, module=main
+  tendermint_version=@tendermint_version block=11 p2p=8
+I[2025-06-11|10:13:24.169] Started node module=main
+  nodeInfo="{ProtocolVersion:{P2P:8 Block:11 App:0}
+I[2025-06-11|10:13:25.234] executed block module=state
+  height=630 num_valid_txs=0 num_invalid_txs=0
+I[2025-06-11|10:13:25.408] committed state module=state
+  height=630 num_txs=0
+  app_hash=A30F89457141AB7E94F71456871396FD9D30CA8E9F66998C6E3E3079D40849F
 ...
 ```
-Note how the block height increases and that the application hash changes whenever a block
-contains transactions (`validTxs`>0), reflecting the fact that the state has been modified.
+In ths log, the block height increases and the application hash changes whenever a block
+contains transactions (`num_valid_txs`>0), reflecting the fact that the state has been modified.
 
 ## Disk Nodes
 
@@ -6235,102 +6248,91 @@ handy because they allow one to inspect, very easily, the requests sent to
 the node and the corresponding responses.
 
 You can start a disk Hotmoka node, with an open faucet, exactly as you did,
-in the previous section for a Tendermint node, but using the `moka init-disk`
-command instead of `moka init-tendermint`. You do not need any Tendermint configuration
+in the previous section for a Tendermint node, but using the `moka nodes disk init`
+command instead of `moka nodes tendermint init`. You do not need any Tendermint configuration
 this time, but still need a key to control the gamete of the node, that you can create
-exactly as for a Tendermint Hotmoka node:
+exactly as for a Tendermint Hotmoka node.
+You then specify the Base58-encoded public key when starting the node:
 
 ```shell
-$ moka create-key
+$ moka nodes disk init ~/.m2/repository/io/hotmoka/io-takamaka-code/@takamaka_version/io-takamaka-code-@takamaka_version.jar
+  --public-key-of-gamete=677QPRLfS4Mwgy2xA4dSEWmM3Hyb43mdZedSzq2g8Yxt
+  --open-unsigned-faucet
+Do you really want to start a new node at "chain" (old blocks and store will be lost) [Y/N] Y
+The following service has been published:
+ * ws://localhost:8001: the API of this Hotmoka node
 
-Please specify the password of the new key: king
-A new key FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ has been created.
-Its entropy has been saved into the file
-  "./FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ.pem".
-```
+The owner of the key pair of the gamete can bind it now to its address with:
+  moka keys bind file_containing_the_key_pair_of_the_gamete --password --url url_of_this_Hotmoka_node
+or with:
+  moka keys bind file_containing_the_key_pair_of_the_gamete --password
+    --reference 686601110429b794e762d7013bad9012289cab0204c357c916db4c8f654aca57#0
 
-You specify the public component of the key when starting the node:
-
-```shell
-$ moka init-disk 100000000000000000000000
-    --open-unsigned-faucet
-    --takamaka-code ~/.m2/repository/io/hotmoka/io-takamaka-code/
-                         @takamaka_version/io-takamaka-code-@takamaka_version.jar
-    --key-of-gamete FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ
-
-Do you really want to start a new node at this place
-  (old blocks and store will be lost) [Y/N] Y
-
-The following node has been initialized:
-  takamakaCode: b23118aa95fa436f951bdc78d5ffea99a7bd72cf1512bef3df2ea12993f18a70
-  manifest: ff7855ed728c2f323341d493a6a7b33218e4844b512c3dd86220e05fd0af7847#0
-    ...
-    gamete: ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc#0
-    ...
-
-The Hotmoka node has been published at ws://localhost:8001
-
-The owner of the key of the gamete can bind it to its address now:
-  moka bind-key FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ --uri uri_of_this_node
-or
-  moka bind-key FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ
-    --reference ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc#0
-
-Press enter to exit this program and turn off the node
+Press the enter key to stop this process and close this node: 
 ```
 
 Then, in another shell, move in the directory holding the keys of the gamete, bind the
 gamete to the keys and open the faucet:
 
 ```shell
-$ moka bind-key FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ
-
-A new account ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc#0
-  has been created.
-Its entropy has been saved into the file
-  "./ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc#0.pem".
-
-$ moka faucet 5000000000000000
-
-Please specify the password of the gamete account: king
+$ moka keys bind gamete.pem --password
+Enter value for --password (the password of the key pair): mypassword
+The key pair of 686601110429b794e762d7013bad9012289cab0204c357c916db4c8f654aca57#0
+  has been saved as "686601110429b794e762d7013bad9012289cab0204c357c916db4c8f654aca57#0.pem".
+$ moka nodes faucet 5000000000000000 --password
+Enter value for --password (the password of the gamete account): mypassword
+The threshold of the faucet has been set.
 ```
 
 You won't notice any real difference with Tendermint, but for the fact that this node is faster,
-its chain identifier is the empty string and it has no validators. Blocks and transactions are
+its default chain identifier is the empty string and it has no validators. Blocks and transactions are
 inside the `chain` directory, that this time contains a nice textual representation of requests and
 responses:
 
 ```shell
 $ tree chain
 chain
-  b0
-    0-b23118aa95fa436f951bdc78d5ffea99a7bd72cf1512bef3df2ea12993f18a70
-      request.txt
-      response.txt
-    1-ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc
-      request.txt
-      response.txt
-    2-3c0ba38654c78476d488a4bfedcc1debf2c33c2c79979ee044ca583d68c2d4d0
-      request.txt
-      response.txt
-    3-951f3cb034c5b8ac9b7d40c4693ee73c46ae3f9b50120a3548f6b782474dc972
-      request.txt
-      response.txt
-    4-ff7855ed728c2f323341d493a6a7b33218e4844b512c3dd86220e05fd0af7847
-      request.txt
-      response.txt
-  b1
-    0-bc7b704430a5f683ee3c8d1df303d74172a3590526ec9ed738ebd3fa017b46ee
-      request.txt
-      response.txt
-    1-02cda6840f83b19a9e02884d80fda9f721575c35800c7ab9e005b9a80a5c9696
-      request.txt
-      response.txt
+  hotmoka
+    store
+      b1
+        0-d840e1fb62c2655e7212c28d8b60ea22b2aab38f1c8eadba64118f61db96130e
+          request.txt
+          response.txt
+      b2
+        0-686601110429b794e762d7013bad9012289cab0204c357c916db4c8f654aca57
+          request.txt
+          response.txt
+      b3
+        0-76c18f989bb9fbecab800fc86d1d76c9cca025aff3f32b61b4bc5b7d5cfb98f0
+          request.txt
+          response.txt
+      b4
+        0-9a65cdc535b724afadde2068f6dc6554d055bda6be6885ad87921793535cb1d1
+          request.txt
+          response.txt
+      b5
+        0-4bb66115dcfe21454203387af947da33f85057cc755f1d5ef86ea77b07fd6782
+          request.txt
+          response.txt
+      b6
+        0-e173fd80b965a282773ef99ded3e2ee3f73270e24f891bde6d7ea465625a3171
+          request.txt
+          response.txt
+        1-ed2aa9b642579f31b70ed666c5d751a03f8ceed670a8f5e6f3608e0774970585
+          request.txt
+          response.txt
+      b7
+        0-5f3ca482f9ed97e86bf1609632dfa651c2892f316785bebf7a5c43f4bc6711f6
+          request.txt
+          response.txt
+        1-f9c964b489333f34673517f76538b65da4dc29a2d0d2e46fdc337a5af4e0907e
+          request.txt
+          response.txt
 ```
 
 > The exact ids and the number of these transactions will be different in your computer.
 
-There are two blocks, `b0` and `b1`, each containing up to five transactions.
+There are blocks, `b0`...`b7`, each containing a variable number of transactions.
 Each transaction is reported with its id and the pair request/response that the node has computed
 for it. They are text files, that you can open to understand what is happening inside the node.
 
@@ -6340,52 +6342,51 @@ transaction, that distributes the earnings of the block to the (zero, for disk n
 and increases block height and number of transactions in the manifest.
 
 Spend some time looking at the `request.txt` and `response.txt` files.
-In particular, the last transaction inside `b1` should be that triggered by your `moka faucet`
+In particular, the last transaction inside `b7` should be that triggered by your `moka nodes faucet`
 command. Open its `request.txt` file. It should read like this:
 
 ```
-InstanceMethodCallTransactionRequest:
-  caller: ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc#0
+$ cat chain/hotmoka/store/b7/
+    0-5f3ca482f9ed97e86bf1609632dfa651c2892f316785bebf7a5c43f4bc6711f6/request.txt
+InstanceMethodCallTransactionRequestImpl:
+  caller: 686601110429b794e762d7013bad9012289cab0204c357c916db4c8f654aca57#0
   nonce: 3
   gas limit: 100000
-  gas price: 100
-  class path: b23118aa95fa436f951bdc78d5ffea99a7bd72cf1512bef3df2ea12993f18a70
-  method: void io.takamaka.code.lang.Gamete.setMaxFaucet(BigInteger, BigInteger)
+  gas price: 75
+  class path: d840e1fb62c2655e7212c28d8b60ea22b2aab38f1c8eadba64118f61db96130e
+  method: void io.takamaka.code.lang.Gamete.setMaxFaucet(java.math.BigInteger)
   actuals:
     5000000000000000
-    0
-  receiver: ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc#0
+  receiver: 686601110429b794e762d7013bad9012289cab0204c357c916db4c8f654aca57#0
   chainId: 
-  signature: 6934f9b1b614ff1fb5cc0e84929b60a0fa4ca5f292c8946b796e3afae3e1b2d07...
+  signature: 934391636ad2cafee0e6a8fc915a7e3ef4a85eb5b662ffe2f041c69161ae4...
 ```
 
-You can clearly see that the `moka faucet` command is actually calling
+You can clearly see that the `moka nodes faucet` command is called
 the `setMaxFaucet` method of the gamete,
 passing `5000000000000000` as new value for the flow of the faucet.
 The caller (payer) and the receiver of the method invocation coincide, since they are both the
 gamete. The signature has been generated with the keys of the gamete.
 
-If you check the corresponding `response.txt`, you will see something like:
+If you check the corresponding `response.txt`, you will see something like this:
 
 ```
+$ cat chain/hotmoka/store/b7/
+    0-5f3ca482f9ed97e86bf1609632dfa651c2892f316785bebf7a5c43f4bc6711f6/response.txt 
 VoidMethodCallTransactionSuccessfulResponse:
-  gas consumed for CPU execution: 329
-  gas consumed for RAM allocation: 1196
-  gas consumed for storage consumption: 9590
+  gas consumed for CPU execution: 1648
+  gas consumed for RAM allocation: 3189
+  gas consumed for storage consumption: 307
   updates:
-
-    <ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc#0|
+    <686601110429b794e762d7013bad9012289cab0204c357c916db4c8f654aca57#0|
       io.takamaka.code.lang.Contract.balance:java.math.BigInteger|
-      9999999999999999999999999999999998888500>
-
-    <ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc#0|
+      999999999999999999999999999999999999614200>
+    <686601110429b794e762d7013bad9012289cab0204c357c916db4c8f654aca57#0|
       io.takamaka.code.lang.ExternallyOwnedAccount.nonce:java.math.BigInteger|
       4>
-
-    <ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc#0|
+    <686601110429b794e762d7013bad9012289cab0204c357c916db4c8f654aca57#0|
       io.takamaka.code.lang.Gamete.maxFaucet:java.math.BigInteger|
       5000000000000000>
-
   events:
 ```
 
@@ -6400,33 +6401,41 @@ that its nonce has been increased to four (since it ran the transaction); and th
 ## Logs
 
 All Hotmoka nodes generate a `hotmoka.log` log file, that reports which transactions have been
-processed and potential errors. Its content, in the case of a Tendermint node, looks like:
+processed and potential errors (that file is stored in successive versions, so look for instance for
+`hotmoka.log.0`, also in your home directory). Its content, in the case of a Tendermint node, looks like:
 
 ```
-INFO: No roots found: the database is empty [05-05-2021 11:45:58]
-INFO: Exodus environment created: chain/state [05-05-2021 11:45:58]
-INFO: The Tendermint process is up and running [05-05-2021 11:46:00]
-INFO: a18c0a...: posting (JarStoreInitialTransactionRequest) [05-05-2021 11:46:00]
-INFO: a18c0a...: checking start [05-05-2021 11:46:00]
-INFO: a18c0a...: checking success [05-05-2021 11:46:00]
-INFO: a18c0a...: delivering start [05-05-2021 11:46:01]
-INFO: a18c0a...: delivering success [05-05-2021 11:46:04]
-INFO: 3cbaa2...: posting (GameteCreationTransactionRequest)
-      [05-05-2021 11:46:04]
-INFO: 3cbaa2...: checking start [05-05-2021 11:46:04]
-INFO: 3cbaa2...: checking success [05-05-2021 11:46:04]
-INFO: 3cbaa2...: checking start [05-05-2021 11:46:05]
-INFO: 3cbaa2...: checking success [05-05-2021 11:46:05]
-INFO: 3cbaa2...: delivering start [05-05-2021 11:46:06]
-INFO: 3cbaa2...: delivering success [05-05-2021 11:46:06]
-INFO: 6ed545...: posting (ConstructorCallTransactionRequest) [05-05-2021 11:46:07]
-...
-INFO: Store get cache hit rate: 0.0% [05-05-2021 11:46:15]
-INFO: Exodus log cache hit rate: 36.7% [05-05-2021 11:46:15]
-INFO: Time spent in state procedures: 138ms [05-05-2021 11:46:15]
-INFO: Time spent checking requests: 8ms [05-05-2021 11:46:15]
-INFO: Time spent delivering requests: 2213ms [05-05-2021 11:46:15]
-INFO: The Tendermint process has been shut down [05-05-2021 11:46:15]
+[2025-06-11 10:25:22] [INFO] 76c18f989bb9fbecab800fc86d1d76c9c...: delivering start
+[2025-06-11 10:25:22] [INFO] 76c18f989bb9fbecab800fc86d1d76c9c...: delivering success
+[2025-06-11 10:25:22] [INFO] e57b47e565cf4704d44ba2b04781eee84...: running start
+[2025-06-11 10:25:22] [INFO] e57b47e565cf4704d44ba2b04781eee84...: running success
+[2025-06-11 10:25:22] [INFO] 9a65cdc535b724afadde2068f6dc6554d...: posting
+[2025-06-11 10:25:22] [INFO] 9a65cdc535b724afadde2068f6dc6554d...: delivering start
+[2025-06-11 10:25:22] [INFO] 9a65cdc535b724afadde2068f6dc6554d...: delivering success
+[2025-06-11 10:25:22] [INFO] e57b47e565cf4704d44ba2b04781eee84...: running start
+[2025-06-11 10:25:22] [INFO] e57b47e565cf4704d44ba2b04781eee84...: running success
+[2025-06-11 10:25:22] [INFO] e173fd80b965a282773ef99ded3e2ee3f...:
+  4bb66115dcfe21454203387af947...#0 set as manifest
+[2025-06-11 10:25:22] [INFO] e173fd80b965a282773ef99ded3e2ee3f...:
+  the node has been initialized
+[2025-06-11 10:25:22] [INFO] the gas station cache has been updated
+  since it might have changed
+[2025-06-11 10:25:22] [INFO] the gas cache has been updated since
+  it might have changed: the new gas price is 100
+[2025-06-11 10:25:22] [INFO] coinbase: units of gas consumed for CPU, RAM
+  or storage since the previous reward: 0
+[2025-06-11 10:25:22] [INFO] the gas cache has been updated since
+  it might have changed: the new gas price is 75
+[2025-06-11 10:25:22] [INFO] Started listener bound to [0.0.0.0:8001]
+[2025-06-11 10:25:22] [INFO] node service(ws://localhost:8001): published
+[2025-06-11 10:26:53] [INFO] node service(ws://localhost:8001):
+  bound a new remote through session e0d52c8f-1f45-4bed-98e8-bf22cf7c027f
+[2025-06-11 10:26:53] [INFO] node service(ws://localhost:8001):
+  received a /get_manifest request
+[2025-06-11 10:26:53] [INFO] node service(ws://localhost:8001):
+  received a /get_takamaka_code request
+[2025-06-11 10:26:54] [INFO] node service(ws://localhost:8001):
+  unbound the remote at session e0d52c8f-1f45-4bed-98e8-bf22cf7c027f
 ```
 
 If you want to follow in real time what is happening inside your node,
@@ -6440,11 +6449,11 @@ This will hang and print the new log entries as they are generated.
 Assuming that you have a local node running in your machine, try for instance in another shell
 
 ```shell
-$ moka info
+$ moka nodes manifest show
 ```
 
 You will see in the log all new entries related to the execution of the methods to access
-the information on the node printed by `moka info`.
+the information on the node printed by the last command.
 
 > Hotmoka nodes started with Docker disable the generation of the log files and dump
 > logs to the standard output, where they can be accessed with the `docker logs` command.
@@ -6452,7 +6461,7 @@ the information on the node printed by `moka info`.
 
 ## Node Decorators
 
-__[See project `runs` inside the `@tutorial_name` repository]__
+__[See `io-hotmoka-tutorial-examples` in `@hotmoka_repo`]__
 
 There are some frequent actions that can be performed on a Hotmoka node.
 Typically, these actions consist in a sequence of transactions.
@@ -6473,23 +6482,24 @@ A few examples are:
 
 In all these examples, Hotmoka provides decorators, that is, implementations of the
 `Node` interface built from an existing `Node` object. A decorator is just an alias
-to the decorated node, but adds some functionality or performs some action on it.
+of the decorated node, but adds some functionality or performs some action on it.
 Figure @fig:node_hierarchy shows that there are decorators for each of the three
 situations enumerated above.
 
 In order to understand the use of node decorators and appreciate their existence,
-let us write a Java class that creates a `MemoryNode`, hence initially empty;
-then it initializes the node; subsequently it installs our `family-0.0.1.jar`
+let us write a Java class that creates a `DiskNode`, hence initially empty;
+then it initializes that node; subsequently it installs our `io-takamaka-code-examples-family-@takamaka_version.jar`
 file in the node and finally creates two accounts in the node. We stress the fact that
 these actions
 can be performed in code by using calls to the node interface (Figure @fig:node_hierarchy);
-they can also be performed through the `moka` tool. Here, however, we want to perform them
+but they can also be performed through the `moka` tool. Here, however, we want to perform them
 in code, simplified by using node decorators.
 
-Create the following `Decorators.java` class inside the `runs` package of the `runs` project:
+Create the following `Decorators.java` class inside the `io.hotmoka.tutorial.examples` package of the
+`io-hotmoka-tutorial-examples` project:
 
 ```java
-package runs;
+package io.hotmoka.tutorial.examples;
 
 import java.math.BigInteger;
 import java.nio.file.Paths;
@@ -6506,8 +6516,6 @@ import io.hotmoka.node.disk.DiskNodes;
 import io.takamaka.code.constants.Constants;
 
 public class Decorators {
-  public final static BigInteger SUPPLY = BigInteger.valueOf(1_000_000_000);
-
   public static void main(String[] args) throws Exception {
     var config = DiskNodeConfigBuilders.defaults().build();
 
@@ -6518,31 +6526,34 @@ public class Decorators {
       + "/io-takamaka-code-" + Constants.TAKAMAKA_VERSION + ".jar");
 
     // the path of the user jar to install
-    var familyPath = Paths.get("../family/target/family-0.0.1.jar");
+    var familyPath = Paths.get
+      (System.getProperty("user.home") +
+      "/.m2/repository/io/hotmoka/io-takamaka-code-examples-family/" + Constants.TAKAMAKA_VERSION
+      + "/io-takamaka-code-examples-family-" + Constants.TAKAMAKA_VERSION + ".jar");
 
     // create a key pair for the gamete
     var signature = SignatureAlgorithms.ed25519();
-	var entropy = Entropies.random();
-	KeyPair keys = entropy.keys("password", signature);
-	var consensus = ConsensusConfigBuilders.defaults()
-   		.setInitialSupply(SUPPLY)
-   		.setPublicKeyOfGamete(keys.getPublic()).build();
+    var entropy = Entropies.random();
+    KeyPair keys = entropy.keys("mypassword", signature);
+    var consensus = ConsensusConfigBuilders.defaults()
+   	   .setInitialSupply(BigInteger.valueOf(1_000_000_000))
+   	   .setPublicKeyOfGamete(keys.getPublic()).build();
 
-	try (var node = DiskNodes.init(config)) {
+    try (var node = DiskNodes.init(config)) {
       // first view: store the io-takamaka-code jar and create manifest and gamete
-	  var initialized = InitializedNodes.of(node, consensus, takamakaCodePath);
+      var initialized = InitializedNodes.of(node, consensus, takamakaCodePath);
 
-      // second view: store family-0.0.1.jar: the gamete will pay for that
+      // second view: store the family jar: the gamete will pay for that
       var nodeWithJars = JarsNodes.of(node, initialized.gamete(), keys.getPrivate(), familyPath);
 
-	  // third view: create two accounts, the first with 10,000,000 units of coin
+      // third view: create two accounts, the first with 10,000,000 units of coin
       // and the second with 20,000,000 units of coin; the gamete will pay
       var nodeWithAccounts = AccountsNodes.of
         (node, initialized.gamete(), keys.getPrivate(),
         BigInteger.valueOf(10_000_000), BigInteger.valueOf(20_000_000));
 
       System.out.println("manifest: " + node.getManifest());
-      System.out.println("family-0.0.1.jar: " + nodeWithJars.jar(0));
+      System.out.println("family jar: " + nodeWithJars.jar(0));
       System.out.println("account #0: " + nodeWithAccounts.account(0) +
                          "\n  with private key " + nodeWithAccounts.privateKey(0));
       System.out.println("account #1: " + nodeWithAccounts.account(1) +
@@ -6552,19 +6563,24 @@ public class Decorators {
 }
 ```
 
-Run class `Decorators` from Eclipse.
+Run class `Decorators`:
+```shell
+$ cd io-hotmoka-tutorial-examples
+$ mvn clean install exec:exec -Dexec.executable="java"
+    -Dexec.args="-cp %classpath io.hotmoka.tutorial.examples.Decorators"
+```
 It should print something like this on the console:
 
 ```
-manifest: 5f1ebc34f4aef10e2c2eeac3558aae7d4df97f676f29ba9d7e28d0d1713c5ad5#0
-family-0.0.1.jar: 7d6b33133647f0c84cc9550cc0010eab35329e0822df9706...
-account #0: 64fd4337475541ed2aeb3d49149603142b5ec275d41bfc9ec29555c41739ea8e#0
-  with private key Ed25519 Private Key [ab:69:96:b0:9c:24:6d:a2:d2:d9:97:b4:...]
-    public data: 4e1d5299f31e19315e4f59c3ade35a8b8f1d1bf5feb9b042c349cc5e051e8e55
+manifest: 1883cbb309a2f0d70e41b2e8587808c8f2cb45eb5c881e3a3603b78add16f568#0
+family jar: f401c4599e5b94393b6fb3799cd36d7de9c4162e83c4487feab416e921c036bd
+account #0: 88a94f374b677f507cd7f48a1f05dc51cf20b871dc6ab23eee076d21be9da31b#2
+  with private key Ed25519 Private Key [60:bb:8a:57:1d:53...aa:23:22:12]
+    public data: 3da4498e4523ef0d53f778141801b2c2c4fb184f0c5fa41b8936db940d94903b
 
-account #1: f0840b73741d3fceefc4e87a4d055a7044dbcbdeb8213636c0d810eba4cf60cc#0
-  with private key Ed25519 Private Key [cb:a5:ce:79:9b:98:25:3c:4d:44:7b:93:...]
-    public data: 46d9cbcbad683d1d21079558a20fbfb7c1feb6f9c07e33c0288d939df5...
+account #1: 88a94f374b677f507cd7f48a1f05dc51cf20b871dc6ab23eee076d21be9da31b#5
+  with private key Ed25519 Private Key [44:ad:6c:2c:b5:c2...59:d7:45:04]
+    public data: 84e329ac4df2e74be504167625733953df1620b082b7e5805029f583eda7050c
 ```
 
 You can see that the use of decorators has avoided us the burden of
@@ -6581,7 +6597,7 @@ the end of the try-with-resource will actually close all of them, since they are
 
 ## Hotmoka Services
 
-__[See project `runs` inside the `@tutorial_name` repository]__
+__[See `io-hotmoka-tutorial-examples` in `@hotmoka_repo`]__
 
 This section shows how we can publish a Hotmoka node online, by using Java code,
 so that it becomes a
@@ -6591,14 +6607,15 @@ is similar if you want to publish a memory Hotmoka node or any
 other Hotmoka node.
 
 Remember that we have already published our nodes online, by using the
-`moka init-tendermint` and `moka init-disk` commands.
+`moka nodes tendermint init` and `moka nodes disk init` commands.
 Here, however, we want to do the same operation in code.
 
-Create a class `Publisher.java` inside package `runs` of the `runs` project,
+Create a class `Publisher.java` inside package `io-hotmoka-tutorial-examples`
+of the `io-hotmoka-tutorial-examples` project,
 whose code is the following:
 
 ```java
-package runs;
+package io.hotmoka.tutorial.examples;
 
 import java.math.BigInteger;
 import java.nio.file.Paths;
@@ -6614,27 +6631,25 @@ import io.hotmoka.node.tendermint.TendermintNodes;
 import io.takamaka.code.constants.Constants;
 
 public class Publisher {
-  public final static BigInteger SUPPLY = BigInteger.valueOf(100_000_000);
-
   public static void main(String[] args) throws Exception {
     var config = TendermintNodeConfigBuilders.defaults().build();
+
     // the path of the runtime Takamaka jar, inside Maven's cache
     var takamakaCodePath = Paths.get
       (System.getProperty("user.home") +
       "/.m2/repository/io/hotmoka/io-takamaka-code/" + Constants.TAKAMAKA_VERSION +
       "/io-takamaka-code-" + Constants.TAKAMAKA_VERSION + ".jar");
 
-    // create a key pair for the gamete and compute the Base64-encoding of its public key
+    // create a key pair for the gamete
     var signature = SignatureAlgorithms.ed25519();
     var entropy = Entropies.random();
 	KeyPair keys = entropy.keys("password", signature);
 	var consensus = ValidatorsConsensusConfigBuilders.defaults()
-		.setPublicKeyOfGamete(keys.getPublic())
-		.setInitialSupply(SUPPLY)
-		.build();
+      .setPublicKeyOfGamete(keys.getPublic())
+      .setInitialSupply(BigInteger.valueOf(100_000_000))
+      .build();
 
 	try (var original = TendermintNodes.init(config);
-      // uncomment the next line if you want to initialize the node
       // var initialized = InitializedNodes.of(original, consensus, takamakaCodePath);
       var service = NodeServices.of(original, 8001)) {
 
@@ -6649,28 +6664,34 @@ We have already seen that `original` is a Hotmoka node based on Tendermint.
 The subsequent line makes the feat:
 
 ```java
-var service = NodeServices.of(serviceConfig, original);
+var service = NodeServices.of(original, 8001);
 ```
 
 Variable `service` holds a Hotmoka _service_, that is, an actual network service that adapts
-the `original` node to a web API that is published at localhost, at port 8001
-(another port number can be required to the factory
-method `NodeServices.of`, if needed). The service
-is an `AutoCloseable` object: it starts when it is created and gets shut down 
+the `original` node to a web API that is published at localhost, at port 8001.
+The service is an `AutoCloseable` object: it starts when it is created and gets shut down 
 when its `close()` method is invoked, which occurs, implicitly, at the end of the
 scope of the try-with-resources. Hence, this service remains online until the user
 presses the ENTER key and terminates the service (and the program).
 
-Run class `Publisher` from Eclipse.
-It should run for a few seconds and then start waiting for the ENTER key. Do not press such key yet!
-Since `original` is not initialized yet, it has no manifest and no gamete. Its store is just empty
-at the moment. You canverify that by running:
+Run class `Publisher`:
 
 ```shell
-$ moka info
+$ cd io-hotmoka-tutorial-examples
+$ mvn clean install exec:exec -Dexec.executable="java"
+    -Dexec.args="-cp %classpath io.hotmoka.tutorial.examples.Publisher"
+```
+It should work for a few seconds and then start waiting for the ENTER key. Do not press such key yet!
+Since `original` is not initialized yet, it has no manifest and no gamete. Its store is just empty
+at the moment. You can verify that by running:
+
+```shell
+$ moka nodes manifest show
+The remote service is misbehaving: are you sure that it is actually published
+  at ws://localhost:8001 and that it is initialized and accessible?
 ```
 
-which will fail since it cannot find a manifest in the node.
+which fails since it cannot find a manifest in the node.
 
 Thus, let us initialize the node before publishing it, so that it is already
 initialized when published. Press ENTER to terminate the service, then modify
@@ -6691,14 +6712,14 @@ and install the basic classes of the Takamaka runtime inside the node.
 > ```
 >
 > The result would be the same, since both are views of the same node object.
-> Moreover, note that we have initialized the node inside the try-with-resource,
+> Moreover, note that we have initialized the node inside the try-with-resources,
 > before publishing the service as the last of the three resources.
 > This ensures that the node, when published, is already initialized.
 > In principle, publishing an uninitialized node, as done previously, exposes
 > to the risk that somebody else might initialize the node, hence taking its control
 > since he will set the keys of the gamete.
 
-If you re-run class `Publisher` and retry the `moka info` command, you should see
+If you re-run class `Publisher` and retry the `moka nodes manifest show` command, you should see
 the manifest of the now initialized node on the screen.
 
 > A Hotmoka node, once published, can be accessed by many
@@ -6730,7 +6751,7 @@ Nevertheless, it is not the suggested way to proceed.
 A typical solution to this problem is to provide a software SDK, that is, a library
 that takes care of serializing the requests into JSON and deserializing
 the responses from JSON. Roughly speaking, this is the approach taken in Hotmoka.
-More precisely, as this section will show,
+More precisely,
 we can forget about the details of the JSON serialization
 and deserialization of requests and responses and only program against the `Node` interface,
 by using an adaptor of a published Hotmoka service into a `Node`. This adaptor is called
@@ -6741,13 +6762,13 @@ Namely, if you go back to [Installation of the Jar in a Hotmoka Node](#installat
 you will see that we have built a Hotmoka node from a remote service:
 
 ```java
-try (var node = RemoteNodes.of(URI.create("@server"), 20000)) {
+try (var node = RemoteNodes.of(URI.create("@server_mokamint"), 80000)) {
   ...
 }
 ```
 The `RemoteNodes.of(...)` method adapts a remote service into a Hotmoka node,
 so that we can call all methods of that (Figure @fig:node_hierarchy). The
-`20000` is the timeout, in milliseconds, for connecting to the service
+`80000` parameter is the timeout, in milliseconds, for connecting to the service
 and for the methods called on the remote node.
 
 ### Creating Sentry Nodes
@@ -6770,7 +6791,7 @@ that Hotmoka service can be adapted into a remote node
 that, itself, can be published on that machine:
 
 ```java
-try (Node validator = RemoteNodes.of(URI.create("ws://my.validator:8001"), 8001);
+try (Node validator = RemoteNodes.of(URI.create("ws://my.validator:8001"), 80000);
      NodeService service = NodeServices.of(validator, 8001)) {
   ...
 }
@@ -6835,7 +6856,7 @@ Requests sent to that node can be signed as follows:
 
 ```java
 // recover the algorithm used by the node
-SignatureAlgorithm signature = node.getConfig().getSignatureAlgorithmForRequests();
+SignatureAlgorithm signature = node.getConfig().getSignatureForRequests();
 
 // create a key pair for that algorithm
 KeyPair keys = signature.getKeyPair();
@@ -6943,115 +6964,177 @@ request of the transaction must be signed with the ed25519 algorithm.
 In practice, this allows specific transactions to override the default signature
 algorithm for the node.
 
-For instance, let us create an account using the default signature algorithm for the node.
+For instance, let us create an account that uses the default signature algorithm for the node.
 We charge its creation to the faucet of the node:
 
 ```shell
-$ moka create-account 1000000000000 --payer faucet --uri @server
-
-Please specify the password of the new account: game
+$ moka keys create --name account7.pem --password
+Enter value for --password (the password that will be needed later to use the key pair): game
+The new key pair has been written into "account7.pem":
 ...
-A new account @account4
-has been created
+$ moka accounts create faucet 1000000000000 account7.pem --password
+    --uri @server_mokamint
+Enter value for --password (the password of the key pair specified through --keys): game
+Adding transaction @transaction_account7... done.
+A new account @account7 has been created.
+Its key pair has been saved into the file
+  "@account7.pem".
+
+Gas consumption:
+ * total: 6757
+   * for CPU: 2461
+   * for RAM: 3824
+   * for storage: 472
+   * for penalty: 0
+ * price per unit: 1 pana
+ * total price: 6757 panas
 ```
 
-You can check the class of the new account with the `moka state` command:
+You can check the class of the new account with the `moka objects show` command:
 
 ```shell
-$ moka state @account4
-    --uri @server
-
-...
-class io.takamaka.code.lang.ExternallyOwnedAccountED25519 ...
-  publicKey:java.lang.String =
-    "@publickeyaccount4"
-  balance:java.math.BigInteger = 1000000000000
-...
+$ moka objects show @account7
+    --uri @server_mokamint
+class io.takamaka.code.lang.ExternallyOwnedAccountED25519
+    (from jar installed at @takamakaCode)
+  io.takamaka.code.lang.Contract.balance:java.math.BigInteger = 1000000000000
+  io.takamaka.code.lang.ExternallyOwnedAccount.nonce:java.math.BigInteger = 0
+  io.takamaka.code.lang.ExternallyOwnedAccount.publicKey:java.lang.String
+    = @public_key_account7
 ```
 
 As you can see, an account has been created, that uses the default `ed25519`
 signature algorithm of the node.
 Assume that we want to create an account now, that _always_ uses the `sha256dsa` signature algorithm,
-regardless of the default signature algorithm of the node. We can specify that to `moka create-account`:
+regardless of the default signature algorithm of the node. We can specify that to `moka accounts create`:
 
 ```shell
-$ moka create-account 1000000000000
-    --payer faucet --signature sha256dsa --uri @server
-
-Please specify the password of the new account: play
+$ moka keys create --name account8.pem --password --signature sha256dsa
+Enter value for --password (the password that will be needed later to use the key pair): play
+The new key pair has been written into "account8.pem":
 ...
-A new account @account5
-has been created
+$ moka accounts create faucet 1000000000000 account8.pem --password
+    --uri @server_mokamint
+    --signature sha256dsa
+Enter value for --password (the password of the key pair specified through --keys): play
+Adding transaction @transaction_account8... done.
+A new account @account8 has been created.
+Its key pair has been saved into the file
+  "@account8.pem".
+
+Gas consumption:
+ * total: 8912
+   * for CPU: 2461
+   * for RAM: 3824
+   * for storage: 2627
+   * for penalty: 0
+ * price per unit: 1 pana
+ * total price: 8912 panas
 ```
-This creation has been more expensive, because the public key of the
+This creation has been more expensive than for the previous account, because the public key of the
 sha256dsa algorithm is much longer than that for the ed25519 algorithm.
-You can verify this with the `moka state` command:
+You can verify this with the `moka objects show` command:
 
 ```shell
-$ moka state @account5
-    --uri @server
-
+$ moka objects show @account8
+    --uri @server_mokamint
+class io.takamaka.code.lang.ExternallyOwnedAccountSHA256DSA
+    (from jar installed at @takamakaCode)
+  io.takamaka.code.lang.Contract.balance:java.math.BigInteger = 1000000000000
+  io.takamaka.code.lang.ExternallyOwnedAccount.nonce:java.math.BigInteger = 0
+  io.takamaka.code.lang.ExternallyOwnedAccount.publicKey:java.lang.String
+    = @short_public_key_account8
 ...
-class io.takamaka.code.lang.ExternallyOwnedAccountSHA256DSA ...
-  publicKey:java.lang.String = "@short_publickeyaccount5"
-  balance:java.math.BigInteger = 1000000000000000
-  ...
 ```
 
 Note that the class of the account is `ExternallyOwnedAccountSHA256DSA` this time.
 
 Let us create an account that uses the qtesla-p-I signature algorithm now:
 
-```
-$ moka create-account 1000000000000
-    --payer faucet --signature qtesla1 --uri @server
+```shell
+$ moka keys create --name account9.pem --password --signature qtesla1
+Enter value for --password (the password that will be needed later to use the key pair): quantum1
+The new key pair has been written into "account9.pem":
+...
+$ moka accounts create faucet 1000000000000 account9.pem --password
+    --uri @server_mokamint
+    --signature qtesla1
+Enter value for --password (the password of the key pair specified through --keys): quantum1
+Adding transaction @transaction_account9... done.
+A new account @account9 has been created.
+Its key pair has been saved into the file
+  "@account9.pem".
 
-Please specify the password of the new account: quantum1
-...
-Total gas consumed: 5294043
-...
-A new account @account6
-has been created
+Gas consumption:
+ * total: 46415
+   * for CPU: 2461
+   * for RAM: 3824
+   * for storage: 40130
+   * for penalty: 0
+ * price per unit: 1 pana
+ * total price: 46415 panas
 ```
-The creation of this account has been very expensive, since quantum-resistant
-keys are very large. Again, you can use the `moka state`
+The creation of this account has been still more expensive, since this kind of quantum-resistant
+keys are very large. Again, you can use the `moka object show`
 command to verify that it has class `ExternallyOwnedAccountQTESLA1`.
 
 Finally, let us use the previous qtesla-p-I account to create a qtesla-p-III account:
 
 ```shell
-$ moka create-account 100000
-    --payer @account6
-    --signature qtesla3 --uri @server
+$ moka keys create --name account10.pem --password --signature qtesla3
+Enter value for --password (the password that will be needed later to use the key pair): quantum3
+The new key pair has been written into "account10.pem":
+...
+$ moka accounts create @account9
+    100000 account10.pem
+    --password --uri @server_mokamint
+    --signature=qtesla3 --password-of-payer
+Enter value for --password (the password of the key pair): quantum3 
+Enter value for --password-of-payer (the password of the payer): quantum1
+Do you really want to create the new account spending up to 6300000 gas units
+  at the price of 1 pana per unit (that is, up to 6300000 panas) [Y/N] Y
+Adding transaction @transaction_account10... done.
+A new account @account10 has been created.
+Its key pair has been saved into the file
+  "@account10.pem".
 
-Please specify the password of the payer account: quantum1
-Please specify the password of the new account: quantum3
-...
-Total gas consumed: 5294170
-...
-A new account @account7
-has been created
+Gas consumption:
+ * total: 111003
+   * for CPU: 2012
+   * for RAM: 3536
+   * for storage: 105455
+   * for penalty: 0
+ * price per unit: 1 pana
+ * total price: 111003 panas
 ```
 
 Note, again, the extremely high gas cost of this creation.
 
-Regardless of the kind of account, their use it always the same.
+Regardless of the kind of account, their use is always the same.
 The only difference is to use the right signature algorithm when signing
 a transaction, since it must match that of the caller account. This is automatic, if we
 use the `moka` tool. For instance, let us use our qtesla-p-I account to install
-the `family-0.0.1.jar` code in the node:
+the `io-takamaka-code-examples-family-@takamaka_version.jar` code in the node:
 
 ```shell
 $ cd @tutorial_name
-$ moka install family/target/family-0.0.1.jar
-    --payer @account6
-    --uri @server
+$ moka jars install @account9
+    io-takamaka-code-examples-family/target/io-takamaka-code-examples-family-@takamaka_version.jar
+    --password-of-payer --uri=@server_mokamint
+Enter value for --password-of-payer (the password of the key pair of the payer account): quantum1
+Do you really want to install the jar spending up to 1011600 gas units
+  at the price of 1 pana per unit (that is, up to 1011600 panas) [Y/N] Y
+Adding transaction @family3_install_transaction... done.
+The jar has been installed at @family3_address.
 
-Please specify the password of the payer account: quantum1
-Do you really want to spend up to 696900 gas units to install the jar [Y/N] Y
-family/target/family-0.0.1.jar has been installed
-at @family3_address
-...
+Gas consumption:
+ * total: 11858
+   * for CPU: 1618
+   * for RAM: 3308
+   * for storage: 6932
+   * for penalty: 0
+ * price per unit: 1 pana
+ * total price: 11858 panas
 ```
 
 The `moka` tool has understood that the payer is an account that signs with the

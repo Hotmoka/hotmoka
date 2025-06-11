@@ -1,8 +1,4 @@
 # These get automatically recomputed with the update script: do not edit!
-sed -i 's/@family3_address/a9d69ce22453c912a436e990074fd3493c87667ada85b6881f5566a7efae08e7/g' target/Tutorial.md
-sed -i 's/@account7/b37b9c040474fc800079230bc51409201f12f82e220b99e7b6468c5f62591ea8#0/g' target/Tutorial.md
-sed -i 's/@publickeyaccount4/N7hQ0gpmpV46JJlQ+7zEy7r2OTn\/jErqxV9g3+tg2\/o=/g' target/Tutorial.md
-sed -i 's/@short_publickeyaccount5/MIIDRjCCAjkGByqGSM44BAEwggIsAo.../g' target/Tutorial.md
 sed -i 's/@new_docker_key/AsqsX1tBMriz18xvoxvc64K4HAvxgFmwWryKcMeR64oc/g' target/Tutorial.md
 sed -i 's/@container_id1/00a196685e5c8a8d788b892cb09a994e48016d736bfeaf89c1f339d72f7a717b/g' target/Tutorial.md
 sed -i 's/@docker_takamaka_code/ae8e94c789fb66784a6cc4208c797c80cbce2721292d636b963184fc266abe42/g' target/Tutorial.md

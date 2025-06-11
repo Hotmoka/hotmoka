@@ -335,6 +335,39 @@ public class UpdateForNewNode {
 			report("sed -i 's/@erc20_creation_transaction/" + output48.getTransaction() + "/g' target/Tutorial.md");
 			StorageReference erc20Object = output48.getObject().get();
 			report("sed -i 's/@erc20_object/" + erc20Object + "/g' target/Tutorial.md");
+
+			KeysCreateOutputs.from(Moka.keysCreate("--name account7.pem --output-dir=" + dir + " --password=game --json"));
+			var output49 = AccountsCreateOutputs.from(Moka.accountsCreate("faucet 1000000000000 " + dir.resolve("account7.pem") + " --dir=" + dir + " --output-dir=" + dir + " --password=game --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
+			StorageReference account7 = output49.getAccount().get();
+			report("sed -i 's/@transaction_account7/" + output49.getTransaction() + "/g' target/Tutorial.md");
+			report("sed -i 's/@account7/" + account7 + "/g' target/Tutorial.md");
+			var output50 = ObjectsShowOutputs.from(Moka.objectsShow(account7 + " --json --uri=" + mokamintURI + " --timeout=" + TIMEOUT));
+			StorageValue publicKeyAccount7 = output50.getFields().filter(update -> "publicKey".equals(update.getField().getName())).map(update -> update.getValue()).findFirst().get();
+			// we replace the / character of Base64 encodings with the (escaped) escape sequence \/ for "sed"
+			report("sed -i 's/@public_key_account7/" + publicKeyAccount7.toString().replace("/", "\\/") + "/g' target/Tutorial.md");
+			KeysCreateOutputs.from(Moka.keysCreate("--name account8.pem --output-dir=" + dir + " --password=play --json --signature=sha256dsa"));
+			var output51 = AccountsCreateOutputs.from(Moka.accountsCreate("faucet 1000000000000 " + dir.resolve("account8.pem") + " --signature=sha256dsa" + " --dir=" + dir + " --output-dir=" + dir + " --password=play --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
+			StorageReference account8 = output51.getAccount().get();
+			report("sed -i 's/@transaction_account8/" + output51.getTransaction() + "/g' target/Tutorial.md");
+			report("sed -i 's/@account8/" + account8 + "/g' target/Tutorial.md");
+			var output52 = ObjectsShowOutputs.from(Moka.objectsShow(account8 + " --json --uri=" + mokamintURI + " --timeout=" + TIMEOUT));
+			StorageValue publicKeyAccount8 = output52.getFields().filter(update -> "publicKey".equals(update.getField().getName())).map(update -> update.getValue()).findFirst().get();
+			report("sed -i 's/@short_public_key_account8/" + publicKeyAccount8.toString().substring(0, 65).replace("/", "\\/") + ".../g' target/Tutorial.md");
+			KeysCreateOutputs.from(Moka.keysCreate("--name account9.pem --output-dir=" + dir + " --password=quantum1 --json --signature=qtesla1"));
+			var output53 = AccountsCreateOutputs.from(Moka.accountsCreate("faucet 1000000000000 " + dir.resolve("account9.pem") + " --signature=qtesla1" + " --dir=" + dir + " --output-dir=" + dir + " --password=quantum1 --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
+			StorageReference account9 = output53.getAccount().get();
+			report("sed -i 's/@transaction_account9/" + output53.getTransaction() + "/g' target/Tutorial.md");
+			report("sed -i 's/@account9/" + account9 + "/g' target/Tutorial.md");
+			KeysCreateOutputs.from(Moka.keysCreate("--name account10.pem --output-dir=" + dir + " --password=quantum3 --json --signature=qtesla3"));
+			var output54 = AccountsCreateOutputs.from(Moka.accountsCreate(account9 + " 100000 " + dir.resolve("account10.pem") + " --signature=qtesla3" + " --dir=" + dir + " --output-dir=" + dir + " --password=quantum3 --password-of-payer=quantum1 --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
+			StorageReference account10 = output54.getAccount().get();
+			report("sed -i 's/@transaction_account10/" + output54.getTransaction() + "/g' target/Tutorial.md");
+			report("sed -i 's/@account10/" + account10 + "/g' target/Tutorial.md");
+			Path jar7 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-family_exported/" + takamakaVersion + "/io-takamaka-code-examples-family_exported-" + takamakaVersion + ".jar");
+			var output55 = JarsInstallOutputs.from(Moka.jarsInstall(account9 + " " + jar7 + " --password-of-payer=quantum1 --dir=" + dir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
+			report("sed -i 's/@family3_install_transaction/" + output55.getTransaction() + "/g' target/Tutorial.md");
+			TransactionReference family3Address = output55.getJar().get();
+			report("sed -i 's/@family3_address/" + family3Address + "/g' target/Tutorial.md");
 		}
 
 		private void report(String line) {

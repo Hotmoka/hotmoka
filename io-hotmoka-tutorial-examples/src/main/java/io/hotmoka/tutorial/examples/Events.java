@@ -64,8 +64,8 @@ import io.hotmoka.node.remote.RemoteNodes;
 import io.takamaka.code.constants.Constants;
 
 /**
- * Run it in Maven as (change /home/spoto/hotmoka_tutorial with the directory where you stored the key pairs of the payer account
- * and change the payer account itself and its password):
+ * Run it in Maven as (change /home/spoto/hotmoka_tutorial with the directory where you stored the key pairs of the payer accounts
+ * and change the payer accounts themselves and their passwords):
  * 
  * mvn compile exec:java -Dexec.mainClass="io.hotmoka.tutorial.examples.Auction" -Dexec.args="/home/spoto/hotmoka_tutorial 45e801831593aca23f1038b79377ec890e3bc4f0e62d30c8ddce8c1cf4bf0763#0 banana 7fd3e62a493e91757d3ea2397bfbf0acf6253108d39cca30088e8266db85a15f#0 mango dc34cdaa1d8ed98306f9d58971e233ea0403ed5aea86bc5c827aea605ba3b5d6#0 strawberry"
  */
