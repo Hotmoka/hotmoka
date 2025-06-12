@@ -1,21 +1,20 @@
 /*
-    Copyright (C) 2021 Fausto Spoto (fausto.spoto@gmail.com)
+Copyright 2021 Fausto Spoto
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
-package io.hotmoka.tutorial.examples;
+package io.hotmoka.tutorial.examples.runs;
 
 import static io.hotmoka.helpers.Coin.panarea;
 import static io.hotmoka.node.StorageTypes.BIG_INTEGER;
@@ -36,6 +35,7 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 
 import io.hotmoka.crypto.api.Signer;
@@ -51,6 +51,8 @@ import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -64,9 +66,9 @@ import io.takamaka.code.constants.Constants;
  * Run it in Maven as (change /home/spoto/hotmoka_tutorial with the directory where you stored the key pairs of the payer accounts
  * and change the payer accounts themselves and their passwords):
  * 
- * mvn compile exec:java -Dexec.mainClass="io.hotmoka.tutorial.examples.Auction" -Dexec.args="/home/spoto/hotmoka_tutorial 45e801831593aca23f1038b79377ec890e3bc4f0e62d30c8ddce8c1cf4bf0763#0 banana 7fd3e62a493e91757d3ea2397bfbf0acf6253108d39cca30088e8266db85a15f#0 mango dc34cdaa1d8ed98306f9d58971e233ea0403ed5aea86bc5c827aea605ba3b5d6#0 strawberry"
+ * mvn compile exec:java -Dexec.mainClass="io.hotmoka.tutorial.examples.runs.Auction" -Dexec.args="/home/spoto/hotmoka_tutorial 45e801831593aca23f1038b79377ec890e3bc4f0e62d30c8ddce8c1cf4bf0763#0 banana 7fd3e62a493e91757d3ea2397bfbf0acf6253108d39cca30088e8266db85a15f#0 mango dc34cdaa1d8ed98306f9d58971e233ea0403ed5aea86bc5c827aea605ba3b5d6#0 strawberry"
  */
-public class Auction {
+public class Events {
 
   public final static int NUM_BIDS = 10; // number of bids placed
   public final static int BIDDING_TIME = 100_000; // in milliseconds
@@ -97,7 +99,7 @@ public class Auction {
 
   public static void main(String[] args) throws Exception {
 	try (Node node = RemoteNodes.of(new URI(args[0]), 20000)) {
-      new Auction(node, Paths.get(args[1]),
+      new Events(node, Paths.get(args[1]),
         StorageValues.reference(args[2]), args[3],
         StorageValues.reference(args[4]), args[5],
         StorageValues.reference(args[6]), args[7]);
@@ -153,7 +155,7 @@ public class Auction {
     }
   }
 
-  private Auction(Node node, Path dir, StorageReference account1, String password1, StorageReference account2, String password2, StorageReference account3, String password3) throws Exception {
+  private Events(Node node, Path dir, StorageReference account1, String password1, StorageReference account2, String password2, StorageReference account3, String password3) throws Exception {
     this.node = node;
     takamakaCode = node.getTakamakaCode();
     accounts = new StorageReference[] { account1, account2, account3 };
@@ -169,15 +171,19 @@ public class Auction {
     auction = createContract();
     start = System.currentTimeMillis();
 
-    StorageReference expectedWinner = placeBids();
-    waitUntilEndOfBiddingTime();
-    revealBids();
-    waitUntilEndOfRevealTime();
-    StorageValue winner = askForWinner();
+    try (var subscription = node.subscribeToEvents(auction, this::eventHandler)) {
+      StorageReference expectedWinner = placeBids();
+      waitUntilEndOfBiddingTime();
+      revealBids();
+      waitUntilEndOfRevealTime();
+      StorageValue winner = askForWinner();
 
-    // show that the contract computes the correct winner
-    System.out.println("expected winner: " + expectedWinner);
-    System.out.println("actual winner: " + winner);
+      // show that the contract computes the correct winner
+      System.out.println("expected winner: " + expectedWinner);
+      System.out.println("actual winner: " + winner);
+
+      waitUntilAllEventsAreFlushed();
+    }
   }
 
   private StorageReference createContract() throws Exception {
@@ -197,9 +203,9 @@ public class Auction {
 
     //the path of the user jar to install
     var auctionPath = Paths.get(System.getProperty("user.home")
-      + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-auction/"
+      + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-auction_events/"
       + Constants.TAKAMAKA_VERSION
-      + "/io-takamaka-code-examples-auction-" + Constants.TAKAMAKA_VERSION + ".jar");
+      + "/io-takamaka-code-examples-auction_events-" + Constants.TAKAMAKA_VERSION + ".jar");
 
     return node.addJarStoreTransaction(TransactionRequests.jarStore
       (signers.get(0), // an object that signs with the payer's private key
@@ -302,6 +308,10 @@ public class Auction {
     waitUntil(BIDDING_TIME + REVEAL_TIME + 5000, "Waiting until the end of the revealing time");
   }
 
+  private void waitUntilAllEventsAreFlushed() {
+    waitUntil(BIDDING_TIME + REVEAL_TIME + 12000, "Waiting until all events are flushed");
+  }
+
   /**
    * Waits until a specific time after start.
    */
@@ -360,5 +370,19 @@ public class Auction {
 
   private static KeyPair loadKeys(Node node, Path dir, StorageReference account, String password) throws Exception {
     return Accounts.of(account, dir).keys(password, SignatureHelpers.of(node).signatureAlgorithmFor(account));
+  }
+
+  private void eventHandler(StorageReference creator, StorageReference event) {
+    try {
+      System.out.println
+        ("Seen event of class " + node.getClassTag(event).getClazz()
+           + " created by contract " + creator);
+    }
+    catch (NodeException | UnknownReferenceException | TimeoutException e) {
+      System.out.println("The node is misbehaving: " + e.getMessage());
+    }
+    catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
   }
 }

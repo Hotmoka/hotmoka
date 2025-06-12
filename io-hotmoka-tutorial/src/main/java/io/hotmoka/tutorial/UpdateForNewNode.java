@@ -51,11 +51,11 @@ import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
-import io.hotmoka.tutorial.examples.Auction;
-import io.hotmoka.tutorial.examples.Events;
-import io.hotmoka.tutorial.examples.Family;
-import io.hotmoka.tutorial.examples.FamilyExported;
-import io.hotmoka.tutorial.examples.FamilyStorage;
+import io.hotmoka.tutorial.examples.runs.Auction;
+import io.hotmoka.tutorial.examples.runs.Events;
+import io.hotmoka.tutorial.examples.runs.Family;
+import io.hotmoka.tutorial.examples.runs.FamilyExported;
+import io.hotmoka.tutorial.examples.runs.FamilyStorage;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -79,17 +79,20 @@ public class UpdateForNewNode {
 
 	/**
 	 * Edit the {@code replacements.sh} file by rerunning the experiments of the Hotmoka tutorial.
-	 * It allows one to specify two arguments, that are the URI of the remote nodes (for Mokamint and for
-	 * Tendermint). They default to {@code ws://panarea.hotmoka.io:8001} and {@code ws://panarea.hotmoka.io:8002}.
+	 * It allows one to specify the name of the file to edit and two further arguments,
+	 * that are the URI of the remote nodes (for Mokamint and for Tendermint). The first defaults to
+	 * {@code src/main/bash/replacements.sh} and the last two default to {@code ws://panarea.hotmoka.io:8001}
+	 * and {@code ws://panarea.hotmoka.io:8002}.
 	 * 
 	 * @param args the arguments
-	 * @throws Exception if the recreation of {@code replacements.sh} fails for some reason
+	 * @throws Exception if the editing of the file fails for some reason
 	 */
 	public static void main(String[] args) throws Exception {
-		String server1 = args.length > 0 ? args[0] : "ws://panarea.hotmoka.io:8001";
-		String server2 = args.length > 1 ? args[1] : "ws://panarea.hotmoka.io:8002";
+		String file = args.length > 0 ? args[0] : "src/main/bash/replacements.sh";
+		String server1 = args.length > 1 ? args[1] : "ws://panarea.hotmoka.io:8001";
+		String server2 = args.length > 2 ? args[2] : "ws://panarea.hotmoka.io:8002";
 
-		try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter("src/main/bash/replacements.sh")))) {
+		try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(file)))) {
 			new Experiments(new URI(server1), new URI(server2), writer);
 		}
 	}

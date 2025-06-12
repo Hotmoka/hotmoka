@@ -1,21 +1,20 @@
 /*
-    Copyright (C) 2021 Fausto Spoto (fausto.spoto@gmail.com)
+Copyright 2021 Fausto Spoto
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
-package io.hotmoka.tutorial.examples;
+package io.hotmoka.tutorial.examples.runs;
 
 import static java.math.BigInteger.ONE;
 
@@ -44,7 +43,7 @@ import io.takamaka.code.constants.Constants;
  * Run it in Maven as (change /home/spoto/hotmoka_tutorial with the directory where you stored the key pairs of the payer account
  * and change the payer account itself and its password):
  * 
- * mvn compile exec:java -Dexec.mainClass="io.hotmoka.tutorial.examples.Family" -Dexec.args="/home/spoto/hotmoka_tutorial b3a367310a195bb888a5b722e8246f8bad6e0fc8dfefcf44a2b8d760b5b655ef#0 chocolate"
+ * mvn compile exec:java -Dexec.mainClass="io.hotmoka.tutorial.examples.runs.Family" -Dexec.args="/home/spoto/hotmoka_tutorial b3a367310a195bb888a5b722e8246f8bad6e0fc8dfefcf44a2b8d760b5b655ef#0 chocolate"
  */
 public class Family {
 

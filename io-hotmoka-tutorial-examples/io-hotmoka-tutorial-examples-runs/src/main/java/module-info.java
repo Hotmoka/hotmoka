@@ -1,5 +1,5 @@
 /*
-Copyright 2025 Fausto Spoto
+Copyright 2021 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -15,12 +15,14 @@ limitations under the License.
 */
 
 /**
- * This module contains the a tutorial documentation about Hotmoka.
+ * This module contains the examples of the Hotmoka tutorial that run transactions against Hotmoka nodes.
  */
-module io.hotmoka.tutorial {
-	requires io.hotmoka.moka;
-	requires io.hotmoka.node;
-	requires io.hotmoka.tutorial.examples.runs;
-	requires io.takamaka.code.constants;
-	requires java.logging;
+module io.hotmoka.tutorial.examples.runs {
+  exports io.hotmoka.tutorial.examples.runs;
+  requires io.hotmoka.helpers;
+  requires io.hotmoka.node.remote;
+  requires io.hotmoka.node.disk;
+  requires io.hotmoka.node.tendermint;
+  requires io.hotmoka.node.service;
+  requires io.takamaka.code.constants;
 }

@@ -27,7 +27,7 @@
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-tutorial-examples</artifactId>
+      <artifactId>io-hotmoka-tutorial-examples-runs</artifactId>
       <version>${hotmoka.version}</version>
     </dependency>
     <dependency>

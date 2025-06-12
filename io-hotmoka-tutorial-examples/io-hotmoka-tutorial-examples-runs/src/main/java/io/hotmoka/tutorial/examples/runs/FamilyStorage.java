@@ -1,21 +1,20 @@
 /*
-    Copyright (C) 2021 Fausto Spoto (fausto.spoto@gmail.com)
+Copyright 2021 Fausto Spoto
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
-package io.hotmoka.tutorial.examples;
+package io.hotmoka.tutorial.examples.runs;
 
 import static io.hotmoka.helpers.Coin.panarea;
 import static io.hotmoka.node.StorageTypes.INT;
@@ -42,7 +41,6 @@ import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.remote.RemoteNodes;
 import io.takamaka.code.constants.Constants;
 
@@ -50,9 +48,9 @@ import io.takamaka.code.constants.Constants;
  * Run it in Maven as (change /home/spoto/hotmoka_tutorial with the directory where you stored the key pairs of the payer account
  * and change the payer account itself and its password):
  * 
- * mvn compile exec:java -Dexec.mainClass="io.hotmoka.tutorial.examples.FamilyExported" -Dexec.args="/home/spoto/hotmoka_tutorial b3a367310a195bb888a5b722e8246f8bad6e0fc8dfefcf44a2b8d760b5b655ef#0 chocolate"
+ * mvn compile exec:java -Dexec.mainClass="io.hotmoka.tutorial.examples.runs.FamilyStorage" -Dexec.args="/home/spoto/hotmoka_tutorial b3a367310a195bb888a5b722e8246f8bad6e0fc8dfefcf44a2b8d760b5b655ef#0 chocolate"
  */
-public class FamilyExported {
+public class FamilyStorage {
 
   private final static ClassType PERSON = StorageTypes.classNamed("family.Person");
 
@@ -60,9 +58,9 @@ public class FamilyExported {
 
 	// the path of the user jar to install
     var familyPath = Paths.get(System.getProperty("user.home")
-      + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-family_exported/"
+      + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-family_storage/"
       + Constants.TAKAMAKA_VERSION
-      + "/io-takamaka-code-examples-family_exported-" + Constants.TAKAMAKA_VERSION + ".jar");
+      + "/io-takamaka-code-examples-family_storage-" + Constants.TAKAMAKA_VERSION + ".jar");
 
     var dir = Paths.get(args[1]);
     var payer = StorageValues.reference(args[2]);
@@ -134,33 +132,11 @@ public class FamilyExported {
          StorageValues.intOf(4), StorageValues.intOf(1879)
       ));
 
+      System.out.println("new object allocated at " + einstein);
+
       // we increase our copy of the nonce, ready for further
       // transactions having the account as payer
       nonce = nonce.add(ONE);
-
-      StorageValue s = node.addInstanceMethodCallTransaction
-        (TransactionRequests.instanceMethodCall
-         (signer, // an object that signs with the payer's private key
-          payer, // payer
-          nonce, // payer's nonce: relevant since this is not a call to a @View method!
-          chainId, // chain identifier: relevant since this is not a call to a @View method!
-          BigInteger.valueOf(50_000), // gas limit: enough for a small object
-          panarea(gasHelper.getSafeGasPrice()), // gas price, in panareas
-          family, // class path for the execution of the transaction
-
-          // method to call: String Person.toString()
-          MethodSignatures.ofNonVoid(PERSON, "toString", StorageTypes.STRING),
-
-          // receiver of the method to call
-          einstein
-        )).get();
-
-        // we increase our copy of the nonce, ready for further
-        // transactions having the account as payer
-        nonce = nonce.add(ONE);
-
-        // print the result of the call
-        System.out.println(s);
     }
   }
 

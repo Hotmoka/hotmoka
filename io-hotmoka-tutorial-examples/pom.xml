@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>io-hotmoka-tutorial-examples</artifactId>
-  <packaging>jar</packaging>
+  <packaging>pom</packaging>
   <name>io-hotmoka-tutorial-examples</name>
   <version>${hotmoka.version}</version>
   <description>This module contains the examples of the Hotmoka tutorial.</description>
@@ -16,37 +16,7 @@
     <version>parent</version>
   </parent>
 
-  <dependencies>
-    <dependency>
-      <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-node-remote</artifactId>
-      <version>${hotmoka.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-helpers</artifactId>
-      <version>${hotmoka.version}</version>
-    </dependency>
-	<dependency>
-      <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-node-tendermint</artifactId>
-      <version>${hotmoka.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-node-disk</artifactId>
-      <version>${hotmoka.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-node-service</artifactId>
-      <version>${hotmoka.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.hotmoka</groupId>
-      <artifactId>io-takamaka-code-constants</artifactId>
-      <version>${io.takamaka.code.version}</version>
-    </dependency>
-  </dependencies>
-
+  <modules>
+  	<module>io-hotmoka-tutorial-examples-runs</module>
+  </modules>
 </project>

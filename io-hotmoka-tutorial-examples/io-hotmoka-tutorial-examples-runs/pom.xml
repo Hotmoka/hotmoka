@@ -1,0 +1,62 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>io-hotmoka-tutorial-examples-runs</artifactId>
+  <packaging>jar</packaging>
+  <name>io-hotmoka-tutorial-examples-runs</name>
+  <version>${hotmoka.version}</version>
+  <description>This module contains the examples of the HOtmoka tutorial that run transactions against Hotmoka nodes.</description>
+
+  <parent>
+    <groupId>io.hotmoka</groupId>
+    <artifactId>io-hotmoka-tutorial-examples</artifactId>
+    <version>${hotmoka.version}</version>
+  </parent>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-node-remote</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-helpers</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
+       <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-node-tendermint</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-node-disk</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-node-service</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-takamaka-code-constants</artifactId>
+      <version>${io.takamaka.code.version}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <configuration>
+          <!-- we skip the Javadoc generation since it conatins warnings, but we do not want to compilate the tutorial code to avoid them -->
+          <skip>true</skip>
+	    </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
