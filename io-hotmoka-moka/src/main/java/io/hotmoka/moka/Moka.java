@@ -22,6 +22,7 @@ import java.io.PrintStream;
 
 import io.hotmoka.cli.AbstractCLI;
 import io.hotmoka.cli.AbstractPropertyFileVersionProvider;
+import io.hotmoka.constants.Constants;
 import io.hotmoka.moka.Moka.POMVersionProvider;
 import io.hotmoka.moka.internal.Accounts;
 import io.hotmoka.moka.internal.Jars;
@@ -358,7 +359,7 @@ public class Moka extends AbstractCLI {
 
 		@Override
 		public String[] getVersion() throws IOException {
-			return getVersion(() -> Moka.class.getModule().getResourceAsStream("maven.properties"), "hotmoka.version");
+			return new String[] { Constants.HOTMOKA_VERSION };
 		}
 	}
 }

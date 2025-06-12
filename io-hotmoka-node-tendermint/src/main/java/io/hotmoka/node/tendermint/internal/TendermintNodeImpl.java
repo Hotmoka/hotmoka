@@ -36,6 +36,7 @@ import java.util.stream.Stream;
 import com.google.protobuf.ByteString;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.NodeUnmarshallingContexts;
@@ -168,7 +169,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	@Override
 	public NodeInfo getInfo() throws NodeException, TimeoutException, InterruptedException {
 		try (var scope = mkScope()) {
-			return NodeInfos.of(TendermintNode.class.getName(), HOTMOKA_VERSION, poster.getNodeID());
+			return NodeInfos.of(TendermintNode.class.getName(), Constants.HOTMOKA_VERSION, poster.getNodeID());
 		}
 	}
 

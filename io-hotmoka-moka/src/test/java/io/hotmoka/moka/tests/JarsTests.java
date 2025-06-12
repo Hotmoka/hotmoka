@@ -35,7 +35,6 @@ import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.UnknownTypeException;
 import io.hotmoka.node.api.VerificationException;
-import io.hotmoka.node.local.AbstractLocalNode;
 import io.hotmoka.verification.api.VerificationError;
 import io.takamaka.code.constants.Constants;
 
@@ -47,8 +46,8 @@ public class JarsTests extends AbstractMokaTestWithNode {
 	@Test
 	@DisplayName("[moka jars verify] the verification of a jar without errors terminates without errors")
 	public void verifyJarWorksIfNoErrors(@TempDir Path dir) throws Exception {
-		var examplesBasic = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-basic.jar");
-		var examplesBasicDependency = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-basicdependency.jar");
+		var examplesBasic = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + io.hotmoka.constants.Constants.HOTMOKA_VERSION + "-basic.jar");
+		var examplesBasicDependency = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + io.hotmoka.constants.Constants.HOTMOKA_VERSION + "-basicdependency.jar");
 		var takamakaCode = Maven.resolver().resolve("io.hotmoka:io-takamaka-code:" + Constants.TAKAMAKA_VERSION).withoutTransitivity().asSingleFile().toPath();
 		var actual = JarsVerifyOutputs.from(Moka.jarsVerify(examplesBasic + " --libs " + examplesBasicDependency + " --libs " + takamakaCode + " --json"));
 		assertTrue(actual.getErrors().count() == 0);
@@ -57,7 +56,7 @@ public class JarsTests extends AbstractMokaTestWithNode {
 	@Test
 	@DisplayName("[moka jars verify] the verification of a jar with errors terminates with errors")
 	public void verifyJarWorksIfErrors(@TempDir Path dir) throws Exception {
-		var callerNotOnThis = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-callernotonthis.jar");
+		var callerNotOnThis = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + io.hotmoka.constants.Constants.HOTMOKA_VERSION + "-callernotonthis.jar");
 		var takamakaCode = Maven.resolver().resolve("io.hotmoka:io-takamaka-code:" + Constants.TAKAMAKA_VERSION).withoutTransitivity().asSingleFile().toPath();
 		var actual = JarsVerifyOutputs.from(Moka.jarsVerify(callerNotOnThis + " --libs " + takamakaCode + " --json"));
 		assertTrue(actual.getErrors().count() == 1);
@@ -69,8 +68,8 @@ public class JarsTests extends AbstractMokaTestWithNode {
 	@Test
 	@DisplayName("[moka jars instrument] the instrumentation of a jar without errors terminates without errors")
 	public void instrumentJarWorksIfNoErrors(@TempDir Path dir) throws Exception {
-		var examplesBasic = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-basic.jar");
-		var examplesBasicDependency = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-basicdependency.jar");
+		var examplesBasic = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + io.hotmoka.constants.Constants.HOTMOKA_VERSION + "-basic.jar");
+		var examplesBasicDependency = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + io.hotmoka.constants.Constants.HOTMOKA_VERSION + "-basicdependency.jar");
 		var takamakaCode = Maven.resolver().resolve("io.hotmoka:io-takamaka-code:" + Constants.TAKAMAKA_VERSION).withoutTransitivity().asSingleFile().toPath();
 		Path instrumented = dir.resolve("basic-instrumented.jar");
 		Moka.jarsInstrument(examplesBasic + " " + instrumented + " --libs " + examplesBasicDependency + " --libs " + takamakaCode + " --json");
@@ -80,8 +79,8 @@ public class JarsTests extends AbstractMokaTestWithNode {
 	@Test
 	@DisplayName("[moka jars install] the installation of a jar without errors works correctly")
 	public void installJarWorksIfNoErrors() throws Exception {
-		var examplesBasic = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-basic.jar");
-		var examplesBasicDependency = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-basicdependency.jar");
+		var examplesBasic = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + io.hotmoka.constants.Constants.HOTMOKA_VERSION + "-basic.jar");
+		var examplesBasicDependency = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + io.hotmoka.constants.Constants.HOTMOKA_VERSION + "-basicdependency.jar");
 
 		// we install basicdependency.jar first, letting the gamete pay; no libs, therefore takamakaCode will be added by default
 		var basicDependencyInstallOutput = JarsInstallOutputs.from(Moka.jarsInstall(gamete + " " + examplesBasicDependency + " --password-of-payer=" + passwordOfGamete + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
@@ -99,7 +98,7 @@ public class JarsTests extends AbstractMokaTestWithNode {
 	@Test
 	@DisplayName("[moka jars install] the installation of a jar missing a dependency throws a TransactionException")
 	public void installJarFailsIfDependencyIsMissingErrors() throws Exception {
-		var examplesBasic = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-basic.jar");
+		var examplesBasic = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + io.hotmoka.constants.Constants.HOTMOKA_VERSION + "-basic.jar");
 
 		// we try to install basic.jar, letting the gamete pay; we do not provide basicdependency.jar as dependency, therefore this will fail
 		var basicInstallOutput = JarsInstallOutputs.from(Moka.jarsInstall(gamete + " " + examplesBasic + " --password-of-payer=" + passwordOfGamete + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
@@ -109,7 +108,7 @@ public class JarsTests extends AbstractMokaTestWithNode {
 	@Test
 	@DisplayName("[moka jars install] the installation of an illegal jar throws a TransactionException")
 	public void installJarFailsIfCodeIsIllegal() throws Exception {
-		var illegalJar = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-illegalcalltofromcontract1.jar");
+		var illegalJar = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + io.hotmoka.constants.Constants.HOTMOKA_VERSION + "-illegalcalltofromcontract1.jar");
 
 		// we try to install basic.jar, letting the gamete pay; we do not provide basicdependency.jar as dependency, therefore this will fail
 		var illegalJarInstallOutput = JarsInstallOutputs.from(Moka.jarsInstall(gamete + " " + illegalJar + " --password-of-payer=" + passwordOfGamete + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));

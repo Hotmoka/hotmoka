@@ -1,5 +1,5 @@
 /*
-Copyright 2024 Fausto Spoto
+Copyright 2025 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,22 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.tests;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import io.hotmoka.constants.Constants;
-
 /**
- * A test for {@link io.hotmoka.node.api.Node#getNodeInfo()}.
+ * This module defines some constants about the Hotmoka project.
  */
-class GetNodeInfo extends HotmokaTest {
-
-	@Test @DisplayName("getInfoworks")
-	void getNodeInfo() throws Exception {
-		assertEquals(Constants.HOTMOKA_VERSION, node.getInfo().getVersion());
-	}
+module io.hotmoka.constants {
+	exports io.hotmoka.constants;
 }

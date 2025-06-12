@@ -18,7 +18,6 @@ package io.hotmoka.node.local.internal;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
@@ -26,7 +25,6 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -136,25 +134,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 */
 	private final LRUCache<TransactionReference, String> recentlyRejectedTransactionsMessages = new LRUCache<>(100, 1000);
 
-	/**
-	 * The version of Hotmoka used by the nodes.
-	 */
-	public final static String HOTMOKA_VERSION;
-
 	private final static Logger LOGGER = Logger.getLogger(AbstractLocalNodeImpl.class.getName());
-
-	static {
-		// we access the Maven properties from the pom.xml file of the project
-		try (InputStream is = AbstractLocalNodeImpl.class.getModule().getResourceAsStream("io.hotmoka.node.local.maven.properties")) {
-			Objects.requireNonNull(is, "Cannot find io.hotmoka.node.local.maven.properties");
-			var mavenProperties = new Properties();
-			mavenProperties.load(is);
-			HOTMOKA_VERSION = mavenProperties.getProperty("hotmoka.version");
-		}
-		catch (IOException e) {
-			throw new ExceptionInInitializerError(e);
-		}
-	}
 
 	/**
 	 * Creates a new node.

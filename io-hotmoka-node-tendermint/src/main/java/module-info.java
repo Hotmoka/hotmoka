@@ -24,6 +24,7 @@ module io.hotmoka.node.tendermint {
 
 	requires transitive io.hotmoka.node.tendermint.api;
 	requires io.hotmoka.node;
+	requires io.hotmoka.constants;
 	requires io.hotmoka.node.tendermint.abci;
 	requires io.hotmoka.xodus;
 	requires io.hotmoka.annotations;

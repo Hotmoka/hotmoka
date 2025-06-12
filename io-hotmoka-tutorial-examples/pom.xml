@@ -17,6 +17,21 @@
   </parent>
 
   <modules>
+    <module>io-hotmoka-tutorial-examples-family</module>
   	<module>io-hotmoka-tutorial-examples-runs</module>
   </modules>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <configuration>
+          <!-- we skip the Javadoc generation since it contains warnings, but we do not want to compilate the tutorial code to avoid them -->
+          <skip>true</skip>
+	    </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
 </project>

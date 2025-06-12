@@ -25,6 +25,7 @@ module io.hotmoka.node.disk {
 	requires io.hotmoka.node;
 	requires io.hotmoka.annotations;
 	requires io.hotmoka.node.local;
+	requires io.hotmoka.constants;
 	requires toml4j;
 	requires java.logging;
 }

@@ -22,6 +22,11 @@
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-constants</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-node</artifactId>
       <version>${hotmoka.version}</version>
     </dependency>
@@ -36,35 +41,6 @@
       <version>${io.takamaka.code.version}</version>
     </dependency>
   </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>properties-maven-plugin</artifactId>
-        <version>1.1.0</version>
-        <executions>
-          <execution>
-            <phase>initialize</phase>
-            <goals>
-              <goal>write-project-properties</goal>
-            </goals>
-            <configuration>
-              <outputFile>${project.build.outputDirectory}/maven.properties</outputFile>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-	  <!-- useless to install this module in the local Maven repository -->
-	  <plugin>
-        <artifactId>maven-install-plugin</artifactId>
-        <version>3.1.1</version>
-        <configuration>
-          <skip>true</skip>
-        </configuration>
-	  </plugin>
-    </plugins>
-  </build>
 
   <profiles>
 	<profile>

@@ -34,7 +34,6 @@ import io.hotmoka.moka.ObjectsCreateOutputs;
 import io.hotmoka.node.api.responses.ConstructorCallTransactionSuccessfulResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.local.AbstractLocalNode;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -54,7 +53,7 @@ public class ObjectsTests extends AbstractMokaTestWithNode {
 		var accountsCreateOutput = AccountsCreateOutputs.from(Moka.accountsCreate(gamete + " 1000000000000 " + keyCreateOutputs.getFile() + " --password-of-payer=" + passwordOfGamete + " --dir=" + dir + " --signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
 		StorageReference account = accountsCreateOutput.getAccount().get();
 		// install the jar for TicTacToe contract
-		var ticTacToeJar = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-tictactoe.jar");
+		var ticTacToeJar = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + io.hotmoka.constants.Constants.HOTMOKA_VERSION + "-tictactoe.jar");
 		var jarsInstallOutput = JarsInstallOutputs.from(Moka.jarsInstall(account + " " + ticTacToeJar + " --dir=" + dir + " --json --password-of-payer=" + passwordOfNewAccount + " --uri=ws://localhost:" + PORT));
 		// create a TicTacToe object, letting the new account pay for it
 		var objectsCreateOutput = ObjectsCreateOutputs.from(Moka.objectsCreate(account + " io.hotmoka.examples.tictactoe.TicTacToe --password-of-payer=" + passwordOfNewAccount + " --classpath=" + jarsInstallOutput.getJar().get() + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));
@@ -86,7 +85,7 @@ public class ObjectsTests extends AbstractMokaTestWithNode {
 		var accountsCreateOutput = AccountsCreateOutputs.from(Moka.accountsCreate(gamete + " 1000000000000 " + keyCreateOutputs.getFile() + " --password-of-payer=" + passwordOfGamete + " --dir=" + dir + " --signature=" + signature + " --password=" + passwordOfNewAccount + " --json --output-dir=" + dir + " --uri=ws://localhost:" + PORT));
 		StorageReference account = accountsCreateOutput.getAccount().get();
 		// install the jar for TicTacToe contract
-		var ticTacToeJar = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + "-tictactoe.jar");
+		var ticTacToeJar = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + io.hotmoka.constants.Constants.HOTMOKA_VERSION + "-tictactoe.jar");
 		var jarsInstallOutput = JarsInstallOutputs.from(Moka.jarsInstall(account + " " + ticTacToeJar + " --dir=" + dir + " --json --password-of-payer=" + passwordOfNewAccount + " --uri=ws://localhost:" + PORT));
 		// create a TicTacToe object, letting the new account pay for it
 		var objectsCreateOutput = ObjectsCreateOutputs.from(Moka.objectsCreate(account + " io.hotmoka.examples.tictactoe.TicTacToe --password-of-payer=" + passwordOfNewAccount + " --classpath=" + jarsInstallOutput.getJar().get() + " --json --dir=" + dir + " --uri=ws://localhost:" + PORT));

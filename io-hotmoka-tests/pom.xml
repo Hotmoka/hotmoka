@@ -33,6 +33,12 @@
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-constants</artifactId>
+      <version>${hotmoka.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-instrumentation</artifactId>
       <version>${hotmoka.version}</version>
       <scope>test</scope>

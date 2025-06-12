@@ -18,6 +18,7 @@ limitations under the License.
  * This module contains the a tutorial documentation about Hotmoka.
  */
 module io.hotmoka.tutorial {
+	requires io.hotmoka.constants;
 	requires io.hotmoka.moka;
 	requires io.hotmoka.node;
 	requires io.hotmoka.tutorial.examples.runs;

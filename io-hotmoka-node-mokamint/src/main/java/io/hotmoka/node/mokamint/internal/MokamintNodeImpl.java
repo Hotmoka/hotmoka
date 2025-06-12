@@ -35,6 +35,7 @@ import java.util.logging.Logger;
 
 import io.hotmoka.annotations.GuardedBy;
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.constants.Constants;
 import io.hotmoka.exceptions.functions.FunctionWithExceptions2;
 import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.NodeUnmarshallingContexts;
@@ -154,7 +155,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 	@Override
 	public NodeInfo getInfo() throws NodeException, InterruptedException, TimeoutException {
 		try (var scope = mkScope()) {
-			return NodeInfos.of(MokamintNode.class.getName(), HOTMOKA_VERSION, mokamintNode.getInfo().getUUID().toString());
+			return NodeInfos.of(MokamintNode.class.getName(), Constants.HOTMOKA_VERSION, mokamintNode.getInfo().getUUID().toString());
 		}
 		catch (io.mokamint.node.api.NodeException e) {
 			throw new NodeException(e);

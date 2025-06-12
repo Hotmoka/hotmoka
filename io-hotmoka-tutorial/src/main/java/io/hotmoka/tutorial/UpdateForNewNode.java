@@ -29,7 +29,6 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.LogManager;
 import java.util.stream.Collectors;
@@ -99,7 +98,6 @@ public class UpdateForNewNode {
 
 	private static class Experiments {
 		private final PrintWriter writer;
-		private final String hotmokaVersion;
 
 		/**
 		 * The working directory where key pairs can be temporarily saved, for instance.
@@ -111,20 +109,11 @@ public class UpdateForNewNode {
 			this.dir = Files.createTempDirectory("tmp");
 			System.out.println(dir);
 
-			try (var is = UpdateForNewNode.class.getModule().getResourceAsStream("maven.properties")) {
-				var mavenProperties = new Properties();
-				mavenProperties.load(is);
-				this.hotmokaVersion = mavenProperties.getProperty("hotmoka.version");
-				if (hotmokaVersion == null)
-					throw new IOException("The property file does not contain a hotmoka.version property");
-
-				report("sed -i 's/@hotmoka_version/" + hotmokaVersion + "/g' target/Tutorial.md");
-
-				report("sed -i 's/@takamaka_version/" + Constants.TAKAMAKA_VERSION + "/g' target/Tutorial.md");
-				report("sed -i 's/@takamaka_version/" + Constants.TAKAMAKA_VERSION + "/g' target/pics/state1.fig");
-				report("sed -i 's/@takamaka_version/" + Constants.TAKAMAKA_VERSION + "/g' target/pics/state2.fig");
-				report("sed -i 's/@takamaka_version/" + Constants.TAKAMAKA_VERSION + "/g' target/pics/state3.fig");
-			}
+			report("sed -i 's/@hotmoka_version/" + io.hotmoka.constants.Constants.HOTMOKA_VERSION + "/g' target/Tutorial.md");
+			report("sed -i 's/@takamaka_version/" + Constants.TAKAMAKA_VERSION + "/g' target/Tutorial.md");
+			report("sed -i 's/@takamaka_version/" + Constants.TAKAMAKA_VERSION + "/g' target/pics/state1.fig");
+			report("sed -i 's/@takamaka_version/" + Constants.TAKAMAKA_VERSION + "/g' target/pics/state2.fig");
+			report("sed -i 's/@takamaka_version/" + Constants.TAKAMAKA_VERSION + "/g' target/pics/state3.fig");
 
 			report("sed -i 's/@server_mokamint/" + mokamintURI.toString().replace("/", "\\/") + "/g' target/Tutorial.md");
 			report("sed -i 's/@server_tendermint/" + tendermintURI.toString().replace("/", "\\/") + "/g' target/Tutorial.md");

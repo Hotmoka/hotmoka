@@ -45,6 +45,7 @@ module io.hotmoka.moka {
  	requires jdk.unsupported;
 
  	requires transitive io.hotmoka.moka.api;
+ 	requires io.hotmoka.constants;
     requires io.hotmoka.helpers;
     requires io.hotmoka.node.tendermint;
     requires io.hotmoka.node.mokamint;

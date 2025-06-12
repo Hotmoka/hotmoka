@@ -24,6 +24,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import io.hotmoka.constants.Constants;
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.ClosedNodeException;
 import io.hotmoka.node.NodeInfos;
@@ -83,7 +84,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 	@Override
 	public NodeInfo getInfo() throws ClosedNodeException {
 		try (var scope = mkScope()) {
-			return NodeInfos.of(DiskNode.class.getName(), HOTMOKA_VERSION, "");
+			return NodeInfos.of(DiskNode.class.getName(), Constants.HOTMOKA_VERSION, "");
 		}
 	}
 
