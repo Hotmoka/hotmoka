@@ -12,7 +12,6 @@ cp -r src/main/resources/pics target/
 # generate the Markdown version
 
 # place figure references. I miss Latex...
-echo "1"
 sed -i 's/@fig:receiver_payer/1/g' target/Tutorial.md
 sed -i 's/@fig:mokito_start/2/g' target/Tutorial.md
 sed -i 's/@fig:hotwallet_start/3/g' target/Tutorial.md
@@ -51,18 +50,14 @@ sed -i 's/@fig:hotmoka_tendermint/35/g' target/Tutorial.md
 sed -i 's/@fig:inbound_rules/36/g' target/Tutorial.md
 sed -i 's/@fig:entities_hierarchy/37/g' target/Tutorial.md
 
-echo "2"
 source src/main/bash/replacements.sh
-source src/main/bash/replacements_old.sh
 
 # we regenerate the png figures, since they might contain some string changed by the previous sed commands
-echo "3"
 fig2dev -L png -m 4 target/pics/state1.fig target/pics/state1.png
 fig2dev -L png -m 4 target/pics/state2.fig target/pics/state2.png
 fig2dev -L png -m 4 target/pics/state3.fig target/pics/state3.png
 
 # These must be edited by hand since, for instance, they depend on accounts created in Mokito
-echo "4"
 sed -i 's/@tendermint_version/0.34.15/g' target/Tutorial.md
 sed -i 's/@hotmoka_repo/https:\/\/github.com\/Hotmoka\/hotmoka/g' target/Tutorial.md
 sed -i 's/@takamaka_repo/https:\/\/github.com\/Hotmoka\/io-takamaka-code/g' target/Tutorial.md
@@ -71,15 +66,12 @@ sed -i 's/@tutorial_name/hotmoka_tutorial/g' target/Tutorial.md
 sed -i 's/@account_mokito/701e20be588db820744df467826d67b9fe451406d7f75da6ef8aeb6805a7365f#0/g' target/Tutorial.md
 sed -i 's/@36words_of_account_mokito/word #1: rail\nword #2: double\nword #3: bag\nword #4: dove\nword #5: fluid\n...\nword #34: bounce\nword #35: deposit\nword #36: hotel/g' target/Tutorial.md
 
-echo "5"
 cp target/Tutorial.md target/ProgrammingHotmoka.md
 
-echo "6"
 sed -i "/^\[PDFonly]:/d" target/ProgrammingHotmoka.md
 sed -i "s/\[Markdownonly]://g" target/ProgrammingHotmoka.md
 
 # generate the PDF version now
-echo "7"
 sed -i "/^\[Markdownonly]:/d" target/Tutorial.md
 sed -i "s/\[PDFonly]://g" target/Tutorial.md
 pandoc target/Tutorial.md -o target/ProgrammingHotmoka.tex --include-in-header src/main/latex/mystylefile_hotmoka.tex --include-after-body src/main/latex/backcover.tex --toc --highlight-style=kate -V geometry:a4paper -V documentclass:book -V pagestyle:headings -V papersize:a4 -V colorlinks:true
@@ -98,7 +90,6 @@ sed -i 's/\\chapter{Table of Contents}/\\begin{comment}\\chapter{Table of Conten
 sed -i 's/\\hypertarget{introduction}/\\end{comment}\n\n\\hypertarget{introduction}/g' target/ProgrammingHotmoka.tex
 
 # place \input{cover_page.tex} after \begin{document}
-echo "8"
 sed -i 's/\\begin{document}/\\begin{document}\\input{..\/src\/main\/latex\/cover_page.tex}/g' target/ProgrammingHotmoka.tex
 
 cd target
@@ -112,7 +103,6 @@ cd ..
 
 # generate the epub version of the document:
 # we remove the first lines of the Markdown, that contain Java build information
-echo "9"
 tail -n +6 target/ProgrammingHotmoka.md > target/temp.md
 cd target
 pandoc -o ProgrammingHotmoka.epub ../src/main/resources/metadata-hotmoka.yaml temp.md

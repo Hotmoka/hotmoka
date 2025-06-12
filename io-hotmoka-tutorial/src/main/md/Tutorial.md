@@ -7168,105 +7168,246 @@ only requirement.
 
 ## Starting a Tendermint Hotmoka Node with Docker
 
-We have provided some preconfigured Docker images in Docker Hub, that you can see
-at [https://hub.docker.com/u/hotmoka](https://hub.docker.com/u/hotmoka). By using one of such
-images, we can start our own Tendermint Hotmoka node as follow. First, we need to create the
-key pair of the gamete, as we did in the previous chapter:
+There are preconfigured Docker images of Hotmoka nodes, in Docker Hub, that you can see
+at [https://hub.docker.com/u/hotmoka](https://hub.docker.com/u/hotmoka).
+For instance, it is possible to run the Tendermint Hotmoka node image to see its available commands:
 
 ```shell
-$ moka create-key
+$ docker run -it hotmoka/tendermint-node:@hotmoka_version info
+This container manages Hotmoka nodes using Tendermint as byzantine consensus engine.
 
-Please specify the password of the new key: king
-A new key @new_docker_key has been created.
-Its entropy has been saved into the file
-  "./@new_docker_key.pem".
+This container could be run with two volumes,
+one for the chain directory and another for the configuration
+directory of the node, and mapping all ports that could be used
+by Hotmoka or Tendermint:
+  docker run -it -p 8001:8001 -p 26656:26656 -v chain:/home/hotmoka/chain 
+    -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint
+    hotmoka/tendermint-node:VERSION /bin/bash
+
+The following commands and options are available inside the container:
+
+* info:         print this information message
+
+* config-init:  create the configuration directory of the first node
+   of a brand new blockchain
+    ALLOWS_UNSIGNED_FAUCET: true if the unsigned faucet must be opened
+    CHAIN_ID: the chain identifier of the blockchain
+    INITIAL_SUPPLY: the initial supply of coins of the blockchain
+    FINAL_SUPPLY: the final supply of coins of the blockchain
+    PUBLIC_KEY_OF_GAMETE: the Base64-encoded public key of the gamete of the blockchain
+    TARGET_BLOCK_CREATION_TIME: the milliseconds between two successive blocks
+    TOTAL_VALIDATION_POWER: the total units of validation power,
+      initially owned by the first validator account
+
+* config-start: create the configuration directory of a new node
+      of an existing blockchain
+    HOTMOKA_PUBLIC_SERVICE_URI: the URI of an already existing node of the blockchain
+    TARGET_BLOCK_CREATION_TIME: the milliseconds between two successive blocks
+
+* init:         create a node for a brand new blockchain, whose configuration
+    has been created with config-init
+
+* start:        create a node that connects to an already existing node of a blockchain,
+    whose configuration has been created with config-start
+
+* resume:       resume a node whose container was previously turned off
 ```
 
-We can now start a Docker node as a container:
+If you didn't do it in the previous chapter, you should now create the key pair of the gamete:
+
+```shell
+$ moka keys create --name gamete.pem --password
+Enter value for --password (the password that will be needed later to use the key pair): mypassword
+The new key pair has been written into "gamete.pem":
+* public key: 677QPRLfS4Mwgy2xA4dSEWmM3Hyb43mdZedSzq2g8Yxt (ed25519, base58)
+* public key: S9so3T9QIAau/zTpsAlKEhkkJOsqV3HDIQCc72ITha0= (ed25519, base64)
+* Tendermint-like address: 8380F3BEC1568BC3A07DE0CA721BA91CD9BC5282
+```
+
+It is now possible to create the configuration directory of a Tendermint node of a new blockchain,
+by using the `config-init` command of the same Docker image:
+
+```shell
+$ docker run -it
+    -e TARGET_BLOCK_CREATION_TIME="4000"
+    -e PUBLIC_KEY_OF_GAMETE="S9so3T9QIAau/zTpsAlKEhkkJOsqV3HDIQCc72ITha0="
+    -e CHAIN_ID="jellyfish"
+    -e ALLOWS_UNSIGNED_FAUCET="true"
+    -p 8001:8001 -p 26656:26656
+    -v chain:/home/hotmoka/chain
+    -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint
+    hotmoka/tendermint-node:@hotmoka_version
+    config-init
+
+I will use the following parameters for the creation of the configuration directory
+of a Hotmoka node using Tendermint as byzantine consensus engine:
+
+      ALLOWS_UNSIGNED_FAUCET=true
+                    CHAIN_ID="jellyfish"
+              INITIAL_SUPPLY="1000000000000000000000000000000000"
+                FINAL_SUPPLY="10000000000000000000000000000000000"
+        PUBLIC_KEY_OF_GAMETE="S9so3T9QIAau/zTpsAlKEhkkJOsqV3HDIQCc72ITha0="
+  TARGET_BLOCK_CREATION_TIME=4000
+      TOTAL_VALIDATION_POWER=1000000
+
+Cleaning the configuration directory...done
+Creating the validator.pem key pair of the node as validator... done
+Creating the local Hotmoka node configuration file... done
+Creating the consensus Hotmoka node configuration file... done
+Creating the Tendermint configuration files... done
+```
+
+The configuration is created inside the `/home/hotmoka/hotmoka_tendermint` directory of the docker container.
+Since that directory is mapped to the volume `hotmoka_tendermint` of the host machine, it will remain
+available also after the docker image terminates the execuiton of `config-init`. In this way, when we next
+run the `init` command, the docker container will find the configuration created by `config-init` inside
+the `hotmoka_tendermint` and use it to start the new node:
+
+```shell
+$ docker run -it
+    -p 8001:8001 -p 26656:26656
+    -v chain:/home/hotmoka/chain
+    -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint
+    hotmoka/tendermint-node:@hotmoka_version
+    init
+```
+
+You should see the log of the node, that creates and initializes a new Hotmoka node based on Tendermint:
+
+```
+Starting a Hotmoka node based on Tendermint as the single initial node
+  of a brand new blockchain.
+[2025-06-12 06:58:24] [INFO] opened the store database at chain/hotmoka/store
+[2025-06-12 06:58:25] [INFO] Tendermint ABCI started at port 26658
+[2025-06-12 06:58:25] [INFO] the Tendermint process is up and running
+[2025-06-12 06:58:25] [INFO] Tendermint started at port 26657
+...
+The following service has been published:
+ * ws://localhost:8001: the API of this Hotmoka node
+
+The validators are the following accounts:
+ * b437832a688dbb89b145d380b7cb3eb841d7cb09fb600d27be43cd670e8b43f9#0
+     with public key 5kqX4XcJv6q4EymCbT9RTHSCCALdKSmyqScnxVtJKvfL (ed25519, base58)
+
+The owner of the key pair of the gamete can bind it now to its address with:
+  moka keys bind file_containing_the_key_pair_of_the_gamete --password
+    --url url_of_this_Hotmoka_node
+or with:
+  moka keys bind file_containing_the_key_pair_of_the_gamete --password
+    --reference fcc6ad9a4cd4109dcb554df6f1d951f770d42cdb4c2caeb8fa713c1d4189b4fa#0
+
+Press the enter key to stop this process and close this node:
+[2025-06-12 06:58:54] [INFO] garbage-collected store 7d73a2309c9885299c2a...
+[2025-06-12 06:58:57] [INFO] coinbase: behaving validators:
+  030203B36BA4EDF0182D7D40D7EA7FE34A9415B4...
+[2025-06-12 06:58:57] [INFO] coinbase: units of gas consumed
+  for CPU, RAM or storage since the previous reward: 0
+...
+```
+If you press the enter key, the node will be turned off and the docker container will exit.
+You can start the node again using the `-d` docker option, that runs it in the background:
 
 ```shell
 $ docker run -dit
-    -e INITIAL_SUPPLY=1000000000000000
-    -e KEY_OF_GAMETE=@new_docker_key
-    -e CHAIN_ID=caterpillar
-    -e OPEN_UNSIGNED_FAUCET=true
-    -p 8001:8001
-    -p 26656:26656
+    -p 8001:8001 -p 26656:26656
     -v chain:/home/hotmoka/chain
+    -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint
     hotmoka/tendermint-node:@hotmoka_version
     init
 
-@container_id1
+360afca6f5bcf864b0f8430c4c8b8e1058101f13ea6921e9d911a5f09fa375a9
+$
 ```
 
-Wait for around 30 seconds, in order to give time to the node to start. After that time, the node should be up
-and running in your local machine, as you can verify with `moka info`:
+Wait for around 30 seconds, in order to give time to the node to start and initialize. After that time, the node should be up
+and running in your local machine, as you can verify with `moka nodes manifest show`:
 
 ```shell
-$ moka info --uri ws://localhost:8001
-
-Info about the node:
-  takamakaCode: @docker_takamaka_code
-  manifest: @docker_manifest
-    chainId: caterpillar
-    gamete: @docker_gamete
-      balance: 1000000000000000
+$ moka nodes manifest show --uri ws://localhost:8001
+    takamakaCode: 3d7ac2ef69a3f989a9cbaa17825a4f8fa577c8b604c72d2d5b5d4a3fd5caf7cc
+    manifest: 1ee56c42f51c27ac64f1513774f15be6009c6b22459b9651e885addba782c3f3#0
+      genesisTime: 2025-06-12T06:57:12.441531326Z
+      chainId: jellyfish
+      maxErrorLength: 300
+      maxDependencies: 20
+      maxCumulativeSizeOfDependencies: 10000000
+      allowsUnsignedFaucet: true
+      skipsVerification: false
+      signature: ed25519
+      gamete: fcc6ad9a4cd4109dcb554df6f1d951f770d42cdb4c2caeb8fa713c1d4189b4fa#0
+        balance: 1000000000000000000000000000000000
+        maxFaucet: 0
     ...
+    validators: 1ee56c42f51c27ac64f1513774f15be6009c6b22459b9651e885addba782c3f3#1
+       ...
+       number of validators: 1
+       validator #0: b437832a688dbb89b145d380b7cb3eb841d7cb09fb600d27be43cd670e8b43f9#0
+         id: 030203B36BA4EDF0182D7D40D7EA7FE34A9415B4
+          balance: 0
+          staked: 0
+          power: 1000000
 ```
 
 > Since `--uri ws://localhost:8001` is the default, you can just type
-> `moka info`. The same holds for all other `moka` commands.
+> `moka nodes manifest show`. The same holds for all other `moka` commands.
 
 In order to use the gamete, we must bind the key to its storage reference:
 
 ```shell
-$ moka bind-key @new_docker_key
-
-A new account @docker_gamete
-  has been created.
-Its entropy has been saved into the file
-  "./@docker_gamete.pem".
+$ moka keys bind gamete.pem --password
+Enter value for --password (the password of the key pair): 
+The key pair of fcc6ad9a4cd4109dcb554df6f1d951f770d42cdb4c2caeb8fa713c1d4189b4fa#0
+  has been saved as "fcc6ad9a4cd4109dcb554df6f1d951f770d42cdb4c2caeb8fa713c1d4189b4fa#0.pem".
 ```
 
-That's all. We can now use the gamete to open the faucet of the node (`moka faucet`) and play
+That's all. We can now use the gamete to open the faucet of the node (`moka nodes faucet`) and play
 with the node as we did in the previous chapters of this book. Just direct the clients
-to `ws://localhost:8001` instead of `@server`.
+to `ws://localhost:8001` instead of `@server_mokamint`.
 
 Let us analyze the options passed to `docker`. The `run -dit` command means that we want to
 instantiate, and run as an interactive daemon,
-a Docker image, which is actually specified at the end:
+a docker image, which is actually specified at the end:
 `hotmoka/tendermint-node:@hotmoka_version`. Docker will download that image from Docker Hub.
 
 > That image assumes that you are using a Linux machine based on the amd64 architecture.
 > If you are using a Linux machine based on the arm64 architecture, use the
 > `hotmoka/tendermint-node-arm64:@hotmoka_version` image. If you are using a Windows machine,
-> you need to run a Linux image inside a Linux virtual machine, as always in Docker.
-> Please refer to the Docker documentation to know how this can be accomplished.
+> you need to run a Linux image inside a Linux virtual machine, as always in docker.
+> Please refer to the docker documentation to know how this can be accomplished.
 
-A specific command of the image is run, specified at the end: it is the `init` command
-that initializes a Tendermint Hotmoka node.
-Options of `run` are passed to the Docker image as environment variables,
-through the `-e` switch. The `INITIAL_SUPPLY` is the amount of coins
-provided to the gamete initially, that is, the amount of cryptocurrency available
-initially in the blockchain. The `KEY_OF_GAMETE` is
-what we have generated with `moka create-key` and will be put inside the gamete as its public key.
-The `CHAIN_ID` is the chain identifier of the blockchain started by the node.
+A specific command of the image is run, specified at the end: the first time it was
+`config-init`, that creates a configuration directory, the second time it was
+`init`, that initializes a Tendermint Hotmoka node as specified in the configuration directory.
+
+> The configuration directory generated by `config-init` should be fine for most uses.
+> If you want to fine tune it, you can run, between `config-init` and `init`,
+> the same docker container with the `/bin/bash` command and edit the
+> content of the `hotmoka_tendermint` directory. Inside the container, the `vi`
+> editor is available.
+
+Options are passed to the docker image as environment variables,
+through the `-e` switch. The `TARGET_BLOCK_CREATION_TIME` value is the time, in milliseconds,
+between the creation of two consecutive blocks; the `PUBLIC_KEY_OF_GAMETE` value is the Base64-encoded
+public key to assign to the gamete of the node, that is, to the account that, initially, holds
+all cryptocurrency in the blockchain; the `CHAIN_ID` value if the chain identifier to assign to
+the new blockchain.
 The `OPEN_UNSIGNED_FAUCET` switch opens a free faucet for getting cryptocurrency for free from the
-gamete: use `false` for that in a real blockchain.
+gamete: use `false` for a real blockchain, of course.
 
 As shown in Figure @fig:hotmoka_tendermint, a Tendermint Hotmoka node communicates
-to the external world through ports 26656 for gossip and 8001 (or 80 or any other port) for clients.
-Hence those ports must be connected to the Docker image. We do that with the
-`-p` switch. Specifically, in our example, port 8001 of the real machine is bound to port 8001 of the Docker image
-and port 26656 of the real machine is bound to port 26656 of the Docker image. If we prefer to use
-port 80 for clients, we should use `-p 80:8001` instead of `-p 8001:8001`.
+to the external world through ports 26656 for gossip and 8001 (or 8002, or 80 or any other port) for clients.
+Hence those ports must be connected to the docker image. We do that with the
+`-p` switch. Specifically, in our example, port 8001 of the real machine is mapped to port 8001 of the docker image
+and port 26656 of the real machine is mapped to port 26656 of the docker image. For instancem, if you prefer to use
+port 80 to expose the new node, you should write `-p 80:8001` instead of `-p 8001:8001`.
 
 Finally, the blocks and state created by the node are saved into a `/home/hotmoka/chain`
-directory inside the container that is implemented as a Docker volume `chain`. That
+directory inside the container that is mapped to a docker volume `chain`. That
 volume is visible in the real machine as `/var/lib/docker/volumes/chain/_data/` and will be
-persisted if we turn the Docker container off.
+persisted if we turn the docker container off.
 
-> The actual directory that contains the volume depends on the specific version of Docker.
+> The actual directory that contains the volume depends on the operating system
+> and on the specific version of docker.
 > Currently, it is `/var/lib/docker/volumes/chain/_data/` in Linux machines and you must be
 > root to access it.
 
@@ -7274,7 +7415,7 @@ The `docker run` command printed a hash at the end, that identifies the running 
 We can use it, for instance, to turn the container off when we do not need it anymore:
 
 ```shell
-$ docker stop @container_id1
+$ docker stop 360afca6f5bcf864b0f8430c4c8b8e1058101f13ea6921e9d911a5f09fa375a9
 ```
 
 > The hash will be different in your experiments. Use yours.
@@ -7282,228 +7423,203 @@ $ docker stop @container_id1
 You can verify that the Tendermint Hotmoka node is not available anymore:
 
 ```shell
-$ moka info --uri ws://localhost:8001
-
-Failed to connect to 'ws://localhost:8001': Connection refused
+$ moka nodes manifest show
+The remote service is misbehaving: are you sure that it is actually published
+  at ws://localhost:8001 and that it is initialized and accessible?
 ```
 
 However, the data of the blockchain still exists, inside its directory of the
-real machine:
+host machine:
 `/var/lib/docker/volumes/chain/_data/`. Hence, it is possible to resume the execution of the
 blockchain from its final state. Restrain from using again
-the `docker run` command
-for that: it would create a brand new blockchain, from scratch, destroying the local data
+the `init` command
+for that: it would create a brand new blockchain again, from scratch, destroying the local data
 of the previous blockchain.
-Similarly if you use the `docker start` command. Unless this is actually what you want to achieve,
+Unless this is actually what you want to achieve,
 the right command to resume a previously started and stopped blockchain from its saved state is
 
 ```shell
 $ docker run -dit
-    -p 8001:8001
-    -p 26656:26656
+    -p 8001:8001 -p 26656:26656
     -v chain:/home/hotmoka/chain
+    -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint
     hotmoka/tendermint-node:@hotmoka_version
     resume
 
-@container_id2
+c1407e499ad67465318704da1fcb6e9b88ee94faceb7c4b86e00ab4775590b3f
 ```
 
 Wait for a few seconds and then verify that the _same_ node is back:
 
 ```shell
-$ moka info --uri ws://localhost:8001
-
-Info about the node:
-  takamakaCode: @docker_takamaka_code
-  manifest: @docker_manifest
-    chainId: caterpillar
-    gamete: @docker_gamete
-      balance: 1000000000000000
+$ moka nodes manifest show
+    takamakaCode: 3d7ac2ef69a3f989a9cbaa17825a4f8fa577c8b604c72d2d5b5d4a3fd5caf7cc
+    manifest: 1ee56c42f51c27ac64f1513774f15be6009c6b22459b9651e885addba782c3f3#0
+      genesisTime: 2025-06-12T06:57:12.441531326Z
+      chainId: jellyfish
+      maxErrorLength: 300
+      maxDependencies: 20
+      maxCumulativeSizeOfDependencies: 10000000
+      allowsUnsignedFaucet: true
+      skipsVerification: false
+      signature: ed25519
+      gamete: fcc6ad9a4cd4109dcb554df6f1d951f770d42cdb4c2caeb8fa713c1d4189b4fa#0
+        balance: 1000000000000000000000000000000000
+        maxFaucet: 0
     ...
 ```
 
 Turn the node off now and conclude our experiment:
 
 ```shell
-$ docker stop @container_id2
+$ docker stop c1407e499ad67465318704da1fcb6e9b88ee94faceb7c4b86e00ab4775590b3f
 ```
 
-The Docker image contains a `help` command. Try for instance:
-
-```shell
-$ docker run --rm -it hotmoka/tendermint-node:@hotmoka_version help
-
-This container runs a Hotmoka node based on Tendermint.
-It understands the following commands and options:
-
-  help:   prints this help
-  init:   creates a node for a brand new blockchain
-    CHAIN_ID: the chain identifier of the new blockchain
-      [default: the string "missing"]
-    KEY_OF_GAMETE: the Base58-encoded ed25519 public key of the gamete
-      [required, no default]
-    ...
-  start:  creates a node that connects to an already existing node of a blockchain
-    NETWORK_URI: the URI of the already existing node
-    ...
-  resume: resumes a node that was previously turned off with "docker stop"
-    ...
-```
-
-We have already discussed the `help`, `init` and `resume` commands.
+We have discussed the `info`, `config-init`, `init` and `resume` commands of the docker image.
 Section [Connecting a Tendermint Hotmoka Node to an Existing Blockchain](#connecting-a-tendermint-hotmoka-node-to-an-existing-blockchain)
-will show an example of use of the `start` command.
+will show an example of use of the `config-start` and `start` commands.
 Before that, let us understand better what the manifest of a Tendermint node tells us.
 
 ## Manifest and Validators
 
-Resume again the Tendermint node that we have started in the previous section,
-if you have stopped it before:
+The information reported by `moka nodes manifest show` referes to two accounts that have been
+created during the initialization of the node:
 
 ```shell
-$ docker run -dit
-    -p 8001:8001
-    -p 26656:26656
-    -v chain:/home/hotmoka/chain
-    hotmoka/tendermint-node:@hotmoka_version
-    resume
+gamete: fcc6ad9a4cd4109dcb554df6f1d951f770d42cdb4c2caeb8fa713c1d4189b4fa#0
+  balance: 1000000000000000000000000000000000
+  maxFaucet: 0
 
-@container_id3
+validator #0: #0
+  id: 030203B36BA4EDF0182D7D40D7EA7FE34A9415B4
+  balance: 0
+  staked: 0
+  power: 1000000
 ```
 
-After a few seconds, the node will be up and we can show its manifest:
-
-```shell
-$ moka info
-
-Info about the node:
- takamakaCode: @docker_takamaka_code
- manifest: @docker_manifest
-   chainId: caterpillar
-   gamete: @docker_gamete
-     balance: 1000000000000000
-   ...
-   validators: @docker_validators
-     number of validators: 1
-     validator #0: @docker_validator0
-        id: @docker_id_validator0
-        balance: 0
-        staked: 0
-        power: 1000000
-```
-There are two accounts that have been already created inside the storage of the blockchain.
-We already know the first one, that is, the gamete. Its private key is not stored in the Docker container
+We already know the first one, that is, the gamete. Its private key is not stored in the docker container
 but must be available to the person who started the container.
-Normally, it is the key that was created before starting the node (with `moka create-key`) and
-that is later bound to the storage address of the gamete (with `moka bind-key`). If you
+Normally, it is the key that was created before starting the node (with `moka keys create`) and
+that is later bound to the storage address of the gamete (with `moka keys bind`). If you
 followed the instructions in the previous section, you should have an
-`@docker_gamete.pem` file in your file system
-(the actual address will be different in your machine, but will match the address of the gamete
-in your node). With that pem file, you have _superuser_ rights, in the sense that you can, for instance,
-open and close the faucet (but only if you started the node with the `OPEN_UNSIGNED_FAUCET` option set to true).
-Moreover, you own all cryptocurrency minted for the node! With that, you can create and fund as many new accounts
+`.pem` file in your file system, for the gamete. With that pem file, you have _superuser_ rights,
+in the sense that you can, for instance,
+open and close the faucet (but only if you started the node with the `ALLOWS_UNSIGNED_FAUCET` option set to true).
+Moreover, you own all cryptocurrency initially minted for the node! With that, you can create and fund as many new accounts
 as you want and in general run any transaction you like.
 
-There is a second account that has been created. Namely, the _validator_ account, at the address
-`@docker_validator0` (this will be different in your node).
+There is a second account that has been created. Namely, the _validator_ account, at address
+`b437832a688dbb89b145d380b7cb3eb841d7cb09fb600d27be43cd670e8b43f9` (this will be different in your node).
 This is an externally owned account that gets remunerated for every non-`@View`
 transaction run in the node and included in blockchain. The previous print-out shows that, at
-the beginning, the balance of the validator is 0. Let us run a transaction and check what happens.
-For instance, let us create a new account by letting the gamete pay (we can do it since
-we hold the keys of the gamete):
+the beginning, the balance of the validator is 0. Let us resume the node, run a transaction (for instance,
+create a new account by letting the faucet pay) and check what happens.
 
 ```shell
-$ moka create-account 1234567
-    --payer @docker_gamete
+$ docker run -dit 
+    -p 8001:8001 -p 26656:26656
+    -v chain:/home/hotmoka/chain
+    -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint
+    hotmoka/tendermint-node:@hotmoka_version
+    resume
+c1407e499ad67465318704da1fcb6e9b88ee94faceb7c4b86e00ab4775590b3f
 
-Please specify the password of the payer account: king
-Please specify the password of the new account: rock-and-roll
-Do you really want to spend up to 200000 gas units to create a new account [Y/N] Y
-Total gas consumed: @docker_total_gas_new_account
-A new account @docker_new_account
-  has been created.
-Its entropy has been saved into the file
-  "@docker_new_account.pem".
+$ moka keys create --name account.pem --password
+Enter value for --password (the password that will be needed later to use the key pair): squid
+The new key pair has been written into "account.pem":
+* public key: 58ibUYbJ1unUNYFTk6DkMQe8qGDd2p9AU1qnJ1vurKfn (ed25519, base58)
+* public key: PWjYJCCrskFCgr0Y2QP6pPTUTa2sH4m3QvRwG5kOn9k= (ed25519, base64)
+* Tendermint-like address: 00CCBC3965B3E623B06E07230C489AA300B215F1
+
+$ moka accounts create fcc6ad9a4cd4109dcb554df6f1d951f770d42cdb4c2caeb8fa713c1d4189b4fa#0 1234567 account.pem --password --password-of-payer
+Enter value for --password (the password of the key pair): squid
+Enter value for --password-of-payer (the password of the payer): mypassword 
+Do you really want to create the new account spending up to 200000 gas units
+  at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
+Adding transaction 960e4b9ccd642b1d903feed73003b910260fd808de0ff206fb34085d085ea726... done.
+A new account 960e4b9ccd642b1d903feed73003b910260fd808de0ff206fb34085d085ea726#0 has been created.
+Its key pair has been saved into the file
+  "960e4b9ccd642b1d903feed73003b910260fd808de0ff206fb34085d085ea726#0.pem".
+
+Gas consumption:
+ * total: 6266
+   * for CPU: 2165
+   * for RAM: 3616
+   * for storage: 485
+   * for penalty: 0
+ * price per unit: 1 pana
+ * total price: 6266 panas
 ```
 
 The gas consumed for this transaction has been forwarded to the validators of the blockchain, at its current price.
 Since there is only a single validator, everything goes to it, as you can verify:
 
 ```shell
-$ moka info
+$ moka nodes manifest show
+...
+gamete: fcc6ad9a4cd4109dcb554df6f1d951f770d42cdb4c2caeb8fa713c1d4189b4fa#0
+  balance: 999999999999999999999999998759167
+  maxFaucet: 0
 
-Info about the node:
- takamakaCode: @docker_takamaka_code
- manifest: @docker_manifest
-   chainId: caterpillar
-   gamete: @docker_gamete
-     balance: @docker_reduced_balance
-   ...
-   validators: @docker_validators
-     surcharge for buying validation power: 50000000 (ie. 50.000000%)
-     slashing for misbehaving validators: 1000000 (ie. 1.000000%)
-     slashing for not behaving validators: 500000 (ie. 0.500000%)
-     percent of validators' reward that gets staked: 75000000 (ie. 75.000000%)
-     number of validators: 1
-     validator #0: @docker_validator0
-        id: @docker_id_validator0 
-        balance: @docker_balance_validator0
-        staked: @docker_staked_validator0
-        power: 1000000
-     initialInflation: 100000 (ie. 0.100000%)
-     currentInflation: 99999 (ie. 0.099999%)
+validator #0: b437832a688dbb89b145d380b7cb3eb841d7cb09fb600d27be43cd670e8b43f9#0
+  id: 030203B36BA4EDF0182D7D40D7EA7FE34A9415B4
+  balance: 1568
+  staked: 4704
+  power: 1000000
 ```
-The manifest reported above tells us that the gamete has now a reduced balance:
-it paid 1000000000000000 - @docker_reduced_balance that is @docker_diff1 panareas to create the new account.
+The information above tells us that the gamete has now a reduced balance:
+it paid 1000000000000000000000000000000000 - 999999999999999999999999998759167
+that is 1240833 panareas to create the new account.
 Of these, 1234567 went to the balance of the new account. The remaining
-@docker_diff1 - 1234567, that is @docker_diff2, have been paid for gas (it seems that the gas price
-was at one panarea per gas unit). It is important to note that the @docker_diff2 panareas did not go
-_immediately_ to the only validator: as shown above, only @docker_balance_validator0 have been paid immediately;
-other @docker_staked_validator0 have been _staked_ for that validator, that is, kept in the validators contract
+1240833 - 1234567, that is 6266, have been paid for gas. The gas price
+was at one panarea per gas unit at the time of creating the account.
+This means that 6266 coins have been paid to the only validator of the blockchain,
+whose balance actually increased to 1568 coins plus 4704 _staked_ coins, for a total of
+6272 coins. It is important to note that the 6266 panareas did not go
+immediately to the only validator: as shown above, only 1568 have been paid immediately;
+other 4704 have been staked for that validator, that is, kept in the validators contract
 as a motivation for the validator to behave correctly. In the future, if the validator misbehaves
 (that is, does not validate the transactions correctly or does not validate them at all) then
-this stake will be reduced by a percent that is called _slashing_. This is reported above
-as 1% of slashing for validators that do not validate correctly and 0.5% of slashing for
+this stake will be reduced by a percent that is called _slashing_.
+This is by default 1% for validators that do not validate correctly and 0.5% for
 validators that do not validate at all (for instance, they are down).
-
 The staked amount of panareas will be forwarded to the validator only when it will sell all its
 validation power to another validator and stop being a validator.
 
-There is a final remark. We said that @docker_diff2 panareas have been forwarded to the validator
-(immediately or staked). But @docker_balance_validator0 + @docker_staked_validator0
-is @docker_sum1. Where do these @docker_sum1 - @docker_diff2 (that is, @docker_diff3 panareas)
+There is a final remark. We said that 6266 panareas have been forwarded to the validator
+(immediately or staked). But it actually received 6272 panareas.
+Where do these 6 extra panareas
 come from? They have been _minted_, that is, created from scratch as a form of _inflation_.
-You can see from the manifest that the initial inflation was 0.1%. It is actually the case that
-0.1% of @docker_diff2 is @docker_diff3 (approximatively).
+By default, the initial inflation is 0.1%. It is actually the case that 6 is the 0.1%
+of 6266 (approximatively).
 
 We have understood that the validator account receives payments for the validation of transactions.
-But who controls this validator? It turns out that the Docker container
-creates and stores the key of this validator in its file system.
-You can see it if you access the `chain` volume where the container operates.
+But who controls this validator? It turns out that the `config-init` command
+created the key pair of this validator inside the configuration directory of the node.
+You can see it if you access the `hotmoka_tendermint` volume where the container operates.
 You must be root to do that:
 
 ```shell
-$ sudo ls /var/lib/docker/volumes/chain/_data/
-
-@docker_validator0.pem
-...
+$ sudo ls /var/lib/docker/volumes/hotmoka_tendermint/_data
+consensus_config.toml  local_config.toml  tendermint_config  validator.pem
 ```
 In alternative, you can use the `docker exec` command to run a command inside the container.
-You do not need to be root, but need to remember the id of the running container:
+You do not need to be root, but need to know the id of the running container (`docker ps` might help you):
 ```shell
-$ docker exec @container_id3
-    /bin/ls | grep ".pem"
+$ docker exec c1407e499ad67465318704da1fcb6e9b88ee94faceb7c4b86e00ab4775590b3f
+    /bin/ls hotmoka_tendermint
 
-@docker_validator0.pem
+consensus_config.toml
+local_config.toml
+tendermint_config
+validator.pem
 ```
 
-Who owns that key controls the validator. Therefore, it is not safe to keep it in the
-file system. Instead, move it into a safer place:
+Who owns that key controls the validator. Therefore, you might wanto to move it in your host machine:
 
 ```shell
-$ sudo mv /var/lib/docker/volumes/chain/_data/
-    @docker_validator0.pem
-    my_safe_place/
+$ docker cp c1407e499:/home/hotmoka/hotmoka_tendermint/validator.pem .
+Successfully copied 2.05kB
 ```
 
 As a final remark about the key of the validator, note that it _must_ be the same
@@ -7515,14 +7631,15 @@ Tendermint stores the key that it uses to identify the node in another file, ins
 its configuration, and in JSON format:
 
 ```shell
-$ sudo ls /var/lib/docker/volumes/chain/_data/blocks/config
-
+$ docker exec c1407e499 /bin/ls hotmoka_tendermint/tendermint_config/config
+config.toml
+genesis.json
+node_key.json
 priv_validator_key.json
-...
 ```
 This file must remain in the node, or otherwise Tendermint cannot vote for validation.
-The Docker script magically ensures that, correctly, this file contains the same key
-as `@docker_validator0.pem`, although in a different format.
+The docker script magically ensures that, correctly, this file contains the same key
+as `validator.pem`, although in a different format.
 
 ## Starting a Tendermint Hotmoka Node on Amazon EC2
 
@@ -7541,86 +7658,35 @@ EC2 is a good candidate for experimentation. Nevertheless, what we describe in t
 can be achieved with any other cloud rental architecture.
 
 Conceptually, there is nothing special with running a Tendermint Hotmoka node
-inside an Amazon EC2 machine. Just start a free microservice machine and ssh to it
-in order to install Docker, by following the standard installation instructions for Docker
+inside an Amazon EC2 machine: start a free microservice machine, ssh to it and
+execute the commands of the previous section, but inside the EC2 machine.
+You will probably need to install 
+Docker in the EC2 machine, by following the standard installation instructions for Docker
 in a Linux machine, that you can find at
 [https://docs.docker.com/engine/install/](https://docs.docker.com/engine/install/).
 As Figure @fig:hotmoka_tendermint shows, ports 80 (for instance) and 26656 must be open
-in order for a Tendermint Hotmoka node to work correctly. Therefore, use a browser to access
+in order for a Tendermint Hotmoka node to connect to the outside world and work correctly.
+Therefore, use a browser to access
 the Amazon EC2 console, select your micromachine and inspect its security group. Modify its
 inbound rules so that they allow connections to ports 22 (for ssh), 26656 (for gossip)
-and 80 (for clients). At the end, such rules should look as in Figure @fig:inbound_rules.
+and 80 (or 8001 or 8002 or whichever port you like, for clients).
+At the end, such rules should look as in Figure @fig:inbound_rules.
 
 [Markdownonly]: <p align="center"><img width="800" src="pics/inbound_rules.png" alt="Figure @fig:inbound_rules. The inbound rules for the Amazon EC2 machine"></p><p align="center">Figure @fig:inbound_rules. The inbound rules for the Amazon EC2 machine.</p>
 
 [PDFonly]: ![Figure @fig:inbound_rules. The inbound rules for the Amazon EC2 machine.](pics/inbound_rules.png "Figure @fig:inbound_rules. The inbound rules for the Amazon EC2 machine."){ width=100% }
 
-Create the key of the gamete in your local machine:
+For the rest, the instructions of the previous chapter will let you start a Hotmoka Tendermint node on the EC2 machine.
+We suggest to create the `gamete.pem` file in your local machine and only use its public key to configure
+the node in the EC2 machine, so that the key of the gamete never enters the remote EC2 machine.
 
-```shell
-$ moka create-key
-
-Please specify the password of the new key: king
-A new key 9PhEVACUFjTEXwoMETzXwsjSTVe2c9dJMuUymxGTo4vF has been created.
-Its entropy has been saved into the file
-  "./9PhEVACUFjTEXwoMETzXwsjSTVe2c9dJMuUymxGTo4vF.pem".
-```
-
-and use it to start a node in the EC2 machine:
-
-```shell
-ec2$ docker run -dit
-       -e INITIAL_SUPPLY=1234567890
-       -e KEY_OF_GAMETE=9PhEVACUFjTEXwoMETzXwsjSTVe2c9dJMuUymxGTo4vF
-       -e CHAIN_ID=caterpillar
-       -p 80:8001
-       -p 26656:26656
-       -v chain:/home/hotmoka/chain
-       hotmoka/tendermint-node:@hotmoka_version
-       init
-
-5f3799b58c6569b50dbebee6db3061ebf8e3c2c7ac6e0882579129ca66302786
-```
-
-> The command above is given inside the EC2 machine, hence the `ec2$` prompt.
-
-Wait for a few seconds and then verify, in your local machine, that the remote node is available:
-
-```shell
-$ moka info --uri ec2-34-244-119-200.eu-west-1.compute.amazonaws.com
-
-Info about the node:
-  takamakaCode: c2003c1109c33acaa3d8e081327f35f5cb960e4e8ee6743674087b00cb7bbeb9
-  manifest: e6f36a564872b8a032881f38325d85202d1b7853327ddf9a7281a1342a9d8034#0
-    chainId: caterpillar
-    gamete: ce1b85355a9237ed701f4ca9c498e77c1f0876535b0dc7716cdd15a72c19a407#0
-      balance: 1234567890
-  ...
-```
-
-> The URI of your micromachine can be found in the Amazon EC2 console.
-> We have used ours above, while you should use yours of course.
-> Remember that 80 is the default port in URIs.
-
-You can bind the key of the gamete in your local machine now:
-
-```shell
-$ moka bind-key 9PhEVACUFjTEXwoMETzXwsjSTVe2c9dJMuUymxGTo4vF
-    --uri ec2-34-244-119-200.eu-west-1.compute.amazonaws.com
-
-A new account ce1b85355a9237ed701f4ca9c498e77c1f0876535b0dc7716cdd15a72c19a407#0
-  has been created.
-Its entropy has been saved into the file
-  "./ce1b85355a9237ed701f4ca9c498e77c1f0876535b0dc7716cdd15a72c19a407#0.pem".
-```
-
-You can see the logs of your container with the standard technique of Docker. Namely,
-in the EC2 machine you can run:
+You can inspect the logs of you container as usual with docker:
 
 ```shell
 ec2$ docker logs 5f3799b58c6569b50dbebee6db3061ebf8e3c2c7ac6e0882579129ca66302786
 ```
 
+(assuming 5f3799b58c6569b50dbebee6db3061ebf8e3c2c7ac6e0882579129ca66302786 is the id of your container)
 which will print all logs of the container. If you want to see the logs in real time,
 while they are generated by the container, you can run
 
@@ -7639,81 +7705,84 @@ ec2$ sudo ls /var/lib/docker/containers
 ...
 ```
 
-When you do not need the node anymore, turn it off in the remote machine:
-
-```shell
-ec2$ docker stop 5f3799b58c6569b50dbebee6db3061ebf8e3c2c7ac6e0882579129ca66302786
-```
-As you can see, by using Docker containers the installation of a single validator node
-is conceptually the same both in your local machine and in Amazon EC2.
-
-> If you do not `docker stop` your container but log out from the EC2 machine, the container will
-> continue to run in the background, as always with Docker, and can be contacted from
-> external clients. Of course, if you turn the EC2 machine
-> off from the EC2 management console of Amazon, the node will die and will become unreachable.
+If you start the docker container with the `-d` option, you can sefely exit the remote machine and the node
+will continue working in the background. When you do not need the node anymore, you can turn off its container
+with `docker stop`.
 
 ## Connecting a Tendermint Hotmoka Node to an Existing Blockchain
 
 We have started, and subsequently turned off, a blockchain consisting of a single validator
 node, living in splendid isolation. But we might want to do something different.
 Namely, we want now to start a node that _belongs_ to the same blockchain network as
-`@server`. This means that the node will be started and will replay
-all transactions already executed by `@server`, starting from the empty state.
-At the end, our node will be a clone of `@server`, with its same state.
-From that moment on, our node can be used to replay and follow the new transactions that
-reach the blockchain of `@server`, and also to send new transactions to that
-blockchain. It will be a _peer_ of that blockchain network. Note, however, that it will
-not be a validator of the blockchain.
+`@server_tendermint`. This means that the node will be started and will replay
+all transactions already executed by `@server_tendermint`, starting from the empty state.
+At the end, our node will be a clone of `@server_tendermint`, with its same state.
+From that moment on, our node will execute the same transactions that
+reach the blockchain of `@server_tendermint`, and also send new transactions to that
+blockchain, if they reach our node. It will be a _peer_ of that blockchain network.
+Note, however, that it will not be a validator of the blockchain.
 
-In order to achieve that result, we can use the `start` command of the Docker image,
-in the remote EC2 machine:
+The process here is the same as for the creation of a brand new blockchain of a single
+node. The only difference is that we create the configuration of the node with the
+`config-start` command, instead of `config-init`, and that we start the node
+with the `start` command, instead of `init`.
 
-```shell
-ec2$ docker run -dit
-       -e NETWORK_URI=@server
-       -p 80:8001
-       -p 26656:26656
-       -v chain:/home/hotmoka/chain
-       hotmoka/tendermint-node:@hotmoka_version
-       start
-
-3335d7609ecbd3d6ad42577aee0d0a2fd1bc59ed3c18ae7da2d77febbd776a84
-```
-
-The `start` command needs only an option, the `NETWORK_URI` switch, that
-specifies the URI of a node to clone and become a peer of. If you wait for a few seconds,
-you can see that a new node has been published, that is part of the blockchain network
-of `@server`:
+Let us create the configuration of the node then. Start by stopping any docker container that you might have
+running on your local machine. Since this is a peer of an existing blockchain,
+whose gamete already exists, we do not need any gamete key pair to start with. We create
+its configuration in a way that mirrors that of the node at `@server_tendermint`:
 
 ```shell
-$ moka info --uri ec2-34-244-119-200.eu-west-1.compute.amazonaws.com
+$ docker run -it
+    -e TARGET_BLOCK_CREATION_TIME="4000"
+    -e HOTMOKA_PUBLIC_SERVICE_URI="@server_tendermint"
+    -p 8001:8001 -p 26656:26656
+    -v chain:/home/hotmoka/chain
+    -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint
+    hotmoka/tendermint-node:@hotmoka_version
+    config-start
 
-Info about the node:
-  takamakaCode: @takamakaCode
-  manifest: @manifest
-    chainId: @chainid
-    maxErrorLength: 300
-    signature: ed25519
-    ...
-    gamete: @gamete
-      balance: 99999999999999999999...
-      maxFaucet: @maxFaucet
+Going to create the configuration directory of a Hotmoka node using
+  the Tendermint byzantine consensus engine, with the following parameters:
+
+ HOTMOKA_PUBLIC_SERVICE_URI=@hotmoka_version
+ TARGET_BLOCK_CREATION_TIME=4000
+
+Cleaning the directory hotmoka_tendermint... done
+Creating the validator.pem key pair of the node as validator... done
+Creating the local Hotmoka node configuration file... done
+Extracting the Tendermint configuration files to match those at @server_tendermint... 
+  MANIFEST=...
+  CHAIN_ID=...
+  GENESIS_TIME=...
+  ...
+done
+
+$ docker run -dit
+    -p 8001:8001 -p 26656:26656
+    -v chain:/home/hotmoka/chain
+    -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint
+    hotmoka/tendermint-node:@hotmoka_version
+    start
+
+$
 ```
-Note that the information of this node is that of `@server`
-(compare it with that
-in section [Contacting a Hotmoka Test Node](#contacting-a-hotmoka-test-node)).
-That is, the started node is a clone of `@server` and can be used at its place.
 
-> It is possible to start a peer of another node manually, similarly to what
+Wait a few seconds, to give the node the time to start synchronization.
+After that, you can verify that the node in your local machine is a clone
+of that at `@server_tendermint`. Just compare the output of
+`moka nodes manifest show` and `moka nodes manifest show --uri @server_tendermint`.
+
+> It is possible to start a peer of another node manually, with no use of docker, similarly to what
 > we have done in section [Tendermint Nodes](#tendermint-nodes).
 > We highly discourage the attempt,
 > since it requires one to create a Tendermint configuration that mirrors
-> that of the remote cloned node. Moreover, the peer must run exactly the
+> that of the remote cloned node, which is not trivial. Moreover, the peer must run exactly the
 > same Java runtime as the cloned node, or otherwise the two machines
 > might not reach consensus about the effects of the transactions.
-> By using a prepared Docker image, we save us such headache.
+> By using a prepared docker image, we save us such headache.
 > The interested reader can see the implementation of that image
-> inside the distribution of Hotmoka, in the `dockerfiles` directory.
+> inside the distribution of Hotmoka, in the `io-hotmoka-docker` project.
 
 In general, the `start` command might take a while, since it downloads and replays all transactions
 already executed in the cloned node. Therefore, if you turn the started node off with the `docker stop` command,
@@ -7730,16 +7799,18 @@ total quantity shared among all validator nodes. For instance, when we have show
 nodes, we have seen information about the only validator in the subsequent form:
 
 ```shell
- validator #0: @docker_validator0
-    id: @docker_id_validator0 
-    balance: @docker_balance_validator0
-    staked: @docker_staked_validator0
-    power: 1000000
+$ moka nodes manifest show
+...
+validator #0: b437832a688dbb89b145d380b7cb3eb841d7cb09fb600d27be43cd670e8b43f9#0
+  id: 030203B36BA4EDF0182D7D40D7EA7FE34A9415B4
+  balance: 1568
+  staked: 4704
+  power: 1000000
 ```
 
 This means that validator #0 has a _power_ of 1000000. Since it is the only validator of the network,
 the total power of the validators of the network is 1000000.
-Next section will show that this validator can decide to sell part of its power or all its power to
+This validator can decide to sell part of its power or all its power to
 another validator, resulting in a network with a single (different) validator or with more validators.
 For instance, it might sell 200000 units of power to another validator #1, resulting
 in a network with two validators: validator #0 with 800000 units of power and
@@ -7753,7 +7824,7 @@ in other Hotmoka nodes in the future. However, the idea that power represents th
 of a validator will likely remain.
 
 What said above means that the validators are a sort of _entity_ that shares validation
-power among the single validators. Validation power can be sold and bought. The number of
+power among each single validator. Validation power can be sold and bought. The number of
 the validators and their power is consequently dynamic. In some sense, this mechanism
 resembles the market of shares of a corporation.
 
@@ -7776,11 +7847,9 @@ The `SharedEntityView` interface at the top of the hierarchy in Figure @fig:enti
 the read-only operations on a shared entity. This view is static, in the sense
 that it does not specify the operations for transfers of shares. Therefore, its
 only type parameter is `S`: any contract can play the role of the type for the
-shareholders of the entity. Method `getShares` yields a snapshot of the current
+shareholders of the entity. Method `getShares` yields the current
 shares of the entity (who owns how much).
-Method `getShareholders` yields
-the shareholders. It is not `@View` , since it creates a new stream, which is a
-side-effect. Method `isShareholder` checks if an object is a shareholder. Method
+Method `isShareholder` checks if an object is a shareholder. Method
 `sharesOf` yields the number of shares that a shareholder owns. As typical in Takamaka,
 the `snapshot` method allows one to create a frozen read-only copy of an entity
 (in constant time), useful when an entity must be queried from a client without
@@ -7798,11 +7867,11 @@ identified as the owner of the shares
 `@Payable` so that implementations can require to pay a ticket to place shares on
 sale. The sale offer is passed as a parameter to `place`, hence it must have been
 created before calling that method. The set of all sale offers is available through
-`getOffers`. Method `sharesOnSale` yields the cumulative number of shares on
+`getOffers`. Method `sharesOnSaleOf` yields the cumulative number of shares on
 sale for a given shareholder. Who wants to buy shares calls method `accept` with
 the accepted offer and with itself as `buyer`
 and becomes a new shareholder or increases its cumulative number of shares
-(if it was a shareholder already). Also this method is `@Payable`, since its caller
+(if it was already a shareholder). Also this method is `@Payable`, since its caller
 must pay `ticket >= offer.cost` coins to the seller. This means that shareholders
 must be able to receive payments and that is why `S extends PayableContract`.
 The `SimpleSharedEntity` class implements the shared entity algorithms, that subclasses
@@ -7833,7 +7902,7 @@ to reward the validators that behaved correctly and slash those that
 misbehaved, possibly removing them from the validators' set. They are specified by
 two strings that contain the identifiers of the validators, as provided by the
 underlying Tendermint engine. At block creation time, Hotmoka
-calls method `getShareholders` inherited from `SimpleSharedEntity` and informs
+calls method `getShares` and informs
 the underlying Tendermint engine about the identifiers of the validator nodes
 for the next blocks. Tendermint expects such validators to mine and vote the
 subsequent blocks, until a change in the validators’ set occurs.
@@ -7846,243 +7915,25 @@ That is, the network can have more nodes, but only one of them
 network. All other nodes are simply peers, that verify the transactions but have no voice
 in the network and do not vote for validation.
 
-Assume for instance that Alice follows the instructions in
-[Starting a Tendermint Hotmoka Node on Amazon EC2](#starting-a-tendermint-hotmoka-node-on-amazon-ec2)
-and starts a Hotmoka node with Docker, that is a network with
-a single node that, moreover, is the only validator. Her node will be publicly accessible
-as `ws://alice.hotmoka.io`. The key of the only validator is in the `chain`
-volume of Docker in Alice's machine, as said before.
-Alice moves that key to a safer place, where she can use it to control the validator:
-```shell
-alice.hotmoka.io$ moka create-key
+The configuration of a HOtmoka Tendermint node, created thorugh the `config-init` or `config-start` commands,
+contains a `validator.pem` key pair file, as said above. You can use that file to create an actual
+account object, a candidate for becoming a validator of the network. You can do this with the
+`moka nodes tendermint validators create` command, similar to
+`moka accounts create` but that creates instances of `TendermintED25519Validator`.
+Once you have a validator object for your `validator.pem`, you can become an actual validator
+when one of the existing validators decides to sell (part of) its shares and you buy it.
+The seller validator creates a sale offer with the `moka nodes tendermint validators sell`
+command. The sale offer will be visible in the manifest of the node and can be bought with
+the `moka nodes tendermint validators buy` command. After that, the buyer will be a new
+validator of the network.
 
-Please specify the password of the new key: queen
-A new key has been created.
-...
-Its entropy has been saved into the file
-  "8oHse15C9pKUuqFLYRQBPgefdGzGq9mpWPF3dRQg27A5.pem".
-
-alice.hotmoka.io$ docker run --rm -dit
-    -e KEY_OF_GAMETE=8oHse15C9pKUuqFLYRQBPgefdGzGq9mpWPF3dRQg27A5
-    -e CHAIN_ID=caterpillar
-    -e INITIAL_SUPPLY=1000000000000000000
-    -p 80:8001
-    -p 26656:26656
-    -v chain:/home/hotmoka/chain
-    hotmoka/tendermint-node:@hotmoka_version
-    init
-
-alice.hotmoka.io$ moka bind-key 8oHse15C9pKUuqFLYRQBPgefdGzGq9mpWPF3dRQg27A5
-  --uri localhost:80
-A new account 21f1feb9201e8efcc616662d18382547af876d5ea500e2173e2ed1eb71bdd98e#0
-  has been created.
-Its entropy has been saved into the file
-  "21f1feb9201e8efcc616662d18382547af876d5ea500e2173e2ed1eb71bdd98e#0.pem".
-
-alice.hotmoka.io$ docker exec 21f1fe /bin/ls chain| grep ".pem"
-8418acb720db3097d899586762cee03bb34549a2666969c09c6b964611f6d338#0.pem .
-
-alice.hotmoka.io$ sudo mv /var/lib/docker/volumes/chain/_data/
-  8418acb720db3097d899586762cee03bb34549a2666969c09c6b964611f6d338#0.pem .
-```
-After these commands, Alice has two keys in two pem files: the
-key of the gamete `21f1feb9201e8efcc616662d18382547af876d5ea500e2173e2ed1eb71bdd98e#0`
-and the key of the validator
-`8418acb720db3097d899586762cee03bb34549a2666969c09c6b964611f6d338#0`.
-
-After some time, Bob starts another node, connected to Alice's node, by following the instructions in
-[Connecting a Tendermint Hotmoka Node to an Existing Blockchain](#connecting-a-tendermint-hotmoka-node-to-an-existing-blockchain).
-Bob's node is publicly accessible as `ws://bob.hotmoka.io`.
-```shell
-bob.hotmoka.io$ docker run --rm -dit
-    -e NETWORK_URI=alice.hotmoka.io
-    -p 80:8001
-    -p 26656:26656
-    -v chain:/home/hotmoka/chain
-    hotmoka/tendermint-node:@hotmoka_version
-    start
-
-070abbc643163e6273c6d9da98f4a83bd94e178743c31344321a60c41d3c2d21
-```
-
-This second node is just a peer, not a validator. Alice's validator remains the only validator of the network.
-However, the Docker script run by Bob has created a validator's key anyway, inside the Docker container,
-that Bob can use in the future if his node will ever become a validator node. Bob moves that key to his local machine:
-```shell
-bob.hotmoka.io$ docker exec 070abbc64316 /bin/ls | grep ".pem"
-
-3yk6V6MK5eVANMpZkzEtKuc4D3giZsrxAewzRXsym2jq.pem
-
-bob.hotmoka.io$ docker cp
-  070abbc64316:/home/hotmoka/3yk6V6MK5eVANMpZkzEtKuc4D3giZsrxAewzRXsym2jq.pem .
-```
-At the moment, that key is not yet bound to any `Validator` object in blockchain. Note that the Docker script creates this key
-with an empty password (just the empty string).
-
-Currently, Alice holds 100% of the validation power of the network, that is, 1000000 units of validation power.
-Later, Alice decides to sell 40% of her validation power, that is, 400000 units of validation power.
-She must advertize her intent to sell and the price she requires. That is, she must create an instance
-of the `Offer` class in Figure @fig:entities_hierarchy (with `moka create`)
-and must then use her validator object as caller of method `place` of the validators object
-of the blockchain (with `moka call`). That object is advertized in the manifest of the node:
-```
-validators: @docker_validators
-```
-However, Alice can simplify her work by using the `moka sell-validation` command, that does everything
-at once for her. There is a little difficulty though. Selling shares is not free, it costs some gas.
-Since the validator object must perform that action, it must have some money to pay for gas.
-Validators usually hold some money, since they are remunerated
-for validation of transactions. However, if
-that is not the case, then Alice must
-first charge the validator object (for instance, from her gamete) and later use it to place the sale offer:
-```shell
-alice.hotmoka.io$ moka send 1000000000
-    8418acb720db3097d899586762cee03bb34549a2666969c09c6b964611f6d338#0
-    --payer=21f1feb9201e8efcc616662d18382547af876d5ea500e2173e2ed1eb71bdd98e#0
-    --uri localhost
-
-Please specify the password of the payer account: queen
-
-alice.hotmoka.io$ moka sell-validation
-  8418acb720db3097d899586762cee03bb34549a2666969c09c6b964611f6d338#0
-  400000
-  1000000000
-  3600000
-  --uri localhost
-
-Please specify the password of the seller validator: 
-Offer 3aa23081c5e5b55628c8d2584b2b7ae2dff4551564e5c40f11ec1973a73728af#0 placed
-```
-Note that `moka sell-validation` works only if the key of the validator is in the directory where
-`moka` is invoked. Without that key, it is impossible to place a sale offer on behalf of the validator.
-The parameters of `moka sell-validation` are the address of the validator that is selling its power
-and will pay for the transaction, the amount of power to sell (400000, that is, 40%),
-the price required for the sale (1000000000 panareas) and the time of validity
-of the sale offer (3600000 milliseconds from the invocation of `moka sell-validation`, that is,
-one hour from then).
-
-> By default, `sell-validation` creates a sale offer that everybody can accept.
-> If one wants to create a sale offer reserved to a specific validator buyer, it is possible to specify
-> the address of that buyer with the `--buyer` switch.
-
-Bob can now realize that a sale offer is available. By running `moka info` again he will notice the offer:
-
-```shell
-bob.hotmoka.io$ moka info --uri localhost
-
-surcharge for buying validation power: 50000000 (ie. 50.000000%)
-validator #0: 8418acb720db3097d899586762cee03bb34549a2666969c09c6b964611f6d338#0
- id: DF61AC526C5FB6D1F8A2AB00CEDF809B188EA9D3
- balance: 999915317
- staked: 95663
- power: 1000000
- sale offer #0: 3aa23081c5e5b55628c8d2584b2b7ae2dff4551564e5c40f11ec1973a73728af#0
-   power on sale: 400000
-   cost: 1000000000
-   cost with surcharge: 1500000000
-   expiration: Sat Feb 19 16:58:11 CET 2022
-```
-You can see that the new sale offer is visible from the manifest, below the
-validator that is selling its power. Note the _cost with surcharge_ line:
-in order to accept the sale, a buyer must spend not only the cost required by the seller
-(1000000000 panareas in this case) but also a surcharge of 50%, that will get split
-among all validators. The percent of surcharge is specified in the manifest as well:
-```
-surcharge for buying validation power: 50000000 (ie. 50.000000%)
-```
-Everybody with access to the blockchain can now accept that sale offer and become
-validator, as long as it has enough money to cover the cost with surcharge
-(and some extra gas). Bob has such money, since he worked in the last year
-for a company that paid him with panareas. He keeps that money into the externally owned
-account `6a63266067276577bf2363def73dbd123d77d9ba918642383372402a102a0b13#0`
-and of course he has the key of that account and knows its password.
-
-It is important that the buyer of the offer be a `Validator`
-object, not just an externally owned account. Bob currently has no such `Validator`
-object. He has only the key generated by the Docker script.
-Hence the first step for Bob is to create a `Validator` object with that key, by letting
-his account pay:
-```shell
-bob.hotmoka.io$ moka create-account 2000000000
-  --create-tendermint-validator
-  --payer 6a63266067276577bf2363def73dbd123d77d9ba918642383372402a102a0b13#0
-  --uri localhost
-
-Please specify the password of the payer account: king
-Please specify the password of the new account: bishop
-A new account 85a89fd0baafb4b8313257fb192361bd195fc79126e790215c3ad2791a84c606#0
-  has been created.
-Its entropy has been saved into the file
-  "85a89fd0baafb4b8313257fb192361bd195fc79126e790215c3ad2791a84c606#0.pem".
-```
-Note the `--create-tendermint-validator` switch. Without that, a normal
-externally owned account would have been created. This way, instead, an instance
-of `TendermintED25519Validator` gets created (see Figure @fig:entities_hierarchy).
-Bob can verify this with `moka state`:
-```shell
-bob.hotmoka.io$ moka state
-  85a89fd0baafb4b8313257fb192361bd195fc79126e790215c3ad2791a84c606#0
-  --uri localhost
-
-This is the state of object
-  85a89fd0baafb4b8313257fb192361bd195fc79126e790215c3ad2791a84c606#0@localhost
-
-class io.takamaka.code.governance.tendermint.TendermintED25519Validator
-  id:java.lang.String = "AD81B48A1E1B62C1AEB99A6B06470D22D8C55950"
-  balance:java.math.BigInteger = 2000000000
-  nonce:java.math.BigInteger = 0
-  publicKey:java.lang.String = "RCJQwN9Pgnde5GPURAtH1C6QlnNfDARdAIqepVpyjDs="
-```
-Bob is now ready to buy the validation power currently on sale.
-He just accepts the sale offer
-`3aa23081c5e5b55628c8d2584b2b7ae2dff4551564e5c40f11ec1973a73728af#0`
-by using his validator object as payer:
-```shell
-bob.hotmoka.io$ moka buy-validation
-  85a89fd0baafb4b8313257fb192361bd195fc79126e790215c3ad2791a84c606#0
-  3aa23081c5e5b55628c8d2584b2b7ae2dff4551564e5c40f11ec1973a73728af#0
-  --uri localhost
-
-Please specify the password of the buyer validator: bishop
-Do you really want to spend up to 500000 gas units and 1500000000 panareas
-  to accept the sale of validation power [Y/N] Y
-
-Offer accepted
-```
-Finally, both Bob and Alice can verify that there are two validators now in the network,
-and no more sale offers:
-```shell
-alice.hotmoka.io$ moka info --uri localhost
-...
-number of validators: 2
-  validator #0: 8418acb720db3097d899586762cee03bb34549a2666969c09c6b964611f6d338#0
-    id: DF61AC526C5FB6D1F8A2AB00CEDF809B188EA9D3
-    balance: 2125136981
-    staked: 375760651
-    power: 600000
-  validator #1: 85a89fd0baafb4b8313257fb192361bd195fc79126e790215c3ad2791a84c606#0
-    id: AD81B48A1E1B62C1AEB99A6B06470D22D8C55950
-    balance: 499950092
-    staked: 0
-    power: 400000
-...
-```
-Future transactions with this network must be validated by both nodes now, since
-neither node reaches one third of total power by itself. If Bob's node does not
-respond or if it validates transactions incorrectly, then his validator would
-be slashed until its stakes reach zero. At that moment,
-the network will hang, since it becomes impossible to reach the agreement
-of at least two thirds of the full validation power.
-
-If the sale offer of Alice were for just 30% of her validation power then, when
-the stakes of Bob's validator reach zero, that validator would just be removed
-from the set of validators and its validation power would be distributed to the other
-validators, in proportion to their power. That is, Alice's validator would come back to hold 100%
-of the validation power. In that case, the network wouldn't hang.
-
-If the sale offer of Alice were for the full 100% of her validation power, then Bob's
-validator would completely replace Alice's validator and become the only validator of
-the network. Moreover, all staked coins for Alice's validator would be forwarded to it.
+> It is important to note that a validator node is assumed to be reachable from the outside world
+> and up, also overnight. Most home desktop computers, connected through a modem, have no public IP
+> that can be used to reach them from the outside world (the public IP of the modem reaches the modem
+> itself, not the computer). Therefore, if you try to use a home machine to become a validator, your
+> machine will be immediately slashed for being uneachable and it will be removed from the set of validators,
+> immediately after becoming one. You need a machine with a public IP for being a validator, such as
+> for instance a machine on Amazon EC2 or on a similar rental service.
 
 # Code Verification
 
