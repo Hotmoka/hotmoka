@@ -21,7 +21,6 @@ module io.hotmoka.tutorial {
 	requires io.hotmoka.moka;
 	requires io.hotmoka.node;
 	requires io.hotmoka.tutorial.examples;
-	requires io.hotmoka.websockets.beans.api;
 	requires io.takamaka.code.constants;
 	requires java.logging;
 }

@@ -59,13 +59,32 @@ import io.hotmoka.tutorial.examples.FamilyStorage;
 import io.takamaka.code.constants.Constants;
 
 /**
- * This executable runs experiments against a remote Hotmoka node and
- * reports the results inside the "replacements.sh" script, so that
- * the recompilation of the tutorial will embed the exact results of the experiments.
+ * This executable runs experiments against a couple of remote Hotmoka nodes (one for
+ * Mokamint and one for Tendermint) and reports the results inside the "replacements.sh" script,
+ * so that the recompilation of the tutorial will embed the exact results of the experiments.
+ * 
+ * Run it with:
+ * 
+ * mvn exec:exec -Dexec.executable="java" -Dexec.args="-cp %classpath io.hotmoka.tutorial.UpdateForNewNode"
  */
 public class UpdateForNewNode {
+
+	/**
+	 * The timeout (in milliseconds) used for the communication to the remote nodes. Better to use a relatively high
+	 * value, since the Mokamint node has a varying block creation rate.
+	 */
 	public final static int TIMEOUT = 120000;
 
+	private UpdateForNewNode() {}
+
+	/**
+	 * Edit the {@code replacements.sh} file by rerunning the experiments of the Hotmoka tutorial.
+	 * It allows one to specify two arguments, that are the URI of the remote nodes (for Mokamint and for
+	 * Tendermint). They default to {@code ws://panarea.hotmoka.io:8001} and {@code ws://panarea.hotmoka.io:8002}.
+	 * 
+	 * @param args the arguments
+	 * @throws Exception if the recreation of {@code replacements.sh} fails for some reason
+	 */
 	public static void main(String[] args) throws Exception {
 		String server1 = args.length > 0 ? args[0] : "ws://panarea.hotmoka.io:8001";
 		String server2 = args.length > 1 ? args[1] : "ws://panarea.hotmoka.io:8002";
@@ -78,7 +97,6 @@ public class UpdateForNewNode {
 	private static class Experiments {
 		private final PrintWriter writer;
 		private final String hotmokaVersion;
-		private final String takamakaVersion;
 
 		/**
 		 * The working directory where key pairs can be temporarily saved, for instance.
@@ -99,14 +117,10 @@ public class UpdateForNewNode {
 
 				report("sed -i 's/@hotmoka_version/" + hotmokaVersion + "/g' target/Tutorial.md");
 
-				this.takamakaVersion = mavenProperties.getProperty("io.takamaka.code.version");
-				if (takamakaVersion == null)
-					throw new IOException("The property file does not contain a io.takamaka.code.version property");
-
-				report("sed -i 's/@takamaka_version/" + takamakaVersion + "/g' target/Tutorial.md");
-				report("sed -i 's/@takamaka_version/" + takamakaVersion + "/g' target/pics/state1.fig");
-				report("sed -i 's/@takamaka_version/" + takamakaVersion + "/g' target/pics/state2.fig");
-				report("sed -i 's/@takamaka_version/" + takamakaVersion + "/g' target/pics/state3.fig");
+				report("sed -i 's/@takamaka_version/" + Constants.TAKAMAKA_VERSION + "/g' target/Tutorial.md");
+				report("sed -i 's/@takamaka_version/" + Constants.TAKAMAKA_VERSION + "/g' target/pics/state1.fig");
+				report("sed -i 's/@takamaka_version/" + Constants.TAKAMAKA_VERSION + "/g' target/pics/state2.fig");
+				report("sed -i 's/@takamaka_version/" + Constants.TAKAMAKA_VERSION + "/g' target/pics/state3.fig");
 			}
 
 			report("sed -i 's/@server_mokamint/" + mokamintURI.toString().replace("/", "\\/") + "/g' target/Tutorial.md");
@@ -184,7 +198,7 @@ public class UpdateForNewNode {
 
 			KeysBindOutputs.from(Moka.keysBind(dir.resolve("anonymous.pem") + " --password=kiwis --uri=" + mokamintURI + " --output-dir=" + dir + " --json --timeout=" + TIMEOUT));
 
-			Path jar = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-family/" + takamakaVersion + "/io-takamaka-code-examples-family-" + takamakaVersion + ".jar");
+			Path jar = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-family/" + Constants.TAKAMAKA_VERSION + "/io-takamaka-code-examples-family-" + Constants.TAKAMAKA_VERSION + ".jar");
 			var output14 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar + " --password-of-payer=chocolate --dir=" + dir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			report("sed -i 's/@transactioninstallfamily/" + output14.getTransaction() + "/g' target/Tutorial.md");
 			TransactionReference familyAddress = output14.getJar().get();
@@ -198,7 +212,7 @@ public class UpdateForNewNode {
 			var output15 = ObjectsCreateOutputs.from(Moka.objectsCreate(account1 + " family.Person Einstein 14 4 1879 null null --classpath=" + familyAddress + " --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate"));
 			report("sed -i 's/@family_creation_transaction_failed/" + output15.getTransaction() + "/g' target/Tutorial.md");
 
-			Path jar2 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-family_storage/" + takamakaVersion + "/io-takamaka-code-examples-family_storage-" + takamakaVersion + ".jar");
+			Path jar2 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-family_storage/" + Constants.TAKAMAKA_VERSION + "/io-takamaka-code-examples-family_storage-" + Constants.TAKAMAKA_VERSION + ".jar");
 			var output16 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar2 + " --password-of-payer=chocolate --dir=" + dir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			TransactionReference family2Address = output16.getJar().get();
 			report("sed -i 's/@family2_address/" + family2Address + "/g' target/Tutorial.md");
@@ -214,7 +228,7 @@ public class UpdateForNewNode {
 			var output18 = ObjectsCallOutputs.from(Moka.objectsCall(account1 + " family.Person toString --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate --receiver=" + personObject));
 			report("sed -i 's/@family_transaction_non_exported_failure/" + output18.getTransaction() + "/g' target/Tutorial.md");
 
-			Path jar3 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-family_exported/" + takamakaVersion + "/io-takamaka-code-examples-family_exported-" + takamakaVersion + ".jar");
+			Path jar3 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-family_exported/" + Constants.TAKAMAKA_VERSION + "/io-takamaka-code-examples-family_exported-" + Constants.TAKAMAKA_VERSION + ".jar");
 			var output19 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar3 + " --password-of-payer=chocolate --dir=" + dir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			TransactionReference familyExportedAddress = output19.getJar().get();
 			report("sed -i 's/@family_exported_address/" + familyExportedAddress + "/g' target/Tutorial.md");
@@ -228,7 +242,7 @@ public class UpdateForNewNode {
 			// the output contains a new line, to remove, and slashes, that must be escaped
 			report("sed -i 's/@family_exported_call_toString_output/" + runFamilyExportedMain.trim().replace("/", "\\/") + "/g' target/Tutorial.md");
 
-			Path jar4 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-ponzi_gradual/" + takamakaVersion + "/io-takamaka-code-examples-ponzi_gradual-" + takamakaVersion + ".jar");
+			Path jar4 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-ponzi_gradual/" + Constants.TAKAMAKA_VERSION + "/io-takamaka-code-examples-ponzi_gradual-" + Constants.TAKAMAKA_VERSION + ".jar");
 			var output22 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar4 + " --password-of-payer=chocolate --dir=" + dir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			TransactionReference gradualPonziAddress = output22.getJar().get();
 			report("sed -i 's/@gradual_ponzi_address/" + gradualPonziAddress + "/g' target/Tutorial.md");
@@ -261,7 +275,7 @@ public class UpdateForNewNode {
 			StorageValue gradualPonziLast = output30.getFields().filter(update -> "last".equals(update.getField().getName())).map(update -> update.getValue()).findFirst().get();
 			report("sed -i 's/@gradual_ponzi_last/" + gradualPonziLast + "/g' target/Tutorial.md");
 
-			Path jar5 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-tictactoe_improved/" + takamakaVersion + "/io-takamaka-code-examples-tictactoe_improved-" + takamakaVersion + ".jar");
+			Path jar5 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-tictactoe_improved/" + Constants.TAKAMAKA_VERSION + "/io-takamaka-code-examples-tictactoe_improved-" + Constants.TAKAMAKA_VERSION + ".jar");
 			var output31 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar5 + " --password-of-payer=chocolate --dir=" + dir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			TransactionReference ticTacToeAddress = output31.getJar().get();
 			report("sed -i 's/@tictactoe_address/" + ticTacToeAddress + "/g' target/Tutorial.md");
@@ -326,7 +340,7 @@ public class UpdateForNewNode {
 			// we cut long sentences at "by contract"
 			report("sed -i 's/@events_main_output/" + runEventsMain.toString().trim().replace("/", "\\/").replace("by contract", "\n  by contract").replace("\n", "\\n") + "/g' target/Tutorial.md");
 
-			Path jar6 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-erc20/" + takamakaVersion + "/io-takamaka-code-examples-erc20-" + takamakaVersion + ".jar");
+			Path jar6 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-erc20/" + Constants.TAKAMAKA_VERSION + "/io-takamaka-code-examples-erc20-" + Constants.TAKAMAKA_VERSION + ".jar");
 			var output47 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar6 + " --password-of-payer=chocolate --dir=" + dir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			report("sed -i 's/@transaction_install_erc20/" + output47.getTransaction() + "/g' target/Tutorial.md");
 			TransactionReference erc20Address = output47.getJar().get();
@@ -363,9 +377,8 @@ public class UpdateForNewNode {
 			StorageReference account10 = output54.getAccount().get();
 			report("sed -i 's/@transaction_account10/" + output54.getTransaction() + "/g' target/Tutorial.md");
 			report("sed -i 's/@account10/" + account10 + "/g' target/Tutorial.md");
-			Path jar7 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-family_exported/" + takamakaVersion + "/io-takamaka-code-examples-family_exported-" + takamakaVersion + ".jar");
-			var output55 = JarsInstallOutputs.from(Moka.jarsInstall(account9 + " " + jar7 + " --password-of-payer=quantum1 --dir=" + dir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
-			report("sed -i 's/@family3_install_transaction/" + output55.getTransaction() + "/g' target/Tutorial.md");
+			Path jar7 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-family_exported/" + Constants.TAKAMAKA_VERSION + "/io-takamaka-code-examples-family_exported-" + Constants.TAKAMAKA_VERSION + ".jar");
+			var output55 = JarsInstallOutputs.from(Moka.jarsInstall(account9 + " " + jar7 + " --password-of-payer=quantum1 --dir=" + dir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));			report("sed -i 's/@family3_install_transaction/" + output55.getTransaction() + "/g' target/Tutorial.md");
 			TransactionReference family3Address = output55.getJar().get();
 			report("sed -i 's/@family3_address/" + family3Address + "/g' target/Tutorial.md");
 		}

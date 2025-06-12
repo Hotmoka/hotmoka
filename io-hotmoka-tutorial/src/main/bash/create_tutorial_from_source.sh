@@ -1,10 +1,12 @@
 #!/bin/bash
 
-# This script transforms the Tutorial.source documentation into the following files:
-# - ../README.md: the README file of the repository, in Markdown
-# - ProgrammingHotmoka.pdf: a PDF version of the documentation for Hotmoka
-# - ProgrammingHotmoka.epub: an epub version of the documentation for Hotmoka
-# - ProgrammingHotmoka.mobi: a mobi version of the documentation for Hotmoka
+# This script transforms the Tutorial.md documentation into the following files:
+# - target/ProgrammingHotmoka.md: the Markdown version of the tutorial
+# - target/ProgrammingHotmoka.pdf: a PDF version of the tutorial
+# - target/ProgrammingHotmoka.epub: an epub version of the tutorial
+# - target/ProgrammingHotmoka.mobi: a mobi version of the tutorial
+#
+# A copy of ProgrammingHotmoka.md and of its pictures is also copied into tutorial-md
 
 cp src/main/md/Tutorial.md target/Tutorial.md
 cp -r src/main/resources/pics target/

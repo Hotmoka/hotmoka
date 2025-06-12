@@ -52,5 +52,3 @@ echo -e "    ${BLUE}VISIBLE_AS:${NC} a URI that the external world can use to co
 echo
 echo "  For instance:"
 echo -e "  ${BOLD_CYAN}docker run -dit -p 8001:8001 -p 8025:8025 -p 8030:8030 -p 8031:8031 -v chain:/home/hotmoka/chain -v hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:VERSION resume${NC}"
-echo
-echo -e "${RED}init/start/resume${NC} assume that the configuration directory of the node is available in the same directory where they are executed."

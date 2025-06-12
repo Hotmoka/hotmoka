@@ -49,5 +49,3 @@ echo -e "* ${RED}resume:${NC}       resume a node whose container was previously
 echo
 echo "  For instance:"
 echo -e "  ${BOLD_CYAN}docker run -dit -p 8001:8001 -p 26656:26656 -v chain:/home/hotmoka/chain -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint hotmoka/tendermint-node:VERSION resume${NC}"
-echo
-echo -e "${RED}init/start/resume${NC} assume that the configuration directory of the node is available in the same directory where they are executed."
