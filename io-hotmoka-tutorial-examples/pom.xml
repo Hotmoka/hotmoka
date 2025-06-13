@@ -27,26 +27,13 @@
     <module>io-hotmoka-tutorial-examples-ponzi_view</module>
     <module>io-hotmoka-tutorial-examples-ponzi_gradual</module>
     <module>io-hotmoka-tutorial-examples-tictactoe</module>
-    <module>io-hotmoka-tutorial-examples-tictactoe_improved</module>
+    <module>io-hotmoka-tutorial-examples-tictactoe_revised</module>
     <module>io-hotmoka-tutorial-examples-auction</module>
     <module>io-hotmoka-tutorial-examples-auction_events</module>
     <module>io-hotmoka-tutorial-examples-erc20</module>
     <module>io-hotmoka-tutorial-examples-erc721</module>
     <module>io-hotmoka-tutorial-examples-runs</module>
   </modules>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <configuration>
-          <!-- we skip the Javadoc generation since it contains warnings, but we do not want to modify the tutorial code to avoid them -->
-          <skip>true</skip>
-	    </configuration>
-      </plugin>
-    </plugins>
-  </build>
 
   <profiles>
 	<profile>

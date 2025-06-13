@@ -274,7 +274,7 @@ public class UpdateForNewNode {
 			StorageValue gradualPonziLast = output30.getFields().filter(update -> "last".equals(update.getField().getName())).map(update -> update.getValue()).findFirst().get();
 			report("sed -i 's/@gradual_ponzi_last/" + gradualPonziLast + "/g' target/Tutorial.md");
 
-			Path jar5 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-tictactoe_improved/" + HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-tictactoe_improved-" + HOTMOKA_VERSION + ".jar");
+			Path jar5 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-tictactoe_revised/" + HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-tictactoe_revised-" + HOTMOKA_VERSION + ".jar");
 			var output31 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar5 + " --password-of-payer=chocolate --dir=" + dir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			TransactionReference ticTacToeAddress = output31.getJar().get();
 			report("sed -i 's/@tictactoe_address/" + ticTacToeAddress + "/g' target/Tutorial.md");

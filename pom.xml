@@ -28,7 +28,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <hotmoka.version>1.8.0</hotmoka.version>
     <io.takamaka.code.version>1.4.1</io.takamaka.code.version>
     <io.hotmoka.annotations.version>1.4.1</io.hotmoka.annotations.version>
-    <io.hotmoka.cli.version>1.4.0</io.hotmoka.cli.version>
+    <io.hotmoka.cli.version>1.4.1</io.hotmoka.cli.version>
     <io.hotmoka.crypto.version>1.5.1</io.hotmoka.crypto.version>
     <io.hotmoka.websockets.version>1.6.2</io.hotmoka.websockets.version>
     <io.hotmoka.marshalling.version>1.4.5</io.hotmoka.marshalling.version>
@@ -38,7 +38,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <io.hotmoka.closeables.version>1.5.0</io.hotmoka.closeables.version>
     <it.univr.bcel.version>1.2.1</it.univr.bcel.version>
     <bcel.version>6.7.0</bcel.version>
-    <mokamint.version>1.2.1</mokamint.version>
+    <mokamint.version>1.2.2</mokamint.version>
   </properties>
 
   <groupId>io.hotmoka</groupId>

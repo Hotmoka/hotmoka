@@ -29,6 +29,9 @@ import io.takamaka.code.tokens.ERC20;
 public class CryptoBuddy extends ERC20 {
   private final Contract owner;
 
+  /**
+   * Creates the token contract and sets the initial settings of the coin.
+   */
   public @FromContract CryptoBuddy() {
     super("CryptoBuddy", "CB");
     owner = caller();
@@ -37,11 +40,23 @@ public class CryptoBuddy extends ERC20 {
     _mint(caller(), initialSupply.multiply(multiplier)); // 200'000 * 10 ^ 18
   }
 
+  /**
+   * Mints tokens.
+   *
+   * @param account the recipient of the created tokens
+   * @param amount the amount of tokens to mint
+   */
   public @FromContract void mint(Contract account, UnsignedBigInteger amount) {
     require(caller() == owner, "Lack of permission");
     _mint(account, amount);
   }
 
+  /**
+   * Burns tokens.
+   *
+   * @param account the owner of the tokens to burn
+   * @param amount the amount of tokens to burn
+   */
   public @FromContract void burn(Contract account, UnsignedBigInteger amount) {
     require(caller() == owner, "Lack of permission");
     _burn(account, amount);

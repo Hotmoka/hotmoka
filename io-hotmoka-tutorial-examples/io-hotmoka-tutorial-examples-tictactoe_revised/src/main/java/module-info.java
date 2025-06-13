@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 /**
- * This module contains an improved version of the tic-tac-toe smart contract of the Hotmoka tutorial.
+ * This module contains a revised version of the tic-tac-toe smart contract of the Hotmoka tutorial.
  */
 module tictactoe {
 	requires io.takamaka.code;

@@ -3669,7 +3669,7 @@ X|O|
 
 ### A More Realistic Tic-Tac-Toe Contract
 
-__[See `io-hotmoka-tutorial-examples-tictactoe_improved` in `@hotmoka_repo`]__
+__[See `io-hotmoka-tutorial-examples-tictactoe_revised` in `@hotmoka_repo`]__
 
 The `TicTacToe.java` code implements the rules of a tic-tac-toe game, but has
 a couple of drawbacks that make it still incomplete. Namely:
@@ -3682,7 +3682,7 @@ a couple of drawbacks that make it still incomplete. Namely:
    instance, for ever and ever.
 
 Replace hence the previous version of `TicTacToe.java` with the following
-improved version. This new version solves
+revised version. This new version solves
 both problems at once. The policy is very simple: it imposes a minimum
 bet, in order to avoid free games; if a winner emerges,
 then the game forwards him only 90% of the jackpot; the remaining 10% goes to the

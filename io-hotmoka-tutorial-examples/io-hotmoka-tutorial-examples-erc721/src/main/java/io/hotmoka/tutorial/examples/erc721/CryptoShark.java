@@ -32,7 +32,7 @@ public class CryptoShark extends ERC721 {
     private final Contract owner;
 
     /**
-     * Sets the initial settings of the coin
+     * Creates the token contract and sets the initial settings of the coin.
      */
     public @FromContract CryptoShark() {
         super("CryptoShark", "SHK");
@@ -42,7 +42,7 @@ public class CryptoShark extends ERC721 {
     /**
      * Mints a token.
      *
-     * @param account recipient of the created tokens
+     * @param account the recipient of the created tokens
      * @param tokenId the identifier of the token to mint
      */
     public @FromContract void mint(Contract account, BigInteger tokenId) {

@@ -26,12 +26,26 @@ import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.StringSupport;
 import io.takamaka.code.math.BigIntegerSupport;
 
+/**
+ * A simple Ponzi scheme. Once an investor arrives, the previous investor gets refunded.
+ */
 public class SimplePonzi extends Contract {
   private final BigInteger _10 = BigInteger.valueOf(10L);
   private final BigInteger _11 = BigInteger.valueOf(11L);
   @SuppressWarnings("unused") private Contract currentInvestor;
   private BigInteger currentInvestment = BigInteger.ZERO;
 
+  /**
+   * Creates the contract.
+   */
+  public SimplePonzi() {}
+
+  /**
+   * Allows the caller to take part in the game.
+   * 
+   * @param amount the coins paid by the caller to take part in the game; it must
+   *               be at least 10% more than what has been paid by the previous investor
+   */
   public @Payable @FromContract void invest(BigInteger amount) {
 	// new investments must be at least 10% greater than current
     BigInteger minimumInvestment = BigIntegerSupport.divide

@@ -42,6 +42,9 @@ import io.takamaka.code.util.StorageTreeArray;
  */
 public class TicTacToe extends Contract {
 
+	/**
+	 * A tile of the game. It can be cross or circle.
+	 */
 	@Exported
 	public class Tile extends Storage {
 		private final char c;
@@ -70,6 +73,18 @@ public class TicTacToe extends Contract {
 	private Tile turn = CROSS; // cross plays first
 	private boolean gameOver;
 
+	/**
+	 * Creates the contract.
+	 */
+	public TicTacToe() {}
+
+	/**
+	 * Yields the tile at the given coordinates.
+	 * 
+	 * @param x the x coordinate
+	 * @param y the y coordinate
+	 * @return the tile at (x,y)
+	 */
 	public @View Tile at(int x, int y) {
 		require(1 <= x && x <= 3 && 1 <= y && y <= 3, "coordinates must be between 1 and 3");
 		return board.get((y - 1) * 3 + x - 1);
@@ -79,6 +94,14 @@ public class TicTacToe extends Contract {
 		board.set((y - 1) * 3 + x - 1, tile);
 	}
 
+	/**
+	 * Places a tile at the given coordinates. If it's the turn of the cross, it places a cross;
+	 * otherwise, it places circle.
+	 * 
+	 * @param amount the coins paid for placing the tile; it must be at least that of the previous player, if any
+	 * @param x the x coordinate
+	 * @param y the y coordinate
+	 */
 	public @Payable @FromContract(PayableContract.class) void play(long amount, int x, int y) {
 		require(!gameOver, "the game is over");
 		require(1 <= x && x <= 3 && 1 <= y && y <= 3, "coordinates must be between 1 and 3");
