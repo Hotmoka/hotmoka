@@ -38,6 +38,7 @@ import java.util.Random;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 
+import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
@@ -60,7 +61,6 @@ import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.remote.RemoteNodes;
-import io.takamaka.code.constants.Constants;
 
 /**
  * Run it in Maven as (change /home/spoto/hotmoka_tutorial with the directory where you stored the key pairs of the payer accounts
@@ -77,7 +77,7 @@ public class Events {
   private final static BigInteger _500_000 = BigInteger.valueOf(500_000);
 
   private final static ClassType BLIND_AUCTION
-    = StorageTypes.classNamed("auction.BlindAuction");
+    = StorageTypes.classNamed("io.hotmoka.tutorial.examples.auction.BlindAuction");
   private final static ConstructorSignature CONSTRUCTOR_BYTES32_SNAPSHOT
     = ConstructorSignatures.of(BYTES32_SNAPSHOT,
       BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE,
@@ -144,7 +144,7 @@ public class Events {
 
       var CONSTRUCTOR_REVEALED_BID
         = ConstructorSignatures.of(
-           StorageTypes.classNamed("auction.BlindAuction$RevealedBid"),
+           StorageTypes.classNamed("io.hotmoka.tutorial.examples.auction.BlindAuction$RevealedBid"),
            BIG_INTEGER, BOOLEAN, BYTES32_SNAPSHOT);
 
       return node.addConstructorCallTransaction(TransactionRequests.constructorCall
@@ -203,9 +203,9 @@ public class Events {
 
     //the path of the user jar to install
     var auctionPath = Paths.get(System.getProperty("user.home")
-      + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-auction_events/"
-      + Constants.TAKAMAKA_VERSION
-      + "/io-takamaka-code-examples-auction_events-" + Constants.TAKAMAKA_VERSION + ".jar");
+      + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-auction_events/"
+      + Constants.HOTMOKA_VERSION
+      + "/io-hotmoka-tutorial-examples-auction_events-" + Constants.HOTMOKA_VERSION + ".jar");
 
     return node.addJarStoreTransaction(TransactionRequests.jarStore
       (signers.get(0), // an object that signs with the payer's private key
@@ -269,7 +269,7 @@ public class Events {
   private void revealBids() throws Exception {
     var REVEAL = MethodSignatures.ofVoid
       (BLIND_AUCTION, "reveal",
-       StorageTypes.classNamed("auction.BlindAuction$RevealedBid"));
+       StorageTypes.classNamed("io.hotmoka.tutorial.examples.auction.BlindAuction$RevealedBid"));
 
     // we create the revealed bids in blockchain; this is safe now, since the bidding time is over
     int counter = 1;

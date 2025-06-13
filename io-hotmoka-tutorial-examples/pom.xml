@@ -28,6 +28,8 @@
     <module>io-hotmoka-tutorial-examples-ponzi_gradual</module>
     <module>io-hotmoka-tutorial-examples-tictactoe</module>
     <module>io-hotmoka-tutorial-examples-tictactoe_improved</module>
+    <module>io-hotmoka-tutorial-examples-auction</module>
+    <module>io-hotmoka-tutorial-examples-auction_events</module>
     <module>io-hotmoka-tutorial-examples-runs</module>
   </modules>
 
