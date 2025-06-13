@@ -18,6 +18,9 @@ limitations under the License.
 
 package io.hotmoka.tutorial;
 
+import static io.hotmoka.constants.Constants.HOTMOKA_VERSION;
+import static io.takamaka.code.constants.Constants.TAKAMAKA_VERSION;
+
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.FileWriter;
@@ -109,11 +112,11 @@ public class UpdateForNewNode {
 			this.dir = Files.createTempDirectory("tmp");
 			System.out.println(dir);
 
-			report("sed -i 's/@hotmoka_version/" + io.hotmoka.constants.Constants.HOTMOKA_VERSION + "/g' target/Tutorial.md");
-			report("sed -i 's/@takamaka_version/" + Constants.TAKAMAKA_VERSION + "/g' target/Tutorial.md");
-			report("sed -i 's/@takamaka_version/" + Constants.TAKAMAKA_VERSION + "/g' target/pics/state1.fig");
-			report("sed -i 's/@takamaka_version/" + Constants.TAKAMAKA_VERSION + "/g' target/pics/state2.fig");
-			report("sed -i 's/@takamaka_version/" + Constants.TAKAMAKA_VERSION + "/g' target/pics/state3.fig");
+			report("sed -i 's/@hotmoka_version/" + HOTMOKA_VERSION + "/g' target/Tutorial.md");
+			report("sed -i 's/@takamaka_version/" + TAKAMAKA_VERSION + "/g' target/Tutorial.md");
+			report("sed -i 's/@takamaka_version/" + TAKAMAKA_VERSION + "/g' target/pics/state1.fig");
+			report("sed -i 's/@takamaka_version/" + TAKAMAKA_VERSION + "/g' target/pics/state2.fig");
+			report("sed -i 's/@takamaka_version/" + TAKAMAKA_VERSION + "/g' target/pics/state3.fig");
 
 			report("sed -i 's/@server_mokamint/" + mokamintURI.toString().replace("/", "\\/") + "/g' target/Tutorial.md");
 			report("sed -i 's/@server_tendermint/" + tendermintURI.toString().replace("/", "\\/") + "/g' target/Tutorial.md");
@@ -190,7 +193,7 @@ public class UpdateForNewNode {
 
 			KeysBindOutputs.from(Moka.keysBind(dir.resolve("anonymous.pem") + " --password=kiwis --uri=" + mokamintURI + " --output-dir=" + dir + " --json --timeout=" + TIMEOUT));
 
-			Path jar = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-family/" + Constants.TAKAMAKA_VERSION + "/io-takamaka-code-examples-family-" + Constants.TAKAMAKA_VERSION + ".jar");
+			Path jar = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family/" + HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family-" + HOTMOKA_VERSION + ".jar");
 			var output14 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar + " --password-of-payer=chocolate --dir=" + dir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			report("sed -i 's/@transactioninstallfamily/" + output14.getTransaction() + "/g' target/Tutorial.md");
 			TransactionReference familyAddress = output14.getJar().get();
@@ -201,15 +204,15 @@ public class UpdateForNewNode {
 			var codeFamilyAddress = TransactionReferences.of(runFamilyMain.substring(start, start + 64));
 			report("sed -i 's/@code_family_address/" + codeFamilyAddress + "/g' target/Tutorial.md");
 
-			var output15 = ObjectsCreateOutputs.from(Moka.objectsCreate(account1 + " family.Person Einstein 14 4 1879 null null --classpath=" + familyAddress + " --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate"));
+			var output15 = ObjectsCreateOutputs.from(Moka.objectsCreate(account1 + " io.hotmoka.tutorial.examples.family.Person Einstein 14 4 1879 null null --classpath=" + familyAddress + " --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate"));
 			report("sed -i 's/@family_creation_transaction_failed/" + output15.getTransaction() + "/g' target/Tutorial.md");
 
-			Path jar2 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-family_storage/" + Constants.TAKAMAKA_VERSION + "/io-takamaka-code-examples-family_storage-" + Constants.TAKAMAKA_VERSION + ".jar");
+			Path jar2 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family_storage/" + HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family_storage-" + HOTMOKA_VERSION + ".jar");
 			var output16 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar2 + " --password-of-payer=chocolate --dir=" + dir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			TransactionReference family2Address = output16.getJar().get();
 			report("sed -i 's/@family2_address/" + family2Address + "/g' target/Tutorial.md");
 
-			var output17 = ObjectsCreateOutputs.from(Moka.objectsCreate(account1 + " family.Person Einstein 14 4 1879 null null --classpath=" + family2Address + " --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate"));
+			var output17 = ObjectsCreateOutputs.from(Moka.objectsCreate(account1 + " io.hotmoka.tutorial.examples.family.Person Einstein 14 4 1879 null null --classpath=" + family2Address + " --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate"));
 			report("sed -i 's/@family_creation_transaction_success/" + output17.getTransaction() + "/g' target/Tutorial.md");
 			StorageReference personObject = output17.getObject().get();
 			report("sed -i 's/@person_object/" + personObject + "/g' target/Tutorial.md");
@@ -217,18 +220,18 @@ public class UpdateForNewNode {
 			start = "new object allocated at ".length();
 			var person2Object = StorageValues.reference(runFamilyStorageMain.substring(start, start + 66));
 			report("sed -i 's/@person2_object/" + person2Object + "/g' target/Tutorial.md");
-			var output18 = ObjectsCallOutputs.from(Moka.objectsCall(account1 + " family.Person toString --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate --receiver=" + personObject));
+			var output18 = ObjectsCallOutputs.from(Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.family.Person toString --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate --receiver=" + personObject));
 			report("sed -i 's/@family_transaction_non_exported_failure/" + output18.getTransaction() + "/g' target/Tutorial.md");
 
-			Path jar3 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-family_exported/" + Constants.TAKAMAKA_VERSION + "/io-takamaka-code-examples-family_exported-" + Constants.TAKAMAKA_VERSION + ".jar");
+			Path jar3 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family_exported/" + HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family_exported-" + HOTMOKA_VERSION + ".jar");
 			var output19 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar3 + " --password-of-payer=chocolate --dir=" + dir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			TransactionReference familyExportedAddress = output19.getJar().get();
 			report("sed -i 's/@family_exported_address/" + familyExportedAddress + "/g' target/Tutorial.md");
-			var output20 = ObjectsCreateOutputs.from(Moka.objectsCreate(account1 + " family.Person Einstein 14 4 1879 null null --classpath=" + familyExportedAddress + " --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate"));
+			var output20 = ObjectsCreateOutputs.from(Moka.objectsCreate(account1 + " io.hotmoka.tutorial.examples.family.Person Einstein 14 4 1879 null null --classpath=" + familyExportedAddress + " --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate"));
 			report("sed -i 's/@family_exported_creation_transaction_success/" + output20.getTransaction() + "/g' target/Tutorial.md");
 			StorageReference person3Object = output20.getObject().get();
 			report("sed -i 's/@person3_object/" + person3Object + "/g' target/Tutorial.md");
-			var output21 = ObjectsCallOutputs.from(Moka.objectsCall(account1 + " family.Person toString --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate --receiver=" + person3Object));
+			var output21 = ObjectsCallOutputs.from(Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.family.Person toString --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate --receiver=" + person3Object));
 			report("sed -i 's/@family_exported_call_toString_transaction_success/" + output21.getTransaction() + "/g' target/Tutorial.md");
 			String runFamilyExportedMain = run(() -> FamilyExported.main(new String[] { mokamintURI.toString(), dir.toString(), account1.toString(), "chocolate" }));
 			// the output contains a new line, to remove, and slashes, that must be escaped
@@ -369,7 +372,7 @@ public class UpdateForNewNode {
 			StorageReference account10 = output54.getAccount().get();
 			report("sed -i 's/@transaction_account10/" + output54.getTransaction() + "/g' target/Tutorial.md");
 			report("sed -i 's/@account10/" + account10 + "/g' target/Tutorial.md");
-			Path jar7 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-family_exported/" + Constants.TAKAMAKA_VERSION + "/io-takamaka-code-examples-family_exported-" + Constants.TAKAMAKA_VERSION + ".jar");
+			Path jar7 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family_exported/" + HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family_exported-" + HOTMOKA_VERSION + ".jar");
 			var output55 = JarsInstallOutputs.from(Moka.jarsInstall(account9 + " " + jar7 + " --password-of-payer=quantum1 --dir=" + dir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));			report("sed -i 's/@family3_install_transaction/" + output55.getTransaction() + "/g' target/Tutorial.md");
 			TransactionReference family3Address = output55.getJar().get();
 			report("sed -i 's/@family3_address/" + family3Address + "/g' target/Tutorial.md");

@@ -27,6 +27,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyPair;
 
+import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
@@ -42,7 +43,6 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.RemoteNodes;
-import io.takamaka.code.constants.Constants;
 
 /**
  * Run it in Maven as (change /home/spoto/hotmoka_tutorial with the directory where you stored the key pairs of the payer account
@@ -52,15 +52,15 @@ import io.takamaka.code.constants.Constants;
  */
 public class FamilyStorage {
 
-  private final static ClassType PERSON = StorageTypes.classNamed("family.Person");
+  private final static ClassType PERSON = StorageTypes.classNamed("io.hotmoka.tutorial.examples.family.Person");
 
   public static void main(String[] args) throws Exception {
 
 	// the path of the user jar to install
     var familyPath = Paths.get(System.getProperty("user.home")
-      + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-family_storage/"
-      + Constants.TAKAMAKA_VERSION
-      + "/io-takamaka-code-examples-family_storage-" + Constants.TAKAMAKA_VERSION + ".jar");
+      + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family_storage/"
+      + Constants.HOTMOKA_VERSION
+      + "/io-hotmoka-tutorial-examples-family_storage-" + Constants.HOTMOKA_VERSION + ".jar");
 
     var dir = Paths.get(args[1]);
     var payer = StorageValues.reference(args[2]);

@@ -15,16 +15,8 @@ limitations under the License.
 */
 
 /**
- * This module contains the examples of the Hotmoka tutorial that run transactions against Hotmoka nodes.
+ * This module contains the family smart contract of the Takamaka tutorial, as a storage object.
  */
-module io.hotmoka.tutorial.examples.runs {
-  exports io.hotmoka.tutorial.examples.runs;
-
-  requires io.hotmoka.helpers;
-  requires io.hotmoka.node.remote;
-  requires io.hotmoka.node.disk;
-  requires io.hotmoka.node.tendermint;
-  requires io.hotmoka.node.service;
-  requires io.hotmoka.constants;
-  requires io.takamaka.code.constants;
+module family {
+	requires io.takamaka.code;
 }

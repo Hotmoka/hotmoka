@@ -18,6 +18,9 @@
 
   <modules>
     <module>io-hotmoka-tutorial-examples-family</module>
+    <module>io-hotmoka-tutorial-examples-family_storage</module>
+    <module>io-hotmoka-tutorial-examples-family_exported</module>
+  	<module>io-hotmoka-tutorial-examples-family_errors</module>
   	<module>io-hotmoka-tutorial-examples-runs</module>
   </modules>
 

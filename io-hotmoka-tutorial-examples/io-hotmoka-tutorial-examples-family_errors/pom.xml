@@ -1,0 +1,24 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>io-hotmoka-tutorial-examples-family_errors</artifactId>
+  <packaging>jar</packaging>
+  <name>io-hotmoka-tutorial-examples-family_errors</name>
+  <version>${hotmoka.version}</version>
+  <description>This module contains the family smart contract of the Takamaka tutorial, with errors that prevent its successful static verification.</description>
+
+  <parent>
+    <groupId>io.hotmoka</groupId>
+    <artifactId>io-hotmoka-tutorial-examples</artifactId>
+    <version>${hotmoka.version}</version>
+  </parent>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-takamaka-code</artifactId>
+      <version>${io.takamaka.code.version}</version>
+    </dependency>
+  </dependencies>
+
+</project>
