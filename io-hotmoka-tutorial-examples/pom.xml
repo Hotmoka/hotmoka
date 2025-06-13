@@ -21,7 +21,12 @@
     <module>io-hotmoka-tutorial-examples-family_storage</module>
     <module>io-hotmoka-tutorial-examples-family_exported</module>
   	<module>io-hotmoka-tutorial-examples-family_errors</module>
-  	<module>io-hotmoka-tutorial-examples-runs</module>
+  	<module>io-hotmoka-tutorial-examples-ponzi_annotations</module>
+    <module>io-hotmoka-tutorial-examples-ponzi_simple</module>
+    <module>io-hotmoka-tutorial-examples-ponzi_payable</module>
+    <module>io-hotmoka-tutorial-examples-ponzi_view</module>
+    <module>io-hotmoka-tutorial-examples-ponzi_gradual</module>
+    <module>io-hotmoka-tutorial-examples-runs</module>
   </modules>
 
   <build>
