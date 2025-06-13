@@ -26,6 +26,8 @@
     <module>io-hotmoka-tutorial-examples-ponzi_payable</module>
     <module>io-hotmoka-tutorial-examples-ponzi_view</module>
     <module>io-hotmoka-tutorial-examples-ponzi_gradual</module>
+    <module>io-hotmoka-tutorial-examples-tictactoe</module>
+    <module>io-hotmoka-tutorial-examples-tictactoe_improved</module>
     <module>io-hotmoka-tutorial-examples-runs</module>
   </modules>
 

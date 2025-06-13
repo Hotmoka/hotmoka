@@ -16,6 +16,9 @@ limitations under the License.
 
 package io.hotmoka.tutorial.examples.runs;
 
+import static io.hotmoka.constants.Constants.HOTMOKA_VERSION;
+import static io.takamaka.code.constants.Constants.TAKAMAKA_VERSION;
+
 import java.math.BigInteger;
 import java.nio.file.Paths;
 import java.security.KeyPair;
@@ -28,7 +31,6 @@ import io.hotmoka.helpers.JarsNodes;
 import io.hotmoka.node.ConsensusConfigBuilders;
 import io.hotmoka.node.disk.DiskNodeConfigBuilders;
 import io.hotmoka.node.disk.DiskNodes;
-import io.takamaka.code.constants.Constants;
 
 /**
  * Run it in Maven as:
@@ -43,14 +45,14 @@ public class Decorators {
     // the path of the runtime Takamaka jar, inside Maven's cache
     var takamakaCodePath = Paths.get
       (System.getProperty("user.home") +
-      "/.m2/repository/io/hotmoka/io-takamaka-code/" + Constants.TAKAMAKA_VERSION
-      + "/io-takamaka-code-" + Constants.TAKAMAKA_VERSION + ".jar");
+      "/.m2/repository/io/hotmoka/io-takamaka-code/" + TAKAMAKA_VERSION
+      + "/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar");
 
     // the path of the user jar to install
-    var familyPath = Paths.get
-      (System.getProperty("user.home") +
-      "/.m2/repository/io/hotmoka/io-takamaka-code-examples-family/" + Constants.TAKAMAKA_VERSION
-      + "/io-takamaka-code-examples-family-" + Constants.TAKAMAKA_VERSION + ".jar");
+    var familyPath = Paths.get(System.getProperty("user.home")
+      + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family/"
+      + HOTMOKA_VERSION
+      + "/io-hotmoka-tutorial-examples-family-" + HOTMOKA_VERSION + ".jar");
 
     // create a key pair for the gamete
     var signature = SignatureAlgorithms.ed25519();
