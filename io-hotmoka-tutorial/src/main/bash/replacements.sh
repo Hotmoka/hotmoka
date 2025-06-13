@@ -1,4 +1,7 @@
 sed -i 's/@hotmoka_version/1.8.0/g' target/Tutorial.md
+sed -i 's/@hotmoka_version/1.8.0/g' target/pics/state1.fig
+sed -i 's/@hotmoka_version/1.8.0/g' target/pics/state2.fig
+sed -i 's/@hotmoka_version/1.8.0/g' target/pics/state3.fig
 sed -i 's/@takamaka_version/1.4.1/g' target/Tutorial.md
 sed -i 's/@takamaka_version/1.4.1/g' target/pics/state1.fig
 sed -i 's/@takamaka_version/1.4.1/g' target/pics/state2.fig

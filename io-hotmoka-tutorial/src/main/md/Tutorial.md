@@ -213,22 +213,21 @@ experiment with these projects yourself.
 However, if you have no time and want to jump immediately to the result,
 or if you want to compare your work
 with the expected result, we provide you with the completed examples of this book in
-two modules of the Hotmoka and Takamaka distribution repositories, that you can clone.
+a module of the Hotmoka distribution repository, that you can clone.
 Each section of this book will report
 the project of the repository where you can find the related code.
-You can clone that completed tutorial examples repositories as follows:
+You can clone the code as follows:
 
 ```shell
-$ git clone --branch v@takamaka_version @takamaka_repo.git
 $ git clone --branch v@hotmoka_version @hotmoka_repo.git
 ```
 
 You will find the examples of Takamaka smart contracts inside the Maven module
-`io-takamaka-code-examples` and the examples of code interacting with
-Hotmoka nodes in the Maven module `io-hotmoka-tutorial-examples`.
-You can import these projects into Eclipse (File &rarr; Import; then specify
-*Existing Maven Projects*).
-They can be imported similarly in IntelliJ and NetBeans.
+`io-hotmoka-tutorial-examples`.
+
+_Verona, June 2025_.
+
+&nbsp;
 
 **Acknowledgments**.
 I thank the people at Ailia SA, in particular Giovanni Antino, Mario Carlini,
@@ -259,8 +258,6 @@ with Andrea Benini, Mauro Gambini and Sara Migliorini.
 [Markdownonly]: <p align="center"><img width="200" src="pics/YourKit.png" alt="YourKit logo"></p><p>Hotmoka benefits from the use of a free license of the YourKit profiler for Java. YourKit supports open source projects with innovative and intelligent tools for monitoring and profiling Java and .NET applications. YourKit is the creator of <a href="https://www.yourkit.com/java/profiler/">YourKit Java Profiler</a>, <a href="https://www.yourkit.com/.net/profiler/">YourKit .NET Profiler</a>, and <a href="https://www.yourkit.com/youmonitor/">YourKit YouMonitor</a>.</p>
 
 [PDFonly]: ![Hotmoka benefits from the use of a free license of the YourKit profiler for Java. YourKit supports open source projects with innovative and intelligent tools for monitoring and profiling Java and .NET applications. YourKit is the creator of <a href="https://www.yourkit.com/java/profiler/">YourKit Java Profiler</a>, <a href="https://www.yourkit.com/.net/profiler/">YourKit .NET Profiler</a>, and <a href="https://www.yourkit.com/youmonitor/">YourKit YouMonitor</a>.](pics/YourKit.png){ width=27% }
-
-_Verona, May 2025_.
 
 # Getting Started with Hotmoka
 
@@ -406,14 +403,14 @@ running simple transactions), while Moka is the most complete solution.
 
 ### Moka
 
-You can use the `moka` tool to interact with a Hotmoka node,
+You can use the `moka` command to interact with a Hotmoka node,
 install code in the node and run transactions. There are two ways of using `moka`.
 You can either download its source code, compile it and add the `moka` executable to
-the command path; or you can use `moka` inside its Docker container.
+the command path of your machine; or you can use `moka` inside its Docker container.
 The former approach is more flexible but requires to have
 Java JDK version 21 (or higher) installed in your
 computer, along a recent version of Maven. The latter approach avoids to install
-and compile software on your machine, but you need Docker installed of course.
+and compile software on your machine, but you need to have Docker installed of course.
 
 #### Downloading and compiling `moka`
 
@@ -421,7 +418,7 @@ If you want to install `moka` under `~/Opt`, under Linux or MacOS you can run th
 
 ````shell
 $ cd ~/Opt
-$ git clone https://github.com/Hotmoka/hotmoka.git
+$ git clone --branch v@hotmoka_version @hotmoka_repo.git
 $ cd hotmoka
 $ mvn clean install -DskipTests
 $ export PATH=$PATH:$(pwd)/io-hotmoka-moka
@@ -448,12 +445,12 @@ $ moka --version
 @hotmoka_version
 ```
 
-The process is similar under Windows. However, where you will add
+The process is similar under Windows: you will add
 the directory containing `moka` to the `PATH` environment variable.
 
-#### Invoking `moka` from inside its Docker container
+#### Invoking `moka` from inside its docker container
 
-There are a few Docker containers embedding `moka` inside of them.
+There are a few docker containers embedding `moka` inside of them.
 For instance you can call `moka` as follows:
 
 ```shell
@@ -461,13 +458,13 @@ $ docker run -it hotmoka/mokamint-node:@hotmoka_version moka --version
 @hotmoka_version
 ```
 
-This time you do not need Java nor Maven, nor to compile anything: Docker will take care
+This time you do not need Java nor Maven, nor to compile anything: docker will take care
 of downloading the image of the container and run `moka` inside it.
 
 #### First Usage of `moka`
 
-In the following examples, we show direct invocations of `moka`, without the Docker container.
-Remember, however, that you can also run it from inside its Docker container if you prefer.
+In the following examples, we show direct invocations of `moka`, without the docker container.
+Remember, however, that you can also run it from inside its docker container if you prefer.
 
 You can check the options of `moka` as follows:
 
@@ -547,19 +544,19 @@ top left area of the app.
 
 ## Contacting a Hotmoka Test Node
 
-The examples in this book must be run by a Hotmoka node,
+The examples in this book must be run against a Hotmoka node,
 typically part of a Hotmoka blockchain. We will show you in a later chapter how you
 can install your own local
 node or blockchain. However, for now, it is much simpler to experiment with a node
 that is part of one of the public
 test blockchains that we provide for experimentation.
-Namely, we have installed Hotmoka nodes for testing at URIs
+Namely, we have installed two Hotmoka nodes for testing, of two distinct blockchains, at URIs
 `@server_mokamint` and `@server_tendermint`.
 The peculiarity of these nodes is that they include a _faucet_ that gives
 away small amounts of coins, when requested. This is good for experimentation
 but, of course, a real node will not include a faucet.
 In a real node, people must grasp some coins because they have been earned through mining,
-sent by some other user or bought from some source.
+sent by some other user or bought from some exchange.
 
 You can verify that you can contact the test node by typing
 the command `moka nodes manifest show` to print the _manifest_ information
@@ -610,7 +607,7 @@ a minute. The `gasStation` refers to another Java object, that provides
 information about the gas, such as its current `gasPrice`. Finally, there is
 another Java object, called `validators`, that keeps information about the validator nodes of the network
 (if the network has validators) and contains, as well, the initial, current and final supply of cryptocurrency
-(how much cryptocurrency existed at the beginning of the network, has much has been minted up to now,
+(how much cryptocurrency was minted at the beginning of the network, has much has been minted up to now,
 and how much will exist eventually).
 
 As we said in the previous section, Java objects in the Hotmoka node are identified by their
@@ -627,7 +624,7 @@ and select _Manifest_ from the menu that will appear (see Figure @fig:mokito_men
 [PDFonly]: ![Figure @fig:mokito_menu. The menu of the Mokito app.](pics/mokito_menu.png "Figure @fig:mokito_menu. The menu of the Mokito app."){ width=30% }
 
 After tapping on _Manifest_, a new screen will appear, containing the same information
-that we found with `moka nodes manifest show` (see Figure @fig:mokito_manifest).
+that we saw with `moka nodes manifest show` (see Figure @fig:mokito_manifest).
 
 [Markdownonly]: <p align="center"><img width="300" src="pics/mokito_manifest.png" alt="Figure @fig:mokito_manifest. The manifest of the Hotmoka node, shown in the Mokito app"></p><p align="center">Figure @fig:mokito_manifest. The manifest of the Hotmoka node, shown in the Mokito app.</p>
 
@@ -743,7 +740,7 @@ not just on your own accounts, whenever you want to inspect its state
 
 Figure @fig:state2 shows the state of the network nodes after the creation of our new account.
 Since out test node is part of a blockchain, it is not only its state that has been modified,
-but also that of all nodes that are part of the blockchain.
+but also that of all nodes that are part of that blockchain.
 
 Whenever your account will run out of coins, you can recharge it with the
 `moka send` command, using, again, the faucet as source of coins. Namely,
@@ -835,42 +832,7 @@ first export the 36 words of that account:
 ```shell
 $ moka keys export @account1
 The following BIP39 words represent the key pair of the account:
- 1: coconut
- 2: middle
- 3: seat
- 4: select
- 5: youth
- 6: seminar
- 7: swing
- 8: ethics
- 9: denial
-10: beach
-11: owner
-12: net
-13: weather
-14: scheme
-15: abandon
-16: puzzle
-17: rule
-18: embrace
-19: lab
-20: fantasy
-21: glow
-22: toast
-23: evoke
-24: situate
-25: bag
-26: jeans
-27: skin
-28: joy
-29: wisdom
-30: sudden
-31: elevator
-32: describe
-33: early
-34: kind
-35: hobby
-36: pony
+@36words_of_account1
 ```
 
 Then go to the accounts page of Mokito and show its
@@ -906,7 +868,7 @@ of 10,000 coins, but still wants to remain unknown. He can receive the payment i
    in the state of the node. But this is not anonymous, since, in Hotmoka, an account is an object
    and there must have been a transaction that created that object, whose payer is likely to be
    Anonymous or somebody in his clique. That is, this allows one to infer something
-   aboutthe identity of Anonymous. Therefore, Anonymous would probably discard this possibility.
+   about the identity of Anonymous. Therefore, Anonymous would probably discard this possibility.
 2. He could send us an anonymous email asking
    us to create a new account with a given public key, whose associated
    private key he controls, and to charge it with 10,000 coins. After that, we are expected
@@ -922,6 +884,7 @@ of 10,000 coins, but still wants to remain unknown. He can receive the payment i
 
 Let us show how the third possibility works. Anonymous starts by creating a new private/public key,
 exactly as we did before:
+
 ```shell
 $ moka keys create --name=anonymous.pem --password
 Enter value for --password
@@ -967,7 +930,7 @@ Gas consumption:
  * total price: 7281 panas
 ```
 
-And that's all! No other interaction is needed with Anonymous. He will check
+And that's all! No interaction is needed with Anonymous. He will check
 from time to time to see if we have paid, by running the command `moka keys bind`
 until it succeeds:
 
@@ -990,10 +953,10 @@ So how does that work? The answer is that the `moka accounts send` command
 creates the account `@account_anonymous` with the public key of
 Anonymous inside it, so that Anonymous will be able to control that account.
 But there is more: that command
-will also associate the publi key of the account to the account itself,
+will also associate the public key of the account to the account itself,
 inside a hash map contained in the manifest of the node,
-called _accounts ledger_. The `moka keys bind` command will simply consult that
-hash map, to see if somebody has already bound an account that public key.
+called _accounts ledger_. The `moka keys bind` command will simply consult the
+accounts ledger, to see if somebody has already bound an account to that public key.
 
 > If, inside the accounts ledger, there is an account _C_ already associated to the
 > public key,
@@ -1026,7 +989,7 @@ fork the project.
 
 Hence, we show below how to download the source code
 of Hotmoka and of the runtime of the Takamaka language.
-You will need Java JDK version at least 11.
+You will need Java JDK version at least 21.
 
 Clone the project with:
 
@@ -1072,7 +1035,7 @@ All tests should pass and all projects should be successfully installed:
 If you want to edit the source code inside an IDE, you can import it in Eclipse, NetBeans or IntelliJ.
 In Eclipse, use the File &rarr; Import &rarr; Existing Maven Projects menu item and import
 the parent Maven project contained in the `hotmoka` directory that you cloned from
-GitHub. This should create, inside Eclipse, also its submodule projects.
+GitHub. This should create, inside Eclipse, also its submodules.
 You should see, inside Eclipse's project explorer, something like Figure @fig:projects.
 You will then be able to compile, package, test and install the Hotmoka jars inside
 Eclipse itself, by right-clicking on the `parent` project and selecting
@@ -1092,7 +1055,7 @@ writing Java code, there is nothing special to learn or install
 before starting writing programs in Takamaka. Just use your
 preferred integrated development environment (IDE) for Java. Or even
 do everything from command-line, if you prefer. Our examples below will be
-shown for the Eclipse IDE, using Java 17 or later, but you can perfectly well
+shown for the Eclipse IDE, using Java 21 or later, but you can perfectly well
 use the IntelliJ IDE instead.
 
 Our goal will be to create a Java class that we will instantiate
@@ -1102,27 +1065,27 @@ call the `toString()` method on that instance in blockchain.
 
 ## Creation of the Eclipse Project
 
-__[See `io-takamaka-code-examples-family` in `@takamaka_repo`]__
+__[See `io-hotmoka-tutorial-examples-family` in `@hotmoka_repo`]__
 
-Let us create a Maven project `io-takamaka-code-examples-family` inside Eclipse,
+Let us create a Maven project `io-hotmoka-tutorial-examples-family` inside Eclipse,
 in the `hotmoka_tutorial` directory.
 For that, in the Eclipse's Maven wizard
 (New &rarr; Maven project) specify the options
 *Create a simple project (skip archetype selection)*
 and deselect the *Use default Workspace directory* option,
-specifying a subdirectory `io-takamaka-code-examples-family` of the `hotmoka_tutorial` directory as *Location* instead.
-Hence, *Location* should be something that ends with `.../hotmoka_tutorial/io-takamaka-code-examples-family`.
+specifying a subdirectory `io-hotmoka-tutorial-examples-family` of the `hotmoka_tutorial` directory as *Location* instead.
+Hence, *Location* should be something that ends with `.../hotmoka_tutorial/io-hotmoka-tutorial-examples-family`.
 Do not add the project to any working set. Use `io.hotmoka`
-as Group Id and `io-takamaka-code-examples-family` as Artifact Id.
+as Group Id and `io-hotmoka-tutorial-examples-family` as Artifact Id.
 
 > The Group Id can be changed as you prefer, but we will stick
-> to `io.hotmoka` to show the exact files that you will see in Eclipse.
+> to `io.hotmoka` to show the exact files that you will see in the provided code.
 
 By clicking *Finish* in the Eclipse's Maven wizard, you should see
 a new Maven project in the Eclipse's explorer.
 Currently, Eclipse creates a default `pom.xml` file that uses Java 5
 and has no dependencies. Replace hence
-the content of the `pom.xml` file of the `io-takamaka-code-examples-family` project with the code that follows:
+the content of the `pom.xml` file of the `io-hotmoka-tutorial-examples-family` project with the code that follows:
 
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -1132,12 +1095,12 @@ the content of the `pom.xml` file of the `io-takamaka-code-examples-family` proj
 
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.hotmoka</groupId>
-  <artifactId>io-takamaka-code-examples-family</artifactId>
-  <version>@takamaka_version</version>
+  <artifactId>io-hotmoka-tutorial-examples-family</artifactId>
+  <version>@hotmoka_version</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.release>17</maven.compiler.release>
+    <maven.compiler.release>21</maven.compiler.release>
   </properties>
 
   <dependencies>
@@ -1161,7 +1124,7 @@ the content of the `pom.xml` file of the `io-takamaka-code-examples-family` proj
 </project>
 ```
 
-that specifies to use Java 17 and provides the dependency
+It specifies to use Java 21 and provides the dependency
 to `io-takamaka-code`, that is, the run-time classes of the Takamaka smart contracts.
 
 > We are using `@takamaka_version` here, as version of the Takamaka runtime
@@ -1192,11 +1155,11 @@ module family {
 }
 ```
 
-Create a package `family` inside `src/main/java`. Inside that package,
+Create a package `io.hotmoka.tutorial.examples.family` inside `src/main/java`. Inside that package,
 create a Java source `Person.java`, by copying and pasting the following code:
 
 ```java
-package family;
+package io.hotmoka.tutorial.examples.family;
 
 import io.takamaka.code.lang.StringSupport;
 
@@ -1233,18 +1196,18 @@ public class Person {
 This is a plain old Java class and should not need any comment. The only observation is that we concat strings
 with the support class `StringSupport`, since the standard string concatenation of Java would end up
 calling methods whose computational cost is not foreseeable in advance. In general, a very small portion of the
-Java library can be used directly in Takamaka, and support classes are used to replace some common functionality,
+Java library can be used directly in Takamaka, and support classes are used to replace some common functionalities,
 such as string concatenation.
 
-Package the project into a jar, by running the following shell command inside
-the directory of the project (that is, the subdirectory `io-takamaka-code-examples-family` of the
+Package the project into a jar and install it in the local Maven repository, by running the following shell command inside
+the directory of the project (that is, the subdirectory `io-hotmoka-tutorial-examples-family` of the
 directory `hotmoka_tutorial`):
 
 ```shell
-$ mvn package
+$ mvn install
 ```
 
-A `io-takamaka-code-examples-family-@takamaka_version.jar` file should appear inside the `target` directory.
+A `io-hotmoka-tutorial-examples-family-@hotmoka_version.jar` file should appear inside the `target` directory.
 Only the compiled
 class files will be relevant: Hotmoka nodes will ignore source files, manifest
 and any resources in the jar; the same compiled
@@ -1259,7 +1222,7 @@ The result should look as in Figure @fig:family_jar:
 
 ## Installation of the Jar in a Hotmoka Node
 
-__[See `io-hotmoka-tutorial-examples` in `@hotmoka_repo`]__
+__[See `io-hotmoka-tutorial-examples-runs` in `@hotmoka_repo`]__
 
 We have generated the jar containing our code and we want to send it now to a Hotmoka node,
 where it will be installed. This means that it will become available to programmers
@@ -1275,7 +1238,7 @@ there already, so that
 ```shell
 $ cd @tutorial_name
 $ moka jars install @account1
-    io-takamaka-code-examples-family/target/io-takamaka-code-examples-family-@takamaka_version.jar
+    io-hotmoka-tutorial-examples-family/target/io-hotmoka-tutorial-examples-family-@hotmoka_version.jar
     --password-of-payer
     --uri @server_mokamint
 
@@ -1299,7 +1262,7 @@ You can verify that the balance of the account has been decreased, through the
 `moka objects show` command.
 
 The state of the Hotmoka nodes of the testnet is now as in Figure @fig:state3.
-As that figure shows, a dependency has been created, automatically, from `io-takamaka-code-examples-family-@takamaka_version.jar` to
+As that figure shows, a dependency has been created, automatically, from `io-hotmoka-tutorial-examples-family-@hotmoka_version.jar` to
 `io-takamaka-code-@takamaka_version.jar`. This is because all Takamaka code will use the run-time classes of the Takamaka language,
 hence the `moka jars install` command adds them, by default. Note that a dependency must already be installed in the node
 before it can be used as dependency of other jars.
@@ -1317,12 +1280,12 @@ A similar translation in code can be performed for all examples in this tutorial
 but we will report it only for a few of them.
 
 Let us hence create another Eclipse Maven project
-`io-hotmoka-tutorial-examples`, inside `@tutorial_name`,
+`io-hotmoka-tutorial-examples-runs`, inside `@tutorial_name`,
 exactly as we did in the previous section for the `family` project.
 Specify Java 21 (or later) in its build configuration.
-Use `io.hotmoka` as Group Id and `io-hotmoka-tutorial-examples` as Artifact Id.
+Use `io.hotmoka` as Group Id and `io-hotmoka-tutorial-examples-runs` as Artifact Id.
 This is specified in the following `pom.xml`, that you should copy inside
-the `io-hotmoka-tutorial-examples` project, replacing that generated by Eclipse:
+the `io-hotmoka-tutorial-examples-runs` project, replacing that generated by Eclipse:
 
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -1332,8 +1295,8 @@ the `io-hotmoka-tutorial-examples` project, replacing that generated by Eclipse:
 
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.hotmoka</groupId>
-  <artifactId>io-hotmoka-tutorial-examples</artifactId>
-  <version>@takamaka_version</version>
+  <artifactId>io-hotmoka-tutorial-examples-runs</artifactId>
+  <version>@hotmoka_version</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -1378,6 +1341,11 @@ the `io-hotmoka-tutorial-examples` project, replacing that generated by Eclipse:
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-constants</artifactId>
+      <version>@hotmoka_version</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
       <artifactId>io-takamaka-code-constants</artifactId>
       <version>@takamaka_version</version>
     </dependency>
@@ -1390,12 +1358,10 @@ This `pom.xml` specifies a few dependencies. We do not need all of them now,
 but we will need them along the next sections, hence let us insert them all already.
 These dependencies get automatically downloaded from the Maven repository.
 
-Since we modified the file `pom.xml`, Eclipse should show an error
-for the `io-hotmoka-tutorial-examples` project. To fix it,
+Since we modified the file `pom.xml`, Eclipse could show an error
+for the `io-hotmoka-tutorial-examples-runs` project. To fix it,
 you need to update the Maven dependencies of the project:
-right-click on the `io-hotmoka-tutorial-examples` project &rarr; Maven &rarr; Update Project...
-
-Leave directory `src/test/java` empty, by deleting its content, if not already empty.
+right-click on the `io-hotmoka-tutorial-examples-runs` project &rarr; Maven &rarr; Update Project...
 
 The result should look as in Figure @fig:runs.
 
@@ -1406,12 +1372,13 @@ The result should look as in Figure @fig:runs.
 Create a `module-info.java` inside `src/main/java`, containing:
 
 ```java
-module io.hotmoka.tutorial.examples {
+module io.hotmoka.tutorial.examples.runs {
   requires io.hotmoka.helpers;
   requires io.hotmoka.node.remote;
   requires io.hotmoka.node.disk;
   requires io.hotmoka.node.tendermint;
   requires io.hotmoka.node.service;
+  requires io.hotmoka.constants;
   requires io.takamaka.code.constants;
 }
 ```
@@ -1419,10 +1386,10 @@ module io.hotmoka.tutorial.examples {
 Again, we do not need all these dependencies already, but we will need them later.
 
 Create a package
-`io.hotmoka.tutorial.examples` inside `src/main/java` and add the following class `Family.java` inside it:
+`io.hotmoka.tutorial.examples.runs` inside `src/main/java` and add the following class `Family.java` inside it:
 
 ```java
-package io.hotmoka.tutorial.examples;
+package io.hotmoka.tutorial.examples.runs;
 
 import static java.math.BigInteger.ONE;
 
@@ -1433,6 +1400,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyPair;
 
+import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
@@ -1445,17 +1413,16 @@ import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.RemoteNodes;
-import io.takamaka.code.constants.Constants;
 
 public class Family {
 
   public static void main(String[] args) throws Exception {
 
 	// the path of the user jar to install
-	var familyPath = Paths.get(System.getProperty("user.home")
-		+ "/.m2/repository/io/hotmoka/io-takamaka-code-examples-family/"
-		+ Constants.TAKAMAKA_VERSION
-		+ "/io-takamaka-code-examples-family-" + Constants.TAKAMAKA_VERSION + ".jar");
+   var familyPath = Paths.get(System.getProperty("user.home")
+     + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family/"
+     + Constants.HOTMOKA_VERSION
+     + "/io-hotmoka-tutorial-examples-family-" + Constants.HOTMOKA_VERSION + ".jar");
 
 	var dir = Paths.get(args[1]);
 	var payer = StorageValues.reference(args[2]);
@@ -1491,7 +1458,7 @@ public class Family {
 
       var gasHelper = GasHelpers.of(node);
 
-      // we install family-0.0.1-SNAPSHOT.jar in the node: our account will pay
+      // we install the family jar in the node: our account will pay
       TransactionReference family = node
         .addJarStoreTransaction(TransactionRequests.jarStore
           (signer, // an object that signs with the payer's private key
@@ -1559,12 +1526,12 @@ Namely, the code above performs two transactions:
    (`Files.readAllBytes(familyPath)`, where `familyPath` looks inside the local Maven repository
    of the machine, where the jar to install in the node should already be present.
    The request passed to `addJarStoreTransaction()` specifies that the transaction can cost up
-   to 300,000 units of gas, that can be bought at a price returned by the `gasHelper` object. The request
+   to 300,000 units of gas, that can be bought at the price returned by the `gasHelper` object. The request
    specifies that its class path is `node.getTakamakaCode()`: this is the reference to the
    `io-takamaka-code` jar already installed in the node.
-   Finally, the request specifies that `family-@takamaka_version.jar` has only
+   Finally, the request specifies that `io-hotmoka-tutorial-examples-family-@hotmoka_version.jar` has only
    a single dependency: `io-takamaka-code`. This means that when, later, we will refer to
-   `family-@takamaka_version.jar` in a class path, this class path will indirectly include its dependency
+   `io-hotmoka-tutorial-examples-family-@hotmoka_version.jar` in a class path, this class path will indirectly include its dependency
    `io-takamaka-code` as well (see Figure @fig:state3).
 
 > As in Ethereum, transactions in Hotmoka are paid
@@ -1581,26 +1548,24 @@ Namely, the code above performs two transactions:
 You can run the program with Maven, specifying the server to contact,
 the class to run and the parameters to pass to its `main` method:
 ```shell
-$ mvn compile exec:java -Dexec.mainClass="io.hotmoka.tutorial.examples.Family"
+$ mvn compile exec:java -Dexec.mainClass="io.hotmoka.tutorial.examples.runs.Family"
      -Dexec.args="ws://panarea.hotmoka.io:8001
                   hotmoka_tutorial
                   @account1
                   chocolate"
 jar installed at: @code_family_address
 ```
-The exact address will change. In any case, note that this reference to the jar is functionally equivalent to that
+The exact address will change in your machine. In any case, note that this reference to the jar is functionally equivalent to that
 obtained before with the `moka jars install` command: they point to equivalent jars.
 
 ## Creation of an Object of our Program
 
-__[See `io-hotmoka-tutorial-examples` in `@hotmoka_repo`]__
+__[See `io-hotmoka-tutorial-examples-family_storage` in `@hotmoka_repo`]__
 
-__[See `io-takamaka-code-examples-family_storage` in `@takamaka_repo`]__
+__[See `io-hotmoka-tutorial-examples-runs` in `@hotmoka_repo`]__
 
 The jar of our program is in the store of the node now: the `moka jars install` command
-has installed it at
-`@family_address`
-and our code at `@code_family_address`.
+has installed it at `@family_address` and our code at `@code_family_address`.
 We can use either of them, interchangeably, as class path for the execution of a transaction that
 tries to run the constructor of `Person` and add a brand
 new `Person` object into the store of the node. We can perform this through the `moka` tool:
@@ -1608,16 +1573,16 @@ new `Person` object into the store of the node. We can perform this through the 
 ```shell
 $ cd @tutorial_name # if you are not already there
 $ moka objects create @account1
-    family.Person Einstein 14 4 1879 null null
+    io.hotmoka.tutorial.examples.family.Person Einstein 14 4 1879 null null
     --classpath @family_address
     --uri @server_mokamint --password-of-payer
 Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
 Do you really want to call constructor
-  public family.Person(java.lang.String,int,int,int,family.Person,family.Person)
+  public ...Person(java.lang.String,int,int,int,...Person,...Person)
 spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
 Adding transaction @family_creation_transaction_failed... failed.
 The transaction failed with message io.hotmoka.node.api.SerializationException:
-  An object of class family.Person cannot be serialized into a storage value
+  An object of class ...Person cannot be serialized into a storage value
   since it does not implement io.takamaka.code.lang.Storage
 
 Gas consumption:
@@ -1632,12 +1597,11 @@ Gas consumption:
 
 The `moka objects create` command requires to specify who pays for the object creation
 (our account), then the fully-qualified name of the class that we want to instantiate
-(`family.Person`) followed by the actual arguments passed to its constructor.
+(`io.hotmoka.tutorial.examples.Person`) followed by the actual arguments passed to its constructor.
 The classpath refers to the jar that we have installed previously. The `moka objects create` command
 asks for the password of the payer account and
 checks if we really want to proceed (and pay). Then it ends up in failure
-(`SerializationException`). Note that
-all offered gas has been spent.
+(`SerializationException`). Note that all offered gas has been spent.
 This is a sort of *penalty* for running a transaction that fails. The rationale is that this penalty should discourage
 potential denial-of-service attacks, when a huge number of failing transactions are thrown at a
 node. At least, that attack will cost a lot. Moreover, note that the transaction, although
@@ -1645,7 +1609,7 @@ failed, does exist. Indeed, the nonce of the caller has been increased, as you c
 on your account.
 
 But we still have not understood why the transaction failed. The reason is in the exception
-message: `An object of class family.Person cannot be serialized into a storage value since it does not implement io.takamaka.code.lang.Storage`.
+message: `An object of class ...Person cannot be serialized into a storage value since it does not implement io.takamaka.code.lang.Storage`.
 Takamaka requires
 that all objects stored in a node extend the `io.takamaka.code.lang.Storage` class. That superclass
 provides all the machinery needed in order to keep track of updates to such objects and persist them
@@ -1659,10 +1623,10 @@ in the store of the node, automatically.
 > must be the case, for instance, for objects created by the constructor invoked through the
 > `moka objects create` command.
 
-Let us modify the `family.Person.java` source code, inside the `family` project then:
+Let us modify the `io.hotmoka.tutorial.examples.Person.java` source code, inside the `io-hotmoka-tutorial-examples-family` project then:
 
 ```java
-package family;
+package io.hotmoka.tutorial.examples.family;
 
 import io.takamaka.code.lang.Storage;
 
@@ -1678,19 +1642,19 @@ public class Person extends Storage {
 
 > We can use the `io.takamaka.code.lang.Storage` class and we can run the resulting compiled code
 > since that class is inside `io-takamaka-code`, that has been included in the
-> class path as a dependency of `family-0.0.1.jar`.
+> class path as a dependency of `io-hotmoka-tutorial-examples-family-@hotmoka_version.jar`.
 
-Regenerate `family-@takamaka_version.jar`, by running `mvn package` again,
-inside the `io-takamaka-code-examples-family` project, since class `Person` has changed.
+Regenerate `io-hotmoka-tutorial-examples-family-@hotmoka_version.jar`, by running `mvn install` again,
+inside the `io-hotmoka-tutorial-examples-family` project, since class `Person` has changed.
 Then run again the `moka objects create` command. This time, the execution should
 complete without exception:
 
 ```shell
 $ cd io-takamaka-code-examples-family
-$ mvn clean package
+$ mvn clean install
 $ cd ..
 $ moka jars install @account1
-    io-takamaka-code-examples-family/target/io-takamaka-code-examples-family-@takamaka_version.jar
+    io-hotmoka-tutorial-examples-family/target/io-hotmoka-tutorial-examples-family-@hotmoka_version.jar
     --password-of-payer
     --uri @server_mokamint
 ...
@@ -1698,12 +1662,12 @@ has been installed at
   @family2_address
 ...
 $ moka objects create @account1
-    family.Person Einstein 14 4 1879 null null
+    io.hotmoka.tutorial.examples.family.Person Einstein 14 4 1879 null null
     --classpath @family2_address
     --uri @server_mokamint --password-of-payer
 Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
 Do you really want to call constructor
-  public family.Person(java.lang.String,int,int,int,family.Person,family.Person)
+  public ...Person(java.lang.String,int,int,int,...Person,...Person)
 spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
 Adding transaction @family_creation_transaction_success... done.
 A new object @person_object has been created.
@@ -1729,13 +1693,13 @@ $ cd @tutorial_name
 $ moka objects show @person_object
     --uri @server_mokamint
 
-class family.Person (from jar installed at
-    @family2_address)
+class io.hotmoka.tutorial.examples.family.Person
+    (from jar installed at @family2_address)
   day:int = 14
   month:int = 4
   name:java.lang.String = "Einstein"
-  parent1:family.Person = null
-  parent2:family.Person = null
+  parent1:...Person = null
+  parent2:...Person = null
   year:int = 1879
 ```
 
@@ -1755,7 +1719,7 @@ Namely, the following code builds on the previous example and installs a jar by 
 a further transaction that calls the constructor of `Person`:
 
 ```java
-package io.hotmoka.tutorial.examples;
+package io.hotmoka.tutorial.examples.runs;
 
 import static io.hotmoka.helpers.Coin.panarea;
 import static io.hotmoka.node.StorageTypes.INT;
@@ -1768,6 +1732,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyPair;
 
+import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
@@ -1783,19 +1748,19 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.RemoteNodes;
-import io.takamaka.code.constants.Constants;
 
 public class FamilyStorage {
 
-  private final static ClassType PERSON = StorageTypes.classNamed("family.Person");
+  private final static ClassType PERSON = StorageTypes.classNamed
+    ("io.hotmoka.tutorial.examples.family.Person");
 
   public static void main(String[] args) throws Exception {
 
 	 // the path of the user jar to install
     var familyPath = Paths.get(System.getProperty("user.home")
-      + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-family/"
-      + Constants.TAKAMAKA_VERSION
-      + "/io-takamaka-code-examples-family-" + Constants.TAKAMAKA_VERSION + ".jar");
+      + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family/"
+      + Constants.HOTMOKA_VERSION
+      + "/io-hotmoka-tutorial-examples-family-" + Constants.HOTMOKA_VERSION + ".jar");
 
     var dir = Paths.get(args[1]);
     var payer = StorageValues.reference(args[2]);
@@ -1831,7 +1796,7 @@ public class FamilyStorage {
 
       var gasHelper = GasHelpers.of(node);
 
-      // we install family-@takamaka_version.jar in the node: our account will pay
+      // we install the family jar in the node: our account will pay
       TransactionReference family = node
         .addJarStoreTransaction(TransactionRequests.jarStore
           (signer, // an object that signs with the payer's private key
@@ -1888,7 +1853,7 @@ The new transaction is due to the
 `addConstructorCallTransaction()` method, that expands the node with a new transaction that calls
 a constructor. We use our account as payer for the transaction, hence we sign
 the request with its private key.
-The class path includes `family_storage-@takamaka_version.jar` and its dependency `io-takamaka-code`.
+The class path includes `io-hotmoka-tutorial-examples-family-@hotmoka_version.jar` and its dependency `io-takamaka-code`.
 The signature of the constructor specifies that we are referring to the second
 constructor of `Person`, the one that assumes `null` as parents. The actual parameters
 are provided; they must be instances of the `io.hotmoka.node.api.values.StorageValue` interface.
@@ -1914,7 +1879,8 @@ with corresponding static methods in `io.hotmoka.helpers.Coin`.
 
 By running `FamilyStorage`, you should see the following on the console:
 ```
-$ mvn compile exec:java -Dexec.mainClass="io.hotmoka.tutorial.examples.FamilyStorage"
+$ mvn compile exec:java
+     -Dexec.mainClass="io.hotmoka.tutorial.examples.runs.FamilyStorage"
      -Dexec.args="ws://panarea.hotmoka.io:8001
                   hotmoka_tutorial
                   @account1
@@ -1926,9 +1892,9 @@ The exact address will change at any run.
 
 ## Calling a Method on an Object in a Hotmoka Node
 
-__[See `io-hotmoka-tutorial-examples` in `@hotmoka_repo`]__
+__[See `io-hotmoka-tutorial-examples-family_exported` in `@hotmoka_repo`]__
 
-__[See `io-takamaka-code-examples-family_exported` in `@takamaka_repo`]__
+__[See `io-hotmoka-tutorial-examples-runs` in `@hotmoka_repo`]__
 
 In the previous section, we have created an object of class `Person` in the store
 of the node. Let us invoke the
@@ -1945,16 +1911,17 @@ specifying our `Person` object as *receiver*.
 
 ```shell
 $ moka objects call @account1
-    family.Person toString --password-of-payer
+    io.hotmoka.tutorial.examples.family.Person toString --password-of-payer
     --receiver=@person_object
     --uri=@server_mokamint
 Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate 
-Do you really want to call method public java.lang.String family.Person.toString()
+Do you really want to call method public java.lang.String ...Person.toString()
   spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
 Adding transaction @family_transaction_non_exported_failure... rejected!
-  [io.hotmoka.node.api.TransactionRejectedException: Class family.Person of the parameter
+  [io.hotmoka.node.api.TransactionRejectedException:
+    Class io.hotmoka.tutorial.examples.family.Person of the parameter
     @person_object is not exported:
-    add @Exported to family.Person]
+    add @Exported to io.hotmoka.tutorial.examples.family.Person]
 ```
 
 Command `moka objects call` requires to specify, as its first arguments,
@@ -1980,8 +1947,7 @@ must be annotated as `@Exported`. This means that the programmer acknowledges th
 use of these instances from outside the node.
 
 > Note that all objects can be passed, from _inside_ the blockchain, as arguments to methods
-> of code in the node. The above limitation applies to objects passed from _outside_ the
-> node only.
+> of code in the node. The above limitation applies to objects passed from _outside_ the node only.
 
 Let us modify the `Person` class again:
 
@@ -1996,14 +1962,14 @@ public class Person extends Storage {
 }
 ```
 
-Package the project `family` and try again to call the `toString` method:
+Package the project `io-hotmoka-tutorial-examples-family` and try again to call the `toString` method:
 
 ```shell
-$ cd io-takamaka-code-examples-family
-$ mvn clean package
+$ cd io-hotmoka-tutorial-examples-family
+$ mvn clean install
 $ cd ..
 $ moka jars install @account1
-    io-takamaka-code-examples-family/target/io-takamaka-code-examples-family-@takamaka_version.jar
+    io-hotmoka-tutorial-examples-family/target/io-hotmoka-tutorial-examples-family-@hotmoka_version.jar
     --password-of-payer
     --uri @server_mokamint
 ...
@@ -2011,22 +1977,25 @@ jar installed at
   @family_exported_address
 ...
 $ moka objects create @account1
-    family.Person Einstein 14 4 1879 null null
+    io.hotmoka.tutorial.examples.family.Person
+    Einstein 14 4 1879 null null
     --classpath @family_exported_address
     --uri @server_mokamint --password-of-payer
 Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
 Do you really want to call constructor
-  public family.Person(java.lang.String,int,int,int,family.Person,family.Person)
+  public ...Person(java.lang.String,int,int,int,...Person,...Person)
 spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
 Adding transaction @family_exported_creation_transaction_success... done.
 A new object @person3_object has been created.
 ...
 $ moka objects call @account1
-    family.Person toString --password-of-payer
+    io.hotmoka.tutorial.examples.family.Person
+    toString
+    --password-of-payer
     --receiver=@person3_object
     --uri=@server_mokamint
 Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
-Do you really want to call method public java.lang.String family.Person.toString() spending up to 200000 gas units
+Do you really want to call method public java.lang.String ...Person.toString() spending up to 200000 gas units
   at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
 Adding transaction @family_exported_call_toString_transaction_success... done.
 The method returned:
@@ -2055,10 +2024,11 @@ This time, the correct answer `Einstein (14/4/1879)` appears on the screen.
 
 We can do the same in code, instead of using the `moka objects call` command. Namely, we can expand
 the `FamilyStorage` class seen before in order to run a further transaction, that calls `toString`.
-Copy then the following `FamilyExported` class inside the `runs` package of the `runs` project:
+Copy then the following `FamilyExported` class inside the `io.hotmoka.tutorial.examples.runs`
+package of the `io-hotmoka-tutorial-examples-runs` project:
 
 ```java
-package io.hotmoka.tutorial.examples;
+package io.hotmoka.tutorial.examples.runs;
 
 import static io.hotmoka.helpers.Coin.panarea;
 import static io.hotmoka.node.StorageTypes.INT;
@@ -2071,6 +2041,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyPair;
 
+import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
@@ -2087,19 +2058,19 @@ import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.remote.RemoteNodes;
-import io.takamaka.code.constants.Constants;
 
 public class FamilyExported {
 
-  private final static ClassType PERSON = StorageTypes.classNamed("family.Person");
+  private final static ClassType PERSON = StorageTypes.classNamed
+    ("io.hotmoka.tutorial.examples.family.Person");
 
   public static void main(String[] args) throws Exception {
 
 	// the path of the user jar to install
-    var familyPath = Paths.get(System.getProperty("user.home")
-      + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-family/"
-      + Constants.TAKAMAKA_VERSION
-      + "/io-takamaka-code-examples-family-" + Constants.TAKAMAKA_VERSION + ".jar");
+	var familyPath = Paths.get(System.getProperty("user.home")
+      + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family/"
+      + Constants.HOTMOKA_VERSION
+      + "/io-hotmoka-tutorial-examples-family-" + Constants.HOTMOKA_VERSION + ".jar");
 
     var dir = Paths.get(args[1]);
     var payer = StorageValues.reference(args[2]);
@@ -2135,7 +2106,7 @@ public class FamilyExported {
 
 	  var gasHelper = GasHelpers.of(node);
 
-      // we install family-0.0.1-SNAPSHOT.jar in the node: our account will pay
+      // we install the family jar in the node: our account will pay
       TransactionReference family = node
         .addJarStoreTransaction(TransactionRequests.jarStore
           (signer, // an object that signs with the payer's private key
@@ -2216,9 +2187,15 @@ It requires to resolve method `Person.toString()` using `einstein` as receiver
 to run the resolved method. It stores the result in
 `s`, that subsequently prints on the standard output.
 
-Run class `FamilyExported` from Eclipse. You will obtain the same result as with `moka objects call`:
+Run class `FamilyExported`. You will obtain the same result as with `moka objects call`:
 
 ```shell
+$ mvn compile exec:java
+    -Dexec.mainClass="io.hotmoka.tutorial.examples.runs.FamilyExported"
+    -Dexec.args="@server_mokamint
+        @tutorial_name
+        @account1
+        chocolate"
 @family_exported_call_toString_output
 ```
 

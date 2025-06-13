@@ -48,7 +48,7 @@ import io.hotmoka.node.remote.RemoteNodes;
  * Run it in Maven as (change /home/spoto/hotmoka_tutorial with the directory where you stored the key pairs of the payer account
  * and change the payer account itself and its password):
  * 
- * mvn compile exec:java -Dexec.mainClass="io.hotmoka.tutorial.examples.runs.FamilyStorage" -Dexec.args="/home/spoto/hotmoka_tutorial b3a367310a195bb888a5b722e8246f8bad6e0fc8dfefcf44a2b8d760b5b655ef#0 chocolate"
+ * mvn compile exec:java -Dexec.mainClass="io.hotmoka.tutorial.examples.runs.FamilyStorage" -Dexec.args="ws://panarea.hotmoka.io:8001 /home/spoto/hotmoka_tutorial b3a367310a195bb888a5b722e8246f8bad6e0fc8dfefcf44a2b8d760b5b655ef#0 chocolate"
  */
 public class FamilyStorage {
 
@@ -96,7 +96,7 @@ public class FamilyStorage {
 
 	  var gasHelper = GasHelpers.of(node);
 
-      // we install family-0.0.1-SNAPSHOT.jar in the node: our account will pay
+      // we install the family jar in the node: our account will pay
       TransactionReference family = node
         .addJarStoreTransaction(TransactionRequests.jarStore
           (signer, // an object that signs with the payer's private key

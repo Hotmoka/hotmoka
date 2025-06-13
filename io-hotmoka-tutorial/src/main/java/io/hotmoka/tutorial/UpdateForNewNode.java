@@ -113,10 +113,14 @@ public class UpdateForNewNode {
 			System.out.println(dir);
 
 			report("sed -i 's/@hotmoka_version/" + HOTMOKA_VERSION + "/g' target/Tutorial.md");
+			report("sed -i 's/@hotmoka_version/" + HOTMOKA_VERSION + "/g' target/pics/state1.fig");
+			report("sed -i 's/@hotmoka_version/" + HOTMOKA_VERSION + "/g' target/pics/state2.fig");
+			report("sed -i 's/@hotmoka_version/" + HOTMOKA_VERSION + "/g' target/pics/state3.fig");
 			report("sed -i 's/@takamaka_version/" + TAKAMAKA_VERSION + "/g' target/Tutorial.md");
 			report("sed -i 's/@takamaka_version/" + TAKAMAKA_VERSION + "/g' target/pics/state1.fig");
 			report("sed -i 's/@takamaka_version/" + TAKAMAKA_VERSION + "/g' target/pics/state2.fig");
 			report("sed -i 's/@takamaka_version/" + TAKAMAKA_VERSION + "/g' target/pics/state3.fig");
+			
 
 			report("sed -i 's/@server_mokamint/" + mokamintURI.toString().replace("/", "\\/") + "/g' target/Tutorial.md");
 			report("sed -i 's/@server_tendermint/" + tendermintURI.toString().replace("/", "\\/") + "/g' target/Tutorial.md");
