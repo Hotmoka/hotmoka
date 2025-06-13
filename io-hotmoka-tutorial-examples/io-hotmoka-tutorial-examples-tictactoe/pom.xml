@@ -4,7 +4,6 @@
   <artifactId>io-hotmoka-tutorial-examples-tictactoe</artifactId>
   <packaging>jar</packaging>
   <name>io-hotmoka-tutorial-examples-tictactoe</name>
-  <version>${hotmoka.version}</version>
   <description>This module contains the tic-tac-toe smart contract of the Hotmoka tutorial.</description>
 
   <parent>

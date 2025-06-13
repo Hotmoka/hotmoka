@@ -335,12 +335,12 @@ public class UpdateForNewNode {
 			// we cut long sentences at "by contract"
 			report("sed -i 's/@events_main_output/" + runEventsMain.toString().trim().replace("/", "\\/").replace("by contract", "\n  by contract").replace("\n", "\\n") + "/g' target/Tutorial.md");
 
-			Path jar6 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-erc20/" + Constants.TAKAMAKA_VERSION + "/io-takamaka-code-examples-erc20-" + Constants.TAKAMAKA_VERSION + ".jar");
+			Path jar6 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-erc20/" + HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-erc20-" + HOTMOKA_VERSION + ".jar");
 			var output47 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar6 + " --password-of-payer=chocolate --dir=" + dir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			report("sed -i 's/@transaction_install_erc20/" + output47.getTransaction() + "/g' target/Tutorial.md");
 			TransactionReference erc20Address = output47.getJar().get();
 			report("sed -i 's/@erc20_address/" + erc20Address + "/g' target/Tutorial.md");
-			var output48 = ObjectsCreateOutputs.from(Moka.objectsCreate(account1 + " erc20.CryptoBuddy --classpath=" + erc20Address + " --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate"));
+			var output48 = ObjectsCreateOutputs.from(Moka.objectsCreate(account1 + " io.hotmoka.tutorial.examples.erc20.CryptoBuddy --classpath=" + erc20Address + " --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate"));
 			report("sed -i 's/@erc20_creation_transaction/" + output48.getTransaction() + "/g' target/Tutorial.md");
 			StorageReference erc20Object = output48.getObject().get();
 			report("sed -i 's/@erc20_object/" + erc20Object + "/g' target/Tutorial.md");

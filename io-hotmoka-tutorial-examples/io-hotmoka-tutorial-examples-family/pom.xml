@@ -4,7 +4,6 @@
   <artifactId>io-hotmoka-tutorial-examples-family</artifactId>
   <packaging>jar</packaging>
   <name>io-hotmoka-tutorial-examples-family</name>
-  <version>${hotmoka.version}</version>
   <description>This module contains the first family example of the Hotmoka tutorial.</description>
 
   <parent>

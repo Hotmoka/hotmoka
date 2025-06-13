@@ -29,7 +29,7 @@ import io.takamaka.code.math.BigIntegerSupport;
 public class SimplePonzi extends Contract {
   private final BigInteger _10 = BigInteger.valueOf(10L);
   private final BigInteger _11 = BigInteger.valueOf(11L);
-  private Contract currentInvestor;
+  @SuppressWarnings("unused") private Contract currentInvestor;
   private BigInteger currentInvestment = BigInteger.ZERO;
 
   public @Payable @FromContract void invest(BigInteger amount) {

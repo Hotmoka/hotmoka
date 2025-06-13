@@ -4,7 +4,6 @@
   <artifactId>io-hotmoka-tutorial-examples-family_exported</artifactId>
   <packaging>jar</packaging>
   <name>io-hotmoka-tutorial-examples-family_exported</name>
-  <version>${hotmoka.version}</version>
   <description>This module contains the family smart contract of the Takamaka tutorial, as an exported object.</description>
 
   <parent>

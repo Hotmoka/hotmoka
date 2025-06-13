@@ -4,7 +4,6 @@
   <artifactId>io-hotmoka-tutorial-examples-runs</artifactId>
   <packaging>jar</packaging>
   <name>io-hotmoka-tutorial-examples-runs</name>
-  <version>${hotmoka.version}</version>
   <description>This module contains the examples of the Hotmoka tutorial that run transactions against Hotmoka nodes.</description>
 
   <parent>

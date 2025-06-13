@@ -4,7 +4,6 @@
   <artifactId>io-hotmoka-tutorial-examples-ponzi_annotations</artifactId>
   <packaging>jar</packaging>
   <name>io-hotmoka-tutorial-examples-ponzi_annotations</name>
-  <version>${hotmoka.version}</version>
   <description>This module contains the simple Ponzi smart contract of the Hotmoka tutorial, with Takamaka annotations.</description>
 
   <parent>
