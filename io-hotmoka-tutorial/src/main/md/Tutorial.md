@@ -2437,10 +2437,10 @@ the meaning of different language features of Takamaka.
 
 ## A Simple Ponzi Scheme Contract
 
-__[See `io-takamaka-code-examples-ponzi_simple` in `@takamaka_repo`]__
+__[See `io-hotmoka-tutorial-examples-ponzi_simple` in `@hotmoka_repo`]__
 
-Create a new Maven Java 17 (or later) project in Eclipse, named `ponzi`.
-You can do this by duplicating the project `family`. Use the following `pom.xml`:
+Create a new Maven Java 21 (or later) project in Eclipse, named `io-hotmoka-tutorial-examples-ponzi`.
+You can do this by duplicating the project `io-hotmoka-tutorial-examples-family`. Use the following `pom.xml`:
 
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -2450,12 +2450,12 @@ You can do this by duplicating the project `family`. Use the following `pom.xml`
 
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.hotmoka</groupId>
-  <artifactId>io-takamaka-code-examples-ponzi</artifactId>
-  <version>@takamaka_version</version>
+  <artifactId>io-hotmoka-tutorial-examples-ponzi</artifactId>
+  <version>@hotmoka_version</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.release>17</maven.compiler.release>
+    <maven.compiler.release>21</maven.compiler.release>
   </properties>
 
   <dependencies>
@@ -2487,11 +2487,11 @@ module ponzi {
 }
 ```
 
-Create package `ponzi` inside `src/main/java` and add
+Create package `io.hotmoka-tutorial.examples.ponzi` inside `src/main/java` and add
 the following `SimplePonzi.java` source inside that package:
 
 ```java
-package ponzi;
+package io.hotmoka.tutorial.examples.ponzi;
 
 import static io.takamaka.code.lang.Takamaka.require;
 
@@ -2552,7 +2552,7 @@ saved in the state of the contract, together with the new investor.
 
 ## The `@FromContract` and `@Payable` Annotations
 
-__[See `io-takamaka-code-examples-ponzi_annotations` in `@takamaka_repo`]__
+__[See `io-hotmoka-tutorial-examples-ponzi_annotations` in `@hotmoka_repo`]__
 
 The previous code of `SimplePonzi.java` is unsatisfactory, for at least two
 reasons, that we will overcome in this section:
@@ -2567,7 +2567,7 @@ reasons, that we will overcome in this section:
 Let us rewrite `SimplePonzi.java` in the following way:
 
 ```java
-package ponzi;
+package io.hotmoka.tutorial.examples.ponzi;
 
 import static io.takamaka.code.lang.Takamaka.require;
 
@@ -2634,7 +2634,7 @@ can be charged `amount` coins at the moment of calling `invest()`.
 This can be achieved with the `@Payable` annotation, that we apply to `invest()`:
 
 ```java
-package ponzi;
+package io.hotmoka.tutorial.examples.ponzi;
 
 import static io.takamaka.code.lang.Takamaka.require;
 
@@ -2684,7 +2684,7 @@ he must hold a bit more than `amount` coins at the moment of calling `invest()`.
 
 ## Payable Contracts
 
-__[See `io-takamaka-code-examples-ponzi_payable` in `@takamaka_repo`]__
+__[See `io-hotmoka-tutorial-examples-ponzi_payable` in `@hotmoka_repo`]__
 
 The `SimplePonzi.java` class is not ready yet. Namely, the code
 of that class specifies that investors have to pay
@@ -2748,7 +2748,7 @@ Let us hence apply the following small changes to our `SimplePonzi.java` class:
 The result is the following:
 
 ```java
-package ponzi;
+package io.hotmoka.tutorial.examples.ponzi;
 
 import static io.takamaka.code.lang.Takamaka.require;
 
@@ -2791,7 +2791,7 @@ is `C` or a subclass of `C`. Otherwise, a run-time exception will occur.
 
 ## The `@View` Annotation
 
-__[See `io-takamaka-code-examples-ponzi_view` in `@takamaka_repo`]__
+__[See `io-hotmoka-tutorial-examples-ponzi_view` in `@hotmoka_repo`]__
 
 Our `SimplePonzi.java` code can still be improved. As it is now,
 an investor must call `invest()` and be ready to pay a sufficiently
@@ -3031,7 +3031,7 @@ Next section shows an example of use for `StorageLinkedList`.
 
 ### A Gradual Ponzi Contract
 
-__[See `io-takamaka-code-examples-ponzi_gradual` in `@takamaka_repo`]__
+__[See `io-hotmoka-tutorial-examples-ponzi_gradual` in `@hotmoka_repo`]__
 
 Consider our previous Ponzi contract again. It is somehow irrealistic, since
 an investor gets its investment back in full. In a more realistic scenario,
@@ -3043,11 +3043,11 @@ list of investors, of unbounded size. An implementation of this gradual
 Ponzi contract is reported below and has been
 inspired by a similar Ethereum contract from Iyer and Dannen,
 shown at page 150 of [[IyerD08]](#references).
-Write its code inside package `ponzi` of
-the `io-takamaka-code-examples-ponzi` project, as a new class `GradualPonzi.java`:
+Write its code inside package `io.hotmoka.tutorial.examples.ponzi` of
+the `io-hotmoka-tutorial-examples-ponzi` project, as a new class `GradualPonzi.java`:
 
 ```java
-package ponzi;
+package io.hotmoka.tutorial.examples.ponzi;
 
 import static io.takamaka.code.lang.Takamaka.require;
 
@@ -3157,7 +3157,7 @@ This map is updated as soon as a new investor arrives, by increasing the
 balance of every previous investor. The cost of updating the balances
 is still linear in the number of previous investors, but it is cheaper
 (in Solidity) than sending money back to each of them, which
-requires expensive inter-contract calls that trigger new subtransactions.
+requires expensive inter-contract calls that trigger new sub-transactions.
 With this technique, previous investors are
 now required to withdraw their balance explicitly and voluntarily,
 through a call to some function, typically called `widthdraw()`.
@@ -3172,7 +3172,7 @@ in terms of gas. In particular, inter-contract calls are not
 especially expensive in Takamaka, since they are just a method
 invocation in Java bytecode (one bytecode instruction). They are *not* inner transactions.
 They are actually cheaper than
-updating a map of balances. Moreover, avoiding the `widthdraw()` transactions
+updating a map of balances. Moreover, avoiding the `withdraw()` transactions
 reduces the overall number of transactions;
 without using the map supporting the withdrawal pattern, Takamaka contracts
 consume less gas and less storage.
@@ -3182,16 +3182,14 @@ useless in Takamaka and more expensive than paying back previous contracts immed
 ### Running the Gradual Ponzi Contract
 
 Let us play with the `GradualPonzi` contract now.
-Run, inside that `ponzi` project, the command `mvn install`.
-A file `ponzi-@takamaka_version.jar` should appear inside `target`.
 We can now start by installing that jar in the node:
 
 ```shell
-$ cd @tutorial_name/io-takamaka-code-examples-ponzi   # if not already there
+$ cd @tutorial_name/io-hotmoka-tutorial-examples-ponzi   # if not already there
 $ mvn install
 $ cd ..
 $ moka jars install @account1
-    io-takamaka-code-examples-ponzi/target/io-takamaka-code-examples-ponzi-@takamaka_version.jar
+    io-hotmoka-tutorial-examples-ponzi/target/io-hotmoka-tutorial-examples-ponzi-@hotmoka_version.jar
     --password-of-payer
     --uri @server_mokamint
 
@@ -3248,12 +3246,12 @@ and become the first investor of the contract:
 
 ```shell
 $ moka objects create @account1
-    ponzi.GradualPonzi
+    io.hotmoka.tutorial.examples.ponzi.GradualPonzi
     --classpath=@gradual_ponzi_address
     --password-of-payer
     --uri=@server_mokamint
 Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
-Do you really want to call constructor public ponzi.GradualPonzi() spending up to 200000 gas units
+Do you really want to call constructor public ...GradualPonzi() spending up to 200000 gas units
   at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
 Adding transaction @transaction_creation_gradual_ponzi... done.
 A new object @gradual_ponzi_object has been created.
@@ -3263,13 +3261,15 @@ We let the other two players invest, in sequence, in the `GradualPonzi` contract
 
 ```shell
 $ moka objects call @account2
-    ponzi.GradualPonzi invest 5000
+    io.hotmoka.tutorial.examples.ponzi.GradualPonzi
+    invest
+    5000
     --classpath=@gradual_ponzi_address
     --receiver=@gradual_ponzi_object
     --password-of-payer
     --uri=@server_mokamint
 Enter value for --password-of-payer (the password of the key pair of the payer account): orange
-Do you really want to call method public void ponzi.GradualPonzi.invest(java.math.BigInteger)
+Do you really want to call method public void ...GradualPonzi.invest(java.math.BigInteger)
   spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
 Adding transaction @transaction_account2_invest... done.
 
@@ -3283,13 +3283,15 @@ Gas consumption:
  * total price: 7546 panas
 
 $ moka objects call @account3
-    ponzi.GradualPonzi invest 15000
+    io.hotmoka.tutorial.examples.ponzi.GradualPonzi
+    invest
+    15000
     --classpath=@gradual_ponzi_address
     --receiver=@gradual_ponzi_object
     --password-of-payer
     --uri=@server_mokamint
 Enter value for --password-of-payer (the password of the key pair of the payer account): apple
-Do you really want to call method public void ponzi.GradualPonzi.invest(java.math.BigInteger)
+Do you really want to call method public void ...GradualPonzi.invest(java.math.BigInteger)
   spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
 Adding transaction @transaction_account3_invest... done.
 
@@ -3302,14 +3304,16 @@ since the code of the contract requires a minimum investment:
 
 ```shell
 $ moka objects call @account1
-    ponzi.GradualPonzi invest 500
+    io.hotmoka.tutorial.examples.ponzi.GradualPonzi
+    invest
+    500
     --classpath=@gradual_ponzi_address
     --receiver=@gradual_ponzi_object
     --password-of-payer
     --uri=@server_mokamint
 
 Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
-Do you really want to call method public void ponzi.GradualPonzi.invest(java.math.BigInteger)
+Do you really want to call method public void ...GradualPonzi.invest(java.math.BigInteger)
   spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
 Adding transaction @transaction_account1_invest... failed.
 The transaction failed with message io.takamaka.code.lang.RequirementViolationException: you must invest at least 1000@GradualPonzi.java:49
@@ -3334,8 +3338,8 @@ Finally, we can check the state of the contract:
 ```shell
 $ moka objects show @gradual_ponzi_object
     --uri @server_mokamint
-class ponzi.GradualPonzi (from jar installed at
-    @gradual_ponzi_address)
+class io.hotmoka.tutorial.examples.ponzi.GradualPonzi
+    (from jar installed at @gradual_ponzi_address)
   MINIMUM_INVESTMENT:java.math.BigInteger = 1000
   investors:io.takamaka.code.util.StorageList
     = @gradual_ponzi_list
@@ -3403,7 +3407,7 @@ Next section shows an example of use for `StorageTreeArray<E>`.
 
 ### A Tic-Tac-Toe Contract
 
-__[See `io-takamaka-code-examples-tictactoe` in `@takamaka_repo`]__
+__[See `io-hotmoka-tutorial-examples-tictactoe` in `@hotmoka_repo`]__
 
 Tic-tac-toe is a game where two players place, alternately,
 a cross and a circle on a 3x3 board, initially empty. The winner is the
@@ -3442,10 +3446,9 @@ for translating the conceptual representation into the internal one.
 
 [PDFonly]: ![Figure @fig:tictactoe_linear. A linear representation of the game.](pics/tictactoe_grid_linear.png "Figure @fig:tictactoe_linear. A linear representation of the game."){ width=30% }
 
-Create hence in Eclipse a new Maven Java 17 (or later) project named `io-takamaka-code-examples-tictactoe`.
-You can do this by duplicating the project `family` (make sure to store
-the project inside the `@tutorial_name` directory, as a sibling of `family`, `ponzi` and
-`runs`). Use the following `pom.xml`:
+Create hence in Eclipse a new Maven Java 21 (or later) project named `io-hotmoka-tutorial-examples-tictactoe`.
+You can do this by duplicating the project `io-hotmoka-tutorial-examples-family`.
+Use the following `pom.xml`:
 
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -3455,12 +3458,12 @@ the project inside the `@tutorial_name` directory, as a sibling of `family`, `po
 
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.hotmoka</groupId>
-  <artifactId>io-takamaka-code-examples-tictactoe</artifactId>
-  <version>@takamaka-version</version>
+  <artifactId>io-hotmoka-tutorial-examples-tictactoe</artifactId>
+  <version>@hotmoka_version</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.release>17</maven.compiler.release>
+    <maven.compiler.release>21</maven.compiler.release>
   </properties>
 
   <dependencies>
@@ -3492,11 +3495,11 @@ module tictactoe {
 }
 ```
 
-Create package `tictactoe` inside `src/main/java` and add
+Create package `io.hotmoka.tutorial.examples.tictactoe` inside `src/main/java` and add
 the following `TicTacToe.java` source inside that package:
 
 ```java
-package tictactoe;
+package io.hotmoka.tutorial.examples.tictactoe;
 
 import static io.takamaka.code.lang.Takamaka.require;
 
@@ -3666,7 +3669,7 @@ X|O|
 
 ### A More Realistic Tic-Tac-Toe Contract
 
-__[See `io-takamaka-code-examples-tictactoe_improved` in `@takamaka_repo`]__
+__[See `io-hotmoka-tutorial-examples-tictactoe_improved` in `@hotmoka_repo`]__
 
 The `TicTacToe.java` code implements the rules of a tic-tac-toe game, but has
 a couple of drawbacks that make it still incomplete. Namely:
@@ -3689,7 +3692,7 @@ Note that we added a `@FromContract` constructor, that takes
 note of the `creator` of the game:
 
 ```java
-package tictactoe;
+package io.hotmoka.tutorial.examples.tictactoe;
 
 import static io.takamaka.code.lang.Takamaka.require;
 
@@ -3854,15 +3857,15 @@ public class TicTacToe extends Contract {
 
 ### Running the Tic-Tac-Toe Contract
 
-Let us play with the `TicTacToe` contract. Go inside the `io-takamaka-code-examples-tictactoe` project,
+Let us play with the `TicTacToe` contract. Go inside the `io-hotmoka-tutorial-examples-tictactoe` project,
 compile it with Maven and store it in the Hotmoka node:
 
 ```shell
-$ cd @tutorial_name/io-takamaka-code-examples-tictactoe   # if not already there
+$ cd @tutorial_name/io-hotmoka-tutorial-examples-tictactoe   # if not already there
 $ mvn install
 $ cd ..
 $ moka jars install @account1
-    io-takamaka-code-examples-tictactoe/target/io-takamaka-code-examples-tictactoe-@takamaka_version.jar
+    io-hotmoka-tutorial-examples-tictactoe/target/io-hotmoka-tutorial-examples-tictactoe-@hotmoka_version.jar
     --password-of-payer
     --uri @server_mokamint
 
@@ -3886,13 +3889,13 @@ Then we create an instance of the contract in the node:
 
 ```shell
 $ moka objects create @account1
-    tictactoe.TicTacToe
+    io.hotmoka-tutorial.examples.tictactoe.TicTacToe
     --classpath=@tictactoe_address
     --password-of-payer
     --uri @server_mokamint
 
 Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
-Do you really want to call constructor public tictactoe.TicTacToe()
+Do you really want to call constructor public io.hotmoka.tutorial.examples.tictactoe.TicTacToe()
   spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
 Adding transaction @tictactoe_creation_transaction... done.
 A new object @tictactoe_object has been created.
@@ -3915,13 +3918,15 @@ The first player starts, by playing at (1,1), and bets 100:
 
 ```shell
 $ moka objects call @account1
-    tictactoe.TicTacToe play 100 1 1
+    io.hotmoka.tutorial.examples.tictactoe.TicTacToe
+    play
+    100 1 1
     --password-of-payer
     --uri @server_mokamint
     --receiver=@tictactoe_object
 
 Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate 
-Do you really want to call method public void tictactoe.TicTacToe.play(long,int,int)
+Do you really want to call method public void ...TicTacToe.play(long,int,int)
   spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
 Adding transaction @tictactoe_play1_transaction... done.
 
@@ -3935,7 +3940,7 @@ Gas consumption:
  * total price: 9918 panas
 
 $ moka objects call @account1
-    tictactoe.TicTacToe toString
+    io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString
     --uri @server_mokamint
     --receiver=@tictactoe_object
 
@@ -3951,19 +3956,21 @@ The second player plays now, at (2,1), betting 100:
 
 ```shell
 $ moka objects call @account2
-    tictactoe.TicTacToe play 100 2 1
+    io.hotmoka.tutorial.examples.tictactoe.TicTacToe 
+    play
+    100 2 1
     --password-of-payer
     --uri @server_mokamint
     --receiver=@tictactoe_object
 
 Enter value for --password-of-payer (the password of the key pair of the payer account): orange
-Do you really want to call method public void tictactoe.TicTacToe.play(long,int,int)
+Do you really want to call method public void ...TicTacToe.play(long,int,int)
   spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
 Adding transaction @tictactoe_play2_transaction... done.
 ...
 
 $ moka objects call @account2
-    tictactoe.TicTacToe toString
+    io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString
     --uri @server_mokamint
     --receiver=@tictactoe_object
 
@@ -3976,19 +3983,21 @@ The first player replies, playing at (1,2):
 
 ```shell
 $ moka objects call @account1
-    tictactoe.TicTacToe play 0 1 2
+    io.hotmoka.tutorial.examples.tictactoe.TicTacToe
+    play
+    0 1 2
     --password-of-payer
     --uri @server_mokamint
     --receiver=@tictactoe_object
 
 Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
-Do you really want to call method public void tictactoe.TicTacToe.play(long,int,int)
+Do you really want to call method public void ...TicTacToe.play(long,int,int)
   spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
 Adding transaction @tictactoe_play3_transaction... done.
 ...
 
 $ moka objects call @account1
-    tictactoe.TicTacToe toString
+    io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString
     --uri @server_mokamint
     --receiver=@tictactoe_object
 
@@ -4001,19 +4010,21 @@ Then the second player plays at (2,2):
 
 ```shell
 $ moka objects call @account2
-    tictactoe.TicTacToe play 100 2 2
+    io.hotmoka.tutorial.examples.tictactoe.TicTacToe
+    play
+    100 2 2
     --password-of-payer
     --uri @server_mokamint
     --receiver=@tictactoe_object
 
 Enter value for --password-of-payer (the password of the key pair of the payer account): orange
-Do you really want to call method public void tictactoe.TicTacToe.play(long,int,int)
+Do you really want to call method public void ...TicTacToe.play(long,int,int)
   spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
 Adding transaction @tictactoe_play4_transaction... done.
 ...
 
 $ moka objects call @account2
-    tictactoe.TicTacToe toString
+    io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString
     --uri @server_mokamint
     --receiver=@tictactoe_object
 
@@ -4026,19 +4037,21 @@ The first player wins by playing at (1,3):
 
 ```shell
 $ moka objects call @account1
-    tictactoe.TicTacToe play 0 1 3
+    io.hotmoka.tutorial.examples.tictactoe.TicTacToe
+    play
+    0 1 3
     --password-of-payer
     --uri @server_mokamint
     --receiver=@tictactoe_object
 
 Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
-Do you really want to call method public void tictactoe.TicTacToe.play(long,int,int)
+Do you really want to call method public void ...TicTacToe.play(long,int,int)
   spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
 Adding transaction @tictactoe_play5_transaction... done.
 ...
 
 $ moka objects call @account1
-    tictactoe.TicTacToe toString
+    io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString
     --uri @server_mokamint
     --receiver=@tictactoe_object
 
@@ -4047,15 +4060,16 @@ The method returned:
 @tictactoe_toString5_result
 ```
 We can verify that the game is over now:
+
 ```shell
 $ moka objects show @tictactoe_object
     --uri @server_mokamint
 
-class tictactoe.TicTacToe (from jar installed at
-    @tictactoe_address)
-  CIRCLE:tictactoe.TicTacToe$Tile = ...
-  CROSS:tictactoe.TicTacToe$Tile = ...
-  EMPTY:tictactoe.TicTacToe$Tile = ...
+class io.hotmoka.tutorial.examples.tictactoe.TicTacToe
+    (from jar installed at @tictactoe_address)
+  CIRCLE:...TicTacToe$Tile = ...
+  CROSS:...TicTacToe$Tile = ...
+  EMPTY:...TicTacToe$Tile = ...
   board:io.takamaka.code.util.StorageTreeArray = ...
   circlePlayer:io.takamaka.code.lang.PayableContract
     = @account2
@@ -4064,7 +4078,7 @@ class tictactoe.TicTacToe (from jar installed at
   creator:io.takamaka.code.lang.PayableContract
     = @account1
   gameOver:boolean = true
-  turn:tictactoe.TicTacToe$Tile = ...
+  turn:...TicTacToe$Tile = ...
   io.takamaka.code.lang.Contract.balance:java.math.BigInteger = 0
 ```
 As you can see, the balance of the contract is zero since it has been distributed to
@@ -4075,13 +4089,15 @@ If the second player attempts to play now, the transaction will be rejected, sin
 
 ```shell
 $ moka objects call @account2
-    tictactoe.TicTacToe play 0 2 3
+    io.hotmoka.tutorial.examples.tictactoe.TicTacToe
+    play
+    0 2 3
     --password-of-payer
     --uri @server_mokamint
     --receiver=@tictactoe_object
 
 Enter value for --password-of-payer (the password of the key pair of the payer account): orange
-Do you really want to call method public void tictactoe.TicTacToe.play(long,int,int)
+Do you really want to call method public void ...TicTacToe.play(long,int,int)
   spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
 Adding transaction @tictactoe_play6_transaction... failed.
 The transaction failed with message io.takamaka.code.lang.RequirementViolationException:
@@ -4194,7 +4210,7 @@ whose keys are `int` values. We refer to their JavaDoc for further information.
 
 ### A Blind Auction Contract
 
-__[See `io-takamaka-code-examples-auction` in `@takamaka_repo`]__
+__[See `io-hotmoka-tutorial-examples-auction` in `@hotmoka_repo`]__
 
 This section exemplifies the use of class `StorageTreeMap` for writing a smart
 contract that implements a _blind auction_. That contract allows
@@ -4214,8 +4230,8 @@ checks if the result matches the hash provided at bidding time.
 If not, the bid is considered invalid. Bidders can even place fake offers
 on purpose, in order to confuse other bidders.
 
-Create in Eclipse a new Maven Java 17 (or later) project named `io-takamaka-code-examples-auction`.
-You can do this by duplicating the project `io-takamaka-code-examples-family`.
+Create in Eclipse a new Maven Java 21 (or later) project named `io-hotmoka-tutorial-examples-auction`.
+You can do this by duplicating the project `io-hotmoka-tutorial-examples-family`.
 Use the following `pom.xml`:
 
 ```xml
@@ -4226,12 +4242,12 @@ Use the following `pom.xml`:
 
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.hotmoka</groupId>
-  <artifactId>io-takamaka-code-examples-auction</artifactId>
-  <version>@takamaka_version</version>
+  <artifactId>io-hotmoka-tutorial-examples-auction</artifactId>
+  <version>@hotmoka_version</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.release>17</maven.compiler.release>
+    <maven.compiler.release>21</maven.compiler.release>
   </properties>
 
   <dependencies>
@@ -4263,7 +4279,7 @@ module auction {
 }
 ```
 
-Create package `auction` inside `src/main/java` and add
+Create package `io.hotmoka.tutorial.examples.auction` inside `src/main/java` and add
 the following `BlindAuction.java` inside that package.
 It is a Takamaka contract that implements
 a blind auction. Since each bidder may place more bids and since such bids
@@ -4274,7 +4290,7 @@ Please note that this code will not compile yet, since it misses two classes
 that we will define in the next section.
 
 ```java
-package auction;
+package io.hotmoka.tutorial.examples.auction;
 
 import static io.takamaka.code.lang.Takamaka.event;
 import static io.takamaka.code.lang.Takamaka.now;
@@ -4611,7 +4627,7 @@ that some methods are only run at the right moment.
 
 ### Events
 
-__[See `io-takamaka-code-examples-auction_events` in `@takamaka_repo`]__
+__[See `io-hotmoka-tutorial-examples-auction_events` in `@hotmoka_repo`]__
 
 The code in the previous section does not compile since it misses two
 classes `BidIncrease.java` and `AuctionEnd.java`, that we report below.
@@ -4639,7 +4655,7 @@ In our example, the `BlindAuction` class uses two events, that you can add
 to the `auction` package and are defined as follows:
 
 ```java
-package auction;
+package io.hotmoka.tutorial.examples.auction;
 
 import java.math.BigInteger;
 
@@ -4670,7 +4686,7 @@ public class BidIncrease extends Event {
 and
 
 ```java
-package auction;
+package io.hotmoka.tutorial.examples.auction;
 
 import java.math.BigInteger;
 
@@ -4700,11 +4716,11 @@ public class AuctionEnd extends Event {
 ```
 
 Now that all classes have been completed, the project should compile.
-Go inside the `io-takamaka-code-examples-auction` project and run `mvn install`.
+Go inside the `io-hotmoka-tutorial-examples-auction` project and run `mvn install`.
 
 ### Running the Blind Auction Contract
 
-__[See `io-hotmoka-tutorial-examples` in `@hotmoka_repo`]__
+__[See `io-hotmoka-tutorial-examples-runs` in `@hotmoka_repo`]__
 
 This section presents a Java class that connects to a Hotmoka node and runs the blind auction
 contract of the previous section. We could run that contract on the `@server_mokamint` server,
@@ -4751,11 +4767,11 @@ A new account @account6 has been created.
 ...
 ```
 
-Go to the `io-hotmoka-tutorial-examples` Eclipse project and add the following
+Go to the `io-hotmoka-tutorial-examples-runs` Eclipse project and add the following
 class inside its package:
 
 ```java
-package io.hotmoka.tutorial.examples;
+package io.hotmoka.tutorial.examples.runs;
 
 import static io.hotmoka.helpers.Coin.panarea;
 import static io.hotmoka.node.StorageTypes.BIG_INTEGER;
@@ -4778,6 +4794,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.function.Function;
 
+import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
@@ -4798,7 +4815,6 @@ import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.remote.RemoteNodes;
-import io.takamaka.code.constants.Constants;
 
 public class Auction {
 
@@ -4809,7 +4825,7 @@ public class Auction {
   private final static BigInteger _500_000 = BigInteger.valueOf(500_000);
 
   private final static ClassType BLIND_AUCTION
-    = StorageTypes.classNamed("auction.BlindAuction");
+    = StorageTypes.classNamed("io.hotmoka.tutorial.examples.auction.BlindAuction");
   private final static ConstructorSignature CONSTRUCTOR_BYTES32_SNAPSHOT
     = ConstructorSignatures.of(BYTES32_SNAPSHOT,
       BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE,
@@ -4876,7 +4892,7 @@ public class Auction {
 
       var CONSTRUCTOR_REVEALED_BID
         = ConstructorSignatures.of(
-           StorageTypes.classNamed("auction.BlindAuction$RevealedBid"),
+           StorageTypes.classNamed("io.hotmoka.tutorial.examples.auction.BlindAuction$RevealedBid"),
            BIG_INTEGER, BOOLEAN, BYTES32_SNAPSHOT);
 
       return node.addConstructorCallTransaction(TransactionRequests.constructorCall
@@ -4935,9 +4951,9 @@ public class Auction {
 
     //the path of the user jar to install
     var auctionPath = Paths.get(System.getProperty("user.home")
-      + "/.m2/repository/io/hotmoka/io-takamaka-code-examples-auction/"
-      + Constants.TAKAMAKA_VERSION
-      + "/io-takamaka-code-examples-auction-" + Constants.TAKAMAKA_VERSION + ".jar");
+      + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-auction/"
+      + Constants.HOTMOKA_VERSION
+      + "/io-hotmoka-tutorial-examples-auction-" + Constants.HOTMOKA_VERSION + ".jar");
 
     return node.addJarStoreTransaction(TransactionRequests.jarStore
       (signers.get(0), // an object that signs with the payer's private key
@@ -5001,7 +5017,7 @@ public class Auction {
   private void revealBids() throws Exception {
     var REVEAL = MethodSignatures.ofVoid
       (BLIND_AUCTION, "reveal",
-       StorageTypes.classNamed("auction.BlindAuction$RevealedBid"));
+       StorageTypes.classNamed("io.hotmoka.tutorial.examples.auction.BlindAuction$RevealedBid"));
 
     // we create the revealed bids in blockchain; this is safe now, since the bidding time is over
     int counter = 1;
@@ -5121,7 +5137,7 @@ Some constant signatures follow,
 that simplify the calls to methods and constructors later.
 Method `main()` connects to a remote node and passes it
 as a parameter to the constructor of class `Auction`, that
-installs `io-takamaka-code-examples-auction-@takamaka_version.jar` inside it. It stores the node in field `node`.
+installs `io-hotmoka-tutorial-examples-auction-@hotmoka_version.jar` inside it. It stores the node in field `node`.
 Then the constructor of `Auction` creates an `auction` contract in the node
 and calls method `placeBids()` that
 uses the inner class `BidToReveal` to keep track of the bids placed
@@ -5256,7 +5272,7 @@ actual winner: @account5
 We can run class `Auction` now (please note that the execution of this test will take a few minutes):
 
 ```shell
-mvn compile exec:java -Dexec.mainClass="io.hotmoka.tutorial.examples.Auction"
+mvn compile exec:java -Dexec.mainClass="io.hotmoka.tutorial.examples.runs.Auction"
   -Dexec.args="@server_tendermint
    @tutorial_name
    @account4 banana
@@ -5272,7 +5288,7 @@ Its execution should print something like this on the console:
 
 ### Listening to Events
 
-__[See `io-hotmoka-tutorial-examples` in `@hotmoka_repo`]__
+__[See `io-hotmoka-tutorial-examples-runs` in `@hotmoka_repo`]__
 
 The `BlindAuction` contract generates events during its execution. If an external tool, such
 as a wallet, wants to listen to such events and trigger some activity when they occur,
@@ -5327,7 +5343,7 @@ The event handler, in this case, simply prints on the console the class of the e
 (that will coincide with `auction`). You can run the `Events` class now:
 
 ```shell
-mvn compile exec:java -Dexec.mainClass="io.hotmoka.tutorial.examples.Events"
+mvn compile exec:java -Dexec.mainClass="io.hotmoka.tutorial.examples.runs.Events"
   -Dexec.args="@server_tendermint
    @tutorial_name
    @account4 banana
@@ -5467,15 +5483,15 @@ is not exceeded and throws an exception otherwise.
 
 ### Implementing Our Own ERC20 Token
 
-__[See `io-takamaka-code-examples-erc20` in `@takamaka_repo`]__
+__[See `io-hotmoka-tutorial-examples-erc20` in `@hotmoka_repo`]__
 
 Let us define a token ledger class that allows only its creator the mint or burn tokens.
 We will call it `CryptoBuddy`. As Figure @fig:erc20_hierarchy shows,
 we plug it below the `ERC20` implementation, so that we inherit that implementation
 and do not need to reimplement the methods of the `ERC20` interface.
 
-Create in Eclipse a new Maven Java 17 (or later) project named `erc20`.
-You can do this by duplicating the project `io-takamaka-code-examples-family`.
+Create in Eclipse a new Maven Java 21 (or later) project named `erc20`.
+You can do this by duplicating the project `io-hotmoka-tutorial-examples-family`.
 Use the following `pom.xml`:
 
 ```xml
@@ -5486,12 +5502,12 @@ Use the following `pom.xml`:
 
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.hotmoka</groupId>
-  <artifactId>io-takamaka-code-examples-erc20</artifactId>
-  <version>@takamaka_version</version>
+  <artifactId>io-hotmoka-tutorial-examples-erc20</artifactId>
+  <version>@hotmoka_version</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.release>17</maven.compiler.release>
+    <maven.compiler.release>21</maven.compiler.release>
   </properties>
 
   <dependencies>
@@ -5523,11 +5539,11 @@ module erc20 {
 }
 ```
 
-Create package `erc20` inside `src/main/java` and add
+Create package `io.hotmoka.tutorial.examples.erc20` inside `src/main/java` and add
 the following `CryptoBuddy.java` inside that package:
 
 ```java
-package erc20;
+package io.hotmoka.tutorial.examples.erc20;
 
 import static io.takamaka.code.lang.Takamaka.require;
 
@@ -5564,10 +5580,10 @@ a very large number of tokens. They are initially owned by the creator of the co
 that is saved as `owner`. Methods `mint` and `burn` check that the owner is requesting
 the mint or burn and call the inherited protected methods in that case.
 
-You can generate the `erc20-0.0.1.jar` file:
+You can generate the jar archive:
 
 ```shell
-$ cd io-takamaka-code-examples-erc20
+$ cd io-hotmoka-tutorial-examples-erc20
 $ mvn install
 ```
 
@@ -5576,7 +5592,7 @@ Then you can install that jar in the node, by letting our first account pay:
 ```shell
 $ cd ..
 $ moka jars install @account1
-    io-takamaka-code-examples-erc20/target/io-takamaka-code-examples-erc20-@takamaka_version.jar
+    io-hotmoka-tutorial-examples-erc20/target/io-hotmoka-tutorial-examples-erc20-@hotmoka_version.jar
     --password-of-payer
     --uri @server_mokamint
 
@@ -5596,17 +5612,16 @@ Gas consumption:
  * total price: 9844 panas
 ```
 
-Finally, you can create an instance of the token class, by always letting our first account pay
-for that:
+Finally, you can create an instance of the token class, by always letting our first account pay for that:
 
 ```shell
 $ moka objects create @account1
-   erc20.CryptoBuddy
+   io.hotmoka.tutorial.examples.erc20.CryptoBuddy
    --classpath @erc20_address
    --uri @server_mokamint --password-of-payer
 
 Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
-Do you really want to call constructor public erc20.CryptoBuddy() spending up to 200000 gas units
+Do you really want to call constructor public ...CryptoBuddy() spending up to 200000 gas units
   at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
 Adding transaction @erc20_creation_transaction... done.
 A new object @erc20_object has been created.
@@ -5730,7 +5745,7 @@ get their `onReceive` method called whenever new tokens are transferred to them.
 
 ### Implementing Our Own ERC721 Token
 
-__[See `io-takamaka-code-examples-erc721` in `@takamaka_repo`]__
+__[See `io-hotmoka-tutorial-examples-erc721` in `@hotmoka_repo`]__
 
 Let us define a ledger for non-fungible tokens
 that only allows its creator the mint or burn tokens.
@@ -5740,8 +5755,8 @@ and do not need to reimplement the methods of the `ERC721` interface.
 The code is almost identical to that for the `CryptoBuddy` token defined
 in [Implementing Our Own ERC20 Token](#implementing-our-own-erc20-token).
 
-Create in Eclipse a new Maven Java 17 (or later) project named `erc721`.
-You can do this by duplicating the project `io-takamaka-code-examples-erc20`.
+Create in Eclipse a new Maven Java 21 (or later) project named `erc721`.
+You can do this by duplicating the project `io-hotmoka-tutorial-examples-erc20`.
 Use the following `pom.xml`:
 
 ```xml
@@ -5752,12 +5767,12 @@ Use the following `pom.xml`:
 
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.hotmoka</groupId>
-  <artifactId>io-takamaka-code-examples-erc721</artifactId>
-  <version>@takamaka_version</version>
+  <artifactId>io-hotmoka-tutorial-examples-erc721</artifactId>
+  <version>@hotmoka_version</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.release>17</maven.compiler.release>
+    <maven.compiler.release>21</maven.compiler.release>
   </properties>
 
   <dependencies>
@@ -5789,11 +5804,11 @@ module erc721 {
 }
 ```
 
-Create package `erc721` inside `src/main/java` and add
+Create package `io.hotmoka.tutorial.examples.erc721` inside `src/main/java` and add
 the following `CryptoShark.java` inside that package:
 
 ```java
-package erc721;
+package io.hotmoka.tutorial.examples.erc721;
 
 import static io.takamaka.code.lang.Takamaka.require;
 
@@ -5830,7 +5845,7 @@ you can see in methods `mint` and `burn`.
 You can compile the file:
 
 ```shell
-$ cd erc721
+$ cd io-hotmoka-tutorial-examples-erc721
 $ mvn install
 ```
 
@@ -6115,6 +6130,7 @@ This operation has created a pem file whose name is that of the storage referenc
 With this file, it is possible to run transactions on behalf of the gamete.
 
 Your computer exports a Hotmoka node now, running on Tendermint. You can verify this with:
+
 ```shell
 $ moka nodes manifest show
    takamakaCode: d840e1fb62c2655e7212c28d8b60ea22b2aab38f1c8eadba64118f61db96130e
@@ -6232,7 +6248,8 @@ exactly as for a Tendermint Hotmoka node.
 You then specify the Base58-encoded public key when starting the node:
 
 ```shell
-$ moka nodes disk init ~/.m2/repository/io/hotmoka/io-takamaka-code/@takamaka_version/io-takamaka-code-@takamaka_version.jar
+$ moka nodes disk init
+  ~/.m2/repository/io/hotmoka/io-takamaka-code/@takamaka_version/io-takamaka-code-@takamaka_version.jar
   --public-key-of-gamete=677QPRLfS4Mwgy2xA4dSEWmM3Hyb43mdZedSzq2g8Yxt
   --open-unsigned-faucet
 Do you really want to start a new node at "chain" (old blocks and store will be lost) [Y/N] Y
@@ -6240,7 +6257,8 @@ The following service has been published:
  * ws://localhost:8001: the API of this Hotmoka node
 
 The owner of the key pair of the gamete can bind it now to its address with:
-  moka keys bind file_containing_the_key_pair_of_the_gamete --password --url url_of_this_Hotmoka_node
+  moka keys bind file_containing_the_key_pair_of_the_gamete --password
+    --url url_of_this_Hotmoka_node
 or with:
   moka keys bind file_containing_the_key_pair_of_the_gamete --password
     --reference 686601110429b794e762d7013bad9012289cab0204c357c916db4c8f654aca57#0
@@ -6438,7 +6456,7 @@ the information on the node printed by the last command.
 
 ## Node Decorators
 
-__[See `io-hotmoka-tutorial-examples` in `@hotmoka_repo`]__
+__[See `io-hotmoka-tutorial-examples-runs` in `@hotmoka_repo`]__
 
 There are some frequent actions that can be performed on a Hotmoka node.
 Typically, these actions consist in a sequence of transactions.
@@ -6465,18 +6483,21 @@ situations enumerated above.
 
 In order to understand the use of node decorators and appreciate their existence,
 let us write a Java class that creates a `DiskNode`, hence initially empty;
-then it initializes that node; subsequently it installs our `io-takamaka-code-examples-family-@takamaka_version.jar`
+then it initializes that node; subsequently it installs our `io-hotmoka-tutorial-examples-family-@hotmoka_version.jar`
 file in the node and finally creates two accounts in the node. We stress the fact that
 these actions
 can be performed in code by using calls to the node interface (Figure @fig:node_hierarchy);
 but they can also be performed through the `moka` tool. Here, however, we want to perform them
 in code, simplified by using node decorators.
 
-Create the following `Decorators.java` class inside the `io.hotmoka.tutorial.examples` package of the
-`io-hotmoka-tutorial-examples` project:
+Create the following `Decorators.java` class inside the `io.hotmoka.tutorial.examples.runs` package of the
+`io-hotmoka-tutorial-examples-runs` project:
 
 ```java
-package io.hotmoka.tutorial.examples;
+package io.hotmoka.tutorial.examples.runs;
+
+import static io.hotmoka.constants.Constants.HOTMOKA_VERSION;
+import static io.takamaka.code.constants.Constants.TAKAMAKA_VERSION;
 
 import java.math.BigInteger;
 import java.nio.file.Paths;
@@ -6490,33 +6511,33 @@ import io.hotmoka.helpers.JarsNodes;
 import io.hotmoka.node.ConsensusConfigBuilders;
 import io.hotmoka.node.disk.DiskNodeConfigBuilders;
 import io.hotmoka.node.disk.DiskNodes;
-import io.takamaka.code.constants.Constants;
 
 public class Decorators {
+ 
   public static void main(String[] args) throws Exception {
     var config = DiskNodeConfigBuilders.defaults().build();
 
     // the path of the runtime Takamaka jar, inside Maven's cache
     var takamakaCodePath = Paths.get
       (System.getProperty("user.home") +
-      "/.m2/repository/io/hotmoka/io-takamaka-code/" + Constants.TAKAMAKA_VERSION
-      + "/io-takamaka-code-" + Constants.TAKAMAKA_VERSION + ".jar");
+      "/.m2/repository/io/hotmoka/io-takamaka-code/" + TAKAMAKA_VERSION
+      + "/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar");
 
     // the path of the user jar to install
-    var familyPath = Paths.get
-      (System.getProperty("user.home") +
-      "/.m2/repository/io/hotmoka/io-takamaka-code-examples-family/" + Constants.TAKAMAKA_VERSION
-      + "/io-takamaka-code-examples-family-" + Constants.TAKAMAKA_VERSION + ".jar");
+    var familyPath = Paths.get(System.getProperty("user.home")
+      + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family/"
+      + HOTMOKA_VERSION
+      + "/io-hotmoka-tutorial-examples-family-" + HOTMOKA_VERSION + ".jar");
 
     // create a key pair for the gamete
     var signature = SignatureAlgorithms.ed25519();
     var entropy = Entropies.random();
     KeyPair keys = entropy.keys("mypassword", signature);
     var consensus = ConsensusConfigBuilders.defaults()
-   	   .setInitialSupply(BigInteger.valueOf(1_000_000_000))
-   	   .setPublicKeyOfGamete(keys.getPublic()).build();
+   	  .setInitialSupply(BigInteger.valueOf(1_000_000_000))
+   	  .setPublicKeyOfGamete(keys.getPublic()).build();
 
-    try (var node = DiskNodes.init(config)) {
+	 try (var node = DiskNodes.init(config)) {
       // first view: store the io-takamaka-code jar and create manifest and gamete
       var initialized = InitializedNodes.of(node, consensus, takamakaCodePath);
 
@@ -6542,9 +6563,9 @@ public class Decorators {
 
 Run class `Decorators`:
 ```shell
-$ cd io-hotmoka-tutorial-examples
+$ cd io-hotmoka-tutorial-examples-runs
 $ mvn clean install exec:exec -Dexec.executable="java"
-    -Dexec.args="-cp %classpath io.hotmoka.tutorial.examples.Decorators"
+    -Dexec.args="-cp %classpath io.hotmoka.tutorial.examples.runs.Decorators"
 ```
 It should print something like this on the console:
 
@@ -6574,7 +6595,7 @@ the end of the try-with-resource will actually close all of them, since they are
 
 ## Hotmoka Services
 
-__[See `io-hotmoka-tutorial-examples` in `@hotmoka_repo`]__
+__[See `io-hotmoka-tutorial-examples-runs` in `@hotmoka_repo`]__
 
 This section shows how we can publish a Hotmoka node online, by using Java code,
 so that it becomes a
@@ -6587,12 +6608,12 @@ Remember that we have already published our nodes online, by using the
 `moka nodes tendermint init` and `moka nodes disk init` commands.
 Here, however, we want to do the same operation in code.
 
-Create a class `Publisher.java` inside package `io-hotmoka-tutorial-examples`
-of the `io-hotmoka-tutorial-examples` project,
+Create a class `Publisher.java` inside package `io.hotmoka.tutorial.examples.runs`
+of the `io-hotmoka-tutorial-examples-runs` project,
 whose code is the following:
 
 ```java
-package io.hotmoka.tutorial.examples;
+package io.hotmoka.tutorial.examples.runs;
 
 import java.math.BigInteger;
 import java.nio.file.Paths;
@@ -6620,13 +6641,14 @@ public class Publisher {
     // create a key pair for the gamete
     var signature = SignatureAlgorithms.ed25519();
     var entropy = Entropies.random();
-	KeyPair keys = entropy.keys("password", signature);
-	var consensus = ValidatorsConsensusConfigBuilders.defaults()
+    KeyPair keys = entropy.keys("password", signature);
+    var consensus = ValidatorsConsensusConfigBuilders.defaults()
       .setPublicKeyOfGamete(keys.getPublic())
       .setInitialSupply(BigInteger.valueOf(100_000_000))
       .build();
 
-	try (var original = TendermintNodes.init(config);
+    try (var original = TendermintNodes.init(config);
+      // remove the next line if you want to publish an uninitialized node
       // var initialized = InitializedNodes.of(original, consensus, takamakaCodePath);
       var service = NodeServices.of(original, 8001)) {
 
@@ -6654,9 +6676,9 @@ presses the ENTER key and terminates the service (and the program).
 Run class `Publisher`:
 
 ```shell
-$ cd io-hotmoka-tutorial-examples
+$ cd io-hotmoka-tutorial-examples-runs
 $ mvn clean install exec:exec -Dexec.executable="java"
-    -Dexec.args="-cp %classpath io.hotmoka.tutorial.examples.Publisher"
+    -Dexec.args="-cp %classpath io.hotmoka.tutorial.examples.runs.Publisher"
 ```
 It should work for a few seconds and then start waiting for the ENTER key. Do not press such key yet!
 Since `original` is not initialized yet, it has no manifest and no gamete. Its store is just empty
@@ -6710,8 +6732,6 @@ the manifest of the now initialized node on the screen.
 > at a time.
 
 ## Remote Nodes
-
-__[See project `runs` inside the `@tutorial_name` repository]__
 
 We have seen how a service can be published and its methods called through
 a browser. This is easy for methods such as `getManifest()` and
@@ -7091,12 +7111,12 @@ Regardless of the kind of account, their use is always the same.
 The only difference is to use the right signature algorithm when signing
 a transaction, since it must match that of the caller account. This is automatic, if we
 use the `moka` tool. For instance, let us use our qtesla-p-I account to install
-the `io-takamaka-code-examples-family-@takamaka_version.jar` code in the node:
+the `io-hotmoka-tutorial-examples-family-@hotmoka_version.jar` code in the node:
 
 ```shell
 $ cd @tutorial_name
 $ moka jars install @account9
-    io-takamaka-code-examples-family/target/io-takamaka-code-examples-family-@takamaka_version.jar
+    io-hotmoka-tutorial-examples-family/target/io-hotmoka-tutorial-examples-family-@hotmoka_version.jar
     --password-of-payer --uri=@server_mokamint
 Enter value for --password-of-payer (the password of the key pair of the payer account): quantum1
 Do you really want to install the jar spending up to 1011600 gas units
@@ -7134,13 +7154,13 @@ fragile, since the node might have a slightly different behavior, depending on t
 exact configuration of the machine and of the exact version of the Java runtime installed
 in the machine. These differences might even compromise the capacity of a network
 of nodes to reach consensus. There is a simpler and less fragile
-way of installing a Tendermint Hotmoka node, by using the Docker tool.
-We cannot discuss Docker here. We just say that it is a utility to run lightweight
+way of installing a Tendermint Hotmoka node, by using the docker tool.
+We cannot discuss docker here. We just say that it is a utility to run lightweight
 containers in a machine. A container is a sort of preconfigured
 sandbox, whose configuration is fixed
 and already provided at installation time. Therefore, there is nothing to install if we use
 a Docker container to start the node, not even a Java runtime. Everything is already
-prepared inside the container. Well, our machine must have Docker installed, but that is the
+prepared inside the container. Well, our machine must have docker installed, but that is the
 only requirement.
 
 ## Starting a Tendermint Hotmoka Node with Docker
@@ -7582,6 +7602,7 @@ consensus_config.toml  local_config.toml  tendermint_config  validator.pem
 ```
 In alternative, you can use the `docker exec` command to run a command inside the container.
 You do not need to be root, but need to know the id of the running container (`docker ps` might help you):
+
 ```shell
 $ docker exec c1407e499ad67465318704da1fcb6e9b88ee94faceb7c4b86e00ab4775590b3f
     /bin/ls hotmoka_tendermint
@@ -8136,7 +8157,7 @@ Hotmoka nodes verify the following static constraints:
 > jars installed in the node are similarly white-listed.
 > Method `java.lang.System.currentTimeMillis()` is not white-listed,
 > since it is loaded from the Java class path and is not annotated as white-listed
-> in `io-takamaka--whitelisting-@hotmoka_version.jar`.
+> in `io-takamaka-whitelisting-@hotmoka_version.jar`.
 
 22. Bootstrap methods for the `invokedynamic` bytecode use only standard call-site
     resolvers, namely, instances of `java.lang.invoke.LambdaMetafactory.metafactory`
@@ -8188,7 +8209,7 @@ Takamaka verifies the following dynamic constraints:
 
 ## Command-Line Verification and Instrumentation
 
-__[See `io-takamaka-code-examples-family_errors` in `@takamaka_repo`]__
+__[See `io-hotmoka-tutorial-examples-family_errors` in `@hotmoka_repo`]__
 
 If a jar being installed in a Hotmoka node does not satisfy the static
 constraints that we have described before, the installation transaction fails with
@@ -8203,13 +8224,13 @@ verification that would be executed when a jar is
 installed in a Hotmoka node.
 
 Create a jar file containing
-a wrong version of the `family` project. For that, copy the `io-takama-code-examples-family`
-project into `io-takamaka-code-examples-family_errors` project, change the artifact name in its `pom.xml` into
-`io-takamaka-code-examples-family_errors` and modify its `Person` class so that it contains
+a wrong version of the `io-hotmoka-tutorial-examples-family` project. For that, copy the `io-hotmoka-tutorial-examples-family`
+project into `io-hotmoka-tutorial-examples-family_errors` project, change the artifact name in its `pom.xml` into
+`io-hotmoka-tutorial-examples-family_errors` and modify its `Person` class so that it contains
 a few errors, as follows:
 
 ```java
-package family;
+package io.hotmoka.tutorial.examples.family;
 
 import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.Payable;
@@ -8252,10 +8273,10 @@ public class Person extends Storage {
 }
 ```
 
-Then generate the `io-takamaka-code-examples-family_errors-@takamaka_version` file:
+Then generate the `io-hotmoka-tutorial-examples-family_errors-@hotmoka_version` file:
 
 ```shell
-$ cd io-takamaka-code-examples-family_errors
+$ cd io-hotmoka-tutorial-examples-family_errors
 $ mvn install
 ```
 
@@ -8288,41 +8309,41 @@ $ moka jars instrument
 The `moka jars instrument` command verifies and instruments the jar, and then stores
 its instrumented version inside the `instrumented` directory.
 
-Let us verify and instrument `io-takamaka-code-examples-family-@takamaka_version.jar` now (the correct
-version of the `io-takamaka-code-examples-family` project).
+Let us verify and instrument `io-hotmoka-tutorial-examples-family-@hotmoka_version.jar` now (the correct
+version of the project).
 As all Takamaka programs, it uses classes from the `io-takamaka-code` jar,
 hence it depends on it. We specify this with the `--libs` option, that must
 refer to an already instrumented jar:
 
 ```shell
 $ moka jars instrument
-    ~/.m2/repository/io/hotmoka/io-takamaka-code-examples-family/@takamaka_version/
-        io-takamaka-code-examples-family-@takamaka_version.jar
-    instrumented/io-takamaka-code-examples-family-@takamaka_version.jar
+    ~/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family/@hotmoka_version/
+        io-hotmoka-tutorial-examples-family-@hotmoka_version.jar
+    instrumented/io-hotmoka-tutorial-examples-family-@hotmoka_version.jar
     --libs instrumented/io-takamaka-code-@takamaka_version.jar
 ```
-Verification succeeds this time as well, and an instrumented `io-takamaka-code-examples-family-@takamaka_version.jar` appears in the
+Verification succeeds this time as well, and an instrumented `io-hotmoka-tutorial-examples-family-@hotmoka_version.jar` appears in the
 `instrumented` directory. Note that we have not used the `--init` switch this time, since we
 wanted to simulate the verification as it would occur after the node has been already initialized,
 when users add their jars to the store of the node.
 
-Let us verify the `io-takamaka-code-examples-family_errors-@takamaka_version.jar` archive now, that
+Let us verify the `io-hotmoka-tutorial-examples-family_errors-@hotmoka_version.jar` archive now, that
 (we know) contains a few errors. This time, verification will fail and the errors will
 be printed on the screen:
 ```shell
 $ moka jars verify
-    ~/.m2/repository/io/hotmoka/io-takamaka-code-examples-family_errors/@takamaka_version/
-        io-takamaka-code-examples-family_errors-@takamaka_version.jar
+    ~/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family_errors/@hotmoka_version/
+        io-hotmoka-tutorial-examples-family_errors-@hotmoka_version.jar
     --libs instrumented/io-takamaka-code-@takamaka_version.jar 
 
 Verification failed with the following errors:
-1: family/Person.java field parents:
+1: io/hotmoka/tutorial/examples/family/Person.java field parents:
     type not allowed for a field of a storage class
-2: family/Person.java method <init>: @Payable can only be applied
+2: io/hotmoka/tutorial/examples/family/Person.java method <init>: @Payable can only be applied
     to constructors or instance methods of a contract class or of an interface
-3: family/Person.java method <init>: a @Payable method must have
+3: io/hotmoka/tutorial/examples/family/Person.java method <init>: a @Payable method must have
     a first argument for the paid amount, of type int, long or BigInteger
-4: family/Person.java method <init>: @Payable can only be applied
+4: io/hotmoka/tutorial/examples/family/Person.java method <init>: @Payable can only be applied
     to a @FromContract method or constructor
 5: family/Person.java:56: static fields cannot be updated
 ```
@@ -8331,9 +8352,9 @@ The same failure occurs with the `moka jars instrument` command, that will not g
 reports the first encountered error before failure:
 ```shell
 $ moka jars instrument
-   ~/.m2/repository/io/hotmoka/io-takamaka-code-examples-family_errors/@takamaka_version/
-       io-takamaka-code-examples-family_errors-@takamaka_version.jar
-   instrumented/io-takamaka-code-examples-family_errors-@takamaka_version.jar
+   ~/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family_errors/@hotmoka_version/
+       io-hotmoka-tutorial-examples-family_errors-@hotmoka_version.jar
+   instrumented/io-hotmoka-tutorial-examples-family_errors-@hotmoka_version.jar
    --libs instrumented/io-takamaka-code-@takamaka_version.jar 
 
 Instrumentation failed [io.hotmoka.verification.api.VerificationException:
