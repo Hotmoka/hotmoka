@@ -33,12 +33,21 @@ import io.hotmoka.node.disk.DiskNodeConfigBuilders;
 import io.hotmoka.node.disk.DiskNodes;
 
 /**
+ * A publisher of a brand new Hotmoka service online.
  * Run it in Maven as:
  * 
  * mvn exec:exec -Dexec.executable="java" -Dexec.args="-cp %classpath io.hotmoka.tutorial.examples.runs.Decorators"
  */
 public class Decorators {
- 
+
+  private Decorators() {}
+
+  /**
+   * Publishes a brand new disk Hotmoka service online.
+   * 
+   * @param args unused
+   * @throws Exception if the publication fails
+   */
   public static void main(String[] args) throws Exception {
     var config = DiskNodeConfigBuilders.defaults().build();
 

@@ -19,14 +19,35 @@ package io.hotmoka.tutorial.examples.family;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.StringSupport;
 
+/**
+ * An example of Takamaka object representing a member of a family.
+ */
 public class Person extends Storage {
 	private final String name;
 	private final int day;
 	private final int month;
 	private final int year;
+
+	/**
+	 * The first parent.
+	 */
 	public final Person parent1;
+
+	/**
+	 * The second parent.
+	 */
 	public final Person parent2;
 
+	/**
+	 * Creates a family member.
+	 * 
+	 * @param name the name of the family member
+	 * @param day the day of birth
+	 * @param month the month of birth
+	 * @param year the year of birth
+	 * @param parent1 the first parent, if available
+	 * @param parent2 the second parent, if available
+	 */
 	public Person(String name, int day, int month, int year,
 			      Person parent1, Person parent2) {
 
@@ -38,6 +59,15 @@ public class Person extends Storage {
 		this.parent2 = parent2;
 	}
 
+    /**
+     * Creates a family member. It assumes that parents' information
+     * is not available.
+     * 
+     * @param name the name of the family member
+     * @param day the day of birth
+     * @param month the month of birth
+     * @param year the year of birth
+     */
 	public Person(String name, int day, int month, int year) {
 		this(name, day, month, year, null, null);
 	}

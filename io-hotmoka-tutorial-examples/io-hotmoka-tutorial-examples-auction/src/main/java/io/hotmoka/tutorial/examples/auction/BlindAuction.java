@@ -114,6 +114,13 @@ public class BlindAuction extends Contract {
      */
     private final Bytes32Snapshot salt;
 
+    /**
+     * Creates a revealed bid.
+     * 
+     * @param value the value of the bid
+     * @param fake true if and only if the bid was fake
+     * @param salt the salt used to hash the bid
+     */
     public RevealedBid(BigInteger value, boolean fake, Bytes32Snapshot salt) {
       this.value = value;
       this.fake = fake;
@@ -174,6 +181,9 @@ public class BlindAuction extends Contract {
    * "fake" is not true. Setting "fake" to true and sending
    * not the exact amount are ways to hide the real bid but
    * still make the required deposit. The same bidder can place multiple bids.
+   * 
+   * @param amount the amount paid for placing the bit
+   * @param hash the expected hash of the future revealed bid
    */
   public @Payable @FromContract(PayableContract.class) void bid(BigInteger amount, Bytes32Snapshot hash) {
     onlyBefore(biddingEnd);
@@ -201,6 +211,11 @@ public class BlindAuction extends Contract {
     bidder.receive(refundFor(bidder, bids.removeFirst(), revealed, digest));
   }
 
+  /**
+   * Terminates the auction.
+   * 
+   * @return the winning auction participant
+   */
   public PayableContract auctionEnd() {
     onlyAfter(revealEnd);
     PayableContract winner = highestBidder;

@@ -46,6 +46,7 @@ import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.remote.RemoteNodes;
 
 /**
+ * An execution of blockchain transactions with the family smart contract example.
  * Run it in Maven as (change /home/spoto/hotmoka_tutorial with the directory where you stored the key pairs of the payer account
  * and change the payer account itself and its password):
  * 
@@ -55,6 +56,15 @@ public class FamilyExported {
 
   private final static ClassType PERSON = StorageTypes.classNamed("io.hotmoka.tutorial.examples.family.Person");
 
+  private FamilyExported() {}
+
+  /**
+   * Runs the execution of blockchain transactions.
+   * 
+   * @param args the URI of the Hotmoka node, the directory containing the key pairs of the paying account,
+   *             the storage reference of the paying account and its password
+   * @throws Exception if the execution fails
+   */
   public static void main(String[] args) throws Exception {
 
 	// the path of the user jar to install

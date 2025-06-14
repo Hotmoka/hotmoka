@@ -21,6 +21,9 @@ import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.StringSupport;
 
+/**
+ * An example of Takamaka object representing a member of a family.
+ */
 @Exported
 public class Person extends Storage {
   private final String name;
@@ -28,11 +31,27 @@ public class Person extends Storage {
   private final int month;
   private final int year;
 
+  /**
+   * The parents.
+   */
   // error: arrays are not allowed in storage
   public final Person[] parents = new Person[2];
 
+  /**
+   * The counter of invocations of {@link #toString()}.
+   */
   public static int toStringCounter;
 
+  /**
+   * Creates a family member.
+   * 
+   * @param name the name of the family member
+   * @param day the day of birth
+   * @param month the month of birth
+   * @param year the year of birth
+   * @param parent1 the first parent, if available
+   * @param parent2 the second parent, if available
+   */
   public Person(String name, int day, int month, int year,
                 Person parent1, Person parent2) {
 
@@ -44,6 +63,15 @@ public class Person extends Storage {
     this.parents[1] = parent2;
   }
 
+  /**
+   * Creates a family member. It assumes that parents' information
+   * is not available.
+   * 
+   * @param name the name of the family member
+   * @param day the day of birth
+   * @param month the month of birth
+   * @param year the year of birth
+   */
   // error: @Payable without @FromContract, missing amount and is not in Contract
   public @Payable Person(String name, int day, int month, int year) {
     this(name, day, month, year, null, null);

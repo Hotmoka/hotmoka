@@ -23,19 +23,46 @@ import io.takamaka.code.lang.Event;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.View;
 
+/**
+ * An event stating that the current highest bid has been increased.
+ */
 public class BidIncrease extends Event {
+
+  /**
+   * The current participant that provided the highest bid.
+   */
   public final PayableContract bidder;
+
+  /**
+   * The value of the current highest bid.
+   */
   public final BigInteger amount;
 
+  /**
+   * Creates the event.
+   * 
+   * @param bidder the current participant that provided the highest bid
+   * @param amount the value of the current highest bid
+   */
   @FromContract BidIncrease(PayableContract bidder, BigInteger amount) {
     this.bidder = bidder;
     this.amount = amount;
   }
 
+  /**
+   * Yields the current participant that provided the highest bid.
+   * 
+   * @return the current participant that provided the highest bid
+   */
   public @View PayableContract getBidder() {
     return bidder;
   }
 
+  /**
+   * Yields the value of the current highest bid.
+   * 
+   * @return the value of the current highest bid
+   */
   public @View BigInteger getAmount() {
     return amount;
   }

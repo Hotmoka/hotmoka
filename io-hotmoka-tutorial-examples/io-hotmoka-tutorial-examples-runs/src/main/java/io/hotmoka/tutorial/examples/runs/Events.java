@@ -63,6 +63,7 @@ import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.remote.RemoteNodes;
 
 /**
+ * Executes a test of the blind auction smart contract, that generates events.
  * Run it in Maven as (change /home/spoto/hotmoka_tutorial with the directory where you stored the key pairs of the payer accounts
  * and change the payer accounts themselves and their passwords):
  * 
@@ -70,9 +71,20 @@ import io.hotmoka.node.remote.RemoteNodes;
  */
 public class Events {
 
-  public final static int NUM_BIDS = 10; // number of bids placed
-  public final static int BIDDING_TIME = 100_000; // in milliseconds
-  public final static int REVEAL_TIME = 140_000; // in milliseconds
+  /**
+   * The number of bids to place.
+   */
+  public final static int NUM_BIDS = 10;
+
+  /**
+   * The time of the bidding phase, in milliseconds.
+   */
+  public final static int BIDDING_TIME = 100_000;
+
+  /**
+   * The time of the reveal phase, in milliseconds.
+   */
+  public final static int REVEAL_TIME = 140_000;
 
   private final static BigInteger _500_000 = BigInteger.valueOf(500_000);
 
@@ -97,6 +109,14 @@ public class Events {
   private final GasHelper gasHelper;
   private final NonceHelper nonceHelper;
 
+  /**
+   * Executes the test of the smart contract.
+   * 
+   * @param args the arguments passed to the test; these must contain
+   *             the URI of the remote node, the directory where key pairs are stored,
+   *             three couples of storage reference and password of participants accounts
+   * @throws Exception if the execution fails
+   */
   public static void main(String[] args) throws Exception {
 	try (Node node = RemoteNodes.of(new URI(args[0]), 20000)) {
       new Events(node, Paths.get(args[1]),

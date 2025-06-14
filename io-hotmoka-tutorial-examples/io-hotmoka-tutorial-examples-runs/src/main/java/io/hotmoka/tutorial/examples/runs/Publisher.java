@@ -30,11 +30,21 @@ import io.hotmoka.node.tendermint.TendermintNodes;
 import io.takamaka.code.constants.Constants;
 
 /**
+ * A publisher of a Tendermint Hotmoka service online.
  * Run it in Maven as:
  * 
  * mvn exec:exec -Dexec.executable="java" -Dexec.args="-cp %classpath io.hotmoka.tutorial.examples.runs.Publisher"
  */
 public class Publisher {
+
+  private Publisher() {}
+
+  /**
+   * Publishes a Tendermint Hotmoka service online.
+   * 
+   * @param args unused
+   * @throws Exception if the publication fails
+   */
   public static void main(String[] args) throws Exception {
     var config = TendermintNodeConfigBuilders.defaults().build();
 

@@ -23,20 +23,47 @@ import io.takamaka.code.lang.Event;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.View;
 
+/**
+ * An event stating that the auction has ended.
+ */
 public class AuctionEnd extends Event {
+
+  /**
+   * The participant that provided the highest bid.
+   */
   public final PayableContract highestBidder;
+
+  /**
+   * The value of the highest bid.
+   */
   public final BigInteger highestBid;
 
+  /**
+   * Creates the event.
+   * 
+   * @param highestBidder the participant that provided the highest bid
+   * @param highestBid the value of the highest bid
+   */
   @FromContract AuctionEnd(PayableContract highestBidder, BigInteger highestBid) {
     this.highestBidder = highestBidder;
     this.highestBid = highestBid;
   }
 
+  /**
+   * Yields the participant that provided the highest bid.
+   * 
+   * @return the participant that provided the highest bid
+   */
   public @View PayableContract getHighestBidder() {
     return highestBidder;
   }
 
+  /**
+   * Yields the value of the highest bid.
+   * 
+   * @return the value of the highest bid
+   */
   public @View BigInteger getHighestBid() {
-  return highestBid;
+    return highestBid;
   }
 }
