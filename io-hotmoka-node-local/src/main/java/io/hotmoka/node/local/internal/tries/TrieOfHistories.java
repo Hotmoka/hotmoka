@@ -51,6 +51,10 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 			sha256(), new byte[32], TrieOfHistories::historyToBytes, TrieOfHistories::bytesToHistory);
 	}
 
+	private TrieOfHistories(TrieOfHistories cloned, byte[] root) throws TrieException, UnknownKeyException {
+		super(cloned, root);
+	}
+
 	@Override
 	protected void malloc() throws TrieException {
 		super.malloc();
@@ -85,10 +89,6 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 		}
 		
 		return Stream.of(references);
-	}
-
-	private TrieOfHistories(TrieOfHistories cloned, byte[] root) throws TrieException, UnknownKeyException {
-		super(cloned, root);
 	}
 
 	private static HashingAlgorithm sha256() throws TrieException {
