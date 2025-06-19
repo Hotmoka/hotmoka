@@ -269,7 +269,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 			};
 
 			env.executeInTransaction(NodeException.class, UnknownStateIdException.class, gc);
-			LOGGER.info("garbage-collected store " + stateIdAndTime);
+			LOGGER.fine(() -> "garbage-collected store " + stateIdAndTime);
 		}
 		catch (NodeException | UnknownStateIdException | ExodusException e) {
 			LOGGER.log(Level.SEVERE, "cannot garbage-collect store " + stateIdAndTime, e);

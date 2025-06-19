@@ -197,7 +197,7 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 	}
 
 	@Override
-	public StorageReference gamete() throws NodeException, TimeoutException, InterruptedException { // TODO: why this?
+	public StorageReference gamete() throws NodeException, TimeoutException, InterruptedException {
 		ensureNotClosed();
 		return getParent().gamete();
 	}
