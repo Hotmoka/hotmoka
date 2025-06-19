@@ -263,8 +263,8 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			}
 		}
 		catch (InterruptedException e) {
-			LOGGER.log(Level.SEVERE, "The block publishing thread exits because of interruption", e);
 			Thread.currentThread().interrupt();
+			LOGGER.warning("The block publishing thread has been interrupted");
 		}
 		catch (RuntimeException | NodeException | IOException e) {
 			LOGGER.log(Level.SEVERE, "The block publishing thread exist because of exception", e);
@@ -393,8 +393,12 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 				FunctionWithExceptions2<io.hotmoka.xodus.env.Transaction, byte[], NodeException, StoreException> function = txn -> {
 					StateId stateIdOfFinalStore = transformation.getIdOfFinalStore(txn);
-					lastCaches.put(stateIdOfFinalStore, transformation.getCache());
-					persist(stateIdOfFinalStore, transformation.getNow(), txn);
+
+					if (lastCaches.get(stateIdOfFinalStore) == null) {
+						lastCaches.put(stateIdOfFinalStore, transformation.getCache());
+						persist(stateIdOfFinalStore, transformation.getNow(), txn);
+					}
+
 					return stateIdOfFinalStore.getBytes();
 				};
 

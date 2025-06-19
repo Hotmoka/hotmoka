@@ -34,7 +34,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <io.hotmoka.marshalling.version>1.4.5</io.hotmoka.marshalling.version>
     <io.hotmoka.exceptions.version>1.5.2</io.hotmoka.exceptions.version>
     <io.hotmoka.testing.version>1.4.1</io.hotmoka.testing.version>
-    <io.hotmoka.xodus.version>1.4.7</io.hotmoka.xodus.version>
+    <io.hotmoka.xodus.version>1.4.8</io.hotmoka.xodus.version>
     <io.hotmoka.closeables.version>1.5.0</io.hotmoka.closeables.version>
     <it.univr.bcel.version>1.2.1</it.univr.bcel.version>
     <bcel.version>6.7.0</bcel.version>

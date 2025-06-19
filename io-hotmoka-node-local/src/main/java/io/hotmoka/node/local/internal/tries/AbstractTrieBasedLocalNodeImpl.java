@@ -128,11 +128,12 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 
 		var path = config.getDir().resolve("hotmoka").resolve("store");
 		this.env = new Environment(path.toString());
+		// TODO: merge storeOfNode with storeOfInfo
 		this.storeOfNode = env.computeInTransaction(txn -> env.openStoreWithoutDuplicates("node", txn));
-    	this.storeOfResponses = env.computeInTransaction(txn -> env.openStoreWithoutDuplicates("responses", txn));
+    	this.storeOfResponses = env.computeInTransaction(txn -> env.openStoreWithoutDuplicatesWithPrefixing("responses", txn));
     	this.storeOfInfo = env.computeInTransaction(txn -> env.openStoreWithoutDuplicates("info", txn));
-		this.storeOfRequests = env.computeInTransaction(txn -> env.openStoreWithoutDuplicates("requests", txn));
-		this.storeOfHistories = env.computeInTransaction(txn -> env.openStoreWithoutDuplicates("histories", txn));
+		this.storeOfRequests = env.computeInTransaction(txn -> env.openStoreWithoutDuplicatesWithPrefixing("requests", txn));
+		this.storeOfHistories = env.computeInTransaction(txn -> env.openStoreWithoutDuplicatesWithPrefixing("histories", txn));
 
 		// we start the garbage-collection task
 		getExecutors().execute(this::gc);
