@@ -202,7 +202,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
      * Builds the remote node.
      *
 	 * @param uri the URI of the network service that gets bound to the remote node
-	 * @param timeout the time (in milliseconds) allowed for a call to the network service;
+	 * @param timeout the time (in milliseconds) allowed for the handshake to the network service;
 	 *                beyond that threshold, a timeout exception is thrown
 	 * @throws NodeException if the remote node could not be deployed
      */

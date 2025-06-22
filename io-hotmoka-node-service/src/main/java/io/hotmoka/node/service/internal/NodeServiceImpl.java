@@ -207,101 +207,101 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 
     	if (message instanceof GetTakamakaCodeMessage) {
     		try {
-				sendObjectAsync(session, GetTakamakaCodeResultMessages.of(node.getTakamakaCode(), message.getId()));
+				sendObjectAsync(session, GetTakamakaCodeResultMessages.of(node.getTakamakaCode(), id));
 			}
 			catch (TimeoutException | InterruptedException e) {
-				sendExceptionAsync(session, e, message.getId());
+				sendExceptionAsync(session, e, id);
 			}
     		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "getTakamakaCode()", message.getId(), e);
+    			nodeFailed(session, "getTakamakaCode()", id, e);
     		}
     	}
     	else if (message instanceof GetManifestMessage) {
     		try {
-				sendObjectAsync(session, GetManifestResultMessages.of(node.getManifest(), message.getId()));
+				sendObjectAsync(session, GetManifestResultMessages.of(node.getManifest(), id));
 			}
 			catch (TimeoutException | InterruptedException e) {
-				sendExceptionAsync(session, e, message.getId());
+				sendExceptionAsync(session, e, id);
 			}
     		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "getManifest()", message.getId(), e);
+    			nodeFailed(session, "getManifest()", id, e);
     		}
     	}
     	else if (message instanceof GetConsensusConfigMessage) {
     		try {
-				sendObjectAsync(session, GetConsensusConfigResultMessages.of(node.getConfig(), message.getId()));
+				sendObjectAsync(session, GetConsensusConfigResultMessages.of(node.getConfig(), id));
 			}
 			catch (TimeoutException | InterruptedException e) {
-				sendExceptionAsync(session, e, message.getId());
+				sendExceptionAsync(session, e, id);
 			}
     		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "getConfig()", message.getId(), e);
+    			nodeFailed(session, "getConfig()", id, e);
     		}
     	}
     	else if (message instanceof GetClassTagMessage gctm) {
     		try {
-				sendObjectAsync(session, GetClassTagResultMessages.of(node.getClassTag(gctm.getReference()), message.getId()));
+				sendObjectAsync(session, GetClassTagResultMessages.of(node.getClassTag(gctm.getReference()), id));
 			}
 			catch (TimeoutException | InterruptedException | UnknownReferenceException e) {
-				sendExceptionAsync(session, e, message.getId());
+				sendExceptionAsync(session, e, id);
 			}
     		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "getClassTag()", message.getId(), e);
+    			nodeFailed(session, "getClassTag()", id, e);
     		}
     	}
     	else if (message instanceof GetStateMessage gsm) {
     		try {
-				sendObjectAsync(session, GetStateResultMessages.of(node.getState(gsm.getReference()), message.getId()));
+				sendObjectAsync(session, GetStateResultMessages.of(node.getState(gsm.getReference()), id));
 			}
 			catch (TimeoutException | InterruptedException | UnknownReferenceException e) {
-				sendExceptionAsync(session, e, message.getId());
+				sendExceptionAsync(session, e, id);
 			}
     		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "getState()", message.getId(), e);
+    			nodeFailed(session, "getState()", id, e);
     		}
     	}
     	else if (message instanceof GetRequestMessage grm) {
     		try {
-				sendObjectAsync(session, GetRequestResultMessages.of(node.getRequest(grm.getReference()), message.getId()));
+				sendObjectAsync(session, GetRequestResultMessages.of(node.getRequest(grm.getReference()), id));
 			}
 			catch (TimeoutException | InterruptedException | UnknownReferenceException e) {
-				sendExceptionAsync(session, e, message.getId());
+				sendExceptionAsync(session, e, id);
 			}
     		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "getRequest()", message.getId(), e);
+    			nodeFailed(session, "getRequest()", id, e);
     		}
     	}
     	else if (message instanceof GetResponseMessage grm) {
     		try {
-				sendObjectAsync(session, GetResponseResultMessages.of(node.getResponse(grm.getReference()), message.getId()));
+				sendObjectAsync(session, GetResponseResultMessages.of(node.getResponse(grm.getReference()), id));
 			}
 			catch (TimeoutException | InterruptedException | UnknownReferenceException e) {
-				sendExceptionAsync(session, e, message.getId());
+				sendExceptionAsync(session, e, id);
 			}
     		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "getResponse()", message.getId(), e);
+    			nodeFailed(session, "getResponse()", id, e);
     		}
     	}
     	else if (message instanceof GetPolledResponseMessage gprm) {
     		try {
-				sendObjectAsync(session, GetPolledResponseResultMessages.of(node.getPolledResponse(gprm.getReference()), message.getId()));
+				sendObjectAsync(session, GetPolledResponseResultMessages.of(node.getPolledResponse(gprm.getReference()), id));
 			}
 			catch (TimeoutException | InterruptedException | TransactionRejectedException e) {
 				sendExceptionAsync(session, e, message.getId());
 			}
     		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "getPolledResponse()", message.getId(), e);
+    			nodeFailed(session, "getPolledResponse()", id, e);
     		}
     	}
     	else if (message instanceof GetInfoMessage) {
     		try {
-				sendObjectAsync(session, GetInfoResultMessages.of(node.getInfo(), message.getId()));
+				sendObjectAsync(session, GetInfoResultMessages.of(node.getInfo(), id));
 			}
 			catch (TimeoutException | InterruptedException e) {
-				sendExceptionAsync(session, e, message.getId());
+				sendExceptionAsync(session, e, id);
 			}
     		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "getInfo()", message.getId(), e);
+    			nodeFailed(session, "getInfo()", id, e);
     		}
     	}
     	else if (message instanceof RunInstanceMethodCallTransactionMessage rimctm) {
@@ -312,18 +312,18 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 				sendExceptionAsync(session, e, id);
 			}
     		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "runInstanceMethodCallTransaction()", message.getId(), e);
+    			nodeFailed(session, "runInstanceMethodCallTransaction()", id, e);
     		}
     	}
     	else if (message instanceof RunStaticMethodCallTransactionMessage gsmctm) {
     		try {
-				sendObjectAsync(session, RunStaticMethodCallTransactionResultMessages.of(node.runStaticMethodCallTransaction(gsmctm.getRequest()), message.getId()));
+				sendObjectAsync(session, RunStaticMethodCallTransactionResultMessages.of(node.runStaticMethodCallTransaction(gsmctm.getRequest()), id));
 			}
 			catch (TimeoutException | InterruptedException | TransactionRejectedException | TransactionException | CodeExecutionException e) {
-				sendExceptionAsync(session, e, message.getId());
+				sendExceptionAsync(session, e, id);
 			}
     		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "runStaticMethodCallTransaction()", message.getId(), e);
+    			nodeFailed(session, "runStaticMethodCallTransaction()", id, e);
     		}
     	}
     	else if (message instanceof AddInstanceMethodCallTransactionMessage aimctm) {
@@ -334,118 +334,118 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 				sendExceptionAsync(session, e, id);
 			}
 			catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "addInstanceMethodCallTransaction()", message.getId(), e);
+    			nodeFailed(session, "addInstanceMethodCallTransaction()", id, e);
     		}
 		}
     	else if (message instanceof AddStaticMethodCallTransactionMessage asmctm) {
     		try {
-				sendObjectAsync(session, AddStaticMethodCallTransactionResultMessages.of(node.addStaticMethodCallTransaction(asmctm.getRequest()), message.getId()));
+				sendObjectAsync(session, AddStaticMethodCallTransactionResultMessages.of(node.addStaticMethodCallTransaction(asmctm.getRequest()), id));
 			}
 			catch (TimeoutException | InterruptedException | TransactionRejectedException | TransactionException | CodeExecutionException e) {
-				sendExceptionAsync(session, e, message.getId());
+				sendExceptionAsync(session, e, id);
 			}
     		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "addStaticMethodCallTransaction()", message.getId(), e);
+    			nodeFailed(session, "addStaticMethodCallTransaction()", id, e);
     		}
     	}
     	else if (message instanceof AddConstructorCallTransactionMessage acctm) {
     		try {
-				sendObjectAsync(session, AddConstructorCallTransactionResultMessages.of(node.addConstructorCallTransaction(acctm.getRequest()), message.getId()));
+				sendObjectAsync(session, AddConstructorCallTransactionResultMessages.of(node.addConstructorCallTransaction(acctm.getRequest()), id));
 			}
 			catch (TimeoutException | InterruptedException | TransactionRejectedException | TransactionException | CodeExecutionException e) {
-				sendExceptionAsync(session, e, message.getId());
+				sendExceptionAsync(session, e, id);
 			}
     		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "addConstructorCallTransaction()", message.getId(), e);
+    			nodeFailed(session, "addConstructorCallTransaction()", id, e);
     		}
     	}
     	else if (message instanceof AddJarStoreTransactionMessage ajstm) {
     		try {
-				sendObjectAsync(session, AddJarStoreTransactionResultMessages.of(node.addJarStoreTransaction(ajstm.getRequest()), message.getId()));
+				sendObjectAsync(session, AddJarStoreTransactionResultMessages.of(node.addJarStoreTransaction(ajstm.getRequest()), id));
 			}
 			catch (TimeoutException | InterruptedException | TransactionRejectedException | TransactionException e) {
-				sendExceptionAsync(session, e, message.getId());
+				sendExceptionAsync(session, e, id);
 			}
     		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "addJarStoreTransaction()", message.getId(), e);
+    			nodeFailed(session, "addJarStoreTransaction()", id, e);
     		}
     	}
     	else if (message instanceof AddGameteCreationTransactionMessage agctm) {
     		try {
-				sendObjectAsync(session, AddGameteCreationTransactionResultMessages.of(node.addGameteCreationTransaction(agctm.getRequest()), message.getId()));
+				sendObjectAsync(session, AddGameteCreationTransactionResultMessages.of(node.addGameteCreationTransaction(agctm.getRequest()), id));
 			}
 			catch (TimeoutException | InterruptedException | TransactionRejectedException e) {
-				sendExceptionAsync(session, e, message.getId());
+				sendExceptionAsync(session, e, id);
 			}
     		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "addGameteCreationTransaction()", message.getId(), e);
+    			nodeFailed(session, "addGameteCreationTransaction()", id, e);
     		}
     	}
     	else if (message instanceof AddJarStoreInitialTransactionMessage ajsitm) {
     		try {
-				sendObjectAsync(session, AddJarStoreInitialTransactionResultMessages.of(node.addJarStoreInitialTransaction(ajsitm.getRequest()), message.getId()));
+				sendObjectAsync(session, AddJarStoreInitialTransactionResultMessages.of(node.addJarStoreInitialTransaction(ajsitm.getRequest()), id));
 			}
 			catch (TimeoutException | InterruptedException | TransactionRejectedException e) {
-				sendExceptionAsync(session, e, message.getId());
+				sendExceptionAsync(session, e, id);
 			}
     		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "addJarStoreInitialTransaction()", message.getId(), e);
+    			nodeFailed(session, "addJarStoreInitialTransaction()", id, e);
     		}
     	}
     	else if (message instanceof AddInitializationTransactionMessage aitm) {
     		try {
 				node.addInitializationTransaction(aitm.getRequest());
-				sendObjectAsync(session, AddInitializationTransactionResultMessages.of(message.getId()));
+				sendObjectAsync(session, AddInitializationTransactionResultMessages.of(id));
 			}
 			catch (TimeoutException | InterruptedException | TransactionRejectedException e) {
-				sendExceptionAsync(session, e, message.getId());
+				sendExceptionAsync(session, e, id);
 			}
     		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "addInitializationTransaction()", message.getId(), e);
+    			nodeFailed(session, "addInitializationTransaction()", id, e);
     		}
     	}
     	else if (message instanceof PostConstructorCallTransactionMessage pcctm) {
     		try {
-				sendObjectAsync(session, PostConstructorCallTransactionResultMessages.of(node.postConstructorCallTransaction(pcctm.getRequest()).getReferenceOfRequest(), message.getId()));
+				sendObjectAsync(session, PostConstructorCallTransactionResultMessages.of(node.postConstructorCallTransaction(pcctm.getRequest()).getReferenceOfRequest(), id));
 			}
 			catch (TimeoutException | InterruptedException | TransactionRejectedException e) {
-				sendExceptionAsync(session, e, message.getId());
+				sendExceptionAsync(session, e, id);
 			}
     		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "postConstructorCallTransaction()", message.getId(), e);
+    			nodeFailed(session, "postConstructorCallTransaction()", id, e);
     		}
     	}
     	else if (message instanceof PostInstanceMethodCallTransactionMessage pimctm) {
     		try {
-				sendObjectAsync(session, PostInstanceMethodCallTransactionResultMessages.of(node.postInstanceMethodCallTransaction(pimctm.getRequest()).getReferenceOfRequest(), message.getId()));
+				sendObjectAsync(session, PostInstanceMethodCallTransactionResultMessages.of(node.postInstanceMethodCallTransaction(pimctm.getRequest()).getReferenceOfRequest(), id));
 			}
 			catch (TimeoutException | InterruptedException | TransactionRejectedException e) {
-				sendExceptionAsync(session, e, message.getId());
+				sendExceptionAsync(session, e, id);
 			}
     		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "postInstanceMethodCallTransaction()", message.getId(), e);
+    			nodeFailed(session, "postInstanceMethodCallTransaction()", id, e);
     		}
     	}
     	else if (message instanceof PostStaticMethodCallTransactionMessage psmctm) {
     		try {
-				sendObjectAsync(session, PostStaticMethodCallTransactionResultMessages.of(node.postStaticMethodCallTransaction(psmctm.getRequest()).getReferenceOfRequest(), message.getId()));
+				sendObjectAsync(session, PostStaticMethodCallTransactionResultMessages.of(node.postStaticMethodCallTransaction(psmctm.getRequest()).getReferenceOfRequest(), id));
 			}
 			catch (TimeoutException | InterruptedException | TransactionRejectedException e) {
-				sendExceptionAsync(session, e, message.getId());
+				sendExceptionAsync(session, e, id);
 			}
     		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "postStaticMethodCallTransaction()", message.getId(), e);
+    			nodeFailed(session, "postStaticMethodCallTransaction()", id, e);
     		}
     	}
     	else if (message instanceof PostJarStoreTransactionMessage pjstm) {
     		try {
-				sendObjectAsync(session, PostJarStoreTransactionResultMessages.of(node.postJarStoreTransaction(pjstm.getRequest()).getReferenceOfRequest(), message.getId()));
+				sendObjectAsync(session, PostJarStoreTransactionResultMessages.of(node.postJarStoreTransaction(pjstm.getRequest()).getReferenceOfRequest(), id));
 			}
 			catch (TimeoutException | InterruptedException | TransactionRejectedException e) {
-				sendExceptionAsync(session, e, message.getId());
+				sendExceptionAsync(session, e, id);
 			}
     		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "postJarStoreTransaction()", message.getId(), e);
+    			nodeFailed(session, "postJarStoreTransaction()", id, e);
     		}
     	}
     	else

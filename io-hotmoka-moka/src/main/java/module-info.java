@@ -61,6 +61,7 @@ module io.hotmoka.moka {
 	requires io.hotmoka.annotations;
 	requires io.takamaka.code.constants;
 	requires io.mokamint.node.local;
+	requires io.mokamint.miner;
 	requires io.mokamint.plotter;
 	requires io.mokamint.miner.local;
 	requires io.mokamint.node.service;
