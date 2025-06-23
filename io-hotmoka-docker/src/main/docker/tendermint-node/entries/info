@@ -8,11 +8,13 @@ NC='\033[0m' # No Color
 
 echo -e "${BOLD_GREEN}This container manages Hotmoka nodes using Tendermint as byzantine consensus engine.${NC}"
 echo
-echo "This container could be run with two volumes, one for the chain directory and another for the configuration"
-echo "directory of the node, and mapping all ports that could be used by Hotmoka or Tendermint:"
-echo -e "  ${BOLD_CYAN}docker run -it -p 8001:8001 -p 26656:26656 -v chain:/home/hotmoka/chain -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint hotmoka/tendermint-node:VERSION /bin/bash${NC}"
+echo -e "${BOLD_GREEN}It provides the moka tool:${NC}"
+echo -e "* ${RED}moka:${NC}         a manager of Hotmoka nodes"
 echo
-echo "The following commands and options are available inside the container:"
+echo -e "${BOLD_GREEN}Moreover, the following commands and options are available inside this container.${NC}"
+echo "They could be run with two volumes, one for the chain directory and another for the configuration"
+echo "directory of the node, and mapping all ports that could be used by Hotmoka or Tendermint, such as inside:"
+echo -e "  ${BOLD_CYAN}docker run -it -p 8001:8001 -p 26656:26656 -v chain:/home/hotmoka/chain -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint hotmoka/tendermint-node:VERSION /bin/bash${NC}"
 echo
 echo -e "* ${RED}info:${NC}         print this information message"
 echo

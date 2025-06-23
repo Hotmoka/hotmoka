@@ -8,11 +8,17 @@ NC='\033[0m' # No Color
 
 echo -e "${BOLD_GREEN}This container manages Hotmoka nodes using Mokamint as proof of space consensus engine.${NC}"
 echo
-echo "This container could be run with two volumes, one for the chain directory and another for the configuration"
-echo "directory of the node, and mapping all ports that could be used by Hotmoka or Mokamint:"
-echo -e "  ${BOLD_CYAN}docker run -it -p 8001:8001 -p 8025:8025 -p 8030:8030 -p 8031:8031 -v chain:/home/hotmoka/chain -v hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:VERSION /bin/bash${NC}"
+echo -e "${BOLD_GREEN}It provides the moka tool and the Mokamint tools:${NC}"
+echo -e "* ${RED}moka:${NC}                 a manager of Hotmoka nodes"
+echo -e "* ${RED}mokamint-application:${NC} a manager of Mokamint applications"
+echo -e "* ${RED}mokamint-miner:${NC}       a manager of Mokamint miners"
+echo -e "* ${RED}mokamint-node:${NC}        a manager of Mokamint nodes"
+echo -e "* ${RED}mokamint-plotter:${NC}     a manager of Mokamint plot files"
 echo
-echo "The following commands and options are available inside the container:"
+echo -e "${BOLD_GREEN}Moreover, the following commands and options are available inside this container.${NC}"
+echo "They could be run with two volumes, one for the chain directory and another for the configuration"
+echo "directory of the node, and mapping all ports that could be used by Hotmoka or Mokamint, such as inside:"
+echo -e "  ${BOLD_CYAN}docker run -it -p 8001:8001 -p 8025:8025 -p 8030:8030 -p 8031:8031 -v chain:/home/hotmoka/chain -v hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:VERSION /bin/bash${NC}"
 echo
 echo -e "* ${RED}info:${NC}         print this information message"
 echo
