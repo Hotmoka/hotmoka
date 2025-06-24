@@ -258,6 +258,8 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 					}
 				}
 				catch (UnknownStateIdException e) { // TODO: would this be a bug? in that case it should exit the thread
+					// it happens for blocks arrived through whispering during a long synchronization and added much
+					// after their arrival: why?
 					LOGGER.log(Level.SEVERE, "failed to publish the transactions in block " + next.getHexHash(), e);
 				}
 			}
