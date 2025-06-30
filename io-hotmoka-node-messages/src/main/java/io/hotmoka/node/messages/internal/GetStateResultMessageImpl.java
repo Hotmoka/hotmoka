@@ -19,7 +19,7 @@ package io.hotmoka.node.messages.internal;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.Node;
@@ -73,7 +73,7 @@ public class GetStateResultMessageImpl extends AbstractRpcMessage implements Get
 	 * @param onIllegalArgs the creator of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	private <E extends Exception> GetStateResultMessageImpl(Update[] result, String id, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	private <E extends Exception> GetStateResultMessageImpl(Update[] result, String id, ExceptionSupplierFromMessage<? extends E> onIllegalArgs) throws E {
 		super(Objects.requireNonNull(id, "id cannot be null", onIllegalArgs));
 	
 		this.result = result;

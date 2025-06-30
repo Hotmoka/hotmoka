@@ -28,7 +28,7 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.api.Signer;
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -185,7 +185,7 @@ public class JarStoreTransactionRequestImpl extends NonInitialTransactionRequest
 	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
 	 * @throws E if some argument passed to this constructor is illegal
 	 */
-	private <E extends Exception> JarStoreTransactionRequestImpl(String chainId, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, BigInteger nonce, byte[] jar, TransactionReference[] dependencies, byte[] signature, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	private <E extends Exception> JarStoreTransactionRequestImpl(String chainId, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, BigInteger nonce, byte[] jar, TransactionReference[] dependencies, byte[] signature, ExceptionSupplierFromMessage<? extends E> onIllegalArgs) throws E {
 		super(caller, nonce, gasLimit, gasPrice, classpath, onIllegalArgs);
 	
 		this.jar = Objects.requireNonNull(jar, "jar cannot be null", onIllegalArgs);

@@ -91,11 +91,16 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 	private boolean yes;
 
 	@Override
-	protected final void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
-		if (payer.isFaucet())
-			new CreationFromFaucet(remote);
-		else
-			new CreationFromPayer(remote);
+	protected final void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException {
+		try {
+			if (payer.isFaucet())
+				new CreationFromFaucet(remote);
+			else
+				new CreationFromPayer(remote);
+		}
+		catch (NodeException e) {
+			throw new RuntimeException(e); // TODO
+		}
 	}
 
 	/**

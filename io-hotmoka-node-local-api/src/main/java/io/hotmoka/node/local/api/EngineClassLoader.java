@@ -20,7 +20,7 @@ import java.math.BigInteger;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.StorageType;
 import io.hotmoka.node.api.values.StorageReference;
@@ -88,7 +88,7 @@ public interface EngineClassLoader extends TakamakaClassLoader {
 	 * @return the value of the field
 	 * @throws E if the field cannot be accessed, for any reason
 	 */
-	<E extends Exception> StorageReference getStorageReferenceOf(Object object, ExceptionSupplier<? extends E> onIllegalAccess) throws E;
+	<E extends Exception> StorageReference getStorageReferenceOf(Object object, ExceptionSupplierFromMessage<? extends E> onIllegalAccess) throws E;
 
 	/**
 	 * Yields the value of the boolean {@code inStorage} field of the given storage object in RAM.
@@ -99,7 +99,7 @@ public interface EngineClassLoader extends TakamakaClassLoader {
 	 * @return the value of the field
 	 * @throws E if the field cannot be accessed, for any reason
 	 */
-	<E extends Exception> boolean getInStorageOf(Object object, ExceptionSupplier<? extends E> onIllegalAccess) throws E;
+	<E extends Exception> boolean getInStorageOf(Object object, ExceptionSupplierFromMessage<? extends E> onIllegalAccess) throws E;
 
 	/**
 	 * Yields the value of the {@code balance} field of the given contract in RAM.
@@ -110,7 +110,7 @@ public interface EngineClassLoader extends TakamakaClassLoader {
 	 * @return the value of the field
 	 * @throws E if the field cannot be accessed, for any reason
 	 */
-	<E extends Exception> BigInteger getBalanceOf(Object object, ExceptionSupplier<? extends E> onIllegalAccess) throws E;
+	<E extends Exception> BigInteger getBalanceOf(Object object, ExceptionSupplierFromMessage<? extends E> onIllegalAccess) throws E;
 
 	/**
 	 * Sets the value of the {@code balance} field of the given contract in RAM.
@@ -121,7 +121,7 @@ public interface EngineClassLoader extends TakamakaClassLoader {
 	 * @param onIllegalAccess the supplier of the exception thrown if the field cannot be accessed
 	 * @throws E if the field cannot be accessed, for any reason
 	 */
-	<E extends Exception> void setBalanceOf(Object object, BigInteger value, ExceptionSupplier<? extends E> onIllegalAccess) throws E;
+	<E extends Exception> void setBalanceOf(Object object, BigInteger value, ExceptionSupplierFromMessage<? extends E> onIllegalAccess) throws E;
 
 	/**
 	 * Sets the value of the {@code nonce} field of the given account in RAM.
@@ -132,7 +132,7 @@ public interface EngineClassLoader extends TakamakaClassLoader {
 	 * @param onIllegalAccess the supplier of the exception thrown if the field cannot be accessed
 	 * @throws E if the field cannot be accessed, for any reason
 	 */
-	<E extends Exception> void setNonceOf(Object object, BigInteger value, ExceptionSupplier<? extends E> onIllegalAccess) throws E;
+	<E extends Exception> void setNonceOf(Object object, BigInteger value, ExceptionSupplierFromMessage<? extends E> onIllegalAccess) throws E;
 
 	/**
 	 * Called at the beginning of the instrumentation of a {@code @@FromContract} method or constructor
@@ -145,7 +145,7 @@ public interface EngineClassLoader extends TakamakaClassLoader {
 	 * @throws E if {@code io.takamaka.code.lang.Storage.fromContract()} cannot be called
 	 * @throws RuntimeException in case of any possible exception thrown inside {@code io.takamaka.code.lang.Storage.fromContract()}
 	 */
-	<E extends Exception> void fromContract(Object callee, Object caller, ExceptionSupplier<? extends E> onIllegalAccess) throws E;
+	<E extends Exception> void fromContract(Object callee, Object caller, ExceptionSupplierFromMessage<? extends E> onIllegalAccess) throws E;
 
 	/**
 	 * Called at the beginning of the instrumentation of a payable {@code @@FromContract} method or constructor.
@@ -159,7 +159,7 @@ public interface EngineClassLoader extends TakamakaClassLoader {
 	 * @throws E if {@code io.takamaka.code.lang.Contract.payableFromContract()} cannot be called
 	 * @throws RuntimeException in case of any possible exception thrown inside {@code io.takamaka.code.lang.Contract.fromPayableContract()}
 	 */
-	<E extends Exception> void payableFromContract(Object callee, Object caller, BigInteger amount, ExceptionSupplier<? extends E> onIllegalAccess) throws E;
+	<E extends Exception> void payableFromContract(Object callee, Object caller, BigInteger amount, ExceptionSupplierFromMessage<? extends E> onIllegalAccess) throws E;
 
 	/**
 	 * Called at the beginning of the instrumentation of a payable {@code @@FromContract} method or constructor.
@@ -173,7 +173,7 @@ public interface EngineClassLoader extends TakamakaClassLoader {
 	 * @throws E if {@code io.takamaka.code.lang.Contract.payableFromContract()} cannot be called
 	 * @throws RuntimeException in case of any possible exception thrown inside {@code io.takamaka.code.lang.Contract.fromPayableContract()}
 	 */
-	<E extends Exception> void payableFromContract(Object callee, Object caller, int amount, ExceptionSupplier<? extends E> onIllegalAccess) throws E;
+	<E extends Exception> void payableFromContract(Object callee, Object caller, int amount, ExceptionSupplierFromMessage<? extends E> onIllegalAccess) throws E;
 
 	/**
 	 * Called at the beginning of the instrumentation of a payable {@code @@FromContract} method or constructor.
@@ -187,5 +187,5 @@ public interface EngineClassLoader extends TakamakaClassLoader {
 	 * @throws E if {@code io.takamaka.code.lang.Contract.payableFromContract()} cannot be called
 	 * @throws RuntimeException in case of any possible exception thrown inside {@code io.takamaka.code.lang.Contract.fromPayableContract()}
 	 */
-	<E extends Exception> void payableFromContract(Object callee, Object caller, long amount, ExceptionSupplier<? extends E> onIllegalAccess) throws E;
+	<E extends Exception> void payableFromContract(Object callee, Object caller, long amount, ExceptionSupplierFromMessage<? extends E> onIllegalAccess) throws E;
 }

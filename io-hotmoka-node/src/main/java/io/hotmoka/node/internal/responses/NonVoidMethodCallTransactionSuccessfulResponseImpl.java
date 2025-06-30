@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -129,7 +129,7 @@ public class NonVoidMethodCallTransactionSuccessfulResponseImpl extends MethodCa
 	 * @param onIllegalArgs the creator of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	private <E extends Exception> NonVoidMethodCallTransactionSuccessfulResponseImpl(Update[] updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, StorageValue result, StorageReference[] events, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	private <E extends Exception> NonVoidMethodCallTransactionSuccessfulResponseImpl(Update[] updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, StorageValue result, StorageReference[] events, ExceptionSupplierFromMessage<? extends E> onIllegalArgs) throws E {
 		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, IllegalArgumentException::new);
 
 		this.result = Objects.requireNonNull(result, "result cannot be null", onIllegalArgs);

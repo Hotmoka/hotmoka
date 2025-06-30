@@ -72,10 +72,15 @@ public class Bind extends AbstractMokaRpcCommand {
 	private SignatureAlgorithm signature;
 
 	@Override
-	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
-		StorageReference reference = this.reference != null ? verifyPublicKey(remote) : getFromAccountsLedger(remote);
-		Path file = bindKeysToAccount(key, reference, outputDir);
-		report(json(), new Output(reference, file), KeysBindOutputs.Encoder::new);
+	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException {
+		try {
+			StorageReference reference = this.reference != null ? verifyPublicKey(remote) : getFromAccountsLedger(remote);
+			Path file = bindKeysToAccount(key, reference, outputDir);
+			report(json(), new Output(reference, file), KeysBindOutputs.Encoder::new);
+		}
+		catch (NodeException e) {
+			throw new RuntimeException(e); // TODO
+		}
 	}
 
 	/**

@@ -23,7 +23,7 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.node.NodeMarshallingContexts;
@@ -62,7 +62,7 @@ public abstract class CodeExecutionTransactionRequestImpl<R extends CodeExecutio
 	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
 	 * @throws E if some argument passed to this constructor is illegal
 	 */
-	protected <E extends Exception> CodeExecutionTransactionRequestImpl(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, StorageValue[] actuals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	protected <E extends Exception> CodeExecutionTransactionRequestImpl(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, StorageValue[] actuals, ExceptionSupplierFromMessage<? extends E> onIllegalArgs) throws E {
 		super(caller, nonce, gasLimit, gasPrice, classpath, onIllegalArgs);
 
 		this.actuals = Objects.requireNonNull(actuals, "actuals cannot be null", onIllegalArgs);

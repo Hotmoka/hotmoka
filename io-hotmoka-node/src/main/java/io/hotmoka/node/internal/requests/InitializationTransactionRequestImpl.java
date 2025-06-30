@@ -19,7 +19,7 @@ package io.hotmoka.node.internal.requests;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -102,7 +102,7 @@ public class InitializationTransactionRequestImpl extends TransactionRequestImpl
 	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	private <E extends Exception> InitializationTransactionRequestImpl(TransactionReference classpath, StorageReference manifest, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	private <E extends Exception> InitializationTransactionRequestImpl(TransactionReference classpath, StorageReference manifest, ExceptionSupplierFromMessage<? extends E> onIllegalArgs) throws E {
 		this.classpath = Objects.requireNonNull(classpath, "classpath cannot be null", onIllegalArgs);
 		this.manifest = Objects.requireNonNull(manifest, "manifest cannot be null", onIllegalArgs);
 	}

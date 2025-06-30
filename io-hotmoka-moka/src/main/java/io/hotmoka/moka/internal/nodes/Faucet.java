@@ -71,7 +71,8 @@ public class Faucet extends AbstractMokaRpcCommand {
     private char[] password;
 
 	@Override
-	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException {
+		try {
 		var manifest = remote.getManifest();
 		var takamakaCode = remote.getTakamakaCode();
 
@@ -140,6 +141,10 @@ public class Faucet extends AbstractMokaRpcCommand {
 		}
 
 		report(json(), new Output(), NodesFaucetOutputs.Encoder::new);
+		}
+		catch (NodeException e) {
+			throw new RuntimeException(e); // TODO
+		}
 	}
 
 	/**

@@ -19,7 +19,7 @@ package io.hotmoka.node.internal.types;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -74,7 +74,7 @@ public abstract class AbstractStorageType extends AbstractMarshallable implement
 	 * @return the storage type
 	 * @throws E if {@code name} is illegal for a storage type
 	 */
-	public static <E extends Exception> StorageType named(String name, ExceptionSupplier<? extends E> onIllegalName) throws E {
+	public static <E extends Exception> StorageType named(String name, ExceptionSupplierFromMessage<? extends E> onIllegalName) throws E {
 		switch (Objects.requireNonNull(name, "name cannot be null", onIllegalName)) {
 		case "boolean":
 	        return BasicTypeImpl.BOOLEAN;

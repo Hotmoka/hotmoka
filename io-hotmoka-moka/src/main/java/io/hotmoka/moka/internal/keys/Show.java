@@ -34,7 +34,7 @@ import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.moka.KeysShowOutputs;
 import io.hotmoka.moka.api.keys.KeysShowOutput;
@@ -112,7 +112,7 @@ public class Show extends AbstractMokaCommand {
 		 * @throws NoSuchAlgorithmException if {@code json} refers to a non-available cryptographic algorithm
 		 */
 		public Output(KeysShowOutputJson json) throws InconsistentJsonException, NoSuchAlgorithmException {
-			ExceptionSupplier<InconsistentJsonException> exp = InconsistentJsonException::new;
+			ExceptionSupplierFromMessage<InconsistentJsonException> exp = InconsistentJsonException::new;
 			this.signature = SignatureAlgorithms.of(Objects.requireNonNull(json.getSignature(), "signature cannot be null", exp));
 			this.publicKeyBase58 = Base58.requireBase58(Objects.requireNonNull(json.getPublicKeyBase58(), "publicKeyBase58 cannot be null", exp), exp);
 			this.publicKeyBase64 = Base64.requireBase64(Objects.requireNonNull(json.getPublicKeyBase64(), "publicKeyBase64 cannot be null", exp), exp);

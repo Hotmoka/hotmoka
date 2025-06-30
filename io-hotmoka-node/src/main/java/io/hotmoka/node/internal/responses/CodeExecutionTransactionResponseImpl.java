@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.node.api.responses.CodeExecutionTransactionResponse;
 import io.hotmoka.node.api.updates.Update;
@@ -43,7 +43,7 @@ public abstract class CodeExecutionTransactionResponseImpl extends NonInitialTra
 	 * @param onIllegalArgs the creator of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	protected <E extends Exception> CodeExecutionTransactionResponseImpl(Update[] updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	protected <E extends Exception> CodeExecutionTransactionResponseImpl(Update[] updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, ExceptionSupplierFromMessage<? extends E> onIllegalArgs) throws E {
 		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, onIllegalArgs);
 	}
 

@@ -75,7 +75,7 @@ public class Install extends AbstractGasCostCommand {
 	private boolean yes;
 
 	@Override
-	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, NodeException {
+	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException {
 		String passwordOfPayerAsString = new String(passwordOfPayer);
 
 		try {
@@ -91,6 +91,9 @@ public class Install extends AbstractGasCostCommand {
 			BigInteger nonce = determineNonceOf(payer, remote);
 			JarStoreTransactionRequest request = mkRequest(chainId, bytesOfJar, dependencies, signer, classpath, gasLimit, gasPrice, nonce);
 			report(json(), executeRequest(remote, request, gasPrice), JarsInstallOutputs.Encoder::new);
+		}
+		catch (NodeException e) {
+			throw new RuntimeException(e); // TODO
 		}
 		finally {
 			passwordOfPayerAsString = null;

@@ -19,7 +19,7 @@ package io.hotmoka.node.internal.types;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -46,7 +46,7 @@ public final class ClassTypeImpl extends AbstractStorageType implements ClassTyp
 	 * @param onIllegalName the exception generator used if {@code name} is illegal for a class type
 	 * @throws E if {@code name} is illegal for a class type
 	 */
-	private <E extends Exception> ClassTypeImpl(String name, ExceptionSupplier<? extends E> onIllegalName) throws E {
+	private <E extends Exception> ClassTypeImpl(String name, ExceptionSupplierFromMessage<? extends E> onIllegalName) throws E {
 		if ("boolean".equals(name) || "byte".equals(name) || "char".equals(name) || "short".equals(name) ||
 				"int".equals(name) || "long".equals(name) || "float".equals(name) || "double".equals(name))
 			throw onIllegalName.apply("Primitive types are not storage class types");
@@ -66,7 +66,7 @@ public final class ClassTypeImpl extends AbstractStorageType implements ClassTyp
 	 * @return the class type
 	 * @throws E if {@code name} is illegal for a class type
 	 */
-	public static <E extends Exception> ClassType named(String name, ExceptionSupplier<? extends E> onIllegalName) throws E {
+	public static <E extends Exception> ClassType named(String name, ExceptionSupplierFromMessage<? extends E> onIllegalName) throws E {
 		switch (Objects.requireNonNull(name, "class name cannot be null", onIllegalName)) {
 		case "java.math.BigInteger": return BIG_INTEGER;
 		case "java.lang.Object": return OBJECT;

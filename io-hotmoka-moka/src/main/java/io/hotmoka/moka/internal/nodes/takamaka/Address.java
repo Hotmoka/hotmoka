@@ -34,8 +34,13 @@ import picocli.CommandLine.Command;
 public class Address extends AbstractMokaRpcCommand {
 
 	@Override
-	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
-		report(json(), new Output(remote.getTakamakaCode()), NodesTakamakaAddressOutputs.Encoder::new);
+	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException {
+		try {
+			report(json(), new Output(remote.getTakamakaCode()), NodesTakamakaAddressOutputs.Encoder::new);
+		}
+		catch (NodeException e) {
+			throw new RuntimeException(e); // TODO
+		}
 	}
 
 	/**

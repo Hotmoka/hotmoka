@@ -19,7 +19,7 @@ package io.hotmoka.node.internal.signatures;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.api.signatures.VoidMethodSignature;
@@ -87,7 +87,7 @@ public final class VoidMethodSignatureImpl extends AbstractMethodSignature imple
 	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	private <E extends Exception> VoidMethodSignatureImpl(StorageType[] formals, ClassType definingClass, String name, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	private <E extends Exception> VoidMethodSignatureImpl(StorageType[] formals, ClassType definingClass, String name, ExceptionSupplierFromMessage<? extends E> onIllegalArgs) throws E {
 		super(definingClass, name, formals, onIllegalArgs);
 	}
 

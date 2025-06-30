@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.Base64;
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -101,7 +101,7 @@ public class JarStoreInitialTransactionRequestImpl extends TransactionRequestImp
 	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
 	 * @throws E if some argument passed to this constructor is illegal
 	 */
-	private <E extends Exception> JarStoreInitialTransactionRequestImpl(byte[] jar, TransactionReference[] dependencies, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	private <E extends Exception> JarStoreInitialTransactionRequestImpl(byte[] jar, TransactionReference[] dependencies, ExceptionSupplierFromMessage<? extends E> onIllegalArgs) throws E {
 		this.jar = jar;
 		this.dependencies = dependencies;
 

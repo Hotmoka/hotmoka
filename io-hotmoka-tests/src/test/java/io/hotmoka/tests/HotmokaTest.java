@@ -100,6 +100,7 @@ import io.hotmoka.node.tendermint.TendermintNodeConfigBuilders;
 import io.hotmoka.node.tendermint.TendermintNodes;
 import io.hotmoka.node.tendermint.api.TendermintNode;
 import io.hotmoka.testing.AbstractLoggedTests;
+import io.hotmoka.websockets.api.FailedDeploymentException;
 import io.mokamint.miner.api.Miner;
 import io.mokamint.miner.local.LocalMiners;
 import io.mokamint.node.Peers;
@@ -522,14 +523,14 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		}
 	}
 
-	private static Node mkRemoteNode(Node exposed) throws NodeException {
+	private static Node mkRemoteNode(Node exposed) throws FailedDeploymentException, NodeException {
 		NodeServices.of(exposed, 8000); // it will be closed when exposed will be closed
 		System.out.println("Hotmoka node published at ws://localhost:8000");
 		return RemoteNodes.of(URI.create("ws://localhost:8000"), 100_000);
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkRemoteNode(String uri) throws NodeException {
+	private static Node mkRemoteNode(String uri) throws NodeException, FailedDeploymentException {
 		return RemoteNodes.of(URI.create(uri), 100_000);
 	}
 

@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -62,7 +62,7 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 	 * @param onIllegalArgs the supplier of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	protected <E extends Exception> AbstractUpdate(StorageReference object, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	protected <E extends Exception> AbstractUpdate(StorageReference object, ExceptionSupplierFromMessage<? extends E> onIllegalArgs) throws E {
 		this.object = Objects.requireNonNull(object, "object cannot be null", onIllegalArgs);
 	}
 

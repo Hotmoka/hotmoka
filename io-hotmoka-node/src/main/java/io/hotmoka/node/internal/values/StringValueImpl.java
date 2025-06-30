@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.util.function.Function;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -90,7 +90,7 @@ public final class StringValueImpl extends AbstractStorageValue implements Strin
 	 * @param onIllegalArgs the supplier of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	private <E extends Exception> StringValueImpl(String value, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	private <E extends Exception> StringValueImpl(String value, ExceptionSupplierFromMessage<? extends E> onIllegalArgs) throws E {
 		this.value = Objects.requireNonNull(value, "value cannot be null", onIllegalArgs);
 	}
 

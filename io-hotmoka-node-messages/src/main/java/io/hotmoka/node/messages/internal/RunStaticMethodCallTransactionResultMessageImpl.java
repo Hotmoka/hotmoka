@@ -18,7 +18,7 @@ package io.hotmoka.node.messages.internal;
 
 import java.util.Optional;
 
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.Node;
@@ -68,7 +68,7 @@ public class RunStaticMethodCallTransactionResultMessageImpl extends AbstractRpc
 	 * @param onIllegalArgs the creator of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	private <E extends Exception> RunStaticMethodCallTransactionResultMessageImpl(Optional<StorageValue> result, String id, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	private <E extends Exception> RunStaticMethodCallTransactionResultMessageImpl(Optional<StorageValue> result, String id, ExceptionSupplierFromMessage<? extends E> onIllegalArgs) throws E {
 		super(Objects.requireNonNull(id, "id cannot be null", onIllegalArgs));
 	
 		this.result = Objects.requireNonNull(result, "result cannot be null", onIllegalArgs);

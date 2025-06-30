@@ -108,8 +108,13 @@ public class Call extends AbstractGasCostCommand {
 	@Option(names = "--yes", description = "assume yes when asked for confirmation; this is implied if --json is used")
 	private boolean yes;
 
-	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
-		new Body(remote);
+	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException {
+		try {
+			new Body(remote);
+		}
+		catch (NodeException e) {
+			throw new RuntimeException(e); // TODO
+		}
 	}
 
 	private class Body {

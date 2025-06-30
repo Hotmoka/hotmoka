@@ -81,8 +81,13 @@ public class Rotate extends AbstractGasCostCommand {
 	private boolean yes;
 
 	@Override
-	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
-		new Body(remote);
+	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException {
+		try {
+			new Body(remote);
+		}
+		catch (NodeException e) {
+			throw new RuntimeException(e); // TODO
+		}
 	}
 
 	private class Body {

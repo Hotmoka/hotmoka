@@ -27,7 +27,7 @@ import java.util.Arrays;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.api.Signer;
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -194,7 +194,7 @@ public class StaticMethodCallTransactionRequestImpl extends MethodCallTransactio
 	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	private <E extends Exception> StaticMethodCallTransactionRequestImpl(String chainId, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, BigInteger nonce, StorageValue[] actuals, MethodSignature method, byte[] signature, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	private <E extends Exception> StaticMethodCallTransactionRequestImpl(String chainId, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, BigInteger nonce, StorageValue[] actuals, MethodSignature method, byte[] signature, ExceptionSupplierFromMessage<? extends E> onIllegalArgs) throws E {
 		super(caller, nonce, gasLimit, gasPrice, classpath, method, actuals, onIllegalArgs);
 
 		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null", onIllegalArgs);

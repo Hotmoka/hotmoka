@@ -141,7 +141,8 @@ public class Send extends AbstractGasCostCommand {
 	}
 
 	@Override
-	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException {
+		try {
 		if (payer.isFaucet())
 			if(receiver.asReference() != null)
 				new SendFromFaucetToDestinationContract(remote);
@@ -152,6 +153,10 @@ public class Send extends AbstractGasCostCommand {
 				new SendFromPayerAccountToDestinationContract(remote);
 			else
 				new SendFromPayerAccountToDestinationKey(remote);
+		}
+		catch (NodeException e) {
+			throw new RuntimeException(e); // TODO
+		}
 	}
 
 	private TransactionReference getClasspath(RemoteNode remote) throws NodeException, TimeoutException, InterruptedException, CommandException {

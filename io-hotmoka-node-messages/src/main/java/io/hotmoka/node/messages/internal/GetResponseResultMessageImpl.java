@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal;
 
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.responses.TransactionResponse;
@@ -69,7 +69,7 @@ public class GetResponseResultMessageImpl extends AbstractRpcMessage implements 
 	 * @param onIllegalArgs the creator of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	private <E extends Exception> GetResponseResultMessageImpl(TransactionResponse result, String id, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	private <E extends Exception> GetResponseResultMessageImpl(TransactionResponse result, String id, ExceptionSupplierFromMessage<? extends E> onIllegalArgs) throws E {
 		super(Objects.requireNonNull(id, "id cannot be null", onIllegalArgs));
 	
 		this.result = Objects.requireNonNull(result, "result cannot be null", onIllegalArgs);

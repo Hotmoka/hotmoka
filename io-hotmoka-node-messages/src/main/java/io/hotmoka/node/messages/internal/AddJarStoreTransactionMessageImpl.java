@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal;
 
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.requests.JarStoreTransactionRequest;
@@ -61,7 +61,7 @@ public class AddJarStoreTransactionMessageImpl extends AbstractRpcMessage implem
 	 * @param onIllegalArgs the creator of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	private <E extends Exception> AddJarStoreTransactionMessageImpl(JarStoreTransactionRequest request, String id, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	private <E extends Exception> AddJarStoreTransactionMessageImpl(JarStoreTransactionRequest request, String id, ExceptionSupplierFromMessage<? extends E> onIllegalArgs) throws E {
 		super(Objects.requireNonNull(id, "id cannot be null", onIllegalArgs));
 	
 		this.request = Objects.requireNonNull(request, "request cannot be null", onIllegalArgs);

@@ -19,7 +19,7 @@ package io.hotmoka.node.internal.signatures;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.StorageTypes;
@@ -50,7 +50,7 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	protected <E extends Exception> AbstractMethodSignature(ClassType definingClass, String name, StorageType[] formals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	protected <E extends Exception> AbstractMethodSignature(ClassType definingClass, String name, StorageType[] formals, ExceptionSupplierFromMessage<? extends E> onIllegalArgs) throws E {
 		super(definingClass, formals, onIllegalArgs);
 
 		this.name = Objects.requireNonNull(name, "name cannot be null", onIllegalArgs);

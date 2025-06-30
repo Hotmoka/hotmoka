@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.node.api.requests.NonInitialTransactionRequest;
@@ -74,7 +74,7 @@ public abstract class NonInitialTransactionRequestImpl<R extends NonInitialTrans
 	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
 	 * @throws E if some argument passed to this constructor is illegal
 	 */
-	protected <E extends Exception> NonInitialTransactionRequestImpl(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	protected <E extends Exception> NonInitialTransactionRequestImpl(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ExceptionSupplierFromMessage<? extends E> onIllegalArgs) throws E {
 		this.caller = Objects.requireNonNull(caller, "caller cannot be null", onIllegalArgs);
 		this.gasLimit = Objects.requireNonNull(gasLimit, "gasLimit cannot be null", onIllegalArgs);
 		this.gasPrice = Objects.requireNonNull(gasPrice, "gasPrice cannot be null", onIllegalArgs);

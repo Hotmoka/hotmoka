@@ -19,7 +19,7 @@ package io.hotmoka.node.internal.signatures;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -96,7 +96,7 @@ public final class FieldSignatureImpl extends AbstractSignature implements Field
 	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	private <E extends Exception> FieldSignatureImpl(ClassType definingClass, String name, StorageType type, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	private <E extends Exception> FieldSignatureImpl(ClassType definingClass, String name, StorageType type, ExceptionSupplierFromMessage<? extends E> onIllegalArgs) throws E {
 		super(definingClass, onIllegalArgs);
 		
 		this.name = Objects.requireNonNull(name, "name cannot be null", onIllegalArgs);

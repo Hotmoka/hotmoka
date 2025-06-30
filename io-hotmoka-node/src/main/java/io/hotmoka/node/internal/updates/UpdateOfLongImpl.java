@@ -19,7 +19,7 @@ package io.hotmoka.node.internal.updates;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.FieldSignatures;
@@ -98,7 +98,7 @@ public final class UpdateOfLongImpl extends UpdateOfFieldImpl implements UpdateO
 	 * @param onIllegalArgs the supplier of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	private <E extends Exception> UpdateOfLongImpl(StorageReference object, FieldSignature field, long value, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	private <E extends Exception> UpdateOfLongImpl(StorageReference object, FieldSignature field, long value, ExceptionSupplierFromMessage<? extends E> onIllegalArgs) throws E {
 		super(object, field, onIllegalArgs);
 
 		this.value = value;

@@ -27,7 +27,7 @@ import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.moka.AccountsShowOutputs;
@@ -60,7 +60,8 @@ public class Show extends AbstractMokaRpcCommand {
 	public final static int MAX_PRINTED_KEY = 200;
 
 	@Override
-	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException {
+		try {
 		SignatureAlgorithm signature;
 		try {
 			signature = SignatureHelpers.of(remote).signatureAlgorithmFor(account);
@@ -102,6 +103,10 @@ public class Show extends AbstractMokaRpcCommand {
 		catch (Base64ConversionException e) {
 			throw new CommandException("The key in the account object " + account + " is not in base64 format", e);
 		}
+		}
+		catch (NodeException e) {
+			throw new RuntimeException(e); // TODO
+		}
 	}
 
 	/**
@@ -134,7 +139,7 @@ public class Show extends AbstractMokaRpcCommand {
 		 * @throws NoSuchAlgorithmException if {@code json} refers to a non-available cryptographic algorithm
 		 */
 		public Output(AccountsShowOutputJson json) throws InconsistentJsonException, NoSuchAlgorithmException {
-			ExceptionSupplier<InconsistentJsonException> exp = InconsistentJsonException::new;
+			ExceptionSupplierFromMessage<InconsistentJsonException> exp = InconsistentJsonException::new;
 
 			this.balance = Objects.requireNonNull(json.getBalance(), "balance cannot be null", exp);
 			if (balance.signum() < 0)

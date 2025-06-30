@@ -19,7 +19,7 @@ package io.hotmoka.node.internal.updates;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -104,7 +104,7 @@ public final class ClassTagImpl extends AbstractUpdate implements ClassTag {
 	 * @param onIllegalArgs the supplier of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	private <E extends Exception> ClassTagImpl(StorageReference object, ClassType clazz, TransactionReference jar, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	private <E extends Exception> ClassTagImpl(StorageReference object, ClassType clazz, TransactionReference jar, ExceptionSupplierFromMessage<? extends E> onIllegalArgs) throws E {
 		super(object, onIllegalArgs);
 	
 		this.jar = Objects.requireNonNull(jar, "jar cannot be null", onIllegalArgs);

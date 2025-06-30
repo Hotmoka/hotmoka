@@ -37,7 +37,7 @@ import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.moka.KeysCreateOutputs;
 import io.hotmoka.moka.api.keys.KeysCreateOutput;
@@ -141,7 +141,7 @@ public class Create extends AbstractMokaCommand {
 		 * @throws NoSuchAlgorithmException if {@code json} refers to a non-available cryptographic algorithm
 		 */
 		public Output(KeysCreateOutputJson json) throws InconsistentJsonException, NoSuchAlgorithmException {
-			ExceptionSupplier<InconsistentJsonException> exp = InconsistentJsonException::new;
+			ExceptionSupplierFromMessage<InconsistentJsonException> exp = InconsistentJsonException::new;
 
 			try {
 				this.file = Paths.get(Objects.requireNonNull(json.getFile(), "file cannot be null", InconsistentJsonException::new));

@@ -19,7 +19,7 @@ package io.hotmoka.node.internal.responses;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
@@ -41,7 +41,7 @@ public abstract class MethodCallTransactionResponseImpl extends CodeExecutionTra
 	 * @param onIllegalArgs the creator of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	protected <E extends Exception> MethodCallTransactionResponseImpl(Update[] updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	protected <E extends Exception> MethodCallTransactionResponseImpl(Update[] updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, ExceptionSupplierFromMessage<? extends E> onIllegalArgs) throws E {
 		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, onIllegalArgs);
 	}
 

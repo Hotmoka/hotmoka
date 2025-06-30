@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -49,7 +49,7 @@ public abstract class AbstractSignature extends AbstractMarshallable implements 
 	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	protected <E extends Exception> AbstractSignature(ClassType definingClass, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	protected <E extends Exception> AbstractSignature(ClassType definingClass, ExceptionSupplierFromMessage<? extends E> onIllegalArgs) throws E {
 		this.definingClass = Objects.requireNonNull(definingClass, "definingClass cannot be null", onIllegalArgs);
 	}
 

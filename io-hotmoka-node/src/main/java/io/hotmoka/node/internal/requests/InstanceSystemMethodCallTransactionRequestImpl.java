@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.Marshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -116,7 +116,7 @@ public class InstanceSystemMethodCallTransactionRequestImpl extends AbstractInst
 	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
 	 * @throws E if some argument passed to this constructor is illegal
 	 */
-	private <E extends Exception> InstanceSystemMethodCallTransactionRequestImpl(StorageReference caller, BigInteger gasLimit, TransactionReference classpath,  BigInteger nonce, StorageValue[] actuals, MethodSignature method, StorageReference receiver, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	private <E extends Exception> InstanceSystemMethodCallTransactionRequestImpl(StorageReference caller, BigInteger gasLimit, TransactionReference classpath,  BigInteger nonce, StorageValue[] actuals, MethodSignature method, StorageReference receiver, ExceptionSupplierFromMessage<? extends E> onIllegalArgs) throws E {
 		super(caller, nonce, gasLimit, ZERO, classpath, method, receiver, actuals, onIllegalArgs);
 	}
 

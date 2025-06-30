@@ -26,8 +26,8 @@ import static io.hotmoka.node.service.api.NodeService.ADD_STATIC_METHOD_CALL_TRA
 import static io.hotmoka.node.service.api.NodeService.EVENTS_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_CLASS_TAG_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_CONSENSUS_CONFIG_ENDPOINT;
-import static io.hotmoka.node.service.api.NodeService.GET_MANIFEST_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_INFO_ENDPOINT;
+import static io.hotmoka.node.service.api.NodeService.GET_MANIFEST_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_POLLED_RESPONSE_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_REQUEST_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_RESPONSE_ENDPOINT;
@@ -99,10 +99,10 @@ import io.hotmoka.node.messages.GetClassTagMessages;
 import io.hotmoka.node.messages.GetClassTagResultMessages;
 import io.hotmoka.node.messages.GetConsensusConfigMessages;
 import io.hotmoka.node.messages.GetConsensusConfigResultMessages;
-import io.hotmoka.node.messages.GetManifestMessages;
-import io.hotmoka.node.messages.GetManifestResultMessages;
 import io.hotmoka.node.messages.GetInfoMessages;
 import io.hotmoka.node.messages.GetInfoResultMessages;
+import io.hotmoka.node.messages.GetManifestMessages;
+import io.hotmoka.node.messages.GetManifestResultMessages;
 import io.hotmoka.node.messages.GetPolledResponseMessages;
 import io.hotmoka.node.messages.GetPolledResponseResultMessages;
 import io.hotmoka.node.messages.GetRequestMessages;
@@ -144,10 +144,10 @@ import io.hotmoka.node.messages.api.GetClassTagMessage;
 import io.hotmoka.node.messages.api.GetClassTagResultMessage;
 import io.hotmoka.node.messages.api.GetConsensusConfigMessage;
 import io.hotmoka.node.messages.api.GetConsensusConfigResultMessage;
-import io.hotmoka.node.messages.api.GetManifestMessage;
-import io.hotmoka.node.messages.api.GetManifestResultMessage;
 import io.hotmoka.node.messages.api.GetInfoMessage;
 import io.hotmoka.node.messages.api.GetInfoResultMessage;
+import io.hotmoka.node.messages.api.GetManifestMessage;
+import io.hotmoka.node.messages.api.GetManifestResultMessage;
 import io.hotmoka.node.messages.api.GetPolledResponseMessage;
 import io.hotmoka.node.messages.api.GetPolledResponseResultMessage;
 import io.hotmoka.node.messages.api.GetRequestMessage;
@@ -171,6 +171,7 @@ import io.hotmoka.node.messages.api.RunInstanceMethodCallTransactionResultMessag
 import io.hotmoka.node.messages.api.RunStaticMethodCallTransactionMessage;
 import io.hotmoka.node.messages.api.RunStaticMethodCallTransactionResultMessage;
 import io.hotmoka.node.remote.api.RemoteNode;
+import io.hotmoka.websockets.api.FailedDeploymentException;
 import io.hotmoka.websockets.beans.ExceptionMessages;
 import io.hotmoka.websockets.beans.api.ExceptionMessage;
 import io.hotmoka.websockets.beans.api.RpcMessage;
@@ -184,7 +185,7 @@ import jakarta.websocket.Session;
  * Shared implementation of a node that forwards all its calls to a remote service.
  */
 @ThreadSafe
-public class RemoteNodeImpl extends AbstractRemote<NodeException> implements RemoteNode {
+public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 
 	/**
 	 * The manager of the subscriptions to the events occurring in this node.
@@ -204,9 +205,9 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	 * @param uri the URI of the network service that gets bound to the remote node
 	 * @param timeout the time (in milliseconds) allowed for the handshake to the network service;
 	 *                beyond that threshold, a timeout exception is thrown
-	 * @throws NodeException if the remote node could not be deployed
+	 * @throws FailedDeploymentException if the remote node could not be deployed
      */
-    public RemoteNodeImpl(URI uri, int timeout) throws NodeException {
+    public RemoteNodeImpl(URI uri, int timeout) throws FailedDeploymentException {
     	super(timeout);
 
     	this.logPrefix = "node remote(" + uri + "): ";
@@ -237,24 +238,14 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
     		addSession(EVENTS_ENDPOINT, uri, EventsEndpoint::new);
     	}
     	catch (DeploymentException | IOException e) {
-    		throw new NodeException(e);
+    		throw new FailedDeploymentException(e);
     	}
 
     	LOGGER.info(logPrefix + "connected");
     }
 
-    @Override
-	protected ClosedNodeException mkExceptionIfClosed() {
-		return new ClosedNodeException();
-	}
-
 	@Override
-	protected NodeException mkException(Exception cause) {
-		return cause instanceof NodeException ne ? ne : new NodeException(cause);
-	}
-
-	@Override
-	protected void closeResources(CloseReason reason) throws NodeException {
+	protected void closeResources(CloseReason reason) {
 		super.closeResources(reason);
 		LOGGER.info(logPrefix + "closed with reason: " + reason);
 	}
@@ -315,7 +306,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 
 	@Override
 	public NodeInfo getInfo() throws NodeException, TimeoutException, InterruptedException {
-		ensureIsOpen();
+		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendGetInfo(id);
 		return waitForResult(id, GetInfoResultMessage.class, TimeoutException.class, NodeException.class);
@@ -348,7 +339,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 
 	@Override
 	public ConsensusConfig<?,?> getConfig() throws NodeException, TimeoutException, InterruptedException {
-		ensureIsOpen();
+		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendGetConsensusConfig(id);
 		return waitForResult(id, GetConsensusConfigResultMessage.class, TimeoutException.class, NodeException.class);
@@ -381,7 +372,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 
 	@Override
 	public TransactionReference getTakamakaCode() throws NodeException, InterruptedException, TimeoutException {
-		ensureIsOpen();
+		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendGetTakamakaCode(id);
 		return waitForResult(id, GetTakamakaCodeResultMessage.class, TimeoutException.class, NodeException.class);
@@ -414,7 +405,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 
 	@Override
 	public StorageReference getManifest() throws NodeException, InterruptedException, TimeoutException {
-		ensureIsOpen();
+		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendGetManifest(id);
 		return waitForResult(id, GetManifestResultMessage.class, TimeoutException.class, NodeException.class);
@@ -447,7 +438,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 
 	@Override
 	public ClassTag getClassTag(StorageReference reference) throws UnknownReferenceException, NodeException, InterruptedException, TimeoutException {
-		ensureIsOpen();
+		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendGetClassTag(reference, id);
 		return waitForResult(id, GetClassTagResultMessage.class, TimeoutException.class, NodeException.class, UnknownReferenceException.class);
@@ -481,7 +472,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 
 	@Override
 	public Stream<Update> getState(StorageReference reference) throws UnknownReferenceException, NodeException, InterruptedException, TimeoutException {
-		ensureIsOpen();
+		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendGetState(reference, id);
 		return waitForResult(id, GetStateResultMessage.class, TimeoutException.class, NodeException.class, UnknownReferenceException.class);
@@ -515,7 +506,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 
 	@Override
 	public TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, NodeException, InterruptedException, TimeoutException {
-		ensureIsOpen();
+		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendGetRequest(reference, id);
 		return waitForResult(id, GetRequestResultMessage.class, TimeoutException.class, NodeException.class, UnknownReferenceException.class);
@@ -549,7 +540,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 
 	@Override
 	public TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, NodeException, InterruptedException, TimeoutException {
-		ensureIsOpen();
+		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendGetResponse(reference, id);
 		return waitForResult(id, GetResponseResultMessage.class, TimeoutException.class, NodeException.class, UnknownReferenceException.class);
@@ -583,7 +574,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 
 	@Override
 	public TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
-		ensureIsOpen();
+		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendGetPolledResponse(reference, id);
 		return waitForResult(id, GetPolledResponseResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class);
@@ -617,7 +608,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 
 	@Override
 	public Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException, TimeoutException {
-		ensureIsOpen();
+		ensureIsOpen(ClosedNodeException::new);		
 		var id = nextId();
 		sendRunInstanceMethodCallTransaction(request, id);
 		return waitForResult(id, RunInstanceMethodCallTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class, TransactionException.class, CodeExecutionException.class);
@@ -651,7 +642,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 
 	@Override
 	public Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException, TimeoutException {
-		ensureIsOpen();
+		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendRunStaticMethodCallTransaction(request, id);
 		return waitForResult(id, RunStaticMethodCallTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class, TransactionException.class, CodeExecutionException.class);
@@ -685,7 +676,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 
 	@Override
 	public Optional<StorageValue> addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException, TimeoutException {
-		ensureIsOpen();
+		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendAddInstanceMethodCallTransaction(request, id);
 		return waitForResult(id, AddInstanceMethodCallTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class, TransactionException.class, CodeExecutionException.class);
@@ -719,7 +710,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 
 	@Override
 	public Optional<StorageValue> addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException, TimeoutException {
-		ensureIsOpen();
+		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendAddStaticMethodCallTransaction(request, id);
 		return waitForResult(id, AddStaticMethodCallTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class, TransactionException.class, CodeExecutionException.class);
@@ -753,7 +744,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 
 	@Override
 	public StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException, TimeoutException {
-		ensureIsOpen();
+		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendAddConstructorCallTransaction(request, id);
 		return waitForResult(id, AddConstructorCallTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class, TransactionException.class, CodeExecutionException.class);
@@ -787,7 +778,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 
 	@Override
 	public TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException, NodeException, InterruptedException, TimeoutException {
-		ensureIsOpen();
+		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendAddJarStoreTransaction(request, id);
 		return waitForResult(id, AddJarStoreTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class, TransactionException.class);
@@ -821,7 +812,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 
 	@Override
 	public StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
-		ensureIsOpen();
+		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendAddGameteCreationTransaction(request, id);
 		return waitForResult(id, AddGameteCreationTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class);
@@ -855,7 +846,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 
 	@Override
 	public TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
-		ensureIsOpen();
+		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendAddJarStoreInitialTransaction(request, id);
 		return waitForResult(id, AddJarStoreInitialTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class);
@@ -889,7 +880,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 
 	@Override
 	public final void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
-		ensureIsOpen();
+		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendAddInitializationTransaction(request, id);
 		waitForResult(id, AddInitializationTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class);
@@ -923,7 +914,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 
 	@Override
 	public ConstructorFuture postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
-		ensureIsOpen();
+		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendPostConstructorCallTransaction(request, id);
 		return CodeFutures.ofConstructor(waitForResult(id, PostConstructorCallTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class), this);
@@ -957,7 +948,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 
 	@Override
 	public MethodFuture postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
-		ensureIsOpen();
+		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendPostInstanceMethodCallTransaction(request, id);
 		return CodeFutures.ofMethod(waitForResult(id, PostInstanceMethodCallTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class), this);
@@ -991,7 +982,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 
 	@Override
 	public MethodFuture postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
-		ensureIsOpen();
+		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendPostStaticMethodCallTransaction(request, id);
 		return CodeFutures.ofMethod(waitForResult(id, PostStaticMethodCallTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class), this);
@@ -1025,7 +1016,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 
 	@Override
 	public JarFuture postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
-		ensureIsOpen();
+		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendPostJarStoreTransaction(request, id);
 		return JarFutures.of(waitForResult(id, PostJarStoreTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class), this);

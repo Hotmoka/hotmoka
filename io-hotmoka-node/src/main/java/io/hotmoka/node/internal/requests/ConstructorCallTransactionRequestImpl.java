@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.api.Signer;
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -167,7 +167,7 @@ public class ConstructorCallTransactionRequestImpl extends CodeExecutionTransact
 	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
 	 * @throws E if some argument passed to this constructor is illegal
 	 */
-	private <E extends Exception> ConstructorCallTransactionRequestImpl(String chainId, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, BigInteger nonce, StorageValue[] actuals, ConstructorSignature constructor, byte[] signature, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	private <E extends Exception> ConstructorCallTransactionRequestImpl(String chainId, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, BigInteger nonce, StorageValue[] actuals, ConstructorSignature constructor, byte[] signature, ExceptionSupplierFromMessage<? extends E> onIllegalArgs) throws E {
 		super(caller, nonce, gasLimit, gasPrice, classpath, actuals, onIllegalArgs);
 	
 		this.constructor = Objects.requireNonNull(constructor, "constructor cannot be null", onIllegalArgs);

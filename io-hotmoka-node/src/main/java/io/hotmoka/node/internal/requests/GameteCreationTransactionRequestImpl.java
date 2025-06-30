@@ -21,7 +21,7 @@ import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.Base64;
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -110,7 +110,7 @@ public class GameteCreationTransactionRequestImpl extends TransactionRequestImpl
 	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
 	 * @throws E if some argument passed to this constructor is illegal
 	 */
-	private <E extends Exception> GameteCreationTransactionRequestImpl(TransactionReference classpath, BigInteger initialAmount, String publicKey, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	private <E extends Exception> GameteCreationTransactionRequestImpl(TransactionReference classpath, BigInteger initialAmount, String publicKey, ExceptionSupplierFromMessage<? extends E> onIllegalArgs) throws E {
 		this.classpath = Objects.requireNonNull(classpath, "classpath cannot be null", onIllegalArgs);
 		this.initialAmount = Objects.requireNonNull(initialAmount, "initialAmount cannot be null", onIllegalArgs);
 		this.publicKey = Base64.requireBase64(Objects.requireNonNull(publicKey, "publicKey cannot be null", onIllegalArgs), onIllegalArgs);

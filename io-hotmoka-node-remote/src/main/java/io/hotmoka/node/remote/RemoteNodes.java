@@ -21,6 +21,7 @@ import java.net.URI;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.node.remote.internal.RemoteNodeImpl;
+import io.hotmoka.websockets.api.FailedDeploymentException;
 
 /**
  * Providers of nodes that forward their calls to a remote network service.
@@ -38,7 +39,7 @@ public abstract class RemoteNodes {
      * @return the remote node
 	 * @throws NodeException if the remote node could not be deployed
      */
-	public static RemoteNode of(URI uri, int timeout) throws NodeException {
+	public static RemoteNode of(URI uri, int timeout) throws FailedDeploymentException {
         return new RemoteNodeImpl(uri, timeout);
     }
 }

@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal;
 
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.messages.api.EventMessage;
@@ -59,7 +59,7 @@ public class EventMessageImpl implements EventMessage {
 	 * @param onIllegalArgs the creator of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	private <E extends Exception> EventMessageImpl(StorageReference creator, StorageReference event, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	private <E extends Exception> EventMessageImpl(StorageReference creator, StorageReference event, ExceptionSupplierFromMessage<? extends E> onIllegalArgs) throws E {
 		this.creator = Objects.requireNonNull(creator, "creator cannot be null", onIllegalArgs);
 		this.event = Objects.requireNonNull(event, "event cannot be null", onIllegalArgs);
 	}

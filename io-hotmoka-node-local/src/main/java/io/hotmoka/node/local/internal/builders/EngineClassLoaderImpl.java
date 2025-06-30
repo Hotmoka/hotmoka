@@ -38,7 +38,7 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.instrumentation.api.InstrumentationFields;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.api.ClassLoaderCreationException;
@@ -394,7 +394,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
-	public <E extends Exception> StorageReference getStorageReferenceOf(Object object, ExceptionSupplier<? extends E> onIllegalAccess) throws E {
+	public <E extends Exception> StorageReference getStorageReferenceOf(Object object, ExceptionSupplierFromMessage<? extends E> onIllegalAccess) throws E {
 		try {
 			return (StorageReference) storageReference.get(object);
 		}
@@ -404,7 +404,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
-	public <E extends Exception> boolean getInStorageOf(Object object, ExceptionSupplier<? extends E> onIllegalAccess) throws E {
+	public <E extends Exception> boolean getInStorageOf(Object object, ExceptionSupplierFromMessage<? extends E> onIllegalAccess) throws E {
 		try {
 			return (boolean) inStorage.get(object);
 		}
@@ -414,7 +414,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
-	public <E extends Exception> BigInteger getBalanceOf(Object object, ExceptionSupplier<? extends E> onIllegalAccess) throws E {
+	public <E extends Exception> BigInteger getBalanceOf(Object object, ExceptionSupplierFromMessage<? extends E> onIllegalAccess) throws E {
 		try {
 			return (BigInteger) balanceField.get(object);
 		}
@@ -424,7 +424,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
-	public <E extends Exception> void setBalanceOf(Object object, BigInteger value, ExceptionSupplier<? extends E> onIllegalAccess) throws E {
+	public <E extends Exception> void setBalanceOf(Object object, BigInteger value, ExceptionSupplierFromMessage<? extends E> onIllegalAccess) throws E {
 		try {
 			balanceField.set(object, value);
 		}
@@ -434,7 +434,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
-	public <E extends Exception> void setNonceOf(Object object, BigInteger value, ExceptionSupplier<? extends E> onIllegalAccess) throws E {
+	public <E extends Exception> void setNonceOf(Object object, BigInteger value, ExceptionSupplierFromMessage<? extends E> onIllegalAccess) throws E {
 		try {
 			externallyOwnedAccountNonce.set(object, value);
 		}
@@ -444,7 +444,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
-	public <E extends Exception> void fromContract(Object callee, Object caller, ExceptionSupplier<? extends E> onIllegalAccess) throws E {
+	public <E extends Exception> void fromContract(Object callee, Object caller, ExceptionSupplierFromMessage<? extends E> onIllegalAccess) throws E {
 		try {
 			fromContract.invoke(callee, caller);
 		}
@@ -467,7 +467,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
-	public <E extends Exception> void payableFromContract(Object callee, Object payer, BigInteger amount, ExceptionSupplier<? extends E> onIllegalAccess) throws E {
+	public <E extends Exception> void payableFromContract(Object callee, Object payer, BigInteger amount, ExceptionSupplierFromMessage<? extends E> onIllegalAccess) throws E {
 		try {
 			payableFromContractBigInteger.invoke(callee, payer, amount);
 		}
@@ -490,7 +490,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
-	public <E extends Exception> void payableFromContract(Object callee, Object caller, int amount, ExceptionSupplier<? extends E> onIllegalAccess) throws E {
+	public <E extends Exception> void payableFromContract(Object callee, Object caller, int amount, ExceptionSupplierFromMessage<? extends E> onIllegalAccess) throws E {
 		try {
 			payableFromContractInt.invoke(callee, caller, amount);
 		}
@@ -513,7 +513,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
-	public <E extends Exception> void payableFromContract(Object callee, Object caller, long amount, ExceptionSupplier<? extends E> onIllegalAccess) throws E {
+	public <E extends Exception> void payableFromContract(Object callee, Object caller, long amount, ExceptionSupplierFromMessage<? extends E> onIllegalAccess) throws E {
 		try {
 			payableFromContractLong.invoke(callee, caller, amount);
 		}

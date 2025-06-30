@@ -23,7 +23,7 @@ import java.math.BigInteger;
 import java.util.function.Function;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -108,7 +108,7 @@ public final class StorageReferenceImpl extends AbstractStorageValue implements 
 	 * @param onIllegalReference the creator of the exception thrown if the result would be an illegal storage reference
 	 * @throws E if the result would be an illegal storage reference
 	 */
-	private <E extends Exception> StorageReferenceImpl(TransactionReference transaction, BigInteger progressive, ExceptionSupplier<? extends E> onIllegalReference) throws E {
+	private <E extends Exception> StorageReferenceImpl(TransactionReference transaction, BigInteger progressive, ExceptionSupplierFromMessage<? extends E> onIllegalReference) throws E {
 		this.transaction = Objects.requireNonNull(transaction, "transaction cannot be null", onIllegalReference);
 		this.progressive = Objects.requireNonNull(progressive, "progressive cannot be null", onIllegalReference);
 		if (progressive.signum() < 0)

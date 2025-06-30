@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -134,7 +134,7 @@ public final class UpdateOfBigIntegerImpl extends UpdateOfFieldImpl implements U
 	 * @param onIllegalArgs the supplier of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	private <E extends Exception> UpdateOfBigIntegerImpl(StorageReference object, FieldSignature field, BigInteger value, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	private <E extends Exception> UpdateOfBigIntegerImpl(StorageReference object, FieldSignature field, BigInteger value, ExceptionSupplierFromMessage<? extends E> onIllegalArgs) throws E {
 		super(object, field, onIllegalArgs);
 
 		this.value = Objects.requireNonNull(value, "value cannot be null", onIllegalArgs);

@@ -21,7 +21,7 @@ import java.io.OutputStream;
 import java.util.Arrays;
 
 import io.hotmoka.crypto.Hex;
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -92,7 +92,7 @@ public final class TransactionReferenceImpl extends AbstractMarshallable impleme
 	 * @param onIllegalHash the generator of the exception thrown if {@code hash} is illegal
 	 * @throws E if {@code hash} in not a legal transaction hash
 	 */
-	private <E extends Exception> TransactionReferenceImpl(String hash, ExceptionSupplier<? extends E> onIllegalHash) throws E {
+	private <E extends Exception> TransactionReferenceImpl(String hash, ExceptionSupplierFromMessage<? extends E> onIllegalHash) throws E {
 		// each byte is represented by two successive characters
 		if (Objects.requireNonNull(hash, "hash cannot be null", onIllegalHash).length() != REQUEST_HASH_LENGTH * 2)
 			throw onIllegalHash.apply("Illegal transaction reference: it should be " + REQUEST_HASH_LENGTH + " bytes long");
@@ -108,11 +108,11 @@ public final class TransactionReferenceImpl extends AbstractMarshallable impleme
 	 * @param onIllegalHash the generator of the exception thrown if {@code hash} is illegal
 	 * @throws E if {@code hash} in not a legal transaction hash
 	 */
-	private <E extends Exception> TransactionReferenceImpl(byte[] hash, ExceptionSupplier<? extends E> onIllegalHash) throws E {
+	private <E extends Exception> TransactionReferenceImpl(byte[] hash, ExceptionSupplierFromMessage<? extends E> onIllegalHash) throws E {
 		this.hash = hash;
 	}
 
-	private static <E extends Exception> byte[] checkHash(byte[] hash, ExceptionSupplier<? extends E> onIllegalHash) throws E {
+	private static <E extends Exception> byte[] checkHash(byte[] hash, ExceptionSupplierFromMessage<? extends E> onIllegalHash) throws E {
 		if (Objects.requireNonNull(hash, "hash cannot be null", onIllegalHash).length != REQUEST_HASH_LENGTH)
 			throw onIllegalHash.apply("Illegal transaction reference: it should be " + REQUEST_HASH_LENGTH + " bytes long");
 

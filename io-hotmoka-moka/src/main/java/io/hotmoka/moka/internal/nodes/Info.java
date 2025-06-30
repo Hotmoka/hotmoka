@@ -36,8 +36,13 @@ import picocli.CommandLine.Command;
 public class Info extends AbstractMokaRpcCommand {
 
 	@Override
-	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
-		report(json(), new Output(remote.getInfo()), NodesInfoOutputs.Encoder::new);
+	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException {
+		try {
+			report(json(), new Output(remote.getInfo()), NodesInfoOutputs.Encoder::new);
+		}
+		catch (NodeException e) {
+			throw new RuntimeException(e); // TODO
+		}
 	}
 
 	/**

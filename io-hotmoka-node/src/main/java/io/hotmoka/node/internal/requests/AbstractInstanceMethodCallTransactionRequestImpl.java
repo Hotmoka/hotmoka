@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.node.api.requests.AbstractInstanceMethodCallTransactionRequest;
@@ -55,7 +55,7 @@ public abstract class AbstractInstanceMethodCallTransactionRequestImpl extends M
 	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
 	 * @throws E if some argument passed to this constructor is illegal
 	 */
-	protected <E extends Exception> AbstractInstanceMethodCallTransactionRequestImpl(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue[] actuals, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	protected <E extends Exception> AbstractInstanceMethodCallTransactionRequestImpl(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue[] actuals, ExceptionSupplierFromMessage<? extends E> onIllegalArgs) throws E {
 		super(caller, nonce, gasLimit, gasPrice, classpath, method, actuals, onIllegalArgs);
 
 		this.receiver = Objects.requireNonNull(receiver, "receiver cannot be null", onIllegalArgs);

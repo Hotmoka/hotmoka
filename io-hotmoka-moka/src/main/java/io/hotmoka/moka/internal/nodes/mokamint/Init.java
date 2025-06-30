@@ -146,7 +146,7 @@ public class Init extends AbstractNodeInit {
 				Thread.currentThread().interrupt();
 				throw new CommandException("The operation has been interrupted", e);
 			}
-			catch (NodeException | io.mokamint.node.api.NodeException | io.mokamint.plotter.api.PlotException | io.mokamint.miner.api.MinerException e) {
+			catch (NodeException | io.mokamint.node.api.NodeException e) {
 				throw new RuntimeException(e);
 			}
 			catch (TimeoutException e) {

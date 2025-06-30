@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.tendermint.internal;
 
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.crypto.Base64;
 
@@ -61,7 +61,7 @@ public final class TendermintValidator {
 	 * @param ifIllegal the supplier of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	public <E extends Exception> TendermintValidator(String address, long power, String publicKey, String publicKeyType, ExceptionSupplier<? extends E> ifIllegal) throws E {
+	public <E extends Exception> TendermintValidator(String address, long power, String publicKey, String publicKeyType, ExceptionSupplierFromMessage<? extends E> ifIllegal) throws E {
 		this.address = Objects.requireNonNull(address, "address cannot be null", ifIllegal).toUpperCase();
 		this.power = power;
 		this.publicKey = Objects.requireNonNull(publicKey, "publicKey cannot be null", ifIllegal);

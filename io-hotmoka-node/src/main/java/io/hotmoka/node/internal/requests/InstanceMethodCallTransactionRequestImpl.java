@@ -30,7 +30,7 @@ import java.util.Arrays;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.api.Signer;
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -211,7 +211,7 @@ public class InstanceMethodCallTransactionRequestImpl extends AbstractInstanceMe
 	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	private <E extends Exception> InstanceMethodCallTransactionRequestImpl(String chainId, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, BigInteger nonce, StorageValue[] actuals, MethodSignature method, StorageReference receiver, byte[] signature, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	private <E extends Exception> InstanceMethodCallTransactionRequestImpl(String chainId, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, BigInteger nonce, StorageValue[] actuals, MethodSignature method, StorageReference receiver, byte[] signature, ExceptionSupplierFromMessage<? extends E> onIllegalArgs) throws E {
 		super(caller, nonce, gasLimit, gasPrice, classpath, method, receiver, actuals, onIllegalArgs);
 	
 		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null", onIllegalArgs);

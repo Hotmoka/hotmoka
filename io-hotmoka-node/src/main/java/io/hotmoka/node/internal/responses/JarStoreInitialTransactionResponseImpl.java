@@ -21,7 +21,7 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -111,7 +111,7 @@ public class JarStoreInitialTransactionResponseImpl extends TransactionResponseI
 	 * @param onIllegalArgs the creator of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	private <E extends Exception> JarStoreInitialTransactionResponseImpl(byte[] instrumentedJar, TransactionReference[] dependencies, long verificationToolVersion, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	private <E extends Exception> JarStoreInitialTransactionResponseImpl(byte[] instrumentedJar, TransactionReference[] dependencies, long verificationToolVersion, ExceptionSupplierFromMessage<? extends E> onIllegalArgs) throws E {
 		this.instrumentedJar = Objects.requireNonNull(instrumentedJar, "insrumentedJar cannot be null", onIllegalArgs);
 
 		this.dependencies = Objects.requireNonNull(dependencies, "dependencies cannot be null", onIllegalArgs);

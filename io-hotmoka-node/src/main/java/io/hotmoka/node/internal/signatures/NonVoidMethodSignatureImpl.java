@@ -19,7 +19,7 @@ package io.hotmoka.node.internal.signatures;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -99,7 +99,7 @@ public final class NonVoidMethodSignatureImpl extends AbstractMethodSignature im
 	 * @param onIllegalArgs the generator of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	private <E extends Exception> NonVoidMethodSignatureImpl(StorageType[] formals, ClassType definingClass, String name, StorageType returnType, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	private <E extends Exception> NonVoidMethodSignatureImpl(StorageType[] formals, ClassType definingClass, String name, StorageType returnType, ExceptionSupplierFromMessage<? extends E> onIllegalArgs) throws E {
 		super(definingClass, name, formals, onIllegalArgs);
 	
 		this.returnType = Objects.requireNonNull(returnType, "returnType cannot be null", onIllegalArgs);

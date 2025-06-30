@@ -62,11 +62,10 @@ import picocli.CommandLine.Option;
  * Shared code among the commands that connect to a remote Hotmoka node and perform Rpc calls
  * to the public API of the remote.
  */
-public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNode, NodeException> {
+public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNode> {
 	protected final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
 
 	protected AbstractMokaRpcCommand() {
-		super(NodeException.class);
 	}
 
 	@Option(names = "--uri", description = "the network URI where the API of the Hotmoka node service is published", defaultValue = "ws://localhost:8001")
@@ -92,10 +91,9 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 	 * 
 	 * @throws TimeoutException if the execution times out
 	 * @throws InterruptedException if the execution gets interrupted before completion
-	 * @throws NodeException if the node is misbehaving
 	 * @throws CommandException if something erroneous must be logged and the user must be informed
 	 */
-	protected abstract void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException;
+	protected abstract void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException;
 
 	/**
 	 * Reports on the standard output the given output of a command.

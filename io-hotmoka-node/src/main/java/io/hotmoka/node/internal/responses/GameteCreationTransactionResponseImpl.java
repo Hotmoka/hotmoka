@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.exceptions.ExceptionSupplier;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -91,7 +91,7 @@ public class GameteCreationTransactionResponseImpl extends TransactionResponseIm
 	 * @param onIllegalArgs the creator of the exception thrown if some argument is illegal
 	 * @throws E if some argument is illegal
 	 */
-	private <E extends Exception> GameteCreationTransactionResponseImpl(Update[] updates, StorageReference gamete, ExceptionSupplier<? extends E> onIllegalArgs) throws E {
+	private <E extends Exception> GameteCreationTransactionResponseImpl(Update[] updates, StorageReference gamete, ExceptionSupplierFromMessage<? extends E> onIllegalArgs) throws E {
 		this.updates = updates;
 	
 		for (var update: updates)
