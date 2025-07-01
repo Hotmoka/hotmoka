@@ -365,7 +365,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	 * @throws WrongKeyException 
 	 */
 	@SuppressWarnings("unused")
-	private static Node mkMokamintNodeConnectedToPeer() throws NodeException, InterruptedException, InvalidKeyException, SignatureException, ApplicationTimeoutException, TimeoutException, WrongKeyException {
+	private static Node mkMokamintNodeConnectedToPeer() throws NodeException, InterruptedException, InvalidKeyException, SignatureException, ApplicationTimeoutException, TimeoutException, WrongKeyException, FailedDeploymentException {
 		try {
 			consensus = fillConsensusConfig(ValidatorsConsensusConfigBuilders.defaults()).build();
 
@@ -416,7 +416,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		}
 	}
 
-	private static Node mkMokamintNetwork(int howManyNodes) throws NodeException, InterruptedException, ApplicationTimeoutException, TransactionRejectedException, TransactionException, CodeExecutionException, TimeoutException, WrongKeyException {
+	private static Node mkMokamintNetwork(int howManyNodes) throws NodeException, InterruptedException, ApplicationTimeoutException, TransactionRejectedException, TransactionException, CodeExecutionException, TimeoutException, WrongKeyException, FailedDeploymentException {
 		if (howManyNodes < 1)
 			throw new IllegalArgumentException("A network needs at least one node");
 

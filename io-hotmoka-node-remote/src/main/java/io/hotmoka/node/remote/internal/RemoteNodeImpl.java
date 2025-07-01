@@ -40,7 +40,6 @@ import static io.hotmoka.node.service.api.NodeService.POST_STATIC_METHOD_CALL_TR
 import static io.hotmoka.node.service.api.NodeService.RUN_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.RUN_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
@@ -177,7 +176,6 @@ import io.hotmoka.websockets.beans.api.ExceptionMessage;
 import io.hotmoka.websockets.beans.api.RpcMessage;
 import io.hotmoka.websockets.client.AbstractRemote;
 import jakarta.websocket.CloseReason;
-import jakarta.websocket.DeploymentException;
 import jakarta.websocket.EndpointConfig;
 import jakarta.websocket.Session;
 
@@ -212,34 +210,29 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 
     	this.logPrefix = "node remote(" + uri + "): ";
 
-    	try {
-    		addSession(GET_INFO_ENDPOINT, uri, GetInfoEndpoint::new);
-    		addSession(GET_CONSENSUS_CONFIG_ENDPOINT, uri, GetConsensusConfigEndpoint::new);
-    		addSession(GET_TAKAMAKA_CODE_ENDPOINT, uri, GetTakamakaCodeEndpoint::new);
-    		addSession(GET_MANIFEST_ENDPOINT, uri, GetManifestEndpoint::new);
-    		addSession(GET_CLASS_TAG_ENDPOINT, uri, GetClassTagEndpoint::new);
-    		addSession(GET_STATE_ENDPOINT, uri, GetStateEndpoint::new);
-    		addSession(GET_REQUEST_ENDPOINT, uri, GetRequestEndpoint::new);
-    		addSession(GET_RESPONSE_ENDPOINT, uri, GetResponseEndpoint::new);
-    		addSession(GET_POLLED_RESPONSE_ENDPOINT, uri, GetPolledResponseEndpoint::new);
-    		addSession(ADD_GAMETE_CREATION_TRANSACTION_ENDPOINT, uri, AddGameteCreationTransactionEndpoint::new);
-    		addSession(ADD_JAR_STORE_INITIAL_TRANSACTION_ENDPOINT, uri, AddJarStoreInitialTransactionEndpoint::new);
-    		addSession(ADD_INITIALIZATION_TRANSACTION_ENDPOINT, uri, AddInitializationTransactionEndpoint::new);
-    		addSession(ADD_JAR_STORE_TRANSACTION_ENDPOINT, uri, AddJarStoreTransactionEndpoint::new);
-    		addSession(ADD_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT, uri, AddConstructorCallTransactionEndpoint::new);
-    		addSession(ADD_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT, uri, AddInstanceMethodCallTransactionEndpoint::new);
-    		addSession(ADD_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT, uri, AddStaticMethodCallTransactionEndpoint::new);
-    		addSession(POST_JAR_STORE_TRANSACTION_ENDPOINT, uri, PostJarStoreTransactionEndpoint::new);
-    		addSession(POST_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT, uri, PostConstructorCallTransactionEndpoint::new);
-    		addSession(POST_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT, uri, PostInstanceMethodCallTransactionEndpoint::new);
-    		addSession(POST_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT, uri, PostStaticMethodCallTransactionEndpoint::new);
-    		addSession(RUN_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT, uri, RunInstanceMethodCallTransactionEndpoint::new);
-    		addSession(RUN_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT, uri, RunStaticMethodCallTransactionEndpoint::new);
-    		addSession(EVENTS_ENDPOINT, uri, EventsEndpoint::new);
-    	}
-    	catch (DeploymentException | IOException e) {
-    		throw new FailedDeploymentException(e);
-    	}
+    	addSession(GET_INFO_ENDPOINT, uri, GetInfoEndpoint::new);
+    	addSession(GET_CONSENSUS_CONFIG_ENDPOINT, uri, GetConsensusConfigEndpoint::new);
+    	addSession(GET_TAKAMAKA_CODE_ENDPOINT, uri, GetTakamakaCodeEndpoint::new);
+    	addSession(GET_MANIFEST_ENDPOINT, uri, GetManifestEndpoint::new);
+    	addSession(GET_CLASS_TAG_ENDPOINT, uri, GetClassTagEndpoint::new);
+    	addSession(GET_STATE_ENDPOINT, uri, GetStateEndpoint::new);
+    	addSession(GET_REQUEST_ENDPOINT, uri, GetRequestEndpoint::new);
+    	addSession(GET_RESPONSE_ENDPOINT, uri, GetResponseEndpoint::new);
+    	addSession(GET_POLLED_RESPONSE_ENDPOINT, uri, GetPolledResponseEndpoint::new);
+    	addSession(ADD_GAMETE_CREATION_TRANSACTION_ENDPOINT, uri, AddGameteCreationTransactionEndpoint::new);
+    	addSession(ADD_JAR_STORE_INITIAL_TRANSACTION_ENDPOINT, uri, AddJarStoreInitialTransactionEndpoint::new);
+    	addSession(ADD_INITIALIZATION_TRANSACTION_ENDPOINT, uri, AddInitializationTransactionEndpoint::new);
+    	addSession(ADD_JAR_STORE_TRANSACTION_ENDPOINT, uri, AddJarStoreTransactionEndpoint::new);
+    	addSession(ADD_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT, uri, AddConstructorCallTransactionEndpoint::new);
+    	addSession(ADD_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT, uri, AddInstanceMethodCallTransactionEndpoint::new);
+    	addSession(ADD_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT, uri, AddStaticMethodCallTransactionEndpoint::new);
+    	addSession(POST_JAR_STORE_TRANSACTION_ENDPOINT, uri, PostJarStoreTransactionEndpoint::new);
+    	addSession(POST_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT, uri, PostConstructorCallTransactionEndpoint::new);
+    	addSession(POST_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT, uri, PostInstanceMethodCallTransactionEndpoint::new);
+    	addSession(POST_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT, uri, PostStaticMethodCallTransactionEndpoint::new);
+    	addSession(RUN_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT, uri, RunInstanceMethodCallTransactionEndpoint::new);
+    	addSession(RUN_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT, uri, RunStaticMethodCallTransactionEndpoint::new);
+    	addSession(EVENTS_ENDPOINT, uri, EventsEndpoint::new);
 
     	LOGGER.info(logPrefix + "connected");
     }
@@ -332,7 +325,7 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	private class GetInfoEndpoint extends Endpoint {
 
 		@Override
-		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+		protected Session deployAt(URI uri) throws FailedDeploymentException {
 			return deployAt(uri, GetInfoResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetInfoMessages.Encoder.class);		
 		}
 	}
@@ -365,7 +358,7 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	private class GetConsensusConfigEndpoint extends Endpoint {
 
 		@Override
-		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+		protected Session deployAt(URI uri) throws FailedDeploymentException {
 			return deployAt(uri, GetConsensusConfigResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetConsensusConfigMessages.Encoder.class);		
 		}
 	}
@@ -398,7 +391,7 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	private class GetTakamakaCodeEndpoint extends Endpoint {
 
 		@Override
-		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+		protected Session deployAt(URI uri) throws FailedDeploymentException {
 			return deployAt(uri, GetTakamakaCodeResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetTakamakaCodeMessages.Encoder.class);		
 		}
 	}
@@ -431,7 +424,7 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	private class GetManifestEndpoint extends Endpoint {
 
 		@Override
-		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+		protected Session deployAt(URI uri) throws FailedDeploymentException {
 			return deployAt(uri, GetManifestResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetManifestMessages.Encoder.class);		
 		}
 	}
@@ -465,7 +458,7 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	private class GetClassTagEndpoint extends Endpoint {
 
 		@Override
-		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+		protected Session deployAt(URI uri) throws FailedDeploymentException {
 			return deployAt(uri, GetClassTagResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetClassTagMessages.Encoder.class);		
 		}
 	}
@@ -499,7 +492,7 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	private class GetStateEndpoint extends Endpoint {
 
 		@Override
-		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+		protected Session deployAt(URI uri) throws FailedDeploymentException {
 			return deployAt(uri, GetStateResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetStateMessages.Encoder.class);		
 		}
 	}
@@ -533,7 +526,7 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	private class GetRequestEndpoint extends Endpoint {
 
 		@Override
-		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+		protected Session deployAt(URI uri) throws FailedDeploymentException {
 			return deployAt(uri, GetRequestResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetRequestMessages.Encoder.class);		
 		}
 	}
@@ -567,7 +560,7 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	private class GetResponseEndpoint extends Endpoint {
 
 		@Override
-		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+		protected Session deployAt(URI uri) throws FailedDeploymentException {
 			return deployAt(uri, GetResponseResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetResponseMessages.Encoder.class);		
 		}
 	}
@@ -601,7 +594,7 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	private class GetPolledResponseEndpoint extends Endpoint {
 
 		@Override
-		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+		protected Session deployAt(URI uri) throws FailedDeploymentException {
 			return deployAt(uri, GetPolledResponseResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetPolledResponseMessages.Encoder.class);		
 		}
 	}
@@ -635,7 +628,7 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	private class RunInstanceMethodCallTransactionEndpoint extends Endpoint {
 
 		@Override
-		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+		protected Session deployAt(URI uri) throws FailedDeploymentException {
 			return deployAt(uri, RunInstanceMethodCallTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, RunInstanceMethodCallTransactionMessages.Encoder.class);
 		}
 	}
@@ -669,7 +662,7 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	private class RunStaticMethodCallTransactionEndpoint extends Endpoint {
 
 		@Override
-		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+		protected Session deployAt(URI uri) throws FailedDeploymentException {
 			return deployAt(uri, RunStaticMethodCallTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, RunStaticMethodCallTransactionMessages.Encoder.class);
 		}
 	}
@@ -703,7 +696,7 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	private class AddInstanceMethodCallTransactionEndpoint extends Endpoint {
 
 		@Override
-		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+		protected Session deployAt(URI uri) throws FailedDeploymentException {
 			return deployAt(uri, AddInstanceMethodCallTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, AddInstanceMethodCallTransactionMessages.Encoder.class);
 		}
 	}
@@ -737,7 +730,7 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	private class AddStaticMethodCallTransactionEndpoint extends Endpoint {
 
 		@Override
-		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+		protected Session deployAt(URI uri) throws FailedDeploymentException {
 			return deployAt(uri, AddStaticMethodCallTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, AddStaticMethodCallTransactionMessages.Encoder.class);
 		}
 	}
@@ -771,7 +764,7 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	private class AddConstructorCallTransactionEndpoint extends Endpoint {
 
 		@Override
-		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+		protected Session deployAt(URI uri) throws FailedDeploymentException {
 			return deployAt(uri, AddConstructorCallTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, AddConstructorCallTransactionMessages.Encoder.class);
 		}
 	}
@@ -805,7 +798,7 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	private class AddJarStoreTransactionEndpoint extends Endpoint {
 
 		@Override
-		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+		protected Session deployAt(URI uri) throws FailedDeploymentException {
 			return deployAt(uri, AddJarStoreTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, AddJarStoreTransactionMessages.Encoder.class);
 		}
 	}
@@ -839,7 +832,7 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	private class AddGameteCreationTransactionEndpoint extends Endpoint {
 
 		@Override
-		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+		protected Session deployAt(URI uri) throws FailedDeploymentException {
 			return deployAt(uri, AddGameteCreationTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, AddGameteCreationTransactionMessages.Encoder.class);
 		}
 	}
@@ -873,7 +866,7 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	private class AddJarStoreInitialTransactionEndpoint extends Endpoint {
 
 		@Override
-		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+		protected Session deployAt(URI uri) throws FailedDeploymentException {
 			return deployAt(uri, AddJarStoreInitialTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, AddJarStoreInitialTransactionMessages.Encoder.class);
 		}
 	}
@@ -907,7 +900,7 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	private class AddInitializationTransactionEndpoint extends Endpoint {
 
 		@Override
-		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+		protected Session deployAt(URI uri) throws FailedDeploymentException {
 			return deployAt(uri, AddInitializationTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, AddInitializationTransactionMessages.Encoder.class);
 		}
 	}
@@ -941,7 +934,7 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	private class PostConstructorCallTransactionEndpoint extends Endpoint {
 
 		@Override
-		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+		protected Session deployAt(URI uri) throws FailedDeploymentException {
 			return deployAt(uri, PostConstructorCallTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, PostConstructorCallTransactionMessages.Encoder.class);
 		}
 	}
@@ -975,7 +968,7 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	private class PostInstanceMethodCallTransactionEndpoint extends Endpoint {
 
 		@Override
-		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+		protected Session deployAt(URI uri) throws FailedDeploymentException {
 			return deployAt(uri, PostInstanceMethodCallTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, PostInstanceMethodCallTransactionMessages.Encoder.class);
 		}
 	}
@@ -1009,7 +1002,7 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	private class PostStaticMethodCallTransactionEndpoint extends Endpoint {
 
 		@Override
-		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+		protected Session deployAt(URI uri) throws FailedDeploymentException {
 			return deployAt(uri, PostStaticMethodCallTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, PostStaticMethodCallTransactionMessages.Encoder.class);
 		}
 	}
@@ -1043,7 +1036,7 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	private class PostJarStoreTransactionEndpoint extends Endpoint {
 
 		@Override
-		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+		protected Session deployAt(URI uri) throws FailedDeploymentException {
 			return deployAt(uri, PostJarStoreTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, PostJarStoreTransactionMessages.Encoder.class);
 		}
 	}
@@ -1056,7 +1049,7 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 		}
 
 		@Override
-		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+		protected Session deployAt(URI uri) throws FailedDeploymentException {
 			return deployAt(uri, EventMessages.Decoder.class);
 		}
 	}

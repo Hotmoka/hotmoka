@@ -210,9 +210,6 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		try {
 			mokamintNode.close();
 		}
-		catch (io.mokamint.node.api.NodeException e) {
-			throw new NodeException(e);
-		}
 		finally {
 			super.closeResources();
 		}

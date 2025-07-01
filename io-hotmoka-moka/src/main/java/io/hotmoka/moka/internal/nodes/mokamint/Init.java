@@ -47,6 +47,7 @@ import io.hotmoka.node.mokamint.MokamintNodeConfigBuilders;
 import io.hotmoka.node.mokamint.MokamintNodes;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
 import io.hotmoka.node.service.NodeServices;
+import io.hotmoka.websockets.api.FailedDeploymentException;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.mokamint.miner.local.LocalMiners;
 import io.mokamint.node.local.LocalNodeConfigBuilders;
@@ -117,8 +118,20 @@ public class Init extends AbstractNodeInit {
 
 					// the next services will be closed when the node will be closed
 					var mokamintNodePublicURI = URI.create("ws://localhost:" + mokamintPort);
-					PublicNodeServices.open(mokamintNode, mokamintPort, 1800000, 1000, Optional.ofNullable(visibleAs));
-					RestrictedNodeServices.open(mokamintNode, mokamintPortRestricted);
+					
+					try {
+						PublicNodeServices.open(mokamintNode, mokamintPort, 1800000, 1000, Optional.ofNullable(visibleAs));
+					}
+					catch (FailedDeploymentException e) {
+						throw new CommandException("Cannot deploy the service at port " + mokamintPort);
+					}
+
+					try {
+						RestrictedNodeServices.open(mokamintNode, mokamintPortRestricted);
+					}
+					catch (FailedDeploymentException e) {
+						throw new CommandException("Cannot deploy the service at port " + mokamintPortRestricted);
+					}
 
 					try (var initialized = InitializedNodes.of(node, consensus, getTakamakaCode()); var service = NodeServices.of(node, getPort())) {
 						var output = new Output(initialized.gamete(), URI.create("ws://localhost:" + getPort()), mokamintNodePublicURI, URI.create("ws://localhost:" + mokamintPortRestricted));
