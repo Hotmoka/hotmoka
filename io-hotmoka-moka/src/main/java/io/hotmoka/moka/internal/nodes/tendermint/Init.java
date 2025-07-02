@@ -60,6 +60,7 @@ import io.hotmoka.node.tendermint.TendermintInitializedNodes;
 import io.hotmoka.node.tendermint.TendermintNodeConfigBuilders;
 import io.hotmoka.node.tendermint.TendermintNodes;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
+import io.hotmoka.websockets.api.FailedDeploymentException;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -112,6 +113,9 @@ public class Init extends AbstractNodeInit {
 			report(json(), output, NodesTendermintInitOutputs.Encoder::new);
 
 			waitForEnterKey();
+		}
+		catch (FailedDeploymentException e) {
+			throw new CommandException("Cannot deploy the service at port " + getPort());
 		}
 		catch (IOException e) {
 			throw new CommandException("Cannot access file \"" + getTakamakaCode() + "\"!", e);

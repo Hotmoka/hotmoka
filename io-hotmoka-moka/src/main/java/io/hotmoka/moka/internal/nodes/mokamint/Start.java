@@ -126,6 +126,9 @@ public class Start extends AbstractNodeStart {
 						report(json(), output, NodesMokamintStartOutputs.Encoder::new);
 						waitForEnterKey();
 					}
+					catch (FailedDeploymentException e) {
+						throw new CommandException("Cannot deploy the service at port " + getPort());
+					}
 				}
 			}
 			catch (WrongKeyException e) {

@@ -29,6 +29,7 @@ import io.hotmoka.node.service.NodeServices;
 import io.hotmoka.node.tendermint.TendermintNodeConfigBuilders;
 import io.hotmoka.node.tendermint.TendermintNodes;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
+import io.hotmoka.websockets.api.FailedDeploymentException;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -53,11 +54,14 @@ public class Resume extends AbstractNodeResume {
 
 			waitForEnterKey();
 		}
+		catch (FailedDeploymentException e) {
+			throw new CommandException("Cannot deploy the service at port " + getPort());
+		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 			throw new CommandException("The operation has been interrupted", e);
 		}
-		catch (NodeException e) {
+		catch (NodeException e) { // TODO
 			throw new RuntimeException(e);
 		}
 	}

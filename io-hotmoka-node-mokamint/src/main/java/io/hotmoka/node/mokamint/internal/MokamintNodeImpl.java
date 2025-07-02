@@ -58,6 +58,7 @@ import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
 import io.hotmoka.xodus.ExodusException;
 import io.mokamint.application.AbstractApplication;
 import io.mokamint.application.api.ApplicationException;
+import io.mokamint.application.api.ClosedApplicationException;
 import io.mokamint.application.api.UnknownGroupIdException;
 import io.mokamint.application.api.UnknownStateException;
 import io.mokamint.node.Transactions;
@@ -294,8 +295,10 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		private final AtomicInteger nextId = new AtomicInteger();
 
 		@Override
-		public boolean checkPrologExtra(byte[] extra) {
-			return extra.length == 0; // no extra used by this application
+		public boolean checkPrologExtra(byte[] extra) throws ClosedApplicationException {
+			try (var scope = mkScope()) {
+				return extra.length == 0; // no extra used by this application
+			}
 		}
 
 		@Override
@@ -319,8 +322,10 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		}
 
 		@Override
-		public byte[] getInitialStateId() {
-			return new byte[128];
+		public byte[] getInitialStateId() throws ClosedApplicationException {
+			try (var scope = mkScope()) {
+				return new byte[128];
+			}
 		}
 
 		@Override
@@ -409,42 +414,48 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		}
 
 		@Override
-		public void commitBlock(int groupId) throws UnknownGroupIdException, ApplicationException {
-			var transformation = getTransformation(groupId);
+		public void commitBlock(int groupId) throws UnknownGroupIdException, ClosedApplicationException {
+			try (var scope = mkScope()) {
+				var transformation = getTransformation(groupId);
 
-			try {
-				exit(transformation.getInitialStore());
-			}
-			catch (NodeException e) {
-				throw new ApplicationException(e);
-			}
+				try {
+					exit(transformation.getInitialStore());
+				}
+				catch (NodeException e) { // TODO
+					throw new RuntimeException(e);
+				}
 
-			transformations.remove(groupId);
+				transformations.remove(groupId);
+			}
 		}
 
 		@Override
-		public void abortBlock(int groupId) throws UnknownGroupIdException, ApplicationException {
-			var transformation = getTransformation(groupId);
+		public void abortBlock(int groupId) throws UnknownGroupIdException, ClosedApplicationException {
+			try (var scope = mkScope()) {
+				var transformation = getTransformation(groupId);
 
-			try {
-				exit(transformation.getInitialStore());
-			}
-			catch (NodeException e) {
-				throw new ApplicationException(e);
-			}
+				try {
+					exit(transformation.getInitialStore());
+				}
+				catch (NodeException e) { // TODO
+					throw new RuntimeException(e);
+				}
 
-			transformations.remove(groupId);
+				transformations.remove(groupId);
+			}
 		}
 
 		@Override
-		public void keepFrom(LocalDateTime start) throws ApplicationException {
-			long limitOfTimeForGC = start.toInstant(ZoneOffset.UTC).toEpochMilli();
+		public void keepFrom(LocalDateTime start) throws ClosedApplicationException {
+			try (var scope = mkScope()) {
+				long limitOfTimeForGC = start.toInstant(ZoneOffset.UTC).toEpochMilli();
 
-			try {
-				getEnvironment().executeInTransaction(NodeException.class, txn -> keepPersistedOnlyNotOlderThan(limitOfTimeForGC, txn));
-			}
-			catch (NodeException | ExodusException e) {
-				throw new ApplicationException(e);
+				try {
+					getEnvironment().executeInTransaction(NodeException.class, txn -> keepPersistedOnlyNotOlderThan(limitOfTimeForGC, txn));
+				}
+				catch (NodeException | ExodusException e) { // TODO
+					throw new RuntimeException(e);
+				}
 			}
 		}
 

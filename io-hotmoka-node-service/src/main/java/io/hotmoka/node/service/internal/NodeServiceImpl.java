@@ -51,10 +51,10 @@ import io.hotmoka.node.messages.GetClassTagMessages;
 import io.hotmoka.node.messages.GetClassTagResultMessages;
 import io.hotmoka.node.messages.GetConsensusConfigMessages;
 import io.hotmoka.node.messages.GetConsensusConfigResultMessages;
-import io.hotmoka.node.messages.GetManifestMessages;
-import io.hotmoka.node.messages.GetManifestResultMessages;
 import io.hotmoka.node.messages.GetInfoMessages;
 import io.hotmoka.node.messages.GetInfoResultMessages;
+import io.hotmoka.node.messages.GetManifestMessages;
+import io.hotmoka.node.messages.GetManifestResultMessages;
 import io.hotmoka.node.messages.GetPolledResponseMessages;
 import io.hotmoka.node.messages.GetPolledResponseResultMessages;
 import io.hotmoka.node.messages.GetRequestMessages;
@@ -86,8 +86,8 @@ import io.hotmoka.node.messages.api.AddJarStoreTransactionMessage;
 import io.hotmoka.node.messages.api.AddStaticMethodCallTransactionMessage;
 import io.hotmoka.node.messages.api.GetClassTagMessage;
 import io.hotmoka.node.messages.api.GetConsensusConfigMessage;
-import io.hotmoka.node.messages.api.GetManifestMessage;
 import io.hotmoka.node.messages.api.GetInfoMessage;
+import io.hotmoka.node.messages.api.GetManifestMessage;
 import io.hotmoka.node.messages.api.GetPolledResponseMessage;
 import io.hotmoka.node.messages.api.GetRequestMessage;
 import io.hotmoka.node.messages.api.GetResponseMessage;
@@ -100,12 +100,12 @@ import io.hotmoka.node.messages.api.PostStaticMethodCallTransactionMessage;
 import io.hotmoka.node.messages.api.RunInstanceMethodCallTransactionMessage;
 import io.hotmoka.node.messages.api.RunStaticMethodCallTransactionMessage;
 import io.hotmoka.node.service.api.NodeService;
+import io.hotmoka.websockets.api.FailedDeploymentException;
 import io.hotmoka.websockets.beans.ExceptionMessages;
 import io.hotmoka.websockets.beans.api.RpcMessage;
 import io.hotmoka.websockets.server.AbstractRPCWebSocketServer;
 import io.hotmoka.websockets.server.AbstractServerEndpoint;
 import jakarta.websocket.CloseReason;
-import jakarta.websocket.DeploymentException;
 import jakarta.websocket.EndpointConfig;
 import jakarta.websocket.Session;
 import jakarta.websocket.server.ServerEndpointConfig;
@@ -148,37 +148,36 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 	 * 
 	 * @param node the Hotmoka node
 	 * @param port the port where the service should be opened
-	 * @throws NodeException if the service cannot be deployed
+	 * @throws FailedDeploymentException if the service cannot be deployed
 	 */
-    public NodeServiceImpl(Node node, int port) throws NodeException {
+    public NodeServiceImpl(Node node, int port) throws FailedDeploymentException {
     	this.node = node;
-		this.logPrefix = "node service(ws://localhost:" + port + "): ";
+    	this.logPrefix = "node service(ws://localhost:" + port + "): ";
 
-		try {
-			// all events (regardless of their creator) get forwarded to the bound remotes
+    	// all events (regardless of their creator) get forwarded to the bound remotes
+    	try {
 			this.eventSubscription = node.subscribeToEvents(null, this::publishEvent);
-
-			startContainer("", port,
-					GetInfoEndpoint.config(this), GetConsensusConfigEndpoint.config(this), GetTakamakaCodeEndpoint.config(this),
-					GetManifestEndpoint.config(this), GetClassTagEndpoint.config(this), GetStateEndpoint.config(this),
-					GetRequestEndpoint.config(this), GetResponseEndpoint.config(this), GetPolledResponseEndpoint.config(this),
-					AddGameteCreationTransactionEndpoint.config(this), AddJarStoreInitialTransactionEndpoint.config(this),
-					AddInitializationTransactionEndpoint.config(this),
-					AddJarStoreTransactionEndpoint.config(this), AddConstructorCallTransactionEndpoint.config(this),
-					AddInstanceMethodCallTransactionEndpoint.config(this), AddStaticMethodCallTransactionEndpoint.config(this),
-					PostConstructorCallTransactionEndpoint.config(this), PostJarStoreTransactionEndpoint.config(this),
-					PostInstanceMethodCallTransactionEndpoint.config(this), PostStaticMethodCallTransactionEndpoint.config(this),
-					RunInstanceMethodCallTransactionEndpoint.config(this), RunStaticMethodCallTransactionEndpoint.config(this),
-					EventEndpoint.config(this)
-			);
-
-			// if the node gets closed, then this service will be closed as well
-			node.addOnCloseHandler(this_close);
 		}
-		catch (DeploymentException | IOException e) {
-			close();
-			throw new NodeException(e);
+    	catch (NodeException e) { // TODO
+    		throw new FailedDeploymentException(e);
 		}
+
+    	startContainer("", port,
+    			GetInfoEndpoint.config(this), GetConsensusConfigEndpoint.config(this), GetTakamakaCodeEndpoint.config(this),
+    			GetManifestEndpoint.config(this), GetClassTagEndpoint.config(this), GetStateEndpoint.config(this),
+    			GetRequestEndpoint.config(this), GetResponseEndpoint.config(this), GetPolledResponseEndpoint.config(this),
+    			AddGameteCreationTransactionEndpoint.config(this), AddJarStoreInitialTransactionEndpoint.config(this),
+    			AddInitializationTransactionEndpoint.config(this),
+    			AddJarStoreTransactionEndpoint.config(this), AddConstructorCallTransactionEndpoint.config(this),
+    			AddInstanceMethodCallTransactionEndpoint.config(this), AddStaticMethodCallTransactionEndpoint.config(this),
+    			PostConstructorCallTransactionEndpoint.config(this), PostJarStoreTransactionEndpoint.config(this),
+    			PostInstanceMethodCallTransactionEndpoint.config(this), PostStaticMethodCallTransactionEndpoint.config(this),
+    			RunInstanceMethodCallTransactionEndpoint.config(this), RunStaticMethodCallTransactionEndpoint.config(this),
+    			EventEndpoint.config(this)
+    			);
+
+    	// if the node gets closed, then this service will be closed as well
+    	node.addOnCloseHandler(this_close);
 
     	LOGGER.info(logPrefix + "published");
     }

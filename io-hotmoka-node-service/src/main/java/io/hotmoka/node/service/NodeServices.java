@@ -17,9 +17,9 @@ limitations under the License.
 package io.hotmoka.node.service;
 
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.service.api.NodeService;
 import io.hotmoka.node.service.internal.NodeServiceImpl;
+import io.hotmoka.websockets.api.FailedDeploymentException;
 
 /**
  * Providers of services of Hotmoka nodes, that publish their API as a web service.
@@ -34,9 +34,9 @@ public abstract class NodeServices {
 	 * @param node the Hotmoka node
 	 * @param port the port where the service should be opened
 	 * @return the network service
-	 * @throws NodeException if the service cannot be deployed
+	 * @throws FailedDeploymentException if the service cannot be deployed
 	 */
-	public static NodeService of(Node node, int port) throws NodeException {
+	public static NodeService of(Node node, int port) throws FailedDeploymentException {
 		return new NodeServiceImpl(node, port);
 	}
 }

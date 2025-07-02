@@ -125,6 +125,9 @@ public class Resume extends AbstractNodeResume {
 						report(json(), output, NodesMokamintResumeOutputs.Encoder::new);
 						waitForEnterKey();
 					}
+					catch (FailedDeploymentException e) {
+						throw new CommandException("Cannot deploy the service at port " + getPort());
+					}
 				}
 			}
 			catch (WrongKeyException e) {

@@ -138,6 +138,9 @@ public class Init extends AbstractNodeInit {
 						report(json(), output, NodesMokamintInitOutputs.Encoder::new);
 						waitForEnterKey();
 					}
+					catch (FailedDeploymentException e) {
+						throw new CommandException("Cannot deploy the service at port " + getPort());
+					}
 				}
 				catch (IOException e) {
 					throw new CommandException("Cannot access file \"" + getTakamakaCode() + "\"!", e);
