@@ -14,9 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node;
-
-import io.hotmoka.node.api.NodeException;
+package io.hotmoka.node.api;
 
 /**
  * An exception stating that a Hotmoka node is closed and cannot

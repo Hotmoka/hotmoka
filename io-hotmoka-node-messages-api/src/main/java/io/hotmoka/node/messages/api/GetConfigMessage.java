@@ -14,18 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.messages.internal.json;
+package io.hotmoka.node.messages.api;
 
-import io.hotmoka.node.messages.GetConsensusConfigMessages;
-import io.hotmoka.node.messages.api.GetConsensusConfigMessage;
-import io.hotmoka.websockets.beans.MappedDecoder;
+import io.hotmoka.annotations.Immutable;
+import io.hotmoka.node.api.Node;
+import io.hotmoka.websockets.beans.api.RpcMessage;
 
 /**
- * A decoder for a {@link GetConsensusConfigMessage}.
+ * The network message corresponding to {@link Node#getConfig()}.
  */
-public class GetConsensusConfigMessageDecoder extends MappedDecoder<GetConsensusConfigMessage, GetConsensusConfigMessages.Json> {
-
-	public GetConsensusConfigMessageDecoder() {
-		super(GetConsensusConfigMessages.Json.class);
-	}
+@Immutable
+public interface GetConfigMessage extends RpcMessage {
 }

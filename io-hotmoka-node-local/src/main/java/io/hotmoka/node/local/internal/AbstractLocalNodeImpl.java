@@ -42,11 +42,11 @@ import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.exceptions.CheckRunnable;
 import io.hotmoka.exceptions.UncheckConsumer;
-import io.hotmoka.node.ClosedNodeException;
 import io.hotmoka.node.CodeFutures;
 import io.hotmoka.node.JarFutures;
 import io.hotmoka.node.SubscriptionsManagers;
 import io.hotmoka.node.TransactionReferences;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.ConstructorFuture;
 import io.hotmoka.node.api.JarFuture;
@@ -181,14 +181,26 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	@Override
-	public final ConsensusConfig<?,?> getConfig() throws NodeException, InterruptedException {
-		S store = enterHead();
+	public final ConsensusConfig<?,?> getConfig() throws ClosedNodeException, InterruptedException {
+		S store;
+
+		try {
+			store = enterHead();
+		}
+		catch (NodeException e) { // TODO
+			throw new RuntimeException(e);
+		}
 
 		try (var scope = mkScope()) {
 			return store.getConfig();
 		}
 		finally {
-			exit(store);
+			try {
+				exit(store);
+			}
+			catch (NodeException e) { // TODO
+				throw new RuntimeException(e);
+			}
 		}
 	}
 

@@ -25,7 +25,7 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import io.hotmoka.closeables.api.OnCloseHandler;
-import io.hotmoka.node.ClosedNodeException;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.ConstructorFuture;
 import io.hotmoka.node.api.JarFuture;
@@ -217,7 +217,7 @@ public abstract class NodeDecoratorImpl<N extends Node> implements Node {
 	}
 
 	@Override
-	public ConsensusConfig<?,?> getConfig() throws NodeException, TimeoutException, InterruptedException {
+	public ConsensusConfig<?,?> getConfig() throws ClosedNodeException, TimeoutException, InterruptedException {
 		return parent.getConfig();
 	}
 

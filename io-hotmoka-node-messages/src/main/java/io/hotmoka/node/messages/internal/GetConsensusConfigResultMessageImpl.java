@@ -22,15 +22,15 @@ import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
-import io.hotmoka.node.messages.api.GetConsensusConfigResultMessage;
-import io.hotmoka.node.messages.internal.json.GetConsensusConfigResultMessageJson;
+import io.hotmoka.node.messages.api.GetConfigResultMessage;
+import io.hotmoka.node.messages.internal.json.GetConfigResultMessageJson;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * Implementation of the network message corresponding to the result of the {@link Node#getConfig()} method.
  */
-public class GetConsensusConfigResultMessageImpl extends AbstractRpcMessage implements GetConsensusConfigResultMessage {
+public class GetConsensusConfigResultMessageImpl extends AbstractRpcMessage implements GetConfigResultMessage {
 
 	/**
 	 * The result of the call.
@@ -55,7 +55,7 @@ public class GetConsensusConfigResultMessageImpl extends AbstractRpcMessage impl
 	 * @throws NoSuchAlgorithmException if the consensus configuration in the result of the JSON
 	 *                                  refers to a non-available cryptographic algorithm
 	 */
-	public GetConsensusConfigResultMessageImpl(GetConsensusConfigResultMessageJson json) throws NoSuchAlgorithmException, InconsistentJsonException {
+	public GetConsensusConfigResultMessageImpl(GetConfigResultMessageJson json) throws NoSuchAlgorithmException, InconsistentJsonException {
 		this(
 			Objects.requireNonNull(json.getResult(), "result cannot be null", InconsistentJsonException::new).unmap(),
 			json.getId(),
@@ -80,12 +80,12 @@ public class GetConsensusConfigResultMessageImpl extends AbstractRpcMessage impl
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof GetConsensusConfigResultMessage gccrm && super.equals(other) && result.equals(gccrm.get());
+		return other instanceof GetConfigResultMessage gccrm && super.equals(other) && result.equals(gccrm.get());
 	}
 
 	@Override
 	protected String getExpectedType() {
-		return GetConsensusConfigResultMessage.class.getName();
+		return GetConfigResultMessage.class.getName();
 	}
 
 	@Override

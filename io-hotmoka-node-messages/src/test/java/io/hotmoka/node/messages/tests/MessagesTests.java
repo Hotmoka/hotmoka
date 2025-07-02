@@ -64,8 +64,8 @@ import io.hotmoka.node.messages.AddStaticMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.EventMessages;
 import io.hotmoka.node.messages.GetClassTagMessages;
 import io.hotmoka.node.messages.GetClassTagResultMessages;
-import io.hotmoka.node.messages.GetConsensusConfigMessages;
-import io.hotmoka.node.messages.GetConsensusConfigResultMessages;
+import io.hotmoka.node.messages.GetConfigMessages;
+import io.hotmoka.node.messages.GetConfigResultMessages;
 import io.hotmoka.node.messages.GetManifestMessages;
 import io.hotmoka.node.messages.GetManifestResultMessages;
 import io.hotmoka.node.messages.GetInfoMessages;
@@ -120,9 +120,9 @@ public class MessagesTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("getConsensusConfig messages are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForGetConsensusConfig() throws Exception {
-		var expected = GetConsensusConfigMessages.of("id");
-		String encoded = new GetConsensusConfigMessages.Encoder().encode(expected);
-		var actual = new GetConsensusConfigMessages.Decoder().decode(encoded);
+		var expected = GetConfigMessages.of("id");
+		String encoded = new GetConfigMessages.Encoder().encode(expected);
+		var actual = new GetConfigMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);
 	}
 
@@ -133,9 +133,9 @@ public class MessagesTests extends AbstractLoggedTests {
 			.setChainId("my chain")
 			.setInitialSupply(BigInteger.valueOf(100L))
 			.build();
-		var expected = GetConsensusConfigResultMessages.of(config, "id");
-		String encoded = new GetConsensusConfigResultMessages.Encoder().encode(expected);
-		var actual = new GetConsensusConfigResultMessages.Decoder().decode(encoded);
+		var expected = GetConfigResultMessages.of(config, "id");
+		String encoded = new GetConfigResultMessages.Encoder().encode(expected);
+		var actual = new GetConfigResultMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);
 	}
 

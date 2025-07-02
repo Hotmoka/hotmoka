@@ -57,11 +57,11 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * Yields the consensus configuration of this node.
 	 * 
 	 * @return the consensus configuration of this node
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws ClosedNodeException if the node is already closed
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	ConsensusConfig<?,?> getConfig() throws NodeException, TimeoutException, InterruptedException;
+	ConsensusConfig<?,?> getConfig() throws ClosedNodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Yields the reference to the jar installed in the store of the node, when the node was initialized,

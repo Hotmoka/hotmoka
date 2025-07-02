@@ -18,11 +18,12 @@ package io.hotmoka.node.messages.api;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.websockets.beans.api.RpcMessage;
+import io.hotmoka.node.api.nodes.ConsensusConfig;
+import io.hotmoka.websockets.beans.api.ResultMessage;
 
 /**
- * The network message corresponding to {@link Node#getConfig()}.
+ * The network message corresponding to the result of the {@link Node#getConfig()} method.
  */
 @Immutable
-public interface GetConsensusConfigMessage extends RpcMessage {
+public interface GetConfigResultMessage extends ResultMessage<ConsensusConfig<?,?>> {
 }

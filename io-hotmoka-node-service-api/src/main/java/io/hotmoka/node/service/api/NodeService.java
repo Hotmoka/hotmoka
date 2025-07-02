@@ -42,7 +42,7 @@ public interface NodeService extends AutoCloseable {
 	/**
 	 * The network endpoint path where {@link Node#getConfig()} is published.
 	 */
-	String GET_CONSENSUS_CONFIG_ENDPOINT = "/get_consensus_config";
+	String GET_CONFIG_ENDPOINT = "/get_config";
 
 	/**
 	 * The network endpoint path where {@link Node#getTakamakaCode()} is published.

@@ -19,15 +19,15 @@ package io.hotmoka.node.messages.internal;
 import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.messages.api.GetConsensusConfigMessage;
-import io.hotmoka.node.messages.internal.json.GetConsensusConfigMessageJson;
+import io.hotmoka.node.messages.api.GetConfigMessage;
+import io.hotmoka.node.messages.internal.json.GetConfigMessageJson;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * Implementation of the network message corresponding to {@link Node#getConfig()}.
  */
-public class GetConsensusConfigMessageImpl extends AbstractRpcMessage implements GetConsensusConfigMessage {
+public class GetConsensusConfigMessageImpl extends AbstractRpcMessage implements GetConfigMessage {
 
 	/**
 	 * Creates the message.
@@ -44,7 +44,7 @@ public class GetConsensusConfigMessageImpl extends AbstractRpcMessage implements
 	 * @param json the JSON representation
 	 * @throws InconsistentJsonException if {@code json} is inconsistent
 	 */
-	public GetConsensusConfigMessageImpl(GetConsensusConfigMessageJson json) throws InconsistentJsonException {
+	public GetConsensusConfigMessageImpl(GetConfigMessageJson json) throws InconsistentJsonException {
 		this(json.getId(), InconsistentJsonException::new);
 	}
 
@@ -62,11 +62,11 @@ public class GetConsensusConfigMessageImpl extends AbstractRpcMessage implements
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof GetConsensusConfigMessage && super.equals(other);
+		return other instanceof GetConfigMessage && super.equals(other);
 	}
 
 	@Override
 	protected String getExpectedType() {
-		return GetConsensusConfigMessage.class.getName();
+		return GetConfigMessage.class.getName();
 	}
 }

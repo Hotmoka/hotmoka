@@ -24,6 +24,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.hotmoka.closeables.api.OnCloseHandler;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
@@ -49,8 +50,8 @@ import io.hotmoka.node.messages.AddStaticMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.EventMessages;
 import io.hotmoka.node.messages.GetClassTagMessages;
 import io.hotmoka.node.messages.GetClassTagResultMessages;
-import io.hotmoka.node.messages.GetConsensusConfigMessages;
-import io.hotmoka.node.messages.GetConsensusConfigResultMessages;
+import io.hotmoka.node.messages.GetConfigMessages;
+import io.hotmoka.node.messages.GetConfigResultMessages;
 import io.hotmoka.node.messages.GetInfoMessages;
 import io.hotmoka.node.messages.GetInfoResultMessages;
 import io.hotmoka.node.messages.GetManifestMessages;
@@ -85,7 +86,7 @@ import io.hotmoka.node.messages.api.AddJarStoreInitialTransactionMessage;
 import io.hotmoka.node.messages.api.AddJarStoreTransactionMessage;
 import io.hotmoka.node.messages.api.AddStaticMethodCallTransactionMessage;
 import io.hotmoka.node.messages.api.GetClassTagMessage;
-import io.hotmoka.node.messages.api.GetConsensusConfigMessage;
+import io.hotmoka.node.messages.api.GetConfigMessage;
 import io.hotmoka.node.messages.api.GetInfoMessage;
 import io.hotmoka.node.messages.api.GetManifestMessage;
 import io.hotmoka.node.messages.api.GetPolledResponseMessage;
@@ -163,7 +164,7 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 		}
 
     	startContainer("", port,
-    			GetInfoEndpoint.config(this), GetConsensusConfigEndpoint.config(this), GetTakamakaCodeEndpoint.config(this),
+    			GetInfoEndpoint.config(this), GetConfigEndpoint.config(this), GetTakamakaCodeEndpoint.config(this),
     			GetManifestEndpoint.config(this), GetClassTagEndpoint.config(this), GetStateEndpoint.config(this),
     			GetRequestEndpoint.config(this), GetResponseEndpoint.config(this), GetPolledResponseEndpoint.config(this),
     			AddGameteCreationTransactionEndpoint.config(this), AddJarStoreInitialTransactionEndpoint.config(this),
@@ -226,15 +227,21 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
     			nodeFailed(session, "getManifest()", id, e);
     		}
     	}
-    	else if (message instanceof GetConsensusConfigMessage) {
+    	else if (message instanceof GetConfigMessage) {
     		try {
-				sendObjectAsync(session, GetConsensusConfigResultMessages.of(node.getConfig(), id));
-			}
-			catch (TimeoutException | InterruptedException e) {
-				sendExceptionAsync(session, e, id);
-			}
-    		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "getConfig()", id, e);
+    			try {
+    				sendObjectAsync(session, GetConfigResultMessages.of(node.getConfig(), id));
+    			}
+    			catch (InterruptedException e) {
+    				LOGGER.warning(logPrefix + "getConfig() has been interrupted: " + e.getMessage());
+    				Thread.currentThread().interrupt();
+    			}
+    			catch (TimeoutException | ClosedNodeException e) {
+    				LOGGER.warning(logPrefix + "getConfig() request failed: " + e.getMessage());
+    			}
+    		}
+    		catch (IOException e) {
+    			LOGGER.warning(logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
     		}
     	}
     	else if (message instanceof GetClassTagMessage gctm) {
@@ -548,22 +555,21 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 		}
 	}
 
-	protected void onGetConsensusConfig(GetConsensusConfigMessage message, Session session) {
-		LOGGER.info(logPrefix + "received a " + GET_CONSENSUS_CONFIG_ENDPOINT + " request");
+	protected void onGetConfig(GetConfigMessage message, Session session) {
+		LOGGER.info(logPrefix + "received a " + GET_CONFIG_ENDPOINT + " request");
 		scheduleRequest(session, message);
 	};
 
-	public static class GetConsensusConfigEndpoint extends AbstractServerEndpoint<NodeServiceImpl> {
+	public static class GetConfigEndpoint extends AbstractServerEndpoint<NodeServiceImpl> {
 
 		@Override
 	    public void onOpen(Session session, EndpointConfig config) {
 			var server = getServer();
-			addMessageHandler(session, (GetConsensusConfigMessage message) -> server.onGetConsensusConfig(message, session));
+			addMessageHandler(session, (GetConfigMessage message) -> server.onGetConfig(message, session));
 	    }
 
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
-			return simpleConfig(server, GetConsensusConfigEndpoint.class, GET_CONSENSUS_CONFIG_ENDPOINT,
-				GetConsensusConfigMessages.Decoder.class, GetConsensusConfigResultMessages.Encoder.class, ExceptionMessages.Encoder.class);
+			return simpleConfig(server, GetConfigEndpoint.class, GET_CONFIG_ENDPOINT, GetConfigMessages.Decoder.class, GetConfigResultMessages.Encoder.class);
 		}
 	}
 

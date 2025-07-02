@@ -26,8 +26,8 @@ import java.util.logging.Logger;
 
 import io.hotmoka.constants.Constants;
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.node.ClosedNodeException;
 import io.hotmoka.node.NodeInfos;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.NodeInfo;

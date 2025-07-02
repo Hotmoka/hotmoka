@@ -17,63 +17,67 @@ limitations under the License.
 package io.hotmoka.node.messages;
 
 import io.hotmoka.node.api.nodes.ConsensusConfig;
-import io.hotmoka.node.messages.api.GetConsensusConfigResultMessage;
+import io.hotmoka.node.messages.api.GetConfigResultMessage;
 import io.hotmoka.node.messages.internal.GetConsensusConfigResultMessageImpl;
-import io.hotmoka.node.messages.internal.json.GetConsensusConfigResultMessageDecoder;
-import io.hotmoka.node.messages.internal.json.GetConsensusConfigResultMessageEncoder;
-import io.hotmoka.node.messages.internal.json.GetConsensusConfigResultMessageJson;
+import io.hotmoka.node.messages.internal.json.GetConfigResultMessageJson;
+import io.hotmoka.websockets.beans.MappedDecoder;
+import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
- * A provider of {@link GetConsensusConfigResultMessage}.
+ * A provider of {@link GetConfigResultMessage}.
  */
-public abstract class GetConsensusConfigResultMessages {
+public abstract class GetConfigResultMessages {
 
-	private GetConsensusConfigResultMessages() {}
+	private GetConfigResultMessages() {}
 
 	/**
-	 * Yields a {@link GetConsensusConfigResultMessage}.
+	 * Yields a {@link GetConfigResultMessage}.
 	 * 
 	 * @param result the result of the call
 	 * @param id the identifier of the message
 	 * @return the message
 	 */
-	public static GetConsensusConfigResultMessage of(ConsensusConfig<?,?> result, String id) {
+	public static GetConfigResultMessage of(ConsensusConfig<?,?> result, String id) {
 		return new GetConsensusConfigResultMessageImpl(result, id);
 	}
 
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends GetConsensusConfigResultMessageEncoder {
+	public static class Encoder extends MappedEncoder<GetConfigResultMessage, Json> {
 
 		/**
 		 * Creates a new encoder.
 		 */
-		public Encoder() {}
+		public Encoder() {
+			super(Json::new);
+		}
 	}
 
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends GetConsensusConfigResultMessageDecoder {
+	public static class Decoder extends MappedDecoder<GetConfigResultMessage, Json> {
 
 		/**
 		 * Creates a new decoder.
 		 */
-		public Decoder() {}
+		public Decoder() {
+			super(Json.class);
+		}
 	}
 
 	/**
      * Json representation.
      */
-    public static class Json extends GetConsensusConfigResultMessageJson {
+    public static class Json extends GetConfigResultMessageJson {
 
     	/**
     	 * Creates the Json representation for the given message.
     	 * 
     	 * @param message the message
     	 */
-    	public Json(GetConsensusConfigResultMessage message) {
+    	public Json(GetConfigResultMessage message) {
     		super(message);
     	}
     }

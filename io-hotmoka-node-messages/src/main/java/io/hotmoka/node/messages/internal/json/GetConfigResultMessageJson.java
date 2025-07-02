@@ -19,18 +19,18 @@ package io.hotmoka.node.messages.internal.json;
 import java.security.NoSuchAlgorithmException;
 
 import io.hotmoka.node.ConsensusConfigBuilders;
-import io.hotmoka.node.messages.api.GetConsensusConfigResultMessage;
+import io.hotmoka.node.messages.api.GetConfigResultMessage;
 import io.hotmoka.node.messages.internal.GetConsensusConfigResultMessageImpl;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
- * The JSON representation of a {@link GetConsensusConfigResultMessage}.
+ * The JSON representation of a {@link GetConfigResultMessage}.
  */
-public abstract class GetConsensusConfigResultMessageJson extends AbstractRpcMessageJsonRepresentation<GetConsensusConfigResultMessage> {
+public abstract class GetConfigResultMessageJson extends AbstractRpcMessageJsonRepresentation<GetConfigResultMessage> {
 	private final ConsensusConfigBuilders.Json result;
 
-	protected GetConsensusConfigResultMessageJson(GetConsensusConfigResultMessage message) {
+	protected GetConfigResultMessageJson(GetConfigResultMessage message) {
 		super(message);
 
 		this.result = new ConsensusConfigBuilders.Json(message.get());
@@ -41,12 +41,12 @@ public abstract class GetConsensusConfigResultMessageJson extends AbstractRpcMes
 	}
 
 	@Override
-	public GetConsensusConfigResultMessage unmap() throws NoSuchAlgorithmException, InconsistentJsonException {
+	public GetConfigResultMessage unmap() throws NoSuchAlgorithmException, InconsistentJsonException {
 		return new GetConsensusConfigResultMessageImpl(this);
 	}
 
 	@Override
 	protected String getExpectedType() {
-		return GetConsensusConfigResultMessage.class.getName();
+		return GetConfigResultMessage.class.getName();
 	}
 }

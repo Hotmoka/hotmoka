@@ -25,7 +25,7 @@ import static io.hotmoka.node.service.api.NodeService.ADD_JAR_STORE_TRANSACTION_
 import static io.hotmoka.node.service.api.NodeService.ADD_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.EVENTS_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_CLASS_TAG_ENDPOINT;
-import static io.hotmoka.node.service.api.NodeService.GET_CONSENSUS_CONFIG_ENDPOINT;
+import static io.hotmoka.node.service.api.NodeService.GET_CONFIG_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_INFO_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_MANIFEST_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_POLLED_RESPONSE_ENDPOINT;
@@ -40,6 +40,7 @@ import static io.hotmoka.node.service.api.NodeService.POST_STATIC_METHOD_CALL_TR
 import static io.hotmoka.node.service.api.NodeService.RUN_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.RUN_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
@@ -49,10 +50,10 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.node.ClosedNodeException;
 import io.hotmoka.node.CodeFutures;
 import io.hotmoka.node.JarFutures;
 import io.hotmoka.node.SubscriptionsManagers;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.ConstructorFuture;
 import io.hotmoka.node.api.JarFuture;
@@ -96,8 +97,8 @@ import io.hotmoka.node.messages.AddStaticMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.EventMessages;
 import io.hotmoka.node.messages.GetClassTagMessages;
 import io.hotmoka.node.messages.GetClassTagResultMessages;
-import io.hotmoka.node.messages.GetConsensusConfigMessages;
-import io.hotmoka.node.messages.GetConsensusConfigResultMessages;
+import io.hotmoka.node.messages.GetConfigMessages;
+import io.hotmoka.node.messages.GetConfigResultMessages;
 import io.hotmoka.node.messages.GetInfoMessages;
 import io.hotmoka.node.messages.GetInfoResultMessages;
 import io.hotmoka.node.messages.GetManifestMessages;
@@ -141,8 +142,8 @@ import io.hotmoka.node.messages.api.AddStaticMethodCallTransactionResultMessage;
 import io.hotmoka.node.messages.api.EventMessage;
 import io.hotmoka.node.messages.api.GetClassTagMessage;
 import io.hotmoka.node.messages.api.GetClassTagResultMessage;
-import io.hotmoka.node.messages.api.GetConsensusConfigMessage;
-import io.hotmoka.node.messages.api.GetConsensusConfigResultMessage;
+import io.hotmoka.node.messages.api.GetConfigMessage;
+import io.hotmoka.node.messages.api.GetConfigResultMessage;
 import io.hotmoka.node.messages.api.GetInfoMessage;
 import io.hotmoka.node.messages.api.GetInfoResultMessage;
 import io.hotmoka.node.messages.api.GetManifestMessage;
@@ -211,7 +212,7 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
     	this.logPrefix = "node remote(" + uri + "): ";
 
     	addSession(GET_INFO_ENDPOINT, uri, GetInfoEndpoint::new);
-    	addSession(GET_CONSENSUS_CONFIG_ENDPOINT, uri, GetConsensusConfigEndpoint::new);
+    	addSession(GET_CONFIG_ENDPOINT, uri, GetConfigEndpoint::new);
     	addSession(GET_TAKAMAKA_CODE_ENDPOINT, uri, GetTakamakaCodeEndpoint::new);
     	addSession(GET_MANIFEST_ENDPOINT, uri, GetManifestEndpoint::new);
     	addSession(GET_CLASS_TAG_ENDPOINT, uri, GetClassTagEndpoint::new);
@@ -247,8 +248,8 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	protected void notifyResult(RpcMessage message) {
 		if (message instanceof GetInfoResultMessage gnirm)
 			onGetInfoResult(gnirm);
-		else if (message instanceof GetConsensusConfigResultMessage gccrm)
-			onGetConsensusConfigResult(gccrm);
+		else if (message instanceof GetConfigResultMessage gccrm)
+			onGetConfigResult(gccrm);
 		else if (message instanceof GetTakamakaCodeResultMessage gtcrm)
 			onGetTakamakaCodeResult(gtcrm);
 		else if (message instanceof GetManifestResultMessage gmrm)
@@ -297,6 +298,22 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 		super.notifyResult(message);
 	}
 
+	/**
+	 * Sends the given message to the given endpoint. If it fails, it just logs
+	 * the exception and continues.
+	 * 
+	 * @param endpoint the endpoint
+	 * @param message the message
+	 */
+	private void sendObjectAsync(String endpoint, RpcMessage message) {
+		try {
+			sendObjectAsync(getSession(endpoint), message);
+		}
+		catch (IOException e) {
+			LOGGER.warning("cannot send to " + endpoint + ": " + e.getMessage());
+		}
+	}
+
 	@Override
 	public NodeInfo getInfo() throws NodeException, TimeoutException, InterruptedException {
 		ensureIsOpen(ClosedNodeException::new);
@@ -331,35 +348,34 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	}
 
 	@Override
-	public ConsensusConfig<?,?> getConfig() throws NodeException, TimeoutException, InterruptedException {
+	public ConsensusConfig<?,?> getConfig() throws ClosedNodeException, TimeoutException, InterruptedException {
 		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
-		sendGetConsensusConfig(id);
-		return waitForResult(id, GetConsensusConfigResultMessage.class, TimeoutException.class, NodeException.class);
+		sendGetConfig(id);
+		return waitForResult(id, GetConfigResultMessage.class);
 	}
 
 	/**
-	 * Sends a {@link GetConsensusConfigMessage} to the node service.
+	 * Sends a {@link GetConfigMessage} to the node service.
 	 * 
 	 * @param id the identifier of the message
-	 * @throws NodeException if the message could not be sent
 	 */
-	protected void sendGetConsensusConfig(String id) throws NodeException {
-		sendObjectAsync(getSession(GET_CONSENSUS_CONFIG_ENDPOINT), GetConsensusConfigMessages.of(id), NodeException::new);
+	protected void sendGetConfig(String id) {
+		sendObjectAsync(GET_CONFIG_ENDPOINT, GetConfigMessages.of(id));
 	}
 
 	/**
-	 * Hook called when a {@link GetConsensusConfigResultMessage} has been received.
+	 * Hook called when a {@link GetConfigResultMessage} has been received.
 	 * 
 	 * @param message the message
 	 */
-	protected void onGetConsensusConfigResult(GetConsensusConfigResultMessage message) {}
+	protected void onGetConfigResult(GetConfigResultMessage message) {}
 
-	private class GetConsensusConfigEndpoint extends Endpoint {
+	private class GetConfigEndpoint extends Endpoint {
 
 		@Override
 		protected Session deployAt(URI uri) throws FailedDeploymentException {
-			return deployAt(uri, GetConsensusConfigResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetConsensusConfigMessages.Encoder.class);		
+			return deployAt(uri, GetConfigResultMessages.Decoder.class, GetConfigMessages.Encoder.class);		
 		}
 	}
 

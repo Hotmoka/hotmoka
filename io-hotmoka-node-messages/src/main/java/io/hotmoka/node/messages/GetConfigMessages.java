@@ -16,62 +16,66 @@ limitations under the License.
 
 package io.hotmoka.node.messages;
 
-import io.hotmoka.node.messages.api.GetConsensusConfigMessage;
+import io.hotmoka.node.messages.api.GetConfigMessage;
 import io.hotmoka.node.messages.internal.GetConsensusConfigMessageImpl;
-import io.hotmoka.node.messages.internal.json.GetConsensusConfigMessageDecoder;
-import io.hotmoka.node.messages.internal.json.GetConsensusConfigMessageEncoder;
-import io.hotmoka.node.messages.internal.json.GetConsensusConfigMessageJson;
+import io.hotmoka.node.messages.internal.json.GetConfigMessageJson;
+import io.hotmoka.websockets.beans.MappedDecoder;
+import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
- * A provider of {@link GetConsensusConfigMessage}.
+ * A provider of {@link GetConfigMessage}.
  */
-public abstract class GetConsensusConfigMessages {
+public abstract class GetConfigMessages {
 
-	private GetConsensusConfigMessages() {}
+	private GetConfigMessages() {}
 
 	/**
-	 * Yields a {@link GetConsensusConfigMessage}.
+	 * Yields a {@link GetConfigMessage}.
 	 * 
 	 * @param id the identifier of the message
 	 * @return the message
 	 */
-	public static GetConsensusConfigMessage of(String id) {
+	public static GetConfigMessage of(String id) {
 		return new GetConsensusConfigMessageImpl(id);
 	}
 
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends GetConsensusConfigMessageEncoder {
+	public static class Encoder extends MappedEncoder<GetConfigMessage, Json> {
 
 		/**
 		 * Creates a new encoder.
 		 */
-		public Encoder() {}
+		public Encoder() {
+			super(Json::new);
+		}
 	}
 
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends GetConsensusConfigMessageDecoder {
+	public static class Decoder extends MappedDecoder<GetConfigMessage, Json> {
 
 		/**
 		 * Creates a new decoder.
 		 */
-		public Decoder() {}
+		public Decoder() {
+			super(Json.class);
+		}
 	}
 
 	/**
      * Json representation.
      */
-    public static class Json extends GetConsensusConfigMessageJson {
+    public static class Json extends GetConfigMessageJson {
 
     	/**
     	 * Creates the Json representation for the given message.
     	 * 
     	 * @param message the message
     	 */
-    	public Json(GetConsensusConfigMessage message) {
+    	public Json(GetConfigMessage message) {
     		super(message);
     	}
     }
