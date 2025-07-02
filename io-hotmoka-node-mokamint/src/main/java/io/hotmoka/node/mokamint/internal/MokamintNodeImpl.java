@@ -57,7 +57,6 @@ import io.hotmoka.node.mokamint.api.MokamintNode;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
 import io.hotmoka.xodus.ExodusException;
 import io.mokamint.application.AbstractApplication;
-import io.mokamint.application.api.ApplicationException;
 import io.mokamint.application.api.ClosedApplicationException;
 import io.mokamint.application.api.UnknownGroupIdException;
 import io.mokamint.application.api.UnknownStateException;
@@ -302,22 +301,26 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		}
 
 		@Override
-		public void checkTransaction(Transaction transaction) {
-			// nothing, there is nothing we can check for Hotmoka
+		public void checkTransaction(Transaction transaction) throws ClosedApplicationException {
+			try (var scope = mkScope()) {
+				// nothing, there is nothing we can check for Hotmoka
+			}
 		}
 
 		@Override
-		public long getPriority(Transaction transaction) {
-			return 0;
+		public long getPriority(Transaction transaction) throws ClosedApplicationException {
+			try (var scope = mkScope()) {
+				return 0;
+			}
 		}
 
 		@Override
-		public String getRepresentation(Transaction transaction) throws io.mokamint.node.api.TransactionRejectedException, ApplicationException {
-			try {
+		public String getRepresentation(Transaction transaction) throws io.mokamint.node.api.TransactionRejectedException, ClosedApplicationException {
+			try (var scope = mkScope()) {
 				return intoHotmokaRequest(transaction).toString();
 			}
-			catch (IOException e) {
-				throw new ApplicationException(e);
+			catch (IOException e) { // TODO
+				throw new RuntimeException(e);
 			}
 		}
 
@@ -329,7 +332,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		}
 
 		@Override
-		public int beginBlock(long height, LocalDateTime when, byte[] stateId) throws UnknownStateException, ApplicationException, InterruptedException {
+		public int beginBlock(long height, LocalDateTime when, byte[] stateId) throws UnknownStateException, ClosedApplicationException, InterruptedException {
 			var si = StateIds.of(stateId);
 
 			MokamintStore start;
@@ -337,8 +340,8 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 				// if we have information about the cache at the requested state id, we use it for better efficiency
 				start = enter(si, Optional.ofNullable(lastCaches.get(si)));
 			}
-			catch (NodeException e) {
-				throw new ApplicationException(e);
+			catch (NodeException e) { // TODO
+				throw new RuntimeException(e);
 			}
 			catch (UnknownStateIdException e) {
 				throw new UnknownStateException(e);
@@ -353,63 +356,67 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 				try {
 					exit(start);
 				}
-				catch (NodeException e2) {
-					throw new ApplicationException(e2);
+				catch (NodeException e2) { // TODO
+					throw new RuntimeException(e2);
 				}
 
-				throw new ApplicationException(e);
+				throw new RuntimeException(e); // TODO
 	    	}
 
 			return groupId;
 		}
 
 		@Override
-		public void deliverTransaction(int groupId, Transaction transaction) throws io.mokamint.node.api.TransactionRejectedException, UnknownGroupIdException, ApplicationException, InterruptedException {
-			TransactionRequest<?> hotmokaRequest;
+		public void deliverTransaction(int groupId, Transaction transaction) throws io.mokamint.node.api.TransactionRejectedException, UnknownGroupIdException, ClosedApplicationException, InterruptedException {
+			try (var scope = mkScope()) {
+				TransactionRequest<?> hotmokaRequest;
 
-			try {
-				hotmokaRequest = intoHotmokaRequest(transaction);
-			}
-			catch (IOException e) {
-				throw new ApplicationException(e);
-			}
+				try {
+					hotmokaRequest = intoHotmokaRequest(transaction);
+				}
+				catch (IOException e) { // TODO
+					throw new RuntimeException(e);
+				}
 
-			MokamintStoreTransformation transformation = getTransformation(groupId);
+				MokamintStoreTransformation transformation = getTransformation(groupId);
 
-			try {
-				transformation.deliverTransaction(hotmokaRequest);
-			}
-			catch (TransactionRejectedException e) {
-				signalRejected(hotmokaRequest, e);
-				throw new io.mokamint.node.api.TransactionRejectedException(e.getMessage(), e);
-			}
-			catch (StoreException e) {
-				throw new ApplicationException(e);
+				try {
+					transformation.deliverTransaction(hotmokaRequest);
+				}
+				catch (TransactionRejectedException e) {
+					signalRejected(hotmokaRequest, e);
+					throw new io.mokamint.node.api.TransactionRejectedException(e.getMessage(), e);
+				}
+				catch (StoreException e) {
+					throw new RuntimeException(e); //TODO
+				}
 			}
 		}
 
 		@Override
-		public byte[] endBlock(int groupId, Deadline deadline) throws ApplicationException, UnknownGroupIdException, InterruptedException {
-			MokamintStoreTransformation transformation = getTransformation(groupId);
+		public byte[] endBlock(int groupId, Deadline deadline) throws ClosedApplicationException, UnknownGroupIdException, InterruptedException {
+			try (var scope = mkScope()) {
+				MokamintStoreTransformation transformation = getTransformation(groupId);
 
-			try {
-				transformation.deliverCoinbaseTransactions(deadline.getProlog());
+				try {
+					transformation.deliverCoinbaseTransactions(deadline.getProlog());
 
-				FunctionWithExceptions2<io.hotmoka.xodus.env.Transaction, byte[], NodeException, StoreException> function = txn -> {
-					StateId stateIdOfFinalStore = transformation.getIdOfFinalStore(txn);
+					FunctionWithExceptions2<io.hotmoka.xodus.env.Transaction, byte[], NodeException, StoreException> function = txn -> {
+						StateId stateIdOfFinalStore = transformation.getIdOfFinalStore(txn);
 
-					if (lastCaches.get(stateIdOfFinalStore) == null) {
-						lastCaches.put(stateIdOfFinalStore, transformation.getCache());
-						persist(stateIdOfFinalStore, transformation.getNow(), txn);
-					}
+						if (lastCaches.get(stateIdOfFinalStore) == null) {
+							lastCaches.put(stateIdOfFinalStore, transformation.getCache());
+							persist(stateIdOfFinalStore, transformation.getNow(), txn);
+						}
 
-					return stateIdOfFinalStore.getBytes();
-				};
+						return stateIdOfFinalStore.getBytes();
+					};
 
-				return getEnvironment().computeInTransaction(NodeException.class, StoreException.class, function);
-			}
-			catch (ExodusException | StoreException | NodeException e) {
-				throw new ApplicationException(e);
+					return getEnvironment().computeInTransaction(NodeException.class, StoreException.class, function);
+				}
+				catch (ExodusException | StoreException | NodeException e) { // TODO
+					throw new RuntimeException(e);
+				}
 			}
 		}
 
