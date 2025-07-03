@@ -25,6 +25,7 @@ import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnexpectedCodeException;
 import io.hotmoka.node.api.UninitializedNodeException;
 
 /**
@@ -46,8 +47,9 @@ public abstract class SendCoinsHelpers {
 	 * @throws TransactionException if some transaction failed
 	 * @throws TransactionRejectedException if some transaction was rejected
 	 * @throws UninitializedNodeException if the node is not initialized yet
+	 * @throws UnexpectedCodeException if the Takamaka runtime is behaving in an unexpected way
 	 */
-	public static SendCoinsHelper of(Node node) throws ClosedNodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, CodeExecutionException, UninitializedNodeException {
+	public static SendCoinsHelper of(Node node) throws ClosedNodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, CodeExecutionException, UninitializedNodeException, UnexpectedCodeException {
 		return new SendCoinsHelperImpl(node);
 	}
 }

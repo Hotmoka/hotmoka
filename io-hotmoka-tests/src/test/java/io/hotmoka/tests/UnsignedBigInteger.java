@@ -37,7 +37,7 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.UnexpectedValueException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -106,14 +106,14 @@ class UnsignedBigInteger extends HotmokaTest {
                 creator_prv_key, creator,
                 _100_000, panarea(1), classpath,
                 add,
-                ubi_100, ubi_11).asReturnedReference(add, NodeException::new);
+                ubi_100, ubi_11).asReturnedReference(add, UnexpectedValueException::new);
         // ubi_sum = 100.add(11) = 111
 
 		var equals_result = runInstanceNonVoidMethodCallTransaction(
                 creator,
                 _100_000, classpath,
                 EQUALS,
-                ubi_sum, ubi_111).asReturnedBoolean(EQUALS, NodeException::new);
+                ubi_sum, ubi_111).asReturnedBoolean(EQUALS, UnexpectedValueException::new);
         // equals_result = ubi_sum.equals(111) = true
 
         assertTrue(equals_result);
@@ -130,14 +130,14 @@ class UnsignedBigInteger extends HotmokaTest {
                 creator_prv_key, creator,
                 _100_000, panarea(1), classpath,
                 subtract,
-                ubi_100, ubi_1).asReturnedReference(subtract, NodeException::new);
+                ubi_100, ubi_1).asReturnedReference(subtract, UnexpectedValueException::new);
         // ubi_sub = 100.subtract(1) = 99
 
 		boolean equals_result = runInstanceNonVoidMethodCallTransaction(
                 creator,
                 _100_000, classpath,
                 EQUALS,
-                ubi_sub, ubi_99).asReturnedBoolean(EQUALS, NodeException::new);
+                ubi_sub, ubi_99).asReturnedBoolean(EQUALS, UnexpectedValueException::new);
         // equals_result = ubi_sub.equals(99) = true
 
         assertTrue(equals_result);
@@ -169,14 +169,14 @@ class UnsignedBigInteger extends HotmokaTest {
                 creator_prv_key, creator,
                 _100_000, panarea(1), classpath,
                 multiply,
-                ubi_100, ubi_9).asReturnedReference(multiply, NodeException::new);
+                ubi_100, ubi_9).asReturnedReference(multiply, UnexpectedValueException::new);
         // ubi_mul = 100.multiply(9) = 900
 
         boolean equals_result = runInstanceNonVoidMethodCallTransaction(
                 creator,
                 _100_000, classpath,
                 EQUALS,
-                ubi_mul, ubi_900).asReturnedBoolean(EQUALS, NodeException::new);
+                ubi_mul, ubi_900).asReturnedBoolean(EQUALS, UnexpectedValueException::new);
         // equals_result = ubi_mul.equals(900) = true
 
         assertTrue(equals_result);
@@ -193,14 +193,14 @@ class UnsignedBigInteger extends HotmokaTest {
                 creator_prv_key, creator,
                 _100_000, panarea(1), classpath,
                 divide,
-                ubi_900, ubi_8).asReturnedReference(divide, NodeException::new);
+                ubi_900, ubi_8).asReturnedReference(divide, UnexpectedValueException::new);
         // ubi_div = 900.divide(8) = 112,5 --> 112 (perfectly matches division with uint256 on Solidity)
 
 		boolean equals_result = runInstanceNonVoidMethodCallTransaction(
                 creator,
                 _100_000, classpath,
                 EQUALS,
-                ubi_div, ubi_112).asReturnedBoolean(EQUALS, NodeException::new);
+                ubi_div, ubi_112).asReturnedBoolean(EQUALS, UnexpectedValueException::new);
         // equals_result = ubi_div.equals(112) = true
 
         assertTrue(equals_result);
@@ -217,14 +217,14 @@ class UnsignedBigInteger extends HotmokaTest {
                 creator_prv_key, creator,
                 _100_000, panarea(1), classpath,
                 divide,
-                ubi_900, ubi_11).asReturnedReference(divide, NodeException::new);
+                ubi_900, ubi_11).asReturnedReference(divide, UnexpectedValueException::new);
         // ubi_div = 900.divide(11) = 81,818181818 --> 81 (perfectly matches division with uint256 on Solidity)
 
         boolean equals_result = runInstanceNonVoidMethodCallTransaction(
                 creator,
                 _100_000, classpath,
                 EQUALS,
-                ubi_div, ubi_81).asReturnedBoolean(EQUALS, NodeException::new);
+                ubi_div, ubi_81).asReturnedBoolean(EQUALS, UnexpectedValueException::new);
         // equals_result = ubi_div.equals(81) = true
 
         assertTrue(equals_result);
@@ -256,14 +256,14 @@ class UnsignedBigInteger extends HotmokaTest {
                 creator_prv_key, creator,
                 _100_000, panarea(1), classpath,
                 mod,
-                ubi_800, ubi_13).asReturnedReference(mod, NodeException::new);
+                ubi_800, ubi_13).asReturnedReference(mod, UnexpectedValueException::new);
         // ubi_mod = 800.mod(13) = 7
 
         boolean equals_result = runInstanceNonVoidMethodCallTransaction(
                 creator,
                 _100_000, classpath,
                 EQUALS,
-                ubi_mod, ubi_7).asReturnedBoolean(EQUALS, NodeException::new);
+                ubi_mod, ubi_7).asReturnedBoolean(EQUALS, UnexpectedValueException::new);
         // equals_result = ubi_mod.equals(7) = true
 
         assertTrue(equals_result);
@@ -295,14 +295,14 @@ class UnsignedBigInteger extends HotmokaTest {
                 creator_prv_key, creator,
                 _100_000, panarea(1), classpath,
                 pow,
-                ubi_8, int_2).asReturnedReference(pow, NodeException::new);
+                ubi_8, int_2).asReturnedReference(pow, UnexpectedValueException::new);
         // ubi_pow = 8.pow(7) = 2097152
 
         boolean equals_result = runInstanceNonVoidMethodCallTransaction(
                 creator,
                 _100_000, classpath,
                 EQUALS,
-                ubi_pow, ubi_2097152).asReturnedBoolean(EQUALS, NodeException::new);
+                ubi_pow, ubi_2097152).asReturnedBoolean(EQUALS, UnexpectedValueException::new);
         // equals_result = ubi_pow.equals(2097152) = true
 
         assertTrue(equals_result);
@@ -319,14 +319,14 @@ class UnsignedBigInteger extends HotmokaTest {
                 creator_prv_key, creator,
                 _100_000, panarea(1), classpath,
                 max,
-                ubi_800, ubi_799).asReturnedReference(max, NodeException::new);
+                ubi_800, ubi_799).asReturnedReference(max, UnexpectedValueException::new);
         // ubi_max = 800.max(799) = 800
 
         boolean equals_result = runInstanceNonVoidMethodCallTransaction(
                 creator,
                 _100_000, classpath,
                 EQUALS,
-                ubi_max, ubi__800).asReturnedBoolean(EQUALS, NodeException::new);
+                ubi_max, ubi__800).asReturnedBoolean(EQUALS, UnexpectedValueException::new);
         // equals_result = ubi_max.equals(800) = true
 
         assertTrue(equals_result);
@@ -343,14 +343,14 @@ class UnsignedBigInteger extends HotmokaTest {
                 creator_prv_key, creator,
                 _100_000, panarea(1), classpath,
                 min,
-                ubi_800, ubi_799).asReturnedReference(min, NodeException::new);
+                ubi_800, ubi_799).asReturnedReference(min, UnexpectedValueException::new);
         // ubi_min = 800.min(799) = 799
 
         boolean equals_result = runInstanceNonVoidMethodCallTransaction(
                 creator,
                 _100_000, classpath,
                 EQUALS,
-                ubi_min, ubi__799).asReturnedBoolean(EQUALS, NodeException::new);
+                ubi_min, ubi__799).asReturnedBoolean(EQUALS, UnexpectedValueException::new);
         // equals_result = ubi_min.equals(799) = true
 
         assertTrue(equals_result);
@@ -367,21 +367,21 @@ class UnsignedBigInteger extends HotmokaTest {
                 creator,
                 _100_000, classpath,
                 compareTo,
-                ubi_800, ubi_799).asReturnedInt(compareTo, NodeException::new);
+                ubi_800, ubi_799).asReturnedInt(compareTo, UnexpectedValueException::new);
         // result_compare1 = 800.compareTo(799) = 1
 
         int result_compare2 = runInstanceNonVoidMethodCallTransaction(
                 creator,
                 _100_000, classpath,
                 compareTo,
-                ubi_799, ubi_800).asReturnedInt(compareTo, NodeException::new);
+                ubi_799, ubi_800).asReturnedInt(compareTo, UnexpectedValueException::new);
         // result_compare2 = 799.compareTo(800) = -1
 
         int result_compare3 = runInstanceNonVoidMethodCallTransaction(
                 creator,
                 _100_000, classpath,
                 compareTo,
-                ubi_800, ubi__800).asReturnedInt(compareTo, NodeException::new);
+                ubi_800, ubi__800).asReturnedInt(compareTo, UnexpectedValueException::new);
         // result_compare3 = 800.compareTo(800') = 0
 
         assertEquals(result_compare1, 1);
@@ -399,14 +399,14 @@ class UnsignedBigInteger extends HotmokaTest {
                 creator,
                 _100_000, classpath,
                 EQUALS,
-                ubi_800, ubi_799).asReturnedBoolean(EQUALS, NodeException::new);;
+                ubi_800, ubi_799).asReturnedBoolean(EQUALS, UnexpectedValueException::new);;
         // result_equals1 = 800.compareTo(799) = false
 
         boolean result_equals2 = runInstanceNonVoidMethodCallTransaction(
                 creator,
                 _100_000, classpath,
                 EQUALS,
-                ubi_800, ubi__800).asReturnedBoolean(EQUALS, NodeException::new);
+                ubi_800, ubi__800).asReturnedBoolean(EQUALS, UnexpectedValueException::new);
         // result_equals2 = 800.compareTo(800') = true
 
         assertFalse(result_equals1);
@@ -422,7 +422,7 @@ class UnsignedBigInteger extends HotmokaTest {
                 creator,
                 _100_000, classpath,
                 toBigInteger,
-                ubi_1001).asReturnedBigInteger(toBigInteger, NodeException::new);
+                ubi_1001).asReturnedBigInteger(toBigInteger, UnexpectedValueException::new);
         // 1001.toBigInteger()
 
         assertEquals(bi1, BigInteger.valueOf(1001)); // 1001.toBigInteger() == BigInteger@1001
@@ -437,7 +437,7 @@ class UnsignedBigInteger extends HotmokaTest {
                 creator,
                 _100_000, classpath,
                 toString,
-                ubi_1001).asReturnedString(toString, NodeException::new);
+                ubi_1001).asReturnedString(toString, UnexpectedValueException::new);
         // 1001.toString()
 
         assertEquals(string1, "1001"); // 1001.toString() == '1001'
@@ -452,14 +452,14 @@ class UnsignedBigInteger extends HotmokaTest {
                 creator_prv_key, creator,
                 _100_000, panarea(1), classpath,
                 valueOf,
-                StorageValues.longOf(99)).asReturnedReference(valueOf, NodeException::new);
+                StorageValues.longOf(99)).asReturnedReference(valueOf, UnexpectedValueException::new);
         // ubi_result = long@99.valueOf() = 99
 
         boolean equals_result = runInstanceNonVoidMethodCallTransaction(
                 creator,
                 _100_000, classpath,
                 EQUALS,
-                ubi_result, ubi_99).asReturnedBoolean(EQUALS, NodeException::new);;
+                ubi_result, ubi_99).asReturnedBoolean(EQUALS, UnexpectedValueException::new);;
         // equals_result = ubi_result.equals(99) = true
 
         assertTrue(equals_result);

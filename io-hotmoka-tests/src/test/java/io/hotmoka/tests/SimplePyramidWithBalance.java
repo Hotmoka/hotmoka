@@ -31,7 +31,7 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.UnexpectedValueException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.signatures.VoidMethodSignature;
 import io.hotmoka.node.api.types.ClassType;
@@ -64,7 +64,7 @@ class SimplePyramidWithBalance extends HotmokaTest {
 		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _100_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 		addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _100_000, ZERO, jar(), WITHDRAW, pyramid);
-		var balance0 = runInstanceNonVoidMethodCallTransaction(account(0), _100_000, jar(), BALANCE, account(0)).asReturnedBigInteger(BALANCE, NodeException::new);
+		var balance0 = runInstanceNonVoidMethodCallTransaction(account(0), _100_000, jar(), BALANCE, account(0)).asReturnedBigInteger(BALANCE, UnexpectedValueException::new);
 		assertTrue(balance0.compareTo(BigInteger.valueOf(190_000)) <= 0);
 	}
 
@@ -74,7 +74,7 @@ class SimplePyramidWithBalance extends HotmokaTest {
 		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _100_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 		addInstanceVoidMethodCallTransaction(privateKey(2), account(2), _100_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 		addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _100_000, ZERO, jar(), WITHDRAW, pyramid);
-		var balance0 = runInstanceNonVoidMethodCallTransaction(account(0), _100_000, jar(), BALANCE, account(0)).asReturnedBigInteger(BALANCE, NodeException::new);
+		var balance0 = runInstanceNonVoidMethodCallTransaction(account(0), _100_000, jar(), BALANCE, account(0)).asReturnedBigInteger(BALANCE, UnexpectedValueException::new);
 		assertTrue(balance0.compareTo(BigInteger.valueOf(201_000)) > 0);
 	}
 }

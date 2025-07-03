@@ -22,13 +22,14 @@ import java.util.concurrent.TimeoutException;
 import io.hotmoka.helpers.api.GasHelper;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.UnexpectedValueException;
 import io.hotmoka.node.UnexpectedVoidMethodException;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnexpectedCodeException;
 import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -52,41 +53,33 @@ public class GasHelperImpl implements GasHelper {
 	 * @throws TransactionException if some transaction failed
 	 * @throws TransactionRejectedException if some transaction was rejected
 	 * @throws UninitializedNodeException if the node is not initialized yet
+	 * @throws UnexpectedCodeException if the Takamaka runtime in the node is behaving in an unexpected way
 	 */
-	public GasHelperImpl(Node node) throws ClosedNodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, CodeExecutionException, UninitializedNodeException {
+	public GasHelperImpl(Node node) throws ClosedNodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, CodeExecutionException, UninitializedNodeException, UnexpectedCodeException {
 		this.node = node;
 		TransactionReference takamakaCode = node.getTakamakaCode();
 		StorageReference manifest = node.getManifest();
-	
-		try {
-			StorageReference gasStation = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, BigInteger.valueOf(100_000), takamakaCode, MethodSignatures.GET_GAS_STATION, manifest))
-					.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_GAS_STATION))
-					.asReturnedReference(MethodSignatures.GET_GAS_STATION, NodeException::new);
-			this.request = TransactionRequests.instanceViewMethodCall
-					(manifest, BigInteger.valueOf(100_000), takamakaCode, MethodSignatures.GET_GAS_PRICE, gasStation);
-		}
-		catch (ClosedNodeException e) { // TODO
-			throw e;
-		}
-		catch (NodeException e) { // TODO
-			throw new RuntimeException(e);
-		}
+		StorageReference gasStation = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+				(manifest, BigInteger.valueOf(100_000), takamakaCode, MethodSignatures.GET_GAS_STATION, manifest))
+				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_GAS_STATION))
+				.asReturnedReference(MethodSignatures.GET_GAS_STATION, UnexpectedValueException::new);
+		this.request = TransactionRequests.instanceViewMethodCall
+				(manifest, BigInteger.valueOf(100_000), takamakaCode, MethodSignatures.GET_GAS_PRICE, gasStation);
 	}
 
 	@Override
-	public BigInteger getGasPrice() throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, CodeExecutionException {
+	public BigInteger getGasPrice() throws ClosedNodeException, UnexpectedCodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, CodeExecutionException {
 		// this helps with testing, since otherwise previous tests might make the gas price explode for the subsequent tests
 		if (node.getConfig().ignoresGasPrice())
 			return BigInteger.ONE;
 
 		return node.runInstanceMethodCallTransaction(request)
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_GAS_PRICE))
-				.asReturnedBigInteger(MethodSignatures.GET_GAS_PRICE, NodeException::new);
+				.asReturnedBigInteger(MethodSignatures.GET_GAS_PRICE, UnexpectedValueException::new);
 	}
 
 	@Override
-	public BigInteger getSafeGasPrice() throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, CodeExecutionException {
+	public BigInteger getSafeGasPrice() throws ClosedNodeException, UnexpectedCodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, CodeExecutionException {
 		// we double the minimal price, to be sure that the transaction won't be rejected
 		return BigInteger.valueOf(2L).multiply(getGasPrice()); // BigInteger.TWO crashes the Android client
 	}

@@ -53,8 +53,8 @@ import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.UnexpectedValueException;
 import io.hotmoka.node.UnexpectedVoidMethodException;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.NonInitialTransactionResponse;
@@ -364,7 +364,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     		var request = TransactionRequests.instanceViewMethodCall(creator, _50_000, jar(), TO_BIG_INTEGER, ubi);
     		return node.runInstanceMethodCallTransaction(request)
     			.orElseThrow(() -> new UnexpectedVoidMethodException(TO_BIG_INTEGER))
-        		.asReturnedBigInteger(TO_BIG_INTEGER, NodeException::new)
+        		.asReturnedBigInteger(TO_BIG_INTEGER, UnexpectedValueException::new)
         		.intValue();
         }
 
@@ -374,7 +374,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
         				_500_000, ZERO, jar(), YIELD_SNAPSHOT, coin);
             StorageReference result = node.addInstanceMethodCallTransaction(request)
             	.orElseThrow(() -> new UnexpectedVoidMethodException(YIELD_SNAPSHOT))
-            	.asReturnedReference(YIELD_SNAPSHOT, NodeException::new);
+            	.asReturnedReference(YIELD_SNAPSHOT, UnexpectedValueException::new);
             trace(result.getTransaction());
 
             return result;

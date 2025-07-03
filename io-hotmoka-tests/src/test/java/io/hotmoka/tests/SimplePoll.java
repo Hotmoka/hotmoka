@@ -34,7 +34,7 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.UnexpectedValueException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
@@ -106,7 +106,7 @@ class SimplePoll extends HotmokaTest {
 		
 		addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
 		
-		var isOver = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll).asReturnedBoolean(IS_POLL_OVER, NodeException::new);
+		var isOver = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll).asReturnedBoolean(IS_POLL_OVER, UnexpectedValueException::new);
 		Assertions.assertFalse(isOver);
 	}
 	
@@ -117,10 +117,10 @@ class SimplePoll extends HotmokaTest {
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
 		
-		var isOver = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll).asReturnedBoolean(IS_POLL_OVER, NodeException::new);
+		var isOver = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll).asReturnedBoolean(IS_POLL_OVER, UnexpectedValueException::new);
 		Assertions.assertFalse(isOver);
 
-		var isActionPerformed =  addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_RUN_PERFORMED, action).asReturnedBoolean(IS_RUN_PERFORMED, NodeException::new);
+		var isActionPerformed =  addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_RUN_PERFORMED, action).asReturnedBoolean(IS_RUN_PERFORMED, UnexpectedValueException::new);
 		Assertions.assertFalse(isActionPerformed);
 	}
 	
@@ -131,12 +131,12 @@ class SimplePoll extends HotmokaTest {
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
 		
-		var isOver = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll).asReturnedBoolean(IS_POLL_OVER, NodeException::new);
+		var isOver = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll).asReturnedBoolean(IS_POLL_OVER, UnexpectedValueException::new);
 		Assertions.assertFalse(isOver);
 
 		assertThrows(TransactionException.class, () -> addInstanceVoidMethodCallTransaction(privateKey(4), external, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll));
 		
-		var isActionPerformed = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_RUN_PERFORMED, action).asReturnedBoolean(IS_RUN_PERFORMED, NodeException::new);
+		var isActionPerformed = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_RUN_PERFORMED, action).asReturnedBoolean(IS_RUN_PERFORMED, UnexpectedValueException::new);
 		Assertions.assertFalse(isActionPerformed);
 	}
 	
@@ -149,7 +149,7 @@ class SimplePoll extends HotmokaTest {
 		
 		addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
 		
-		var isOver = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll).asReturnedBoolean(IS_POLL_OVER, NodeException::new);
+		var isOver = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll).asReturnedBoolean(IS_POLL_OVER, UnexpectedValueException::new);
 		Assertions.assertFalse(isOver);
 		
 		assertThrows(TransactionException.class, () -> addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), CLOSE_POLL, simplePoll));
@@ -189,12 +189,12 @@ class SimplePoll extends HotmokaTest {
 		addInstanceVoidMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
 		addInstanceVoidMethodCallTransaction(privateKey(3), stakeholder3, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
 		
-		var isOver = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll).asReturnedBoolean(IS_POLL_OVER, NodeException::new);
+		var isOver = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll).asReturnedBoolean(IS_POLL_OVER, UnexpectedValueException::new);
 		Assertions.assertTrue(isOver);
 		
 		addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), CLOSE_POLL, simplePoll);
 		
-		var isActionPerformed = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_RUN_PERFORMED, action).asReturnedBoolean(IS_RUN_PERFORMED, NodeException::new);
+		var isActionPerformed = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_RUN_PERFORMED, action).asReturnedBoolean(IS_RUN_PERFORMED, UnexpectedValueException::new);
 		Assertions.assertTrue(isActionPerformed);
 	}
 	
@@ -210,12 +210,12 @@ class SimplePoll extends HotmokaTest {
 		addInstanceVoidMethodCallTransaction(privateKey(1), stakeholder1, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
 		addInstanceVoidMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
 		
-		var isOver = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll).asReturnedBoolean(IS_POLL_OVER, NodeException::new);
+		var isOver = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll).asReturnedBoolean(IS_POLL_OVER, UnexpectedValueException::new);
 		Assertions.assertTrue(isOver);
 		
 		addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), CLOSE_POLL, simplePoll);
 		
-		var isActionPerformed = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_RUN_PERFORMED, action).asReturnedBoolean(IS_RUN_PERFORMED, NodeException::new);
+		var isActionPerformed = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_RUN_PERFORMED, action).asReturnedBoolean(IS_RUN_PERFORMED, UnexpectedValueException::new);
 		Assertions.assertTrue(isActionPerformed);
 	}
 	
@@ -228,12 +228,12 @@ class SimplePoll extends HotmokaTest {
 		
 		addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
 		
-		var isOver = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll).asReturnedBoolean(IS_POLL_OVER, NodeException::new);
+		var isOver = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll).asReturnedBoolean(IS_POLL_OVER, UnexpectedValueException::new);
 		Assertions.assertTrue(isOver);
 		
 		addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), CLOSE_POLL, simplePoll);
 		
-		var isActionPerformed = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_RUN_PERFORMED, action).asReturnedBoolean(IS_RUN_PERFORMED, NodeException::new);
+		var isActionPerformed = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_RUN_PERFORMED, action).asReturnedBoolean(IS_RUN_PERFORMED, UnexpectedValueException::new);
 		Assertions.assertTrue(isActionPerformed);
 	}
 	
@@ -246,12 +246,12 @@ class SimplePoll extends HotmokaTest {
 		
 		addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL_WITH_PARAM, simplePoll, StorageValues.bigIntegerOf(8));
 		
-		var isOver = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll).asReturnedBoolean(IS_POLL_OVER, NodeException::new);
+		var isOver = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll).asReturnedBoolean(IS_POLL_OVER, UnexpectedValueException::new);
 		Assertions.assertTrue(isOver);
 		
 		addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), CLOSE_POLL, simplePoll);
 		
-		var isActionPerformed = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_RUN_PERFORMED, action).asReturnedBoolean(IS_RUN_PERFORMED, NodeException::new);
+		var isActionPerformed = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_RUN_PERFORMED, action).asReturnedBoolean(IS_RUN_PERFORMED, UnexpectedValueException::new);
 		Assertions.assertTrue(isActionPerformed);
 	}
 	
@@ -268,12 +268,12 @@ class SimplePoll extends HotmokaTest {
 		addInstanceVoidMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
 		addInstanceVoidMethodCallTransaction(privateKey(3), stakeholder3, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
 
-		var isOver = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll).asReturnedBoolean(IS_POLL_OVER, NodeException::new);
+		var isOver = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll).asReturnedBoolean(IS_POLL_OVER, UnexpectedValueException::new);
 		Assertions.assertTrue(isOver);
 		
 		addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), CLOSE_POLL, simplePoll);
 		
-		var isActionPerformed = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_RUN_PERFORMED, action).asReturnedBoolean(IS_RUN_PERFORMED, NodeException::new);
+		var isActionPerformed = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_RUN_PERFORMED, action).asReturnedBoolean(IS_RUN_PERFORMED, UnexpectedValueException::new);
 		Assertions.assertFalse(isActionPerformed);
 	}
 	
@@ -289,12 +289,12 @@ class SimplePoll extends HotmokaTest {
 		addInstanceVoidMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, ZERO, jar(), VOTE_POLL_WITH_PARAM, simplePoll, StorageValues.bigIntegerOf(0));
 		addInstanceVoidMethodCallTransaction(privateKey(3), stakeholder3, _10_000_000, ZERO, jar(), VOTE_POLL_WITH_PARAM, simplePoll, StorageValues.bigIntegerOf(0));
 		
-		var isOver = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll).asReturnedBoolean(IS_POLL_OVER, NodeException::new);
+		var isOver = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll).asReturnedBoolean(IS_POLL_OVER, UnexpectedValueException::new);
 		Assertions.assertTrue(isOver);
 		
 		addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), CLOSE_POLL, simplePoll);
 		
-		var isActionPerformed = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_RUN_PERFORMED, action).asReturnedBoolean(IS_RUN_PERFORMED, NodeException::new);
+		var isActionPerformed = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_RUN_PERFORMED, action).asReturnedBoolean(IS_RUN_PERFORMED, UnexpectedValueException::new);
 		Assertions.assertFalse(isActionPerformed);
 	}
 	
@@ -309,10 +309,10 @@ class SimplePoll extends HotmokaTest {
 		addInstanceVoidMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
 		addInstanceVoidMethodCallTransaction(privateKey(3), stakeholder3, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
 		
-		var isOver = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll).asReturnedBoolean(IS_POLL_OVER, NodeException::new);
+		var isOver = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll).asReturnedBoolean(IS_POLL_OVER, UnexpectedValueException::new);
 		Assertions.assertFalse(isOver);
 
-		var isActionPerformed = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_RUN_PERFORMED, action).asReturnedBoolean(IS_RUN_PERFORMED, NodeException::new);
+		var isActionPerformed = addInstanceNonVoidMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_RUN_PERFORMED, action).asReturnedBoolean(IS_RUN_PERFORMED, UnexpectedValueException::new);
 		Assertions.assertFalse(isActionPerformed);
 	}
 }

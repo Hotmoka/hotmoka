@@ -34,7 +34,7 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.UnexpectedValueException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.signatures.VoidMethodSignature;
@@ -107,7 +107,7 @@ class TicTacToe extends HotmokaTest {
 			jar(),
 			TO_STRING,
 			ticTacToe)
-				.asReturnedString(TO_STRING, NodeException::new);
+				.asReturnedString(TO_STRING, UnexpectedValueException::new);
 
 		assertEquals("X| | \n-----\n | | \n-----\n | | ", toString);
 	}
@@ -255,7 +255,7 @@ class TicTacToe extends HotmokaTest {
 			_100_000,
 			jar(),
 			TO_STRING,
-			ticTacToe).asReturnedString(TO_STRING, NodeException::new);
+			ticTacToe).asReturnedString(TO_STRING, UnexpectedValueException::new);
 
 		assertEquals("X|O| \n-----\nX|O| \n-----\nX| | ", toString);
 	}

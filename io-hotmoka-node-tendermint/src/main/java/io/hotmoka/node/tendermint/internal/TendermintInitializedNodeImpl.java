@@ -40,6 +40,7 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.UnexpectedValueException;
 import io.hotmoka.node.UnexpectedVoidMethodException;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
@@ -133,7 +134,7 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 		var getNonceRequest = TransactionRequests.instanceViewMethodCall(gamete, BigInteger.valueOf(50_000), takamakaCodeReference, MethodSignatures.NONCE, gamete);
 		BigInteger nonce = node.runInstanceMethodCallTransaction(getNonceRequest)
 			.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.NONCE))
-			.asReturnedBigInteger(MethodSignatures.NONCE, NodeException::new);
+			.asReturnedBigInteger(MethodSignatures.NONCE, UnexpectedValueException::new);
 
 		// we create validators corresponding to those declared in the configuration file of the Tendermint node
 		var tendermintValidators = poster.getTendermintValidators();

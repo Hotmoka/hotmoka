@@ -36,7 +36,7 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.UnexpectedValueException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
@@ -121,12 +121,12 @@ class PollWithTimeWindow extends HotmokaTest {
 		addInstanceVoidMethodCallTransaction(privateKey(2), stakeholder2, _1_000_000, ZERO, jar(), VOTE_POLL, poll);
 		addInstanceVoidMethodCallTransaction(privateKey(3), stakeholder3, _1_000_000, ZERO, jar(), VOTE_POLL, poll);
 
-		boolean isOver = runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll).asReturnedBoolean(IS_OVER, NodeException::new);
+		boolean isOver = runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll).asReturnedBoolean(IS_OVER, UnexpectedValueException::new);
 		Assertions.assertTrue(isOver);
 		
 		addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), CLOSE_POLL, poll);
 		
-		boolean isRunPerformed = runInstanceNonVoidMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action).asReturnedBoolean(IS_RUN_PERFORMED, NodeException::new);
+		boolean isRunPerformed = runInstanceNonVoidMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action).asReturnedBoolean(IS_RUN_PERFORMED, UnexpectedValueException::new);
 		Assertions.assertTrue(isRunPerformed);
 	}
 	
@@ -145,21 +145,21 @@ class PollWithTimeWindow extends HotmokaTest {
 		long now = System.currentTimeMillis();
 		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, duration);
 
-		boolean isOver = runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll).asReturnedBoolean(IS_OVER, NodeException::new);
+		boolean isOver = runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll).asReturnedBoolean(IS_OVER, UnexpectedValueException::new);
 		Assertions.assertFalse(isOver);
 		
 		assertThrows(TransactionException.class, () -> addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), CLOSE_POLL, poll));
 
 		sleep(start - (System.currentTimeMillis() - now) + 2000);
 
-		isOver = runInstanceNonVoidMethodCallTransaction(stakeholder0, _50_000, jar(), IS_OVER, poll).asReturnedBoolean(IS_OVER, NodeException::new);
+		isOver = runInstanceNonVoidMethodCallTransaction(stakeholder0, _50_000, jar(), IS_OVER, poll).asReturnedBoolean(IS_OVER, UnexpectedValueException::new);
 		Assertions.assertFalse(isOver);
 
 		assertThrows(TransactionException.class, () -> addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), CLOSE_POLL, poll));
 
 		sleep(expired - (System.currentTimeMillis() - now));
 
-		isOver = runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll).asReturnedBoolean(IS_OVER, NodeException::new);
+		isOver = runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll).asReturnedBoolean(IS_OVER, UnexpectedValueException::new);
 		Assertions.assertTrue(isOver);
 
 		// with Mokamint, it is possible that the previous run succeeds (the poll is over) but the next call fails (the poll is not over):
@@ -168,7 +168,7 @@ class PollWithTimeWindow extends HotmokaTest {
 		// in order to give time to Mokamint to create a new block, with an updated time
 		addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), CLOSE_POLL, poll);
 		
-		boolean isRunPerformed = runInstanceNonVoidMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action).asReturnedBoolean(IS_RUN_PERFORMED, NodeException::new);
+		boolean isRunPerformed = runInstanceNonVoidMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action).asReturnedBoolean(IS_RUN_PERFORMED, UnexpectedValueException::new);
 		Assertions.assertFalse(isRunPerformed);
 	}
 	
@@ -198,12 +198,12 @@ class PollWithTimeWindow extends HotmokaTest {
 		addInstanceVoidMethodCallTransaction(privateKey(2), stakeholder2, _1_000_000, ZERO, jar(), VOTE_POLL, poll);
 		addInstanceVoidMethodCallTransaction(privateKey(3), stakeholder3, _1_000_000, ZERO, jar(), VOTE_POLL, poll);
 
-		boolean isOver = runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll).asReturnedBoolean(IS_OVER, NodeException::new);
+		boolean isOver = runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll).asReturnedBoolean(IS_OVER, UnexpectedValueException::new);
 		Assertions.assertTrue(isOver);
 
 		addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), CLOSE_POLL, poll);
 		
-		boolean isRunPerformed = runInstanceNonVoidMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action).asReturnedBoolean(IS_RUN_PERFORMED, NodeException::new);
+		boolean isRunPerformed = runInstanceNonVoidMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action).asReturnedBoolean(IS_RUN_PERFORMED, UnexpectedValueException::new);
 		Assertions.assertTrue(isRunPerformed);
 	}
 	
@@ -224,12 +224,12 @@ class PollWithTimeWindow extends HotmokaTest {
 		
 		assertThrows(TransactionException.class, () -> addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), VOTE_POLL, poll));
 
-		boolean isOver = runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll).asReturnedBoolean(IS_OVER, NodeException::new);
+		boolean isOver = runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll).asReturnedBoolean(IS_OVER, UnexpectedValueException::new);
 		Assertions.assertTrue(isOver);
 		
 		addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), CLOSE_POLL, poll);
 		
-		boolean isRunPerformed = runInstanceNonVoidMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action).asReturnedBoolean(IS_RUN_PERFORMED, NodeException::new);
+		boolean isRunPerformed = runInstanceNonVoidMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action).asReturnedBoolean(IS_RUN_PERFORMED, UnexpectedValueException::new);
 		Assertions.assertFalse(isRunPerformed);
 	}
 	
@@ -254,7 +254,7 @@ class PollWithTimeWindow extends HotmokaTest {
 
 		sleep(expired - (System.currentTimeMillis() - now));
 		
-		boolean isOver = runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll).asReturnedBoolean(IS_OVER, NodeException::new);
+		boolean isOver = runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll).asReturnedBoolean(IS_OVER, UnexpectedValueException::new);
 		Assertions.assertTrue(isOver);
 
 		// with Mokamint, it is possible that the previous run succeeds (the poll is over) but the next call fails (the poll is not over):
@@ -263,7 +263,7 @@ class PollWithTimeWindow extends HotmokaTest {
 		// in order to give time to Mokamint to create a new block, with an updated time
 		addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), CLOSE_POLL, poll);
 
-		boolean isRunPerformed = runInstanceNonVoidMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action).asReturnedBoolean(IS_RUN_PERFORMED, NodeException::new);
+		boolean isRunPerformed = runInstanceNonVoidMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action).asReturnedBoolean(IS_RUN_PERFORMED, UnexpectedValueException::new);
 		Assertions.assertFalse(isRunPerformed);
 	}
 	

@@ -38,9 +38,10 @@ import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.UnexpectedValueException;
+import io.hotmoka.node.UnexpectedVoidMethodException;
 import io.hotmoka.node.api.ClassLoaderCreationException;
 import io.hotmoka.node.api.JarFuture;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.VerificationException;
@@ -288,9 +289,11 @@ public class NodeFromNetwork extends HotmokaTest {
     		TransactionReference jar = addJarStoreTransaction(privateKey(0), account(0),
     			_500_000, ONE, takamakaCode(), bytesOf("collections.jar"), takamakaCode());
 
+    		var method = MethodSignatures.ofNonVoid(ARRAY_TESTS, "testRandomInitialization", StorageTypes.INT);
     		var randomValue = remote.runStaticMethodCallTransaction
-       			(TransactionRequests.staticViewMethodCall(account(0), _500_000, jar, MethodSignatures.ofNonVoid(ARRAY_TESTS, "testRandomInitialization", StorageTypes.INT)))
-       			.get().asInt(__ -> new NodeException());
+       			(TransactionRequests.staticViewMethodCall(account(0), _500_000, jar, method))
+       			.orElseThrow(() -> new UnexpectedVoidMethodException(method))
+       			.asReturnedInt(method, UnexpectedValueException::new);
 
     		assertEquals(1225, randomValue);
     	}

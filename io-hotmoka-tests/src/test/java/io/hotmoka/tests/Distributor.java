@@ -35,8 +35,8 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.UnexpectedValueException;
 import io.hotmoka.node.api.IllegalAssignmentToFieldInStorageException;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.signatures.VoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -99,7 +99,7 @@ class Distributor extends HotmokaTest {
 
 		var initialBalances = new BigInteger[numPayees];
 		for  (int payee = 1; payee <= numPayees; payee++)
-			initialBalances[payee - 1] = runInstanceNonVoidMethodCallTransaction(account(payee), _50_000, jar(), MethodSignatures.BALANCE, account(payee)).asReturnedBigInteger(MethodSignatures.BALANCE, NodeException::new);
+			initialBalances[payee - 1] = runInstanceNonVoidMethodCallTransaction(account(payee), _50_000, jar(), MethodSignatures.BALANCE, account(payee)).asReturnedBigInteger(MethodSignatures.BALANCE, UnexpectedValueException::new);
 
 		// the first account distributes 100 to the three payees
 		long distributed = 100L;
@@ -108,7 +108,7 @@ class Distributor extends HotmokaTest {
 		// each payee gets distributed / numPayees coins
 		var finalBalances = new BigInteger[numPayees];
 		for  (int payee = 1; payee <= numPayees; payee++)
-			finalBalances[payee - 1] = runInstanceNonVoidMethodCallTransaction(account(payee), _50_000, jar(), MethodSignatures.BALANCE, account(payee)).asReturnedBigInteger(MethodSignatures.BALANCE, NodeException::new);
+			finalBalances[payee - 1] = runInstanceNonVoidMethodCallTransaction(account(payee), _50_000, jar(), MethodSignatures.BALANCE, account(payee)).asReturnedBigInteger(MethodSignatures.BALANCE, UnexpectedValueException::new);
 
 		BigInteger difference = BigInteger.valueOf(distributed / numPayees);
 		for (int payee = 1; payee <= numPayees; payee++)

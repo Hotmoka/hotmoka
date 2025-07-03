@@ -16,23 +16,21 @@ limitations under the License.
 
 package io.hotmoka.node;
 
-import java.util.Objects;
-
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.UnexpectedCodeException;
 
 /**
- * An exception stating that some code in the store of a Hotmoka node
- * is different or behaves differently from what is expected.
+ * An exception stating that a method returns an unexpected value or that
+ * a field contains an unexpected value.
  */
 @SuppressWarnings("serial")
-public class UnexpectedCodeException extends NodeException {
+public class UnexpectedValueException extends UnexpectedCodeException {
 
 	/**
 	 * Builds the exception.
 	 * 
-	 * @param message the message of the exception
+	 * @param message the message
 	 */
-	public UnexpectedCodeException(String message) {
-		super(Objects.requireNonNull(message));
+	public UnexpectedValueException(String message) {
+		super(message);
 	}
 }

@@ -29,7 +29,7 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.UnexpectedValueException;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
 
@@ -57,11 +57,11 @@ class MethodOnThis extends HotmokaTest {
 			MethodSignatures.ofVoid(BRIDGE, "foo", StorageTypes.INT), bridge, StorageValues.intOf(100));
 		
 		var getBalance = MethodSignatures.ofNonVoid(BRIDGE, "getBalance", StorageTypes.BIG_INTEGER);
-		BigInteger balanceOfBridge = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), getBalance, bridge).asReturnedBigInteger(getBalance, NodeException::new);
+		BigInteger balanceOfBridge = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), getBalance, bridge).asReturnedBigInteger(getBalance, UnexpectedValueException::new);
 		var getInitialBalance = MethodSignatures.ofNonVoid(BRIDGE, "getInitialBalance", StorageTypes.BIG_INTEGER);
-		BigInteger initialBalanceOfBridge = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), getInitialBalance, bridge).asReturnedBigInteger(getInitialBalance, NodeException::new);
+		BigInteger initialBalanceOfBridge = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), getInitialBalance, bridge).asReturnedBigInteger(getInitialBalance, UnexpectedValueException::new);
 		var getBalanceOfSub = MethodSignatures.ofNonVoid(BRIDGE, "getBalanceOfSub", StorageTypes.BIG_INTEGER);
-		BigInteger balanceOfSub = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), getBalanceOfSub, bridge).asReturnedBigInteger(getBalanceOfSub, NodeException::new);
+		BigInteger balanceOfSub = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), getBalanceOfSub, bridge).asReturnedBigInteger(getBalanceOfSub, UnexpectedValueException::new);
 
 		assertEquals(BigInteger.ZERO, balanceOfBridge);
 		assertEquals(BigInteger.valueOf(100L), initialBalanceOfBridge);
@@ -75,11 +75,11 @@ class MethodOnThis extends HotmokaTest {
 			MethodSignatures.ofVoid(BRIDGE2, "foo", StorageTypes.INT), bridge, StorageValues.intOf(100));
 		
 		var getBalance = MethodSignatures.ofNonVoid(BRIDGE2, "getBalance", StorageTypes.BIG_INTEGER);
-		BigInteger balanceOfBridge = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), getBalance, bridge).asReturnedBigInteger(getBalance, NodeException::new);
+		BigInteger balanceOfBridge = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), getBalance, bridge).asReturnedBigInteger(getBalance, UnexpectedValueException::new);
 		var getInitialBalance = MethodSignatures.ofNonVoid(BRIDGE2, "getInitialBalance", StorageTypes.BIG_INTEGER);
-		BigInteger initialBalanceOfBridge = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), getInitialBalance, bridge).asReturnedBigInteger(getInitialBalance, NodeException::new);
+		BigInteger initialBalanceOfBridge = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), getInitialBalance, bridge).asReturnedBigInteger(getInitialBalance, UnexpectedValueException::new);
 		var getBalanceOfSub = MethodSignatures.ofNonVoid(BRIDGE2, "getBalanceOfSub", StorageTypes.BIG_INTEGER);
-		BigInteger balanceOfSub = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), getBalanceOfSub, bridge).asReturnedBigInteger(getBalanceOfSub, NodeException::new);
+		BigInteger balanceOfSub = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), getBalanceOfSub, bridge).asReturnedBigInteger(getBalanceOfSub, UnexpectedValueException::new);
 
 		assertEquals(BigInteger.ZERO, balanceOfBridge);
 		assertEquals(BigInteger.valueOf(100L), initialBalanceOfBridge);

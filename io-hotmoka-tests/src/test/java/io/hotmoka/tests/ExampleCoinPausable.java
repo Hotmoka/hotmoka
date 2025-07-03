@@ -34,7 +34,7 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.UnexpectedValueException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
@@ -220,7 +220,7 @@ class ExampleCoinPausable extends HotmokaTest {
 
         var balanceOf = MethodSignatures.ofNonVoid(EXCP, "balanceOf", UBI, StorageTypes.CONTRACT);
 
-        var creator_balance = runInstanceNonVoidMethodCallTransaction(creator, _100_000, jar(), balanceOf, example_token, creator).asReturnedReference(balanceOf, NodeException::new);
+        var creator_balance = runInstanceNonVoidMethodCallTransaction(creator, _100_000, jar(), balanceOf, example_token, creator).asReturnedReference(balanceOf, UnexpectedValueException::new);
         // creator_balance = balances[creator] = 199999999999999999995000
         BooleanValue equals_result1 = (BooleanValue) runInstanceNonVoidMethodCallTransaction(
                 creator,
@@ -230,7 +230,7 @@ class ExampleCoinPausable extends HotmokaTest {
                 ubi_check);
         // equals_result1 = creator_balance.equals(200'000*10^18-5000) = true
 
-        var investor1_balance = runInstanceNonVoidMethodCallTransaction(creator, _100_000, jar(), balanceOf, example_token, investor1).asReturnedReference(balanceOf, NodeException::new);
+        var investor1_balance = runInstanceNonVoidMethodCallTransaction(creator, _100_000, jar(), balanceOf, example_token, investor1).asReturnedReference(balanceOf, UnexpectedValueException::new);
         // investor1_balance = balances[investor1] = 5000
         BooleanValue equals_result2 = (BooleanValue) runInstanceNonVoidMethodCallTransaction(
                 creator,
@@ -240,7 +240,7 @@ class ExampleCoinPausable extends HotmokaTest {
                 ubi_5000);
         // equals_result2 = investor1_balance.equals(5000) = true
 
-        var investor2_balance = runInstanceNonVoidMethodCallTransaction(creator, _100_000, jar(), balanceOf, example_token, investor2).asReturnedReference(balanceOf, NodeException::new);
+        var investor2_balance = runInstanceNonVoidMethodCallTransaction(creator, _100_000, jar(), balanceOf, example_token, investor2).asReturnedReference(balanceOf, UnexpectedValueException::new);
         // investor2_balance = balances[investor2] = 0
         BooleanValue equals_result3 = (BooleanValue) runInstanceNonVoidMethodCallTransaction(
                 creator,

@@ -31,7 +31,7 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.UnexpectedValueException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.signatures.VoidMethodSignature;
@@ -110,7 +110,7 @@ class WTSC2020 extends HotmokaTest {
 		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _50_000, ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(0) checks which is the most frequent investor class
-		var result = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), MOST_FREQUENT_INVESTOR_CLASS, pyramid).asReturnedString(MOST_FREQUENT_INVESTOR_CLASS, __ -> new NodeException());
+		var result = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), MOST_FREQUENT_INVESTOR_CLASS, pyramid).asReturnedString(MOST_FREQUENT_INVESTOR_CLASS, UnexpectedValueException::new);
 
 		assertEquals(StorageTypes.EOA.getName(), result);
 	}
@@ -130,7 +130,7 @@ class WTSC2020 extends HotmokaTest {
 		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _50_000, ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(0) checks who is the most frequent investor
-		StorageReference mostFrequent = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), MOST_FREQUENT_INVESTOR, pyramid).asReturnedReference(MOST_FREQUENT_INVESTOR, __ -> new NodeException());
+		StorageReference mostFrequent = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), MOST_FREQUENT_INVESTOR, pyramid).asReturnedReference(MOST_FREQUENT_INVESTOR, UnexpectedValueException::new);
 
 		// account(1) is the most frequent investor
 		assertEquals(account(1), mostFrequent);

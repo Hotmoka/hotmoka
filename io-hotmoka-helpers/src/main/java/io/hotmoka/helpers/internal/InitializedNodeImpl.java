@@ -34,6 +34,7 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.UnexpectedValueException;
 import io.hotmoka.node.UnexpectedVoidMethodException;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
@@ -186,7 +187,7 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 		try {
 			return node.runInstanceMethodCallTransaction(request)
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.NONCE))
-				.asReturnedBigInteger(MethodSignatures.NONCE, NodeException::new);
+				.asReturnedBigInteger(MethodSignatures.NONCE, UnexpectedValueException::new);
 		}
 		catch (CodeExecutionException e) {
 			// the nonce() method does not throw exceptions

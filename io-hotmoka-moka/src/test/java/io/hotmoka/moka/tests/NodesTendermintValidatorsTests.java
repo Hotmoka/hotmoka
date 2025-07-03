@@ -43,6 +43,8 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.UnexpectedValueException;
+import io.hotmoka.node.UnexpectedVoidMethodException;
 import io.hotmoka.node.api.responses.ConstructorCallTransactionSuccessfulResponse;
 import io.hotmoka.node.api.responses.NonVoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
@@ -195,48 +197,48 @@ public class NodesTendermintValidatorsTests extends AbstractMokaTestWithNode {
 		var manifest = node.getManifest();
 		var validators = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest))
-				.orElseThrow(() -> new IllegalStateException(MethodSignatures.GET_VALIDATORS + " should not return void"))
-				.asReturnedReference(MethodSignatures.GET_VALIDATORS, IllegalStateException::new);
+				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_VALIDATORS))
+				.asReturnedReference(MethodSignatures.GET_VALIDATORS, UnexpectedValueException::new);
 		var sharesOnSale = MethodSignatures.ofNonVoid(StorageTypes.classNamed("io.takamaka.code.dao.SimpleSharedEntity"), "sharesOnSaleOf", StorageTypes.BIG_INTEGER, StorageTypes.PAYABLE_CONTRACT);
 		return node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, sharesOnSale, validators, seller))
-				.orElseThrow(() -> new IllegalStateException(sharesOnSale + " should not return void"))
-				.asReturnedBigInteger(sharesOnSale, IllegalStateException::new);
+				.orElseThrow(() -> new UnexpectedVoidMethodException(sharesOnSale))
+				.asReturnedBigInteger(sharesOnSale, UnexpectedValueException::new);
 	}
 
 	private boolean isValidator(StorageReference validator) throws Exception {
 		var manifest = node.getManifest();
 		var validators = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest))
-				.orElseThrow(() -> new IllegalStateException(MethodSignatures.GET_VALIDATORS + " should not return void"))
-				.asReturnedReference(MethodSignatures.GET_VALIDATORS, IllegalStateException::new);
+				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_VALIDATORS))
+				.asReturnedReference(MethodSignatures.GET_VALIDATORS, UnexpectedValueException::new);
 		var isShareholder = MethodSignatures.ofNonVoid(StorageTypes.classNamed("io.takamaka.code.dao.SimpleSharedEntity"), "isShareholder", StorageTypes.BOOLEAN, StorageTypes.OBJECT);
 		return node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, isShareholder, validators, validator))
-				.orElseThrow(() -> new IllegalStateException(isShareholder + " should not return void"))
-				.asReturnedBoolean(isShareholder, IllegalStateException::new);
+				.orElseThrow(() -> new UnexpectedVoidMethodException(isShareholder))
+				.asReturnedBoolean(isShareholder, UnexpectedValueException::new);
 	}
 
 	private Optional<StorageReference> getFirstValidator() throws Exception {
 		var manifest = node.getManifest();
 		var validators = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest))
-				.orElseThrow(() -> new IllegalStateException(MethodSignatures.GET_VALIDATORS + " should not return void"))
-				.asReturnedReference(MethodSignatures.GET_VALIDATORS, IllegalStateException::new);
+				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_VALIDATORS))
+				.asReturnedReference(MethodSignatures.GET_VALIDATORS, UnexpectedValueException::new);
 		var shares = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_SHARES, validators))
-				.orElseThrow(() -> new IllegalStateException(MethodSignatures.GET_SHARES + " should not return void"))
-				.asReturnedReference(MethodSignatures.GET_SHARES, IllegalStateException::new);
+				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_SHARES))
+				.asReturnedReference(MethodSignatures.GET_SHARES, UnexpectedValueException::new);
 		int numOfValidators = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SIZE, shares))
-				.orElseThrow(() -> new IllegalStateException(MethodSignatures.STORAGE_MAP_VIEW_SIZE + " should not return void"))
-				.asReturnedInt(MethodSignatures.STORAGE_MAP_VIEW_SIZE, IllegalStateException::new);
+				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.STORAGE_MAP_VIEW_SIZE))
+				.asReturnedInt(MethodSignatures.STORAGE_MAP_VIEW_SIZE, UnexpectedValueException::new);
 
 		if (numOfValidators > 0)
 			return Optional.of(node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SELECT, shares, StorageValues.intOf(0)))
-					.orElseThrow(() -> new IllegalStateException(MethodSignatures.STORAGE_MAP_VIEW_SELECT + " should not return void"))
-					.asReturnedReference(MethodSignatures.STORAGE_MAP_VIEW_SELECT, IllegalStateException::new));
+					.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.STORAGE_MAP_VIEW_SELECT))
+					.asReturnedReference(MethodSignatures.STORAGE_MAP_VIEW_SELECT, UnexpectedValueException::new));
 		else
 			return Optional.empty();
 	}

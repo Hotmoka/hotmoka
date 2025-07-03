@@ -14,24 +14,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node;
+package io.hotmoka.node.api;
 
-import io.hotmoka.node.api.UnexpectedCodeException;
-import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
+import java.util.Objects;
 
 /**
- * An exception stating that a method was expected to return a value, instead
- * of being declared as a {@code void} method.
+ * An exception stating that some code in the store of a Hotmoka node
+ * is different or behaves differently from what is expected.
  */
 @SuppressWarnings("serial")
-public class UnexpectedVoidMethodException extends UnexpectedCodeException {
+public class UnexpectedCodeException extends NodeException {
 
 	/**
 	 * Builds the exception.
 	 * 
-	 * @param method the method that was expected to return a value, not to be {@code void}
+	 * @param message the message of the exception
 	 */
-	public UnexpectedVoidMethodException(NonVoidMethodSignature method) {
-		super(method + " should not return void");
+	public UnexpectedCodeException(String message) {
+		super(Objects.requireNonNull(message));
 	}
 }

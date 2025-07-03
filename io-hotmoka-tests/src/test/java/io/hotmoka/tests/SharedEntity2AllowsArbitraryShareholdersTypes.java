@@ -32,7 +32,7 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.UnexpectedValueException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
@@ -83,7 +83,7 @@ class SharedEntity2AllowsArbitraryShareholdersTypes extends HotmokaTest {
         var createOffer2 = MethodSignatures.ofNonVoid(MY_CLASS, "createOffer2", OFFER_2, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, LONG);
 		var offer = addInstanceNonVoidMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath,
 			createOffer2, sellerContractMyClass, StorageValues.bigIntegerOf(2), StorageValues.bigIntegerOf(2), StorageValues.longOf(1893456000))
-				.asReturnedReference(createOffer2, NodeException::new);
+				.asReturnedReference(createOffer2, UnexpectedValueException::new);
 
         // the seller places his offer using his contract
         addInstanceVoidMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath,

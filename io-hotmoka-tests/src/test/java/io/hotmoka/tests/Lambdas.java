@@ -34,7 +34,7 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.UnexpectedValueException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
@@ -108,7 +108,7 @@ class Lambdas extends HotmokaTest {
 	void testMethodReferenceToEntry() throws Exception {
 		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, StorageValues.bigIntegerOf(_100_000), StorageValues.stringOf(publicKey));
 		var callee = MethodSignatures.ofNonVoid(LAMBDAS, "testMethodReferenceToEntry", INT);
-		var result = addInstanceNonVoidMethodCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), callee, lambdas).asReturnedInt(callee, NodeException::new);
+		var result = addInstanceNonVoidMethodCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), callee, lambdas).asReturnedInt(callee, UnexpectedValueException::new);
 
 		assertEquals(11, result);
 	}
@@ -129,7 +129,7 @@ class Lambdas extends HotmokaTest {
 	void testConstructorReferenceToEntry() throws Exception {
 		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, StorageValues.bigIntegerOf(_100_000), StorageValues.stringOf(publicKey));
 		var callee = MethodSignatures.ofNonVoid(LAMBDAS, "testConstructorReferenceToEntry", INT);
-		var result = addInstanceNonVoidMethodCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), callee, lambdas).asReturnedInt(callee, NodeException::new);
+		var result = addInstanceNonVoidMethodCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), callee, lambdas).asReturnedInt(callee, UnexpectedValueException::new);
 
 		assertEquals(11, result);
 	}
@@ -146,7 +146,7 @@ class Lambdas extends HotmokaTest {
 		var callee = MethodSignatures.ofNonVoid(LAMBDAS, "whiteListChecks", INT, StorageTypes.OBJECT, StorageTypes.OBJECT, StorageTypes.OBJECT);
 		var result = addInstanceNonVoidMethodCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(),
 			callee, lambdas, StorageValues.bigIntegerOf(13L), StorageValues.bigIntegerOf(1L), StorageValues.bigIntegerOf(1973L))
-				.asReturnedInt(callee, NodeException::new);
+				.asReturnedInt(callee, UnexpectedValueException::new);
 
 		assertEquals(7, result);
 	}
@@ -157,7 +157,7 @@ class Lambdas extends HotmokaTest {
 		var callee = MethodSignatures.ofNonVoid(LAMBDAS, "concatenation", StorageTypes.STRING, StorageTypes.STRING, StorageTypes.OBJECT, LAMBDAS, StorageTypes.LONG, INT);
 		var result = addInstanceNonVoidMethodCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(),
 			callee, lambdas, StorageValues.stringOf("hello"), StorageValues.stringOf("hi"), lambdas, StorageValues.longOf(1973L), StorageValues.intOf(13))
-				.asReturnedString(callee, NodeException::new);
+				.asReturnedString(callee, UnexpectedValueException::new);
 
 		assertEquals("hellohian externally owned account197313", result);
 	}

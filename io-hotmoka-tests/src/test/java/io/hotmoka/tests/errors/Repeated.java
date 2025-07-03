@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Test;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.UnexpectedVoidMethodException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.responses.JarStoreTransactionSuccessfulResponse;
@@ -86,7 +86,7 @@ class Repeated extends HotmokaTest {
 		// we run a transaction now, with the correct nonce, that increases the nonce of account(0)
 		BigInteger balance = ((BigIntegerValue) node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall
 			(signer, account(0), nonce, chainId(), _100_000, ONE, takamakaCode(), MethodSignatures.BALANCE, account(0)))
-			.orElseThrow(() -> new NodeException(MethodSignatures.BALANCE + " should not return void"))).getValue();
+			.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.BALANCE))).getValue();
 		assertEquals(BigInteger.valueOf(999900000), balance);
 
 		// we perform a similar request now, that will pass since the nonce is correct this time: we need to change for instance the gas limit

@@ -32,7 +32,7 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.UnexpectedValueException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.signatures.VoidMethodSignature;
@@ -83,7 +83,7 @@ class Storage extends HotmokaTest {
 	@Test @DisplayName("new SimpleStorage().get() == 0")
 	void neverInitializedStorageYields0() throws Exception {
 		StorageReference storage = addConstructorCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
-		var value = runInstanceNonVoidMethodCallTransaction(eoa, _50_000, jar(), GET, storage).asReturnedInt(GET, NodeException::new);
+		var value = runInstanceNonVoidMethodCallTransaction(eoa, _50_000, jar(), GET, storage).asReturnedInt(GET, UnexpectedValueException::new);
 		assertEquals(0, value);
 	}
 
@@ -91,7 +91,7 @@ class Storage extends HotmokaTest {
 	void set13ThenGet13() throws Exception {
 		StorageReference storage = addConstructorCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
 		addInstanceVoidMethodCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), SET, storage, StorageValues.intOf(13));
-		var value = runInstanceNonVoidMethodCallTransaction(eoa, _50_000, jar(), GET, storage).asReturnedInt(GET, NodeException::new);
+		var value = runInstanceNonVoidMethodCallTransaction(eoa, _50_000, jar(), GET, storage).asReturnedInt(GET, UnexpectedValueException::new);
 		assertEquals(13, value);
 	}
 
@@ -100,7 +100,7 @@ class Storage extends HotmokaTest {
 		StorageReference storage = addConstructorCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
 		addInstanceVoidMethodCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), SET, storage, StorageValues.intOf(13));
 		addInstanceVoidMethodCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), SET, storage, StorageValues.intOf(17));
-		var value = runInstanceNonVoidMethodCallTransaction(eoa, _50_000, jar(), GET, storage).asReturnedInt(GET, NodeException::new);
+		var value = runInstanceNonVoidMethodCallTransaction(eoa, _50_000, jar(), GET, storage).asReturnedInt(GET, UnexpectedValueException::new);
 		assertEquals(17, value);
 	}
 }

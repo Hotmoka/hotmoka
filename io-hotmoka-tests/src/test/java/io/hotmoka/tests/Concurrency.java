@@ -39,6 +39,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.UnexpectedValueException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
@@ -105,11 +106,11 @@ class Concurrency extends HotmokaTest {
 
 						// we ask for the balance of the account bound to the this worker
 						BigInteger ourBalance = runInstanceNonVoidMethodCallTransaction(ourAccount, _50_000, takamakaCode(), MethodSignatures.BALANCE, ourAccount)
-							.asReturnedBigInteger(MethodSignatures.BALANCE, NodeException::new);
+							.asReturnedBigInteger(MethodSignatures.BALANCE, UnexpectedValueException::new);
 
 						// we ask for the balance of the account bound to the other worker
 						BigInteger otherBalance = runInstanceNonVoidMethodCallTransaction(ourAccount, _50_000, takamakaCode(), MethodSignatures.BALANCE, otherAccount)
-							.asReturnedBigInteger(MethodSignatures.BALANCE, NodeException::new);
+							.asReturnedBigInteger(MethodSignatures.BALANCE, UnexpectedValueException::new);
 
 						// if we are poorer than other, we send him only 5,000 units of coin; otherwise, we send him 10,000 units
 						int sent = ourBalance.subtract(otherBalance).signum() < 0 ? 5_000 : 10_000;

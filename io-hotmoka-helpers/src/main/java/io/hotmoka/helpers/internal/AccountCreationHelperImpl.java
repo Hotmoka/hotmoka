@@ -40,6 +40,7 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.UnexpectedValueException;
 import io.hotmoka.node.UnexpectedVoidMethodException;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
@@ -47,6 +48,7 @@ import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnexpectedCodeException;
 import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
@@ -80,8 +82,9 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 	 * @throws TransactionException 
 	 * @throws TransactionRejectedException 
 	 * @throws UninitializedNodeException if the node is not initialized yet
+	 * @throws UnexpectedCodeException if the Takamaka runtime is behaving in an unexpected way
 	 */
-	public AccountCreationHelperImpl(Node node) throws ClosedNodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, CodeExecutionException, UninitializedNodeException {
+	public AccountCreationHelperImpl(Node node) throws ClosedNodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, CodeExecutionException, UninitializedNodeException, UnexpectedCodeException {
 		this.node = node;
 		this.manifest = node.getManifest();
 		this.takamakaCode = node.getTakamakaCode();
@@ -98,7 +101,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		StorageReference gamete = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 			(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
 			.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_GAMETE))
-			.asReference(value -> new NodeException(MethodSignatures.GET_GAMETE + " should return a reference, not a " + value.getClass().getName()));
+			.asReturnedReference(MethodSignatures.GET_GAMETE, UnexpectedValueException::new);
 
 		String methodName;
 		ClassType eoaType;
@@ -147,7 +150,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 
 		return node.addInstanceMethodCallTransaction(request)
 			.orElseThrow(() -> new UnexpectedVoidMethodException(method))
-			.asReturnedReference(method, NodeException::new);
+			.asReturnedReference(method, UnexpectedValueException::new);
 	}
 
 	@Override
@@ -191,7 +194,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 			var accountsLedger = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_ACCOUNTS_LEDGER, manifest))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_ACCOUNTS_LEDGER))
-				.asReturnedReference(MethodSignatures.GET_ACCOUNTS_LEDGER, NodeException::new);
+				.asReturnedReference(MethodSignatures.GET_ACCOUNTS_LEDGER, UnexpectedValueException::new);
 
 			var method = MethodSignatures.ofNonVoid(StorageTypes.ACCOUNTS_LEDGER, "add", StorageTypes.EOA, StorageTypes.BIG_INTEGER, StorageTypes.STRING);
 			InstanceMethodCallTransactionRequest request = TransactionRequests.instanceMethodCall
@@ -203,7 +206,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 
 			account = node.addInstanceMethodCallTransaction(request)
 				.orElseThrow(() -> new UnexpectedVoidMethodException(method))
-				.asReturnedReference(method, NodeException::new);
+				.asReturnedReference(method, UnexpectedValueException::new);
 
 			requestsHandler.accept(new TransactionRequest<?>[] { request });
 		}

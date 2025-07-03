@@ -30,7 +30,8 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.UnexpectedValueException;
+import io.hotmoka.node.UnexpectedVoidMethodException;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.values.StorageReference;
 import io.takamaka.code.constants.Constants;
@@ -47,7 +48,7 @@ public class Faucet extends HotmokaTest {
 		if (consensus == null || !consensus.allowsUnsignedFaucet())
 			return;
 
-		var gamete = runInstanceNonVoidMethodCallTransaction(manifest(), _50_000, takamakaCode(), MethodSignatures.GET_GAMETE, manifest()).asReturnedReference(MethodSignatures.GET_GAMETE, NodeException::new);
+		var gamete = runInstanceNonVoidMethodCallTransaction(manifest(), _50_000, takamakaCode(), MethodSignatures.GET_GAMETE, manifest()).asReturnedReference(MethodSignatures.GET_GAMETE, UnexpectedValueException::new);
 
 		// we generate the key pair of the new account created by the faucet
 		var signature = signature();
@@ -61,14 +62,14 @@ public class Faucet extends HotmokaTest {
 		var account = (StorageReference) node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall
 			(signer, gamete, getNonceOf(gamete), chainId(), _100_000, ONE, takamakaCode(),
 			method, gamete, StorageValues.intOf(100_000), StorageValues.stringOf(publicKey)))
-			.orElseThrow(() -> new NodeException(method + " should not return void"));
+			.orElseThrow(() -> new UnexpectedVoidMethodException(method));
 
 		assertNotNull(account);
 	}
 
 	@Test
 	void callToFaucetFailsIfCallerIsNotTheGamete() throws Exception {
-		var gamete = runInstanceNonVoidMethodCallTransaction(manifest(), _50_000, takamakaCode(), MethodSignatures.GET_GAMETE, manifest()).asReturnedReference(MethodSignatures.GET_GAMETE, NodeException::new);
+		var gamete = runInstanceNonVoidMethodCallTransaction(manifest(), _50_000, takamakaCode(), MethodSignatures.GET_GAMETE, manifest()).asReturnedReference(MethodSignatures.GET_GAMETE, UnexpectedValueException::new);
 
 		// we generate the key pair of the new account created by the faucet
 		KeyPair keys = signature().getKeyPair();

@@ -28,7 +28,7 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.UnexpectedValueException;
 import io.hotmoka.node.api.UnmatchedTargetException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.types.ClassType;
@@ -72,10 +72,10 @@ class AbstractFail extends HotmokaTest {
 
 		var abstractFailMethod = MethodSignatures.ofNonVoid(ABSTRACT_FAIL, "method", ABSTRACT_FAIL);
 		StorageReference result = addInstanceNonVoidMethodCallTransaction
-			(privateKey(0), account(0), _100_000, panarea(1), jar(), abstractFailMethod, abstractfail).asReturnedReference(abstractFailMethod, NodeException::new);
+			(privateKey(0), account(0), _100_000, panarea(1), jar(), abstractFailMethod, abstractfail).asReturnedReference(abstractFailMethod, UnexpectedValueException::new);
 
 		var getClassName = MethodSignatures.ofNonVoid(StorageTypes.STORAGE, "getClassName", StorageTypes.STRING);
-		String className = runInstanceNonVoidMethodCallTransaction(account(0), _100_000, jar(), getClassName, result).asReturnedString(getClassName, NodeException::new);
+		String className = runInstanceNonVoidMethodCallTransaction(account(0), _100_000, jar(), getClassName, result).asReturnedString(getClassName, UnexpectedValueException::new);
 
 		assertEquals("io.hotmoka.examples.abstractfail.AbstractFailImpl", className);
 	}

@@ -30,7 +30,7 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.UnexpectedValueException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.types.ClassType;
@@ -73,7 +73,7 @@ class Inner extends HotmokaTest {
 	void newTestInnerInsideGetBalance() throws Exception {
 		StorageReference testInner = addConstructorCallTransaction(privateKey(0), account(0), _50_000, ONE, jar(), TEST_INNER_CONSTRUCTOR);
 		StorageReference inside = addConstructorCallTransaction(privateKey(0), account(0), _50_000, ONE, jar(), TEST_INNER_INSIDE_CONSTRUCTOR, testInner, StorageValues.longOf(1000L));
-		BigInteger balance = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), TEST_INNER_INSIDE_GETBALANCE, inside).asReturnedBigInteger(TEST_INNER_INSIDE_GETBALANCE, NodeException::new);
+		BigInteger balance = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), TEST_INNER_INSIDE_GETBALANCE, inside).asReturnedBigInteger(TEST_INNER_INSIDE_GETBALANCE, UnexpectedValueException::new);
 		
 		assertEquals(BigInteger.valueOf(1000L), balance);
 	}
@@ -82,7 +82,7 @@ class Inner extends HotmokaTest {
 	void newTestInnerInsideGetParent() throws Exception {
 		StorageReference testInner = addConstructorCallTransaction(privateKey(0), account(0), _50_000, ONE, jar(), TEST_INNER_CONSTRUCTOR);
 		StorageReference inside = addConstructorCallTransaction(privateKey(0), account(0), _50_000, ONE, jar(), TEST_INNER_INSIDE_CONSTRUCTOR, testInner, StorageValues.longOf(1000L));
-		StorageReference parent = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), TEST_INNER_INSIDE_GETPARENT, inside).asReturnedReference(TEST_INNER_INSIDE_GETPARENT, NodeException::new);
+		StorageReference parent = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), TEST_INNER_INSIDE_GETPARENT, inside).asReturnedReference(TEST_INNER_INSIDE_GETPARENT, UnexpectedValueException::new);
 		
 		assertEquals(testInner, parent);
 	}

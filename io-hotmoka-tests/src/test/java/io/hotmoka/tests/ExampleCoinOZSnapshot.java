@@ -25,7 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
 import java.security.PrivateKey;
-import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,7 +35,6 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
@@ -214,9 +212,6 @@ class ExampleCoinOZSnapshot extends HotmokaTest {
      * · What is the balance of creator at time 1? 200000000000000000000000 because 0 != 1
      * · What is the balance of investor1 at time 1? 0 because 0 != 1
      * · What is the balance of investor2 at time 1? 0 because 0 != 1
-     * @throws InterruptedException 
-     * @throws TimeoutException 
-     * @throws NodeException 
      */
     @Test @DisplayName("Full test of ERC20OZSnapshot #3")
     void fullTest3() throws Exception {
@@ -370,9 +365,6 @@ class ExampleCoinOZSnapshot extends HotmokaTest {
      * · What is the balance of investor1 at time 3? 0 because 1 != 2
      * · What is the balance of investor2 at time 3? 0 because 0 == 0
      * · What is the totalSupply at time 3? :200000000000000000000000 because 0 == 0
-     * @throws InterruptedException 
-     * @throws TimeoutException 
-     * @throws NodeException 
      */
     @Test @DisplayName("Full test of ERC20OZSnapshot #5")
     void fullTest5() throws Exception {

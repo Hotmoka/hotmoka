@@ -25,7 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
 import java.security.PrivateKey;
-import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,7 +35,6 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
@@ -165,9 +163,6 @@ class ExampleCoinWithSnapshots extends HotmokaTest {
      * · What is the balance of creator at time 1? 200000000000000000000000 because 0 != 1
      * · What is the balance of investor1 at time 1? 0 because 0 != 1
      * . What is the balance of investor2 at time 1? :0 because 0 == 0
-     * @throws InterruptedException 
-     * @throws TimeoutException 
-     * @throws NodeException 
      */
     @Test @DisplayName("Full test of ExampleCoinWithSnapshots #2")
     void fullTest2() throws Exception {
@@ -219,9 +214,6 @@ class ExampleCoinWithSnapshots extends HotmokaTest {
      * · What is the balance of creator at time 1? 200000000000000000000000 because 0 != 1
      * · What is the balance of investor1 at time 1? 0 because 0 != 1
      * · What is the balance of investor2 at time 1? 0 because 0 != 1
-     * @throws InterruptedException 
-     * @throws TimeoutException 
-     * @throws NodeException 
      */
     @Test @DisplayName("Full test of ExampleCoinWithSnapshots #3")
     void fullTest3() throws Exception {
@@ -285,9 +277,6 @@ class ExampleCoinWithSnapshots extends HotmokaTest {
      * · What is the balance of creator at time 2? 199999999999999999995000 because 1 != 2
      * · What is the balance of investor1 at time 2? 5000 because 1 != 2
      * · What is the balance of investor2 at time 2? 0 because 0 == 0
-     * @throws InterruptedException 
-     * @throws TimeoutException 
-     * @throws NodeException 
      */
     @Test @DisplayName("Full test of ExampleCoinWithSnapshots #4")
     void fullTest4() throws Exception {
@@ -378,9 +367,6 @@ class ExampleCoinWithSnapshots extends HotmokaTest {
      * · What is the balance of investor1 at time 3? 0 because 1 != 2
      * · What is the balance of investor2 at time 3? 0 because 0 == 0
      * · What is the totalSupply at time 3? :200000000000000000000000 because 0 == 0
-     * @throws InterruptedException 
-     * @throws TimeoutException 
-     * @throws NodeException 
      */
     @Test @DisplayName("Full test of ExampleCoinWithSnapshots #5")
     void fullTest5() throws Exception {
@@ -514,9 +500,6 @@ class ExampleCoinWithSnapshots extends HotmokaTest {
      * · What is the balance of investor1 at time 4? :9000 because 2 == 2
      * · What is the balance of investor2 at time 4? :1000 because 1 == 1
      * · What is the totalSupply at time 4? :199999999999999999985000 because 1 != 2
-     * @throws InterruptedException 
-     * @throws TimeoutException 
-     * @throws NodeException 
      */
     @Test @DisplayName("Full test of ExampleCoinWithSnapshots #6")
     void fullTest6() throws Exception {
