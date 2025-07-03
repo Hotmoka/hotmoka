@@ -29,10 +29,10 @@ import io.hotmoka.node.api.ConstructorFuture;
 import io.hotmoka.node.api.JarFuture;
 import io.hotmoka.node.api.MethodFuture;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.nodes.NodeInfo;
@@ -114,12 +114,12 @@ public abstract class NodeDecoratorImpl<N extends Node> implements Node {
 	}
 
 	@Override
-	public StorageReference getManifest() throws NodeException, TimeoutException, InterruptedException {
+	public StorageReference getManifest() throws UninitializedNodeException, ClosedNodeException, TimeoutException, InterruptedException {
 		return parent.getManifest();
 	}
 
 	@Override
-	public TransactionReference getTakamakaCode() throws NodeException, TimeoutException, InterruptedException {
+	public TransactionReference getTakamakaCode() throws UninitializedNodeException, ClosedNodeException, TimeoutException, InterruptedException {
 		return parent.getTakamakaCode();
 	}
 

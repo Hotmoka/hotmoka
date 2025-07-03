@@ -31,6 +31,7 @@ import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.values.StorageReference;
 
@@ -64,8 +65,9 @@ public abstract class JarsNodes {
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws UnknownReferenceException if {@code payer} cannot be found in {@code parent}
 	 * @throws NoSuchAlgorithmException if the signature algorithm of {@code payer} is not available
+	 * @throws UninitializedNodeException if the node is not initialized yet
      */
-	public static JarsNode of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path... jars) throws TransactionRejectedException, TransactionException, IOException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException, CodeExecutionException, NoSuchAlgorithmException {
+	public static JarsNode of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path... jars) throws TransactionRejectedException, TransactionException, IOException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException, CodeExecutionException, NoSuchAlgorithmException, UninitializedNodeException {
 		return new JarsNodeImpl(parent, payer, privateKeyOfPayer, jars);
 	}
 }

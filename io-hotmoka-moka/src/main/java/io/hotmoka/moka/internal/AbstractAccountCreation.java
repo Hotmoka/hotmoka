@@ -43,10 +43,12 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
@@ -141,6 +143,7 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 
 	private class CreationFromPayer {
 		private final RemoteNode remote;
+		private final TransactionReference takamakaCode;
 		private final StorageReference payer;
 		private final String publicKeyOfNewAccountBase64;
 		private final ClassType eoaType;
@@ -156,6 +159,7 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 			String passwordOfPayerAsString = new String(passwordOfPayer);
 
 			try {
+				this.takamakaCode = remote.getTakamakaCode();
 				this.payer = AbstractAccountCreation.this.payer.asReference().get();
 				SignatureAlgorithm signatureOfNewAccount = getSignatureAlgorithmOfNewAccount(remote);
 				SignatureAlgorithm signatureOfPayer = determineSignatureOf(payer, remote);
@@ -168,6 +172,12 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 				Signer<SignedTransactionRequest<?>> signer = mkSigner(payer, dir, signatureOfPayer, passwordOfPayerAsString);
 				this.request = mkRequest(payer, signer, balance);
 				reportOutput(executeRequest());
+			}
+			catch (ClosedNodeException e) {
+				throw new CommandException("The node has been closed!", e);
+			}
+			catch (UninitializedNodeException e) {
+				throw new CommandException("The node is not initialized yet!", e);
 			}
 			finally {
 				passwordOfNewAccountAsString = null;
@@ -228,7 +238,7 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 		private ConstructorCallTransactionRequest mkRequest(StorageReference payer, Signer<SignedTransactionRequest<?>> signer, BigInteger balance) throws CommandException, NodeException, TimeoutException, InterruptedException {
 			try {
 				return TransactionRequests.constructorCall
-						(signer, payer, nonce, remote.getConfig().getChainId(), gasLimit, gasPrice, remote.getTakamakaCode(),
+						(signer, payer, nonce, remote.getConfig().getChainId(), gasLimit, gasPrice, takamakaCode,
 								ConstructorSignatures.of(eoaType, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
 								StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyOfNewAccountBase64));
 			}
@@ -240,6 +250,7 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 
 	private class CreationFromFaucet {
 		private final RemoteNode remote;
+		private final TransactionReference takamakaCode;
 		private final StorageReference gamete;
 		private final String publicKeyOfNewAccountBase64;
 		private final SignatureAlgorithm signatureOfFaucet;
@@ -254,6 +265,7 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 			String passwordOfNewAccountAsString = new String(password);
 
 			try {
+				this.takamakaCode = remote.getTakamakaCode();
 				this.gamete = getGamete();
 				SignatureAlgorithm signatureOfNewAccount = getSignatureAlgorithmOfNewAccount(remote);
 				this.publicKeyOfNewAccountBase64 = publicKeyOrKeyPair.getPublicKeyBase64(signatureOfNewAccount, passwordOfNewAccountAsString);
@@ -264,6 +276,12 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 				this.gasPrice = determineGasPrice(remote);
 				this.request = mkRequest(balance);
 				reportOutput(executeRequest());
+			}
+			catch (ClosedNodeException e) {
+				throw new CommandException("The node has been closed!", e);
+			}
+			catch (UninitializedNodeException e) {
+				throw new CommandException("The node is not initialized yet!", e);
 			}
 			finally {
 				passwordOfNewAccountAsString = null;
@@ -280,7 +298,7 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 				// we use a random nonce: although the nonce is not checked for calls to the faucet,
 				// this avoids the risk of the request being rejected because it is repeated
 				return TransactionRequests.instanceMethodCall
-						(signer, gamete, new BigInteger(64, new SecureRandom()), remote.getConfig().getChainId(), gasLimit, gasPrice, remote.getTakamakaCode(),
+						(signer, gamete, new BigInteger(64, new SecureRandom()), remote.getConfig().getChainId(), gasLimit, gasPrice, this.takamakaCode,
 						faucetMethod, gamete, StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyOfNewAccountBase64));
 			}
 			catch (InvalidKeyException | SignatureException e) {
@@ -337,9 +355,8 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 			return mkOutput(transaction, account, gasCost, errorMessage, file);
 		}
 
-		private StorageReference getGamete() throws NodeException, TimeoutException, InterruptedException, CommandException {
+		private StorageReference getGamete() throws UninitializedNodeException, ClosedNodeException, TimeoutException, InterruptedException, CommandException {
 			var manifest = remote.getManifest();
-			var takamakaCode = remote.getTakamakaCode();
 
 			try {
 				return remote.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall

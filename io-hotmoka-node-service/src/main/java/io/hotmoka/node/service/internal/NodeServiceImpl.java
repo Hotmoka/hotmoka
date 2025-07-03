@@ -27,10 +27,10 @@ import io.hotmoka.closeables.api.OnCloseHandler;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.messages.AddConstructorCallTransactionMessages;
@@ -159,7 +159,7 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
     	try {
 			this.eventSubscription = node.subscribeToEvents(null, this::publishEvent);
 		}
-    	catch (NodeException e) { // TODO
+    	catch (ClosedNodeException e) {
     		throw new FailedDeploymentException(e);
 		}
 
@@ -175,7 +175,7 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
     			PostInstanceMethodCallTransactionEndpoint.config(this), PostStaticMethodCallTransactionEndpoint.config(this),
     			RunInstanceMethodCallTransactionEndpoint.config(this), RunStaticMethodCallTransactionEndpoint.config(this),
     			EventEndpoint.config(this)
-    			);
+    	);
 
     	// if the node gets closed, then this service will be closed as well
     	node.addOnCloseHandler(this_close);
@@ -207,24 +207,42 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 
     	if (message instanceof GetTakamakaCodeMessage) {
     		try {
-				sendObjectAsync(session, GetTakamakaCodeResultMessages.of(node.getTakamakaCode(), id));
-			}
-			catch (TimeoutException | InterruptedException e) {
-				sendExceptionAsync(session, e, id);
-			}
-    		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "getTakamakaCode()", id, e);
+    			try {
+    				sendObjectAsync(session, GetTakamakaCodeResultMessages.of(node.getTakamakaCode(), id));
+    			}
+    			catch (UninitializedNodeException e) {
+    				sendObjectAsync(session, ExceptionMessages.of(e, id));
+    			}
+    			catch (InterruptedException e) {
+    				LOGGER.warning(logPrefix + "getTakamakaCode() has been interrupted: " + e.getMessage());
+    				Thread.currentThread().interrupt();
+    			}
+    			catch (TimeoutException | ClosedNodeException e) {
+    				LOGGER.warning(logPrefix + "getTakamakaCode() request failed: " + e.getMessage());
+    			}
+    		}
+    		catch (IOException e) {
+    			LOGGER.warning(logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
     		}
     	}
     	else if (message instanceof GetManifestMessage) {
     		try {
-				sendObjectAsync(session, GetManifestResultMessages.of(node.getManifest(), id));
-			}
-			catch (TimeoutException | InterruptedException e) {
-				sendExceptionAsync(session, e, id);
-			}
-    		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "getManifest()", id, e);
+    			try {
+    				sendObjectAsync(session, GetManifestResultMessages.of(node.getManifest(), id));
+    			}
+    			catch (UninitializedNodeException e) {
+    				sendObjectAsync(session, ExceptionMessages.of(e, id));
+    			}
+    			catch (InterruptedException e) {
+    				LOGGER.warning(logPrefix + "getManifest() has been interrupted: " + e.getMessage());
+    				Thread.currentThread().interrupt();
+    			}
+    			catch (TimeoutException | ClosedNodeException e) {
+    				LOGGER.warning(logPrefix + "getManifest() request failed: " + e.getMessage());
+    			}
+    		}
+    		catch (IOException e) {
+    			LOGGER.warning(logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
     		}
     	}
     	else if (message instanceof GetConfigMessage) {
@@ -626,23 +644,6 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
     		LOGGER.severe("Unexpected message of type " + message.getClass().getName());
     }
 
-    private void nodeFailed(Session session, String description, String id, Exception e) throws IOException {
-    	String message = e.getMessage();
-
-    	// we do not trust exception messages coming from the serviced node, they might be arbitrarily long
-    	if (e instanceof NodeException && message.length() > 200)
-    		message = message.substring(0, 200) + "...";
-
-    	message = description + " threw exception: " + message;
-
-    	LOGGER.log(Level.SEVERE, message, e);
-
-    	if (!(e instanceof NodeException))
-    		e = new NodeException(message, e);
-
-    	sendExceptionAsync(session, e, id);
-	}
-
 	private void addSession(Session session) {
 		eventSessions.add(session);
 		LOGGER.info(logPrefix + "bound a new remote through session " + session.getId());
@@ -682,26 +683,6 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
 			return simpleConfig(server, EventEndpoint.class, EVENTS_ENDPOINT, EventMessages.Encoder.class);
 		}
-	}
-
-	/**
-	 * Sends an exception message to the given session.
-	 * 
-	 * @param session the session
-	 * @param e the exception used to build the message
-	 * @param id the identifier of the message to send
-	 * @throws IOException if there was an I/O problem
-	 */
-	private void sendExceptionAsync(Session session, Exception e, String id) throws IOException {
-		if (e instanceof InterruptedException) { // TODO
-			// if the serviced node gets interrupted, then the external vision of the node
-			// is that of a node that is not working properly
-			sendObjectAsync(session, ExceptionMessages.of(new NodeException("The service has been interrupted"), id));
-			// we take note that we have been interrupted
-			Thread.currentThread().interrupt();
-		}
-		else
-			sendObjectAsync(session, ExceptionMessages.of(e, id));
 	}
 
 	protected void onGetInfo(GetInfoMessage message, Session session) {

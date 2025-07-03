@@ -50,10 +50,12 @@ import io.hotmoka.moka.internal.json.AccountsSendOutputJson;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -141,7 +143,7 @@ public class Send extends AbstractGasCostCommand {
 	}
 
 	@Override
-	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException {
+	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, UninitializedNodeException {
 		try {
 		if (payer.isFaucet())
 			if(receiver.asReference() != null)
@@ -272,7 +274,7 @@ public class Send extends AbstractGasCostCommand {
 		private final TransactionReference classpath;
 		private final InstanceMethodCallTransactionRequest request;
 	
-		private SendFromFaucetToDestinationContract(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+		private SendFromFaucetToDestinationContract(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException, UninitializedNodeException {
 			this.remote = remote;
 			this.gamete = getGamete();
 			this.chainId = remote.getConfig().getChainId();
@@ -342,7 +344,7 @@ public class Send extends AbstractGasCostCommand {
 			return new Output(transaction, Optional.empty(), errorMessage, Optional.empty());
 		}
 	
-		private StorageReference getGamete() throws NodeException, TimeoutException, InterruptedException, CommandException {
+		private StorageReference getGamete() throws ClosedNodeException, TimeoutException, InterruptedException, CommandException, UninitializedNodeException {
 			var manifest = remote.getManifest();
 			var takamakaCode = remote.getTakamakaCode();
 	
@@ -375,7 +377,7 @@ public class Send extends AbstractGasCostCommand {
 		private final BigInteger nonce;
 		private final InstanceMethodCallTransactionRequest request;
 	
-		private SendFromPayerAccountToDestinationKey(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+		private SendFromPayerAccountToDestinationKey(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException, UninitializedNodeException {
 			String passwordOfPayerAsString = new String(passwordOfPayer);
 	
 			try {
@@ -478,7 +480,7 @@ public class Send extends AbstractGasCostCommand {
 			}
 		}
 	
-		private StorageReference getAccountsLedger() throws NodeException, TimeoutException, InterruptedException, CommandException {
+		private StorageReference getAccountsLedger() throws ClosedNodeException, TimeoutException, InterruptedException, CommandException, UninitializedNodeException {
 			var manifest = remote.getManifest();
 			var takamakaCode = remote.getTakamakaCode();
 	

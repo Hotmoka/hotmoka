@@ -48,11 +48,13 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.service.NodeServices;
@@ -127,6 +129,12 @@ public class Init extends AbstractNodeInit {
 			Thread.currentThread().interrupt();
 			throw new CommandException("The operation has been interrupted", e);
 		}
+		catch (UninitializedNodeException e) {
+			throw new CommandException("The node has not been initialized!", e);
+		}
+		catch (ClosedNodeException e) {
+			throw new CommandException("The node is already closed!", e);
+		}
 		catch (NodeException e) {
 			throw new RuntimeException(e);
 		}
@@ -189,8 +197,9 @@ public class Init extends AbstractNodeInit {
 	 * @throws TimeoutException if some operation times out
 	 * @throws InterruptedException if some operation gets interrupted while waiting for its termination
 	 * @throws CommandException if the scan failed or some validators has a wrong key
+	 * @throws UninitializedNodeException if the node is not initialized yet
 	 */
-	private SortedSet<ValidatorDescription> scanValidators(Node node) throws NodeException, TimeoutException, InterruptedException, CommandException {
+	private SortedSet<ValidatorDescription> scanValidators(Node node) throws NodeException, TimeoutException, InterruptedException, CommandException, UninitializedNodeException {
 		var takamakaCode = node.getTakamakaCode();
 		var manifest = node.getManifest();
 		var result = new TreeSet<ValidatorDescription>();

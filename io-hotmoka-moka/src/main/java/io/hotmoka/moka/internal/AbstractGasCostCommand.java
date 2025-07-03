@@ -30,6 +30,7 @@ import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
@@ -93,6 +94,9 @@ public abstract class AbstractGasCostCommand extends AbstractMokaRpcCommand {
 		}
 		catch (CodeExecutionException | TransactionRejectedException | TransactionException e) {
 			throw new CommandException("Cannot determine the current gas price!", e);
+		}
+		catch (UninitializedNodeException e) {
+			throw new CommandException("The node is not initialized yet!", e);
 		}
 	}
 

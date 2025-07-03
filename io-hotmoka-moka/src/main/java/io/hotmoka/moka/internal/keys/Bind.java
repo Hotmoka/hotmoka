@@ -38,10 +38,11 @@ import io.hotmoka.moka.internal.json.KeysBindOutputJson;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.values.NullValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
@@ -78,8 +79,11 @@ public class Bind extends AbstractMokaRpcCommand {
 			Path file = bindKeysToAccount(key, reference, outputDir);
 			report(json(), new Output(reference, file), KeysBindOutputs.Encoder::new);
 		}
-		catch (NodeException e) {
-			throw new RuntimeException(e); // TODO
+		catch (ClosedNodeException e) {
+			throw new CommandException("The node is already closed!", e);
+		}
+		catch (UninitializedNodeException e) {
+			throw new CommandException("The node has not been initialized yet!", e);
 		}
 	}
 
@@ -90,11 +94,13 @@ public class Bind extends AbstractMokaRpcCommand {
 	 * @return {@link #reference} itself
 	 * @throws TimeoutException if the operation times out
 	 * @throws InterruptedException of the operation gets interrupted
-	 * @throws NodeException if the node is misbehaving
+	 * @throws ClosedNodeException if the node is already closed
+	 * @throws UninitializedNodeException if the node is not initialized yet
 	 * @throws CommandException if {@link #reference} does not exist in the remote node or its public key does not
 	 *                          coincide with that in the {@link #key} file
+	 * @throws UninitializedNodeException 
 	 */
-	private StorageReference verifyPublicKey(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+	private StorageReference verifyPublicKey(RemoteNode remote) throws TimeoutException, InterruptedException, ClosedNodeException, CommandException, UninitializedNodeException {
 		var manifest = remote.getManifest();
 		var takamakaCode = remote.getTakamakaCode();
 		String publicKeyBase64FromKeyFile = publicKeyBase64FromKeyFile();
@@ -117,7 +123,7 @@ public class Bind extends AbstractMokaRpcCommand {
 		return reference;
 	}
 
-	private StorageReference getFromAccountsLedger(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+	private StorageReference getFromAccountsLedger(RemoteNode remote) throws TimeoutException, InterruptedException, ClosedNodeException, CommandException, UninitializedNodeException {
 		var manifest = remote.getManifest();
 		var takamakaCode = remote.getTakamakaCode();
 		String publicKeyBase64FromKeyFile = publicKeyBase64FromKeyFile();

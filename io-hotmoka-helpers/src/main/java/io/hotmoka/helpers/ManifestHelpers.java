@@ -25,6 +25,7 @@ import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UninitializedNodeException;
 
 /**
  * Providers of helpers for accessing the manifest of a node.
@@ -44,8 +45,9 @@ public abstract class ManifestHelpers {
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws NodeException if the node is not able to complete the operation
 	 * @throws CodeExecutionException if some transaction throws an exception
+	 * @throws UninitializedNodeException if the node is not initialized yet
 	 */
-	public static ManifestHelper of(Node node) throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, CodeExecutionException {
+	public static ManifestHelper of(Node node) throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, CodeExecutionException, UninitializedNodeException {
 		return new ManifestHelperImpl(node);
 	}
 }

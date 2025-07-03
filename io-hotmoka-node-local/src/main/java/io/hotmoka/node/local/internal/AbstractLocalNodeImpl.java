@@ -56,6 +56,7 @@ import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.SubscriptionsManager;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
@@ -212,7 +213,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	@Override
-	public final TransactionReference getTakamakaCode() throws NodeException, InterruptedException {
+	public final TransactionReference getTakamakaCode() throws UninitializedNodeException, ClosedNodeException, InterruptedException {
 		try (var scope = mkScope()) {
 			var manifest = getManifest();
 
@@ -220,23 +221,28 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 				return getClassTag(manifest).getJar();
 			}
 			catch (UnknownReferenceException e) {
-				throw new NodeException("The manifest of the node cannot be found in the node itself: is the node initialized?", e);
+				throw new UninitializedNodeException();
 			}
 		}
 	}
 
 	@Override
-	public final StorageReference getManifest() throws NodeException, InterruptedException {
-		S store = enterHead();
+	public final StorageReference getManifest() throws UninitializedNodeException, ClosedNodeException, InterruptedException {
+		try {
+			S store = enterHead();
 
-		try (var scope = mkScope()) {
-			return store.getManifest().orElseThrow(() -> new NodeException("The node is not initialized yet"));
+			try (var scope = mkScope()) {
+				return store.getManifest().orElseThrow(UninitializedNodeException::new);
+			}
+			finally {
+				exit(store);
+			}
 		}
-		catch (StoreException e) {
-			throw new NodeException(e);
+		catch (ClosedNodeException e) { // TODO
+			throw e;
 		}
-		finally {
-			exit(store);
+		catch (StoreException | NodeException e) { // TODO
+			throw new RuntimeException(e);
 		}
 	}
 

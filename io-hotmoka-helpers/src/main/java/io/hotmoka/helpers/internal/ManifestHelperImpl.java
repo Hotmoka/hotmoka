@@ -34,6 +34,7 @@ import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
@@ -66,8 +67,9 @@ public class ManifestHelperImpl implements ManifestHelper {
 	 * @throws TransactionRejectedException if some transaction gets rejected
 	 * @throws TransactionException if some transaction fails
 	 * @throws CodeExecutionException if some transaction throws an exception
+	 * @throws UninitializedNodeException if the node is not initialized yet
 	 */
-	public ManifestHelperImpl(Node node) throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, CodeExecutionException {
+	public ManifestHelperImpl(Node node) throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, CodeExecutionException, UninitializedNodeException {
 		this.node = node;
 		this.takamakaCode = node.getTakamakaCode();
 		this.manifest = node.getManifest();

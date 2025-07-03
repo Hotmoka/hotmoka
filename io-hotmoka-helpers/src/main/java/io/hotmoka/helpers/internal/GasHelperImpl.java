@@ -22,11 +22,13 @@ import java.util.concurrent.TimeoutException;
 import io.hotmoka.helpers.api.GasHelper;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
@@ -44,21 +46,31 @@ public class GasHelperImpl implements GasHelper {
 	 * @param node the node whose gas is considered
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
-	 * @throws NodeException if the node is not able to complete the operation
+	 * @throws ClosedNodeException if the node is not able to complete the operation
 	 * @throws CodeExecutionException if some transaction threw an exception
 	 * @throws TransactionException if some transaction failed
 	 * @throws TransactionRejectedException if some transaction was rejected
+	 * @throws UninitializedNodeException if the node is not initialized yet
 	 */
-	public GasHelperImpl(Node node) throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, CodeExecutionException {
+	public GasHelperImpl(Node node) throws ClosedNodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, CodeExecutionException, UninitializedNodeException {
 		this.node = node;
 		TransactionReference takamakaCode = node.getTakamakaCode();
 		StorageReference manifest = node.getManifest();
-		StorageReference gasStation = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, BigInteger.valueOf(100_000), takamakaCode, MethodSignatures.GET_GAS_STATION, manifest))
-				.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAS_STATION + " should not return void"))
-				.asReturnedReference(MethodSignatures.GET_GAS_STATION, NodeException::new);
-		this.request = TransactionRequests.instanceViewMethodCall
-				(manifest, BigInteger.valueOf(100_000), takamakaCode, MethodSignatures.GET_GAS_PRICE, gasStation);
+	
+		try {
+			StorageReference gasStation = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+					(manifest, BigInteger.valueOf(100_000), takamakaCode, MethodSignatures.GET_GAS_STATION, manifest))
+					.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAS_STATION + " should not return void"))
+					.asReturnedReference(MethodSignatures.GET_GAS_STATION, NodeException::new);
+			this.request = TransactionRequests.instanceViewMethodCall
+					(manifest, BigInteger.valueOf(100_000), takamakaCode, MethodSignatures.GET_GAS_PRICE, gasStation);
+		}
+		catch (ClosedNodeException e) { // TODO
+			throw e;
+		}
+		catch (NodeException e) { // TODO
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override

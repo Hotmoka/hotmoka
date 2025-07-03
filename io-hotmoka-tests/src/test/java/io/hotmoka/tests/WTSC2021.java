@@ -51,6 +51,7 @@ import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
@@ -132,7 +133,7 @@ class WTSC2021 extends HotmokaTest {
 		}
 		catch (InvalidKeyException | SignatureException | TransactionException | CodeExecutionException
 				| TransactionRejectedException | InterruptedException | ExecutionException
-				| UnknownReferenceException | IOException | NodeException | TimeoutException | NoSuchAlgorithmException e) {
+				| UnknownReferenceException | IOException | NodeException | TimeoutException | NoSuchAlgorithmException | UninitializedNodeException e) {
 			throw new RuntimeException(e);
 		}
 	}

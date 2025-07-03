@@ -38,10 +38,12 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.signatures.VoidMethodSignature;
@@ -74,9 +76,12 @@ public class Buy extends AbstractGasCostCommand {
 	private boolean yes;
 
 	@Override
-	protected final void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException {
+	protected final void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, UninitializedNodeException, ClosedNodeException {
 		try {
 			new Body(remote);
+		}
+		catch (ClosedNodeException e) { // TODO
+			throw e;
 		}
 		catch (NodeException e) {
 			throw new RuntimeException(e); // TODO
@@ -101,14 +106,14 @@ public class Buy extends AbstractGasCostCommand {
 		private final InstanceMethodCallTransactionRequest request;
 		private final VoidMethodSignature method;
 
-		private Body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+		private Body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException, UninitializedNodeException {
 			String passwordOfPayerAsString = new String(passwordOfPayer);
 
 			try {
 				this.remote = remote;
 				this.chainId = remote.getConfig().getChainId();
 				this.signatureOfPayer = determineSignatureOf(payer, remote);
-				this.takamakaCode = remote.getTakamakaCode();
+				this.takamakaCode = getTakamakaCode();
 				this.manifest = remote.getManifest();
 				this.signer = mkSigner(payer, dir, signatureOfPayer, passwordOfPayerAsString);
 				this.validators = getValidators();
@@ -128,6 +133,10 @@ public class Buy extends AbstractGasCostCommand {
 				passwordOfPayerAsString = null;
 				Arrays.fill(passwordOfPayer, ' ');
 			}
+		}
+
+		private TransactionReference getTakamakaCode() throws UninitializedNodeException, ClosedNodeException, TimeoutException, InterruptedException {
+			return remote.getTakamakaCode();
 		}
 
 		private InstanceMethodCallTransactionRequest mkRequest() throws CommandException {
@@ -215,7 +224,7 @@ public class Buy extends AbstractGasCostCommand {
 			}
 		}
 
-		private StorageReference getValidators() throws NodeException, TimeoutException, InterruptedException, CommandException {
+		private StorageReference getValidators() throws NodeException, TimeoutException, InterruptedException, CommandException, UninitializedNodeException {
 			var manifest = remote.getManifest();
 
 			try {

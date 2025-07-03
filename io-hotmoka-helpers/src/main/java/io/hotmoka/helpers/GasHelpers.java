@@ -20,11 +20,12 @@ import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.helpers.api.GasHelper;
 import io.hotmoka.helpers.internal.GasHelperImpl;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UninitializedNodeException;
 
 /**
  * Providers of objects that help with gas operations.
@@ -40,12 +41,13 @@ public abstract class GasHelpers {
 	 * @return the gas helper
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
-	 * @throws NodeException if the node is not able to complete the operation
+	 * @throws ClosedNodeException if the node is already closed
 	 * @throws CodeExecutionException if some transaction threw an exception
 	 * @throws TransactionException if some transaction failed
 	 * @throws TransactionRejectedException if some transaction was rejected
+	 * @throws UninitializedNodeException if the node is not initialized yet
 	 */
-	public static GasHelper of(Node node) throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, CodeExecutionException {
+	public static GasHelper of(Node node) throws ClosedNodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, CodeExecutionException, UninitializedNodeException {
 		return new GasHelperImpl(node);
 	}
 }

@@ -39,11 +39,13 @@ import io.hotmoka.helpers.api.SendCoinsHelper;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
@@ -68,12 +70,13 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 	 * @param node the node whose accounts are considered
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
-	 * @throws NodeException if the node is not able to complete the operation
+	 * @throws ClosedNodeException if the node is already closed
 	 * @throws CodeExecutionException if some transaction threw an exception
 	 * @throws TransactionException if some transaction failed
 	 * @throws TransactionRejectedException if some transaction was rejected
+	 * @throws UninitializedNodeException if the node is not initialized yet
 	 */
-	public SendCoinsHelperImpl(Node node) throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, CodeExecutionException {
+	public SendCoinsHelperImpl(Node node) throws ClosedNodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, CodeExecutionException, UninitializedNodeException {
 		this.node = node;
 		this.manifest = node.getManifest();
 		this.takamakaCode = node.getTakamakaCode();

@@ -38,9 +38,11 @@ import io.hotmoka.moka.internal.converters.StorageReferenceOptionConverter;
 import io.hotmoka.moka.internal.converters.TransactionReferenceOptionConverter;
 import io.hotmoka.moka.internal.json.JarsInstallOutputJson;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -172,11 +174,20 @@ public class Install extends AbstractGasCostCommand {
 		return _100_000.add(gasForTransactionWhosePayerHasSignature(signatureOfPayer)).add(BigInteger.valueOf(200).multiply(BigInteger.valueOf(bytes.length)));
 	}
 
-	private TransactionReference[] computeDependencies(RemoteNode remote) throws NodeException, TimeoutException, InterruptedException {
+	private TransactionReference[] computeDependencies(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException {
 		if (libs != null && !libs.isEmpty())
 			return libs.stream().distinct().toArray(TransactionReference[]::new);
-		else
-			return new TransactionReference[] { remote.getTakamakaCode() };
+		else {
+			try {
+				return new TransactionReference[] { remote.getTakamakaCode() };
+			}
+			catch (ClosedNodeException e) {
+				throw new CommandException("The node is already closed!", e);
+			}
+			catch (UninitializedNodeException e) {
+				throw new CommandException("The node is not initialized yet!", e);
+			}
+		}
 	}
 
 	private byte[] readBytesOfJar() throws CommandException {

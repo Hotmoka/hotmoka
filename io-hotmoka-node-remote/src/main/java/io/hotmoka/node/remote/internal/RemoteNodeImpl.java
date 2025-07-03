@@ -58,11 +58,11 @@ import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.ConstructorFuture;
 import io.hotmoka.node.api.JarFuture;
 import io.hotmoka.node.api.MethodFuture;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.SubscriptionsManager;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.nodes.NodeInfo;
@@ -379,21 +379,20 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	}
 
 	@Override
-	public TransactionReference getTakamakaCode() throws NodeException, InterruptedException, TimeoutException {
+	public TransactionReference getTakamakaCode() throws UninitializedNodeException, ClosedNodeException, InterruptedException, TimeoutException {
 		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendGetTakamakaCode(id);
-		return waitForResult(id, GetTakamakaCodeResultMessage.class, TimeoutException.class, NodeException.class);
+		return waitForResult(id, GetTakamakaCodeResultMessage.class, UninitializedNodeException.class);
 	}
 
 	/**
 	 * Sends a {@link GetTakamakaCodeMessage} to the node service.
 	 * 
 	 * @param id the identifier of the message
-	 * @throws NodeException if the message could not be sent
 	 */
-	protected void sendGetTakamakaCode(String id) throws NodeException {
-		sendObjectAsync(getSession(GET_TAKAMAKA_CODE_ENDPOINT), GetTakamakaCodeMessages.of(id), NodeException::new);
+	protected void sendGetTakamakaCode(String id) {
+		sendObjectAsync(GET_TAKAMAKA_CODE_ENDPOINT, GetTakamakaCodeMessages.of(id));
 	}
 
 	/**
@@ -412,21 +411,20 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	}
 
 	@Override
-	public StorageReference getManifest() throws NodeException, InterruptedException, TimeoutException {
+	public StorageReference getManifest() throws UninitializedNodeException, ClosedNodeException, InterruptedException, TimeoutException {
 		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendGetManifest(id);
-		return waitForResult(id, GetManifestResultMessage.class, TimeoutException.class, NodeException.class);
+		return waitForResult(id, GetManifestResultMessage.class, UninitializedNodeException.class);
 	}
 
 	/**
 	 * Sends a {@link GetManifestMessage} to the node service.
 	 * 
 	 * @param id the identifier of the message
-	 * @throws NodeException if the message could not be sent
 	 */
-	protected void sendGetManifest(String id) throws NodeException {
-		sendObjectAsync(getSession(GET_MANIFEST_ENDPOINT), GetManifestMessages.of(id), NodeException::new);
+	protected void sendGetManifest(String id) {
+		sendObjectAsync(GET_MANIFEST_ENDPOINT, GetManifestMessages.of(id));
 	}
 
 	/**

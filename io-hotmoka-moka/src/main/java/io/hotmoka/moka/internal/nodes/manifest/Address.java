@@ -24,7 +24,8 @@ import io.hotmoka.moka.NodesManifestAddressOutputs;
 import io.hotmoka.moka.api.nodes.manifest.NodesManifestAddressOutput;
 import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
 import io.hotmoka.moka.internal.json.NodesManifestAddressOutputJson;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.ClosedNodeException;
+import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
@@ -38,8 +39,11 @@ public class Address extends AbstractMokaRpcCommand {
 		try {
 			report(json(), new Output(remote.getManifest()), NodesManifestAddressOutputs.Encoder::new);
 		}
-		catch (NodeException e) {
-			throw new RuntimeException(e); // TODO
+		catch (UninitializedNodeException e) {
+			throw new CommandException("The node is not initialized yet!", e);
+		}
+		catch (ClosedNodeException e) {
+			throw new CommandException("The node is already closed!", e);
 		}
 	}
 

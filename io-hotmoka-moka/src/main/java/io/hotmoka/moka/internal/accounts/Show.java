@@ -41,7 +41,9 @@ import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
+import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
@@ -73,7 +75,15 @@ public class Show extends AbstractMokaRpcCommand {
 			throw new CommandException("The account object " + account + " does not exist in the node");
 		}
 
-		var takamakaCode = remote.getTakamakaCode();
+		TransactionReference takamakaCode;
+
+		try {
+			takamakaCode = remote.getTakamakaCode();
+		}
+		catch (UninitializedNodeException e) {
+			throw new CommandException("The node is not initialized yet!", e);
+		}
+
 		BigInteger balance;
 
 		try {

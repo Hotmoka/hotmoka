@@ -38,10 +38,12 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
@@ -83,7 +85,7 @@ public class Sell extends AbstractGasCostCommand {
 	private boolean yes;
 
 	@Override
-	protected final void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException {
+	protected final void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, UninitializedNodeException {
 		try {
 			new Body(remote);
 		}
@@ -105,7 +107,7 @@ public class Sell extends AbstractGasCostCommand {
 		private final NonVoidMethodSignature method;
 		private final SignatureAlgorithm signatureOfPayer;
 
-		private Body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+		private Body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException, UninitializedNodeException {
 			/*
 		if (duration <= 0L)
 			throw new IllegalArgumentException("the duration of the sale must be positive");*/
@@ -210,7 +212,7 @@ public class Sell extends AbstractGasCostCommand {
 			return BigInteger.TWO.multiply(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
 		}
 
-		private StorageReference getValidators() throws NodeException, TimeoutException, InterruptedException, CommandException {
+		private StorageReference getValidators() throws TimeoutException, InterruptedException, CommandException, UninitializedNodeException, ClosedNodeException {
 			var manifest = remote.getManifest();
 			var takamakaCode = remote.getTakamakaCode();
 

@@ -25,6 +25,7 @@ import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UninitializedNodeException;
 
 /**
  * Providers of objects that help with the creation of new accounts.
@@ -39,12 +40,13 @@ public abstract class AccountCreationHelpers {
 	 * @return the helper object
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
-	 * @throws NodeException if the node is not able to complete the operation
+	 * @throws ClosedNodeException if the node is already closed
 	 * @throws CodeExecutionException if some transaction threw an exception
 	 * @throws TransactionException if some transaction failed
 	 * @throws TransactionRejectedException if some transaction was rejected
+	 * @throws UninitializedNodeException if the node is not initialized yet
 	 */
-	public static AccountCreationHelper of(Node node) throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, CodeExecutionException {
+	public static AccountCreationHelper of(Node node) throws TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, UninitializedNodeException {
 		return new AccountCreationHelperImpl(node);
 	}
 }

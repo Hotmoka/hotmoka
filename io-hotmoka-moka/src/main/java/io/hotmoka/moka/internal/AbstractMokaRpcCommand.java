@@ -39,10 +39,12 @@ import io.hotmoka.moka.api.GasCost;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.Account;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.CodeExecutionTransactionRequest;
 import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
@@ -82,18 +84,43 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 
 	@Override
 	protected final void execute() throws CommandException {
-		execute(RemoteNodes::of, this::body, uri);
+		execute(RemoteNodes::of, this::bodyWrapper, uri);
+	}
+
+	/**
+	 * Runs the main body of the command, with a remote connected to the uri of a remote Hotmoka node service,
+	 * specified through the {@code --uri} option. It takes care of transforming {@link ClosedNodeException}
+	 * and {@link UninitializedNodeException} into {@link CommandException}.
+	 * 
+	 * @param remote the remote Hotmoka node service
+	 * @throws TimeoutException if the execution times out
+	 * @throws InterruptedException if the execution gets interrupted before completion
+	 * @throws CommandException if something erroneous must be logged and the user must be informed
+	 */
+	private void bodyWrapper(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException {
+		try {
+			body(remote);
+		}
+		catch (ClosedNodeException e) {
+			throw new CommandException("The node is already closed!", e);
+		}
+		catch (UninitializedNodeException e) {
+			throw new CommandException("The node is not initialized yet!", e);
+		}
 	}
 
 	/**
 	 * Runs the main body of the command, with a remote connected to the uri of a remote Hotmoka node service,
 	 * specified through the {@code --uri} option.
 	 * 
+	 * @param remote the remote Hotmoka node service
 	 * @throws TimeoutException if the execution times out
 	 * @throws InterruptedException if the execution gets interrupted before completion
 	 * @throws CommandException if something erroneous must be logged and the user must be informed
+	 * @throws ClosedNodeException if {@code remote} is already closed
+	 * @throws UninitializedNodeException if {@code remote} is not initialized yet
 	 */
-	protected abstract void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException;
+	protected abstract void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, ClosedNodeException, UninitializedNodeException;
 
 	/**
 	 * Reports on the standard output the given output of a command.
@@ -173,7 +200,7 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 	 * @throws CommandException if {@code object} does not exist in store, or if it has not been created with a transaction that creates object, in which case the remote node is corrupted
 	 */
 	// TODO: add a component to the ClassTag of the object, so that we do not need to look for the classpath of the creation transaction of the objects
-	protected TransactionReference getClasspathAtCreationTimeOf(StorageReference object, RemoteNode node) throws NodeException, TimeoutException, InterruptedException, CommandException {
+	protected TransactionReference getClasspathAtCreationTimeOf(StorageReference object, RemoteNode node) throws ClosedNodeException, TimeoutException, InterruptedException, CommandException {
 		TransactionRequest<?> request;
 
 		try {
