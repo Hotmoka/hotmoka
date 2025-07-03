@@ -40,6 +40,8 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.UnexpectedVoidMethodException;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
@@ -130,7 +132,7 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 		StorageReference gamete = node.gamete();
 		var getNonceRequest = TransactionRequests.instanceViewMethodCall(gamete, BigInteger.valueOf(50_000), takamakaCodeReference, MethodSignatures.NONCE, gamete);
 		BigInteger nonce = node.runInstanceMethodCallTransaction(getNonceRequest)
-			.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
+			.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.NONCE))
 			.asReturnedBigInteger(MethodSignatures.NONCE, NodeException::new);
 
 		// we create validators corresponding to those declared in the configuration file of the Tendermint node
@@ -197,7 +199,7 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 	}
 
 	@Override
-	public StorageReference gamete() throws NodeException, TimeoutException, InterruptedException {
+	public StorageReference gamete() throws ClosedNodeException, TimeoutException, InterruptedException {
 		ensureNotClosed();
 		return getParent().gamete();
 	}

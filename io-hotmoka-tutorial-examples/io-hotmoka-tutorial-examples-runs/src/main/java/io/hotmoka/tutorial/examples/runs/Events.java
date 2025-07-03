@@ -51,8 +51,8 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
@@ -398,7 +398,7 @@ public class Events {
         ("Seen event of class " + node.getClassTag(event).getClazz()
            + " created by contract " + creator);
     }
-    catch (NodeException | UnknownReferenceException | TimeoutException e) {
+    catch (ClosedNodeException | UnknownReferenceException | TimeoutException e) {
       System.out.println("The node is misbehaving: " + e.getMessage());
     }
     catch (InterruptedException e) {

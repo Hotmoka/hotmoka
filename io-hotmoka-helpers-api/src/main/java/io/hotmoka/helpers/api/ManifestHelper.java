@@ -19,7 +19,7 @@ package io.hotmoka.helpers.api;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.values.StorageReference;
 
 /**
@@ -83,11 +83,11 @@ public interface ManifestHelper {
 	 * variable when consensus changes.
 	 * 
 	 * @return the chain id
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws ClosedNodeException if the node is already closed
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	String getChainId() throws NodeException, TimeoutException, InterruptedException;
+	String getChainId() throws ClosedNodeException, TimeoutException, InterruptedException;
 
 	@Override
 	String toString();

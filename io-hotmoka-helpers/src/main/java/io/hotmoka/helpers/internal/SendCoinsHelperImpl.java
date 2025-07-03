@@ -39,6 +39,7 @@ import io.hotmoka.helpers.api.SendCoinsHelper;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.UnexpectedVoidMethodException;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
@@ -117,7 +118,7 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 		try {
 			var gamete = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
-					.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"))
+					.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_GAMETE))
 					.asReturnedReference(MethodSignatures.GET_GAMETE, NodeException::new);
 
 			gasHandler.accept(_100_000);

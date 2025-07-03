@@ -19,8 +19,8 @@ package io.hotmoka.helpers.api;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.values.StorageReference;
 
 /**
@@ -34,9 +34,9 @@ public interface InitializedNode extends Node {
 	 * Yields the storage reference of the gamete that has been created.
 	 * 
 	 * @return the storage reference of the gamete
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws ClosedNodeException if the node is already closed
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	StorageReference gamete() throws NodeException, TimeoutException, InterruptedException;;
+	StorageReference gamete() throws ClosedNodeException, TimeoutException, InterruptedException;;
 }

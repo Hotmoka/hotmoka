@@ -22,6 +22,7 @@ import java.util.concurrent.TimeoutException;
 import io.hotmoka.helpers.api.NonceHelper;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.UnexpectedVoidMethodException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
@@ -56,7 +57,7 @@ public class NonceHelperImpl implements NonceHelper {
 	public BigInteger getNonceOf(StorageReference account, TransactionReference classpath) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
 		return node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(account, _100_000, classpath, MethodSignatures.NONCE, account))
-				.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
+				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.NONCE))
 				.asReturnedBigInteger(MethodSignatures.NONCE, NodeException::new);
 	}
 }

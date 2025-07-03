@@ -64,7 +64,9 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.UnexpectedVoidMethodException;
 import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.ConstructorFuture;
 import io.hotmoka.node.api.JarFuture;
@@ -605,23 +607,23 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		return chainId;
 	}
 
-	protected final StorageReference account(int i) throws NoSuchElementException, NodeException, TimeoutException, InterruptedException {
+	protected final StorageReference account(int i) throws NoSuchElementException, ClosedNodeException, TimeoutException, InterruptedException {
 		return nodeWithAccountsView.account(i);
 	}
 
-	protected final Stream<StorageReference> accounts() throws NodeException, TimeoutException, InterruptedException {
+	protected final Stream<StorageReference> accounts() throws ClosedNodeException, TimeoutException, InterruptedException {
 		return nodeWithAccountsView.accounts();
 	}
 
-	protected final StorageReference containerOfAccounts() throws NodeException, TimeoutException, InterruptedException {
+	protected final StorageReference containerOfAccounts() throws ClosedNodeException, TimeoutException, InterruptedException {
 		return nodeWithAccountsView.container();
 	}
 
-	protected final Stream<PrivateKey> privateKeys() throws NodeException, TimeoutException, InterruptedException {
+	protected final Stream<PrivateKey> privateKeys() throws ClosedNodeException, TimeoutException, InterruptedException {
 		return nodeWithAccountsView.privateKeys();
 	}
 
-	protected final PrivateKey privateKey(int i) throws NoSuchElementException, NodeException, TimeoutException, InterruptedException {
+	protected final PrivateKey privateKey(int i) throws NoSuchElementException, ClosedNodeException, TimeoutException, InterruptedException {
 		return nodeWithAccountsView.privateKey(i);
 	}
 
@@ -669,14 +671,14 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	 * Takes care of computing the next nonce.
 	 */
 	protected final StorageValue addInstanceNonVoidMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, NonVoidMethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
-		return node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, receiver, actuals)).orElseThrow(() -> new NodeException(method + " did not return any value"));
+		return node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, receiver, actuals)).orElseThrow(() -> new UnexpectedVoidMethodException(method));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
 	protected final StorageValue addStaticNonVoidMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, NonVoidMethodSignature method, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
-		return node.addStaticMethodCallTransaction(TransactionRequests.staticMethodCall(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, actuals)).orElseThrow(() -> new NodeException(method + " did not return any value"));
+		return node.addStaticMethodCallTransaction(TransactionRequests.staticMethodCall(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, actuals)).orElseThrow(() -> new UnexpectedVoidMethodException(method));
 	}
 
 	/**
@@ -686,31 +688,20 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		node.addStaticMethodCallTransaction(TransactionRequests.staticMethodCall(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, actuals));
 	}
 
-	/**
-	 * Takes care of computing the next nonce.
-	 */
 	protected final StorageValue runInstanceNonVoidMethodCallTransaction(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, NonVoidMethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
-		return node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(caller, gasLimit, classpath, method, receiver, actuals)).orElseThrow(() -> new NodeException(method + " did not return any value"));
+		return node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(caller, gasLimit, classpath, method, receiver, actuals))
+			.orElseThrow(() -> new UnexpectedVoidMethodException(method));
 	}
 
-	/**
-	 * Takes care of computing the next nonce.
-	 */
-	protected final void runInstanceVoidMethodCallTransaction(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, VoidMethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
+	protected final void runInstanceVoidMethodCallTransaction(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, VoidMethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, ClosedNodeException, TimeoutException, InterruptedException {
 		node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(caller, gasLimit, classpath, method, receiver, actuals));
 	}
 
-	/**
-	 * Takes care of computing the next nonce.
-	 */
 	protected final StorageValue runStaticNonVoidMethodCallTransaction(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, NonVoidMethodSignature method, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
-		return node.runStaticMethodCallTransaction(TransactionRequests.staticViewMethodCall(caller, gasLimit, classpath, method, actuals)).orElseThrow(() -> new NodeException(method + " did not return any value"));
+		return node.runStaticMethodCallTransaction(TransactionRequests.staticViewMethodCall(caller, gasLimit, classpath, method, actuals)).orElseThrow(() -> new UnexpectedVoidMethodException(method));
 	}
 
-	/**
-	 * Takes care of computing the next nonce.
-	 */
-	protected final void runStaticVoidMethodCallTransaction(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, VoidMethodSignature method, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
+	protected final void runStaticVoidMethodCallTransaction(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, VoidMethodSignature method, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, ClosedNodeException, TimeoutException, InterruptedException {
 		node.runStaticMethodCallTransaction(TransactionRequests.staticViewMethodCall(caller, gasLimit, classpath, method, actuals));
 	}
 
@@ -796,10 +787,10 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			if (nonce != null && nodes.size() == 1)
 				nonce = nonce.add(BigInteger.ONE);
 			else
-				// we ask the account: 100,000 units of gas should be enough to run the method
+				// we ask the node: 100,000 units of gas should be enough to run the method
 				nonce = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(account, _100_000, node.getClassTag(account).getJar(), MethodSignatures.NONCE, account))
-					.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
+					.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.NONCE))
 					.asReturnedBigInteger(MethodSignatures.NONCE, NodeException::new);
 
 			nonces.put(account, nonce);

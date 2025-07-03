@@ -23,8 +23,8 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.moka.api.GasCost;
 import io.hotmoka.moka.internal.json.GasCostJson;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.responses.FailedTransactionResponse;
 import io.hotmoka.node.api.responses.NonInitialTransactionResponse;
@@ -70,9 +70,9 @@ public class GasCostImpl implements GasCost {
 	 * @throws InterruptedException if the execution gets interrupted
 	 * @throws TimeoutException if no answer arrives within the expected time window
 	 * @throws UnknownReferenceException if some request transaction cannot be found in the store of the node
-	 * @throws NodeException if the node is not able to complete the operation correctly
+	 * @throws ClosedNodeException if the node is already closed
 	 */
-	public GasCostImpl(Node node, BigInteger price, TransactionReference... references) throws NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
+	public GasCostImpl(Node node, BigInteger price, TransactionReference... references) throws ClosedNodeException, TimeoutException, InterruptedException, UnknownReferenceException {
 		this.price = price;
 
 		var forPenalty = BigInteger.ZERO;

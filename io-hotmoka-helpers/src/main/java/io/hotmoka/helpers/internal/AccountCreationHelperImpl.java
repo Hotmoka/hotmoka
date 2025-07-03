@@ -40,6 +40,8 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.UnexpectedVoidMethodException;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
@@ -73,13 +75,13 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 	 * @param node the node whose accounts are considered
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
-	 * @throws NodeException if the node is not able to complete the operation
+	 * @throws ClosedNodeException if the node is already closed
 	 * @throws CodeExecutionException 
 	 * @throws TransactionException 
 	 * @throws TransactionRejectedException 
 	 * @throws UninitializedNodeException if the node is not initialized yet
 	 */
-	public AccountCreationHelperImpl(Node node) throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, CodeExecutionException, UninitializedNodeException {
+	public AccountCreationHelperImpl(Node node) throws ClosedNodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, CodeExecutionException, UninitializedNodeException {
 		this.node = node;
 		this.manifest = node.getManifest();
 		this.takamakaCode = node.getTakamakaCode();
@@ -95,7 +97,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 
 		StorageReference gamete = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 			(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
-			.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"))
+			.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_GAMETE))
 			.asReference(value -> new NodeException(MethodSignatures.GET_GAMETE + " should return a reference, not a " + value.getClass().getName()));
 
 		String methodName;
@@ -144,7 +146,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		}
 
 		return node.addInstanceMethodCallTransaction(request)
-			.orElseThrow(() -> new NodeException(method + " should not return void"))
+			.orElseThrow(() -> new UnexpectedVoidMethodException(method))
 			.asReturnedReference(method, NodeException::new);
 	}
 
@@ -188,7 +190,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		if (addToLedger) {
 			var accountsLedger = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_ACCOUNTS_LEDGER, manifest))
-				.orElseThrow(() -> new NodeException(MethodSignatures.GET_ACCOUNTS_LEDGER + " should not return void"))
+				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_ACCOUNTS_LEDGER))
 				.asReturnedReference(MethodSignatures.GET_ACCOUNTS_LEDGER, NodeException::new);
 
 			var method = MethodSignatures.ofNonVoid(StorageTypes.ACCOUNTS_LEDGER, "add", StorageTypes.EOA, StorageTypes.BIG_INTEGER, StorageTypes.STRING);
@@ -200,7 +202,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 				StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyEncoded));
 
 			account = node.addInstanceMethodCallTransaction(request)
-				.orElseThrow(() -> new NodeException(method + " should not return void"))
+				.orElseThrow(() -> new UnexpectedVoidMethodException(method))
 				.asReturnedReference(method, NodeException::new);
 
 			requestsHandler.accept(new TransactionRequest<?>[] { request });

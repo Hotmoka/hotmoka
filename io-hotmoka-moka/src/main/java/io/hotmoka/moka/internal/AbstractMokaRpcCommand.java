@@ -155,7 +155,7 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 		}
 	}
 
-	protected GasCost computeIncurredGasCost(RemoteNode remote, BigInteger gasPrice, TransactionReference reference) throws CommandException, InterruptedException, NodeException, TimeoutException {
+	protected GasCost computeIncurredGasCost(RemoteNode remote, BigInteger gasPrice, TransactionReference reference) throws CommandException, InterruptedException, ClosedNodeException, TimeoutException {
 		try {
 			return new GasCostImpl(remote, gasPrice, reference);
 		}

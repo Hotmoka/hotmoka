@@ -93,12 +93,15 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 	private boolean yes;
 
 	@Override
-	protected final void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException {
+	protected final void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, ClosedNodeException, UninitializedNodeException {
 		try {
 			if (payer.isFaucet())
 				new CreationFromFaucet(remote);
 			else
 				new CreationFromPayer(remote);
+		}
+		catch (ClosedNodeException | UninitializedNodeException e) {
+			throw e;
 		}
 		catch (NodeException e) {
 			throw new RuntimeException(e); // TODO
@@ -152,7 +155,7 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 		private final BigInteger gasPrice;
 		private final ConstructorCallTransactionRequest request;
 
-		private CreationFromPayer(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+		private CreationFromPayer(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException, UninitializedNodeException {
 			this.remote = remote;
 
 			String passwordOfNewAccountAsString = new String(password);
@@ -172,12 +175,6 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 				Signer<SignedTransactionRequest<?>> signer = mkSigner(payer, dir, signatureOfPayer, passwordOfPayerAsString);
 				this.request = mkRequest(payer, signer, balance);
 				reportOutput(executeRequest());
-			}
-			catch (ClosedNodeException e) {
-				throw new CommandException("The node has been closed!", e);
-			}
-			catch (UninitializedNodeException e) {
-				throw new CommandException("The node is not initialized yet!", e);
 			}
 			finally {
 				passwordOfNewAccountAsString = null;
@@ -259,7 +256,7 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 		private final InstanceMethodCallTransactionRequest request;
 		private final NonVoidMethodSignature faucetMethod;
 
-		private CreationFromFaucet(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+		private CreationFromFaucet(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException, UninitializedNodeException {
 			this.remote = remote;
 
 			String passwordOfNewAccountAsString = new String(password);
@@ -277,19 +274,13 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 				this.request = mkRequest(balance);
 				reportOutput(executeRequest());
 			}
-			catch (ClosedNodeException e) {
-				throw new CommandException("The node has been closed!", e);
-			}
-			catch (UninitializedNodeException e) {
-				throw new CommandException("The node is not initialized yet!", e);
-			}
 			finally {
 				passwordOfNewAccountAsString = null;
 				Arrays.fill(password, ' ');
 			}
 		}
 
-		private InstanceMethodCallTransactionRequest mkRequest(BigInteger balance) throws NodeException, TimeoutException, InterruptedException {
+		private InstanceMethodCallTransactionRequest mkRequest(BigInteger balance) throws ClosedNodeException, TimeoutException, InterruptedException {
 			try {
 				// we use an empty signature algorithm and an arbitrary key, since the faucet is unsigned
 				KeyPair keyPair = signatureOfFaucet.getKeyPair();
@@ -307,7 +298,7 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 			}
 		}
 
-		private O executeRequest() throws CommandException, NodeException, TimeoutException, InterruptedException {
+		private O executeRequest() throws CommandException, ClosedNodeException, TimeoutException, InterruptedException {
 			TransactionReference transaction = computeTransaction(request);
 			Optional<StorageReference> account = Optional.empty();
 			Optional<GasCost> gasCost = Optional.empty();

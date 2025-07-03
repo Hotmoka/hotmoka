@@ -18,7 +18,6 @@ package io.hotmoka.node.remote;
 
 import java.net.URI;
 
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.node.remote.internal.RemoteNodeImpl;
 import io.hotmoka.websockets.api.FailedDeploymentException;
@@ -37,7 +36,7 @@ public abstract class RemoteNodes {
 	 * @param timeout the time (in milliseconds) allowed for a call to the network service;
 	 *                beyond that threshold, a timeout exception is thrown
      * @return the remote node
-	 * @throws NodeException if the remote node could not be deployed
+	 * @throws FailedDeploymentException if the remote node could not be deployed
      */
 	public static RemoteNode of(URI uri, int timeout) throws FailedDeploymentException {
         return new RemoteNodeImpl(uri, timeout);

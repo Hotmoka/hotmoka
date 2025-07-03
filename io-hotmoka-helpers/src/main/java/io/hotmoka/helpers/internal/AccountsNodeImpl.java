@@ -39,6 +39,7 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.UnexpectedVoidMethodException;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
@@ -114,7 +115,7 @@ public class AccountsNodeImpl extends AbstractNodeDecorator<Node> implements Acc
 
 		// we get the nonce of the payer
 		BigInteger nonce = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(payer, _100_000, classpath, MethodSignatures.NONCE, payer))
-			.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
+			.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.NONCE))
 			.asReturnedBigInteger(MethodSignatures.NONCE, NodeException::new);
 
 		var gasHelper = GasHelpers.of(this);
@@ -155,7 +156,7 @@ public class AccountsNodeImpl extends AbstractNodeDecorator<Node> implements Acc
 
 		for (int i = 0; i < funds.length; i++)
 			this.accounts[i] = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(payer, _100_000, classpath, get, container, StorageValues.intOf(i)))
-				.orElseThrow(() -> new NodeException(get + " should not return void"))
+				.orElseThrow(() -> new UnexpectedVoidMethodException(get))
 				.asReturnedReference(get, NodeException::new);
 	}
 

@@ -19,7 +19,6 @@ package io.hotmoka.node.local.api;
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.api.NodeException;
 
 /**
  * Partial implementation of a local (ie., non-remote) node.
@@ -33,7 +32,7 @@ public interface LocalNode<C extends LocalNodeConfig<C,?>> extends Node {
 	 * Yields the local configuration of this node.
 	 * 
 	 * @return the local configuration
-	 * @throws NodeException if this node cannot complete the operation correctly
+	 * @throws ClosedNodeException if this node is already closed
 	 */
 	C getLocalConfig() throws ClosedNodeException;
 }
