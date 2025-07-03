@@ -42,9 +42,9 @@ public interface CodeFuture<V> {
      * @throws CodeExecutionException if the transaction could be executed but led to an exception in the user Takamaka code,
      *                                that is allowed to be thrown by the constructor
      * @throws TransactionException if the transaction could be executed and the store of the node has been expanded with a failed transaction
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws ClosedNodeException if the node is already closed
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
      */
-	V get() throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException;
+	V get() throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, TimeoutException, InterruptedException;
 }

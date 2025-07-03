@@ -41,6 +41,7 @@ import io.hotmoka.crypto.Hex;
 import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.NodeInfo;
@@ -167,14 +168,19 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	}
 
 	@Override
-	public NodeInfo getInfo() throws NodeException, TimeoutException, InterruptedException {
+	public NodeInfo getInfo() throws ClosedNodeException, TimeoutException, InterruptedException {
 		try (var scope = mkScope()) {
-			return NodeInfos.of(TendermintNode.class.getName(), Constants.HOTMOKA_VERSION, poster.getNodeID());
+			try {
+				return NodeInfos.of(TendermintNode.class.getName(), Constants.HOTMOKA_VERSION, poster.getNodeID());
+			}
+			catch (NodeException e) { // TODO
+				throw new RuntimeException(e);
+			}
 		}
 	}
 
 	@Override
-	protected void closeResources() throws NodeException {
+	protected void closeResources() {
 		try {
 			closeTendermintAndABCI();
 		}
@@ -255,13 +261,10 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	    return result;
 	}
 
-	private void closeTendermintAndABCI() throws NodeException {
+	private void closeTendermintAndABCI() {
 		try {
 			if (tendermint != null)
 				tendermint.close();
-		}
-		catch (IOException e) {
-			throw new NodeException("Could not close Tendermint", e);
 		}
 		finally {
 			closeABCI();
@@ -376,7 +379,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		}
 	
 		@Override
-		public void close() throws IOException {
+		public void close() {
 			// the following is important under Windows, since the shell script thats starts Tendermint
 			// under Windows spawns it as a subprocess
 			process.descendants().forEach(ProcessHandle::destroy);
@@ -385,17 +388,21 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 			try {
 				process.waitFor();
 
-				if (isWindows)
+				if (isWindows) {
 					// this seems important under Windows
 					try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
 						LOGGER.info(br.lines().collect(Collectors.joining()));
 					}
+					catch (IOException e) {
+						LOGGER.log(Level.SEVERE, "Cannot report Tendermint's error stream", e);
+					}
+				}
+
+				LOGGER.info("the Tendermint process has been shut down");
 			}
 			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 			}
-	
-			LOGGER.info("the Tendermint process has been shut down");
 		}
 	
 		/**
@@ -433,13 +440,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 				}
 			}
 	
-			try {
-				close();
-			}
-			catch (IOException e) {
-				LOGGER.log(Level.SEVERE, "cannot close the Tendermint process", e);
-			}
-	
+			close();
 			throw new TimeoutException("Cannot connect to the Tendermint process at " + poster.url() + ". Tried " + config.getMaxPingAttempts() + " times");
 		}
 	}

@@ -18,10 +18,10 @@ package io.hotmoka.node.internal.nodes;
 
 import java.util.concurrent.TimeoutException;
 
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.ConstructorFuture;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.responses.ConstructorCallTransactionExceptionResponse;
@@ -48,7 +48,7 @@ public class ConstructorFutureImpl implements ConstructorFuture {
 	 * Creates a future for the execution a constructor in a node, with a transaction request
 	 * that has the given reference.
 	 * 
-	 * @param reference the reference to the request of the transaction
+	 * @param reference the reference to the request of the constructor call transaction
 	 * @param node the node where the constructor is executed
 	 */
 	public ConstructorFutureImpl(TransactionReference reference, Node node) {
@@ -62,7 +62,7 @@ public class ConstructorFutureImpl implements ConstructorFuture {
 	}
 
 	@Override
-	public StorageReference get() throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	public StorageReference get() throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, TimeoutException, InterruptedException {
 		if (cachedGet != null)
 			return cachedGet;
 
@@ -70,7 +70,7 @@ public class ConstructorFutureImpl implements ConstructorFuture {
 		if (response instanceof ConstructorCallTransactionResponse cctr)
 			return cachedGet = getOutcome(cctr);
 		else
-			throw new NodeException("Wrong type " + response.getClass().getName() + " for the response of the constructor call request " + reference);
+			throw new ClassCastException("Wrong type " + response.getClass().getName() + " for the response of the constructor call request " + reference);
 	}
 
 	private StorageReference getOutcome(ConstructorCallTransactionResponse response) throws CodeExecutionException, TransactionException {

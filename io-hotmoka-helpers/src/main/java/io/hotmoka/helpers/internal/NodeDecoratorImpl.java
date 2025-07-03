@@ -20,8 +20,6 @@ import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import io.hotmoka.closeables.api.OnCloseHandler;
@@ -71,13 +69,11 @@ public abstract class NodeDecoratorImpl<N extends Node> implements Node {
 	 */
 	private final AtomicBoolean isClosed = new AtomicBoolean();
 
-	private final static Logger LOGGER = Logger.getLogger(NodeDecoratorImpl.class.getName());
-
 	/**
 	 * We need this intermediate definition since two instances of a method reference
 	 * are not the same, nor equals.
 	 */
-	private final OnCloseHandler this_close = this::tryClose;
+	private final OnCloseHandler this_close = this::close;
 
 	/**
 	 * Creates a decorated node.
@@ -112,18 +108,9 @@ public abstract class NodeDecoratorImpl<N extends Node> implements Node {
 	}
 
 	@Override
-	public void close() throws NodeException {
+	public void close() {
 		if (!isClosed.getAndSet(true))
 			parent.close();
-	}
-
-	private void tryClose() {
-		try {
-			close();
-		}
-		catch (NodeException e) {
-			LOGGER.log(Level.SEVERE, "cannot close the decoted node", e);
-		}
 	}
 
 	@Override
@@ -137,82 +124,82 @@ public abstract class NodeDecoratorImpl<N extends Node> implements Node {
 	}
 
 	@Override
-	public NodeInfo getInfo() throws NodeException, TimeoutException, InterruptedException {
+	public NodeInfo getInfo() throws ClosedNodeException, TimeoutException, InterruptedException {
 		return parent.getInfo();
 	}
 
 	@Override
-	public ClassTag getClassTag(StorageReference reference) throws NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
+	public ClassTag getClassTag(StorageReference reference) throws ClosedNodeException, TimeoutException, InterruptedException, UnknownReferenceException {
 		return parent.getClassTag(reference);
 	}
 
 	@Override
-	public Stream<Update> getState(StorageReference reference) throws UnknownReferenceException, NodeException, TimeoutException, InterruptedException {
+	public Stream<Update> getState(StorageReference reference) throws UnknownReferenceException, ClosedNodeException, TimeoutException, InterruptedException {
 		return parent.getState(reference);
 	}
 
 	@Override
-	public TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
+	public TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException, ClosedNodeException, TimeoutException, InterruptedException {
 		return parent.addJarStoreInitialTransaction(request);
 	}
 
 	@Override
-	public StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
+	public StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException, ClosedNodeException, TimeoutException, InterruptedException {
 		return parent.addGameteCreationTransaction(request);
 	}
 
 	@Override
-	public TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException, NodeException, TimeoutException, InterruptedException {
+	public TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException, ClosedNodeException, TimeoutException, InterruptedException {
 		return parent.addJarStoreTransaction(request);
 	}
 
 	@Override
-	public StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	public StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, TimeoutException, InterruptedException {
 		return parent.addConstructorCallTransaction(request);
 	}
 
 	@Override
-	public Optional<StorageValue> addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	public Optional<StorageValue> addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, TimeoutException, InterruptedException {
 		return parent.addInstanceMethodCallTransaction(request);
 	}
 
 	@Override
-	public Optional<StorageValue> addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	public Optional<StorageValue> addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, TimeoutException, InterruptedException {
 		return parent.addStaticMethodCallTransaction(request);
 	}
 
 	@Override
-	public Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	public Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, TimeoutException, InterruptedException {
 		return parent.runInstanceMethodCallTransaction(request);
 	}
 
 	@Override
-	public Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	public Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, TimeoutException, InterruptedException {
 		return parent.runStaticMethodCallTransaction(request);
 	}
 
 	@Override
-	public JarFuture postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public JarFuture postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, ClosedNodeException, InterruptedException, TimeoutException {
 		return parent.postJarStoreTransaction(request);
 	}
 
 	@Override
-	public ConstructorFuture postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public ConstructorFuture postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, ClosedNodeException, InterruptedException, TimeoutException {
 		return parent.postConstructorCallTransaction(request);
 	}
 
 	@Override
-	public MethodFuture postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public MethodFuture postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, ClosedNodeException, InterruptedException, TimeoutException {
 		return parent.postInstanceMethodCallTransaction(request);
 	}
 
 	@Override
-	public MethodFuture postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public MethodFuture postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, ClosedNodeException, InterruptedException, TimeoutException {
 		return parent.postStaticMethodCallTransaction(request);
 	}
 
 	@Override
-	public void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
+	public void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException, ClosedNodeException, TimeoutException, InterruptedException {
 		parent.addInitializationTransaction(request);
 	}
 
@@ -222,22 +209,22 @@ public abstract class NodeDecoratorImpl<N extends Node> implements Node {
 	}
 
 	@Override
-	public TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, NodeException, TimeoutException, InterruptedException {
+	public TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, ClosedNodeException, TimeoutException, InterruptedException {
 		return parent.getRequest(reference);
 	}
 
 	@Override
-	public TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, NodeException, TimeoutException, InterruptedException {
+	public TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, ClosedNodeException, TimeoutException, InterruptedException {
 		return parent.getResponse(reference);
 	}
 
 	@Override
-	public TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException, NodeException {
+	public TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException, ClosedNodeException {
 		return parent.getPolledResponse(reference);
 	}
 
 	@Override
-	public Subscription subscribeToEvents(StorageReference key, BiConsumer<StorageReference, StorageReference> handler) throws NodeException {
+	public Subscription subscribeToEvents(StorageReference key, BiConsumer<StorageReference, StorageReference> handler) throws ClosedNodeException {
 		return parent.subscribeToEvents(key, handler);
 	}
 

@@ -97,11 +97,11 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * of the network, hence this is not consensus information.
 	 * 
 	 * @return the node-specific information about the node
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws ClosedNodeException if the node is already closed
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	NodeInfo getInfo() throws NodeException, TimeoutException, InterruptedException;
+	NodeInfo getInfo() throws ClosedNodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Yields the class tag of the object with the given storage reference.
@@ -114,11 +114,11 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @param object the storage reference of the object
 	 * @return the class tag
 	 * @throws UnknownReferenceException if {@code object} cannot be found in this node
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws ClosedNodeException if the node is already closed
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	ClassTag getClassTag(StorageReference object) throws UnknownReferenceException, NodeException, TimeoutException, InterruptedException;
+	ClassTag getClassTag(StorageReference object) throws UnknownReferenceException, ClosedNodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Yields the current state of the object at the given storage reference.
@@ -132,11 +132,11 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @return the last updates of all its instance fields; these updates include
 	 *         the class tag update for the object
 	 * @throws UnknownReferenceException if {@code object} cannot be found in this node
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws ClosedNodeException if the node is already closed
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	Stream<Update> getState(StorageReference object) throws UnknownReferenceException, NodeException, TimeoutException, InterruptedException;
+	Stream<Update> getState(StorageReference object) throws UnknownReferenceException, ClosedNodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Yields the request that generated the transaction with the given reference.
@@ -148,11 +148,11 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @param reference the reference of the transaction
 	 * @return the request
 	 * @throws UnknownReferenceException if the request of {@code reference} cannot be found in this node
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws ClosedNodeException if the node is already closed
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, NodeException, TimeoutException, InterruptedException;
+	TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, ClosedNodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Yields the response generated for the request for the given transaction.
@@ -164,11 +164,11 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @param reference the reference of the transaction
 	 * @return the response
 	 * @throws UnknownReferenceException if the response of {@code reference} cannot be found in this node
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws ClosedNodeException if the node is already closed
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, NodeException, TimeoutException, InterruptedException;
+	TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, ClosedNodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Waits until a transaction has been committed, or until its delivering fails.
@@ -182,11 +182,11 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @param reference the reference of the transaction
 	 * @return the response computed for {@code request}
 	 * @throws TransactionRejectedException if the request failed to be committed
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws ClosedNodeException if the node is already closed
 	 * @throws TimeoutException if the polling delay has expired but the request did not get committed
 	 * @throws InterruptedException if the current thread has been interrupted while waiting for the response
 	 */
-	TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, NodeException, TimeoutException, InterruptedException;
+	TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, ClosedNodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Expands the store of this node with a transaction that
@@ -199,11 +199,11 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @param request the transaction request
 	 * @return the reference to the transaction, that can be used to refer to the jar in a class path or as future dependency of other jars
 	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws ClosedNodeException if the node is already closed
 	 * @throws TimeoutException if the polling delay has expired but the request did not get committed
 	 * @throws InterruptedException if the current thread has been interrupted while waiting for the response
 	 */
-	TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException, NodeException, TimeoutException, InterruptedException;
+	TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException, ClosedNodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Expands the store of this node with a transaction that creates a gamete, that is,
@@ -214,11 +214,11 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @param request the transaction request
 	 * @return the reference to the freshly created gamete
 	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws ClosedNodeException if the node is already closed
 	 * @throws TimeoutException if the polling delay has expired but the request did not get committed
 	 * @throws InterruptedException if the current thread has been interrupted while waiting for the response
 	 */
-	StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException, NodeException, TimeoutException, InterruptedException;
+	StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException, ClosedNodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Expands the store of this node with a transaction that marks the node as
@@ -227,11 +227,11 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * 
 	 * @param request the transaction request
 	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws ClosedNodeException if the node is already closed
 	 * @throws TimeoutException if the polling delay has expired but the request did not get committed
 	 * @throws InterruptedException if the current thread has been interrupted while waiting for the response
 	 */
-	void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException, NodeException, TimeoutException, InterruptedException;
+	void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException, ClosedNodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Expands the store of this node with a transaction that installs a jar in it.
@@ -240,11 +240,11 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @return the reference to the transaction, that can be used to refer to the jar in a class path or as future dependency of other jars
 	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
 	 * @throws TransactionException if the transaction could be executed and the store of the node has been expanded with a failed transaction
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws ClosedNodeException if the node is not able to perform the operation
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException, NodeException, TimeoutException, InterruptedException;
+	TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException, ClosedNodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Expands the store of this node with a transaction that runs a constructor of a class.
@@ -256,11 +256,11 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 *                                because of an exception in the user code, that is allowed to be thrown by the constructor
 	 * @throws TransactionException if the transaction could be executed and the node has been expanded with a failed transaction,
 	 *                              because of an exception outside the user code in the node, or not allowed to be thrown by the constructor
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws ClosedNodeException if the node is already closed
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException;
+	StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Expands the store of this node with a transaction that runs an instance method of an object already in this node's store.
@@ -273,11 +273,11 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 *                                because of an exception in the user code, that is allowed to be thrown by the method
 	 * @throws TransactionException if the transaction could be executed and the node has been expanded with a failed transaction,
 	 *                              because of an exception outside the user code in the node, or not allowed to be thrown by the method
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws ClosedNodeException if the node is already closed
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	Optional<StorageValue> addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException;
+	Optional<StorageValue> addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Expands the store of this node with a transaction that runs a static method of a class in this node.
@@ -290,11 +290,11 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 *                                because of an exception in the user code, that is allowed to be thrown by the method
 	 * @throws TransactionException if the transaction could be executed and the node has been expanded with a failed transaction,
 	 *                              because of an exception outside the user code, or not allowed to be thrown by the method
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws ClosedNodeException if the node is already closed
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	Optional<StorageValue> addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException;
+	Optional<StorageValue> addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Runs an instance {@code @@View} method of an object already in this node's store.
@@ -308,11 +308,11 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 *                                that is allowed to be thrown by the method
 	 * @throws TransactionException if the transaction could be executed but led to an exception outside the user code,
 	 *                              or that is not allowed to be thrown by the method
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws ClosedNodeException if the node is already closed
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException;
+	Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Runs a static {@code @@View} method of a class in this node.
@@ -326,11 +326,11 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 *                                that is allowed to be thrown by the method
 	 * @throws TransactionException if the transaction could be executed but led to an exception outside the user code,
 	 *                              or that is not allowed to be thrown by the method
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws ClosedNodeException if the node is already closed
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException;
+	Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Posts a transaction that expands the store of this node with a transaction that installs a jar in it.
@@ -338,11 +338,11 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @param request the transaction request
 	 * @return the future holding the reference to the transaction where the jar has been installed
 	 * @throws TransactionRejectedException if the transaction could not be posted
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws ClosedNodeException if the node is already closed
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	JarFuture postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException;
+	JarFuture postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, ClosedNodeException, InterruptedException, TimeoutException;
 
 	/**
 	 * Posts a transaction that runs a constructor of a class in this node.
@@ -350,11 +350,11 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @param request the request of the transaction
 	 * @return the future holding the result of the computation
 	 * @throws TransactionRejectedException if the transaction could not be posted
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws ClosedNodeException if the node is already closed
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	ConstructorFuture postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException;
+	ConstructorFuture postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, ClosedNodeException, InterruptedException, TimeoutException;
 
 	/**
 	 * Posts a transaction that runs an instance method of an object already in this node's store.
@@ -362,11 +362,11 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @param request the transaction request
 	 * @return the future holding the result of the transaction
 	 * @throws TransactionRejectedException if the transaction could not be posted
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws ClosedNodeException if the node is already closed
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	MethodFuture postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException;
+	MethodFuture postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, ClosedNodeException, InterruptedException, TimeoutException;
 
 	/**
 	 * Posts a request that runs a static method of a class in this node.
@@ -374,11 +374,11 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @param request the transaction request
 	 * @return the future holding the result of the transaction
 	 * @throws TransactionRejectedException if the transaction could not be posted
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws ClosedNodeException if the node is already closed
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	MethodFuture postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException;
+	MethodFuture postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, ClosedNodeException, InterruptedException, TimeoutException;
 
 	/**
 	 * Subscribes the given handler for events with the given creator.
@@ -388,15 +388,13 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @param handler a handler that gets executed when an event occurs;
 	 *                for each event, it receives the creator of the event and the event itself
 	 * @return the subscription, that can be used later to stop event handling with {@code handler}
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws ClosedNodeException if the node is already closed
 	 */
-	Subscription subscribeToEvents(StorageReference creator, BiConsumer<StorageReference, StorageReference> handler) throws NodeException;
+	Subscription subscribeToEvents(StorageReference creator, BiConsumer<StorageReference, StorageReference> handler) throws ClosedNodeException;
 
 	/**
 	 * Closes the node.
-	 * 
-	 * @throws NodeException if the node is not able to close correctly
 	 */
 	@Override
-	void close() throws NodeException;
+	void close();
 }

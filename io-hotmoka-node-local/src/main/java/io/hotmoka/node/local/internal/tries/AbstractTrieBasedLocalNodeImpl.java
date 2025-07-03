@@ -149,7 +149,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	}
 
 	@Override
-	protected void closeResources() throws NodeException {
+	protected void closeResources() {
 		try {
 			super.closeResources();
 		}
@@ -158,7 +158,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 				env.close();
 			}
 			catch (ExodusException e) {
-				throw new NodeException(e);
+				LOGGER.log(Level.SEVERE, "Failed to close the Exodus environment", e);
 			}
 		}
 	}

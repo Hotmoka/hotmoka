@@ -19,10 +19,10 @@ package io.hotmoka.node.internal.nodes;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.MethodFuture;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.responses.MethodCallTransactionExceptionResponse;
@@ -49,7 +49,7 @@ public class MethodFutureImpl implements MethodFuture {
 	 * Creates a future for the execution a method in a node, with a transaction request
 	 * that has the given reference.
 	 * 
-	 * @param reference the reference to the request of the transaction
+	 * @param reference the reference to the request of the method call transaction
 	 * @param node the node where the method is executed
 	 */
 	public MethodFutureImpl(TransactionReference reference, Node node) {
@@ -63,7 +63,7 @@ public class MethodFutureImpl implements MethodFuture {
 	}
 
 	@Override
-	public Optional<StorageValue> get() throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	public Optional<StorageValue> get() throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, TimeoutException, InterruptedException {
 		if (cachedGet != null)
 			return Optional.of(cachedGet);
 
@@ -71,7 +71,7 @@ public class MethodFutureImpl implements MethodFuture {
 		if (response instanceof MethodCallTransactionResponse mctr)
 			return Optional.ofNullable(cachedGet = getOutcome(mctr));
 		else
-			throw new NodeException("Wrong type " + response.getClass().getName() + " for the response of the method call request " + reference);
+			throw new ClassCastException("Wrong type " + response.getClass().getName() + " for the response of the method call request " + reference);
 	}
 
 	private final StorageValue getOutcome(MethodCallTransactionResponse response) throws TransactionRejectedException, TransactionException, CodeExecutionException {

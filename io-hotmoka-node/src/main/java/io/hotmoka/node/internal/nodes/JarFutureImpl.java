@@ -18,9 +18,9 @@ package io.hotmoka.node.internal.nodes;
 
 import java.util.concurrent.TimeoutException;
 
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.JarFuture;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.responses.JarStoreTransactionFailedResponse;
@@ -44,7 +44,7 @@ public class JarFutureImpl implements JarFuture {
 	 * Creates a future for the installation of a jar in a node, with a transaction request
 	 * that has the given reference.
 	 * 
-	 * @param reference the reference to the request of the transaction
+	 * @param reference the reference to the request of the jar store transaction
 	 * @param node the node where the jar is installed
 	 */
 	public JarFutureImpl(TransactionReference reference, Node node) {
@@ -58,7 +58,7 @@ public class JarFutureImpl implements JarFuture {
 	}
 
 	@Override
-	public TransactionReference get() throws TransactionRejectedException, TransactionException, NodeException, TimeoutException, InterruptedException {
+	public TransactionReference get() throws TransactionRejectedException, TransactionException, ClosedNodeException, TimeoutException, InterruptedException {
 		if (cachedGet != null)
 			return cachedGet;
 
@@ -66,7 +66,7 @@ public class JarFutureImpl implements JarFuture {
 		if (response instanceof JarStoreTransactionResponse jstr)
 			return cachedGet = getOutcome(jstr);
 		else
-			throw new NodeException("Wrong type " + response.getClass().getName() + " for the response of the jar store request " + reference);
+			throw new ClassCastException("Wrong type " + response.getClass().getName() + " for the response of the jar store request " + reference);
 	}
 
 	private TransactionReference getOutcome(JarStoreTransactionResponse response) throws TransactionException {

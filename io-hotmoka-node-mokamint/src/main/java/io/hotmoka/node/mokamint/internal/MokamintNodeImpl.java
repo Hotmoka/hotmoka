@@ -41,6 +41,7 @@ import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
@@ -144,6 +145,8 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 							toPublish.offer(ngb);
 				}
 			};
+
+			// mokamintNode.addOnCloseHandler(this::close); // TODO
 		}
 		catch (io.mokamint.node.api.NodeException e) {
 			throw new NodeException(e);
@@ -153,12 +156,12 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 	}
 
 	@Override
-	public NodeInfo getInfo() throws NodeException, InterruptedException, TimeoutException {
+	public NodeInfo getInfo() throws ClosedNodeException, InterruptedException, TimeoutException {
 		try (var scope = mkScope()) {
 			return NodeInfos.of(MokamintNode.class.getName(), Constants.HOTMOKA_VERSION, mokamintNode.getInfo().getUUID().toString());
 		}
-		catch (io.mokamint.node.api.NodeException e) {
-			throw new NodeException(e);
+		catch (io.mokamint.node.api.ClosedNodeException e) {
+			throw new RuntimeException(e); // TODO
 		}
 	}
 
@@ -199,14 +202,14 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 			return result;
 		}
-		catch (io.mokamint.node.api.NodeException | TimeoutException | UnknownStateIdException e) {
+		catch (io.mokamint.node.api.ClosedNodeException | TimeoutException | UnknownStateIdException e) {
 			// a time-out in the Mokamint engine is seen as a misbehavior of the whole node
 			throw new NodeException(e);
 		}
 	}
 
 	@Override
-	protected void closeResources() throws NodeException {
+	protected void closeResources() {
 		try {
 			mokamintNode.close();
 		}
@@ -224,7 +227,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			// the mempool of the Mokamint engine has rejected the transaction:
 			// the node has been already signaled that it failed, so there is nothing to do here
 		}
-		catch (io.mokamint.node.api.NodeException e) {
+		catch (io.mokamint.node.api.ClosedNodeException e) {
 			throw new NodeException(e);
 		}
 	}

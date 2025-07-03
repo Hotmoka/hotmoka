@@ -246,212 +246,380 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
     	}
     	else if (message instanceof GetClassTagMessage gctm) {
     		try {
-				sendObjectAsync(session, GetClassTagResultMessages.of(node.getClassTag(gctm.getReference()), id));
-			}
-			catch (TimeoutException | InterruptedException | UnknownReferenceException e) {
-				sendExceptionAsync(session, e, id);
-			}
-    		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "getClassTag()", id, e);
+    			try {
+    				sendObjectAsync(session, GetClassTagResultMessages.of(node.getClassTag(gctm.getReference()), id));
+    			}
+    			catch (UnknownReferenceException e) {
+    				sendObjectAsync(session, ExceptionMessages.of(e, id));
+    			}
+    			catch (InterruptedException e) {
+    				LOGGER.warning(logPrefix + "getClassTag() has been interrupted: " + e.getMessage());
+    				Thread.currentThread().interrupt();
+    			}
+    			catch (TimeoutException | ClosedNodeException e) {
+    				LOGGER.warning(logPrefix + "getClassTag() request failed: " + e.getMessage());
+    			}
+    		}
+    		catch (IOException e) {
+    			LOGGER.warning(logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
     		}
     	}
     	else if (message instanceof GetStateMessage gsm) {
     		try {
-				sendObjectAsync(session, GetStateResultMessages.of(node.getState(gsm.getReference()), id));
-			}
-			catch (TimeoutException | InterruptedException | UnknownReferenceException e) {
-				sendExceptionAsync(session, e, id);
-			}
-    		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "getState()", id, e);
+    			try {
+    				sendObjectAsync(session, GetStateResultMessages.of(node.getState(gsm.getReference()), id));
+    			}
+    			catch (UnknownReferenceException e) {
+    				sendObjectAsync(session, ExceptionMessages.of(e, id));
+    			}
+    			catch (InterruptedException e) {
+    				LOGGER.warning(logPrefix + "getState() has been interrupted: " + e.getMessage());
+    				Thread.currentThread().interrupt();
+    			}
+    			catch (TimeoutException | ClosedNodeException e) {
+    				LOGGER.warning(logPrefix + "getState() request failed: " + e.getMessage());
+    			}
+    		}
+    		catch (IOException e) {
+    			LOGGER.warning(logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
     		}
     	}
     	else if (message instanceof GetRequestMessage grm) {
     		try {
-				sendObjectAsync(session, GetRequestResultMessages.of(node.getRequest(grm.getReference()), id));
-			}
-			catch (TimeoutException | InterruptedException | UnknownReferenceException e) {
-				sendExceptionAsync(session, e, id);
-			}
-    		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "getRequest()", id, e);
+    			try {
+    				sendObjectAsync(session, GetRequestResultMessages.of(node.getRequest(grm.getReference()), id));
+    			}
+    			catch (UnknownReferenceException e) {
+    				sendObjectAsync(session, ExceptionMessages.of(e, id));
+    			}
+    			catch (InterruptedException e) {
+    				LOGGER.warning(logPrefix + "getRequest() has been interrupted: " + e.getMessage());
+    				Thread.currentThread().interrupt();
+    			}
+    			catch (TimeoutException | ClosedNodeException e) {
+    				LOGGER.warning(logPrefix + "getRequest() request failed: " + e.getMessage());
+    			}
+    		}
+    		catch (IOException e) {
+    			LOGGER.warning(logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
     		}
     	}
     	else if (message instanceof GetResponseMessage grm) {
     		try {
-				sendObjectAsync(session, GetResponseResultMessages.of(node.getResponse(grm.getReference()), id));
-			}
-			catch (TimeoutException | InterruptedException | UnknownReferenceException e) {
-				sendExceptionAsync(session, e, id);
-			}
-    		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "getResponse()", id, e);
+    			try {
+    				sendObjectAsync(session, GetResponseResultMessages.of(node.getResponse(grm.getReference()), id));
+    			}
+    			catch (UnknownReferenceException e) {
+    				sendObjectAsync(session, ExceptionMessages.of(e, id));
+    			}
+    			catch (InterruptedException e) {
+    				LOGGER.warning(logPrefix + "getResponse() has been interrupted: " + e.getMessage());
+    				Thread.currentThread().interrupt();
+    			}
+    			catch (TimeoutException | ClosedNodeException e) {
+    				LOGGER.warning(logPrefix + "getResponse() request failed: " + e.getMessage());
+    			}
+    		}
+    		catch (IOException e) {
+    			LOGGER.warning(logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
     		}
     	}
     	else if (message instanceof GetPolledResponseMessage gprm) {
     		try {
-				sendObjectAsync(session, GetPolledResponseResultMessages.of(node.getPolledResponse(gprm.getReference()), id));
-			}
-			catch (TimeoutException | InterruptedException | TransactionRejectedException e) {
-				sendExceptionAsync(session, e, message.getId());
-			}
-    		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "getPolledResponse()", id, e);
+    			try {
+    				sendObjectAsync(session, GetPolledResponseResultMessages.of(node.getPolledResponse(gprm.getReference()), id));
+    			}
+    			catch (TransactionRejectedException e) {
+    				sendObjectAsync(session, ExceptionMessages.of(e, id));
+    			}
+    			catch (InterruptedException e) {
+    				LOGGER.warning(logPrefix + "getPolledResponse() has been interrupted: " + e.getMessage());
+    				Thread.currentThread().interrupt();
+    			}
+    			catch (TimeoutException | ClosedNodeException e) {
+    				LOGGER.warning(logPrefix + "getPolledResponse() request failed: " + e.getMessage());
+    			}
+    		}
+    		catch (IOException e) {
+    			LOGGER.warning(logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
     		}
     	}
     	else if (message instanceof GetInfoMessage) {
     		try {
-				sendObjectAsync(session, GetInfoResultMessages.of(node.getInfo(), id));
-			}
-			catch (TimeoutException | InterruptedException e) {
-				sendExceptionAsync(session, e, id);
-			}
-    		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "getInfo()", id, e);
+    			try {
+    				sendObjectAsync(session, GetInfoResultMessages.of(node.getInfo(), id));
+    			}
+    			catch (InterruptedException e) {
+    				LOGGER.warning(logPrefix + "getInfo() has been interrupted: " + e.getMessage());
+    				Thread.currentThread().interrupt();
+    			}
+    			catch (TimeoutException | ClosedNodeException e) {
+    				LOGGER.warning(logPrefix + "getInfo() request failed: " + e.getMessage());
+    			}
+    		}
+    		catch (IOException e) {
+    			LOGGER.warning(logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
     		}
     	}
     	else if (message instanceof RunInstanceMethodCallTransactionMessage rimctm) {
     		try {
-				sendObjectAsync(session, RunInstanceMethodCallTransactionResultMessages.of(node.runInstanceMethodCallTransaction(rimctm.getRequest()), id));
-			}
-			catch (TimeoutException | InterruptedException | TransactionRejectedException | TransactionException | CodeExecutionException e) {
-				sendExceptionAsync(session, e, id);
-			}
-    		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "runInstanceMethodCallTransaction()", id, e);
+    			try {
+    				sendObjectAsync(session, RunInstanceMethodCallTransactionResultMessages.of(node.runInstanceMethodCallTransaction(rimctm.getRequest()), id));
+    			}
+    			catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
+    				sendObjectAsync(session, ExceptionMessages.of(e, id));
+    			}
+    			catch (InterruptedException e) {
+    				LOGGER.warning(logPrefix + "runInstanceMethodCallTransaction() has been interrupted: " + e.getMessage());
+    				Thread.currentThread().interrupt();
+    			}
+    			catch (TimeoutException | ClosedNodeException e) {
+    				LOGGER.warning(logPrefix + "runInstanceMethodCallTransaction() request failed: " + e.getMessage());
+    			}
+    		}
+    		catch (IOException e) {
+    			LOGGER.warning(logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
     		}
     	}
     	else if (message instanceof RunStaticMethodCallTransactionMessage gsmctm) {
     		try {
-				sendObjectAsync(session, RunStaticMethodCallTransactionResultMessages.of(node.runStaticMethodCallTransaction(gsmctm.getRequest()), id));
-			}
-			catch (TimeoutException | InterruptedException | TransactionRejectedException | TransactionException | CodeExecutionException e) {
-				sendExceptionAsync(session, e, id);
-			}
-    		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "runStaticMethodCallTransaction()", id, e);
+    			try {
+    				sendObjectAsync(session, RunStaticMethodCallTransactionResultMessages.of(node.runStaticMethodCallTransaction(gsmctm.getRequest()), id));
+    			}
+    			catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
+    				sendObjectAsync(session, ExceptionMessages.of(e, id));
+    			}
+    			catch (InterruptedException e) {
+    				LOGGER.warning(logPrefix + "runStaticMethodCallTransaction() has been interrupted: " + e.getMessage());
+    				Thread.currentThread().interrupt();
+    			}
+    			catch (TimeoutException | ClosedNodeException e) {
+    				LOGGER.warning(logPrefix + "runStaticMethodCallTransaction() request failed: " + e.getMessage());
+    			}
+    		}
+    		catch (IOException e) {
+    			LOGGER.warning(logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
     		}
     	}
     	else if (message instanceof AddInstanceMethodCallTransactionMessage aimctm) {
-			try {
-				sendObjectAsync(session, AddInstanceMethodCallTransactionResultMessages.of(node.addInstanceMethodCallTransaction(aimctm.getRequest()), id));
-			}
-			catch (TimeoutException | InterruptedException | TransactionRejectedException | TransactionException | CodeExecutionException e) {
-				sendExceptionAsync(session, e, id);
-			}
-			catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "addInstanceMethodCallTransaction()", id, e);
+    		try {
+    			try {
+    				sendObjectAsync(session, AddInstanceMethodCallTransactionResultMessages.of(node.addInstanceMethodCallTransaction(aimctm.getRequest()), id));
+    			}
+    			catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
+    				sendObjectAsync(session, ExceptionMessages.of(e, id));
+    			}
+    			catch (InterruptedException e) {
+    				LOGGER.warning(logPrefix + "addInstanceMethodCallTransaction() has been interrupted: " + e.getMessage());
+    				Thread.currentThread().interrupt();
+    			}
+    			catch (TimeoutException | ClosedNodeException e) {
+    				LOGGER.warning(logPrefix + "addInstanceMethodCallTransaction() request failed: " + e.getMessage());
+    			}
+    		}
+    		catch (IOException e) {
+    			LOGGER.warning(logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
     		}
 		}
     	else if (message instanceof AddStaticMethodCallTransactionMessage asmctm) {
     		try {
-				sendObjectAsync(session, AddStaticMethodCallTransactionResultMessages.of(node.addStaticMethodCallTransaction(asmctm.getRequest()), id));
-			}
-			catch (TimeoutException | InterruptedException | TransactionRejectedException | TransactionException | CodeExecutionException e) {
-				sendExceptionAsync(session, e, id);
-			}
-    		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "addStaticMethodCallTransaction()", id, e);
+    			try {
+    				sendObjectAsync(session, AddStaticMethodCallTransactionResultMessages.of(node.addStaticMethodCallTransaction(asmctm.getRequest()), id));
+    			}
+    			catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
+    				sendObjectAsync(session, ExceptionMessages.of(e, id));
+    			}
+    			catch (InterruptedException e) {
+    				LOGGER.warning(logPrefix + "addStaticMethodCallTransaction() has been interrupted: " + e.getMessage());
+    				Thread.currentThread().interrupt();
+    			}
+    			catch (TimeoutException | ClosedNodeException e) {
+    				LOGGER.warning(logPrefix + "addStaticMethodCallTransaction() request failed: " + e.getMessage());
+    			}
+    		}
+    		catch (IOException e) {
+    			LOGGER.warning(logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
     		}
     	}
     	else if (message instanceof AddConstructorCallTransactionMessage acctm) {
     		try {
-				sendObjectAsync(session, AddConstructorCallTransactionResultMessages.of(node.addConstructorCallTransaction(acctm.getRequest()), id));
-			}
-			catch (TimeoutException | InterruptedException | TransactionRejectedException | TransactionException | CodeExecutionException e) {
-				sendExceptionAsync(session, e, id);
-			}
-    		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "addConstructorCallTransaction()", id, e);
+    			try {
+    				sendObjectAsync(session, AddConstructorCallTransactionResultMessages.of(node.addConstructorCallTransaction(acctm.getRequest()), id));
+    			}
+    			catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
+    				sendObjectAsync(session, ExceptionMessages.of(e, id));
+    			}
+    			catch (InterruptedException e) {
+    				LOGGER.warning(logPrefix + "addConstructorCallTransaction() has been interrupted: " + e.getMessage());
+    				Thread.currentThread().interrupt();
+    			}
+    			catch (TimeoutException | ClosedNodeException e) {
+    				LOGGER.warning(logPrefix + "addConstructorCallTransaction() request failed: " + e.getMessage());
+    			}
+    		}
+    		catch (IOException e) {
+    			LOGGER.warning(logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
     		}
     	}
     	else if (message instanceof AddJarStoreTransactionMessage ajstm) {
     		try {
-				sendObjectAsync(session, AddJarStoreTransactionResultMessages.of(node.addJarStoreTransaction(ajstm.getRequest()), id));
-			}
-			catch (TimeoutException | InterruptedException | TransactionRejectedException | TransactionException e) {
-				sendExceptionAsync(session, e, id);
-			}
-    		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "addJarStoreTransaction()", id, e);
+    			try {
+    				sendObjectAsync(session, AddJarStoreTransactionResultMessages.of(node.addJarStoreTransaction(ajstm.getRequest()), id));
+    			}
+    			catch (TransactionRejectedException | TransactionException e) {
+    				sendObjectAsync(session, ExceptionMessages.of(e, id));
+    			}
+    			catch (InterruptedException e) {
+    				LOGGER.warning(logPrefix + "addJarStoreTransaction() has been interrupted: " + e.getMessage());
+    				Thread.currentThread().interrupt();
+    			}
+    			catch (TimeoutException | ClosedNodeException e) {
+    				LOGGER.warning(logPrefix + "addJarStoreTransaction() request failed: " + e.getMessage());
+    			}
+    		}
+    		catch (IOException e) {
+    			LOGGER.warning(logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
     		}
     	}
     	else if (message instanceof AddGameteCreationTransactionMessage agctm) {
     		try {
-				sendObjectAsync(session, AddGameteCreationTransactionResultMessages.of(node.addGameteCreationTransaction(agctm.getRequest()), id));
-			}
-			catch (TimeoutException | InterruptedException | TransactionRejectedException e) {
-				sendExceptionAsync(session, e, id);
-			}
-    		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "addGameteCreationTransaction()", id, e);
+    			try {
+    				sendObjectAsync(session, AddGameteCreationTransactionResultMessages.of(node.addGameteCreationTransaction(agctm.getRequest()), id));
+    			}
+    			catch (TransactionRejectedException e) {
+    				sendObjectAsync(session, ExceptionMessages.of(e, id));
+    			}
+    			catch (InterruptedException e) {
+    				LOGGER.warning(logPrefix + "addGameteCreationTransaction() has been interrupted: " + e.getMessage());
+    				Thread.currentThread().interrupt();
+    			}
+    			catch (TimeoutException | ClosedNodeException e) {
+    				LOGGER.warning(logPrefix + "addGameteCreationTransaction() request failed: " + e.getMessage());
+    			}
+    		}
+    		catch (IOException e) {
+    			LOGGER.warning(logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
     		}
     	}
     	else if (message instanceof AddJarStoreInitialTransactionMessage ajsitm) {
     		try {
-				sendObjectAsync(session, AddJarStoreInitialTransactionResultMessages.of(node.addJarStoreInitialTransaction(ajsitm.getRequest()), id));
-			}
-			catch (TimeoutException | InterruptedException | TransactionRejectedException e) {
-				sendExceptionAsync(session, e, id);
-			}
-    		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "addJarStoreInitialTransaction()", id, e);
+    			try {
+    				sendObjectAsync(session, AddJarStoreInitialTransactionResultMessages.of(node.addJarStoreInitialTransaction(ajsitm.getRequest()), id));
+    			}
+    			catch (TransactionRejectedException e) {
+    				sendObjectAsync(session, ExceptionMessages.of(e, id));
+    			}
+    			catch (InterruptedException e) {
+    				LOGGER.warning(logPrefix + "addJarStoreInitialTransaction() has been interrupted: " + e.getMessage());
+    				Thread.currentThread().interrupt();
+    			}
+    			catch (TimeoutException | ClosedNodeException e) {
+    				LOGGER.warning(logPrefix + "addJarStoreInitialTransaction() request failed: " + e.getMessage());
+    			}
+    		}
+    		catch (IOException e) {
+    			LOGGER.warning(logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
     		}
     	}
     	else if (message instanceof AddInitializationTransactionMessage aitm) {
     		try {
-				node.addInitializationTransaction(aitm.getRequest());
-				sendObjectAsync(session, AddInitializationTransactionResultMessages.of(id));
-			}
-			catch (TimeoutException | InterruptedException | TransactionRejectedException e) {
-				sendExceptionAsync(session, e, id);
-			}
-    		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "addInitializationTransaction()", id, e);
+    			try {
+    				node.addInitializationTransaction(aitm.getRequest());
+    				sendObjectAsync(session, AddInitializationTransactionResultMessages.of(id));
+    			}
+    			catch (TransactionRejectedException e) {
+    				sendObjectAsync(session, ExceptionMessages.of(e, id));
+    			}
+    			catch (InterruptedException e) {
+    				LOGGER.warning(logPrefix + "addInitializationTransaction() has been interrupted: " + e.getMessage());
+    				Thread.currentThread().interrupt();
+    			}
+    			catch (TimeoutException | ClosedNodeException e) {
+    				LOGGER.warning(logPrefix + "addInitializationTransaction() request failed: " + e.getMessage());
+    			}
+    		}
+    		catch (IOException e) {
+    			LOGGER.warning(logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
     		}
     	}
     	else if (message instanceof PostConstructorCallTransactionMessage pcctm) {
     		try {
-				sendObjectAsync(session, PostConstructorCallTransactionResultMessages.of(node.postConstructorCallTransaction(pcctm.getRequest()).getReferenceOfRequest(), id));
-			}
-			catch (TimeoutException | InterruptedException | TransactionRejectedException e) {
-				sendExceptionAsync(session, e, id);
-			}
-    		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "postConstructorCallTransaction()", id, e);
+    			try {
+    				sendObjectAsync(session, PostConstructorCallTransactionResultMessages.of(node.postConstructorCallTransaction(pcctm.getRequest()).getReferenceOfRequest(), id));
+    			}
+    			catch (TransactionRejectedException e) {
+    				sendObjectAsync(session, ExceptionMessages.of(e, id));
+    			}
+    			catch (InterruptedException e) {
+    				LOGGER.warning(logPrefix + "postConstructorCallTransaction() has been interrupted: " + e.getMessage());
+    				Thread.currentThread().interrupt();
+    			}
+    			catch (TimeoutException | ClosedNodeException e) {
+    				LOGGER.warning(logPrefix + "postConstructorCallTransaction() request failed: " + e.getMessage());
+    			}
+    		}
+    		catch (IOException e) {
+    			LOGGER.warning(logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
     		}
     	}
     	else if (message instanceof PostInstanceMethodCallTransactionMessage pimctm) {
     		try {
-				sendObjectAsync(session, PostInstanceMethodCallTransactionResultMessages.of(node.postInstanceMethodCallTransaction(pimctm.getRequest()).getReferenceOfRequest(), id));
-			}
-			catch (TimeoutException | InterruptedException | TransactionRejectedException e) {
-				sendExceptionAsync(session, e, id);
-			}
-    		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "postInstanceMethodCallTransaction()", id, e);
+    			try {
+    				sendObjectAsync(session, PostInstanceMethodCallTransactionResultMessages.of(node.postInstanceMethodCallTransaction(pimctm.getRequest()).getReferenceOfRequest(), id));
+    			}
+    			catch (TransactionRejectedException e) {
+    				sendObjectAsync(session, ExceptionMessages.of(e, id));
+    			}
+    			catch (InterruptedException e) {
+    				LOGGER.warning(logPrefix + "postInstanceMethodCallTransaction() has been interrupted: " + e.getMessage());
+    				Thread.currentThread().interrupt();
+    			}
+    			catch (TimeoutException | ClosedNodeException e) {
+    				LOGGER.warning(logPrefix + "postInstanceMethodCallTransaction() request failed: " + e.getMessage());
+    			}
+    		}
+    		catch (IOException e) {
+    			LOGGER.warning(logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
     		}
     	}
     	else if (message instanceof PostStaticMethodCallTransactionMessage psmctm) {
     		try {
-				sendObjectAsync(session, PostStaticMethodCallTransactionResultMessages.of(node.postStaticMethodCallTransaction(psmctm.getRequest()).getReferenceOfRequest(), id));
-			}
-			catch (TimeoutException | InterruptedException | TransactionRejectedException e) {
-				sendExceptionAsync(session, e, id);
-			}
-    		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "postStaticMethodCallTransaction()", id, e);
+    			try {
+    				sendObjectAsync(session, PostStaticMethodCallTransactionResultMessages.of(node.postStaticMethodCallTransaction(psmctm.getRequest()).getReferenceOfRequest(), id));
+    			}
+    			catch (TransactionRejectedException e) {
+    				sendObjectAsync(session, ExceptionMessages.of(e, id));
+    			}
+    			catch (InterruptedException e) {
+    				LOGGER.warning(logPrefix + "postStaticMethodCallTransaction() has been interrupted: " + e.getMessage());
+    				Thread.currentThread().interrupt();
+    			}
+    			catch (TimeoutException | ClosedNodeException e) {
+    				LOGGER.warning(logPrefix + "postStaticMethodCallTransaction() request failed: " + e.getMessage());
+    			}
+    		}
+    		catch (IOException e) {
+    			LOGGER.warning(logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
     		}
     	}
     	else if (message instanceof PostJarStoreTransactionMessage pjstm) {
     		try {
-				sendObjectAsync(session, PostJarStoreTransactionResultMessages.of(node.postJarStoreTransaction(pjstm.getRequest()).getReferenceOfRequest(), id));
-			}
-			catch (TimeoutException | InterruptedException | TransactionRejectedException e) {
-				sendExceptionAsync(session, e, id);
-			}
-    		catch (NodeException | RuntimeException e) {
-    			nodeFailed(session, "postJarStoreTransaction()", id, e);
+    			try {
+    				sendObjectAsync(session, PostJarStoreTransactionResultMessages.of(node.postJarStoreTransaction(pjstm.getRequest()).getReferenceOfRequest(), id));
+    			}
+    			catch (TransactionRejectedException e) {
+    				sendObjectAsync(session, ExceptionMessages.of(e, id));
+    			}
+    			catch (InterruptedException e) {
+    				LOGGER.warning(logPrefix + "postJarStoreTransaction() has been interrupted: " + e.getMessage());
+    				Thread.currentThread().interrupt();
+    			}
+    			catch (TimeoutException | ClosedNodeException e) {
+    				LOGGER.warning(logPrefix + "postJarStoreTransaction() request failed: " + e.getMessage());
+    			}
+    		}
+    		catch (IOException e) {
+    			LOGGER.warning(logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
     		}
     	}
     	else
@@ -525,7 +693,7 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 	 * @throws IOException if there was an I/O problem
 	 */
 	private void sendExceptionAsync(Session session, Exception e, String id) throws IOException {
-		if (e instanceof InterruptedException) {
+		if (e instanceof InterruptedException) { // TODO
 			// if the serviced node gets interrupted, then the external vision of the node
 			// is that of a node that is not working properly
 			sendObjectAsync(session, ExceptionMessages.of(new NodeException("The service has been interrupted"), id));
@@ -550,8 +718,7 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 	    }
 
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
-			return simpleConfig(server, GetInfoEndpoint.class, GET_INFO_ENDPOINT,
-				GetInfoMessages.Decoder.class, GetInfoResultMessages.Encoder.class, ExceptionMessages.Encoder.class);
+			return simpleConfig(server, GetInfoEndpoint.class, GET_INFO_ENDPOINT, GetInfoMessages.Decoder.class, GetInfoResultMessages.Encoder.class);
 		}
 	}
 

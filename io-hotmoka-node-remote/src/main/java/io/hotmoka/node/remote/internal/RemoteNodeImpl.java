@@ -315,21 +315,20 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	}
 
 	@Override
-	public NodeInfo getInfo() throws NodeException, TimeoutException, InterruptedException {
+	public NodeInfo getInfo() throws ClosedNodeException, TimeoutException, InterruptedException {
 		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendGetInfo(id);
-		return waitForResult(id, GetInfoResultMessage.class, TimeoutException.class, NodeException.class);
+		return waitForResult(id, GetInfoResultMessage.class);
 	}
 
 	/**
 	 * Sends a {@link GetInfoMessage} to the node service.
 	 * 
 	 * @param id the identifier of the message
-	 * @throws NodeException if the message could not be sent
 	 */
-	protected void sendGetInfo(String id) throws NodeException {
-		sendObjectAsync(getSession(GET_INFO_ENDPOINT), GetInfoMessages.of(id), NodeException::new);
+	protected void sendGetInfo(String id) {
+		sendObjectAsync(GET_INFO_ENDPOINT, GetInfoMessages.of(id));
 	}
 
 	/**
@@ -343,7 +342,7 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 
 		@Override
 		protected Session deployAt(URI uri) throws FailedDeploymentException {
-			return deployAt(uri, GetInfoResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetInfoMessages.Encoder.class);		
+			return deployAt(uri, GetInfoResultMessages.Decoder.class, GetInfoMessages.Encoder.class);		
 		}
 	}
 
@@ -446,11 +445,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	}
 
 	@Override
-	public ClassTag getClassTag(StorageReference reference) throws UnknownReferenceException, NodeException, InterruptedException, TimeoutException {
+	public ClassTag getClassTag(StorageReference reference) throws UnknownReferenceException, ClosedNodeException, InterruptedException, TimeoutException {
 		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendGetClassTag(reference, id);
-		return waitForResult(id, GetClassTagResultMessage.class, TimeoutException.class, NodeException.class, UnknownReferenceException.class);
+		return waitForResult(id, GetClassTagResultMessage.class, UnknownReferenceException.class);
 	}
 
 	/**
@@ -458,10 +457,9 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	 * 
 	 * @param reference the reference to the object whose class tag is required
 	 * @param id the identifier of the message
-	 * @throws NodeException if the message could not be sent
 	 */
-	protected void sendGetClassTag(StorageReference reference, String id) throws NodeException {
-		sendObjectAsync(getSession(GET_CLASS_TAG_ENDPOINT), GetClassTagMessages.of(reference, id), NodeException::new);
+	protected void sendGetClassTag(StorageReference reference, String id) {
+		sendObjectAsync(GET_CLASS_TAG_ENDPOINT, GetClassTagMessages.of(reference, id));
 	}
 
 	/**
@@ -480,11 +478,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	}
 
 	@Override
-	public Stream<Update> getState(StorageReference reference) throws UnknownReferenceException, NodeException, InterruptedException, TimeoutException {
+	public Stream<Update> getState(StorageReference reference) throws UnknownReferenceException, ClosedNodeException, InterruptedException, TimeoutException {
 		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendGetState(reference, id);
-		return waitForResult(id, GetStateResultMessage.class, TimeoutException.class, NodeException.class, UnknownReferenceException.class);
+		return waitForResult(id, GetStateResultMessage.class, UnknownReferenceException.class);
 	}
 
 	/**
@@ -492,10 +490,9 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	 * 
 	 * @param reference the reference to the object whose state is required
 	 * @param id the identifier of the message
-	 * @throws NodeException if the message could not be sent
 	 */
-	protected void sendGetState(StorageReference reference, String id) throws NodeException {
-		sendObjectAsync(getSession(GET_STATE_ENDPOINT), GetStateMessages.of(reference, id), NodeException::new);
+	protected void sendGetState(StorageReference reference, String id) {
+		sendObjectAsync(GET_STATE_ENDPOINT, GetStateMessages.of(reference, id));
 	}
 
 	/**
@@ -514,11 +511,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	}
 
 	@Override
-	public TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, NodeException, InterruptedException, TimeoutException {
+	public TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, ClosedNodeException, InterruptedException, TimeoutException {
 		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendGetRequest(reference, id);
-		return waitForResult(id, GetRequestResultMessage.class, TimeoutException.class, NodeException.class, UnknownReferenceException.class);
+		return waitForResult(id, GetRequestResultMessage.class, UnknownReferenceException.class);
 	}
 
 	/**
@@ -526,10 +523,9 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	 * 
 	 * @param reference the reference to the transaction whose request is required
 	 * @param id the identifier of the message
-	 * @throws NodeException if the message could not be sent
 	 */
-	protected void sendGetRequest(TransactionReference reference, String id) throws NodeException {
-		sendObjectAsync(getSession(GET_REQUEST_ENDPOINT), GetRequestMessages.of(reference, id), NodeException::new);
+	protected void sendGetRequest(TransactionReference reference, String id) {
+		sendObjectAsync(GET_REQUEST_ENDPOINT, GetRequestMessages.of(reference, id));
 	}
 
 	/**
@@ -548,11 +544,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	}
 
 	@Override
-	public TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, NodeException, InterruptedException, TimeoutException {
+	public TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, ClosedNodeException, InterruptedException, TimeoutException {
 		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendGetResponse(reference, id);
-		return waitForResult(id, GetResponseResultMessage.class, TimeoutException.class, NodeException.class, UnknownReferenceException.class);
+		return waitForResult(id, GetResponseResultMessage.class, UnknownReferenceException.class);
 	}
 
 	/**
@@ -560,10 +556,9 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	 * 
 	 * @param reference the reference to the transaction whose response is required
 	 * @param id the identifier of the message
-	 * @throws NodeException if the message could not be sent
 	 */
-	protected void sendGetResponse(TransactionReference reference, String id) throws NodeException {
-		sendObjectAsync(getSession(GET_RESPONSE_ENDPOINT), GetResponseMessages.of(reference, id), NodeException::new);
+	protected void sendGetResponse(TransactionReference reference, String id) {
+		sendObjectAsync(GET_RESPONSE_ENDPOINT, GetResponseMessages.of(reference, id));
 	}
 
 	/**
@@ -582,11 +577,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	}
 
 	@Override
-	public TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, ClosedNodeException, InterruptedException, TimeoutException {
 		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendGetPolledResponse(reference, id);
-		return waitForResult(id, GetPolledResponseResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class);
+		return waitForResult(id, GetPolledResponseResultMessage.class, TransactionRejectedException.class);
 	}
 
 	/**
@@ -594,10 +589,9 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	 * 
 	 * @param reference the reference to the transaction whose response is required
 	 * @param id the identifier of the message
-	 * @throws NodeException if the message could not be sent
 	 */
-	protected void sendGetPolledResponse(TransactionReference reference, String id) throws NodeException {
-		sendObjectAsync(getSession(GET_POLLED_RESPONSE_ENDPOINT), GetPolledResponseMessages.of(reference, id), NodeException::new);
+	protected void sendGetPolledResponse(TransactionReference reference, String id) {
+		sendObjectAsync(GET_POLLED_RESPONSE_ENDPOINT, GetPolledResponseMessages.of(reference, id));
 	}
 
 	/**
@@ -616,11 +610,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	}
 
 	@Override
-	public Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException, TimeoutException {
+	public Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, InterruptedException, TimeoutException {
 		ensureIsOpen(ClosedNodeException::new);		
 		var id = nextId();
 		sendRunInstanceMethodCallTransaction(request, id);
-		return waitForResult(id, RunInstanceMethodCallTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class, TransactionException.class, CodeExecutionException.class);
+		return waitForResult(id, RunInstanceMethodCallTransactionResultMessage.class, TransactionRejectedException.class, TransactionException.class, CodeExecutionException.class);
 	}
 
 	/**
@@ -628,10 +622,9 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	 * 
 	 * @param request the request of the transaction required to run
 	 * @param id the identifier of the message
-	 * @throws NodeException if the message could not be sent
 	 */
-	protected void sendRunInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, String id) throws NodeException {
-		sendObjectAsync(getSession(RUN_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT), RunInstanceMethodCallTransactionMessages.of(request, id), NodeException::new);
+	protected void sendRunInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, String id) {
+		sendObjectAsync(RUN_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT, RunInstanceMethodCallTransactionMessages.of(request, id));
 	}
 
 	/**
@@ -650,11 +643,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	}
 
 	@Override
-	public Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException, TimeoutException {
+	public Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, InterruptedException, TimeoutException {
 		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendRunStaticMethodCallTransaction(request, id);
-		return waitForResult(id, RunStaticMethodCallTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class, TransactionException.class, CodeExecutionException.class);
+		return waitForResult(id, RunStaticMethodCallTransactionResultMessage.class, TransactionRejectedException.class, TransactionException.class, CodeExecutionException.class);
 	}
 
 	/**
@@ -662,10 +655,9 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	 * 
 	 * @param request the request of the transaction required to run
 	 * @param id the identifier of the message
-	 * @throws NodeException if the message could not be sent
 	 */
-	protected void sendRunStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, String id) throws NodeException {
-		sendObjectAsync(getSession(RUN_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT), RunStaticMethodCallTransactionMessages.of(request, id), NodeException::new);
+	protected void sendRunStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, String id) {
+		sendObjectAsync(RUN_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT, RunStaticMethodCallTransactionMessages.of(request, id));
 	}
 
 	/**
@@ -684,11 +676,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	}
 
 	@Override
-	public Optional<StorageValue> addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException, TimeoutException {
+	public Optional<StorageValue> addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, InterruptedException, TimeoutException {
 		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendAddInstanceMethodCallTransaction(request, id);
-		return waitForResult(id, AddInstanceMethodCallTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class, TransactionException.class, CodeExecutionException.class);
+		return waitForResult(id, AddInstanceMethodCallTransactionResultMessage.class, TransactionRejectedException.class, TransactionException.class, CodeExecutionException.class);
 	}
 
 	/**
@@ -696,10 +688,9 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	 * 
 	 * @param request the request of the transaction required to add
 	 * @param id the identifier of the message
-	 * @throws NodeException if the message could not be sent
 	 */
-	protected void sendAddInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, String id) throws NodeException {
-		sendObjectAsync(getSession(ADD_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT), AddInstanceMethodCallTransactionMessages.of(request, id), NodeException::new);
+	protected void sendAddInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, String id) {
+		sendObjectAsync(ADD_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT, AddInstanceMethodCallTransactionMessages.of(request, id));
 	}
 
 	/**
@@ -718,11 +709,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	}
 
 	@Override
-	public Optional<StorageValue> addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException, TimeoutException {
+	public Optional<StorageValue> addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, InterruptedException, TimeoutException {
 		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendAddStaticMethodCallTransaction(request, id);
-		return waitForResult(id, AddStaticMethodCallTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class, TransactionException.class, CodeExecutionException.class);
+		return waitForResult(id, AddStaticMethodCallTransactionResultMessage.class, TransactionRejectedException.class, TransactionException.class, CodeExecutionException.class);
 	}
 
 	/**
@@ -730,10 +721,9 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	 * 
 	 * @param request the request of the transaction required to add
 	 * @param id the identifier of the message
-	 * @throws NodeException if the message could not be sent
 	 */
-	protected void sendAddStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, String id) throws NodeException {
-		sendObjectAsync(getSession(ADD_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT), AddStaticMethodCallTransactionMessages.of(request, id), NodeException::new);
+	protected void sendAddStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, String id) {
+		sendObjectAsync(ADD_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT, AddStaticMethodCallTransactionMessages.of(request, id));
 	}
 
 	/**
@@ -752,11 +742,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	}
 
 	@Override
-	public StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException, TimeoutException {
+	public StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, InterruptedException, TimeoutException {
 		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendAddConstructorCallTransaction(request, id);
-		return waitForResult(id, AddConstructorCallTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class, TransactionException.class, CodeExecutionException.class);
+		return waitForResult(id, AddConstructorCallTransactionResultMessage.class, TransactionRejectedException.class, TransactionException.class, CodeExecutionException.class);
 	}
 
 	/**
@@ -764,10 +754,9 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	 * 
 	 * @param request the request of the transaction required to add
 	 * @param id the identifier of the message
-	 * @throws NodeException if the message could not be sent
 	 */
-	protected void sendAddConstructorCallTransaction(ConstructorCallTransactionRequest request, String id) throws NodeException {
-		sendObjectAsync(getSession(ADD_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT), AddConstructorCallTransactionMessages.of(request, id), NodeException::new);
+	protected void sendAddConstructorCallTransaction(ConstructorCallTransactionRequest request, String id) {
+		sendObjectAsync(ADD_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT, AddConstructorCallTransactionMessages.of(request, id));
 	}
 
 	/**
@@ -786,11 +775,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	}
 
 	@Override
-	public TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException, NodeException, InterruptedException, TimeoutException {
+	public TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException, ClosedNodeException, InterruptedException, TimeoutException {
 		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendAddJarStoreTransaction(request, id);
-		return waitForResult(id, AddJarStoreTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class, TransactionException.class);
+		return waitForResult(id, AddJarStoreTransactionResultMessage.class, TransactionRejectedException.class, TransactionException.class);
 	}
 
 	/**
@@ -798,10 +787,9 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	 * 
 	 * @param request the request of the transaction required to add
 	 * @param id the identifier of the message
-	 * @throws NodeException if the message could not be sent
 	 */
-	protected void sendAddJarStoreTransaction(JarStoreTransactionRequest request, String id) throws NodeException {
-		sendObjectAsync(getSession(ADD_JAR_STORE_TRANSACTION_ENDPOINT), AddJarStoreTransactionMessages.of(request, id), NodeException::new);
+	protected void sendAddJarStoreTransaction(JarStoreTransactionRequest request, String id) {
+		sendObjectAsync(ADD_JAR_STORE_TRANSACTION_ENDPOINT, AddJarStoreTransactionMessages.of(request, id));
 	}
 
 	/**
@@ -820,11 +808,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	}
 
 	@Override
-	public StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException, ClosedNodeException, InterruptedException, TimeoutException {
 		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendAddGameteCreationTransaction(request, id);
-		return waitForResult(id, AddGameteCreationTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class);
+		return waitForResult(id, AddGameteCreationTransactionResultMessage.class, TransactionRejectedException.class);
 	}
 
 	/**
@@ -832,10 +820,9 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	 * 
 	 * @param request the request of the transaction required to add
 	 * @param id the identifier of the message
-	 * @throws NodeException if the message could not be sent
 	 */
-	protected void sendAddGameteCreationTransaction(GameteCreationTransactionRequest request, String id) throws NodeException {
-		sendObjectAsync(getSession(ADD_GAMETE_CREATION_TRANSACTION_ENDPOINT), AddGameteCreationTransactionMessages.of(request, id), NodeException::new);
+	protected void sendAddGameteCreationTransaction(GameteCreationTransactionRequest request, String id) {
+		sendObjectAsync(ADD_GAMETE_CREATION_TRANSACTION_ENDPOINT, AddGameteCreationTransactionMessages.of(request, id));
 	}
 
 	/**
@@ -854,11 +841,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	}
 
 	@Override
-	public TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException, ClosedNodeException, InterruptedException, TimeoutException {
 		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendAddJarStoreInitialTransaction(request, id);
-		return waitForResult(id, AddJarStoreInitialTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class);
+		return waitForResult(id, AddJarStoreInitialTransactionResultMessage.class, TransactionRejectedException.class);
 	}
 
 	/**
@@ -866,10 +853,9 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	 * 
 	 * @param request the request of the transaction required to add
 	 * @param id the identifier of the message
-	 * @throws NodeException if the message could not be sent
 	 */
-	protected void sendAddJarStoreInitialTransaction(JarStoreInitialTransactionRequest request, String id) throws NodeException {
-		sendObjectAsync(getSession(ADD_JAR_STORE_INITIAL_TRANSACTION_ENDPOINT), AddJarStoreInitialTransactionMessages.of(request, id), NodeException::new);
+	protected void sendAddJarStoreInitialTransaction(JarStoreInitialTransactionRequest request, String id) {
+		sendObjectAsync(ADD_JAR_STORE_INITIAL_TRANSACTION_ENDPOINT, AddJarStoreInitialTransactionMessages.of(request, id));
 	}
 
 	/**
@@ -888,11 +874,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	}
 
 	@Override
-	public final void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public final void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException, ClosedNodeException, InterruptedException, TimeoutException {
 		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendAddInitializationTransaction(request, id);
-		waitForResult(id, AddInitializationTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class);
+		waitForResult(id, AddInitializationTransactionResultMessage.class, TransactionRejectedException.class);
 	}
 
 	/**
@@ -900,10 +886,9 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	 * 
 	 * @param request the request of the transaction required to add
 	 * @param id the identifier of the message
-	 * @throws NodeException if the message could not be sent
 	 */
-	protected void sendAddInitializationTransaction(InitializationTransactionRequest request, String id) throws NodeException {
-		sendObjectAsync(getSession(ADD_INITIALIZATION_TRANSACTION_ENDPOINT), AddInitializationTransactionMessages.of(request, id), NodeException::new);
+	protected void sendAddInitializationTransaction(InitializationTransactionRequest request, String id) {
+		sendObjectAsync(ADD_INITIALIZATION_TRANSACTION_ENDPOINT, AddInitializationTransactionMessages.of(request, id));
 	}
 
 	/**
@@ -922,11 +907,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	}
 
 	@Override
-	public ConstructorFuture postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public ConstructorFuture postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, ClosedNodeException, InterruptedException, TimeoutException {
 		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendPostConstructorCallTransaction(request, id);
-		return CodeFutures.ofConstructor(waitForResult(id, PostConstructorCallTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class), this);
+		return CodeFutures.ofConstructor(waitForResult(id, PostConstructorCallTransactionResultMessage.class, TransactionRejectedException.class), this);
 	}
 
 	/**
@@ -934,10 +919,9 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	 * 
 	 * @param request the request of the transaction required to post
 	 * @param id the identifier of the message
-	 * @throws NodeException if the message could not be sent
 	 */
-	protected void sendPostConstructorCallTransaction(ConstructorCallTransactionRequest request, String id) throws NodeException {
-		sendObjectAsync(getSession(POST_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT), PostConstructorCallTransactionMessages.of(request, id), NodeException::new);
+	protected void sendPostConstructorCallTransaction(ConstructorCallTransactionRequest request, String id) {
+		sendObjectAsync(POST_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT, PostConstructorCallTransactionMessages.of(request, id));
 	}
 
 	/**
@@ -956,11 +940,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	}
 
 	@Override
-	public MethodFuture postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public MethodFuture postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, ClosedNodeException, InterruptedException, TimeoutException {
 		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendPostInstanceMethodCallTransaction(request, id);
-		return CodeFutures.ofMethod(waitForResult(id, PostInstanceMethodCallTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class), this);
+		return CodeFutures.ofMethod(waitForResult(id, PostInstanceMethodCallTransactionResultMessage.class, TransactionRejectedException.class), this);
 	}
 
 	/**
@@ -968,10 +952,9 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	 * 
 	 * @param request the request of the transaction required to post
 	 * @param id the identifier of the message
-	 * @throws NodeException if the message could not be sent
 	 */
-	protected void sendPostInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, String id) throws NodeException {
-		sendObjectAsync(getSession(POST_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT), PostInstanceMethodCallTransactionMessages.of(request, id), NodeException::new);
+	protected void sendPostInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, String id) {
+		sendObjectAsync(POST_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT, PostInstanceMethodCallTransactionMessages.of(request, id));
 	}
 
 	/**
@@ -990,11 +973,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	}
 
 	@Override
-	public MethodFuture postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public MethodFuture postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, ClosedNodeException, InterruptedException, TimeoutException {
 		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendPostStaticMethodCallTransaction(request, id);
-		return CodeFutures.ofMethod(waitForResult(id, PostStaticMethodCallTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class), this);
+		return CodeFutures.ofMethod(waitForResult(id, PostStaticMethodCallTransactionResultMessage.class, TransactionRejectedException.class), this);
 	}
 
 	/**
@@ -1002,10 +985,9 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	 * 
 	 * @param request the request of the transaction required to post
 	 * @param id the identifier of the message
-	 * @throws NodeException if the message could not be sent
 	 */
-	protected void sendPostStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, String id) throws NodeException {
-		sendObjectAsync(getSession(POST_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT), PostStaticMethodCallTransactionMessages.of(request, id), NodeException::new);
+	protected void sendPostStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, String id) {
+		sendObjectAsync(POST_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT, PostStaticMethodCallTransactionMessages.of(request, id));
 	}
 
 	/**
@@ -1024,11 +1006,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	}
 
 	@Override
-	public JarFuture postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public JarFuture postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, ClosedNodeException, InterruptedException, TimeoutException {
 		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();
 		sendPostJarStoreTransaction(request, id);
-		return JarFutures.of(waitForResult(id, PostJarStoreTransactionResultMessage.class, TimeoutException.class, NodeException.class, TransactionRejectedException.class), this);
+		return JarFutures.of(waitForResult(id, PostJarStoreTransactionResultMessage.class, TransactionRejectedException.class), this);
 	}
 
 	/**
@@ -1036,10 +1018,9 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	 * 
 	 * @param request the request of the transaction required to post
 	 * @param id the identifier of the message
-	 * @throws NodeException if the message could not be sent
 	 */
-	protected void sendPostJarStoreTransaction(JarStoreTransactionRequest request, String id) throws NodeException {
-		sendObjectAsync(getSession(POST_JAR_STORE_TRANSACTION_ENDPOINT), PostJarStoreTransactionMessages.of(request, id), NodeException::new);
+	protected void sendPostJarStoreTransaction(JarStoreTransactionRequest request, String id) {
+		sendObjectAsync(POST_JAR_STORE_TRANSACTION_ENDPOINT, PostJarStoreTransactionMessages.of(request, id));
 	}
 
 	/**
@@ -1061,7 +1042,7 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 
 		@Override
 		public void onOpen(Session session, EndpointConfig config) {
-			addMessageHandler(session, (Consumer<EventMessage>) RemoteNodeImpl.this::notifyEvent);
+			addMessageHandler(session, (Consumer<EventMessage>) RemoteNodeImpl.this::notifyEvent); // TODO: do we need this cast?
 		}
 
 		@Override
@@ -1071,7 +1052,8 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	}
 
 	@Override
-	public final Subscription subscribeToEvents(StorageReference creator, BiConsumer<StorageReference, StorageReference> handler) {
+	public final Subscription subscribeToEvents(StorageReference creator, BiConsumer<StorageReference, StorageReference> handler) throws ClosedNodeException {
+		ensureIsOpen(ClosedNodeException::new);
 		return subscriptions.subscribeToEvents(creator, handler);
 	}
 

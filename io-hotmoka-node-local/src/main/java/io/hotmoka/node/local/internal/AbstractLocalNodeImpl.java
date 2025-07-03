@@ -163,7 +163,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	@Override
-	public final void close() throws NodeException {
+	public final void close() {
 		try {
 			if (stopNewCalls())
 				closeResources();
@@ -174,7 +174,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	@Override
-	public final Subscription subscribeToEvents(StorageReference creator, BiConsumer<StorageReference, StorageReference> handler) throws NodeException {
+	public final Subscription subscribeToEvents(StorageReference creator, BiConsumer<StorageReference, StorageReference> handler) throws ClosedNodeException {
 		try (var scope = mkScope()) {
 			return subscriptions.subscribeToEvents(creator, handler);
 		}
@@ -205,7 +205,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	@Override
-	public final C getLocalConfig() throws NodeException {
+	public final C getLocalConfig() throws ClosedNodeException {
 		try (var scope = mkScope()) {
 			return config;
 		}
@@ -241,7 +241,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	@Override
-	public final TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException, NodeException {
+	public final TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException, ClosedNodeException {
 		try (var scope = mkScope()) {
 			Semaphore semaphore = semaphores.get(Objects.requireNonNull(reference));
 			if (semaphore != null)
@@ -252,21 +252,23 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 
 			var attempts = config.getMaxPollingAttempts();
 			for (long attempt = 1, delay = config.getPollingDelay(); attempt <= Math.max(1L, attempts); attempt++, delay = delay * 110 / 100) {
-				S store = enterHead();
-
 				try {
-					return store.getResponse(reference);
+					S store = enterHead();
+
+					try {
+						return store.getResponse(reference);
+					}
+					catch (UnknownReferenceException e) {
+						String rejectionMessage = recentlyRejectedTransactionsMessages.get(reference);
+						if (rejectionMessage != null)
+							throw new TransactionRejectedException(rejectionMessage, store.getConfig());
+					}
+					finally {
+						exit(store);
+					}
 				}
-				catch (UnknownReferenceException e) {
-					String rejectionMessage = recentlyRejectedTransactionsMessages.get(reference);
-					if (rejectionMessage != null)
-						throw new TransactionRejectedException(rejectionMessage, store.getConfig());
-				}
-				catch (StoreException e) {
-					throw new NodeException(e);
-				}
-				finally {
-					exit(store);
+				catch (StoreException | NodeException e) { // TODO
+					throw new RuntimeException(e);
 				}
 
 				// the response is not available yet, nor did it get rejected: we wait a bit
@@ -278,84 +280,102 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	@Override
-	public final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, NodeException, InterruptedException {
-		S store = enterHead();
-		
-		try (var scope = mkScope()) {
-			return store.getRequest(Objects.requireNonNull(reference));
-		}
-		catch (StoreException e) {
-			throw new NodeException(e);
-		}
-		finally {
-			exit(store);
-		}
-	}
+	public final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, ClosedNodeException, InterruptedException {
+		try {
+			S store = enterHead();
 
-	@Override
-	public final TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, NodeException, InterruptedException {
-		S store = enterHead();
-
-		try (var scope = mkScope()) {
-			return store.getResponse(Objects.requireNonNull(reference));
-		}
-		catch (StoreException e) {
-			throw new NodeException(e);
-		}
-		finally {
-			exit(store);
-		}
-	}
-
-	@Override
-	public final ClassTag getClassTag(StorageReference reference) throws UnknownReferenceException, NodeException, InterruptedException {
-		S store = enterHead();
-
-		try (var scope = mkScope()) {
-			Objects.requireNonNull(reference);
-
-			if (store.getResponse(reference.getTransaction()) instanceof TransactionResponseWithUpdates trwu) {
-				return trwu.getUpdates()
-					.filter(update -> update instanceof ClassTag && update.getObject().equals(reference))
-					.map(update -> (ClassTag) update)
-					.findFirst()
-					.orElseThrow(() -> new UnknownReferenceException("Cannot find object " + reference + " in store"));
+			try (var scope = mkScope()) {
+				return store.getRequest(Objects.requireNonNull(reference));
 			}
-			else
-				throw new NodeException("The transaction that created object " + reference + " does not contain updates");
+			finally {
+				exit(store);
+			}
 		}
-		catch (StoreException e) {
-			throw new NodeException(e);
+		catch (ClosedNodeException e) { // TODO
+			throw e;
 		}
-		finally {
-			exit(store);
+		catch (NodeException | StoreException e) { // TODO
+			throw new RuntimeException(e);
 		}
 	}
 
 	@Override
-	public final Stream<Update> getState(StorageReference reference) throws UnknownReferenceException, NodeException, InterruptedException {
-		S store = enterHead();
+	public final TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, ClosedNodeException, InterruptedException {
+		try {
+			S store = enterHead();
 
-		try (var scope = mkScope()) {
-			try {
+			try (var scope = mkScope()) {
+				return store.getResponse(Objects.requireNonNull(reference));
+			}
+			finally {
+				exit(store);
+			}
+		}
+		catch (ClosedNodeException e) { // TODO
+			throw e;
+		}
+		catch (NodeException | StoreException e) { // TODO
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
+	public final ClassTag getClassTag(StorageReference reference) throws UnknownReferenceException, ClosedNodeException, InterruptedException {
+		try {
+			S store = enterHead();
+
+			try (var scope = mkScope()) {
+				Objects.requireNonNull(reference);
+
+				if (store.getResponse(reference.getTransaction()) instanceof TransactionResponseWithUpdates trwu) {
+					return trwu.getUpdates()
+							.filter(update -> update instanceof ClassTag && update.getObject().equals(reference))
+							.map(update -> (ClassTag) update)
+							.findFirst()
+							.orElseThrow(() -> new UnknownReferenceException("Cannot find object " + reference + " in store"));
+				}
+				else
+					throw new NodeException("The transaction that created object " + reference + " does not contain updates");
+			}
+			finally {
+				exit(store);
+			}
+		}
+		catch (ClosedNodeException e) { // TODO
+			throw e;
+		}
+		catch (NodeException | StoreException e) { // TODO
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
+	public final Stream<Update> getState(StorageReference reference) throws UnknownReferenceException, ClosedNodeException, InterruptedException {
+		try {
+			S store = enterHead();
+
+			try (var scope = mkScope()) {
 				Stream<TransactionReference> history = store.getHistory(Objects.requireNonNull(reference));
 				var updates = new HashSet<Update>();
 				CheckRunnable.check(NodeException.class, () -> history.forEachOrdered(UncheckConsumer.uncheck(NodeException.class,
-					transaction -> collectUpdates(store, reference, transaction, updates))));
+						transaction -> collectUpdates(store, reference, transaction, updates))));
 
 				return updates.stream();
 			}
-			catch (StoreException e) {
-				throw new NodeException(e);
+			finally {
+				exit(store);
 			}
 		}
-		finally {
-			exit(store);
+		catch (ClosedNodeException e) { // TODO
+			throw e;
+		}
+		catch (NodeException | StoreException e) { // TODO
+			throw new RuntimeException(e);
 		}
 	}
 
 	@Override
-	public final TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
+	public final TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException, ClosedNodeException, TimeoutException, InterruptedException {
 		try (var scope = mkScope()) {
 			TransactionReference reference = post(request);
 			getPolledResponse(reference);
@@ -364,114 +384,124 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	@Override
-	public final void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException, TimeoutException, InterruptedException, NodeException {
+	public final void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException, TimeoutException, InterruptedException, ClosedNodeException {
 		try (var scope = mkScope()) {
 			getPolledResponse(post(request));
 		}
 	}
 
 	@Override
-	public final StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException, TimeoutException, InterruptedException, NodeException {
+	public final StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException, TimeoutException, InterruptedException, ClosedNodeException {
 		try (var scope = mkScope()) {
 			var response = getPolledResponse(post(request));
 			if (response instanceof GameteCreationTransactionResponse gctr)
 				return gctr.getGamete();
 			else
-				throw new NodeException("Wrong type " + response.getClass().getName() + " for the response of a gamete creation request");
+				throw new ClassCastException("Wrong type " + response.getClass().getName() + " for the response of a gamete creation request");
 		}
 	}
 
 	@Override
-	public final TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException, NodeException, TimeoutException, InterruptedException {
+	public final TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException, ClosedNodeException, TimeoutException, InterruptedException {
 		try (var scope = mkScope()) {
 			return postJarStoreTransaction(request).get();
 		}
 	}
 
 	@Override
-	public final StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, InterruptedException, NodeException, TimeoutException {
+	public final StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, InterruptedException, ClosedNodeException, TimeoutException {
 		try (var scope = mkScope()) {
 			return postConstructorCallTransaction(request).get();
 		}
 	}
 
 	@Override
-	public final Optional<StorageValue> addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	public final Optional<StorageValue> addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, TimeoutException, InterruptedException {
 		try (var scope = mkScope()) {
 			return postInstanceMethodCallTransaction(request).get();
 		}
 	}
 
 	@Override
-	public final Optional<StorageValue> addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	public final Optional<StorageValue> addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, TimeoutException, InterruptedException {
 		try (var scope = mkScope()) {
 			return postStaticMethodCallTransaction(request).get();
 		}
 	}
 
 	@Override
-	public final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException {
-		S store = enterHead();
+	public final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, InterruptedException {
+		try {
+			S store = enterHead();
 
-		try (var scope = mkScope()) {
-			var reference = TransactionReferences.of(hasher.hash(request));
-			String referenceAsString = reference.toString();
-			LOGGER.info(referenceAsString + ": running start (" + request.getClass().getSimpleName() + " -> " + trim(request.getStaticTarget().getName()) + ')');
-			Optional<StorageValue> result = store.beginViewTransformation().runInstanceMethodCallTransaction(request, reference);
-			LOGGER.info(referenceAsString + ": running success");
-			return result;
+			try (var scope = mkScope()) {
+				var reference = TransactionReferences.of(hasher.hash(request));
+				String referenceAsString = reference.toString();
+				LOGGER.info(referenceAsString + ": running start (" + request.getClass().getSimpleName() + " -> " + trim(request.getStaticTarget().getName()) + ')');
+				Optional<StorageValue> result = store.beginViewTransformation().runInstanceMethodCallTransaction(request, reference);
+				LOGGER.info(referenceAsString + ": running success");
+				return result;
+			}
+			finally {
+				exit(store);
+			}
 		}
-		catch (StoreException e) {
-			throw new NodeException(e);
+		catch (ClosedNodeException e) { // TODO
+			throw e;
 		}
-		finally {
-			exit(store);
+		catch (StoreException | NodeException e) { // TODO
+			throw new RuntimeException(e);
 		}
 	}
 
 	@Override
-	public final Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException {
-		S store = enterHead();
+	public final Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, InterruptedException {
+		try {
+			S store = enterHead();
 
-		try (var scope = mkScope()) {
-			var reference = TransactionReferences.of(hasher.hash(request));
-			String referenceAsString = reference.toString();
-			LOGGER.info(referenceAsString + ": running start (" + request.getClass().getSimpleName() + " -> " + trim(request.getStaticTarget().getName()) + ')');
-			Optional<StorageValue> result = store.beginViewTransformation().runStaticMethodCallTransaction(request, reference);
-			LOGGER.info(referenceAsString + ": running success");
-			return result;
+			try (var scope = mkScope()) {
+				var reference = TransactionReferences.of(hasher.hash(request));
+				String referenceAsString = reference.toString();
+				LOGGER.info(referenceAsString + ": running start (" + request.getClass().getSimpleName() + " -> " + trim(request.getStaticTarget().getName()) + ')');
+				Optional<StorageValue> result = store.beginViewTransformation().runStaticMethodCallTransaction(request, reference);
+				LOGGER.info(referenceAsString + ": running success");
+				return result;
+			}
+			finally {
+				exit(store);
+			}
 		}
-		catch (StoreException e) {
-			throw new NodeException(e);
+		catch (ClosedNodeException e) { // TODO
+			throw e;
 		}
-		finally {
-			exit(store);
+		catch (StoreException | NodeException e) { // TODO
+			throw new RuntimeException(e);
 		}
 	}
 
 	@Override
-	public final JarFuture postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public final JarFuture postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, ClosedNodeException, InterruptedException, TimeoutException {
 		try (var scope = mkScope()) {
 			return JarFutures.of(post(request), this);
 		}
 	}
 
 	@Override
-	public final ConstructorFuture postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public final ConstructorFuture postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, ClosedNodeException, InterruptedException, TimeoutException {
 		try (var scope = mkScope()) {
 			return CodeFutures.ofConstructor(post(request), this);
 		}
 	}
 
 	@Override
-	public final MethodFuture postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public final MethodFuture postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, ClosedNodeException, InterruptedException, TimeoutException {
 		try (var scope = mkScope()) {
 			return CodeFutures.ofMethod(post(request), this);
 		}
 	}
 
 	@Override
-	public final MethodFuture postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public final MethodFuture postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, ClosedNodeException, InterruptedException, TimeoutException {
 		try (var scope = mkScope()) {
 			return CodeFutures.ofMethod(post(request), this);
 		}
@@ -565,10 +595,8 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 
 	/**
 	 * Closes all the resources of this node.
-	 * 
-	 * @throws NodeException if this node is not able to perform the operation
 	 */
-	protected void closeResources() throws NodeException {
+	protected void closeResources() {
 		try {
 			callCloseHandlers();
 		}
@@ -646,7 +674,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 * @return the reference of the request
 	 * @throws TransactionRejectedException if the request was already present in the store
 	 */
-	private TransactionReference post(TransactionRequest<?> request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	private TransactionReference post(TransactionRequest<?> request) throws TransactionRejectedException, ClosedNodeException, InterruptedException, TimeoutException {
 		var reference = TransactionReferences.of(hasher.hash(request));
 		String simpleNameOfRequest = request.getClass().getSimpleName();
 
@@ -657,26 +685,31 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		else
 			LOGGER.info(reference + ": posting (" + simpleNameOfRequest + ')');
 
-		S store = enterHead();
-
 		try {
-			store.getResponse(reference);
-			// if the response is found, then no exception is thrown above, which means that the request was repeated
-			throw new TransactionRejectedException("Repeated request " + reference, store.getConfig());
-		}
-		catch (StoreException e) {
-			throw new NodeException(e);
-		}
-		catch (UnknownReferenceException e) {
-			// this is fine: there was no previous request with the same reference so we register
-			// its semaphore and post the request for execution
-			createSemaphore(store, reference);
-			postRequest(request);
+			S store = enterHead();
 
-			return reference;
+			try {
+				store.getResponse(reference);
+				// if the response is found, then no exception is thrown above, which means that the request was repeated
+				throw new TransactionRejectedException("Repeated request " + reference, store.getConfig());
+			}
+			catch (UnknownReferenceException e) {
+				// this is fine: there was no previous request with the same reference so we register
+				// its semaphore and post the request for execution
+				createSemaphore(store, reference);
+				postRequest(request);
+
+				return reference;
+			}
+			finally {
+				exit(store);
+			}
 		}
-		finally {
-			exit(store);
+		catch (ClosedNodeException e) { // TODO
+			throw e;
+		}
+		catch (NodeException | StoreException e) { // TODO
+			throw new RuntimeException(e);
 		}
 	}
 

@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.local.api;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 
@@ -34,5 +35,5 @@ public interface LocalNode<C extends LocalNodeConfig<C,?>> extends Node {
 	 * @return the local configuration
 	 * @throws NodeException if this node cannot complete the operation correctly
 	 */
-	C getLocalConfig() throws NodeException;
+	C getLocalConfig() throws ClosedNodeException;
 }
