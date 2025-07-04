@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.node.local;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.internal.AbstractLocalNodeImpl;
 
@@ -38,9 +37,9 @@ public abstract class AbstractLocalNode<N extends AbstractLocalNode<N,C,S,T>, C 
 	 * 
 	 * @param config the local configuration of the node
 	 * @param init if true, the working directory of the node gets initialized
-	 * @throws NodeException if the node could not be created
+	 * @throws NodeCreationException if the node could not be created
 	 */
-	protected AbstractLocalNode(C config, boolean init) throws NodeException {
+	protected AbstractLocalNode(C config, boolean init) throws NodeCreationException {
 		super(config, init);
 	}
 }

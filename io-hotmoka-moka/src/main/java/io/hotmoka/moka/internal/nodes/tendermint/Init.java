@@ -57,6 +57,7 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.local.NodeCreationException;
 import io.hotmoka.node.service.NodeServices;
 import io.hotmoka.node.tendermint.TendermintInitializedNodes;
 import io.hotmoka.node.tendermint.TendermintNodeConfigBuilders;
@@ -116,6 +117,9 @@ public class Init extends AbstractNodeInit {
 
 			waitForEnterKey();
 		}
+		catch (NodeCreationException e) {
+			throw new CommandException("The node could not be created", e);
+		}
 		catch (FailedDeploymentException e) {
 			throw new CommandException("Cannot deploy the service at port " + getPort());
 		}
@@ -133,9 +137,9 @@ public class Init extends AbstractNodeInit {
 			throw new CommandException("The node has not been initialized!", e);
 		}
 		catch (ClosedNodeException e) {
-			throw new CommandException("The node is already closed!", e);
+			throw new CommandException("The node has been unexpectedly closed!", e);
 		}
-		catch (NodeException e) {
+		catch (NodeException e) { // TODO
 			throw new RuntimeException(e);
 		}
 		catch (TimeoutException e) {

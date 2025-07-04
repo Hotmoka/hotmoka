@@ -20,14 +20,12 @@ import static java.math.BigInteger.ZERO;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
 import java.security.PrivateKey;
-import java.security.SignatureException;
-import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -39,10 +37,6 @@ import org.junit.jupiter.api.Test;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.UnexpectedValueException;
-import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.values.StorageReference;
 
 /**
@@ -51,6 +45,7 @@ import io.hotmoka.node.api.values.StorageReference;
 public class Bombing extends HotmokaTest {
 	private final static int NUMBER_OF_TRANSFERS = 1000;
 	private static int NUMBER_OF_ACCOUNTS = 500;
+	private final static Logger LOGGER = Logger.getLogger(Bombing.class.getName());
 
 	@BeforeAll
 	static void beforeAll() {
@@ -81,8 +76,12 @@ public class Bombing extends HotmokaTest {
 				addInstanceVoidMethodCallTransaction(key, from, _50_000, ZERO, takamakaCode(), MethodSignatures.RECEIVE_INT, to, StorageValues.intOf(amount));
 			}
 		}
-		catch (InvalidKeyException | SignatureException | TransactionException | CodeExecutionException | TransactionRejectedException | NoSuchElementException | NodeException | TimeoutException | InterruptedException e) {
-			System.out.println(e.getMessage());
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			LOGGER.warning("run() has been interrupted");
+		}
+		catch (Exception e) {
+			LOGGER.log(Level.SEVERE, "run() failed", e);
 		}
 	}
 

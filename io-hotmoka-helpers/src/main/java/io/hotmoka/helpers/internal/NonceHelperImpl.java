@@ -24,13 +24,13 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.UnexpectedValueException;
 import io.hotmoka.node.UnexpectedVoidMethodException;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnexpectedCodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
-import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 
 /**
@@ -50,12 +50,8 @@ public class NonceHelperImpl implements NonceHelper {
 	}
 
 	@Override
-	public BigInteger getNonceOf(StorageReference account) throws TransactionRejectedException, TransactionException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException, CodeExecutionException {
-		return getNonceOf(account, node.getClassTag(account).getJar());
-	}
-
-	@Override
-	public BigInteger getNonceOf(StorageReference account, TransactionReference classpath) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
+	public BigInteger getNonceOf(StorageReference account) throws TransactionRejectedException, TransactionException, ClosedNodeException, UnexpectedCodeException, TimeoutException, InterruptedException, CodeExecutionException, UnknownReferenceException {
+		var classpath = node.getClassTag(account).getJar();
 		return node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(account, _100_000, classpath, MethodSignatures.NONCE, account))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.NONCE))

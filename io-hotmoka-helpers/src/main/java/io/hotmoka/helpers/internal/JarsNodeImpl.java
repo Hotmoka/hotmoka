@@ -90,7 +90,7 @@ public class JarsNodeImpl extends AbstractNodeDecorator<Node> implements JarsNod
 		Signer<SignedTransactionRequest<?>> signerOnBehalfOfPayer = signature.getSigner(privateKeyOfPayer, SignedTransactionRequest::toByteArrayWithoutSignature);
 
 		// we get the nonce of the payer
-		BigInteger nonce = NonceHelpers.of(parent).getNonceOf(payer, takamakaCode);
+		BigInteger nonce = NonceHelpers.of(parent).getNonceOf(payer);
 
 		// we get the chainId of the parent
 		String chainId = parent.getConfig().getChainId();

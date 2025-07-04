@@ -20,12 +20,9 @@ import static java.math.BigInteger.ONE;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
-import java.security.SignatureException;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,8 +37,6 @@ import org.junit.jupiter.api.Test;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.UnexpectedValueException;
-import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.values.StorageReference;
@@ -136,11 +131,11 @@ class Concurrency extends HotmokaTest {
 							LOGGER.info("Worker #" + num + " exits since it has not enough funds for paying: " + remaining.decrementAndGet() + " workers remaining");
 						}
 				}
-				catch (InvalidKeyException | SignatureException | CodeExecutionException | TimeoutException | NodeException e) {
-					failure(e);
-				}
 				catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
+					failure(e);
+				}
+				catch (Exception e) {
 					failure(e);
 				}
 			}

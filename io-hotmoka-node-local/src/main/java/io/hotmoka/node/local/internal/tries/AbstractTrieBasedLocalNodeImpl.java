@@ -32,6 +32,7 @@ import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.exceptions.functions.ConsumerWithExceptions2;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.local.AbstractLocalNode;
+import io.hotmoka.node.local.NodeCreationException;
 import io.hotmoka.node.local.StateIds;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StateId;
@@ -121,9 +122,9 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 * 
 	 * @param config the configuration of the node
 	 * @param init if true, the working directory of the node gets initialized
-	 * @throws NodeException if the operation cannot be completed correctly
+	 * @throws NodeCreationException if the node could not be created
 	 */
-	protected AbstractTrieBasedLocalNodeImpl(C config, boolean init) throws NodeException {
+	protected AbstractTrieBasedLocalNodeImpl(C config, boolean init) throws NodeCreationException {
 		super(config, init);
 
 		var path = config.getDir().resolve("hotmoka").resolve("store");

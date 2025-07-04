@@ -78,6 +78,7 @@ import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.local.LRUCache;
+import io.hotmoka.node.local.NodeCreationException;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.LocalNode;
 import io.hotmoka.node.local.api.LocalNodeConfig;
@@ -142,9 +143,9 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 * 
 	 * @param config the configuration of the node
 	 * @param init if true, the working directory of the node gets initialized
-	 * @throws NodeException if the operation cannot be completed correctly
+	 * @throws NodeCreationException if the node could not be created
 	 */
-	protected AbstractLocalNodeImpl(C config, boolean init) throws NodeException {
+	protected AbstractLocalNodeImpl(C config, boolean init) throws NodeCreationException {
 		super(ClosedNodeException::new);
 
 		this.config = config;
@@ -154,11 +155,17 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 			this.hasher = HashingAlgorithms.sha256().getHasher(TransactionRequest::toByteArray);
 		}
 		catch (NoSuchAlgorithmException e) {
-			throw new NodeException(e);
+			throw new NodeCreationException(e);
 		}
 
-		if (init)
-			initWorkingDirectory();
+		if (init) {
+			try {
+				initWorkingDirectory();
+			}
+			catch (IOException e) {
+				throw new NodeCreationException(e);
+			}
+		}
 
 		this.executors = Executors.newCachedThreadPool();
 	}
@@ -633,16 +640,11 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	/**
 	 * Cleans the directory where the node's data live.
 	 * 
-	 * @throws NodeException if this node is not able to perform the operation
+	 * @throws IOException if the working directory could not be created
 	 */
-	private void initWorkingDirectory() throws NodeException {
-		try {
-			deleteRecursively(config.getDir());
-			Files.createDirectories(config.getDir());
-		}
-		catch (IOException e) {
-			throw new NodeException(e);
-		}
+	private void initWorkingDirectory() throws IOException {
+		deleteRecursively(config.getDir());
+		Files.createDirectories(config.getDir());
 	}
 
 	/**

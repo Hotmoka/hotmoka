@@ -49,6 +49,7 @@ import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.local.AbstractTrieBasedLocalNode;
 import io.hotmoka.node.local.LRUCache;
+import io.hotmoka.node.local.NodeCreationException;
 import io.hotmoka.node.local.StateIds;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreCache;
@@ -127,10 +128,10 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 	 *                      (initial synchronization is consequently skipped), otherwise it
 	 *                      synchronizes, waits for whispered blocks and then starts mining on top of them
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
-	 * @throws NodeException if the operation cannot be completed correctly
+	 * @throws NodeCreationException if the node could not be created
 	 * @throws TimeoutException if the application of the Mokamint node is unresponsive
 	 */
-	public MokamintNodeImpl(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair, boolean init, boolean createGenesis) throws NodeException, InterruptedException, TimeoutException {
+	public MokamintNodeImpl(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair, boolean init, boolean createGenesis) throws NodeCreationException, InterruptedException, TimeoutException {
 		super(config, init);
 
 		try {
@@ -149,7 +150,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			// mokamintNode.addOnCloseHandler(this::close); // TODO
 		}
 		catch (io.mokamint.node.api.NodeException e) {
-			throw new NodeException(e);
+			throw new NodeCreationException(e);
 		}
 
 		getExecutors().execute(this::publishBlocks);

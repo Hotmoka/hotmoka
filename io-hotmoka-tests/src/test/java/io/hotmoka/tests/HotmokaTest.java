@@ -95,6 +95,7 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.disk.DiskNodeConfigBuilders;
 import io.hotmoka.node.disk.DiskNodes;
+import io.hotmoka.node.local.NodeCreationException;
 import io.hotmoka.node.mokamint.MokamintNodeConfigBuilders;
 import io.hotmoka.node.mokamint.MokamintNodes;
 import io.hotmoka.node.mokamint.api.MokamintNode;
@@ -111,7 +112,6 @@ import io.mokamint.miner.local.LocalMiners;
 import io.mokamint.node.Peers;
 import io.mokamint.node.api.PeerException;
 import io.mokamint.node.api.PeerRejectedException;
-import io.mokamint.node.local.ApplicationTimeoutException;
 import io.mokamint.node.local.LocalNodeConfigBuilders;
 import io.mokamint.node.service.PublicNodeServices;
 import io.mokamint.nonce.Prologs;
@@ -344,7 +344,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		}
 	}
 
-	private static Node mkTendermintNode() throws NodeException, InterruptedException {
+	private static Node mkTendermintNode() throws NodeCreationException, InterruptedException {
 		try {
 			consensus = fillConsensusConfig(ValidatorsConsensusConfigBuilders.defaults()).build();
 
@@ -358,8 +358,8 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			nodes.add(node);
 			return node;
 		}
-		catch (IOException | NoSuchAlgorithmException e) {
-			throw new NodeException(e);
+		catch (IOException | InvalidKeyException | NoSuchAlgorithmException e) {
+			throw new NodeCreationException(e);
 		}
 	}
 
@@ -367,63 +367,57 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	 * This scenario assumes that there is an external, non-initialized node, published for instance like that:
 	 * 
 	 * moka start-mokamint --keys CYcdCR4S1zVojhFsB7cxpYsudqBhvRMoXRhFCtwcnUg9.pem --keys-of-plot 5BYtHQ3XaygM7yjJ4vaaftA5AJAC56GNkLrDj4yQ46Wh.pem --plot plot.plot --mokamint-port 8031 --port 8002
-	 * @throws WrongKeyException 
 	 */
 	@SuppressWarnings("unused")
-	private static Node mkMokamintNodeConnectedToPeer() throws NodeException, InterruptedException, InvalidKeyException, SignatureException, ApplicationTimeoutException, TimeoutException, WrongKeyException, FailedDeploymentException {
-		try {
-			consensus = fillConsensusConfig(ValidatorsConsensusConfigBuilders.defaults()).build();
+	private static Node mkMokamintNodeConnectedToPeer() throws InvalidKeyException, NoSuchAlgorithmException, IOException, NodeCreationException, InterruptedException, TimeoutException, io.mokamint.node.api.ClosedNodeException, WrongKeyException, FailedDeploymentException, PeerRejectedException, PeerException {
+		consensus = fillConsensusConfig(ValidatorsConsensusConfigBuilders.defaults()).build();
 
-			Path hotmokaChainPath = Files.createTempDirectory("hotmoka-mokamint-chain-");
+		Path hotmokaChainPath = Files.createTempDirectory("hotmoka-mokamint-chain-");
 
-			var config = MokamintNodeConfigBuilders.defaults()
-					.setDir(hotmokaChainPath)
-					.setMaxGasPerViewTransaction(_10_000_000)
-					.build();
+		var config = MokamintNodeConfigBuilders.defaults()
+				.setDir(hotmokaChainPath)
+				.setMaxGasPerViewTransaction(_10_000_000)
+				.build();
 
-			var mokamintConfig = LocalNodeConfigBuilders.defaults()
-					// we use the same chain id for the Hotmoka node and for the underlying Mokamint engine, although this is not necessary
-					.setChainId(consensus.getChainId())
-					.setTargetBlockCreationTime(2000)
-					.setMaximalHistoryChangeTime(300000L) // 5 minutes
-					.setDir(hotmokaChainPath.resolve("mokamint")).build();
-			var nodeKeys = mokamintConfig.getSignatureForBlocks().getKeyPair();
-			var plotKeys = mokamintConfig.getSignatureForDeadlines().getKeyPair();
-			var prolog = Prologs.of(mokamintConfig.getChainId(), mokamintConfig.getSignatureForBlocks(), nodeKeys.getPublic(), mokamintConfig.getSignatureForDeadlines(), plotKeys.getPublic(), new byte[0]);
-			var plot = Plots.create(hotmokaChainPath.resolve("test.plot"), prolog, 1000, 4000, mokamintConfig.getHashingForDeadlines(), __ -> {});
-			plots.add(plot);
-			var miner = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, plotKeys) });
-			miners.add(miner);
-			var node = MokamintNodes.init(config, mokamintConfig, nodeKeys, true);
-			node.getMokamintNode().add(miner).orElseThrow(() -> new NodeException("Could not add the miner to the test node"));
+		var mokamintConfig = LocalNodeConfigBuilders.defaults()
+				// we use the same chain id for the Hotmoka node and for the underlying Mokamint engine, although this is not necessary
+				.setChainId(consensus.getChainId())
+				.setTargetBlockCreationTime(2000)
+				.setMaximalHistoryChangeTime(300000L) // 5 minutes
+				.setDir(hotmokaChainPath.resolve("mokamint")).build();
+		var nodeKeys = mokamintConfig.getSignatureForBlocks().getKeyPair();
+		var plotKeys = mokamintConfig.getSignatureForDeadlines().getKeyPair();
+		var prolog = Prologs.of(mokamintConfig.getChainId(), mokamintConfig.getSignatureForBlocks(), nodeKeys.getPublic(), mokamintConfig.getSignatureForDeadlines(), plotKeys.getPublic(), new byte[0]);
+		var plot = Plots.create(hotmokaChainPath.resolve("test.plot"), prolog, 1000, 4000, mokamintConfig.getHashingForDeadlines(), __ -> {});
+		plots.add(plot);
+		var miner = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, plotKeys) });
+		miners.add(miner);
+		var node = MokamintNodes.init(config, mokamintConfig, nodeKeys, true);
+		node.getMokamintNode().add(miner).orElseThrow(() -> new NodeCreationException("Could not add the miner to the test node"));
 
-			NodeServices.of(node, 8001);
-			System.out.println("Hotmoka node published at ws://localhost:8001");
+		NodeServices.of(node, 8001);
+		System.out.println("Hotmoka node published at ws://localhost:8001");
 
-			// we open a web service to the underlying Mokamint node, at port 8030; this is not necessary,
-			// but it allows developers to query the node during the execution of the tests
-			URI uri1 = URI.create("ws://localhost:8030");
-			PublicNodeServices.open(node.getMokamintNode(), 8030, 1800000, 1000, Optional.of(uri1));
-			System.out.println("Underlying Mokamint node published at " + uri1);
+		// we open a web service to the underlying Mokamint node, at port 8030; this is not necessary,
+		// but it allows developers to query the node during the execution of the tests
+		URI uri1 = URI.create("ws://localhost:8030");
+		PublicNodeServices.open(node.getMokamintNode(), 8030, 1800000, 1000, Optional.of(uri1));
+		System.out.println("Underlying Mokamint node published at " + uri1);
 
-			URI uri2 = URI.create("ws://localhost:8031");
+		URI uri2 = URI.create("ws://localhost:8031");
 
-			if (node.getMokamintNode().add(Peers.of(uri2)).isPresent())
-				System.out.println("Added " + uri2 + " as a peer of " + uri1);
-			else
-				throw new NodeException("Could not add " + uri2 + " as a peer of " + uri1);
+		if (node.getMokamintNode().add(Peers.of(uri2)).isPresent())
+			System.out.println("Added " + uri2 + " as a peer of " + uri1);
+		else
+			throw new NodeCreationException("Could not add " + uri2 + " as a peer of " + uri1);
 
-			nodes.add(node);
-			return node;
-		}
-		catch (IOException | NoSuchAlgorithmException | PeerException | io.mokamint.node.api.NodeException | PeerRejectedException e) {
-			throw new NodeException(e);
-		}
+		nodes.add(node);
+		return node;
 	}
 
-	private static Node mkMokamintNetwork(int howManyNodes) throws NodeException, InterruptedException, ApplicationTimeoutException, TransactionRejectedException, TransactionException, CodeExecutionException, TimeoutException, WrongKeyException, FailedDeploymentException {
+	private static Node mkMokamintNetwork(int howManyNodes) throws InterruptedException, TimeoutException, NodeCreationException {
 		if (howManyNodes < 1)
-			throw new IllegalArgumentException("A network needs at least one node");
+			throw new NodeCreationException("A network needs at least one node");
 
 		// if the block creation time is too small, the nodes might lose synchronization
 		// because the time for whispering is higher than the time for mining new blocks
@@ -441,16 +435,16 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 				Path hotmokaChainPath = Files.createTempDirectory("hotmoka-mokamint-chain-" + nodeNum + "-");
 
 				var config = MokamintNodeConfigBuilders.defaults()
-					.setDir(hotmokaChainPath)
-					.setMaxGasPerViewTransaction(_10_000_000)
-					.build();
+						.setDir(hotmokaChainPath)
+						.setMaxGasPerViewTransaction(_10_000_000)
+						.build();
 
 				var mokamintConfig = LocalNodeConfigBuilders.defaults()
-					// we use the same chain id for the Hotmoka node and for the underlying Mokamint engine, although this is not necessary
-					.setChainId(consensus.getChainId())
-					.setTargetBlockCreationTime(TARGET_BLOCK_CREATION_TIME)
-					.setMaximalHistoryChangeTime(MAX_HISTORY_CHANGE)
-					.setDir(hotmokaChainPath.resolve("mokamint")).build();
+						// we use the same chain id for the Hotmoka node and for the underlying Mokamint engine, although this is not necessary
+						.setChainId(consensus.getChainId())
+						.setTargetBlockCreationTime(TARGET_BLOCK_CREATION_TIME)
+						.setMaximalHistoryChangeTime(MAX_HISTORY_CHANGE)
+						.setDir(hotmokaChainPath.resolve("mokamint")).build();
 
 				var entropyForNode = Entropies.random();
 				KeyPair nodeKeys = entropyForNode.keys("", mokamintConfig.getSignatureForBlocks());
@@ -481,7 +475,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 				nodes.add(node);
 
 				int nodeNumCopy = nodeNum;
-				node.getMokamintNode().add(miner).orElseThrow(() -> new NodeException("Could not add the miner to test node " + nodeNumCopy));
+				node.getMokamintNode().add(miner).orElseThrow(() -> new NodeCreationException("Could not add the miner to test node " + nodeNumCopy));
 
 				// we open a web service to the underlying Mokamint node; this is not necessary,
 				// but it allows developers to query the node during the execution of the tests
@@ -498,17 +492,17 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 				else if (firstNode.getMokamintNode().add(Peers.of(uri)).isPresent())
 					System.out.println("Added " + uri + " as a peer of " + firstUri);
 				else
-					throw new NodeException("Could not add " + uri + " as a peer of " + firstUri);
+					throw new NodeCreationException("Could not add " + uri + " as a peer of " + firstUri);
 			}
 
 			return nodes.get(0);
 		}
-		catch (IOException | NoSuchAlgorithmException | io.mokamint.node.api.NodeException | InvalidKeyException | PeerRejectedException | PeerException e) {
-			throw new NodeException(e);
+		catch (IOException | InvalidKeyException | NoSuchAlgorithmException | io.mokamint.node.api.ClosedNodeException | PeerRejectedException | PeerException | TransactionRejectedException | TransactionException | CodeExecutionException | NodeException | FailedDeploymentException | WrongKeyException e) {
+			throw new NodeCreationException(e);
 		}
 	}
-	
-	private static Node mkDiskNode() throws NodeException, InterruptedException {
+
+	private static Node mkDiskNode() throws NodeCreationException, InterruptedException {
 		try {
 			consensus = fillConsensusConfig(ConsensusConfigBuilders.defaults()).build();
 
@@ -523,8 +517,8 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			nodes.add(node);
 			return node;
 		}
-		catch (IOException | NoSuchAlgorithmException e) {
-			throw new NodeException(e);
+		catch (IOException | InvalidKeyException | NoSuchAlgorithmException e) {
+			throw new NodeCreationException(e);
 		}
 	}
 
@@ -539,20 +533,15 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		return RemoteNodes.of(URI.create(uri), 100_000);
 	}
 
-	private static <B extends ConsensusConfigBuilder<?,B>> B fillConsensusConfig(ConsensusConfigBuilder<?,B> builder) throws NodeException {
-		try {
-			boolean skipVerification = "true".equals(System.getProperty("skipVerification"));
-			return builder.setSignatureForRequests(SignatureAlgorithms.ed25519det()) // good for testing
-					.allowUnsignedFaucet(true) // good for testing
-					.ignoreGasPrice(true) // good for testing
-					.setInitialSupply(Coin.level7(10000000)) // enough for all tests
-					.setFinalSupply(Coin.level7(10000000).multiply(BigInteger.TWO))
-					.setPublicKeyOfGamete(consensus.getPublicKeyOfGamete())
-					.skipVerification(skipVerification);
-		}
-		catch (NoSuchAlgorithmException | InvalidKeyException e) {
-			throw new NodeException(e);
-		}
+	private static <B extends ConsensusConfigBuilder<?,B>> B fillConsensusConfig(ConsensusConfigBuilder<?,B> builder) throws InvalidKeyException, NoSuchAlgorithmException {
+		boolean skipVerification = "true".equals(System.getProperty("skipVerification"));
+		return builder.setSignatureForRequests(SignatureAlgorithms.ed25519det()) // good for testing
+				.allowUnsignedFaucet(true) // good for testing
+				.ignoreGasPrice(true) // good for testing
+				.setInitialSupply(Coin.level7(10000000)) // enough for all tests
+				.setFinalSupply(Coin.level7(10000000).multiply(BigInteger.TWO))
+				.setPublicKeyOfGamete(consensus.getPublicKeyOfGamete())
+				.skipVerification(skipVerification);
 	}
 
 	protected final void setAccounts(BigInteger... coins) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException, NoSuchAlgorithmException, UninitializedNodeException {
@@ -575,22 +564,8 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		setAccounts(containerClassName, classpath, coins.toArray(BigInteger[]::new));
 	}
 
-	protected static void setJar(String jar) throws TransactionRejectedException, TransactionException, IOException, NodeException, TimeoutException, InterruptedException, CodeExecutionException, UninitializedNodeException {
-		try {
-			HotmokaTest.jar = JarsNodes.of(node, localGamete, privateKeyOfLocalGamete, pathOfExample(jar)).jar(0);
-		}
-		catch (NoSuchElementException e) {
-			throw new NodeException(e); // we installed exactly one jar
-		}
-		catch (UnknownReferenceException e) {
-			throw new NodeException(e); // the local gamete exists! We created it
-		}
-		catch (InvalidKeyException | SignatureException e) {
-			throw new NodeException(e); // we set a correct key for the local gamete!
-		}
-		catch (NoSuchAlgorithmException e) {
-			throw new NodeException(e); // we created the private key of the gamete with ed25519 and it was available!
-		}
+	protected static void setJar(String jar) throws InvalidKeyException, NoSuchElementException, SignatureException, NoSuchAlgorithmException, TimeoutException, InterruptedException, NodeException, TransactionRejectedException, TransactionException, IOException, UnknownReferenceException, CodeExecutionException, UninitializedNodeException {
+		HotmokaTest.jar = JarsNodes.of(node, localGamete, privateKeyOfLocalGamete, pathOfExample(jar)).jar(0);
 	}
 
 	protected final TransactionReference takamakaCode() {
@@ -648,7 +623,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	protected final TransactionReference addJarStoreTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) throws TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	protected final TransactionReference addJarStoreTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) throws InvalidKeyException, ClosedNodeException, SignatureException, UnexpectedCodeException, TransactionRejectedException, TransactionException, TimeoutException, InterruptedException, CodeExecutionException, UnknownReferenceException {
 		return node.addJarStoreTransaction(TransactionRequests.jarStore
 			(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice,
 				classpath, jar, dependencies));
@@ -657,7 +632,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	protected final StorageReference addConstructorCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	protected final StorageReference addConstructorCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) throws InvalidKeyException, ClosedNodeException, SignatureException, UnexpectedCodeException, TransactionRejectedException, TransactionException, CodeExecutionException, TimeoutException, InterruptedException, UnknownReferenceException {
 		return node.addConstructorCallTransaction(TransactionRequests.constructorCall(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature),
 			caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, constructor, actuals));
 	}
@@ -665,28 +640,28 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	protected final void addInstanceVoidMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, VoidMethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	protected final void addInstanceVoidMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, VoidMethodSignature method, StorageReference receiver, StorageValue... actuals) throws InvalidKeyException, ClosedNodeException, SignatureException, UnexpectedCodeException, TransactionRejectedException, TransactionException, CodeExecutionException, TimeoutException, InterruptedException, UnknownReferenceException {
 		node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, receiver, actuals));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	protected final StorageValue addInstanceNonVoidMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, NonVoidMethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	protected final StorageValue addInstanceNonVoidMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, NonVoidMethodSignature method, StorageReference receiver, StorageValue... actuals) throws UnexpectedVoidMethodException, InvalidKeyException, ClosedNodeException, SignatureException, UnexpectedCodeException, TransactionRejectedException, TransactionException, CodeExecutionException, TimeoutException, InterruptedException, UnknownReferenceException {
 		return node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, receiver, actuals)).orElseThrow(() -> new UnexpectedVoidMethodException(method));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	protected final StorageValue addStaticNonVoidMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, NonVoidMethodSignature method, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	protected final StorageValue addStaticNonVoidMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, NonVoidMethodSignature method, StorageValue... actuals) throws UnexpectedVoidMethodException, InvalidKeyException, ClosedNodeException, SignatureException, UnexpectedCodeException, TransactionRejectedException, TransactionException, CodeExecutionException, TimeoutException, InterruptedException, UnknownReferenceException {
 		return node.addStaticMethodCallTransaction(TransactionRequests.staticMethodCall(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, actuals)).orElseThrow(() -> new UnexpectedVoidMethodException(method));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	protected final void addStaticVoidMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, VoidMethodSignature method, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+	protected final void addStaticVoidMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, VoidMethodSignature method, StorageValue... actuals) throws InvalidKeyException, ClosedNodeException, SignatureException, UnexpectedCodeException, TransactionRejectedException, TransactionException, CodeExecutionException, TimeoutException, InterruptedException, UnknownReferenceException {
 		node.addStaticMethodCallTransaction(TransactionRequests.staticMethodCall(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, actuals));
 	}
 
@@ -710,7 +685,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	protected final JarFuture postJarStoreTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) throws TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, InterruptedException, TimeoutException {
+	protected final JarFuture postJarStoreTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) throws InvalidKeyException, ClosedNodeException, SignatureException, UnexpectedCodeException, TransactionRejectedException, InterruptedException, TimeoutException, TransactionException, CodeExecutionException, UnknownReferenceException {
 		return node.postJarStoreTransaction(TransactionRequests.jarStore(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature),
 			caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, jar, dependencies));
 	}
@@ -718,14 +693,14 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	protected final MethodFuture postInstanceMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, InterruptedException, TimeoutException {
+	protected final MethodFuture postInstanceMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws InvalidKeyException, ClosedNodeException, SignatureException, UnexpectedCodeException, TransactionRejectedException, InterruptedException, TimeoutException, TransactionException, CodeExecutionException, UnknownReferenceException {
 		return node.postInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, receiver, actuals));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	protected final ConstructorFuture postConstructorCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) throws TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, InterruptedException, TimeoutException {
+	protected final ConstructorFuture postConstructorCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) throws InvalidKeyException, ClosedNodeException, SignatureException, UnexpectedCodeException, TransactionRejectedException, InterruptedException, TimeoutException, TransactionException, CodeExecutionException, UnknownReferenceException {
 		return node.postConstructorCallTransaction(TransactionRequests.constructorCall(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature),
 			caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, constructor, actuals));
 	}
@@ -782,27 +757,19 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	 * @param account the account
 	 * @return the nonce
 	 */
-	protected final BigInteger getNonceOf(StorageReference account) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
-		try {
-			BigInteger nonce = nonces.get(account);
-			// if there is more than one node or only a remote node, we need to ask the node since there might be history changes
-			if (nonce != null && nodes.size() == 1)
-				nonce = nonce.add(BigInteger.ONE);
-			else
-				// we ask the node: 100,000 units of gas should be enough to run the method
-				nonce = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+	protected final BigInteger getNonceOf(StorageReference account) throws TransactionRejectedException, ClosedNodeException, UnexpectedCodeException, InterruptedException, TimeoutException, TransactionException, CodeExecutionException, UnknownReferenceException {
+		BigInteger nonce = nonces.get(account);
+		// if there is more than one node or only a remote node, we need to ask the node since there might be history changes
+		if (nonce != null && nodes.size() == 1)
+			nonce = nonce.add(BigInteger.ONE);
+		else
+			// we ask the node: 100,000 units of gas should be enough to run the method
+			nonce = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(account, _100_000, node.getClassTag(account).getJar(), MethodSignatures.NONCE, account))
-					.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.NONCE))
-					.asReturnedBigInteger(MethodSignatures.NONCE, UnexpectedValueException::new);
+			.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.NONCE))
+			.asReturnedBigInteger(MethodSignatures.NONCE, UnexpectedValueException::new);
 
-			nonces.put(account, nonce);
-			return nonce;
-		}
-		catch (CodeExecutionException | TransactionException e) {
-			throw new NodeException("Cannot compute the nonce of " + account);
-		}
-		catch (UnknownReferenceException e) {
-			throw new TransactionRejectedException(e, consensus);
-		}
+		nonces.put(account, nonce);
+		return nonce;
 	}
 }

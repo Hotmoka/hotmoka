@@ -26,9 +26,6 @@ import static io.hotmoka.node.StorageTypes.PAYABLE_CONTRACT;
 import static io.hotmoka.node.StorageTypes.SHARED_ENTITY;
 
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
-import java.security.SignatureException;
-import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -38,10 +35,6 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
@@ -117,7 +110,7 @@ class SharedEntity extends HotmokaTest {
 
     @Test
     @DisplayName("a contract can place its own offer")
-    void placeOnBehalfOfOneselfWorks() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
+    void placeOnBehalfOfOneselfWorks() throws Exception {
         // create a shared entity contract
         StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _500_000, panarea(1), classpath_takamaka_code,
         		SIMPLE_SHARED_ENTITY_CONSTRUCTOR, seller, StorageValues.bigIntegerOf(2));
@@ -134,7 +127,7 @@ class SharedEntity extends HotmokaTest {
 
     @Test
     @DisplayName("acceptance with too little money is rejected")
-    void acceptanceWithTooLittleMoneyIsRejected() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
+    void acceptanceWithTooLittleMoneyIsRejected() throws Exception {
         // create a shared entity contract
         StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _500_000, panarea(1), classpath_takamaka_code,
                 SIMPLE_SHARED_ENTITY_CONSTRUCTOR, seller, StorageValues.bigIntegerOf(10));
@@ -158,7 +151,7 @@ class SharedEntity extends HotmokaTest {
 
     @Test
     @DisplayName("acceptance with enough money works")
-    void acceptanceWithEnoughMoneyWorks() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
+    void acceptanceWithEnoughMoneyWorks() throws Exception {
         // create a shared entity contract
         StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _500_000, panarea(1), classpath_takamaka_code,
                 SIMPLE_SHARED_ENTITY_CONSTRUCTOR, seller, StorageValues.bigIntegerOf(10));
@@ -190,7 +183,7 @@ class SharedEntity extends HotmokaTest {
 
     @Test
     @DisplayName("fewer shareholders than the capped shareholders limit are accepted at initialization")
-    void maxShareholdersLimitRespectedAtInitialization() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
+    void maxShareholdersLimitRespectedAtInitialization() throws Exception {
         // valid
         addConstructorCallTransaction(privateKey(0), creator, _500_000, panarea(1), classpath_takamaka_code,
                 SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS_CONSTRUCTOR, seller, StorageValues.bigIntegerOf(10), StorageValues.intOf(1));
@@ -198,7 +191,7 @@ class SharedEntity extends HotmokaTest {
 
     @Test
     @DisplayName("capped shareholders limit works when accepting an offer that crosses the cap")
-    void maxShareholdersLimitViolatedAtAcceptance() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
+    void maxShareholdersLimitViolatedAtAcceptance() throws Exception {
         // create a shared entity
         StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _500_000, panarea(1), classpath_takamaka_code,
                 SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS_CONSTRUCTOR, seller, StorageValues.bigIntegerOf(10), StorageValues.intOf(1));
@@ -222,7 +215,7 @@ class SharedEntity extends HotmokaTest {
 
     @Test
     @DisplayName("capped shareholders limit works when accepting an offer that does not cross the cap")
-    void maxShareholdersLimitRespectedAtAcceptance() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
+    void maxShareholdersLimitRespectedAtAcceptance() throws Exception {
         // create a shared entity
         StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _500_000, panarea(1), classpath_takamaka_code,
                 SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS_CONSTRUCTOR, seller, StorageValues.bigIntegerOf(10), StorageValues.intOf(2));
@@ -243,7 +236,7 @@ class SharedEntity extends HotmokaTest {
 
     @Test
     @DisplayName("an attempt to sell only a part of the shares fails")
-    void attemptToSellOnlyPartOfSharesFails() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
+    void attemptToSellOnlyPartOfSharesFails() throws Exception {
         // create a shared entity
         StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _500_000, panarea(1), classpath_takamaka_code,
                 SHARED_ENTITY_WITH_INTEGRAL_SHARES_CONSTRUCTOR, seller, StorageValues.bigIntegerOf(10));
@@ -262,7 +255,7 @@ class SharedEntity extends HotmokaTest {
 
     @Test
     @DisplayName("an attempt to sell all own shares succeeds")
-    void attemptToSellAllSharesSucceeds() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
+    void attemptToSellAllSharesSucceeds() throws Exception {
         // create a shared entity
         StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _500_000, panarea(1), classpath_takamaka_code,
                 SHARED_ENTITY_WITH_INTEGRAL_SHARES_CONSTRUCTOR, seller, StorageValues.bigIntegerOf(10));
@@ -280,7 +273,7 @@ class SharedEntity extends HotmokaTest {
 
     @Test
     @DisplayName("the maximal percent of shares is respected at initialization")
-    void shareLimitReachedAtInitialization() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
+    void shareLimitReachedAtInitialization() throws Exception {
         addConstructorCallTransaction(privateKey(0), creator, _500_000, panarea(1), classpath_takamaka_code,
         		SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR, seller, StorageValues.bigIntegerOf(10), StorageValues.intOf(100));
 
@@ -293,7 +286,7 @@ class SharedEntity extends HotmokaTest {
 
     @Test
     @DisplayName("the maximal percent of shares cannot be smaller than one")
-    void shareLimitIsSmallerThan1() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
+    void shareLimitIsSmallerThan1() throws Exception {
         addConstructorCallTransaction(privateKey(0), creator, _500_000, panarea(1), classpath_takamaka_code,
         		SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR, seller, StorageValues.bigIntegerOf(10), StorageValues.intOf(100));
 
@@ -306,7 +299,7 @@ class SharedEntity extends HotmokaTest {
 
     @Test
     @DisplayName("the maximal percent of shares cannot be larger than 100")
-    void shareLimitIsLargerThan100() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
+    void shareLimitIsLargerThan100() throws Exception {
         addConstructorCallTransaction(privateKey(0), creator, _500_000, panarea(1), classpath_takamaka_code,
         		SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR, seller, StorageValues.bigIntegerOf(10), StorageValues.intOf(100));
 
@@ -319,7 +312,7 @@ class SharedEntity extends HotmokaTest {
 
     @Test
     @DisplayName("the maximal percent of shares is respected when accepting an offer that stays inside the limit")
-    void sharePercentLimitNotReached() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
+    void sharePercentLimitNotReached() throws Exception {
     	// create a shared entity
         StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _500_000, panarea(1), classpath_takamaka_code,
                 SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR_2, seller, buyer, StorageValues.bigIntegerOf(10), StorageValues.bigIntegerOf(10), StorageValues.intOf(70));
@@ -341,7 +334,7 @@ class SharedEntity extends HotmokaTest {
 
     @Test
     @DisplayName("the maximal percent of shares is respected when accepting an offer that goes beyond the limit")
-    void sharePercentLimitReached() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
+    void sharePercentLimitReached() throws Exception {
         // create a shared entity
         StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _500_000, panarea(1), classpath_takamaka_code,
                 SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR_2, seller, buyer, StorageValues.bigIntegerOf(10), StorageValues.bigIntegerOf(10), StorageValues.intOf(50));

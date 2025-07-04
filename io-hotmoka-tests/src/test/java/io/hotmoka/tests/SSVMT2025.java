@@ -20,9 +20,7 @@ import static java.math.BigInteger.ZERO;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
 import java.security.PrivateKey;
-import java.security.SignatureException;
 import java.util.Random;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeoutException;
@@ -41,7 +39,6 @@ import org.junit.jupiter.api.RepetitionInfo;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -147,11 +144,11 @@ class SSVMT2025 extends HotmokaTest {
 							LOGGER.info("Worker #" + num + " exits since it has not enough funds anymore: " + remaining.decrementAndGet() + " workers remaining");
 						}
 				}
-				catch (InvalidKeyException | SignatureException | CodeExecutionException | NodeException e) {
-					failure(e);
-				}
 				catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
+					failure(e);
+				}
+				catch (Exception e) {
 					failure(e);
 				}
 			}

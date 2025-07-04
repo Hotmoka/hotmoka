@@ -34,7 +34,7 @@ import io.hotmoka.moka.internal.AbstractNodeStart;
 import io.hotmoka.moka.internal.converters.MokamintLocalNodeConfigOptionConverter;
 import io.hotmoka.moka.internal.converters.MokamintNodeConfigOptionConverter;
 import io.hotmoka.moka.internal.json.NodesMokamintStartOutputJson;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.local.NodeCreationException;
 import io.hotmoka.node.mokamint.MokamintNodeConfigBuilders;
 import io.hotmoka.node.mokamint.MokamintNodes;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
@@ -131,6 +131,9 @@ public class Start extends AbstractNodeStart {
 					}
 				}
 			}
+			catch (NodeCreationException e) {
+				throw new CommandException("The node could not be created", e);
+			}
 			catch (WrongKeyException e) {
 				throw new CommandException("The key pair does not contain the correct keys for the plot file");
 			}
@@ -144,7 +147,7 @@ public class Start extends AbstractNodeStart {
 				Thread.currentThread().interrupt();
 				throw new CommandException("The operation has been interrupted", e);
 			}
-			catch (NodeException | io.mokamint.node.api.NodeException e) {
+			catch (io.mokamint.node.api.NodeException e) {
 				throw new RuntimeException(e);
 			}
 			catch (TimeoutException e) {

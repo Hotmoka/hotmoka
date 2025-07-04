@@ -20,12 +20,12 @@ import java.math.BigInteger;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnexpectedCodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
-import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 
 /**
@@ -43,25 +43,10 @@ public interface NonceHelper {
 	 * @throws TransactionException if some transaction fails
 	 * @throws CodeExecutionException if some transaction throws an exception
 	 * @throws UnknownReferenceException if {@code account} cannot be found in the node
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws ClosedNodeException if the node is already closed
+	 * @throws UnexpectedCodeException if the Takamaka support code in the node is unexpected
 	 * @throws InterruptedException if the current thread gets interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 */
-	BigInteger getNonceOf(StorageReference account) throws TransactionRejectedException, TransactionException, CodeExecutionException, UnknownReferenceException, NodeException, InterruptedException, TimeoutException;
-
-	/**
-	 * Yields the nonce of an account.
-	 * 
-	 * @param account the account
-	 * @param takamakaCode the reference to the runtime Takamaka classes
-	 * @return the nonce of {@code account}
-	 * @throws TransactionRejectedException if some transaction gets rejected
-	 * @throws TransactionException if some transaction fails
-	 * @throws CodeExecutionException if some transaction throws an exception
-	 * @throws UnknownReferenceException if {@code account} cannot be found in the node
-	 * @throws NodeException if the node is not able to perform the operation
-	 * @throws InterruptedException if the current thread gets interrupted while performing the operation
-	 * @throws TimeoutException if the operation does not complete within the expected time window
-	 */
-	BigInteger getNonceOf(StorageReference account, TransactionReference takamakaCode) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException;
+	BigInteger getNonceOf(StorageReference account) throws TransactionRejectedException, TransactionException, CodeExecutionException, UnknownReferenceException, ClosedNodeException, UnexpectedCodeException, InterruptedException, TimeoutException;
 }

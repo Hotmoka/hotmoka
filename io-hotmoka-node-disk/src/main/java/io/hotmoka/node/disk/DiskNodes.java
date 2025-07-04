@@ -17,10 +17,10 @@ limitations under the License.
 package io.hotmoka.node.disk;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.disk.api.DiskNode;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.disk.internal.DiskNodeImpl;
+import io.hotmoka.node.local.NodeCreationException;
 
 /**
  * Providers of blockchain nodes that store, sequentially, transactions in a directory
@@ -38,10 +38,10 @@ public abstract class DiskNodes {
 	 * 
 	 * @param config the configuration of the node
 	 * @return the node
-	 * @throws NodeException if the operation cannot be completed correctly
+	 * @throws NodeCreationException if the node could not be created
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 */
-	public static DiskNode init(DiskNodeConfig config) throws NodeException, InterruptedException {
+	public static DiskNode init(DiskNodeConfig config) throws NodeCreationException, InterruptedException {
 		return new DiskNodeImpl(config);
 	}
 }

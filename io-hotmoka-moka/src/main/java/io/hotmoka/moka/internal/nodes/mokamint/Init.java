@@ -37,12 +37,14 @@ import io.hotmoka.moka.internal.converters.MokamintLocalNodeConfigOptionConverte
 import io.hotmoka.moka.internal.converters.MokamintNodeConfigOptionConverter;
 import io.hotmoka.moka.internal.json.NodesMokamintInitOutputJson;
 import io.hotmoka.node.ConsensusConfigBuilders;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.local.NodeCreationException;
 import io.hotmoka.node.mokamint.MokamintNodeConfigBuilders;
 import io.hotmoka.node.mokamint.MokamintNodes;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
@@ -145,6 +147,12 @@ public class Init extends AbstractNodeInit {
 				catch (IOException e) {
 					throw new CommandException("Cannot access file \"" + getTakamakaCode() + "\"!", e);
 				}
+			}
+			catch (NodeCreationException e) {
+				throw new CommandException("The node could not be created", e);
+			}
+			catch (ClosedNodeException e) {
+				throw new CommandException("The node has been expectedly closed", e);
 			}
 			catch (WrongKeyException e) {
 				throw new CommandException("The key pair does not contain the correct keys for the plot file");

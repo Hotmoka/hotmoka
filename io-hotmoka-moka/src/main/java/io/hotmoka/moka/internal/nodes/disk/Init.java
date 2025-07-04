@@ -39,6 +39,7 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.disk.DiskNodeConfigBuilders;
 import io.hotmoka.node.disk.DiskNodes;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
+import io.hotmoka.node.local.NodeCreationException;
 import io.hotmoka.node.service.NodeServices;
 import io.hotmoka.websockets.api.FailedDeploymentException;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
@@ -76,7 +77,7 @@ public class Init extends AbstractNodeInit {
 		catch (FailedDeploymentException e) {
 			throw new CommandException("Cannot deploy the service at port " + getPort());
 		}
-		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
+		catch (NodeCreationException | TransactionRejectedException | TransactionException | CodeExecutionException e) {
 			throw new CommandException("Could not initialize the node", e);
 		}
 		catch (InterruptedException e) {

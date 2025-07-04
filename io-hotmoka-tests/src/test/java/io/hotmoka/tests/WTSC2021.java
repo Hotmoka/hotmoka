@@ -158,7 +158,7 @@ class WTSC2021 extends HotmokaTest {
 		catch (TimeoutException e) {
 			// this occurs if the node is remote and very slow, so that the connection timeouts
 		}
-		catch (InvalidKeyException | SignatureException | TransactionException | CodeExecutionException | TransactionRejectedException | NodeException | InterruptedException e) {
+		catch (UnknownReferenceException | InvalidKeyException | SignatureException | TransactionException | CodeExecutionException | TransactionRejectedException | NodeException | InterruptedException e) {
 			throw new RuntimeException(e);
 		}
 
