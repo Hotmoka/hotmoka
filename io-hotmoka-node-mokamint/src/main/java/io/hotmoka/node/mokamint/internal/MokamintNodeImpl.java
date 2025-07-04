@@ -149,7 +149,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 			// mokamintNode.addOnCloseHandler(this::close); // TODO
 		}
-		catch (io.mokamint.node.api.NodeException e) {
+		catch (io.mokamint.node.NodeCreationException e) {
 			throw new NodeCreationException(e);
 		}
 
