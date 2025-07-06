@@ -110,7 +110,7 @@ import io.hotmoka.websockets.api.FailedDeploymentException;
 import io.mokamint.miner.api.Miner;
 import io.mokamint.miner.local.LocalMiners;
 import io.mokamint.node.Peers;
-import io.mokamint.node.api.PeerException;
+import io.mokamint.node.api.ClosedPeerException;
 import io.mokamint.node.api.PeerRejectedException;
 import io.mokamint.node.local.LocalNodeConfigBuilders;
 import io.mokamint.node.service.PublicNodeServices;
@@ -369,7 +369,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	 * moka start-mokamint --keys CYcdCR4S1zVojhFsB7cxpYsudqBhvRMoXRhFCtwcnUg9.pem --keys-of-plot 5BYtHQ3XaygM7yjJ4vaaftA5AJAC56GNkLrDj4yQ46Wh.pem --plot plot.plot --mokamint-port 8031 --port 8002
 	 */
 	@SuppressWarnings("unused")
-	private static Node mkMokamintNodeConnectedToPeer() throws InvalidKeyException, NoSuchAlgorithmException, IOException, NodeCreationException, InterruptedException, TimeoutException, io.mokamint.node.api.ClosedNodeException, WrongKeyException, FailedDeploymentException, PeerRejectedException, PeerException {
+	private static Node mkMokamintNodeConnectedToPeer() throws InvalidKeyException, NoSuchAlgorithmException, IOException, NodeCreationException, InterruptedException, TimeoutException, io.mokamint.node.api.ClosedNodeException, WrongKeyException, FailedDeploymentException, PeerRejectedException, ClosedPeerException {
 		consensus = fillConsensusConfig(ValidatorsConsensusConfigBuilders.defaults()).build();
 
 		Path hotmokaChainPath = Files.createTempDirectory("hotmoka-mokamint-chain-");
@@ -497,7 +497,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 			return nodes.get(0);
 		}
-		catch (IOException | InvalidKeyException | NoSuchAlgorithmException | io.mokamint.node.api.ClosedNodeException | PeerRejectedException | PeerException | TransactionRejectedException | TransactionException | CodeExecutionException | NodeException | FailedDeploymentException | WrongKeyException e) {
+		catch (IOException | InvalidKeyException | NoSuchAlgorithmException | io.mokamint.node.api.ClosedNodeException | PeerRejectedException | ClosedPeerException | TransactionRejectedException | TransactionException | CodeExecutionException | NodeException | FailedDeploymentException | WrongKeyException e) {
 			throw new NodeCreationException(e);
 		}
 	}

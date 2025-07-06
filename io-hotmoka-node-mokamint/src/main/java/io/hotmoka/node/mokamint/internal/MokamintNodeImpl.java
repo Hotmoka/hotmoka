@@ -63,6 +63,7 @@ import io.mokamint.application.api.ClosedApplicationException;
 import io.mokamint.application.api.UnknownGroupIdException;
 import io.mokamint.application.api.UnknownStateException;
 import io.mokamint.node.Transactions;
+import io.mokamint.node.api.ApplicationTimeoutException;
 import io.mokamint.node.api.Block;
 import io.mokamint.node.api.NonGenesisBlock;
 import io.mokamint.node.api.Transaction;
@@ -228,7 +229,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			// the mempool of the Mokamint engine has rejected the transaction:
 			// the node has been already signaled that it failed, so there is nothing to do here
 		}
-		catch (io.mokamint.node.api.ClosedNodeException e) {
+		catch (io.mokamint.node.api.ClosedNodeException | ApplicationTimeoutException e) { // TODO
 			throw new NodeException(e);
 		}
 	}
@@ -435,8 +436,9 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 				catch (NodeException e) { // TODO
 					throw new RuntimeException(e);
 				}
-
-				transformations.remove(groupId);
+				finally {
+					transformations.remove(groupId);
+				}
 			}
 		}
 
@@ -451,8 +453,9 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 				catch (NodeException e) { // TODO
 					throw new RuntimeException(e);
 				}
-
-				transformations.remove(groupId);
+				finally {
+					transformations.remove(groupId);
+				}
 			}
 		}
 

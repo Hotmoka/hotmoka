@@ -147,8 +147,8 @@ public class Start extends AbstractNodeStart {
 				Thread.currentThread().interrupt();
 				throw new CommandException("The operation has been interrupted", e);
 			}
-			catch (io.mokamint.node.api.NodeException e) {
-				throw new RuntimeException(e);
+			catch (io.mokamint.node.api.ClosedNodeException e) {
+				throw new CommandException("The Mokamint node has been closed", e);
 			}
 			catch (TimeoutException e) {
 				throw new CommandException("The operation has timed-out", e);

@@ -170,7 +170,10 @@ public class Init extends AbstractNodeInit {
 				Thread.currentThread().interrupt();
 				throw new CommandException("The operation has been interrupted", e);
 			}
-			catch (NodeException | io.mokamint.node.api.NodeException e) {
+			catch (io.mokamint.node.api.ClosedNodeException e) {
+				throw new CommandException("The Mokamint node has been closed", e);
+			}
+			catch (NodeException e) { // TODO
 				throw new RuntimeException(e);
 			}
 			catch (TimeoutException e) {

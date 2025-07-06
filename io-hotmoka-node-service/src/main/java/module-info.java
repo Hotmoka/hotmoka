@@ -24,6 +24,7 @@ module io.hotmoka.node.service {
 
     requires transitive io.hotmoka.node.service.api;
     requires transitive io.hotmoka.node.api;
+    requires io.hotmoka.node.messages.api;
 	requires io.hotmoka.closeables.api;
 	requires io.hotmoka.node.messages;
 	requires io.hotmoka.annotations;
