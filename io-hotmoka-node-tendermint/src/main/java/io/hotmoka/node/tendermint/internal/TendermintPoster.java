@@ -207,25 +207,25 @@ public class TendermintPoster {
 	 * @throws TimeoutException if the operation could not be completed on time
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 */
-	TendermintValidator[] getTendermintValidators() throws NodeException, TimeoutException, InterruptedException {
+	TendermintValidator[] getTendermintValidators() throws TendermintException, TimeoutException, InterruptedException {
 		TendermintValidatorsResponse response;
 
 		try {
 			response = gson.fromJson(validators(1, 100), TendermintValidatorsResponse.class);
 		}
 		catch (IOException | JsonSyntaxException e) {
-			throw new NodeException("The Tendermint engine did not provide information about its validators", e);
+			throw new TendermintException("The Tendermint engine did not provide information about its validators: " + e.getMessage());
 		}
 
 		if (response == null)
-			throw new NodeException("No validators in Tendermint response");
+			throw new TendermintException("No validators in Tendermint response");
 
 		if (response.error != null)
-			throw new NodeException(response.error);
+			throw new TendermintException(response.error);
 
 		List<TendermintValidatorPriority> validators;
 		if (response.result == null || (validators = response.result.validators) == null)
-			throw new NodeException("No validators in Tendermint response");
+			throw new TendermintException("No validators in Tendermint response");
 
 		TendermintValidator[] result = new TendermintValidator[validators.size()];
 		int pos = 0;
@@ -261,11 +261,11 @@ public class TendermintPoster {
 		return URI.create("http://127.0.0.1:" + tendermintPort).toURL();
 	}
 
-	private static TendermintValidator intoTendermintValidator(TendermintValidatorPriority validatorPriority) throws NodeException {
+	private static TendermintValidator intoTendermintValidator(TendermintValidatorPriority validatorPriority) throws TendermintException {
 		if (validatorPriority.pub_key == null)
-			throw new NodeException("null pub_key in Tendermint validator information");
+			throw new TendermintException("null pub_key in Tendermint validator information");
 		else
-			return new TendermintValidator(validatorPriority.address, validatorPriority.voting_power, validatorPriority.pub_key.value, validatorPriority.pub_key.type, NodeException::new);
+			return new TendermintValidator(validatorPriority.address, validatorPriority.voting_power, validatorPriority.pub_key.value, validatorPriority.pub_key.type, TendermintException::new);
 	}
 
 	/**

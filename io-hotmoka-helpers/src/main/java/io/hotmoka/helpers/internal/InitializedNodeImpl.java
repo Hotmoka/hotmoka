@@ -28,6 +28,7 @@ import java.util.function.Function;
 
 import io.hotmoka.helpers.AbstractNodeDecorator;
 import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
+import io.hotmoka.helpers.InitializedNodes.StorageObjectCreationException;
 import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
@@ -39,7 +40,6 @@ import io.hotmoka.node.UnexpectedVoidMethodException;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnexpectedCodeException;
@@ -75,13 +75,15 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 	 * @throws TransactionException if some transaction fails
 	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
 	 * @throws IOException if the jar file cannot be accessed
-	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
+	 * @throws StorageObjectCreationException if the creation of some storage object failed
+	 * @throws ClosedNodeException if the node is already closed
+	 * @throws UnexpectedCodeException if the Takamaka code in the store of the node is unexpected
 	 */
 	public InitializedNodeImpl(Node parent, ValidatorsConsensusConfig<?,?> consensus, Path takamakaCode,
 			ProducerOfStorageObject<ValidatorsConsensusConfig<?,?>> producerOfValidatorsBuilder, ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStationBuilder)
-				throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, NodeException, TimeoutException, InterruptedException {
+				throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, StorageObjectCreationException, ClosedNodeException, UnexpectedCodeException {
 
 		super(parent);
 

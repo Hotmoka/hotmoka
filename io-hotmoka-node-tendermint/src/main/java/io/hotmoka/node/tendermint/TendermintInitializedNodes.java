@@ -21,6 +21,7 @@ import java.nio.file.Path;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
+import io.hotmoka.helpers.InitializedNodes.StorageObjectCreationException;
 import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
@@ -54,9 +55,10 @@ public abstract class TendermintInitializedNodes {
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
+	 * @throws StorageObjectCreationException if the creation of some storage object in the node failed
 	 */
 	public static InitializedNode of(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, Path takamakaCode)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, NodeException, TimeoutException, InterruptedException {
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, NodeException, TimeoutException, InterruptedException, StorageObjectCreationException {
 
 		return new TendermintInitializedNodeImpl(parent, consensus, null, takamakaCode);
 	}
@@ -78,9 +80,10 @@ public abstract class TendermintInitializedNodes {
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
+	 * @throws StorageObjectCreationException if the creation of some storage object in the node failed
 	 */
-	public static InitializedNode of(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStation, Path takamakaCode)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, NodeException, TimeoutException, InterruptedException {
+	public static InitializedNode of2(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStation, Path takamakaCode)
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, NodeException, TimeoutException, InterruptedException, StorageObjectCreationException {
 
 		return new TendermintInitializedNodeImpl(parent, consensus, producerOfGasStation, takamakaCode);
 	}

@@ -34,6 +34,7 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.AbstractNodeDecorator;
 import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
+import io.hotmoka.helpers.InitializedNodes.StorageObjectCreationException;
 import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
@@ -47,6 +48,7 @@ import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnexpectedCodeException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -80,9 +82,10 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
+	 * @throws StorageObjectCreationException if the creation of some storage object in the node failed
 	 */
 	public TendermintInitializedNodeImpl(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, Path takamakaCode)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, NodeException, TimeoutException, InterruptedException {
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, NodeException, TimeoutException, InterruptedException, StorageObjectCreationException {
 
 		super(mkParent(parent, consensus, null, takamakaCode));
 	}
@@ -105,14 +108,15 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
+	 * @throws StorageObjectCreationException if the creation of some storage object in the node failed
 	 */
 	public TendermintInitializedNodeImpl(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStationBuilder, Path takamakaCode)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, NodeException, TimeoutException, InterruptedException {
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, NodeException, TimeoutException, InterruptedException, StorageObjectCreationException {
 
 		super(mkParent(parent, consensus, producerOfGasStationBuilder, takamakaCode));
 	}
 
-	private static InitializedNode mkParent(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStationBuilder, Path takamakaCode) throws NodeException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException {
+	private static InitializedNode mkParent(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStationBuilder, Path takamakaCode) throws NodeException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, StorageObjectCreationException {
 		var tendermintConfigFile = new TendermintConfigFile(parent.getLocalConfig());
 		var poster = new TendermintPoster(parent.getLocalConfig(), tendermintConfigFile.getTendermintPort());
 
@@ -128,7 +132,7 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 	}
 
 	private static StorageReference createTendermintValidatorsBuilder(TendermintPoster poster, InitializedNode node, ValidatorsConsensusConfig<?,?> consensus, TransactionReference takamakaCodeReference)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, UnexpectedCodeException, TimeoutException, InterruptedException, StorageObjectCreationException {
 
 		StorageReference gamete = node.gamete();
 		var getNonceRequest = TransactionRequests.instanceViewMethodCall(gamete, BigInteger.valueOf(50_000), takamakaCodeReference, MethodSignatures.NONCE, gamete);
@@ -137,7 +141,14 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 			.asReturnedBigInteger(MethodSignatures.NONCE, UnexpectedValueException::new);
 
 		// we create validators corresponding to those declared in the configuration file of the Tendermint node
-		var tendermintValidators = poster.getTendermintValidators();
+		TendermintValidator[] tendermintValidators;
+
+		try {
+			tendermintValidators = poster.getTendermintValidators();
+		}
+		catch (TendermintException e) {
+			throw new StorageObjectCreationException(e);
+		}
 
 		// we create the builder of the validators
 		var _200_000 = BigInteger.valueOf(200_000);
@@ -162,7 +173,7 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 			ed25519 = SignatureAlgorithms.ed25519();
 		}
 		catch (NoSuchAlgorithmException e) {
-			throw new NodeException(e);
+			throw new StorageObjectCreationException(e);
 		}
 
 		for (TendermintValidator tv: tendermintValidators) {
@@ -172,7 +183,7 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 				publicKeyBase64 = Base64.toBase64String(ed25519.encodingOf(publicKeyFromTendermintValidator(tv, ed25519)));
 			}
 			catch (InvalidKeyException e) {
-				throw new NodeException("Tendermint answered with an illegal key", e);
+				throw new StorageObjectCreationException("Tendermint answered with an illegal key", e);
 			}
 
 			var addValidator = TransactionRequests.instanceMethodCall
@@ -186,16 +197,16 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 		return builder;
 	}
 
-	private static PublicKey publicKeyFromTendermintValidator(TendermintValidator validator, SignatureAlgorithm ed25519) throws NodeException {
+	private static PublicKey publicKeyFromTendermintValidator(TendermintValidator validator, SignatureAlgorithm ed25519) throws StorageObjectCreationException {
 		if (!"tendermint/PubKeyEd25519".equals(validator.publicKeyType))
-			throw new NodeException("It is currently possible to create Tendermint validators only if they use ed25519 keys");
+			throw new StorageObjectCreationException("It is currently possible to create Tendermint validators only if they use ed25519 keys");
 
         try {
         	// TODO: can we probably return validator.publicKey directly?
         	return ed25519.publicKeyFromEncoding(validator.getPubliKeyEncoded());
 		}
         catch (InvalidKeySpecException e) {
-        	throw new NodeException("Tendermint answered with an illegal key", e);
+        	throw new StorageObjectCreationException("Tendermint answered with an illegal key", e);
 		}
 	}
 

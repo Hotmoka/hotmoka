@@ -69,7 +69,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * 
 	 * @return the reference to the jar containing the classes of the Takamaka runtime
 	 * @throws ClosedNodeException if the node is already closed
-	 * @throw UninitializedNodeException if the node has not been initialized yet
+	 * @throws UninitializedNodeException if the node has not been initialized yet
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */

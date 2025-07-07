@@ -602,8 +602,14 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	    	}
 
 	    	// the ABCI might start too early, before the Tendermint process is up
-	        if (validatorsAtPreviousBlock == null)
-	        	validatorsAtPreviousBlock = poster.getTendermintValidators();
+	        if (validatorsAtPreviousBlock == null) {
+	        	try {
+	        		validatorsAtPreviousBlock = poster.getTendermintValidators();
+	        	}
+	        	catch (TendermintException e) {
+	        		throw new NodeException(e); // TODO
+	        	}
+	        }
 
 	        return ResponseBeginBlock.newBuilder().build();
 		}
