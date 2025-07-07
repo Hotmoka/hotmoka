@@ -25,12 +25,14 @@ import io.hotmoka.helpers.ClassLoaderHelpers;
 import io.hotmoka.helpers.api.ClassLoaderHelper;
 import io.hotmoka.helpers.api.SignatureHelper;
 import io.hotmoka.node.StorageTypes;
+import io.hotmoka.node.api.ClosedNodeException;
+import io.hotmoka.node.api.MisbehavingNodeException;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.verification.api.TakamakaClassLoader;
+import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 
 /**
  * Implementation of a helper to determine the signature algorithm to use for an externally owned account.
@@ -39,13 +41,13 @@ public class SignatureHelperImpl implements SignatureHelper {
 	private final Node node;
 	private final ClassLoaderHelper classLoaderHelper;
 
-	public SignatureHelperImpl(Node node) {
+	public SignatureHelperImpl(Node node) throws ClosedNodeException, TimeoutException, InterruptedException {
 		this.node = node;
 		this.classLoaderHelper = ClassLoaderHelpers.of(node);
 	}
 
 	@Override
-	public SignatureAlgorithm signatureAlgorithmFor(StorageReference account) throws NodeException, TimeoutException, InterruptedException, UnknownReferenceException, NoSuchAlgorithmException {
+	public SignatureAlgorithm signatureAlgorithmFor(StorageReference account) throws MisbehavingNodeException, ClosedNodeException, TimeoutException, InterruptedException, UnknownReferenceException, NoSuchAlgorithmException, UnsupportedVerificationVersionException {
 		var tag = node.getClassTag(account);
 
 		// first we try without creating a class loader, which is faster and works under Android as well...
@@ -69,7 +71,7 @@ public class SignatureHelperImpl implements SignatureHelper {
 		}
 		catch (ClassNotFoundException e) {
 			// this should not happen since the account has been previously successfully created
-			throw new NodeException("Reference " + account + " has a class that cannot be found in its classpath", e);
+			throw new MisbehavingNodeException("Reference " + account + " has a class that cannot be found in its classpath", e);
 		}
 
 		if (classLoader.getAccountED25519().isAssignableFrom(clazz))

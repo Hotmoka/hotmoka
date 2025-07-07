@@ -16,8 +16,11 @@ limitations under the License.
 
 package io.hotmoka.helpers;
 
+import java.util.concurrent.TimeoutException;
+
 import io.hotmoka.helpers.api.SignatureHelper;
 import io.hotmoka.helpers.internal.SignatureHelperImpl;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.Node;
 
 /**
@@ -31,8 +34,11 @@ public abstract class SignatureHelpers {
 	 * 
 	 * @param node the node
 	 * @return the signature helper
+	 * @throws InterruptedException if the current thread has been interrupted
+	 * @throws TimeoutException if the operation times out
+	 * @throws ClosedNodeException if {@code node} is already closed
 	 */
-	public static SignatureHelper of(Node node) {
+	public static SignatureHelper of(Node node) throws ClosedNodeException, TimeoutException, InterruptedException {
 		return new SignatureHelperImpl(node);
 	}
 }

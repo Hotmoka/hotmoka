@@ -26,14 +26,17 @@ import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.helpers.api.JarsNode;
 import io.hotmoka.helpers.internal.JarsNodeImpl;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.MisbehavingNodeException;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnexpectedCodeException;
 import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 
 /**
  * Providers of nodes that provide access to a set of previously installed jars,
@@ -57,17 +60,20 @@ public abstract class JarsNodes {
 	 * @throws TransactionRejectedException if some transaction is rejected
 	 * @throws TransactionException if some transaction fails
 	 * @throws CodeExecutionException if some transaction throws an exception
-	 * @throws IOException if the jar file cannot be accessed
+	 * @throws IOException if some jar file cannot be accessed
 	 * @throws SignatureException if a signature with {@code privateKeyOfPayer} failed
-	 * @throws InvalidKeyException if {@code privateKeyOfPayer} failed
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws InvalidKeyException if {@code privateKeyOfPayer} is invalid
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws UnknownReferenceException if {@code payer} cannot be found in {@code parent}
 	 * @throws NoSuchAlgorithmException if the signature algorithm of {@code payer} is not available
 	 * @throws UninitializedNodeException if the node is not initialized yet
+	 * @throws UnsupportedVerificationVersionException if {@code parent} uses a verification version that is not available
+	 * @throws ClosedNodeException if the node is already closed
+	 * @throws MisbehavingNodeException if the node is performing in a buggy way
+	 * @throws UnexpectedCodeException if the node contains unexpected runtime classes installed in store
      */
-	public static JarsNode of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path... jars) throws TransactionRejectedException, TransactionException, IOException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException, CodeExecutionException, NoSuchAlgorithmException, UninitializedNodeException {
+	public static JarsNode of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path... jars) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClosedNodeException, MisbehavingNodeException, UnexpectedCodeException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, UnknownReferenceException, UninitializedNodeException, UnsupportedVerificationVersionException {
 		return new JarsNodeImpl(parent, payer, privateKeyOfPayer, jars);
 	}
 }

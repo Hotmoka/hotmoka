@@ -20,11 +20,12 @@ import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.helpers.api.ManifestHelper;
 import io.hotmoka.helpers.internal.ManifestHelperImpl;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnexpectedCodeException;
 import io.hotmoka.node.api.UninitializedNodeException;
 
 /**
@@ -39,15 +40,16 @@ public abstract class ManifestHelpers {
 	 * 
 	 * @param node the node whose manifest is considered
 	 * @return the helper
-	 * @throws TransactionRejectedException if some transaction gets rejected
-	 * @throws TransactionException if some transaction fails
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
-	 * @throws NodeException if the node is not able to complete the operation
+	 * @throws TransactionRejectedException if some transaction gets rejected
+	 * @throws TransactionException if some transaction fails
 	 * @throws CodeExecutionException if some transaction throws an exception
 	 * @throws UninitializedNodeException if the node is not initialized yet
+	 * @throws UnexpectedCodeException if the Takamaka code installed in the node is not as expected
+	 * @throws ClosedNodeException if the node is already closed
 	 */
-	public static ManifestHelper of(Node node) throws NodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, CodeExecutionException, UninitializedNodeException {
+	public static ManifestHelper of(Node node) throws UnexpectedCodeException, ClosedNodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, CodeExecutionException, UninitializedNodeException {
 		return new ManifestHelperImpl(node);
 	}
 }

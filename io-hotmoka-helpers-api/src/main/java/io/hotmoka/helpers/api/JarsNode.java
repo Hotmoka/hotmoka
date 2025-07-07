@@ -20,8 +20,8 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.transactions.TransactionReference;
 
 /**
@@ -36,9 +36,9 @@ public interface JarsNode extends Node {
 	 * @param i the jar number
 	 * @return the reference to the jar, in the store of the node
 	 * @throws NoSuchElementException if the {@code i}th installed jar does not exist
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws ClosedNodeException if the node is already closed
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	TransactionReference jar(int i) throws NoSuchElementException, TimeoutException, InterruptedException, NodeException;
+	TransactionReference jar(int i) throws ClosedNodeException, NoSuchElementException, TimeoutException, InterruptedException;
 }

@@ -25,13 +25,16 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.MisbehavingNodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnexpectedCodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 
 /**
  * An object that helps with sending coins to accounts.
@@ -55,13 +58,16 @@ public interface SendCoinsHelper { // TODO: this is only used by the Android cli
 	 * @throws SignatureException if signing with {@code keysOfPayer} failed
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
-	 * @throws NodeException if the node is not able to complete the operation
-	 * @throws UnknownReferenceException if the node is not properly initialized
+	 * @throws UnknownReferenceException if {@code payer} cannot be found in the store of the node
 	 * @throws NoSuchAlgorithmException if the signature algorithm of {@code payer} is not available
+	 * @throws UnsupportedVerificationVersionException if the node uses a verification version that is not available
+	 * @throws ClosedNodeException if the node is already closed
+	 * @throws UnexpectedCodeException if the Takamaka runtime installed in the node is not as expected
+	 * @throws MisbehavingNodeException if the node is behaving in a buggy way
 	 */
 	void sendFromPayer(StorageReference payer, KeyPair keysOfPayer, StorageReference destination, BigInteger amount,
 			Consumer<BigInteger> gasHandler, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException, NoSuchAlgorithmException;
+			throws TransactionRejectedException, TransactionException, InvalidKeyException, SignatureException, TimeoutException, InterruptedException, UnknownReferenceException, CodeExecutionException, NoSuchAlgorithmException, UnsupportedVerificationVersionException, ClosedNodeException, UnexpectedCodeException, MisbehavingNodeException;
 
 	/**
 	 * Sends coins to an account, by letting the faucet of the node pay.
@@ -70,13 +76,15 @@ public interface SendCoinsHelper { // TODO: this is only used by the Android cli
 	 * @param amount the balance to transfer
 	 * @param gasHandler a handler called with the total gas used for this operation. This can be useful for logging
 	 * @param requestsHandler a handler called with the paid requests used for this operation. This can be useful for logging or computing costs
-	 * @throws TransactionRejectedException if some transaction was rejected
-	 * @throws TransactionException if some transaction failed
+	 * @throws TransactionRejectedException if some transaction gets rejected
+	 * @throws TransactionException if some transaction fails
 	 * @throws CodeExecutionException if some transaction throws an exception
-	 * @throws NodeException if the node is not able to perform the operation
-	 * @throws InterruptedException if the current thread gets interrupted while performing the operation
+	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
+	 * @throws ClosedNodeException if the node is already closed
+	 * @throws UnexpectedCodeException if the Takamaka runtime installed in the node is not as expected
+	 * @throws MisbehavingNodeException if the node is behaving in a buggy way
 	 */
 	void sendFromFaucet(StorageReference destination, BigInteger amount, Consumer<BigInteger> gasHandler, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException, TimeoutException;
+			throws TransactionRejectedException, TransactionException, InterruptedException, TimeoutException, CodeExecutionException, ClosedNodeException, UnexpectedCodeException, MisbehavingNodeException;
 }

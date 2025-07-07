@@ -49,7 +49,9 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.MisbehavingNodeException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -67,6 +69,7 @@ import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
+import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 import io.hotmoka.whitelisting.api.WhiteListingWizard;
 import io.takamaka.code.constants.Constants;
 import picocli.CommandLine.Command;
@@ -178,7 +181,7 @@ public class Call extends AbstractGasCostCommand {
 				return getClasspathAtCreationTimeOf(payer, remote);
 		}
 
-		private TakamakaClassLoader mkClassloader() throws NodeException, TimeoutException, InterruptedException, CommandException {
+		private TakamakaClassLoader mkClassloader() throws TimeoutException, InterruptedException, CommandException, ClosedNodeException, MisbehavingNodeException {
 			try {
 				return ClassLoaderHelpers.of(remote).classloaderFor(classpath);
 			}
@@ -189,6 +192,9 @@ public class Call extends AbstractGasCostCommand {
 					throw new CommandException(receiver + " exists in the store of the node but its creation transaction cannot be found");
 				else
 					throw new CommandException(payer + " exists in the store of the node but its creation transaction cannot be found");
+			}
+			catch (UnsupportedVerificationVersionException e) {
+				throw new CommandException("The node uses a verification version that is not available");
 			}
 		}
 

@@ -16,8 +16,11 @@ limitations under the License.
 
 package io.hotmoka.helpers;
 
+import java.util.concurrent.TimeoutException;
+
 import io.hotmoka.helpers.api.ClassLoaderHelper;
 import io.hotmoka.helpers.internal.ClassLoaderHelperImpl;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.Node;
 
 /**
@@ -33,8 +36,11 @@ public abstract class ClassLoaderHelpers {
 	 * 
 	 * @param node the node
 	 * @return the helper object
+	 * @throws InterruptedException if the current thread gets interrupted
+	 * @throws TimeoutException if the operation times out
+	 * @throws ClosedNodeException if {@code node} is already closed
 	 */
-	public static ClassLoaderHelper of(Node node) {
+	public static ClassLoaderHelper of(Node node) throws ClosedNodeException, TimeoutException, InterruptedException {
 		return new ClassLoaderHelperImpl(node);
 	}
 }

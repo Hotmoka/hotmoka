@@ -56,6 +56,7 @@ import io.hotmoka.node.remote.RemoteNodes;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.websockets.beans.MappedEncoder;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
+import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 import jakarta.websocket.EncodeException;
 import picocli.CommandLine.Help.Ansi;
 import picocli.CommandLine.Option;
@@ -249,6 +250,9 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 		}
 		catch (UnknownReferenceException e) {
 			throw new CommandException(account + " cannot be found in the store of the node");
+		}
+		catch (UnsupportedVerificationVersionException e) {
+			throw new CommandException("The node uses a verification version that is not available");
 		}
 	}
 

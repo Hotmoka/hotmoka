@@ -25,4 +25,5 @@ module io.hotmoka.helpers.api {
 	requires transitive io.hotmoka.crypto.api;
 	requires transitive io.hotmoka.node.api;
 	requires transitive io.hotmoka.verification.api;
+	requires transitive io.hotmoka.whitelisting.api;
 }

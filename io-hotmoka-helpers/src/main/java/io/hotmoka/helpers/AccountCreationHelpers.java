@@ -20,11 +20,12 @@ import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.helpers.api.AccountCreationHelper;
 import io.hotmoka.helpers.internal.AccountCreationHelperImpl;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnexpectedCodeException;
 import io.hotmoka.node.api.UninitializedNodeException;
 
 /**
@@ -43,10 +44,11 @@ public abstract class AccountCreationHelpers {
 	 * @throws ClosedNodeException if the node is already closed
 	 * @throws CodeExecutionException if some transaction threw an exception
 	 * @throws TransactionException if some transaction failed
-	 * @throws TransactionRejectedException if some transaction was rejected
+	 * @throws TransactionRejectedException if some transaction has been rejected
 	 * @throws UninitializedNodeException if the node is not initialized yet
+	 * @throws UnexpectedCodeException if the Takamaka runtime in the node is behaving in an unexpected way
 	 */
-	public static AccountCreationHelper of(Node node) throws TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, UninitializedNodeException {
+	public static AccountCreationHelper of(Node node) throws ClosedNodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, CodeExecutionException, UninitializedNodeException, UnexpectedCodeException {
 		return new AccountCreationHelperImpl(node);
 	}
 }

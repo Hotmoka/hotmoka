@@ -43,15 +43,17 @@ import io.hotmoka.node.UnexpectedValueException;
 import io.hotmoka.node.UnexpectedVoidMethodException;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.MisbehavingNodeException;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnexpectedCodeException;
 import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 
 /**
  * A decorator of a node, that creates some initial accounts in it.
@@ -91,15 +93,18 @@ public class AccountsNodeImpl extends AbstractNodeDecorator<Node> implements Acc
 	 * @throws CodeExecutionException if some transaction throws an exception
 	 * @throws SignatureException if a signature with {@code privateKeyOfPayer} fails
 	 * @throws InvalidKeyException if {@code privateKeyOfPayer} is invalid
-	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws UnknownReferenceException if the payer is unknown
 	 * @throws NoSuchAlgorithmException if the signature algorithm of {@code payer} is not available
 	 * @throws UninitializedNodeException if the node is not initialized yet
+	 * @throws UnsupportedVerificationVersionException if {@code parent} uses a verification version that is not available
+	 * @throws ClosedNodeException if the node is already closed
+	 * @throws MisbehavingNodeException if the node is performing in a buggy way
+	 * @throws UnexpectedCodeException if the node contains unexpected runtime classes installed in store
 	 */
 	public AccountsNodeImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, String containerClassName, TransactionReference classpath, BigInteger... funds)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NodeException, UnknownReferenceException, TimeoutException, InterruptedException, NoSuchAlgorithmException, UninitializedNodeException {
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, UnknownReferenceException, TimeoutException, InterruptedException, NoSuchAlgorithmException, UninitializedNodeException, UnsupportedVerificationVersionException, MisbehavingNodeException, ClosedNodeException, UnexpectedCodeException {
 
 		super(parent);
 
@@ -135,7 +140,7 @@ public class AccountsNodeImpl extends AbstractNodeDecorator<Node> implements Acc
 			}
 			catch (InvalidKeyException e) {
 				// we have created the key from the corresponding signature, this cannot happen
-				throw new NodeException(e);
+				throw new RuntimeException("Unexpected invalid key: it has been created with its same signature algorithm", e);
 			}
 
 			publicKeys.append(i == 0 ? publicKey : (' ' + publicKey));
@@ -149,7 +154,6 @@ public class AccountsNodeImpl extends AbstractNodeDecorator<Node> implements Acc
 
 		this.container = addConstructorCallTransaction(TransactionRequests.constructorCall
 			(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getSafeGasPrice(), classpath,
-			// TODO: check exception below
 			ConstructorSignatures.of(StorageTypes.classNamed(containerClassName), StorageTypes.BIG_INTEGER, StorageTypes.STRING, StorageTypes.STRING),
 			StorageValues.bigIntegerOf(sum), StorageValues.stringOf(balances.toString()), StorageValues.stringOf(publicKeys.toString())));
 

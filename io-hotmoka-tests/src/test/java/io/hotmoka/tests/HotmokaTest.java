@@ -107,6 +107,7 @@ import io.hotmoka.node.tendermint.TendermintNodes;
 import io.hotmoka.node.tendermint.api.TendermintNode;
 import io.hotmoka.testing.AbstractLoggedTests;
 import io.hotmoka.websockets.api.FailedDeploymentException;
+import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 import io.mokamint.miner.api.Miner;
 import io.mokamint.miner.local.LocalMiners;
 import io.mokamint.node.Peers;
@@ -544,27 +545,27 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 				.skipVerification(skipVerification);
 	}
 
-	protected final void setAccounts(BigInteger... coins) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException, NoSuchAlgorithmException, UninitializedNodeException {
+	protected final void setAccounts(BigInteger... coins) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException, NoSuchAlgorithmException, UninitializedNodeException, UnsupportedVerificationVersionException {
 		nodeWithAccountsView = AccountsNodes.of(node, localGamete, privateKeyOfLocalGamete, coins);
 	}
 
-	protected final void setAccounts(String containerClassName, TransactionReference classpath, BigInteger... coins) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, NoSuchElementException, TimeoutException, InterruptedException, UnknownReferenceException, NoSuchAlgorithmException, UninitializedNodeException {
+	protected final void setAccounts(String containerClassName, TransactionReference classpath, BigInteger... coins) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, NoSuchElementException, TimeoutException, InterruptedException, UnknownReferenceException, NoSuchAlgorithmException, UninitializedNodeException, UnsupportedVerificationVersionException {
 		nodeWithAccountsView = AccountsNodes.of(node, localGamete, privateKeyOfLocalGamete, containerClassName, classpath, coins);
 	}
 
-	protected final void setAccounts(Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException, NoSuchAlgorithmException, UninitializedNodeException {
+	protected final void setAccounts(Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException, NoSuchAlgorithmException, UninitializedNodeException, UnsupportedVerificationVersionException {
 		setAccounts(coins.toArray(BigInteger[]::new));
 	}
 
-	protected final static AccountsNode mkAccounts(Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException, NoSuchAlgorithmException, UninitializedNodeException {
+	protected final static AccountsNode mkAccounts(Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException, NoSuchAlgorithmException, UninitializedNodeException, UnsupportedVerificationVersionException {
 		return AccountsNodes.of(node, localGamete, privateKeyOfLocalGamete, coins.toArray(BigInteger[]::new));
 	}
 
-	protected final void setAccounts(String containerClassName, TransactionReference classpath, Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, NoSuchElementException, TimeoutException, InterruptedException, UnknownReferenceException, NoSuchAlgorithmException, UninitializedNodeException {
+	protected final void setAccounts(String containerClassName, TransactionReference classpath, Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, NoSuchElementException, TimeoutException, InterruptedException, UnknownReferenceException, NoSuchAlgorithmException, UninitializedNodeException, UnsupportedVerificationVersionException {
 		setAccounts(containerClassName, classpath, coins.toArray(BigInteger[]::new));
 	}
 
-	protected static void setJar(String jar) throws InvalidKeyException, NoSuchElementException, SignatureException, NoSuchAlgorithmException, TimeoutException, InterruptedException, NodeException, TransactionRejectedException, TransactionException, IOException, UnknownReferenceException, CodeExecutionException, UninitializedNodeException {
+	protected static void setJar(String jar) throws InvalidKeyException, NoSuchElementException, SignatureException, NoSuchAlgorithmException, TimeoutException, InterruptedException, NodeException, TransactionRejectedException, TransactionException, IOException, UnknownReferenceException, CodeExecutionException, UninitializedNodeException, UnsupportedVerificationVersionException {
 		HotmokaTest.jar = JarsNodes.of(node, localGamete, privateKeyOfLocalGamete, pathOfExample(jar)).jar(0);
 	}
 

@@ -41,6 +41,8 @@ import io.hotmoka.moka.internal.json.ObjectsShowOutputJson;
 import io.hotmoka.moka.internal.json.ObjectsShowOutputJson.ConstructorDescriptionJson;
 import io.hotmoka.moka.internal.json.ObjectsShowOutputJson.MethodDescriptionJson;
 import io.hotmoka.node.Updates;
+import io.hotmoka.node.api.ClosedNodeException;
+import io.hotmoka.node.api.MisbehavingNodeException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.updates.ClassTag;
@@ -51,6 +53,7 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
+import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 import io.hotmoka.whitelisting.api.WhiteListingWizard;
 import io.takamaka.code.constants.Constants;
 import picocli.CommandLine.Command;
@@ -316,12 +319,15 @@ public class Show extends AbstractMokaRpcCommand {
 			return sb.toString();
 		}
 
-		private TakamakaClassLoader mkClassLoader(RemoteNode remote, StorageReference object) throws NodeException, TimeoutException, InterruptedException, CommandException {
+		private TakamakaClassLoader mkClassLoader(RemoteNode remote, StorageReference object) throws TimeoutException, InterruptedException, CommandException, ClosedNodeException, MisbehavingNodeException {
 			try {
 				return ClassLoaderHelpers.of(remote).classloaderFor(tag.getJar());
 			}
 			catch (UnknownReferenceException e) {
 				throw new CommandException("The object " + object + " has been installed by transaction " + tag.getJar() + " but the latter cannot be found in store!");
+			}
+			catch (UnsupportedVerificationVersionException e) {
+				throw new CommandException("The node uses a verification version that is not available");
 			}
 		}
 

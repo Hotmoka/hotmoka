@@ -47,6 +47,7 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
+import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 
@@ -73,6 +74,9 @@ public class Show extends AbstractMokaRpcCommand {
 		}
 		catch (UnknownReferenceException e) {
 			throw new CommandException("The account object " + account + " does not exist in the node");
+		}
+		catch (UnsupportedVerificationVersionException e) {
+			throw new CommandException("The node uses a verification version that is not available");
 		}
 
 		TransactionReference takamakaCode;

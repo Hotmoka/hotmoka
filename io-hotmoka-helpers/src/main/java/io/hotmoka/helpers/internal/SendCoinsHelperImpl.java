@@ -27,6 +27,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
 
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.Signer;
@@ -43,8 +44,8 @@ import io.hotmoka.node.UnexpectedValueException;
 import io.hotmoka.node.UnexpectedVoidMethodException;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.MisbehavingNodeException;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnexpectedCodeException;
@@ -54,6 +55,7 @@ import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 
 /**
  * Implementation of an object that helps with sending coins to accounts.
@@ -66,6 +68,7 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 	private final GasHelper gasHelper;
 	private final String chainId;
 	private final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
+	private final static Logger LOGGER = Logger.getLogger(SendCoinsHelperImpl.class.getName());
 
 	/**
 	 * Creates an object that helps with sending coins to accounts.
@@ -93,13 +96,12 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 	public void sendFromPayer(StorageReference payer, KeyPair keysOfPayer,
 			StorageReference destination, BigInteger amount,
 			Consumer<BigInteger> gasHandler, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException, CodeExecutionException, NoSuchAlgorithmException {
+			throws TransactionRejectedException, TransactionException, InvalidKeyException, SignatureException, TimeoutException, InterruptedException, UnknownReferenceException, CodeExecutionException, NoSuchAlgorithmException, UnsupportedVerificationVersionException, ClosedNodeException, UnexpectedCodeException, MisbehavingNodeException {
 
 		var signature = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
 		Signer<SignedTransactionRequest<?>> signer = signature.getSigner(keysOfPayer.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
-		BigInteger gas = gasForTransactionWhosePayerHasSignature(signature.getName(), node);
-		BigInteger totalGas = gas;
-		gasHandler.accept(totalGas);
+		BigInteger gas = gasForTransactionWhosePayerHasSignature(signature.getName());
+		gasHandler.accept(gas);
 
 		var request = TransactionRequests.instanceMethodCall
 			(signer,
@@ -116,7 +118,7 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 	@Override
 	public void sendFromFaucet(StorageReference destination, BigInteger amount,
 			Consumer<BigInteger> gasHandler, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, NodeException, InterruptedException, TimeoutException, CodeExecutionException {
+			throws TransactionRejectedException, TransactionException, InterruptedException, TimeoutException, CodeExecutionException, ClosedNodeException, UnexpectedCodeException, MisbehavingNodeException {
 
 		try {
 			var gamete = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
@@ -139,16 +141,14 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 			requestsHandler.accept(new TransactionRequest<?>[] { request });
 		}
 		catch (InvalidKeyException | SignatureException e) {
-			// the empty signature does not throw these
-			throw new NodeException(e);
+			throw new RuntimeException("Unexpected exception from the empty signature algorithm", e);
 		}
 		catch (UnknownReferenceException e) {
-			// the gamete of the node must exist, since the node is initialized
-			throw new NodeException(e);
+			throw new MisbehavingNodeException("The node does not contain its same gamete", e);
 		}
 	}
 
-	private static BigInteger gasForTransactionWhosePayerHasSignature(String signature, Node node) throws NodeException {
+	private static BigInteger gasForTransactionWhosePayerHasSignature(String signature) {
 		switch (signature) {
 		case "ed25519":
 		case "sha256dsa":
@@ -159,7 +159,8 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 		case "qtesla3":
 			return BigInteger.valueOf(400_000L);
 		default:
-			throw new NodeException("Unknown signature algorithm " + signature);
+			LOGGER.warning("I do not how much gas to provide for sending coins from an account with signature " + signature + ": using a default of " + _100_000);
+			return _100_000;
 		}
 	}
 }

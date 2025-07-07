@@ -21,8 +21,9 @@ import java.util.HashSet;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.helpers.api.ClassLoaderHelper;
+import io.hotmoka.node.api.ClosedNodeException;
+import io.hotmoka.node.api.MisbehavingNodeException;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.GenericJarStoreTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -42,16 +43,25 @@ public class ClassLoaderHelperImpl implements ClassLoaderHelper {
 	private final Node node;
 
 	/**
+	 * The verification version of {@code node}.
+	 */
+	private final long verificationVersion;
+
+	/**
 	 * Creates the helper class for building class loaders for jars installed in the given node.
 	 * 
 	 * @param node the node
+	 * @throws InterruptedException if the current thread gets interrupted
+	 * @throws TimeoutException if the operation times out
+	 * @throws ClosedNodeException if {@code node} is already closed
 	 */
-	public ClassLoaderHelperImpl(Node node) {
+	public ClassLoaderHelperImpl(Node node) throws ClosedNodeException, TimeoutException, InterruptedException {
 		this.node = node;
+		this.verificationVersion = node.getConfig().getVerificationVersion();
 	}
 
 	@Override
-	public TakamakaClassLoader classloaderFor(TransactionReference jar) throws NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
+	public TakamakaClassLoader classloaderFor(TransactionReference jar) throws TimeoutException, InterruptedException, UnknownReferenceException, UnsupportedVerificationVersionException, ClosedNodeException, MisbehavingNodeException {
 		var ws = new ArrayList<TransactionReference>();
 		var seen = new HashSet<TransactionReference>();
 		var jars = new ArrayList<byte[]>();
@@ -73,20 +83,18 @@ public class ClassLoaderHelperImpl implements ClassLoaderHelper {
 				gjstr2.getDependencies().filter(seen::add).forEachOrdered(ws::add);
 			}
 			else
-				throw new NodeException("A jar dependency in store is not for a jar installation request");
+				throw new MisbehavingNodeException("A jar dependency in store is not for a jar installation request");
 		}
 
 		try {
-			return TakamakaClassLoaders.of(jars.stream(), node.getConfig().getVerificationVersion());
-		}
-		catch (UnsupportedVerificationVersionException e) {
-			throw new NodeException(e);
+			return TakamakaClassLoaders.of(jars.stream(), verificationVersion);
 		}
 		catch (io.hotmoka.verification.api.UnknownTypeException e) {
 			// when jar was installed in the store of the node, a classloader was created without problems,
 			// hence the classes of the Takamaka runtime were accessible from its classpath;
-			// therefore, it is impossible that this is not true anymore now
-			throw new NodeException(e);
+			// therefore, it is impossible that this is not true anymore now, which means that the
+			// node is misbehaving
+			throw new MisbehavingNodeException(e);
 		}
 	}
 }

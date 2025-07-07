@@ -58,6 +58,7 @@ import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.signatures.VoidMethodSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 
 /**
  * A test that performs repeated transfers between accounts of an ERC20 token.
@@ -133,7 +134,7 @@ class WTSC2021 extends HotmokaTest {
 		}
 		catch (InvalidKeyException | SignatureException | TransactionException | CodeExecutionException
 				| TransactionRejectedException | InterruptedException | ExecutionException
-				| UnknownReferenceException | IOException | NodeException | TimeoutException | NoSuchAlgorithmException | UninitializedNodeException e) {
+				| UnknownReferenceException | IOException | NodeException | TimeoutException | NoSuchAlgorithmException | UninitializedNodeException | UnsupportedVerificationVersionException e) {
 			throw new RuntimeException(e);
 		}
 	}

@@ -25,15 +25,18 @@ import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.helpers.api.AccountsNode;
 import io.hotmoka.helpers.internal.AccountsNodeImpl;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.MisbehavingNodeException;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnexpectedCodeException;
 import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -60,14 +63,17 @@ public abstract class AccountsNodes {
 	 * @throws CodeExecutionException if some transaction throws an exception
 	 * @throws SignatureException if a signature with {@code privateKeyOfPayer} fails
 	 * @throws InvalidKeyException if {@code privateKeyOfPayer} is invalid
-	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws UnknownReferenceException if the payer is unknown
 	 * @throws NoSuchAlgorithmException if the signature algorithm of {@code payer} is not available
 	 * @throws UninitializedNodeException if the node is not initialized yet
+	 * @throws UnsupportedVerificationVersionException if {@code parent} uses a verification version that is not available
+	 * @throws ClosedNodeException if the node is already closed
+	 * @throws MisbehavingNodeException if the node is performing in a buggy way
+	 * @throws UnexpectedCodeException if the node contains unexpected runtime classes installed in store
      */
-	public static AccountsNode of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, BigInteger... funds) throws TransactionRejectedException, TransactionException, InvalidKeyException, SignatureException, NodeException, UnknownReferenceException, TimeoutException, InterruptedException, NoSuchAlgorithmException, CodeExecutionException, UninitializedNodeException {
+	public static AccountsNode of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, BigInteger... funds) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, MisbehavingNodeException, ClosedNodeException, UnexpectedCodeException, TransactionRejectedException, TransactionException, CodeExecutionException, UnknownReferenceException, TimeoutException, InterruptedException, UninitializedNodeException, UnsupportedVerificationVersionException {
 		return new AccountsNodeImpl(parent, payer, privateKeyOfPayer, Constants.EXTERNALLY_OWNED_ACCOUNTS_NAME, parent.getTakamakaCode(), funds);
 	}
 
@@ -90,14 +96,17 @@ public abstract class AccountsNodes {
 	 * @throws CodeExecutionException if some transaction throws an exception
 	 * @throws SignatureException if a signature with {@code privateKeyOfPayer} fails
 	 * @throws InvalidKeyException if {@code privateKeyOfPayer} is invalid
-	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws UnknownReferenceException if the payer is unknown
 	 * @throws NoSuchAlgorithmException if the signature algorithm of {@code payer} is not available
 	 * @throws UninitializedNodeException if the node is not initialized yet
+	 * @throws UnsupportedVerificationVersionException if {@code parent} uses a verification version that is not available
+	 * @throws ClosedNodeException if the node is already closed
+	 * @throws MisbehavingNodeException if the node is performing in a buggy way
+	 * @throws UnexpectedCodeException if the node contains unexpected runtime classes installed in store
      */
-	public static AccountsNode of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, String containerClassName, TransactionReference classpath, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException, NoSuchAlgorithmException, UninitializedNodeException {
+	public static AccountsNode of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, String containerClassName, TransactionReference classpath, BigInteger... funds) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, MisbehavingNodeException, ClosedNodeException, UnexpectedCodeException, TransactionRejectedException, TransactionException, CodeExecutionException, UnknownReferenceException, TimeoutException, InterruptedException, UninitializedNodeException, UnsupportedVerificationVersionException {
 		return new AccountsNodeImpl(parent, payer, privateKeyOfPayer, containerClassName, classpath, funds);
 	}
 }

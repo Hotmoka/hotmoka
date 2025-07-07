@@ -21,9 +21,11 @@ import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.ClosedNodeException;
+import io.hotmoka.node.api.MisbehavingNodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 
 /**
  * A helper to determine the signature algorithm to use for an externally owned account.
@@ -36,11 +38,13 @@ public interface SignatureHelper {
 	 * 
 	 * @param account the account
 	 * @return the algorithm
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws ClosedNodeException if the node is already closed
+	 * @throws MisbehavingNodeException if the node is performing in a buggy way
 	 * @throws InterruptedException if the current thread gets interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws UnknownReferenceException if {@code account} cannot be found in the node
 	 * @throws NoSuchAlgorithmException if the signature algorithm used by {@code account} is not available
+	 * @throws UnsupportedVerificationVersionException if the node uses a verification version that is not available in this client
 	 */
-	SignatureAlgorithm signatureAlgorithmFor(StorageReference account) throws NodeException, InterruptedException, TimeoutException, UnknownReferenceException, NoSuchAlgorithmException;
+	SignatureAlgorithm signatureAlgorithmFor(StorageReference account) throws MisbehavingNodeException, ClosedNodeException, UnsupportedVerificationVersionException, InterruptedException, TimeoutException, UnknownReferenceException, NoSuchAlgorithmException;
 }

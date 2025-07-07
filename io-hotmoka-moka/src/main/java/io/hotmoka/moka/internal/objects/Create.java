@@ -64,6 +64,7 @@ import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
+import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 import io.hotmoka.whitelisting.api.WhiteListingWizard;
 import io.takamaka.code.constants.Constants;
 import picocli.CommandLine.Command;
@@ -232,6 +233,9 @@ public class Create extends AbstractGasCostCommand {
 					throw new CommandException("The classpath " + classpath + " does not match any transaction in the store of the node");
 				else
 					throw new CommandException(payer + " exists in the store of the node but its creation transaction cannot be found");
+			}
+			catch (UnsupportedVerificationVersionException e) {
+				throw new CommandException("The node uses a verification version that is not available");
 			}
 		}
 
