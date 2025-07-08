@@ -25,13 +25,6 @@ import java.util.Objects;
 public class TrieException extends Exception {
 
 	/**
-	 * Creates a new exception.
-	 */
-	public TrieException() {
-		super("The Patricia trie is misbehaving");
-	}
-
-	/**
 	 * Creates a new exception with the given message.
 	 * 
 	 * @param message the message

@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.node.local.internal.tries;
 
 import java.io.ByteArrayInputStream;
-import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -25,13 +24,12 @@ import java.util.logging.Logger;
 
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
-import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.responses.JarStoreInitialTransactionResponse;
+import io.hotmoka.node.api.responses.JarStoreTransactionResponseWithInstrumentedJar;
 import io.hotmoka.node.api.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
-import io.hotmoka.node.api.responses.JarStoreTransactionResponseWithInstrumentedJar;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.patricia.AbstractPatriciaTrie;
 import io.hotmoka.patricia.api.KeyValueStore;
@@ -61,12 +59,12 @@ public class TrieOfResponses extends AbstractPatriciaTrie<TransactionReference, 
 	 * @param root the root of the trie to check out
 	 * @throws UnknownKeyException if {@code root} cannot be found in the trie
 	 */
-	public TrieOfResponses(KeyValueStore store, byte[] root) throws TrieException, UnknownKeyException {
+	public TrieOfResponses(KeyValueStore store, byte[] root, AbstractTrieBasedLocalNodeImpl<?,?,?,?> node) throws TrieException, UnknownKeyException {
 		super(store, root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
 			// we use a NodeUnmarshallingContext because that is the default used for marshalling responses
-			sha256(), new byte[32], TransactionResponse::toByteArray, bytes -> TransactionResponses.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))));
+			node.mkSHA256(), new byte[32], TransactionResponse::toByteArray, bytes -> TransactionResponses.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))));
 
-		this.hasherForJars = sha256().getHasher(Function.identity());
+		this.hasherForJars = node.mkSHA256().getHasher(Function.identity());
 	}
 
 	private TrieOfResponses(TrieOfResponses cloned, byte[] root) throws TrieException, UnknownKeyException {
@@ -102,15 +100,6 @@ public class TrieOfResponses extends AbstractPatriciaTrie<TransactionReference, 
 	@Override
 	public TrieOfResponses checkoutAt(byte[] root) throws TrieException, UnknownKeyException {
 		return new TrieOfResponses(this, root);
-	}
-
-	private static HashingAlgorithm sha256() throws TrieException {
-		try {
-			return HashingAlgorithms.sha256();
-		}
-		catch (NoSuchAlgorithmException e) {
-			throw new TrieException(e);
-		}
 	}
 
 	/**

@@ -17,11 +17,9 @@ limitations under the License.
 package io.hotmoka.node.local.internal.tries;
 
 import java.io.ByteArrayInputStream;
-import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
 import io.hotmoka.crypto.HashingAlgorithms;
-import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.values.StorageReference;
@@ -43,12 +41,13 @@ public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue, TrieOfI
 	 * 
 	 * @param store the supporting key/value store
 	 * @param root the root of the trie to check out
+	 * @param node the node for which the trie is being built
 	 * @throws UnknownKeyException if {@code root} cannot be found in the trie
 	 */
-	public TrieOfInfo(KeyValueStore store, byte[] root) throws TrieException, UnknownKeyException {
+	public TrieOfInfo(KeyValueStore store, byte[] root, AbstractTrieBasedLocalNodeImpl<?,?,?,?> node) throws TrieException, UnknownKeyException {
 		super(store, root, HashingAlgorithms.identity1().getHasher(key -> new byte[] { key }),
 			// we use a NodeUnmarshallingContext because that is the default used for marshalling storage values
-			sha256(), new byte[32], StorageValue::toByteArray, bytes -> StorageValues.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))));
+			node.mkSHA256(), new byte[32], StorageValue::toByteArray, bytes -> StorageValues.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))));
 	}
 
 	private TrieOfInfo(TrieOfInfo cloned, byte[] root) throws TrieException, UnknownKeyException {
@@ -93,14 +92,5 @@ public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue, TrieOfI
 	 */
 	public TrieOfInfo setManifest(StorageReference manifest) throws TrieException {
 		return put((byte) 0, manifest);
-	}
-
-	private static HashingAlgorithm sha256() throws TrieException {
-		try {
-			return HashingAlgorithms.sha256();
-		}
-		catch (NoSuchAlgorithmException e) {
-			throw new TrieException(e);
-		}
 	}
 }

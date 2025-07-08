@@ -17,10 +17,8 @@ limitations under the License.
 package io.hotmoka.node.local.internal.tries;
 
 import java.io.ByteArrayInputStream;
-import java.security.NoSuchAlgorithmException;
 
 import io.hotmoka.crypto.HashingAlgorithms;
-import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.requests.TransactionRequest;
@@ -42,12 +40,13 @@ public class TrieOfRequests extends AbstractPatriciaTrie<TransactionReference, T
 	 * 
 	 * @param store the supporting key/value store
 	 * @param root the root of the trie to check out
+	 * @param node the node for which the trie is being built
 	 * @throws UnknownKeyException if {@code root} cannot be found in the trie
 	 */
-	public TrieOfRequests(KeyValueStore store, byte[] root) throws TrieException, UnknownKeyException {
+	public TrieOfRequests(KeyValueStore store, byte[] root, AbstractTrieBasedLocalNodeImpl<?,?,?,?> node) throws TrieException, UnknownKeyException {
 		super(store, root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
 			// we use a NodeUnmarshallingContext because that is the default used for marshalling requests
-			sha256(), new byte[32], TransactionRequest<?>::toByteArray, bytes -> TransactionRequests.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))));
+			node.mkSHA256(), new byte[32], TransactionRequest<?>::toByteArray, bytes -> TransactionRequests.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))));
 	}
 
 	private TrieOfRequests(TrieOfRequests cloned, byte[] root) throws TrieException, UnknownKeyException {
@@ -67,14 +66,5 @@ public class TrieOfRequests extends AbstractPatriciaTrie<TransactionReference, T
 	@Override
 	public TrieOfRequests checkoutAt(byte[] root) throws TrieException, UnknownKeyException {
 		return new TrieOfRequests(this, root);
-	}
-
-	private static HashingAlgorithm sha256() throws TrieException {
-		try {
-			return HashingAlgorithms.sha256();
-		}
-		catch (NoSuchAlgorithmException e) {
-			throw new TrieException(e);
-		}
 	}
 }

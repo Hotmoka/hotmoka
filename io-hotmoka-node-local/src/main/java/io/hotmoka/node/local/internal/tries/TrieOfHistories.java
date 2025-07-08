@@ -16,12 +16,9 @@ limitations under the License.
 
 package io.hotmoka.node.local.internal.tries;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import io.hotmoka.crypto.HashingAlgorithms;
-import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
@@ -44,11 +41,12 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 	 * 
 	 * @param store the supporting key/value store
 	 * @param root the root of the trie to check out; use empty to create the empty trie
+	 * @param node the node for which the trie is being built
 	 * @throws UnknownKeyException if {@code root} cannot be found in the trie
 	 */
-	public TrieOfHistories(KeyValueStore store, byte[] root) throws TrieException, UnknownKeyException {
-		super(store, root, sha256().getHasher(StorageReference::toByteArrayWithoutSelector),
-			sha256(), new byte[32], TrieOfHistories::historyToBytes, TrieOfHistories::bytesToHistory);
+	public TrieOfHistories(KeyValueStore store, byte[] root, AbstractTrieBasedLocalNodeImpl<?,?,?,?> node) throws TrieException, UnknownKeyException {
+		super(store, root, node.mkSHA256().getHasher(StorageReference::toByteArrayWithoutSelector),
+			node.mkSHA256(), new byte[32], TrieOfHistories::historyToBytes, TrieOfHistories::bytesToHistory);
 	}
 
 	private TrieOfHistories(TrieOfHistories cloned, byte[] root) throws TrieException, UnknownKeyException {
@@ -89,15 +87,6 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 		}
 		
 		return Stream.of(references);
-	}
-
-	private static HashingAlgorithm sha256() throws TrieException {
-		try {
-			return HashingAlgorithms.sha256();
-		}
-		catch (NoSuchAlgorithmException e) {
-			throw new TrieException(e);
-		}
 	}
 
 	@Override

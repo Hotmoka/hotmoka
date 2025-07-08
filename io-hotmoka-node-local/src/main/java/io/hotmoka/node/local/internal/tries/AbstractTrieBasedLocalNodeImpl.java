@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.local.internal.tries;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -29,6 +30,8 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.GuardedBy;
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.crypto.HashingAlgorithms;
+import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.exceptions.functions.ConsumerWithExceptions2;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.local.AbstractLocalNode;
@@ -103,6 +106,13 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	private final Map<StateId, Integer> storeUsers = new HashMap<>();
 
 	/**
+	 * The SHA256 algorithm used for hashing the nodes of the tries.
+	 * We store it here so that we can clone it wherever we need it, instead of
+	 * creating it every time and deal with a potential NoSuchAlgorithmException.
+	 */
+	private final HashingAlgorithm sha256;
+
+	/**
 	 * The key used inside {@link #storeOfNode} to keep the list of old stores
 	 * that are candidate for garbage-collection, if they are not used by any running task.
 	 */
@@ -128,6 +138,14 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		super(config, init);
 
 		var path = config.getDir().resolve("hotmoka").resolve("store");
+
+		try {
+			this.sha256 = HashingAlgorithms.sha256();
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw new NodeCreationException(e);
+		}
+
 		this.env = new Environment(path.toString());
 		this.storeOfNode = env.computeInTransaction(txn -> env.openStoreWithoutDuplicates("node", txn));
     	this.storeOfResponses = env.computeInTransaction(txn -> env.openStoreWithoutDuplicatesWithPrefixing("responses", txn));
@@ -139,6 +157,15 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		getExecutors().execute(this::gc);
 
 		LOGGER.info("opened the store database at " + path);
+	}
+
+	/**
+	 * Yields a clone of the SHA256 hashing algorithm.
+	 * 
+	 * @return the clone
+	 */
+	protected HashingAlgorithm mkSHA256() {
+		return sha256.clone();
 	}
 
 	protected final io.hotmoka.xodus.env.Store getStoreOfNode() {
@@ -270,10 +297,10 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 			};
 
 			env.executeInTransaction(NodeException.class, UnknownStateIdException.class, gc);
-			LOGGER.fine(() -> "garbage-collected store " + stateIdAndTime);
+			LOGGER.fine(() -> "garbage-collected store " + stateIdAndTime.stateId);
 		}
 		catch (NodeException | UnknownStateIdException | ExodusException e) {
-			LOGGER.log(Level.SEVERE, "cannot garbage-collect store " + stateIdAndTime, e);
+			LOGGER.log(Level.SEVERE, "cannot garbage-collect store " + stateIdAndTime.stateId, e);
 		}
 	}
 
@@ -347,7 +374,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 
 	protected TrieOfResponses mkTrieOfResponses(Transaction txn, byte[] rootOfResponses) throws StoreException, UnknownKeyException {
 		try {
-			return new TrieOfResponses(new KeyValueStoreOnXodus(storeOfResponses, txn), rootOfResponses);
+			return new TrieOfResponses(new KeyValueStoreOnXodus(storeOfResponses, txn), rootOfResponses, this);
 		}
 		catch (TrieException e) {
 			throw new StoreException(e);
@@ -356,7 +383,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 
 	protected TrieOfInfo mkTrieOfInfo(Transaction txn, byte[] rootOfInfo) throws StoreException, UnknownKeyException {
 		try {
-			return new TrieOfInfo(new KeyValueStoreOnXodus(storeOfInfo, txn), rootOfInfo);
+			return new TrieOfInfo(new KeyValueStoreOnXodus(storeOfInfo, txn), rootOfInfo, this);
 		}
 		catch (TrieException e) {
 			throw new StoreException(e);
@@ -365,7 +392,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 
 	protected TrieOfRequests mkTrieOfRequests(Transaction txn, byte[] rootOfRequests) throws StoreException, UnknownKeyException {
 		try {
-			return new TrieOfRequests(new KeyValueStoreOnXodus(storeOfRequests, txn), rootOfRequests);
+			return new TrieOfRequests(new KeyValueStoreOnXodus(storeOfRequests, txn), rootOfRequests, this);
 		}
 		catch (TrieException e) {
 			throw new StoreException(e);
@@ -374,7 +401,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 
 	protected TrieOfHistories mkTrieOfHistories(Transaction txn, byte[] rootOfHistories) throws StoreException, UnknownKeyException {
 		try {
-			return new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistories, txn), rootOfHistories);
+			return new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistories, txn), rootOfHistories, this);
 		}
 		catch (TrieException e) {
 			throw new StoreException(e);
