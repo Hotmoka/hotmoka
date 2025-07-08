@@ -31,7 +31,7 @@ import io.hotmoka.moka.internal.converters.SignatureOptionConverter;
 import io.hotmoka.moka.internal.json.AccountsCreateOutputJson;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
@@ -48,7 +48,7 @@ public class Create extends AbstractAccountCreation<Create.Output> {
 	private SignatureAlgorithm signature;
 
 	@Override
-	protected SignatureAlgorithm getSignatureAlgorithmOfNewAccount(RemoteNode remote) throws NodeException, TimeoutException, InterruptedException {
+	protected SignatureAlgorithm getSignatureAlgorithmOfNewAccount(RemoteNode remote) throws TimeoutException, InterruptedException, ClosedNodeException {
 		return signature != null ? signature : remote.getConfig().getSignatureForRequests();
 	}
 

@@ -52,9 +52,10 @@ import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.MisbehavingNodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnexpectedCodeException;
 import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
@@ -143,8 +144,7 @@ public class Send extends AbstractGasCostCommand {
 	}
 
 	@Override
-	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, UninitializedNodeException {
-		try {
+	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, UninitializedNodeException, ClosedNodeException, MisbehavingNodeException, UnexpectedCodeException {
 		if (payer.isFaucet())
 			if(receiver.asReference() != null)
 				new SendFromFaucetToDestinationContract(remote);
@@ -155,13 +155,9 @@ public class Send extends AbstractGasCostCommand {
 				new SendFromPayerAccountToDestinationContract(remote);
 			else
 				new SendFromPayerAccountToDestinationKey(remote);
-		}
-		catch (NodeException e) {
-			throw new RuntimeException(e); // TODO
-		}
 	}
 
-	private TransactionReference getClasspath(RemoteNode remote) throws NodeException, TimeoutException, InterruptedException, CommandException {
+	private TransactionReference getClasspath(RemoteNode remote) throws ClosedNodeException, TimeoutException, InterruptedException, CommandException {
 		if (classpath != null)
 			return classpath;
 		else if (receiver.asReference() != null)
@@ -181,7 +177,7 @@ public class Send extends AbstractGasCostCommand {
 		private final BigInteger nonce;
 		private final InstanceMethodCallTransactionRequest request;
 	
-		private SendFromPayerAccountToDestinationContract(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+		private SendFromPayerAccountToDestinationContract(RemoteNode remote) throws TimeoutException, InterruptedException, ClosedNodeException, CommandException, UninitializedNodeException, MisbehavingNodeException, UnexpectedCodeException {
 			String passwordOfPayerAsString = new String(passwordOfPayer);
 	
 			try {
@@ -215,7 +211,7 @@ public class Send extends AbstractGasCostCommand {
 			}
 		}
 
-		private Output executeRequest() throws CommandException, NodeException, TimeoutException, InterruptedException {
+		private Output executeRequest() throws CommandException, ClosedNodeException, TimeoutException, InterruptedException {
 			TransactionReference transaction = computeTransaction(request);
 			Optional<GasCost> gasCost = Optional.empty();
 			Optional<String> errorMessage = Optional.empty();
@@ -274,7 +270,7 @@ public class Send extends AbstractGasCostCommand {
 		private final TransactionReference classpath;
 		private final InstanceMethodCallTransactionRequest request;
 	
-		private SendFromFaucetToDestinationContract(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException, UninitializedNodeException {
+		private SendFromFaucetToDestinationContract(RemoteNode remote) throws TimeoutException, InterruptedException, ClosedNodeException, CommandException, UninitializedNodeException {
 			this.remote = remote;
 			this.gamete = getGamete();
 			this.chainId = remote.getConfig().getChainId();
@@ -303,7 +299,7 @@ public class Send extends AbstractGasCostCommand {
 			}
 		}
 	
-		private Output executeRequest() throws CommandException, NodeException, TimeoutException, InterruptedException {
+		private Output executeRequest() throws CommandException, ClosedNodeException, TimeoutException, InterruptedException {
 			TransactionReference transaction = computeTransaction(request);
 			Optional<String> errorMessage = Optional.empty();
 	
@@ -377,7 +373,7 @@ public class Send extends AbstractGasCostCommand {
 		private final BigInteger nonce;
 		private final InstanceMethodCallTransactionRequest request;
 	
-		private SendFromPayerAccountToDestinationKey(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException, UninitializedNodeException {
+		private SendFromPayerAccountToDestinationKey(RemoteNode remote) throws TimeoutException, InterruptedException, ClosedNodeException, CommandException, UninitializedNodeException, MisbehavingNodeException, UnexpectedCodeException {
 			String passwordOfPayerAsString = new String(passwordOfPayer);
 	
 			try {
@@ -420,7 +416,7 @@ public class Send extends AbstractGasCostCommand {
 			}
 		}
 	
-		private Output executeRequest() throws CommandException, NodeException, TimeoutException, InterruptedException {
+		private Output executeRequest() throws CommandException, ClosedNodeException, TimeoutException, InterruptedException {
 			TransactionReference transaction = computeTransaction(request);
 			Optional<GasCost> gasCost = Optional.empty();
 			Optional<String> errorMessage = Optional.empty();

@@ -41,9 +41,10 @@ import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.Account;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.MisbehavingNodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnexpectedCodeException;
 import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.CodeExecutionTransactionRequest;
@@ -108,6 +109,12 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 		catch (UninitializedNodeException e) {
 			throw new CommandException("The node is not initialized yet!", e);
 		}
+		catch (MisbehavingNodeException e) {
+			throw new CommandException("The node is misbehaving", e);
+		}
+		catch (UnexpectedCodeException e) {
+			throw new CommandException("The node contains an unexpected Takamaka runtime", e);
+		}
 	}
 
 	/**
@@ -120,8 +127,10 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 	 * @throws CommandException if something erroneous must be logged and the user must be informed
 	 * @throws ClosedNodeException if {@code remote} is already closed
 	 * @throws UninitializedNodeException if {@code remote} is not initialized yet
+	 * @throws MisbehavingNodeException if {@code remote} is performing in a buggy way
+	 * @throws UnexpectedCodeException if {@code remote} contains an unexpected Takamaka runtime
 	 */
-	protected abstract void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, ClosedNodeException, UninitializedNodeException;
+	protected abstract void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, ClosedNodeException, UninitializedNodeException, MisbehavingNodeException, UnexpectedCodeException;
 
 	/**
 	 * Reports on the standard output the given output of a command.
@@ -195,7 +204,7 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 	 * @param object the object
 	 * @param node the node where the object should be stored
 	 * @return the reference to the transaction that created {@code object}
-	 * @throws NodeException if the node is misbehaving
+	 * @throws ClosedNodeException if the node is already closed
 	 * @throws TimeoutException if no answer arrives by a given time window
 	 * @throws InterruptedException if the operation gets interrupted before completion
 	 * @throws CommandException if {@code object} does not exist in store, or if it has not been created with a transaction that creates object, in which case the remote node is corrupted
@@ -237,11 +246,12 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 	 * @param remote the remote node whose store will be used
 	 * @return the signature algorithm for {@code account}
 	 * @throws CommandException if {@code account} cannot be found in the store of the node or if its signature algorithm is not available
-	 * @throws NodeException if the node is misbehaving
 	 * @throws InterruptedException if the operation gets interrupted while waiting
 	 * @throws TimeoutException if the operation times out
+	 * @throws ClosedNodeException if the node is already closed
+	 * @throws MisbehavingNodeException if the node is behaving in a buggy way
 	 */
-	protected SignatureAlgorithm determineSignatureOf(StorageReference account, RemoteNode remote) throws CommandException, NodeException, InterruptedException, TimeoutException {
+	protected SignatureAlgorithm determineSignatureOf(StorageReference account, RemoteNode remote) throws CommandException, InterruptedException, TimeoutException, MisbehavingNodeException, ClosedNodeException {
 		try {
 			return SignatureHelpers.of(remote).signatureAlgorithmFor(account);
 		}
@@ -263,11 +273,12 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 	 * @param remote the remote node whose store will be used
 	 * @return the nonce of {@code account}
 	 * @throws CommandException if {@code account} cannot be found in the store of the node
-	 * @throws NodeException if the node is misbehaving
 	 * @throws InterruptedException if the operation gets interrupted while waiting
 	 * @throws TimeoutException if the operation times out
+	 * @throws UnexpectedCodeException if the Takamaka code in the store of the node is unexpected
+	 * @throws ClosedNodeException if the node is already closed
 	 */
-	protected BigInteger determineNonceOf(StorageReference account, RemoteNode remote) throws CommandException, NodeException, InterruptedException, TimeoutException {
+	protected BigInteger determineNonceOf(StorageReference account, RemoteNode remote) throws CommandException, InterruptedException, TimeoutException, ClosedNodeException, UnexpectedCodeException {
 		try {
 			return NonceHelpers.of(remote).getNonceOf(account);
 		}

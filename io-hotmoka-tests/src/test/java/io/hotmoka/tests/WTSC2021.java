@@ -29,6 +29,7 @@ import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
+import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -47,10 +48,12 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.MisbehavingNodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnexpectedCodeException;
 import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
@@ -132,10 +135,13 @@ class WTSC2021 extends HotmokaTest {
 
 			customThreadPool.submit(() -> IntStream.range(0, NUMBER_OF_INVESTORS).parallel().forEach(this::runTransfersForSender)).get();
 		}
-		catch (InvalidKeyException | SignatureException | TransactionException | CodeExecutionException
-				| TransactionRejectedException | InterruptedException | ExecutionException
-				| UnknownReferenceException | IOException | NodeException | TimeoutException | NoSuchAlgorithmException | UninitializedNodeException | UnsupportedVerificationVersionException e) {
+		catch (InvalidKeyException | SignatureException | TransactionException | CodeExecutionException | TransactionRejectedException | ExecutionException
+				| UnknownReferenceException | IOException | TimeoutException | NoSuchAlgorithmException | UninitializedNodeException | UnsupportedVerificationVersionException | ClosedNodeException | UnexpectedCodeException
+				| NoSuchElementException | MisbehavingNodeException e) {
 			throw new RuntimeException(e);
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
 		}
 	}
 
@@ -159,8 +165,11 @@ class WTSC2021 extends HotmokaTest {
 		catch (TimeoutException e) {
 			// this occurs if the node is remote and very slow, so that the connection timeouts
 		}
-		catch (UnknownReferenceException | InvalidKeyException | SignatureException | TransactionException | CodeExecutionException | TransactionRejectedException | NodeException | InterruptedException e) {
+		catch (UnknownReferenceException | InvalidKeyException | SignatureException | TransactionException | CodeExecutionException | TransactionRejectedException | UnexpectedCodeException | ClosedNodeException e) {
 			throw new RuntimeException(e);
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
 		}
 
     	numberOfTransactions.getAndIncrement();

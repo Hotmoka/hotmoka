@@ -38,8 +38,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
 import io.hotmoka.crypto.Base64;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.requests.TransactionRequest;
+import io.hotmoka.node.tendermint.TendermintException;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 import io.hotmoka.node.tendermint.internal.beans.TendermintBroadcastTxResponse;
 import io.hotmoka.node.tendermint.internal.beans.TendermintGenesisResponse;
@@ -75,11 +75,11 @@ public class TendermintPoster {
 	 * Sends the given {@code request} to the Tendermint process, inside a {@code broadcast_tx_async} Tendermint request.
 	 * 
 	 * @param request the request to send
-	 * @throws NodeException if the node is misbehaving
+	 * @throws TendermintException if the TendermintException tool is misbehaving
 	 * @throws TimeoutException if the operation could not be completed on time
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 */
-	void postRequest(TransactionRequest<?> request) throws NodeException, InterruptedException, TimeoutException {
+	void postRequest(TransactionRequest<?> request) throws TendermintException, InterruptedException, TimeoutException {
 		String jsonTendermintRequest = "{\"method\": \"broadcast_tx_async\", \"params\": {\"tx\": \"" + Base64.toBase64String(request.toByteArray()) + "\"}, \"id\": " + nextId.getAndIncrement() + "}";
 		TendermintBroadcastTxResponse response;
 
@@ -87,44 +87,44 @@ public class TendermintPoster {
 			response = gson.fromJson(postToTendermint(jsonTendermintRequest), TendermintBroadcastTxResponse.class);
 		}
 		catch (IOException | JsonSyntaxException e) {
-			throw new NodeException("The Tendermint engine did not provide information about a request", e);
+			throw new TendermintException("The Tendermint engine did not provide information about a request", e);
 		}
 
 		if (response == null)
-			throw new NodeException("Empty response about a request, from the underlying Tendermint engine");
+			throw new TendermintException("Empty response about a request, from the underlying Tendermint engine");
 
 		TxError error = response.error;
 		if (error != null)
-			throw new NodeException("Tendermint transaction failed: " + error.message + ": " + error.data);
+			throw new TendermintException("Tendermint transaction failed: " + error.message + ": " + error.data);
 	}
 
 	/**
 	 * Yields the chain id of the underlying Tendermint engine.
 	 * 
 	 * @return the chain id
-	 * @throws NodeException if the node is misbehaving
+	 * @throws TendermintException if the Tendermint tool is misbehaving
 	 * @throws TimeoutException if the operation could not be completed on time
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 */
-	String getTendermintChainId() throws NodeException, TimeoutException, InterruptedException {
+	String getTendermintChainId() throws TendermintException, TimeoutException, InterruptedException {
 		TendermintGenesisResponse response;
 
 		try {
 			response = gson.fromJson(genesis(), TendermintGenesisResponse.class);
 		}
 		catch (IOException | JsonSyntaxException e) {
-			throw new NodeException("The Tendermint engine did not answer a request about its chain id", e);
+			throw new TendermintException("The Tendermint engine did not answer a request about its chain id", e);
 		}
 
 		if (response == null)
-			throw new NodeException("No chain id in Tendermint response");
+			throw new TendermintException("No chain id in Tendermint response");
 
 		if (response.error != null)
-			throw new NodeException(response.error);
+			throw new TendermintException(response.error);
 
 		String chainId;
 		if (response.result == null || response.result.genesis == null || (chainId = response.result.genesis.chain_id) == null)
-			throw new NodeException("No chain id in Tendermint response");
+			throw new TendermintException("No chain id in Tendermint response");
 
 		return chainId;
 	}
@@ -133,37 +133,37 @@ public class TendermintPoster {
 	 * Yields the genesis time of the underlying Tendermint engine.
 	 * 
 	 * @return the genesis time
-	 * @throws NodeException if the node is misbehaving
+	 * @throws TendermintException if the Tendermint tool is misbehaving
 	 * @throws TimeoutException if the operation could not be completed on time
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 */
-	LocalDateTime getGenesisTime() throws NodeException, TimeoutException, InterruptedException {
+	LocalDateTime getGenesisTime() throws TendermintException, TimeoutException, InterruptedException {
 		TendermintGenesisResponse response;
 
 		try {
 			response = gson.fromJson(genesis(), TendermintGenesisResponse.class);
 		}
 		catch (IOException | JsonSyntaxException e) {
-			throw new NodeException("The Tendermint engine did not answer a request about its genesis time", e);
+			throw new TendermintException("The Tendermint engine did not answer a request about its genesis time", e);
 		}
 
 		if (response == null) {
-			throw new NodeException("No genesis time in Tendermint response");
+			throw new TendermintException("No genesis time in Tendermint response");
 		}
 
 		if (response.error != null)
-			throw new NodeException(response.error);
+			throw new TendermintException(response.error);
 
 		String genesisTime;
 		if (response.result == null || response.result.genesis == null || (genesisTime = response.result.genesis.genesis_time) == null) {
-			throw new NodeException("No genesis time in Tendermint response");
+			throw new TendermintException("No genesis time in Tendermint response");
 		}
 
 		try {
 			return LocalDateTime.parse(genesisTime, DateTimeFormatter.ISO_DATE_TIME);
 		}
 		catch (DateTimeParseException e) {
-			throw new NodeException("The Tendermint engine replied with an illegal genesis time", e);
+			throw new TendermintException("The Tendermint engine replied with an illegal genesis time", e);
 		}
 	}
 
@@ -172,29 +172,29 @@ public class TendermintPoster {
 	 * hash of the public key of the node and is used to identify the node as a peer in the network.
 	 * 
 	 * @return the hexadecimal ID of the node
-	 * @throws NodeException if the node is misbehaving
+	 * @throws TendermintException if the TendermintException tool is misbehaving
 	 * @throws TimeoutException if the operation could not be completed on time
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 */
-	String getNodeID() throws NodeException, TimeoutException, InterruptedException {
+	String getNodeID() throws TendermintException, TimeoutException, InterruptedException {
 		TendermintStatusResponse response;
 
 		try {
 			response = gson.fromJson(status(), TendermintStatusResponse.class);
 		}
 		catch (IOException | JsonSyntaxException e) {
-			throw new NodeException("The Tendermint engine did not answer a request about its identifier", e);
+			throw new TendermintException("The Tendermint engine did not answer a request about its identifier", e);
 		}
 
 		if (response == null)
-			throw new NodeException("No node identifier in Tendermint response");
+			throw new TendermintException("No node identifier in Tendermint response");
 
 		if (response.error != null)
-			throw new NodeException(response.error);
+			throw new TendermintException(response.error);
 
 		String id;
 		if (response.result == null || response.result.node_info == null || (id = response.result.node_info.id) == null)
-			throw new NodeException("No node identifier in Tendermint response");
+			throw new TendermintException("No node identifier in Tendermint response");
 
 		return id;
 	}
@@ -203,7 +203,7 @@ public class TendermintPoster {
 	 * Yields the information about the validators of the underlying Tendermint engine.
 	 * 
 	 * @return the information
-	 * @throws NodeException if the node is misbehaving
+	 * @throws TendermintException if the TendermintException tool is misbehaving
 	 * @throws TimeoutException if the operation could not be completed on time
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 */

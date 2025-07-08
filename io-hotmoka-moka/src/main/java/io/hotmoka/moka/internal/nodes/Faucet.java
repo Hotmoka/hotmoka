@@ -45,9 +45,10 @@ import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.MisbehavingNodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnexpectedCodeException;
 import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
@@ -74,8 +75,7 @@ public class Faucet extends AbstractMokaRpcCommand {
     private char[] password;
 
 	@Override
-	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, ClosedNodeException, UninitializedNodeException {
-		try {
+	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, ClosedNodeException, UninitializedNodeException, MisbehavingNodeException, UnexpectedCodeException {
 		var manifest = remote.getManifest();
 		var takamakaCode = remote.getTakamakaCode();
 
@@ -147,13 +147,6 @@ public class Faucet extends AbstractMokaRpcCommand {
 		}
 
 		report(json(), new Output(), NodesFaucetOutputs.Encoder::new);
-		}
-		catch (ClosedNodeException e) { // TODO
-			throw e;
-		}
-		catch (NodeException e) {
-			throw new RuntimeException(e); // TODO
-		}
 	}
 
 	/**

@@ -39,7 +39,7 @@ import org.junit.jupiter.api.RepetitionInfo;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.UnexpectedValueException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.values.StorageReference;
@@ -173,7 +173,8 @@ class SSVMT2025 extends HotmokaTest {
 		// we compute the sum of the balances of the accounts
 		BigInteger sum = ZERO;
 		for (int i = 0; i < NUMBER_OF_ACCOUNTS; i++)
-			sum = sum.add(runInstanceNonVoidMethodCallTransaction(account(0), _50_000, takamakaCode(), MethodSignatures.BALANCE, account(i)).asBigInteger(value -> new NodeException()));
+			sum = sum.add(runInstanceNonVoidMethodCallTransaction(account(0), _50_000, takamakaCode(), MethodSignatures.BALANCE, account(i))
+					.asReturnedBigInteger(MethodSignatures.BALANCE, UnexpectedValueException::new));
 
 		// no money got lost in translation
 		assertEquals(sum, BigInteger.valueOf(NUMBER_OF_ACCOUNTS).multiply(_50_000));

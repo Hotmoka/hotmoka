@@ -39,9 +39,10 @@ import io.hotmoka.moka.internal.converters.TransactionReferenceOptionConverter;
 import io.hotmoka.moka.internal.json.JarsInstallOutputJson;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.ClosedNodeException;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.MisbehavingNodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnexpectedCodeException;
 import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
@@ -77,7 +78,7 @@ public class Install extends AbstractGasCostCommand {
 	private boolean yes;
 
 	@Override
-	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException {
+	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, UninitializedNodeException, ClosedNodeException, MisbehavingNodeException, UnexpectedCodeException {
 		String passwordOfPayerAsString = new String(passwordOfPayer);
 
 		try {
@@ -94,16 +95,13 @@ public class Install extends AbstractGasCostCommand {
 			JarStoreTransactionRequest request = mkRequest(chainId, bytesOfJar, dependencies, signer, classpath, gasLimit, gasPrice, nonce);
 			report(json(), executeRequest(remote, request, gasPrice), JarsInstallOutputs.Encoder::new);
 		}
-		catch (NodeException e) {
-			throw new RuntimeException(e); // TODO
-		}
 		finally {
 			passwordOfPayerAsString = null;
 			Arrays.fill(passwordOfPayer, ' ');
 		}
 	}
 
-	private Output executeRequest(RemoteNode remote, JarStoreTransactionRequest request, BigInteger gasPrice) throws CommandException, NodeException, TimeoutException, InterruptedException {
+	private Output executeRequest(RemoteNode remote, JarStoreTransactionRequest request, BigInteger gasPrice) throws CommandException, ClosedNodeException, TimeoutException, InterruptedException {
 		TransactionReference transaction = computeTransaction(request);
 		Optional<TransactionReference> jar = Optional.empty();
 		Optional<GasCost> gasCost = Optional.empty();

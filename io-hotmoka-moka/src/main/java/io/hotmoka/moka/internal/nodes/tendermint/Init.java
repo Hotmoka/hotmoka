@@ -48,18 +48,21 @@ import io.hotmoka.node.Accounts;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.UnexpectedValueException;
+import io.hotmoka.node.UnexpectedVoidMethodException;
 import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnexpectedCodeException;
 import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.NodeCreationException;
 import io.hotmoka.node.service.NodeServices;
+import io.hotmoka.node.tendermint.TendermintException;
 import io.hotmoka.node.tendermint.TendermintInitializedNodes;
 import io.hotmoka.node.tendermint.TendermintNodeConfigBuilders;
 import io.hotmoka.node.tendermint.TendermintNodes;
@@ -140,8 +143,11 @@ public class Init extends AbstractNodeInit {
 		catch (ClosedNodeException e) {
 			throw new CommandException("The node has been unexpectedly closed!", e);
 		}
-		catch (NodeException e) { // TODO
-			throw new RuntimeException(e);
+		catch (UnexpectedCodeException e) {
+			throw new CommandException("The Takamaka runtime installed in the node contains unexpected code", e);
+		}
+		catch (TendermintException e) {
+			throw new CommandException("The Tendermint tool is misbehaving", e);
 		}
 		catch (TimeoutException e) {
 			throw new CommandException("The operation has timed-out", e);
@@ -198,13 +204,14 @@ public class Init extends AbstractNodeInit {
 	 * them to their address, if required.
 	 * 
 	 * @param node the node whose validators are getting scanned
-	 * @throws NodeException
 	 * @throws TimeoutException if some operation times out
 	 * @throws InterruptedException if some operation gets interrupted while waiting for its termination
+	 * @throws ClosedNodeException if the node is already closed
 	 * @throws CommandException if the scan failed or some validators has a wrong key
 	 * @throws UninitializedNodeException if the node is not initialized yet
+	 * @throws UnexpectedCodeException if the Takamaka runtime installed in the node contains unexpected code
 	 */
-	private SortedSet<ValidatorDescription> scanValidators(Node node) throws NodeException, TimeoutException, InterruptedException, CommandException, UninitializedNodeException {
+	private SortedSet<ValidatorDescription> scanValidators(Node node) throws ClosedNodeException, TimeoutException, InterruptedException, CommandException, UninitializedNodeException, UnexpectedCodeException {
 		var takamakaCode = node.getTakamakaCode();
 		var manifest = node.getManifest();
 		var result = new TreeSet<ValidatorDescription>();
@@ -230,8 +237,8 @@ public class Init extends AbstractNodeInit {
 						.asReturnedReference(MethodSignatures.STORAGE_MAP_VIEW_SELECT, CommandException::new);
 				String publicKeyBase64 = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 						(manifest, _100_000, takamakaCode, MethodSignatures.PUBLIC_KEY, validator))
-						.orElseThrow(() -> new NodeException(MethodSignatures.PUBLIC_KEY + " should not return void"))
-						.asReturnedString(MethodSignatures.PUBLIC_KEY, CommandException::new);
+						.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.PUBLIC_KEY))
+						.asReturnedString(MethodSignatures.PUBLIC_KEY, UnexpectedValueException::new);
 	
 				String publicKeyBase58;
 				try {

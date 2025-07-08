@@ -39,9 +39,9 @@ import io.hotmoka.moka.internal.json.NodesMokamintInitOutputJson;
 import io.hotmoka.node.ConsensusConfigBuilders;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnexpectedCodeException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.NodeCreationException;
@@ -166,15 +166,15 @@ public class Init extends AbstractNodeInit {
 			catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
 				throw new CommandException("Could not initialize the node", e);
 			}
+			catch (UnexpectedCodeException e) {
+				throw new CommandException("The Takamaka runtime installed in the node contains unexpected code", e);
+			}
 			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 				throw new CommandException("The operation has been interrupted", e);
 			}
 			catch (io.mokamint.node.api.ClosedNodeException e) {
 				throw new CommandException("The Mokamint node has been closed", e);
-			}
-			catch (NodeException e) { // TODO
-				throw new RuntimeException(e);
 			}
 			catch (TimeoutException e) {
 				throw new CommandException("The operation has timed-out", e);

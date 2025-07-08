@@ -26,7 +26,7 @@ import io.hotmoka.moka.NodesConfigShowOutputs;
 import io.hotmoka.moka.api.nodes.config.NodesConfigShowOutput;
 import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
 import io.hotmoka.moka.internal.json.NodesConfigShowOutputJson;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
@@ -36,13 +36,8 @@ import picocli.CommandLine.Command;
 public class Show extends AbstractMokaRpcCommand {
 
 	@Override
-	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException {
-		try {
-			report(json(), new Output(remote.getConfig()), NodesConfigShowOutputs.Encoder::new);
-		}
-		catch (NodeException e) {
-			throw new RuntimeException(e); // TODO
-		}
+	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, ClosedNodeException {
+		report(json(), new Output(remote.getConfig()), NodesConfigShowOutputs.Encoder::new);
 	}
 
 	/**

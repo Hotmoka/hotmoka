@@ -45,9 +45,10 @@ import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.MisbehavingNodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnexpectedCodeException;
 import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
@@ -94,18 +95,10 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 
 	@Override
 	protected final void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, ClosedNodeException, UninitializedNodeException {
-		try {
-			if (payer.isFaucet())
-				new CreationFromFaucet(remote);
-			else
-				new CreationFromPayer(remote);
-		}
-		catch (ClosedNodeException | UninitializedNodeException e) {
-			throw e;
-		}
-		catch (NodeException e) {
-			throw new RuntimeException(e); // TODO
-		}
+		if (payer.isFaucet())
+			new CreationFromFaucet(remote);
+		else
+			new CreationFromPayer(remote);
 	}
 
 	/**
@@ -114,7 +107,7 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 	 * @param remote the node for which the account is being created
 	 * @return the signature algorithm
 	 */
-	protected abstract SignatureAlgorithm getSignatureAlgorithmOfNewAccount(RemoteNode remote) throws CommandException, NodeException, TimeoutException, InterruptedException;
+	protected abstract SignatureAlgorithm getSignatureAlgorithmOfNewAccount(RemoteNode remote) throws CommandException, ClosedNodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Yields the method of the faucet to call for creating the new account.
@@ -155,7 +148,7 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 		private final BigInteger gasPrice;
 		private final ConstructorCallTransactionRequest request;
 
-		private CreationFromPayer(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException, UninitializedNodeException {
+		private CreationFromPayer(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, UninitializedNodeException, ClosedNodeException {
 			this.remote = remote;
 
 			String passwordOfNewAccountAsString = new String(password);
@@ -176,6 +169,12 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 				this.request = mkRequest(payer, signer, balance);
 				reportOutput(executeRequest());
 			}
+			catch (UnexpectedCodeException e) {
+				throw new CommandException("The node contains an unexpected Takamaka runtime", e);
+			}
+			catch (MisbehavingNodeException e) {
+				throw new CommandException("The node is misbehaving", e);
+			}
 			finally {
 				passwordOfNewAccountAsString = null;
 				passwordOfPayerAsString = null;
@@ -184,7 +183,7 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 			}
 		}
 
-		private O executeRequest() throws CommandException, NodeException, TimeoutException, InterruptedException {
+		private O executeRequest() throws CommandException, TimeoutException, InterruptedException, ClosedNodeException {
 			TransactionReference transaction = computeTransaction(request);
 			Optional<StorageReference> account = Optional.empty();
 			Optional<GasCost> gasCost = Optional.empty();
@@ -232,7 +231,7 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 			return mkOutput(transaction, account, gasCost, errorMessage, file);
 		}
 
-		private ConstructorCallTransactionRequest mkRequest(StorageReference payer, Signer<SignedTransactionRequest<?>> signer, BigInteger balance) throws CommandException, NodeException, TimeoutException, InterruptedException {
+		private ConstructorCallTransactionRequest mkRequest(StorageReference payer, Signer<SignedTransactionRequest<?>> signer, BigInteger balance) throws CommandException, TimeoutException, InterruptedException, ClosedNodeException {
 			try {
 				return TransactionRequests.constructorCall
 						(signer, payer, nonce, remote.getConfig().getChainId(), gasLimit, gasPrice, takamakaCode,
@@ -256,7 +255,7 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 		private final InstanceMethodCallTransactionRequest request;
 		private final NonVoidMethodSignature faucetMethod;
 
-		private CreationFromFaucet(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException, UninitializedNodeException {
+		private CreationFromFaucet(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, UninitializedNodeException, ClosedNodeException {
 			this.remote = remote;
 
 			String passwordOfNewAccountAsString = new String(password);

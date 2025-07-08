@@ -23,10 +23,11 @@ import java.util.concurrent.TimeoutException;
 import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
 import io.hotmoka.helpers.InitializedNodes.StorageObjectCreationException;
 import io.hotmoka.helpers.api.InitializedNode;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnexpectedCodeException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.node.tendermint.api.TendermintNode;
@@ -52,13 +53,15 @@ public abstract class TendermintInitializedNodes {
 	 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
 	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
 	 * @throws IOException if the jar file cannot be accessed
-	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 * @throws StorageObjectCreationException if the creation of some storage object in the node failed
+	 * @throws TendermintException if the Tendermint tool is misbehaving
+	 * @throws UnexpectedCodeException if the Takamaka runtime installed in the node contains unexpected code
+	 * @throws ClosedNodeException if the node is already closed
 	 */
 	public static InitializedNode of(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, Path takamakaCode)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, NodeException, TimeoutException, InterruptedException, StorageObjectCreationException {
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, StorageObjectCreationException, TendermintException, ClosedNodeException, UnexpectedCodeException {
 
 		return new TendermintInitializedNodeImpl(parent, consensus, null, takamakaCode);
 	}
@@ -77,13 +80,15 @@ public abstract class TendermintInitializedNodes {
 	 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
 	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
 	 * @throws IOException if the jar file cannot be accessed
-	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 * @throws StorageObjectCreationException if the creation of some storage object in the node failed
+	 * @throws TendermintException if the Tendermint tool is misbehaving
+	 * @throws UnexpectedCodeException if the Takamaka runtime installed in the node contains unexpected code
+	 * @throws ClosedNodeException if the node is already closed
 	 */
-	public static InitializedNode of2(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStation, Path takamakaCode)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, NodeException, TimeoutException, InterruptedException, StorageObjectCreationException {
+	public static InitializedNode of(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStation, Path takamakaCode)
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, StorageObjectCreationException, TendermintException, ClosedNodeException, UnexpectedCodeException {
 
 		return new TendermintInitializedNodeImpl(parent, consensus, producerOfGasStation, takamakaCode);
 	}

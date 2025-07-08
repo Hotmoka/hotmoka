@@ -52,9 +52,10 @@ import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.MisbehavingNodeException;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnexpectedCodeException;
+import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.MethodCallTransactionRequest;
@@ -111,13 +112,8 @@ public class Call extends AbstractGasCostCommand {
 	@Option(names = "--yes", description = "assume yes when asked for confirmation; this is implied if --json is used")
 	private boolean yes;
 
-	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException {
-		try {
-			new Body(remote);
-		}
-		catch (NodeException e) {
-			throw new RuntimeException(e); // TODO
-		}
+	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, UninitializedNodeException, ClosedNodeException, MisbehavingNodeException, UnexpectedCodeException {
+		new Body(remote);
 	}
 
 	private class Body {
@@ -137,7 +133,7 @@ public class Call extends AbstractGasCostCommand {
 		private final Optional<BigInteger> gasPrice;
 		private final Optional<BigInteger> nonce;
 
-		private Body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+		private Body(RemoteNode remote) throws TimeoutException, InterruptedException, ClosedNodeException, CommandException, UninitializedNodeException, MisbehavingNodeException, UnexpectedCodeException {
 			String passwordOfPayerAsString = new String(passwordOfPayer);
 
 			try {
@@ -172,7 +168,7 @@ public class Call extends AbstractGasCostCommand {
 			}
 		}
 
-		private TransactionReference mkClasspath() throws CommandException, NodeException, TimeoutException, InterruptedException {
+		private TransactionReference mkClasspath() throws CommandException, ClosedNodeException, TimeoutException, InterruptedException {
 			if (Call.this.classpath != null)
 				return Call.this.classpath;
 			else if (receiver != null)
@@ -272,7 +268,7 @@ public class Call extends AbstractGasCostCommand {
 			}
 		}
 
-		private Output executeRequest() throws CommandException, NodeException, TimeoutException, InterruptedException {
+		private Output executeRequest() throws CommandException, ClosedNodeException, TimeoutException, InterruptedException {
 			TransactionReference transaction = computeTransaction(request);
 			Optional<StorageValue> result = Optional.empty();
 			Optional<GasCost> gasCost = Optional.empty();

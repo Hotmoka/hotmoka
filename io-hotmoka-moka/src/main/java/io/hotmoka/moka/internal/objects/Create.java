@@ -48,10 +48,13 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.MisbehavingNodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnexpectedCodeException;
+import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
@@ -101,13 +104,8 @@ public class Create extends AbstractGasCostCommand {
 	private boolean yes;
 
 	@Override
-	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException {
-		try {
-			new Body(remote);
-		}
-		catch (NodeException e) {
-			throw new RuntimeException(e); // TODO
-		}
+	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, UninitializedNodeException, ClosedNodeException, MisbehavingNodeException, UnexpectedCodeException {
+		new Body(remote);
 	}
 
 	private class Body {
@@ -125,7 +123,7 @@ public class Create extends AbstractGasCostCommand {
 		private final BigInteger gasLimit;
 		private final RemoteNode remote;
 
-		private Body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+		private Body(RemoteNode remote) throws TimeoutException, InterruptedException, ClosedNodeException, CommandException, UninitializedNodeException, MisbehavingNodeException, UnexpectedCodeException {
 			String passwordOfPayerAsString = new String(passwordOfPayer);
 
 			try {
@@ -179,7 +177,7 @@ public class Create extends AbstractGasCostCommand {
 			}
 		}
 
-		private Output executeRequest() throws CommandException, NodeException, TimeoutException, InterruptedException {
+		private Output executeRequest() throws CommandException, ClosedNodeException, TimeoutException, InterruptedException {
 			TransactionReference transaction = computeTransaction(request);
 			Optional<StorageReference> object = Optional.empty();
 			Optional<GasCost> gasCost = Optional.empty();
@@ -224,7 +222,7 @@ public class Create extends AbstractGasCostCommand {
 			return new Output(transaction, object, gasCost, errorMessage);
 		}
 
-		private TakamakaClassLoader mkClassloader() throws NodeException, TimeoutException, InterruptedException, CommandException {
+		private TakamakaClassLoader mkClassloader() throws ClosedNodeException, TimeoutException, InterruptedException, CommandException, MisbehavingNodeException {
 			try {
 				return ClassLoaderHelpers.of(remote).classloaderFor(classpath);
 			}
@@ -239,7 +237,7 @@ public class Create extends AbstractGasCostCommand {
 			}
 		}
 
-		private TransactionReference mkClasspath() throws CommandException, NodeException, TimeoutException, InterruptedException {
+		private TransactionReference mkClasspath() throws CommandException, ClosedNodeException, TimeoutException, InterruptedException {
 			return Create.this.classpath != null ? Create.this.classpath : getClasspathAtCreationTimeOf(payer, remote);
 		}
 

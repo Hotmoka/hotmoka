@@ -40,10 +40,13 @@ import io.hotmoka.moka.internal.json.AccountsRotateOutputJson;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.MisbehavingNodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnexpectedCodeException;
+import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -81,13 +84,8 @@ public class Rotate extends AbstractGasCostCommand {
 	private boolean yes;
 
 	@Override
-	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException {
-		try {
-			new Body(remote);
-		}
-		catch (NodeException e) {
-			throw new RuntimeException(e); // TODO
-		}
+	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, UninitializedNodeException, ClosedNodeException, MisbehavingNodeException, UnexpectedCodeException {
+		new Body(remote);
 	}
 
 	private class Body {
@@ -100,7 +98,7 @@ public class Rotate extends AbstractGasCostCommand {
 		private final BigInteger nonce;
 		private final InstanceMethodCallTransactionRequest request;
 
-		private Body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
+		private Body(RemoteNode remote) throws TimeoutException, InterruptedException, ClosedNodeException, CommandException, UninitializedNodeException, MisbehavingNodeException, UnexpectedCodeException {
 			String passwordOfAccountAsString = new String(passwordOfAccount);
 			String newPasswordOfAccountAsString = new String(newPasswordOfAccount);
 
@@ -125,7 +123,7 @@ public class Rotate extends AbstractGasCostCommand {
 			}
 		}
 
-		private Output executeRequest(RemoteNode remote) throws CommandException, NodeException, TimeoutException, InterruptedException {
+		private Output executeRequest(RemoteNode remote) throws CommandException, ClosedNodeException, TimeoutException, InterruptedException {
 			TransactionReference transaction = computeTransaction(request);
 			Optional<GasCost> gasCost = Optional.empty();
 			Optional<String> errorMessage = Optional.empty();

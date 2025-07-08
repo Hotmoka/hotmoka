@@ -52,6 +52,7 @@ import io.hotmoka.node.local.StateIds;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UnknownStateIdException;
+import io.hotmoka.node.tendermint.TendermintException;
 import io.hotmoka.node.tendermint.api.TendermintNode;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 import io.hotmoka.tendermint.abci.ABCI;
@@ -174,7 +175,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 			try {
 				return NodeInfos.of(TendermintNode.class.getName(), Constants.HOTMOKA_VERSION, poster.getNodeID());
 			}
-			catch (NodeException e) { // TODO
+			catch (TendermintException e) { // TODO
 				throw new RuntimeException(e);
 			}
 		}
@@ -207,7 +208,12 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 
 	@Override
 	protected void postRequest(TransactionRequest<?> request) throws NodeException, TimeoutException, InterruptedException {
-		poster.postRequest(request);
+		try {
+			poster.postRequest(request);
+		}
+		catch (TendermintException e) { // TODO
+			throw new NodeException(e);
+		}
 	}
 
 	private void setRootBranch(StateId stateId, Transaction txn) throws NodeException {

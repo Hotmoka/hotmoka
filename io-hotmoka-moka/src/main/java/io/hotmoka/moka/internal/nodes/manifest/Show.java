@@ -21,10 +21,11 @@ import java.util.concurrent.TimeoutException;
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.helpers.ManifestHelpers;
 import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnexpectedCodeException;
 import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.remote.api.RemoteNode;
 import picocli.CommandLine.Command;
@@ -33,7 +34,7 @@ import picocli.CommandLine.Command;
 public class Show extends AbstractMokaRpcCommand {
 
 	@Override
-	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException {
+	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, UnexpectedCodeException, ClosedNodeException, UninitializedNodeException {
 		if (json())
 			throw new CommandException("JSON output is not yet implemented for this command");
 
@@ -43,12 +44,6 @@ public class Show extends AbstractMokaRpcCommand {
 		catch (CodeExecutionException | TransactionRejectedException | TransactionException e) {
 			// this should not happen on a working node
 			throw new CommandException("A transaction failed while accessing the manifest of the node", e);
-		}
-		catch (UninitializedNodeException e) {
-			throw new CommandException("The node is not initialized yet!", e);
-		}
-		catch (NodeException e) {
-			throw new RuntimeException(e); // TODO
 		}
 	}
 }

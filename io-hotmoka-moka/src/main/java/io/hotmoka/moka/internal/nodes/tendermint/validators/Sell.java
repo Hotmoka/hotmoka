@@ -40,9 +40,10 @@ import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.MisbehavingNodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnexpectedCodeException;
 import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
@@ -85,13 +86,8 @@ public class Sell extends AbstractGasCostCommand {
 	private boolean yes;
 
 	@Override
-	protected final void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, UninitializedNodeException {
-		try {
-			new Body(remote);
-		}
-		catch (NodeException e) {
-			throw new RuntimeException(e); // TODO
-		}
+	protected final void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, UninitializedNodeException, ClosedNodeException, MisbehavingNodeException, UnexpectedCodeException {
+		new Body(remote);
 	}
 
 	private class Body {
@@ -107,11 +103,7 @@ public class Sell extends AbstractGasCostCommand {
 		private final NonVoidMethodSignature method;
 		private final SignatureAlgorithm signatureOfPayer;
 
-		private Body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException, UninitializedNodeException {
-			/*
-		if (duration <= 0L)
-			throw new IllegalArgumentException("the duration of the sale must be positive");*/
-
+		private Body(RemoteNode remote) throws TimeoutException, InterruptedException, ClosedNodeException, CommandException, UninitializedNodeException, MisbehavingNodeException, UnexpectedCodeException {
 			String passwordOfPayerAsString = new String(passwordOfPayer);
 			
 			try {
@@ -142,7 +134,7 @@ public class Sell extends AbstractGasCostCommand {
 				return MethodSignatures.ofNonVoid(StorageTypes.ABSTRACT_VALIDATORS, "place", StorageTypes.SHARED_ENTITY_OFFER, StorageTypes.BIG_INTEGER, StorageTypes.VALIDATOR, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG, StorageTypes.VALIDATOR);
 		}
 
-		private Output executeRequest() throws CommandException, NodeException, TimeoutException, InterruptedException {
+		private Output executeRequest() throws CommandException, ClosedNodeException, TimeoutException, InterruptedException {
 			TransactionReference transaction = computeTransaction(request);
 			Optional<GasCost> gasCost = Optional.empty();
 			Optional<String> errorMessage = Optional.empty();

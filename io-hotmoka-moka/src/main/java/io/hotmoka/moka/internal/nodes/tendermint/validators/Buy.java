@@ -40,9 +40,10 @@ import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.MisbehavingNodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnexpectedCodeException;
 import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
@@ -76,16 +77,8 @@ public class Buy extends AbstractGasCostCommand {
 	private boolean yes;
 
 	@Override
-	protected final void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, UninitializedNodeException, ClosedNodeException {
-		try {
-			new Body(remote);
-		}
-		catch (ClosedNodeException e) { // TODO
-			throw e;
-		}
-		catch (NodeException e) {
-			throw new RuntimeException(e); // TODO
-		}
+	protected final void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, UninitializedNodeException, ClosedNodeException, MisbehavingNodeException, UnexpectedCodeException {
+		new Body(remote);
 	}
 
 	private class Body {
@@ -106,7 +99,7 @@ public class Buy extends AbstractGasCostCommand {
 		private final InstanceMethodCallTransactionRequest request;
 		private final VoidMethodSignature method;
 
-		private Body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException, UninitializedNodeException {
+		private Body(RemoteNode remote) throws TimeoutException, InterruptedException, ClosedNodeException, CommandException, UninitializedNodeException, MisbehavingNodeException, UnexpectedCodeException {
 			String passwordOfPayerAsString = new String(passwordOfPayer);
 
 			try {
@@ -149,7 +142,7 @@ public class Buy extends AbstractGasCostCommand {
 			}
 		}
 
-		private Output executeRequest() throws CommandException, NodeException, TimeoutException, InterruptedException {
+		private Output executeRequest() throws CommandException, ClosedNodeException, TimeoutException, InterruptedException {
 			TransactionReference transaction = computeTransaction(request);
 			Optional<GasCost> gasCost = Optional.empty();
 			Optional<String> errorMessage = Optional.empty();
@@ -198,7 +191,7 @@ public class Buy extends AbstractGasCostCommand {
 			return BigInteger.TWO.multiply(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
 		}
 
-		private BigInteger getPriceOfOffer() throws CommandException, NodeException, TimeoutException, InterruptedException {
+		private BigInteger getPriceOfOffer() throws CommandException, ClosedNodeException, TimeoutException, InterruptedException {
 			var method = MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_OFFER, "getCost", StorageTypes.BIG_INTEGER);
 
 			try {
@@ -211,7 +204,7 @@ public class Buy extends AbstractGasCostCommand {
 			}
 		}
 
-		private BigInteger getPowerOfOffer() throws CommandException, NodeException, TimeoutException, InterruptedException {
+		private BigInteger getPowerOfOffer() throws CommandException, ClosedNodeException, TimeoutException, InterruptedException {
 			var method = MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_OFFER, "getSharesOnSale", StorageTypes.BIG_INTEGER);
 
 			try {
@@ -224,7 +217,7 @@ public class Buy extends AbstractGasCostCommand {
 			}
 		}
 
-		private StorageReference getValidators() throws NodeException, TimeoutException, InterruptedException, CommandException, UninitializedNodeException {
+		private StorageReference getValidators() throws ClosedNodeException, TimeoutException, InterruptedException, CommandException, UninitializedNodeException {
 			var manifest = remote.getManifest();
 
 			try {
@@ -238,7 +231,7 @@ public class Buy extends AbstractGasCostCommand {
 			}
 		}
 
-		private int getBuyerSurcharge() throws CommandException, NodeException, TimeoutException, InterruptedException {
+		private int getBuyerSurcharge() throws CommandException, ClosedNodeException, TimeoutException, InterruptedException {
 			try {
 				return remote.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.VALIDATORS_GET_BUYER_SURCHARGE, validators))

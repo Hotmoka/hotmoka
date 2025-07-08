@@ -37,8 +37,9 @@ import io.hotmoka.moka.internal.converters.StorageReferenceOptionConverter;
 import io.hotmoka.moka.internal.json.AccountsShowOutputJson;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.MisbehavingNodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UninitializedNodeException;
@@ -63,8 +64,7 @@ public class Show extends AbstractMokaRpcCommand {
 	public final static int MAX_PRINTED_KEY = 200;
 
 	@Override
-	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException {
-		try {
+	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, ClosedNodeException, MisbehavingNodeException {
 		SignatureAlgorithm signature;
 		try {
 			signature = SignatureHelpers.of(remote).signatureAlgorithmFor(account);
@@ -116,10 +116,6 @@ public class Show extends AbstractMokaRpcCommand {
 		}
 		catch (Base64ConversionException e) {
 			throw new CommandException("The key in the account object " + account + " is not in base64 format", e);
-		}
-		}
-		catch (NodeException e) {
-			throw new RuntimeException(e); // TODO
 		}
 	}
 

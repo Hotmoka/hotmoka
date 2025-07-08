@@ -43,7 +43,6 @@ import io.hotmoka.moka.internal.json.ObjectsShowOutputJson.MethodDescriptionJson
 import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.MisbehavingNodeException;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.api.updates.Update;
@@ -70,13 +69,8 @@ public class Show extends AbstractMokaRpcCommand {
     private boolean api;
 
 	@Override
-	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException {
-		try {
-			report(json(), new Output(remote, object, api), ObjectsShowOutputs.Encoder::new);
-		}
-		catch (NodeException e) {
-			throw new RuntimeException(e); // TODO
-		}
+	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, ClosedNodeException, MisbehavingNodeException {
+		report(json(), new Output(remote, object, api), ObjectsShowOutputs.Encoder::new);
 	}
 
 	private static String annotationsAsString(Executable executable) {
@@ -210,7 +204,7 @@ public class Show extends AbstractMokaRpcCommand {
 		private final SortedSet<ConstructorDescription> constructors;
 		private final SortedSet<MethodDescription> methods;
 
-		private Output(RemoteNode remote, StorageReference object, boolean api) throws TimeoutException, InterruptedException, NodeException, CommandException {
+		private Output(RemoteNode remote, StorageReference object, boolean api) throws TimeoutException, InterruptedException, ClosedNodeException, CommandException, MisbehavingNodeException {
 			Update[] updates = updates(remote, object);
 
 			this.tag = getClassTag(updates, object);
@@ -340,7 +334,7 @@ public class Show extends AbstractMokaRpcCommand {
 			}
 		}
 
-		private Update[] updates(RemoteNode remote, StorageReference object) throws NodeException, TimeoutException, InterruptedException, CommandException {
+		private Update[] updates(RemoteNode remote, StorageReference object) throws ClosedNodeException, TimeoutException, InterruptedException, CommandException {
 			try {
 				return remote.getState(object).toArray(Update[]::new);
 			}

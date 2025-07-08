@@ -75,7 +75,6 @@ import io.hotmoka.node.api.JarFuture;
 import io.hotmoka.node.api.MethodFuture;
 import io.hotmoka.node.api.MisbehavingNodeException;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnexpectedCodeException;
@@ -103,6 +102,7 @@ import io.hotmoka.node.mokamint.MokamintNodes;
 import io.hotmoka.node.mokamint.api.MokamintNode;
 import io.hotmoka.node.remote.RemoteNodes;
 import io.hotmoka.node.service.NodeServices;
+import io.hotmoka.node.tendermint.TendermintException;
 import io.hotmoka.node.tendermint.TendermintInitializedNodes;
 import io.hotmoka.node.tendermint.TendermintNodeConfigBuilders;
 import io.hotmoka.node.tendermint.TendermintNodes;
@@ -197,12 +197,12 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	    		var gamete = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 	    				(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
-	    				.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"))
+	    				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_GAMETE))
 	    				.asReturnedReference(MethodSignatures.GET_GAMETE, UnexpectedValueException::new);
 
 	    		chainId = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 	    				(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
-	    				.orElseThrow(() -> new NodeException(MethodSignatures.GET_CHAIN_ID + " should not return void"))
+	    				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_CHAIN_ID))
 	    				.asReturnedString(MethodSignatures.GET_CHAIN_ID, UnexpectedValueException::new);
 
 	    		BigInteger nonce = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
@@ -331,7 +331,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	}
 
 	private static void initializeNodeIfNeeded(Node node) throws TransactionRejectedException, TransactionException,
-			CodeExecutionException, IOException, TimeoutException, InterruptedException, StorageObjectCreationException, NodeException {
+			CodeExecutionException, IOException, TimeoutException, InterruptedException, StorageObjectCreationException, TendermintException, ClosedNodeException, UnexpectedCodeException {
 
 		try {
 			node.getManifest();
@@ -500,7 +500,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 			return nodes.get(0);
 		}
-		catch (IOException | InvalidKeyException | NoSuchAlgorithmException | StorageObjectCreationException | io.mokamint.node.api.ClosedNodeException | PeerRejectedException | ClosedPeerException | TransactionRejectedException | TransactionException | CodeExecutionException | NodeException | FailedDeploymentException | WrongKeyException e) {
+		catch (IOException | InvalidKeyException | NoSuchAlgorithmException | StorageObjectCreationException | io.mokamint.node.api.ClosedNodeException | PeerRejectedException | ClosedPeerException | TransactionRejectedException | TransactionException | CodeExecutionException | FailedDeploymentException | WrongKeyException | TendermintException | ClosedNodeException | UnexpectedCodeException e) {
 			throw new NodeCreationException(e);
 		}
 	}
@@ -555,7 +555,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		nodeWithAccountsView = AccountsNodes.of(node, localGamete, privateKeyOfLocalGamete, containerClassName, classpath, coins);
 	}
 
-	protected final void setAccounts(Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, TimeoutException, InterruptedException, UnknownReferenceException, NoSuchAlgorithmException, UninitializedNodeException, UnsupportedVerificationVersionException, NodeException {
+	protected final void setAccounts(Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, TimeoutException, InterruptedException, UnknownReferenceException, NoSuchAlgorithmException, UninitializedNodeException, UnsupportedVerificationVersionException, MisbehavingNodeException, ClosedNodeException, UnexpectedCodeException {
 		setAccounts(coins.toArray(BigInteger[]::new));
 	}
 
@@ -563,7 +563,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		return AccountsNodes.of(node, localGamete, privateKeyOfLocalGamete, coins.toArray(BigInteger[]::new));
 	}
 
-	protected final void setAccounts(String containerClassName, TransactionReference classpath, Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, TimeoutException, InterruptedException, UnknownReferenceException, NoSuchAlgorithmException, UninitializedNodeException, UnsupportedVerificationVersionException, NodeException {
+	protected final void setAccounts(String containerClassName, TransactionReference classpath, Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, TimeoutException, InterruptedException, UnknownReferenceException, NoSuchAlgorithmException, UninitializedNodeException, UnsupportedVerificationVersionException, MisbehavingNodeException, ClosedNodeException, UnexpectedCodeException {
 		setAccounts(containerClassName, classpath, coins.toArray(BigInteger[]::new));
 	}
 

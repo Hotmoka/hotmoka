@@ -26,10 +26,11 @@ import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.moka.api.GasCost;
 import io.hotmoka.moka.api.GasCostOutput;
 import io.hotmoka.moka.internal.json.GasCostOutputJson;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnexpectedCodeException;
 import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.remote.api.RemoteNode;
@@ -81,22 +82,20 @@ public abstract class AbstractGasCostCommand extends AbstractMokaRpcCommand {
 	 * @param remote the node where the transaction will be executed
 	 * @return the gas price to offer for the transaction
 	 * @throws CommandException if the gas price cannot be determined
-	 * @throws NodeException if the node is misbehaving
 	 * @throws TimeoutException if the operation times out
 	 * @throws InterruptedException if the operation is interrupted while waiting for a result
+	 * @throws ClosedNodeException if the node is already closed
+	 * @throws UninitializedNodeException if the node is not initialized yet
 	 */
-	protected BigInteger determineGasPrice(RemoteNode remote) throws CommandException, NodeException, TimeoutException, InterruptedException {
+	protected BigInteger determineGasPrice(RemoteNode remote) throws CommandException, TimeoutException, InterruptedException, ClosedNodeException, UninitializedNodeException {
 		if (gasPrice != null)
 			return gasPrice;
 
 		try {
 			return GasHelpers.of(remote).getGasPrice();
 		}
-		catch (CodeExecutionException | TransactionRejectedException | TransactionException e) {
+		catch (CodeExecutionException | TransactionRejectedException | TransactionException | UnexpectedCodeException e) {
 			throw new CommandException("Cannot determine the current gas price!", e);
-		}
-		catch (UninitializedNodeException e) {
-			throw new CommandException("The node is not initialized yet!", e);
 		}
 	}
 

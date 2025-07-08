@@ -30,10 +30,11 @@ import io.hotmoka.moka.internal.converters.ConsensusConfigOptionConverter;
 import io.hotmoka.moka.internal.converters.DiskNodeConfigOptionConverter;
 import io.hotmoka.moka.internal.json.NodesDiskInitOutputJson;
 import io.hotmoka.node.ConsensusConfigBuilders;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnexpectedCodeException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.disk.DiskNodeConfigBuilders;
@@ -80,12 +81,15 @@ public class Init extends AbstractNodeInit {
 		catch (NodeCreationException | TransactionRejectedException | TransactionException | CodeExecutionException e) {
 			throw new CommandException("Could not initialize the node", e);
 		}
+		catch (ClosedNodeException e) {
+			throw new CommandException("The node has been unexpectedly closed", e);
+		}
+		catch (UnexpectedCodeException e) {
+			throw new CommandException("The installed Takamaka runtime contains unexpected code", e);
+		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 			throw new CommandException("The operation has been interrupted", e);
-		}
-		catch (NodeException e) { // TODO
-			throw new RuntimeException(e);
 		}
 		catch (TimeoutException e) {
 			throw new CommandException("The operation has timed-out", e);
