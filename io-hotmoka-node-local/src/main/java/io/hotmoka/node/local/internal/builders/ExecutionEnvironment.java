@@ -50,7 +50,6 @@ import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.api.ClassLoaderCreationException;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
@@ -115,7 +114,7 @@ public abstract class ExecutionEnvironment {
 	 *                                that is allowed to be thrown by the method
 	 * @throws TransactionException if the transaction could be executed but led to an exception outside the user code,
 	 *                              or that is not allowed to be thrown by the method
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws StoreException if the store is misbehaving
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
 	public final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException, StoreException, InterruptedException {
@@ -134,7 +133,7 @@ public abstract class ExecutionEnvironment {
 	 *                                that is allowed to be thrown by the method
 	 * @throws TransactionException if the transaction could be executed but led to an exception outside the user code,
 	 *                              or that is not allowed to be thrown by the method
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws StoreException if the store is misbehaving
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
 	public final Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException, StoreException, InterruptedException {

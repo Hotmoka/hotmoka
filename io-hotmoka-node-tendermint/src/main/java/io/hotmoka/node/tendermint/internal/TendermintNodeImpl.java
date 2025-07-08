@@ -553,7 +553,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		 * 
 		 * @return the hash
 		 */
-		private byte[] getLastBlockApplicationHash() throws NodeException {
+		private byte[] getLastBlockApplicationHash() {
 			return storeOfHead.getStateId().getBytes();
 		}
 
