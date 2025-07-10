@@ -24,7 +24,6 @@ import java.util.stream.Stream;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.exceptions.functions.ConsumerWithExceptions2;
 import io.hotmoka.exceptions.functions.FunctionWithExceptions2;
-import io.hotmoka.exceptions.functions.FunctionWithExceptions3;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
@@ -39,7 +38,6 @@ import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UnknownStateIdException;
-import io.hotmoka.patricia.api.TrieException;
 import io.hotmoka.patricia.api.UnknownKeyException;
 import io.hotmoka.xodus.ExodusException;
 import io.hotmoka.xodus.env.Transaction;
@@ -151,7 +149,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 
 			return StateIds.of(result);
 		}
-		catch (TrieException | UnknownKeyException e) {
+		catch (UnknownKeyException e) {
 			throw new StoreException(e);
 		}
 	}
@@ -186,12 +184,12 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 
     @Override
 	public final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, StoreException {
-    	FunctionWithExceptions3<Transaction, Optional<TransactionRequest<?>>, TrieException, StoreException, UnknownKeyException> function = txn -> mkTrieOfRequests(txn).get(reference);
+    	FunctionWithExceptions2<Transaction, Optional<TransactionRequest<?>>, StoreException, UnknownKeyException> function = txn -> mkTrieOfRequests(txn).get(reference);
     	try {
-    		return getNode().getEnvironment().computeInReadonlyTransaction(TrieException.class, StoreException.class, UnknownKeyException.class, function)
+    		return getNode().getEnvironment().computeInReadonlyTransaction(StoreException.class, UnknownKeyException.class, function)
     			.orElseThrow(() -> new UnknownReferenceException(reference));
     	}
-		catch (ExodusException | TrieException | UnknownKeyException e) {
+		catch (ExodusException | UnknownKeyException e) {
 			throw new StoreException(e);
 		}
 	}
@@ -207,38 +205,38 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 	}
 
     private TransactionResponse getResponseInternal(TransactionReference reference) throws UnknownReferenceException, StoreException {
-    	FunctionWithExceptions3<Transaction, Optional<TransactionResponse>, TrieException, StoreException, UnknownKeyException> function = txn -> mkTrieOfResponses(txn).get(reference);
+    	FunctionWithExceptions2<Transaction, Optional<TransactionResponse>, StoreException, UnknownKeyException> function = txn -> mkTrieOfResponses(txn).get(reference);
 
     	try {
-    		var response = getNode().getEnvironment().computeInReadonlyTransaction(TrieException.class, StoreException.class, UnknownKeyException.class, function)
+    		var response = getNode().getEnvironment().computeInReadonlyTransaction(StoreException.class, UnknownKeyException.class, function)
     			.orElseThrow(() -> new UnknownReferenceException(reference));
 
     		return response;
     	}
-		catch (ExodusException | TrieException | UnknownKeyException e) {
+		catch (ExodusException | UnknownKeyException e) {
 			throw new StoreException(e);
 		}
 	}
 
     @Override
 	public final Optional<StorageReference> getManifest() throws StoreException {
-		FunctionWithExceptions3<Transaction, Optional<StorageReference>, TrieException, StoreException, UnknownKeyException> getManifest = txn -> mkTrieOfInfo(txn).getManifest();
+		FunctionWithExceptions2<Transaction, Optional<StorageReference>, StoreException, UnknownKeyException> getManifest = txn -> mkTrieOfInfo(txn).getManifest();
 		try {
-			return getNode().getEnvironment().computeInReadonlyTransaction(TrieException.class, StoreException.class, UnknownKeyException.class, getManifest);
+			return getNode().getEnvironment().computeInReadonlyTransaction(StoreException.class, UnknownKeyException.class, getManifest);
 		}
-		catch (ExodusException | TrieException | UnknownKeyException e) {
+		catch (ExodusException | UnknownKeyException e) {
 			throw new StoreException(e);
 		}
 	}
 
 	@Override
 	public final Stream<TransactionReference> getHistory(StorageReference object) throws StoreException, UnknownReferenceException {
-		FunctionWithExceptions3<Transaction, Optional<Stream<TransactionReference>>, UnknownKeyException, StoreException, TrieException> getObject = txn -> mkTrieOfHistories(txn).get(object);
+		FunctionWithExceptions2<Transaction, Optional<Stream<TransactionReference>>, UnknownKeyException, StoreException> getObject = txn -> mkTrieOfHistories(txn).get(object);
 		try {
-			return getNode().getEnvironment().computeInReadonlyTransaction(UnknownKeyException.class, StoreException.class, TrieException.class, getObject)
+			return getNode().getEnvironment().computeInReadonlyTransaction(UnknownKeyException.class, StoreException.class, getObject)
 				.orElseThrow(() -> new UnknownReferenceException(object));
 		}
-		catch (ExodusException | UnknownKeyException | TrieException e) {
+		catch (ExodusException | UnknownKeyException e) {
 			throw new StoreException(e);
 		}
 	}
@@ -273,7 +271,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 		}
 	}
 
-	private byte[] addDeltaOfInfos(TrieOfInfo trieOfInfo, Optional<StorageReference> addedManifest) throws TrieException {
+	private byte[] addDeltaOfInfos(TrieOfInfo trieOfInfo, Optional<StorageReference> addedManifest) {
 		if (addedManifest.isPresent()) {
 			trieOfInfo.malloc();
 			var old = trieOfInfo;
@@ -284,7 +282,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 		return trieOfInfo.getRoot();
 	}
 
-	private byte[] addDeltaOfHistories(TrieOfHistories trieOfHistories, Map<StorageReference, TransactionReference[]> addedHistories) throws TrieException {
+	private byte[] addDeltaOfHistories(TrieOfHistories trieOfHistories, Map<StorageReference, TransactionReference[]> addedHistories) {
 		for (var entry: addedHistories.entrySet()) {
 			trieOfHistories.malloc();
 			var old = trieOfHistories;
@@ -295,7 +293,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 		return trieOfHistories.getRoot();
 	}
 
-	private byte[] addDeltaOfResponses(TrieOfResponses trieOfResponses, Map<TransactionReference, TransactionResponse> addedResponses) throws TrieException {
+	private byte[] addDeltaOfResponses(TrieOfResponses trieOfResponses, Map<TransactionReference, TransactionResponse> addedResponses) {
 		for (var entry: addedResponses.entrySet()) {
 			trieOfResponses.malloc();
 			var old = trieOfResponses;
@@ -306,7 +304,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 		return trieOfResponses.getRoot();
 	}
 
-	private byte[] addDeltaOfRequests(TrieOfRequests trieOfRequests, LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests) throws TrieException {
+	private byte[] addDeltaOfRequests(TrieOfRequests trieOfRequests, LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests) {
 		for (var entry: addedRequests.entrySet()) {
 			trieOfRequests.malloc();
 			var old = trieOfRequests;

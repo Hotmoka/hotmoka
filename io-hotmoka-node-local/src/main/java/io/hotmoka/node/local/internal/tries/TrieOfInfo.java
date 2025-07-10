@@ -27,7 +27,6 @@ import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.patricia.AbstractPatriciaTrie;
 import io.hotmoka.patricia.api.KeyValueStore;
 import io.hotmoka.patricia.api.TrieException;
-import io.hotmoka.patricia.api.UncheckedTrieException;
 import io.hotmoka.patricia.api.UnknownKeyException;
 
 /**
@@ -45,28 +44,28 @@ public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue, TrieOfI
 	 * @param node the node for which the trie is being built
 	 * @throws UnknownKeyException if {@code root} cannot be found in the trie
 	 */
-	public TrieOfInfo(KeyValueStore store, byte[] root, AbstractTrieBasedLocalNodeImpl<?,?,?,?> node) throws TrieException, UnknownKeyException {
+	public TrieOfInfo(KeyValueStore store, byte[] root, AbstractTrieBasedLocalNodeImpl<?,?,?,?> node) throws UnknownKeyException {
 		super(store, root, HashingAlgorithms.identity1().getHasher(key -> new byte[] { key }),
 			// we use a NodeUnmarshallingContext because that is the default used for marshalling storage values
 			node.mkSHA256(), new byte[32], StorageValue::toByteArray, bytes -> StorageValues.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))));
 	}
 
-	private TrieOfInfo(TrieOfInfo cloned, byte[] root) throws TrieException, UnknownKeyException {
+	private TrieOfInfo(TrieOfInfo cloned, byte[] root) throws UnknownKeyException {
 		super(cloned, root);
 	}
 
 	@Override
-	protected void malloc() throws TrieException {
+	protected void malloc() {
 		super.malloc();
 	}
 
 	@Override
-	protected void free() throws TrieException {
+	protected void free() {
 		super.free();
 	}
 
 	@Override
-	public TrieOfInfo checkoutAt(byte[] root) throws TrieException, UnknownKeyException {
+	public TrieOfInfo checkoutAt(byte[] root) throws UnknownKeyException {
 		return new TrieOfInfo(this, root);
 	}
 
@@ -75,18 +74,17 @@ public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue, TrieOfI
 	 * 
 	 * @return the manifest, if any
 	 */
-	public Optional<StorageReference> getManifest() throws TrieException {
+	public Optional<StorageReference> getManifest() {
 		return get((byte) 0)
-			.map(value -> value.asReference(value2 -> new UncheckedTrieException("This trie contains a manifest that is not a StorageReference but rather a " + value2.getClass().getName())));
+			.map(value -> value.asReference(value2 -> new TrieException("This trie contains a manifest that is not a StorageReference but rather a " + value2.getClass().getName())));
 	}
 
 	/**
 	 * Sets the manifest.
 	 * 
 	 * @param manifest the manifest to set
-	 * @throws TrieException if this trie is not able to complete the operation correctly
 	 */
-	public TrieOfInfo setManifest(StorageReference manifest) throws TrieException {
+	public TrieOfInfo setManifest(StorageReference manifest) {
 		return put((byte) 0, manifest);
 	}
 }

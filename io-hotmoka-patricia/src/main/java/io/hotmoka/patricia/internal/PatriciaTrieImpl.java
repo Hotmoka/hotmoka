@@ -22,7 +22,6 @@ import io.hotmoka.patricia.AbstractPatriciaTrie;
 import io.hotmoka.patricia.FromBytes;
 import io.hotmoka.patricia.ToBytes;
 import io.hotmoka.patricia.api.KeyValueStore;
-import io.hotmoka.patricia.api.TrieException;
 import io.hotmoka.patricia.api.UnknownKeyException;
 
 /**
@@ -45,12 +44,11 @@ public class PatriciaTrieImpl<Key, Value> extends AbstractPatriciaTrie<Key, Valu
 	 * @param hashOfEmpty the hash of the empty trie
 	 * @param valueToBytes a function that marshals values into their byte representation
 	 * @param bytesToValue a function that unmarshals bytes into the represented value
-	 * @throws TrieException if the creation cannot be completed correctly
 	 * @throws UnknownKeyException if {@code root} is unknown in the store of the trie
 	 */
 	public PatriciaTrieImpl(KeyValueStore store, byte[] root,
 			Hasher<? super Key> hasherForKeys, HashingAlgorithm hashingForNodes, byte[] hashOfEmpty,
-			ToBytes<? super Value> valueToBytes, FromBytes<? extends Value> bytesToValue) throws TrieException, UnknownKeyException {
+			ToBytes<? super Value> valueToBytes, FromBytes<? extends Value> bytesToValue) throws UnknownKeyException {
 
 		super(store, root, hasherForKeys, hashingForNodes, hashOfEmpty, valueToBytes, bytesToValue);
 	}
@@ -60,15 +58,14 @@ public class PatriciaTrieImpl<Key, Value> extends AbstractPatriciaTrie<Key, Valu
 	 * 
 	 * @param cloned the trie to clone
 	 * @param root the root to use in the cloned trie
-	 * @throws TrieException if the creation cannot be completed correctly
 	 * @throws UnknownKeyException if {@code root} is unknown in the store of the trie
 	 */
-	private PatriciaTrieImpl(PatriciaTrieImpl<Key, Value> cloned, byte[] root) throws TrieException, UnknownKeyException {
+	private PatriciaTrieImpl(PatriciaTrieImpl<Key, Value> cloned, byte[] root) throws UnknownKeyException {
 		super(cloned, root);
 	}
 
 	@Override
-	public PatriciaTrieImpl<Key, Value> checkoutAt(byte[] root) throws TrieException, UnknownKeyException {
+	public PatriciaTrieImpl<Key, Value> checkoutAt(byte[] root) throws UnknownKeyException {
 		return new PatriciaTrieImpl<>(this, root);
 	}
 }

@@ -25,7 +25,6 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.patricia.AbstractPatriciaTrie;
 import io.hotmoka.patricia.api.KeyValueStore;
-import io.hotmoka.patricia.api.TrieException;
 import io.hotmoka.patricia.api.UnknownKeyException;
 
 /**
@@ -43,28 +42,28 @@ public class TrieOfRequests extends AbstractPatriciaTrie<TransactionReference, T
 	 * @param node the node for which the trie is being built
 	 * @throws UnknownKeyException if {@code root} cannot be found in the trie
 	 */
-	public TrieOfRequests(KeyValueStore store, byte[] root, AbstractTrieBasedLocalNodeImpl<?,?,?,?> node) throws TrieException, UnknownKeyException {
+	public TrieOfRequests(KeyValueStore store, byte[] root, AbstractTrieBasedLocalNodeImpl<?,?,?,?> node) throws UnknownKeyException {
 		super(store, root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
 			// we use a NodeUnmarshallingContext because that is the default used for marshalling requests
 			node.mkSHA256(), new byte[32], TransactionRequest<?>::toByteArray, bytes -> TransactionRequests.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))));
 	}
 
-	private TrieOfRequests(TrieOfRequests cloned, byte[] root) throws TrieException, UnknownKeyException {
+	private TrieOfRequests(TrieOfRequests cloned, byte[] root) throws UnknownKeyException {
 		super(cloned, root);
 	}
 
 	@Override
-	protected void malloc() throws TrieException {
+	protected void malloc() {
 		super.malloc();
 	}
 
 	@Override
-	protected void free() throws TrieException {
+	protected void free() {
 		super.free();
 	}
 
 	@Override
-	public TrieOfRequests checkoutAt(byte[] root) throws TrieException, UnknownKeyException {
+	public TrieOfRequests checkoutAt(byte[] root) throws UnknownKeyException {
 		return new TrieOfRequests(this, root);
 	}
 }

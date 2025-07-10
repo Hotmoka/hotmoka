@@ -16,8 +16,6 @@ limitations under the License.
 
 package io.hotmoka.patricia;
 
-import java.io.IOException;
-
 /**
  * A function that marshals values into their byte representation.
  *
@@ -30,7 +28,6 @@ public interface ToBytes<Value> {
 	 * 
 	 * @param value the value to marshals
 	 * @return the resulting bytes
-	 * @throws IOException if marshalling fails
 	 */
-	byte[] get(Value value) throws IOException;
+	byte[] get(Value value);
 }

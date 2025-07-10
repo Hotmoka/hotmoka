@@ -34,7 +34,6 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.patricia.AbstractPatriciaTrie;
 import io.hotmoka.patricia.api.KeyValueStore;
 import io.hotmoka.patricia.api.TrieException;
-import io.hotmoka.patricia.api.UncheckedTrieException;
 import io.hotmoka.patricia.api.UnknownKeyException;
 
 /**
@@ -59,7 +58,7 @@ public class TrieOfResponses extends AbstractPatriciaTrie<TransactionReference, 
 	 * @param root the root of the trie to check out
 	 * @throws UnknownKeyException if {@code root} cannot be found in the trie
 	 */
-	public TrieOfResponses(KeyValueStore store, byte[] root, AbstractTrieBasedLocalNodeImpl<?,?,?,?> node) throws TrieException, UnknownKeyException {
+	public TrieOfResponses(KeyValueStore store, byte[] root, AbstractTrieBasedLocalNodeImpl<?,?,?,?> node) throws UnknownKeyException {
 		super(store, root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
 			// we use a NodeUnmarshallingContext because that is the default used for marshalling responses
 			node.mkSHA256(), new byte[32], TransactionResponse::toByteArray, bytes -> TransactionResponses.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))));
@@ -67,34 +66,34 @@ public class TrieOfResponses extends AbstractPatriciaTrie<TransactionReference, 
 		this.hasherForJars = node.mkSHA256().getHasher(Function.identity());
 	}
 
-	private TrieOfResponses(TrieOfResponses cloned, byte[] root) throws TrieException, UnknownKeyException {
+	private TrieOfResponses(TrieOfResponses cloned, byte[] root) throws UnknownKeyException {
 		super(cloned, root);
 
 		this.hasherForJars = cloned.hasherForJars;
 	}
 
 	@Override
-	protected void malloc() throws TrieException {
+	protected void malloc() {
 		super.malloc();
 	}
 
 	@Override
-	protected void free() throws TrieException {
+	protected void free() {
 		super.free();
 	}
 
 	@Override
-	public Optional<TransactionResponse> get(TransactionReference key) throws TrieException {
+	public Optional<TransactionResponse> get(TransactionReference key) {
 		return super.get(key).map(this::readTransformation);
 	}
 
 	@Override
-	public TrieOfResponses put(TransactionReference key, TransactionResponse value) throws TrieException {
+	public TrieOfResponses put(TransactionReference key, TransactionResponse value) {
 		return super.put(key, writeTransformation(value));
 	}
 
 	@Override
-	public TrieOfResponses checkoutAt(byte[] root) throws TrieException, UnknownKeyException {
+	public TrieOfResponses checkoutAt(byte[] root) throws UnknownKeyException {
 		return new TrieOfResponses(this, root);
 	}
 
@@ -105,9 +104,8 @@ public class TrieOfResponses extends AbstractPatriciaTrie<TransactionReference, 
 	 * 
 	 * @param response the actual response inserted in this trie
 	 * @return the response that is put in its place in the parent trie
-	 * @throws TrieException 
 	 */
-	private TransactionResponse writeTransformation(TransactionResponse response) throws TrieException {
+	private TransactionResponse writeTransformation(TransactionResponse response) {
 		if (response instanceof JarStoreTransactionResponseWithInstrumentedJar trwij) {
 			byte[] jar = trwij.getInstrumentedJar();
 			// we store the jar in the store: if it was already installed before, it gets shared
@@ -138,7 +136,7 @@ public class TrieOfResponses extends AbstractPatriciaTrie<TransactionReference, 
 			}
 			catch (UnknownKeyException e) {
 				logger.log(Level.SEVERE, "cannot find the jar for the transaction response");
-				throw new UncheckedTrieException("Cannot find the jar for the transaction response", e);
+				throw new TrieException("Cannot find the jar for the transaction response", e);
 			}
 		}
 
@@ -153,6 +151,6 @@ public class TrieOfResponses extends AbstractPatriciaTrie<TransactionReference, 
 		else if (response instanceof JarStoreInitialTransactionResponse jsitr)
 			return TransactionResponses.jarStoreInitial(newJar, jsitr.getDependencies(), jsitr.getVerificationVersion());
 		else
-			throw new UncheckedTrieException("Unexpected response containing a jar, of class " + response.getClass().getName());
+			throw new TrieException("Unexpected response containing a jar, of class " + response.getClass().getName());
 	}
 }

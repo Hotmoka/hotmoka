@@ -19,7 +19,6 @@ package io.hotmoka.patricia;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.patricia.api.KeyValueStore;
-import io.hotmoka.patricia.api.TrieException;
 import io.hotmoka.patricia.api.UnknownKeyException;
 import io.hotmoka.patricia.internal.AbstractPatriciaTrieImpl;
 
@@ -44,12 +43,11 @@ public abstract class AbstractPatriciaTrie<Key, Value, T extends AbstractPatrici
 	 * @param hashOfEmpty the hash of the empty trie
 	 * @param valueToBytes a function that marshals values into their byte representation
 	 * @param bytesToValue a function that unmarshals bytes into the represented value
-	 * @throws TrieException if the creation cannot be completed correctly
 	 * @throws UnknownKeyException if {@code root} is unknown in the store of the trie
 	 */
 	protected AbstractPatriciaTrie(KeyValueStore store, byte[] root,
 			Hasher<? super Key> hasherForKeys, HashingAlgorithm hashingForNodes, byte[] hashOfEmpty,
-			ToBytes<? super Value> valueToBytes, FromBytes<? extends Value> bytesToValue) throws TrieException, UnknownKeyException {
+			ToBytes<? super Value> valueToBytes, FromBytes<? extends Value> bytesToValue) throws UnknownKeyException {
 
 		super(store, root, hasherForKeys, hashingForNodes, hashOfEmpty, valueToBytes, bytesToValue);
 	}
@@ -61,10 +59,9 @@ public abstract class AbstractPatriciaTrie<Key, Value, T extends AbstractPatrici
 	 *               trie has been derived by a sequence of put operations passing through
 	 *               the given root, that has not been garbage-collected yet
 	 * @param root the root used to check out the trie
-	 * @throws TrieException if the creation cannot be completed correctly
 	 * @throws UnknownKeyException if {@code root} is unknown in the store of the trie
 	 */
-	protected AbstractPatriciaTrie(T cloned, byte[] root) throws TrieException, UnknownKeyException {
+	protected AbstractPatriciaTrie(T cloned, byte[] root) throws UnknownKeyException {
 		super(cloned, root);
 	}
 }

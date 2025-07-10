@@ -42,7 +42,6 @@ import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UnknownStateIdException;
-import io.hotmoka.patricia.api.TrieException;
 import io.hotmoka.patricia.api.UnknownKeyException;
 import io.hotmoka.xodus.ByteIterable;
 import io.hotmoka.xodus.ExodusException;
@@ -328,7 +327,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 			mkTrieOfHistories(txn, rootOfHistories).free();
 			mkTrieOfInfo(txn, rootOfInfo).free();
 		}
-		catch (TrieException | StoreException e) {
+		catch (StoreException e) {
 			throw new NodeException(e);
 		}
 		catch (UnknownKeyException e) {
@@ -367,45 +366,25 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 			trieOfHistories.malloc();
 			trieOfRequests.malloc();
 		}
-		catch (TrieException | StoreException | UnknownKeyException e) {
+		catch (StoreException | UnknownKeyException e) {
 			throw new NodeException(e);
 		}
 	}
 
 	protected TrieOfResponses mkTrieOfResponses(Transaction txn, byte[] rootOfResponses) throws StoreException, UnknownKeyException {
-		try {
-			return new TrieOfResponses(new KeyValueStoreOnXodus(storeOfResponses, txn), rootOfResponses, this);
-		}
-		catch (TrieException e) {
-			throw new StoreException(e);
-		}
+		return new TrieOfResponses(new KeyValueStoreOnXodus(storeOfResponses, txn), rootOfResponses, this);
 	}
 
 	protected TrieOfInfo mkTrieOfInfo(Transaction txn, byte[] rootOfInfo) throws StoreException, UnknownKeyException {
-		try {
-			return new TrieOfInfo(new KeyValueStoreOnXodus(storeOfInfo, txn), rootOfInfo, this);
-		}
-		catch (TrieException e) {
-			throw new StoreException(e);
-		}
+		return new TrieOfInfo(new KeyValueStoreOnXodus(storeOfInfo, txn), rootOfInfo, this);
 	}
 
 	protected TrieOfRequests mkTrieOfRequests(Transaction txn, byte[] rootOfRequests) throws StoreException, UnknownKeyException {
-		try {
-			return new TrieOfRequests(new KeyValueStoreOnXodus(storeOfRequests, txn), rootOfRequests, this);
-		}
-		catch (TrieException e) {
-			throw new StoreException(e);
-		}
+		return new TrieOfRequests(new KeyValueStoreOnXodus(storeOfRequests, txn), rootOfRequests, this);
 	}
 
 	protected TrieOfHistories mkTrieOfHistories(Transaction txn, byte[] rootOfHistories) throws StoreException, UnknownKeyException {
-		try {
-			return new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistories, txn), rootOfHistories, this);
-		}
-		catch (TrieException e) {
-			throw new StoreException(e);
-		}
+		return new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistories, txn), rootOfHistories, this);
 	}
 
 	/**

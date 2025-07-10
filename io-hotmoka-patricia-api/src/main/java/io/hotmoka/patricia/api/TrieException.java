@@ -16,11 +16,22 @@ limitations under the License.
 
 package io.hotmoka.patricia.api;
 
+import java.util.Objects;
+
 /**
- * An exception stating that the execution of a method of a Patricia trie failed to complete correctly.
+ * An exception stating that the execution of a method of a Patricia trie contains a bug.
  */
 @SuppressWarnings("serial")
-public class TrieException extends Exception {
+public class TrieException extends RuntimeException { // TODO: rename into TrieException at the end
+
+	/**
+	 * Creates a new exception with the given message.
+	 * 
+	 * @param message the message
+	 */
+	public TrieException(String message) {
+		super(Objects.requireNonNull(message, "message cannot be null"));
+	}
 
 	/**
 	 * Creates a new exception with the given cause.
@@ -29,5 +40,15 @@ public class TrieException extends Exception {
 	 */
 	public TrieException(Throwable cause) {
 		super(String.valueOf(cause.getMessage()), cause);
+	}
+
+	/**
+	 * Creates a new exception with the given message and cause.
+	 * 
+	 * @param message the message
+	 * @param cause the cause
+	 */
+	public TrieException(String message, Throwable cause) {
+		super(Objects.requireNonNull(message, "message cannot be null"), Objects.requireNonNull(cause, "cause cannot be null"));
 	}
 }

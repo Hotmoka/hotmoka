@@ -20,7 +20,6 @@ import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.patricia.api.KeyValueStore;
 import io.hotmoka.patricia.api.PatriciaTrie;
-import io.hotmoka.patricia.api.TrieException;
 import io.hotmoka.patricia.api.UnknownKeyException;
 import io.hotmoka.patricia.internal.PatriciaTrieImpl;
 
@@ -46,12 +45,11 @@ public final class PatriciaTries {
 	 * @param <Key> the type of the keys of the trie
 	 * @param <Value> the type of the values of the trie
 	 * @return the trie
-	 * @throws TrieException if the creation cannot be completed correctly
 	 * @throws UnknownKeyException if {@code root} is unknown in the store of the trie
 	 */
 	public static <Key, Value> PatriciaTrie<Key, Value, ?> of(KeyValueStore store, byte[] root,
 			Hasher<? super Key> hasherForKeys, HashingAlgorithm hashingForNodes, byte[] hashOfEmpty,
-			ToBytes<? super Value> valueToBytes, FromBytes<? extends Value> bytesToValue) throws TrieException, UnknownKeyException {
+			ToBytes<? super Value> valueToBytes, FromBytes<? extends Value> bytesToValue) throws UnknownKeyException {
 
 		return new PatriciaTrieImpl<>(store, root, hasherForKeys, hashingForNodes, hashOfEmpty, valueToBytes, bytesToValue);
 	}

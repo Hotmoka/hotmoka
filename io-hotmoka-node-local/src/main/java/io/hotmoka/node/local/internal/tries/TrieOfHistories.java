@@ -24,7 +24,6 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.patricia.AbstractPatriciaTrie;
 import io.hotmoka.patricia.api.KeyValueStore;
-import io.hotmoka.patricia.api.TrieException;
 import io.hotmoka.patricia.api.UnknownKeyException;
 
 /**
@@ -44,22 +43,22 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 	 * @param node the node for which the trie is being built
 	 * @throws UnknownKeyException if {@code root} cannot be found in the trie
 	 */
-	public TrieOfHistories(KeyValueStore store, byte[] root, AbstractTrieBasedLocalNodeImpl<?,?,?,?> node) throws TrieException, UnknownKeyException {
+	public TrieOfHistories(KeyValueStore store, byte[] root, AbstractTrieBasedLocalNodeImpl<?,?,?,?> node) throws UnknownKeyException {
 		super(store, root, node.mkSHA256().getHasher(StorageReference::toByteArrayWithoutSelector),
 			node.mkSHA256(), new byte[32], TrieOfHistories::historyToBytes, TrieOfHistories::bytesToHistory);
 	}
 
-	private TrieOfHistories(TrieOfHistories cloned, byte[] root) throws TrieException, UnknownKeyException {
+	private TrieOfHistories(TrieOfHistories cloned, byte[] root) throws UnknownKeyException {
 		super(cloned, root);
 	}
 
 	@Override
-	protected void malloc() throws TrieException {
+	protected void malloc() {
 		super.malloc();
 	}
 
 	@Override
-	protected void free() throws TrieException {
+	protected void free() {
 		super.free();
 	}
 
@@ -90,7 +89,7 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 	}
 
 	@Override
-	public Optional<Stream<TransactionReference>> get(StorageReference key) throws TrieException {
+	public Optional<Stream<TransactionReference>> get(StorageReference key) {
 		Optional<Stream<TransactionReference>> result = super.get(key);
 		if (result.isEmpty())
 			return Optional.empty();
@@ -106,7 +105,7 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 	}
 
 	@Override
-	public TrieOfHistories put(StorageReference key, Stream<TransactionReference> history) throws TrieException {
+	public TrieOfHistories put(StorageReference key, Stream<TransactionReference> history) {
 		// we do not keep the last transaction, since the history of an object always ends
 		// with the transaction that created the object, that is, with the same transaction
 		// of the storage reference of the object
@@ -117,7 +116,7 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 	}
 
 	@Override
-	public TrieOfHistories checkoutAt(byte[] root) throws TrieException, UnknownKeyException {
+	public TrieOfHistories checkoutAt(byte[] root) throws UnknownKeyException {
 		return new TrieOfHistories(this, root);
 	}
 }

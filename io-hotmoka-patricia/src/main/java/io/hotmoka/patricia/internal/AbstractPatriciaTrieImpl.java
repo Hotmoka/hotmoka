@@ -34,7 +34,6 @@ import io.hotmoka.patricia.ToBytes;
 import io.hotmoka.patricia.api.KeyValueStore;
 import io.hotmoka.patricia.api.PatriciaTrie;
 import io.hotmoka.patricia.api.TrieException;
-import io.hotmoka.patricia.api.UncheckedTrieException;
 import io.hotmoka.patricia.api.UnknownKeyException;
 
 /**
@@ -98,13 +97,14 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 	 * @param hashingForNodes the hashing algorithm for the nodes of the trie
 	 * @param hashOfEmpty the hash of the empty trie
 	 * @param valueToBytes a function that marshals values into their byte representation
-	 * @param bytesToValue a function that unmarshals bytes into the represented value
-	 * @throws TrieException if the creation cannot be completed correctly
+	 * @param bytesToValue a function that unmarshals bytes into the represented value; it is assumed
+	 *                     that this function always works, without exception, if the bytes have been
+	 *                     previously marshalled by {@code valueToBytes}
 	 * @throws UnknownKeyException if {@code root} cannot be found in {@code store}
 	 */
 	public AbstractPatriciaTrieImpl(KeyValueStore store, byte[] root,
 			Hasher<? super Key> hasherForKeys, HashingAlgorithm hashingForNodes, byte[] hashOfEmpty,
-			ToBytes<? super Value> valueToBytes, FromBytes<? extends Value> bytesToValue) throws TrieException, UnknownKeyException {
+			ToBytes<? super Value> valueToBytes, FromBytes<? extends Value> bytesToValue) throws UnknownKeyException {
 
 		this.store = store;
 		this.hasherForKeys = hasherForKeys;
@@ -147,10 +147,9 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 	 * 
 	 * @param cloned the trie to clone
 	 * @param root the root to use in the cloned trie
-	 * @throws TrieException if the creation cannot be completed correctly
 	 * @throws UnknownKeyException if {@code root} cannot be found in the store of this trie
 	 */
-	protected AbstractPatriciaTrieImpl(AbstractPatriciaTrieImpl<Key, Value, T> cloned, byte[] root) throws TrieException, UnknownKeyException {
+	protected AbstractPatriciaTrieImpl(AbstractPatriciaTrieImpl<Key, Value, T> cloned, byte[] root) throws UnknownKeyException {
 		this.store = cloned.store;
 		this.hasherForKeys = cloned.hasherForKeys;
 		this.hasherForNodes = cloned.hasherForNodes;
@@ -163,7 +162,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 	}
 
 	@Override
-	public Optional<Value> get(Key key) throws TrieException {
+	public Optional<Value> get(Key key) {
 		try {
 			byte[] hashedKey = hasherForKeys.hash(key);
 			byte[] nibblesOfHashedKey = toNibbles(hashedKey);
@@ -176,7 +175,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 	}
 
 	@Override
-	public T put(Key key, Value value) throws TrieException {
+	public T put(Key key, Value value) {
 		byte[] hashedKey = hasherForKeys.hash(key);
 		byte[] nibblesOfHashedKey = toNibbles(hashedKey);
 		AbstractNode oldRoot = getNodeFromExistingHash(root, 0);
@@ -188,7 +187,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		catch (UnknownKeyException e) {
 			// we just got newRoot as result of the insertion, hence it must exist in store
 			// or otherwise the store is corrupted
-			throw new UncheckedTrieException(e);
+			throw new TrieException(e);
 		}
 	}
 
@@ -199,10 +198,8 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 
 	/**
 	 * Increases the allocation counter of the root of this trie.
-	 * 
-	 * @throws TrieException
 	 */
-	protected void malloc() throws TrieException {
+	protected void malloc() {
 		// the empty node is no created, nor allocated, nor freed,
 		// better avoid a useless database access
 		if (!Arrays.equals(hashOfEmpty, root))
@@ -211,14 +208,12 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 
 	/**
 	 * Frees this trie, removing from the store all nodes that were only used for this trie.
-	 * 
-	 * @throws TrieException if the operation cannot be completed successfully
 	 */
-	protected void free() throws TrieException {
+	protected void free() {
 		// the empty node is no created, nor allocated, nor freed,
 		// better avoid a useless database access
 		if (!Arrays.equals(hashOfEmpty, root))
-			getNodeFromExistingHash(root, 0).free(root, 0);
+			freeNodeWithHash(root, 0);
 	}
 
 	/**
@@ -228,6 +223,17 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 	 */
 	protected final KeyValueStore getStore() {
 		return store;
+	}
+
+	/**
+	 * Frees a node, given its hash. The node is assumed to be in store.
+	 * 
+	 * @param hash the hash of the node
+	 * @param cursor the number of nibbles in the path from the root of the trie to the node;
+	 *               this is needed in order to foresee the size of the leaves
+	 */
+	private void freeNodeWithHash(byte[] hash, int cursor) {
+		getNodeFromExistingHash(hash, cursor).free(hash, cursor);
 	}
 
 	/**
@@ -305,10 +311,11 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 			return getNodeFromHash(hash, cursor);
 		}
 		catch (IOException e) {
-			throw new RuntimeException(e); // TODO
+			// the database must be corrupted
+			throw new TrieException(e);
 		}
 		catch (UnknownKeyException e) {
-			throw new UncheckedTrieException("This trie refers to a node that cannot be found in the trie itself", e);
+			throw new TrieException("This trie refers to a node that cannot be found in the trie itself", e);
 		}
 	}
 
@@ -346,9 +353,8 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 	 * 
 	 * @param hash the hash of the node whose reference counter must be incremented; this must exist in store
 	 * @param cursor the distance of this node from the root of the trie (number of nibbles of the key)
-	 * @throws TrieException if the operation cannot be completed correctly
 	 */
-	private void incrementReferenceCountOfNode(byte[] hash, int cursor) throws TrieException {
+	private void incrementReferenceCountOfNode(byte[] hash, int cursor) {
 		var node = getNodeFromExistingHash(hash, cursor);
 		node = node.withIncrementedReferenceCounter();
 		store.put(hash, node.toByteArray());
@@ -457,9 +463,8 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		 * 
 		 * @param cursor the distance of this node from the root of the trie (number of nibbles of the key)
 		 * @return this same node
-		 * @throws TrieException if the trie is not able to complete the operation correctly
 		 */
-		protected final AbstractNode putInStore(int cursor) throws TrieException {
+		protected final AbstractNode putInStore(int cursor) {
 			byte[] hash = hasherForNodes.hash(this);
 		
 			try {
@@ -468,8 +473,8 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 				return getNodeFromHash(hash, cursor);
 			}
 			catch (IOException e) {
-				// TODO
-				throw new RuntimeException(e);
+				// the database must be corrupted
+				throw new TrieException(e);
 			}
 			catch (UnknownKeyException e) {
 				//System.out.printf("%d/%d: %.2f\n", freed, ++allocated, freed * 100.0 / allocated);
@@ -480,15 +485,14 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		}
 
 		/**
-		 * Removes this node from the store if its reference counter is 1; If this node
+		 * Removes this node from the store if its reference counter is 1; if this node
 		 * gets removed, then the reference counter of the descendants gets decremented and
-		 * they get potentially freed as well.
+		 * they get potentially freed as well. It assumes that this node is present in store.
 		 * 
-		 * @param cursor the distance of this node from the root of the trie (number of nibbles of the key)
 		 * @param hash the hash of this same node; this must exist in store
-		 * @throws TrieException if the operation cannot be completed successfully
+		 * @param cursor the distance of this node from the root of the trie (number of nibbles of the key)
 		 */
-		protected void free(byte[] hash, int cursor) throws TrieException {
+		protected void free(byte[] hash, int cursor) {
 			AbstractNode replacement = withDecrementedReferenceCounter();
 
 			try {
@@ -501,7 +505,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 				}
 			}
 			catch (UnknownKeyException e) {
-				// hash was meant to exist in store, hence the store in corrupted
+				// this node was assumed to exist in store, hence the store in corrupted
 				throw new TrieException(e);
 			}
 		}
@@ -510,17 +514,15 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		 * Calls {@link #free(byte[], int)} on the descendants of this node.
 		 *
 		 * @param cursor the distance of this node from the root of the trie (number of nibbles of the key)
-		 * @throws TrieException if the trie is not able to complete the operation correctly
 		 */
-		protected abstract void freeDescendants(int cursor) throws TrieException;
+		protected abstract void freeDescendants(int cursor);
 
 		/**
 		 * Increments the reference counter of the descendants of this node.
 		 * 
 		 * @param cursor the distance of this node from the root of the trie (number of nibbles of the key)
-		 * @throws TrieException if the trie is not able to complete the operation correctly
 		 */
-		protected abstract void incrementReferenceCounterOfDescedants(int cursor) throws TrieException;
+		protected abstract void incrementReferenceCounterOfDescedants(int cursor);
 
 		/**
 		 * Yields a node identical to this but whose reference counter has been incremented by one.
@@ -546,9 +548,8 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		 * @param cursor the starting point of the significant portion of {@code nibblesOfHashedKey}
 		 * @return the value
 		 * @throws UnknownKeyException if there is not such value
-		 * @throws TrieException if the trie is not able to complete the operation correctly
 		 */
-		protected abstract Value get(byte[] nibblesOfHashedKey, int cursor) throws UnknownKeyException, TrieException;
+		protected abstract Value get(byte[] nibblesOfHashedKey, int cursor) throws UnknownKeyException;
 
 		/**
 		 * Binds the given value to the given key.
@@ -560,9 +561,8 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		 * @param value the value
 		 * @return the new node that replaced this in the trie; if the key was already bound to the same
 		 *         value, then this node will coincide with this, that is, they have the same hash
-		 * @throws TrieException if the trie is not able to complete the operation correctly
 		 */
-		protected abstract AbstractNode put(byte[] nibblesOfHashedKey, int cursor, Value value) throws TrieException;
+		protected abstract AbstractNode put(byte[] nibblesOfHashedKey, int cursor, Value value);
 
 		/**
 		 * Marshals this object into the given context, but does not report the reference counter.
@@ -646,7 +646,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		}
 
 		@Override
-		protected void incrementReferenceCounterOfDescedants(int cursor) throws TrieException {
+		protected void incrementReferenceCounterOfDescedants(int cursor) {
 			int cursorOfChildren = cursor + 1;
 
 			for (byte[] child: children)
@@ -665,18 +665,18 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		}
 
 		@Override
-		protected void freeDescendants(int cursor) throws TrieException {
+		protected void freeDescendants(int cursor) {
 			int cursorOfChildren = cursor + 1;
 
 			for (byte[] child: children)
 				if (!Arrays.equals(child, hashOfEmpty))
-					getNodeFromExistingHash(child, cursorOfChildren).free(child, cursorOfChildren);
+					freeNodeWithHash(child, cursorOfChildren);
 		}
 
 		@Override
-		protected Value get(byte[] nibblesOfHashedKey, final int cursor) throws UnknownKeyException, TrieException {
+		protected Value get(byte[] nibblesOfHashedKey, final int cursor) throws UnknownKeyException {
 			if (cursor >= nibblesOfHashedKey.length)
-				throw new UncheckedTrieException("Inconsistent key length in Patricia trie nibblesOfHashedKey.length = " + nibblesOfHashedKey.length + ", cursor = " + cursor);
+				throw new TrieException("Inconsistent key length in Patricia trie nibblesOfHashedKey.length = " + nibblesOfHashedKey.length + ", cursor = " + cursor);
 
 			byte selection = nibblesOfHashedKey[cursor];
 			byte[] child = children[selection];
@@ -687,9 +687,9 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		}
 
 		@Override
-		protected AbstractNode put(byte[] nibblesOfHashedKey, final int cursor, Value value) throws TrieException {
+		protected AbstractNode put(byte[] nibblesOfHashedKey, final int cursor, Value value) {
 			if (cursor >= nibblesOfHashedKey.length)
-				throw new UncheckedTrieException("Inconsistent key length in Patricia trie");
+				throw new TrieException("Inconsistent key length in Patricia trie");
 
 			byte selection = nibblesOfHashedKey[cursor];
 			AbstractNode oldChild = getNodeFromExistingHash(children[selection], cursor + 1); // we recur
@@ -744,7 +744,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		}
 
 		@Override
-		protected void incrementReferenceCounterOfDescedants(int cursor) throws TrieException {
+		protected void incrementReferenceCounterOfDescedants(int cursor) {
 			incrementReferenceCountOfNode(next, cursor + sharedNibbles.length);
 		}
 
@@ -759,26 +759,26 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		}
 
 		@Override
-		protected void freeDescendants(int cursor) throws TrieException {
+		protected void freeDescendants(int cursor) {
 			int cursorOfNext = cursor + sharedNibbles.length;
-			getNodeFromExistingHash(next, cursorOfNext).free(next, cursorOfNext);
+			freeNodeWithHash(next, cursorOfNext);
 		}
 
 		@Override
-		protected Value get(byte[] nibblesOfHashedKey, int cursor) throws UnknownKeyException, TrieException {
+		protected Value get(byte[] nibblesOfHashedKey, int cursor) throws UnknownKeyException {
 			int cursor1;
 			for (cursor1 = 0; cursor < nibblesOfHashedKey.length && cursor1 < sharedNibbles.length; cursor1++, cursor++)
 				if (sharedNibbles[cursor1] != nibblesOfHashedKey[cursor])
 					throw new UnknownKeyException("Key not found in Patricia trie");
 
 			if (cursor1 != sharedNibbles.length || cursor >= nibblesOfHashedKey.length)
-				throw new UncheckedTrieException("Inconsistent key length in Patricia trie");
+				throw new TrieException("Inconsistent key length in Patricia trie");
 
 			return getNodeFromExistingHash(next, cursor).get(nibblesOfHashedKey, cursor);
 		}
 
 		@Override
-		protected AbstractNode put(byte[] nibblesOfHashedKey, final int cursor, Value value) throws TrieException {
+		protected AbstractNode put(byte[] nibblesOfHashedKey, final int cursor, Value value) {
 			int lengthOfSharedPortion = 0;
 
 			while (lengthOfSharedPortion < sharedNibbles.length && nibblesOfHashedKey[lengthOfSharedPortion + cursor] == sharedNibbles[lengthOfSharedPortion])
@@ -803,12 +803,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 				byte[] hashOfChild1 = (sharedNibbles1.length == 0) ? next : hasherForNodes.hash(new Extension(sharedNibbles1, next, 0).putInStore(cursor + lengthOfSharedPortion + 1));
 				AbstractNode child2;
 
-				try {
-					child2 = new Leaf(keyEnd2, valueToBytes.get(value), 0).putInStore(cursor + lengthOfSharedPortion + 1);
-				}
-				catch (IOException e) {
-					throw new TrieException(e);
-				}
+				child2 = new Leaf(keyEnd2, valueToBytes.get(value), 0).putInStore(cursor + lengthOfSharedPortion + 1);
 
 				children[selection1] = hashOfChild1;
 				children[selection2] = hasherForNodes.hash(child2);
@@ -888,64 +883,58 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		}
 
 		@Override
-		protected Value get(byte[] nibblesOfHashedKey, int cursor) throws UnknownKeyException, TrieException {
+		protected Value get(byte[] nibblesOfHashedKey, int cursor) throws UnknownKeyException {
 			int cursor1;
 			for (cursor1 = 0; cursor < nibblesOfHashedKey.length && cursor1 < keyEnd.length; cursor1++, cursor++)
 				if (keyEnd[cursor1] != nibblesOfHashedKey[cursor])
 					throw new UnknownKeyException("Key not found in Patricia trie");
 
 			if (cursor1 != keyEnd.length || cursor != nibblesOfHashedKey.length)
-				throw new UncheckedTrieException("Inconsistent key length in Patricia trie: " + (cursor1 != keyEnd.length) + ", " + (cursor != nibblesOfHashedKey.length));
+				throw new TrieException("Inconsistent key length in Patricia trie: " + (cursor1 != keyEnd.length) + ", " + (cursor != nibblesOfHashedKey.length));
 
 			try {
 				return bytesToValue.get(value);
 			}
 			catch (IOException e) {
-				throw new TrieException(e);
+				throw new TrieException("The value has been previously marshalled into the trie: the database must be corrupted or the marshaller or unmarshaller is buggy", e);
 			}
 		}
 
 		@Override
-		protected AbstractNode put(byte[] nibblesOfHashedKey, int cursor, Value value) throws TrieException {
+		protected AbstractNode put(byte[] nibblesOfHashedKey, int cursor, Value value) {
 			int lengthOfSharedPortion = 0;
 
 			while (lengthOfSharedPortion < keyEnd.length && nibblesOfHashedKey[lengthOfSharedPortion + cursor] == keyEnd[lengthOfSharedPortion])
 				lengthOfSharedPortion++;
 
 			int lengthOfDistinctPortion = keyEnd.length - lengthOfSharedPortion;
+			if (lengthOfDistinctPortion == 0)
+				// the keys coincide
+				return new Leaf(keyEnd, valueToBytes.get(value), 0).putInStore(cursor);
+			else {
+				// since there is a distinct portion, there must be at least a nibble in keyEnd
+				var keyEnd1 = new byte[keyEnd.length - lengthOfSharedPortion - 1];
+				System.arraycopy(keyEnd, lengthOfSharedPortion + 1, keyEnd1, 0, keyEnd1.length);
+				var keyEnd2 = new byte[keyEnd1.length];
+				System.arraycopy(nibblesOfHashedKey, lengthOfSharedPortion + cursor + 1, keyEnd2, 0, keyEnd2.length);
+				byte selection1 = keyEnd[lengthOfSharedPortion];
+				byte selection2 = nibblesOfHashedKey[lengthOfSharedPortion + cursor];
+				var children = new byte[16][];
+				var leaf1 = new Leaf(keyEnd1, this.value, 0).putInStore(cursor + lengthOfSharedPortion + 1);
+				var leaf2 = new Leaf(keyEnd2, valueToBytes.get(value), 0).putInStore(cursor + lengthOfSharedPortion + 1);
+				children[selection1] = hasherForNodes.hash(leaf1);
+				children[selection2] = hasherForNodes.hash(leaf2);
+				var branch = new Branch(children, 0).putInStore(cursor + lengthOfSharedPortion);
 
-			try {
-				if (lengthOfDistinctPortion == 0)
-					// the keys coincide
-					return new Leaf(keyEnd, valueToBytes.get(value), 0).putInStore(cursor);
-				else {
-					// since there is a distinct portion, there must be at least a nibble in keyEnd
-					var keyEnd1 = new byte[keyEnd.length - lengthOfSharedPortion - 1];
-					System.arraycopy(keyEnd, lengthOfSharedPortion + 1, keyEnd1, 0, keyEnd1.length);
-					var keyEnd2 = new byte[keyEnd1.length];
-					System.arraycopy(nibblesOfHashedKey, lengthOfSharedPortion + cursor + 1, keyEnd2, 0, keyEnd2.length);
-					byte selection1 = keyEnd[lengthOfSharedPortion];
-					byte selection2 = nibblesOfHashedKey[lengthOfSharedPortion + cursor];
-					var children = new byte[16][];
-					var leaf1 = new Leaf(keyEnd1, this.value, 0).putInStore(cursor + lengthOfSharedPortion + 1);
-					var leaf2 = new Leaf(keyEnd2, valueToBytes.get(value), 0).putInStore(cursor + lengthOfSharedPortion + 1);
-					children[selection1] = hasherForNodes.hash(leaf1);
-					children[selection2] = hasherForNodes.hash(leaf2);
-					var branch = new Branch(children, 0).putInStore(cursor + lengthOfSharedPortion);
-
-					if (lengthOfSharedPortion > 0) {
-						// yield an extension node linked to a branch node with two alternatives leaves
-						var sharedNibbles = new byte[lengthOfSharedPortion];
-						System.arraycopy(keyEnd, 0, sharedNibbles, 0, lengthOfSharedPortion);
-						return new Extension(sharedNibbles, hasherForNodes.hash(branch), 0).putInStore(cursor);
-					}
-					else
-						// yield a branch node with two alternatives leaves
-						return branch;
+				if (lengthOfSharedPortion > 0) {
+					// yield an extension node linked to a branch node with two alternatives leaves
+					var sharedNibbles = new byte[lengthOfSharedPortion];
+					System.arraycopy(keyEnd, 0, sharedNibbles, 0, lengthOfSharedPortion);
+					return new Extension(sharedNibbles, hasherForNodes.hash(branch), 0).putInStore(cursor);
 				}
-			}
-			catch (IOException e) {
-				throw new TrieException(e);
+				else
+					// yield a branch node with two alternatives leaves
+					return branch;
 			}
 		}
 	}
@@ -996,16 +985,10 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		}
 
 		@Override
-		protected AbstractNode put(byte[] nibblesOfHashedKey, int cursor, Value value) throws TrieException {
+		protected AbstractNode put(byte[] nibblesOfHashedKey, int cursor, Value value) {
 			var nibblesEnd = new byte[nibblesOfHashedKey.length - cursor];
 			System.arraycopy(nibblesOfHashedKey, cursor, nibblesEnd, 0, nibblesEnd.length);
-
-			try {
-				return new Leaf(nibblesEnd, valueToBytes.get(value), 0).putInStore(cursor);
-			}
-			catch (IOException e) {
-				throw new TrieException(e);
-			}
+			return new Leaf(nibblesEnd, valueToBytes.get(value), 0).putInStore(cursor);
 		}
 	}
 }
