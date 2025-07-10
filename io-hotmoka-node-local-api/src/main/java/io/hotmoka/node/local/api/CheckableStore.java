@@ -35,9 +35,8 @@ public interface CheckableStore<S extends CheckableStore<S, T>, T extends StoreT
 	 * Yields the identifier of the currently checked-out state of this store.
 	 * 
 	 * @return the identifier; this is for instance the hash of the store
-	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	StateId getStateId() throws StoreException;
+	StateId getStateId();
 
 	/**
 	 * Yields a store derived from this by resetting the view of the world to that expressed

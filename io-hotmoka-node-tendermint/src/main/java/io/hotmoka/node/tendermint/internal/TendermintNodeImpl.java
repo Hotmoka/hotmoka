@@ -49,6 +49,7 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.local.AbstractTrieBasedLocalNode;
 import io.hotmoka.node.local.NodeCreationException;
 import io.hotmoka.node.local.StateIds;
+import io.hotmoka.node.local.UncheckedNodeException;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UnknownStateIdException;
@@ -679,16 +680,19 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 				transformation.deliverCoinbaseTransactions(behaving, misbehaving);
 
 				StateId idOfNewStoreOfHead = getEnvironment().computeInTransaction(NodeException.class, txn -> {
+					StateId stateIdOfFinalStore = transformation.getIdOfFinalStore(txn);
+					setRootBranch(stateIdOfFinalStore, txn);
+
 					try {
-						StateId stateIdOfFinalStore = transformation.getIdOfFinalStore(txn);
-						setRootBranch(stateIdOfFinalStore, txn);
 						persist(stateIdOfFinalStore, transformation.getNow(), txn);
-						keepPersistedOnlyNotOlderThan(transformation.getNow(), txn);
-						return stateIdOfFinalStore;
 					}
-					catch (StoreException e) {
-						throw new NodeException(e);
+					catch (UnknownStateIdException e) {
+						// impossible, we have just computed this id for the final store
+						throw new UncheckedNodeException("State id " + stateIdOfFinalStore + " has been just computed: if must have existed", e);
 					}
+
+					keepPersistedOnlyNotOlderThan(transformation.getNow(), txn);
+					return stateIdOfFinalStore;
 				});
 
 				storeOfHead = mkStore(idOfNewStoreOfHead, Optional.of(transformation.getCache()));

@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.local.internal.tries;
 
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -110,6 +111,11 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 * creating it every time and deal with a potential NoSuchAlgorithmException.
 	 */
 	private final HashingAlgorithm sha256;
+
+	/**
+	 * The hash of the empty node in the tries.
+	 */
+	private final byte[] hashOfEmpty = new byte[32]; // TODO: reuse in the tries
 
 	/**
 	 * The key used inside {@link #storeOfNode} to keep the list of old stores
@@ -249,9 +255,9 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 * @param now the current time used for delivering the transactions that led to the
 	 *            store to persist
 	 * @param txn the Xodus transaction where the operation is performed
-	 * @throws NodeException if the node is not able to complete the operation correctly
+	 * @param UnknownStateIdException if {@code stateId} cannot be found in store
 	 */
-	protected void persist(StateId stateId, long now, Transaction txn) throws NodeException {
+	protected void persist(StateId stateId, long now, Transaction txn) throws UnknownStateIdException {
 		malloc(stateId, txn);
 		addToStores(STORES_NOT_TO_GC, Set.of(new StateIdAndTime(stateId, now)), txn);
 	}
@@ -264,9 +270,8 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 *                          are retained, the others are marked as potentially garbage-collectable;
 	 *                          this is expressed in milliseconds after the Unix epoch
 	 * @param txn the Xodus transaction where the operation is performed
-	 * @throws NodeException if the node is not able to complete the operation correctly
 	 */
-	protected void keepPersistedOnlyNotOlderThan(long limitCreationTime, Transaction txn) throws NodeException {
+	protected void keepPersistedOnlyNotOlderThan(long limitCreationTime, Transaction txn) {
 		Set<StateIdAndTime> removedIds = retainOnlyNotOlderThan(STORES_NOT_TO_GC, limitCreationTime, txn);
 		addToStores(STORES_TO_GC, removedIds, txn);
 	}
@@ -308,9 +313,9 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 * 
 	 * @param stateId the identifier of the vision of the store to deallocate
 	 * @param txn the database transaction where the operation is performed
-	 * @throws NodeException if the operation cannot be completed correctly
+	 * @param UnknownStateIdException if {@code stateId} cannot be found in store
 	 */
-	private void free(StateId stateId, Transaction txn) throws UnknownStateIdException, NodeException {
+	private void free(StateId stateId, Transaction txn) throws UnknownStateIdException {
 		var bytes = stateId.getBytes();
 		var rootOfResponses = new byte[32];
 		System.arraycopy(bytes, 0, rootOfResponses, 0, 32);
@@ -327,9 +332,6 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 			mkTrieOfHistories(txn, rootOfHistories).free();
 			mkTrieOfInfo(txn, rootOfInfo).free();
 		}
-		catch (StoreException e) {
-			throw new NodeException(e);
-		}
 		catch (UnknownKeyException e) {
 			throw new UnknownStateIdException(stateId);
 		}
@@ -340,9 +342,9 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 * 
 	 * @param stateId the identifier of the vision of the store to allocate
 	 * @param txn the database transaction where the operation is performed
-	 * @throws NodeException if the operation cannot be completed correctly
+	 * @param UnknownStateIdException if {@code stateId} cannot be found in store
 	 */
-	private void malloc(StateId stateId, Transaction txn) throws NodeException {
+	private void malloc(StateId stateId, Transaction txn) throws UnknownStateIdException {
 		var bytes = stateId.getBytes();
 		var rootOfResponses = new byte[32];
 		System.arraycopy(bytes, 0, rootOfResponses, 0, 32);
@@ -366,24 +368,44 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 			trieOfHistories.malloc();
 			trieOfRequests.malloc();
 		}
-		catch (StoreException | UnknownKeyException e) {
-			throw new NodeException(e);
+		catch (UnknownKeyException e) {
+			throw new UnknownStateIdException(e);
 		}
 	}
 
-	protected TrieOfResponses mkTrieOfResponses(Transaction txn, byte[] rootOfResponses) throws StoreException, UnknownKeyException {
+	protected TrieOfResponses mkTrieOfResponses(Transaction txn, byte[] rootOfResponses) throws UnknownKeyException {
 		return new TrieOfResponses(new KeyValueStoreOnXodus(storeOfResponses, txn), rootOfResponses, this);
 	}
 
-	protected TrieOfInfo mkTrieOfInfo(Transaction txn, byte[] rootOfInfo) throws StoreException, UnknownKeyException {
+	protected TrieOfInfo mkTrieOfInfo(Transaction txn, byte[] rootOfInfo) throws UnknownKeyException {
 		return new TrieOfInfo(new KeyValueStoreOnXodus(storeOfInfo, txn), rootOfInfo, this);
 	}
 
-	protected TrieOfRequests mkTrieOfRequests(Transaction txn, byte[] rootOfRequests) throws StoreException, UnknownKeyException {
+	protected TrieOfRequests mkTrieOfRequests(Transaction txn, byte[] rootOfRequests) throws UnknownKeyException {
 		return new TrieOfRequests(new KeyValueStoreOnXodus(storeOfRequests, txn), rootOfRequests, this);
 	}
 
-	protected TrieOfHistories mkTrieOfHistories(Transaction txn, byte[] rootOfHistories) throws StoreException, UnknownKeyException {
+	protected void checkExistenceOfRootOfRequests(Transaction txn, byte[] rootOfRequests) throws UnknownKeyException {
+		if (!Arrays.equals(rootOfRequests, hashOfEmpty))
+			new KeyValueStoreOnXodus(storeOfRequests, txn).get(rootOfRequests);
+	}
+
+	protected void checkExistenceOfRootOfResponses(Transaction txn, byte[] rootOfResponses) throws UnknownKeyException {
+		if (!Arrays.equals(rootOfResponses, hashOfEmpty))
+			new KeyValueStoreOnXodus(storeOfResponses, txn).get(rootOfResponses);
+	}
+
+	protected void checkExistenceOfRootOfHistories(Transaction txn, byte[] rootOfHistories) throws UnknownKeyException {
+		if (!Arrays.equals(rootOfHistories, hashOfEmpty))
+			new KeyValueStoreOnXodus(storeOfHistories, txn).get(rootOfHistories);
+	}
+
+	protected void checkExistenceOfRootOfInfo(Transaction txn, byte[] rootOfInfo) throws UnknownKeyException {
+		if (!Arrays.equals(rootOfInfo, hashOfEmpty))
+			new KeyValueStoreOnXodus(storeOfInfo, txn).get(rootOfInfo);
+	}
+
+	protected TrieOfHistories mkTrieOfHistories(Transaction txn, byte[] rootOfHistories) throws UnknownKeyException {
 		return new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistories, txn), rootOfHistories, this);
 	}
 
@@ -393,7 +415,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	private void gc() {
 		try {
 			while (!Thread.currentThread().isInterrupted()) {
-				Set<StateIdAndTime> toGC = env.computeInReadonlyTransaction(NodeException.class, txn -> getStores(STORES_TO_GC, txn));
+				Set<StateIdAndTime> toGC = env.computeInReadonlyTransaction(txn -> getStores(STORES_TO_GC, txn));
 
 				for (var stateIdAndTime: toGC)
 					synchronized (lockGC) {
@@ -404,30 +426,25 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 				Thread.sleep(5000L);
 			}
 		}
-		catch (NodeException | ExodusException e) {
-			LOGGER.log(Level.SEVERE, "cannot select the stores to garbage-collect", e);
-		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
+		catch (RuntimeException e) {
+			LOGGER.log(Level.SEVERE, "The garbage-collection thread dies because of an exception", e);
+		}
 	}
 
-	private SortedSet<StateIdAndTime> getStores(ByteIterable which, Transaction txn) throws NodeException {
-		try {
-			byte[] bytes = Optional.ofNullable(storeOfNode.get(txn, which)).map(ByteIterable::getBytes).orElse(new byte[0]);
+	private SortedSet<StateIdAndTime> getStores(ByteIterable which, Transaction txn) {
+		byte[] bytes = Optional.ofNullable(storeOfNode.get(txn, which)).map(ByteIterable::getBytes).orElse(new byte[0]);
 
-			var result = new TreeSet<StateIdAndTime>();
-			for (int pos = 0; pos < bytes.length; pos += StateIdAndTime.SIZE_IN_BYTES) {
-				var snippet = new byte[StateIdAndTime.SIZE_IN_BYTES];
-				System.arraycopy(bytes, pos, snippet, 0, StateIdAndTime.SIZE_IN_BYTES);
-				result.add(new StateIdAndTime(snippet));
-			}
+		var result = new TreeSet<StateIdAndTime>();
+		for (int pos = 0; pos < bytes.length; pos += StateIdAndTime.SIZE_IN_BYTES) {
+			var snippet = new byte[StateIdAndTime.SIZE_IN_BYTES];
+			System.arraycopy(bytes, pos, snippet, 0, StateIdAndTime.SIZE_IN_BYTES);
+			result.add(new StateIdAndTime(snippet));
+		}
 
-			return result;
-		}
-		catch (ExodusException e) {
-			throw new NodeException(e);
-		}
+		return result;
 	}
 
 	/**
@@ -436,9 +453,8 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 * @param which the identifier of the set
 	 * @param toRemove the store to remove
 	 * @param txn the Xodus transaction where the operation is performed
-	 * @throws NodeException if the node is not able to perform the operation correctly
 	 */
-	private void removeFromStores(ByteIterable which, StateIdAndTime toRemove, Transaction txn) throws NodeException {
+	private void removeFromStores(ByteIterable which, StateIdAndTime toRemove, Transaction txn) {
 		SortedSet<StateIdAndTime> ids = getStores(which, txn);
 
 		if (ids.remove(toRemove))
@@ -453,9 +469,8 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 *                          this is in milliseconds from the Unix epoch
 	 * @param txn the Xodus transaction where the operation is performed
 	 * @return the stores that have been removed from the set, because they were older than {@code limitCreationTime}
-	 * @throws NodeException if the node is not able to perform the operation correctly
 	 */
-	private Set<StateIdAndTime> retainOnlyNotOlderThan(ByteIterable which, long limitCreationTime, Transaction txn) throws NodeException {
+	private Set<StateIdAndTime> retainOnlyNotOlderThan(ByteIterable which, long limitCreationTime, Transaction txn) {
 		SortedSet<StateIdAndTime> ids = getStores(which, txn);
 		Set<StateIdAndTime> removedIds = new HashSet<>();
 
@@ -473,7 +488,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		return removedIds;
 	}
 
-	private void storeStateIdsAndTimes(ByteIterable which, Set<StateIdAndTime> ids, Transaction txn) throws NodeException {
+	private void storeStateIdsAndTimes(ByteIterable which, Set<StateIdAndTime> ids, Transaction txn) {
 		var reduced = new byte[StateIdAndTime.SIZE_IN_BYTES * ids.size()];
 		int pos = 0;
 		for (var id: ids) {
@@ -481,12 +496,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 			pos += StateIdAndTime.SIZE_IN_BYTES;
 		}
 
-		try {
-			storeOfNode.put(txn, which, ByteIterable.fromBytes(reduced));
-		}
-		catch (ExodusException e) {
-			throw new NodeException(e);
-		}
+		storeOfNode.put(txn, which, ByteIterable.fromBytes(reduced));
 	}
 
 	/**
@@ -495,9 +505,8 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 * @param which the identifier of the set
 	 * @param toAdd the stores to add
 	 * @param txn the Xodus transaction where the operation is performed
-	 * @throws NodeException if the node is not able to complete the operation correctly
 	 */
-	private void addToStores(ByteIterable which, Set<StateIdAndTime> toAdd, Transaction txn) throws NodeException {
+	private void addToStores(ByteIterable which, Set<StateIdAndTime> toAdd, Transaction txn) {
 		SortedSet<StateIdAndTime> ids = getStores(which, txn);
 
 		if (ids.addAll(toAdd))

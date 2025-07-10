@@ -22,8 +22,8 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.exceptions.functions.ConsumerWithExceptions2;
-import io.hotmoka.exceptions.functions.FunctionWithExceptions2;
+import io.hotmoka.exceptions.functions.ConsumerWithExceptions1;
+import io.hotmoka.exceptions.functions.FunctionWithExceptions1;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
@@ -37,9 +37,9 @@ import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.api.UncheckedStoreException;
 import io.hotmoka.node.local.api.UnknownStateIdException;
 import io.hotmoka.patricia.api.UnknownKeyException;
-import io.hotmoka.xodus.ExodusException;
 import io.hotmoka.xodus.env.Transaction;
 
 /**
@@ -88,6 +88,8 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
     	this.rootOfInfo = new byte[32];
     	this.rootOfRequests = new byte[32];
     	this.rootOfHistories = new byte[32];
+
+    	// no need to check existence here, since the empty pointer is always an existing trie
     }
 
     /**
@@ -131,28 +133,23 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
     	this.rootOfRequests = toClone.rootOfRequests;
     }
 
-	protected final StateId addDelta(StoreCache cache, LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests,
-			Map<TransactionReference, TransactionResponse> addedResponses,
-			Map<StorageReference, TransactionReference[]> addedHistories, Optional<StorageReference> addedManifest, Transaction txn) throws StoreException {
+    protected final StateId addDelta(StoreCache cache, LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests,
+    		Map<TransactionReference, TransactionResponse> addedResponses,
+    		Map<StorageReference, TransactionReference[]> addedHistories, Optional<StorageReference> addedManifest, Transaction txn) {
 
-		try {
-			var rootOfRequests = addDeltaOfRequests(mkTrieOfRequests(txn), addedRequests);
-			var rootOfResponses = addDeltaOfResponses(mkTrieOfResponses(txn), addedResponses);
-			var rootOfHistories = addDeltaOfHistories(mkTrieOfHistories(txn), addedHistories);
-			var rootOfInfo = addDeltaOfInfos(mkTrieOfInfo(txn), addedManifest);
+    	var rootOfRequests = addDeltaOfRequests(mkTrieOfRequests(txn), addedRequests);
+    	var rootOfResponses = addDeltaOfResponses(mkTrieOfResponses(txn), addedResponses);
+    	var rootOfHistories = addDeltaOfHistories(mkTrieOfHistories(txn), addedHistories);
+    	var rootOfInfo = addDeltaOfInfos(mkTrieOfInfo(txn), addedManifest);
 
-			var result = new byte[128];
-			System.arraycopy(rootOfResponses, 0, result, 0, 32);
-			System.arraycopy(rootOfInfo, 0, result, 32, 32);
-			System.arraycopy(rootOfRequests, 0, result, 64, 32);
-			System.arraycopy(rootOfHistories, 0, result, 96, 32);
+    	var result = new byte[128];
+    	System.arraycopy(rootOfResponses, 0, result, 0, 32);
+    	System.arraycopy(rootOfInfo, 0, result, 32, 32);
+    	System.arraycopy(rootOfRequests, 0, result, 64, 32);
+    	System.arraycopy(rootOfHistories, 0, result, 96, 32);
 
-			return StateIds.of(result);
-		}
-		catch (UnknownKeyException e) {
-			throw new StoreException(e);
-		}
-	}
+    	return StateIds.of(result);
+    }
 
 	/**
 	 * Yields a clone of this store, but for its cache, that is initialized with information extracted from this store.
@@ -183,62 +180,35 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 	}
 
     @Override
-	public final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, StoreException {
-    	FunctionWithExceptions2<Transaction, Optional<TransactionRequest<?>>, StoreException, UnknownKeyException> function = txn -> mkTrieOfRequests(txn).get(reference);
-    	try {
-    		return getNode().getEnvironment().computeInReadonlyTransaction(StoreException.class, UnknownKeyException.class, function)
-    			.orElseThrow(() -> new UnknownReferenceException(reference));
-    	}
-		catch (ExodusException | UnknownKeyException e) {
-			throw new StoreException(e);
-		}
+	public final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException {
+    	return getNode().getEnvironment().computeInReadonlyTransaction(txn -> mkTrieOfRequests(txn).get(reference))
+    		.orElseThrow(() -> new UnknownReferenceException(reference));
 	}
 
     // TODO: this cache should be moved into the StoreCache, but only after the latter has become a store-local object, not shared among stores
     private final LRUCache<TransactionReference, TransactionResponse> getResponseCache = new LRUCache<>(100, 1_000);
 
     @Override
-    public final TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, StoreException {
+    public final TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException {
     	// we use a cache since this is shown as a hotspot by the YourKit profiler
-    	FunctionWithExceptions2<TransactionReference, TransactionResponse, UnknownReferenceException, StoreException> supplier = this::getResponseInternal;
-		return getResponseCache.computeIfAbsent(reference, supplier, UnknownReferenceException.class, StoreException.class);
+    	FunctionWithExceptions1<TransactionReference, TransactionResponse, UnknownReferenceException> supplier = this::getResponseInternal;
+		return getResponseCache.computeIfAbsent(reference, supplier, UnknownReferenceException.class);
 	}
 
-    private TransactionResponse getResponseInternal(TransactionReference reference) throws UnknownReferenceException, StoreException {
-    	FunctionWithExceptions2<Transaction, Optional<TransactionResponse>, StoreException, UnknownKeyException> function = txn -> mkTrieOfResponses(txn).get(reference);
-
-    	try {
-    		var response = getNode().getEnvironment().computeInReadonlyTransaction(StoreException.class, UnknownKeyException.class, function)
-    			.orElseThrow(() -> new UnknownReferenceException(reference));
-
-    		return response;
-    	}
-		catch (ExodusException | UnknownKeyException e) {
-			throw new StoreException(e);
-		}
+    private TransactionResponse getResponseInternal(TransactionReference reference) throws UnknownReferenceException {
+    	return getNode().getEnvironment().computeInReadonlyTransaction(txn -> mkTrieOfResponses(txn).get(reference))
+    		.orElseThrow(() -> new UnknownReferenceException(reference));
 	}
 
     @Override
-	public final Optional<StorageReference> getManifest() throws StoreException {
-		FunctionWithExceptions2<Transaction, Optional<StorageReference>, StoreException, UnknownKeyException> getManifest = txn -> mkTrieOfInfo(txn).getManifest();
-		try {
-			return getNode().getEnvironment().computeInReadonlyTransaction(StoreException.class, UnknownKeyException.class, getManifest);
-		}
-		catch (ExodusException | UnknownKeyException e) {
-			throw new StoreException(e);
-		}
+	public final Optional<StorageReference> getManifest() {
+    	return getNode().getEnvironment().computeInReadonlyTransaction(txn -> mkTrieOfInfo(txn).getManifest());
 	}
 
 	@Override
-	public final Stream<TransactionReference> getHistory(StorageReference object) throws StoreException, UnknownReferenceException {
-		FunctionWithExceptions2<Transaction, Optional<Stream<TransactionReference>>, UnknownKeyException, StoreException> getObject = txn -> mkTrieOfHistories(txn).get(object);
-		try {
-			return getNode().getEnvironment().computeInReadonlyTransaction(UnknownKeyException.class, StoreException.class, getObject)
-				.orElseThrow(() -> new UnknownReferenceException(object));
-		}
-		catch (ExodusException | UnknownKeyException e) {
-			throw new StoreException(e);
-		}
+	public final Stream<TransactionReference> getHistory(StorageReference object) throws UnknownReferenceException {
+		return getNode().getEnvironment().computeInReadonlyTransaction(txn -> mkTrieOfHistories(txn).get(object))
+			.orElseThrow(() -> new UnknownReferenceException(object));
 	}
 
 	@Override
@@ -252,22 +222,19 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 		return StateIds.of(result);
 	}
 
-	private void checkExistence() throws UnknownStateIdException, StoreException {
+	private void checkExistence() throws UnknownStateIdException {
 		try {
-			ConsumerWithExceptions2<Transaction, UnknownKeyException, StoreException> checkTriesExist = txn -> {
-				mkTrieOfRequests(txn);
-				mkTrieOfResponses(txn);
-				mkTrieOfHistories(txn);
-				mkTrieOfInfo(txn);
+			ConsumerWithExceptions1<Transaction, UnknownKeyException> checkTriesExist = txn -> {
+				getNode().checkExistenceOfRootOfRequests(txn, rootOfRequests);
+				getNode().checkExistenceOfRootOfResponses(txn, rootOfResponses);
+				getNode().checkExistenceOfRootOfHistories(txn, rootOfHistories);
+				getNode().checkExistenceOfRootOfInfo(txn, rootOfInfo);
 			};
 
-			getNode().getEnvironment().executeInReadonlyTransaction(UnknownKeyException.class, StoreException.class, checkTriesExist);
+			getNode().getEnvironment().executeInReadonlyTransaction(UnknownKeyException.class, checkTriesExist);
 		}
 		catch (UnknownKeyException e) {
 			throw new UnknownStateIdException();
-		}
-		catch (ExodusException e) {
-			throw new StoreException(e);
 		}
 	}
 
@@ -315,19 +282,43 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 		return trieOfRequests.getRoot();
 	}
 
-	private TrieOfResponses mkTrieOfResponses(Transaction txn) throws StoreException, UnknownKeyException {
-		return getNode().mkTrieOfResponses(txn, rootOfResponses);
+	private TrieOfResponses mkTrieOfResponses(Transaction txn) {
+		try {
+			return getNode().mkTrieOfResponses(txn, rootOfResponses);
+		}
+		catch (UnknownKeyException e) {
+			// the constructors enforce the existence of the root, there this is a database problem
+			throw new UncheckedStoreException("The root was expected to be in store");
+		}
 	}
 
-	private TrieOfInfo mkTrieOfInfo(Transaction txn) throws StoreException, UnknownKeyException {
-		return getNode().mkTrieOfInfo(txn, rootOfInfo);
+	private TrieOfInfo mkTrieOfInfo(Transaction txn) {
+		try {
+			return getNode().mkTrieOfInfo(txn, rootOfInfo);
+		}
+		catch (UnknownKeyException e) {
+			// the constructors enforce the existence of the root, there this is a database problem
+			throw new UncheckedStoreException("The root was expected to be in store");
+		}
 	}
 
-	private TrieOfRequests mkTrieOfRequests(Transaction txn) throws StoreException, UnknownKeyException {
-		return getNode().mkTrieOfRequests(txn, rootOfRequests);
+	private TrieOfRequests mkTrieOfRequests(Transaction txn) {
+		try {
+			return getNode().mkTrieOfRequests(txn, rootOfRequests);
+		}
+		catch (UnknownKeyException e) {
+			// the constructors enforce the existence of the root, there this is a database problem
+			throw new UncheckedStoreException("The root was expected to be in store");
+		}
 	}
 
-	private TrieOfHistories mkTrieOfHistories(Transaction txn) throws StoreException, UnknownKeyException {
-		return getNode().mkTrieOfHistories(txn, rootOfHistories);
+	private TrieOfHistories mkTrieOfHistories(Transaction txn) {
+		try {
+			return getNode().mkTrieOfHistories(txn, rootOfHistories);
+		}
+		catch (UnknownKeyException e) {
+			// the constructors enforce the existence of the root, there this is a database problem
+			throw new UncheckedStoreException("The root was expected to be in store");
+		}
 	}
 }

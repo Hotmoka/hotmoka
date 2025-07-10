@@ -51,6 +51,7 @@ import io.hotmoka.node.local.AbstractTrieBasedLocalNode;
 import io.hotmoka.node.local.LRUCache;
 import io.hotmoka.node.local.NodeCreationException;
 import io.hotmoka.node.local.StateIds;
+import io.hotmoka.node.local.UncheckedNodeException;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
@@ -411,7 +412,14 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 						if (lastCaches.get(stateIdOfFinalStore) == null) {
 							lastCaches.put(stateIdOfFinalStore, transformation.getCache());
-							persist(stateIdOfFinalStore, transformation.getNow(), txn);
+
+							try {
+								persist(stateIdOfFinalStore, transformation.getNow(), txn);
+							}
+							catch (UnknownStateIdException e) {
+								// impossible, we have just computed this id for the final store
+								throw new UncheckedNodeException("State id " + stateIdOfFinalStore + " has been just computed: if must have existed", e);
+							}
 						}
 
 						return stateIdOfFinalStore.getBytes();
@@ -419,7 +427,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 					return getEnvironment().computeInTransaction(NodeException.class, StoreException.class, function);
 				}
-				catch (ExodusException | StoreException | NodeException e) { // TODO
+				catch (StoreException | NodeException e) { // TODO
 					throw new RuntimeException(e);
 				}
 			}

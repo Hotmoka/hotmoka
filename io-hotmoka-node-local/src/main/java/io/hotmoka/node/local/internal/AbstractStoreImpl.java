@@ -23,7 +23,6 @@ import java.util.concurrent.Future;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.node.FieldSignatures;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
@@ -75,13 +74,7 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	private AbstractStoreImpl(N node, Optional<StoreCache> cache) throws StoreException {
 		this.node = node;
 		this.cache = cache.isPresent() ? cache.get() : new StoreCacheImpl();
-
-		try {
-			this.consensusForViews = this.cache.getConfig().toBuilder().setMaxGasPerTransaction(node.getLocalConfig().getMaxGasPerViewTransaction()).build();
-		}
-		catch (NodeException e) {
-			throw new StoreException(e);
-		}
+		this.consensusForViews = this.cache.getConfig().toBuilder().setMaxGasPerTransaction(node.getLocalConfig().getMaxGasPerViewTransaction()).build();
 	}
 
 	/**

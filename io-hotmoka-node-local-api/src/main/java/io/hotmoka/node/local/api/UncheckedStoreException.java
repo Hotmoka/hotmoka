@@ -1,5 +1,5 @@
 /*
-Copyright 2025 Fausto Spoto
+Copyright 2024 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,32 +14,48 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.api;
+package io.hotmoka.node.local.api;
 
 import java.util.Objects;
 
 /**
- * An exception stating that the creation of a class loader failed.
+ * An exception stating that the execution of a method of a store failed to complete correctly.
  */
 @SuppressWarnings("serial")
-public class ClassLoaderCreationException extends HotmokaException {
+public class UncheckedStoreException extends RuntimeException {
 
 	/**
-	 * Creates a new exception with the given message.
-	 * 
-	 * @param message the message
+	 * Creates a new exception.
 	 */
-	public ClassLoaderCreationException(String message) {
-		super(Objects.requireNonNull(message, "message cannot be null"));
+	public UncheckedStoreException() {
+		super("The store is misbehaving");
 	}
 
 	/**
 	 * Creates a new exception with the given message.
 	 * 
 	 * @param message the message
+	 */
+	public UncheckedStoreException(String message) {
+		super(Objects.requireNonNull(message, "message cannot be null"));
+	}
+
+	/**
+	 * Creates a new exception with the given cause.
+	 * 
 	 * @param cause the cause
 	 */
-	public ClassLoaderCreationException(String message, Throwable cause) {
+	public UncheckedStoreException(Throwable cause) {
+		super(String.valueOf(cause.getMessage()), cause);
+	}
+
+	/**
+	 * Creates a new exception with the given message and cause.
+	 * 
+	 * @param message the message
+	 * @param cause the cause
+	 */
+	public UncheckedStoreException(String message, Throwable cause) {
 		super(Objects.requireNonNull(message, "message cannot be null"), Objects.requireNonNull(cause, "cause cannot be null"));
 	}
 }

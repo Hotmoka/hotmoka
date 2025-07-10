@@ -294,13 +294,13 @@ public class Reverification {
 			}
 			else
 				if (wasDependencyInStore)
-					throw new StoreException("Transaction " + transaction + " under reverification was a depdency of a transaction in store, hence it was expected to be a jar store transaction, but it is a " + response.getClass().getSimpleName());
+					throw new ClassLoaderCreationException("Transaction " + transaction + " under reverification was a depdency of a transaction in store, hence it was expected to be a jar store transaction, but it is a " + response.getClass().getSimpleName());
 				else
 					throw new ClassLoaderCreationException("The transaction " + transaction + " under reverification is not a jar store transaction");
 		}
 		catch (UnknownReferenceException e) {
 			if (wasDependencyInStore)
-				throw new StoreException("Transaction " + transaction + " under reverification was a depdency of a transaction in store, hence it was expected to exist, but it cannot be found in store");
+				throw new ClassLoaderCreationException("Transaction " + transaction + " under reverification was a depdency of a transaction in store, hence it was expected to exist, but it cannot be found in store");
 			else
 				throw new ClassLoaderCreationException("Unknown transaction reference " + transaction + " under reverification");
 		}

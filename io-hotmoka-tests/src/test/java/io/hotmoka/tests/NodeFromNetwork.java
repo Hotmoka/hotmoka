@@ -74,7 +74,7 @@ public class NodeFromNetwork extends HotmokaTest {
     	TransactionReference localTakamakaCode = takamakaCode();
     	TransactionReference remoteTakamakaCode;
 
-        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
+        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 100_000)) {
         	remoteTakamakaCode = remote.getTakamakaCode();
         }
 
@@ -86,7 +86,7 @@ public class NodeFromNetwork extends HotmokaTest {
     void testRemoteGetSignatureAlgorithmForRequests() throws Exception {
     	SignatureAlgorithm algo;
 
-        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
+        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 100_000)) {
         	algo = remote.getConfig().getSignatureForRequests();
         }
 
@@ -99,7 +99,7 @@ public class NodeFromNetwork extends HotmokaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getClassTag")
     void testRemoteGetClassTag() throws Exception {
-        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
+        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 100_000)) {
         	assertEquals(node.getClassTag(account(0)), remote.getClassTag(account(0)));
         }
     }
@@ -107,7 +107,7 @@ public class NodeFromNetwork extends HotmokaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getClassTag for a non-existing reference")
     void testRemoteGetClassTagNonExisting() throws Exception {
-        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
+        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 100_000)) {
         	assertThrows(UnknownReferenceException.class, () -> remote.getClassTag(INEXISTENT_STORAGE_REFERENCE));
         }
     }
@@ -118,7 +118,7 @@ public class NodeFromNetwork extends HotmokaTest {
     	Stream<Update> localState = node.getState(account(0));
         Stream<Update> remoteState;
 
-        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
+        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 100_000)) {
         	remoteState = remote.getState(account(0));
         }
 
@@ -128,7 +128,7 @@ public class NodeFromNetwork extends HotmokaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getState with a non-existing reference")
     void testRemoteGetStateNonExisting() throws Exception {
-        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
+        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 100_000)) {
         	assertThrows(UnknownReferenceException.class, () -> remote.getState(INEXISTENT_STORAGE_REFERENCE));
         }
     }
@@ -136,7 +136,7 @@ public class NodeFromNetwork extends HotmokaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getRequest")
     void testRemoteGetRequest() throws Exception {
-        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
+        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 100_000)) {
         	// the jar containing the base Takamaka code was installed by an initial jar store transaction request
         	assertTrue(remote.getRequest(takamakaCode()) instanceof JarStoreInitialTransactionRequest);
         }
@@ -145,7 +145,7 @@ public class NodeFromNetwork extends HotmokaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getRequest for a non-existing reference")
     void testRemoteGetRequestNonExisting() throws Exception {
-        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
+        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 100_000)) {
         	assertThrows(UnknownReferenceException.class, () -> remote.getRequest(INEXISTENT_TRANSACTION_REFERENCE));
         }
     }
@@ -153,7 +153,7 @@ public class NodeFromNetwork extends HotmokaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getResponse")
     void testRemoteGetResponse() throws Exception {
-        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
+        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 100_000)) {
         	// the jar containing the base Takamaka code was installed by an initial jar store transaction
         	assertTrue(remote.getResponse(takamakaCode()) instanceof JarStoreInitialTransactionResponse);
         }
@@ -162,7 +162,7 @@ public class NodeFromNetwork extends HotmokaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getResponse for a non-existing reference")
     void testRemoteGetResponseNonExisting() throws Exception {
-        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
+        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 100_000)) {
         	assertThrows(UnknownReferenceException.class, () -> remote.getResponse(INEXISTENT_TRANSACTION_REFERENCE));
         }
     }
@@ -170,7 +170,7 @@ public class NodeFromNetwork extends HotmokaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to post a jar that fails")
     void testRemoteJarStoreResponseFailed() throws Exception {
-        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
+        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 100_000)) {
         	// we try to install a jar, but we forget to add its dependency (lambdas.jar needs takamakaCode() as dependency);
         	// this means that the request fails and the future refers to a failed request; since this is a post,
         	// the execution does not stop, nor throws anything
@@ -187,7 +187,7 @@ public class NodeFromNetwork extends HotmokaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getPolledResponse")
     void testRemoteGetPolledResponse() throws Exception {
-        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
+        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 100_000)) {
         	// we install a jar in blockchain
         	JarFuture future = postJarStoreTransaction(privateKey(0), account(0), _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar"), takamakaCode());
 
@@ -199,7 +199,7 @@ public class NodeFromNetwork extends HotmokaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to addJarStoreTransaction")
     void testRemoteAddJarStoreTransaction() throws Exception {
-    	try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
+    	try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 100_000)) {
     		assertNotNull(remote.addJarStoreTransaction(TransactionRequests.jarStore
        			(signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0),
 				ZERO, chainId(), _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar"), takamakaCode())));
@@ -209,7 +209,7 @@ public class NodeFromNetwork extends HotmokaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to addJarStoreTransactionRequest for a request that gets rejected")
     void testRemoteAddJarStoreTransactionRejected() throws Exception {
-        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
+        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 100_000)) {
         	// we try to install a jar, but we forget to add its dependency (lambdas.jar needs takamakaCode() as dependency);
         	// this means that the request fails and the future refers to a failed request; since this is a post,
         	// the execution does not stop, nor throws anything
@@ -225,7 +225,7 @@ public class NodeFromNetwork extends HotmokaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to addJarStoreTransactionRequest for a request that fails")
     void testRemoteAddJarStoreTransactionFailed() throws Exception {
-        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
+        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 100_000)) {
         	throwsTransactionExceptionWithCauseAndMessageContaining(VerificationException.class, "caller() can only be called on \"this\"", () ->
         		remote.addJarStoreTransaction(TransactionRequests.jarStore
         			(signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0),
@@ -236,7 +236,7 @@ public class NodeFromNetwork extends HotmokaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to postJarStoreTransactionRequest")
     void testRemotePostJarStoreTransaction() throws Exception {
-    	try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
+    	try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 100_000)) {
     		JarFuture future = remote.postJarStoreTransaction(TransactionRequests.jarStore
            			(signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0),
     				ZERO, chainId(), _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar"), takamakaCode()));
@@ -249,7 +249,7 @@ public class NodeFromNetwork extends HotmokaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to postJarStoreTransactionRequest for a request that gets rejected")
     void testRemotePostJarStoreTransactionRejected() throws Exception {
-        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
+        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 100_000)) {
         	// we try to install a jar, but we forget to add its dependency (lambdas.jar needs takamakaCode() as dependency);
         	// this means that the request fails and the future refers to a failed request; since this is a post,
         	// the execution does not stop, nor throws anything
@@ -268,7 +268,7 @@ public class NodeFromNetwork extends HotmokaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to postJarStoreTransactionRequest for a request that fails")
     void testRemotePostJarStoreTransactionFailed() throws Exception {
-        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
+        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 100_000)) {
         	// we try to install a jar, but we forget to add its dependency (lambdas.jar needs takamakaCode() as dependency);
         	// this means that the request fails and the future refers to a failed request; since this is a post,
         	// the execution does not stop, nor throws anything
@@ -285,7 +285,7 @@ public class NodeFromNetwork extends HotmokaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to runStaticMethodCallTransaction")
     void testRemoteRunStaticMethodCallTransaction() throws Exception {
-    	try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
+    	try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 100_000)) {
     		TransactionReference jar = addJarStoreTransaction(privateKey(0), account(0),
     			_500_000, ONE, takamakaCode(), bytesOf("collections.jar"), takamakaCode());
 
@@ -302,7 +302,7 @@ public class NodeFromNetwork extends HotmokaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to runInstanceMethodCallTransaction")
     void testRemoteRunInstanceMethodCallTransaction() throws Exception {
-    	try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
+    	try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 100_000)) {
 			var request = TransactionRequests.instanceViewMethodCall(account(0), _100_000, takamakaCode(), MethodSignatures.NONCE, account(0));
 			assertEquals(ZERO, remote.runInstanceMethodCallTransaction(request).get().asBigInteger(__ -> new ClassCastException()));
         }

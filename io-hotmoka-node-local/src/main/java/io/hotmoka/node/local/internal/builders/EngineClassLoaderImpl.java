@@ -180,8 +180,11 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			this.balanceField = contract.getDeclaredField("balance");
 			this.balanceField.setAccessible(true); // it was private
 		}
-		catch (NoSuchMethodException | NoSuchFieldException e) {
-			throw new StoreException("Unexpected class change", e);
+		catch (NoSuchMethodException e) {
+			throw new ClassLoaderCreationException("Missing method", e);
+		}
+		catch (NoSuchFieldException e) {
+			throw new ClassLoaderCreationException("Missing field", e);
 		}
 	}
 

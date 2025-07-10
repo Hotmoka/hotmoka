@@ -41,6 +41,7 @@ import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.local.AbstractStore;
 import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.api.UncheckedStoreException;
 
 /**
  * The store of a disk blockchain. It is not transactional and just writes
@@ -197,8 +198,14 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
 		// so that they are reported in the block files with their correct progressive inside the block
 		for (var entry: addedRequests.entrySet()) {
 			TransactionReference reference = entry.getKey();
-			dumpRequest(progressive, reference, entry.getValue());
-			dumpResponse(progressive++, reference, addedResponses.get(reference));
+
+			try {
+				dumpRequest(progressive, reference, entry.getValue());
+				dumpResponse(progressive++, reference, addedResponses.get(reference));
+			}
+			catch (IOException e) {
+				throw new UncheckedStoreException(e);
+			}
 		}
     }
 
@@ -269,27 +276,17 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
 		return new DiskStore(this, Optional.of(cache));
 	}
 
-	private void dumpRequest(int progressive, TransactionReference reference, TransactionRequest<?> request) throws StoreException {
-		try {
-			Path requestPath = getPathFor(progressive, reference, "request.txt");
-			Path parent = requestPath.getParent();
-			ensureDeleted(parent);
-			Files.createDirectories(parent);
-			Files.writeString(requestPath, request.toString(), StandardCharsets.UTF_8);
-		}
-		catch (IOException e) {
-			throw new StoreException(e);
-		}
+	private void dumpRequest(int progressive, TransactionReference reference, TransactionRequest<?> request) throws IOException {
+		Path requestPath = getPathFor(progressive, reference, "request.txt");
+		Path parent = requestPath.getParent();
+		ensureDeleted(parent);
+		Files.createDirectories(parent);
+		Files.writeString(requestPath, request.toString(), StandardCharsets.UTF_8);
 	}
 
-	private void dumpResponse(int progressive, TransactionReference reference, TransactionResponse response) throws StoreException {
-		try {
-			Path responsePath = getPathFor(progressive, reference, "response.txt");
-			Files.writeString(responsePath, response.toString(), StandardCharsets.UTF_8);
-		}
-		catch (IOException e) {
-			throw new StoreException(e);
-		}
+	private void dumpResponse(int progressive, TransactionReference reference, TransactionResponse response) throws IOException {
+		Path responsePath = getPathFor(progressive, reference, "response.txt");
+		Files.writeString(responsePath, response.toString(), StandardCharsets.UTF_8);
 	}
 
 	/**

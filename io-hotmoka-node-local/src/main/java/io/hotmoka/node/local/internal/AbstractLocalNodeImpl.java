@@ -212,11 +212,14 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		}
 	}
 
-	@Override
-	public final C getLocalConfig() throws ClosedNodeException {
-		try (var scope = mkScope()) {
-			return config;
-		}
+	/**
+	 * Yields the local configuration of this node.
+	 * 
+	 * @return the local configuration
+	 * @throws ClosedNodeException if this node is already closed
+	 */
+	public final C getLocalConfig() {
+		return config;
 	}
 
 	@Override
