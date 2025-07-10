@@ -27,6 +27,7 @@ import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.patricia.AbstractPatriciaTrie;
 import io.hotmoka.patricia.api.KeyValueStore;
 import io.hotmoka.patricia.api.TrieException;
+import io.hotmoka.patricia.api.UncheckedTrieException;
 import io.hotmoka.patricia.api.UnknownKeyException;
 
 /**
@@ -75,13 +76,8 @@ public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue, TrieOfI
 	 * @return the manifest, if any
 	 */
 	public Optional<StorageReference> getManifest() throws TrieException {
-		Optional<StorageValue> maybeManifest = get((byte) 0);
-		if (maybeManifest.isEmpty())
-			return Optional.empty();
-		else if (maybeManifest.get() instanceof StorageReference manifest)
-			return Optional.of(manifest);
-		else
-			throw new TrieException("This trie contains a manifest that is not a StorageReference");
+		return get((byte) 0)
+			.map(value -> value.asReference(value2 -> new UncheckedTrieException("This trie contains a manifest that is not a StorageReference but rather a " + value2.getClass().getName())));
 	}
 
 	/**

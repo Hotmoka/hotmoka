@@ -34,6 +34,7 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.patricia.AbstractPatriciaTrie;
 import io.hotmoka.patricia.api.KeyValueStore;
 import io.hotmoka.patricia.api.TrieException;
+import io.hotmoka.patricia.api.UncheckedTrieException;
 import io.hotmoka.patricia.api.UnknownKeyException;
 
 /**
@@ -84,11 +85,7 @@ public class TrieOfResponses extends AbstractPatriciaTrie<TransactionReference, 
 
 	@Override
 	public Optional<TransactionResponse> get(TransactionReference key) throws TrieException {
-		Optional<TransactionResponse> maybeResponse = super.get(key);
-		if (maybeResponse.isPresent())
-			return Optional.of(readTransformation(maybeResponse.get()));
-		else
-			return Optional.empty();
+		return super.get(key).map(this::readTransformation);
 	}
 
 	@Override
@@ -132,7 +129,7 @@ public class TrieOfResponses extends AbstractPatriciaTrie<TransactionReference, 
 	 * @param response the response read from the parent trie
 	 * @return return the actual response returned by this trie
 	 */
-	private TransactionResponse readTransformation(TransactionResponse response) throws TrieException {
+	private TransactionResponse readTransformation(TransactionResponse response) {
 		if (response instanceof JarStoreTransactionResponseWithInstrumentedJar trwij) {
 			// we replace the hash of the jar with the actual jar
 			try {
@@ -141,14 +138,14 @@ public class TrieOfResponses extends AbstractPatriciaTrie<TransactionReference, 
 			}
 			catch (UnknownKeyException e) {
 				logger.log(Level.SEVERE, "cannot find the jar for the transaction response");
-				throw new TrieException("Cannot find the jar for the transaction response", e);
+				throw new UncheckedTrieException("Cannot find the jar for the transaction response", e);
 			}
 		}
 
 		return response;
 	}
 
-	private TransactionResponse replaceJar(JarStoreTransactionResponseWithInstrumentedJar response, byte[] newJar) throws TrieException {
+	private TransactionResponse replaceJar(JarStoreTransactionResponseWithInstrumentedJar response, byte[] newJar) {
 		if (response instanceof JarStoreTransactionSuccessfulResponse jstsr)
 			return TransactionResponses.jarStoreSuccessful
 				(newJar, jstsr.getDependencies(), jstsr.getVerificationVersion(), jstsr.getUpdates(),
@@ -156,6 +153,6 @@ public class TrieOfResponses extends AbstractPatriciaTrie<TransactionReference, 
 		else if (response instanceof JarStoreInitialTransactionResponse jsitr)
 			return TransactionResponses.jarStoreInitial(newJar, jsitr.getDependencies(), jsitr.getVerificationVersion());
 		else
-			throw new TrieException("Unexpected response containing jar, of class " + response.getClass().getName());
+			throw new UncheckedTrieException("Unexpected response containing a jar, of class " + response.getClass().getName());
 	}
 }
