@@ -27,18 +27,16 @@ public interface KeyValueStore {
 	 * 
 	 * @param key the key
 	 * @param value the value
-	 * @throws KeyValueStoreException if this key/value store is not able to complete the operation
 	 */
-	void put(byte[] key, byte[] value) throws KeyValueStoreException;
+	void put(byte[] key, byte[] value);
 
 	/**
 	 * Deletes the association for the given key, that must exist in store.
 	 * 
 	 * @param key the key
 	 * @throws UnknownKeyException if {@code key} is not present in this key/value store
-	 * @throws KeyValueStoreException if this key/value store is not able to complete the operation
 	 */
-	void remove(byte[] key) throws UnknownKeyException, KeyValueStoreException;
+	void remove(byte[] key) throws UnknownKeyException;
 
 	/**
 	 * Gets the association of a key in this store.
@@ -46,7 +44,6 @@ public interface KeyValueStore {
 	 * @param key the key
 	 * @return the value associated with the key
 	 * @throws UnknownKeyException if {@code key} is not present in this key/value store
-	 * @throws KeyValueStoreException if this key/value store is not able to complete the operation
 	 */
-	byte[] get(byte[] key) throws UnknownKeyException, KeyValueStoreException;
+	byte[] get(byte[] key) throws UnknownKeyException;
 }

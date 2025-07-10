@@ -17,10 +17,8 @@ limitations under the License.
 package io.hotmoka.node.local.internal.tries;
 
 import io.hotmoka.patricia.api.KeyValueStore;
-import io.hotmoka.patricia.api.KeyValueStoreException;
 import io.hotmoka.patricia.api.UnknownKeyException;
 import io.hotmoka.xodus.ByteIterable;
-import io.hotmoka.xodus.ExodusException;
 import io.hotmoka.xodus.env.Store;
 import io.hotmoka.xodus.env.Transaction;
 
@@ -37,37 +35,22 @@ public class KeyValueStoreOnXodus implements KeyValueStore {
 	}
 
 	@Override
-	public byte[] get(byte[] key) throws UnknownKeyException, KeyValueStoreException {
-		try {
-			ByteIterable result = store.get(txn, ByteIterable.fromBytes(key));
-			if (result == null)
-				throw new UnknownKeyException();
-	
-			return result.getBytes();
-		}
-		catch (ExodusException e) {
-			throw new KeyValueStoreException(e);
-		}
+	public byte[] get(byte[] key) throws UnknownKeyException {
+		ByteIterable result = store.get(txn, ByteIterable.fromBytes(key));
+		if (result == null)
+			throw new UnknownKeyException();
+
+		return result.getBytes();
 	}
 
 	@Override
-	public void put(byte[] key, byte[] value) throws KeyValueStoreException {
-		try {
-			store.put(txn, ByteIterable.fromBytes(key), ByteIterable.fromBytes(value));
-		}
-		catch (ExodusException e) {
-			throw new KeyValueStoreException(e);
-		}
+	public void put(byte[] key, byte[] value) {
+		store.put(txn, ByteIterable.fromBytes(key), ByteIterable.fromBytes(value));
 	}
 
 	@Override
-	public void remove(byte[] key) throws UnknownKeyException, KeyValueStoreException {
-		try {
-			if (!store.delete(txn, ByteIterable.fromBytes(key)))
-				throw new UnknownKeyException();
-		}
-		catch (ExodusException e) {
-			throw new KeyValueStoreException(e);
-		}
+	public void remove(byte[] key) throws UnknownKeyException {
+		if (!store.delete(txn, ByteIterable.fromBytes(key)))
+			throw new UnknownKeyException();
 	}
 }

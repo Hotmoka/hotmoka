@@ -33,7 +33,6 @@ import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.patricia.AbstractPatriciaTrie;
 import io.hotmoka.patricia.api.KeyValueStore;
-import io.hotmoka.patricia.api.KeyValueStoreException;
 import io.hotmoka.patricia.api.TrieException;
 import io.hotmoka.patricia.api.UnknownKeyException;
 
@@ -116,13 +115,7 @@ public class TrieOfResponses extends AbstractPatriciaTrie<TransactionReference, 
 			byte[] jar = trwij.getInstrumentedJar();
 			// we store the jar in the store: if it was already installed before, it gets shared
 			byte[] hashedJar = hasherForJars.hash(jar);
-
-			try {
-				getStore().put(hashedJar, jar);
-			}
-			catch (KeyValueStoreException e) {
-				throw new TrieException(e);
-			}
+			getStore().put(hashedJar, jar);
 
 			// we replace the jar with its hash
 			response = replaceJar(trwij, hashedJar);
@@ -146,7 +139,7 @@ public class TrieOfResponses extends AbstractPatriciaTrie<TransactionReference, 
 				byte[] jar = getStore().get(trwij.getInstrumentedJar());
 				response = replaceJar(trwij, jar);
 			}
-			catch (UnknownKeyException | KeyValueStoreException e) {
+			catch (UnknownKeyException e) {
 				logger.log(Level.SEVERE, "cannot find the jar for the transaction response");
 				throw new TrieException("Cannot find the jar for the transaction response", e);
 			}

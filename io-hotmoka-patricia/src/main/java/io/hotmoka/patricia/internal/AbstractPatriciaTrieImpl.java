@@ -32,7 +32,6 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.patricia.FromBytes;
 import io.hotmoka.patricia.ToBytes;
 import io.hotmoka.patricia.api.KeyValueStore;
-import io.hotmoka.patricia.api.KeyValueStoreException;
 import io.hotmoka.patricia.api.PatriciaTrie;
 import io.hotmoka.patricia.api.TrieException;
 import io.hotmoka.patricia.api.UnknownKeyException;
@@ -186,7 +185,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 			return checkoutAt(hasherForNodes.hash(newRoot));
 		}
 		catch (UnknownKeyException e) {
-			// we just got newRoot as result of the insertion, hence it must exists in store
+			// we just got newRoot as result of the insertion, hence it must exist in store
 			// or otherwise the store is corrupted
 			throw new TrieException(e);
 		}
@@ -203,7 +202,10 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 	 * @throws TrieException
 	 */
 	protected void malloc() throws TrieException {
-		incrementReferenceCountOfNode(root, 0);
+		// the empty node is no created, nor allocated, nor freed,
+		// better avoid a useless database access
+		if (!Arrays.equals(hashOfEmpty, root))
+			incrementReferenceCountOfNode(root, 0);
 	}
 
 	/**
@@ -212,7 +214,10 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 	 * @throws TrieException if the operation cannot be completed successfully
 	 */
 	protected void free() throws TrieException {
-		getNodeFromHash(root, 0).free(root, 0);
+		// the empty node is no created, nor allocated, nor freed,
+		// better avoid a useless database access
+		if (!Arrays.equals(hashOfEmpty, root))
+			getNodeFromHash(root, 0).free(root, 0);
 	}
 
 	/**
@@ -321,7 +326,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		try (var bais = new ByteArrayInputStream(store.get(hash)); var context = UnmarshallingContexts.of(bais)) {
 			return from(context, cursor);
 		}
-		catch (KeyValueStoreException | IOException e) {
+		catch (IOException e) {
 			throw new TrieException(e);
 		}
 	}
@@ -329,18 +334,11 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 	/**
 	 * Enforces the existence of the root of this trie inside its store.
 	 * 
-	 * @throws TrieException if this trie is not able to complete the operation correctly
 	 * @throws UnknownKeyException if the root of this trie cannot be found in its store
 	 */
-	private void enforceExistence() throws UnknownKeyException, TrieException {
-		if (!Arrays.equals(root, hashOfEmpty)) {
-			try {
-				store.get(root);
-			}
-			catch (KeyValueStoreException e) {
-				throw new TrieException(e);
-			}
-		}
+	private void enforceExistence() throws UnknownKeyException {
+		if (!Arrays.equals(root, hashOfEmpty))
+			store.get(root);
 	}
 
 	/**
@@ -353,13 +351,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 	private void incrementReferenceCountOfNode(byte[] hash, int cursor) throws TrieException {
 		var node = getNodeFromHash(hash, cursor);
 		node = node.withIncrementedReferenceCounter();
-
-		try {
-			store.put(hash, node.toByteArray());
-		}
-		catch (KeyValueStoreException e) {
-			throw new TrieException(e);
-		}
+		store.put(hash, node.toByteArray());
 	}
 
 	/**
@@ -476,15 +468,10 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 				return getNodeFromExistingHash(hash, cursor);
 			}
 			catch (UnknownKeyException e) {
-				try {
-					//System.out.printf("%d/%d: %.2f\n", freed, ++allocated, freed * 100.0 / allocated);
-					store.put(hash, toByteArray()); // we bind it to its hash in the store
-					incrementReferenceCounterOfDescedants(cursor);
-					return this;
-				}
-				catch (KeyValueStoreException ee) {
-					throw new TrieException(ee);
-				}
+				//System.out.printf("%d/%d: %.2f\n", freed, ++allocated, freed * 100.0 / allocated);
+				store.put(hash, toByteArray()); // we bind it to its hash in the store
+				incrementReferenceCounterOfDescedants(cursor);
+				return this;
 			}
 		}
 
@@ -509,7 +496,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 					freeDescendants(cursor);
 				}
 			}
-			catch (KeyValueStoreException | UnknownKeyException e) {
+			catch (UnknownKeyException e) {
 				// hash was meant to exist in store, hence the store in corrupted
 				throw new TrieException(e);
 			}
