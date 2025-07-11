@@ -54,9 +54,8 @@ public abstract class AbstractTrieBasedStore<N extends AbstractTrieBasedLocalNod
 	 * 
 	 * @param toClone the store to clone
 	 * @param cache the cache to use in the cloned store
-     * @throws StoreException if the store could not be created
 	 */
-    protected AbstractTrieBasedStore(AbstractTrieBasedStore<N,C,S,T> toClone, StoreCache cache) throws StoreException {
+    protected AbstractTrieBasedStore(AbstractTrieBasedStore<N,C,S,T> toClone, StoreCache cache) {
     	super(toClone, cache);
     }
 

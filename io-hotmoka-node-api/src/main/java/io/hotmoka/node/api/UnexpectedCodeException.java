@@ -38,7 +38,7 @@ public class UnexpectedCodeException extends NodeException {
 	 * Builds the exception.
 	 * 
 	 * @param message the message of the exception
-	 * @param cuase the cause of the exception
+	 * @param cause the cause of the exception
 	 */
 	public UnexpectedCodeException(String message, Throwable cause) {
 		super(Objects.requireNonNull(message), Objects.requireNonNull(cause));

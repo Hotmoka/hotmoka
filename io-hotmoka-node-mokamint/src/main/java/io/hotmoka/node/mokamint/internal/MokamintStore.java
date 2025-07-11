@@ -61,9 +61,8 @@ public class MokamintStore extends AbstractTrieBasedStore<MokamintNodeImpl, Moka
 	 * 
 	 * @param toClone the store to clone
 	 * @param cache the cache to use in the cloned store
-	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-    private MokamintStore(MokamintStore toClone, StoreCache cache) throws StoreException {
+    private MokamintStore(MokamintStore toClone, StoreCache cache) {
     	super(toClone, cache);
 	}
 
@@ -74,7 +73,7 @@ public class MokamintStore extends AbstractTrieBasedStore<MokamintNodeImpl, Moka
 	}
 
 	@Override
-    protected MokamintStore withCache(StoreCache cache) throws StoreException {
+    protected MokamintStore withCache(StoreCache cache) {
     	return new MokamintStore(this, cache);
     }
 

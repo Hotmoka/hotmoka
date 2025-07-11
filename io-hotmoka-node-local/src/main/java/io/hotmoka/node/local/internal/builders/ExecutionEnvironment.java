@@ -525,9 +525,8 @@ public abstract class ExecutionEnvironment {
 	 * @return the value of {@code field} of {@code object}
 	 * @throws UnknownReferenceException if {@code object} cannot be found in store
 	 * @throws FieldNotFoundException if the field cannot be found or its type is not reference
-	 * @throws StoreException if the store is misbehaving
 	 */
-	protected final StorageReference getReferenceField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
+	protected final StorageReference getReferenceField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException {
 		if (getLastUpdateToField(object, field).getValue() instanceof StorageReference reference)
 			return reference;
 		else
@@ -542,9 +541,8 @@ public abstract class ExecutionEnvironment {
 	 * @return the value of {@code field} of {@code object}
 	 * @throws UnknownReferenceException if {@code object} cannot be found in store
 	 * @throws FieldNotFoundException if the field cannot be found or its type is not {@code BigInteger}
-	 * @throws StoreException if the store is misbehaving
 	 */
-	protected final BigInteger getBigIntegerField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
+	protected final BigInteger getBigIntegerField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException {
 		if (getLastUpdateToField(object, field).getValue() instanceof BigIntegerValue biv)
 			return biv.getValue();
 		else
@@ -561,9 +559,8 @@ public abstract class ExecutionEnvironment {
 	 * @return the last update of {@code field} of {@code object}
 	 * @throws UnknownReferenceException if {@code object} cannot be found in store
 	 * @throws FieldNotFoundException if {@code object} has not {@code field}
-	 * @throws StoreException if the store is misbehaving
 	 */
-	protected final UpdateOfField getLastUpdateToField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
+	protected final UpdateOfField getLastUpdateToField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException {
 		Stream<TransactionReference> history = getHistory(object);
 
 		try {
@@ -577,7 +574,7 @@ public abstract class ExecutionEnvironment {
 			throw new FieldNotFoundException(field);
 		}
 		catch (UnknownReferenceException e) {
-			throw new StoreException("Object " + object + " has a history containing a reference not in store");
+			throw new UncheckedStoreException("Object " + object + " has a history containing a reference not in store");
 		}
 	}
 
@@ -659,9 +656,8 @@ public abstract class ExecutionEnvironment {
 	 * @return the public key of {@code account}
 	 * @throws UnknownReferenceException if {@code account} is not found in store
 	 * @throws FieldNotFoundException if {@code account} has no field holding its public key; this means that it is not really an account
-	 * @throws StoreException if the store is misbehaving
 	 */
-	protected final String getPublicKey(StorageReference account) throws UnknownReferenceException, FieldNotFoundException, StoreException {
+	protected final String getPublicKey(StorageReference account) throws UnknownReferenceException, FieldNotFoundException {
 		return getStringField(account, FieldSignatures.EOA_PUBLIC_KEY_FIELD);
 	}
 
@@ -893,12 +889,11 @@ public abstract class ExecutionEnvironment {
 	 * @return the public key
 	 * @throws Base64ConversionException if the public key of {@code account} is not Base64-encoded
 	 * @throws InvalidKeySpecException if the public key of {@code account} is invalid for {@code algorithm}
-	 * @throws StoreException if the store is misbehaving
 	 * @throws FieldNotFoundException if the field holding the public key of {@code account} cannot be found, which means
 	 *                                that it is not really an account
 	 * @throws UnknownReferenceException if {@code account} cannot be found in store
 	 */
-	private PublicKey getPublicKey(StorageReference account, SignatureAlgorithm algorithm) throws Base64ConversionException, InvalidKeySpecException, UnknownReferenceException, FieldNotFoundException, StoreException {
+	private PublicKey getPublicKey(StorageReference account, SignatureAlgorithm algorithm) throws Base64ConversionException, InvalidKeySpecException, UnknownReferenceException, FieldNotFoundException {
 		String publicKeyEncodedBase64 = getPublicKey(account);
 		byte[] publicKeyEncoded = Base64.fromBase64String(publicKeyEncodedBase64);
 		return algorithm.publicKeyFromEncoding(publicKeyEncoded);
@@ -933,9 +928,8 @@ public abstract class ExecutionEnvironment {
 	 * @return the value of {@code field} of {@code object}
 	 * @throws UnknownReferenceException if {@code object} cannot be found in store
 	 * @throws FieldNotFoundException if {@code object} does not have the given {@code field}
-	 * @throws StoreException if the store is misbehaving
 	 */
-	private String getStringField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
+	private String getStringField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException {
 		if (getLastUpdateToField(object, field).getValue() instanceof StringValue sv)
 			return sv.getValue();
 		else

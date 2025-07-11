@@ -23,7 +23,6 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.exceptions.functions.ConsumerWithExceptions1;
-import io.hotmoka.exceptions.functions.FunctionWithExceptions1;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
@@ -122,10 +121,9 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 	 * 
 	 * @param toClone the store to clone
 	 * @param cache the cache to use in the cloned store
-	 * @throws StoreException if the store could not be created
 	 */
-    protected AbstractTrieBasedStoreImpl(AbstractTrieBasedStoreImpl<N,C,S,T> toClone, StoreCache cache) throws StoreException {
-    	super(toClone, Optional.of(cache));
+    protected AbstractTrieBasedStoreImpl(AbstractTrieBasedStoreImpl<N,C,S,T> toClone, StoreCache cache) {
+    	super(toClone, cache);
 
     	this.rootOfResponses = toClone.rootOfResponses;
     	this.rootOfInfo = toClone.rootOfInfo;
@@ -191,8 +189,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
     @Override
     public final TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException {
     	// we use a cache since this is shown as a hotspot by the YourKit profiler
-    	FunctionWithExceptions1<TransactionReference, TransactionResponse, UnknownReferenceException> supplier = this::getResponseInternal;
-		return getResponseCache.computeIfAbsent(reference, supplier, UnknownReferenceException.class);
+		return getResponseCache.computeIfAbsent(reference, this::getResponseInternal, UnknownReferenceException.class);
 	}
 
     private TransactionResponse getResponseInternal(TransactionReference reference) throws UnknownReferenceException {

@@ -86,6 +86,18 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	}
 
 	/**
+	 * Creates an empty store, with the given cache.
+	 * 
+	 * @param node the node for which the store is created
+	 * @param cache the cache to use in the cloned store; if missing, an empty cache is used
+	 */
+	private AbstractStoreImpl(N node, StoreCache cache) {
+		this.node = node;
+		this.cache = cache;
+		this.consensusForViews = this.cache.getConfig().toBuilder().setMaxGasPerTransaction(node.getLocalConfig().getMaxGasPerViewTransaction()).build();
+	}
+
+	/**
 	 * Creates an empty store, with empty cache.
 	 * 
 	 * @param node the node for which the store is created
@@ -93,6 +105,16 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	 */
 	protected AbstractStoreImpl(N node) throws StoreException {
 		this(node, Optional.empty());
+	}
+
+	/**
+	 * Creates a clone of a store, up to the cache.
+	 * 
+	 * @param toClone the store to clone
+	 * @param cache the cache to use in the cloned store
+	 */
+	protected AbstractStoreImpl(AbstractStoreImpl<N,C,S,T> toClone, StoreCache cache) {
+		this(toClone.getNode(), cache);
 	}
 
 	/**
@@ -142,9 +164,8 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	 * 
 	 * @param cache the cache to set in the resulting store
 	 * @return the resulting store
-	 * @throws StoreException if the store could not be created
 	 */
-	protected abstract S withCache(StoreCache cache) throws StoreException;
+	protected abstract S withCache(StoreCache cache);
 
 	/**
 	 * Yields the node having this store.

@@ -69,7 +69,7 @@ public final class TendermintValidator {
 		this.publicKeyType = Objects.requireNonNull(publicKeyType, "publicKeyType cannot be null", ifIllegal);
 
 		if (address.contains(" "))
-			throw new IllegalArgumentException("the address of a validator cannot contain spaces");
+			throw ifIllegal.apply("the address of a validator cannot contain spaces");
 
 		if (power <= 0L)
 			throw ifIllegal.apply("The power of a validator cannot be negative");

@@ -41,6 +41,7 @@ import io.hotmoka.node.local.AbstractTrieBasedStoreTransformation;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.api.UncheckedStoreException;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 
@@ -165,46 +166,46 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 			return;
 
 		StorageReference manifest = maybeManifest.get();
-		TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
-		StorageReference validators = getValidators().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
+		TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new UncheckedStoreException("The manifest is set but the Takamaka code reference is not set"));
+		StorageReference validators = getValidators().orElseThrow(() -> new UncheckedStoreException("The manifest is set but the validators are not set"));
 
 		try {
 			StorageReference shares = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_SHARES, validators))
-					.orElseThrow(() -> new StoreException(MethodSignatures.GET_SHARES + " should not return void"))
-					.asReturnedReference(MethodSignatures.GET_SHARES, StoreException::new);
+					.orElseThrow(() -> new UncheckedStoreException(MethodSignatures.GET_SHARES + " should not return void"))
+					.asReturnedReference(MethodSignatures.GET_SHARES, UncheckedStoreException::new);
 
 			int numOfValidators = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SIZE, shares))
-					.orElseThrow(() -> new StoreException(MethodSignatures.STORAGE_MAP_VIEW_SIZE + " should not return void"))
-					.asReturnedInt(MethodSignatures.STORAGE_MAP_VIEW_SIZE, StoreException::new);
+					.orElseThrow(() -> new UncheckedStoreException(MethodSignatures.STORAGE_MAP_VIEW_SIZE + " should not return void"))
+					.asReturnedInt(MethodSignatures.STORAGE_MAP_VIEW_SIZE, UncheckedStoreException::new);
 
 			var result = new TendermintValidator[numOfValidators];
 
 			for (int num = 0; num < numOfValidators; num++) {
 				StorageReference validator = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 						(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SELECT, shares, StorageValues.intOf(num)))
-						.orElseThrow(() -> new StoreException(MethodSignatures.STORAGE_MAP_VIEW_SELECT + " should not return void"))
-						.asReturnedReference(MethodSignatures.STORAGE_MAP_VIEW_SELECT, StoreException::new);
+						.orElseThrow(() -> new UncheckedStoreException(MethodSignatures.STORAGE_MAP_VIEW_SELECT + " should not return void"))
+						.asReturnedReference(MethodSignatures.STORAGE_MAP_VIEW_SELECT, UncheckedStoreException::new);
 
 				String id = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 						(manifest, _100_000, takamakaCode, MethodSignatures.ID, validator))
-						.orElseThrow(() -> new StoreException(MethodSignatures.ID + " should not return void"))
-						.asReturnedString(MethodSignatures.ID, StoreException::new);
+						.orElseThrow(() -> new UncheckedStoreException(MethodSignatures.ID + " should not return void"))
+						.asReturnedString(MethodSignatures.ID, UncheckedStoreException::new);
 
 				long power = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 						(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_GET, shares, validator))
-						.orElseThrow(() -> new StoreException(MethodSignatures.STORAGE_MAP_VIEW_GET + " should not return void"))
-						.asReturnedBigInteger(MethodSignatures.STORAGE_MAP_VIEW_GET, StoreException::new)
+						.orElseThrow(() -> new UncheckedStoreException(MethodSignatures.STORAGE_MAP_VIEW_GET + " should not return void"))
+						.asReturnedBigInteger(MethodSignatures.STORAGE_MAP_VIEW_GET, UncheckedStoreException::new)
 						.longValueExact();
 
-				result[num] = new TendermintValidator(id, power, getPublicKey(validator), "tendermint/PubKeyEd25519", StoreException::new);
+				result[num] = new TendermintValidator(id, power, getPublicKey(validator), "tendermint/PubKeyEd25519", UncheckedStoreException::new);
 			}
 
 			this.validators = Optional.of(result);
 		}
 		catch (TransactionRejectedException | TransactionException | CodeExecutionException | UnknownReferenceException | FieldNotFoundException | ArithmeticException e) {
-			throw new StoreException(e);
+			throw new UncheckedStoreException(e);
 		}
 	}
 

@@ -116,12 +116,10 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
     	this.height = 0;
     }
 
-	/**
+    /**
      * Clones a disk store, setting its cache.
-     * 
-     * @throws StoreException if the store could not be created
      */
-    private DiskStore(DiskStore toClone, Optional<StoreCache> cache) throws StoreException {
+    private DiskStore(DiskStore toClone, StoreCache cache) {
     	super(toClone, cache);
 
     	this.dir = toClone.dir;
@@ -136,7 +134,7 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
     	this.height = toClone.height;
     }
 
-	/**
+    /**
      * Clones a disk store, using the given cache and adding the given
      * delta information to the result.
      */
@@ -146,7 +144,7 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
     		Map<StorageReference, TransactionReference[]> addedHistories,
     		Optional<StorageReference> addedManifest) throws StoreException {
 
-    	super(toClone, Optional.of(cache));
+    	super(toClone, cache);
 
     	this.dir = toClone.dir;
 
@@ -271,8 +269,8 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
 	}
 
 	@Override
-	protected DiskStore withCache(StoreCache cache) throws StoreException {
-		return new DiskStore(this, Optional.of(cache));
+	protected DiskStore withCache(StoreCache cache) {
+		return new DiskStore(this, cache);
 	}
 
 	private void dumpRequest(int progressive, TransactionReference reference, TransactionRequest<?> request) throws IOException {

@@ -72,9 +72,8 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
 	 * 
 	 * @param toClone the store to clone
 	 * @param cache the cache to use in the cloned store
-	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-    private TendermintStore(TendermintStore toClone, StoreCache cache) throws StoreException {
+    private TendermintStore(TendermintStore toClone, StoreCache cache) {
     	super(toClone, cache);
 
     	this.validators = toClone.validators;
@@ -87,7 +86,7 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
 	}
 
 	@Override
-    protected TendermintStore withCache(StoreCache cache) throws StoreException {
+    protected TendermintStore withCache(StoreCache cache) {
     	return new TendermintStore(this, cache);
     }
 

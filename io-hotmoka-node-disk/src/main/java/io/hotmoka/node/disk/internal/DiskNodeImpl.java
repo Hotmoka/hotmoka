@@ -24,8 +24,8 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import io.hotmoka.constants.Constants;
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.constants.Constants;
 import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.NodeException;
@@ -36,6 +36,7 @@ import io.hotmoka.node.disk.api.DiskNode;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.local.AbstractLocalNode;
 import io.hotmoka.node.local.NodeCreationException;
+import io.hotmoka.node.local.UncheckedNodeException;
 import io.hotmoka.node.local.api.StoreException;
 
 /**
@@ -77,7 +78,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 			this.mempool = new Mempool();
 		}
 		catch (ClosedNodeException e) {
-			throw new RuntimeException("The node is unexpectedly closed before its same creation", e);
+			throw new UncheckedNodeException("The node is unexpectedly closed before its same creation", e);
 		}
 		catch (NodeException e) { // TODO
 			close();
