@@ -41,7 +41,6 @@ import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.local.AbstractStore;
 import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.node.local.api.UncheckedStoreException;
 
 /**
  * The store of a disk blockchain. It is not transactional and just writes
@@ -101,7 +100,7 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
 	 * 
 	 * @param node the node for which the store is created
 	 * @param dir the path where the blocks of the node must be saved on disk
-	 * @throws StoreException if the operation cannot be completed correctly
+	 * @throws StoreCreationException if the store could not be created
 	 */
     DiskStore(DiskNodeImpl node, Path dir) throws StoreException {
     	super(node);
@@ -120,7 +119,7 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
 	/**
      * Clones a disk store, setting its cache.
      * 
-	 * @throws StoreException if the operation cannot be completed correctly
+     * @throws StoreException if the store could not be created
      */
     private DiskStore(DiskStore toClone, Optional<StoreCache> cache) throws StoreException {
     	super(toClone, cache);
@@ -204,7 +203,7 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
 				dumpResponse(progressive++, reference, addedResponses.get(reference));
 			}
 			catch (IOException e) {
-				throw new UncheckedStoreException(e);
+				throw new StoreException(e);
 			}
 		}
     }

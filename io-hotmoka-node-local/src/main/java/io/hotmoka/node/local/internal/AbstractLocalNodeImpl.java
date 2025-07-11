@@ -210,12 +210,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		}
 	}
 
-	/**
-	 * Yields the local configuration of this node.
-	 * 
-	 * @return the local configuration
-	 * @throws ClosedNodeException if this node is already closed
-	 */
+	@Override
 	public final C getLocalConfig() {
 		return config;
 	}

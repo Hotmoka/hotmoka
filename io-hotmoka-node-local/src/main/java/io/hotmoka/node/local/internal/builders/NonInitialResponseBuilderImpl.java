@@ -479,7 +479,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 */
 		private void charge(BigInteger amount, Consumer<BigInteger> forWhat) throws OutOfGasException {
 			if (amount.signum() < 0)
-				throw new IllegalArgumentException("Gas cannot increase");
+				throw new IllegalArgumentException("The gas cannot increase"); // TODO
 
 			// gas can only be negative if it was initialized so; this special case is
 			// used for the creation of the gamete, when gas should not be counted

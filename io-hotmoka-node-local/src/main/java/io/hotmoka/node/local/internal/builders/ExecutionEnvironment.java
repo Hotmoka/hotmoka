@@ -84,6 +84,7 @@ import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.ResponseBuilder;
 import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.api.UncheckedStoreException;
 
 /**
  * An executor environment abstract both a store and a store transformation and allows
@@ -491,9 +492,8 @@ public abstract class ExecutionEnvironment {
 	 * @param reference the reference to the object in store
 	 * @return the class tag of the object at {@code reference}
 	 * @throws UnknownReferenceException if {@code reference} does not refer to an object in store
-	 * @throws StoreException if the store is misbehaving
 	 */
-	protected final ClassTag getClassTag(StorageReference reference) throws UnknownReferenceException, StoreException {
+	protected final ClassTag getClassTag(StorageReference reference) throws UnknownReferenceException {
 		// we go straight to the transaction that created the object
 		if (getResponse(reference.getTransaction()) instanceof TransactionResponseWithUpdates trwu) {
 			return trwu.getUpdates().filter(update -> update instanceof ClassTag && update.getObject().equals(reference))
@@ -591,9 +591,8 @@ public abstract class ExecutionEnvironment {
 	 * @return the last update of {@code field} of {@code object}
 	 * @throws UnknownReferenceException if {@code object} cannot be found in store
 	 * @throws FieldNotFoundException if {@code object} has not {@code field}
-	 * @throws StoreException if the store is misbehaving
 	 */
-	protected final UpdateOfField getLastUpdateToFinalField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
+	protected final UpdateOfField getLastUpdateToFinalField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException {
 		// it accesses directly the transaction that created the object
 		return getUpdateFromTransactionInHistory(object, field, object.getTransaction()).orElseThrow(() -> new FieldNotFoundException(field));
 	}
@@ -870,11 +869,12 @@ public abstract class ExecutionEnvironment {
 	 * 
 	 * @param object the reference of the object
 	 * @param field the field of the object
-	 * @param reference the reference to the transaction; this is assume to be a transaction of the history of {@code object}
+	 * @param reference the reference to the transaction; this is assumed to be a transaction of the history of {@code object}
 	 * @return the update, if any; if the field of {@code object} was not modified during
 	 *         the {@code transaction}, the result is empty
+	 * @throws UnknownReferenceException if the response of {@code reference} cannot be found in store
 	 */
-	private Optional<UpdateOfField> getUpdateFromTransactionInHistory(StorageReference object, FieldSignature field, TransactionReference reference) throws UnknownReferenceException, StoreException {
+	private Optional<UpdateOfField> getUpdateFromTransactionInHistory(StorageReference object, FieldSignature field, TransactionReference reference) throws UnknownReferenceException {
 		if (getResponse(reference) instanceof TransactionResponseWithUpdates trwu)
 			return trwu.getUpdates()
 					.filter(update -> update instanceof UpdateOfField)
@@ -882,7 +882,7 @@ public abstract class ExecutionEnvironment {
 					.filter(update -> update.getObject().equals(object) && update.getField().equals(field))
 					.findFirst(); // TODO: hotspot
 		else
-			throw new StoreException("Transaction reference " + reference + " belongs to the history of " + object + " but it does not contain updates");
+			throw new UncheckedStoreException("Transaction reference " + reference + " belongs to the history of " + object + " but it does not contain updates");
 	}
 
 	/**

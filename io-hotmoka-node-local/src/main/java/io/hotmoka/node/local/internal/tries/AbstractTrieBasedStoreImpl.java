@@ -79,7 +79,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 	 * Creates an empty store, with empty cache.
 	 * 
 	 * @param node the node for which the store is created
-	 * @throws StoreException if the operation cannot be completed correctly
+	 * @throws StoreException if the store could not be created
 	 */
     protected AbstractTrieBasedStoreImpl(N node) throws StoreException {
     	super(node);
@@ -99,7 +99,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
      * @param cache the cache to use in the cloned store
      * @param stateId the state identifier of the store to create
      * @throws UnknownStateIdException if the required state does not exist
-     * @throws StoreException if the operation could not be completed correctly
+     * @throws StoreException if the store could not be created
      */
     protected AbstractTrieBasedStoreImpl(AbstractTrieBasedStoreImpl<N,C,S,T> toClone, StateId stateId, Optional<StoreCache> cache) throws UnknownStateIdException, StoreException {
     	super(toClone, cache);
@@ -122,7 +122,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 	 * 
 	 * @param toClone the store to clone
 	 * @param cache the cache to use in the cloned store
-     * @throws StoreException if the operation cannot be completed correctly
+	 * @throws StoreException if the store could not be created
 	 */
     protected AbstractTrieBasedStoreImpl(AbstractTrieBasedStoreImpl<N,C,S,T> toClone, StoreCache cache) throws StoreException {
     	super(toClone, Optional.of(cache));

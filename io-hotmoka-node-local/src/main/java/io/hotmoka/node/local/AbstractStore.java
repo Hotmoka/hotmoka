@@ -40,7 +40,7 @@ public abstract class AbstractStore<N extends AbstractLocalNode<N,C,S,T>, C exte
 	 * Creates an empty store, with empty cache.
 	 * 
 	 * @param node the node for which the store is created
-	 * @throws StoreException if the operation cannot be completed correctly
+	 * @throws StoreException if the store could not be created
 	 */
 	protected AbstractStore(N node) throws StoreException {
 		super(node);
@@ -51,7 +51,7 @@ public abstract class AbstractStore<N extends AbstractLocalNode<N,C,S,T>, C exte
 	 * 
 	 * @param toClone the store to clone
 	 * @param cache the cache to use in the cloned store
-	 * @throws StoreException if the operation cannot be completed correctly
+	 * @throws StoreException if the store could not be created
 	 */
 	protected AbstractStore(AbstractStore<N,C,S,T> toClone, Optional<StoreCache> cache) throws StoreException {
 		super(toClone, cache);

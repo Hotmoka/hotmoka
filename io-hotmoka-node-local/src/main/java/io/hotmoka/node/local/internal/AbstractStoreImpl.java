@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.local.internal;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
@@ -69,11 +70,18 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	 * 
 	 * @param node the node for which the store is created
 	 * @param cache the cache to use in the cloned store; if missing, an empty cache is used
-	 * @throws StoreException if the operation cannot be completed correctly
+	 * @throws StoreException if the store could not be created
 	 */
 	private AbstractStoreImpl(N node, Optional<StoreCache> cache) throws StoreException {
 		this.node = node;
-		this.cache = cache.isPresent() ? cache.get() : new StoreCacheImpl();
+
+		try {
+			this.cache = cache.isPresent() ? cache.get() : new StoreCacheImpl();
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw new StoreException(e);
+		}
+
 		this.consensusForViews = this.cache.getConfig().toBuilder().setMaxGasPerTransaction(node.getLocalConfig().getMaxGasPerViewTransaction()).build();
 	}
 
@@ -81,7 +89,7 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	 * Creates an empty store, with empty cache.
 	 * 
 	 * @param node the node for which the store is created
-	 * @throws StoreException if the operation cannot be completed correctly
+	 * @throws StoreException if the store could not be created
 	 */
 	protected AbstractStoreImpl(N node) throws StoreException {
 		this(node, Optional.empty());
@@ -92,7 +100,7 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	 * 
 	 * @param toClone the store to clone
 	 * @param cache the cache to use in the cloned store; if missing, an empty cache is used
-	 * @throws StoreException if the operation cannot be completed correctly
+ 	 * @throws StoreCreationException if the store could not be created
 	 */
 	protected AbstractStoreImpl(AbstractStoreImpl<N,C,S,T> toClone, Optional<StoreCache> cache) throws StoreException {
 		this(toClone.getNode(), cache);
@@ -134,7 +142,7 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	 * 
 	 * @param cache the cache to set in the resulting store
 	 * @return the resulting store
-	 * @throws StoreException if the operation cannot be completed correctly
+	 * @throws StoreException if the store could not be created
 	 */
 	protected abstract S withCache(StoreCache cache) throws StoreException;
 

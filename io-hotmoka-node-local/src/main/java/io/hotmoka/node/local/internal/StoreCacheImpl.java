@@ -96,15 +96,10 @@ public class StoreCacheImpl implements StoreCache {
 	 * Creates empty caches.
 	 * 
 	 * @throws StoreException if the operation cannot be completed correctly
+	 * @throws NoSuchAlgorithmException if the default consensus config uses an unknown cryptographic algorithm
 	 */
-	public StoreCacheImpl() throws StoreException {
-		try {
-			this.consensus = ValidatorsConsensusConfigBuilders.defaults().build();
-		}
-		catch (NoSuchAlgorithmException e) {
-			throw new StoreException(e);
-		}
-
+	public StoreCacheImpl() throws NoSuchAlgorithmException {
+		this.consensus = ValidatorsConsensusConfigBuilders.defaults().build();
 		this.gasPrice = Optional.empty();
 		this.inflation = OptionalLong.empty();
 		this.validators = Optional.empty();
