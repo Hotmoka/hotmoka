@@ -33,7 +33,7 @@ import io.hotmoka.annotations.GuardedBy;
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.HashingAlgorithm;
-import io.hotmoka.exceptions.functions.ConsumerWithExceptions2;
+import io.hotmoka.exceptions.functions.ConsumerWithExceptions1;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.local.AbstractLocalNode;
 import io.hotmoka.node.local.NodeCreationException;
@@ -295,15 +295,15 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 
 	private void gc(StateIdAndTime stateIdAndTime) throws InterruptedException {
 		try {
-			ConsumerWithExceptions2<Transaction, NodeException, UnknownStateIdException> gc = txn -> {
+			ConsumerWithExceptions1<Transaction, UnknownStateIdException> gc = txn -> {
 				free(stateIdAndTime.stateId, txn);
 				removeFromStores(STORES_TO_GC, stateIdAndTime, txn);
 			};
 
-			env.executeInTransaction(NodeException.class, UnknownStateIdException.class, gc);
+			env.executeInTransaction(UnknownStateIdException.class, gc);
 			LOGGER.fine(() -> "garbage-collected store " + stateIdAndTime.stateId);
 		}
-		catch (NodeException | UnknownStateIdException | ExodusException e) {
+		catch (UnknownStateIdException e) {
 			LOGGER.log(Level.SEVERE, "cannot garbage-collect store " + stateIdAndTime.stateId, e);
 		}
 	}

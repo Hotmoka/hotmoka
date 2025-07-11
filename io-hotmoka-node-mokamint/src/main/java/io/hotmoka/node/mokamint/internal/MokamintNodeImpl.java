@@ -36,7 +36,6 @@ import java.util.logging.Logger;
 import io.hotmoka.annotations.GuardedBy;
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.constants.Constants;
-import io.hotmoka.exceptions.functions.FunctionWithExceptions2;
 import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.TransactionReferences;
@@ -58,7 +57,6 @@ import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UnknownStateIdException;
 import io.hotmoka.node.mokamint.api.MokamintNode;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
-import io.hotmoka.xodus.ExodusException;
 import io.mokamint.application.AbstractApplication;
 import io.mokamint.application.api.ClosedApplicationException;
 import io.mokamint.application.api.UnknownGroupIdException;
@@ -250,13 +248,13 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 						try {
 							publish(TransactionReferences.of(hasher.hash(intoHotmokaRequest(tx))), store);
 						}
-						catch (UnknownReferenceException e) {
+						catch (UnknownReferenceException e) { // TODO: are you sure?
 							// the transactions have been delivered, if they cannot be found then there is a problem in the database
-							throw new NodeException("Already delivered transactions should be in store", e);
+							throw new UncheckedNodeException("Already delivered transactions should be in store", e);
 						}
 						catch (io.mokamint.node.api.TransactionRejectedException e) {
 							// the transactions have been delivered, they must be legal
-							throw new NodeException("Already delivered transactions should not be rejected", e);
+							throw new UncheckedNodeException("Already delivered transactions should not be rejected", e);
 						}
 					}
 				}
@@ -407,7 +405,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 				try {
 					transformation.deliverCoinbaseTransactions(deadline.getProlog());
 
-					FunctionWithExceptions2<io.hotmoka.xodus.env.Transaction, byte[], NodeException, StoreException> function = txn -> {
+					return getEnvironment().computeInTransaction(txn -> {
 						StateId stateIdOfFinalStore = transformation.getIdOfFinalStore(txn);
 
 						if (lastCaches.get(stateIdOfFinalStore) == null) {
@@ -418,16 +416,14 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 							}
 							catch (UnknownStateIdException e) {
 								// impossible, we have just computed this id for the final store
-								throw new UncheckedNodeException("State id " + stateIdOfFinalStore + " has been just computed: if must have existed", e);
+								throw new UncheckedNodeException("State id " + stateIdOfFinalStore + " has been just computed: it must have existed", e);
 							}
 						}
 
 						return stateIdOfFinalStore.getBytes();
-					};
-
-					return getEnvironment().computeInTransaction(NodeException.class, StoreException.class, function);
+					});
 				}
-				catch (StoreException | NodeException e) { // TODO
+				catch (StoreException e) { // TODO
 					throw new RuntimeException(e);
 				}
 			}
@@ -471,13 +467,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		public void keepFrom(LocalDateTime start) throws ClosedApplicationException {
 			try (var scope = mkScope()) {
 				long limitOfTimeForGC = start.toInstant(ZoneOffset.UTC).toEpochMilli();
-
-				try {
-					getEnvironment().executeInTransaction(NodeException.class, txn -> keepPersistedOnlyNotOlderThan(limitOfTimeForGC, txn));
-				}
-				catch (NodeException | ExodusException e) { // TODO
-					throw new RuntimeException(e);
-				}
+				getEnvironment().executeInTransaction(txn -> keepPersistedOnlyNotOlderThan(limitOfTimeForGC, txn));
 			}
 		}
 

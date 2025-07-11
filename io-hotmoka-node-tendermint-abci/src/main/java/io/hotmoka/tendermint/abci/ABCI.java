@@ -89,7 +89,7 @@ public abstract class ABCI {
 				responseObserver.onNext(ABCI.this.info(request));
 				responseObserver.onCompleted();
 			}
-			catch (NodeException | TimeoutException e) {
+			catch (TimeoutException e) {
 				responseObserver.onError(e);
 			}
 			catch (InterruptedException e) {
@@ -193,7 +193,7 @@ public abstract class ABCI {
 	 * @throws TimeoutException if the operation did not complete on time
 	 * @throws InterruptedException if the current thread gets interrupted before completing the operation
 	 */
-	protected abstract ResponseInfo info(RequestInfo request) throws NodeException, TimeoutException, InterruptedException;
+	protected abstract ResponseInfo info(RequestInfo request) throws TimeoutException, InterruptedException;
 
 	/**
 	 * Executes a preliminary check about the validity of a transaction request.

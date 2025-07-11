@@ -22,10 +22,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
@@ -40,8 +39,6 @@ import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.closeables.AbstractAutoCloseableWithLockAndOnCloseHandlers;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
-import io.hotmoka.exceptions.CheckRunnable;
-import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.node.CodeFutures;
 import io.hotmoka.node.JarFutures;
 import io.hotmoka.node.SubscriptionsManagers;
@@ -79,6 +76,7 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.local.LRUCache;
 import io.hotmoka.node.local.NodeCreationException;
+import io.hotmoka.node.local.UncheckedNodeException;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.LocalNode;
 import io.hotmoka.node.local.api.LocalNodeConfig;
@@ -251,7 +249,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		catch (ClosedNodeException e) { // TODO
 			throw e;
 		}
-		catch (StoreException | NodeException e) { // TODO
+		catch (NodeException e) { // TODO
 			throw new RuntimeException(e);
 		}
 	}
@@ -283,7 +281,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 						exit(store);
 					}
 				}
-				catch (StoreException | NodeException e) { // TODO
+				catch (NodeException e) { // TODO
 					throw new RuntimeException(e);
 				}
 
@@ -310,7 +308,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		catch (ClosedNodeException e) { // TODO
 			throw e;
 		}
-		catch (NodeException | StoreException e) { // TODO
+		catch (NodeException e) { // TODO
 			throw new RuntimeException(e);
 		}
 	}
@@ -330,7 +328,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		catch (ClosedNodeException e) { // TODO
 			throw e;
 		}
-		catch (NodeException | StoreException e) { // TODO
+		catch (NodeException e) { // TODO
 			throw new RuntimeException(e);
 		}
 	}
@@ -351,7 +349,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 							.orElseThrow(() -> new UnknownReferenceException("Cannot find object " + reference + " in store"));
 				}
 				else
-					throw new NodeException("The transaction that created object " + reference + " does not contain updates");
+					throw new UncheckedNodeException("Reference " + reference + " is part of the histories but did not generate updates");
 			}
 			finally {
 				exit(store);
@@ -360,7 +358,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		catch (ClosedNodeException e) { // TODO
 			throw e;
 		}
-		catch (NodeException | StoreException e) { // TODO
+		catch (NodeException e) { // TODO
 			throw new RuntimeException(e);
 		}
 	}
@@ -371,10 +369,21 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 			S store = enterHead();
 
 			try (var scope = mkScope()) {
-				Stream<TransactionReference> history = store.getHistory(Objects.requireNonNull(reference));
-				var updates = new HashSet<Update>();
-				CheckRunnable.check(NodeException.class, () -> history.forEachOrdered(UncheckConsumer.uncheck(NodeException.class,
-						transaction -> collectUpdates(store, reference, transaction, updates))));
+				var updates = new TreeSet<Update>();
+
+				store.getHistory(reference).forEachOrdered(referenceInHistory -> {
+					try {
+						if (store.getResponse(referenceInHistory) instanceof TransactionResponseWithUpdates trwu)
+							trwu.getUpdates()
+								.filter(update -> update.getObject().equals(reference) && updates.stream().noneMatch(update::sameProperty))
+								.forEach(updates::add);
+						else
+							throw new UncheckedNodeException("Reference " + referenceInHistory + " is part of the histories but did not generate updates");
+					}
+					catch (UnknownReferenceException e) {
+						throw new UncheckedNodeException("Reference " + referenceInHistory + " is part of the histories but is not in the store");
+					}
+				});
 
 				return updates.stream();
 			}
@@ -385,7 +394,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		catch (ClosedNodeException e) { // TODO
 			throw e;
 		}
-		catch (NodeException | StoreException e) { // TODO
+		catch (NodeException e) { // TODO
 			throw new RuntimeException(e);
 		}
 	}
@@ -587,14 +596,9 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	protected final void publish(TransactionReference reference, S store) throws NodeException, UnknownReferenceException {
 		signalCompleted(reference);
 
-		try {
-			if (store.getResponse(reference) instanceof TransactionResponseWithEvents trwe && trwe.hasEvents())
-				for (var event: trwe.getEvents().toArray(StorageReference[]::new))
-					notifyEvent(event, store);
-		}
-		catch (StoreException e) {
-			throw new NodeException(e);
-		}
+		if (store.getResponse(reference) instanceof TransactionResponseWithEvents trwe && trwe.hasEvents())
+			for (var event: trwe.getEvents().toArray(StorageReference[]::new))
+				notifyEvent(event, store);
 	}
 
 	protected void publishAllTransactionsDeliveredIn(T transformation, S store) throws NodeException {
@@ -719,40 +723,13 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		catch (ClosedNodeException e) { // TODO
 			throw e;
 		}
-		catch (NodeException | StoreException e) { // TODO
+		catch (NodeException e) { // TODO
 			throw new RuntimeException(e);
 		}
 	}
 
 	private static String trim(String s) {
 		return s.length() > 50 ? s.substring(0, 50) + "..." : s;
-	}
-
-	/**
-	 * Collects, into the given set, the updates of the fields of an object
-	 * occurred during the execution of a given transaction.
-	 * 
-	 * @param store the store of this node
-	 * @param object the reference to the object
-	 * @param reference the reference to the transaction
-	 * @param updates the set where they must be added
-	 * @throws NodeException if this node is misbehaving
-	 */
-	private void collectUpdates(S store, StorageReference object, TransactionReference reference, Set<Update> updates) throws NodeException {
-		try {
-			if (store.getResponse(reference) instanceof TransactionResponseWithUpdates trwu)
-				trwu.getUpdates()
-					.filter(update -> update.getObject().equals(object) && updates.stream().noneMatch(update::sameProperty))
-					.forEach(updates::add);
-			else
-				throw new NodeException("Reference " + reference + " is part of the histories but did not generate updates");
-		}
-		catch (UnknownReferenceException e) {
-			throw new NodeException("Reference " + reference + " is part of the histories but is not in the store");
-		}
-		catch (StoreException e) {
-			throw new NodeException(e);
-		}
 	}
 
 	/**

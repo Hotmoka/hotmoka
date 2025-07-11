@@ -59,7 +59,6 @@ import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 import io.hotmoka.tendermint.abci.ABCI;
 import io.hotmoka.tendermint.abci.Server;
 import io.hotmoka.xodus.ByteIterable;
-import io.hotmoka.xodus.ExodusException;
 import io.hotmoka.xodus.env.Transaction;
 import tendermint.abci.Types.Evidence;
 import tendermint.abci.Types.RequestBeginBlock;
@@ -217,29 +216,24 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		}
 	}
 
-	private void setRootBranch(StateId stateId, Transaction txn) throws NodeException {
+	private void setRootBranch(StateId stateId, Transaction txn) {
 		byte[] id = stateId.getBytes();
 		var rootAsBI = ByteIterable.fromBytes(id);
 
-		try {
-			// we set the root branch, that will be used if the node is resumed
-			getStoreOfNode().put(txn, ROOT, rootAsBI); // set the root branch
-			// we keep extra information about the height
-			getStoreOfNode().put(txn, HEIGHT, ByteIterable.fromBytes(longToBytes(getHeight(txn) + 1)));
-		}
-		catch (ExodusException e) {
-			throw new NodeException(e);
-		}
+		// we set the root branch, that will be used if the node is resumed
+		getStoreOfNode().put(txn, ROOT, rootAsBI); // set the root branch
+		// we keep extra information about the height
+		getStoreOfNode().put(txn, HEIGHT, ByteIterable.fromBytes(longToBytes(getHeight(txn) + 1)));
 	}
 
-	private void checkOutRootBranch() throws InterruptedException, UnknownStateIdException, ExodusException, NodeException {
+	private void checkOutRootBranch() throws InterruptedException, UnknownStateIdException, NodeException {
 		var root = getEnvironment().computeInTransaction(txn -> Optional.ofNullable(getStoreOfNode().get(txn, ROOT)).map(ByteIterable::getBytes))
 				.orElseThrow(() -> new NodeException("Cannot find the root of the store of the node"));
 
 		storeOfHead = mkStore(StateIds.of(root), Optional.empty());
 	}
 
-	private long getHeight(Transaction txn) throws ExodusException {
+	private long getHeight(Transaction txn) {
 		ByteIterable bi = getStoreOfNode().get(txn, HEIGHT);
 		return bi == null ? 0L : bytesToLong(bi.getBytes());
 	}
@@ -562,15 +556,9 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		 * Yields the blockchain height.
 		 * 
 		 * @return the height of the blockchain of this node
-		 * @throws NodeException if the operation cannot be completed correctly
 		 */
-		private long getLastBlockHeight() throws NodeException {
-			try {
-				return getEnvironment().computeInReadonlyTransaction(TendermintNodeImpl.this::getHeight);
-			}
-			catch (ExodusException e) {
-				throw new NodeException(e);
-			}
+		private long getLastBlockHeight() {
+			return getEnvironment().computeInReadonlyTransaction(TendermintNodeImpl.this::getHeight);
 		}
 
 		@Override
@@ -584,7 +572,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		}
 
 		@Override
-		protected ResponseInfo info(RequestInfo request) throws NodeException {
+		protected ResponseInfo info(RequestInfo request) {
 			return ResponseInfo.newBuilder()
 				.setLastBlockAppHash(ByteString.copyFrom(getLastBlockApplicationHash())) // hash of the store used for consensus
 				.setLastBlockHeight(getLastBlockHeight()).build();
@@ -679,7 +667,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 			try {
 				transformation.deliverCoinbaseTransactions(behaving, misbehaving);
 
-				StateId idOfNewStoreOfHead = getEnvironment().computeInTransaction(NodeException.class, txn -> {
+				StateId idOfNewStoreOfHead = getEnvironment().computeInTransaction(txn -> {
 					StateId stateIdOfFinalStore = transformation.getIdOfFinalStore(txn);
 					setRootBranch(stateIdOfFinalStore, txn);
 
@@ -702,7 +690,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 				LOGGER.info("committed Tendermint state " + Hex.toHexString(hash).toUpperCase());
 				return ResponseCommit.newBuilder().setData(ByteString.copyFrom(hash)).build();
 			}
-			catch (StoreException | ExodusException | UnknownStateIdException e) {
+			catch (StoreException | UnknownStateIdException e) {
 				LOGGER.log(Level.SEVERE, "commit failed", e);
 				throw new NodeException(e);
 			}

@@ -155,9 +155,8 @@ public abstract class ExecutionEnvironment {
 	 * @param reference the reference of the transaction
 	 * @return the request
 	 * @throws UnknownReferenceException if the request of {@code reference} cannot be found in this node
-	 * @throws StoreException if the node is not able to perform the operation
 	 */
-	public abstract TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, StoreException;
+	public abstract TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException;
 
 	/**
 	 * Yields the response of the transaction having the given reference.
@@ -165,9 +164,8 @@ public abstract class ExecutionEnvironment {
 	 * @param reference the reference of the transaction
 	 * @return the response
 	 * @throws UnknownReferenceException if the response of {@code reference} cannot be found in this environment
-	 * @throws StoreException if the store is not able to perform the operation
 	 */
-	public abstract TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, StoreException;
+	public abstract TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException;
 
 	/**
 	 * Yields the history of the given object, that is, the references to the transactions
@@ -176,9 +174,8 @@ public abstract class ExecutionEnvironment {
 	 * @param object the reference of the object
 	 * @return the history
 	 * @throws UnknownReferenceException if {@code object} cannot be found in this environment
-	 * @throws StoreException if the store is not able to perform the operation
 	 */
-	public abstract Stream<TransactionReference> getHistory(StorageReference object) throws UnknownReferenceException, StoreException;
+	public abstract Stream<TransactionReference> getHistory(StorageReference object) throws UnknownReferenceException;
 
 	/**
 	 * Yields the manifest installed when the node is initialized.
@@ -186,7 +183,7 @@ public abstract class ExecutionEnvironment {
 	 * @return the manifest
 	 * @throws StoreException if the store is not able to complete the operation correctly
 	 */
-	public abstract Optional<StorageReference> getManifest() throws StoreException;
+	public abstract Optional<StorageReference> getManifest();
 
 	/**
 	 * Yields the time to use as current time for the requests executed inside this environment.

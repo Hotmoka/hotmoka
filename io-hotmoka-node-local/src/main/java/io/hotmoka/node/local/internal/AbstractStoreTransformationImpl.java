@@ -181,28 +181,28 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	}
 
 	@Override
-	public final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, StoreException {
+	public final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException {
 		// first we check in the delta, then in the initial store
 		var request = deltaRequests.get(reference);
 		return request != null ? request : store.getRequest(reference);
 	}
 
 	@Override
-	public final TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, StoreException {
+	public final TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException {
 		// first we check in the delta, then in the initial store
 		var response = deltaResponses.get(reference);
 		return response != null ? response : store.getResponse(reference);
 	}
 
 	@Override
-	public final Stream<TransactionReference> getHistory(StorageReference object) throws UnknownReferenceException, StoreException {
+	public final Stream<TransactionReference> getHistory(StorageReference object) throws UnknownReferenceException {
 		// first we check in the delta, then in the initial store
 		var history = deltaHistories.get(object);
 		return history != null ? Stream.of(history) : store.getHistory(object);
 	}
 
 	@Override
-	public final Optional<StorageReference> getManifest() throws StoreException {
+	public final Optional<StorageReference> getManifest() {
 		// first we check in the delta, then in the initial store
 		StorageReference manifest = deltaManifest;
 		return manifest != null ? Optional.of(manifest) : store.getManifest();
