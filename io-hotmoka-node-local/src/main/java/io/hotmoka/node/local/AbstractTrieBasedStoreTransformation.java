@@ -18,7 +18,6 @@ package io.hotmoka.node.local;
 
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.local.api.LocalNodeConfig;
-import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.tries.AbstractTrieBasedStoreTransformationImpl;
 
 /**
@@ -37,9 +36,8 @@ public abstract class AbstractTrieBasedStoreTransformation<N extends AbstractTri
 	 * @param store the initial store of the transformation
 	 * @param consensus the consensus to use for the execution of transactions in the transformation
 	 * @param now the current time to use for the execution of transactions in the transformation
-	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	protected AbstractTrieBasedStoreTransformation(S store, ConsensusConfig<?,?> consensus, long now) throws StoreException {
+	protected AbstractTrieBasedStoreTransformation(S store, ConsensusConfig<?,?> consensus, long now) {
 		super(store, consensus, now);
 	}
 }

@@ -37,9 +37,8 @@ public class MokamintStore extends AbstractTrieBasedStore<MokamintNodeImpl, Moka
      * Creates an empty store for the Mokamint blockchain, with empty cache.
 	 * 
 	 * @param node the node for which the store is created
-	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-    MokamintStore(MokamintNodeImpl node) throws StoreException {
+    MokamintStore(MokamintNodeImpl node) {
     	super(node);
     }
 
@@ -50,9 +49,8 @@ public class MokamintStore extends AbstractTrieBasedStore<MokamintNodeImpl, Moka
 	 * @param cache to caches to use in the cloned store
 	 * @param stateId the state identifier of the store to create
      * @throws UnknownStateIdException if the required state does not exist
-     * @throws StoreException if the operation could not be completed correctly
 	 */
-    private MokamintStore(MokamintStore toClone, StateId stateId, Optional<StoreCache> cache) throws UnknownStateIdException, StoreException {
+    private MokamintStore(MokamintStore toClone, StateId stateId, Optional<StoreCache> cache) throws UnknownStateIdException {
     	super(toClone, stateId, cache);
 	}
 
@@ -78,7 +76,7 @@ public class MokamintStore extends AbstractTrieBasedStore<MokamintNodeImpl, Moka
     }
 
 	@Override
-	protected MokamintStoreTransformation beginTransformation(ConsensusConfig<?,?> consensus, long now) throws StoreException {
+	protected MokamintStoreTransformation beginTransformation(ConsensusConfig<?,?> consensus, long now) {
 		return new MokamintStoreTransformation(this, consensus, now);
 	}
 }

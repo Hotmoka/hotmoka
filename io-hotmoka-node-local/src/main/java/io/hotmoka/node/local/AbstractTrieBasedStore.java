@@ -22,7 +22,6 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreCache;
-import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UnknownStateIdException;
 import io.hotmoka.node.local.internal.tries.AbstractTrieBasedStoreImpl;
 
@@ -43,9 +42,8 @@ public abstract class AbstractTrieBasedStore<N extends AbstractTrieBasedLocalNod
 	 * Creates an empty store, with empty cache.
 	 * 
 	 * @param node the node for which the store is created
-	 * @throws StoreException if the store could not be created
 	 */
-    protected AbstractTrieBasedStore(N node) throws StoreException {
+    protected AbstractTrieBasedStore(N node) {
     	super(node);
     }
 
@@ -66,9 +64,8 @@ public abstract class AbstractTrieBasedStore<N extends AbstractTrieBasedLocalNod
 	 * @param stateId the state to check out in the cloned store
 	 * @param cache to caches to use in the cloned store
      * @throws UnknownStateIdException if {@code stateId} does not exist
-     * @throws StoreException if the store could not be created
 	 */
-    protected AbstractTrieBasedStore(AbstractTrieBasedStore<N,C,S,T> toClone, StateId stateId, Optional<StoreCache> cache) throws UnknownStateIdException, StoreException {
+    protected AbstractTrieBasedStore(AbstractTrieBasedStore<N,C,S,T> toClone, StateId stateId, Optional<StoreCache> cache) throws UnknownStateIdException {
     	super(toClone, stateId, cache);
     }
 }

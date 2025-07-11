@@ -37,6 +37,7 @@ import io.hotmoka.node.local.AbstractTrieBasedStoreTransformation;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.api.UncheckedStoreException;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
 import io.mokamint.nonce.api.Prolog;
 
@@ -54,7 +55,7 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 	 * @param consensus the consensus to use for the execution of transactions in the transformation
 	 * @param now the current time to use for the execution of transactions in the transformation
 	 */
-	protected MokamintStoreTransformation(MokamintStore store, ConsensusConfig<?,?> consensus, long now) throws StoreException {
+	protected MokamintStoreTransformation(MokamintStore store, ConsensusConfig<?,?> consensus, long now) {
 		super(store, consensus, now);
 	}
 
@@ -80,9 +81,10 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 			return;
 
 		String publicKeyOfNodeBase58 = prolog.getPublicKeyForSigningBlocksBase58();
-		String publicKeyOfNodeBase64 = Base64.toBase64String(Base58.fromBase58String(publicKeyOfNodeBase58, StoreException::new));
+		// the Prolog should provide actual Base58-encoded keys, otherwise there is a bug
+		String publicKeyOfNodeBase64 = Base64.toBase64String(Base58.fromBase58String(publicKeyOfNodeBase58, UncheckedStoreException::new));
 		String publicKeyOfMinerBase58 = prolog.getPublicKeyForSigningDeadlinesBase58();
-		String publicKeyOfMinerBase64 = Base64.toBase64String(Base58.fromBase58String(publicKeyOfMinerBase58, StoreException::new));
+		String publicKeyOfMinerBase64 = Base64.toBase64String(Base58.fromBase58String(publicKeyOfMinerBase58, UncheckedStoreException::new));
 
 		// we use the manifest as caller, since it is an externally-owned account
 		StorageReference manifest = maybeManifest.get();
@@ -93,11 +95,11 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 		}
 		catch (UnknownReferenceException | FieldNotFoundException e) {
 			// the manifest is an account; this should not happen
-			throw new StoreException(e);
+			throw new UncheckedStoreException(e);
 		}
 
-		StorageReference validators = getValidators().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
-		TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
+		StorageReference validators = getValidators().orElseThrow(() -> new UncheckedStoreException("The manifest is set but the validators are not set"));
+		TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new UncheckedStoreException("The manifest is set but the Takamaka code reference is not set"));
 		BigInteger minted = getCoinsMinted(validators);
 		BigInteger gasConsumed = getGasConsumed();
 

@@ -238,7 +238,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	}
 
 	@Override
-	protected void exit(S store) throws NodeException {
+	protected void exit(S store) {
 		synchronized (lockGC) {
 			storeUsers.compute(store.getStateId(), (_id, old) -> old == 1 ? null : (old - 1));
 		}

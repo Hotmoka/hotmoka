@@ -69,9 +69,8 @@ public abstract class InitialResponseBuilderImpl<Request extends InitialTransact
 		 * Checks if the request should be rejected, even before trying to execute it.
 		 * 
 		 * @throws TransactionRejectedException if the request should be rejected
-		 * @throws StoreException if the store is misbehaving
 		 */
-		protected void checkBeforeExecution() throws TransactionRejectedException, StoreException {
+		protected void checkBeforeExecution() throws TransactionRejectedException {
 			if (environment.getManifest().isPresent())
 				throw new TransactionRejectedException("Cannot run an initial transaction request in an already initialized node", consensus);
 		}
@@ -82,7 +81,7 @@ public abstract class InitialResponseBuilderImpl<Request extends InitialTransact
 		 * @throws TransactionRejectedException if the request should be rejected
 		 * @throws StoreException if the store is misbehaving
 		 */
-		protected final void checkConsistency() throws TransactionRejectedException, StoreException {
+		protected final void checkConsistency() throws TransactionRejectedException {
 			try {
 				checkBeforeExecution();
 			}

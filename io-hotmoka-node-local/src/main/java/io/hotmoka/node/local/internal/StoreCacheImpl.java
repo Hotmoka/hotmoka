@@ -17,10 +17,10 @@ limitations under the License.
 package io.hotmoka.node.local.internal;
 
 import java.math.BigInteger;
-import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.OptionalLong;
 
+import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.exceptions.functions.FunctionWithExceptions2;
 import io.hotmoka.exceptions.functions.FunctionWithExceptions3;
 import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
@@ -95,11 +95,10 @@ public class StoreCacheImpl implements StoreCache {
 	/**
 	 * Creates empty caches.
 	 * 
-	 * @throws StoreException if the operation cannot be completed correctly
-	 * @throws NoSuchAlgorithmException if the default consensus config uses an unknown cryptographic algorithm
+	 * @param signatureForRequests the signature to use for the requests
 	 */
-	public StoreCacheImpl() throws NoSuchAlgorithmException {
-		this.consensus = ValidatorsConsensusConfigBuilders.defaults().build();
+	public StoreCacheImpl(SignatureAlgorithm signatureForRequests) {
+		this.consensus = ValidatorsConsensusConfigBuilders.defaults(signatureForRequests).build();
 		this.gasPrice = Optional.empty();
 		this.inflation = OptionalLong.empty();
 		this.validators = Optional.empty();

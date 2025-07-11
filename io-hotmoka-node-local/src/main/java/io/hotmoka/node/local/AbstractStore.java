@@ -21,7 +21,6 @@ import java.util.Optional;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StoreCache;
-import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.AbstractStoreImpl;
 
 /**
@@ -40,9 +39,8 @@ public abstract class AbstractStore<N extends AbstractLocalNode<N,C,S,T>, C exte
 	 * Creates an empty store, with empty cache.
 	 * 
 	 * @param node the node for which the store is created
-	 * @throws StoreException if the store could not be created
 	 */
-	protected AbstractStore(N node) throws StoreException {
+	protected AbstractStore(N node) {
 		super(node);
 	}
 
@@ -61,9 +59,8 @@ public abstract class AbstractStore<N extends AbstractLocalNode<N,C,S,T>, C exte
 	 * 
 	 * @param toClone the store to clone
 	 * @param cache the cache to use in the cloned store
-	 * @throws StoreException if the store could not be created
 	 */
-	protected AbstractStore(AbstractStore<N,C,S,T> toClone, Optional<StoreCache> cache) throws StoreException {
+	protected AbstractStore(AbstractStore<N,C,S,T> toClone, Optional<StoreCache> cache) {
 		super(toClone, cache);
 	}
 }

@@ -37,6 +37,7 @@ import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.local.AbstractStoreTransformation;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.api.UncheckedStoreException;
 
 /**
  * A transformation of a store of a disk node.
@@ -61,9 +62,8 @@ public class DiskStoreTransformation extends AbstractStoreTransformation<DiskNod
 	 * from the initial store.
 	 * 
 	 * @return the final store
-	 * @throws StoreException if the final store cannot be computed correctly
 	 */
-	public DiskStore getFinalStore() throws StoreException {
+	public DiskStore getFinalStore() {
 		return getInitialStore().addDelta(getCache(), getDeltaRequests(), getDeltaResponses(), getDeltaHistories(), getDeltaManifest());
 	}
 
@@ -88,11 +88,11 @@ public class DiskStoreTransformation extends AbstractStoreTransformation<DiskNod
 		}
 		catch (UnknownReferenceException | FieldNotFoundException e) {
 			// the manifest is an account; this should not happen
-			throw new StoreException(e);
+			throw new UncheckedStoreException(e);
 		}
 
-		StorageReference validators = getValidators().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
-		TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
+		StorageReference validators = getValidators().orElseThrow(() -> new UncheckedStoreException("The manifest is set but the validators are not set"));
+		TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new UncheckedStoreException("The manifest is set but the Takamaka code reference is not set"));
 		BigInteger minted = getCoinsMinted(validators);
 		BigInteger gasConsumed = getGasConsumed();
 		LOGGER.info("coinbase: units of gas consumed for CPU, RAM or storage since the previous reward: " + gasConsumed);

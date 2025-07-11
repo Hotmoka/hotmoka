@@ -49,18 +49,18 @@ public class InitializationResponseBuilder extends AbstractInitialResponseBuilde
 		return new ResponseCreator() {
 
 			@Override
-			protected InitializationTransactionResponse body() throws TransactionRejectedException, StoreException {
+			protected InitializationTransactionResponse body() throws TransactionRejectedException {
 				checkConsistency();
 				return TransactionResponses.initialization();	
 			}
 
 			@Override
-			protected final void checkBeforeExecution() throws TransactionRejectedException, StoreException {
+			protected final void checkBeforeExecution() throws TransactionRejectedException {
 				super.checkBeforeExecution();
 				manifestMustExistAndBeOfManifestClass();
 			}
 
-			private void manifestMustExistAndBeOfManifestClass() throws TransactionRejectedException, StoreException {
+			private void manifestMustExistAndBeOfManifestClass() throws TransactionRejectedException {
 				String className;
 			
 				try {

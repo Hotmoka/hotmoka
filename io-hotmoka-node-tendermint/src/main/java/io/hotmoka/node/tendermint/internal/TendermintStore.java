@@ -44,9 +44,8 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
      * Creates an empty store for the Tendermint blockchain, with empty cache.
 	 * 
 	 * @param node the node for which the store is created
-	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-    TendermintStore(TendermintNodeImpl node) throws StoreException {
+    TendermintStore(TendermintNodeImpl node) {
     	super(node);
 
     	this.validators = Optional.empty();
@@ -59,9 +58,8 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
 	 * @param cache to caches to use in the cloned store
 	 * @param stateId the state identifier of the store to create
      * @throws UnknownStateIdException if the required state does not exist
-     * @throws StoreException if the operation could not be completed correctly
 	 */
-    private TendermintStore(TendermintStore toClone, StateId stateId, Optional<StoreCache> cache) throws UnknownStateIdException, StoreException {
+    private TendermintStore(TendermintStore toClone, StateId stateId, Optional<StoreCache> cache) throws UnknownStateIdException {
     	super(toClone, stateId, cache);
 
     	this.validators = toClone.validators;

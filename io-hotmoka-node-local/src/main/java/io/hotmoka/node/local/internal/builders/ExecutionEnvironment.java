@@ -41,8 +41,6 @@ import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.exceptions.CheckSupplier;
-import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.TransactionReferences;
@@ -379,17 +377,16 @@ public abstract class ExecutionEnvironment {
 	 * 
 	 * @param manifest the reference to the manifest; this is assumed to actually refer to a manifest
 	 * @return the validators object reference
-	 * @throws StoreException if the store is misbehaving
 	 */
-	protected final StorageReference extractValidators(StorageReference manifest) throws StoreException {
+	protected final StorageReference extractValidators(StorageReference manifest) {
 		try {
 			return getReferenceField(manifest, FieldSignatures.MANIFEST_VALIDATORS_FIELD);
 		}
 		catch (FieldNotFoundException e) {
-			throw new StoreException("The manifest does not contain the reference to the validators set", e);
+			throw new UncheckedStoreException("The manifest does not contain the reference to the validators set", e);
 		}
 		catch (UnknownReferenceException e) {
-			throw new StoreException("The manifest is set but cannot be found in store", e);
+			throw new UncheckedStoreException("The manifest is set but cannot be found in store", e);
 		}
 	}
 
@@ -398,17 +395,16 @@ public abstract class ExecutionEnvironment {
 	 * 
 	 * @param manifest the reference to the manifest; this is assumed to actually refer to a manifest
 	 * @return the gas station object reference
-	 * @throws StoreException if the store is misbehaving
 	 */
-	protected final StorageReference extractGasStation(StorageReference manifest) throws StoreException {
+	protected final StorageReference extractGasStation(StorageReference manifest) {
 		try {
 			return getReferenceField(manifest, FieldSignatures.MANIFEST_GAS_STATION_FIELD);
 		}
 		catch (FieldNotFoundException e) {
-			throw new StoreException("The manifest does not contain the reference to the gas station", e);
+			throw new UncheckedStoreException("The manifest does not contain the reference to the gas station", e);
 		}
 		catch (UnknownReferenceException e) {
-			throw new StoreException("The manifest is set but cannot be found in store", e);
+			throw new UncheckedStoreException("The manifest is set but cannot be found in store", e);
 		}
 	}
 
@@ -417,17 +413,16 @@ public abstract class ExecutionEnvironment {
 	 * 
 	 * @param manifest the reference to the manifest; this is assumed to actually refer to a manifest
 	 * @return the versions object reference
-	 * @throws StoreException if the store is misbehaving
 	 */
-	protected final StorageReference extractVersions(StorageReference manifest) throws StoreException {
+	protected final StorageReference extractVersions(StorageReference manifest) {
 		try {
 			return getReferenceField(manifest, FieldSignatures.MANIFEST_VERSIONS_FIELD);
 		}
 		catch (FieldNotFoundException e) {
-			throw new StoreException("The manifest does not contain the reference to the versions manager", e);
+			throw new UncheckedStoreException("The manifest does not contain the reference to the versions manager", e);
 		}
 		catch (UnknownReferenceException e) {
-			throw new StoreException("The manifest is set but cannot be found in store", e);
+			throw new UncheckedStoreException("The manifest is set but cannot be found in store", e);
 		}
 	}
 
@@ -440,16 +435,16 @@ public abstract class ExecutionEnvironment {
 	 */
 	protected final BigInteger extractGasPrice(StorageReference manifest) throws StoreException, InterruptedException {
 		StorageReference gasStation = extractGasStation(manifest);
-		TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
+		TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new UncheckedStoreException("The manifest is set but the Takamaka code reference is not set"));
 
 		try {
 			return runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, GET_GAS_PRICE, gasStation))
-					.orElseThrow(() -> new StoreException(GET_GAS_PRICE + " should not return void"))
-					.asReturnedBigInteger(GET_GAS_PRICE, StoreException::new);
+					.orElseThrow(() -> new UncheckedStoreException(GET_GAS_PRICE + " should not return void"))
+					.asReturnedBigInteger(GET_GAS_PRICE, UncheckedStoreException::new);
 		}
 		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
 			// the call to getGasPrice() should raise no exception
-			throw new StoreException(e);
+			throw new UncheckedStoreException(e);
 		}
 	}
 
@@ -462,15 +457,15 @@ public abstract class ExecutionEnvironment {
 	 */
 	protected final long extractInflation(StorageReference manifest) throws StoreException, InterruptedException {
 		StorageReference validators = extractValidators(manifest);
-		TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
+		TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new UncheckedStoreException("The manifest is set but the Takamaka code reference is not set"));
 
 		try {
 			return runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, GET_CURRENT_INFLATION, validators))
-					.orElseThrow(() -> new StoreException(GET_CURRENT_INFLATION + " should not return void"))
-					.asReturnedLong(GET_CURRENT_INFLATION, StoreException::new);
+					.orElseThrow(() -> new UncheckedStoreException(GET_CURRENT_INFLATION + " should not return void"))
+					.asReturnedLong(GET_CURRENT_INFLATION, UncheckedStoreException::new);
 		}
 		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
-			throw new StoreException(e);
+			throw new UncheckedStoreException(e);
 		}
 	}
 
@@ -511,9 +506,8 @@ public abstract class ExecutionEnvironment {
 	 * @param reference the reference of the object
 	 * @return the class name of the object at {@code reference}
 	 * @throws UnknownReferenceException if {@code reference} is not bound to any object in store
-	 * @throws StoreException if the store is misbehaving
 	 */
-	protected final String getClassName(StorageReference reference) throws UnknownReferenceException, StoreException {
+	protected final String getClassName(StorageReference reference) throws UnknownReferenceException {
 		return getClassTag(reference).getClazz().getName();
 	}
 
@@ -621,9 +615,8 @@ public abstract class ExecutionEnvironment {
 	 * that installed its manifest.
 	 * 
 	 * @return the Takamaka code, if it is already set
-	 * @throws StoreException if the store is misbehaving
 	 */
-	protected final Optional<TransactionReference> getTakamakaCode() throws StoreException {
+	protected final Optional<TransactionReference> getTakamakaCode() {
 		var maybeManifest = getManifest();
 		if (maybeManifest.isEmpty())
 			return Optional.empty();
@@ -632,7 +625,7 @@ public abstract class ExecutionEnvironment {
 			return Optional.of(getClassTag(maybeManifest.get()).getJar());
 		}
 		catch (UnknownReferenceException e) {
-			throw new StoreException("The manifest is set but its class tag cannot be found", e);
+			throw new UncheckedStoreException("The manifest is set but its class tag cannot be found", e);
 		}
 	}
 
@@ -643,9 +636,8 @@ public abstract class ExecutionEnvironment {
 	 * @return the nonce of {@code account}
 	 * @throws UnknownReferenceException if {@code account} is not found in store
 	 * @throws FieldNotFoundException if {@code account} has no field holding its nonce; this means that it is not really an account
-	 * @throws StoreException if the store is misbehaving
 	 */
-	protected final BigInteger getNonce(StorageReference account) throws UnknownReferenceException, FieldNotFoundException, StoreException {
+	protected final BigInteger getNonce(StorageReference account) throws UnknownReferenceException, FieldNotFoundException {
 		return getBigIntegerField(account, FieldSignatures.EOA_NONCE_FIELD);
 	}
 
@@ -668,9 +660,8 @@ public abstract class ExecutionEnvironment {
 	 * @return the balance of {@code contract}
 	 * @throws UnknownReferenceException if {@code contract} is not found in store
 	 * @throws FieldNotFoundException if {@code contract} has no field holding its balance; this means that it is not really a contract
-	 * @throws StoreException if the store is misbehaving
 	 */
-	protected final BigInteger getBalance(StorageReference contract) throws UnknownReferenceException, FieldNotFoundException, StoreException {
+	protected final BigInteger getBalance(StorageReference contract) throws UnknownReferenceException, FieldNotFoundException {
 		return getBigIntegerField(contract, FieldSignatures.BALANCE_FIELD);
 	}
 
@@ -680,13 +671,12 @@ public abstract class ExecutionEnvironment {
 	 * @param object the object
 	 * @return the set of updates
 	 * @throws UnknownReferenceException if {@code object} cannot be found in store
-	 * @throws StoreException if the store is misbehaving
 	 */
-	protected final Stream<UpdateOfField> getEagerFields(StorageReference object) throws UnknownReferenceException, StoreException {
+	protected final Stream<UpdateOfField> getEagerFields(StorageReference object) throws UnknownReferenceException {
 		var fieldsAlreadySeen = new HashSet<FieldSignature>();
 
 		return getHistory(object)
-			.flatMap(CheckSupplier.check(StoreException.class, () -> UncheckFunction.uncheck(StoreException.class, this::getUpdates)))
+			.flatMap(this::getUpdates)
 			.filter(update -> update.isEager() && update instanceof UpdateOfField uof && update.getObject().equals(object) && fieldsAlreadySeen.add(uof.getField()))
 			.map(update -> (UpdateOfField) update);
 	}
@@ -699,17 +689,16 @@ public abstract class ExecutionEnvironment {
 	 * @param referenceInHistory the reference to the transaction; this is assumed to be part of the
 	 *                           history of some object
 	 * @return the updates resulting from the execution of {@code referenceInHistory}
-	 * @throws StoreException if the store is misbehaving
 	 */
-	protected final Stream<Update> getUpdates(TransactionReference referenceInHistory) throws StoreException {
+	protected final Stream<Update> getUpdates(TransactionReference referenceInHistory) {
 		try {
 			if (getResponse(referenceInHistory) instanceof TransactionResponseWithUpdates trwu)
 				return trwu.getUpdates();
 			else
-				throw new StoreException("Transaction " + referenceInHistory + " belongs to the histories but does not contain updates");
+				throw new UncheckedStoreException("Transaction " + referenceInHistory + " belongs to the histories but does not contain updates");
 		}
 		catch (UnknownReferenceException e) {
-			throw new StoreException("Transaction " + referenceInHistory + " belongs to the histories but is not present in store");
+			throw new UncheckedStoreException("Transaction " + referenceInHistory + " belongs to the histories but is not present in store");
 		}
 	}
 

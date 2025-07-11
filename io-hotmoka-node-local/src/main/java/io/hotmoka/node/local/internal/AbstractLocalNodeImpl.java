@@ -38,7 +38,9 @@ import java.util.stream.Stream;
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.closeables.AbstractAutoCloseableWithLockAndOnCloseHandlers;
 import io.hotmoka.crypto.HashingAlgorithms;
+import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
+import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.node.CodeFutures;
 import io.hotmoka.node.JarFutures;
 import io.hotmoka.node.SubscriptionsManagers;
@@ -134,6 +136,8 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 */
 	private final LRUCache<TransactionReference, String> recentlyRejectedTransactionsMessages = new LRUCache<>(100, 1000);
 
+	private final SignatureAlgorithm ed25519;
+
 	private final static Logger LOGGER = Logger.getLogger(AbstractLocalNodeImpl.class.getName());
 
 	/**
@@ -150,6 +154,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		this.semaphores = new ConcurrentHashMap<>();
 
 		try {
+			this.ed25519 = SignatureAlgorithms.ed25519();
 			this.hasher = HashingAlgorithms.sha256().getHasher(TransactionRequest::toByteArray);
 		}
 		catch (NoSuchAlgorithmException e) {
@@ -201,12 +206,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 			return store.getConfig();
 		}
 		finally {
-			try {
-				exit(store);
-			}
-			catch (NodeException e) { // TODO
-				throw new RuntimeException(e);
-			}
+			exit(store);
 		}
 	}
 
@@ -542,9 +542,8 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 * Called when this node finished executing something that needed the given store.
 	 * 
 	 * @param store the store
-	 * @throws NodeException if the operation could not be completed correctly
 	 */
-	protected void exit(S store) throws NodeException {}
+	protected void exit(S store) {}
 
 	/**
 	 * Yields the executors that can be used to start tasks with this node.
@@ -624,9 +623,8 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 * Creates an empty store for this node, with empty cache.
 	 * 
 	 * @return the empty store
-	 * @throws NodeException if this node is not able to perform the operation
 	 */
-	protected abstract S mkEmptyStore() throws NodeException;
+	protected abstract S mkEmptyStore();
 
 	/**
 	 * Node-specific implementation to post the given request. Each node should implement this,
@@ -638,6 +636,10 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 * @throws TimeoutException if the operation could not be completed in time
 	 */
 	protected abstract void postRequest(TransactionRequest<?> request) throws NodeException, InterruptedException, TimeoutException;
+
+	protected SignatureAlgorithm mkEd25519() {
+		return ed25519;
+	}
 
 	/**
 	 * Cleans the directory where the node's data live.

@@ -192,13 +192,8 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	}
 
 	@Override
-	protected TendermintStore mkEmptyStore() throws NodeException {
-		try {
-			return new TendermintStore(this);
-		}
-		catch (StoreException e) {
-			throw new NodeException(e);
-		}
+	protected TendermintStore mkEmptyStore() {
+		return new TendermintStore(this);
 	}
 
 	@Override

@@ -36,7 +36,6 @@ import io.hotmoka.node.disk.api.DiskNode;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.local.AbstractLocalNode;
 import io.hotmoka.node.local.NodeCreationException;
-import io.hotmoka.node.local.UncheckedNodeException;
 import io.hotmoka.node.local.api.StoreException;
 
 /**
@@ -72,18 +71,9 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 	public DiskNodeImpl(DiskNodeConfig config) throws NodeCreationException {
 		super(config, true);
 
-		try {
-			this.storePath = getLocalConfig().getDir().resolve("hotmoka").resolve("store");
-			this.storeOfHead = mkEmptyStore();
-			this.mempool = new Mempool();
-		}
-		catch (ClosedNodeException e) {
-			throw new UncheckedNodeException("The node is unexpectedly closed before its same creation", e);
-		}
-		catch (NodeException e) { // TODO
-			close();
-			throw new NodeCreationException(e);
-		}
+		this.storePath = getLocalConfig().getDir().resolve("hotmoka").resolve("store");
+		this.storeOfHead = mkEmptyStore();
+		this.mempool = new Mempool();
 	}
 
 	@Override
@@ -94,13 +84,8 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 	}
 
 	@Override
-	protected DiskStore mkEmptyStore() throws NodeException {
-		try {
-			return new DiskStore(this, storePath);
-		}
-		catch (StoreException e) {
-			throw new NodeException(e);
-		}
+	protected DiskStore mkEmptyStore() {
+		return new DiskStore(this, storePath);
 	}
 
 	@Override
@@ -150,7 +135,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 		/**
 		 * Builds a mempool.
 		 */
-		private Mempool() throws ClosedNodeException {
+		private Mempool() {
 			this.transactionsPerBlock = getLocalConfig().getTransactionsPerBlock();
 			this.deliverer = new Thread(this::deliver);
 			this.deliverer.start();

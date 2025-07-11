@@ -172,13 +172,8 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 	}
 
 	@Override
-	protected MokamintStore mkEmptyStore() throws NodeException {
-		try {
-			return new MokamintStore(this);
-		}
-		catch (StoreException e) {
-			throw new NodeException(e);
-		}
+	protected MokamintStore mkEmptyStore() {
+		return new MokamintStore(this);
 	}
 
 	@Override
@@ -357,13 +352,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 				transformations.put(groupId, start.beginTransformation(when.toInstant(ZoneOffset.UTC).toEpochMilli()));
 			}
 			catch (StoreException e) {
-				try {
-					exit(start);
-				}
-				catch (NodeException e2) { // TODO
-					throw new RuntimeException(e2);
-				}
-
+				exit(start);
 				throw new RuntimeException(e); // TODO
 	    	}
 
@@ -433,16 +422,8 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		public void commitBlock(int groupId) throws UnknownGroupIdException, ClosedApplicationException {
 			try (var scope = mkScope()) {
 				var transformation = getTransformation(groupId);
-
-				try {
-					exit(transformation.getInitialStore());
-				}
-				catch (NodeException e) { // TODO
-					throw new RuntimeException(e);
-				}
-				finally {
-					transformations.remove(groupId);
-				}
+				exit(transformation.getInitialStore());
+				transformations.remove(groupId);
 			}
 		}
 
@@ -450,16 +431,8 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		public void abortBlock(int groupId) throws UnknownGroupIdException, ClosedApplicationException {
 			try (var scope = mkScope()) {
 				var transformation = getTransformation(groupId);
-
-				try {
-					exit(transformation.getInitialStore());
-				}
-				catch (NodeException e) { // TODO
-					throw new RuntimeException(e);
-				}
-				finally {
-					transformations.remove(groupId);
-				}
+				exit(transformation.getInitialStore());
+				transformations.remove(groupId);
 			}
 		}
 

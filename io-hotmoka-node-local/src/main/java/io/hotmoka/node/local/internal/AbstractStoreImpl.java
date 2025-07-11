@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.local.internal;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
@@ -70,18 +69,10 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	 * 
 	 * @param node the node for which the store is created
 	 * @param cache the cache to use in the cloned store; if missing, an empty cache is used
-	 * @throws StoreException if the store could not be created
 	 */
-	private AbstractStoreImpl(N node, Optional<StoreCache> cache) throws StoreException {
+	private AbstractStoreImpl(N node, Optional<StoreCache> cache) {
 		this.node = node;
-
-		try {
-			this.cache = cache.isPresent() ? cache.get() : new StoreCacheImpl();
-		}
-		catch (NoSuchAlgorithmException e) {
-			throw new StoreException(e);
-		}
-
+		this.cache = cache.isPresent() ? cache.get() : new StoreCacheImpl(node.mkEd25519());
 		this.consensusForViews = this.cache.getConfig().toBuilder().setMaxGasPerTransaction(node.getLocalConfig().getMaxGasPerViewTransaction()).build();
 	}
 
@@ -101,9 +92,8 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	 * Creates an empty store, with empty cache.
 	 * 
 	 * @param node the node for which the store is created
-	 * @throws StoreException if the store could not be created
 	 */
-	protected AbstractStoreImpl(N node) throws StoreException {
+	protected AbstractStoreImpl(N node) {
 		this(node, Optional.empty());
 	}
 
@@ -122,9 +112,8 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	 * 
 	 * @param toClone the store to clone
 	 * @param cache the cache to use in the cloned store; if missing, an empty cache is used
- 	 * @throws StoreCreationException if the store could not be created
 	 */
-	protected AbstractStoreImpl(AbstractStoreImpl<N,C,S,T> toClone, Optional<StoreCache> cache) throws StoreException {
+	protected AbstractStoreImpl(AbstractStoreImpl<N,C,S,T> toClone, Optional<StoreCache> cache) {
 		this(toClone.getNode(), cache);
 	}
 
