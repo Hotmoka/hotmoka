@@ -28,7 +28,6 @@ import io.hotmoka.node.api.UnmatchedTargetException;
 import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UncheckedStoreException;
 import io.takamaka.code.constants.Constants;
 
@@ -58,7 +57,7 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 		private ResponseCreator() throws TransactionRejectedException {}
 
 		@Override
-		protected MethodCallTransactionResponse body() throws TransactionRejectedException, StoreException {
+		protected MethodCallTransactionResponse body() throws TransactionRejectedException {
 			checkConsistency();
 
 			try {

@@ -41,7 +41,6 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.ResponseBuilder;
-import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UncheckedStoreException;
 
 /**
@@ -98,7 +97,6 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * 
 	 * @return the class loader
 	 * @throws ClassLoaderCreationException if the request contains wrong information and the class loader cannot be created
-	 * @throws StoreException if the store of the node is misbehaving
 	 */
 	protected abstract EngineClassLoader mkClassLoader() throws ClassLoaderCreationException;
 
@@ -182,9 +180,8 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * The body of the creation of the response.
 		 * 
 		 * @return the response
-		 * @throws StoreException if the store is misbehaving
 		 */
-		protected abstract Response body() throws TransactionRejectedException, StoreException;
+		protected abstract Response body() throws TransactionRejectedException;
 
 		/**
 		 * Yields the UTC time when the transaction is being run.

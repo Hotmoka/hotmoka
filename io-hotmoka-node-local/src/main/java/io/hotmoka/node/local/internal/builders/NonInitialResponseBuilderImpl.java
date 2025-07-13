@@ -49,7 +49,6 @@ import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.updates.UpdateOfField;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
-import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UncheckedStoreException;
 import io.hotmoka.whitelisting.api.WhiteListingClassLoader;
 
@@ -255,7 +254,6 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * This always returns false if the network has no open unsigned faucet.
 		 * 
 		 * @return true if and only if the faucet is open and this is a call to the faucet
-		 * @throws StoreException if the store is misbehaving
 		 */
 		protected boolean isCallToFaucet() {
 			return false;

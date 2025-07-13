@@ -40,7 +40,6 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractTrieBasedStoreTransformation;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.StoreCache;
-import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UncheckedStoreException;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 import io.hotmoka.verification.api.TakamakaClassLoader;
@@ -82,7 +81,7 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 	}
 
 	@Override
-	protected void updateCaches(TransactionResponse response, TakamakaClassLoader classLoader) throws StoreException, InterruptedException {
+	protected void updateCaches(TransactionResponse response, TakamakaClassLoader classLoader) throws InterruptedException {
 		super.updateCaches(response, classLoader);
 	
 		if (validatorsMightHaveChanged(response, classLoader)) {
@@ -101,10 +100,9 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 	 *                 validators that behaved correctly and will be rewarded
 	 * @param misbehaving the space-separated sequence of the identifiers of the validators that
 	 *                    misbehaved and must be punished
-	 * @throws StoreException if the store is not able to complete the operation correctly
 	 * @throws InterruptedException if the current thread is interrupted before delivering the transaction
 	 */
-	protected final void deliverCoinbaseTransactions(String behaving, String misbehaving) throws StoreException, InterruptedException {
+	protected final void deliverCoinbaseTransactions(String behaving, String misbehaving) throws InterruptedException {
 		Optional<StorageReference> maybeManifest = getManifest();
 		if (maybeManifest.isEmpty())
 			return;
@@ -159,7 +157,7 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 		}
 	}
 
-	private void recomputeValidators() throws StoreException, InterruptedException {
+	private void recomputeValidators() throws InterruptedException {
 		Optional<StorageReference> maybeManifest = getManifest();
 		if (maybeManifest.isEmpty())
 			return;
@@ -214,9 +212,8 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 	 * @param response the response
 	 * @param classLoader the class loader used for the transaction
 	 * @return true if and only if that condition holds
-	 * @throws ClassNotFoundException if some class cannot be found in the Takamaka program
 	 */
-	private boolean validatorsMightHaveChanged(TransactionResponse response, TakamakaClassLoader classLoader) throws StoreException {
+	private boolean validatorsMightHaveChanged(TransactionResponse response, TakamakaClassLoader classLoader) {
 		if (response instanceof InitializationTransactionResponse)
 			return true;
 		// we check if there are events of type ValidatorsUpdate triggered by the validators

@@ -23,7 +23,6 @@ import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.local.AbstractTrieBasedStore;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreCache;
-import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UnknownStateIdException;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
 
@@ -65,7 +64,7 @@ public class MokamintStore extends AbstractTrieBasedStore<MokamintNodeImpl, Moka
 	}
 
     @Override
-	public MokamintStore checkedOutAt(StateId stateId, Optional<StoreCache> cache) throws UnknownStateIdException, StoreException, InterruptedException {
+	public MokamintStore checkedOutAt(StateId stateId, Optional<StoreCache> cache) throws UnknownStateIdException, InterruptedException {
 		var result = new MokamintStore(this, stateId, cache);
 		return cache.isPresent() ? result : result.withReloadedCache();
 	}

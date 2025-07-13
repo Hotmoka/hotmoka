@@ -81,7 +81,6 @@ import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.ResponseBuilder;
 import io.hotmoka.node.local.api.StoreCache;
-import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UncheckedStoreException;
 
 /**
@@ -190,13 +189,13 @@ public abstract class ExecutionEnvironment {
 
 	/**
 	 * Reconstructs the consensus information from the information inside this environment.
-	 * Thiis method assumes that the manifest has been set already.
+	 * This method assumes that the manifest has been set already.
 	 * 
 	 * @param manifest the reference to the manifest; this is assumed to actually refer to a manifest
 	 * @return the reconstructed consensus information
 	 * @throws InterruptedException if the current thread is interrupted while performing this operation
 	 */
-	protected final ConsensusConfig<?,?> extractConsensus(StorageReference manifest) throws StoreException, InterruptedException {
+	protected final ConsensusConfig<?,?> extractConsensus(StorageReference manifest) throws InterruptedException {
 		try {
 			TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new UncheckedStoreException("The manifest is set but the Takamaka code reference is not set"));
 
@@ -428,9 +427,8 @@ public abstract class ExecutionEnvironment {
 	 * 
 	 * @param manifest the reference to the manifest; this is assumed to actually refer to a manifest
 	 * @return the gas price, as reported in the gas station of {@code manifest}
-	 * @throws StoreException if the store is misbehaving
 	 */
-	protected final BigInteger extractGasPrice(StorageReference manifest) throws StoreException, InterruptedException {
+	protected final BigInteger extractGasPrice(StorageReference manifest) throws InterruptedException {
 		StorageReference gasStation = extractGasStation(manifest);
 		TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new UncheckedStoreException("The manifest is set but the Takamaka code reference is not set"));
 
@@ -450,9 +448,8 @@ public abstract class ExecutionEnvironment {
 	 * 
 	 * @param manifest the reference to the manifest; this is assumed to actually refer to a manifest
 	 * @return the inflation, as reported in the validators of {@code manifest}
-	 * @throws StoreException if the store is misbehaving
 	 */
-	protected final long extractInflation(StorageReference manifest) throws StoreException, InterruptedException {
+	protected final long extractInflation(StorageReference manifest) throws InterruptedException {
 		StorageReference validators = extractValidators(manifest);
 		TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new UncheckedStoreException("The manifest is set but the Takamaka code reference is not set"));
 
@@ -751,7 +748,7 @@ public abstract class ExecutionEnvironment {
 	 * @param request the request of the transaction to run
 	 * @return the result of the method call, if the method is not {@code void}
 	 */
-	protected final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, StoreException, InterruptedException {
+	protected final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, InterruptedException {
 		return runInstanceMethodCallTransaction(request, TransactionReferences.of(getHasher().hash(request)));
 	}
 

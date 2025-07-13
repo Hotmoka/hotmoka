@@ -40,7 +40,6 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
-import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UncheckedStoreException;
 import io.takamaka.code.constants.Constants;
 
@@ -89,7 +88,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		}
 
 		@Override
-		protected MethodCallTransactionResponse body() throws TransactionRejectedException, StoreException {
+		protected MethodCallTransactionResponse body() throws TransactionRejectedException {
 			checkConsistency();
 
 			try {
@@ -147,7 +146,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 			}
 		}
 
-		private void deserializeReceiver() throws DeserializationException, StoreException {
+		private void deserializeReceiver() throws DeserializationException {
 			deserializedReceiver = deserializer.deserialize(request.getReceiver());
 		}
 

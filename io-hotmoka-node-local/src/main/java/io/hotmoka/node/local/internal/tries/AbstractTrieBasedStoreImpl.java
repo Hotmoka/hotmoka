@@ -35,7 +35,6 @@ import io.hotmoka.node.local.api.CheckableStore;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreCache;
-import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UncheckedStoreException;
 import io.hotmoka.node.local.api.UnknownStateIdException;
 import io.hotmoka.patricia.api.UnknownKeyException;
@@ -151,9 +150,8 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 	 * Yields a clone of this store, but for its cache, that is initialized with information extracted from this store.
 	 * 
 	 * @return the resulting store
-	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	protected final S withReloadedCache() throws StoreException, InterruptedException {
+	protected final S withReloadedCache() throws InterruptedException {
 		StoreCache newCache = getCache();
 	
 		// if this store is already initialized, we can extract the cache information

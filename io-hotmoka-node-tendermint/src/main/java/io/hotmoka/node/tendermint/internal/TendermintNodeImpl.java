@@ -51,7 +51,6 @@ import io.hotmoka.node.local.NodeCreationException;
 import io.hotmoka.node.local.StateIds;
 import io.hotmoka.node.local.UncheckedNodeException;
 import io.hotmoka.node.local.api.StateId;
-import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UnknownStateIdException;
 import io.hotmoka.node.tendermint.TendermintException;
 import io.hotmoka.node.tendermint.api.TendermintNode;
@@ -162,7 +161,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 			this.tendermint = new Tendermint(config);
 			LOGGER.info("Tendermint started at port " + tendermintConfigFile.getTendermintPort());
 		}
-		catch (IOException | TimeoutException | NodeException | UnknownStateIdException e) {
+		catch (IOException | TimeoutException e) {
 			LOGGER.log(Level.SEVERE, "the creation of the Tendermint node failed", e);
 			close();
 			throw new NodeCreationException(e);
@@ -221,11 +220,16 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		getStoreOfNode().put(txn, HEIGHT, ByteIterable.fromBytes(longToBytes(getHeight(txn) + 1)));
 	}
 
-	private void checkOutRootBranch() throws InterruptedException, UnknownStateIdException, NodeException {
+	private void checkOutRootBranch() throws InterruptedException, NodeCreationException {
 		var root = getEnvironment().computeInTransaction(txn -> Optional.ofNullable(getStoreOfNode().get(txn, ROOT)).map(ByteIterable::getBytes))
-				.orElseThrow(() -> new NodeException("Cannot find the root of the store of the node"));
+				.orElseThrow(() -> new NodeCreationException("Cannot find the root of the store of the node: are you sure that the working directory was initialized with the data to resume the node?"));
 
-		storeOfHead = mkStore(StateIds.of(root), Optional.empty());
+		try {
+			storeOfHead = mkStore(StateIds.of(root), Optional.empty());
+		}
+		catch (UnknownStateIdException e) {
+			throw new NodeCreationException("The root of the store in the database cannot be found in the database itself", e);
+		}
 	}
 
 	private long getHeight(Transaction txn) {
@@ -616,9 +620,6 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	        		responseBuilder.setCode(1);
 	            	responseBuilder.setData(ByteString.copyFromUtf8(e.getMessage()));
 	        	}
-	        	catch (StoreException e) {
-	        		throw new NodeException(e);
-	        	}
 	        }
 	        catch (IOException t) {
 	        	responseBuilder.setCode(2);
@@ -679,7 +680,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 				LOGGER.info("committed Tendermint state " + Hex.toHexString(hash).toUpperCase());
 				return ResponseCommit.newBuilder().setData(ByteString.copyFrom(hash)).build();
 			}
-			catch (StoreException | UnknownStateIdException e) {
+			catch (UnknownStateIdException e) {
 				LOGGER.log(Level.SEVERE, "commit failed", e);
 				throw new NodeException(e);
 			}

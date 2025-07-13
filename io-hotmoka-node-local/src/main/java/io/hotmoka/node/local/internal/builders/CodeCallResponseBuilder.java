@@ -39,7 +39,6 @@ import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.local.AbstractNonInitialResponseBuilder;
-import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.whitelisting.Dummy;
 import io.hotmoka.whitelisting.api.WhiteListingClassLoader;
 import io.takamaka.code.constants.Constants;
@@ -353,7 +352,6 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 * Yields the storage references of the events generated so far.
 		 * 
 		 * @return the storage references
-		 * @throws StoreException 
 		 */
 		protected final Stream<StorageReference> storageReferencesOfEvents() {
 			var result = new ArrayList<StorageReference>();

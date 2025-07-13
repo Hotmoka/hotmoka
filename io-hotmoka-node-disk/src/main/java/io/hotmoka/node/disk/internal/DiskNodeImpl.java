@@ -28,7 +28,6 @@ import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.api.ClosedNodeException;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.api.requests.TransactionRequest;
@@ -36,7 +35,6 @@ import io.hotmoka.node.disk.api.DiskNode;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.local.AbstractLocalNode;
 import io.hotmoka.node.local.NodeCreationException;
-import io.hotmoka.node.local.api.StoreException;
 
 /**
  * An implementation of a node that stores transactions in a directory
@@ -186,11 +184,11 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 					}
 				}
 			}
-			catch (StoreException | NodeException e) {
-				LOGGER.log(Level.SEVERE, "transaction delivery failure", e);
-			}
 			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
+			}
+			catch (RuntimeException e) {
+				LOGGER.log(Level.SEVERE, "transaction delivery failure", e);
 			}
 		}
 
@@ -200,23 +198,17 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 		 * 
 		 * @param transformation the store transformation containing all executed transactions since the last block
 		 * @return a new store transformation, where the subsequent transactions can be accumulated
-		 * @throws NodeException if the node is misbehaving
 		 * @throws InterruptedException if the current thread is interrupted while the coinbase transaction is executing
 		 */
-		private DiskStoreTransformation restartTransaction(DiskStoreTransformation transformation) throws NodeException, InterruptedException {
-			try {
-				// if we delivered zero transactions, we prefer to avoid the creation of an empty block
-				if (transformation.deliveredCount() > 0) {
-					transformation.deliverCoinbaseTransactions();
-					storeOfHead = transformation.getFinalStore();
-					publishAllTransactionsDeliveredIn(transformation, storeOfHead);
-				}
+		private DiskStoreTransformation restartTransaction(DiskStoreTransformation transformation) throws InterruptedException {
+			// if we delivered zero transactions, we prefer to avoid the creation of an empty block
+			if (transformation.deliveredCount() > 0) {
+				transformation.deliverCoinbaseTransactions();
+				storeOfHead = transformation.getFinalStore();
+				publishAllTransactionsDeliveredIn(transformation, storeOfHead);
+			}
 
-				return storeOfHead.beginTransformation(System.currentTimeMillis());
-			}
-			catch (StoreException e) {
-				throw new NodeException(e);
-			}
+			return storeOfHead.beginTransformation(System.currentTimeMillis());
 		}
 	}
 }

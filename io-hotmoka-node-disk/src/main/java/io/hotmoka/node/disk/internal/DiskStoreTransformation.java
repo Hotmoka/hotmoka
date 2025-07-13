@@ -36,7 +36,6 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.local.AbstractStoreTransformation;
 import io.hotmoka.node.local.api.FieldNotFoundException;
-import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UncheckedStoreException;
 
 /**
@@ -71,10 +70,9 @@ public class DiskStoreTransformation extends AbstractStoreTransformation<DiskNod
 	 * Takes note of the gas consumed for the execution of the requests delivered in this store transformation,
 	 * consequently updates the inflation and the total supply.
 	 * 
-	 * @throws StoreException if the store is not able to complete the operation correctly
 	 * @throws InterruptedException if the current thread is interrupted before delivering the transaction
 	 */
-	protected final void deliverCoinbaseTransactions() throws StoreException, InterruptedException {
+	protected final void deliverCoinbaseTransactions() throws InterruptedException {
 		Optional<StorageReference> maybeManifest = getManifest();
 		if (maybeManifest.isEmpty())
 			return;

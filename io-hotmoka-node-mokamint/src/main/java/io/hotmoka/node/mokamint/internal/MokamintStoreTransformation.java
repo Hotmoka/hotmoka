@@ -36,7 +36,6 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractTrieBasedStoreTransformation;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.StoreCache;
-import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UncheckedStoreException;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
 import io.mokamint.nonce.api.Prolog;
@@ -72,10 +71,9 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 	 * 
 	 * @param prolog the prolog of the block; this contains information about the public keys
 	 *               that identify the creator of the node and the miner of the deadline of the block
-	 * @throws StoreException if the store is not able to complete the operation correctly
 	 * @throws InterruptedException if the current thread is interrupted before delivering the transaction
 	 */
-	protected void deliverCoinbaseTransactions(Prolog prolog) throws StoreException, InterruptedException {
+	protected void deliverCoinbaseTransactions(Prolog prolog) throws InterruptedException {
 		Optional<StorageReference> maybeManifest = getManifest();
 		if (maybeManifest.isEmpty())
 			return;

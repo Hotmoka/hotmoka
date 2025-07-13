@@ -53,10 +53,9 @@ public interface StoreTransformation<S extends Store<S,T>, T extends StoreTransf
 	 * @throws TransactionRejectedException if the request has been rejected
 	 * @throws TransactionException if the request has been accepted but its execution failed with an exception not in the Takamaka code
 	 * @throws CodeExecutionException if the request has been accepted but its execution failed with an exception in the Takamaka code
-	 * @throws StoreException if the final store is not able to complete the operation correctly
 	 * @throws InterruptedException if the current thread is interrupted before computing the result
 	 */
-	Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException, StoreException, InterruptedException;
+	Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException, InterruptedException;
 
 	/**
 	 * Runs the given request of execution of a view static method, at the final store of this transformation.
@@ -67,10 +66,9 @@ public interface StoreTransformation<S extends Store<S,T>, T extends StoreTransf
 	 * @throws TransactionRejectedException if the request has been rejected
 	 * @throws TransactionException if the request has been accepted but its execution failed with an exception not in the Takamaka code
 	 * @throws CodeExecutionException if the request has been accepted but its execution failed with an exception in the Takamaka code
-	 * @throws StoreException if the final store is not able to complete the operation correctly
 	 * @throws InterruptedException if the current thread is interrupted before computing the result
 	 */
-	Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException, StoreException, InterruptedException;
+	Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException, InterruptedException;
 
 	/**
 	 * Builds a response for the given request, executed at the current final store,
@@ -79,10 +77,9 @@ public interface StoreTransformation<S extends Store<S,T>, T extends StoreTransf
 	 * @param request the request
 	 * @return the response
 	 * @throws TransactionRejectedException if the request has been rejected
-	 * @throws StoreException if the final store of this transformation is not able to complete the operation correctly
 	 * @throws InterruptedException if the current thread is interrupted before delivering the transaction
 	 */
-	TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException, StoreException, InterruptedException;
+	TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException, InterruptedException;
 
 	/**
 	 * Yields the number of successfully requests delivered through {@link #deliverTransaction(TransactionRequest)}.

@@ -53,7 +53,6 @@ import io.hotmoka.node.local.StateIds;
 import io.hotmoka.node.local.UncheckedNodeException;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreCache;
-import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UnknownStateIdException;
 import io.hotmoka.node.mokamint.api.MokamintNode;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
@@ -264,8 +263,8 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			Thread.currentThread().interrupt();
 			LOGGER.warning("The block publishing thread has been interrupted");
 		}
-		catch (RuntimeException | NodeException | IOException e) {
-			LOGGER.log(Level.SEVERE, "The block publishing thread exist because of exception", e);
+		catch (RuntimeException | IOException e) {
+			LOGGER.log(Level.SEVERE, "The block publishing thread exits because of an exception", e);
 		}
 	}
 
@@ -373,9 +372,6 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 					signalRejected(hotmokaRequest, e);
 					throw new io.mokamint.node.api.TransactionRejectedException(e.getMessage(), e);
 				}
-				catch (StoreException e) {
-					throw new RuntimeException(e); //TODO
-				}
 			}
 		}
 
@@ -384,30 +380,25 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			try (var scope = mkScope()) {
 				MokamintStoreTransformation transformation = getTransformation(groupId);
 
-				try {
-					transformation.deliverCoinbaseTransactions(deadline.getProlog());
+				transformation.deliverCoinbaseTransactions(deadline.getProlog());
 
-					return getEnvironment().computeInTransaction(txn -> {
-						StateId stateIdOfFinalStore = transformation.getIdOfFinalStore(txn);
+				return getEnvironment().computeInTransaction(txn -> {
+					StateId stateIdOfFinalStore = transformation.getIdOfFinalStore(txn);
 
-						if (lastCaches.get(stateIdOfFinalStore) == null) {
-							lastCaches.put(stateIdOfFinalStore, transformation.getCache());
+					if (lastCaches.get(stateIdOfFinalStore) == null) {
+						lastCaches.put(stateIdOfFinalStore, transformation.getCache());
 
-							try {
-								persist(stateIdOfFinalStore, transformation.getNow(), txn);
-							}
-							catch (UnknownStateIdException e) {
-								// impossible, we have just computed this id for the final store
-								throw new UncheckedNodeException("State id " + stateIdOfFinalStore + " has been just computed: it must have existed", e);
-							}
+						try {
+							persist(stateIdOfFinalStore, transformation.getNow(), txn);
 						}
+						catch (UnknownStateIdException e) {
+							// impossible, we have just computed this id for the final store
+							throw new UncheckedNodeException("State id " + stateIdOfFinalStore + " has been just computed: it must have existed", e);
+						}
+					}
 
-						return stateIdOfFinalStore.getBytes();
-					});
-				}
-				catch (StoreException e) { // TODO
-					throw new RuntimeException(e);
-				}
+					return stateIdOfFinalStore.getBytes();
+				});
 			}
 		}
 

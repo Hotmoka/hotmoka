@@ -23,7 +23,6 @@ import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.local.AbstractTrieBasedStore;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreCache;
-import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UnknownStateIdException;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 
@@ -78,7 +77,7 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
 	}
 
     @Override
-    public TendermintStore checkedOutAt(StateId stateId, Optional<StoreCache> cache) throws UnknownStateIdException, StoreException, InterruptedException {
+    public TendermintStore checkedOutAt(StateId stateId, Optional<StoreCache> cache) throws UnknownStateIdException, InterruptedException {
 		var result = new TendermintStore(this, stateId, cache);
 		return cache.isPresent() ? result : result.withReloadedCache();
 	}

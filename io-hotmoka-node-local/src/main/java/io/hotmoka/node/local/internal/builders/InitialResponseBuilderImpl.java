@@ -23,7 +23,6 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.InitialTransactionRequest;
 import io.hotmoka.node.api.responses.InitialTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.local.api.StoreException;
 
 /**
  * Implementation of the creator of the response for an initial transaction. Initial transactions do not consume gas.
@@ -79,7 +78,6 @@ public abstract class InitialResponseBuilderImpl<Request extends InitialTransact
 		 * Checks if the request should be rejected, even before trying to execute it.
 		 * 
 		 * @throws TransactionRejectedException if the request should be rejected
-		 * @throws StoreException if the store is misbehaving
 		 */
 		protected final void checkConsistency() throws TransactionRejectedException {
 			try {

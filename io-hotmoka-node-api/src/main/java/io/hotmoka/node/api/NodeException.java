@@ -26,13 +26,6 @@ import java.util.Objects;
 public class NodeException extends Exception {
 
 	/**
-	 * Creates a new exception.
-	 */
-	public NodeException() {
-		super("The node is misbehaving");
-	}
-
-	/**
 	 * Creates a new exception with the given message.
 	 * 
 	 * @param message the message

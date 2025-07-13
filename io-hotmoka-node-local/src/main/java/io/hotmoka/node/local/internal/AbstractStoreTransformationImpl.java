@@ -54,7 +54,6 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StoreCache;
-import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.StoreTransformation;
 import io.hotmoka.node.local.api.UncheckedStoreException;
 import io.hotmoka.node.local.internal.builders.ExecutionEnvironment;
@@ -151,7 +150,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	}
 
 	@Override
-	public final TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException, StoreException, InterruptedException {
+	public final TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException, InterruptedException {
 		var reference = TransactionReferences.of(getHasher().hash(request));
 		String referenceAsString = reference.toString();
 	
@@ -298,10 +297,9 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	 * 
 	 * @param response the response added to the store
 	 * @param classLoader the class loader of the transaction that computed {@code response}
-	 * @throws StoreException if the operation cannot be completed correctly
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 */
-	protected void updateCaches(TransactionResponse response, TakamakaClassLoader classLoader) throws StoreException, InterruptedException {
+	protected void updateCaches(TransactionResponse response, TakamakaClassLoader classLoader) throws InterruptedException {
 		if (manifestMightHaveChanged(response)) {
 			StorageReference manifest = getManifest().orElseThrow(() -> new UncheckedStoreException("The manifest has just been set, so it should have been found"));
 			cache = cache.setValidators(extractValidators(manifest));

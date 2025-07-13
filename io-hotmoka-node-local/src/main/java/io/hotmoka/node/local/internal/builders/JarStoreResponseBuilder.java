@@ -33,7 +33,6 @@ import io.hotmoka.node.api.responses.JarStoreTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.AbstractNonInitialResponseBuilder;
 import io.hotmoka.node.local.api.EngineClassLoader;
-import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.verification.VerifiedJars;
 
 /**
@@ -69,7 +68,7 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 		private ResponseCreator() throws TransactionRejectedException {}
 
 		@Override
-		protected JarStoreTransactionResponse body() throws TransactionRejectedException, StoreException {
+		protected JarStoreTransactionResponse body() throws TransactionRejectedException {
 			checkConsistency();
 
 			try {
