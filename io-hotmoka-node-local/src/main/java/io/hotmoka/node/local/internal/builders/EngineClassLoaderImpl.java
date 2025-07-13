@@ -51,6 +51,7 @@ import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.api.EngineClassLoader;
+import io.hotmoka.node.local.api.UncheckedStoreException;
 import io.hotmoka.node.local.internal.Reverification;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.api.TakamakaClassLoader;
@@ -391,22 +392,22 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
-	public <E extends Exception> StorageReference getStorageReferenceOf(Object object, ExceptionSupplierFromMessage<? extends E> onIllegalAccess) throws E {
+	public StorageReference getStorageReferenceOf(Object object) {
 		try {
 			return (StorageReference) storageReference.get(object);
 		}
 		catch (RuntimeException | IllegalAccessException e) {
-			throw onIllegalAccess.apply("Cannot read the storage reference: " + e.getMessage());
+			throw new UncheckedStoreException("Cannot read the storage reference: " + e.getMessage());
 		}
 	}
 
 	@Override
-	public <E extends Exception> boolean getInStorageOf(Object object, ExceptionSupplierFromMessage<? extends E> onIllegalAccess) throws E {
+	public boolean getInStorageOf(Object object) {
 		try {
 			return (boolean) inStorage.get(object);
 		}
 		catch (RuntimeException | IllegalAccessException e) {
-			throw onIllegalAccess.apply("Cannot read the inStorage field: " + e.getMessage());
+			throw new UncheckedStoreException("Cannot read the inStorage field: " + e.getMessage());
 		}
 	}
 
@@ -441,58 +442,54 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
-	public <E extends Exception> void fromContract(Object callee, Object caller, ExceptionSupplierFromMessage<? extends E> onIllegalAccess) throws E {
+	public void fromContract(Object callee, Object caller) {
 		try {
 			fromContract.invoke(callee, caller);
 		}
 		catch (RuntimeException | IllegalAccessException e) {
-			throw onIllegalAccess.apply("Cannot call Storage.fromContract(): " + e.getMessage());
+			throw new UncheckedStoreException("Cannot call Storage.fromContract(): " + e.getMessage());
 		}
 		catch (InvocationTargetException e) {
 			Throwable cause = e.getCause();
 
 			// if the called code throws an unchecked exception, we forward it since some of its requirements might have been violated
-			if (cause instanceof RuntimeException re) // TODO
+			if (cause instanceof RuntimeException re)
 				throw re;
 			else if (cause instanceof Error error)
 				throw error;
-			else if (cause != null)
-				throw onIllegalAccess.apply("Storage.fromContract() threw an unexpected exception of class " + cause.getClass().getName());
 			else
-				throw onIllegalAccess.apply("Cannot call Storage.fromContract()");
+				throw new UncheckedStoreException(e);
 		}
 	}
 
 	@Override
-	public <E extends Exception> void payableFromContract(Object callee, Object payer, BigInteger amount, ExceptionSupplierFromMessage<? extends E> onIllegalAccess) throws E {
+	public void payableFromContract(Object callee, Object payer, BigInteger amount) {
 		try {
 			payableFromContractBigInteger.invoke(callee, payer, amount);
 		}
 		catch (RuntimeException | IllegalAccessException e) {
-			throw onIllegalAccess.apply("Cannot call Contract.payableFromContract(): " + e.getMessage());
+			throw new UncheckedStoreException("Cannot call Contract.payableFromContract(): " + e.getMessage());
 		}
 		catch (InvocationTargetException e) {
 			Throwable cause = e.getCause();
 
 			// if the called code throws an unchecked exception, we forward it since some of its requirements might have been violated
-			if (cause instanceof RuntimeException re) // TODO
+			if (cause instanceof RuntimeException re)
 				throw re;
 			else if (cause instanceof Error error)
 				throw error;
-			else if (cause != null)
-				throw onIllegalAccess.apply("Storage.payableFromContract() threw an unexpected exception of class " + cause.getClass().getName());
 			else
-				throw onIllegalAccess.apply("Cannot call Contract.payableFromContract()");
+				throw new UncheckedStoreException(e);
 		}
 	}
 
 	@Override
-	public <E extends Exception> void payableFromContract(Object callee, Object caller, int amount, ExceptionSupplierFromMessage<? extends E> onIllegalAccess) throws E {
+	public void payableFromContract(Object callee, Object caller, int amount) {
 		try {
 			payableFromContractInt.invoke(callee, caller, amount);
 		}
 		catch (RuntimeException | IllegalAccessException e) {
-			throw onIllegalAccess.apply("Cannot call Contract.payableFromContract(): " + e.getMessage());
+			throw new UncheckedStoreException("Cannot call Contract.payableFromContract(): " + e.getMessage());
 		}
 		catch (InvocationTargetException e) {
 			Throwable cause = e.getCause();
@@ -502,20 +499,18 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 				throw re;
 			else if (cause instanceof Error error)
 				throw error;
-			else if (cause != null)
-				throw onIllegalAccess.apply("Storage.payableFromContract() threw an unexpected exception of class " + cause.getClass().getName());
 			else
-				throw onIllegalAccess.apply("Cannot call Contract.payableFromContract()");
+				throw new UncheckedStoreException(e);
 		}
 	}
 
 	@Override
-	public <E extends Exception> void payableFromContract(Object callee, Object caller, long amount, ExceptionSupplierFromMessage<? extends E> onIllegalAccess) throws E {
+	public void payableFromContract(Object callee, Object caller, long amount) {
 		try {
 			payableFromContractLong.invoke(callee, caller, amount);
 		}
 		catch (RuntimeException | IllegalAccessException e) {
-			throw onIllegalAccess.apply("Cannot call Contract.payableFromContract(): " + e.getMessage());
+			throw new UncheckedStoreException("Cannot call Contract.payableFromContract(): " + e.getMessage());
 		}
 		catch (InvocationTargetException e) {
 			Throwable cause = e.getCause();
@@ -525,10 +520,8 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 				throw re;
 			else if (cause instanceof Error error)
 				throw error;
-			else if (cause != null)
-				throw onIllegalAccess.apply("Storage.payableFromContract() threw an unexpected exception of class " + cause.getClass().getName());
 			else
-				throw onIllegalAccess.apply("Cannot call Contract.payableFromContract()");
+				throw new UncheckedStoreException(e);
 		}
 	}
 

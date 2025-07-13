@@ -25,37 +25,11 @@ import java.util.Objects;
 public class StoreException extends Exception {
 
 	/**
-	 * Creates a new exception.
-	 */
-	public StoreException() {
-		super("The store is misbehaving");
-	}
-
-	/**
 	 * Creates a new exception with the given message.
 	 * 
 	 * @param message the message
 	 */
 	public StoreException(String message) {
 		super(Objects.requireNonNull(message, "message cannot be null"));
-	}
-
-	/**
-	 * Creates a new exception with the given cause.
-	 * 
-	 * @param cause the cause
-	 */
-	public StoreException(Throwable cause) {
-		super(String.valueOf(cause.getMessage()), cause);
-	}
-
-	/**
-	 * Creates a new exception with the given message and cause.
-	 * 
-	 * @param message the message
-	 * @param cause the cause
-	 */
-	public StoreException(String message, Throwable cause) {
-		super(Objects.requireNonNull(message, "message cannot be null"), Objects.requireNonNull(cause, "cause cannot be null"));
 	}
 }

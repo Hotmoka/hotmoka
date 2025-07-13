@@ -60,7 +60,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	}
 
 	@Override
-	public ResponseCreation<MethodCallTransactionResponse> getResponseCreation() throws TransactionRejectedException, StoreException, InterruptedException {
+	public ResponseCreation<MethodCallTransactionResponse> getResponseCreation() throws TransactionRejectedException, InterruptedException {
 		return new ResponseCreator().create();
 	}
 

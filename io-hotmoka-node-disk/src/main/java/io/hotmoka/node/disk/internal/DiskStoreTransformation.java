@@ -113,7 +113,7 @@ public class DiskStoreTransformation extends AbstractStoreTransformation<DiskNod
 		}
 		catch (TransactionRejectedException e) {
 			LOGGER.log(Level.SEVERE, "the coinbase transaction has been rejected", e);
-			throw new StoreException("The coinbase transaction has been rejected", e);
+			throw new UncheckedStoreException("The coinbase transaction has been rejected", e);
 		}
 
 		if (response instanceof MethodCallTransactionFailedResponse responseAsFailed)

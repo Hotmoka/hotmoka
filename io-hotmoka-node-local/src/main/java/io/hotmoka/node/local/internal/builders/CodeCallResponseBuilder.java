@@ -248,14 +248,13 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 * representation in the store.
 		 * 
 		 * @param object the object to serialize. This must be a storage object, a Java wrapper
-		 *               object for numerical types, an enumeration
-		 *               or a special Java object that is allowed
+		 *               object for numerical types or a special Java object that is allowed
 		 *               in store, such as a {@link java.lang.String} or {@link java.math.BigInteger}
 		 * @return the serialization of {@code object}, if any
 		 */
-		protected final StorageValue serialize(Object object) throws SerializationException, StoreException {
+		protected final StorageValue serialize(Object object) throws SerializationException {
 			if (isStorage(object))
-				return classLoader.getStorageReferenceOf(object, StoreException::new);
+				return classLoader.getStorageReferenceOf(object);
 			else if (object instanceof BigInteger bi)
 				return StorageValues.bigIntegerOf(bi);
 			else if (object instanceof Boolean b)
@@ -341,7 +340,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 * @param result the returned value or created object
 		 * @return the updates, sorted
 		 */
-		protected final Stream<Update> updates(Object result) throws IllegalAssignmentToFieldInStorageException, StoreException {
+		protected final Stream<Update> updates(Object result) throws IllegalAssignmentToFieldInStorageException {
 			List<Object> potentiallyAffectedObjects = new ArrayList<>();
 
 			Class<?> storage = classLoader.getStorage();
@@ -358,10 +357,10 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 * @return the storage references
 		 * @throws StoreException 
 		 */
-		protected final Stream<StorageReference> storageReferencesOfEvents() throws StoreException {
+		protected final Stream<StorageReference> storageReferencesOfEvents() {
 			var result = new ArrayList<StorageReference>();
 			for (var event: events)
-				result.add(classLoader.getStorageReferenceOf(event, StoreException::new));
+				result.add(classLoader.getStorageReferenceOf(event));
 
 			return result.stream();
 		}

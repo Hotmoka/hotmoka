@@ -373,9 +373,9 @@ public class Call extends AbstractGasCostCommand {
 
 				Class<?> returnType = method.getReturnType();
 				if (returnType == void.class)
-					return MethodSignatures.ofVoid(StorageTypes.classFromClass(clazz), methodName, formals);
+					return MethodSignatures.ofVoid(StorageTypes.classNamed(className), methodName, formals);
 				else
-					return MethodSignatures.ofNonVoid(StorageTypes.classFromClass(clazz), methodName, StorageTypes.fromClass(returnType), formals);
+					return MethodSignatures.ofNonVoid(StorageTypes.classNamed(className), methodName, StorageTypes.fromClass(returnType), formals);
 			}
 			catch (IllegalArgumentException e) {
 				throw new CommandException("Cannot build the signature of the method", e);

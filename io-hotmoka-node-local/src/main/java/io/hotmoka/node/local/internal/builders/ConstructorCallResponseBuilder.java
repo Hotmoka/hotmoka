@@ -52,7 +52,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 	}
 
 	@Override
-	public ResponseCreation<ConstructorCallTransactionResponse> getResponseCreation() throws TransactionRejectedException, StoreException, InterruptedException {
+	public ResponseCreation<ConstructorCallTransactionResponse> getResponseCreation() throws TransactionRejectedException, InterruptedException {
 		return new ResponseCreator().create();
 	}
 

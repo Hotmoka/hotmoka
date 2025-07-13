@@ -122,11 +122,11 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 		}
 		catch (UnknownReferenceException | FieldNotFoundException e) {
 			// the manifest is an account; this should not happen
-			throw new StoreException(e);
+			throw new UncheckedStoreException(e);
 		}
 
-		StorageReference validators = getValidators().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
-		TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
+		StorageReference validators = getValidators().orElseThrow(() -> new UncheckedStoreException("The manifest is set but the validators are not set"));
+		TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new UncheckedStoreException("The manifest is set but the Takamaka code reference is not set"));
 		BigInteger reward = getReward();
 		BigInteger minted = getCoinsMinted(validators);
 
@@ -148,7 +148,7 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 		}
 		catch (TransactionRejectedException e) {
 			LOGGER.log(Level.SEVERE, "the coinbase transaction has been rejected", e);
-			throw new StoreException("The coinbase transaction has been rejected", e);
+			throw new UncheckedStoreException("The coinbase transaction has been rejected", e);
 		}
 
 		if (response instanceof MethodCallTransactionFailedResponse responseAsFailed)
@@ -236,15 +236,14 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 		return false;
 	}
 
-	private boolean isValidatorsUpdateEvent(StorageReference event, TakamakaClassLoader classLoader) throws StoreException {
+	private boolean isValidatorsUpdateEvent(StorageReference event, TakamakaClassLoader classLoader) {
 		try {
 			return classLoader.isValidatorsUpdateEvent(getClassName(event));
 		}
-		catch (UnknownReferenceException e) {
-			throw new StoreException("Event " + event + " is not an object in store", e);
-		}
-		catch (ClassNotFoundException e) {
-			throw new StoreException(e);
+		catch (UnknownReferenceException | ClassNotFoundException e) {
+			// the events have been computed for building the response, therefore their reference must exist
+			// in store and their class must be resolvable
+			throw new UncheckedStoreException("Event " + event + " is not an object in store", e);
 		}
 	}
 }

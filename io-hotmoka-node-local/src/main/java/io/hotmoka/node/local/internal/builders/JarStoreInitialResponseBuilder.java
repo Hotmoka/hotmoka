@@ -31,7 +31,6 @@ import io.hotmoka.node.api.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.AbstractInitialResponseBuilder;
 import io.hotmoka.node.local.api.EngineClassLoader;
-import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.verification.VerifiedJars;
 
 /**
@@ -58,11 +57,11 @@ public class JarStoreInitialResponseBuilder extends AbstractInitialResponseBuild
 	}
 
 	@Override
-	public ResponseCreation<JarStoreInitialTransactionResponse> getResponseCreation() throws TransactionRejectedException, StoreException, InterruptedException {
+	public ResponseCreation<JarStoreInitialTransactionResponse> getResponseCreation() throws TransactionRejectedException, InterruptedException {
 		return new ResponseCreator() {
 
 			@Override
-			protected JarStoreInitialTransactionResponse body() throws TransactionRejectedException, StoreException {
+			protected JarStoreInitialTransactionResponse body() throws TransactionRejectedException {
 				checkConsistency();
 
 				try {

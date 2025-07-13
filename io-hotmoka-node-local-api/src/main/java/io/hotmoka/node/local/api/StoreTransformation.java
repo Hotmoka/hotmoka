@@ -88,7 +88,6 @@ public interface StoreTransformation<S extends Store<S,T>, T extends StoreTransf
 	 * Yields the number of successfully requests delivered through {@link #deliverTransaction(TransactionRequest)}.
 	 * 
 	 * @return the number of successfully delivered requests
-	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	int deliveredCount() throws StoreException;
+	int deliveredCount();
 }

@@ -25,7 +25,6 @@ import io.hotmoka.node.api.responses.InitializationTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.AbstractInitialResponseBuilder;
 import io.hotmoka.node.local.api.EngineClassLoader;
-import io.hotmoka.node.local.api.StoreException;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -45,7 +44,7 @@ public class InitializationResponseBuilder extends AbstractInitialResponseBuilde
 	}
 
 	@Override
-	public ResponseCreation<InitializationTransactionResponse> getResponseCreation() throws TransactionRejectedException, StoreException, InterruptedException {
+	public ResponseCreation<InitializationTransactionResponse> getResponseCreation() throws TransactionRejectedException, InterruptedException {
 		return new ResponseCreator() {
 
 			@Override

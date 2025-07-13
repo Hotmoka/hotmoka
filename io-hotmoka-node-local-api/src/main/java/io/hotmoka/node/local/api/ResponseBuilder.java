@@ -41,10 +41,9 @@ public interface ResponseBuilder<Request extends TransactionRequest<? extends Re
 	 * @return the response
 	 * @throws TransactionRejectedException if the response cannot be computed because the request
 	 *                                      is inconsistent in the context of execution
-	 * @throws StoreException if the node is misbehaving
 	 * @throws InterruptedException if the current thread has been interrupted before computing the response
 	 */
-	ResponseCreation<Response> getResponseCreation() throws TransactionRejectedException, StoreException, InterruptedException;
+	ResponseCreation<Response> getResponseCreation() throws TransactionRejectedException, InterruptedException;
 
 	/**
 	 * The result of the creation of a response.
@@ -69,9 +68,7 @@ public interface ResponseBuilder<Request extends TransactionRequest<? extends Re
 
 		/**
 		 * Replaces all reverified responses into the store for which the response is built.
-		 * 
-		 * @throws StoreException if the operation did not complete correctly
 		 */
-		void replaceReverifiedResponses() throws StoreException;
+		void replaceReverifiedResponses();
 	}
 }

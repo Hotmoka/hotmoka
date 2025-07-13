@@ -20,7 +20,6 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.InitialTransactionRequest;
 import io.hotmoka.node.api.responses.InitialTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.builders.ExecutionEnvironment;
 import io.hotmoka.node.local.internal.builders.InitialResponseBuilderImpl;
 
@@ -53,8 +52,7 @@ public abstract class AbstractInitialResponseBuilder<Request extends InitialTran
 		 * Creates the response from the request.
 		 * 
 		 * @throws TransactionRejectedException if the request is rejected
-		 * @throws StoreException if the store of the node misbehaves
 		 */
-		protected ResponseCreator() throws TransactionRejectedException, StoreException {}
+		protected ResponseCreator() throws TransactionRejectedException {}
 	}
 }

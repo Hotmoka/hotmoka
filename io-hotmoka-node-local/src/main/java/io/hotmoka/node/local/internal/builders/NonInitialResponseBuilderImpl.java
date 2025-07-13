@@ -37,7 +37,6 @@ import io.hotmoka.node.api.ClassLoaderCreationException;
 import io.hotmoka.node.api.DeserializationException;
 import io.hotmoka.node.api.HotmokaException;
 import io.hotmoka.node.api.IllegalAssignmentToFieldInStorageException;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.OutOfGasException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
@@ -247,7 +246,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * 
 		 * @return true if and only if the request is signed and the transaction is not a view transaction
 		 */
-		protected boolean transactionIsSigned() throws StoreException {
+		protected boolean transactionIsSigned() {
 			return !isView() && !isCallToFaucet() && request instanceof SignedTransactionRequest;
 		}
 
@@ -267,7 +266,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * 
 		 * @return the updates, sorted
 		 */
-		protected final Stream<Update> updates() throws IllegalAssignmentToFieldInStorageException, StoreException {
+		protected final Stream<Update> updates() throws IllegalAssignmentToFieldInStorageException {
 			var potentiallyAffectedObjects = new ArrayList<Object>();
 			scanPotentiallyAffectedObjects(potentiallyAffectedObjects::add);
 			return updatesExtractor.extractUpdatesFrom(potentiallyAffectedObjects);
@@ -365,9 +364,9 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		/**
 		 * Checks that the request is signed with the private key of its caller.
 		 * 
-		 * @throws NodeException if the signature of the request could not be checked
+		 * @throws TransactionRejectedException if the signature of the request could not be checked
 		 */
-		private void signatureMustBeValid() throws TransactionRejectedException, StoreException {
+		private void signatureMustBeValid() throws TransactionRejectedException {
 			// if the node is not initialized yet, the signature is not checked
 			if (transactionIsSigned() && environment.getManifest().isPresent()) {
 				try {
@@ -387,7 +386,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * 
 		 * @throws TransactionRejectedException if the nonce of the caller is not equal to that in {@code request}
 		 */
-		private void callerAndRequestMustAgreeOnNonce() throws TransactionRejectedException, StoreException {
+		private void callerAndRequestMustAgreeOnNonce() throws TransactionRejectedException {
 			// calls to @View methods do not check the nonce
 			if (!isView() && !isCallToFaucet()) {
 				BigInteger expected;
@@ -397,7 +396,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 				}
 				catch (UnknownReferenceException | FieldNotFoundException e) {
 					// we have already checked that the caller is an account, hence this should not happen
-					throw new StoreException(e);
+					throw new UncheckedStoreException(e);
 				}
 
 				if (!expected.equals(request.getNonce()))
@@ -412,7 +411,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * 
 		 * @throws TransactionRejectedException if the payer is not rich enough for that
 		 */
-		private void callerCanPayForAllPromisedGas() throws TransactionRejectedException, StoreException {
+		private void callerCanPayForAllPromisedGas() throws TransactionRejectedException {
 			BigInteger cost = costOf(request.getGasLimit());
 			BigInteger totalBalance;
 
@@ -421,7 +420,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 			}
 			catch (UnknownReferenceException | FieldNotFoundException e) {
 				// we already checked that the caller is an account, therefore this should not happen
-				throw new StoreException(e);
+				throw new UncheckedStoreException(e);
 			}
 		
 			if (totalBalance.subtract(cost).signum() < 0)
@@ -433,9 +432,9 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * This depends on the run-time class of the caller of the request.
 		 * 
 		 * @return the signature algorithm
-		 * @throws NodeException 
+		 * @throws TransactionRejectedException if the signature for signing the request cannot be determined 
 		 */
-		private SignatureAlgorithm determineSignatureAlgorithm() throws StoreException, TransactionRejectedException {
+		private SignatureAlgorithm determineSignatureAlgorithm() throws TransactionRejectedException {
 			try {
 				Class<?> clazz = classLoader.loadClass(environment.getClassName(request.getCaller()));
 		
@@ -454,7 +453,8 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 				throw new TransactionRejectedException("The caller " + request.getCaller() + " is not an object in store", consensus);
 			}
 			catch (NoSuchAlgorithmException e) {
-				throw new StoreException(e);
+				// this is a limit of the Java installation, is not the fault of the user of Hotmoka
+				throw new UncheckedStoreException(e);
 			}
 			catch (ClassNotFoundException e) {
 				throw new TransactionRejectedException(e, consensus);

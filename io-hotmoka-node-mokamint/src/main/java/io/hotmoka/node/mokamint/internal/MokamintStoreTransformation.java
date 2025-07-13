@@ -127,7 +127,7 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 		}
 		catch (TransactionRejectedException e) {
 			LOGGER.log(Level.SEVERE, "the coinbase transaction for rewarding the node that created the new block has been rejected", e);
-			throw new StoreException("The coinbase transaction for rewarding the node that created the new block has been rejected", e);
+			throw new UncheckedStoreException("The coinbase transaction for rewarding the node that created the new block has been rejected", e);
 		}
 
 		if (response instanceof MethodCallTransactionFailedResponse responseAsFailed)
@@ -148,7 +148,7 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 			}
 			catch (TransactionRejectedException e) {
 				LOGGER.log(Level.SEVERE, "the coinbase transaction for rewarding the miner that provided the deadline in the new block has been rejected", e);
-				throw new StoreException("The coinbase transaction for rewarding the miner that provided the deadline in the new block has been rejected", e);
+				throw new UncheckedStoreException("The coinbase transaction for rewarding the miner that provided the deadline in the new block has been rejected", e);
 			}
 
 			if (response instanceof MethodCallTransactionFailedResponse responseAsFailed)

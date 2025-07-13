@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.local.internal.builders;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InaccessibleObjectException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,7 +45,6 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.local.api.EngineClassLoader;
-import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UncheckedStoreException;
 import io.hotmoka.whitelisting.Dummy;
 
@@ -86,9 +86,8 @@ public class Deserializer {
 	 * @param value the storage value
 	 * @return the RAM image of {@code value}
 	 * @throws DeserializationException if deserialization fails
-	 * @throws StoreException if the operation could not be completed correctly
 	 */
-	protected Object deserialize(StorageValue value) throws DeserializationException, StoreException {
+	protected Object deserialize(StorageValue value) throws DeserializationException {
 		if (value instanceof StorageReference sr) {
 			// we use a cache to provide the same value if the same reference gets deserialized twice; putIfAbsent is clumsy because of the exceptions,
 			// so we just get and put; in any case, this object is not meant to be thread-safe
@@ -180,9 +179,8 @@ public class Deserializer {
 	 * @param reference the reference of the object inside the node's store
 	 * @return the object
 	 * @throws DeserializationException if the object could not be created
-	 * @throws StoreException if the store is misbehaving
 	 */
-	private Object createStorageObject(StorageReference reference) throws DeserializationException, StoreException {
+	private Object createStorageObject(StorageReference reference) throws DeserializationException {
 		List<Class<?>> formals = new ArrayList<>();
 		List<Object> actuals = new ArrayList<>();
 		// the constructor for deserialization has a first parameter
@@ -239,10 +237,15 @@ public class Deserializer {
 			throw new DeserializationException("Cannot resolve class " + e.getMessage());
 		}
 
+		// the classloader of a deserializer is built for the classpath of a transaction request (without any
+		// explicit jar): all classes must have been installed in one of the transaction references of that classpath
 		TransactionReference actual = classLoader.transactionThatInstalledJarFor(clazz)
-			.orElseThrow(() -> new StoreException("Class " + clazz.getName() + " was a storage class, therefore it should have been installed in the store with some jar"));
+			.orElseThrow(() -> new UncheckedStoreException("Class " + clazz.getName() + " was a storage class, therefore it should have been installed in the store with some jar"));
 		TransactionReference expected = classTag.getJar();
 		if (!actual.equals(expected))
+			// this means that the deserializer has been built for a classpath inconsistent with that used for creating the object:
+			// it is not a bug in the code of Hotmoka, it is an incorrect specification of the classpath, itself
+			// contained in a user request; therefore, the exception is checked
 			throw new DeserializationException("Class " + classTag.getClazz() + " was instantiated from jar at " + expected + " not from jar at " + actual);
 
 		// we add the fictitious argument that avoids name clashes
@@ -253,21 +256,20 @@ public class Deserializer {
 
 		try {
 			constructor = clazz.getConstructor(formals.toArray(Class[]::new));
+			// the instrumented constructor is public, but the class might well be non-public; hence we must force accessibility
+			constructor.setAccessible(true);
 		}
-		catch (NoSuchMethodException | SecurityException e) {
-			// the instrumented constructor is missing: the store is corrupted
-			throw new StoreException(e);
+		catch (NoSuchMethodException | SecurityException | InaccessibleObjectException e) {
+			// the instrumented constructor is missing or not accessible: the store is corrupted
+			throw new UncheckedStoreException(e);
 		}
-
-		// the instrumented constructor is public, but the class might well be non-public; hence we must force accessibility
-		constructor.setAccessible(true);
 
 		try {
 			return constructor.newInstance(actuals.toArray(Object[]::new));
 		}
 		catch (ReflectiveOperationException | RuntimeException e) {
-			// the instrumented constructor is broken: the store is corrupted
-			throw new StoreException(e);
+			// the instrumented constructor should work without exceptions, otherwise the store is corrupted
+			throw new UncheckedStoreException(e);
 		}
 	}
 }

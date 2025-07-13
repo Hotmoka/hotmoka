@@ -23,7 +23,6 @@ import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.api.DeserializationException;
 import io.hotmoka.node.api.OutOfGasException;
 import io.hotmoka.node.local.api.EngineClassLoader;
-import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.builders.AbstractResponseBuilder;
 import io.hotmoka.whitelisting.Dummy;
 
@@ -62,14 +61,14 @@ public abstract class Runtime {
 	 * @param name the name of the field
 	 * @param fieldClassName the name of the type of the field
 	 * @return the value of the field
-	 * @throws StoreException if the store of the node is misbehaving
 	 * @throws DeserializationException if deserialization fails
      */
-	public static Object deserializeLastLazyUpdateFor(Object object, String definingClass, String name, String fieldClassName) throws DeserializationException, StoreException {
+	public static Object deserializeLastLazyUpdateFor(Object object, String definingClass, String name, String fieldClassName) throws DeserializationException {
 		AbstractResponseBuilder<?, ?>.ResponseCreator responseCreator = getResponseCreator();
-		// definingClass and fieldClassName must be legal or otherwise code instrumentation, that calls this method, is bugged
+		// the object must be a storage object and hence have a reference, or otherwise code instrumentation, that
+		// calls this method, is buggy; similarly, definingClass and fieldClassName must be legal
 		return responseCreator.deserializeLastUpdateFor(
-			responseCreator.getClassLoader().getStorageReferenceOf(object, StoreException::new),
+			responseCreator.getClassLoader().getStorageReferenceOf(object),
 			FieldSignatures.of(StorageTypes.classNamed(definingClass), name, StorageTypes.classNamed(fieldClassName))
 		);
 	}
@@ -82,29 +81,28 @@ public abstract class Runtime {
 	 * @param name the name of the field
 	 * @param fieldClassName the name of the type of the field
 	 * @return the value of the field
-	 * @throws StoreException if the store of the node is misbehaving
 	 * @throws DeserializationException if deserialization fails
      */
-	public static Object deserializeLastLazyUpdateForFinal(Object object, String definingClass, String name, String fieldClassName) throws DeserializationException, StoreException {
+	public static Object deserializeLastLazyUpdateForFinal(Object object, String definingClass, String name, String fieldClassName) throws DeserializationException {
 		AbstractResponseBuilder<?,?>.ResponseCreator responseCreator = getResponseCreator();
-		// definingClass and fieldClassName must be legal or otherwise code instrumentation, that calls this method, is bugged
+		// the object must be a storage object and hence have a reference, or otherwise code instrumentation, that
+		// calls this method, is buggy; similarly, definingClass and fieldClassName must be legal
 		return responseCreator.deserializeLastUpdateForFinal(
-			responseCreator.getClassLoader().getStorageReferenceOf(object, StoreException::new),
+			responseCreator.getClassLoader().getStorageReferenceOf(object),
 			FieldSignatures.of(StorageTypes.classNamed(definingClass), name, StorageTypes.classNamed(fieldClassName))
 		);
 	}
 
 	/**
-	 * Called at the beginning of the instrumentation of an entry method or constructor
-	 * of a contract. It forwards the call to {@code io.takamaka.code.lang.Storage.entry()}.
+	 * Called at the beginning of the instrumentation of a {@code @@FromContract} method or constructor
+	 * of a contract. It forwards the call to {@code io.takamaka.code.lang.Storage.fromContract()}.
 	 * 
 	 * @param callee the contract whose entry is called
 	 * @param caller the caller of the entry
-	 * @throws StoreException if {@code io.takamaka.code.lang.Storage.fromContract()} cannot be called
 	 * @throws RuntimeException in case of any possible exception thrown inside {@code io.takamaka.code.lang.Storage.fromContract()}
 	 */
-	public static void fromContract(Object callee, Object caller) throws StoreException {
-		getResponseCreator().getClassLoader().fromContract(callee, caller, StoreException::new);
+	public static void fromContract(Object callee, Object caller) {
+		getResponseCreator().getClassLoader().fromContract(callee, caller);
 	}
 
 	/**
@@ -115,18 +113,17 @@ public abstract class Runtime {
 	 * @param caller the caller of the entry
 	 * @param dummy may be used to signal something to the callee
 	 * @param amount the amount of coins
-	 * @throws StoreException if {@code io.takamaka.code.lang.Contract.payableEntry()} cannot be called
 	 * @throws RuntimeException in case of any possible exception thrown inside {@code io.takamaka.code.lang.Storage.fromContract()}
 	 *         or {@code io.takamaka.code.lang.Contract.fromPayableContract()}
 	 */
-	public static void payableFromContract(Object callee, Object caller, Dummy dummy, BigInteger amount) throws StoreException {
+	public static void payableFromContract(Object callee, Object caller, Dummy dummy, BigInteger amount) {
 		EngineClassLoader classLoader = getResponseCreator().getClassLoader();
-		classLoader.fromContract(callee, caller, StoreException::new);
+		classLoader.fromContract(callee, caller);
 		if (dummy == Dummy.METHOD_ON_THIS)
 			// the callee pays itself
-			classLoader.payableFromContract(callee, callee, amount, StoreException::new);
+			classLoader.payableFromContract(callee, callee, amount);
 		else
-			classLoader.payableFromContract(callee, caller, amount, StoreException::new);
+			classLoader.payableFromContract(callee, caller, amount);
 	}
 
 	/**
@@ -138,18 +135,17 @@ public abstract class Runtime {
 	 * @param caller the caller of the entry
 	 * @param dummy may be used to signal something to the callee
 	 * @param amount the amount of coins
-	 * @throws StoreException if {@code io.takamaka.code.lang.Contract.payableEntry()} cannot be called
 	 * @throws RuntimeException in case of any possible exception thrown inside {@code io.takamaka.code.lang.Storage.fromContract()}
 	 *         or {@code io.takamaka.code.lang.Contract.fromPayableContract()}
 	 */
-	public static void payableFromContract(Object callee, Object caller, Dummy dummy, int amount) throws StoreException {
+	public static void payableFromContract(Object callee, Object caller, Dummy dummy, int amount) {
 		EngineClassLoader classLoader = getResponseCreator().getClassLoader();
-		classLoader.fromContract(callee, caller, StoreException::new);
+		classLoader.fromContract(callee, caller);
 		if (dummy == Dummy.METHOD_ON_THIS)
 			// the callee pays itself
-			classLoader.payableFromContract(callee, callee, amount, StoreException::new);
+			classLoader.payableFromContract(callee, callee, amount);
 		else
-			classLoader.payableFromContract(callee, caller, amount, StoreException::new);
+			classLoader.payableFromContract(callee, caller, amount);
 	}
 
 	/**
@@ -161,18 +157,17 @@ public abstract class Runtime {
 	 * @param caller the caller of the entry
 	 * @param dummy may be used to signal something to the callee
 	 * @param amount the amount of coins
-	 * @throws StoreException if {@code io.takamaka.code.lang.Contract.payableEntry()} cannot be called
 	 * @throws RuntimeException in case of any possible exception thrown inside {@code io.takamaka.code.lang.Storage.fromContract()}
 	 *         or {@code io.takamaka.code.lang.Contract.fromPayableContract()}
 	 */
-	public static void payableFromContract(Object callee, Object caller, Dummy dummy, long amount) throws StoreException {
+	public static void payableFromContract(Object callee, Object caller, Dummy dummy, long amount) {
 		EngineClassLoader classLoader = getResponseCreator().getClassLoader();
-		classLoader.fromContract(callee, caller, StoreException::new);
+		classLoader.fromContract(callee, caller);
 		if (dummy == Dummy.METHOD_ON_THIS)
 			// the callee pays itself
-			classLoader.payableFromContract(callee, callee, amount, StoreException::new);
+			classLoader.payableFromContract(callee, callee, amount);
 		else
-			classLoader.payableFromContract(callee, caller, amount, StoreException::new);
+			classLoader.payableFromContract(callee, caller, amount);
 	}
 
 	/**
@@ -208,10 +203,9 @@ public abstract class Runtime {
 	 * 
 	 * @param object the storage object
 	 * @return the value of the field
-	 * @throws StoreException if the store is misbehaving
 	 */
-	public static boolean inStorageOf(Object object) throws StoreException {
-		return getResponseCreator().getClassLoader().getInStorageOf(object, StoreException::new);
+	public static boolean inStorageOf(Object object) {
+		return getResponseCreator().getClassLoader().getInStorageOf(object);
 	}
 
 	/**
@@ -221,9 +215,8 @@ public abstract class Runtime {
 	 * @param o1 the first storage object
 	 * @param o2 the second storage object
 	 * @return the result of the comparison
-	 * @throws StoreException if the store is misbehaving 
 	 */
-	public static int compareStorageReferencesOf(Object o1, Object o2) throws StoreException {
+	public static int compareStorageReferencesOf(Object o1, Object o2) {
 		if (o1 == o2)
 			return 0;
 		else if (o1 == null)
@@ -232,7 +225,7 @@ public abstract class Runtime {
 			return 1;
 		else {
 			EngineClassLoader classLoader = getResponseCreator().getClassLoader();
-			return classLoader.getStorageReferenceOf(o1, StoreException::new).compareTo(classLoader.getStorageReferenceOf(o2, StoreException::new));
+			return classLoader.getStorageReferenceOf(o1).compareTo(classLoader.getStorageReferenceOf(o2));
 		}
 	}
 

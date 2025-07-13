@@ -31,7 +31,6 @@ import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.Store;
 import io.hotmoka.node.local.api.StoreCache;
-import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.builders.ExecutionEnvironment;
 
 /**
@@ -123,7 +122,7 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	}
 
 	@Override
-	public final T beginViewTransformation() throws StoreException {
+	public final T beginViewTransformation() {
 		return beginTransformation(consensusForViews, getNow());
 	}
 

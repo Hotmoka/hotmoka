@@ -43,7 +43,7 @@ import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.api.EngineClassLoader;
-import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.api.UncheckedStoreException;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -84,9 +84,8 @@ public class UpdatesExtractor {
 	 * @return the updates, sorted
 	 * @throws IllegalAssignmentToFieldInStorageException if the updates cannot be extracted, because an illegal
 	 *                                           value has been stored into some field
-	 * @throws StoreException if the operation cannot be completed
 	 */
-	Stream<Update> extractUpdatesFrom(Iterable<Object> objects) throws IllegalAssignmentToFieldInStorageException, StoreException {
+	Stream<Update> extractUpdatesFrom(Iterable<Object> objects) throws IllegalAssignmentToFieldInStorageException {
 		return new Processor(objects).updates.stream();
 	}
 
@@ -118,11 +117,10 @@ public class UpdatesExtractor {
 		 *                for the objects recursively reachable from them)
 		 * @throws IllegalAssignmentToFieldInStorageException if the updates cannot be extracted, because an illegal
 		 *                                           value has been stored into some field
-		 * @throws StoreException if the operation cannot be completed
 		 */
-		private Processor(Iterable<Object> objects) throws IllegalAssignmentToFieldInStorageException, StoreException {
+		private Processor(Iterable<Object> objects) throws IllegalAssignmentToFieldInStorageException {
 			for (var object: objects)
-				if (seen.add(classLoader.getStorageReferenceOf(object, StoreException::new)))
+				if (seen.add(classLoader.getStorageReferenceOf(object)))
 					workingSet.add(object);
 
 			do {
@@ -159,26 +157,25 @@ public class UpdatesExtractor {
 			 * @param object the storage object
 			 * @throws IllegalAssignmentToFieldInStorageException if the updates cannot be extracted, because an illegal
 			 *                                           value has been stored into some field
-			 * @throws StoreException if the operation cannot be completed
 			 */
-			private ExtractedUpdatesSingleObject(Object object) throws IllegalAssignmentToFieldInStorageException, StoreException {
+			private ExtractedUpdatesSingleObject(Object object) throws IllegalAssignmentToFieldInStorageException {
 				Class<?> clazz = object.getClass();
-				this.storageReference = classLoader.getStorageReferenceOf(object, StoreException::new);
+				this.storageReference = classLoader.getStorageReferenceOf(object);
 				this.classpathAtCreationTimeOfObject = getClasspathAtCreationTimeOf(storageReference);
-				this.inStorage = classLoader.getInStorageOf(object, StoreException::new);
+				this.inStorage = classLoader.getInStorageOf(object);
 
 				if (!inStorage)
 					// storage objects can only have class type, hence the conversion must succeed
 					updates.add(Updates.classTag(storageReference, StorageTypes.classFromClass(clazz),
 						classLoader.transactionThatInstalledJarFor(clazz)
-							.orElseThrow(() -> new StoreException("Object " + storageReference + " is in store, therefore it must have been installed in the store with a jar"))));
+							.orElseThrow(() -> new UncheckedStoreException("Object " + storageReference + " is in store, therefore it must have been installed in the store with a jar"))));
 
 				Class<?> previous = null;
 				var storage = classLoader.getStorage();
 				while (previous != storage) {
 					if (clazz == null)
 						// the objects where expected to be instances of io.takamaka.code.lang.Storage
-						throw new StoreException("Cannot extract the updates of an object that is not subclass of " + Constants.STORAGE_NAME);
+						throw new UncheckedStoreException("Cannot extract the updates of an object that is not subclass of " + Constants.STORAGE_NAME);
 
 					addUpdatesForFieldsDefinedInClass(clazz, object);
 					previous = clazz;
@@ -194,9 +191,8 @@ public class UpdatesExtractor {
 			 * @param fieldClassName the name of the type of the field
 			 * @param newValue the value set to the field
 			 * @throws IllegalAssignmentToFieldInStorageException if the updates cannot be extracted, because an illegal value has been stored into some field
-			 * @throws StoreException if the operation cannot be completed
 			 */
-			private void addUpdateFor(ClassType fieldDefiningClass, String fieldName, String fieldClassName, Object newValue) throws IllegalAssignmentToFieldInStorageException, StoreException {
+			private void addUpdateFor(ClassType fieldDefiningClass, String fieldName, String fieldClassName, Object newValue) throws IllegalAssignmentToFieldInStorageException {
 				var field = FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.classNamed(fieldClassName));
 
 				if (newValue == null)
@@ -204,7 +200,7 @@ public class UpdatesExtractor {
 					updates.add(Updates.toNull(storageReference, field, false));
 				else if (classLoader.getStorage().isAssignableFrom(newValue.getClass())) {
 					// the field has been set to a storage object
-					var storageReferenceOfNewValue = classLoader.getStorageReferenceOf(newValue, StoreException::new);
+					var storageReferenceOfNewValue = classLoader.getStorageReferenceOf(newValue);
 					updates.add(Updates.ofStorage(storageReference, field, storageReferenceOfNewValue));
 
 					TransactionReference classpathAtCreationOfNewValue = getClasspathAtCreationTimeOf(storageReferenceOfNewValue);
@@ -229,7 +225,7 @@ public class UpdatesExtractor {
 			}
 
 			// TODO: add a component to the ClassTag of the object, so that we do not need to look for the classpath of the creation transaction of the objects
-			private TransactionReference getClasspathAtCreationTimeOf(StorageReference storageReference) throws StoreException {
+			private TransactionReference getClasspathAtCreationTimeOf(StorageReference storageReference) {
 				TransactionRequest<?> request;
 				try {
 					request = environment.getRequest(storageReference.getTransaction());
@@ -243,7 +239,7 @@ public class UpdatesExtractor {
 				else if (request instanceof GameteCreationTransactionRequest gctr)
 					return gctr.getClasspath();
 				else
-					throw new StoreException("Object " + storageReference + " has been unexpectedly created with a " + request.getClass().getName());
+					throw new UncheckedStoreException("Object " + storageReference + " has been unexpectedly created with a " + request.getClass().getName());
 			}
 
 			/**
@@ -253,17 +249,16 @@ public class UpdatesExtractor {
 			 * @param object the object
 			 * @throws IllegalAssignmentToFieldInStorageException if the updates cannot be extracted, because an illegal
 			 *                                           value has been stored into some field
-			 * @throws StoreException if the operation cannot be completed
 			 */
-			private void addUpdatesForFieldsDefinedInClass(Class<?> clazz, Object object) throws IllegalAssignmentToFieldInStorageException, StoreException {
+			private void addUpdatesForFieldsDefinedInClass(Class<?> clazz, Object object) throws IllegalAssignmentToFieldInStorageException {
 				Field[] declaredFields;
 
 				try {
 					declaredFields = clazz.getDeclaredFields();
 				}
 				catch (SecurityException e) {
-					// the class loader is the same used to load clazz: this exception should be impossible
-					throw new StoreException("Cannot access the fields defined in class " + clazz.getName(), e);
+					// the class loader is the same used to load clazz: this situation should be impossible
+					throw new UncheckedStoreException("Cannot access the fields defined in class " + clazz.getName(), e);
 				}
 
 				for (Field field: declaredFields)
@@ -272,7 +267,7 @@ public class UpdatesExtractor {
 							field.setAccessible(true); // it might be private
 						}
 						catch (SecurityException | InaccessibleObjectException e) {
-							throw new StoreException("Cannot make field " + field.getDeclaringClass().getName() + "." + field.getName() + " accessible", e);
+							throw new UncheckedStoreException("Cannot make field " + field.getDeclaringClass().getName() + "." + field.getName() + " accessible", e);
 						}
 
 						Object currentValue, oldValue;
@@ -281,7 +276,7 @@ public class UpdatesExtractor {
 							currentValue = field.get(object);
 						}
 						catch (IllegalArgumentException | IllegalAccessException | ExceptionInInitializerError e) {
-							throw new StoreException("Cannot access field " + field.getDeclaringClass().getName() + "." + field.getName(), e);
+							throw new UncheckedStoreException("Cannot access field " + field.getDeclaringClass().getName() + "." + field.getName(), e);
 						}
 
 						String oldName = InstrumentationFields.OLD_PREFIX + field.getName();
@@ -291,7 +286,7 @@ public class UpdatesExtractor {
 							oldValue = oldField.get(object);
 						}
 						catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException | InaccessibleObjectException | ExceptionInInitializerError e) {
-							throw new StoreException("Cannot access the old value of field " + field.getDeclaringClass().getName() + "." + field.getName(), e);
+							throw new UncheckedStoreException("Cannot access the old value of field " + field.getDeclaringClass().getName() + "." + field.getName(), e);
 						}
 
 						if (!inStorage || !Objects.equals(oldValue, currentValue))
@@ -306,17 +301,17 @@ public class UpdatesExtractor {
 			 * Recurs on the old value of the fields of reference type.
 			 * 
 			 * @param object the storage object whose fields are considered
-			 * @throws StoreException if the operation cannot be completed
 			 */
-			private void recursiveExtract(Object object) throws StoreException {
+			private void recursiveExtract(Object object) {
 				Class<?> clazz = object.getClass();
 				if (classLoader.getStorage().isAssignableFrom(clazz)) {
-					if (seen.add(classLoader.getStorageReferenceOf(object, StoreException::new)))
+					if (seen.add(classLoader.getStorageReferenceOf(object)))
 						workingSet.add(object);
 				}
 				else if (classLoader.isLazilyLoaded(clazz)) // eager types are not recursively followed
-					// there was an illegal value in this field: this should never happen
-					throw new StoreException("A field of a storage object cannot hold a " + clazz.getName());
+					// there was an illegal old value in this field: this should never happen
+					// since should have been rejected at run time when trying to modify the field
+					throw new UncheckedStoreException("A field of a storage object cannot hold a " + clazz.getName());
 			}
 
 			/**
@@ -325,9 +320,8 @@ public class UpdatesExtractor {
 			 * @param field the field
 			 * @param newValue the new value of the field
 			 * @throws IllegalAssignmentToFieldInStorageException if the updates cannot be extracted, because an illegal value has been stored into some field
-			 * @throws StoreException if the operation cannot be completed
 			 */
-			private void addUpdateFor(Field field, Object newValue) throws IllegalAssignmentToFieldInStorageException, StoreException {
+			private void addUpdateFor(Field field, Object newValue) throws IllegalAssignmentToFieldInStorageException {
 				Class<?> fieldType = field.getType();
 				// the field is defined in a storage object, hence the subsequent conversion cannot fail
 				ClassType fieldDefiningClass = StorageTypes.classFromClass(field.getDeclaringClass());
@@ -365,7 +359,7 @@ public class UpdatesExtractor {
 					addUpdateFor(fieldDefiningClass, fieldName, fieldType.getName(), newValue);
 				else
 					// for example arrays: they should have been forbidden when verifying the installed jars
-					throw new StoreException("Unexpected type " + fieldType.getName() + " for a field of a storage object: " + fieldDefiningClass.getName() + '.' + fieldName);
+					throw new UncheckedStoreException("Unexpected type " + fieldType.getName() + " for a field of a storage object: " + fieldDefiningClass.getName() + '.' + fieldName);
 			}
 
 			/**

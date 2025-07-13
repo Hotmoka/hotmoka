@@ -42,6 +42,7 @@ import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.ResponseBuilder;
 import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.api.UncheckedStoreException;
 
 /**
  * A generic implementation of the creator of a response.
@@ -141,7 +142,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 			this.updatesExtractor = new UpdatesExtractor(classLoader, environment, request);
 		}
 
-		public final ResponseCreation<Response> create() throws TransactionRejectedException, StoreException, InterruptedException {
+		public final ResponseCreation<Response> create() throws TransactionRejectedException, InterruptedException {
 			try {
 				Response response = environment.submit(new TakamakaCallable(this::body)).get();
 
@@ -158,7 +159,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 					}
 
 					@Override
-					public final void replaceReverifiedResponses() throws StoreException {
+					public final void replaceReverifiedResponses() {
 						classLoader.replaceReverifiedResponses();
 					}
 				};
@@ -168,10 +169,12 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 
 				if (cause instanceof TransactionRejectedException tre)
 					throw tre;
-				else if (cause instanceof StoreException se)
+				else if (cause instanceof RuntimeException se)
 					throw se;
+				else if (cause instanceof Error error)
+					throw error;
 				else
-					throw new StoreException(cause);
+					throw new UncheckedStoreException("Unexpected exception", cause);
 			}
 		}
 
@@ -231,13 +234,13 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		/**
 		 * Yields the latest value for the given field of the object with the given storage reference.
 		 * The field is not {@code final}. Conceptually, this method looks for the value of the field
-		 * in the last transaction where the reference was updated.
+		 * in the history of the object.
 		 * 
-		 * @param object the storage reference
+		 * @param object the storage reference; this is assumed to be in store
 		 * @param field the field
 		 * @return the value of the field
 		 */
-		public final Object deserializeLastUpdateFor(StorageReference object, FieldSignature field) throws DeserializationException, StoreException {
+		public final Object deserializeLastUpdateFor(StorageReference object, FieldSignature field) throws DeserializationException {
 			try {
 				return deserializer.deserialize(environment.getLastUpdateToField(object, field).getValue());
 			}
@@ -252,13 +255,13 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		/**
 		 * Yields the latest value for the given field of the object with the given storage reference.
 		 * The field is {@code final}. Conceptually, this method looks for the value of the field
-		 * in the transaction where the reference was created.
+		 * in the transaction where the object was created.
 		 * 
-		 * @param object the storage reference
+		 * @param object the storage reference; this is assumed to be in store
 		 * @param field the field
 		 * @return the value of the field
 		 */
-		public final Object deserializeLastUpdateForFinal(StorageReference object, FieldSignature field) throws DeserializationException, StoreException {
+		public final Object deserializeLastUpdateForFinal(StorageReference object, FieldSignature field) throws DeserializationException {
 			try {
 				return deserializer.deserialize(environment.getLastUpdateToFinalField(object, field).getValue());
 			}
