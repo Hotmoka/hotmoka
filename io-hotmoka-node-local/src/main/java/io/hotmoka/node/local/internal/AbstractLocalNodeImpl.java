@@ -82,7 +82,6 @@ import io.hotmoka.node.local.UncheckedNodeException;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.LocalNode;
 import io.hotmoka.node.local.api.LocalNodeConfig;
-import io.hotmoka.node.local.api.StoreException;
 
 /**
  * Partial implementation of a local (ie., non-remote) node.
@@ -469,7 +468,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		catch (ClosedNodeException e) { // TODO
 			throw e;
 		}
-		catch (StoreException | NodeException e) { // TODO
+		catch (NodeException e) { // TODO
 			throw new RuntimeException(e);
 		}
 	}
@@ -494,7 +493,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		catch (ClosedNodeException e) { // TODO
 			throw e;
 		}
-		catch (StoreException | NodeException e) { // TODO
+		catch (NodeException e) { // TODO
 			throw new RuntimeException(e);
 		}
 	}

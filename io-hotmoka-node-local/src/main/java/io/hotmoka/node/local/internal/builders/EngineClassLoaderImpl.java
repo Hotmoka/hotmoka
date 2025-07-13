@@ -38,7 +38,6 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.instrumentation.api.InstrumentationFields;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.api.ClassLoaderCreationException;
@@ -412,32 +411,32 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
-	public <E extends Exception> BigInteger getBalanceOf(Object object, ExceptionSupplierFromMessage<? extends E> onIllegalAccess) throws E {
+	public BigInteger getBalanceOf(Object object) {
 		try {
 			return (BigInteger) balanceField.get(object);
 		}
 		catch (RuntimeException | IllegalAccessException e) {
-			throw onIllegalAccess.apply("Cannot read the balance field: " + e.getMessage());
+			throw new UncheckedStoreException("Cannot read the balance field: " + e.getMessage());
 		}
 	}
 
 	@Override
-	public <E extends Exception> void setBalanceOf(Object object, BigInteger value, ExceptionSupplierFromMessage<? extends E> onIllegalAccess) throws E {
+	public void setBalanceOf(Object object, BigInteger value) {
 		try {
 			balanceField.set(object, value);
 		}
 		catch (RuntimeException | IllegalAccessException e) {
-			throw onIllegalAccess.apply("Cannot write the balance field: " + e.getMessage());
+			throw new UncheckedStoreException("Cannot write the balance field: " + e.getMessage());
 		}
 	}
 
 	@Override
-	public <E extends Exception> void setNonceOf(Object object, BigInteger value, ExceptionSupplierFromMessage<? extends E> onIllegalAccess) throws E {
+	public void setNonceOf(Object object, BigInteger value) {
 		try {
 			externallyOwnedAccountNonce.set(object, value);
 		}
 		catch (RuntimeException | IllegalAccessException e) {
-			throw onIllegalAccess.apply("Cannot write the nonce field: " + e.getMessage());
+			throw new UncheckedStoreException("Cannot write the nonce field: " + e.getMessage());
 		}
 	}
 

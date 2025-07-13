@@ -133,7 +133,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 			this.gasCostModel = consensus.getGasCostModel();
 		}
 
-		protected void checkConsistency() throws TransactionRejectedException, StoreException {
+		protected void checkConsistency() throws TransactionRejectedException {
 			callerMustBeExternallyOwnedAccount();
 			gasLimitIsInsideBounds();
 			requestPromisesEnoughGas();
@@ -144,15 +144,15 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 			callerCanPayForAllPromisedGas();
 		}
 
-		protected final void init() throws StoreException, DeserializationException, OutOfGasException {
+		protected final void init() throws DeserializationException, OutOfGasException {
 			this.deserializedCaller = deserializer.deserialize(request.getCaller());
-			BigInteger initialBalance = classLoader.getBalanceOf(deserializedCaller, StoreException::new);
+			BigInteger initialBalance = classLoader.getBalanceOf(deserializedCaller);
 			increaseNonceOfCaller();
 			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
 			chargeGasForStorage(BigInteger.valueOf(request.size()));
 			chargeGasForClassLoader();	
 			this.coinsInitiallyPaidForGas = chargePayerForAllGasPromised();
-			BigInteger balanceOfCallerInCaseOfFailure = classLoader.getBalanceOf(deserializedCaller, StoreException::new);
+			BigInteger balanceOfCallerInCaseOfFailure = classLoader.getBalanceOf(deserializedCaller);
 			if (!balanceOfCallerInCaseOfFailure.equals(initialBalance))
 				updatesInCaseOfFailure.add(Updates.ofBigInteger(request.getCaller(), FieldSignatures.BALANCE_FIELD, balanceOfCallerInCaseOfFailure));
 		}
@@ -289,7 +289,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 *
 		 * @throws TransactionRejectedException if the caller is not an externally owned account
 		 */
-		private void callerMustBeExternallyOwnedAccount() throws TransactionRejectedException, StoreException {
+		private void callerMustBeExternallyOwnedAccount() throws TransactionRejectedException {
 			String className;
 		
 			try {
@@ -337,7 +337,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * 
 		 * @throws TransactionRejectedException if the gas price is smaller than the current gas price of the node
 		 */
-		private void gasPriceIsLargeEnough() throws TransactionRejectedException, StoreException {
+		private void gasPriceIsLargeEnough() throws TransactionRejectedException {
 			if (transactionIsSigned() && !consensus.ignoresGasPrice()) {
 				Optional<BigInteger> maybeGasPrice = environment.getGasPrice();
 				// before initialization, the gas price is not yet available
@@ -351,7 +351,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * 
 		 * @throws TransactionRejectedException if the node and the request have different chain identifiers
 		 */
-		private void requestMustHaveCorrectChainId() throws TransactionRejectedException, StoreException {
+		private void requestMustHaveCorrectChainId() throws TransactionRejectedException {
 			// the chain identifier is not checked for unsigned transactions or if the node is not initialized yet
 			if (transactionIsSigned() && environment.getManifest().isPresent()) {
 				String chainIdOfNode = consensus.getChainId();
@@ -565,40 +565,35 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * Charge to the payer of the transaction all gas promised for the transaction.
 		 * 
 		 * @return the amount that has been subtracted from the balance
-		 * @throws StoreException 
 		 */
-		private BigInteger chargePayerForAllGasPromised() throws StoreException {
+		private BigInteger chargePayerForAllGasPromised() {
 			BigInteger cost = costOf(request.getGasLimit());
-			BigInteger balance = classLoader.getBalanceOf(deserializedCaller, StoreException::new);
-			classLoader.setBalanceOf(deserializedCaller, balance.subtract(cost), StoreException::new);
+			BigInteger balance = classLoader.getBalanceOf(deserializedCaller);
+			classLoader.setBalanceOf(deserializedCaller, balance.subtract(cost));
 
 			return cost;
 		}
 
 		/**
 		 * Pays back the remaining gas to the caller of the transaction.
-		 * 
-		 * @throws StoreException if the store is misbehaving
 		 */
-		protected final void refundCallerForAllRemainingGas() throws StoreException {
+		protected final void refundCallerForAllRemainingGas() {
 			BigInteger refund = costOf(gas);
-			BigInteger balance = classLoader.getBalanceOf(deserializedCaller, StoreException::new);
+			BigInteger balance = classLoader.getBalanceOf(deserializedCaller);
 
 			if (refund.subtract(coinsInitiallyPaidForGas).signum() <= 0)
-				classLoader.setBalanceOf(deserializedCaller, balance.add(refund), StoreException::new);
+				classLoader.setBalanceOf(deserializedCaller, balance.add(refund));
 			else
-				classLoader.setBalanceOf(deserializedCaller, balance.add(coinsInitiallyPaidForGas), StoreException::new);
+				classLoader.setBalanceOf(deserializedCaller, balance.add(coinsInitiallyPaidForGas));
 		}
 
 		/**
 		 * Sets the nonce to the value successive to that in the request.
-		 * 
-		 * @throws StoreException if the store is misbehaving
 		 */
-		private void increaseNonceOfCaller() throws StoreException {
+		private void increaseNonceOfCaller() {
 			if (!isView() && !isCallToFaucet()) {
 				BigInteger increasedNonce = request.getNonce().add(ONE);
-				classLoader.setNonceOf(deserializedCaller, increasedNonce, StoreException::new);
+				classLoader.setNonceOf(deserializedCaller, increasedNonce);
 				updatesInCaseOfFailure.add(Updates.ofBigInteger(request.getCaller(), FieldSignatures.EOA_NONCE_FIELD, increasedNonce));
 			}
 		}

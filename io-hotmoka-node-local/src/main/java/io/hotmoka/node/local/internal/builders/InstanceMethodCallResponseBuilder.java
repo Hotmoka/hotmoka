@@ -41,6 +41,7 @@ import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.api.UncheckedStoreException;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -79,7 +80,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		private ResponseCreator() throws TransactionRejectedException {}
 
 		@Override
-		protected void checkConsistency() throws TransactionRejectedException, StoreException {
+		protected void checkConsistency() throws TransactionRejectedException {
 			super.checkConsistency();
 
 			// calls to @View methods are allowed to receive non-exported values
@@ -132,7 +133,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				catch (ExceptionInInitializerError e) {
 					// Takamaka code verification bans static initializers and the white-listed library classes
 					// should not have static initializers that might fail
-					throw new StoreException("Unexpected failed execution of a static initializer of " + request.getStaticTarget());
+					throw new UncheckedStoreException("Unexpected failed execution of a static initializer of " + request.getStaticTarget());
 				}
 
 				if (calleeIsAnnotatedAsView)
@@ -205,7 +206,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 			}
 		}
 
-		private void receiverIsExported() throws TransactionRejectedException, StoreException {
+		private void receiverIsExported() throws TransactionRejectedException {
 			enforceExported(request.getReceiver());
 		}
 
@@ -220,7 +221,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		 * of coins that must be rewarded. That is, it creates "out of thin-air" as many coins
 		 * as must be distributed to the validators.
 		 */
-		private void mintCoinsForRewardToValidators() throws StoreException {
+		private void mintCoinsForRewardToValidators() {
 			if (isSystemCall()) {
 				var staticTarget = request.getStaticTarget();
 				Optional<StorageReference> manifest;
@@ -233,7 +234,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 					var actuals = request.actuals().toArray(StorageValue[]::new);
 					if (actuals.length >= 1 && actuals[0] instanceof BigIntegerValue biv) {
 						Object caller = getDeserializedCaller();
-						classLoader.setBalanceOf(caller, classLoader.getBalanceOf(caller, StoreException::new).add(biv.getValue()), StoreException::new);
+						classLoader.setBalanceOf(caller, classLoader.getBalanceOf(caller).add(biv.getValue()));
 					}
 				}
 			}

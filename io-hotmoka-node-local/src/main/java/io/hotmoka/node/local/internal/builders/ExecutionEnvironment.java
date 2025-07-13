@@ -113,10 +113,9 @@ public abstract class ExecutionEnvironment {
 	 *                                that is allowed to be thrown by the method
 	 * @throws TransactionException if the transaction could be executed but led to an exception outside the user code,
 	 *                              or that is not allowed to be thrown by the method
-	 * @throws StoreException if the store is misbehaving
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	public final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException, StoreException, InterruptedException {
+	public final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException, InterruptedException {
 		return getOutcome(new InstanceViewMethodCallResponseBuilder(reference, request, this).getResponseCreation().getResponse());
 	}
 
@@ -132,10 +131,9 @@ public abstract class ExecutionEnvironment {
 	 *                                that is allowed to be thrown by the method
 	 * @throws TransactionException if the transaction could be executed but led to an exception outside the user code,
 	 *                              or that is not allowed to be thrown by the method
-	 * @throws StoreException if the store is misbehaving
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	public final Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException, StoreException, InterruptedException {
+	public final Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException, InterruptedException {
 		return getOutcome(new StaticViewMethodCallResponseBuilder(reference, request, this).getResponseCreation().getResponse());
 	}
 

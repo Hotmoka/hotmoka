@@ -33,7 +33,7 @@ import io.hotmoka.node.api.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.api.UncheckedStoreException;
 
 /**
  * The creator of a response for a transaction that executes a constructor of Takamaka code.
@@ -61,7 +61,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		private ResponseCreator() throws TransactionRejectedException {}
 
 		@Override
-		protected ConstructorCallTransactionResponse body() throws TransactionRejectedException, StoreException {
+		protected ConstructorCallTransactionResponse body() throws TransactionRejectedException {
 			checkConsistency();
 
 			try {
@@ -103,14 +103,14 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 				catch (ExceptionInInitializerError e) {
 					// Takamaka code verification bans static initializers and the white-listed library classes
 					// should not have static initializers that might fail
-					throw new StoreException("Unexpected failed execution of a static initializer");
+					throw new UncheckedStoreException("Unexpected failed execution of a static initializer");
 				}
 
 				if (serialize(result) instanceof StorageReference sr)
 					return success(result, sr);
 				else
 					// a constructor can only create an object, represented as a storage reference in Hotmoka
-					throw new StoreException("The return value of a constructor should be an object");
+					throw new UncheckedStoreException("The return value of a constructor should be an object");
 			}
 			catch (HotmokaException e) {
 				logFailure(Level.INFO, e);
@@ -118,7 +118,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 			}
 		}
 
-		private ConstructorCallTransactionResponse success(Object result, StorageReference reference) throws HotmokaException, StoreException {
+		private ConstructorCallTransactionResponse success(Object result, StorageReference reference) throws HotmokaException {
 			chargeGasForStorageOf(TransactionResponses.constructorCallSuccessful
 					(reference, updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 			refundCallerForAllRemainingGas();
@@ -126,7 +126,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 					(reference, updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 		}
 
-		private ConstructorCallTransactionResponse failure(Constructor<?> constructorJVM, InvocationTargetException e) throws HotmokaException, StoreException {
+		private ConstructorCallTransactionResponse failure(Constructor<?> constructorJVM, InvocationTargetException e) throws HotmokaException {
 			Throwable cause = e.getCause();
 			String message = getMessageForResponse(cause);
 			String causeClassName = cause.getClass().getName();

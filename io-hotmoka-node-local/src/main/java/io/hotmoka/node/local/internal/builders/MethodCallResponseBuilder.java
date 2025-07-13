@@ -35,7 +35,6 @@ import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.node.api.signatures.MethodSignature;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.local.api.StoreException;
 
 /**
  * The creator of a response for a transaction that executes a method of Takamaka code.
@@ -65,7 +64,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 		 * @param result the returned value of the method, if any
 		 * @throws SideEffectsInViewMethodException if the method is annotated as view, but generated side-effects
 		 */
-		protected final void onlySideEffectsAreToBalanceAndNonceOfCaller(Object result) throws SideEffectsInViewMethodException, IllegalAssignmentToFieldInStorageException, StoreException {
+		protected final void onlySideEffectsAreToBalanceAndNonceOfCaller(Object result) throws SideEffectsInViewMethodException, IllegalAssignmentToFieldInStorageException {
 			if (!onlyAffectedBalanceOrNonceOfCaller(result))
 				throw new SideEffectsInViewMethodException(request.getStaticTarget());
 		}
@@ -108,7 +107,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 			}
 		}
 
-		protected final MethodCallTransactionResponse success(Method methodJVM, Object result) throws HotmokaException, StoreException {
+		protected final MethodCallTransactionResponse success(Method methodJVM, Object result) throws HotmokaException {
 			if (methodJVM.getReturnType() == void.class) {
 				chargeGasForStorageOf(TransactionResponses.voidMethodCallSuccessful(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 				refundCallerForAllRemainingGas();
@@ -121,7 +120,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 			}
 		}
 
-		protected final MethodCallTransactionResponse failure(Method methodJVM, boolean calleeIsAnnotatedAsView, InvocationTargetException e) throws HotmokaException, StoreException {
+		protected final MethodCallTransactionResponse failure(Method methodJVM, boolean calleeIsAnnotatedAsView, InvocationTargetException e) throws HotmokaException {
 			Throwable cause = e.getCause();
 			String message = getMessageForResponse(cause);
 			String causeClassName = cause.getClass().getName();
@@ -155,7 +154,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 		 * @param result the returned value for method calls or created object for constructor calls, if any
 		 * @return true if and only if that condition holds
 		 */
-		private boolean onlyAffectedBalanceOrNonceOfCaller(Object result) throws IllegalAssignmentToFieldInStorageException, StoreException {
+		private boolean onlyAffectedBalanceOrNonceOfCaller(Object result) throws IllegalAssignmentToFieldInStorageException {
 			return updates(result).allMatch(this::isUpdateToBalanceOrNonceOfCaller);
 		}
 	}

@@ -29,7 +29,7 @@ public class StoreException extends Exception {
 	 * 
 	 * @param message the message
 	 */
-	public StoreException(String message) {
+	private StoreException(String message) {
 		super(Objects.requireNonNull(message, "message cannot be null"));
 	}
 }

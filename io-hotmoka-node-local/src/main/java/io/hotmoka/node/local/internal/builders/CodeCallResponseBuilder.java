@@ -79,7 +79,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		protected ResponseCreator() throws TransactionRejectedException {}
 
 		@Override
-		protected void checkConsistency() throws TransactionRejectedException, StoreException {
+		protected void checkConsistency() throws TransactionRejectedException {
 			super.checkConsistency();
 
 			// calls to @View methods are allowed to receive non-exported values
@@ -116,7 +116,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		/**
 		 * Deserialize the actual arguments of the call.
 		 */
-		protected final void deserializeActuals() throws HotmokaException, StoreException {
+		protected final void deserializeActuals() throws HotmokaException {
 			var actuals = request.actuals().toArray(StorageValue[]::new);
 			deserializedActuals = new Object[actuals.length];
 			int pos = 0;
@@ -129,9 +129,8 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 * 
 		 * @param reference the transaction reference
 		 * @throws TransactionRejectedException of the type of the object in store is not exported
-		 * @throws StoreException if the class tag of {@code reference} cannot be found in the Takamaka program
 		 */
-		protected final void enforceExported(StorageReference reference) throws TransactionRejectedException, StoreException {
+		protected final void enforceExported(StorageReference reference) throws TransactionRejectedException {
 			try {
 				var clazz = environment.getClassTag(reference).getClazz();
 		
@@ -290,9 +289,8 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 * Checks that all the arguments and the receiver passed to the method or constructor have exported type.
 		 * 
 		 * @throws TransactionRejectedException if that condition does not hold
-		 * @throws StoreException if the store is misbehaving
 		 */
-		private void argumentsAreExported() throws TransactionRejectedException, StoreException {
+		private void argumentsAreExported() throws TransactionRejectedException {
 			for (var actual: request.actuals().toArray(StorageValue[]::new))
 				if (actual instanceof StorageReference sr)
 					enforceExported(sr);

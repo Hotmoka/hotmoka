@@ -224,7 +224,7 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 			Optional<StorageReference> maybeManifest = getManifest();
 
 			if (maybeManifest.isPresent()) {
-				StorageReference validators = getValidators().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
+				StorageReference validators = getValidators().orElseThrow(() -> new UncheckedStoreException("The manifest is set but the validators are not set"));
 
 				var events = trwe.getEvents().toArray(StorageReference[]::new);
 				for (var event: events)

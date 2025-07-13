@@ -20,7 +20,6 @@ import java.math.BigInteger;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
-import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.StorageType;
 import io.hotmoka.node.api.values.StorageReference;
@@ -96,35 +95,26 @@ public interface EngineClassLoader extends TakamakaClassLoader {
 	/**
 	 * Yields the value of the {@code balance} field of the given contract in RAM.
 	 * 
-	 * @param <E> the type of the exception thrown if the field cannot be accessed
 	 * @param object the contract
-	 * @param onIllegalAccess the supplier of the exception thrown if the field cannot be accessed
 	 * @return the value of the field
-	 * @throws E if the field cannot be accessed, for any reason
 	 */
-	<E extends Exception> BigInteger getBalanceOf(Object object, ExceptionSupplierFromMessage<? extends E> onIllegalAccess) throws E;
+	BigInteger getBalanceOf(Object object);
 
 	/**
 	 * Sets the value of the {@code balance} field of the given contract in RAM.
 	 * 
-	 * @param <E> the type of the exception thrown if the field cannot be accessed
 	 * @param object the contract
 	 * @param value to value to set for the balance of the contract
-	 * @param onIllegalAccess the supplier of the exception thrown if the field cannot be accessed
-	 * @throws E if the field cannot be accessed, for any reason
 	 */
-	<E extends Exception> void setBalanceOf(Object object, BigInteger value, ExceptionSupplierFromMessage<? extends E> onIllegalAccess) throws E;
+	void setBalanceOf(Object object, BigInteger value);
 
 	/**
 	 * Sets the value of the {@code nonce} field of the given account in RAM.
 	 * 
-	 * @param <E> the type of the exception thrown if the field cannot be accessed
 	 * @param object the account
 	 * @param value to value to set for the nonce of the account
-	 * @param onIllegalAccess the supplier of the exception thrown if the field cannot be accessed
-	 * @throws E if the field cannot be accessed, for any reason
 	 */
-	<E extends Exception> void setNonceOf(Object object, BigInteger value, ExceptionSupplierFromMessage<? extends E> onIllegalAccess) throws E;
+	void setNonceOf(Object object, BigInteger value);
 
 	/**
 	 * Called at the beginning of the instrumentation of a {@code @@FromContract} method or constructor
