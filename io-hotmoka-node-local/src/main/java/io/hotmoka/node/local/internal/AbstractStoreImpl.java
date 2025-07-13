@@ -118,7 +118,7 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	}
 
 	@Override
-	public final T beginTransformation(long now) throws StoreException {
+	public final T beginTransformation(long now) {
 		return beginTransformation(cache.getConfig(), now);
 	}
 
@@ -172,9 +172,8 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	 * @return the reference to the creator of {@code event}
 	 * @throws UnknownReferenceException if {@code event} is not in this store
 	 * @throws FieldNotFoundException if the object {@code event} has no {@code creator} field, which means that it is not really an event
-	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	protected final StorageReference getCreator(StorageReference event) throws UnknownReferenceException, FieldNotFoundException, StoreException {
+	protected final StorageReference getCreator(StorageReference event) throws UnknownReferenceException, FieldNotFoundException {
 		return getReferenceField(event, FieldSignatures.EVENT_CREATOR_FIELD);
 	}
 
@@ -184,7 +183,6 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	 * @param consensus the consensus configuration at the beginning of the transformation
 	 * @param now the time used as current time for the transactions executed in the transformation
 	 * @return the transformation
-	 * @throws StoreException if the operation cannot be completed correctly
 	 */
-	protected abstract T beginTransformation(ConsensusConfig<?,?> consensus, long now) throws StoreException;
+	protected abstract T beginTransformation(ConsensusConfig<?,?> consensus, long now);
 }

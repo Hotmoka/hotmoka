@@ -418,7 +418,6 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	 * 
 	 * @param reference the reference of the transaction
 	 * @param request the request of the transaction
-	 * @throws StoreException if the store is not able to complete the operation correctly
 	 */
 	private void setRequest(TransactionReference reference, TransactionRequest<?> request) {
 		deltaRequests.put(reference, request);

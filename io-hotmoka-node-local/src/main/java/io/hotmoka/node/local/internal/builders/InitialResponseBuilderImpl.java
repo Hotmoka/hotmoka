@@ -46,7 +46,7 @@ public abstract class InitialResponseBuilderImpl<Request extends InitialTransact
 
 	protected abstract class ResponseCreator extends AbstractResponseBuilder<Request, Response>.ResponseCreator {
 
-		protected ResponseCreator() throws TransactionRejectedException, StoreException {}
+		protected ResponseCreator() throws TransactionRejectedException {}
 
 		@Override
 		public final void chargeGasForCPU(BigInteger amount) {

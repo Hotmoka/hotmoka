@@ -64,7 +64,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		return new ResponseCreator().create();
 	}
 
-	private boolean callerIsGameteOfTheNode() throws StoreException {
+	private boolean callerIsGameteOfTheNode() {
 		Optional<StorageReference> maybeGamete = environment.getGamete();
 		return maybeGamete.isPresent() && maybeGamete.get().equals(request.getCaller());
 	}
@@ -76,7 +76,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		 */
 		private Object deserializedReceiver;
 
-		private ResponseCreator() throws TransactionRejectedException, StoreException {}
+		private ResponseCreator() throws TransactionRejectedException {}
 
 		@Override
 		protected void checkConsistency() throws TransactionRejectedException, StoreException {
@@ -151,7 +151,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		}
 
 		@Override
-		protected boolean isCallToFaucet() throws StoreException {
+		protected boolean isCallToFaucet() {
 			return consensus.allowsUnsignedFaucet() && request.getStaticTarget().getName().startsWith("faucet")
 				&& request.getStaticTarget().getDefiningClass().equals(StorageTypes.GAMETE) && request.getCaller().equals(request.getReceiver())
 				&& callerIsGameteOfTheNode();

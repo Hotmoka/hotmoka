@@ -58,7 +58,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 
 	private class ResponseCreator extends CodeCallResponseBuilder<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse>.ResponseCreator {
 
-		private ResponseCreator() throws TransactionRejectedException, StoreException {}
+		private ResponseCreator() throws TransactionRejectedException {}
 
 		@Override
 		protected ConstructorCallTransactionResponse body() throws TransactionRejectedException, StoreException {

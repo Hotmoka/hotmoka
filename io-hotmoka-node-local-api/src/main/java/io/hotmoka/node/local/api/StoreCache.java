@@ -20,8 +20,8 @@ import java.math.BigInteger;
 import java.util.Optional;
 import java.util.OptionalLong;
 
+import io.hotmoka.exceptions.functions.FunctionWithExceptions1;
 import io.hotmoka.exceptions.functions.FunctionWithExceptions2;
-import io.hotmoka.exceptions.functions.FunctionWithExceptions3;
 import io.hotmoka.node.api.ClassLoaderCreationException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
@@ -94,11 +94,10 @@ public interface StoreCache {
 	 * @param classpath the class path that must be used by the class loader
 	 * @param ifMissing a computation executed for cache misses
 	 * @return the class loader
-	 * @throws StoreException if the store is not able to complete the operation correctly
 	 * @throws ClassLoaderCreationException if the class loader cannot be created, for instance because the {@code classpath}
 	 *                                      refers to some failed transaction
 	 */
-	EngineClassLoader getClassLoader(TransactionReference classpath, FunctionWithExceptions2<TransactionReference, EngineClassLoader, StoreException, ClassLoaderCreationException> ifMissing) throws StoreException, ClassLoaderCreationException;
+	EngineClassLoader getClassLoader(TransactionReference classpath, FunctionWithExceptions1<TransactionReference, EngineClassLoader, ClassLoaderCreationException> ifMissing) throws ClassLoaderCreationException;
 
 	/**
 	 * Determines if the signature of a request is valid, using a cache to avoid repeated checks, if possible.
@@ -106,11 +105,10 @@ public interface StoreCache {
 	 * @param reference the reference of the request
 	 * @param ifMissing a computation executed for cache misses
 	 * @return true if the signature of the request was successfully checked
-	 * @throws StoreException if the store is not able to complete the operation correctly
 	 * @throws UnknownReferenceException if the caller of the request cannot be found in store
 	 * @throws FieldNotFoundException if the caller of the request has no field for its public key; hence it is not really an account
 	 */
-	boolean signatureIsValid(TransactionReference reference, FunctionWithExceptions3<TransactionReference, Boolean, StoreException, UnknownReferenceException, FieldNotFoundException> ifMissing) throws StoreException, UnknownReferenceException, FieldNotFoundException;
+	boolean signatureIsValid(TransactionReference reference, FunctionWithExceptions2<TransactionReference, Boolean, UnknownReferenceException, FieldNotFoundException> ifMissing) throws UnknownReferenceException, FieldNotFoundException;
 
 	/**
 	 * Yields a new cache with a new gas price.

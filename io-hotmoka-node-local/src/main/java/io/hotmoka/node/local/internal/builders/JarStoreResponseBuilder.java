@@ -53,7 +53,7 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 	}
 
 	@Override
-	protected EngineClassLoader mkClassLoader() throws StoreException, ClassLoaderCreationException {
+	protected EngineClassLoader mkClassLoader() throws ClassLoaderCreationException {
 		// we redefine this method, since the class loader must be able to access the
 		// jar that is being installed and its dependencies, in order to instrument them
 		return new EngineClassLoaderImpl(request.getJar(), request.getDependencies(), environment, consensus);
@@ -66,7 +66,7 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 
 	private class ResponseCreator extends AbstractNonInitialResponseBuilder<JarStoreTransactionRequest, JarStoreTransactionResponse>.ResponseCreator {
 		
-		private ResponseCreator() throws TransactionRejectedException, StoreException {}
+		private ResponseCreator() throws TransactionRejectedException {}
 
 		@Override
 		protected JarStoreTransactionResponse body() throws TransactionRejectedException, StoreException {

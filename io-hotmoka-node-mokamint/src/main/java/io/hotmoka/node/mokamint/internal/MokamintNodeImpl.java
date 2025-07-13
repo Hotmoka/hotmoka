@@ -347,14 +347,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			}
 
 			int groupId = nextId.getAndIncrement();
-
-			try {
-				transformations.put(groupId, start.beginTransformation(when.toInstant(ZoneOffset.UTC).toEpochMilli()));
-			}
-			catch (StoreException e) {
-				exit(start);
-				throw new RuntimeException(e); // TODO
-	    	}
+			transformations.put(groupId, start.beginTransformation(when.toInstant(ZoneOffset.UTC).toEpochMilli()));
 
 			return groupId;
 		}

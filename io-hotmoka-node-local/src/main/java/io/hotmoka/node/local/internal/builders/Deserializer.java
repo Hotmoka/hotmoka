@@ -45,6 +45,7 @@ import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.api.UncheckedStoreException;
 import io.hotmoka.whitelisting.Dummy;
 
 /**
@@ -123,9 +124,9 @@ public class Deserializer {
 			// we clone the value, so that the alias behavior of values coming from outside the node is fixed
 			return new BigInteger(biv.getValue().toByteArray());
 		else if (value == null)
-			throw new RuntimeException("Unexpected null storage value");
+			throw new UncheckedStoreException("Unexpected null storage value");
 		else
-			throw new RuntimeException("Unexpected storage value of class " + value.getClass().getName());
+			throw new UncheckedStoreException("Unexpected storage value of class " + value.getClass().getName());
 	}
 
 	/**
@@ -209,14 +210,14 @@ public class Deserializer {
 		}
 		catch (UnknownReferenceException e) {
 			// we managed to compute its class tag above, so this is a problem of the store
-			throw new StoreException(e);
+			throw new UncheckedStoreException(e);
 		}
-		catch (UncheckedException e) { // this might be thrown by this::compare
+		catch (UncheckedException e) { // this might be thrown by this::compare, but only for the cause DeserializationException
 			Throwable cause = e.getCause();
 			if (cause instanceof DeserializationException de)
 				throw de;
 			else
-				throw new StoreException(cause);
+				throw new UncheckedStoreException(cause);
 		}
 
 		for (var update: eagerUpdates) {

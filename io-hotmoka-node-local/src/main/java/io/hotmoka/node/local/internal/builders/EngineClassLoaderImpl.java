@@ -51,7 +51,6 @@ import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.api.EngineClassLoader;
-import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.Reverification;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.api.TakamakaClassLoader;
@@ -149,9 +148,8 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @param consensus the consensus parameters to use for reverification
 	 * @throws ClassLoaderCreationException if the class loader cannot be created, for instance because the
 	 *                                      {@code dependencies} refer to some failed transaction
-	 * @throws StoreException if the store is misbehaving
 	 */
-	public EngineClassLoaderImpl(byte[] jar, Stream<TransactionReference> dependencies, ExecutionEnvironment environment, ConsensusConfig<?,?> consensus) throws StoreException, ClassLoaderCreationException {
+	public EngineClassLoaderImpl(byte[] jar, Stream<TransactionReference> dependencies, ExecutionEnvironment environment, ConsensusConfig<?,?> consensus) throws ClassLoaderCreationException {
 		try {
 			var dependenciesAsList = dependencies.collect(Collectors.toList());
 
@@ -196,10 +194,9 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @param start an initial jar. This can be {@code null}
 	 * @param node the node for which the class loader is created
 	 * @return the class loader
-	 * @throws StoreException 
-	 * @throws ClassLoaderCreationException 
+	 * @throws ClassLoaderCreationException if the classloader could not be created
 	 */
-	private TakamakaClassLoader mkTakamakaClassLoader(List<TransactionReference> dependencies, ConsensusConfig<?,?> consensus, byte[] start, ExecutionEnvironment environment, List<byte[]> jars, ArrayList<TransactionReference> transactionsOfJars) throws StoreException, ClassLoaderCreationException {
+	private TakamakaClassLoader mkTakamakaClassLoader(List<TransactionReference> dependencies, ConsensusConfig<?,?> consensus, byte[] start, ExecutionEnvironment environment, List<byte[]> jars, ArrayList<TransactionReference> transactionsOfJars) throws ClassLoaderCreationException {
 		var counter = new AtomicInteger();
 
 		if (start != null) {
@@ -216,10 +213,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		try {
 			return TakamakaClassLoaders.of(jars.stream(), consensus.getVerificationVersion());
 		}
-		catch (UnsupportedVerificationVersionException e) {
-			throw new StoreException(e);
-		}
-		catch (UnknownTypeException e) {
+		catch (UnsupportedVerificationVersionException | UnknownTypeException e) {
 			throw new ClassLoaderCreationException(e.getMessage());
 		}
 	}
@@ -233,9 +227,9 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @param jarTransactions the list of transactions where the {@code jars} have been installed
 	 * @param node the node for which the class loader is created
 	 * @param counter the number of jars that have been encountered up to now, during the recursive descent
-	 * @throws ClassLoaderCreationException 
+	 * @throws ClassLoaderCreationException if the jars could not be added to the classpath
 	 */
-	private void addJars(TransactionReference classpath, ConsensusConfig<?,?> consensus, List<byte[]> jars, List<TransactionReference> jarTransactions, ExecutionEnvironment environment, AtomicInteger counter) throws StoreException, ClassLoaderCreationException {
+	private void addJars(TransactionReference classpath, ConsensusConfig<?,?> consensus, List<byte[]> jars, List<TransactionReference> jarTransactions, ExecutionEnvironment environment, AtomicInteger counter) throws ClassLoaderCreationException {
 		// consensus might be null if the node is restarting, during the recomputation of its consensus itself
 		if (counter.incrementAndGet() > consensus.getMaxDependencies())
 			throw new ClassLoaderCreationException("Too many dependencies in classpath: max is " + consensus.getMaxDependencies());
@@ -323,7 +317,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @return the response
 	 * @throws ClassLoaderCreationException if the transaction does not exist in the store, or did not generate a response with instrumented jar
 	 */
-	private JarStoreTransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAt(TransactionReference reference, ExecutionEnvironment environment) throws StoreException, ClassLoaderCreationException {
+	private JarStoreTransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAt(TransactionReference reference, ExecutionEnvironment environment) throws ClassLoaderCreationException {
 		// first we check if the response has been reverified and we use the reverified version
 		Optional<TransactionResponse> maybeResponse = reverification.getReverifiedResponse(reference);
 		TransactionResponse response;
@@ -458,7 +452,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			Throwable cause = e.getCause();
 
 			// if the called code throws an unchecked exception, we forward it since some of its requirements might have been violated
-			if (cause instanceof RuntimeException re)
+			if (cause instanceof RuntimeException re) // TODO
 				throw re;
 			else if (cause instanceof Error error)
 				throw error;
@@ -481,7 +475,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			Throwable cause = e.getCause();
 
 			// if the called code throws an unchecked exception, we forward it since some of its requirements might have been violated
-			if (cause instanceof RuntimeException re)
+			if (cause instanceof RuntimeException re) // TODO
 				throw re;
 			else if (cause instanceof Error error)
 				throw error;
@@ -539,7 +533,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
-	public void replaceReverifiedResponses() throws StoreException {
+	public void replaceReverifiedResponses() {
 		reverification.replace();
 	}
 

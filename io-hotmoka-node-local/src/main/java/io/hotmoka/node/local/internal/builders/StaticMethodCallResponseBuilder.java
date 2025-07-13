@@ -54,7 +54,7 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 
 	private class ResponseCreator extends MethodCallResponseBuilder<StaticMethodCallTransactionRequest>.ResponseCreator {
 
-		private ResponseCreator() throws TransactionRejectedException, StoreException {}
+		private ResponseCreator() throws TransactionRejectedException {}
 
 		@Override
 		protected MethodCallTransactionResponse body() throws TransactionRejectedException, StoreException {

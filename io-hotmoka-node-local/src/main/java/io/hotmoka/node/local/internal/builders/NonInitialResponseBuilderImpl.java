@@ -51,6 +51,7 @@ import io.hotmoka.node.api.updates.UpdateOfField;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.api.UncheckedStoreException;
 import io.hotmoka.whitelisting.api.WhiteListingClassLoader;
 
 /**
@@ -72,7 +73,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	}
 
 	@Override
-	protected EngineClassLoader mkClassLoader() throws StoreException, ClassLoaderCreationException {
+	protected EngineClassLoader mkClassLoader() throws ClassLoaderCreationException {
 		return environment.getClassLoader(request.getClasspath(), consensus);
 	}
 
@@ -128,7 +129,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 */
 		private BigInteger coinsInitiallyPaidForGas;
 
-		protected ResponseCreator() throws TransactionRejectedException, StoreException {
+		protected ResponseCreator() throws TransactionRejectedException {
 			this.gas = request.getGasLimit();
 			this.gasCostModel = consensus.getGasCostModel();
 		}
@@ -257,7 +258,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * @return true if and only if the faucet is open and this is a call to the faucet
 		 * @throws StoreException if the store is misbehaving
 		 */
-		protected boolean isCallToFaucet() throws StoreException {
+		protected boolean isCallToFaucet() {
 			return false;
 		}
 
@@ -375,8 +376,8 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 				}
 				catch (UnknownReferenceException | FieldNotFoundException e) {
 					// we have already verified that the caller exists and is an externally owned account:
-					// hence these exceptions now can only mean that the store is corrupted
-					throw new StoreException(e);
+					// hence these exceptions can only mean that the store is corrupted
+					throw new UncheckedStoreException(e);
 				}
 			}
 		}

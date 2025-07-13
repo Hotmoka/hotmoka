@@ -89,7 +89,7 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
     }
 
 	@Override
-	protected TendermintStoreTransformation beginTransformation(ConsensusConfig<?,?> consensus, long now) throws StoreException {
+	protected TendermintStoreTransformation beginTransformation(ConsensusConfig<?,?> consensus, long now) {
 		return new TendermintStoreTransformation(this, consensus, now, validators);
 	}
 }

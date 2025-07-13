@@ -86,9 +86,8 @@ public interface Store<S extends Store<S, T>, T extends StoreTransformation<S, T
 	 * 
 	 * @param now the time used as current time for the execution of the requests delivered to the transformation
 	 * @return the transformation
-	 * @throws StoreException if this store is not able to perform the operation
 	 */
-	T beginTransformation(long now) throws StoreException;
+	T beginTransformation(long now);
 
 	/**
 	 * Starts a view store transformation. It assumes the time of the transformation to be the

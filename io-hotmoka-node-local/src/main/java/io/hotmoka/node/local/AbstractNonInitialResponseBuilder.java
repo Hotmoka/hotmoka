@@ -20,7 +20,6 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.NonInitialTransactionRequest;
 import io.hotmoka.node.api.responses.NonInitialTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.builders.ExecutionEnvironment;
 import io.hotmoka.node.local.internal.builders.NonInitialResponseBuilderImpl;
 
@@ -54,8 +53,7 @@ public abstract class AbstractNonInitialResponseBuilder<Request extends NonIniti
 		 * Creates the response from the request.
 		 * 
 		 * @throws TransactionRejectedException if the request is rejected
-		 * @throws StoreException if the store of the node misbehaves
 		 */
-		protected ResponseCreator() throws TransactionRejectedException, StoreException {}
+		protected ResponseCreator() throws TransactionRejectedException {}
 	}
 }

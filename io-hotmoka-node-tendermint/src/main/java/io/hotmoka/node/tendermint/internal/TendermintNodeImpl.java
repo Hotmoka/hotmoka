@@ -583,13 +583,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		protected ResponseBeginBlock beginBlock(RequestBeginBlock request) throws NodeException, TimeoutException, InterruptedException {
 			behaving = spaceSeparatedSequenceOfBehavingValidatorsAddresses(request);
 	    	misbehaving = spaceSeparatedSequenceOfMisbehavingValidatorsAddresses(request);
-
-	    	try {
-	    		transformation = storeOfHead.beginTransformation(timeOfBlock(request));
-	    	}
-	    	catch (StoreException e) {
-	    		throw new NodeException(e);
-	    	}
+	    	transformation = storeOfHead.beginTransformation(timeOfBlock(request));
 
 	    	// the ABCI might start too early, before the Tendermint process is up
 	        if (validatorsAtPreviousBlock == null) {

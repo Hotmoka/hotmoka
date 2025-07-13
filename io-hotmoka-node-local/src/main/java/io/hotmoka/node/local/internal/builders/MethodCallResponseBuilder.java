@@ -57,7 +57,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 
 	protected abstract class ResponseCreator extends CodeCallResponseBuilder<Request, MethodCallTransactionResponse>.ResponseCreator {
 
-		protected ResponseCreator() throws TransactionRejectedException, StoreException {}
+		protected ResponseCreator() throws TransactionRejectedException {}
 
 		/**
 		 * Checks that the view annotation, if any, is satisfied.

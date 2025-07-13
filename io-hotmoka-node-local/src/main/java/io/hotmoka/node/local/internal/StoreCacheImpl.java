@@ -21,8 +21,8 @@ import java.util.Optional;
 import java.util.OptionalLong;
 
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.exceptions.functions.FunctionWithExceptions1;
 import io.hotmoka.exceptions.functions.FunctionWithExceptions2;
-import io.hotmoka.exceptions.functions.FunctionWithExceptions3;
 import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.api.ClassLoaderCreationException;
 import io.hotmoka.node.api.UnknownReferenceException;
@@ -33,7 +33,6 @@ import io.hotmoka.node.local.LRUCache;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.StoreCache;
-import io.hotmoka.node.local.api.StoreException;
 
 /**
  * Implementation of a cache of a store or store transformation.
@@ -185,12 +184,12 @@ public class StoreCacheImpl implements StoreCache {
 	}
 
 	@Override
-	public final EngineClassLoader getClassLoader(TransactionReference classpath, FunctionWithExceptions2<TransactionReference, EngineClassLoader, StoreException, ClassLoaderCreationException> ifMissing) throws StoreException, ClassLoaderCreationException {
-		return classLoaders.computeIfAbsent(classpath, ifMissing, StoreException.class, ClassLoaderCreationException.class);
+	public final EngineClassLoader getClassLoader(TransactionReference classpath, FunctionWithExceptions1<TransactionReference, EngineClassLoader, ClassLoaderCreationException> ifMissing) throws ClassLoaderCreationException {
+		return classLoaders.computeIfAbsent(classpath, ifMissing, ClassLoaderCreationException.class);
 	}
 
 	@Override
-	public final boolean signatureIsValid(TransactionReference reference, FunctionWithExceptions3<TransactionReference, Boolean, StoreException, UnknownReferenceException, FieldNotFoundException> ifMissing) throws StoreException, UnknownReferenceException, FieldNotFoundException {
-		return checkedSignatures.computeIfAbsent(reference, ifMissing, StoreException.class, UnknownReferenceException.class, FieldNotFoundException.class);
+	public final boolean signatureIsValid(TransactionReference reference, FunctionWithExceptions2<TransactionReference, Boolean, UnknownReferenceException, FieldNotFoundException> ifMissing) throws UnknownReferenceException, FieldNotFoundException {
+		return checkedSignatures.computeIfAbsent(reference, ifMissing, UnknownReferenceException.class, FieldNotFoundException.class);
 	}
 }

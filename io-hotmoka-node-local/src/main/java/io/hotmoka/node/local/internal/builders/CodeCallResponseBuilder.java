@@ -76,7 +76,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 */
 		private Object[] deserializedActuals;
 
-		protected ResponseCreator() throws TransactionRejectedException, StoreException {}
+		protected ResponseCreator() throws TransactionRejectedException {}
 
 		@Override
 		protected void checkConsistency() throws TransactionRejectedException, StoreException {

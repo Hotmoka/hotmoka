@@ -99,7 +99,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * @throws ClassLoaderCreationException if the request contains wrong information and the class loader cannot be created
 	 * @throws StoreException if the store of the node is misbehaving
 	 */
-	protected abstract EngineClassLoader mkClassLoader() throws StoreException, ClassLoaderCreationException;
+	protected abstract EngineClassLoader mkClassLoader() throws ClassLoaderCreationException;
 
 	/**
 	 * The creator of a response. Its body runs in a thread, so that the
@@ -129,7 +129,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 */
 		private BigInteger nextProgressive = BigInteger.ZERO;
 
-		protected ResponseCreator() throws StoreException, TransactionRejectedException {
+		protected ResponseCreator() throws TransactionRejectedException {
 			try {
 				this.classLoader = mkClassLoader();
 			}

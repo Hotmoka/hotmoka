@@ -584,10 +584,9 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 * 
 	 * @param reference the transaction to publish
 	 * @param store the store where the transaction and its potential events can be found
-	 * @throws NodeException if this node is not able to perform the operation
 	 * @throws UnknownReferenceException if {@code reference} cannot be found in {@code store}
 	 */
-	protected final void publish(TransactionReference reference, S store) throws NodeException, UnknownReferenceException {
+	protected final void publish(TransactionReference reference, S store) throws UnknownReferenceException {
 		signalCompleted(reference);
 
 		if (store.getResponse(reference) instanceof TransactionResponseWithEvents trwe && trwe.hasEvents())
@@ -595,14 +594,14 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 				notifyEvent(event, store);
 	}
 
-	protected void publishAllTransactionsDeliveredIn(T transformation, S store) throws NodeException {
+	protected void publishAllTransactionsDeliveredIn(T transformation, S store) {
 		for (var tx: transformation.getDeliveredTransactions().toArray(TransactionReference[]::new)) {
 			try {
 				publish(tx, store);
 			}
 			catch (UnknownReferenceException e) {
-				// the transactions have been delivered, if they cannot be found then there is a problem in the database
-				throw new NodeException("Delivered transactions should be in store", e);
+				// the transactions have been delivered, if they cannot be found then there is a problem in the database or a bug in the code
+				throw new UncheckedNodeException("Delivered transactions should be in store", e);
 			}
 		}
 	}
@@ -662,16 +661,16 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 			semaphore.release();
 	}
 
-	private void notifyEvent(StorageReference event, S store) throws NodeException {
+	private void notifyEvent(StorageReference event, S store) {
 		StorageReference creator;
 
 		try {
 			creator = store.getCreator(event);
 		}
-		catch (StoreException | UnknownReferenceException | FieldNotFoundException e) {
+		catch (UnknownReferenceException | FieldNotFoundException e) {
 			// this private method is only called on events in responses in store:
 			// if they cannot be processed, there is a problem in the database
-			throw new NodeException(e);
+			throw new UncheckedNodeException(e);
 		}
 
 		subscriptions.notifyEvent(creator, event);

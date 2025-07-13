@@ -29,6 +29,7 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.AbstractInitialResponseBuilder;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.api.UncheckedStoreException;
 
 /**
  * The creator of a response for a transaction that creates a gamete.
@@ -47,7 +48,7 @@ public class GameteCreationResponseBuilder extends AbstractInitialResponseBuilde
 	}
 
 	@Override
-	protected EngineClassLoader mkClassLoader() throws StoreException, ClassLoaderCreationException {
+	protected EngineClassLoader mkClassLoader() throws ClassLoaderCreationException {
 		return environment.getClassLoader(request.getClasspath(), consensus);
 	}
 
@@ -61,11 +62,11 @@ public class GameteCreationResponseBuilder extends AbstractInitialResponseBuilde
 
 				try {
 					Object gamete = classLoader.getGamete().getDeclaredConstructor(String.class).newInstance(request.getPublicKey());
-					classLoader.setBalanceOf(gamete, request.getInitialAmount(), StoreException::new);
-					return TransactionResponses.gameteCreation(updatesExtractor.extractUpdatesFrom(List.of(gamete)), classLoader.getStorageReferenceOf(gamete, StoreException::new));
+					classLoader.setBalanceOf(gamete, request.getInitialAmount(), UncheckedStoreException::new);
+					return TransactionResponses.gameteCreation(updatesExtractor.extractUpdatesFrom(List.of(gamete)), classLoader.getStorageReferenceOf(gamete, UncheckedStoreException::new));
 				}
 				catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | IllegalAssignmentToFieldInStorageException e) {
-					throw new StoreException("Could not call the constructor of the gamete", e);
+					throw new UncheckedStoreException("Could not call the constructor of the gamete", e);
 				}
 			}
 		}
