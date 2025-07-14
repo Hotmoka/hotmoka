@@ -27,7 +27,7 @@ import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.node.api.responses.GameteCreationTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.AbstractInitialResponseBuilder;
-import io.hotmoka.node.local.StoreException;
+import io.hotmoka.node.local.NodeException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 
 /**
@@ -65,7 +65,7 @@ public class GameteCreationResponseBuilder extends AbstractInitialResponseBuilde
 					return TransactionResponses.gameteCreation(updatesExtractor.extractUpdatesFrom(List.of(gamete)), classLoader.getStorageReferenceOf(gamete));
 				}
 				catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | IllegalAssignmentToFieldInStorageException e) {
-					throw new StoreException("Could not call the constructor of the gamete", e);
+					throw new NodeException("Could not call the constructor of the gamete", e);
 				}
 			}
 		}

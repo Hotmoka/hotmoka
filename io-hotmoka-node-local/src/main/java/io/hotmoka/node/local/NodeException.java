@@ -19,10 +19,10 @@ package io.hotmoka.node.local;
 import java.util.Objects;
 
 /**
- * An exception stating that a Hotmoka node was not able to perform an operation.
+ * An exception stating that a local Hotmoka node was not able to perform an operation.
  * This is a bug in the code of the node or a limit of the system. For instance,
- * it might occur because a cryptographic algorithm is not available or because
- * a file cannot be accessed. Therefore, this exception is not meant to be caught.
+ * it might occur because a database is corrupted, or a cryptographic algorithm is not available
+ * or because a file cannot be accessed. Therefore, this exception is not meant to be caught.
  */
 @SuppressWarnings("serial")
 public class NodeException extends RuntimeException {

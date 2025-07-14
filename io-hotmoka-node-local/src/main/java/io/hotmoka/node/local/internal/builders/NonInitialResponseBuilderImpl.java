@@ -47,7 +47,7 @@ import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.updates.UpdateOfField;
-import io.hotmoka.node.local.StoreException;
+import io.hotmoka.node.local.NodeException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.whitelisting.api.WhiteListingClassLoader;
@@ -374,7 +374,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 				catch (UnknownReferenceException | FieldNotFoundException e) {
 					// we have already verified that the caller exists and is an externally owned account:
 					// hence these exceptions can only mean that the store is corrupted
-					throw new StoreException(e);
+					throw new NodeException(e);
 				}
 			}
 		}
@@ -394,7 +394,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 				}
 				catch (UnknownReferenceException | FieldNotFoundException e) {
 					// we have already checked that the caller is an account, hence this should not happen
-					throw new StoreException(e);
+					throw new NodeException(e);
 				}
 
 				if (!expected.equals(request.getNonce()))
@@ -418,7 +418,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 			}
 			catch (UnknownReferenceException | FieldNotFoundException e) {
 				// we already checked that the caller is an account, therefore this should not happen
-				throw new StoreException(e);
+				throw new NodeException(e);
 			}
 		
 			if (totalBalance.subtract(cost).signum() < 0)
@@ -452,7 +452,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 			}
 			catch (NoSuchAlgorithmException e) {
 				// this is a limit of the Java installation, is not the fault of the user of Hotmoka
-				throw new StoreException(e);
+				throw new NodeException(e);
 			}
 			catch (ClassNotFoundException e) {
 				throw new TransactionRejectedException(e, consensus);

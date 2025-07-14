@@ -28,7 +28,7 @@ import io.hotmoka.node.api.UnmatchedTargetException;
 import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.local.StoreException;
+import io.hotmoka.node.local.NodeException;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -85,7 +85,7 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 				catch (ExceptionInInitializerError e) {
 					// Takamaka code verification bans static initializers and the white-listed library classes
 					// should not have static initializers that might fail
-					throw new StoreException("Unexpected failed execution of a static initializer of " + request.getStaticTarget());
+					throw new NodeException("Unexpected failed execution of a static initializer of " + request.getStaticTarget());
 				}
 
 				if (calleeIsAnnotatedAsView)

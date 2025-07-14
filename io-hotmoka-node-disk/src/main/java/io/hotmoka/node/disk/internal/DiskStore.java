@@ -39,7 +39,7 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.local.AbstractStore;
-import io.hotmoka.node.local.StoreException;
+import io.hotmoka.node.local.NodeException;
 import io.hotmoka.node.local.api.StoreCache;
 
 /**
@@ -200,7 +200,7 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
 				dumpResponse(progressive++, reference, addedResponses.get(reference));
 			}
 			catch (IOException e) {
-				throw new StoreException(e);
+				throw new NodeException(e);
 			}
 		}
     }
