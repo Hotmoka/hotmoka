@@ -42,7 +42,6 @@ import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.ClosedNodeException;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.api.requests.TransactionRequest;
@@ -201,12 +200,12 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	}
 
 	@Override
-	protected void postRequest(TransactionRequest<?> request) throws NodeException, TimeoutException, InterruptedException {
+	protected void postRequest(TransactionRequest<?> request) throws TimeoutException, InterruptedException {
 		try {
 			poster.postRequest(request);
 		}
 		catch (TendermintException e) { // TODO
-			throw new NodeException(e);
+			throw new UncheckedNodeException(e);
 		}
 	}
 
@@ -584,7 +583,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		}
 
 		@Override
-		protected ResponseBeginBlock beginBlock(RequestBeginBlock request) throws NodeException, TimeoutException, InterruptedException {
+		protected ResponseBeginBlock beginBlock(RequestBeginBlock request) throws TimeoutException, InterruptedException {
 			behaving = spaceSeparatedSequenceOfBehavingValidatorsAddresses(request);
 	    	misbehaving = spaceSeparatedSequenceOfMisbehavingValidatorsAddresses(request);
 	    	transformation = storeOfHead.beginTransformation(timeOfBlock(request));
@@ -595,7 +594,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	        		validatorsAtPreviousBlock = poster.getTendermintValidators();
 	        	}
 	        	catch (TendermintException e) {
-	        		throw new NodeException(e); // TODO
+	        		throw new UncheckedNodeException(e); // TODO
 	        	}
 	        }
 
@@ -603,7 +602,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		}
 
 		@Override
-		protected ResponseDeliverTx deliverTx(RequestDeliverTx request) throws NodeException, InterruptedException {
+		protected ResponseDeliverTx deliverTx(RequestDeliverTx request) throws InterruptedException {
 	        ResponseDeliverTx.Builder responseBuilder = ResponseDeliverTx.newBuilder();
 
 	        try (var context = NodeUnmarshallingContexts.of(new ByteArrayInputStream(request.getTx().toByteArray()))) {
@@ -653,37 +652,41 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		}
 
 		@Override
-		protected ResponseCommit commit(RequestCommit request) throws NodeException, InterruptedException {
+		protected ResponseCommit commit(RequestCommit request) throws InterruptedException {
+			transformation.deliverCoinbaseTransactions(behaving, misbehaving);
+
+			StateId idOfNewStoreOfHead = getEnvironment().computeInTransaction(txn -> {
+				StateId stateIdOfFinalStore = transformation.getIdOfFinalStore(txn);
+				setRootBranch(stateIdOfFinalStore, txn);
+
+				try {
+					persist(stateIdOfFinalStore, transformation.getNow(), txn);
+				}
+				catch (UnknownStateIdException e) {
+					// impossible, we have just computed this id for the final store
+					throw new UncheckedNodeException("State id " + stateIdOfFinalStore + " has been just computed: it must have existed", e);
+				}
+
+				keepPersistedOnlyNotOlderThan(transformation.getNow(), txn);
+				return stateIdOfFinalStore;
+			});
+
 			try {
-				transformation.deliverCoinbaseTransactions(behaving, misbehaving);
-
-				StateId idOfNewStoreOfHead = getEnvironment().computeInTransaction(txn -> {
-					StateId stateIdOfFinalStore = transformation.getIdOfFinalStore(txn);
-					setRootBranch(stateIdOfFinalStore, txn);
-
-					try {
-						persist(stateIdOfFinalStore, transformation.getNow(), txn);
-					}
-					catch (UnknownStateIdException e) {
-						// impossible, we have just computed this id for the final store
-						throw new UncheckedNodeException("State id " + stateIdOfFinalStore + " has been just computed: if must have existed", e);
-					}
-
-					keepPersistedOnlyNotOlderThan(transformation.getNow(), txn);
-					return stateIdOfFinalStore;
-				});
-
 				storeOfHead = mkStore(idOfNewStoreOfHead, Optional.of(transformation.getCache()));
-				publishAllTransactionsDeliveredIn(transformation, storeOfHead);
-
-				byte[] hash = getLastBlockApplicationHash();
-				LOGGER.info("committed Tendermint state " + Hex.toHexString(hash).toUpperCase());
-				return ResponseCommit.newBuilder().setData(ByteString.copyFrom(hash)).build();
 			}
 			catch (UnknownStateIdException e) {
+				// the store for idOfNewStoreOfHead has been persisted and cannot have been garbage-collected
+				// already: in Tendermint, garbage collection only occurs when a next block gets created,
+				// while here we have not even finished committing this block
 				LOGGER.log(Level.SEVERE, "commit failed", e);
-				throw new NodeException(e);
+				throw new UncheckedNodeException(e);
 			}
+
+			publishAllTransactionsDeliveredIn(transformation, storeOfHead);
+
+			byte[] hash = getLastBlockApplicationHash();
+			LOGGER.info("committed Tendermint state " + Hex.toHexString(hash).toUpperCase());
+			return ResponseCommit.newBuilder().setData(ByteString.copyFrom(hash)).build();
 		}
 
 		@Override

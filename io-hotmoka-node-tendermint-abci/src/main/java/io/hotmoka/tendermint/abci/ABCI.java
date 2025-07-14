@@ -110,12 +110,12 @@ public abstract class ABCI {
 				responseObserver.onNext(ABCI.this.beginBlock(request));
 				responseObserver.onCompleted();
 			}
-			catch (NodeException | TimeoutException e) {
-				responseObserver.onError(e);
-			}
 			catch (InterruptedException e) {
 				responseObserver.onError(e);
 				Thread.currentThread().interrupt();
+			}
+			catch (TimeoutException e) {
+				responseObserver.onError(e);
 			}
 	    }
 
@@ -125,14 +125,11 @@ public abstract class ABCI {
 				responseObserver.onNext(ABCI.this.deliverTx(request));
 				responseObserver.onCompleted();
 			}
-			catch (NodeException e) {
-				responseObserver.onError(e);
-			}
 			catch (InterruptedException e) {
 				responseObserver.onError(e);
 				Thread.currentThread().interrupt();
 			}
-	    }
+		}
 
 		@Override
 	    public final void endBlock(RequestEndBlock request, StreamObserver<ResponseEndBlock> responseObserver) {
@@ -145,9 +142,6 @@ public abstract class ABCI {
 			try {
 				responseObserver.onNext(ABCI.this.commit(request));
 				responseObserver.onCompleted();
-			}
-			catch (NodeException e) {
-				responseObserver.onError(e);
 			}
 			catch (InterruptedException e) {
 				responseObserver.onError(e);
@@ -189,7 +183,6 @@ public abstract class ABCI {
 	 * 
 	 * @param request the request
 	 * @return the response
-	 * @throws NodeException if the node is not able to complete the operation correctly
 	 * @throws TimeoutException if the operation did not complete on time
 	 * @throws InterruptedException if the current thread gets interrupted before completing the operation
 	 */
@@ -208,21 +201,19 @@ public abstract class ABCI {
 	 * 
 	 * @param request the request
 	 * @return the response
-	 * @throws NodeException if the node is not able to complete the operation correctly
 	 * @throws TimeoutException if the operation did not complete on time
 	 * @throws InterruptedException if the current thread gets interrupted before completing the operation
 	 */
-	protected abstract ResponseBeginBlock beginBlock(RequestBeginBlock request) throws NodeException, TimeoutException, InterruptedException;
+	protected abstract ResponseBeginBlock beginBlock(RequestBeginBlock request) throws TimeoutException, InterruptedException;
 
 	/**
 	 * Executes a transaction request.
 	 * 
 	 * @param request the request
 	 * @return the response
-	 * @throws NodeException if the node is not able to complete the operation correctly
 	 * @throws InterruptedException if the current thread gets interrupted before completing the operation
 	 */
-	protected abstract ResponseDeliverTx deliverTx(RequestDeliverTx request) throws NodeException, InterruptedException;
+	protected abstract ResponseDeliverTx deliverTx(RequestDeliverTx request) throws InterruptedException;
 
 	/**
 	 * Called when the construction of a block ends.
@@ -237,10 +228,9 @@ public abstract class ABCI {
 	 * 
 	 * @param request the request
 	 * @return the response
-	 * @throws NodeException if the node is not able to complete the operation correctly
 	 * @throws InterruptedException if the current thread gets interrupted before completing the operation
 	 */
-	protected abstract ResponseCommit commit(RequestCommit request) throws NodeException, InterruptedException;
+	protected abstract ResponseCommit commit(RequestCommit request) throws InterruptedException;
 
 	/**
 	 * Executes a query request.

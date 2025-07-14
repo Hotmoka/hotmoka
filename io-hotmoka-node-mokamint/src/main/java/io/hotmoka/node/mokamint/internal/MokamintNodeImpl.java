@@ -41,7 +41,6 @@ import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.ClosedNodeException;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.NodeInfo;
@@ -79,7 +78,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 	/**
 	 * The underlying Mokamint engine.
 	 */
-	private final LocalNode mokamintNode;
+	private final MyMokamintNode mokamintNode;
 
 	/**
 	 * A queue of blocks to publish. This gets enriched when the head changes and gets consumed
@@ -134,18 +133,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		super(config, init);
 
 		try {
-			this.mokamintNode = new AbstractLocalNode(mokamintConfig, keyPair, new MokamintHotmokaApplication(), createGenesis) {
-
-				@Override
-				protected void onHeadChanged(Deque<Block> pathToNewHead) {
-					super.onHeadChanged(pathToNewHead);
-
-					for (Block added: pathToNewHead) // TODO: add an application method instead: publish(block)
-						if (added instanceof NonGenesisBlock ngb)
-							toPublish.offer(ngb);
-				}
-			};
-
+			this.mokamintNode = new MyMokamintNode(mokamintConfig, keyPair, createGenesis);
 			// mokamintNode.addOnCloseHandler(this::close); // TODO
 		}
 		catch (io.mokamint.node.NodeCreationException e) {
@@ -153,6 +141,25 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		}
 
 		getExecutors().execute(this::publishBlocks);
+	}
+
+	/**
+	 * The Mokamint node that supports this Hotmoka node.
+	 */
+	private class MyMokamintNode extends AbstractLocalNode {
+
+		private MyMokamintNode(LocalNodeConfig mokamintConfig, KeyPair keyPair, boolean createGenesis) throws InterruptedException, io.mokamint.node.NodeCreationException {
+			super(mokamintConfig, keyPair, new MokamintHotmokaApplication(), createGenesis);
+		}
+
+		@Override
+		protected void onHeadChanged(Deque<Block> pathToNewHead) {
+			super.onHeadChanged(pathToNewHead);
+
+			for (Block added: pathToNewHead) // TODO: add an application method instead: publish(block)
+				if (added instanceof NonGenesisBlock ngb)
+					toPublish.offer(ngb);
+		}
 	}
 
 	@Override
@@ -176,7 +183,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 	}
 
 	@Override
-	protected MokamintStore getStoreOfHead() throws NodeException, InterruptedException {
+	protected MokamintStore getStoreOfHead() throws ClosedNodeException, InterruptedException {
 		try {
 			var maybeHeadStateId = mokamintNode.getChainInfo().getHeadStateId();
 			if (maybeHeadStateId.isEmpty())
@@ -188,7 +195,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			}
 
 			var si = StateIds.of(maybeHeadStateId.get());
-			MokamintStore result = mkStore(si, Optional.ofNullable(lastCaches.get(si)));
+			MokamintStore result = mkStore(si, Optional.ofNullable(lastCaches.get(si))); // TODO: who guarantees that the store at si has not been garbage-collected?
 
 			synchronized (headLock) {
 				lastHeadStateId = maybeHeadStateId.get();
@@ -197,9 +204,12 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 			return result;
 		}
-		catch (io.mokamint.node.api.ClosedNodeException | TimeoutException | UnknownStateIdException e) {
-			// a time-out in the Mokamint engine is seen as a misbehavior of the whole node
-			throw new NodeException(e);
+		catch (io.mokamint.node.api.ClosedNodeException e) {
+			throw new ClosedNodeException(e);
+		}
+		catch (UnknownStateIdException e) {
+			// this should not happen...
+			throw new UncheckedNodeException("The state of the head block is unknown or has been garbage-collected!", e);
 		}
 	}
 
@@ -214,7 +224,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 	}
 
 	@Override
-	protected void postRequest(TransactionRequest<?> request) throws NodeException, InterruptedException, TimeoutException {
+	protected void postRequest(TransactionRequest<?> request) throws ClosedNodeException, InterruptedException {
 		try {
 			mokamintNode.add(Transactions.of(request.toByteArray()));
 		}
@@ -222,8 +232,11 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			// the mempool of the Mokamint engine has rejected the transaction:
 			// the node has been already signaled that it failed, so there is nothing to do here
 		}
-		catch (io.mokamint.node.api.ClosedNodeException | ApplicationTimeoutException e) { // TODO
-			throw new NodeException(e);
+		catch (io.mokamint.node.api.ClosedNodeException e) {
+			throw new ClosedNodeException(e);
+		}
+		catch (ApplicationTimeoutException e) {
+			throw new UncheckedNodeException("Unexpected exception: the application is local and its method never go into timeout", e);
 		}
 	}
 
@@ -334,12 +347,10 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			var si = StateIds.of(stateId);
 
 			MokamintStore start;
+
 			try {
 				// if we have information about the cache at the requested state id, we use it for better efficiency
 				start = enter(si, Optional.ofNullable(lastCaches.get(si)));
-			}
-			catch (NodeException e) { // TODO
-				throw new RuntimeException(e);
 			}
 			catch (UnknownStateIdException e) {
 				throw new UnknownStateException(e);

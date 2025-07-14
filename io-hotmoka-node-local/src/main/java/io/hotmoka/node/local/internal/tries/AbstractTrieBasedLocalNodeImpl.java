@@ -34,7 +34,7 @@ import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.exceptions.functions.ConsumerWithExceptions1;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.local.AbstractLocalNode;
 import io.hotmoka.node.local.NodeCreationException;
 import io.hotmoka.node.local.StateIds;
@@ -196,7 +196,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	}
 
 	@Override
-	protected final S enterHead() throws NodeException, InterruptedException {
+	protected final S enterHead() throws ClosedNodeException, InterruptedException {
 		synchronized (lockGC) {
 			S head = getStoreOfHead();
 			enter(head, head.getStateId());
@@ -205,7 +205,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	}
 
 	@GuardedBy("lockGC")
-	protected abstract S getStoreOfHead() throws NodeException, InterruptedException;
+	protected abstract S getStoreOfHead() throws ClosedNodeException, InterruptedException;
 
 	/**
 	 * Called when this node is executing something that needs the store with the given state identifier.
@@ -217,9 +217,8 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 * @throws UnknownStateIdException if the required state identifier does not exist
 	 *                                 (for instance also if it has been garbage-collected already)
 	 * @throws InterruptedException if the operation has been interrupted before being completed
-	 * @throws NodeException if the operation could not be completed correctly
 	 */
-	protected S enter(StateId stateId, Optional<StoreCache> cache) throws UnknownStateIdException, NodeException, InterruptedException {
+	protected S enter(StateId stateId, Optional<StoreCache> cache) throws UnknownStateIdException, InterruptedException {
 		synchronized (lockGC) {
 			S result = mkStore(stateId, cache);
 			enter(result, stateId);
