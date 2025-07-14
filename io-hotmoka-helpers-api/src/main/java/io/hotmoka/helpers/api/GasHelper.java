@@ -33,7 +33,7 @@ import io.hotmoka.node.api.UnexpectedCodeException;
 public interface GasHelper {
 
 	/**
-	 * Yields the gas price for a transaction.
+	 * Yields the current gas price.
 	 * 
 	 * @return the gas price
 	 * @throws TransactionRejectedException if some transaction gets rejected
@@ -47,7 +47,7 @@ public interface GasHelper {
 	BigInteger getGasPrice() throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, UnexpectedCodeException, TimeoutException, InterruptedException;
 
 	/**
-	 * Yields a safe gas price for a transaction, that should be valid
+	 * Yields a safe current gas price, that should be valid
 	 * for a little time, also in case of small fluctuations in the gas price.
 	 * This is simply the double of {@link #getGasPrice()}.
 	 * 

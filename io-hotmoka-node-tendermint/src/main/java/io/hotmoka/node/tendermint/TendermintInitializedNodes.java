@@ -21,7 +21,6 @@ import java.nio.file.Path;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
-import io.hotmoka.helpers.InitializedNodes.StorageObjectCreationException;
 import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
@@ -55,12 +54,11 @@ public abstract class TendermintInitializedNodes {
 	 * @throws IOException if the jar file cannot be accessed
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
-	 * @throws StorageObjectCreationException if the creation of some storage object in the node failed
-	 * @throws UnexpectedCodeException if the Takamaka runtime installed in the node contains unexpected code
+	 * @throws UnexpectedCodeException if the jar file contains unexpected code
 	 * @throws ClosedNodeException if the node is already closed
 	 */
 	public static InitializedNode of(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, Path takamakaCode)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, StorageObjectCreationException, ClosedNodeException, UnexpectedCodeException {
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, ClosedNodeException, UnexpectedCodeException {
 
 		return new TendermintInitializedNodeImpl(parent, consensus, null, takamakaCode);
 	}
@@ -81,12 +79,11 @@ public abstract class TendermintInitializedNodes {
 	 * @throws IOException if the jar file cannot be accessed
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
-	 * @throws StorageObjectCreationException if the creation of some storage object in the node failed
-	 * @throws UnexpectedCodeException if the Takamaka runtime installed in the node contains unexpected code
+	 * @throws UnexpectedCodeException if the jar file contains unexpected code
 	 * @throws ClosedNodeException if the node is already closed
 	 */
 	public static InitializedNode of(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStation, Path takamakaCode)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, StorageObjectCreationException, ClosedNodeException, UnexpectedCodeException {
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, ClosedNodeException, UnexpectedCodeException {
 
 		return new TendermintInitializedNodeImpl(parent, consensus, producerOfGasStation, takamakaCode);
 	}

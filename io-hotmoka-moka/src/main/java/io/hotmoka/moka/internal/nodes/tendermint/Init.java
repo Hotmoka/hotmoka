@@ -35,7 +35,6 @@ import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.exceptions.Objects;
-import io.hotmoka.helpers.InitializedNodes.StorageObjectCreationException;
 import io.hotmoka.moka.NodesTendermintInitOutputs;
 import io.hotmoka.moka.api.nodes.tendermint.NodesTendermintInitOutput;
 import io.hotmoka.moka.api.nodes.tendermint.NodesTendermintInitOutput.ValidatorDescription;
@@ -61,7 +60,6 @@ import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.NodeCreationException;
-import io.hotmoka.node.local.NodeException;
 import io.hotmoka.node.service.NodeServices;
 import io.hotmoka.node.tendermint.TendermintInitializedNodes;
 import io.hotmoka.node.tendermint.TendermintNodeConfigBuilders;
@@ -130,7 +128,7 @@ public class Init extends AbstractNodeInit {
 		catch (IOException e) {
 			throw new CommandException("Cannot access file \"" + getTakamakaCode() + "\"!", e);
 		}
-		catch (TransactionRejectedException | TransactionException | CodeExecutionException | StorageObjectCreationException e) {
+		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
 			throw new CommandException("Could not initialize the node", e);
 		}
 		catch (InterruptedException e) {

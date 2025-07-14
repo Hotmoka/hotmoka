@@ -28,7 +28,6 @@ import java.util.function.Function;
 
 import io.hotmoka.helpers.AbstractNodeDecorator;
 import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
-import io.hotmoka.helpers.InitializedNodes.StorageObjectCreationException;
 import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
@@ -77,13 +76,12 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 	 * @throws IOException if the jar file cannot be accessed
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
-	 * @throws StorageObjectCreationException if the creation of some storage object failed
 	 * @throws ClosedNodeException if the node is already closed
 	 * @throws UnexpectedCodeException if the Takamaka code in the store of the node is unexpected
 	 */
 	public InitializedNodeImpl(Node parent, ValidatorsConsensusConfig<?,?> consensus, Path takamakaCode,
 			ProducerOfStorageObject<ValidatorsConsensusConfig<?,?>> producerOfValidatorsBuilder, ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStationBuilder)
-				throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, StorageObjectCreationException, ClosedNodeException, UnexpectedCodeException {
+				throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, ClosedNodeException, UnexpectedCodeException {
 
 		super(parent);
 

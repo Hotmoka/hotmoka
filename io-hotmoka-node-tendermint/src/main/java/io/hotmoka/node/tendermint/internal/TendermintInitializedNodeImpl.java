@@ -21,20 +21,13 @@ import static java.math.BigInteger.ZERO;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Path;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
 import io.hotmoka.crypto.Base64;
-import io.hotmoka.crypto.SignatureAlgorithms;
-import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.AbstractNodeDecorator;
 import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
-import io.hotmoka.helpers.InitializedNodes.StorageObjectCreationException;
 import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
@@ -80,12 +73,11 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 	 * @throws IOException if the jar file cannot be accessed
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
-	 * @throws StorageObjectCreationException if the creation of some storage object in the node failed
 	 * @throws UnexpectedCodeException if the Takamaka runtime installed in the node contains unexpected code
 	 * @throws ClosedNodeException if the node is already closed
 	 */
 	public TendermintInitializedNodeImpl(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, Path takamakaCode)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, StorageObjectCreationException, ClosedNodeException, UnexpectedCodeException {
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, ClosedNodeException, UnexpectedCodeException {
 
 		super(mkParent(parent, consensus, null, takamakaCode));
 	}
@@ -107,17 +99,16 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 	 * @throws IOException if the jar file cannot be accessed
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
-	 * @throws StorageObjectCreationException if the creation of some storage object in the node failed
 	 * @throws UnexpectedCodeException if the Takamaka runtime installed in the node contains unexpected code
 	 * @throws ClosedNodeException if the node is already closed
 	 */
 	public TendermintInitializedNodeImpl(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStationBuilder, Path takamakaCode)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, StorageObjectCreationException, ClosedNodeException, UnexpectedCodeException {
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, ClosedNodeException, UnexpectedCodeException {
 
 		super(mkParent(parent, consensus, producerOfGasStationBuilder, takamakaCode));
 	}
 
-	private static InitializedNode mkParent(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStationBuilder, Path takamakaCode) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, StorageObjectCreationException, ClosedNodeException, UnexpectedCodeException {
+	private static InitializedNode mkParent(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStationBuilder, Path takamakaCode) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, ClosedNodeException, UnexpectedCodeException {
 		var tendermintConfigFile = new TendermintConfigFile(parent.getLocalConfig());
 		var poster = new TendermintPoster(parent.getLocalConfig(), tendermintConfigFile.getTendermintPort());
 
@@ -133,7 +124,7 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 	}
 
 	private static StorageReference createTendermintValidatorsBuilder(TendermintPoster poster, InitializedNode node, ValidatorsConsensusConfig<?,?> consensus, TransactionReference takamakaCodeReference)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, UnexpectedCodeException, TimeoutException, InterruptedException, StorageObjectCreationException {
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, UnexpectedCodeException, TimeoutException, InterruptedException {
 
 		StorageReference gamete = node.gamete();
 		var getNonceRequest = TransactionRequests.instanceViewMethodCall(gamete, BigInteger.valueOf(50_000), takamakaCodeReference, MethodSignatures.NONCE, gamete);
@@ -161,25 +152,9 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 
 		// we populate the builder with a Tendermint validator at a time; this guarantees that they are created with 0 as progressive identifier 
 		var addValidatorMethod = MethodSignatures.ofVoid(builderClass, "addValidator", StorageTypes.STRING, StorageTypes.LONG);
-		SignatureAlgorithm ed25519;
-
-		try {
-			ed25519 = SignatureAlgorithms.ed25519();
-		}
-		catch (NoSuchAlgorithmException e) {
-			throw new StorageObjectCreationException(e);
-		}
 
 		for (TendermintValidator tv: tendermintValidators) {
-			String publicKeyBase64;
-
-			try {
-				publicKeyBase64 = Base64.toBase64String(ed25519.encodingOf(publicKeyFromTendermintValidator(tv, ed25519)));
-			}
-			catch (InvalidKeyException e) {
-				throw new StorageObjectCreationException("Tendermint answered with an illegal key", e);
-			}
-
+			String publicKeyBase64 = Base64.toBase64String(tv.getPubliKeyEncoded());
 			var addValidator = TransactionRequests.instanceMethodCall
 				(new byte[0], gamete, nonce, "", _200_000, ZERO, takamakaCodeReference,
 				addValidatorMethod, builder, StorageValues.stringOf(publicKeyBase64), StorageValues.longOf(tv.power));
@@ -189,19 +164,6 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 		}
 
 		return builder;
-	}
-
-	private static PublicKey publicKeyFromTendermintValidator(TendermintValidator validator, SignatureAlgorithm ed25519) throws StorageObjectCreationException {
-		if (!"tendermint/PubKeyEd25519".equals(validator.publicKeyType))
-			throw new StorageObjectCreationException("It is currently possible to create Tendermint validators only if they use ed25519 keys");
-
-        try {
-        	// TODO: can we probably return validator.publicKey directly?
-        	return ed25519.publicKeyFromEncoding(validator.getPubliKeyEncoded());
-		}
-        catch (InvalidKeySpecException e) {
-        	throw new StorageObjectCreationException("Tendermint answered with an illegal key", e);
-		}
 	}
 
 	@Override

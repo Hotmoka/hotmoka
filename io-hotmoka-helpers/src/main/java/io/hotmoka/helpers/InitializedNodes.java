@@ -81,13 +81,12 @@ public abstract class InitializedNodes {
 	 * @throws IOException if the jar file cannot be accessed
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
-	 * @throws StorageObjectCreationException if the creation of some storage object failed
 	 * @throws ClosedNodeException if the node is already closed
 	 * @throws UnexpectedCodeException if the Takamaka code in the store of the node is unexpected
 	 */
 	public static InitializedNode of(Node parent, ValidatorsConsensusConfig<?,?> consensus,
 			Path takamakaCode, ProducerOfStorageObject<ValidatorsConsensusConfig<?,?>> producerOfValidatorsBuilder, ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStation)
-					throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, StorageObjectCreationException, ClosedNodeException, UnexpectedCodeException {
+					throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, ClosedNodeException, UnexpectedCodeException {
 
 		return new InitializedNodeImpl(parent, consensus, takamakaCode, producerOfValidatorsBuilder, producerOfGasStation);
 	}
@@ -114,44 +113,8 @@ public abstract class InitializedNodes {
 		 * @throws UnexpectedCodeException if the Takamaka code in the store of the node is unexpected
 		 * @throws TimeoutException if no answer arrives before a time window
 		 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
-		 * @throws StorageObjectCreationException any other reason of failure of the creation of the object
 		 */
 		StorageReference apply(InitializedNode node, C consensus, TransactionReference takamakaCode)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, UnexpectedCodeException, TimeoutException, InterruptedException, StorageObjectCreationException;
-	}
-
-	/**
-	 * An exception stating that the creation of a storage exception failed.
-	 */
-	@SuppressWarnings("serial")
-	public static class StorageObjectCreationException extends Exception { // TODO: maybe unchecked?
-
-		/**
-		 * Creates the exception.
-		 * 
-		 * @param message the message
-		 */
-		public StorageObjectCreationException(String message) {
-			super(message);
-		}
-
-		/**
-		 * Creates the exception.
-		 * 
-		 * @param cause the cause of the failure
-		 */
-		public StorageObjectCreationException(Throwable cause) {
-			super(cause);
-		}
-
-		/**
-		 * Creates the exception.
-		 * 
-		 * @param message the message of the exception
-		 * @param cause the cause of the failure
-		 */
-		public StorageObjectCreationException(String message, Throwable cause) {
-			super(message, cause);
-		}
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, UnexpectedCodeException, TimeoutException, InterruptedException;
 	}
 }
