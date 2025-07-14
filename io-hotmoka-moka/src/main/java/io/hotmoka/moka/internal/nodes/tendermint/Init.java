@@ -61,8 +61,8 @@ import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.NodeCreationException;
+import io.hotmoka.node.local.NodeException;
 import io.hotmoka.node.service.NodeServices;
-import io.hotmoka.node.tendermint.TendermintException;
 import io.hotmoka.node.tendermint.TendermintInitializedNodes;
 import io.hotmoka.node.tendermint.TendermintNodeConfigBuilders;
 import io.hotmoka.node.tendermint.TendermintNodes;
@@ -145,9 +145,6 @@ public class Init extends AbstractNodeInit {
 		}
 		catch (UnexpectedCodeException e) {
 			throw new CommandException("The Takamaka runtime installed in the node contains unexpected code", e);
-		}
-		catch (TendermintException e) {
-			throw new CommandException("The Tendermint tool is misbehaving", e);
 		}
 		catch (TimeoutException e) {
 			throw new CommandException("The operation has timed-out", e);

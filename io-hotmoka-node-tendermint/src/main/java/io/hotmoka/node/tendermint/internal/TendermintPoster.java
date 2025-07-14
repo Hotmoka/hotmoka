@@ -39,7 +39,6 @@ import com.google.gson.JsonSyntaxException;
 
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.node.api.requests.TransactionRequest;
-import io.hotmoka.node.tendermint.TendermintException;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 import io.hotmoka.node.tendermint.internal.beans.TendermintBroadcastTxResponse;
 import io.hotmoka.node.tendermint.internal.beans.TendermintGenesisResponse;
@@ -75,11 +74,10 @@ public class TendermintPoster {
 	 * Sends the given {@code request} to the Tendermint process, inside a {@code broadcast_tx_async} Tendermint request.
 	 * 
 	 * @param request the request to send
-	 * @throws TendermintException if the TendermintException tool is misbehaving
 	 * @throws TimeoutException if the operation could not be completed on time
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 */
-	void postRequest(TransactionRequest<?> request) throws TendermintException, InterruptedException, TimeoutException {
+	void postRequest(TransactionRequest<?> request) throws InterruptedException, TimeoutException {
 		String jsonTendermintRequest = "{\"method\": \"broadcast_tx_async\", \"params\": {\"tx\": \"" + Base64.toBase64String(request.toByteArray()) + "\"}, \"id\": " + nextId.getAndIncrement() + "}";
 		TendermintBroadcastTxResponse response;
 
@@ -102,11 +100,10 @@ public class TendermintPoster {
 	 * Yields the chain id of the underlying Tendermint engine.
 	 * 
 	 * @return the chain id
-	 * @throws TendermintException if the Tendermint tool is misbehaving
 	 * @throws TimeoutException if the operation could not be completed on time
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 */
-	String getTendermintChainId() throws TendermintException, TimeoutException, InterruptedException {
+	String getTendermintChainId() throws TimeoutException, InterruptedException {
 		TendermintGenesisResponse response;
 
 		try {
@@ -133,11 +130,10 @@ public class TendermintPoster {
 	 * Yields the genesis time of the underlying Tendermint engine.
 	 * 
 	 * @return the genesis time
-	 * @throws TendermintException if the Tendermint tool is misbehaving
 	 * @throws TimeoutException if the operation could not be completed on time
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 */
-	LocalDateTime getGenesisTime() throws TendermintException, TimeoutException, InterruptedException {
+	LocalDateTime getGenesisTime() throws TimeoutException, InterruptedException {
 		TendermintGenesisResponse response;
 
 		try {
@@ -172,11 +168,10 @@ public class TendermintPoster {
 	 * hash of the public key of the node and is used to identify the node as a peer in the network.
 	 * 
 	 * @return the hexadecimal ID of the node
-	 * @throws TendermintException if the TendermintException tool is misbehaving
 	 * @throws TimeoutException if the operation could not be completed on time
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 */
-	String getNodeID() throws TendermintException, TimeoutException, InterruptedException {
+	String getNodeID() throws TimeoutException, InterruptedException {
 		TendermintStatusResponse response;
 
 		try {
@@ -203,11 +198,10 @@ public class TendermintPoster {
 	 * Yields the information about the validators of the underlying Tendermint engine.
 	 * 
 	 * @return the information
-	 * @throws TendermintException if the TendermintException tool is misbehaving
 	 * @throws TimeoutException if the operation could not be completed on time
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 */
-	TendermintValidator[] getTendermintValidators() throws TendermintException, TimeoutException, InterruptedException {
+	TendermintValidator[] getTendermintValidators() throws TimeoutException, InterruptedException {
 		TendermintValidatorsResponse response;
 
 		try {
@@ -261,7 +255,7 @@ public class TendermintPoster {
 		return URI.create("http://127.0.0.1:" + tendermintPort).toURL();
 	}
 
-	private static TendermintValidator intoTendermintValidator(TendermintValidatorPriority validatorPriority) throws TendermintException {
+	private static TendermintValidator intoTendermintValidator(TendermintValidatorPriority validatorPriority) {
 		if (validatorPriority.pub_key == null)
 			throw new TendermintException("null pub_key in Tendermint validator information");
 		else

@@ -53,7 +53,6 @@ import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.tendermint.TendermintException;
 import io.hotmoka.node.tendermint.api.TendermintInitializedNode;
 import io.hotmoka.node.tendermint.api.TendermintNode;
 
@@ -82,12 +81,11 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 * @throws StorageObjectCreationException if the creation of some storage object in the node failed
-	 * @throws TendermintException if the Tendermint tool is misbehaving
 	 * @throws UnexpectedCodeException if the Takamaka runtime installed in the node contains unexpected code
 	 * @throws ClosedNodeException if the node is already closed
 	 */
 	public TendermintInitializedNodeImpl(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, Path takamakaCode)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, StorageObjectCreationException, TendermintException, ClosedNodeException, UnexpectedCodeException {
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, StorageObjectCreationException, ClosedNodeException, UnexpectedCodeException {
 
 		super(mkParent(parent, consensus, null, takamakaCode));
 	}
@@ -110,17 +108,16 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 * @throws StorageObjectCreationException if the creation of some storage object in the node failed
-	 * @throws TendermintException if the Tendermint tool is misbehaving
 	 * @throws UnexpectedCodeException if the Takamaka runtime installed in the node contains unexpected code
 	 * @throws ClosedNodeException if the node is already closed
 	 */
 	public TendermintInitializedNodeImpl(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStationBuilder, Path takamakaCode)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, StorageObjectCreationException, TendermintException, ClosedNodeException, UnexpectedCodeException {
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, StorageObjectCreationException, ClosedNodeException, UnexpectedCodeException {
 
 		super(mkParent(parent, consensus, producerOfGasStationBuilder, takamakaCode));
 	}
 
-	private static InitializedNode mkParent(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStationBuilder, Path takamakaCode) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, StorageObjectCreationException, TendermintException, ClosedNodeException, UnexpectedCodeException {
+	private static InitializedNode mkParent(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStationBuilder, Path takamakaCode) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, StorageObjectCreationException, ClosedNodeException, UnexpectedCodeException {
 		var tendermintConfigFile = new TendermintConfigFile(parent.getLocalConfig());
 		var poster = new TendermintPoster(parent.getLocalConfig(), tendermintConfigFile.getTendermintPort());
 
@@ -145,14 +142,7 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 			.asReturnedBigInteger(MethodSignatures.NONCE, UnexpectedValueException::new);
 
 		// we create validators corresponding to those declared in the configuration file of the Tendermint node
-		TendermintValidator[] tendermintValidators;
-
-		try {
-			tendermintValidators = poster.getTendermintValidators();
-		}
-		catch (TendermintException e) {
-			throw new StorageObjectCreationException(e);
-		}
+		TendermintValidator[] tendermintValidators = poster.getTendermintValidators();
 
 		// we create the builder of the validators
 		var _200_000 = BigInteger.valueOf(200_000);

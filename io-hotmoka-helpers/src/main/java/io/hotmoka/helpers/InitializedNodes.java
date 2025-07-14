@@ -124,7 +124,7 @@ public abstract class InitializedNodes {
 	 * An exception stating that the creation of a storage exception failed.
 	 */
 	@SuppressWarnings("serial")
-	public static class StorageObjectCreationException extends Exception {
+	public static class StorageObjectCreationException extends Exception { // TODO: maybe unchecked?
 
 		/**
 		 * Creates the exception.

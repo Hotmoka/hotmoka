@@ -51,7 +51,6 @@ import io.hotmoka.node.local.StateIds;
 import io.hotmoka.node.local.NodeException;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.UnknownStateIdException;
-import io.hotmoka.node.tendermint.TendermintException;
 import io.hotmoka.node.tendermint.api.TendermintNode;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 import io.hotmoka.tendermint.abci.ABCI;
@@ -170,12 +169,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	@Override
 	public NodeInfo getInfo() throws ClosedNodeException, TimeoutException, InterruptedException {
 		try (var scope = mkScope()) {
-			try {
-				return NodeInfos.of(TendermintNode.class.getName(), Constants.HOTMOKA_VERSION, poster.getNodeID());
-			}
-			catch (TendermintException e) { // TODO
-				throw new RuntimeException(e);
-			}
+			return NodeInfos.of(TendermintNode.class.getName(), Constants.HOTMOKA_VERSION, poster.getNodeID());
 		}
 	}
 
@@ -201,12 +195,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 
 	@Override
 	protected void postRequest(TransactionRequest<?> request) throws TimeoutException, InterruptedException {
-		try {
-			poster.postRequest(request);
-		}
-		catch (TendermintException e) { // TODO
-			throw new NodeException(e);
-		}
+		poster.postRequest(request);
 	}
 
 	private void setRootBranch(StateId stateId, Transaction txn) {
@@ -589,14 +578,8 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	    	transformation = storeOfHead.beginTransformation(timeOfBlock(request));
 
 	    	// the ABCI might start too early, before the Tendermint process is up
-	        if (validatorsAtPreviousBlock == null) {
-	        	try {
-	        		validatorsAtPreviousBlock = poster.getTendermintValidators();
-	        	}
-	        	catch (TendermintException e) {
-	        		throw new NodeException(e); // TODO
-	        	}
-	        }
+	        if (validatorsAtPreviousBlock == null)
+	        	validatorsAtPreviousBlock = poster.getTendermintValidators();
 
 	        return ResponseBeginBlock.newBuilder().build();
 		}

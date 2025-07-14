@@ -102,7 +102,6 @@ import io.hotmoka.node.mokamint.MokamintNodes;
 import io.hotmoka.node.mokamint.api.MokamintNode;
 import io.hotmoka.node.remote.RemoteNodes;
 import io.hotmoka.node.service.NodeServices;
-import io.hotmoka.node.tendermint.TendermintException;
 import io.hotmoka.node.tendermint.TendermintInitializedNodes;
 import io.hotmoka.node.tendermint.TendermintNodeConfigBuilders;
 import io.hotmoka.node.tendermint.TendermintNodes;
@@ -331,7 +330,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	}
 
 	private static void initializeNodeIfNeeded(Node node) throws TransactionRejectedException, TransactionException,
-			CodeExecutionException, IOException, TimeoutException, InterruptedException, StorageObjectCreationException, TendermintException, ClosedNodeException, UnexpectedCodeException {
+			CodeExecutionException, IOException, TimeoutException, InterruptedException, StorageObjectCreationException, ClosedNodeException, UnexpectedCodeException {
 
 		try {
 			node.getManifest();
@@ -500,7 +499,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 			return nodes.get(0);
 		}
-		catch (IOException | InvalidKeyException | NoSuchAlgorithmException | StorageObjectCreationException | io.mokamint.node.api.ClosedNodeException | PeerRejectedException | ClosedPeerException | TransactionRejectedException | TransactionException | CodeExecutionException | FailedDeploymentException | WrongKeyException | TendermintException | ClosedNodeException | UnexpectedCodeException e) {
+		catch (IOException | InvalidKeyException | NoSuchAlgorithmException | StorageObjectCreationException | io.mokamint.node.api.ClosedNodeException | PeerRejectedException | ClosedPeerException | TransactionRejectedException | TransactionException | CodeExecutionException | FailedDeploymentException | WrongKeyException | ClosedNodeException | UnexpectedCodeException e) {
 			throw new NodeCreationException(e);
 		}
 	}

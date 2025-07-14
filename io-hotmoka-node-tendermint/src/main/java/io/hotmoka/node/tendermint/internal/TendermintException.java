@@ -14,13 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.tendermint;
+package io.hotmoka.node.tendermint.internal;
+
+import io.hotmoka.node.local.NodeException;
 
 /**
- * An exception thrown when the Tendermint tool misbehaves.
+ * An exception thrown when the Tendermint tool used by a Tendermint Hotmoka node misbehaves.
  */
 @SuppressWarnings("serial")
-public class TendermintException extends Exception { // TODO: make it unchecked?
+public class TendermintException extends NodeException {
 
 	/**
 	 * Creates the exception.
@@ -29,15 +31,6 @@ public class TendermintException extends Exception { // TODO: make it unchecked?
 	 */
 	public TendermintException(String message) {
 		super(message);
-	}
-
-	/**
-	 * Creates the exception.
-	 * 
-	 * @param cause the cause of the exception
-	 */
-	public TendermintException(Throwable cause) {
-		super(cause);
 	}
 
 	/**

@@ -56,12 +56,11 @@ public abstract class TendermintInitializedNodes {
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 * @throws StorageObjectCreationException if the creation of some storage object in the node failed
-	 * @throws TendermintException if the Tendermint tool is misbehaving
 	 * @throws UnexpectedCodeException if the Takamaka runtime installed in the node contains unexpected code
 	 * @throws ClosedNodeException if the node is already closed
 	 */
 	public static InitializedNode of(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, Path takamakaCode)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, StorageObjectCreationException, TendermintException, ClosedNodeException, UnexpectedCodeException {
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, StorageObjectCreationException, ClosedNodeException, UnexpectedCodeException {
 
 		return new TendermintInitializedNodeImpl(parent, consensus, null, takamakaCode);
 	}
@@ -83,12 +82,11 @@ public abstract class TendermintInitializedNodes {
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 * @throws StorageObjectCreationException if the creation of some storage object in the node failed
-	 * @throws TendermintException if the Tendermint tool is misbehaving
 	 * @throws UnexpectedCodeException if the Takamaka runtime installed in the node contains unexpected code
 	 * @throws ClosedNodeException if the node is already closed
 	 */
 	public static InitializedNode of(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStation, Path takamakaCode)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, StorageObjectCreationException, TendermintException, ClosedNodeException, UnexpectedCodeException {
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, StorageObjectCreationException, ClosedNodeException, UnexpectedCodeException {
 
 		return new TendermintInitializedNodeImpl(parent, consensus, producerOfGasStation, takamakaCode);
 	}
