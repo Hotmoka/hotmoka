@@ -35,7 +35,7 @@ import io.hotmoka.node.local.api.CheckableStore;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreCache;
-import io.hotmoka.node.local.api.UncheckedStoreException;
+import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UnknownStateIdException;
 import io.hotmoka.patricia.api.UnknownKeyException;
 import io.hotmoka.xodus.env.Transaction;
@@ -281,7 +281,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 		}
 		catch (UnknownKeyException e) {
 			// the constructors enforce the existence of the root, there this is a database problem
-			throw new UncheckedStoreException("The root was expected to be in store");
+			throw new StoreException("The root was expected to be in store");
 		}
 	}
 
@@ -291,7 +291,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 		}
 		catch (UnknownKeyException e) {
 			// the constructors enforce the existence of the root, there this is a database problem
-			throw new UncheckedStoreException("The root was expected to be in store");
+			throw new StoreException("The root was expected to be in store");
 		}
 	}
 
@@ -301,7 +301,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 		}
 		catch (UnknownKeyException e) {
 			// the constructors enforce the existence of the root, there this is a database problem
-			throw new UncheckedStoreException("The root was expected to be in store");
+			throw new StoreException("The root was expected to be in store");
 		}
 	}
 
@@ -311,7 +311,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 		}
 		catch (UnknownKeyException e) {
 			// the constructors enforce the existence of the root, there this is a database problem
-			throw new UncheckedStoreException("The root was expected to be in store");
+			throw new StoreException("The root was expected to be in store");
 		}
 	}
 }

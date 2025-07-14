@@ -43,7 +43,7 @@ import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.api.EngineClassLoader;
-import io.hotmoka.node.local.api.UncheckedStoreException;
+import io.hotmoka.node.local.api.StoreException;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -168,14 +168,14 @@ public class UpdatesExtractor {
 					// storage objects can only have class type, hence the conversion must succeed
 					updates.add(Updates.classTag(storageReference, StorageTypes.classFromClass(clazz),
 						classLoader.transactionThatInstalledJarFor(clazz)
-							.orElseThrow(() -> new UncheckedStoreException("Object " + storageReference + " is in store, therefore it must have been installed in the store with a jar"))));
+							.orElseThrow(() -> new StoreException("Object " + storageReference + " is in store, therefore it must have been installed in the store with a jar"))));
 
 				Class<?> previous = null;
 				var storage = classLoader.getStorage();
 				while (previous != storage) {
 					if (clazz == null)
 						// the objects where expected to be instances of io.takamaka.code.lang.Storage
-						throw new UncheckedStoreException("Cannot extract the updates of an object that is not subclass of " + Constants.STORAGE_NAME);
+						throw new StoreException("Cannot extract the updates of an object that is not subclass of " + Constants.STORAGE_NAME);
 
 					addUpdatesForFieldsDefinedInClass(clazz, object);
 					previous = clazz;
@@ -239,7 +239,7 @@ public class UpdatesExtractor {
 				else if (request instanceof GameteCreationTransactionRequest gctr)
 					return gctr.getClasspath();
 				else
-					throw new UncheckedStoreException("Object " + storageReference + " has been unexpectedly created with a " + request.getClass().getName());
+					throw new StoreException("Object " + storageReference + " has been unexpectedly created with a " + request.getClass().getName());
 			}
 
 			/**
@@ -258,7 +258,7 @@ public class UpdatesExtractor {
 				}
 				catch (SecurityException e) {
 					// the class loader is the same used to load clazz: this situation should be impossible
-					throw new UncheckedStoreException("Cannot access the fields defined in class " + clazz.getName(), e);
+					throw new StoreException("Cannot access the fields defined in class " + clazz.getName(), e);
 				}
 
 				for (Field field: declaredFields)
@@ -267,7 +267,7 @@ public class UpdatesExtractor {
 							field.setAccessible(true); // it might be private
 						}
 						catch (SecurityException | InaccessibleObjectException e) {
-							throw new UncheckedStoreException("Cannot make field " + field.getDeclaringClass().getName() + "." + field.getName() + " accessible", e);
+							throw new StoreException("Cannot make field " + field.getDeclaringClass().getName() + "." + field.getName() + " accessible", e);
 						}
 
 						Object currentValue, oldValue;
@@ -276,7 +276,7 @@ public class UpdatesExtractor {
 							currentValue = field.get(object);
 						}
 						catch (IllegalArgumentException | IllegalAccessException | ExceptionInInitializerError e) {
-							throw new UncheckedStoreException("Cannot access field " + field.getDeclaringClass().getName() + "." + field.getName(), e);
+							throw new StoreException("Cannot access field " + field.getDeclaringClass().getName() + "." + field.getName(), e);
 						}
 
 						String oldName = InstrumentationFields.OLD_PREFIX + field.getName();
@@ -286,7 +286,7 @@ public class UpdatesExtractor {
 							oldValue = oldField.get(object);
 						}
 						catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException | InaccessibleObjectException | ExceptionInInitializerError e) {
-							throw new UncheckedStoreException("Cannot access the old value of field " + field.getDeclaringClass().getName() + "." + field.getName(), e);
+							throw new StoreException("Cannot access the old value of field " + field.getDeclaringClass().getName() + "." + field.getName(), e);
 						}
 
 						if (!inStorage || !Objects.equals(oldValue, currentValue))
@@ -311,7 +311,7 @@ public class UpdatesExtractor {
 				else if (classLoader.isLazilyLoaded(clazz)) // eager types are not recursively followed
 					// there was an illegal old value in this field: this should never happen
 					// since should have been rejected at run time when trying to modify the field
-					throw new UncheckedStoreException("A field of a storage object cannot hold a " + clazz.getName());
+					throw new StoreException("A field of a storage object cannot hold a " + clazz.getName());
 			}
 
 			/**
@@ -359,7 +359,7 @@ public class UpdatesExtractor {
 					addUpdateFor(fieldDefiningClass, fieldName, fieldType.getName(), newValue);
 				else
 					// for example arrays: they should have been forbidden when verifying the installed jars
-					throw new UncheckedStoreException("Unexpected type " + fieldType.getName() + " for a field of a storage object: " + fieldDefiningClass.getName() + '.' + fieldName);
+					throw new StoreException("Unexpected type " + fieldType.getName() + " for a field of a storage object: " + fieldDefiningClass.getName() + '.' + fieldName);
 			}
 
 			/**

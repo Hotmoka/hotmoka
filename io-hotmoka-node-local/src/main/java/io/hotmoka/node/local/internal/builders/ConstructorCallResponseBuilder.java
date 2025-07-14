@@ -33,7 +33,7 @@ import io.hotmoka.node.api.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.local.api.UncheckedStoreException;
+import io.hotmoka.node.local.api.StoreException;
 
 /**
  * The creator of a response for a transaction that executes a constructor of Takamaka code.
@@ -103,14 +103,14 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 				catch (ExceptionInInitializerError e) {
 					// Takamaka code verification bans static initializers and the white-listed library classes
 					// should not have static initializers that might fail
-					throw new UncheckedStoreException("Unexpected failed execution of a static initializer");
+					throw new StoreException("Unexpected failed execution of a static initializer");
 				}
 
 				if (serialize(result) instanceof StorageReference sr)
 					return success(result, sr);
 				else
 					// a constructor can only create an object, represented as a storage reference in Hotmoka
-					throw new UncheckedStoreException("The return value of a constructor should be an object");
+					throw new StoreException("The return value of a constructor should be an object");
 			}
 			catch (HotmokaException e) {
 				logFailure(Level.INFO, e);

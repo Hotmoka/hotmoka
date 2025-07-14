@@ -40,7 +40,7 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.local.AbstractStore;
 import io.hotmoka.node.local.api.StoreCache;
-import io.hotmoka.node.local.api.UncheckedStoreException;
+import io.hotmoka.node.local.api.StoreException;
 
 /**
  * The store of a disk blockchain. It is not transactional and just writes
@@ -200,7 +200,7 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
 				dumpResponse(progressive++, reference, addedResponses.get(reference));
 			}
 			catch (IOException e) {
-				throw new UncheckedStoreException(e);
+				throw new StoreException(e);
 			}
 		}
     }

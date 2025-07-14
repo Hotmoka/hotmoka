@@ -41,7 +41,7 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.ResponseBuilder;
-import io.hotmoka.node.local.api.UncheckedStoreException;
+import io.hotmoka.node.local.api.StoreException;
 
 /**
  * A generic implementation of the creator of a response.
@@ -172,7 +172,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 				else if (cause instanceof Error error)
 					throw error;
 				else
-					throw new UncheckedStoreException("Unexpected exception", cause);
+					throw new StoreException("Unexpected exception", cause);
 			}
 		}
 

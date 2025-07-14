@@ -41,7 +41,7 @@ import io.hotmoka.node.api.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.AbstractStoreTransformation;
-import io.hotmoka.node.local.api.UncheckedStoreException;
+import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.builders.ExecutionEnvironment;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.VerifiedJars;
@@ -114,7 +114,7 @@ public class Reverification {
 					ast.setResponse(reference, entry.getValue());
 			}
 			catch (UnknownReferenceException e) {
-				throw new UncheckedStoreException(e); // the response for this transaction has been reverified but it disappeared! The store looks corrupted
+				throw new StoreException(e); // the response for this transaction has been reverified but it disappeared! The store looks corrupted
 			}
 
 			LOGGER.info(reference + ": updated after reverification");
@@ -200,7 +200,7 @@ public class Reverification {
 			request = environment.getRequest(transaction);
 		}
 		catch (UnknownReferenceException e) {
-			throw new UncheckedStoreException("Transaction " + transaction + " under reverification has a response in store but its request cannot be found in store");
+			throw new StoreException("Transaction " + transaction + " under reverification has a response in store but its request cannot be found in store");
 		}
 
 		// this check should always succeed if the implementation of the node is correct, since we checked already that the response installed a jar
@@ -224,7 +224,7 @@ public class Reverification {
 				VerifiedJars.of(jar, tcl, gjstr instanceof InitialTransactionRequest, _error -> {}, consensus.skipsVerification());
 			}
 			catch (UnsupportedVerificationVersionException e) {
-				throw new UncheckedStoreException(e);
+				throw new StoreException(e);
 			}
 			catch (VerificationException | IllegalJarException | UnknownTypeException e) {
 				return transformIntoFailed(response, transaction, e.getMessage());
@@ -233,12 +233,12 @@ public class Reverification {
 			return updateVersion(response, transaction);
 		}
 		else
-			throw new UncheckedStoreException("Transaction " + transaction + " under reverification has a response in store that installed a jar but its request is not for a jar installation");
+			throw new StoreException("Transaction " + transaction + " under reverification has a response in store that installed a jar but its request is not for a jar installation");
 	}
 
 	private JarStoreTransactionFailedResponse transformIntoFailed(JarStoreTransactionResponseWithInstrumentedJar response, TransactionReference transaction, String error) {
 		if (response instanceof JarStoreInitialTransactionResponse)
-			throw new UncheckedStoreException("The reverification of the initial jar store transaction " + transaction + " failed: its jar cannot be used and the node is broken");
+			throw new StoreException("The reverification of the initial jar store transaction " + transaction + " failed: its jar cannot be used and the node is broken");
 		else if (response instanceof JarStoreTransactionSuccessfulResponse currentResponseAsNonInitial) {
 			var replacement = TransactionResponses.jarStoreFailed(
 					currentResponseAsNonInitial.getUpdates(), currentResponseAsNonInitial.getGasConsumedForCPU(),
@@ -264,7 +264,7 @@ public class Reverification {
 				consensus.getVerificationVersion(), currentResponseAsNonInitial.getUpdates(), currentResponseAsNonInitial.getGasConsumedForCPU(),
 				currentResponseAsNonInitial.getGasConsumedForRAM(), currentResponseAsNonInitial.getGasConsumedForStorage());
 		else
-			throw new UncheckedStoreException("Unexpected jar-carrying response of class " + response.getClass().getName());
+			throw new StoreException("Unexpected jar-carrying response of class " + response.getClass().getName());
 
 		reverified.put(transaction, replacement);
 
@@ -287,19 +287,19 @@ public class Reverification {
 				if (gjstr instanceof JarStoreTransactionResponseWithInstrumentedJar trwij)
 					return trwij;
 				else if (wasDependencyInStore)
-					throw new UncheckedStoreException("The transaction " + transaction + " under reverification was a dependency of a transaction in store but it did not install a jar in store");
+					throw new StoreException("The transaction " + transaction + " under reverification was a dependency of a transaction in store but it did not install a jar in store");
 				else
 					throw new ClassLoaderCreationException("The transaction " + transaction + " under reverification did not install a jar in store");
 			}
 			else
 				if (wasDependencyInStore)
-					throw new UncheckedStoreException("Transaction " + transaction + " under reverification was a dependency of a transaction in store, hence it was expected to be a jar store transaction, but it is a " + response.getClass().getSimpleName());
+					throw new StoreException("Transaction " + transaction + " under reverification was a dependency of a transaction in store, hence it was expected to be a jar store transaction, but it is a " + response.getClass().getSimpleName());
 				else
 					throw new ClassLoaderCreationException("The transaction " + transaction + " under reverification is not a jar store transaction");
 		}
 		catch (UnknownReferenceException e) {
 			if (wasDependencyInStore)
-				throw new UncheckedStoreException("Transaction " + transaction + " under reverification was a dependency of a transaction in store, hence it was expected to exist, but it cannot be found in store");
+				throw new StoreException("Transaction " + transaction + " under reverification was a dependency of a transaction in store, hence it was expected to exist, but it cannot be found in store");
 			else
 				throw new ClassLoaderCreationException("Unknown transaction reference " + transaction + " under reverification");
 		}

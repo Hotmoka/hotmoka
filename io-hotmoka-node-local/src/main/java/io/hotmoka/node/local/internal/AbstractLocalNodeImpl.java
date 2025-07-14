@@ -77,7 +77,7 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.local.LRUCache;
 import io.hotmoka.node.local.NodeCreationException;
-import io.hotmoka.node.local.UncheckedNodeException;
+import io.hotmoka.node.local.NodeException;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.LocalNode;
 import io.hotmoka.node.local.api.LocalNodeConfig;
@@ -305,7 +305,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 						.orElseThrow(() -> new UnknownReferenceException("Cannot find object " + reference + " in store"));
 			}
 			else
-				throw new UncheckedNodeException("Reference " + reference + " is part of the histories but did not generate updates");
+				throw new NodeException("Reference " + reference + " is part of the histories but did not generate updates");
 		}
 		finally {
 			exit(store);
@@ -326,10 +326,10 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 						.filter(update -> update.getObject().equals(reference) && updates.stream().noneMatch(update::sameProperty))
 						.forEach(updates::add);
 					else
-						throw new UncheckedNodeException("Reference " + referenceInHistory + " is part of the histories but did not generate updates");
+						throw new NodeException("Reference " + referenceInHistory + " is part of the histories but did not generate updates");
 				}
 				catch (UnknownReferenceException e) {
-					throw new UncheckedNodeException("Reference " + referenceInHistory + " is part of the histories but is not in the store");
+					throw new NodeException("Reference " + referenceInHistory + " is part of the histories but is not in the store");
 				}
 			});
 
@@ -531,7 +531,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 			}
 			catch (UnknownReferenceException e) {
 				// the transactions have been delivered, if they cannot be found then there is a problem in the database or a bug in the code
-				throw new UncheckedNodeException("Delivered transactions should be in store", e);
+				throw new NodeException("Delivered transactions should be in store", e);
 			}
 		}
 	}
@@ -600,7 +600,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		catch (UnknownReferenceException | FieldNotFoundException e) {
 			// this private method is only called on events in responses in store:
 			// if they cannot be processed, there is a problem in the database
-			throw new UncheckedNodeException(e);
+			throw new NodeException(e);
 		}
 
 		subscriptions.notifyEvent(creator, event);

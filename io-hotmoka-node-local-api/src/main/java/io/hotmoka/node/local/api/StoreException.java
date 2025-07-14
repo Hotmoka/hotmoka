@@ -14,30 +14,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.local;
+package io.hotmoka.node.local.api;
 
 import java.util.Objects;
 
 /**
- * An exception stating that a Hotmoka node was not able to perform an operation.
- * This is not a bug in the code of the node, but a misbehavior or limit of the node.
+ * An exception stating that the store of a Hotmoka node was not able to perform an operation.
+ * This is a bug in the code of the node or a limit of the system. For instance,
+ * it might occur because a database is corrupted, or a cryptographic algorithm is not available
+ * or because a file cannot be accessed. Therefore, this exception is not meant to be caught.
  */
 @SuppressWarnings("serial")
-public class UncheckedNodeException extends RuntimeException {
-
-	/**
-	 * Creates a new exception.
-	 */
-	public UncheckedNodeException() {
-		super("The node is misbehaving");
-	}
+public class StoreException extends RuntimeException {
 
 	/**
 	 * Creates a new exception with the given message.
 	 * 
 	 * @param message the message
 	 */
-	public UncheckedNodeException(String message) {
+	public StoreException(String message) {
 		super(Objects.requireNonNull(message, "message cannot be null"));
 	}
 
@@ -46,7 +41,7 @@ public class UncheckedNodeException extends RuntimeException {
 	 * 
 	 * @param cause the cause
 	 */
-	public UncheckedNodeException(Throwable cause) {
+	public StoreException(Throwable cause) {
 		super(String.valueOf(cause.getMessage()), cause);
 	}
 
@@ -56,7 +51,7 @@ public class UncheckedNodeException extends RuntimeException {
 	 * @param message the message
 	 * @param cause the cause
 	 */
-	public UncheckedNodeException(String message, Throwable cause) {
+	public StoreException(String message, Throwable cause) {
 		super(Objects.requireNonNull(message, "message cannot be null"), Objects.requireNonNull(cause, "cause cannot be null"));
 	}
 }

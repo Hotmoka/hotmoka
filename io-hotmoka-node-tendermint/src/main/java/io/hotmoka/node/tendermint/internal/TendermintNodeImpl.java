@@ -48,7 +48,7 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.local.AbstractTrieBasedLocalNode;
 import io.hotmoka.node.local.NodeCreationException;
 import io.hotmoka.node.local.StateIds;
-import io.hotmoka.node.local.UncheckedNodeException;
+import io.hotmoka.node.local.NodeException;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.UnknownStateIdException;
 import io.hotmoka.node.tendermint.TendermintException;
@@ -205,7 +205,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 			poster.postRequest(request);
 		}
 		catch (TendermintException e) { // TODO
-			throw new UncheckedNodeException(e);
+			throw new NodeException(e);
 		}
 	}
 
@@ -594,7 +594,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	        		validatorsAtPreviousBlock = poster.getTendermintValidators();
 	        	}
 	        	catch (TendermintException e) {
-	        		throw new UncheckedNodeException(e); // TODO
+	        		throw new NodeException(e); // TODO
 	        	}
 	        }
 
@@ -664,7 +664,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 				}
 				catch (UnknownStateIdException e) {
 					// impossible, we have just computed this id for the final store
-					throw new UncheckedNodeException("State id " + stateIdOfFinalStore + " has been just computed: it must have existed", e);
+					throw new NodeException("State id " + stateIdOfFinalStore + " has been just computed: it must have existed", e);
 				}
 
 				keepPersistedOnlyNotOlderThan(transformation.getNow(), txn);
@@ -679,7 +679,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 				// already: in Tendermint, garbage collection only occurs when a next block gets created,
 				// while here we have not even finished committing this block
 				LOGGER.log(Level.SEVERE, "commit failed", e);
-				throw new UncheckedNodeException(e);
+				throw new NodeException(e);
 			}
 
 			publishAllTransactionsDeliveredIn(transformation, storeOfHead);

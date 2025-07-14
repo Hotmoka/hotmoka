@@ -36,7 +36,7 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.local.AbstractStoreTransformation;
 import io.hotmoka.node.local.api.FieldNotFoundException;
-import io.hotmoka.node.local.api.UncheckedStoreException;
+import io.hotmoka.node.local.api.StoreException;
 
 /**
  * A transformation of a store of a disk node.
@@ -86,11 +86,11 @@ public class DiskStoreTransformation extends AbstractStoreTransformation<DiskNod
 		}
 		catch (UnknownReferenceException | FieldNotFoundException e) {
 			// the manifest is an account; this should not happen
-			throw new UncheckedStoreException(e);
+			throw new StoreException(e);
 		}
 
-		StorageReference validators = getValidators().orElseThrow(() -> new UncheckedStoreException("The manifest is set but the validators are not set"));
-		TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new UncheckedStoreException("The manifest is set but the Takamaka code reference is not set"));
+		StorageReference validators = getValidators().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
+		TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
 		BigInteger minted = getCoinsMinted(validators);
 		BigInteger gasConsumed = getGasConsumed();
 		LOGGER.info("coinbase: units of gas consumed for CPU, RAM or storage since the previous reward: " + gasConsumed);
@@ -111,7 +111,7 @@ public class DiskStoreTransformation extends AbstractStoreTransformation<DiskNod
 		}
 		catch (TransactionRejectedException e) {
 			LOGGER.log(Level.SEVERE, "the coinbase transaction has been rejected", e);
-			throw new UncheckedStoreException("The coinbase transaction has been rejected", e);
+			throw new StoreException("The coinbase transaction has been rejected", e);
 		}
 
 		if (response instanceof MethodCallTransactionFailedResponse responseAsFailed)
