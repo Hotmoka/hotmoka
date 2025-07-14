@@ -47,7 +47,7 @@ import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.local.AbstractTrieBasedLocalNode;
 import io.hotmoka.node.local.LRUCache;
-import io.hotmoka.node.local.NodeException;
+import io.hotmoka.node.local.LocalNodeException;
 import io.hotmoka.node.local.StateIds;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreCache;
@@ -202,7 +202,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		}
 		catch (UnknownStateIdException e) {
 			// this should not happen...
-			throw new NodeException("The state of the head block is unknown or has been garbage-collected!", e);
+			throw new LocalNodeException("The state of the head block is unknown or has been garbage-collected!", e);
 		}
 	}
 
@@ -229,7 +229,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			throw new ClosedNodeException(e);
 		}
 		catch (ApplicationTimeoutException e) {
-			throw new NodeException("Unexpected exception: the application is local and its method never go into timeout", e);
+			throw new LocalNodeException("Unexpected exception: the application is local and its method never go into timeout", e);
 		}
 	}
 
@@ -250,11 +250,11 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 						}
 						catch (UnknownReferenceException e) { // TODO: are you sure?
 							// the transactions have been delivered, if they cannot be found then there is a problem in the database
-							throw new NodeException("Already delivered transactions should be in store", e);
+							throw new LocalNodeException("Already delivered transactions should be in store", e);
 						}
 						catch (io.mokamint.node.api.TransactionRejectedException e) {
 							// the transactions have been delivered, they must be legal
-							throw new NodeException("Already delivered transactions should not be rejected", e);
+							throw new LocalNodeException("Already delivered transactions should not be rejected", e);
 						}
 					}
 				}
@@ -397,7 +397,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 						}
 						catch (UnknownStateIdException e) {
 							// impossible, we have just computed this id for the final store
-							throw new NodeException("State id " + stateIdOfFinalStore + " has been just computed: it must have existed", e);
+							throw new LocalNodeException("State id " + stateIdOfFinalStore + " has been just computed: it must have existed", e);
 						}
 					}
 

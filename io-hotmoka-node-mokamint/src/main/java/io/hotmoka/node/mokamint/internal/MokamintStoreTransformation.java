@@ -34,7 +34,7 @@ import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractTrieBasedStoreTransformation;
-import io.hotmoka.node.local.NodeException;
+import io.hotmoka.node.local.LocalNodeException;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
@@ -80,9 +80,9 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 
 		String publicKeyOfNodeBase58 = prolog.getPublicKeyForSigningBlocksBase58();
 		// the Prolog should provide actual Base58-encoded keys, otherwise there is a bug
-		String publicKeyOfNodeBase64 = Base64.toBase64String(Base58.fromBase58String(publicKeyOfNodeBase58, NodeException::new));
+		String publicKeyOfNodeBase64 = Base64.toBase64String(Base58.fromBase58String(publicKeyOfNodeBase58, LocalNodeException::new));
 		String publicKeyOfMinerBase58 = prolog.getPublicKeyForSigningDeadlinesBase58();
-		String publicKeyOfMinerBase64 = Base64.toBase64String(Base58.fromBase58String(publicKeyOfMinerBase58, NodeException::new));
+		String publicKeyOfMinerBase64 = Base64.toBase64String(Base58.fromBase58String(publicKeyOfMinerBase58, LocalNodeException::new));
 
 		// we use the manifest as caller, since it is an externally-owned account
 		StorageReference manifest = maybeManifest.get();
@@ -93,11 +93,11 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 		}
 		catch (UnknownReferenceException | FieldNotFoundException e) {
 			// the manifest is an account; this should not happen
-			throw new NodeException(e);
+			throw new LocalNodeException(e);
 		}
 
-		StorageReference validators = getValidators().orElseThrow(() -> new NodeException("The manifest is set but the validators are not set"));
-		TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new NodeException("The manifest is set but the Takamaka code reference is not set"));
+		StorageReference validators = getValidators().orElseThrow(() -> new LocalNodeException("The manifest is set but the validators are not set"));
+		TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new LocalNodeException("The manifest is set but the Takamaka code reference is not set"));
 		BigInteger minted = getCoinsMinted(validators);
 		BigInteger gasConsumed = getGasConsumed();
 
@@ -125,7 +125,7 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 		}
 		catch (TransactionRejectedException e) {
 			LOGGER.log(Level.SEVERE, "the coinbase transaction for rewarding the node that created the new block has been rejected", e);
-			throw new NodeException("The coinbase transaction for rewarding the node that created the new block has been rejected", e);
+			throw new LocalNodeException("The coinbase transaction for rewarding the node that created the new block has been rejected", e);
 		}
 
 		if (response instanceof MethodCallTransactionFailedResponse responseAsFailed)
@@ -146,7 +146,7 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 			}
 			catch (TransactionRejectedException e) {
 				LOGGER.log(Level.SEVERE, "the coinbase transaction for rewarding the miner that provided the deadline in the new block has been rejected", e);
-				throw new NodeException("The coinbase transaction for rewarding the miner that provided the deadline in the new block has been rejected", e);
+				throw new LocalNodeException("The coinbase transaction for rewarding the miner that provided the deadline in the new block has been rejected", e);
 			}
 
 			if (response instanceof MethodCallTransactionFailedResponse responseAsFailed)

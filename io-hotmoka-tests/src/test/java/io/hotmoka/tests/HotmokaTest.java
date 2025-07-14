@@ -95,7 +95,7 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.disk.DiskNodeConfigBuilders;
 import io.hotmoka.node.disk.DiskNodes;
-import io.hotmoka.node.local.NodeException;
+import io.hotmoka.node.local.LocalNodeException;
 import io.hotmoka.node.mokamint.MokamintNodeConfigBuilders;
 import io.hotmoka.node.mokamint.MokamintNodes;
 import io.hotmoka.node.mokamint.api.MokamintNode;
@@ -386,7 +386,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		var miner = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, plotKeys) });
 		miners.add(miner);
 		var node = MokamintNodes.init(config, mokamintConfig, nodeKeys, true);
-		node.getMokamintNode().add(miner).orElseThrow(() -> new NodeException("Could not add the miner to the test node"));
+		node.getMokamintNode().add(miner).orElseThrow(() -> new LocalNodeException("Could not add the miner to the test node"));
 
 		NodeServices.of(node, 8001);
 		System.out.println("Hotmoka node published at ws://localhost:8001");
@@ -402,7 +402,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		if (node.getMokamintNode().add(Peers.of(uri2)).isPresent())
 			System.out.println("Added " + uri2 + " as a peer of " + uri1);
 		else
-			throw new NodeException("Could not add " + uri2 + " as a peer of " + uri1);
+			throw new LocalNodeException("Could not add " + uri2 + " as a peer of " + uri1);
 
 		nodes.add(node);
 		return node;
@@ -467,7 +467,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			nodes.add(node);
 
 			int nodeNumCopy = nodeNum;
-			node.getMokamintNode().add(miner).orElseThrow(() -> new NodeException("Could not add the miner to test node " + nodeNumCopy));
+			node.getMokamintNode().add(miner).orElseThrow(() -> new LocalNodeException("Could not add the miner to test node " + nodeNumCopy));
 
 			// we open a web service to the underlying Mokamint node; this is not necessary,
 			// but it allows developers to query the node during the execution of the tests
@@ -484,7 +484,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			else if (firstNode.getMokamintNode().add(Peers.of(uri)).isPresent())
 				System.out.println("Added " + uri + " as a peer of " + firstUri);
 			else
-				throw new NodeException("Could not add " + uri + " as a peer of " + firstUri);
+				throw new LocalNodeException("Could not add " + uri + " as a peer of " + firstUri);
 		}
 
 		return nodes.get(0);

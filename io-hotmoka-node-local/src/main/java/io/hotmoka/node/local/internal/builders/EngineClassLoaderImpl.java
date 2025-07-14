@@ -49,7 +49,7 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.local.NodeException;
+import io.hotmoka.node.local.LocalNodeException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.internal.Reverification;
 import io.hotmoka.verification.TakamakaClassLoaders;
@@ -396,7 +396,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			return (StorageReference) storageReference.get(object);
 		}
 		catch (RuntimeException | IllegalAccessException e) {
-			throw new NodeException("Cannot read the storage reference: " + e.getMessage());
+			throw new LocalNodeException("Cannot read the storage reference: " + e.getMessage());
 		}
 	}
 
@@ -406,7 +406,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			return (boolean) inStorage.get(object);
 		}
 		catch (RuntimeException | IllegalAccessException e) {
-			throw new NodeException("Cannot read the inStorage field: " + e.getMessage());
+			throw new LocalNodeException("Cannot read the inStorage field: " + e.getMessage());
 		}
 	}
 
@@ -416,7 +416,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			return (BigInteger) balanceField.get(object);
 		}
 		catch (RuntimeException | IllegalAccessException e) {
-			throw new NodeException("Cannot read the balance field: " + e.getMessage());
+			throw new LocalNodeException("Cannot read the balance field: " + e.getMessage());
 		}
 	}
 
@@ -426,7 +426,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			balanceField.set(object, value);
 		}
 		catch (RuntimeException | IllegalAccessException e) {
-			throw new NodeException("Cannot write the balance field: " + e.getMessage());
+			throw new LocalNodeException("Cannot write the balance field: " + e.getMessage());
 		}
 	}
 
@@ -436,7 +436,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			externallyOwnedAccountNonce.set(object, value);
 		}
 		catch (RuntimeException | IllegalAccessException e) {
-			throw new NodeException("Cannot write the nonce field: " + e.getMessage());
+			throw new LocalNodeException("Cannot write the nonce field: " + e.getMessage());
 		}
 	}
 
@@ -446,7 +446,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			fromContract.invoke(callee, caller);
 		}
 		catch (RuntimeException | IllegalAccessException e) {
-			throw new NodeException("Cannot call Storage.fromContract(): " + e.getMessage());
+			throw new LocalNodeException("Cannot call Storage.fromContract(): " + e.getMessage());
 		}
 		catch (InvocationTargetException e) {
 			Throwable cause = e.getCause();
@@ -457,7 +457,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			else if (cause instanceof Error error)
 				throw error;
 			else
-				throw new NodeException(e);
+				throw new LocalNodeException(e);
 		}
 	}
 
@@ -467,7 +467,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			payableFromContractBigInteger.invoke(callee, payer, amount);
 		}
 		catch (RuntimeException | IllegalAccessException e) {
-			throw new NodeException("Cannot call Contract.payableFromContract(): " + e.getMessage());
+			throw new LocalNodeException("Cannot call Contract.payableFromContract(): " + e.getMessage());
 		}
 		catch (InvocationTargetException e) {
 			Throwable cause = e.getCause();
@@ -478,7 +478,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			else if (cause instanceof Error error)
 				throw error;
 			else
-				throw new NodeException(e);
+				throw new LocalNodeException(e);
 		}
 	}
 
@@ -488,7 +488,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			payableFromContractInt.invoke(callee, caller, amount);
 		}
 		catch (RuntimeException | IllegalAccessException e) {
-			throw new NodeException("Cannot call Contract.payableFromContract(): " + e.getMessage());
+			throw new LocalNodeException("Cannot call Contract.payableFromContract(): " + e.getMessage());
 		}
 		catch (InvocationTargetException e) {
 			Throwable cause = e.getCause();
@@ -499,7 +499,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			else if (cause instanceof Error error)
 				throw error;
 			else
-				throw new NodeException(e);
+				throw new LocalNodeException(e);
 		}
 	}
 
@@ -509,7 +509,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			payableFromContractLong.invoke(callee, caller, amount);
 		}
 		catch (RuntimeException | IllegalAccessException e) {
-			throw new NodeException("Cannot call Contract.payableFromContract(): " + e.getMessage());
+			throw new LocalNodeException("Cannot call Contract.payableFromContract(): " + e.getMessage());
 		}
 		catch (InvocationTargetException e) {
 			Throwable cause = e.getCause();
@@ -520,7 +520,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			else if (cause instanceof Error error)
 				throw error;
 			else
-				throw new NodeException(e);
+				throw new LocalNodeException(e);
 		}
 	}
 

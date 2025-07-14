@@ -46,7 +46,7 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.local.AbstractTrieBasedLocalNode;
-import io.hotmoka.node.local.NodeException;
+import io.hotmoka.node.local.LocalNodeException;
 import io.hotmoka.node.local.StateIds;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.UnknownStateIdException;
@@ -211,13 +211,13 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 
 	private void checkOutRootBranch() throws InterruptedException {
 		var root = getEnvironment().computeInTransaction(txn -> Optional.ofNullable(getStoreOfNode().get(txn, ROOT)).map(ByteIterable::getBytes))
-				.orElseThrow(() -> new NodeException("Cannot find the root of the store of the node: are you sure that the working directory was initialized with the data to resume the node?"));
+				.orElseThrow(() -> new LocalNodeException("Cannot find the root of the store of the node: are you sure that the working directory was initialized with the data to resume the node?"));
 
 		try {
 			storeOfHead = mkStore(StateIds.of(root), Optional.empty());
 		}
 		catch (UnknownStateIdException e) {
-			throw new NodeException("The root of the store in the database cannot be found in the database itself", e);
+			throw new LocalNodeException("The root of the store in the database cannot be found in the database itself", e);
 		}
 	}
 
@@ -655,7 +655,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 				}
 				catch (UnknownStateIdException e) {
 					// impossible, we have just computed this id for the final store
-					throw new NodeException("State id " + stateIdOfFinalStore + " has been just computed: it must have existed", e);
+					throw new LocalNodeException("State id " + stateIdOfFinalStore + " has been just computed: it must have existed", e);
 				}
 
 				keepPersistedOnlyNotOlderThan(transformation.getNow(), txn);
@@ -670,7 +670,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 				// already: in Tendermint, garbage collection only occurs when a next block gets created,
 				// while here we have not even finished committing this block
 				LOGGER.log(Level.SEVERE, "commit failed", e);
-				throw new NodeException(e);
+				throw new LocalNodeException(e);
 			}
 
 			publishAllTransactionsDeliveredIn(transformation, storeOfHead);

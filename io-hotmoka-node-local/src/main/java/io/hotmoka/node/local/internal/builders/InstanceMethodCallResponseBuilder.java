@@ -40,7 +40,7 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
-import io.hotmoka.node.local.NodeException;
+import io.hotmoka.node.local.LocalNodeException;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -132,7 +132,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				catch (ExceptionInInitializerError e) {
 					// Takamaka code verification bans static initializers and the white-listed library classes
 					// should not have static initializers that might fail
-					throw new NodeException("Unexpected failed execution of a static initializer of " + request.getStaticTarget());
+					throw new LocalNodeException("Unexpected failed execution of a static initializer of " + request.getStaticTarget());
 				}
 
 				if (calleeIsAnnotatedAsView)

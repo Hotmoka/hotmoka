@@ -25,14 +25,14 @@ import java.util.Objects;
  * or because a file cannot be accessed. Therefore, this exception is not meant to be caught.
  */
 @SuppressWarnings("serial")
-public class NodeException extends RuntimeException {
+public class LocalNodeException extends RuntimeException {
 
 	/**
 	 * Creates a new exception with the given message.
 	 * 
 	 * @param message the message
 	 */
-	public NodeException(String message) {
+	public LocalNodeException(String message) {
 		super(Objects.requireNonNull(message, "message cannot be null"));
 	}
 
@@ -41,7 +41,7 @@ public class NodeException extends RuntimeException {
 	 * 
 	 * @param cause the cause
 	 */
-	public NodeException(Throwable cause) {
+	public LocalNodeException(Throwable cause) {
 		super(String.valueOf(cause.getMessage()), cause);
 	}
 
@@ -51,7 +51,7 @@ public class NodeException extends RuntimeException {
 	 * @param message the message
 	 * @param cause the cause
 	 */
-	public NodeException(String message, Throwable cause) {
+	public LocalNodeException(String message, Throwable cause) {
 		super(Objects.requireNonNull(message, "message cannot be null"), Objects.requireNonNull(cause, "cause cannot be null"));
 	}
 }

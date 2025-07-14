@@ -16,13 +16,13 @@ limitations under the License.
 
 package io.hotmoka.node.tendermint.internal;
 
-import io.hotmoka.node.local.NodeException;
+import io.hotmoka.node.local.LocalNodeException;
 
 /**
  * An exception thrown when the Tendermint tool used by a Tendermint Hotmoka node misbehaves.
  */
 @SuppressWarnings("serial")
-public class TendermintException extends NodeException {
+public class TendermintException extends LocalNodeException {
 
 	/**
 	 * Creates the exception.

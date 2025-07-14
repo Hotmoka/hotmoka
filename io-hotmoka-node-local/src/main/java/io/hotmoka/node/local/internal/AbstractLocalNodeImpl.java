@@ -76,7 +76,7 @@ import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.local.LRUCache;
-import io.hotmoka.node.local.NodeException;
+import io.hotmoka.node.local.LocalNodeException;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.LocalNode;
 import io.hotmoka.node.local.api.LocalNodeConfig;
@@ -154,7 +154,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 			this.hasher = HashingAlgorithms.sha256().getHasher(TransactionRequest::toByteArray);
 		}
 		catch (NoSuchAlgorithmException e) {
-			throw new NodeException(e);
+			throw new LocalNodeException(e);
 		}
 
 		if (init) {
@@ -162,7 +162,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 				initWorkingDirectory();
 			}
 			catch (IOException e) {
-				throw new NodeException("Cannot create the working directory for the Hotmoka node", e);
+				throw new LocalNodeException("Cannot create the working directory for the Hotmoka node", e);
 			}
 		}
 
@@ -303,7 +303,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 						.orElseThrow(() -> new UnknownReferenceException("Cannot find object " + reference + " in store"));
 			}
 			else
-				throw new NodeException("Reference " + reference + " is part of the histories but did not generate updates");
+				throw new LocalNodeException("Reference " + reference + " is part of the histories but did not generate updates");
 		}
 		finally {
 			exit(store);
@@ -324,10 +324,10 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 						.filter(update -> update.getObject().equals(reference) && updates.stream().noneMatch(update::sameProperty))
 						.forEach(updates::add);
 					else
-						throw new NodeException("Reference " + referenceInHistory + " is part of the histories but did not generate updates");
+						throw new LocalNodeException("Reference " + referenceInHistory + " is part of the histories but did not generate updates");
 				}
 				catch (UnknownReferenceException e) {
-					throw new NodeException("Reference " + referenceInHistory + " is part of the histories but is not in the store");
+					throw new LocalNodeException("Reference " + referenceInHistory + " is part of the histories but is not in the store");
 				}
 			});
 
@@ -529,7 +529,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 			}
 			catch (UnknownReferenceException e) {
 				// the transactions have been delivered, if they cannot be found then there is a problem in the database or a bug in the code
-				throw new NodeException("Delivered transactions should be in store", e);
+				throw new LocalNodeException("Delivered transactions should be in store", e);
 			}
 		}
 	}
@@ -598,7 +598,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		catch (UnknownReferenceException | FieldNotFoundException e) {
 			// this private method is only called on events in responses in store:
 			// if they cannot be processed, there is a problem in the database
-			throw new NodeException(e);
+			throw new LocalNodeException(e);
 		}
 
 		subscriptions.notifyEvent(creator, event);

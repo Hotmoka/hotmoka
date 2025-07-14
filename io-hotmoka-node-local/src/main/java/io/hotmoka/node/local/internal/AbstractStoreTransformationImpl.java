@@ -51,7 +51,7 @@ import io.hotmoka.node.api.responses.TransactionResponseWithUpdates;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.local.NodeException;
+import io.hotmoka.node.local.LocalNodeException;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StoreCache;
@@ -301,7 +301,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	 */
 	protected void updateCaches(TransactionResponse response, TakamakaClassLoader classLoader) throws InterruptedException {
 		if (manifestMightHaveChanged(response)) {
-			StorageReference manifest = getManifest().orElseThrow(() -> new NodeException("The manifest has just been set, so it should have been found"));
+			StorageReference manifest = getManifest().orElseThrow(() -> new LocalNodeException("The manifest has just been set, so it should have been found"));
 			cache = cache.setValidators(extractValidators(manifest));
 			LOGGER.info("the validators cache has been updated since it might have changed");
 			cache = cache.setGasStation(extractGasStation(manifest));
@@ -311,7 +311,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 		}
 
 		if (consensusParametersMightHaveChanged(response, classLoader)) {
-			StorageReference manifest = getManifest().orElseThrow(() -> new NodeException("Some consensus parameter just changed, hence the manifest should be set"));
+			StorageReference manifest = getManifest().orElseThrow(() -> new LocalNodeException("Some consensus parameter just changed, hence the manifest should be set"));
 			long versionBefore = cache.getConfig().getVerificationVersion();
 			cache = cache.setConfig(extractConsensus(manifest)).invalidateClassLoaders();
 			long versionAfter = cache.getConfig().getVerificationVersion();
@@ -322,14 +322,14 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 		}
 
 		if (gasPriceMightHaveChanged(response, classLoader)) {
-			StorageReference manifest = getManifest().orElseThrow(() -> new NodeException("The gas price just changed, hence the manifest should be set"));
+			StorageReference manifest = getManifest().orElseThrow(() -> new LocalNodeException("The gas price just changed, hence the manifest should be set"));
 			BigInteger newGasPrice = extractGasPrice(manifest);
 			cache = cache.setGasPrice(newGasPrice);
 			LOGGER.info("the gas cache has been updated since it might have changed: the new gas price is " + newGasPrice);
 		}
 
 		if (inflationMightHaveChanged(response, classLoader)) {
-			StorageReference manifest = getManifest().orElseThrow(() -> new NodeException("The inflation just changed, hence the manifest should be set"));
+			StorageReference manifest = getManifest().orElseThrow(() -> new LocalNodeException("The inflation just changed, hence the manifest should be set"));
 			cache = cache.setInflation(extractInflation(manifest));
 			LOGGER.info("the inflation cache has been updated since it might have changed: the new inflation is " + cache.getInflation().getAsLong());
 		}
@@ -357,7 +357,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 		}
 		catch (UnknownReferenceException | FieldNotFoundException e) {
 			// since reference is assumed to refer to an event in store, it must exist and have a creator or otherwise the store is corrupted
-			throw new NodeException(e);
+			throw new LocalNodeException(e);
 		}
 	}
 
@@ -407,7 +407,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 		}
 		catch (UnknownReferenceException | FieldNotFoundException e) {
 			// since reference is assumed to refer to a validators object in store, it must exist and have a currentSupply field
-			throw new NodeException(e);
+			throw new LocalNodeException(e);
 		}
 	}
 
@@ -461,9 +461,9 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	
 			if (maybeManifest.isPresent()) {
 				var manifest = maybeManifest.get();
-				StorageReference validators = getValidators().orElseThrow(() -> new NodeException("The manifest is set but the validators are not set"));
-				StorageReference versions = getVersions().orElseThrow(() -> new NodeException("The manifest is set but the versions are not set"));
-				StorageReference gasStation = getGasStation().orElseThrow(() -> new NodeException("The manifest is set but the gas station is not set"));
+				StorageReference validators = getValidators().orElseThrow(() -> new LocalNodeException("The manifest is set but the validators are not set"));
+				StorageReference versions = getVersions().orElseThrow(() -> new LocalNodeException("The manifest is set but the versions are not set"));
+				StorageReference gasStation = getGasStation().orElseThrow(() -> new LocalNodeException("The manifest is set but the gas station is not set"));
 
 				for (var event: trwe.getEvents().toArray(StorageReference[]::new))
 					if (isConsensusUpdateEvent(event, classLoader)) {
@@ -490,11 +490,11 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 			return classLoader.isConsensusUpdateEvent(getClassName(event));
 		}
 		catch (UnknownReferenceException e) {
-			throw new NodeException("Event " + event + " is not an object in store", e);
+			throw new LocalNodeException("Event " + event + " is not an object in store", e);
 		}
 		catch (ClassNotFoundException e) {
 			// this event was created with this same classloader so we must find its class
-			throw new NodeException("Event " + event + " has an unknown class", e);
+			throw new LocalNodeException("Event " + event + " has an unknown class", e);
 		}
 	}
 
@@ -512,7 +512,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 			Optional<StorageReference> maybeManifest = getManifest();
 			
 			if (maybeManifest.isPresent()) {
-				StorageReference gasStation = getGasStation().orElseThrow(() -> new NodeException("The manifest is set but the gas station is not set"));
+				StorageReference gasStation = getGasStation().orElseThrow(() -> new LocalNodeException("The manifest is set but the gas station is not set"));
 
 				for (var event: trwe.getEvents().toArray(StorageReference[]::new))
 					if (isGasPriceUpdateEvent(event, classLoader) && getCreatorOfEvent(event).equals(gasStation))
@@ -528,10 +528,10 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 			return classLoader.isGasPriceUpdateEvent(getClassName(event));
 		}
 		catch (UnknownReferenceException e) {
-			throw new NodeException("Event " + event + " is not an object in store", e);
+			throw new LocalNodeException("Event " + event + " is not an object in store", e);
 		}
 		catch (ClassNotFoundException e) {
-			throw new NodeException("Event " + event + " has an unknown class", e);
+			throw new LocalNodeException("Event " + event + " has an unknown class", e);
 		}
 	}
 
@@ -549,7 +549,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 			Optional<StorageReference> maybeManifest = getManifest();
 			
 			if (maybeManifest.isPresent()) {
-				StorageReference validators = getValidators().orElseThrow(() -> new NodeException("The manifest is set but the validators are not set"));
+				StorageReference validators = getValidators().orElseThrow(() -> new LocalNodeException("The manifest is set but the validators are not set"));
 
 				for (var event: trwe.getEvents().toArray(StorageReference[]::new))
 					if (isInflationUpdateEvent(event, classLoader) && getCreatorOfEvent(event).equals(validators))
@@ -565,10 +565,10 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 			return classLoader.isInflationUpdateEvent(getClassName(event));
 		}
 		catch (UnknownReferenceException e) {
-			throw new NodeException("Event " + event + " is not an object in store", e);
+			throw new LocalNodeException("Event " + event + " is not an object in store", e);
 		}
 		catch (ClassNotFoundException e) {
-			throw new NodeException("Event " + event + " has an unknown class", e);
+			throw new LocalNodeException("Event " + event + " has an unknown class", e);
 		}
 	}
 
@@ -595,7 +595,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 				gasConsumedTotal = gasConsumedTotal.add(ftr.getGasConsumedForPenalty());
 
 			if (!(request instanceof NonInitialTransactionRequest<?> nitr))
-				throw new NodeException("A non-initial transaction response has been computed for an initial transaction request of class " + request.getClass().getSimpleName());
+				throw new LocalNodeException("A non-initial transaction response has been computed for an initial transaction request of class " + request.getClass().getSimpleName());
 
 			BigInteger gasPrice = nitr.getGasPrice();
 			BigInteger rewardForThisTransaction = gasConsumedTotal.multiply(gasPrice);
@@ -644,7 +644,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 				LOGGER.info(reference + ": the node has been initialized");
 			}
 			else
-				throw new NodeException("Trying to initialize the node with a request of class " + request.getClass().getSimpleName());
+				throw new LocalNodeException("Trying to initialize the node with a request of class " + request.getClass().getSimpleName());
 		}
 		else {
 			setRequest(reference, request);
@@ -692,7 +692,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 		}
 		catch (UnknownReferenceException e) {
 			// the object was created before this transaction: it must have a history or otherwise the store is corrupted
-			throw new NodeException("The computed response reports a modified object that is not in store", e);
+			throw new LocalNodeException("The computed response reports a modified object that is not in store", e);
 		}
 
 		// we trace the set of updates that are already covered by previous transactions, so that

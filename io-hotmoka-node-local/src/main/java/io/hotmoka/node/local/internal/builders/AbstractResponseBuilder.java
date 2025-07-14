@@ -38,7 +38,7 @@ import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.local.NodeException;
+import io.hotmoka.node.local.LocalNodeException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.ResponseBuilder;
@@ -172,7 +172,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 				else if (cause instanceof Error error)
 					throw error;
 				else
-					throw new NodeException("Unexpected exception", cause);
+					throw new LocalNodeException("Unexpected exception", cause);
 			}
 		}
 

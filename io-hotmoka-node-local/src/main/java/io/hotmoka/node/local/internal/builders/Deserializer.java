@@ -44,7 +44,7 @@ import io.hotmoka.node.api.values.ShortValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.api.values.StringValue;
-import io.hotmoka.node.local.NodeException;
+import io.hotmoka.node.local.LocalNodeException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.whitelisting.Dummy;
 
@@ -123,9 +123,9 @@ public class Deserializer {
 			// we clone the value, so that the alias behavior of values coming from outside the node is fixed
 			return new BigInteger(biv.getValue().toByteArray());
 		else if (value == null)
-			throw new NodeException("Unexpected null storage value");
+			throw new LocalNodeException("Unexpected null storage value");
 		else
-			throw new NodeException("Unexpected storage value of class " + value.getClass().getName());
+			throw new LocalNodeException("Unexpected storage value of class " + value.getClass().getName());
 	}
 
 	/**
@@ -208,14 +208,14 @@ public class Deserializer {
 		}
 		catch (UnknownReferenceException e) {
 			// we managed to compute its class tag above, so this is a problem of the store
-			throw new NodeException(e);
+			throw new LocalNodeException(e);
 		}
 		catch (UncheckedException e) { // this might be thrown by this::compare, but only for the cause DeserializationException
 			Throwable cause = e.getCause();
 			if (cause instanceof DeserializationException de)
 				throw de;
 			else
-				throw new NodeException(cause);
+				throw new LocalNodeException(cause);
 		}
 
 		for (var update: eagerUpdates) {
@@ -240,7 +240,7 @@ public class Deserializer {
 		// the classloader of a deserializer is built for the classpath of a transaction request (without any
 		// explicit jar): all classes must have been installed in one of the transaction references of that classpath
 		TransactionReference actual = classLoader.transactionThatInstalledJarFor(clazz)
-			.orElseThrow(() -> new NodeException("Class " + clazz.getName() + " was a storage class, therefore it should have been installed in the store with some jar"));
+			.orElseThrow(() -> new LocalNodeException("Class " + clazz.getName() + " was a storage class, therefore it should have been installed in the store with some jar"));
 		TransactionReference expected = classTag.getJar();
 		if (!actual.equals(expected))
 			// this means that the deserializer has been built for a classpath inconsistent with that used for creating the object:
@@ -261,7 +261,7 @@ public class Deserializer {
 		}
 		catch (NoSuchMethodException | SecurityException | InaccessibleObjectException e) {
 			// the instrumented constructor is missing or not accessible: the store is corrupted
-			throw new NodeException(e);
+			throw new LocalNodeException(e);
 		}
 
 		try {
@@ -269,7 +269,7 @@ public class Deserializer {
 		}
 		catch (ReflectiveOperationException | RuntimeException e) {
 			// the instrumented constructor should work without exceptions, otherwise the store is corrupted
-			throw new NodeException(e);
+			throw new LocalNodeException(e);
 		}
 	}
 }

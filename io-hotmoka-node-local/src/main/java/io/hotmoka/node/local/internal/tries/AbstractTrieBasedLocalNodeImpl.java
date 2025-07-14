@@ -36,7 +36,7 @@ import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.exceptions.functions.ConsumerWithExceptions1;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.local.AbstractLocalNode;
-import io.hotmoka.node.local.NodeException;
+import io.hotmoka.node.local.LocalNodeException;
 import io.hotmoka.node.local.StateIds;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StateId;
@@ -146,7 +146,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 			this.sha256 = HashingAlgorithms.sha256();
 		}
 		catch (NoSuchAlgorithmException e) {
-			throw new NodeException(e);
+			throw new LocalNodeException(e);
 		}
 
 		this.env = new Environment(path.toString());
