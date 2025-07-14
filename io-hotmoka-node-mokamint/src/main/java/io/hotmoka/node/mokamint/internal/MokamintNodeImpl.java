@@ -47,9 +47,8 @@ import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.local.AbstractTrieBasedLocalNode;
 import io.hotmoka.node.local.LRUCache;
-import io.hotmoka.node.local.NodeCreationException;
-import io.hotmoka.node.local.StateIds;
 import io.hotmoka.node.local.NodeException;
+import io.hotmoka.node.local.StateIds;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.UnknownStateIdException;
@@ -126,19 +125,13 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 	 *                      (initial synchronization is consequently skipped), otherwise it
 	 *                      synchronizes, waits for whispered blocks and then starts mining on top of them
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
-	 * @throws NodeCreationException if the node could not be created
 	 * @throws TimeoutException if the application of the Mokamint node is unresponsive
 	 */
-	public MokamintNodeImpl(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair, boolean init, boolean createGenesis) throws NodeCreationException, InterruptedException, TimeoutException {
+	public MokamintNodeImpl(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair, boolean init, boolean createGenesis) throws InterruptedException, TimeoutException {
 		super(config, init);
 
-		try {
-			this.mokamintNode = new MyMokamintNode(mokamintConfig, keyPair, createGenesis);
-			// mokamintNode.addOnCloseHandler(this::close); // TODO
-		}
-		catch (io.mokamint.node.NodeCreationException e) {
-			throw new NodeCreationException(e);
-		}
+		this.mokamintNode = new MyMokamintNode(mokamintConfig, keyPair, createGenesis);
+		// mokamintNode.addOnCloseHandler(this::close); // TODO
 
 		getExecutors().execute(this::publishBlocks);
 	}
@@ -148,7 +141,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 	 */
 	private class MyMokamintNode extends AbstractLocalNode {
 
-		private MyMokamintNode(LocalNodeConfig mokamintConfig, KeyPair keyPair, boolean createGenesis) throws InterruptedException, io.mokamint.node.NodeCreationException {
+		private MyMokamintNode(LocalNodeConfig mokamintConfig, KeyPair keyPair, boolean createGenesis) throws InterruptedException {
 			super(mokamintConfig, keyPair, new MokamintHotmokaApplication(), createGenesis);
 		}
 

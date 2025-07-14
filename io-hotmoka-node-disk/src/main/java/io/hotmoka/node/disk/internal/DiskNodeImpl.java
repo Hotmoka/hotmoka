@@ -34,7 +34,6 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.disk.api.DiskNode;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.local.AbstractLocalNode;
-import io.hotmoka.node.local.NodeCreationException;
 
 /**
  * An implementation of a node that stores transactions in a directory
@@ -64,9 +63,8 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 	 * Builds a new disk memory node.
 	 * 
 	 * @param config the configuration of the node
-	 * @throws NodeCreationException if the node could not be created
 	 */
-	public DiskNodeImpl(DiskNodeConfig config) throws NodeCreationException {
+	public DiskNodeImpl(DiskNodeConfig config) {
 		super(config, true);
 
 		this.storePath = getLocalConfig().getDir().resolve("hotmoka").resolve("store");

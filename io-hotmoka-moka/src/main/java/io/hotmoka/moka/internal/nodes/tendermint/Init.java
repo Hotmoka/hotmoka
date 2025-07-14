@@ -59,7 +59,6 @@ import io.hotmoka.node.api.UnexpectedCodeException;
 import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.local.NodeCreationException;
 import io.hotmoka.node.service.NodeServices;
 import io.hotmoka.node.tendermint.TendermintInitializedNodes;
 import io.hotmoka.node.tendermint.TendermintNodeConfigBuilders;
@@ -118,9 +117,6 @@ public class Init extends AbstractNodeInit {
 			report(json(), output, NodesTendermintInitOutputs.Encoder::new);
 
 			waitForEnterKey();
-		}
-		catch (NodeCreationException e) {
-			throw new CommandException("The node could not be created", e);
 		}
 		catch (FailedDeploymentException e) {
 			throw new CommandException("Cannot deploy the service at port " + getPort());

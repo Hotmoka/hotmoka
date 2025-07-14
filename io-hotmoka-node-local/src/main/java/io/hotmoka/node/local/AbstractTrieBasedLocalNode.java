@@ -36,9 +36,8 @@ public abstract class AbstractTrieBasedLocalNode<N extends AbstractTrieBasedLoca
 	 * 
 	 * @param config the configuration of the node
 	 * @param init if true, the working directory of the node gets initialized
-	 * @throws NodeCreationException if the node could not be created
 	 */
-	protected AbstractTrieBasedLocalNode(C config, boolean init) throws NodeCreationException {
+	protected AbstractTrieBasedLocalNode(C config, boolean init) {
 		super(config, init);
 	}
 }

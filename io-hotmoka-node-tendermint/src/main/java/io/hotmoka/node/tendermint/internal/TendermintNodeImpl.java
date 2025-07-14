@@ -46,9 +46,8 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.local.AbstractTrieBasedLocalNode;
-import io.hotmoka.node.local.NodeCreationException;
-import io.hotmoka.node.local.StateIds;
 import io.hotmoka.node.local.NodeException;
+import io.hotmoka.node.local.StateIds;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.UnknownStateIdException;
 import io.hotmoka.node.tendermint.api.TendermintNode;
@@ -135,35 +134,37 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	 * 
 	 * @param config the configuration of the blockchain
 	 * @param init if true, the working directory of the node gets initialized
-	 * @throws NodeCreationException if the node could not be created
 	 * @throws InterruptedException the the currently thread is interrupted before completing the construction
 	 */
-	public TendermintNodeImpl(TendermintNodeConfig config, boolean init) throws InterruptedException, NodeCreationException {
+	public TendermintNodeImpl(TendermintNodeConfig config, boolean init) throws InterruptedException {
 		super(config, init);
 
 		this.isWindows = System.getProperty("os.name").startsWith("Windows");
 
-		try {
-			if (init) {
-				initWorkingDirectoryOfTendermintProcess(config);
-				storeOfHead = mkEmptyStore();
-			}
-			else
-				checkOutRootBranch();
+		if (init) {
+			initWorkingDirectoryOfTendermintProcess(config);
+			storeOfHead = mkEmptyStore();
+		}
+		else
+			checkOutRootBranch();
 
-			var tendermintConfigFile = new TendermintConfigFile(config);
-			this.poster = new TendermintPoster(config, tendermintConfigFile.getTendermintPort());
-			this.abci = new Server(tendermintConfigFile.getAbciPort(), new TendermintApplication());
+		var tendermintConfigFile = new TendermintConfigFile(config);
+
+		this.poster = new TendermintPoster(config, tendermintConfigFile.getTendermintPort());
+		this.abci = new Server(tendermintConfigFile.getAbciPort(), new TendermintApplication());
+
+		try {
 			this.abci.start();
-			LOGGER.info("Tendermint ABCI started at port " + tendermintConfigFile.getAbciPort());
-			this.tendermint = new Tendermint(config);
-			LOGGER.info("Tendermint started at port " + tendermintConfigFile.getTendermintPort());
 		}
-		catch (IOException | TimeoutException e) {
-			LOGGER.log(Level.SEVERE, "the creation of the Tendermint node failed", e);
-			close();
-			throw new NodeCreationException(e);
+		catch (IOException e) {
+			throw new TendermintException("The connection to the Tendermint app failed", e);
 		}
+
+		LOGGER.info("Tendermint ABCI started at port " + tendermintConfigFile.getAbciPort());
+
+		this.tendermint = new Tendermint(config);
+
+		LOGGER.info("Tendermint started at port " + tendermintConfigFile.getTendermintPort());
 	}
 
 	@Override
@@ -208,15 +209,15 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		getStoreOfNode().put(txn, HEIGHT, ByteIterable.fromBytes(longToBytes(getHeight(txn) + 1)));
 	}
 
-	private void checkOutRootBranch() throws InterruptedException, NodeCreationException {
+	private void checkOutRootBranch() throws InterruptedException {
 		var root = getEnvironment().computeInTransaction(txn -> Optional.ofNullable(getStoreOfNode().get(txn, ROOT)).map(ByteIterable::getBytes))
-				.orElseThrow(() -> new NodeCreationException("Cannot find the root of the store of the node: are you sure that the working directory was initialized with the data to resume the node?"));
+				.orElseThrow(() -> new NodeException("Cannot find the root of the store of the node: are you sure that the working directory was initialized with the data to resume the node?"));
 
 		try {
 			storeOfHead = mkStore(StateIds.of(root), Optional.empty());
 		}
 		catch (UnknownStateIdException e) {
-			throw new NodeCreationException("The root of the store in the database cannot be found in the database itself", e);
+			throw new NodeException("The root of the store in the database cannot be found in the database itself", e);
 		}
 	}
 
@@ -298,7 +299,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		processBuilder.command(command.split(" "));
 		redirection.map(File::new).ifPresent(processBuilder::redirectOutput);
 
-        return processBuilder.start();
+		return processBuilder.start();
 	}
 
 	/**
@@ -310,24 +311,28 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	 * 
 	 * @param config the configuration of the node
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
-	 * @throws IOException if the working directory could not be initialized
 	 */
-	private void initWorkingDirectoryOfTendermintProcess(TendermintNodeConfig config) throws InterruptedException, IOException {
+	private void initWorkingDirectoryOfTendermintProcess(TendermintNodeConfig config) throws InterruptedException {
 		Optional<Path> tendermintConfigurationToClone = config.getTendermintConfigurationToClone();
 		Path tendermintHome = config.getDir().resolve("tendermint");
 
-		if (tendermintConfigurationToClone.isEmpty()) {
-			// if there is no configuration to clone, we create a default network of a single node
-			// that plays the role of the unique validator of the network
-			String executableName = isWindows ? "cmd.exe /c tendermint.exe" : "tendermint";
-			//if (run("tendermint testnet --v 1 --o " + tendermintHome + " --populate-persistent-peers", Optional.empty()).waitFor() != 0)
-			if (run(executableName + " init --home " + tendermintHome, Optional.empty()).waitFor() != 0) // TODO: add timeout
-				throw new IOException("Tendermint initialization failed: is Tendermint installed?");
+		try {
+			if (tendermintConfigurationToClone.isEmpty()) {
+				// if there is no configuration to clone, we create a default network of a single node
+				// that plays the role of the unique validator of the network
+				String executableName = isWindows ? "cmd.exe /c tendermint.exe" : "tendermint";
+				//if (run("tendermint testnet --v 1 --o " + tendermintHome + " --populate-persistent-peers", Optional.empty()).waitFor() != 0)
+				if (run(executableName + " init --home " + tendermintHome, Optional.empty()).waitFor() != 0) // TODO: add timeout
+					throw new TendermintException("Tendermint initialization failed: is Tendermint installed?");
+			}
+			else
+				// we clone the configuration files inside config.tendermintConfigurationToClone
+				// into the blocks subdirectory of the node directory
+				copyRecursively(tendermintConfigurationToClone.get(), tendermintHome);
 		}
-		else
-			// we clone the configuration files inside config.tendermintConfigurationToClone
-			// into the blocks subdirectory of the node directory
-			copyRecursively(tendermintConfigurationToClone.get(), tendermintHome);
+		catch (IOException e) {
+			throw new TendermintException("The initialization of the Tendermint working directory failed", e);
+		}
 	}
 
 	/**
@@ -346,13 +351,16 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		 * the {@code tendermint} command can be executed from the command path.
 		 * 
 		 * @param config the configuration of the blockchain that is using Tendermint
-		 * @throws IOException if an I/O error occurred
-		 * @throws TimeoutException if Tendermint did not spawn up in the expected time
 		 * @throws InterruptedException if the current thread was interrupted while waiting for the Tendermint process to run
 		 */
-		private Tendermint(TendermintNodeConfig config) throws IOException, InterruptedException, TimeoutException {
-			this.process = spawnTendermintProcess(config);
-			waitUntilTendermintProcessIsUp(config);
+		private Tendermint(TendermintNodeConfig config) throws InterruptedException {
+			try {
+				this.process = spawnTendermintProcess(config);
+				waitUntilTendermintProcessIsUp(config);
+			}
+			catch (TimeoutException | IOException e) {
+				throw new TendermintException("The Tendermint tool did not answer", e);
+			}
 	
 			LOGGER.info("the Tendermint process is up and running");
 		}

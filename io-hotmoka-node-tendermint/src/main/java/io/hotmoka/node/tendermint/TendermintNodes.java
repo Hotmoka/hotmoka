@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.tendermint;
 
-import io.hotmoka.node.local.NodeCreationException;
 import io.hotmoka.node.tendermint.api.TendermintNode;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 import io.hotmoka.node.tendermint.internal.TendermintNodeImpl;
@@ -35,9 +34,8 @@ public abstract class TendermintNodes {
 	 * @param config the configuration of the blockchain
 	 * @return the Tendermint node
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
-	 * @throws NodeCreationException if the node could not be created
 	 */
-	public static TendermintNode init(TendermintNodeConfig config) throws NodeCreationException, InterruptedException {
+	public static TendermintNode init(TendermintNodeConfig config) throws InterruptedException {
 		return new TendermintNodeImpl(config, true);
 	}
 
@@ -50,9 +48,8 @@ public abstract class TendermintNodes {
 	 * @param config the configuration of the blockchain
 	 * @return the Tendermint node
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
-	 * @throws NodeCreationException if the node could not be created
 	 */
-	public static TendermintNode resume(TendermintNodeConfig config) throws NodeCreationException, InterruptedException {
+	public static TendermintNode resume(TendermintNodeConfig config) throws InterruptedException {
 		return new TendermintNodeImpl(config, false);
 	}
 }

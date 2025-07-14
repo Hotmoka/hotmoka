@@ -21,6 +21,7 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.util.function.Supplier;
 
+import io.hotmoka.cli.AbstractCommand;
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.websockets.beans.MappedEncoder;
@@ -31,7 +32,7 @@ import picocli.CommandLine.Help.Ansi;
 /**
  * Shared code among the commands that do not need to connect to a remote Hotmoka node.
  */
-public abstract class AbstractMokaCommand extends io.hotmoka.cli.AbstractCommand {
+public abstract class AbstractMokaCommand extends AbstractCommand {
 
 	protected final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
 

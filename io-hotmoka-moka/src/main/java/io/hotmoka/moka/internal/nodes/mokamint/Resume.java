@@ -34,7 +34,6 @@ import io.hotmoka.moka.internal.AbstractNodeResume;
 import io.hotmoka.moka.internal.converters.MokamintLocalNodeConfigOptionConverter;
 import io.hotmoka.moka.internal.converters.MokamintNodeConfigOptionConverter;
 import io.hotmoka.moka.internal.json.NodesMokamintResumeOutputJson;
-import io.hotmoka.node.local.NodeCreationException;
 import io.hotmoka.node.mokamint.MokamintNodeConfigBuilders;
 import io.hotmoka.node.mokamint.MokamintNodes;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
@@ -129,9 +128,6 @@ public class Resume extends AbstractNodeResume {
 						throw new CommandException("Cannot deploy the service at port " + getPort());
 					}
 				}
-			}
-			catch (NodeCreationException e) {
-				throw new CommandException("The node could not be created", e);
 			}
 			catch (WrongKeyException e) {
 				throw new CommandException("The key pair does not contain the correct keys for the plot file");

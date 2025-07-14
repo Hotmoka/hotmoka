@@ -19,7 +19,6 @@ package io.hotmoka.node.mokamint;
 import java.security.KeyPair;
 import java.util.concurrent.TimeoutException;
 
-import io.hotmoka.node.local.NodeCreationException;
 import io.hotmoka.node.mokamint.api.MokamintNode;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
 import io.hotmoka.node.mokamint.internal.MokamintNodeImpl;
@@ -45,10 +44,9 @@ public abstract class MokamintNodes {
 	 *                      for whispered blocks and then starts mining on top of them
 	 * @return the Mokamint node
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
-	 * @throws NodeCreationException if the node could not be created
 	 * @throws TimeoutException if the operation does not complete in time
 	 */
-	public static MokamintNode init(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair, boolean createGenesis) throws NodeCreationException, InterruptedException, TimeoutException {
+	public static MokamintNode init(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair, boolean createGenesis) throws InterruptedException, TimeoutException {
 		return new MokamintNodeImpl(config, mokamintConfig, keyPair, true, createGenesis);
 	}
 
@@ -63,10 +61,9 @@ public abstract class MokamintNodes {
 	 * @param keyPair the keys of the Mokamint node, used to sign the blocks that it mines
 	 * @return the Mokamint node
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
-	 * @throws NodeCreationException if the node could not be created
 	 * @throws TimeoutException if the operation does not complete in time
 	 */
-	public static MokamintNode resume(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws NodeCreationException, InterruptedException, TimeoutException {
+	public static MokamintNode resume(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws InterruptedException, TimeoutException {
 		return new MokamintNodeImpl(config, mokamintConfig, keyPair, false, false);
 	}
 }

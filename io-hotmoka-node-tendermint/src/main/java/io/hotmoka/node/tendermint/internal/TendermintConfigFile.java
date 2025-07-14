@@ -16,8 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.tendermint.internal;
 
-import java.io.IOException;
-
 import com.moandjiezana.toml.Toml;
 
 import io.hotmoka.node.local.api.LocalNodeConfig;
@@ -59,31 +57,30 @@ public class TendermintConfigFile {
 	 * Creates the configuration information extracted from Tendermint's {@code config.toml}.
 	 * 
 	 * @param config the local configuration of the Hotmoka node
-	 * @throws IOException if the information in the Tendermint's {@code config.toml} file cannot be parsed
 	 */
-	TendermintConfigFile(LocalNodeConfig<?,?> config) throws IOException {
+	TendermintConfigFile(LocalNodeConfig<?,?> config) {
 		Toml toml = new Toml().read(config.getDir().resolve("tendermint").resolve("config").resolve("config.toml").toFile());
 		String proxy_app = toml.getString("proxy_app");
 		String expectedPrefix = "tcp://127.0.0.1:";
 		if (proxy_app == null || !proxy_app.startsWith(expectedPrefix))
-			throw new IOException("The Tendermint configuration file must specify a proxy_app property starting with \"" + expectedPrefix + "\"");
+			throw new TendermintException("The Tendermint configuration file must specify a proxy_app property starting with \"" + expectedPrefix + "\"");
 	
 		try {
 			this.abciPort = Integer.parseUnsignedInt(proxy_app.substring(expectedPrefix.length()));
 		}
 		catch (NumberFormatException e) {
-			throw new IOException("The port of the proxy_app property in the Tendermint's configuration file cannot be parsed", e);
+			throw new TendermintException("The port of the proxy_app property in the Tendermint's configuration file cannot be parsed", e);
 		}
 
 		String laddr = toml.getTable("rpc").getString("laddr");
 		if (laddr == null || !laddr.startsWith(expectedPrefix))
-			throw new IOException("The Tendermint configuration file must specify a laddr property starting with \"" + expectedPrefix + "\"");
+			throw new TendermintException("The Tendermint configuration file must specify a laddr property starting with \"" + expectedPrefix + "\"");
 
 		try {
 			this.tendermintPort = Integer.parseUnsignedInt(laddr.substring(expectedPrefix.length()));
 		}
 		catch (NumberFormatException e) {
-			throw new IOException("The port of the laddr property in the Tendermint's configuration file cannot be parsed", e);
+			throw new TendermintException("The port of the laddr property in the Tendermint's configuration file cannot be parsed", e);
 		}
 	}
 }

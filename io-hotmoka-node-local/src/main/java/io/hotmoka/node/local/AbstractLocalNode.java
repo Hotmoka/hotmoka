@@ -37,9 +37,8 @@ public abstract class AbstractLocalNode<N extends AbstractLocalNode<N,C,S,T>, C 
 	 * 
 	 * @param config the local configuration of the node
 	 * @param init if true, the working directory of the node gets initialized
-	 * @throws NodeCreationException if the node could not be created
 	 */
-	protected AbstractLocalNode(C config, boolean init) throws NodeCreationException {
+	protected AbstractLocalNode(C config, boolean init) {
 		super(config, init);
 	}
 }

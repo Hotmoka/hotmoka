@@ -44,7 +44,6 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnexpectedCodeException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.local.NodeCreationException;
 import io.hotmoka.node.mokamint.MokamintNodeConfigBuilders;
 import io.hotmoka.node.mokamint.MokamintNodes;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
@@ -147,9 +146,6 @@ public class Init extends AbstractNodeInit {
 				catch (IOException e) {
 					throw new CommandException("Cannot access file \"" + getTakamakaCode() + "\"!", e);
 				}
-			}
-			catch (NodeCreationException e) {
-				throw new CommandException("The node could not be created", e);
 			}
 			catch (ClosedNodeException e) {
 				throw new CommandException("The node has been expectedly closed", e);

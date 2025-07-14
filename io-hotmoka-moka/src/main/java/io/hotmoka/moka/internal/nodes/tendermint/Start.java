@@ -29,7 +29,6 @@ import io.hotmoka.moka.api.nodes.tendermint.NodesTendermintStartOutput;
 import io.hotmoka.moka.internal.AbstractNodeStart;
 import io.hotmoka.moka.internal.converters.TendermintNodeConfigOptionConverter;
 import io.hotmoka.moka.internal.json.NodesTendermintStartOutputJson;
-import io.hotmoka.node.local.NodeCreationException;
 import io.hotmoka.node.service.NodeServices;
 import io.hotmoka.node.tendermint.TendermintNodeConfigBuilders;
 import io.hotmoka.node.tendermint.TendermintNodes;
@@ -67,9 +66,6 @@ public class Start extends AbstractNodeStart {
 			report(json(), output, NodesTendermintStartOutputs.Encoder::new);
 
 			waitForEnterKey();
-		}
-		catch (NodeCreationException e) {
-			throw new CommandException("The node could not be created", e);
 		}
 		catch (FailedDeploymentException e) {
 			throw new CommandException("Cannot deploy the service at port " + getPort());

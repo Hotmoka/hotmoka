@@ -24,7 +24,6 @@ import io.hotmoka.moka.api.nodes.tendermint.NodesTendermintResumeOutput;
 import io.hotmoka.moka.internal.AbstractNodeResume;
 import io.hotmoka.moka.internal.converters.TendermintNodeConfigOptionConverter;
 import io.hotmoka.moka.internal.json.NodesTendermintResumeOutputJson;
-import io.hotmoka.node.local.NodeCreationException;
 import io.hotmoka.node.service.NodeServices;
 import io.hotmoka.node.tendermint.TendermintNodeConfigBuilders;
 import io.hotmoka.node.tendermint.TendermintNodes;
@@ -53,9 +52,6 @@ public class Resume extends AbstractNodeResume {
 			report(json(), output, NodesTendermintResumeOutputs.Encoder::new);
 
 			waitForEnterKey();
-		}
-		catch (NodeCreationException e) {
-			throw new CommandException("The node could not be created", e);
 		}
 		catch (FailedDeploymentException e) {
 			throw new CommandException("Cannot deploy the service at port " + getPort());

@@ -76,7 +76,6 @@ import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.local.LRUCache;
-import io.hotmoka.node.local.NodeCreationException;
 import io.hotmoka.node.local.NodeException;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.LocalNode;
@@ -143,9 +142,8 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 * 
 	 * @param config the configuration of the node
 	 * @param init if true, the working directory of the node gets initialized
-	 * @throws NodeCreationException if the node could not be created
 	 */
-	protected AbstractLocalNodeImpl(C config, boolean init) throws NodeCreationException {
+	protected AbstractLocalNodeImpl(C config, boolean init) {
 		super(ClosedNodeException::new);
 
 		this.config = config;
@@ -156,7 +154,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 			this.hasher = HashingAlgorithms.sha256().getHasher(TransactionRequest::toByteArray);
 		}
 		catch (NoSuchAlgorithmException e) {
-			throw new NodeCreationException(e);
+			throw new NodeException(e);
 		}
 
 		if (init) {
@@ -164,7 +162,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 				initWorkingDirectory();
 			}
 			catch (IOException e) {
-				throw new NodeCreationException(e);
+				throw new NodeException("Cannot create the working directory for the Hotmoka node", e);
 			}
 		}
 
