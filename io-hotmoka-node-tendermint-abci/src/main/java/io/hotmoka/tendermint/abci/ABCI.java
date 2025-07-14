@@ -26,7 +26,6 @@ package io.hotmoka.tendermint.abci;
 import java.util.concurrent.TimeoutException;
 
 import io.grpc.stub.StreamObserver;
-import io.hotmoka.node.api.NodeException;
 import tendermint.abci.ABCIApplicationGrpc;
 import tendermint.abci.Types.RequestBeginBlock;
 import tendermint.abci.Types.RequestCheckTx;
