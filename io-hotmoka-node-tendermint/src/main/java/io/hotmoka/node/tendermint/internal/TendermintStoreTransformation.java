@@ -38,9 +38,9 @@ import io.hotmoka.node.api.responses.TransactionResponseWithUpdates;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractTrieBasedStoreTransformation;
+import io.hotmoka.node.local.StoreException;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.StoreCache;
-import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 

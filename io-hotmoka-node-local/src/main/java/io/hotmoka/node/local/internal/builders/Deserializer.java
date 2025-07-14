@@ -44,8 +44,8 @@ import io.hotmoka.node.api.values.ShortValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.api.values.StringValue;
+import io.hotmoka.node.local.StoreException;
 import io.hotmoka.node.local.api.EngineClassLoader;
-import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.whitelisting.Dummy;
 
 /**

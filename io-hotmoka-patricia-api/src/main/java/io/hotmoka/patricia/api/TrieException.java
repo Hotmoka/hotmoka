@@ -22,7 +22,7 @@ import java.util.Objects;
  * An exception stating that the execution of a method of a Patricia trie contains a bug.
  */
 @SuppressWarnings("serial")
-public class TrieException extends RuntimeException { // TODO: rename into TrieException at the end
+public class TrieException extends RuntimeException {
 
 	/**
 	 * Creates a new exception with the given message.

@@ -35,8 +35,8 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.local.AbstractStoreTransformation;
+import io.hotmoka.node.local.StoreException;
 import io.hotmoka.node.local.api.FieldNotFoundException;
-import io.hotmoka.node.local.api.StoreException;
 
 /**
  * A transformation of a store of a disk node.

@@ -38,10 +38,10 @@ import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.local.StoreException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.ResponseBuilder;
-import io.hotmoka.node.local.api.StoreException;
 
 /**
  * A generic implementation of the creator of a response.

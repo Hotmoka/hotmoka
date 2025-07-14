@@ -27,8 +27,8 @@ import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.node.api.responses.GameteCreationTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.AbstractInitialResponseBuilder;
+import io.hotmoka.node.local.StoreException;
 import io.hotmoka.node.local.api.EngineClassLoader;
-import io.hotmoka.node.local.api.StoreException;
 
 /**
  * The creator of a response for a transaction that creates a gamete.

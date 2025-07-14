@@ -41,7 +41,7 @@ import io.hotmoka.node.api.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.AbstractStoreTransformation;
-import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.StoreException;
 import io.hotmoka.node.local.internal.builders.ExecutionEnvironment;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.VerifiedJars;

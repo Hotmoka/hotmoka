@@ -33,7 +33,7 @@ import io.hotmoka.node.api.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.StoreException;
 
 /**
  * The creator of a response for a transaction that executes a constructor of Takamaka code.

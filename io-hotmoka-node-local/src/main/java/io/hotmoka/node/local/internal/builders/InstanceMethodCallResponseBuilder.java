@@ -40,7 +40,7 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
-import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.StoreException;
 import io.takamaka.code.constants.Constants;
 
 /**

@@ -42,8 +42,8 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.local.StoreException;
 import io.hotmoka.node.local.api.EngineClassLoader;
-import io.hotmoka.node.local.api.StoreException;
 import io.takamaka.code.constants.Constants;
 
 /**

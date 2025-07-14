@@ -28,7 +28,7 @@ import io.hotmoka.node.api.UnmatchedTargetException;
 import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.StoreException;
 import io.takamaka.code.constants.Constants;
 
 /**

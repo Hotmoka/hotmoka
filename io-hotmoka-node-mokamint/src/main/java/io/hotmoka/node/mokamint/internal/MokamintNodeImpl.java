@@ -168,7 +168,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			return NodeInfos.of(MokamintNode.class.getName(), Constants.HOTMOKA_VERSION, mokamintNode.getInfo().getUUID().toString());
 		}
 		catch (io.mokamint.node.api.ClosedNodeException e) {
-			throw new RuntimeException(e); // TODO
+			throw new ClosedNodeException(e);
 		}
 	}
 

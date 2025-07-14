@@ -77,11 +77,11 @@ import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.api.values.StringValue;
+import io.hotmoka.node.local.StoreException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.ResponseBuilder;
 import io.hotmoka.node.local.api.StoreCache;
-import io.hotmoka.node.local.api.StoreException;
 
 /**
  * An executor environment abstract both a store and a store transformation and allows

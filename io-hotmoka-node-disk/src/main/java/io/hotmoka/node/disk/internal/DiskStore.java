@@ -39,8 +39,8 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.local.AbstractStore;
+import io.hotmoka.node.local.StoreException;
 import io.hotmoka.node.local.api.StoreCache;
-import io.hotmoka.node.local.api.StoreException;
 
 /**
  * The store of a disk blockchain. It is not transactional and just writes

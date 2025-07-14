@@ -47,9 +47,9 @@ import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.updates.UpdateOfField;
+import io.hotmoka.node.local.StoreException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
-import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.whitelisting.api.WhiteListingClassLoader;
 
 /**

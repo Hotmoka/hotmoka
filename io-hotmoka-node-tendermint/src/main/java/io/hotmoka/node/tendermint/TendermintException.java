@@ -20,7 +20,7 @@ package io.hotmoka.node.tendermint;
  * An exception thrown when the Tendermint tool misbehaves.
  */
 @SuppressWarnings("serial")
-public class TendermintException extends Exception {
+public class TendermintException extends Exception { // TODO: make it unchecked?
 
 	/**
 	 * Creates the exception.
