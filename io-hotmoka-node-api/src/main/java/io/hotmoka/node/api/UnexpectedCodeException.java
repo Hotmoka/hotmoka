@@ -23,7 +23,7 @@ import java.util.Objects;
  * is different or behaves differently from what is expected.
  */
 @SuppressWarnings("serial")
-public class UnexpectedCodeException extends NodeException {
+public class UnexpectedCodeException extends Exception {
 
 	/**
 	 * Builds the exception.

@@ -22,7 +22,7 @@ package io.hotmoka.node.api;
  * the node is a remote node, then it might just be a byzantine node.
  */
 @SuppressWarnings("serial")
-public class MisbehavingNodeException extends NodeException {
+public class MisbehavingNodeException extends Exception {
 
 	/**
 	 * Creates a new exception.

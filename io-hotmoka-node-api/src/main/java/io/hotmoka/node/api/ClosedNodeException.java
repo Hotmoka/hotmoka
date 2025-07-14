@@ -21,7 +21,7 @@ package io.hotmoka.node.api;
  * perform some operation.
  */
 @SuppressWarnings("serial")
-public class ClosedNodeException extends NodeException {
+public class ClosedNodeException extends Exception {
 
 	/**
 	 * Creates a new exception.
