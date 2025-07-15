@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.hotmoka.node.api.DeserializationException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -43,6 +42,7 @@ import io.hotmoka.node.api.values.ShortValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.api.values.StringValue;
+import io.hotmoka.node.local.DeserializationException;
 import io.hotmoka.node.local.LocalNodeException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.whitelisting.Dummy;

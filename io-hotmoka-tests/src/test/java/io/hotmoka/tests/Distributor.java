@@ -36,12 +36,12 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.UnexpectedValueException;
-import io.hotmoka.node.api.IllegalAssignmentToFieldInStorageException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.signatures.VoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.local.IllegalAssignmentToFieldInStorageException;
 
 /**
  * A test for the distribution of coins.

@@ -26,10 +26,7 @@ import java.util.logging.Level;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.TransactionResponses;
-import io.hotmoka.node.api.HotmokaTransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.UnknownTypeException;
-import io.hotmoka.node.api.UnmatchedTargetException;
 import io.hotmoka.node.api.requests.AbstractInstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
@@ -39,7 +36,10 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
+import io.hotmoka.node.local.HotmokaTransactionException;
 import io.hotmoka.node.local.LocalNodeException;
+import io.hotmoka.node.local.UnknownTypeException;
+import io.hotmoka.node.local.UnmatchedTargetException;
 import io.takamaka.code.constants.Constants;
 
 /**

@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.StorageTypes;
-import io.hotmoka.node.api.NonWhiteListedCallException;
+import io.hotmoka.node.local.NonWhiteListedCallException;
 import io.hotmoka.tests.HotmokaTest;
 
 class IllegalCallToNonWhiteListedMethod10 extends HotmokaTest {

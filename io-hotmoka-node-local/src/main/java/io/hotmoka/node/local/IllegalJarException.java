@@ -14,21 +14,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.api;
+package io.hotmoka.node.local;
 
 /**
- * An exception thrown when a transaction calls a method or constructor
- * whose result value cannot be serialized into a storage value.
+ * An exception thrown when a jar to install in a node is illegal.
+ * For instance, it is not valid Java bytecode.
  */
 @SuppressWarnings("serial")
-public class SerializationException extends HotmokaTransactionException {
+public class IllegalJarException extends HotmokaTransactionException {
 
 	/**
-	 * Creates the exception.
+	 * Creates the exception with the given cause.
 	 * 
-	 * @param message the message of the exception
+	 * @param cause the cause
 	 */
-	public SerializationException(String message) {
-		super(message);
+	public IllegalJarException(io.hotmoka.verification.api.IllegalJarException cause) {
+		super(cause.getMessage(), cause);
 	}
 }

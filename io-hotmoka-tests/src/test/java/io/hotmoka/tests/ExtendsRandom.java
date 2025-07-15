@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.StorageTypes;
-import io.hotmoka.node.api.SerializationException;
+import io.hotmoka.node.local.SerializationException;
 
 class ExtendsRandom extends HotmokaTest {
 

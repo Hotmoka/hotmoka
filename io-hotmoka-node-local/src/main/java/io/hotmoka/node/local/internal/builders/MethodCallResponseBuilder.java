@@ -24,16 +24,16 @@ import java.util.logging.Level;
 import java.util.stream.Stream;
 
 import io.hotmoka.node.TransactionResponses;
-import io.hotmoka.node.api.HotmokaTransactionException;
-import io.hotmoka.node.api.NonWhiteListedCallException;
-import io.hotmoka.node.api.SideEffectsInViewMethodException;
 import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.UnknownTypeException;
 import io.hotmoka.node.api.requests.MethodCallTransactionRequest;
 import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.node.api.signatures.MethodSignature;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.local.HotmokaTransactionException;
+import io.hotmoka.node.local.NonWhiteListedCallException;
+import io.hotmoka.node.local.SideEffectsInViewMethodException;
+import io.hotmoka.node.local.UnknownTypeException;
 
 /**
  * The creator of a response for a transaction that executes a method of Takamaka code.

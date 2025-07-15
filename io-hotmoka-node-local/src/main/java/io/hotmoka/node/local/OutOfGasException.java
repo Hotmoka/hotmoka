@@ -14,20 +14,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.api;
+package io.hotmoka.node.local;
 
 /**
- * An exception thrown when a storage reference cannot be deserialized.
+ * An exception thrown when a transaction has not enough gas
+ * to complete its computation.
  */
 @SuppressWarnings("serial")
-public class DeserializationException extends HotmokaTransactionException {
+public class OutOfGasException extends HotmokaTransactionException {
 
 	/**
-	 * Creates the exception with the given message.
+	 * Creates an exception with the given message.
 	 * 
 	 * @param message the message
 	 */
-	public DeserializationException(String message) {
+	public OutOfGasException(String message) {
 		super(message);
 	}
 }

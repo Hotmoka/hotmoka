@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2025 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,21 +14,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.api;
+package io.hotmoka.node.local;
 
 /**
- * An exception thrown when a transaction has not enough gas
- * to complete its computation.
+ * An exception thrown when a transaction calls a method or constructor
+ * whose result value cannot be serialized into a storage value.
  */
 @SuppressWarnings("serial")
-public class OutOfGasException extends HotmokaTransactionException {
+public class SerializationException extends HotmokaTransactionException {
 
 	/**
-	 * Creates an exception with the given message.
+	 * Creates the exception.
 	 * 
-	 * @param message the message
+	 * @param message the message of the exception
 	 */
-	public OutOfGasException(String message) {
+	public SerializationException(String message) {
 		super(message);
 	}
 }

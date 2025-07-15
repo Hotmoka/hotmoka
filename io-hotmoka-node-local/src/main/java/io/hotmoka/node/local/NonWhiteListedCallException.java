@@ -1,5 +1,5 @@
 /*
-Copyright 2025 Fausto Spoto
+Copyright 2021 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,42 +14,32 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.api;
+package io.hotmoka.node.local;
 
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.signatures.MethodSignature;
 
 /**
- * An exception thrown when a the method or constructor
- * called by a transaction cannot be found and accessed.
+ * An exception thrown when a non-white-listed method is called.
  */
 @SuppressWarnings("serial")
-public class UnmatchedTargetException extends HotmokaTransactionException {
+public class NonWhiteListedCallException extends HotmokaTransactionException {
 
 	/**
-	 * Creates the exception with the given message.
-	 * 
-	 * @param message the message
-	 */
-	public UnmatchedTargetException(String message) {
-		super(message);
-	}
-
-	/**
-	 * Creates an exception about a call to a constructor that cannot be found.
+	 * Creates the exception about a call to a non-white-listed constructor.
 	 * 
 	 * @param constructor the constructor
 	 */
-	public UnmatchedTargetException(ConstructorSignature constructor) {
-		super("Cannot find constructor " + constructor);
+	public NonWhiteListedCallException(ConstructorSignature constructor) {
+		super("Illegal call to non-white-listed constructor " + constructor);
 	}
 
 	/**
-	 * Creates an exception about a call to a method that cannot be found.
+	 * Creates the exception about a call to a non-white-listed method.
 	 * 
 	 * @param method the method
 	 */
-	public UnmatchedTargetException(MethodSignature method) {
-		super("Cannot find method " + method);
+	public NonWhiteListedCallException(MethodSignature method) {
+		super("Illegal call to non-white-listed method " + method);
 	}
 }

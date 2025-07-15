@@ -38,11 +38,8 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.IllegalAssignmentToFieldInStorageException;
-import io.hotmoka.node.api.SideEffectsInViewMethodException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.UnmatchedTargetException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.signatures.VoidMethodSignature;
@@ -51,6 +48,9 @@ import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StringValue;
+import io.hotmoka.node.local.IllegalAssignmentToFieldInStorageException;
+import io.hotmoka.node.local.SideEffectsInViewMethodException;
+import io.hotmoka.node.local.UnmatchedTargetException;
 import io.takamaka.code.constants.Constants;
 
 /**

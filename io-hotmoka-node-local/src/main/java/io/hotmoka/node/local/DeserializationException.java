@@ -14,24 +14,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.api;
-
-import io.hotmoka.node.api.signatures.MethodSignature;
+package io.hotmoka.node.local;
 
 /**
- * An exception thrown when a transaction for the execution of a
- * {@code @@View} method has side-effects different
- * from the modification of the balance of the caller.
+ * An exception thrown when a storage reference cannot be deserialized.
  */
 @SuppressWarnings("serial")
-public class SideEffectsInViewMethodException extends HotmokaTransactionException {
+public class DeserializationException extends HotmokaTransactionException {
 
 	/**
-	 * Creates an exception about a {@code @@View} method that caused side-effects.
+	 * Creates the exception with the given message.
 	 * 
-	 * @param method the method
+	 * @param message the message
 	 */
-	public SideEffectsInViewMethodException(MethodSignature method) {
-		super("@View method " + method + " induced side-effects");
+	public DeserializationException(String message) {
+		super(message);
 	}
 }

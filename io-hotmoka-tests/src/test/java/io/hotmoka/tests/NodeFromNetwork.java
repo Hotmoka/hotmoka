@@ -44,7 +44,6 @@ import io.hotmoka.node.api.ClassLoaderCreationException;
 import io.hotmoka.node.api.JarFuture;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
-import io.hotmoka.node.api.VerificationException;
 import io.hotmoka.node.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.responses.JarStoreInitialTransactionResponse;
@@ -53,6 +52,7 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.local.VerificationException;
 import io.hotmoka.node.remote.RemoteNodes;
 import io.hotmoka.node.service.NodeServices;
 

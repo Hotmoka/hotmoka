@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
-import io.hotmoka.node.api.OutOfGasException;
+import io.hotmoka.node.local.OutOfGasException;
 
 /**
  * A test for the execution of code that drains all gas.

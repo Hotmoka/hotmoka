@@ -28,10 +28,10 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.OutOfGasException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
+import io.hotmoka.node.local.OutOfGasException;
 import io.hotmoka.tests.HotmokaTest;
 
 class Exceptions extends HotmokaTest {

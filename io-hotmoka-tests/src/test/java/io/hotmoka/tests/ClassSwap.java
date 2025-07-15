@@ -30,13 +30,13 @@ import org.junit.jupiter.api.Test;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
-import io.hotmoka.node.api.DeserializationException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.IntValue;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.local.DeserializationException;
 
 /**
  * A test for the creation of classes with the same name but from different jars.

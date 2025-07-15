@@ -28,8 +28,8 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.NonWhiteListedCallException;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.local.NonWhiteListedCallException;
 import io.hotmoka.tests.HotmokaTest;
 
 class IllegalCallToNonWhiteListedMethod12 extends HotmokaTest {

@@ -33,8 +33,8 @@ import io.hotmoka.moka.Moka;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.api.UnknownTypeException;
-import io.hotmoka.node.api.VerificationException;
+import io.hotmoka.node.local.UnknownTypeException;
+import io.hotmoka.node.local.VerificationException;
 import io.hotmoka.verification.api.VerificationError;
 import io.takamaka.code.constants.Constants;
 

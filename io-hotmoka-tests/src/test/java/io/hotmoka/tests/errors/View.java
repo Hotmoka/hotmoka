@@ -27,10 +27,10 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.SideEffectsInViewMethodException;
-import io.hotmoka.node.api.UnmatchedTargetException;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.local.SideEffectsInViewMethodException;
+import io.hotmoka.node.local.UnmatchedTargetException;
 import io.hotmoka.tests.HotmokaTest;
 
 class View extends HotmokaTest {
