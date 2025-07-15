@@ -27,7 +27,7 @@ public class UninitializedNodeException extends Exception {
 	/**
 	 * Creates a new exception.
 	 */
-	public UninitializedNodeException() {
+	public UninitializedNodeException() { // called by reflection, do not remove
 		super("The node is not initialized yet");
 	}
 

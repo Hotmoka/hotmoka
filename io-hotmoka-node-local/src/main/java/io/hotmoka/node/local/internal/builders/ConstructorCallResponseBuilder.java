@@ -19,6 +19,7 @@ package io.hotmoka.node.local.internal.builders;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.stream.Stream;
 
@@ -70,16 +71,22 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 
 				Object[] deserializedActuals;
 				Constructor<?> constructorJVM;
-		
-				try {
-					// we first try to call the constructor with exactly the parameter types explicitly provided
-					constructorJVM = getConstructor();
+
+				// we first try to call the constructor with exactly the parameter types explicitly provided
+				var maybeConstructor = getConstructor();
+				if (maybeConstructor.isPresent()) {
+					constructorJVM = maybeConstructor.get();
 					deserializedActuals = getDeserializedActuals();
 				}
-				catch (UnmatchedTargetException e) {
+				else {
 					// if not found, we try to add the trailing types that characterize the @FromContract constructors
-					constructorJVM = getFromContractConstructor();
-					deserializedActuals = getDeserializedActualsForFromContract();
+					maybeConstructor = getFromContractConstructor();
+					if (maybeConstructor.isPresent()) {
+						constructorJVM = maybeConstructor.get();
+						deserializedActuals = getDeserializedActualsForFromContract();
+					}
+					else
+						throw new UnmatchedTargetException(request.getStaticTarget());
 				}
 		
 				ensureWhiteListingOf(constructorJVM, deserializedActuals);
@@ -146,17 +153,15 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		/**
 		 * Resolves the constructor that must be called.
 		 * 
-		 * @return the constructor
-		 * @throws UnmatchedTargetException if the constructor could not be found
+		 * @return the constructor, if it could be found
 		 * @throws UnknownTypeException if the class of the constructor or of some parameter cannot be found
 		 */
-		private Constructor<?> getConstructor() throws UnknownTypeException, UnmatchedTargetException {
+		private Optional<Constructor<?>> getConstructor() throws UnknownTypeException {
 			Class<?>[] argTypes = formalsAsClass();
 			ConstructorSignature constructor = request.getStaticTarget();
 
 			try {
-				return classLoader.resolveConstructor(constructor.getDefiningClass().getName(), argTypes)
-					.orElseThrow(() -> new UnmatchedTargetException(constructor));
+				return classLoader.resolveConstructor(constructor.getDefiningClass().getName(), argTypes);
 			}
 			catch (ClassNotFoundException e) {
 				throw new UnknownTypeException(constructor.getDefiningClass());
@@ -166,17 +171,15 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		/**
 		 * Resolves the constructor that must be called, assuming that it is a {@code @@FromContract}.
 		 * 
-		 * @return the constructor
-		 * @throws UnmatchedTargetException if the constructor could not be found
+		 * @return the constructor, if it could be found
 		 * @throws UnknownTypeException if the class of the constructor or of some parameter cannot be found
 		 */
-		private Constructor<?> getFromContractConstructor() throws UnknownTypeException, UnmatchedTargetException {
+		private Optional<Constructor<?>> getFromContractConstructor() throws UnknownTypeException {
 			Class<?>[] argTypes = formalsAsClassForFromContract();
 			ConstructorSignature constructor = request.getStaticTarget();
 
 			try {
-				return classLoader.resolveConstructor(constructor.getDefiningClass().getName(), argTypes)
-					.orElseThrow(() -> new UnmatchedTargetException(constructor));
+				return classLoader.resolveConstructor(constructor.getDefiningClass().getName(), argTypes);
 			}
 			catch (ClassNotFoundException e) {
 				throw new UnknownTypeException(constructor.getDefiningClass());

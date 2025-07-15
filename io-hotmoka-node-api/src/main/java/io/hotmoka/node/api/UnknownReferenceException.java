@@ -50,7 +50,7 @@ public class UnknownReferenceException extends Exception {
 	 * 
 	 * @param message the message
 	 */
-	public UnknownReferenceException(String message) {
+	public UnknownReferenceException(String message) { // called by reflection, do not remove
 		super(Objects.requireNonNull(message, "message cannot be null"));
 	}
 }

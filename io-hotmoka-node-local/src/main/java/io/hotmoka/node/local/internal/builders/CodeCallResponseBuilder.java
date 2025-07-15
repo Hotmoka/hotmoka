@@ -248,7 +248,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 * @param object the object to serialize. This must be a storage object, a Java wrapper
 		 *               object for numerical types or a special Java object that is allowed
 		 *               in store, such as a {@link java.lang.String} or {@link java.math.BigInteger}
-		 * @return the serialization of {@code object}, if any
+		 * @return the serialization of {@code object}
 		 */
 		protected final StorageValue serialize(Object object) throws SerializationException {
 			if (isStorage(object))

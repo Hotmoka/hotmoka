@@ -64,7 +64,7 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 				init();
 				deserializeActuals();
 
-				Method methodJVM = getMethod();
+				Method methodJVM = getMethod().orElseThrow(() -> new UnmatchedTargetException(request.getStaticTarget()));
 				boolean calleeIsAnnotatedAsView = hasAnnotation(methodJVM, Constants.VIEW_NAME);
 				calleeIsConsistent(methodJVM, calleeIsAnnotatedAsView);
 				ensureWhiteListingOf(methodJVM, getDeserializedActuals());

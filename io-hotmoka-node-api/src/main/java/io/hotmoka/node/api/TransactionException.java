@@ -27,6 +27,16 @@ public class TransactionException extends Exception {
 	 * Builds an exception, raised during a transaction, that occurred during
 	 * the execution of a Takamaka constructor or method that was not allowed to throw it.
 	 * 
+	 * @param message the message of the exception
+	 */
+	public TransactionException(String message) { // called by reflection, do not remove
+		super(message);
+	}
+
+	/**
+	 * Builds an exception, raised during a transaction, that occurred during
+	 * the execution of a Takamaka constructor or method that was not allowed to throw it.
+	 * 
 	 * @param classNameOfCause the name of the class of the cause of the exception
 	 * @param messageOfCause the message of the cause of the exception. This might be {@code null}
 	 * @param where a description of the program point of the exception. This might be {@code null}

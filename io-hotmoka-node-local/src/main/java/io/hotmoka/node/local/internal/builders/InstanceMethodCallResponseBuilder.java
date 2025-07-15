@@ -99,15 +99,21 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				Object[] deserializedActuals;
 				Method methodJVM;
 
-				try {
-					// we first try to call the method with exactly the parameter types explicitly provided
-					methodJVM = getMethod();
+				// we first try to call the method with exactly the parameter types explicitly provided
+				var maybeMethod = getMethod();
+				if (maybeMethod.isPresent()) {
+					methodJVM = maybeMethod.get();
 					deserializedActuals = getDeserializedActuals();
 				}
-				catch (UnmatchedTargetException e) {
+				else {
 					// if not found, we try to add the trailing types that characterize the @FromContract methods
-					methodJVM = getFromContractMethod();
-					deserializedActuals = getDeserializedActualsForFromContract();
+					maybeMethod = getFromContractMethod();
+					if (maybeMethod.isPresent()) {
+						methodJVM = maybeMethod.get();
+						deserializedActuals = getDeserializedActualsForFromContract();
+					}
+					else
+						throw new UnmatchedTargetException(request.getStaticTarget());
 				}
 
 				boolean calleeIsAnnotatedAsView = hasAnnotation(methodJVM, Constants.VIEW_NAME);
@@ -176,11 +182,10 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		/**
 		 * Resolves the method that must be called, assuming that it is annotated as {@code @@FromContract}.
 		 * 
-		 * @return the method
-		 * @throws UnmatchedTargetException if the method could not be found
+		 * @return the method, if it could be found
 		 * @throws UnknownTypeException if the class of the method or of some parameter or return type cannot be found
 		 */
-		private Method getFromContractMethod() throws UnmatchedTargetException, UnknownTypeException {
+		private Optional<Method> getFromContractMethod() throws UnknownTypeException {
 			MethodSignature method = request.getStaticTarget();
 			Class<?>[] argTypes = formalsAsClassForFromContract();
 			Class<?> returnType;
@@ -197,8 +202,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				returnType = void.class;
 
 			try {
-				return classLoader.resolveMethod(method.getDefiningClass().getName(), method.getName(), argTypes, returnType)
-						.orElseThrow(() -> new UnmatchedTargetException("Cannot find method " + method.toString()));
+				return classLoader.resolveMethod(method.getDefiningClass().getName(), method.getName(), argTypes, returnType);
 			}
 			catch (ClassNotFoundException e) {
 				throw new UnknownTypeException(method.getDefiningClass());

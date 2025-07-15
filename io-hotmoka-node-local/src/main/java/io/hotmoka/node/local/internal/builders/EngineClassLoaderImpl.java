@@ -179,10 +179,10 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			this.balanceField.setAccessible(true); // it was private
 		}
 		catch (NoSuchMethodException e) {
-			throw new ClassLoaderCreationException("Missing method", e);
+			throw new LocalNodeException("Missing method", e);
 		}
 		catch (NoSuchFieldException e) {
-			throw new ClassLoaderCreationException("Missing field", e);
+			throw new LocalNodeException("Missing field", e);
 		}
 	}
 
@@ -206,14 +206,18 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		}
 
 		for (var dependency: dependencies)
-			addJars(dependency, consensus, jars, transactionsOfJars, environment, counter);
+			addJars(dependency, false, consensus, jars, transactionsOfJars, environment, counter);
 
 		processClassesInJars(jars, transactionsOfJars, environment);
 
 		try {
 			return TakamakaClassLoaders.of(jars.stream(), consensus.getVerificationVersion());
 		}
-		catch (UnsupportedVerificationVersionException | UnknownTypeException e) {
+		catch (UnsupportedVerificationVersionException e) {
+			// the node does not support the verification version of its same consensus, therefore it is considered broken
+			throw new LocalNodeException(e);
+		}
+		catch (UnknownTypeException e) {
 			throw new ClassLoaderCreationException(e.getMessage());
 		}
 	}
@@ -222,6 +226,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * Expands the given list of jars with the components of the given classpath.
 	 * 
 	 * @param classpath the classpath
+	 * @param wasInStore true if we are sure that {@code classpath} was in store
 	 * @param consensus the consensus parameters of the node
 	 * @param jars the list where the jars will be added
 	 * @param jarTransactions the list of transactions where the {@code jars} have been installed
@@ -229,18 +234,18 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @param counter the number of jars that have been encountered up to now, during the recursive descent
 	 * @throws ClassLoaderCreationException if the jars could not be added to the classpath
 	 */
-	private void addJars(TransactionReference classpath, ConsensusConfig<?,?> consensus, List<byte[]> jars, List<TransactionReference> jarTransactions, ExecutionEnvironment environment, AtomicInteger counter) throws ClassLoaderCreationException {
+	private void addJars(TransactionReference classpath, boolean wasInStore, ConsensusConfig<?,?> consensus, List<byte[]> jars, List<TransactionReference> jarTransactions, ExecutionEnvironment environment, AtomicInteger counter) throws ClassLoaderCreationException {
 		// consensus might be null if the node is restarting, during the recomputation of its consensus itself
 		if (counter.incrementAndGet() > consensus.getMaxDependencies())
 			throw new ClassLoaderCreationException("Too many dependencies in classpath: max is " + consensus.getMaxDependencies());
 
-		JarStoreTransactionResponseWithInstrumentedJar responseWithInstrumentedJar = getResponseWithInstrumentedJarAt(classpath, environment);
+		JarStoreTransactionResponseWithInstrumentedJar responseWithInstrumentedJar = getResponseWithInstrumentedJarAt(classpath, wasInStore, environment);
 
 		// we consider its dependencies before as well, recursively
 		for (var dependency: responseWithInstrumentedJar.getDependencies().toArray(TransactionReference[]::new)) {
 			// a jar reaches its immediate dependencies
 			dependencyTree.computeIfAbsent(classpath, _classpath -> new HashSet<TransactionReference>()).add(dependency);
-			addJars(dependency, consensus, jars, jarTransactions, environment, counter);
+			addJars(dependency, true, consensus, jars, jarTransactions, environment, counter);
 		}
 
 		jars.add(responseWithInstrumentedJar.getInstrumentedJar());
@@ -313,11 +318,12 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * a jar in the store of the node.
 	 * 
 	 * @param reference the reference of the transaction
+	 * @param wasInStore true if we are sure that {@code reference} was in store
 	 * @param environment the execution environment for which the class loader is created
 	 * @return the response
 	 * @throws ClassLoaderCreationException if the transaction does not exist in the store, or did not generate a response with instrumented jar
 	 */
-	private JarStoreTransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAt(TransactionReference reference, ExecutionEnvironment environment) throws ClassLoaderCreationException {
+	private JarStoreTransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAt(TransactionReference reference, boolean wasInStore, ExecutionEnvironment environment) throws ClassLoaderCreationException {
 		// first we check if the response has been reverified and we use the reverified version
 		Optional<TransactionResponse> maybeResponse = reverification.getReverifiedResponse(reference);
 		TransactionResponse response;
@@ -329,13 +335,17 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 				response = environment.getResponse(reference);
 			}
 			catch (UnknownReferenceException e) {
-				throw new ClassLoaderCreationException("Unknown transaction reference " + reference);
+				if (wasInStore)
+					throw new LocalNodeException("The transcation " + reference + " was a dependency in store, but cannot be found");
+				else
+					throw new ClassLoaderCreationException("Unknown transaction reference " + reference);
 			}
 		}
 
 		if (response instanceof JarStoreTransactionResponseWithInstrumentedJar trwij)
 			return trwij;
 		else
+			// this could happen if a previous reverification replaced the response with a failed one
 			throw new ClassLoaderCreationException("The transaction " + reference + " did not install a jar in store");
 	}
 

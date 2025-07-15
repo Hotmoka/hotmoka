@@ -31,7 +31,7 @@ public class TransactionRejectedException extends Exception {
 	 * 
 	 * @param message the message
 	 */
-	public TransactionRejectedException(String message) {
+	public TransactionRejectedException(String message) { // called by reflection, do not remove
 		super(message);
 	}
 

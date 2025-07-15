@@ -19,6 +19,7 @@ package io.hotmoka.node.local.internal.builders;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.stream.Stream;
 
@@ -29,7 +30,6 @@ import io.hotmoka.node.api.NonWhiteListedCallException;
 import io.hotmoka.node.api.SideEffectsInViewMethodException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownTypeException;
-import io.hotmoka.node.api.UnmatchedTargetException;
 import io.hotmoka.node.api.requests.MethodCallTransactionRequest;
 import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.node.api.signatures.MethodSignature;
@@ -81,7 +81,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 				.orElseThrow(() -> new NonWhiteListedCallException(request.getStaticTarget()));
 		}
 
-		protected final Method getMethod() throws UnmatchedTargetException, UnknownTypeException {
+		protected final Optional<Method> getMethod() throws UnknownTypeException {
 			MethodSignature method = request.getStaticTarget();
 			Class<?> returnType;
 
@@ -99,8 +99,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 			Class<?>[] argTypes = formalsAsClass();
 
 			try {
-				return classLoader.resolveMethod(method.getDefiningClass().getName(), method.getName(), argTypes, returnType)
-						.orElseThrow(() -> new UnmatchedTargetException(method));
+				return classLoader.resolveMethod(method.getDefiningClass().getName(), method.getName(), argTypes, returnType);
 			}
 			catch (ClassNotFoundException e) {
 				throw new UnknownTypeException(method.getDefiningClass());

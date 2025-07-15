@@ -19,10 +19,16 @@ package io.hotmoka.node.api;
 import java.util.Objects;
 
 /**
- * An exception stating that the creation of a class loader failed.
+ * An exception stating that the creation of a class loader failed
+ * because the parameters for its creation (for instance, the jars) contain
+ * something illegal. This is meant to represent that the data in the
+ * transaction request, from which the classloader is being built, is
+ * inconsistent and prevented the classloader from being built.
+ * In such cases, the transaction should be rejected since it cannot
+ * even start without a classloader.
  */
 @SuppressWarnings("serial")
-public class ClassLoaderCreationException extends HotmokaException {
+public class ClassLoaderCreationException extends Exception {
 
 	/**
 	 * Creates a new exception with the given message.
@@ -31,15 +37,5 @@ public class ClassLoaderCreationException extends HotmokaException {
 	 */
 	public ClassLoaderCreationException(String message) {
 		super(Objects.requireNonNull(message, "message cannot be null"));
-	}
-
-	/**
-	 * Creates a new exception with the given message.
-	 * 
-	 * @param message the message
-	 * @param cause the cause
-	 */
-	public ClassLoaderCreationException(String message, Throwable cause) {
-		super(Objects.requireNonNull(message, "message cannot be null"), Objects.requireNonNull(cause, "cause cannot be null"));
 	}
 }
