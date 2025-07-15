@@ -27,6 +27,7 @@ import java.net.HttpURLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -322,7 +323,8 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 				// that plays the role of the unique validator of the network
 				String executableName = isWindows ? "cmd.exe /c tendermint.exe" : "tendermint";
 				//if (run("tendermint testnet --v 1 --o " + tendermintHome + " --populate-persistent-peers", Optional.empty()).waitFor() != 0)
-				if (run(executableName + " init --home " + tendermintHome, Optional.empty()).waitFor() != 0) // TODO: add timeout
+				var process = run(executableName + " init --home " + tendermintHome, Optional.empty());
+				if (!process.waitFor(10_000, TimeUnit.MILLISECONDS) || process.exitValue() != 0)
 					throw new TendermintException("Tendermint initialization failed: is Tendermint installed?");
 			}
 			else

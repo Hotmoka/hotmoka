@@ -25,7 +25,7 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.HotmokaException;
+import io.hotmoka.node.api.DeserializationException;
 import io.hotmoka.node.api.IllegalAssignmentToFieldInStorageException;
 import io.hotmoka.node.api.SerializationException;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -115,7 +115,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		/**
 		 * Deserialize the actual arguments of the call.
 		 */
-		protected final void deserializeActuals() throws HotmokaException {
+		protected final void deserializeActuals() throws DeserializationException {
 			var actuals = request.actuals().toArray(StorageValue[]::new);
 			deserializedActuals = new Object[actuals.length];
 			int pos = 0;

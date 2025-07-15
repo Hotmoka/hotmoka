@@ -34,7 +34,7 @@ public class UncheckedExceptionHandlerError extends AbstractVerificationError {
 	 * @param exceptionName the name of the caught exception
 	 */
 	public UncheckedExceptionHandlerError(String where, MethodGen method, int line, String exceptionName) {
-		super(where, method, line, "exception handler for unchecked exception " + exceptionName);
+		super(where, method, line, "exception handler for " + exceptionName + " might check unchecked exceptions");
 	}
 
 	/**

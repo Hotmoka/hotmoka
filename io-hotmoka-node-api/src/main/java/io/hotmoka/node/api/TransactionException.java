@@ -36,14 +36,4 @@ public class TransactionException extends Exception {
 			+ (messageOfCause.isEmpty() ? "" : (": " + messageOfCause))
 			+ (where.isEmpty() ? "" : "@" + where));
 	}
-
-	/**
-	 * Builds an exception, raised during a transaction, that occurred during
-	 * the execution of a Takamaka constructor or method that was not allowed to throw it.
-	 * 
-	 * @param message the message of the exception
-	 */
-	public TransactionException(String message) {
-		super(message);
-	}
 }

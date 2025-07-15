@@ -24,9 +24,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.api.OutOfGasException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
@@ -35,6 +37,7 @@ import io.hotmoka.tests.HotmokaTest;
 class Exceptions extends HotmokaTest {
 
 	private final static ClassType C = StorageTypes.classNamed("io.hotmoka.examples.errors.exceptions.C");
+	private final static ClassType BIG_ARRAY = StorageTypes.classNamed("io.hotmoka.examples.errors.exceptions.BigArray");
 
 	@BeforeEach
 	void beforeEach() throws Exception {
@@ -60,7 +63,7 @@ class Exceptions extends HotmokaTest {
 		}
 	}
 
-	@Test @DisplayName("install jar then calls foo2() and fails without program line")
+	@Test @DisplayName("install jar then calls foo2() and fails with program line")
 	void callFoo2() throws Exception {
 		TransactionReference exceptions = addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("exceptions.jar"), takamakaCode());
 
@@ -71,6 +74,20 @@ class Exceptions extends HotmokaTest {
 			assertTrue(e instanceof TransactionException);
 			assertTrue(e.getMessage().startsWith(NullPointerException.class.getName()));
 			assertTrue(e.getMessage().endsWith("@C.java:32"));
+		}
+	}
+
+	@Test @DisplayName("install jar then calls new BigArray() and fails for lack of gas")
+	void createBigArrayFailsForLackOfGas() throws Exception {
+		TransactionReference exceptions = addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("exceptions.jar"), takamakaCode());
+
+		try {
+			addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, exceptions, ConstructorSignatures.of(BIG_ARRAY));
+		}
+		catch (Exception e) {
+			assertTrue(e instanceof TransactionException);
+			assertTrue(e.getMessage().startsWith(OutOfGasException.class.getName()));
+			assertTrue(e.getMessage().endsWith("@BigArray.java:23"));
 		}
 	}
 }

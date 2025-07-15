@@ -478,12 +478,10 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 */
 		private void charge(BigInteger amount, Consumer<BigInteger> forWhat) throws OutOfGasException {
 			if (amount.signum() < 0)
-				throw new IllegalArgumentException("The gas cannot increase"); // TODO
-
-			// gas can only be negative if it was initialized so; this special case is
-			// used for the creation of the gamete, when gas should not be counted
-			if (gas.signum() < 0) // TODO: check
-				return;
+				// this method is only called by the response creators and by the instrumented code of the smart contracts:
+				// in both cases, a non-negative amount of gas is charged, unless there is a bug in the node or
+				// the gas model yields negative costs, which should be considered as a bug as well
+				throw new LocalNodeException("A negative amount of gas has been charged: " + amount);
 
 			if (gas.compareTo(amount) < 0)
 				throw new OutOfGasException("Not enough gas to complete the operation");
