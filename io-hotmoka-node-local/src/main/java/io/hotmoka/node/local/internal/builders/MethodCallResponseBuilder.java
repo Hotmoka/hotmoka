@@ -133,6 +133,8 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 				refundCallerForAllRemainingGas();
 				return TransactionResponses.methodCallException(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), causeClassName, message, where);
 			}
+			else if (cause instanceof HotmokaException he)
+				throw he;
 			else {
 				logFailure(Level.INFO, cause);
 				return TransactionResponses.methodCallFailed(updatesInCaseOfFailure(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), causeClassName, message, where);

@@ -144,6 +144,8 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 				refundCallerForAllRemainingGas();
 				return TransactionResponses.constructorCallException(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), causeClassName, message, where);
 			}
+			else if (cause instanceof HotmokaException he)
+				throw he;
 			else {
 				logFailure(Level.INFO, cause);
 				return TransactionResponses.constructorCallFailed(updatesInCaseOfFailure(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), causeClassName, message, where);

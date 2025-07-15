@@ -165,6 +165,8 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 			catch (ExecutionException e) {
 				Throwable cause = e.getCause();
 
+				// body can only throw TransactionRejectedException or unchecked exception (local node bugs);
+				// any other checked exception is a bug in the local node
 				if (cause instanceof TransactionRejectedException tre)
 					throw tre;
 				else if (cause instanceof RuntimeException se)
