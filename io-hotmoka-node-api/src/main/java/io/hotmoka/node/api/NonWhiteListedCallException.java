@@ -23,7 +23,7 @@ import io.hotmoka.node.api.signatures.MethodSignature;
  * An exception thrown when a non-white-listed method is called.
  */
 @SuppressWarnings("serial")
-public class NonWhiteListedCallException extends HotmokaException {
+public class NonWhiteListedCallException extends HotmokaTransactionException {
 
 	/**
 	 * Creates the exception about a call to a non-white-listed constructor.

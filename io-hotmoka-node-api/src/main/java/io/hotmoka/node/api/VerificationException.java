@@ -20,7 +20,7 @@ package io.hotmoka.node.api;
  * An exception thrown when the verification of code to install in the node failed.
  */
 @SuppressWarnings("serial")
-public class VerificationException extends HotmokaException {
+public class VerificationException extends HotmokaTransactionException {
 
 	/**
 	 * Creates the exception with the given message.

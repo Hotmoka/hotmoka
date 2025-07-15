@@ -21,7 +21,7 @@ package io.hotmoka.node.api;
  * whose result value cannot be serialized into a storage value.
  */
 @SuppressWarnings("serial")
-public class SerializationException extends HotmokaException {
+public class SerializationException extends HotmokaTransactionException {
 
 	/**
 	 * Creates the exception.

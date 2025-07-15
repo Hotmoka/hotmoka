@@ -21,7 +21,7 @@ import java.util.logging.Level;
 import io.hotmoka.instrumentation.InstrumentedJars;
 import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.ClassLoaderCreationException;
-import io.hotmoka.node.api.HotmokaException;
+import io.hotmoka.node.api.HotmokaTransactionException;
 import io.hotmoka.node.api.IllegalJarException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownTypeException;
@@ -69,7 +69,7 @@ public class JarStoreInitialResponseBuilder extends AbstractInitialResponseBuild
 					byte[] instrumentedJarBytes = InstrumentedJars.of(verifiedJar, consensus.getGasCostModel(), IllegalJarException::new, UnknownTypeException::new).toBytes();
 					return TransactionResponses.jarStoreInitial(instrumentedJarBytes, request.getDependencies(), consensus.getVerificationVersion());
 				}
-				catch (HotmokaException e) {
+				catch (HotmokaTransactionException e) {
 					logFailure(Level.SEVERE, e);
 					throw new TransactionRejectedException(e, consensus);
 				}

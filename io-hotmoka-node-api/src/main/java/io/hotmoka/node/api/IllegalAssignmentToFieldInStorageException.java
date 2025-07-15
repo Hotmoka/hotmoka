@@ -27,7 +27,7 @@ package io.hotmoka.node.api;
  * throw this exception.
  */
 @SuppressWarnings("serial")
-public class IllegalAssignmentToFieldInStorageException extends HotmokaException {
+public class IllegalAssignmentToFieldInStorageException extends HotmokaTransactionException {
 
 	/**
 	 * Creates an exception about an illegal assignment of a value to a field.

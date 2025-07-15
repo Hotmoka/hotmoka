@@ -22,7 +22,7 @@ import java.lang.reflect.Modifier;
 import java.util.logging.Level;
 
 import io.hotmoka.node.TransactionResponses;
-import io.hotmoka.node.api.HotmokaException;
+import io.hotmoka.node.api.HotmokaTransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnmatchedTargetException;
 import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
@@ -93,7 +93,7 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 
 				return success(methodJVM, result);
 			}
-			catch (HotmokaException e) {
+			catch (HotmokaTransactionException e) {
 				logFailure(Level.INFO, e);
 				return TransactionResponses.methodCallFailed(updatesInCaseOfFailure(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), e.getClass().getName(), getMessageForResponse(e), where(e));
 			}
@@ -105,9 +105,8 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 		 * 
 		 * @param methodJVM the method
 		 * @param calleeIsAnnotatedAsView true if the callee is annotated as {@code @@View}
-		 * @throws UnmatchedTargetException if that condition is not satisfied
 		 */
-		private void calleeIsConsistent(Method methodJVM, boolean calleeIsAnnotatedAsView) throws UnmatchedTargetException {
+		private void calleeIsConsistent(Method methodJVM, boolean calleeIsAnnotatedAsView) {
 			if (!Modifier.isStatic(methodJVM.getModifiers()))
 				throw new UnmatchedTargetException("Cannot call an instance method");
 

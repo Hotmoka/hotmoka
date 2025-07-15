@@ -19,17 +19,23 @@ package io.hotmoka.node.api;
 import java.util.Objects;
 
 /**
- * An exception that expresses the cause of a failed transaction.
+ * An exception occurred during the execution of a Hotmoka transaction.
+ * This is not a bug in the code of the node, but a wrong specification of the request
+ * of the transaction (that, for instance, makes it impossible to find the target of
+ * a method call), or a limit of the execution (for instance, the gas is over),
+ * or a bug in the storage code (for instance, the return value of a method
+ * cannot be serialized into a storage value). These transactions are not
+ * meant to be caught but just to lead to a failed transaction response.
  */
 @SuppressWarnings("serial")
-public abstract class HotmokaException extends Exception {
+public abstract class HotmokaTransactionException extends RuntimeException {
 
 	/**
 	 * Creates the exception with a message.
 	 * 
 	 * @param message the message of the exception
 	 */
-	protected HotmokaException(String message) {
+	protected HotmokaTransactionException(String message) {
 		super(Objects.requireNonNull(message));
 	}
 
@@ -39,7 +45,7 @@ public abstract class HotmokaException extends Exception {
 	 * @param message the message of the exception
 	 * @param cause the cause of the exception
 	 */
-	protected HotmokaException(String message, Throwable cause) {
+	protected HotmokaTransactionException(String message, Throwable cause) {
 		super(Objects.requireNonNull(message), Objects.requireNonNull(cause));
 	}
 }

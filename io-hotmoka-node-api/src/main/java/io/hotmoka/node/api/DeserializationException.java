@@ -20,7 +20,7 @@ package io.hotmoka.node.api;
  * An exception thrown when a storage reference cannot be deserialized.
  */
 @SuppressWarnings("serial")
-public class DeserializationException extends HotmokaException {
+public class DeserializationException extends HotmokaTransactionException {
 
 	/**
 	 * Creates the exception with the given message.

@@ -21,7 +21,7 @@ package io.hotmoka.node.api;
  * For instance, it is not valid Java bytecode.
  */
 @SuppressWarnings("serial")
-public class IllegalJarException extends HotmokaException {
+public class IllegalJarException extends HotmokaTransactionException {
 
 	/**
 	 * Creates the exception with the given cause.

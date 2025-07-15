@@ -21,7 +21,7 @@ package io.hotmoka.node.api;
  * to complete its computation.
  */
 @SuppressWarnings("serial")
-public class OutOfGasException extends HotmokaException {
+public class OutOfGasException extends HotmokaTransactionException {
 
 	/**
 	 * Creates an exception with the given message.

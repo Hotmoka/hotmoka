@@ -25,8 +25,6 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.DeserializationException;
-import io.hotmoka.node.api.IllegalAssignmentToFieldInStorageException;
 import io.hotmoka.node.api.SerializationException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
@@ -115,12 +113,8 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		/**
 		 * Deserialize the actual arguments of the call.
 		 */
-		protected final void deserializeActuals() throws DeserializationException {
-			var actuals = request.actuals().toArray(StorageValue[]::new);
-			deserializedActuals = new Object[actuals.length];
-			int pos = 0;
-			for (StorageValue actual: actuals)
-				deserializedActuals[pos++] = deserializer.deserialize(actual);
+		protected final void deserializeActuals() {
+			this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
 		}
 
 		/**
@@ -196,22 +190,25 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 * Yields the classes of the formal arguments of the method or constructor.
 		 * 
 		 * @return the array of classes, in the same order as the formals
-		 * @throws UnknownTypeException if some type cannot be resolved
 		 */
-		protected final Class<?>[] formalsAsClass() throws UnknownTypeException {
-			var formals = request.getStaticTarget().getFormals().toArray(StorageType[]::new);
-			var classes  = new Class<?>[formals.length];
-			int pos = 0;
-			for (var formal: formals) {
-				try {
-					classes[pos++] = classLoader.loadClass(formal);
-				}
-				catch (ClassNotFoundException e) {
-					throw new UnknownTypeException(formal);
-				}
+		protected final Class<?>[] formalsAsClass() {
+			return request.getStaticTarget().getFormals().map(this::loadClass).toArray(Class<?>[]::new);
+		}
+
+		/**
+		 * Loads the given type with the classloader of this response creator.
+		 * 
+		 * @param type the type to load
+		 * @return the resulting class type
+		 * @throws UnknownTypeException if {@code type} cannot be found
+		 */
+		protected final Class<?> loadClass(StorageType type) {
+			try {
+				return classLoader.loadClass(type);
 			}
-		
-			return classes;
+			catch (ClassNotFoundException e) {
+				throw new UnknownTypeException(type);
+			}
 		}
 
 		/**
@@ -220,20 +217,13 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 * trailing contract formal argument (the caller) and of a dummy type.
 		 * 
 		 * @return the array of classes, in the same order as the formals
-		 * @throws UnknownTypeException if some type cannot be resolved
 		 */
-		protected final Class<?>[] formalsAsClassForFromContract() throws UnknownTypeException {
+		protected final Class<?>[] formalsAsClassForFromContract() {
 			var formals = request.getStaticTarget().getFormals().toArray(StorageType[]::new);
 			var classes  = new Class<?>[formals.length + 2];
 			int pos = 0;
-			for (var formal: formals) {
-				try {
-					classes[pos++] = classLoader.loadClass(formal);
-				}
-				catch (ClassNotFoundException e) {
-					throw new UnknownTypeException(formal);
-				}
-			}
+			for (var formal: formals)
+				classes[pos++] = loadClass(formal);
 
 			classes[pos++] = classLoader.getContract();
 			classes[pos] = Dummy.class;
@@ -250,7 +240,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 *               in store, such as a {@link java.lang.String} or {@link java.math.BigInteger}
 		 * @return the serialization of {@code object}
 		 */
-		protected final StorageValue serialize(Object object) throws SerializationException {
+		protected final StorageValue serialize(Object object) {
 			if (isStorage(object))
 				return classLoader.getStorageReferenceOf(object);
 			else if (object instanceof BigInteger bi)
@@ -337,7 +327,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 * @param result the returned value or created object
 		 * @return the updates, sorted
 		 */
-		protected final Stream<Update> updates(Object result) throws IllegalAssignmentToFieldInStorageException {
+		protected final Stream<Update> updates(Object result) {
 			List<Object> potentiallyAffectedObjects = new ArrayList<>();
 
 			Class<?> storage = classLoader.getStorage();

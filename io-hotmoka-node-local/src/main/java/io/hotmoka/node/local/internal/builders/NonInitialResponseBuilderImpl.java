@@ -34,9 +34,7 @@ import io.hotmoka.instrumentation.api.GasCostModel;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.ClassLoaderCreationException;
-import io.hotmoka.node.api.DeserializationException;
-import io.hotmoka.node.api.HotmokaException;
-import io.hotmoka.node.api.IllegalAssignmentToFieldInStorageException;
+import io.hotmoka.node.api.HotmokaTransactionException;
 import io.hotmoka.node.api.OutOfGasException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
@@ -143,7 +141,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 			callerCanPayForAllPromisedGas();
 		}
 
-		protected final void init() throws DeserializationException, OutOfGasException {
+		protected final void init() {
 			this.deserializedCaller = deserializer.deserialize(request.getCaller());
 			BigInteger initialBalance = classLoader.getBalanceOf(deserializedCaller);
 			increaseNonceOfCaller();
@@ -168,7 +166,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 */
 		protected final String getMessageForResponse(Throwable throwable) {
 			var clazz = throwable.getClass();
-			return HotmokaException.class.isAssignableFrom(clazz) || clazz.getClassLoader() instanceof WhiteListingClassLoader ? throwable.getMessage() : "";
+			return HotmokaTransactionException.class.isAssignableFrom(clazz) || clazz.getClassLoader() instanceof WhiteListingClassLoader ? throwable.getMessage() : "";
 		}
 
 		/**
@@ -264,7 +262,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * 
 		 * @return the updates, sorted
 		 */
-		protected final Stream<Update> updates() throws IllegalAssignmentToFieldInStorageException {
+		protected final Stream<Update> updates() {
 			var potentiallyAffectedObjects = new ArrayList<Object>();
 			scanPotentiallyAffectedObjects(potentiallyAffectedObjects::add);
 			return updatesExtractor.extractUpdatesFrom(potentiallyAffectedObjects);
@@ -474,9 +472,8 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * 
 		 * @param amount the amount of gas to consume
 		 * @param forWhat the task performed at the end, for the amount of gas to consume
-		 * @throws OutOfGasException 
 		 */
-		private void charge(BigInteger amount, Consumer<BigInteger> forWhat) throws OutOfGasException {
+		private void charge(BigInteger amount, Consumer<BigInteger> forWhat) {
 			if (amount.signum() < 0)
 				// this method is only called by the response creators and by the instrumented code of the smart contracts:
 				// in both cases, a non-negative amount of gas is charged, unless there is a bug in the node or
@@ -494,9 +491,8 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * Decreases the available gas by the given amount, for storage allocation.
 		 * 
 		 * @param amount the amount of gas to consume
-		 * @throws OutOfGasException 
 		 */
-		private void chargeGasForStorage(BigInteger amount) throws OutOfGasException {
+		private void chargeGasForStorage(BigInteger amount) {
 			charge(amount, x -> gasConsumedForStorage = gasConsumedForStorage.add(x));
 		}
 
@@ -504,26 +500,25 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * Decreases the available gas for the given response, for storage allocation.
 		 * 
 		 * @param response the response
-		 * @throws OutOfGasException 
 		 */
-		protected final void chargeGasForStorageOf(Response response) throws OutOfGasException {
+		protected final void chargeGasForStorageOf(Response response) {
 			chargeGasForStorage(BigInteger.valueOf(response.size()));
 		}
 
 		@Override
-		public final void chargeGasForCPU(BigInteger amount) throws OutOfGasException {
+		public final void chargeGasForCPU(BigInteger amount) {
 			charge(amount, x -> gasConsumedForCPU = gasConsumedForCPU.add(x));
 		}
 
 		@Override
-		public final void chargeGasForRAM(BigInteger amount) throws OutOfGasException {
+		public final void chargeGasForRAM(BigInteger amount) {
 			charge(amount, x -> gasConsumedForRAM = gasConsumedForRAM.add(x));
 		}
 
 		/**
 		 * Charges gas proportional to the complexity of the class loader that has been created.
 		 */
-		protected final void chargeGasForClassLoader() throws OutOfGasException {
+		protected final void chargeGasForClassLoader() {
 			int[] lengthsOfJars = classLoader.getLengthsOfJars().toArray();
 			for (int length: lengthsOfJars) {
 				chargeGasForCPU(gasCostModel.cpuCostForLoadingJar(length));

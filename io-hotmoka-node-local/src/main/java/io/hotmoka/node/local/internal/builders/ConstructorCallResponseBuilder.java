@@ -24,7 +24,7 @@ import java.util.logging.Level;
 import java.util.stream.Stream;
 
 import io.hotmoka.node.TransactionResponses;
-import io.hotmoka.node.api.HotmokaException;
+import io.hotmoka.node.api.HotmokaTransactionException;
 import io.hotmoka.node.api.NonWhiteListedCallException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownTypeException;
@@ -119,13 +119,13 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 					// a constructor can only create an object, represented as a storage reference in Hotmoka
 					throw new LocalNodeException("The return value of a constructor should be an object");
 			}
-			catch (HotmokaException e) {
+			catch (HotmokaTransactionException e) {
 				logFailure(Level.INFO, e);
 				return TransactionResponses.constructorCallFailed(updatesInCaseOfFailure(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), e.getClass().getName(), getMessageForResponse(e), where(e));
 			}
 		}
 
-		private ConstructorCallTransactionResponse success(Object result, StorageReference reference) throws HotmokaException {
+		private ConstructorCallTransactionResponse success(Object result, StorageReference reference) {
 			chargeGasForStorageOf(TransactionResponses.constructorCallSuccessful
 					(reference, updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 			refundCallerForAllRemainingGas();
@@ -133,7 +133,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 					(reference, updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 		}
 
-		private ConstructorCallTransactionResponse failure(Constructor<?> constructorJVM, InvocationTargetException e) throws HotmokaException {
+		private ConstructorCallTransactionResponse failure(Constructor<?> constructorJVM, InvocationTargetException e) {
 			Throwable cause = e.getCause();
 			String message = getMessageForResponse(cause);
 			String causeClassName = cause.getClass().getName();
@@ -144,7 +144,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 				refundCallerForAllRemainingGas();
 				return TransactionResponses.constructorCallException(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), causeClassName, message, where);
 			}
-			else if (cause instanceof HotmokaException he)
+			else if (cause instanceof HotmokaTransactionException he)
 				throw he;
 			else {
 				logFailure(Level.INFO, cause);
@@ -156,9 +156,8 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		 * Resolves the constructor that must be called.
 		 * 
 		 * @return the constructor, if it could be found
-		 * @throws UnknownTypeException if the class of the constructor or of some parameter cannot be found
 		 */
-		private Optional<Constructor<?>> getConstructor() throws UnknownTypeException {
+		private Optional<Constructor<?>> getConstructor() {
 			Class<?>[] argTypes = formalsAsClass();
 			ConstructorSignature constructor = request.getStaticTarget();
 
@@ -174,9 +173,8 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		 * Resolves the constructor that must be called, assuming that it is a {@code @@FromContract}.
 		 * 
 		 * @return the constructor, if it could be found
-		 * @throws UnknownTypeException if the class of the constructor or of some parameter cannot be found
 		 */
-		private Optional<Constructor<?>> getFromContractConstructor() throws UnknownTypeException {
+		private Optional<Constructor<?>> getFromContractConstructor() {
 			Class<?>[] argTypes = formalsAsClassForFromContract();
 			ConstructorSignature constructor = request.getStaticTarget();
 
@@ -195,7 +193,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		 * @param actuals the actual arguments passed to {@code executable}
 		 * @throws NonWhiteListedCallException if {@code executable} is not white-listed
 		 */
-		private void ensureWhiteListingOf(Constructor<?> executable, Object[] actuals) throws NonWhiteListedCallException {
+		private void ensureWhiteListingOf(Constructor<?> executable, Object[] actuals) {
 			classLoader.getWhiteListingWizard().whiteListingModelOf(executable)
 				.orElseThrow(() -> new NonWhiteListedCallException(request.getStaticTarget()));
 		}

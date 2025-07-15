@@ -24,7 +24,7 @@ import io.hotmoka.node.api.signatures.MethodSignature;
  * called by a transaction cannot be found and accessed.
  */
 @SuppressWarnings("serial")
-public class UnmatchedTargetException extends HotmokaException {
+public class UnmatchedTargetException extends HotmokaTransactionException {
 
 	/**
 	 * Creates the exception with the given message.

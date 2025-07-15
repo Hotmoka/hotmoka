@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.hotmoka.exceptions.UncheckedException;
 import io.hotmoka.node.api.DeserializationException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.signatures.FieldSignature;
@@ -85,9 +84,8 @@ public class Deserializer {
 	 * 
 	 * @param value the storage value
 	 * @return the RAM image of {@code value}
-	 * @throws DeserializationException if deserialization fails
 	 */
-	protected Object deserialize(StorageValue value) throws DeserializationException {
+	protected Object deserialize(StorageValue value) {
 		if (value instanceof StorageReference sr) {
 			// we use a cache to provide the same value if the same reference gets deserialized twice; putIfAbsent is clumsy because of the exceptions,
 			// so we just get and put; in any case, this object is not meant to be thread-safe
@@ -155,14 +153,14 @@ public class Deserializer {
 			clazz1 = classLoader.loadClass(className1);
 		}
 		catch (ClassNotFoundException e) {
-			throw new UncheckedException(new DeserializationException("The object under deserialization contains a field " + field1 + " of an unknown class"));
+			throw new DeserializationException("The object under deserialization contains a field " + field1 + " of an unknown class");
 		}
 
 		try {
 			clazz2 = classLoader.loadClass(className2);
 		}
 		catch (ClassNotFoundException e) {
-			throw new UncheckedException(new DeserializationException("The object under deserialization contains a field " + field2 + " of an unknown class"));
+			throw new DeserializationException("The object under deserialization contains a field " + field2 + " of an unknown class");
 		}
 
 		if (clazz1.isAssignableFrom(clazz2)) // clazz1 superclass of clazz2
@@ -170,7 +168,7 @@ public class Deserializer {
 		else if (clazz2.isAssignableFrom(clazz1)) // clazz2 superclass of clazz1
 			return 1;
 		else
-			throw new UncheckedException(new DeserializationException("Updates are not on the same supeclass chain"));
+			throw new DeserializationException("Updates are not on the same supeclass chain");
 	}
 
 	/**
@@ -178,9 +176,8 @@ public class Deserializer {
 	 * 
 	 * @param reference the reference of the object inside the node's store
 	 * @return the object
-	 * @throws DeserializationException if the object could not be created
 	 */
-	private Object createStorageObject(StorageReference reference) throws DeserializationException {
+	private Object createStorageObject(StorageReference reference) {
 		List<Class<?>> formals = new ArrayList<>();
 		List<Object> actuals = new ArrayList<>();
 		// the constructor for deserialization has a first parameter
@@ -209,13 +206,6 @@ public class Deserializer {
 		catch (UnknownReferenceException e) {
 			// we managed to compute its class tag above, so this is a problem of the store
 			throw new LocalNodeException(e);
-		}
-		catch (UncheckedException e) { // this might be thrown by this::compare, but only for the cause DeserializationException
-			Throwable cause = e.getCause();
-			if (cause instanceof DeserializationException de)
-				throw de;
-			else
-				throw new LocalNodeException(cause);
 		}
 
 		for (var update: eagerUpdates) {

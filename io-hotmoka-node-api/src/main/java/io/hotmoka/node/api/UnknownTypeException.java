@@ -23,7 +23,7 @@ import io.hotmoka.node.api.types.StorageType;
  * called by a transaction refers to an unknown type.
  */
 @SuppressWarnings("serial")
-public class UnknownTypeException extends HotmokaException {
+public class UnknownTypeException extends HotmokaTransactionException {
 
 	/**
 	 * Creates an exception about an unknown type.

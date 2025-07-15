@@ -28,7 +28,6 @@ import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.ClassLoaderCreationException;
 import io.hotmoka.node.api.DeserializationException;
-import io.hotmoka.node.api.OutOfGasException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
@@ -219,16 +218,15 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * Decreases the available gas by the given amount, for CPU execution.
 		 * 
 		 * @param amount the amount of gas to consume
-		 * @throws OutOfGasException 
 		 */
-		public abstract void chargeGasForCPU(BigInteger amount) throws OutOfGasException;
+		public abstract void chargeGasForCPU(BigInteger amount);
 
 		/**
 		 * Decreases the available gas by the given amount, for RAM execution.
 		 * 
 		 * @param amount the amount of gas to consume
 		 */
-		public abstract void chargeGasForRAM(BigInteger amount) throws OutOfGasException;
+		public abstract void chargeGasForRAM(BigInteger amount);
 
 		/**
 		 * Yields the latest value for the given field of the object with the given storage reference.
@@ -239,7 +237,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * @param field the field
 		 * @return the value of the field
 		 */
-		public final Object deserializeLastUpdateFor(StorageReference object, FieldSignature field) throws DeserializationException {
+		public final Object deserializeLastUpdateFor(StorageReference object, FieldSignature field) {
 			try {
 				return deserializer.deserialize(environment.getLastUpdateToField(object, field).getValue());
 			}
@@ -260,7 +258,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * @param field the field
 		 * @return the value of the field
 		 */
-		public final Object deserializeLastUpdateForFinal(StorageReference object, FieldSignature field) throws DeserializationException {
+		public final Object deserializeLastUpdateForFinal(StorageReference object, FieldSignature field) {
 			try {
 				return deserializer.deserialize(environment.getLastUpdateToFinalField(object, field).getValue());
 			}

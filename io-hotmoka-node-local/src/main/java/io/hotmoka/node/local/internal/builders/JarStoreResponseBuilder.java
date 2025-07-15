@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 import io.hotmoka.instrumentation.InstrumentedJars;
 import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.ClassLoaderCreationException;
-import io.hotmoka.node.api.HotmokaException;
+import io.hotmoka.node.api.HotmokaTransactionException;
 import io.hotmoka.node.api.IllegalJarException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownTypeException;
@@ -82,7 +82,7 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 				refundCallerForAllRemainingGas();
 				return TransactionResponses.jarStoreSuccessful(instrumentedJarBytes, request.getDependencies(), consensus.getVerificationVersion(), updates(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			}
-			catch (HotmokaException e) {
+			catch (HotmokaTransactionException e) {
 				logFailure(Level.INFO, e);
 				return TransactionResponses.jarStoreFailed(updatesInCaseOfFailure(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), e.getClass().getName(), getMessageForResponse(e));
 			}

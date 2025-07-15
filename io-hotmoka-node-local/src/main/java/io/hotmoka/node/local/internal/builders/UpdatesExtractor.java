@@ -82,10 +82,8 @@ public class UpdatesExtractor {
 	 *                loaded with the class loader provided to the constructor and to be
 	 *                instances of {@code io.takamaka.code.lang.Storage}
 	 * @return the updates, sorted
-	 * @throws IllegalAssignmentToFieldInStorageException if the updates cannot be extracted, because an illegal
-	 *                                           value has been stored into some field
 	 */
-	Stream<Update> extractUpdatesFrom(Iterable<Object> objects) throws IllegalAssignmentToFieldInStorageException {
+	Stream<Update> extractUpdatesFrom(Iterable<Object> objects) {
 		return new Processor(objects).updates.stream();
 	}
 
@@ -115,10 +113,8 @@ public class UpdatesExtractor {
 		 * 
 		 * @param objects the storage objects whose updates must be computed (for them and
 		 *                for the objects recursively reachable from them)
-		 * @throws IllegalAssignmentToFieldInStorageException if the updates cannot be extracted, because an illegal
-		 *                                           value has been stored into some field
 		 */
-		private Processor(Iterable<Object> objects) throws IllegalAssignmentToFieldInStorageException {
+		private Processor(Iterable<Object> objects) {
 			for (var object: objects)
 				if (seen.add(classLoader.getStorageReferenceOf(object)))
 					workingSet.add(object);
@@ -155,10 +151,8 @@ public class UpdatesExtractor {
 			 * Builds the scope to extract the updates to a given storage object.
 			 * 
 			 * @param object the storage object
-			 * @throws IllegalAssignmentToFieldInStorageException if the updates cannot be extracted, because an illegal
-			 *                                           value has been stored into some field
 			 */
-			private ExtractedUpdatesSingleObject(Object object) throws IllegalAssignmentToFieldInStorageException {
+			private ExtractedUpdatesSingleObject(Object object) {
 				Class<?> clazz = object.getClass();
 				this.storageReference = classLoader.getStorageReferenceOf(object);
 				this.classpathAtCreationTimeOfObject = getClasspathAtCreationTimeOf(storageReference);
@@ -190,9 +184,8 @@ public class UpdatesExtractor {
 			 * @param fieldName the name of the field
 			 * @param fieldClassName the name of the type of the field
 			 * @param newValue the value set to the field
-			 * @throws IllegalAssignmentToFieldInStorageException if the updates cannot be extracted, because an illegal value has been stored into some field
 			 */
-			private void addUpdateFor(ClassType fieldDefiningClass, String fieldName, String fieldClassName, Object newValue) throws IllegalAssignmentToFieldInStorageException {
+			private void addUpdateFor(ClassType fieldDefiningClass, String fieldName, String fieldClassName, Object newValue) {
 				var field = FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.classNamed(fieldClassName));
 
 				if (newValue == null)
@@ -247,10 +240,8 @@ public class UpdatesExtractor {
 			 * 
 			 * @param clazz the class
 			 * @param object the object
-			 * @throws IllegalAssignmentToFieldInStorageException if the updates cannot be extracted, because an illegal
-			 *                                           value has been stored into some field
 			 */
-			private void addUpdatesForFieldsDefinedInClass(Class<?> clazz, Object object) throws IllegalAssignmentToFieldInStorageException {
+			private void addUpdatesForFieldsDefinedInClass(Class<?> clazz, Object object) {
 				Field[] declaredFields;
 
 				try {
@@ -319,9 +310,8 @@ public class UpdatesExtractor {
 			 * 
 			 * @param field the field
 			 * @param newValue the new value of the field
-			 * @throws IllegalAssignmentToFieldInStorageException if the updates cannot be extracted, because an illegal value has been stored into some field
 			 */
-			private void addUpdateFor(Field field, Object newValue) throws IllegalAssignmentToFieldInStorageException {
+			private void addUpdateFor(Field field, Object newValue) {
 				Class<?> fieldType = field.getType();
 				// the field is defined in a storage object, hence the subsequent conversion cannot fail
 				ClassType fieldDefiningClass = StorageTypes.classFromClass(field.getDeclaringClass());

@@ -26,8 +26,7 @@ import java.util.logging.Level;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.TransactionResponses;
-import io.hotmoka.node.api.DeserializationException;
-import io.hotmoka.node.api.HotmokaException;
+import io.hotmoka.node.api.HotmokaTransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownTypeException;
 import io.hotmoka.node.api.UnmatchedTargetException;
@@ -146,13 +145,13 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 
 				return success(methodJVM, result);
 			}
-			catch (HotmokaException e) {
+			catch (HotmokaTransactionException e) {
 				logFailure(Level.INFO, e);
 				return TransactionResponses.methodCallFailed(updatesInCaseOfFailure(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty(), e.getClass().getName(), getMessageForResponse(e), where(e));
 			}
 		}
 
-		private void deserializeReceiver() throws DeserializationException {
+		private void deserializeReceiver() {
 			deserializedReceiver = deserializer.deserialize(request.getReceiver());
 		}
 
@@ -169,9 +168,8 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		 * 
 		 * @param methodJVM the method
 		 * @param calleeIsAnnotatedAsView true if the callee is annotated as {@code @@View}
-		 * @throws UnmatchedTargetException if that condition is not satisfied
 		 */
-		private void calleeIsConsistent(Method methodJVM, boolean calleeIsAnnotatedAsView) throws UnmatchedTargetException {
+		private void calleeIsConsistent(Method methodJVM, boolean calleeIsAnnotatedAsView) {
 			if (Modifier.isStatic(methodJVM.getModifiers()))
 				throw new UnmatchedTargetException("Cannot call a static method");
 
@@ -183,21 +181,14 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		 * Resolves the method that must be called, assuming that it is annotated as {@code @@FromContract}.
 		 * 
 		 * @return the method, if it could be found
-		 * @throws UnknownTypeException if the class of the method or of some parameter or return type cannot be found
 		 */
-		private Optional<Method> getFromContractMethod() throws UnknownTypeException {
+		private Optional<Method> getFromContractMethod() {
 			MethodSignature method = request.getStaticTarget();
 			Class<?>[] argTypes = formalsAsClassForFromContract();
 			Class<?> returnType;
 
-			if (method instanceof NonVoidMethodSignature nvms) {
-				try {
-					returnType = classLoader.loadClass(nvms.getReturnType());
-				}
-				catch (ClassNotFoundException e) {
-					throw new UnknownTypeException(nvms.getReturnType());
-				}
-			}
+			if (method instanceof NonVoidMethodSignature nvms)
+				returnType = loadClass(nvms.getReturnType());
 			else
 				returnType = void.class;
 

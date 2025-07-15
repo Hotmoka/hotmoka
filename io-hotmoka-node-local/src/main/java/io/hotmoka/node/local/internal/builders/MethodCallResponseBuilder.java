@@ -24,8 +24,7 @@ import java.util.logging.Level;
 import java.util.stream.Stream;
 
 import io.hotmoka.node.TransactionResponses;
-import io.hotmoka.node.api.HotmokaException;
-import io.hotmoka.node.api.IllegalAssignmentToFieldInStorageException;
+import io.hotmoka.node.api.HotmokaTransactionException;
 import io.hotmoka.node.api.NonWhiteListedCallException;
 import io.hotmoka.node.api.SideEffectsInViewMethodException;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -62,9 +61,8 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 		 * Checks that the view annotation, if any, is satisfied.
 		 * 
 		 * @param result the returned value of the method, if any
-		 * @throws SideEffectsInViewMethodException if the method is annotated as view, but generated side-effects
 		 */
-		protected final void onlySideEffectsAreToBalanceAndNonceOfCaller(Object result) throws SideEffectsInViewMethodException, IllegalAssignmentToFieldInStorageException {
+		protected final void onlySideEffectsAreToBalanceAndNonceOfCaller(Object result) {
 			if (!onlyAffectedBalanceOrNonceOfCaller(result))
 				throw new SideEffectsInViewMethodException(request.getStaticTarget());
 		}
@@ -76,23 +74,17 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 		 * @param actuals the actual arguments passed to {@code executable}, including the receiver for instance methods
 		 * @throws NonWhiteListedCallException if {@code executable} is not white-listed
 		 */
-		protected final void ensureWhiteListingOf(Method executable, Object[] actuals) throws NonWhiteListedCallException {
+		protected final void ensureWhiteListingOf(Method executable, Object[] actuals) {
 			classLoader.getWhiteListingWizard().whiteListingModelOf(executable)
 				.orElseThrow(() -> new NonWhiteListedCallException(request.getStaticTarget()));
 		}
 
-		protected final Optional<Method> getMethod() throws UnknownTypeException {
+		protected final Optional<Method> getMethod() {
 			MethodSignature method = request.getStaticTarget();
 			Class<?> returnType;
 
-			if (method instanceof NonVoidMethodSignature nvms) {
-				try {
-					returnType = classLoader.loadClass(nvms.getReturnType());
-				}
-				catch (ClassNotFoundException e) {
-					throw new UnknownTypeException(nvms.getReturnType());
-				}
-			}
+			if (method instanceof NonVoidMethodSignature nvms)
+				returnType = loadClass(nvms.getReturnType());
 			else
 				returnType = void.class;
 
@@ -106,7 +98,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 			}
 		}
 
-		protected final MethodCallTransactionResponse success(Method methodJVM, Object result) throws HotmokaException {
+		protected final MethodCallTransactionResponse success(Method methodJVM, Object result) {
 			if (methodJVM.getReturnType() == void.class) {
 				chargeGasForStorageOf(TransactionResponses.voidMethodCallSuccessful(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 				refundCallerForAllRemainingGas();
@@ -119,7 +111,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 			}
 		}
 
-		protected final MethodCallTransactionResponse failure(Method methodJVM, boolean calleeIsAnnotatedAsView, InvocationTargetException e) throws HotmokaException {
+		protected final MethodCallTransactionResponse failure(Method methodJVM, boolean calleeIsAnnotatedAsView, InvocationTargetException e) {
 			Throwable cause = e.getCause();
 			String message = getMessageForResponse(cause);
 			String causeClassName = cause.getClass().getName();
@@ -133,7 +125,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 				refundCallerForAllRemainingGas();
 				return TransactionResponses.methodCallException(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), causeClassName, message, where);
 			}
-			else if (cause instanceof HotmokaException he)
+			else if (cause instanceof HotmokaTransactionException he)
 				throw he;
 			else {
 				logFailure(Level.INFO, cause);
@@ -155,7 +147,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 		 * @param result the returned value for method calls or created object for constructor calls, if any
 		 * @return true if and only if that condition holds
 		 */
-		private boolean onlyAffectedBalanceOrNonceOfCaller(Object result) throws IllegalAssignmentToFieldInStorageException {
+		private boolean onlyAffectedBalanceOrNonceOfCaller(Object result) {
 			return updates(result).allMatch(this::isUpdateToBalanceOrNonceOfCaller);
 		}
 	}

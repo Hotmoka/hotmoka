@@ -24,7 +24,7 @@ import io.hotmoka.node.api.signatures.MethodSignature;
  * from the modification of the balance of the caller.
  */
 @SuppressWarnings("serial")
-public class SideEffectsInViewMethodException extends HotmokaException {
+public class SideEffectsInViewMethodException extends HotmokaTransactionException {
 
 	/**
 	 * Creates an exception about a {@code @@View} method that caused side-effects.
