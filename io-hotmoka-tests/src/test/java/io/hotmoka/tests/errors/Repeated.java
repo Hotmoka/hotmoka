@@ -28,9 +28,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.crypto.api.Signer;
+import io.hotmoka.helpers.UnexpectedVoidMethodException;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.UnexpectedVoidMethodException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.responses.JarStoreTransactionSuccessfulResponse;

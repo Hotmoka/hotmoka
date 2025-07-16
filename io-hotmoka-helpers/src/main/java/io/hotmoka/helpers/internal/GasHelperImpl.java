@@ -19,11 +19,11 @@ package io.hotmoka.helpers.internal;
 import java.math.BigInteger;
 import java.util.concurrent.TimeoutException;
 
+import io.hotmoka.helpers.UnexpectedValueException;
+import io.hotmoka.helpers.UnexpectedVoidMethodException;
 import io.hotmoka.helpers.api.GasHelper;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.UnexpectedValueException;
-import io.hotmoka.node.UnexpectedVoidMethodException;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;

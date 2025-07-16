@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.api;
+package io.hotmoka.helpers.api;
 
 /**
  * An exception stating that a node is misbehaving, that is, performing in a buggy way.

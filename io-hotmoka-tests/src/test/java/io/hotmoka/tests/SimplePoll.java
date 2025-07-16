@@ -30,11 +30,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.hotmoka.helpers.UnexpectedValueException;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.UnexpectedValueException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;

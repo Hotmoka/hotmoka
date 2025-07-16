@@ -24,10 +24,10 @@ import java.security.SignatureException;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.helpers.api.AccountsNode;
+import io.hotmoka.helpers.api.MisbehavingNodeException;
 import io.hotmoka.helpers.internal.AccountsNodeImpl;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.MisbehavingNodeException;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;

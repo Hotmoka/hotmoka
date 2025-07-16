@@ -29,7 +29,6 @@ import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.MisbehavingNodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnexpectedCodeException;

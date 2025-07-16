@@ -20,7 +20,6 @@ import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.api.ClosedNodeException;
-import io.hotmoka.node.api.MisbehavingNodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.verification.api.TakamakaClassLoader;

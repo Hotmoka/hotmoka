@@ -21,8 +21,8 @@ import java.util.HashSet;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.helpers.api.ClassLoaderHelper;
+import io.hotmoka.helpers.api.MisbehavingNodeException;
 import io.hotmoka.node.api.ClosedNodeException;
-import io.hotmoka.node.api.MisbehavingNodeException;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.GenericJarStoreTransactionRequest;

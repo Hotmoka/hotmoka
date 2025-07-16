@@ -26,12 +26,12 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.api.Signer;
+import io.hotmoka.helpers.UnexpectedValueException;
+import io.hotmoka.helpers.UnexpectedVoidMethodException;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.UnexpectedValueException;
-import io.hotmoka.node.UnexpectedVoidMethodException;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.values.StorageReference;
 import io.takamaka.code.constants.Constants;

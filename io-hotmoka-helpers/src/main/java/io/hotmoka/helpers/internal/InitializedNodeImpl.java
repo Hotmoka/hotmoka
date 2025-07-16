@@ -27,6 +27,8 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 
 import io.hotmoka.helpers.AbstractNodeDecorator;
+import io.hotmoka.helpers.UnexpectedValueException;
+import io.hotmoka.helpers.UnexpectedVoidMethodException;
 import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
 import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.node.ConstructorSignatures;
@@ -34,8 +36,6 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.UnexpectedValueException;
-import io.hotmoka.node.UnexpectedVoidMethodException;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;

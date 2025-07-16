@@ -22,7 +22,6 @@ import java.util.concurrent.TimeoutException;
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.node.api.ClosedNodeException;
-import io.hotmoka.node.api.MisbehavingNodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;

@@ -31,6 +31,7 @@ import java.util.stream.Stream;
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.helpers.ClassLoaderHelpers;
+import io.hotmoka.helpers.api.MisbehavingNodeException;
 import io.hotmoka.moka.ObjectsShowOutputs;
 import io.hotmoka.moka.api.objects.ObjectsShowOutput;
 import io.hotmoka.moka.api.objects.ObjectsShowOutput.ConstructorDescription;
@@ -42,7 +43,6 @@ import io.hotmoka.moka.internal.json.ObjectsShowOutputJson.ConstructorDescriptio
 import io.hotmoka.moka.internal.json.ObjectsShowOutputJson.MethodDescriptionJson;
 import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.ClosedNodeException;
-import io.hotmoka.node.api.MisbehavingNodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.api.updates.Update;

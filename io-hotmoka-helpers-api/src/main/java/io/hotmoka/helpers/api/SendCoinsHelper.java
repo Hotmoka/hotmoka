@@ -27,7 +27,6 @@ import java.util.function.Consumer;
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.MisbehavingNodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnexpectedCodeException;

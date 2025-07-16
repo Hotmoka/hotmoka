@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node;
+package io.hotmoka.helpers;
 
 import io.hotmoka.node.api.UnexpectedCodeException;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
