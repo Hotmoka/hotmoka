@@ -45,7 +45,6 @@ import java.net.URI;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
@@ -1040,7 +1039,7 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 
 		@Override
 		public void onOpen(Session session, EndpointConfig config) {
-			addMessageHandler(session, (Consumer<EventMessage>) RemoteNodeImpl.this::notifyEvent); // TODO: do we need this cast?
+			addMessageHandler(session, RemoteNodeImpl.this::notifyEvent);
 		}
 
 		@Override

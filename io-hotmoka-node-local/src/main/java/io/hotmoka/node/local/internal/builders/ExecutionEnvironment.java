@@ -486,7 +486,7 @@ public abstract class ExecutionEnvironment {
 		if (getResponse(reference.getTransaction()) instanceof TransactionResponseWithUpdates trwu) {
 			return trwu.getUpdates().filter(update -> update instanceof ClassTag && update.getObject().equals(reference))
 					.map(update -> (ClassTag) update)
-					.findFirst() // TODO: hotspot
+					.findFirst()
 					.orElseThrow(() -> new UnknownReferenceException("Object " + reference + " does not exist"));
 		}
 		else
@@ -843,20 +843,19 @@ public abstract class ExecutionEnvironment {
 	 * 
 	 * @param object the reference of the object
 	 * @param field the field of the object
-	 * @param reference the reference to the transaction; this is assumed to be a transaction of the history of {@code object}
+	 * @param transaction the reference to the transaction; this is assumed to be a transaction of the history of {@code object}
 	 * @return the update, if any; if the field of {@code object} was not modified during
 	 *         the {@code transaction}, the result is empty
 	 * @throws UnknownReferenceException if the response of {@code reference} cannot be found in store
 	 */
-	private Optional<UpdateOfField> getUpdateFromTransactionInHistory(StorageReference object, FieldSignature field, TransactionReference reference) throws UnknownReferenceException {
-		if (getResponse(reference) instanceof TransactionResponseWithUpdates trwu)
+	private Optional<UpdateOfField> getUpdateFromTransactionInHistory(StorageReference object, FieldSignature field, TransactionReference transaction) throws UnknownReferenceException {
+		if (getResponse(transaction) instanceof TransactionResponseWithUpdates trwu)
 			return trwu.getUpdates()
-					.filter(update -> update instanceof UpdateOfField)
+					.filter(update -> update instanceof UpdateOfField uof && update.getObject().equals(object) && uof.getField().equals(field))
 					.map(update -> (UpdateOfField) update)
-					.filter(update -> update.getObject().equals(object) && update.getField().equals(field))
-					.findFirst(); // TODO: hotspot
+					.findFirst();
 		else
-			throw new LocalNodeException("Transaction reference " + reference + " belongs to the history of " + object + " but it does not contain updates");
+			throw new LocalNodeException("Transaction reference " + transaction + " belongs to the history of " + object + " but it does not contain updates");
 	}
 
 	/**
