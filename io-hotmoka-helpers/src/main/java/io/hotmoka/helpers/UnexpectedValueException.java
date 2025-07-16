@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.helpers;
 
-import io.hotmoka.node.api.UnexpectedCodeException;
+import io.hotmoka.helpers.api.UnexpectedCodeException;
 
 /**
  * An exception stating that a method returns an unexpected value or that

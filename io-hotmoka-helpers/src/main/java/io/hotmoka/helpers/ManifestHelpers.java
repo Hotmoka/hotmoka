@@ -19,13 +19,13 @@ package io.hotmoka.helpers;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.helpers.api.ManifestHelper;
+import io.hotmoka.helpers.api.UnexpectedCodeException;
 import io.hotmoka.helpers.internal.ManifestHelperImpl;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.UnexpectedCodeException;
 import io.hotmoka.node.api.UninitializedNodeException;
 
 /**

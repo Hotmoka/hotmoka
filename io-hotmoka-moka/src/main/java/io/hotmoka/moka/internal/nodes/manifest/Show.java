@@ -20,12 +20,12 @@ import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.helpers.ManifestHelpers;
+import io.hotmoka.helpers.api.UnexpectedCodeException;
 import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.UnexpectedCodeException;
 import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.remote.api.RemoteNode;
 import picocli.CommandLine.Command;

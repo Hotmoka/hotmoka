@@ -23,6 +23,7 @@ import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.helpers.InitializedNodes;
+import io.hotmoka.helpers.api.UnexpectedCodeException;
 import io.hotmoka.moka.NodesDiskInitOutputs;
 import io.hotmoka.moka.api.nodes.disk.NodesDiskInitOutput;
 import io.hotmoka.moka.internal.AbstractNodeInit;
@@ -34,7 +35,6 @@ import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.UnexpectedCodeException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.disk.DiskNodeConfigBuilders;

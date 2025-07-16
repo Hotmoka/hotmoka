@@ -22,7 +22,6 @@ import java.util.stream.Stream;
 
 import io.hotmoka.instrumentation.InstrumentedJars;
 import io.hotmoka.node.TransactionResponses;
-import io.hotmoka.node.api.ClassLoaderCreationException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.node.api.responses.JarStoreTransactionResponse;
@@ -32,6 +31,7 @@ import io.hotmoka.node.local.HotmokaTransactionException;
 import io.hotmoka.node.local.IllegalJarException;
 import io.hotmoka.node.local.UnknownTypeException;
 import io.hotmoka.node.local.VerificationException;
+import io.hotmoka.node.local.api.ClassLoaderCreationException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.verification.VerifiedJars;
 

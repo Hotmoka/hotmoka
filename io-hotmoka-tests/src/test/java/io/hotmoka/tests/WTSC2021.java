@@ -45,6 +45,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.helpers.api.MisbehavingNodeException;
+import io.hotmoka.helpers.api.UnexpectedCodeException;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
@@ -53,7 +54,6 @@ import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.UnexpectedCodeException;
 import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
