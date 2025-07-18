@@ -107,7 +107,7 @@ public abstract class TransactionRequestImpl<R extends TransactionResponse> exte
 	}
 
 	@Override
-	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
+	protected final MarshallingContext createMarshallingContext(OutputStream os) {
 		return NodeMarshallingContexts.of(os);
 	}
 }

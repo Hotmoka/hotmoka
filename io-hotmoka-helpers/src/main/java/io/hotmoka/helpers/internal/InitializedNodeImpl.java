@@ -109,12 +109,11 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 		// we create the manifest, passing the storage array of validators in store and their powers
 		var request = TransactionRequests.constructorCall
 			(new byte[0], gamete, nonceOfGamete, "", BigInteger.valueOf(1_000_000), ZERO, takamakaCodeReference,
-					ConstructorSignatures.of(StorageTypes.MANIFEST, StorageTypes.STRING, StorageTypes.STRING, StorageTypes.INT,
-					StorageTypes.INT, StorageTypes.LONG,
-					StorageTypes.BOOLEAN, StorageTypes.BOOLEAN,
+					ConstructorSignatures.of(StorageTypes.MANIFEST, StorageTypes.STRING, StorageTypes.STRING,
+					StorageTypes.INT, StorageTypes.LONG, StorageTypes.BOOLEAN, StorageTypes.BOOLEAN,
 					StorageTypes.STRING, StorageTypes.GAMETE, StorageTypes.LONG, function, function),
 					StorageValues.stringOf(consensus.getGenesisTime().toInstant(ZoneOffset.UTC).toString()),
-					StorageValues.stringOf(consensus.getChainId()), StorageValues.intOf(consensus.getMaxErrorLength()), StorageValues.intOf(consensus.getMaxDependencies()),
+					StorageValues.stringOf(consensus.getChainId()), StorageValues.intOf(consensus.getMaxDependencies()),
 					StorageValues.longOf(consensus.getMaxCumulativeSizeOfDependencies()),
 					StorageValues.booleanOf(consensus.allowsUnsignedFaucet()), StorageValues.booleanOf(consensus.skipsVerification()),
 					StorageValues.stringOf(consensus.getSignatureForRequests().getName()), gamete, StorageValues.longOf(consensus.getVerificationVersion()),
@@ -164,12 +163,11 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 		// we create the manifest, passing the storage array of validators in store and their powers
 		var request = TransactionRequests.constructorCall
 			(new byte[0], gamete, nonceOfGamete, "", BigInteger.valueOf(1_000_000), ZERO, takamakaCodeReference,
-				ConstructorSignatures.of(StorageTypes.MANIFEST, StorageTypes.STRING, StorageTypes.STRING, StorageTypes.INT,
-				StorageTypes.INT, StorageTypes.LONG,
-				StorageTypes.BOOLEAN, StorageTypes.BOOLEAN,
+				ConstructorSignatures.of(StorageTypes.MANIFEST, StorageTypes.STRING, StorageTypes.STRING,
+				StorageTypes.INT, StorageTypes.LONG, StorageTypes.BOOLEAN, StorageTypes.BOOLEAN,
 				StorageTypes.STRING, StorageTypes.GAMETE, StorageTypes.LONG, function, function),
 				StorageValues.stringOf(consensus.getGenesisTime().toString()),
-				StorageValues.stringOf(consensus.getChainId()), StorageValues.intOf(consensus.getMaxErrorLength()), StorageValues.intOf(consensus.getMaxDependencies()),
+				StorageValues.stringOf(consensus.getChainId()), StorageValues.intOf(consensus.getMaxDependencies()),
 				StorageValues.longOf(consensus.getMaxCumulativeSizeOfDependencies()),
 				StorageValues.booleanOf(consensus.allowsUnsignedFaucet()), StorageValues.booleanOf(consensus.skipsVerification()),
 				StorageValues.stringOf(consensus.getSignatureForRequests().getName()), gamete, StorageValues.longOf(consensus.getVerificationVersion()),

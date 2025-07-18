@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node;
 
-import java.io.IOException;
 import java.io.OutputStream;
 
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -34,10 +33,9 @@ public abstract class NodeMarshallingContexts {
 	 * a normal context, since it shares subcomponents of the node's API.
 	 * 
 	 * @param oos the stream where bytes are marshalled.
-	 * @throws IOException if the context cannot be created
 	 * @return the context
 	 */
-	public static MarshallingContext of(OutputStream oos) throws IOException {
+	public static MarshallingContext of(OutputStream oos) {
 		return new NodeMarshallingContext(oos);
 	}
 }

@@ -71,7 +71,7 @@ public abstract class InitialResponseBuilderImpl<Request extends InitialTransact
 		 */
 		protected void checkBeforeExecution() throws TransactionRejectedException {
 			if (environment.getManifest().isPresent())
-				throw new TransactionRejectedException("Cannot run an initial transaction request in an already initialized node", consensus);
+				throw new TransactionRejectedException("Cannot run an initial transaction request in an already initialized node");
 		}
 
 		/**

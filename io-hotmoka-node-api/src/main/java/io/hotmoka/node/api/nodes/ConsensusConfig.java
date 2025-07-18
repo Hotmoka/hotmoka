@@ -49,14 +49,6 @@ public interface ConsensusConfig<C extends ConsensusConfig<C,B>, B extends Conse
 	String getChainId();
 
 	/**
-	 * Yields the maximal length of the error messages kept in the store of the node.
-	 * Beyond this threshold, the message gets truncated.
-	 * 
-	 * @return the maximal length
-	 */
-	int getMaxErrorLength();
-
-	/**
 	 * Yields the maximal number of dependencies in the classpath of a transaction.
 	 * 
 	 * @return the maximal number of dependencies
@@ -70,8 +62,6 @@ public interface ConsensusConfig<C extends ConsensusConfig<C,B>, B extends Conse
 	 * @return the maximal cumulative size (in bytes)
 	 */
 	long getMaxCumulativeSizeOfDependencies();
-
-	// TODO: probably add the maximal size of an installed jar
 
 	/**
 	 * Yields true if and only if the use of the faucet of the gamete is allowed without a valid signature.

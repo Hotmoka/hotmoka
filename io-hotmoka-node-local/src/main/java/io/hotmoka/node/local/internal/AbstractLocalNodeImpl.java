@@ -38,9 +38,7 @@ import java.util.stream.Stream;
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.closeables.AbstractAutoCloseableWithLockAndOnCloseHandlers;
 import io.hotmoka.crypto.HashingAlgorithms;
-import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
-import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.node.CodeFutures;
 import io.hotmoka.node.JarFutures;
 import io.hotmoka.node.SubscriptionsManagers;
@@ -133,8 +131,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 */
 	private final LRUCache<TransactionReference, String> recentlyRejectedTransactionsMessages = new LRUCache<>(100, 1000);
 
-	private final SignatureAlgorithm ed25519;
-
 	private final static Logger LOGGER = Logger.getLogger(AbstractLocalNodeImpl.class.getName());
 
 	/**
@@ -150,7 +146,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		this.semaphores = new ConcurrentHashMap<>();
 
 		try {
-			this.ed25519 = SignatureAlgorithms.ed25519();
 			this.hasher = HashingAlgorithms.sha256().getHasher(TransactionRequest::toByteArray);
 		}
 		catch (NoSuchAlgorithmException e) {
@@ -250,7 +245,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 				catch (UnknownReferenceException e) {
 					String rejectionMessage = recentlyRejectedTransactionsMessages.get(reference);
 					if (rejectionMessage != null)
-						throw new TransactionRejectedException(rejectionMessage, store.getConfig());
+						throw new TransactionRejectedException(rejectionMessage);
 				}
 				finally {
 					exit(store);
@@ -564,10 +559,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 */
 	protected abstract void postRequest(TransactionRequest<?> request) throws ClosedNodeException, InterruptedException, TimeoutException;
 
-	protected SignatureAlgorithm mkEd25519() {
-		return ed25519;
-	}
-
 	/**
 	 * Cleans the directory where the node's data live.
 	 * 
@@ -629,7 +620,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		try {
 			store.getResponse(reference);
 			// if the response is found, then no exception is thrown above, which means that the request was repeated
-			throw new TransactionRejectedException("Repeated request " + reference, store.getConfig());
+			throw new TransactionRejectedException("Repeated request " + reference);
 		}
 		catch (UnknownReferenceException e) {
 			// this is fine: there was no previous request with the same reference so we register
@@ -657,7 +648,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 */
 	private void createSemaphore(S store, TransactionReference reference) throws TransactionRejectedException {
 		if (semaphores.putIfAbsent(reference, new Semaphore(0)) != null)
-			throw new TransactionRejectedException("Repeated request " + reference, store.getConfig());
+			throw new TransactionRejectedException("Repeated request " + reference);
 	}
 
 	/**

@@ -132,7 +132,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 				this.classLoader = mkClassLoader();
 			}
 			catch (ClassLoaderCreationException e) {
-				throw new TransactionRejectedException(e, consensus);
+				throw new TransactionRejectedException(e);
 			}
 
 			this.deserializer = new Deserializer(environment, classLoader);

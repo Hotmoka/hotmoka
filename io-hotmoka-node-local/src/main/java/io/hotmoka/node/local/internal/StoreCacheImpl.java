@@ -17,10 +17,10 @@ limitations under the License.
 package io.hotmoka.node.local.internal;
 
 import java.math.BigInteger;
+import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.OptionalLong;
 
-import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.exceptions.functions.FunctionWithExceptions1;
 import io.hotmoka.exceptions.functions.FunctionWithExceptions2;
 import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
@@ -29,6 +29,7 @@ import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.LRUCache;
+import io.hotmoka.node.local.LocalNodeException;
 import io.hotmoka.node.local.api.ClassLoaderCreationException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
@@ -92,12 +93,17 @@ public class StoreCacheImpl implements StoreCache {
 	private final LRUCache<TransactionReference, Boolean> checkedSignatures;
 
 	/**
-	 * Creates empty caches.
+	 * Creates an empty cache, with default consensus parameters.
 	 * 
-	 * @param signatureForRequests the signature to use for the requests
 	 */
-	public StoreCacheImpl(SignatureAlgorithm signatureForRequests) {
-		this.consensus = ValidatorsConsensusConfigBuilders.defaults(signatureForRequests).build();
+	public StoreCacheImpl() {
+		try {
+			this.consensus = ValidatorsConsensusConfigBuilders.defaults().build();
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw new LocalNodeException(e);
+		}
+
 		this.gasPrice = Optional.empty();
 		this.inflation = OptionalLong.empty();
 		this.validators = Optional.empty();

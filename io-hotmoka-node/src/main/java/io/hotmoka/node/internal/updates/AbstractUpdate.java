@@ -217,7 +217,7 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 	}
 
 	@Override
-	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
+	protected final MarshallingContext createMarshallingContext(OutputStream os) {
 		return NodeMarshallingContexts.of(os);
 	}
 }

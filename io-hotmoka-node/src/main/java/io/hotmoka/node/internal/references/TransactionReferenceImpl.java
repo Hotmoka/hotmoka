@@ -167,7 +167,7 @@ public final class TransactionReferenceImpl extends AbstractMarshallable impleme
 	}
 
 	@Override
-	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
+	protected final MarshallingContext createMarshallingContext(OutputStream os) {
 		return NodeMarshallingContexts.of(os);
 	}
 }

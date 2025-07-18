@@ -56,7 +56,6 @@ public class BasicConsensusConfigBuilder extends AbstractConsensusConfigBuilder<
 
 			setGenesisTime(LocalDateTime.parse(json.getGenesisTime(), ISO_LOCAL_DATE_TIME))
 			.setChainId(json.getChainId())
-			.setMaxErrorLength(json.getMaxErrorLength())
 			.setMaxDependencies(json.getMaxDependencies())
 			.setMaxCumulativeSizeOfDependencies(json.getMaxCumulativeSizeOfDependencies())
 			.allowUnsignedFaucet(json.isAllowsUnsignedFaucet())

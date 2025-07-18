@@ -32,7 +32,6 @@ import io.hotmoka.websockets.beans.api.JsonRepresentation;
 public abstract class ConsensusConfigJson implements JsonRepresentation<ConsensusConfig<?,?>> {
 	private final String genesisTime;
 	private final String chainId;
-	private final int maxErrorLength;
 	private final int maxDependencies;
 	private final long maxCumulativeSizeOfDependencies;
 	private final boolean allowsUnsignedFaucet;
@@ -53,7 +52,6 @@ public abstract class ConsensusConfigJson implements JsonRepresentation<Consensu
 	protected ConsensusConfigJson(ConsensusConfig<?,?> config) {
 		this.genesisTime = ISO_LOCAL_DATE_TIME.format(config.getGenesisTime());
 		this.chainId = config.getChainId();
-		this.maxErrorLength = config.getMaxErrorLength();
 		this.maxDependencies = config.getMaxDependencies();
 		this.maxCumulativeSizeOfDependencies = config.getMaxCumulativeSizeOfDependencies();
 		this.allowsUnsignedFaucet = config.allowsUnsignedFaucet();
@@ -138,10 +136,6 @@ public abstract class ConsensusConfigJson implements JsonRepresentation<Consensu
 
 	public String getChainId() {
 		return chainId;
-	}
-
-	public int getMaxErrorLength() {
-		return maxErrorLength;
 	}
 
 	public int getMaxDependencies() {

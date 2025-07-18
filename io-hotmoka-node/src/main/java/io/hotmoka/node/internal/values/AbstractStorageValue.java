@@ -288,7 +288,7 @@ public abstract class AbstractStorageValue extends AbstractMarshallable implemen
 	}
 
 	@Override
-	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
+	protected final MarshallingContext createMarshallingContext(OutputStream os) {
 		return NodeMarshallingContexts.of(os);
 	}
 }

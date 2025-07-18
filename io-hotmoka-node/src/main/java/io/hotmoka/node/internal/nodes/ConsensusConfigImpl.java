@@ -63,12 +63,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 	public final String chainId;
 
 	/**
-	 * The maximal length of the error message kept in the store of the node.
-	 * Beyond this threshold, the message gets truncated.
-	 */
-	public final int maxErrorLength;
-
-	/**
 	 * The maximal number of dependencies in the classpath of a transaction.
 	 */
 	public final int maxDependencies;
@@ -181,7 +175,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 	protected ConsensusConfigImpl(ConsensusConfigBuilderImpl<C,B> builder) {
 		this.genesisTime = builder.genesisTime;
 		this.chainId = builder.chainId;
-		this.maxErrorLength = builder.maxErrorLength;
 		this.maxDependencies = builder.maxDependencies;
 		this.maxCumulativeSizeOfDependencies = builder.maxCumulativeSizeOfDependencies;
 		this.allowsUnsignedFaucet = builder.allowsUnsignedFaucet;
@@ -206,7 +199,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		return other instanceof ConsensusConfigImpl<?,?> occi && getClass() == other.getClass() &&
 			genesisTime.equals(occi.genesisTime) &&
 			chainId.equals(occi.chainId) &&
-			maxErrorLength == occi.maxErrorLength &&
 			maxDependencies == occi.maxDependencies &&
 			maxCumulativeSizeOfDependencies == occi.maxCumulativeSizeOfDependencies &&
 			allowsUnsignedFaucet == occi.allowsUnsignedFaucet &&
@@ -227,7 +219,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 
 	@Override
 	public int hashCode() {
-		return genesisTime.hashCode() ^ chainId.hashCode() ^ Long.hashCode(maxErrorLength) ^ Long.hashCode(maxDependencies)
+		return genesisTime.hashCode() ^ chainId.hashCode() ^ Long.hashCode(maxDependencies)
 			^ Long.hashCode(maxCumulativeSizeOfDependencies) ^ publicKeyOfGameteBase64.hashCode() ^ initialGasPrice.hashCode()
 			^ maxGasPerTransaction.hashCode() ^ targetGasAtReward.hashCode() ^ Long.hashCode(oblivion)
 			^ Long.hashCode(initialInflation) ^ Long.hashCode(verificationVersion) ^ initialSupply.hashCode();
@@ -251,9 +243,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		sb.append("\n");
 		sb.append("# the chain identifier of the node\n");
 		sb.append("chain_id = \"" + chainId + "\"\n");
-		sb.append("\n");
-		sb.append("# the maximal length of the error message kept in the store of the node\n");
-		sb.append("max_error_length = " + maxErrorLength + "\n");
 		sb.append("\n");
 		sb.append("# the maximal number of dependencies in the classpath of a transaction\n");
 		sb.append("max_dependencies = " + maxDependencies + "\n");
@@ -327,11 +316,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 	@Override
 	public String getChainId() {
 		return chainId;
-	}
-
-	@Override
-	public int getMaxErrorLength() {
-		return maxErrorLength;
 	}
 
 	@Override
@@ -431,12 +415,11 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 	public abstract static class ConsensusConfigBuilderImpl<C extends ConsensusConfig<C,B>, B extends ConsensusConfigBuilder<C,B>> implements ConsensusConfigBuilder<C,B> {
 		private String chainId = "";
 		private LocalDateTime genesisTime = LocalDateTime.now(ZoneId.of("UTC"));
-		private int maxErrorLength = 300;
 		private boolean allowsUnsignedFaucet = false;
 		private SignatureAlgorithm signatureForRequests;
 		private BigInteger maxGasPerTransaction = BigInteger.valueOf(1_000_000_000L);
 		private int maxDependencies = 20;
-		private long maxCumulativeSizeOfDependencies = 10_000_000L;
+		private long maxCumulativeSizeOfDependencies = 1_000_000L;
 		private BigInteger initialGasPrice = BigInteger.valueOf(100L);
 		private boolean ignoresGasPrice = false;
 		private boolean skipsVerification = false;
@@ -448,7 +431,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		private BigInteger finalSupply = initialSupply.multiply(BigInteger.valueOf(2L)); // BigInteger.TWO crashes the Android client
 		private PublicKey publicKeyOfGamete;
 		private String publicKeyOfGameteBase64;
-		private BigInteger ticketForNewPoll = BigInteger.valueOf(100);
+		private BigInteger ticketForNewPoll = BigInteger.valueOf(100_000);
 
 		/**
 		 * Creates a builder with default values for the properties.
@@ -485,7 +468,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		protected ConsensusConfigBuilderImpl(C config) {
 			setChainId(config.getChainId());
 			setGenesisTime(config.getGenesisTime());
-			setMaxErrorLength(config.getMaxErrorLength());
 			setMaxDependencies(config.getMaxDependencies());
 			setMaxCumulativeSizeOfDependencies(config.getMaxCumulativeSizeOfDependencies());
 			allowUnsignedFaucet(config.allowsUnsignedFaucet());
@@ -525,10 +507,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 			var chainId = toml.getString("chain_id");
 			if (chainId != null)
 				setChainId(chainId);
-
-			var maxErrorLength = toml.getLong("max_error_length");
-			if (maxErrorLength != null)
-				setMaxErrorLength(maxErrorLength);
 
 			var maxDependencies = toml.getLong("max_dependencies");
 			if (maxDependencies != null)
@@ -604,23 +582,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		@Override
 		public B setChainId(String chainId) {
 			this.chainId = Objects.requireNonNull(chainId, "The chain id cannot be null");
-			return getThis();
-		}
-
-		@Override
-		public B setMaxErrorLength(int maxErrorLength) {
-			if (maxErrorLength < 0)
-				throw new IllegalArgumentException("The max error length cannot be negative");
-
-			this.maxErrorLength = maxErrorLength;
-			return getThis();
-		}
-
-		private B setMaxErrorLength(long maxErrorLength) {
-			if (maxErrorLength < 0 || maxErrorLength > Integer.MAX_VALUE)
-				throw new IllegalArgumentException("maxErrorLength must be between 0 and " + Integer.MAX_VALUE + " inclusive");
-
-			this.maxErrorLength = (int) maxErrorLength;
 			return getThis();
 		}
 

@@ -153,11 +153,6 @@ public abstract class MethodSignatures {
 	public final static NonVoidMethodSignature GET_CHAIN_ID = ofNonVoid(MANIFEST, "getChainId", STRING);
 
 	/**
-	 * The method {@code getMaxErrorLength} of the manifest.
-	 */
-	public final static NonVoidMethodSignature GET_MAX_ERROR_LENGTH = ofNonVoid(MANIFEST, "getMaxErrorLength", INT);
-
-	/**
 	 * The method {@code getMaxDependencies} of the manifest.
 	 */
 	public final static NonVoidMethodSignature GET_MAX_DEPENDENCIES = ofNonVoid(MANIFEST, "getMaxDependencies", INT);

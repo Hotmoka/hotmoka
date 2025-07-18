@@ -76,7 +76,7 @@ public abstract class AbstractSignature extends AbstractMarshallable implements 
 	}
 
 	@Override
-	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
+	protected final MarshallingContext createMarshallingContext(OutputStream os) {
 		return NodeMarshallingContexts.of(os);
 	}
 }

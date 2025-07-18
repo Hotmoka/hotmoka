@@ -30,13 +30,14 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractStore;
 import io.hotmoka.node.local.LRUCache;
-import io.hotmoka.node.local.StateIds;
 import io.hotmoka.node.local.LocalNodeException;
+import io.hotmoka.node.local.StateIds;
 import io.hotmoka.node.local.api.CheckableStore;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.UnknownStateIdException;
+import io.hotmoka.node.local.internal.StoreCacheImpl;
 import io.hotmoka.patricia.api.UnknownKeyException;
 import io.hotmoka.xodus.env.Transaction;
 
@@ -169,6 +170,8 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 				.setGasPrice(extractGasPrice(manifest))
 				.setInflation(extractInflation(manifest));
 		}
+		else
+			newCache = new StoreCacheImpl();
 	
 		return withCache(newCache);
 	}

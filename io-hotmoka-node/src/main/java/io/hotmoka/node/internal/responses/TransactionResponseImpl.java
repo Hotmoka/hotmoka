@@ -123,7 +123,7 @@ public abstract class TransactionResponseImpl extends AbstractMarshallable imple
 	}
 
 	@Override
-	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
+	protected final MarshallingContext createMarshallingContext(OutputStream os) {
 		return NodeMarshallingContexts.of(os);
 	}
 

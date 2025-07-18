@@ -71,7 +71,7 @@ public abstract class AbstractStoreImpl<N extends AbstractLocalNodeImpl<N,C,S,T>
 	 */
 	private AbstractStoreImpl(N node, Optional<StoreCache> cache) {
 		this.node = node;
-		this.cache = cache.isPresent() ? cache.get() : new StoreCacheImpl(node.mkEd25519());
+		this.cache = cache.isPresent() ? cache.get() : new StoreCacheImpl();
 		this.consensusForViews = this.cache.getConfig().toBuilder().setMaxGasPerTransaction(node.getLocalConfig().getMaxGasPerViewTransaction()).build();
 	}
 

@@ -104,24 +104,29 @@ public class Reverification {
 	 * Replaces all reverified responses into the store of the node whose jars have been reverified.
 	 */
 	public void replace() {
-		for (var entry: reverified.entrySet()) {
-			var reference = entry.getKey();
+		// reverification might be called for a store or for a store transformation;
+		// in the first case, it is just needed to guarantee that all jars needed
+		// for the execution from the store are still verifiable; in the second,
+		// it also modifies the store transformation so that, at its end, the
+		// jars are modified with their new verified version
+		if (environment instanceof AbstractStoreTransformation<?,?,?,?> ast) {
+			for (var entry: reverified.entrySet()) {
+				var reference = entry.getKey();
 
-			try {
-				environment.getRequest(reference);
-
-				if (environment instanceof AbstractStoreTransformation<?,?,?,?> ast) // TODO: can we remove this?
+				try {
+					environment.getRequest(reference);
 					ast.setResponse(reference, entry.getValue());
-			}
-			catch (UnknownReferenceException e) {
-				throw new LocalNodeException(e); // the response for this transaction has been reverified but it disappeared! The store looks corrupted
-			}
+				}
+				catch (UnknownReferenceException e) {
+					throw new LocalNodeException(e); // the response for this transaction has been reverified but it disappeared! The store looks corrupted
+				}
 
-			LOGGER.info(reference + ": updated after reverification");
+				LOGGER.info(reference + ": updated after reverification");
+			}
 		}
 
 		// we clean the set of reverified responses, to avoid repeated replacements in the future, if
-		// the class loader is recycled for other transactions
+		// the class loader is recycled for other transactions: this is just an optimization
 		reverified.clear();
 	}
 

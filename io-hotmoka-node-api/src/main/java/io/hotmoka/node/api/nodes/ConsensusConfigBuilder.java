@@ -32,15 +32,6 @@ public interface ConsensusConfigBuilder<C extends ConsensusConfig<C,B>, B extend
 	B setChainId(String chainId);
 
 	/**
-	 * Sets the maximal length of the error message kept in the store of the node.
-	 * Beyond this threshold, the message gets truncated.
-	 * 
-	 * @param maxErrorLength the maximal length of the error message kept in the store of the node
-	 * @return this builder
-	 */
-	B setMaxErrorLength(int maxErrorLength);
-
-	/**
 	 * Sets the maximal number of dependencies in the classpath of a transaction.
 	 * 
 	 * @param maxDependencies the maximal number of dependencies in the classpath of a transaction
@@ -176,7 +167,6 @@ public interface ConsensusConfigBuilder<C extends ConsensusConfig<C,B>, B extend
 
 	/**
 	 * Sets the final supply of coins of the node.
-	 * It defaults to 0.
 	 * 
 	 * @param finalSupply the final supply of coins of the node
 	 * @return this builder
@@ -186,7 +176,6 @@ public interface ConsensusConfigBuilder<C extends ConsensusConfig<C,B>, B extend
 	/**
 	 * Sets the amount of coins that must be paid to start a new poll amount
 	 * to validators, for instance to change a consensus parameter.
-	 * It defaults to 100.
 	 * 
 	 * @param ticketForNewPoll the amount of coins to set
 	 * @return this builder

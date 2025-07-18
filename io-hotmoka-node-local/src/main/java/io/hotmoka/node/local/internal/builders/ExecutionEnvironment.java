@@ -235,11 +235,6 @@ public abstract class ExecutionEnvironment {
 					.orElseThrow(() -> new LocalNodeException(MethodSignatures.PUBLIC_KEY + " should not return void"))
 					.asReturnedString(MethodSignatures.PUBLIC_KEY, LocalNodeException::new);
 	
-			int maxErrorLength = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_ERROR_LENGTH, manifest))
-					.orElseThrow(() -> new LocalNodeException(MethodSignatures.GET_MAX_ERROR_LENGTH + " should not return void"))
-					.asReturnedInt(MethodSignatures.GET_MAX_ERROR_LENGTH, LocalNodeException::new);
-	
 			int maxDependencies = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_DEPENDENCIES, manifest))
 					.orElseThrow(() -> new LocalNodeException(MethodSignatures.GET_MAX_DEPENDENCIES + " should not return void"))
@@ -347,7 +342,6 @@ public abstract class ExecutionEnvironment {
 					.setTargetGasAtReward(targetGasAtReward)
 					.setOblivion(oblivion)
 					.setInitialInflation(initialInflation)
-					.setMaxErrorLength(maxErrorLength)
 					.setMaxDependencies(maxDependencies)
 					.setMaxCumulativeSizeOfDependencies(maxCumulativeSizeOfDependencies)
 					.allowUnsignedFaucet(allowsFaucet)

@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.internal.marshalling;
 
-import java.io.IOException;
 import java.io.OutputStream;
 
 import io.hotmoka.marshalling.AbstractMarshallingContext;
@@ -32,9 +31,8 @@ public class NodeMarshallingContext extends AbstractMarshallingContext {
 	 * Creates the context.
 	 * 
 	 * @param os the stream where bytes are marshalled.
-	 * @throws IOException if the context cannot be created
 	 */
-	public NodeMarshallingContext(OutputStream os) throws IOException { // TODO: remove exception
+	public NodeMarshallingContext(OutputStream os) {
 		super(os);
 		
 		registerObjectMarshaller(new TransactionReferenceMarshaller());

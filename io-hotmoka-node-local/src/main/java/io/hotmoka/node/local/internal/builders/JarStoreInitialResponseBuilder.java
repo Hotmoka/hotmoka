@@ -71,7 +71,7 @@ public class JarStoreInitialResponseBuilder extends AbstractInitialResponseBuild
 				}
 				catch (HotmokaTransactionException e) {
 					logFailure(Level.SEVERE, e);
-					throw new TransactionRejectedException(e, consensus);
+					throw new TransactionRejectedException(e);
 				}
 			}
 		}

@@ -66,16 +66,16 @@ public class InitializationResponseBuilder extends AbstractInitialResponseBuilde
 					className = environment.getClassName(request.getManifest());
 				}
 				catch (UnknownReferenceException e) {
-					throw new TransactionRejectedException("The manifest " + request.getManifest() + " cannot be found in store", consensus);
+					throw new TransactionRejectedException("The manifest " + request.getManifest() + " cannot be found in store");
 				}
 			
 				try {
 					Class<?> clazz = classLoader.loadClass(className);
 					if (!classLoader.getManifest().isAssignableFrom(clazz))
-						throw new TransactionRejectedException("The manifest of an initialization request must be of type " + Constants.MANIFEST_NAME, consensus);
+						throw new TransactionRejectedException("The manifest of an initialization request must be of type " + Constants.MANIFEST_NAME);
 				}
 				catch (ClassNotFoundException e) {
-					throw new TransactionRejectedException("The class " + className + " of the manifest cannot be resolved", consensus);
+					throw new TransactionRejectedException("The class " + className + " of the manifest cannot be resolved");
 				}
 			}
 		}

@@ -164,13 +164,6 @@ public class ManifestHelperImpl implements ManifestHelper {
 
 		builder.append("   ├─ chainId: ").append(getChainId()).append("\n");
 
-		int maxErrorLength = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_ERROR_LENGTH, manifest))
-				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_MAX_ERROR_LENGTH))
-				.asReturnedInt(MethodSignatures.GET_MAX_ERROR_LENGTH, UnexpectedValueException::new);
-
-		builder.append("   ├─ maxErrorLength: ").append(maxErrorLength).append("\n");
-
 		int maxDependencies = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_DEPENDENCIES, manifest))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_MAX_DEPENDENCIES))

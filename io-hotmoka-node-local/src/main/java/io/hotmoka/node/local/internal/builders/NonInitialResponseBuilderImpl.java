@@ -292,16 +292,16 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 				className = environment.getClassName(request.getCaller());
 			}
 			catch (UnknownReferenceException e) {
-				throw new TransactionRejectedException("The caller " + request.getCaller() + " cannot be found in store", consensus);
+				throw new TransactionRejectedException("The caller " + request.getCaller() + " cannot be found in store");
 			}
 		
 			try {
 				Class<?> clazz = classLoader.loadClass(className);
 				if (!classLoader.getExternallyOwnedAccount().isAssignableFrom(clazz))
-					throw new TransactionRejectedException("The caller of a request must be an externally owned account", consensus);
+					throw new TransactionRejectedException("The caller of a request must be an externally owned account");
 			}
 			catch (ClassNotFoundException e) {
-				throw new TransactionRejectedException("The class " + className + " of the caller cannot be resolved", consensus);
+				throw new TransactionRejectedException("The class " + className + " of the caller cannot be resolved");
 			}
 		}
 
@@ -312,9 +312,9 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 */
 		private void gasLimitIsInsideBounds() throws TransactionRejectedException {
 			if (request.getGasLimit().compareTo(ZERO) < 0)
-				throw new TransactionRejectedException("The gas limit cannot be negative", consensus);
+				throw new TransactionRejectedException("The gas limit cannot be negative");
 			else if (request.getGasLimit().compareTo(consensus.getMaxGasPerTransaction()) > 0)
-				throw new TransactionRejectedException("The gas limit of the request is larger than the maximum allowed (" + request.getGasLimit() + " > " + consensus.getMaxGasPerTransaction() + ")", consensus);
+				throw new TransactionRejectedException("The gas limit of the request is larger than the maximum allowed (" + request.getGasLimit() + " > " + consensus.getMaxGasPerTransaction() + ")");
 		}
 
 		/**
@@ -325,7 +325,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		private void requestPromisesEnoughGas() throws TransactionRejectedException {
 			BigInteger minimum = minimalGasRequiredForTransaction();
 			if (request.getGasLimit().compareTo(minimum) < 0)
-				throw new TransactionRejectedException("not enough gas to start the transaction, expected at least " + minimum + " units of gas", consensus);
+				throw new TransactionRejectedException("not enough gas to start the transaction, expected at least " + minimum + " units of gas");
 		}
 
 		/**
@@ -338,7 +338,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 				Optional<BigInteger> maybeGasPrice = environment.getGasPrice();
 				// before initialization, the gas price is not yet available
 				if (maybeGasPrice.isPresent() && request.getGasPrice().compareTo(maybeGasPrice.get()) < 0)
-					throw new TransactionRejectedException("The gas price of the request is smaller than the current gas price (" + request.getGasPrice() + " < " + maybeGasPrice.get() + ")", consensus);
+					throw new TransactionRejectedException("The gas price of the request is smaller than the current gas price (" + request.getGasPrice() + " < " + maybeGasPrice.get() + ")");
 			}
 		}
 
@@ -353,7 +353,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 				String chainIdOfNode = consensus.getChainId();
 				String chainId = ((SignedTransactionRequest<?>) request).getChainId();
 				if (!chainIdOfNode.equals(chainId))
-					throw new TransactionRejectedException("Incorrect chain id: the request reports " + chainId + " but the node requires " + chainIdOfNode, consensus);
+					throw new TransactionRejectedException("Incorrect chain id: the request reports " + chainId + " but the node requires " + chainIdOfNode);
 			}
 		}
 
@@ -367,7 +367,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 			if (transactionIsSigned() && environment.getManifest().isPresent()) {
 				try {
 					if (!environment.signatureIsValid((SignedTransactionRequest<?>) request, determineSignatureAlgorithm()))
-						throw new TransactionRejectedException("Invalid request signature", consensus);
+						throw new TransactionRejectedException("Invalid request signature");
 				}
 				catch (UnknownReferenceException | FieldNotFoundException e) {
 					// we have already verified that the caller exists and is an externally owned account:
@@ -397,7 +397,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 
 				if (!expected.equals(request.getNonce()))
 					throw new TransactionRejectedException("Incorrect nonce: the request reports " + request.getNonce()
-						+ " but the account " + request.getCaller() + " contains " + expected, consensus);
+						+ " but the account " + request.getCaller() + " contains " + expected);
 			}
 		}
 
@@ -420,7 +420,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 			}
 		
 			if (totalBalance.subtract(cost).signum() < 0)
-				throw new TransactionRejectedException("The payer has not enough funds to buy " + request.getGasLimit() + " units of gas", consensus);
+				throw new TransactionRejectedException("The payer has not enough funds to buy " + request.getGasLimit() + " units of gas");
 		}
 
 		/**
@@ -446,14 +446,14 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 					return consensus.getSignatureForRequests();
 			}
 			catch (UnknownReferenceException e) {
-				throw new TransactionRejectedException("The caller " + request.getCaller() + " is not an object in store", consensus);
+				throw new TransactionRejectedException("The caller " + request.getCaller() + " is not an object in store");
 			}
 			catch (NoSuchAlgorithmException e) {
 				// this is a limit of the Java installation, is not the fault of the user of Hotmoka
 				throw new LocalNodeException(e);
 			}
 			catch (ClassNotFoundException e) {
-				throw new TransactionRejectedException(e, consensus);
+				throw new TransactionRejectedException(e);
 			}
 		}
 

@@ -129,14 +129,14 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		
 				try {
 					if (!classLoader.isExported(clazz.getName()))
-						throw new TransactionRejectedException("Class " + clazz + " of the parameter " + reference + " is not exported: add @Exported to " + clazz, consensus);
+						throw new TransactionRejectedException("Class " + clazz + " of the parameter " + reference + " is not exported: add @Exported to " + clazz);
 				}
 				catch (ClassNotFoundException e) {
-					throw new TransactionRejectedException("Class " + clazz + " of the parameter " + reference + " cannot be resolved", consensus);
+					throw new TransactionRejectedException("Class " + clazz + " of the parameter " + reference + " cannot be resolved");
 				}
 			}
 			catch (UnknownReferenceException e) {
-				throw new TransactionRejectedException("Object " + reference + " cannot be found in store", consensus);
+				throw new TransactionRejectedException("Object " + reference + " cannot be found in store");
 			}
 		}
 
