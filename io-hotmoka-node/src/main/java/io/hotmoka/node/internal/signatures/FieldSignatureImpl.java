@@ -150,7 +150,7 @@ public final class FieldSignatureImpl extends AbstractSignature implements Field
 	 * @return the field signature
 	 * @throws IOException if the field signature could not be unmarshalled
 	 */
-	public static FieldSignature from(UnmarshallingContext context) throws IOException { // TODO: maybe change to NodeUnmarshallingContext?
+	public static FieldSignature from(UnmarshallingContext context) throws IOException {
 		return context.readObject(FieldSignature.class);
 	}
 
