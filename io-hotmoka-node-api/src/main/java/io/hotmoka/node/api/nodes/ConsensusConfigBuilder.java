@@ -109,17 +109,6 @@ public interface ConsensusConfigBuilder<C extends ConsensusConfig<C,B>, B extend
 	B setOblivion(long oblivion);
 
 	/**
-	 * Sets the initial inflation applied to the gas consumed by transactions before it gets sent
-	 * as reward to the validators. 1,000,000 means 1%.
-	 * Inflation can be negative. For instance, -300,000 means -0.3%.
-	 * It defaults to 100,000 (that is, inflation is 0.1% by default).
-	 * 
-	 * @param initialInflation the initial inflation to set
-	 * @return this builder
-	 */
-	B setInitialInflation(long initialInflation);
-
-	/**
 	 * Specifies that the minimum gas price for transactions is 0, so that the current
 	 * gas price is not relevant for the execution of the transactions. It defaults to false.
 	 * 

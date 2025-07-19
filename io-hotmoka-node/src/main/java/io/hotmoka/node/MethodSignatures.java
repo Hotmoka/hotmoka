@@ -258,16 +258,6 @@ public abstract class MethodSignatures {
 	public final static NonVoidMethodSignature GET_STAKE = ofNonVoid(VALIDATORS, "getStake", BIG_INTEGER, StorageTypes.VALIDATOR);
 
 	/**
-	 * The method {@code getInitialInflation} of the validators object.
-	 */
-	public final static NonVoidMethodSignature GET_INITIAL_INFLATION = ofNonVoid(VALIDATORS, "getInitialInflation", LONG);
-
-	/**
-	 * The method {@code getCurrentInflation} of the validators object.
-	 */
-	public final static NonVoidMethodSignature GET_CURRENT_INFLATION = ofNonVoid(VALIDATORS, "getCurrentInflation", LONG);
-
-	/**
 	 * The method {@code getShares} of the validators object.
 	 */
 	public final static NonVoidMethodSignature GET_SHARES = ofNonVoid(VALIDATORS, "getShares", StorageTypes.STORAGE_MAP_VIEW);

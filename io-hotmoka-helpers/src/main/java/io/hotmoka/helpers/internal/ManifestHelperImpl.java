@@ -490,20 +490,6 @@ public class ManifestHelperImpl implements ManifestHelper {
 
 		builder.append("   │  ├─ finalSupply: ").append(finalSupply).append("\n");
 
-		long initialInflation = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_INFLATION, validators))
-				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_INITIAL_INFLATION))
-				.asReturnedLong(MethodSignatures.GET_INITIAL_INFLATION, UnexpectedValueException::new);
-
-		builder.append(String.format("   │  ├─ initialInflation: %d (ie. %.6f%%)\n", initialInflation, initialInflation / 1_000_000.0));
-
-		long currentInflation = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_CURRENT_INFLATION, validators))
-				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_CURRENT_INFLATION))
-				.asReturnedLong(MethodSignatures.GET_CURRENT_INFLATION, UnexpectedValueException::new);
-
-		builder.append(String.format("   │  ├─ currentInflation: %d (ie. %.6f%%)\n", currentInflation, currentInflation / 1_000_000.0));
-
 		BigInteger height = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_HEIGHT, validators))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_HEIGHT))

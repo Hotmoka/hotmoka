@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.local.internal.builders;
 
-import static io.hotmoka.node.MethodSignatures.GET_CURRENT_INFLATION;
 import static io.hotmoka.node.MethodSignatures.GET_GAS_PRICE;
 
 import java.math.BigInteger;
@@ -30,7 +29,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.HashSet;
 import java.util.Optional;
-import java.util.OptionalLong;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
@@ -295,11 +293,6 @@ public abstract class ExecutionEnvironment {
 					.orElseThrow(() -> new LocalNodeException(MethodSignatures.GET_VERIFICATION_VERSION + " should not return void"))
 					.asReturnedLong(MethodSignatures.GET_VERIFICATION_VERSION, LocalNodeException::new);
 
-			long initialInflation = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_INFLATION, validators))
-					.orElseThrow(() -> new LocalNodeException(MethodSignatures.GET_INITIAL_INFLATION + " should not return void"))
-					.asReturnedLong(MethodSignatures.GET_INITIAL_INFLATION, LocalNodeException::new);
-	
 			BigInteger initialSupply = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_SUPPLY, validators))
 					.orElseThrow(() -> new LocalNodeException(MethodSignatures.GET_INITIAL_SUPPLY + " should not return void"))
@@ -341,7 +334,6 @@ public abstract class ExecutionEnvironment {
 					.setInitialGasPrice(initialGasPrice)
 					.setTargetGasAtReward(targetGasAtReward)
 					.setOblivion(oblivion)
-					.setInitialInflation(initialInflation)
 					.setMaxDependencies(maxDependencies)
 					.setMaxCumulativeSizeOfDependencies(maxCumulativeSizeOfDependencies)
 					.allowUnsignedFaucet(allowsFaucet)
@@ -433,26 +425,6 @@ public abstract class ExecutionEnvironment {
 		}
 		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
 			// the call to getGasPrice() should raise no exception
-			throw new LocalNodeException(e);
-		}
-	}
-
-	/**
-	 * Extracts the inflation from the given manifest.
-	 * 
-	 * @param manifest the reference to the manifest; this is assumed to actually refer to a manifest
-	 * @return the inflation, as reported in the validators of {@code manifest}
-	 */
-	protected final long extractInflation(StorageReference manifest) throws InterruptedException {
-		StorageReference validators = extractValidators(manifest);
-		TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new LocalNodeException("The manifest is set but the Takamaka code reference is not set"));
-
-		try {
-			return runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, GET_CURRENT_INFLATION, validators))
-					.orElseThrow(() -> new LocalNodeException(GET_CURRENT_INFLATION + " should not return void"))
-					.asReturnedLong(GET_CURRENT_INFLATION, LocalNodeException::new);
-		}
-		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
 			throw new LocalNodeException(e);
 		}
 	}
@@ -787,15 +759,6 @@ public abstract class ExecutionEnvironment {
 	 */
 	protected final Optional<BigInteger> getGasPrice() {
 		return getCache().getGasPrice();
-	}
-
-	/**
-	 * Yields the current inflation.
-	 * 
-	 * @return the current inflation; this is missing if the node is not initialized yet
-	 */
-	protected final OptionalLong getInflation() {
-		return getCache().getInflation();
 	}
 
 	/**

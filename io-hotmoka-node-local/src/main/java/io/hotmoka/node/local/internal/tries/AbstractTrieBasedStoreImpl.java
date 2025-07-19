@@ -167,8 +167,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 				.setValidators(extractValidators(manifest))
 				.setGasStation(extractGasStation(manifest))
 				.setVersions(extractVersions(manifest))
-				.setGasPrice(extractGasPrice(manifest))
-				.setInflation(extractInflation(manifest));
+				.setGasPrice(extractGasPrice(manifest));
 		}
 		else
 			newCache = new StoreCacheImpl();

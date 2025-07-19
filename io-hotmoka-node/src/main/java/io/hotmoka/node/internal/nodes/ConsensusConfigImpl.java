@@ -133,14 +133,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 	public final long oblivion;
 
 	/**
-	 * The initial inflation applied to the gas consumed by transactions before it gets sent
-	 * as reward to the validators. 1,000,000 means 1%.
-	 * Inflation can be negative. For instance, -300,000 means -0.3%.
-	 * This defaults to 10,000 (that is, inflation is 0.1% by default).
-	 */
-	public final long initialInflation;
-
-	/**
 	 * The version of the verification module to use. It defaults to 0.
 	 */
 	public final long verificationVersion;
@@ -184,7 +176,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		this.skipsVerification = builder.skipsVerification;
 		this.targetGasAtReward = builder.targetGasAtReward;
 		this.oblivion = builder.oblivion;
-		this.initialInflation = builder.initialInflation;
 		this.verificationVersion = builder.verificationVersion;
 		this.ticketForNewPoll = builder.ticketForNewPoll;
 		this.initialSupply = builder.initialSupply;
@@ -208,7 +199,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 			skipsVerification == occi.skipsVerification &&
 			targetGasAtReward.equals(occi.targetGasAtReward) &&
 			oblivion == occi.oblivion &&
-			initialInflation == occi.initialInflation &&
 			verificationVersion == occi.verificationVersion &&
 			ticketForNewPoll.equals(occi.ticketForNewPoll) &&
 			initialSupply.equals(occi.initialSupply) &&
@@ -222,7 +212,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		return genesisTime.hashCode() ^ chainId.hashCode() ^ Long.hashCode(maxDependencies)
 			^ Long.hashCode(maxCumulativeSizeOfDependencies) ^ publicKeyOfGameteBase64.hashCode() ^ initialGasPrice.hashCode()
 			^ maxGasPerTransaction.hashCode() ^ targetGasAtReward.hashCode() ^ Long.hashCode(oblivion)
-			^ Long.hashCode(initialInflation) ^ Long.hashCode(verificationVersion) ^ initialSupply.hashCode();
+			^ Long.hashCode(verificationVersion) ^ initialSupply.hashCode();
 	}
 
 	@Override
@@ -282,11 +272,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		sb.append("# in the determination of the gas price;\n");
 		sb.append("# a value of 0 means that the gas price is constant\n");
 		sb.append("oblivion = " + oblivion + "\n");
-		sb.append("\n");
-		sb.append("# the initial inflation applied to the gas consumed by transactions\n");
-		sb.append("# before it gets sent as reward to the validators. 1000000 means 1%;\n");
-		sb.append("# inflation can be negative. For instance, -300,000 means -0.3%\n");
-		sb.append("initial_inflation = " + initialInflation + "\n");
 		sb.append("\n");
 		sb.append("# the version of the verification module to use\n");
 		sb.append("verification_version = " + verificationVersion + "\n");
@@ -374,11 +359,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 	}
 
 	@Override
-	public long getInitialInflation() {
-		return initialInflation;
-	}
-
-	@Override
 	public long getVerificationVersion() {
 		return verificationVersion;
 	}
@@ -425,7 +405,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		private boolean skipsVerification = false;
 		private BigInteger targetGasAtReward = BigInteger.valueOf(1_000_000L);
 		private long oblivion = 250_000L;
-		private long initialInflation = 100_000L; // 0.1%
 		private long verificationVersion = 0L;
 		private BigInteger initialSupply = new BigInteger("1000000000000000000000000000000000000000000");
 		private BigInteger finalSupply = initialSupply.multiply(BigInteger.valueOf(2L)); // BigInteger.TWO crashes the Android client
@@ -478,7 +457,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 			skipVerification(config.skipsVerification());
 			setTargetGasAtReward(config.getTargetGasAtReward());
 			setOblivion(config.getOblivion());
-			setInitialInflation(config.getInitialInflation());
 			setVerificationVersion(config.getVerificationVersion());
 			setInitialSupply(config.getInitialSupply());
 			setFinalSupply(config.getFinalSupply());
@@ -547,10 +525,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 			var oblivion = toml.getLong("oblivion");
 			if (oblivion != null)
 				setOblivion(oblivion);
-
-			var initialInflation = toml.getLong("initial_inflation");
-			if (initialInflation != null)
-				setInitialInflation(initialInflation);
 
 			var verificationVersion = toml.getLong("verification_version");
 			if (verificationVersion != null)
@@ -662,12 +636,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 				throw new IllegalArgumentException("Oblivion must be between 0 and 1_000_000");
 
 			this.oblivion = oblivion;
-			return getThis();
-		}
-
-		@Override
-		public B setInitialInflation(long initialInflation) {
-			this.initialInflation = initialInflation;
 			return getThis();
 		}
 

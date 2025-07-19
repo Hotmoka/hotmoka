@@ -66,7 +66,6 @@ public class BasicConsensusConfigBuilder extends AbstractConsensusConfigBuilder<
 			.ignoreGasPrice(json.isIgnoresGasPrice())
 			.setTargetGasAtReward(json.getTargetGasAtReward())
 			.setOblivion(json.getOblivion())
-			.setInitialInflation(json.getInitialInflation())
 			.setVerificationVersion(json.getVerificationVersion())
 			.setInitialSupply(json.getInitialSupply())
 			.setFinalSupply(json.getFinalSupply())

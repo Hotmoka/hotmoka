@@ -60,15 +60,6 @@ public interface TakamakaClassLoader extends WhiteListingClassLoader {
 	boolean isGasPriceUpdateEvent(String className) throws ClassNotFoundException;
 
 	/**
-	 * Checks if a class is an instance of the inflation update event class.
-	 * 
-	 * @param className the name of the class
-	 * @return true if and only if that condition holds
-	 * @throws ClassNotFoundException if {@code className} cannot be found in the Takamaka program
-	 */
-	boolean isInflationUpdateEvent(String className) throws ClassNotFoundException;
-
-	/**
 	 * Checks if a class is an instance of the validators update event class.
 	 * 
 	 * @param className the name of the class

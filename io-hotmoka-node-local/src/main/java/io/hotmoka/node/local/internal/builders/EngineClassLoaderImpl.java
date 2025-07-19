@@ -610,11 +610,6 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
-	public boolean isInflationUpdateEvent(String className) throws ClassNotFoundException {
-		return parent.isInflationUpdateEvent(className);
-	}
-
-	@Override
 	public boolean isValidatorsUpdateEvent(String className) throws ClassNotFoundException {
 		return parent.isValidatorsUpdateEvent(className);
 	}

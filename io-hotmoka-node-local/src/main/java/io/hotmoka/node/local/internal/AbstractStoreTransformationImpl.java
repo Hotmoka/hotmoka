@@ -23,7 +23,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
@@ -112,11 +111,6 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	private volatile BigInteger reward;
 
 	/**
-	 * The reward to send to the miners, accumulated during this transformation, without considering the inflation.
-	 */
-	private volatile BigInteger rewardWithoutInflation;
-
-	/**
 	 * The current time to use for the execution of transactions delivered into this transformation.
 	 */
 	private final long now;
@@ -141,7 +135,6 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 		this.cache = store.getCache().setConfig(consensus);
 		this.gasConsumed = BigInteger.ZERO;
 		this.reward = BigInteger.ZERO;
-		this.rewardWithoutInflation = BigInteger.ZERO;
 	}
 
 	@Override
@@ -327,12 +320,6 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 			cache = cache.setGasPrice(newGasPrice);
 			LOGGER.info("the gas cache has been updated since it might have changed: the new gas price is " + newGasPrice);
 		}
-
-		if (inflationMightHaveChanged(response, classLoader)) {
-			StorageReference manifest = getManifest().orElseThrow(() -> new LocalNodeException("The inflation just changed, hence the manifest should be set"));
-			cache = cache.setInflation(extractInflation(manifest));
-			LOGGER.info("the inflation cache has been updated since it might have changed: the new inflation is " + cache.getInflation().getAsLong());
-		}
 	}
 
 	/**
@@ -369,9 +356,8 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	 * @return the number of minted coins
 	 */
 	protected final BigInteger getCoinsMinted(StorageReference validators) {
-		// we determine how many coins have been minted during the last reward:
-		// it is the price of the gas consumed minus the same price without inflation
-		BigInteger minted = reward.subtract(rewardWithoutInflation);
+		// we determine how many coins have been minted during the last reward
+		BigInteger minted = BigInteger.ZERO; // TODO: implement inflationary start
 
 		// it might happen that the last distribution goes beyond the limit imposed
 		// as final supply: in that case we truncate the minted coins so that the current
@@ -535,43 +521,6 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 		}
 	}
 
-	/**
-	 * Determines if the given response might change the current inflation.
-	 * 
-	 * @param response the response
-	 * @param classLoader the class loader used to build the response
-	 * @return true if the response changes the inflation
-	 */
-	private boolean inflationMightHaveChanged(TransactionResponse response, TakamakaClassLoader classLoader) {
-		if (response instanceof InitializationTransactionResponse)
-			return true;
-		else if (response instanceof TransactionResponseWithEvents trwe && trwe.hasEvents()) {
-			Optional<StorageReference> maybeManifest = getManifest();
-			
-			if (maybeManifest.isPresent()) {
-				StorageReference validators = getValidators().orElseThrow(() -> new LocalNodeException("The manifest is set but the validators are not set"));
-
-				for (var event: trwe.getEvents().toArray(StorageReference[]::new))
-					if (isInflationUpdateEvent(event, classLoader) && getCreatorOfEvent(event).equals(validators))
-						return true;
-			}
-		}
-
-		return false;
-	}
-
-	private boolean isInflationUpdateEvent(StorageReference event, TakamakaClassLoader classLoader) {
-		try {
-			return classLoader.isInflationUpdateEvent(getClassName(event));
-		}
-		catch (UnknownReferenceException e) {
-			throw new LocalNodeException("Event " + event + " is not an object in store", e);
-		}
-		catch (ClassNotFoundException e) {
-			throw new LocalNodeException("Event " + event + " has an unknown class", e);
-		}
-	}
-
 	private boolean manifestMightHaveChanged(TransactionResponse response) {
 		return response instanceof InitializationTransactionResponse;
 	}
@@ -597,24 +546,8 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 			if (!(request instanceof NonInitialTransactionRequest<?> nitr))
 				throw new LocalNodeException("A non-initial transaction response has been computed for an initial transaction request of class " + request.getClass().getSimpleName());
 
-			BigInteger gasPrice = nitr.getGasPrice();
-			BigInteger rewardForThisTransaction = gasConsumedTotal.multiply(gasPrice);
-			rewardWithoutInflation = rewardWithoutInflation.add(rewardForThisTransaction);
-
-			gasConsumedTotal = addInflation(gasConsumedTotal);
-			rewardForThisTransaction = gasConsumedTotal.multiply(gasPrice);
-			reward = reward.add(rewardForThisTransaction);
+			reward = reward.add(gasConsumedTotal.multiply(nitr.getGasPrice()));
 		}
-	}
-
-	private BigInteger addInflation(BigInteger gas) {
-		OptionalLong currentInflation = cache.getInflation();
-	
-		if (currentInflation.isPresent())
-			gas = gas.multiply(_100_000_000.add(BigInteger.valueOf(currentInflation.getAsLong())))
-					 .divide(_100_000_000);
-	
-		return gas;
 	}
 
 	/**

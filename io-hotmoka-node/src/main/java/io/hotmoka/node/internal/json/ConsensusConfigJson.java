@@ -42,7 +42,6 @@ public abstract class ConsensusConfigJson implements JsonRepresentation<Consensu
 	private final boolean ignoresGasPrice;
 	private final BigInteger targetGasAtReward;
 	private final long oblivion;
-	private final long initialInflation;
 	private final long verificationVersion;
 	private final BigInteger initialSupply;
 	private final BigInteger finalSupply;
@@ -62,7 +61,6 @@ public abstract class ConsensusConfigJson implements JsonRepresentation<Consensu
 		this.ignoresGasPrice = config.ignoresGasPrice();
 		this.targetGasAtReward = config.getTargetGasAtReward();
 		this.oblivion = config.getOblivion();
-		this.initialInflation = config.getInitialInflation();
 		this.verificationVersion = config.getVerificationVersion();
 		this.initialSupply = config.getInitialSupply();
 		this.finalSupply = config.getFinalSupply();
@@ -88,10 +86,6 @@ public abstract class ConsensusConfigJson implements JsonRepresentation<Consensu
 
 	public long getVerificationVersion() {
 		return verificationVersion;
-	}
-
-	public long getInitialInflation() {
-		return initialInflation;
 	}
 
 	public long getOblivion() {

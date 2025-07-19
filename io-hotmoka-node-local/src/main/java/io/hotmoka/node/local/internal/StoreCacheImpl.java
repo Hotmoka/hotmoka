@@ -130,11 +130,6 @@ public class StoreCacheImpl implements StoreCache {
 	}
 
 	@Override
-	public StoreCache setInflation(long inflation) {
-		return new StoreCacheImpl(gasPrice, OptionalLong.of(inflation), consensus, validators, gasStation, versions, classLoaders, checkedSignatures);
-	}
-
-	@Override
 	public StoreCache setConfig(ConsensusConfig<?,?> consensus) {
 		return new StoreCacheImpl(gasPrice, inflation, consensus, validators, gasStation, versions, classLoaders, checkedSignatures);
 	}
@@ -162,11 +157,6 @@ public class StoreCacheImpl implements StoreCache {
 	@Override
 	public Optional<BigInteger> getGasPrice() {
 		return gasPrice;
-	}
-
-	@Override
-	public OptionalLong getInflation() {
-		return inflation;
 	}
 
 	@Override

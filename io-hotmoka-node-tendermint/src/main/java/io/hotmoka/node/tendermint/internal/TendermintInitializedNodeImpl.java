@@ -141,10 +141,10 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 
 		var request = TransactionRequests.constructorCall
 			(new byte[0], gamete, nonce, "", _200_000, ZERO, takamakaCodeReference,
-				ConstructorSignatures.of(builderClass, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG,
+				ConstructorSignatures.of(builderClass, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER,
 					StorageTypes.INT, StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
 					StorageValues.bigIntegerOf(consensus.getTicketForNewPoll()), StorageValues.bigIntegerOf(consensus.getFinalSupply()),
-					StorageValues.longOf(consensus.getInitialInflation()), StorageValues.intOf(consensus.getPercentStaked()), StorageValues.intOf(consensus.getBuyerSurcharge()),
+					StorageValues.intOf(consensus.getPercentStaked()), StorageValues.intOf(consensus.getBuyerSurcharge()),
 					StorageValues.intOf(consensus.getSlashingForMisbehaving()), StorageValues.intOf(consensus.getSlashingForNotBehaving()));
 
 		StorageReference builder = node.addConstructorCallTransaction(request);

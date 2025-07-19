@@ -18,7 +18,6 @@ package io.hotmoka.node.local.api;
 
 import java.math.BigInteger;
 import java.util.Optional;
-import java.util.OptionalLong;
 
 import io.hotmoka.exceptions.functions.FunctionWithExceptions1;
 import io.hotmoka.exceptions.functions.FunctionWithExceptions2;
@@ -41,16 +40,6 @@ public interface StoreCache {
 	 *         is not initialized yet
 	 */
 	Optional<BigInteger> getGasPrice();
-
-	/**
-	 * Yields the current inflation. This information could be recovered from the store
-	 * itself, but this method is used for caching. The inflation might be missing if the
-	 * node is not initialized yet.
-	 * 
-	 * @return the current inflation, if any; this might be missing if the node having the store
-	 *         is not initialized yet
-	 */
-	OptionalLong getInflation();
 
 	/**
 	 * Yields the current consensus configuration. This information could be recovered from the store
@@ -116,14 +105,6 @@ public interface StoreCache {
 	 * @return the resulting cache
 	 */
 	StoreCache setGasPrice(BigInteger gasPrice);
-
-	/**
-	 * Yields a new cache with a new inflation.
-	 * 
-	 * @param inflation the new inflation
-	 * @return the resulting cache
-	 */
-	StoreCache setInflation(long inflation);
 
 	/**
 	 * Yields a new cache with a new validators object.

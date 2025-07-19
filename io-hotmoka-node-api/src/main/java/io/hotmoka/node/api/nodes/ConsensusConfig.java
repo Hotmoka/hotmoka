@@ -137,15 +137,6 @@ public interface ConsensusConfig<C extends ConsensusConfig<C,B>, B extends Conse
 	long getOblivion();
 
 	/**
-	 * Yields the initial inflation applied to the gas consumed by transactions before it gets sent
-	 * as reward. 1,000,000 means 1%.
-	 * Inflation can be negative. For instance, -300,000 means -0.3%.
-	 * 
-	 * @return the initial inflation applied to the gas consumed by transactions; 1,000,000 means 1%
-	 */
-	long getInitialInflation();
-
-	/**
 	 * Yields the version of the verification module to use.
 	 * 
 	 * @return the version of the verification module to use

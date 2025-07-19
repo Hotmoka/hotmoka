@@ -107,11 +107,6 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	public final Class<?> gasPriceUpdateEvent;
 
 	/**
-	 * The class token of the inflation update event class.
-	 */
-	public final Class<?> inflationUpdateEvent;
-
-	/**
 	 * The class token of the validators update event class.
 	 */
 	public final Class<?> validatorsUpdateEvent;
@@ -221,13 +216,6 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 		}
 
 		try {
-			this.inflationUpdateEvent = loadClass(Constants.INFLATION_UPDATE_NAME);
-		}
-		catch (ClassNotFoundException e) {
-			throw new UnknownTypeException(Constants.INFLATION_UPDATE_NAME);
-		}
-
-		try {
 			this.validatorsUpdateEvent = loadClass(Constants.VALIDATORS_UPDATE_NAME);
 		}
 		catch (ClassNotFoundException e) {
@@ -258,11 +246,6 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	@Override
 	public final boolean isGasPriceUpdateEvent(String className) throws ClassNotFoundException {
 		return gasPriceUpdateEvent.isAssignableFrom(loadClass(className));
-	}
-
-	@Override
-	public final boolean isInflationUpdateEvent(String className) throws ClassNotFoundException {
-		return inflationUpdateEvent.isAssignableFrom(loadClass(className));
 	}
 
 	@Override
