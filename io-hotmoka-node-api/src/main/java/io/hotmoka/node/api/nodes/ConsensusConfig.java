@@ -159,6 +159,15 @@ public interface ConsensusConfig<C extends ConsensusConfig<C,B>, B extends Conse
 	BigInteger getFinalSupply();
 
 	/**
+	 * Yields the height from which coins are not minted anymore.
+	 * That is exactly the moment when the final supply gets reached.
+	 * From there, validators only earn coins from the gas consumed by the committed transactions.
+	 * 
+	 * @return the height from which coins are not minted anymore
+	 */
+	BigInteger getHeightAtFinalSupply();
+
+	/**
 	 * Yields the amount of coins to pay to start a new poll amount the voters,
 	 * for instance in order to change a consensus parameter.
 	 * 

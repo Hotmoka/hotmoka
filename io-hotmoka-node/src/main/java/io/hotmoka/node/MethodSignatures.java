@@ -298,6 +298,11 @@ public abstract class MethodSignatures {
 	public final static NonVoidMethodSignature GET_FINAL_SUPPLY = ofNonVoid(VALIDATORS, "getFinalSupply", BIG_INTEGER);
 
 	/**
+	 * The method {@code getHeightAtFinalSupply} of the validators object.
+	 */
+	public final static NonVoidMethodSignature GET_HEIGHT_AT_FINAL_SUPPLY = ofNonVoid(VALIDATORS, "getHeightAtFinalSupply", BIG_INTEGER);
+
+	/**
 	 * The method {@code add} of the account ledger.
 	 */
 	public final static NonVoidMethodSignature ADD_INTO_ACCOUNTS_LEDGER = ofNonVoid(StorageTypes.ACCOUNTS_LEDGER, "add", StorageTypes.EOA, BIG_INTEGER, STRING);

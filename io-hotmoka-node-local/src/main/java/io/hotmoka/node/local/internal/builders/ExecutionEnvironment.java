@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.local.internal.builders;
 
 import static io.hotmoka.node.MethodSignatures.GET_GAS_PRICE;
+import static io.hotmoka.node.MethodSignatures.GET_HEIGHT;
 
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
@@ -303,6 +304,11 @@ public abstract class ExecutionEnvironment {
 					.orElseThrow(() -> new LocalNodeException(MethodSignatures.GET_FINAL_SUPPLY + " should not return void"))
 					.asReturnedBigInteger(MethodSignatures.GET_FINAL_SUPPLY, LocalNodeException::new);
 	
+			BigInteger heightAtFinalSupply = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_HEIGHT_AT_FINAL_SUPPLY, validators))
+					.orElseThrow(() -> new LocalNodeException(MethodSignatures.GET_HEIGHT_AT_FINAL_SUPPLY + " should not return void"))
+					.asReturnedBigInteger(MethodSignatures.GET_HEIGHT_AT_FINAL_SUPPLY, LocalNodeException::new);
+
 			int buyerSurcharge = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.VALIDATORS_GET_BUYER_SURCHARGE, validators))
 					.orElseThrow(() -> new LocalNodeException(MethodSignatures.VALIDATORS_GET_BUYER_SURCHARGE + " should not return void"))
@@ -342,6 +348,7 @@ public abstract class ExecutionEnvironment {
 					.setTicketForNewPoll(ticketForNewPoll)
 					.setInitialSupply(initialSupply)
 					.setFinalSupply(finalSupply)
+					.setHeightAtFinalSupply(heightAtFinalSupply)
 					.setPublicKeyOfGamete(signatureAlgorithm.publicKeyFromEncoding(Base64.fromBase64String(publicKeyOfGamete)))
 					.setPercentStaked(percentStaked)
 					.setBuyerSurcharge(buyerSurcharge)
@@ -425,6 +432,27 @@ public abstract class ExecutionEnvironment {
 		}
 		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
 			// the call to getGasPrice() should raise no exception
+			throw new LocalNodeException(e);
+		}
+	}
+
+	/**
+	 * Extracts the gas price from the given manifest.
+	 * 
+	 * @param manifest the reference to the manifest; this is assumed to actually refer to a manifest
+	 * @param validators the validators of {@code manifest}
+	 * @return the gas price, as reported in the gas station of {@code manifest}
+	 */
+	protected final BigInteger extractHeight(StorageReference manifest, StorageReference validators) throws InterruptedException {
+		TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new LocalNodeException("The manifest is set but the Takamaka code reference is not set"));
+
+		try {
+			return runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, GET_HEIGHT, validators))
+					.orElseThrow(() -> new LocalNodeException(GET_HEIGHT + " should not return void"))
+					.asReturnedBigInteger(GET_HEIGHT, LocalNodeException::new);
+		}
+		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
+			// the call to getHeight() should raise no exception
 			throw new LocalNodeException(e);
 		}
 	}

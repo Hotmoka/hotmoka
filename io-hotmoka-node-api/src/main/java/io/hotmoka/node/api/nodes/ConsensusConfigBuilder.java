@@ -163,6 +163,15 @@ public interface ConsensusConfigBuilder<C extends ConsensusConfig<C,B>, B extend
 	B setFinalSupply(BigInteger finalSupply);
 
 	/**
+	 * Sets the height at the final supply.
+	 * 
+	 * @param heightAtFinalSupply the height at the final supply, after which coins are not minted anymore
+	 *                            and the current supply reaches the final supply
+	 * @return this builder
+	 */
+	B setHeightAtFinalSupply(BigInteger heightAtFinalSupply);
+
+	/**
 	 * Sets the amount of coins that must be paid to start a new poll amount
 	 * to validators, for instance to change a consensus parameter.
 	 * 

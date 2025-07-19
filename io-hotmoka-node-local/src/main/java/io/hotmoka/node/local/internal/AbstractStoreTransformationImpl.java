@@ -354,26 +354,31 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	 * 
 	 * @param validators the validators object of the node
 	 * @return the number of minted coins
+	 * @throws InterruptedException if the current thread is interrupted during the operation
 	 */
-	protected final BigInteger getCoinsMinted(StorageReference validators) {
-		// we determine how many coins have been minted during the last reward
-		BigInteger minted = BigInteger.ZERO; // TODO: implement inflationary start
+	protected final BigInteger getCoinsMinted(StorageReference manifest, StorageReference validators) throws InterruptedException {
+		BigInteger height = extractHeight(manifest, validators);
+		var config = cache.getConfig();
+		BigInteger finalSupply = config.getFinalSupply();
+		BigInteger heightAtFinalSupply = config.getHeightAtFinalSupply();
 
-		// it might happen that the last distribution goes beyond the limit imposed
-		// as final supply: in that case we truncate the minted coins so that the current
-		// supply reaches the final supply, exactly; this might occur from below (positive inflation)
-		// or from above (negative inflation)
-		BigInteger currentSupply = getCurrentSupply(validators);
+		// in order to compute how much must be minted at this reward, we use the following formula, which models
+		// a parabolic curve:
+		// 1) passing at (heightAtFinalHeight,0)
+		// 2) passing at (0,first mint)
+		// 3) whose derivative is zero at (heightAtFinalHeight,0)
+		// 4) whose integral from 0 to heightAtFinalHeight is (finalSupply-initialSupply)
+		// these constraints allow one to solve the generic equation a*height^2+b*height+c
+		BigInteger minted = BigInteger.valueOf(6L).multiply(finalSupply.subtract(config.getInitialSupply()))
+			.multiply(height.multiply(height).subtract(BigInteger.TWO.multiply(height).multiply(heightAtFinalSupply)).add(heightAtFinalSupply.multiply(heightAtFinalSupply)))
+			.divide(heightAtFinalSupply.multiply(heightAtFinalSupply.add(BigInteger.ONE)).multiply(BigInteger.TWO.multiply(heightAtFinalSupply).add(BigInteger.ONE)));
+
+		// we guarantee to reach the final supply, exactly; this is needed because the computation of the minted coins
+		// has approximations (it is an integral computation), therefore at the end we add coins until we reach the final supply
 		if (minted.signum() > 0) {
-			BigInteger finalSupply = getConfig().getFinalSupply();
+			BigInteger currentSupply = getCurrentSupply(validators);
 			BigInteger extra = finalSupply.subtract(currentSupply.add(minted));
 			if (extra.signum() < 0)
-				minted = minted.add(extra);
-		}
-		else if (minted.signum() < 0) {
-			BigInteger finalSupply = getConfig().getFinalSupply();
-			BigInteger extra = finalSupply.subtract(currentSupply.add(minted));
-			if (extra.signum() > 0)
 				minted = minted.add(extra);
 		}
 

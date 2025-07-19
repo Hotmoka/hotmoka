@@ -197,9 +197,10 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 		var request = TransactionRequests.constructorCall
 				(new byte[0], gamete, nonceOfGamete, "", _200_000, ZERO, takamakaCode,
 						ConstructorSignatures.of(StorageTypes.classNamed("io.takamaka.code.governance.GenericValidators$Builder"), StorageTypes.STRING,
-								StorageTypes.STRING, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER,
+								StorageTypes.STRING, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER,
 								StorageTypes.INT, StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
-						StorageValues.stringOf(""), StorageValues.stringOf(""), StorageValues.bigIntegerOf(consensus.getTicketForNewPoll()), StorageValues.bigIntegerOf(consensus.getFinalSupply()),
+						StorageValues.stringOf(""), StorageValues.stringOf(""), StorageValues.bigIntegerOf(consensus.getTicketForNewPoll()),
+						StorageValues.bigIntegerOf(consensus.getFinalSupply()), StorageValues.bigIntegerOf(consensus.getHeightAtFinalSupply()),
 						StorageValues.intOf(0), StorageValues.intOf(0), StorageValues.intOf(0), StorageValues.intOf(0));
 
 		return node.addConstructorCallTransaction(request);

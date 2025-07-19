@@ -125,8 +125,8 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 
 		StorageReference validators = getValidators().orElseThrow(() -> new LocalNodeException("The manifest is set but the validators are not set"));
 		TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new LocalNodeException("The manifest is set but the Takamaka code reference is not set"));
-		BigInteger reward = getReward();
-		BigInteger minted = getCoinsMinted(validators);
+		BigInteger minted = getCoinsMinted(manifest, validators);
+		BigInteger reward = getReward().add(minted);
 
 		var request = TransactionRequests.instanceSystemMethodCall
 				(manifest, nonce, _100_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD, validators,

@@ -69,6 +69,7 @@ public class BasicConsensusConfigBuilder extends AbstractConsensusConfigBuilder<
 			.setVerificationVersion(json.getVerificationVersion())
 			.setInitialSupply(json.getInitialSupply())
 			.setFinalSupply(json.getFinalSupply())
+			.setHeightAtFinalSupply(json.getHeightAtFinalSupply())
 			.setTicketForNewPoll(json.getTicketForNewPoll())
 			.setSignatureForRequests(signature);
 		}

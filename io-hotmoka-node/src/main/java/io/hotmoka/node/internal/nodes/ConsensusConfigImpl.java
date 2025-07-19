@@ -149,6 +149,13 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 	public final BigInteger finalSupply;
 
 	/**
+	 * The height from which coins are not minted anymore.
+	 * That is exactly the moment when the final supply gets reached.
+	 * From there, validators only earn coins from the gas consumed by the committed transactions.
+	 */
+	public final BigInteger heightAtFinalSupply;
+
+	/**
 	 * The amount of coin to pay to start a new poll amount the validators,
 	 * for instance in order to change a consensus parameter.
 	 */
@@ -180,6 +187,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		this.ticketForNewPoll = builder.ticketForNewPoll;
 		this.initialSupply = builder.initialSupply;
 		this.finalSupply = builder.finalSupply;
+		this.heightAtFinalSupply = builder.heightAtFinalSupply;
 		this.publicKeyOfGamete = builder.publicKeyOfGamete;
 		this.publicKeyOfGameteBase64 = builder.publicKeyOfGameteBase64;
 		this.signatureForRequests = builder.signatureForRequests;
@@ -203,6 +211,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 			ticketForNewPoll.equals(occi.ticketForNewPoll) &&
 			initialSupply.equals(occi.initialSupply) &&
 			finalSupply.equals(occi.finalSupply) &&
+			heightAtFinalSupply.equals(occi.heightAtFinalSupply) &&
 			publicKeyOfGamete.equals(occi.publicKeyOfGamete) &&
 			signatureForRequests.equals(occi.signatureForRequests);
 	}
@@ -282,6 +291,10 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		sb.append("# the final supply of coins in the node; once the current supply reaches\n");
 		sb.append("# this final amount, it remains constant\n");
 		sb.append("final_supply = \"" + finalSupply + "\"\n");
+		sb.append("\n");
+		sb.append("# the height after which coins are not minted anymore and the current supply\n");
+		sb.append("# reaches the final supply and remains constant from there onwards\n");
+		sb.append("height_at_final_supply = \"" + heightAtFinalSupply + "\"\n");
 		sb.append("\n");
 		sb.append("# the amount of coin to pay to start a new poll amount the validators,\n");
 		sb.append("# for instance in order to change a consensus parameter\n");
@@ -374,6 +387,11 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 	}
 
 	@Override
+	public BigInteger getHeightAtFinalSupply() {
+		return heightAtFinalSupply;
+	}
+
+	@Override
 	public BigInteger getTicketForNewPoll() {
 		return ticketForNewPoll;
 	}
@@ -406,8 +424,9 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		private BigInteger targetGasAtReward = BigInteger.valueOf(1_000_000L);
 		private long oblivion = 250_000L;
 		private long verificationVersion = 0L;
-		private BigInteger initialSupply = new BigInteger("1000000000000000000000000000000000000000000");
+		private BigInteger initialSupply = new BigInteger("1000000000000000000000000000000000000000000000000");
 		private BigInteger finalSupply = initialSupply.multiply(BigInteger.valueOf(2L)); // BigInteger.TWO crashes the Android client
+		private BigInteger heightAtFinalSupply = BigInteger.valueOf(42048000L); // if a block is created every 15 seconds, this is 20 years
 		private PublicKey publicKeyOfGamete;
 		private String publicKeyOfGameteBase64;
 		private BigInteger ticketForNewPoll = BigInteger.valueOf(100_000);
@@ -537,6 +556,10 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 			var finalSupply = toml.getString("final_supply");
 			if (finalSupply != null)
 				setFinalSupply(new BigInteger(finalSupply));
+
+			var heigjhtAtFinalSupply = toml.getString("height_at_final_supply");
+			if (heigjhtAtFinalSupply != null)
+				setHeightAtFinalSupply(new BigInteger(heigjhtAtFinalSupply));
 
 			var ticketForNewPoll = toml.getString("ticket_for_new_poll");
 			if (ticketForNewPoll != null)
@@ -686,6 +709,16 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 				throw new IllegalArgumentException("The final supply must be non-negative");
 
 			this.finalSupply = finalSupply;
+			return getThis();
+		}
+
+		public B setHeightAtFinalSupply(BigInteger heightAtFinalSupply) {
+			Objects.requireNonNull(heightAtFinalSupply, "The final supply cannot be null");
+
+			if (heightAtFinalSupply.signum() < 0)
+				throw new IllegalArgumentException("The height at the final supply must be non-negative");
+
+			this.heightAtFinalSupply = heightAtFinalSupply;
 			return getThis();
 		}
 

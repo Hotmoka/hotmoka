@@ -45,6 +45,7 @@ public abstract class ConsensusConfigJson implements JsonRepresentation<Consensu
 	private final long verificationVersion;
 	private final BigInteger initialSupply;
 	private final BigInteger finalSupply;
+	private final BigInteger heightAtFinalSupply;
 	private final BigInteger ticketForNewPoll;
 	private final String signatureForRequests;
 
@@ -64,6 +65,7 @@ public abstract class ConsensusConfigJson implements JsonRepresentation<Consensu
 		this.verificationVersion = config.getVerificationVersion();
 		this.initialSupply = config.getInitialSupply();
 		this.finalSupply = config.getFinalSupply();
+		this.heightAtFinalSupply = config.getHeightAtFinalSupply();
 		this.ticketForNewPoll = config.getTicketForNewPoll();
 		this.signatureForRequests = config.getSignatureForRequests().getName();
 	}
@@ -78,6 +80,10 @@ public abstract class ConsensusConfigJson implements JsonRepresentation<Consensu
 
 	public BigInteger getFinalSupply() {
 		return finalSupply;
+	}
+
+	public BigInteger getHeightAtFinalSupply() {
+		return heightAtFinalSupply;
 	}
 
 	public BigInteger getInitialSupply() {

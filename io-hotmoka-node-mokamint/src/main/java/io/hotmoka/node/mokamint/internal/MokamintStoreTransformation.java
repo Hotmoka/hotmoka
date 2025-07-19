@@ -98,7 +98,7 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 
 		StorageReference validators = getValidators().orElseThrow(() -> new LocalNodeException("The manifest is set but the validators are not set"));
 		TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new LocalNodeException("The manifest is set but the Takamaka code reference is not set"));
-		BigInteger minted = getCoinsMinted(validators);
+		BigInteger minted = getCoinsMinted(manifest, validators);
 		BigInteger gasConsumed = getGasConsumed();
 
 		LOGGER.info("coinbase: units of gas consumed for CPU, RAM or storage since the previous reward: " + gasConsumed);
@@ -106,7 +106,7 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 		// we split the rewarding in two calls, so that the accounts created inside the accounts ledger have a #0 progressive index
 		long percentForNode = 50_000_000L;
 		BigInteger percentForNodeAsBI = BigInteger.valueOf(percentForNode);
-		BigInteger reward = getReward();
+		BigInteger reward = getReward().add(minted);
 		BigInteger rewardForNode = reward.multiply(percentForNodeAsBI).divide(_100_000_000);
 
 		var request = TransactionRequests.instanceSystemMethodCall

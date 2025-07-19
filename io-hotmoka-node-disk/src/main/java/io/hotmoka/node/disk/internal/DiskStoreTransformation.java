@@ -91,13 +91,13 @@ public class DiskStoreTransformation extends AbstractStoreTransformation<DiskNod
 
 		StorageReference validators = getValidators().orElseThrow(() -> new LocalNodeException("The manifest is set but the validators are not set"));
 		TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new LocalNodeException("The manifest is set but the Takamaka code reference is not set"));
-		BigInteger minted = getCoinsMinted(validators);
+		BigInteger minted = getCoinsMinted(manifest, validators);
 		BigInteger gasConsumed = getGasConsumed();
 		LOGGER.info("coinbase: units of gas consumed for CPU, RAM or storage since the previous reward: " + gasConsumed);
 
 		var request = TransactionRequests.instanceSystemMethodCall
 				(manifest, nonce, _100_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD, validators,
-						StorageValues.bigIntegerOf(getReward()), StorageValues.bigIntegerOf(minted),
+						StorageValues.bigIntegerOf(getReward().add(minted)), StorageValues.bigIntegerOf(minted),
 						StorageValues.stringOf(""), StorageValues.stringOf(""),
 						StorageValues.bigIntegerOf(gasConsumed), StorageValues.bigIntegerOf(deliveredCount()));
 
