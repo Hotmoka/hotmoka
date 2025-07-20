@@ -137,13 +137,13 @@ class Basic extends HotmokaTest {
 
 	@Test @DisplayName("new Sub().m1() succeeds in calling an entry from same contract")
 	void callEntryFromSameContract() throws Exception {
-		StorageReference sub = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, ConstructorSignatures.of(SUB));
+		StorageReference sub = addConstructorCallTransaction(key, master, _500_000, ONE, classpath, ConstructorSignatures.of(SUB));
 		runInstanceVoidMethodCallTransaction(master, _200_000, classpath, MethodSignatures.ofVoid(SUB, "m1"), sub);
 	}
 
 	@Test @DisplayName("new Sub().ms() throws TransactionException since UnmatchedTargetException")
 	void callStaticAsInstance() throws Exception {
-		StorageReference sub = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, ConstructorSignatures.of(SUB));
+		StorageReference sub = addConstructorCallTransaction(key, master, _500_000, ONE, classpath, ConstructorSignatures.of(SUB));
 
 		throwsTransactionExceptionWithCause(UnmatchedTargetException.class, () ->
 			runInstanceVoidMethodCallTransaction(master, _200_000, classpath, SUB_MS, sub)
@@ -228,92 +228,92 @@ class Basic extends HotmokaTest {
 
 	@Test @DisplayName("a1 = new Alias(); a2 = new Alias(); a1.test(a1, a2)=false")
 	void aliasBetweenStorage1() throws Exception {
-		StorageReference a1 = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, CONSTRUCTOR_ALIAS);
-		StorageReference a2 = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, CONSTRUCTOR_ALIAS);
+		StorageReference a1 = addConstructorCallTransaction(key, master, _500_000, ONE, classpath, CONSTRUCTOR_ALIAS);
+		StorageReference a2 = addConstructorCallTransaction(key, master, _500_000, ONE, classpath, CONSTRUCTOR_ALIAS);
 		assertEquals(StorageValues.FALSE, runInstanceNonVoidMethodCallTransaction
-			(master, _50_000, classpath, MethodSignatures.ofNonVoid(ALIAS, "test", StorageTypes.BOOLEAN, ALIAS, ALIAS), a1, a1, a2));
+			(master, _500_000, classpath, MethodSignatures.ofNonVoid(ALIAS, "test", StorageTypes.BOOLEAN, ALIAS, ALIAS), a1, a1, a2));
 	}
 
 	@Test @DisplayName("a1 = new Alias(); a1.test(a1, a1)=true")
 	void aliasBetweenStorage2() throws Exception {
-		StorageReference a1 = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, CONSTRUCTOR_ALIAS);
+		StorageReference a1 = addConstructorCallTransaction(key, master, _500_000, ONE, classpath, CONSTRUCTOR_ALIAS);
 		assertEquals(StorageValues.TRUE, runInstanceNonVoidMethodCallTransaction
-			(master, _50_000, classpath, MethodSignatures.ofNonVoid(ALIAS, "test", StorageTypes.BOOLEAN, ALIAS, ALIAS), a1, a1, a1));
+			(master, _500_000, classpath, MethodSignatures.ofNonVoid(ALIAS, "test", StorageTypes.BOOLEAN, ALIAS, ALIAS), a1, a1, a1));
 	}
 
 	@Test @DisplayName("a1 = new Alias(); s1 = \"hello\"; s2 = \"hello\"; a1.test(s1, s2)=false")
 	void aliasBetweenString() throws Exception {
-		StorageReference a1 = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, CONSTRUCTOR_ALIAS);
+		StorageReference a1 = addConstructorCallTransaction(key, master, _500_000, ONE, classpath, CONSTRUCTOR_ALIAS);
 		StringValue s1 = StorageValues.stringOf("hello");
 		StringValue s2 = StorageValues.stringOf("hello");
 		assertEquals(StorageValues.FALSE, runInstanceNonVoidMethodCallTransaction
-			(master, _50_000, classpath, MethodSignatures.ofNonVoid(ALIAS, "test", StorageTypes.BOOLEAN, StorageTypes.STRING, StorageTypes.STRING), a1, s1, s2));
+			(master, _500_000, classpath, MethodSignatures.ofNonVoid(ALIAS, "test", StorageTypes.BOOLEAN, StorageTypes.STRING, StorageTypes.STRING), a1, s1, s2));
 	}
 
 	@Test @DisplayName("a1 = new Alias(); s1 = \"hello\"; a1.test(s1, s1)=false")
 	void aliasBetweenString2() throws Exception {
-		StorageReference a1 = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, CONSTRUCTOR_ALIAS);
+		StorageReference a1 = addConstructorCallTransaction(key, master, _500_000, ONE, classpath, CONSTRUCTOR_ALIAS);
 		StringValue s1 = StorageValues.stringOf("hello");
 		assertEquals(StorageValues.FALSE, runInstanceNonVoidMethodCallTransaction
-			(master, _50_000, classpath, MethodSignatures.ofNonVoid(ALIAS, "test", StorageTypes.BOOLEAN, StorageTypes.STRING, StorageTypes.STRING), a1, s1, s1));
+			(master, _500_000, classpath, MethodSignatures.ofNonVoid(ALIAS, "test", StorageTypes.BOOLEAN, StorageTypes.STRING, StorageTypes.STRING), a1, s1, s1));
 	}
 
 	@Test @DisplayName("a1 = new Alias(); bi1 = BigInteger.valueOf(13L); bi2 = BigInteger.valueOf(13L); a1.test(bi1, bi2)=false")
 	void aliasBetweenBigInteger1() throws Exception {
-		StorageReference a1 = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, CONSTRUCTOR_ALIAS);
+		StorageReference a1 = addConstructorCallTransaction(key, master, _500_000, ONE, classpath, CONSTRUCTOR_ALIAS);
 		BigIntegerValue bi1 = StorageValues.bigIntegerOf(BigInteger.valueOf(13L));
 		BigIntegerValue bi2 = StorageValues.bigIntegerOf(BigInteger.valueOf(13L));
 		assertEquals(StorageValues.FALSE, runInstanceNonVoidMethodCallTransaction
-			(master, _50_000, classpath, MethodSignatures.ofNonVoid(ALIAS, "test", StorageTypes.BOOLEAN, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER), a1, bi1, bi2));
+			(master, _500_000, classpath, MethodSignatures.ofNonVoid(ALIAS, "test", StorageTypes.BOOLEAN, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER), a1, bi1, bi2));
 	}
 
 	@Test @DisplayName("a1 = new Alias(); bi1 = BigInteger.valueOf(13L); a1.test(bi1, bi2)=false")
 	void aliasBetweenBigInteger2() throws Exception {
-		StorageReference a1 = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, CONSTRUCTOR_ALIAS);
+		StorageReference a1 = addConstructorCallTransaction(key, master, _500_000, ONE, classpath, CONSTRUCTOR_ALIAS);
 		BigIntegerValue bi1 = StorageValues.bigIntegerOf(BigInteger.valueOf(13L));
 		assertEquals(StorageValues.FALSE, runInstanceNonVoidMethodCallTransaction
-			(master, _50_000, classpath, MethodSignatures.ofNonVoid(ALIAS, "test", StorageTypes.BOOLEAN, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER), a1, bi1, bi1));
+			(master, _500_000, classpath, MethodSignatures.ofNonVoid(ALIAS, "test", StorageTypes.BOOLEAN, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER), a1, bi1, bi1));
 	}
 
 	@Test @DisplayName("new Simple(13).foo1() throws TransactionException since SideEffectsInViewMethodException")
 	void viewMethodViolation1() throws Exception {
-		StorageReference s = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, ConstructorSignatures.of(SIMPLE, INT), StorageValues.intOf(13));
+		StorageReference s = addConstructorCallTransaction(key, master, _500_000, ONE, classpath, ConstructorSignatures.of(SIMPLE, INT), StorageValues.intOf(13));
 
 		throwsTransactionExceptionWithCause(SideEffectsInViewMethodException.class, () ->
-			runInstanceVoidMethodCallTransaction(master, _50_000, classpath, MethodSignatures.ofVoid(SIMPLE, "foo1"), s)
+			runInstanceVoidMethodCallTransaction(master, _500_000, classpath, MethodSignatures.ofVoid(SIMPLE, "foo1"), s)
 		);
 	}
 
 	@Test @DisplayName("new Simple(13).foo2() throws TransactionException since SideEffectsInViewMethodException")
 	void viewMethodViolation2() throws Exception {
-		StorageReference s = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, ConstructorSignatures.of(SIMPLE, INT), StorageValues.intOf(13));
+		StorageReference s = addConstructorCallTransaction(key, master, _500_000, ONE, classpath, ConstructorSignatures.of(SIMPLE, INT), StorageValues.intOf(13));
 
 		throwsTransactionExceptionWithCause(SideEffectsInViewMethodException.class, () ->
-			runInstanceNonVoidMethodCallTransaction(master, _50_000, classpath, MethodSignatures.ofNonVoid(SIMPLE, "foo2", SIMPLE), s)
+			runInstanceNonVoidMethodCallTransaction(master, _500_000, classpath, MethodSignatures.ofNonVoid(SIMPLE, "foo2", SIMPLE), s)
 		);
 	}
 
 	@Test @DisplayName("new Simple(13).foo3() == 13")
 	void viewMethodOk1() throws Exception {
-		StorageReference s = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, ConstructorSignatures.of(SIMPLE, INT), StorageValues.intOf(13));
+		StorageReference s = addConstructorCallTransaction(key, master, _500_000, ONE, classpath, ConstructorSignatures.of(SIMPLE, INT), StorageValues.intOf(13));
 
 		assertEquals(StorageValues.intOf(13),
-			runInstanceNonVoidMethodCallTransaction(master, _50_000, classpath, MethodSignatures.ofNonVoid(SIMPLE, "foo3", INT), s));
+			runInstanceNonVoidMethodCallTransaction(master, _500_000, classpath, MethodSignatures.ofNonVoid(SIMPLE, "foo3", INT), s));
 	}
 
 	@Test @DisplayName("new Simple(13).foo4() == 13")
 	void viewMethodOk2() throws Exception {
 		StorageReference s = addConstructorCallTransaction
-			(key, master, _50_000, ONE, classpath, ConstructorSignatures.of(SIMPLE, StorageTypes.INT), StorageValues.intOf(13));
+			(key, master, _500_000, ONE, classpath, ConstructorSignatures.of(SIMPLE, StorageTypes.INT), StorageValues.intOf(13));
 
 		assertEquals(StorageValues.intOf(13),
-			runInstanceNonVoidMethodCallTransaction(master, _50_000, classpath, MethodSignatures.ofNonVoid(SIMPLE, "foo4", INT), s));
+			runInstanceNonVoidMethodCallTransaction(master, _500_000, classpath, MethodSignatures.ofNonVoid(SIMPLE, "foo4", INT), s));
 	}
 
 	@Test @DisplayName("new Simple(13).foo5() == 13")
 	void viewMethodOk3() throws Exception {
 		assertEquals(StorageValues.intOf(14),
-			runStaticNonVoidMethodCallTransaction(master, _50_000, classpath, MethodSignatures.ofNonVoid(SIMPLE, "foo5", INT)));
+			runStaticNonVoidMethodCallTransaction(master, _500_000, classpath, MethodSignatures.ofNonVoid(SIMPLE, "foo5", INT)));
 	}
 
 	@Test @DisplayName("new WithList().toString().equals(\"[hello,how,are,you]\")")
@@ -334,37 +334,37 @@ class Basic extends HotmokaTest {
 
 	@Test @DisplayName("new FromContractFilter().foo1() called by an ExternallyOwnedAccount")
 	void fromContractFilterOk1() throws Exception {
-		StorageReference ef = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, ConstructorSignatures.of(FROM_CONTRACT_FILTER));
-		runInstanceVoidMethodCallTransaction(master, _50_000, classpath, MethodSignatures.ofVoid(FROM_CONTRACT_FILTER, "foo1"), ef);
+		StorageReference ef = addConstructorCallTransaction(key, master, _500_000, ONE, classpath, ConstructorSignatures.of(FROM_CONTRACT_FILTER));
+		runInstanceVoidMethodCallTransaction(master, _500_000, classpath, MethodSignatures.ofVoid(FROM_CONTRACT_FILTER, "foo1"), ef);
 	}
 
 	@Test @DisplayName("new FromContractFilter().foo2() called by an ExternallyOwnedAccount")
 	void fromContractFilterOk2() throws Exception {
-		StorageReference ef = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, ConstructorSignatures.of(FROM_CONTRACT_FILTER));
-		runInstanceVoidMethodCallTransaction(master, _50_000, classpath, MethodSignatures.ofVoid(FROM_CONTRACT_FILTER, "foo2"), ef);
+		StorageReference ef = addConstructorCallTransaction(key, master, _500_000, ONE, classpath, ConstructorSignatures.of(FROM_CONTRACT_FILTER));
+		runInstanceVoidMethodCallTransaction(master, _500_000, classpath, MethodSignatures.ofVoid(FROM_CONTRACT_FILTER, "foo2"), ef);
 	}
 
 	@Test @DisplayName("new FromContractFilter().foo3() called by an ExternallyOwnedAccount")
 	void fromContractFilterOk3() throws Exception {
-		StorageReference ef = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, ConstructorSignatures.of(FROM_CONTRACT_FILTER));
-		runInstanceVoidMethodCallTransaction(master, _50_000, classpath, MethodSignatures.ofVoid(FROM_CONTRACT_FILTER, "foo3"), ef);
+		StorageReference ef = addConstructorCallTransaction(key, master, _500_000, ONE, classpath, ConstructorSignatures.of(FROM_CONTRACT_FILTER));
+		runInstanceVoidMethodCallTransaction(master, _500_000, classpath, MethodSignatures.ofVoid(FROM_CONTRACT_FILTER, "foo3"), ef);
 	}
 
 	@Test @DisplayName("new FromContractFilter().foo4() called by an ExternallyOwnedAccount throws TransactionException since ClassCastException")
 	void fromContractFilterFails() throws Exception {
-		StorageReference ef = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, ConstructorSignatures.of(FROM_CONTRACT_FILTER));
+		StorageReference ef = addConstructorCallTransaction(key, master, _500_000, ONE, classpath, ConstructorSignatures.of(FROM_CONTRACT_FILTER));
 
 		throwsTransactionExceptionWithCause(ClassCastException.class, () ->
-			runInstanceVoidMethodCallTransaction(master, _50_000, classpath, MethodSignatures.ofVoid(FROM_CONTRACT_FILTER, "foo4"), ef)
+			runInstanceVoidMethodCallTransaction(master, _500_000, classpath, MethodSignatures.ofVoid(FROM_CONTRACT_FILTER, "foo4"), ef)
 		);
 	}
 
 	@Test @DisplayName("new FromContractFilter().foo5() throws CodeExecutionException since MyCheckedException")
 	void fromContractFilterFailsWithThrowsExceptions() throws Exception {
-		StorageReference ef = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, ConstructorSignatures.of(FROM_CONTRACT_FILTER));
+		StorageReference ef = addConstructorCallTransaction(key, master, _500_000, ONE, classpath, ConstructorSignatures.of(FROM_CONTRACT_FILTER));
 
 		try {
-			runInstanceVoidMethodCallTransaction(master, _50_000, classpath, MethodSignatures.ofVoid(FROM_CONTRACT_FILTER, "foo5"), ef);
+			runInstanceVoidMethodCallTransaction(master, _500_000, classpath, MethodSignatures.ofVoid(FROM_CONTRACT_FILTER, "foo5"), ef);
 		}
 		catch (CodeExecutionException e) {
 			Assertions.assertTrue(e.getMessage().startsWith("io.hotmoka.examples.basic.MyCheckedException"), "wrong exception");
@@ -376,9 +376,9 @@ class Basic extends HotmokaTest {
 
 	@Test @DisplayName("new FromContractFilter().foo6() fails")
 	void fromContractFilterFailsWithoutThrowsExceptions() throws Exception {
-		StorageReference ef = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, ConstructorSignatures.of(FROM_CONTRACT_FILTER));
+		StorageReference ef = addConstructorCallTransaction(key, master, _500_000, ONE, classpath, ConstructorSignatures.of(FROM_CONTRACT_FILTER));
 
 		Assertions.assertThrows(TransactionException.class, () ->
-			runInstanceVoidMethodCallTransaction(master, _50_000, classpath, MethodSignatures.ofVoid(FROM_CONTRACT_FILTER, "foo6"), ef));
+			runInstanceVoidMethodCallTransaction(master, _500_000, classpath, MethodSignatures.ofVoid(FROM_CONTRACT_FILTER, "foo6"), ef));
 	}
 }

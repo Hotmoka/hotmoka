@@ -195,7 +195,7 @@ public class Buy extends AbstractGasCostCommand {
 			var method = MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_OFFER, "getCost", StorageTypes.BIG_INTEGER);
 
 			try {
-				return remote.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, method, offer))
+				return remote.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest, _500_000, takamakaCode, method, offer))
 						.orElseThrow(() -> new CommandException(method + " should not return void"))
 						.asReturnedBigInteger(method, CommandException::new);
 			}
@@ -208,7 +208,7 @@ public class Buy extends AbstractGasCostCommand {
 			var method = MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_OFFER, "getSharesOnSale", StorageTypes.BIG_INTEGER);
 
 			try {
-				return remote.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, method, offer))
+				return remote.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest, _500_000, takamakaCode, method, offer))
 						.orElseThrow(() -> new CommandException(method + " should not return void"))
 						.asReturnedBigInteger(method, CommandException::new);
 			}
@@ -222,7 +222,7 @@ public class Buy extends AbstractGasCostCommand {
 
 			try {
 				return remote.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest))
+					(manifest, _500_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest))
 					.orElseThrow(() -> new CommandException(MethodSignatures.GET_VALIDATORS + " should not return void"))
 					.asReturnedReference(MethodSignatures.GET_VALIDATORS, CommandException::new);
 			}
@@ -234,7 +234,7 @@ public class Buy extends AbstractGasCostCommand {
 		private int getBuyerSurcharge() throws CommandException, ClosedNodeException, TimeoutException, InterruptedException {
 			try {
 				return remote.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.VALIDATORS_GET_BUYER_SURCHARGE, validators))
+					(manifest, _500_000, takamakaCode, MethodSignatures.VALIDATORS_GET_BUYER_SURCHARGE, validators))
 					.orElseThrow(() -> new CommandException(MethodSignatures.VALIDATORS_GET_BUYER_SURCHARGE + " should not return void"))
 					.asReturnedInt(MethodSignatures.VALIDATORS_GET_BUYER_SURCHARGE, CommandException::new);
 			}

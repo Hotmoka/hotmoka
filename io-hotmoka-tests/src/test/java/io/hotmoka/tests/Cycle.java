@@ -46,14 +46,14 @@ class Cycle extends HotmokaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setAccounts(BigInteger.valueOf(100_000L));
+		setAccounts(BigInteger.valueOf(1_000_000L));
 	}
 
 	@Test @DisplayName("new Cycle().foo() == 42")
 	void callFoo() throws Exception {
-		StorageReference cycle = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), ConstructorSignatures.of(CYCLE));
+		StorageReference cycle = addConstructorCallTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, jar(), ConstructorSignatures.of(CYCLE));
 
-		var result = (IntValue) runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(),
+		var result = (IntValue) runInstanceNonVoidMethodCallTransaction(account(0), _500_000, jar(),
 			MethodSignatures.ofNonVoid(CYCLE, "foo", StorageTypes.INT), cycle);
 
 		assertEquals(42, result.getValue());

@@ -493,7 +493,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * @param amount the amount of gas to consume
 		 */
 		private void chargeGasForStorage(BigInteger amount) {
-			charge(amount, x -> gasConsumedForStorage = gasConsumedForStorage.add(x));
+			charge(amount, x -> gasConsumedForStorage = gasConsumedForStorage.add(x.multiply(gasCostModel.storageCostOfByte())));
 		}
 
 		/**

@@ -53,24 +53,24 @@ class PayableFailure extends HotmokaTest {
 
 	@Test @DisplayName("new C().foo(null) goes into exception")
 	void callFoo() throws Exception {
-		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _50_000, ZERO, jar(), ConstructorSignatures.of(C));
+		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ZERO, jar(), ConstructorSignatures.of(C));
 
 		throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "parameter cannot be null", () ->
-			addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _50_000, ZERO, jar(), MethodSignatures.ofVoid(C, "foo", C), c, StorageValues.NULL));
+			addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _500_000, ZERO, jar(), MethodSignatures.ofVoid(C, "foo", C), c, StorageValues.NULL));
 
-		BigInteger balance = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.BALANCE, account(0)).asReturnedBigInteger(MethodSignatures.BALANCE, UnexpectedValueException::new);
+		BigInteger balance = runInstanceNonVoidMethodCallTransaction(account(0), _500_000, jar(), MethodSignatures.BALANCE, account(0)).asReturnedBigInteger(MethodSignatures.BALANCE, UnexpectedValueException::new);
 		assertEquals(_1_000_000, balance);
 	}
 
 	@Test @DisplayName("new C().goo(1000, null) goes into exception and 1000 remains in the balance of the caller")
 	void callGoo() throws Exception {
-		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _50_000, ZERO, jar(), ConstructorSignatures.of(C));
+		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ZERO, jar(), ConstructorSignatures.of(C));
 
 		// sends 1000 as payment for a transaction that fails
 		throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "parameter cannot be null", () ->
-			addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _50_000, ZERO, jar(), MethodSignatures.ofVoid(C, "goo", StorageTypes.LONG, C), c, StorageValues.longOf(1000), StorageValues.NULL));
+			addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _500_000, ZERO, jar(), MethodSignatures.ofVoid(C, "goo", StorageTypes.LONG, C), c, StorageValues.longOf(1000), StorageValues.NULL));
 
-		BigInteger balance = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.BALANCE, account(0)).asReturnedBigInteger(MethodSignatures.BALANCE, UnexpectedValueException::new);
+		BigInteger balance = runInstanceNonVoidMethodCallTransaction(account(0), _500_000, jar(), MethodSignatures.BALANCE, account(0)).asReturnedBigInteger(MethodSignatures.BALANCE, UnexpectedValueException::new);
 
 		// 1000 is back in the balance of the caller
 		assertEquals(_1_000_000, balance);

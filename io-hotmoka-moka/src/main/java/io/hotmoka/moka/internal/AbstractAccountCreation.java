@@ -350,7 +350,7 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 
 			try {
 				return remote.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-						(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
+						(manifest, _500_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
 						.orElseThrow(() -> new CommandException(MethodSignatures.GET_GAMETE + " should not return void"))
 						.asReturnedReference(MethodSignatures.GET_GAMETE, CommandException::new);
 			}
@@ -363,7 +363,7 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 	private BigInteger gasLimitHeuristic(SignatureAlgorithm signatureOfNewAccount, SignatureAlgorithm signatureOfPayer) throws CommandException {
 		switch (signatureOfNewAccount.getName()) {
 		case "ed25519":
-			return _100_000.add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
+			return _500_000.add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
 		case "sha256dsa":
 			return BigInteger.valueOf(200_000L).add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
 		case "qtesla1":

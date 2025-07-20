@@ -122,7 +122,6 @@ import io.takamaka.code.constants.Constants;
 
 @ExtendWith(HotmokaTest.NodeHandler.class)
 public abstract class HotmokaTest extends AbstractLoggedTests {
-	protected static final BigInteger _50_000 = BigInteger.valueOf(50_000);
 	protected static final BigInteger _100_000 = BigInteger.valueOf(100_000);
 	protected static final BigInteger _500_000 = BigInteger.valueOf(500_000);
 	protected static final BigInteger _1_000_000 = BigInteger.valueOf(1_000_000);
@@ -348,7 +347,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		var config = TendermintNodeConfigBuilders.defaults()
 				.setDir(Files.createTempDirectory("hotmoka-tendermint-chain-"))
 				.setTendermintConfigurationToClone(Paths.get("tendermint_config"))
-				.setMaxGasPerViewTransaction(_10_000_000)
+				.setMaxGasPerViewTransaction(_1_000_000_000)
 				.build();
 
 		Node node = TendermintNodes.init(config);
@@ -369,7 +368,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 		var config = MokamintNodeConfigBuilders.defaults()
 				.setDir(hotmokaChainPath)
-				.setMaxGasPerViewTransaction(_10_000_000)
+				.setMaxGasPerViewTransaction(_1_000_000_000)
 				.build();
 
 		var mokamintConfig = LocalNodeConfigBuilders.defaults()
@@ -428,7 +427,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 			var config = MokamintNodeConfigBuilders.defaults()
 					.setDir(hotmokaChainPath)
-					.setMaxGasPerViewTransaction(_10_000_000)
+					.setMaxGasPerViewTransaction(_1_000_000_000)
 					.build();
 
 			var mokamintConfig = LocalNodeConfigBuilders.defaults()
@@ -495,7 +494,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 		var config = DiskNodeConfigBuilders.defaults()
 				.setDir(Files.createTempDirectory("hotmoka-disk-chain-"))
-				.setMaxGasPerViewTransaction(_10_000_000)
+				.setMaxGasPerViewTransaction(_1_000_000_000)
 				.setMaxPollingAttempts(100) // we fix these two so that we know the timeout in case of problems
 				.setPollingDelay(10)
 				.build();

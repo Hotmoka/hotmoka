@@ -48,7 +48,7 @@ public class Faucet extends HotmokaTest {
 		if (consensus == null || !consensus.allowsUnsignedFaucet())
 			return;
 
-		var gamete = runInstanceNonVoidMethodCallTransaction(manifest(), _50_000, takamakaCode(), MethodSignatures.GET_GAMETE, manifest()).asReturnedReference(MethodSignatures.GET_GAMETE, UnexpectedValueException::new);
+		var gamete = runInstanceNonVoidMethodCallTransaction(manifest(), _500_000, takamakaCode(), MethodSignatures.GET_GAMETE, manifest()).asReturnedReference(MethodSignatures.GET_GAMETE, UnexpectedValueException::new);
 
 		// we generate the key pair of the new account created by the faucet
 		var signature = signature();
@@ -69,7 +69,7 @@ public class Faucet extends HotmokaTest {
 
 	@Test
 	void callToFaucetFailsIfCallerIsNotTheGamete() throws Exception {
-		var gamete = runInstanceNonVoidMethodCallTransaction(manifest(), _50_000, takamakaCode(), MethodSignatures.GET_GAMETE, manifest()).asReturnedReference(MethodSignatures.GET_GAMETE, UnexpectedValueException::new);
+		var gamete = runInstanceNonVoidMethodCallTransaction(manifest(), _500_000, takamakaCode(), MethodSignatures.GET_GAMETE, manifest()).asReturnedReference(MethodSignatures.GET_GAMETE, UnexpectedValueException::new);
 
 		// we generate the key pair of the new account created by the faucet
 		KeyPair keys = signature().getKeyPair();
@@ -81,7 +81,7 @@ public class Faucet extends HotmokaTest {
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
 			node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall
-				(signer, caller, getNonceOf(caller), chainId(), _50_000, ONE, takamakaCode(),
+				(signer, caller, getNonceOf(caller), chainId(), _500_000, ONE, takamakaCode(),
 				MethodSignatures.ofNonVoid(StorageTypes.GAMETE, "faucet", StorageTypes.EOA, StorageTypes.INT, StorageTypes.STRING),
 				gamete, StorageValues.intOf(100_000), StorageValues.stringOf(publicKey))));
 	}

@@ -109,7 +109,7 @@ public class Bind extends AbstractMokaRpcCommand {
 		try {
 			// we look for the public key in the account
 			publicKeyFromAccount = remote.runInstanceMethodCallTransaction
-					(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, MethodSignatures.PUBLIC_KEY, reference))
+					(TransactionRequests.instanceViewMethodCall(manifest, _500_000, takamakaCode, MethodSignatures.PUBLIC_KEY, reference))
 					.orElseThrow(() -> new CommandException(MethodSignatures.PUBLIC_KEY + " should not return void"))
 					.asReturnedString(MethodSignatures.PUBLIC_KEY, CommandException::new);
 		}
@@ -132,12 +132,12 @@ public class Bind extends AbstractMokaRpcCommand {
 		try {
 			// we look in the accounts ledger
 			var ledger = remote.runInstanceMethodCallTransaction
-					(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, MethodSignatures.GET_ACCOUNTS_LEDGER, manifest))
+					(TransactionRequests.instanceViewMethodCall(manifest, _500_000, takamakaCode, MethodSignatures.GET_ACCOUNTS_LEDGER, manifest))
 					.orElseThrow(() -> new CommandException(MethodSignatures.GET_ACCOUNTS_LEDGER + " should not return void"))
 					.asReturnedReference(MethodSignatures.GET_ACCOUNTS_LEDGER, CommandException::new);
 
 			result = remote.runInstanceMethodCallTransaction
-					(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, MethodSignatures.GET_FROM_ACCOUNTS_LEDGER, ledger, StorageValues.stringOf(publicKeyBase64FromKeyFile)))
+					(TransactionRequests.instanceViewMethodCall(manifest, _500_000, takamakaCode, MethodSignatures.GET_FROM_ACCOUNTS_LEDGER, ledger, StorageValues.stringOf(publicKeyBase64FromKeyFile)))
 					.orElseThrow(() -> new CommandException(MethodSignatures.GET_FROM_ACCOUNTS_LEDGER + " should not return void"));
 		}
 		catch (CodeExecutionException | TransactionException | TransactionRejectedException e) {

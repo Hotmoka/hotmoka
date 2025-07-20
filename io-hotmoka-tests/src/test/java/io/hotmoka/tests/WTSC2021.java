@@ -112,7 +112,7 @@ class WTSC2021 extends HotmokaTest {
 			setJar("tokens.jar");
 			numberOfTransactions.getAndIncrement();
 
-			setAccounts(Stream.generate(() -> level3(1)).limit(NUMBER_OF_INVESTORS + 1));
+			setAccounts(Stream.generate(() -> level3(100)).limit(NUMBER_OF_INVESTORS + 1));
 			numberOfTransactions.getAndIncrement();
 
 			investors = accounts().limit(NUMBER_OF_INVESTORS).toArray(StorageReference[]::new);
@@ -123,14 +123,14 @@ class WTSC2021 extends HotmokaTest {
 			PrivateKey privateKeyOfCreator = keys.getPrivate();
 			String publicKey = Base64.toBase64String(signature().encodingOf(keys.getPublic()));
 			StorageReference creator = addConstructorCallTransaction
-				(privateKey(NUMBER_OF_INVESTORS), account(NUMBER_OF_INVESTORS), _50_000, ZERO, jar(), CONSTRUCTOR_OF_CREATOR,
+				(privateKey(NUMBER_OF_INVESTORS), account(NUMBER_OF_INVESTORS), _500_000, ZERO, jar(), CONSTRUCTOR_OF_CREATOR,
 				StorageValues.bigIntegerOf(level2(500)), StorageValues.stringOf(publicKey));
 
 			// @creator creates the coin; initially, @creator will hold all tokens
 			token = addConstructorCallTransaction(privateKeyOfCreator, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_OF_COIN);
 
 			// @creator makes a token transfer to each @investor (investors will now have tokens to trade)
-			addInstanceVoidMethodCallTransaction(privateKeyOfCreator, creator, _100_000.multiply(BigInteger.valueOf(NUMBER_OF_INVESTORS)), ZERO, jar(),
+			addInstanceVoidMethodCallTransaction(privateKeyOfCreator, creator, _500_000.multiply(BigInteger.valueOf(NUMBER_OF_INVESTORS)), ZERO, jar(),
 				DISTRIBUTE, creator, containerOfAccounts(), token, StorageValues.intOf(50_000));
 
 			customThreadPool.submit(() -> IntStream.range(0, NUMBER_OF_INVESTORS).parallel().forEach(this::runTransfersForSender)).get();

@@ -68,7 +68,7 @@ class Collections extends HotmokaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setAccounts(_10_000_000);
+		setAccounts(_10_000_000_000);
 		eoa = account(0);
 		key = privateKey(0);
 	}
@@ -82,7 +82,7 @@ class Collections extends HotmokaTest {
 	@Test @DisplayName("MapTests.testUpdate2() == 5050")
 	void geometricSumAfterUpdateWithStream() throws Exception {
 		var testUpdate2 = MethodSignatures.ofNonVoid(MAP_TESTS, "testUpdate2", INT);
-		assertEquals(5050, runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), testUpdate2).asReturnedInt(testUpdate2, UnexpectedValueException::new));
+		assertEquals(5050, runStaticNonVoidMethodCallTransaction(eoa, _1_000_000_000, jar(), testUpdate2).asReturnedInt(testUpdate2, UnexpectedValueException::new));
 	}
 
 	@Test @DisplayName("MapTests.testNullValues() == 100L")
@@ -100,7 +100,7 @@ class Collections extends HotmokaTest {
 	@Test @DisplayName("IntMapTests.testUpdate2() == 5050")
 	void geometricSumAfterUpdateIntKeysWithStream() throws Exception {
 		var method = MethodSignatures.ofNonVoid(INT_MAP_TESTS, "testUpdate2", INT);
-		assertEquals(5050, runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), method).asReturnedInt(method, UnexpectedValueException::new));
+		assertEquals(5050, runStaticNonVoidMethodCallTransaction(eoa, _1_000_000_000, jar(), method).asReturnedInt(method, UnexpectedValueException::new));
 	}
 
 	@Test @DisplayName("IntMapTests.testNullValues() == 100L()")
@@ -148,7 +148,7 @@ class Collections extends HotmokaTest {
 	@Test @DisplayName("SetTests.testRandomInitialization() == true")
 	void randomRandomSetInitialization() throws Exception {
 		var testRandomInitialization = MethodSignatures.ofNonVoid(SET_TESTS, "testRandomInitialization", BOOLEAN);
-		assertTrue(runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), testRandomInitialization).asReturnedBoolean(testRandomInitialization, UnexpectedValueException::new));
+		assertTrue(runStaticNonVoidMethodCallTransaction(eoa, _1_000_000_000, jar(), testRandomInitialization).asReturnedBoolean(testRandomInitialization, UnexpectedValueException::new));
 	}
 
 	@Test @DisplayName("new MapHolder()")

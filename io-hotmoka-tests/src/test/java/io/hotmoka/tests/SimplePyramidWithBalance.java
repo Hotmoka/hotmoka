@@ -42,12 +42,11 @@ import io.hotmoka.node.api.values.StorageReference;
  * A test for the simple pyramid with balance contract.
  */
 class SimplePyramidWithBalance extends HotmokaTest {
-	private static final BigIntegerValue MINIMUM_INVESTMENT = StorageValues.bigIntegerOf(10_000);
+	private static final BigIntegerValue MINIMUM_INVESTMENT = StorageValues.bigIntegerOf(50_000);
 	private static final ClassType SIMPLE_PYRAMID = StorageTypes.classNamed("io.hotmoka.examples.ponzi.SimplePyramidWithBalance");
 	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_PYRAMID = ConstructorSignatures.of(SIMPLE_PYRAMID, StorageTypes.BIG_INTEGER);
 	private static final VoidMethodSignature INVEST = MethodSignatures.ofVoid(SIMPLE_PYRAMID, "invest", StorageTypes.BIG_INTEGER);
 	private static final VoidMethodSignature WITHDRAW = MethodSignatures.ofVoid(SIMPLE_PYRAMID, "withdraw");
-	private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
@@ -56,25 +55,25 @@ class SimplePyramidWithBalance extends HotmokaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setAccounts(_200_000, _200_000, _200_000);
+		setAccounts(_1_000_000, _1_000_000, _1_000_000);
 	}
 
 	@Test @DisplayName("two investors do not get investment back yet")
 	void twoInvestors() throws Exception {
-		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
-		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _100_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
-		addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _100_000, ZERO, jar(), WITHDRAW, pyramid);
-		var balance0 = runInstanceNonVoidMethodCallTransaction(account(0), _100_000, jar(), BALANCE, account(0)).asReturnedBigInteger(BALANCE, UnexpectedValueException::new);
-		assertTrue(balance0.compareTo(BigInteger.valueOf(190_000)) <= 0);
+		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
+		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _500_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _500_000, ZERO, jar(), WITHDRAW, pyramid);
+		var balance0 = runInstanceNonVoidMethodCallTransaction(account(0), _500_000, jar(), BALANCE, account(0)).asReturnedBigInteger(BALANCE, UnexpectedValueException::new);
+		assertTrue(balance0.compareTo(BigInteger.valueOf(950_000)) <= 0);
 	}
 
 	@Test @DisplayName("with three investors the first gets its investment back")
 	void threeInvestors() throws Exception {
-		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
-		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _100_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
-		addInstanceVoidMethodCallTransaction(privateKey(2), account(2), _100_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
-		addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _100_000, ZERO, jar(), WITHDRAW, pyramid);
-		var balance0 = runInstanceNonVoidMethodCallTransaction(account(0), _100_000, jar(), BALANCE, account(0)).asReturnedBigInteger(BALANCE, UnexpectedValueException::new);
-		assertTrue(balance0.compareTo(BigInteger.valueOf(201_000)) > 0);
+		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
+		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _500_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		addInstanceVoidMethodCallTransaction(privateKey(2), account(2), _500_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _500_000, ZERO, jar(), WITHDRAW, pyramid);
+		var balance0 = runInstanceNonVoidMethodCallTransaction(account(0), _500_000, jar(), BALANCE, account(0)).asReturnedBigInteger(BALANCE, UnexpectedValueException::new);
+		assertTrue(balance0.compareTo(BigInteger.valueOf(1006666)) >= 0);
 	}
 }

@@ -47,21 +47,21 @@ class MethodOnThis extends HotmokaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setAccounts(_100_000);
+		setAccounts(_1_000_000);
 	}
 
 	@Test @DisplayName("new Bridge().foo(100) then Bridge has balance 0 and its Sub field has balance 100")
 	void testBalances() throws Exception {
-		StorageReference bridge = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), ConstructorSignatures.of(BRIDGE));
-		addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(),
+		StorageReference bridge = addConstructorCallTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, jar(), ConstructorSignatures.of(BRIDGE));
+		addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, jar(),
 			MethodSignatures.ofVoid(BRIDGE, "foo", StorageTypes.INT), bridge, StorageValues.intOf(100));
 		
 		var getBalance = MethodSignatures.ofNonVoid(BRIDGE, "getBalance", StorageTypes.BIG_INTEGER);
-		BigInteger balanceOfBridge = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), getBalance, bridge).asReturnedBigInteger(getBalance, UnexpectedValueException::new);
+		BigInteger balanceOfBridge = runInstanceNonVoidMethodCallTransaction(account(0), _500_000, jar(), getBalance, bridge).asReturnedBigInteger(getBalance, UnexpectedValueException::new);
 		var getInitialBalance = MethodSignatures.ofNonVoid(BRIDGE, "getInitialBalance", StorageTypes.BIG_INTEGER);
-		BigInteger initialBalanceOfBridge = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), getInitialBalance, bridge).asReturnedBigInteger(getInitialBalance, UnexpectedValueException::new);
+		BigInteger initialBalanceOfBridge = runInstanceNonVoidMethodCallTransaction(account(0), _500_000, jar(), getInitialBalance, bridge).asReturnedBigInteger(getInitialBalance, UnexpectedValueException::new);
 		var getBalanceOfSub = MethodSignatures.ofNonVoid(BRIDGE, "getBalanceOfSub", StorageTypes.BIG_INTEGER);
-		BigInteger balanceOfSub = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), getBalanceOfSub, bridge).asReturnedBigInteger(getBalanceOfSub, UnexpectedValueException::new);
+		BigInteger balanceOfSub = runInstanceNonVoidMethodCallTransaction(account(0), _500_000, jar(), getBalanceOfSub, bridge).asReturnedBigInteger(getBalanceOfSub, UnexpectedValueException::new);
 
 		assertEquals(BigInteger.ZERO, balanceOfBridge);
 		assertEquals(BigInteger.valueOf(100L), initialBalanceOfBridge);
@@ -70,16 +70,16 @@ class MethodOnThis extends HotmokaTest {
 
 	@Test @DisplayName("new Bridge2().foo(100) then Bridge2 has balance 0 and its Sub2 field has balance 100")
 	void testBalances2() throws Exception {
-		StorageReference bridge = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), ConstructorSignatures.of(BRIDGE2));
-		addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(),
+		StorageReference bridge = addConstructorCallTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, jar(), ConstructorSignatures.of(BRIDGE2));
+		addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, jar(),
 			MethodSignatures.ofVoid(BRIDGE2, "foo", StorageTypes.INT), bridge, StorageValues.intOf(100));
 		
 		var getBalance = MethodSignatures.ofNonVoid(BRIDGE2, "getBalance", StorageTypes.BIG_INTEGER);
-		BigInteger balanceOfBridge = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), getBalance, bridge).asReturnedBigInteger(getBalance, UnexpectedValueException::new);
+		BigInteger balanceOfBridge = runInstanceNonVoidMethodCallTransaction(account(0), _500_000, jar(), getBalance, bridge).asReturnedBigInteger(getBalance, UnexpectedValueException::new);
 		var getInitialBalance = MethodSignatures.ofNonVoid(BRIDGE2, "getInitialBalance", StorageTypes.BIG_INTEGER);
-		BigInteger initialBalanceOfBridge = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), getInitialBalance, bridge).asReturnedBigInteger(getInitialBalance, UnexpectedValueException::new);
+		BigInteger initialBalanceOfBridge = runInstanceNonVoidMethodCallTransaction(account(0), _500_000, jar(), getInitialBalance, bridge).asReturnedBigInteger(getInitialBalance, UnexpectedValueException::new);
 		var getBalanceOfSub = MethodSignatures.ofNonVoid(BRIDGE2, "getBalanceOfSub", StorageTypes.BIG_INTEGER);
-		BigInteger balanceOfSub = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), getBalanceOfSub, bridge).asReturnedBigInteger(getBalanceOfSub, UnexpectedValueException::new);
+		BigInteger balanceOfSub = runInstanceNonVoidMethodCallTransaction(account(0), _500_000, jar(), getBalanceOfSub, bridge).asReturnedBigInteger(getBalanceOfSub, UnexpectedValueException::new);
 
 		assertEquals(BigInteger.ZERO, balanceOfBridge);
 		assertEquals(BigInteger.valueOf(100L), initialBalanceOfBridge);

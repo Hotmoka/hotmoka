@@ -43,13 +43,12 @@ import io.hotmoka.node.api.values.StorageReference;
  * A test for the simple pyramid contract, used at the WTSC2020 workshop.
  */
 class WTSC2020 extends HotmokaTest {
-	private static final BigIntegerValue MINIMUM_INVESTMENT = StorageValues.bigIntegerOf(_50_000);
+	private static final BigIntegerValue MINIMUM_INVESTMENT = StorageValues.bigIntegerOf(_500_000);
 	private static final ClassType SIMPLE_PYRAMID = StorageTypes.classNamed("io.hotmoka.examples.wtsc2020.SimplePyramid");
 	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_PYRAMID = ConstructorSignatures.of(SIMPLE_PYRAMID, StorageTypes.BIG_INTEGER);
 	private static final VoidMethodSignature INVEST = MethodSignatures.ofVoid(SIMPLE_PYRAMID, "invest", StorageTypes.BIG_INTEGER);
 	private static final NonVoidMethodSignature MOST_FREQUENT_INVESTOR = MethodSignatures.ofNonVoid(SIMPLE_PYRAMID, "mostFrequentInvestor", StorageTypes.PAYABLE_CONTRACT);
 	private static final NonVoidMethodSignature MOST_FREQUENT_INVESTOR_CLASS = MethodSignatures.ofNonVoid(SIMPLE_PYRAMID, "mostFrequentInvestorClass", StorageTypes.STRING);
-	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 	private static final BigInteger _20_000_000 = BigInteger.valueOf(20_000_000);
 
 	@BeforeAll
@@ -68,13 +67,13 @@ class WTSC2020 extends HotmokaTest {
 		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 
 		// account(1) becomes the second investor
-		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _50_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _500_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(0) checks its balance
-		var balance0 = (BigIntegerValue) runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.BALANCE, account(0));
+		var balance0 = (BigIntegerValue) runInstanceNonVoidMethodCallTransaction(account(0), _500_000, jar(), MethodSignatures.BALANCE, account(0));
 
 		// no money back yet
-		assertEquals(BigInteger.valueOf(19_950_000), balance0.getValue());
+		assertEquals(BigInteger.valueOf(19500000), balance0.getValue());
 	}
 
 	@Test @DisplayName("with three investors the first gets its investment back")
@@ -83,13 +82,13 @@ class WTSC2020 extends HotmokaTest {
 		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 
 		// account(1) becomes the second investor
-		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _50_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _500_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(2) becomes the third investor
-		addInstanceVoidMethodCallTransaction(privateKey(2), account(2), _20_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		addInstanceVoidMethodCallTransaction(privateKey(2), account(2), _500_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(0) checks its balance
-		var balance0 = (BigIntegerValue) runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.BALANCE, account(0));
+		var balance0 = (BigIntegerValue) runInstanceNonVoidMethodCallTransaction(account(0), _500_000, jar(), MethodSignatures.BALANCE, account(0));
 
 		// the money is back!
 		assertEquals(balance0.getValue(), BigInteger.valueOf(20_006_666));
@@ -101,16 +100,16 @@ class WTSC2020 extends HotmokaTest {
 		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 
 		// account(1) becomes the second investor
-		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _50_000, ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _500_000, ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(2) becomes the third investor
-		addInstanceVoidMethodCallTransaction(privateKey(2), account(2), _20_000, ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		addInstanceVoidMethodCallTransaction(privateKey(2), account(2), _500_000, ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(1) invests again and becomes the most frequent investor
-		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _50_000, ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _500_000, ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(0) checks which is the most frequent investor class
-		var result = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), MOST_FREQUENT_INVESTOR_CLASS, pyramid).asReturnedString(MOST_FREQUENT_INVESTOR_CLASS, UnexpectedValueException::new);
+		var result = runInstanceNonVoidMethodCallTransaction(account(0), _500_000, jar(), MOST_FREQUENT_INVESTOR_CLASS, pyramid).asReturnedString(MOST_FREQUENT_INVESTOR_CLASS, UnexpectedValueException::new);
 
 		assertEquals(StorageTypes.EOA.getName(), result);
 	}
@@ -121,16 +120,16 @@ class WTSC2020 extends HotmokaTest {
 		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 
 		// account(1) becomes the second investor
-		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _50_000, ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _500_000, ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(2) becomes the third investor
-		addInstanceVoidMethodCallTransaction(privateKey(2), account(2), _20_000, ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		addInstanceVoidMethodCallTransaction(privateKey(2), account(2), _500_000, ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(1) invests again and becomes the most frequent investor
-		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _50_000, ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _500_000, ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(0) checks who is the most frequent investor
-		StorageReference mostFrequent = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), MOST_FREQUENT_INVESTOR, pyramid).asReturnedReference(MOST_FREQUENT_INVESTOR, UnexpectedValueException::new);
+		StorageReference mostFrequent = runInstanceNonVoidMethodCallTransaction(account(0), _500_000, jar(), MOST_FREQUENT_INVESTOR, pyramid).asReturnedReference(MOST_FREQUENT_INVESTOR, UnexpectedValueException::new);
 
 		// account(1) is the most frequent investor
 		assertEquals(account(1), mostFrequent);

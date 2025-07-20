@@ -148,7 +148,7 @@ public abstract class LocalNodeConfigImpl<C extends LocalNodeConfig<C,B>, B exte
 		private Path dir = Paths.get("chain");
 		private long maxPollingAttempts = 60;
 		private long pollingDelay = 10;
-		private BigInteger maxGasPerViewTransaction = BigInteger.valueOf(100_000_000);
+		private BigInteger maxGasPerViewTransaction = BigInteger.valueOf(1_000_000_000);
 
 		/**
 		 * Creates a builder with default values for the properties.

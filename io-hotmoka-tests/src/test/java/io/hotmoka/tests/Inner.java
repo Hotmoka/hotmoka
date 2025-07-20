@@ -61,28 +61,28 @@ class Inner extends HotmokaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setAccounts(_100_000);
+		setAccounts(_1_000_000);
 	}
 
 	@Test @DisplayName("new TestInner()")
 	void newTestInner() throws Exception {
-		addConstructorCallTransaction(privateKey(0), account(0), _50_000, ONE, jar(), TEST_INNER_CONSTRUCTOR);
+		addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, jar(), TEST_INNER_CONSTRUCTOR);
 	}
 
 	@Test @DisplayName("(new TestInner().new Inside(1000)).getBalance() == 1000")
 	void newTestInnerInsideGetBalance() throws Exception {
-		StorageReference testInner = addConstructorCallTransaction(privateKey(0), account(0), _50_000, ONE, jar(), TEST_INNER_CONSTRUCTOR);
-		StorageReference inside = addConstructorCallTransaction(privateKey(0), account(0), _50_000, ONE, jar(), TEST_INNER_INSIDE_CONSTRUCTOR, testInner, StorageValues.longOf(1000L));
-		BigInteger balance = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), TEST_INNER_INSIDE_GETBALANCE, inside).asReturnedBigInteger(TEST_INNER_INSIDE_GETBALANCE, UnexpectedValueException::new);
+		StorageReference testInner = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, jar(), TEST_INNER_CONSTRUCTOR);
+		StorageReference inside = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, jar(), TEST_INNER_INSIDE_CONSTRUCTOR, testInner, StorageValues.longOf(1000L));
+		BigInteger balance = runInstanceNonVoidMethodCallTransaction(account(0), _500_000, jar(), TEST_INNER_INSIDE_GETBALANCE, inside).asReturnedBigInteger(TEST_INNER_INSIDE_GETBALANCE, UnexpectedValueException::new);
 		
 		assertEquals(BigInteger.valueOf(1000L), balance);
 	}
 
 	@Test @DisplayName("ti = new TestInner(); (ti.new Inside(1000)).getParent() == ti")
 	void newTestInnerInsideGetParent() throws Exception {
-		StorageReference testInner = addConstructorCallTransaction(privateKey(0), account(0), _50_000, ONE, jar(), TEST_INNER_CONSTRUCTOR);
-		StorageReference inside = addConstructorCallTransaction(privateKey(0), account(0), _50_000, ONE, jar(), TEST_INNER_INSIDE_CONSTRUCTOR, testInner, StorageValues.longOf(1000L));
-		StorageReference parent = runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), TEST_INNER_INSIDE_GETPARENT, inside).asReturnedReference(TEST_INNER_INSIDE_GETPARENT, UnexpectedValueException::new);
+		StorageReference testInner = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, jar(), TEST_INNER_CONSTRUCTOR);
+		StorageReference inside = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, jar(), TEST_INNER_INSIDE_CONSTRUCTOR, testInner, StorageValues.longOf(1000L));
+		StorageReference parent = runInstanceNonVoidMethodCallTransaction(account(0), _500_000, jar(), TEST_INNER_INSIDE_GETPARENT, inside).asReturnedReference(TEST_INNER_INSIDE_GETPARENT, UnexpectedValueException::new);
 		
 		assertEquals(testInner, parent);
 	}

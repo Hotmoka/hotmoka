@@ -56,7 +56,7 @@ public class GetRequest extends HotmokaTest {
 
 	@Test @DisplayName("getRequest works for an existing transaction")
 	public void getRequest() throws Exception {
-		StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, StorageValues.intOf(42));
+		StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, StorageValues.intOf(42));
 		TransactionRequest<?> request = getRequest(abstractfail.getTransaction());
 		assertTrue(request instanceof ConstructorCallTransactionRequest);
 		assertEquals(account(0), ((ConstructorCallTransactionRequest) request).getCaller());
@@ -64,7 +64,7 @@ public class GetRequest extends HotmokaTest {
 
 	@Test @DisplayName("getRequest works for a non-existing transaction")
 	public void getRequestNonExisting() throws Exception {
-		StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, StorageValues.intOf(42));
+		StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, StorageValues.intOf(42));
 		byte[] hash = abstractfail.getTransaction().getHash();
 		// we modify the first byte: the resulting transaction reference does not exist
 		hash[0]++;

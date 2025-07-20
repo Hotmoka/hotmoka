@@ -19,8 +19,6 @@ package io.hotmoka.tests;
 import static io.hotmoka.helpers.Coin.panarea;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
-import java.math.BigInteger;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -40,7 +38,6 @@ import io.hotmoka.node.api.values.StorageValue;
 class SynonymClass extends HotmokaTest {
 	private final static ClassType SA = StorageTypes.classNamed("io.hotmoka.crypto.SignatureAlgorithm");
 	private final static NonVoidMethodSignature EMPTY = MethodSignatures.ofNonVoid(SA, "empty", SA);
-	private final static BigInteger _20_000 = BigInteger.valueOf(20_000);
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
@@ -49,12 +46,12 @@ class SynonymClass extends HotmokaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setAccounts(_1_000_000_000, BigInteger.valueOf(100_000L), BigInteger.valueOf(1_000_000L));
+		setAccounts(_1_000_000_000, _100_000, _1_000_000);
 	}
 
 	@Test @DisplayName("SignatureAlgorithm.empty() yields null")
 	void createAbstractFail() throws Exception {
-		StorageValue result = addStaticNonVoidMethodCallTransaction(privateKey(0), account(0), _20_000, panarea(1), jar(), EMPTY);
+		StorageValue result = addStaticNonVoidMethodCallTransaction(privateKey(0), account(0), _100_000, panarea(1), jar(), EMPTY);
 		// we verify that the result is null; this means that the implementation of SignatureAlgorithm
 		// from the store of the node has been run, not that used by the node
 		assertSame(StorageValues.NULL, result);

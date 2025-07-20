@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.tests;
 
-import static io.hotmoka.helpers.Coin.level2;
 import static io.hotmoka.helpers.Coin.level3;
 import static io.hotmoka.helpers.Coin.panarea;
 import static io.hotmoka.node.StorageTypes.BOOLEAN;
@@ -246,7 +245,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     	private void init() throws Exception {
     		System.out.printf("Performance test with %s... ", this);
     		// the last extra account is used only to create the creator of the token
-    		nodeWithAccounts = mkAccounts(Stream.generate(() -> level3(1)).limit(numberOfInvestors + 1));
+    		nodeWithAccounts = mkAccounts(Stream.generate(() -> level3(100)).limit(numberOfInvestors + 1));
     		investors = nodeWithAccounts.accounts().limit(numberOfInvestors).toArray(StorageReference[]::new);
     	    privateKeysOfInvestors = nodeWithAccounts.privateKeys().limit(numberOfInvestors).toArray(PrivateKey[]::new);
     	}
@@ -257,13 +256,13 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     		String publicKey = Base64.toBase64String(signature().encodingOf(keys.getPublic()));
     		var request = TransactionRequests.constructorCall
     			(signature().getSigner(nodeWithAccounts.privateKey(numberOfInvestors), SignedTransactionRequest::toByteArrayWithoutSignature),
-    			nodeWithAccounts.account(numberOfInvestors), ZERO, chainId(), _50_000, ZERO, jar(), ConstructorSignatures.of(CREATOR, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
-    			StorageValues.bigIntegerOf(level2(500)), StorageValues.stringOf(publicKey));
+    			nodeWithAccounts.account(numberOfInvestors), ZERO, chainId(), _500_000, ZERO, jar(), ConstructorSignatures.of(CREATOR, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
+    			StorageValues.bigIntegerOf(level3(50)), StorageValues.stringOf(publicKey));
     		creator = node.addConstructorCallTransaction(request);
     	}
 
     	private void distributeInitialTokens() throws Exception {
-    		var request = TransactionRequests.instanceMethodCall(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, ONE, chainId(), _100_000.multiply(BigInteger.valueOf(numberOfInvestors)), ZERO, jar(),
+    		var request = TransactionRequests.instanceMethodCall(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, ONE, chainId(), _500_000.multiply(BigInteger.valueOf(numberOfInvestors)), ZERO, jar(),
     			MethodSignatures.ofVoid(CREATOR, "distribute", StorageTypes.ACCOUNTS, StorageTypes.IERC20, StorageTypes.INT), creator,
     			nodeWithAccounts.container(), coin, StorageValues.intOf(50_000));
     	    node.addInstanceMethodCallTransaction(request);
@@ -361,7 +360,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
 		}
 
     	private int convertUBItoInt(StorageReference ubi) throws Exception {
-    		var request = TransactionRequests.instanceViewMethodCall(creator, _50_000, jar(), TO_BIG_INTEGER, ubi);
+    		var request = TransactionRequests.instanceViewMethodCall(creator, _500_000, jar(), TO_BIG_INTEGER, ubi);
     		return node.runInstanceMethodCallTransaction(request)
     			.orElseThrow(() -> new UnexpectedVoidMethodException(TO_BIG_INTEGER))
         		.asReturnedBigInteger(TO_BIG_INTEGER, UnexpectedValueException::new)

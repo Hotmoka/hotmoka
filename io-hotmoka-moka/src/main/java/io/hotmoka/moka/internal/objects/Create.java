@@ -242,7 +242,7 @@ public class Create extends AbstractGasCostCommand {
 		}
 
 		private BigInteger gasLimitHeuristic(SignatureAlgorithm signatureOfPayer) {
-			return _100_000.add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
+			return _500_000.add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
 		}
 
 		private StorageValue[] actualsAsStorageValues(CodeSignature signature) {

@@ -83,7 +83,7 @@ public class Faucet extends AbstractMokaRpcCommand {
 
 		try {
 			gamete = remote.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
+				(manifest, _500_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
 				.orElseThrow(() -> new CommandException(MethodSignatures.GET_GAMETE + " should not return void"))
 				.asReturnedReference(MethodSignatures.GET_GAMETE, CommandException::new);
 		}
@@ -126,7 +126,7 @@ public class Faucet extends AbstractMokaRpcCommand {
 			remote.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall
 				(signature.getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
 				gamete, NonceHelpers.of(remote).getNonceOf(gamete),
-				chainId, _100_000, GasHelpers.of(remote).getGasPrice(), takamakaCode,
+				chainId, _500_000, GasHelpers.of(remote).getGasPrice(), takamakaCode,
 				MethodSignatures.ofVoid(GAMETE, "setMaxFaucet", BIG_INTEGER), gamete,
 				StorageValues.bigIntegerOf(max)));
 		}

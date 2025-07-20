@@ -256,7 +256,7 @@ public class Send extends AbstractGasCostCommand {
 		}
 
 		private BigInteger gasLimitHeuristic(SignatureAlgorithm signatureOfPayer) throws CommandException {
-			return _100_000.add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
+			return _500_000.add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
 		}
 	}
 
@@ -346,7 +346,7 @@ public class Send extends AbstractGasCostCommand {
 	
 			try {
 				return remote.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-						(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
+						(manifest, _500_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
 						.orElseThrow(() -> new CommandException(MethodSignatures.GET_GAMETE + " should not return void"))
 						.asReturnedReference(MethodSignatures.GET_GAMETE, CommandException::new);
 			}
@@ -356,7 +356,7 @@ public class Send extends AbstractGasCostCommand {
 		}
 	
 		private BigInteger gasLimitHeuristic(SignatureAlgorithm signatureOfPayer) throws CommandException {
-			return _100_000.add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
+			return _500_000.add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
 		}
 	}
 
@@ -482,7 +482,7 @@ public class Send extends AbstractGasCostCommand {
 	
 			try {
 				return remote.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-						(manifest, _100_000, takamakaCode, MethodSignatures.GET_ACCOUNTS_LEDGER, manifest))
+						(manifest, _500_000, takamakaCode, MethodSignatures.GET_ACCOUNTS_LEDGER, manifest))
 						.orElseThrow(() -> new CommandException(MethodSignatures.GET_ACCOUNTS_LEDGER + " should not return void"))
 						.asReturnedReference(MethodSignatures.GET_ACCOUNTS_LEDGER, CommandException::new);
 			}

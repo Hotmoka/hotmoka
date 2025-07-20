@@ -67,7 +67,7 @@ import picocli.CommandLine.Option;
  * to the public API of the remote.
  */
 public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNode> {
-	protected final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
+	protected final static BigInteger _500_000 = BigInteger.valueOf(500_000L);
 
 	protected AbstractMokaRpcCommand() {
 	}
@@ -231,11 +231,11 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 	protected BigInteger gasForTransactionWhosePayerHasSignature(SignatureAlgorithm signature) {
 		switch (signature.getName()) {
 		case "qtesla1":
-			return BigInteger.valueOf(300_000L);
+			return BigInteger.valueOf(1_000_000L);
 		case "qtesla3":
-			return BigInteger.valueOf(400_000L);
+			return BigInteger.valueOf(1_500_000L);
 		default:
-			return _100_000;
+			return _500_000;
 		}
 	}
 

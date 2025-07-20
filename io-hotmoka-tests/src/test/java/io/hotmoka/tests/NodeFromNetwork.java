@@ -291,7 +291,7 @@ public class NodeFromNetwork extends HotmokaTest {
 
     		var method = MethodSignatures.ofNonVoid(ARRAY_TESTS, "testRandomInitialization", StorageTypes.INT);
     		var randomValue = remote.runStaticMethodCallTransaction
-       			(TransactionRequests.staticViewMethodCall(account(0), _500_000, jar, method))
+       			(TransactionRequests.staticViewMethodCall(account(0), _10_000_000, jar, method))
        			.orElseThrow(() -> new UnexpectedVoidMethodException(method))
        			.asReturnedInt(method, UnexpectedValueException::new);
 

@@ -47,22 +47,23 @@ public class StandardGasCostModel implements GasCostModel {
 
 	@Override
 	public int ramCostOfActivationRecord() {
-		return 4;
+		return 32;
 	}
 
 	@Override
 	public int ramCostOfActivationSlot() {
-		return 4;
+		return 8;
 	}
 
 	@Override
-	public BigInteger ramCostForInstallingJar(int numBytes) { // TODO: increase the cost of ram and cpu for jars
+	public BigInteger ramCostForInstallingJar(int numBytes) {
+		// higher than the subsequent one, since code verification applies
 		return BigInteger.valueOf(numBytes / 20);
 	}
 
 	@Override
 	public BigInteger ramCostForLoadingJar(int numBytes) {
-		return BigInteger.valueOf(numBytes / 100);
+		return BigInteger.valueOf(numBytes / 80);
 	}
 
 	@Override
@@ -72,27 +73,27 @@ public class StandardGasCostModel implements GasCostModel {
 
 	@Override
 	public int cpuCostOfArrayAccessInstruction() {
-		return 3;
+		return 2;
 	}
 
 	@Override
 	public int cpuCostOfFieldAccessInstruction() {
-		return 3;
+		return 2;
 	}
 
 	@Override
 	public int cpuCostOfInvokeInstruction() {
-		return 5;
+		return 8;
 	}
 
 	@Override
 	public int cpuCostOfSelectInstruction() {
-		return 4;
+		return 2;
 	}
 
 	@Override
 	public int cpuCostOfMemoryAllocationInstruction() {
-		return 10;
+		return 16;
 	}
 
 	@Override
@@ -102,16 +103,22 @@ public class StandardGasCostModel implements GasCostModel {
 
 	@Override
 	public BigInteger cpuCostForInstallingJar(int numBytes) {
-		return BigInteger.valueOf(numBytes / 100);
+		// higher than the subsequent one, since code verification applies
+		return BigInteger.valueOf(numBytes / 10);
 	}
 
 	@Override
 	public BigInteger cpuCostForLoadingJar(int numBytes) {
-		return BigInteger.valueOf(numBytes / 200);
+		return BigInteger.valueOf(numBytes / 40);
 	}
 
 	@Override
 	public BigInteger cpuBaseTransactionCost() {
-		return BigInteger.valueOf(10);
+		return BigInteger.valueOf(5_000);
+	}
+
+	@Override
+	public BigInteger storageCostOfByte() {
+		return BigInteger.valueOf(200);
 	}
 }

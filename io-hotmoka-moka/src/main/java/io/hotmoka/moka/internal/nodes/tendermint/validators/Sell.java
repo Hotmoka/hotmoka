@@ -210,7 +210,7 @@ public class Sell extends AbstractGasCostCommand {
 
 			try {
 				return remote.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest))
+					(manifest, _500_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest))
 					.orElseThrow(() -> new CommandException(MethodSignatures.GET_VALIDATORS + " should not return void"))
 					.asReturnedReference(MethodSignatures.GET_VALIDATORS, CommandException::new);
 			}

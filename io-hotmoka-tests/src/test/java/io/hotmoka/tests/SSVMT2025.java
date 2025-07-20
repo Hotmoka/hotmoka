@@ -73,7 +73,7 @@ class SSVMT2025 extends HotmokaTest {
 	@BeforeEach
 	void beforeEach() throws Exception {
 		long start = System.currentTimeMillis();
-		setAccounts(MY_ACCOUNTS, jar(), Stream.generate(() -> _50_000).limit(NUMBER_OF_ACCOUNTS)); // NUMBER_OF_ACCOUNTS accounts
+		setAccounts(MY_ACCOUNTS, jar(), Stream.generate(() -> _1_000_000_000).limit(NUMBER_OF_ACCOUNTS)); // NUMBER_OF_ACCOUNTS accounts
 		transactions.getAndIncrement();
 		totalTime += System.currentTimeMillis() - start;
 	}
@@ -118,7 +118,7 @@ class SSVMT2025 extends HotmokaTest {
 					while (ticket.getAndIncrement() < NUMBER_OF_TRANSFERS) {
 						StorageReference to = random.ints(0, NUMBER_OF_ACCOUNTS).filter(i -> i != num).mapToObj(i -> accounts[i]).findAny().get();
 						int amount = 1 + random.nextInt(10);
-						addInstanceVoidMethodCallTransaction(key, from, _50_000, ZERO, takamakaCode(), MethodSignatures.RECEIVE_INT, to, StorageValues.intOf(amount));
+						addInstanceVoidMethodCallTransaction(key, from, _500_000, ZERO, takamakaCode(), MethodSignatures.RECEIVE_INT, to, StorageValues.intOf(amount));
 						transfers.getAndIncrement();
 						transactions.getAndIncrement();
 					}
@@ -164,7 +164,7 @@ class SSVMT2025 extends HotmokaTest {
 		customThreadPool.submit(() -> IntStream.range(0, NUMBER_OF_ACCOUNTS).parallel().mapToObj(Worker::new).forEach(Runnable::run)).get();
 
 		// we ask for the richest account
-		StorageValue richest = runInstanceNonVoidMethodCallTransaction(account(0), _1_000_000, jar(), MethodSignatures.ofNonVoid(StorageTypes.classNamed(MY_ACCOUNTS), "richest", StorageTypes.EOA), containerOfAccounts());
+		StorageValue richest = runInstanceNonVoidMethodCallTransaction(account(0), _10_000_000, jar(), MethodSignatures.ofNonVoid(StorageTypes.classNamed(MY_ACCOUNTS), "richest", StorageTypes.EOA), containerOfAccounts());
 
 		totalTime += System.currentTimeMillis() - start;
 
@@ -173,10 +173,10 @@ class SSVMT2025 extends HotmokaTest {
 		// we compute the sum of the balances of the accounts
 		BigInteger sum = ZERO;
 		for (int i = 0; i < NUMBER_OF_ACCOUNTS; i++)
-			sum = sum.add(runInstanceNonVoidMethodCallTransaction(account(0), _50_000, takamakaCode(), MethodSignatures.BALANCE, account(i))
+			sum = sum.add(runInstanceNonVoidMethodCallTransaction(account(0), _500_000, takamakaCode(), MethodSignatures.BALANCE, account(i))
 					.asReturnedBigInteger(MethodSignatures.BALANCE, UnexpectedValueException::new));
 
 		// no money got lost in translation
-		assertEquals(sum, BigInteger.valueOf(NUMBER_OF_ACCOUNTS).multiply(_50_000));
+		assertEquals(BigInteger.valueOf(NUMBER_OF_ACCOUNTS).multiply(_1_000_000_000), sum);
 	}
 }

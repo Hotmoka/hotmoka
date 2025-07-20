@@ -59,10 +59,10 @@ class Distributor extends HotmokaTest {
 	@BeforeEach
 	void beforeEach() throws Exception {
 		setAccounts(
-			BigInteger.valueOf(1_100_000L), // balance of first account
-			BigInteger.valueOf(100_000L), // balance of second account
-			BigInteger.valueOf(100_000L), // balance of third account
-			BigInteger.valueOf(90_000L), // balance of fourth account
+			BigInteger.valueOf(5_500_000L), // balance of first account
+			_10_000_000, // balance of second account
+			_10_000_000, // balance of third account
+			BigInteger.valueOf(950_000L), // balance of fourth account
 			ZERO  // balance of fifth account
 		);
 	}
@@ -79,7 +79,7 @@ class Distributor extends HotmokaTest {
 		assertThrows(TransactionRejectedException.class, () ->
 			addInstanceVoidMethodCallTransaction(
 				privateKey(3), account(3),
-				_500_000,
+				BigInteger.valueOf(1_000_000),
 				ONE,
 				jar(),
 				ADD_AS_PAYEE,
@@ -95,20 +95,20 @@ class Distributor extends HotmokaTest {
 		final int numPayees = 3;
 
 		for  (int payee = 1; payee <= numPayees; payee++)
-			addInstanceVoidMethodCallTransaction(privateKey(payee), account(payee), _50_000, ONE, jar(), ADD_AS_PAYEE, distributor);
+			addInstanceVoidMethodCallTransaction(privateKey(payee), account(payee), _500_000, ONE, jar(), ADD_AS_PAYEE, distributor);
 
 		var initialBalances = new BigInteger[numPayees];
 		for  (int payee = 1; payee <= numPayees; payee++)
-			initialBalances[payee - 1] = runInstanceNonVoidMethodCallTransaction(account(payee), _50_000, jar(), MethodSignatures.BALANCE, account(payee)).asReturnedBigInteger(MethodSignatures.BALANCE, UnexpectedValueException::new);
+			initialBalances[payee - 1] = runInstanceNonVoidMethodCallTransaction(account(payee), _500_000, jar(), MethodSignatures.BALANCE, account(payee)).asReturnedBigInteger(MethodSignatures.BALANCE, UnexpectedValueException::new);
 
 		// the first account distributes 100 to the three payees
 		long distributed = 100L;
-		addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _50_000, ONE, jar(), DISTRIBUTE, distributor, StorageValues.bigIntegerOf(distributed));
+		addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _500_000, ONE, jar(), DISTRIBUTE, distributor, StorageValues.bigIntegerOf(distributed));
 
 		// each payee gets distributed / numPayees coins
 		var finalBalances = new BigInteger[numPayees];
 		for  (int payee = 1; payee <= numPayees; payee++)
-			finalBalances[payee - 1] = runInstanceNonVoidMethodCallTransaction(account(payee), _50_000, jar(), MethodSignatures.BALANCE, account(payee)).asReturnedBigInteger(MethodSignatures.BALANCE, UnexpectedValueException::new);
+			finalBalances[payee - 1] = runInstanceNonVoidMethodCallTransaction(account(payee), _500_000, jar(), MethodSignatures.BALANCE, account(payee)).asReturnedBigInteger(MethodSignatures.BALANCE, UnexpectedValueException::new);
 
 		BigInteger difference = BigInteger.valueOf(distributed / numPayees);
 		for (int payee = 1; payee <= numPayees; payee++)
@@ -134,6 +134,6 @@ class Distributor extends HotmokaTest {
 
 		// we add the special account as a payee of the distributor: this will fail since the classpath of the creation transaction
 		// of the special account is not reachable from the classpath of the creation transaction of the distributor
-		throwsTransactionExceptionWithCause(IllegalAssignmentToFieldInStorageException.class, () -> addInstanceVoidMethodCallTransaction(keysOfSpecialAccount.getPrivate(), specialAccount, _50_000, ONE, classpathOfSpecialAccount, ADD_AS_PAYEE, distributor));
+		throwsTransactionExceptionWithCause(IllegalAssignmentToFieldInStorageException.class, () -> addInstanceVoidMethodCallTransaction(keysOfSpecialAccount.getPrivate(), specialAccount, _500_000, ONE, classpathOfSpecialAccount, ADD_AS_PAYEE, distributor));
 	}
 }

@@ -59,7 +59,7 @@ class WrongKey extends HotmokaTest {
 				caller, BigInteger.ZERO, chainId(),
 				_100_000, panarea(1), takamakaCode(),
 				ConstructorSignatures.EOA_CONSTRUCTOR,
-				StorageValues.bigIntegerOf(_50_000), StorageValues.stringOf("ciao"))));
+				StorageValues.bigIntegerOf(_500_000), StorageValues.stringOf("ciao"))));
 		assertTrue(e.getMessage().contains("Invalid request signature"));
 	}
 }

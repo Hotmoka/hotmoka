@@ -124,7 +124,11 @@ public class AddGasUpdates extends MethodLevelInstrumentation {
 			// we do not count the calls due to instrumentation, such as those for gas metering themselves
 			if (!RUNTIME_OT.equals(receiver)) {
 				// we compute an estimation of the size of the activation frame for the callee
-				long size = invoke.getArgumentTypes(cpg).length;
+				Type[] args = invoke.getArgumentTypes(cpg);
+				int size = args.length;
+				if (size > 256)
+					throw new IllegalJarException("Unexpected high number of method arguments, max is 256 while I found " + size);
+
 				if (invoke instanceof INVOKEVIRTUAL || invoke instanceof INVOKESPECIAL || invoke instanceof INVOKEINTERFACE)
 					size++;
 

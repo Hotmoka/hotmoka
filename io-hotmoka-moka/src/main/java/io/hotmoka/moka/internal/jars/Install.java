@@ -169,7 +169,7 @@ public class Install extends AbstractGasCostCommand {
 	}
 
 	private BigInteger gasLimitHeuristic(byte[] bytes, SignatureAlgorithm signatureOfPayer) {
-		return _100_000.add(gasForTransactionWhosePayerHasSignature(signatureOfPayer)).add(BigInteger.valueOf(200).multiply(BigInteger.valueOf(bytes.length)));
+		return _500_000.add(gasForTransactionWhosePayerHasSignature(signatureOfPayer)).add(BigInteger.valueOf(200).multiply(BigInteger.valueOf(bytes.length)));
 	}
 
 	private TransactionReference[] computeDependencies(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException {

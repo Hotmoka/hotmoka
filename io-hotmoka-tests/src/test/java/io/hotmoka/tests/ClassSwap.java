@@ -81,27 +81,27 @@ class ClassSwap extends HotmokaTest {
 
 	@Test @DisplayName("c13 new/get works in its classpath")
 	void testC13() throws Exception {
-		StorageReference c13 = addConstructorCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC13, CONSTRUCTOR_C);
-		var get = (IntValue) addInstanceNonVoidMethodCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC13, GET, c13);
+		StorageReference c13 = addConstructorCallTransaction(key, account, _500_000, BigInteger.ONE, classpathC13, CONSTRUCTOR_C);
+		var get = (IntValue) addInstanceNonVoidMethodCallTransaction(key, account, _500_000, BigInteger.ONE, classpathC13, GET, c13);
 
 		assertSame(13, get.getValue());
 	}
 
 	@Test @DisplayName("c17 new/get works in its classpath")
 	void testC17() throws Exception {
-		StorageReference c17 = addConstructorCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC17, CONSTRUCTOR_C);
-		var get = (IntValue) addInstanceNonVoidMethodCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC17, GET, c17);
+		StorageReference c17 = addConstructorCallTransaction(key, account, _500_000, BigInteger.ONE, classpathC17, CONSTRUCTOR_C);
+		var get = (IntValue) addInstanceNonVoidMethodCallTransaction(key, account, _500_000, BigInteger.ONE, classpathC17, GET, c17);
 
 		assertSame(17, get.getValue());
 	}
 
 	@Test @DisplayName("c13 new/get fails if classpath changed")
 	void testC13SwapC17() throws Exception {
-		StorageReference c13 = addConstructorCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC13, CONSTRUCTOR_C);
+		StorageReference c13 = addConstructorCallTransaction(key, account, _500_000, BigInteger.ONE, classpathC13, CONSTRUCTOR_C);
 
 		// the following call should fail since c13 was created from another jar
 		throwsTransactionExceptionWithCause(DeserializationException.class, () ->
-			addInstanceNonVoidMethodCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC17, GET, c13)
+			addInstanceNonVoidMethodCallTransaction(key, account, _500_000, BigInteger.ONE, classpathC17, GET, c13)
 		);
 	}
 }

@@ -100,16 +100,16 @@ class Concurrency extends HotmokaTest {
 						StorageReference otherAccount = account(other);
 
 						// we ask for the balance of the account bound to the this worker
-						BigInteger ourBalance = runInstanceNonVoidMethodCallTransaction(ourAccount, _50_000, takamakaCode(), MethodSignatures.BALANCE, ourAccount)
+						BigInteger ourBalance = runInstanceNonVoidMethodCallTransaction(ourAccount, _500_000, takamakaCode(), MethodSignatures.BALANCE, ourAccount)
 							.asReturnedBigInteger(MethodSignatures.BALANCE, UnexpectedValueException::new);
 
 						// we ask for the balance of the account bound to the other worker
-						BigInteger otherBalance = runInstanceNonVoidMethodCallTransaction(ourAccount, _50_000, takamakaCode(), MethodSignatures.BALANCE, otherAccount)
+						BigInteger otherBalance = runInstanceNonVoidMethodCallTransaction(ourAccount, _500_000, takamakaCode(), MethodSignatures.BALANCE, otherAccount)
 							.asReturnedBigInteger(MethodSignatures.BALANCE, UnexpectedValueException::new);
 
 						// if we are poorer than other, we send him only 5,000 units of coin; otherwise, we send him 10,000 units
 						int sent = ourBalance.subtract(otherBalance).signum() < 0 ? 5_000 : 10_000;
-						addInstanceVoidMethodCallTransaction(privateKey(num), ourAccount, _50_000, ONE, takamakaCode(),
+						addInstanceVoidMethodCallTransaction(privateKey(num), ourAccount, _500_000, ONE, takamakaCode(),
 							MethodSignatures.RECEIVE_INT, otherAccount, StorageValues.intOf(sent));
 					}
 				}

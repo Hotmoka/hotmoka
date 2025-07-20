@@ -160,4 +160,12 @@ public interface GasCostModel {
 	 * @return the cost
 	 */
 	BigInteger cpuBaseTransactionCost();
+
+	/**
+	 * Yields the storage gas cost for storing a byte in the database. This applies
+	 * to requests and responses, that get stored into the database of a node.
+	 * 
+	 * @return the cost
+	 */
+	BigInteger storageCostOfByte();
 }

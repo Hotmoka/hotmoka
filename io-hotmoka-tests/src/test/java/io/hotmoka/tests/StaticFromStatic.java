@@ -47,7 +47,7 @@ class StaticFromStatic extends HotmokaTest {
 	@Test @DisplayName("StaticFromStatic.foo() == 42")
 	void callFoo() throws Exception {
 		var foo = MethodSignatures.ofNonVoid(StorageTypes.classNamed("io.hotmoka.examples.staticfromstatic.StaticFromStatic"), "foo", StorageTypes.INT);
-		var result = addStaticNonVoidMethodCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), foo).asReturnedInt(foo, UnexpectedValueException::new);
+		var result = addStaticNonVoidMethodCallTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, jar(), foo).asReturnedInt(foo, UnexpectedValueException::new);
 		assertEquals(42, result);
 	}
 }

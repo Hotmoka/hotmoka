@@ -75,32 +75,32 @@ class Storage extends HotmokaTest {
 
 	@Test @DisplayName("new SimpleStorage().get() is an int")
 	void neverInitializedStorageYieldsInt() throws Exception {
-		StorageReference storage = addConstructorCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
-		StorageValue value = runInstanceNonVoidMethodCallTransaction(eoa, _50_000, jar(), GET, storage);
+		StorageReference storage = addConstructorCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
+		StorageValue value = runInstanceNonVoidMethodCallTransaction(eoa, _500_000, jar(), GET, storage);
 		assertTrue(value instanceof IntValue);
 	}
 
 	@Test @DisplayName("new SimpleStorage().get() == 0")
 	void neverInitializedStorageYields0() throws Exception {
-		StorageReference storage = addConstructorCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
-		var value = runInstanceNonVoidMethodCallTransaction(eoa, _50_000, jar(), GET, storage).asReturnedInt(GET, UnexpectedValueException::new);
+		StorageReference storage = addConstructorCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
+		var value = runInstanceNonVoidMethodCallTransaction(eoa, _500_000, jar(), GET, storage).asReturnedInt(GET, UnexpectedValueException::new);
 		assertEquals(0, value);
 	}
 
 	@Test @DisplayName("new SimpleStorage().set(13) then get() == 13")
 	void set13ThenGet13() throws Exception {
-		StorageReference storage = addConstructorCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
-		addInstanceVoidMethodCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), SET, storage, StorageValues.intOf(13));
-		var value = runInstanceNonVoidMethodCallTransaction(eoa, _50_000, jar(), GET, storage).asReturnedInt(GET, UnexpectedValueException::new);
+		StorageReference storage = addConstructorCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
+		addInstanceVoidMethodCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), SET, storage, StorageValues.intOf(13));
+		var value = runInstanceNonVoidMethodCallTransaction(eoa, _500_000, jar(), GET, storage).asReturnedInt(GET, UnexpectedValueException::new);
 		assertEquals(13, value);
 	}
 
 	@Test @DisplayName("new SimpleStorage().set(13) then set(17) then get() == 17")
 	void set13set17ThenGet17() throws Exception {
-		StorageReference storage = addConstructorCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
-		addInstanceVoidMethodCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), SET, storage, StorageValues.intOf(13));
-		addInstanceVoidMethodCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), SET, storage, StorageValues.intOf(17));
-		var value = runInstanceNonVoidMethodCallTransaction(eoa, _50_000, jar(), GET, storage).asReturnedInt(GET, UnexpectedValueException::new);
+		StorageReference storage = addConstructorCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
+		addInstanceVoidMethodCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), SET, storage, StorageValues.intOf(13));
+		addInstanceVoidMethodCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), SET, storage, StorageValues.intOf(17));
+		var value = runInstanceNonVoidMethodCallTransaction(eoa, _500_000, jar(), GET, storage).asReturnedInt(GET, UnexpectedValueException::new);
 		assertEquals(17, value);
 	}
 }

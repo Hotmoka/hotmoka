@@ -38,7 +38,7 @@ class WrongChainId extends HotmokaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setAccounts(_50_000);
+		setAccounts(_500_000);
 	}
 
 	@Test @DisplayName("constructor call with wrong chain identifier fails")
@@ -50,7 +50,7 @@ class WrongChainId extends HotmokaTest {
 			node.addConstructorCallTransaction(TransactionRequests.constructorCall(signature().getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature),
 				caller, BigInteger.ZERO, chainId() + "noise",
 				_100_000, panarea(1), takamakaCode(), ConstructorSignatures.EOA_CONSTRUCTOR,
-				StorageValues.bigIntegerOf(_50_000), StorageValues.stringOf("ciao")))
+				StorageValues.bigIntegerOf(_500_000), StorageValues.stringOf("ciao")))
 		);
 	}
 }
