@@ -226,8 +226,8 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			mokamintNode.add(Transactions.of(request.toByteArray()));
 		}
 		catch (io.mokamint.node.api.TransactionRejectedException e) {
-			// the mempool of the Mokamint engine has rejected the transaction:
-			// the node has been already signaled that it failed, so there is nothing to do here
+			// the mempool of the Mokamint engine has rejected the transaction
+			signalRejected(request, new TransactionRejectedException(e.getMessage()));
 		}
 		catch (io.mokamint.node.api.ClosedNodeException e) {
 			throw new ClosedNodeException(e);

@@ -495,6 +495,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	protected final void signalRejected(TransactionRequest<?> request, TransactionRejectedException e) {
 		var reference = TransactionReferences.of(hasher.hash(request));
 		recentlyRejectedTransactionsMessages.put(reference, e.getMessage());
+		LOGGER.warning("transaction " + reference + " has been rejected: " + e.getMessage());
 		signalCompleted(reference);
 	}
 

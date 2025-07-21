@@ -101,6 +101,7 @@ public abstract class CodeExecutionTransactionRequestImpl<R extends CodeExecutio
 			return baos.toByteArray();
 		}
 		catch (IOException e) {
+			// TODO: this actually happens if the request contains for instance large strings
 			// impossible with a byte array output stream
 			throw new RuntimeException("Unexpected exception", e);
 		}
