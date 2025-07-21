@@ -331,10 +331,11 @@ public class UpdateForNewNode {
 			StorageReference account6 = output46.getAccount().get();
 			report("sed -i 's/@transaction_account6/" + output46.getTransaction() + "/g' target/Tutorial.md");
 			report("sed -i 's/@account6/" + account6 + "/g' target/Tutorial.md");
-			System.out.println("running Auction: it will take around four minutes");
+
+			System.out.println("running Auction: it will take around ten minutes");
 			String runAuctionMain = run(() -> Auction.main(new String[] { tendermintURI.toString(), dir.toString(), account4.toString(), "banana", account5.toString(), "mango", account6.toString(), "strawberry" }));
 			report("sed -i 's/@auction_main_output/" + runAuctionMain.toString().trim().replace("/", "\\/").replace("\n", "\\n") + "/g' target/Tutorial.md");
-			System.out.println("running Events: it will take around four minutes");
+			System.out.println("running Events: it will take around ten minutes");
 			String runEventsMain = run(() -> Events.main(new String[] { tendermintURI.toString(), dir.toString(), account4.toString(), "banana", account5.toString(), "mango", account6.toString(), "strawberry" }));
 			// we cut long sentences at "by contract"
 			report("sed -i 's/@events_main_output/" + runEventsMain.toString().trim().replace("/", "\\/").replace("by contract", "\n  by contract").replace("\n", "\\n") + "/g' target/Tutorial.md");
@@ -353,7 +354,6 @@ public class UpdateForNewNode {
 			var output49 = AccountsCreateOutputs.from(Moka.accountsCreate("faucet 1000000000000 " + dir.resolve("account7.pem") + " --dir=" + dir + " --output-dir=" + dir + " --password=game --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			StorageReference account7 = output49.getAccount().get();
 			report("sed -i 's/@transaction_account7/" + output49.getTransaction() + "/g' target/Tutorial.md");
-			report("sed -i 's/@account7/" + account7 + "/g' target/Tutorial.md");
 			var output50 = ObjectsShowOutputs.from(Moka.objectsShow(account7 + " --json --uri=" + mokamintURI + " --timeout=" + TIMEOUT));
 			StorageValue publicKeyAccount7 = output50.getFields().filter(update -> "publicKey".equals(update.getField().getName())).map(update -> update.getValue()).findFirst().get();
 			// we replace the / character of Base64 encodings with the (escaped) escape sequence \/ for "sed"

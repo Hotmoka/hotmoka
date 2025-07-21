@@ -88,7 +88,7 @@ public class Family {
         BigInteger nonce = node
           .runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
             (payer, // payer
-            BigInteger.valueOf(50_000), // gas limit
+            BigInteger.valueOf(100_000), // gas limit
             takamakaCode, // class path for the execution of the transaction
             MethodSignatures.NONCE, // method
             payer)).get() // receiver of the method call

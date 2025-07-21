@@ -96,7 +96,7 @@ public class FamilyExported {
 	  BigInteger nonce = node
 	    .runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 	      (payer, // payer
-	      BigInteger.valueOf(50_000), // gas limit
+	      BigInteger.valueOf(100_000), // gas limit
 	      takamakaCode, // class path for the execution of the transaction
 	      MethodSignatures.NONCE, // method
 	      payer)).get() // receiver of the method call
@@ -131,7 +131,7 @@ public class FamilyExported {
          payer, // payer
          nonce, // payer's nonce: relevant since this is not a call to a @View method!
          chainId, // chain identifier: relevant since this is not a call to a @View method!
-         BigInteger.valueOf(50_000), // gas limit: enough for a small object
+         BigInteger.valueOf(100_000), // gas limit: enough for a small object
          panarea(gasHelper.getSafeGasPrice()), // gas price, in panareas
          family, // class path for the execution of the transaction
 
@@ -153,7 +153,7 @@ public class FamilyExported {
           payer, // payer
           nonce, // payer's nonce: relevant since this is not a call to a @View method!
           chainId, // chain identifier: relevant since this is not a call to a @View method!
-          BigInteger.valueOf(50_000), // gas limit: enough for a small object
+          BigInteger.valueOf(100_000), // gas limit: enough for a small object
           panarea(gasHelper.getSafeGasPrice()), // gas price, in panareas
           family, // class path for the execution of the transaction
 

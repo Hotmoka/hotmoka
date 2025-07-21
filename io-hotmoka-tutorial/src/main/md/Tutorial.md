@@ -1447,7 +1447,7 @@ public class Family {
       BigInteger nonce = node
         .runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
           (payer, // payer
-          BigInteger.valueOf(50_000), // gas limit
+          BigInteger.valueOf(100_000), // gas limit
           takamakaCode, // class path for the execution of the transaction
           MethodSignatures.NONCE, // method
           payer)).get() // receiver of the method call
@@ -1785,7 +1785,7 @@ public class FamilyStorage {
       BigInteger nonce = node
         .runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
           (payer, // payer
-          BigInteger.valueOf(50_000), // gas limit
+          BigInteger.valueOf(100_000), // gas limit
           takamakaCode, // class path for the execution of the transaction
           MethodSignatures.NONCE, // method
           payer)).get() // receiver of the method call
@@ -1820,7 +1820,7 @@ public class FamilyStorage {
          payer, // payer
          nonce, // payer's nonce: relevant since this is not a call to a @View method!
          chainId, // chain identifier: relevant since this is not a call to a @View method!
-         BigInteger.valueOf(50_000), // gas limit: enough for a small object
+         BigInteger.valueOf(100_000), // gas limit: enough for a small object
          panarea(gasHelper.getSafeGasPrice()), // gas price, in panareas
          family, // class path for the execution of the transaction
 
@@ -2095,7 +2095,7 @@ public class FamilyExported {
 	  BigInteger nonce = node
 	    .runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 	      (payer, // payer
-	      BigInteger.valueOf(50_000), // gas limit
+	      BigInteger.valueOf(100_000), // gas limit
 	      takamakaCode, // class path for the execution of the transaction
 	      MethodSignatures.NONCE, // method
 	      payer)).get() // receiver of the method call
@@ -2130,7 +2130,7 @@ public class FamilyExported {
          payer, // payer
          nonce, // payer's nonce: relevant since this is not a call to a @View method!
          chainId, // chain identifier: relevant since this is not a call to a @View method!
-         BigInteger.valueOf(50_000), // gas limit: enough for a small object
+         BigInteger.valueOf(100_000), // gas limit: enough for a small object
          panarea(gasHelper.getSafeGasPrice()), // gas price, in panareas
          family, // class path for the execution of the transaction
 
@@ -2152,7 +2152,7 @@ public class FamilyExported {
           payer, // payer
           nonce, // payer's nonce: relevant since this is not a call to a @View method!
           chainId, // chain identifier: relevant since this is not a call to a @View method!
-          BigInteger.valueOf(50_000), // gas limit: enough for a small object
+          BigInteger.valueOf(100_000), // gas limit: enough for a small object
           panarea(gasHelper.getSafeGasPrice()), // gas price, in panareas
           family, // class path for the execution of the transaction
 
@@ -2346,7 +2346,7 @@ StorageValue s = node.addInstanceMethodCallTransaction
     payer,
     nonce,
     chainId,
-    BigInteger.valueOf(50_000),
+    BigInteger.valueOf(100_000),
     panarea(gasHelper.getSafeGasPrice()),
     family,
     MethodSignatures.ofNonVoid(PERSON, "toString", StorageTypes.STRING),
@@ -2366,7 +2366,7 @@ MethodFuture future = node.postInstanceMethodCallTransaction
     payer,
     nonce,
     chainId,
-    BigInteger.valueOf(50_000),
+    BigInteger.valueOf(100_000),
     panarea(gasHelper.getSafeGasPrice()),
     family,
     MethodSignatures.ofNonVoid(PERSON, "toString", StorageTypes.STRING),
@@ -4819,8 +4819,8 @@ import io.hotmoka.node.remote.RemoteNodes;
 public class Auction {
 
   public final static int NUM_BIDS = 10; // number of bids placed
-  public final static int BIDDING_TIME = 100_000; // in milliseconds
-  public final static int REVEAL_TIME = 140_000; // in milliseconds
+  public final static int BIDDING_TIME = 230_000; // in milliseconds
+  public final static int REVEAL_TIME = 350_000; // in milliseconds
 
   private final static BigInteger _500_000 = BigInteger.valueOf(500_000);
 
@@ -4979,7 +4979,7 @@ public class Auction {
       int player = 1 + random.nextInt(accounts.length - 1);
       var deposit = BigInteger.valueOf(random.nextInt(1000));
       var value = BigInteger.valueOf(random.nextInt(1000));
-      boolean fake = random.nextBoolean();
+      boolean fake = random.nextInt(100) >= 80;
       var salt = new byte[32];
       random.nextBytes(salt); // random 32 bytes of salt for each bid
 
@@ -5129,8 +5129,8 @@ shorter block creation times would allow shorter timings):
 
 ```java
 public final static int NUM_BIDS = 10;
-public final static int BIDDING_TIME = 100_000;
-public final static int REVEAL_TIME = 140_000;
+public final static int BIDDING_TIME = 230_000;
+public final static int REVEAL_TIME = 350_000;
 ```
 
 Some constant signatures follow,
@@ -5154,7 +5154,7 @@ while (i <= NUM_BIDS) {
   int player = 1 + random.nextInt(accounts.length - 1);
   var deposit = BigInteger.valueOf(random.nextInt(1000));
   var value = BigInteger.valueOf(random.nextInt(1000));
-  var fake = random.nextBoolean();
+  var fake = random.nextInt(100) >= 80; // fake in 20% of the cases
   var salt = new byte[32];
   random.nextBytes(salt);
   ...
@@ -5300,7 +5300,7 @@ handler. In our case, this is the `auction` contract. Thus, clone the `Auction.j
 
 ```java
 ...
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 ...
 auction = createAuction();
@@ -5329,7 +5329,7 @@ private void eventHandler(StorageReference creator, StorageReference event) {
       ("Seen event of class " + node.getClassTag(event).getClazz()
        + " created by contract " + creator);
   }
-  catch (NodeException | UnknownReferenceException | TimeoutException e) {
+  catch (ClosedNodeException | UnknownReferenceException | TimeoutException e) {
     System.out.println("The node is misbehaving: " + e.getMessage());
   }
   catch (InterruptedException e) {

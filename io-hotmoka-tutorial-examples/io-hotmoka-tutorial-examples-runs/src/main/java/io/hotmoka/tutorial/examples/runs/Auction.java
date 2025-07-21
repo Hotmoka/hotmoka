@@ -76,12 +76,12 @@ public class Auction {
   /**
    * The time of the bidding phase, in milliseconds.
    */
-  public final static int BIDDING_TIME = 100_000;
+  public final static int BIDDING_TIME = 230_000;
 
   /**
    * The time of the reveal phase, in milliseconds.
    */
-  public final static int REVEAL_TIME = 140_000;
+  public final static int REVEAL_TIME = 350_000;
 
   private final static BigInteger _500_000 = BigInteger.valueOf(500_000);
 
@@ -244,7 +244,7 @@ public class Auction {
       int player = 1 + random.nextInt(accounts.length - 1);
       var deposit = BigInteger.valueOf(random.nextInt(1000));
       var value = BigInteger.valueOf(random.nextInt(1000));
-      var fake = random.nextBoolean();
+      var fake = random.nextInt(100) >= 80; // fake in 20% of the cases
       var salt = new byte[32];
       random.nextBytes(salt); // random 32 bytes of salt for each bid
 

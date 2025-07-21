@@ -133,7 +133,7 @@ class BlindAuction extends HotmokaTest {
 			int player = 1 + random.nextInt(3);
 			var deposit = BigInteger.valueOf(random.nextInt(1000));
 			var value = BigInteger.valueOf(random.nextInt(1000));
-			boolean fake = random.nextBoolean();
+			boolean fake = random.nextInt(100) >= 80; // fake in 20% of the cases
 			var salt = new byte[32];
 			random.nextBytes(salt);
 			StorageReference bytes32 = codeAsBytes32(player, value, fake, salt);
@@ -268,6 +268,7 @@ class BlindAuction extends HotmokaTest {
 		if (winner instanceof NullValue)
 			winner = null;
 
+		System.out.println(expectedWinner + " vs " + winner);
 		assertEquals(expectedWinner, winner);
 	}
 
