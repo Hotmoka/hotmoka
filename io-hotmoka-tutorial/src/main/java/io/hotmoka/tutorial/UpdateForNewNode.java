@@ -14,8 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// mvn clean install; java --module-path modules/explicit_or_automatic --class-path modules/unnamed --module io.hotmoka.tutorial/io.hotmoka.tutorial.UpdateForNewNode ws://panarea.hotmoka.io:8001
-
 package io.hotmoka.tutorial;
 
 import static io.hotmoka.constants.Constants.HOTMOKA_VERSION;
@@ -376,8 +374,11 @@ public class UpdateForNewNode {
 			StorageReference account10 = output54.getAccount().get();
 			report("sed -i 's/@transaction_account10/" + output54.getTransaction() + "/g' target/Tutorial.md");
 			report("sed -i 's/@account10/" + account10 + "/g' target/Tutorial.md");
+			System.out.println("I wait one minute since the previous command might have increased the gas cost too much");
+			Thread.sleep(60_000L);
 			Path jar7 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family_exported/" + HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family_exported-" + HOTMOKA_VERSION + ".jar");
-			var output55 = JarsInstallOutputs.from(Moka.jarsInstall(account9 + " " + jar7 + " --password-of-payer=quantum1 --dir=" + dir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));			report("sed -i 's/@family3_install_transaction/" + output55.getTransaction() + "/g' target/Tutorial.md");
+			var output55 = JarsInstallOutputs.from(Moka.jarsInstall(account9 + " " + jar7 + " --password-of-payer=quantum1 --dir=" + dir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
+			report("sed -i 's/@family3_install_transaction/" + output55.getTransaction() + "/g' target/Tutorial.md");
 			TransactionReference family3Address = output55.getJar().get();
 			report("sed -i 's/@family3_address/" + family3Address + "/g' target/Tutorial.md");
 		}
