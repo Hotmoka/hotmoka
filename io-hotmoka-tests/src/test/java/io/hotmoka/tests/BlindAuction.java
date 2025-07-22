@@ -268,7 +268,6 @@ class BlindAuction extends HotmokaTest {
 		if (winner instanceof NullValue)
 			winner = null;
 
-		System.out.println(expectedWinner + " vs " + winner);
 		assertEquals(expectedWinner, winner);
 	}
 
