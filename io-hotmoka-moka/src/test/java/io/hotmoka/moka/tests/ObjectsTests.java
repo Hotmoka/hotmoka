@@ -37,7 +37,7 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.takamaka.code.constants.Constants;
 
 /**
- * Tests for the moka objects commands.
+ * Tests for the {@code moka objects} commands.
  */
 public class ObjectsTests extends AbstractMokaTestWithNode {
 	

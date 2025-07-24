@@ -31,6 +31,7 @@ module io.hotmoka.moka.api {
 	exports io.hotmoka.moka.api.nodes.tendermint;
 	exports io.hotmoka.moka.api.nodes.tendermint.validators;
 	exports io.hotmoka.moka.api.objects;
+	exports io.hotmoka.moka.api.transactions;
 
 	requires transitive io.hotmoka.node.api;
 	requires io.hotmoka.annotations;

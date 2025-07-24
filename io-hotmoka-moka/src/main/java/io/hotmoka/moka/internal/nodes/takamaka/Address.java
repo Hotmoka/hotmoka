@@ -35,16 +35,8 @@ import picocli.CommandLine.Command;
 public class Address extends AbstractMokaRpcCommand {
 
 	@Override
-	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException {
-		try {
-			report(json(), new Output(remote.getTakamakaCode()), NodesTakamakaAddressOutputs.Encoder::new);
-		}
-		catch (UninitializedNodeException e) {
-			throw new CommandException("The node is not initialized yet!", e);
-		}
-		catch (ClosedNodeException e) {
-			throw new CommandException("The node is already closed!", e);
-		}
+	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, UninitializedNodeException, ClosedNodeException {
+		report(json(), new Output(remote.getTakamakaCode()), NodesTakamakaAddressOutputs.Encoder::new);
 	}
 
 	/**

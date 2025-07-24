@@ -29,6 +29,7 @@ import io.hotmoka.moka.internal.Jars;
 import io.hotmoka.moka.internal.Keys;
 import io.hotmoka.moka.internal.Nodes;
 import io.hotmoka.moka.internal.Objects;
+import io.hotmoka.moka.internal.Transactions;
 import picocli.CommandLine.Command;
 
 /**
@@ -48,7 +49,8 @@ import picocli.CommandLine.Command;
 		Jars.class,
 		Keys.class,
 		Nodes.class,
-		Objects.class
+		Objects.class,
+		Transactions.class
 	}
 )
 public class Moka extends AbstractCLI {
@@ -316,6 +318,17 @@ public class Moka extends AbstractCLI {
 	 */
 	public static String objectsShow(String args) throws IOException {
 		return run("objects show " + args);
+	}
+
+	/**
+	 * Runs the {@code moka transactions show} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String transactionsShow(String args) throws IOException {
+		return run("transactions show " + args);
 	}
 
 	/**
