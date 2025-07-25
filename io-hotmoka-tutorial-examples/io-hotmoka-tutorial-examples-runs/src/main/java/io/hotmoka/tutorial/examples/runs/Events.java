@@ -329,7 +329,7 @@ public class Events {
   }
 
   private void waitUntilAllEventsAreFlushed() {
-    waitUntil(BIDDING_TIME + REVEAL_TIME + 12000, "Waiting until all events are flushed");
+    waitUntil(BIDDING_TIME + REVEAL_TIME + 30000, "Waiting until all events are flushed");
   }
 
   /**
@@ -339,7 +339,7 @@ public class Events {
     long msToWait = start + duration - System.currentTimeMillis();
     System.out.println(forWhat + " (" + msToWait + "ms still missing)");
 	try {
-      Thread.sleep(start + duration - System.currentTimeMillis());
+      Thread.sleep(msToWait);
     }
     catch (InterruptedException e) {
       Thread.currentThread().interrupt();

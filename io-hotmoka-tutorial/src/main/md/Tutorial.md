@@ -1428,7 +1428,7 @@ public class Family {
 	var payer = StorageValues.reference(args[2]);
 	var password = args[3];
 
-	try (var node = RemoteNodes.of(new URI(args[0]), 80000)) {
+	try (var node = RemoteNodes.of(new URI(args[0]), 150000)) {
     	// we get a reference to where io-takamaka-code-X.Y.Z.jar has been stored
       TransactionReference takamakaCode = node.getTakamakaCode();
 
@@ -1766,7 +1766,7 @@ public class FamilyStorage {
     var payer = StorageValues.reference(args[2]);
     var password = args[3];
 
-    try (var node = RemoteNodes.of(new URI(args[0]), 80000)) {
+    try (var node = RemoteNodes.of(new URI(args[0]), 150000)) {
       // we get a reference to where io-takamaka-code-X.Y.Z.jar has been stored
       TransactionReference takamakaCode = node.getTakamakaCode();
 
@@ -2076,7 +2076,7 @@ public class FamilyExported {
     var payer = StorageValues.reference(args[2]);
     var password = args[3];
 
-    try (var node = RemoteNodes.of(new URI(args[0]), 80000)) {
+    try (var node = RemoteNodes.of(new URI(args[0]), 150000)) {
       // we get a reference to where io-takamaka-code-X.Y.Z.jar has been stored
       TransactionReference takamakaCode = node.getTakamakaCode();
 
@@ -5063,7 +5063,7 @@ public class Auction {
     long msToWait = start + duration - System.currentTimeMillis();
     System.out.println(forWhat + " (" + msToWait + "ms still missing)");
 	try {
-      Thread.sleep(start + duration - System.currentTimeMillis());
+      Thread.sleep(msToWait);
     }
     catch (InterruptedException e) {
       Thread.currentThread().interrupt();
@@ -5320,7 +5320,7 @@ try (var subscription = node.subscribeToEvents(auction, this::eventHandler)) {
 }
 
 private void waitUntilAllEventsAreFlushed() {
-  waitUntil(BIDDING_TIME + REVEAL_TIME + 12000, "Waiting until all events are flushed");
+  waitUntil(BIDDING_TIME + REVEAL_TIME + 30000, "Waiting until all events are flushed");
 }
 
 private void eventHandler(StorageReference creator, StorageReference event) {
@@ -6759,13 +6759,13 @@ Namely, if you go back to [Installation of the Jar in a Hotmoka Node](#installat
 you will see that we have built a Hotmoka node from a remote service:
 
 ```java
-try (var node = RemoteNodes.of(URI.create("@server_mokamint"), 80000)) {
+try (var node = RemoteNodes.of(URI.create("@server_mokamint"), 150000)) {
   ...
 }
 ```
 The `RemoteNodes.of(...)` method adapts a remote service into a Hotmoka node,
 so that we can call all methods of that (Figure @fig:node_hierarchy). The
-`80000` parameter is the timeout, in milliseconds, for connecting to the service
+`150000` parameter is the timeout, in milliseconds, for connecting to the service
 and for the methods called on the remote node.
 
 ### Creating Sentry Nodes

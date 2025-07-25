@@ -76,7 +76,7 @@ public class FamilyStorage {
     var payer = StorageValues.reference(args[2]);
     var password = args[3];
 
-    try (var node = RemoteNodes.of(new URI(args[0]), 80000)) {
+    try (var node = RemoteNodes.of(new URI(args[0]), 150000)) {
       // we get a reference to where io-takamaka-code-X.Y.Z.jar has been stored
       TransactionReference takamakaCode = node.getTakamakaCode();
 
