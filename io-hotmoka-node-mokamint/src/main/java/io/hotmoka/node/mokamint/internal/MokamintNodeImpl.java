@@ -304,6 +304,11 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		private final ConcurrentMap<Integer, MokamintStoreTransformation> transformations = new ConcurrentHashMap<>();
 
 		/**
+		 * The final state ids for the transformations in {@link #transformations}.
+		 */
+		private final ConcurrentMap<Integer, StateId> finalStateIds = new ConcurrentHashMap<>();
+
+		/**
 		 * The next group id to use for the next transformation that will be started with this application.
 		 */
 		private final AtomicInteger nextId = new AtomicInteger();
@@ -384,25 +389,9 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			try (var scope = mkScope()) {
 				MokamintStoreTransformation transformation = getTransformation(groupId);
 				transformation.deliverCoinbaseTransactions(deadline.getProlog());
-
-				StateId idOfFinalStore = getEnvironment().computeInTransaction(txn -> {
-					StateId id = transformation.getIdOfFinalStore(txn);
-
-					try {
-						persist(id, transformation.getNow(), txn); // TODO: should this be moved in commitBlock() ?
-					}
-					catch (UnknownStateIdException e) {
-						// impossible, we have just computed this id for the final store
-						throw new LocalNodeException("State id " + id + " has been just computed: it must have existed", e);
-					}
-
-					return id;
-				});
-
-				LOGGER.fine(() -> "persisted state " + idOfFinalStore);
-
-				if (lastCaches.get(idOfFinalStore) == null)
-					lastCaches.put(idOfFinalStore, transformation.getCache());
+				StateId idOfFinalStore = getEnvironment().computeInTransaction(transformation::getIdOfFinalStore);
+				finalStateIds.put(groupId, idOfFinalStore);
+				lastCaches.put(idOfFinalStore, transformation.getCache());
 
 				return idOfFinalStore.getBytes();
 			}
@@ -412,8 +401,23 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		public void commitBlock(int groupId) throws UnknownGroupIdException, ClosedApplicationException {
 			try (var scope = mkScope()) {
 				var transformation = getTransformation(groupId);
+				var idOfFinalStore = finalStateIds.get(groupId);
 				exit(transformation.getInitialStore());
+
+				getEnvironment().executeInTransaction(txn -> {
+					try {
+						persist(idOfFinalStore, transformation.getNow(), txn);
+					}
+					catch (UnknownStateIdException e) {
+						// impossible, we have just computed this id inside edBlock(), which was meant to be called before this method
+						throw new LocalNodeException("State id " + idOfFinalStore + " has been just computed: it must have existed", e);
+					}
+				});
+
+				LOGGER.fine(() -> "persisted state " + idOfFinalStore);
+
 				transformations.remove(groupId);
+				finalStateIds.remove(groupId);
 			}
 		}
 
@@ -423,6 +427,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 				var transformation = getTransformation(groupId);
 				exit(transformation.getInitialStore());
 				transformations.remove(groupId);
+				finalStateIds.remove(groupId);
 			}
 		}
 

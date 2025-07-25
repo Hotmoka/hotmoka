@@ -287,7 +287,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 			return getNode().mkTrieOfResponses(txn, rootOfResponses);
 		}
 		catch (UnknownKeyException e) {
-			// the constructors enforce the existence of the root, there this is a database problem
+			// the constructors enforce the existence of the root, therefore this is a database problem
 			throw new LocalNodeException("The root was expected to be in store");
 		}
 	}
@@ -297,7 +297,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 			return getNode().mkTrieOfInfo(txn, rootOfInfo);
 		}
 		catch (UnknownKeyException e) {
-			// the constructors enforce the existence of the root, there this is a database problem
+			// the constructors enforce the existence of the root, therefore this is a database problem
 			throw new LocalNodeException("The root was expected to be in store");
 		}
 	}
@@ -307,7 +307,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 			return getNode().mkTrieOfRequests(txn, rootOfRequests);
 		}
 		catch (UnknownKeyException e) {
-			// the constructors enforce the existence of the root, there this is a database problem
+			// the constructors enforce the existence of the root, therefore this is a database problem
 			throw new LocalNodeException("The root was expected to be in store");
 		}
 	}
@@ -317,7 +317,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 			return getNode().mkTrieOfHistories(txn, rootOfHistories);
 		}
 		catch (UnknownKeyException e) {
-			// the constructors enforce the existence of the root, there this is a database problem
+			// the constructors enforce the existence of the root, therefore this is a database problem
 			throw new LocalNodeException("The root was expected to be in store");
 		}
 	}
