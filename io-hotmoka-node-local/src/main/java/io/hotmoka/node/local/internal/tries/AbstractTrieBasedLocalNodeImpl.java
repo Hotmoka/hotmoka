@@ -25,6 +25,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -33,7 +34,6 @@ import io.hotmoka.annotations.GuardedBy;
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.HashingAlgorithm;
-import io.hotmoka.exceptions.functions.ConsumerWithExceptions1;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.local.AbstractLocalNode;
 import io.hotmoka.node.local.LocalNodeException;
@@ -285,19 +285,22 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		return mkEmptyStore().checkedOutAt(stateId, cache);
 	}
 
-	private void gc(StateIdAndTime stateIdAndTime) throws InterruptedException {
-		try {
-			ConsumerWithExceptions1<Transaction, UnknownStateIdException> gc = txn -> {
+	private void gc(StateIdAndTime stateIdAndTime) {
+		Function<Transaction, Optional<UnknownStateIdException>> gc = txn -> {
+			try {
 				free(stateIdAndTime.stateId, txn);
 				removeFromStores(STORES_TO_GC, stateIdAndTime, txn);
-			};
+				return Optional.empty();
+			}
+			catch (UnknownStateIdException e) {
+				return Optional.of(e);
+			}
+		};
 
-			env.executeInTransaction(UnknownStateIdException.class, gc);
-			LOGGER.fine(() -> "garbage-collected store " + stateIdAndTime.stateId);
-		}
-		catch (UnknownStateIdException e) {
-			LOGGER.log(Level.SEVERE, "cannot garbage-collect store " + stateIdAndTime.stateId, e);
-		}
+		env.computeInTransaction(gc).ifPresentOrElse(
+			e -> LOGGER.log(Level.SEVERE, "cannot garbage-collect store " + stateIdAndTime.stateId, e),
+			() -> LOGGER.fine(() -> "garbage-collected store " + stateIdAndTime.stateId)
+		);
 	}
 
 	/**

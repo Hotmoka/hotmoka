@@ -19,10 +19,10 @@ package io.hotmoka.node.local.internal.tries;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.exceptions.functions.ConsumerWithExceptions1;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
@@ -218,19 +218,24 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 	}
 
 	private void checkExistence() throws UnknownStateIdException {
-		try {
-			ConsumerWithExceptions1<Transaction, UnknownKeyException> checkTriesExist = txn -> {
-				getNode().checkExistenceOfRootOfRequests(txn, rootOfRequests);
-				getNode().checkExistenceOfRootOfResponses(txn, rootOfResponses);
-				getNode().checkExistenceOfRootOfHistories(txn, rootOfHistories);
-				getNode().checkExistenceOfRootOfInfo(txn, rootOfInfo);
-			};
+		Function<Transaction, Optional<UnknownStateIdException>> checkTriesExist = txn -> {
+			var node = getNode();
 
-			getNode().getEnvironment().executeInReadonlyTransaction(UnknownKeyException.class, checkTriesExist);
-		}
-		catch (UnknownKeyException e) {
-			throw new UnknownStateIdException();
-		}
+			try {
+				node.checkExistenceOfRootOfRequests(txn, rootOfRequests);
+				node.checkExistenceOfRootOfResponses(txn, rootOfResponses);
+				node.checkExistenceOfRootOfHistories(txn, rootOfHistories);
+				node.checkExistenceOfRootOfInfo(txn, rootOfInfo);
+				return Optional.empty();
+			}
+			catch (UnknownKeyException e) {
+				return Optional.of(new UnknownStateIdException(getStateId()));
+			}
+		};
+
+		var maybeUnknownStateIdException = getNode().getEnvironment().computeInReadonlyTransaction(checkTriesExist);
+		if (maybeUnknownStateIdException.isPresent())
+			throw maybeUnknownStateIdException.get();
 	}
 
 	private byte[] addDeltaOfInfos(TrieOfInfo trieOfInfo, Optional<StorageReference> addedManifest) {

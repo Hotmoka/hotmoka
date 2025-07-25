@@ -383,26 +383,28 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		public byte[] endBlock(int groupId, Deadline deadline) throws ClosedApplicationException, UnknownGroupIdException, InterruptedException {
 			try (var scope = mkScope()) {
 				MokamintStoreTransformation transformation = getTransformation(groupId);
-
 				transformation.deliverCoinbaseTransactions(deadline.getProlog());
 
-				return getEnvironment().computeInTransaction(txn -> {
-					StateId stateIdOfFinalStore = transformation.getIdOfFinalStore(txn);
+				StateId idOfFinalStore = getEnvironment().computeInTransaction(txn -> {
+					StateId id = transformation.getIdOfFinalStore(txn);
 
-					if (lastCaches.get(stateIdOfFinalStore) == null) {
-						lastCaches.put(stateIdOfFinalStore, transformation.getCache());
-
-						try {
-							persist(stateIdOfFinalStore, transformation.getNow(), txn);
-						}
-						catch (UnknownStateIdException e) {
-							// impossible, we have just computed this id for the final store
-							throw new LocalNodeException("State id " + stateIdOfFinalStore + " has been just computed: it must have existed", e);
-						}
+					try {
+						persist(id, transformation.getNow(), txn); // TODO: should this be moved in commitBlock() ?
+					}
+					catch (UnknownStateIdException e) {
+						// impossible, we have just computed this id for the final store
+						throw new LocalNodeException("State id " + id + " has been just computed: it must have existed", e);
 					}
 
-					return stateIdOfFinalStore.getBytes();
+					return id;
 				});
+
+				LOGGER.fine(() -> "persisted state " + idOfFinalStore);
+
+				if (lastCaches.get(idOfFinalStore) == null)
+					lastCaches.put(idOfFinalStore, transformation.getCache());
+
+				return idOfFinalStore.getBytes();
 			}
 		}
 
