@@ -21,6 +21,7 @@ import java.security.NoSuchAlgorithmException;
 
 import io.hotmoka.moka.api.accounts.AccountsShowOutput;
 import io.hotmoka.moka.internal.accounts.Show;
+import io.hotmoka.node.StorageValues;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
@@ -28,16 +29,22 @@ import io.hotmoka.websockets.beans.api.JsonRepresentation;
  * The JSON representation of the output of the {@code moka accounts show} command.
  */
 public abstract class AccountsShowOutputJson implements JsonRepresentation<AccountsShowOutput> {
+	private final StorageValues.Json account;
 	private final BigInteger balance;
 	private final String signature;
 	private final String publicKeyBase58;
 	private final String publicKeyBase64;
 
 	protected AccountsShowOutputJson(AccountsShowOutput output) {
+		this.account = new StorageValues.Json(output.getAccount());
 		this.balance = output.getBalance();
 		this.signature = output.getSignature().getName();
 		this.publicKeyBase58 = output.getPublicKeyBase58();
 		this.publicKeyBase64 = output.getPublicKeyBase64();
+	}
+
+	public StorageValues.Json getAccount() {
+		return account;
 	}
 
 	public BigInteger getBalance() {

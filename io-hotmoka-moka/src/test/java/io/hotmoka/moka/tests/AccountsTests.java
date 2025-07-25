@@ -270,10 +270,19 @@ public class AccountsTests extends AbstractMokaTestWithNode {
 		// there is a destination account from the accounts ledger, since we paid into a key, not into a specific account
 		assertTrue(accountsSendOutput.getDestinationInAccountsLedger().isPresent());
 		StorageReference account = accountsSendOutput.getDestinationInAccountsLedger().get();
-		// show the account
+
+		// show the account from its storage reference
 		var accountsShowOutput = AccountsShowOutputs.from(Moka.accountsShow(account + " --json --uri=ws://localhost:" + PORT));
 		// the balance of the destination account is as expected
 		assertEquals(amount, accountsShowOutput.getBalance());
+
+		// show the account from its public key: this is possible since the account is in the accounts ledger
+		var accountsShowOutput2 = AccountsShowOutputs.from(Moka.accountsShow(publicKeyBase58 + " --json --uri=ws://localhost:" + PORT));
+		// the balance of the destination account is as expected
+		assertEquals(amount, accountsShowOutput2.getBalance());
+		// the storage reference of the account from the accounts ledger is as expected
+		assertEquals(account, accountsShowOutput2.getAccount());
+
 		// bind the account to the key pair
 		var keysBindOutput = KeysBindOutputs.from(Moka.keysBind(keysCreateOutput.getFile() + " --password=" + passwordOfDestination + " --json --uri=ws://localhost:" + PORT));
 		// the new pem file contains the same entropy as the original key pair

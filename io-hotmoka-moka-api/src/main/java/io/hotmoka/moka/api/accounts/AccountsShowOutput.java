@@ -20,6 +20,7 @@ import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * The output of the {@code moka accounts show} command.
@@ -31,6 +32,13 @@ public interface AccountsShowOutput {
 	 * The maximal length for the printed keys. After this length, the printout of the key gets truncated.
 	 */
 	final static int MAX_PRINTED_KEY = 200;
+
+	/**
+	 * Yields the reference of the account that is being shown.
+	 * 
+	 * @return the reference of the account that is being shown
+	 */
+	StorageReference getAccount();
 
 	/**
 	 * Yields the balance of the account.

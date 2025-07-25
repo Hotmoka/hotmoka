@@ -30,13 +30,18 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.helpers.SignatureHelpers;
+import io.hotmoka.helpers.UnexpectedValueException;
+import io.hotmoka.helpers.UnexpectedVoidMethodException;
 import io.hotmoka.helpers.api.MisbehavingNodeException;
+import io.hotmoka.helpers.api.UnexpectedCodeException;
 import io.hotmoka.moka.AccountsShowOutputs;
 import io.hotmoka.moka.api.accounts.AccountsShowOutput;
 import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
-import io.hotmoka.moka.internal.converters.StorageReferenceOptionConverter;
+import io.hotmoka.moka.internal.StorageReferenceOrBase58Key;
+import io.hotmoka.moka.internal.converters.StorageReferenceOrBase58KeyOptionConverter;
 import io.hotmoka.moka.internal.json.AccountsShowOutputJson;
 import io.hotmoka.node.MethodSignatures;
+import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
@@ -45,7 +50,9 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.values.NullValue;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
@@ -55,67 +62,111 @@ import picocli.CommandLine.Parameters;
 @Command(name = "show", header = "Show information about an account.", showDefaultValues = true)
 public class Show extends AbstractMokaRpcCommand {
 
-	@Parameters(index = "0", description = "the storage reference of the account", converter = StorageReferenceOptionConverter.class)
-    private StorageReference account;
-
-	/**
-	 * The maximal length for the printed keys. After this length, the printout of the key gets truncated.
-	 */
-	public final static int MAX_PRINTED_KEY = 200;
+	@Parameters(index = "0", description = "the storage account of the account or its Base58-encoded public key (if the account is in the accounts ledger)", converter = StorageReferenceOrBase58KeyOptionConverter.class)
+    private StorageReferenceOrBase58Key account;
 
 	@Override
-	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, ClosedNodeException, MisbehavingNodeException {
-		SignatureAlgorithm signature;
-		try {
-			signature = SignatureHelpers.of(remote).signatureAlgorithmFor(account);
-		}
-		catch (NoSuchAlgorithmException e) {
-			throw new CommandException("The account " + account + " uses a non-available signature algorithm", e);
-		}
-		catch (UnknownReferenceException e) {
-			throw new CommandException("The account object " + account + " does not exist in the node");
-		}
-		catch (UnsupportedVerificationVersionException e) {
-			throw new CommandException("The node uses a verification version that is not available");
+	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, ClosedNodeException, MisbehavingNodeException, UninitializedNodeException, UnexpectedCodeException {
+		new Body(remote);
+	}
+
+	private class Body {
+		private final RemoteNode remote;
+		private final TransactionReference takamakaCode;
+		private final boolean publicKeyAsBeenProvided;
+		private final StorageReference account;
+
+		private Body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, ClosedNodeException, MisbehavingNodeException, UninitializedNodeException, UnexpectedCodeException {
+			this.remote = remote;
+			this.takamakaCode = remote.getTakamakaCode();
+			this.publicKeyAsBeenProvided = Show.this.account.asBase58Key().isPresent();
+			this.account = getAccount();
+
+			SignatureAlgorithm signature = getSignature();
+			BigInteger balance = getBalance();
+			String publicKeyBase64 = getPublicKeyBase64();
+
+			try {
+				report(json(), new Output(account, balance, signature, publicKeyBase64), AccountsShowOutputs.Encoder::new);
+			}
+			catch (Base64ConversionException e) {
+				throw new CommandException("The key in the account object " + account + " is not in base64 format", e);
+			}
 		}
 
-		TransactionReference takamakaCode;
+		private StorageReference getAccount() throws CommandException, ClosedNodeException, TimeoutException, InterruptedException, UninitializedNodeException, UnexpectedCodeException {
+			if (publicKeyAsBeenProvided) {
+				String publicKeyBase58 = Show.this.account.asBase58Key().get(); // this must exists here
+				String publicKeyBase64 = Base64.toBase64String(Base58.fromBase58String(publicKeyBase58, s -> new RuntimeException("The option converter for the account is misbehaving")));
+				StorageReference manifest = remote.getManifest();
+				StorageValue result;
 
-		try {
-			takamakaCode = remote.getTakamakaCode();
-		}
-		catch (UninitializedNodeException e) {
-			throw new CommandException("The node is not initialized yet!", e);
+				try {
+					// we look in the accounts ledger
+					var ledger = remote.runInstanceMethodCallTransaction
+							(TransactionRequests.instanceViewMethodCall(manifest, _500_000, takamakaCode, MethodSignatures.GET_ACCOUNTS_LEDGER, manifest))
+							.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_ACCOUNTS_LEDGER))
+							.asReturnedReference(MethodSignatures.GET_ACCOUNTS_LEDGER, UnexpectedValueException::new);
+
+					result = remote.runInstanceMethodCallTransaction
+							(TransactionRequests.instanceViewMethodCall(manifest, _500_000, takamakaCode, MethodSignatures.GET_FROM_ACCOUNTS_LEDGER, ledger, StorageValues.stringOf(publicKeyBase64)))
+							.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_FROM_ACCOUNTS_LEDGER));
+				}
+				catch (CodeExecutionException | TransactionException | TransactionRejectedException e) {
+					throw new CommandException("Could not access the accounts ledger", e);
+				}
+
+				if (result instanceof StorageReference sr)
+					return sr;
+				else if (result instanceof NullValue)
+					throw new CommandException("Nobody has paid anonymously to the key " + publicKeyBase58 + " up to now.");
+				else
+					throw new UnexpectedValueException("An unexpected value of type " + result.getClass().getSimpleName() + " has been found in the accounts ledger");
+			}
+			else
+				return Show.this.account.asReference().get(); // this must exists here
 		}
 
-		BigInteger balance;
-
-		try {
-			balance = remote.runInstanceMethodCallTransaction(
-					TransactionRequests.instanceViewMethodCall(account, _500_000, takamakaCode, MethodSignatures.BALANCE, account))
-					.orElseThrow(() -> new CommandException(MethodSignatures.BALANCE + " should not return void"))
-					.asReturnedBigInteger(MethodSignatures.BALANCE, CommandException::new);
-		}
-		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
-			throw new CommandException("Could not access the balance of account " + account, e);
-		}
-
-		String publicKeyBase64;
-		try {
-			publicKeyBase64 = remote.runInstanceMethodCallTransaction(
-					TransactionRequests.instanceViewMethodCall(account, _500_000, takamakaCode, MethodSignatures.PUBLIC_KEY, account))
-					.orElseThrow(() -> new CommandException(MethodSignatures.PUBLIC_KEY + " should not return void"))
-					.asReturnedString(MethodSignatures.PUBLIC_KEY, CommandException::new);
-		}
-		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
-			throw new CommandException("Could not access the public key of account " + account, e);
+		private SignatureAlgorithm getSignature() throws MisbehavingNodeException, ClosedNodeException, InterruptedException, TimeoutException, CommandException {
+			try {
+				return SignatureHelpers.of(remote).signatureAlgorithmFor(account);
+			}
+			catch (NoSuchAlgorithmException e) {
+				throw new CommandException("The account " + account + " uses a non-available signature algorithm", e);
+			}
+			catch (UnknownReferenceException e) {
+				if (publicKeyAsBeenProvided)
+					throw new MisbehavingNodeException("The account ledger contains account " + account + " but the latter does not exist in the store of the node");
+				else
+					throw new CommandException("The account object " + account + " does not exist in the node");
+			}
+			catch (UnsupportedVerificationVersionException e) {
+				throw new CommandException("The node uses a verification version that is not available");
+			}
 		}
 
-		try {
-			report(json(), new Output(balance, signature, publicKeyBase64), AccountsShowOutputs.Encoder::new);
+		private BigInteger getBalance() throws CommandException, UnexpectedCodeException, ClosedNodeException, TimeoutException, InterruptedException {
+			try {
+				return remote.runInstanceMethodCallTransaction(
+						TransactionRequests.instanceViewMethodCall(account, _500_000, takamakaCode, MethodSignatures.BALANCE, account))
+						.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.BALANCE))
+						.asReturnedBigInteger(MethodSignatures.BALANCE, UnexpectedValueException::new);
+			}
+			catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
+				throw new CommandException("Could not access the balance of account " + account, e);
+			}
 		}
-		catch (Base64ConversionException e) {
-			throw new CommandException("The key in the account object " + account + " is not in base64 format", e);
+
+		private String getPublicKeyBase64() throws CommandException, UnexpectedCodeException, ClosedNodeException, TimeoutException, InterruptedException {
+			try {
+				return remote.runInstanceMethodCallTransaction(
+						TransactionRequests.instanceViewMethodCall(account, _500_000, takamakaCode, MethodSignatures.PUBLIC_KEY, account))
+						.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.PUBLIC_KEY))
+						.asReturnedString(MethodSignatures.PUBLIC_KEY, UnexpectedValueException::new);
+			}
+			catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
+				throw new CommandException("Could not access the public key of account " + account, e);
+			}
 		}
 	}
 
@@ -124,17 +175,14 @@ public class Show extends AbstractMokaRpcCommand {
 	 */
 	@Immutable
 	public static class Output implements AccountsShowOutput {
+		private final StorageReference account;
 		private final BigInteger balance;
 		private final SignatureAlgorithm signature;
 		private final String publicKeyBase58;
 		private final String publicKeyBase64;
 
-		/**
-		 * The maximal length for the printed keys. After this length, the printout of the key gets truncated.
-		 */
-		public final static int MAX_PRINTED_KEY = 200;
-
-		private Output(BigInteger balance, SignatureAlgorithm signature, String publicKeyBase64) throws Base64ConversionException {
+		private Output(StorageReference account, BigInteger balance, SignatureAlgorithm signature, String publicKeyBase64) throws Base64ConversionException {
+			this.account = account;
 			this.balance = balance;
 			this.signature = signature;
 			this.publicKeyBase64 = publicKeyBase64;
@@ -151,6 +199,8 @@ public class Show extends AbstractMokaRpcCommand {
 		public Output(AccountsShowOutputJson json) throws InconsistentJsonException, NoSuchAlgorithmException {
 			ExceptionSupplierFromMessage<InconsistentJsonException> exp = InconsistentJsonException::new;
 
+			this.account = json.getAccount().unmap().asReference(value -> new InconsistentJsonException("The reference to the account shown must be a storage reference, not a " + value.getClass().getName()));
+
 			this.balance = Objects.requireNonNull(json.getBalance(), "balance cannot be null", exp);
 			if (balance.signum() < 0)
 				throw new InconsistentJsonException("The balance of the account cannot be negative");
@@ -158,6 +208,11 @@ public class Show extends AbstractMokaRpcCommand {
 			this.signature = SignatureAlgorithms.of(Objects.requireNonNull(json.getSignature(), "signature cannot be null", exp));
 			this.publicKeyBase58 = Base58.requireBase58(Objects.requireNonNull(json.getPublicKeyBase58(), "publicKeyBase58 cannot be null", exp), exp);
 			this.publicKeyBase64 = Base64.requireBase64(Objects.requireNonNull(json.getPublicKeyBase64(), "publicKeyBase64 cannot be null", exp), exp);
+		}
+
+		@Override
+		public StorageReference getAccount() {
+			return account;
 		}
 
 		@Override
@@ -183,7 +238,8 @@ public class Show extends AbstractMokaRpcCommand {
 		@Override
 		public String toString() {
 			var sb = new StringBuilder();
-	
+
+			sb.append(green("Account: " + account) + "\n");
 			sb.append("* balance: " + balance + "\n");
 
 			if (publicKeyBase58.length() > MAX_PRINTED_KEY)

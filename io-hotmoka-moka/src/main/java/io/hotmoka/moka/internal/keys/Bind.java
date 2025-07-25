@@ -29,6 +29,7 @@ import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.exceptions.Objects;
+import io.hotmoka.helpers.api.MisbehavingNodeException;
 import io.hotmoka.moka.KeysBindOutputs;
 import io.hotmoka.moka.api.keys.KeysBindOutput;
 import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
@@ -73,18 +74,10 @@ public class Bind extends AbstractMokaRpcCommand {
 	private SignatureAlgorithm signature;
 
 	@Override
-	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException {
-		try {
-			StorageReference reference = this.reference != null ? verifyPublicKey(remote) : getFromAccountsLedger(remote);
-			Path file = bindKeysToAccount(key, reference, outputDir);
-			report(json(), new Output(reference, file), KeysBindOutputs.Encoder::new);
-		}
-		catch (ClosedNodeException e) {
-			throw new CommandException("The node is already closed!", e);
-		}
-		catch (UninitializedNodeException e) {
-			throw new CommandException("The node has not been initialized yet!", e);
-		}
+	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, MisbehavingNodeException, ClosedNodeException, UninitializedNodeException {
+		StorageReference reference = this.reference != null ? verifyPublicKey(remote) : getFromAccountsLedger(remote);
+		Path file = bindKeysToAccount(key, reference, outputDir);
+		report(json(), new Output(reference, file), KeysBindOutputs.Encoder::new);
 	}
 
 	/**
@@ -123,7 +116,7 @@ public class Bind extends AbstractMokaRpcCommand {
 		return reference;
 	}
 
-	private StorageReference getFromAccountsLedger(RemoteNode remote) throws TimeoutException, InterruptedException, ClosedNodeException, CommandException, UninitializedNodeException {
+	private StorageReference getFromAccountsLedger(RemoteNode remote) throws TimeoutException, InterruptedException, ClosedNodeException, CommandException, UninitializedNodeException, MisbehavingNodeException {
 		var manifest = remote.getManifest();
 		var takamakaCode = remote.getTakamakaCode();
 		String publicKeyBase64FromKeyFile = publicKeyBase64FromKeyFile();
@@ -147,9 +140,9 @@ public class Bind extends AbstractMokaRpcCommand {
 		if (result instanceof StorageReference sr)
 			return sr;
 		else if (result instanceof NullValue)
-			throw new CommandException("Cannot bind: nobody has paid anonymously to the key " + key + " up to now.");
+			throw new CommandException("Nobody has paid anonymously to the key " + key + " up to now.");
 		else
-			throw new CommandException("An unexpected value of type " + result.getClass().getSimpleName() + " has been found in the accounts ledger");
+			throw new MisbehavingNodeException("An unexpected value of type " + result.getClass().getSimpleName() + " has been found in the accounts ledger");
 	}
 
 	private String publicKeyBase64FromKeyFile() throws CommandException {
