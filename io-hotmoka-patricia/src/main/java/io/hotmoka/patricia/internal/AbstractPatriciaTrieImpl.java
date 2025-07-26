@@ -477,7 +477,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 				throw new TrieException(e);
 			}
 			catch (UnknownKeyException e) {
-				//System.out.printf("%d/%d: %.2f\n", freed, ++allocated, freed * 100.0 / allocated);
+				//System.out.printf("%d/%d: %.2f\t\t", freed, ++allocated, freed * 100.0 / allocated);
 				store.put(hash, toByteArray()); // we bind it to its hash in the store
 				incrementReferenceCounterOfDescedants(cursor);
 				return this;
@@ -499,7 +499,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 				if (replacement.count > 0)
 					store.put(hash, replacement.toByteArray());
 				else {
-					//System.out.printf("%d/%d: %.2f\n", ++freed, allocated, freed * 100.0 / allocated);
+					//System.out.printf("%d/%d: %.2f\t\t", ++freed, allocated, freed * 100.0 / allocated);
 					store.remove(hash);
 					freeDescendants(cursor);
 				}

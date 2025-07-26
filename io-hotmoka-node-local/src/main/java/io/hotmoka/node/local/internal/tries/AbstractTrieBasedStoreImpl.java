@@ -246,6 +246,8 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 			old.free();
 		}
 	
+		trieOfInfo.malloc();
+
 		return trieOfInfo.getRoot();
 	}
 
@@ -257,6 +259,8 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 			old.free();
 		}
 	
+		trieOfHistories.malloc();
+
 		return trieOfHistories.getRoot();
 	}
 
@@ -268,6 +272,8 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 			old.free();
 		}
 	
+		trieOfResponses.malloc();
+
 		return trieOfResponses.getRoot();
 	}
 
@@ -279,6 +285,8 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 			old.free();
 		}
 	
+		trieOfRequests.malloc();
+
 		return trieOfRequests.getRoot();
 	}
 

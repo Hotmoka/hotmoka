@@ -154,8 +154,21 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 			super.onHeadChanged(pathToNewHead);
 
 			for (Block added: pathToNewHead)
-				if (added instanceof NonGenesisBlock ngb)
-					toPublish.offer(ngb);
+				if (added instanceof NonGenesisBlock ngb) {
+					var si = StateIds.of(ngb.getStateId());
+
+					try {
+						enter(si, Optional.ofNullable(lastCaches.get(si)));
+						toPublish.offer(ngb);
+					}
+					catch (UnknownStateIdException e) {
+						LOGGER.log(Level.WARNING, "Cannot publish the events in block " + ngb.getHexHash() + ": its state has been garbage-collected", e);
+						//throw new LocalNodeException(e);
+					}
+					catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+					}
+				}
 		}
 	}
 
@@ -247,12 +260,17 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 	
 				try {
 					MokamintStore store = mkStore(si, Optional.ofNullable(lastCaches.get(si)));
-					next.getTransactions().forEachOrdered(tx -> publish(tx, hasher, store));
+					try {
+						next.getTransactions().forEachOrdered(tx -> publish(tx, hasher, store));
+					}
+					finally {
+						exit(store);
+					}
 				}
-				catch (UnknownStateIdException e) { // TODO: would this be a bug? in that case it should exit the thread
-					// it happens for blocks arrived through whispering during a long synchronization and added much
-					// after their arrival: why?
+				catch (UnknownStateIdException e) {
+					// the blocks to publish have been successfully entered in onHeadChange(), therefore they must exist
 					LOGGER.log(Level.SEVERE, "failed to publish the transactions in block " + next.getHexHash(), e);
+					// throw new LocalNodeException(e); // TODO: activate eventually after checking that this never happens
 				}
 			}
 		}
@@ -403,16 +421,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 				var transformation = getTransformation(groupId);
 				var idOfFinalStore = finalStateIds.get(groupId);
 				exit(transformation.getInitialStore());
-
-				getEnvironment().executeInTransaction(txn -> {
-					try {
-						persist(idOfFinalStore, transformation.getNow(), txn);
-					}
-					catch (UnknownStateIdException e) {
-						// impossible, we have just computed this id inside edBlock(), which was meant to be called before this method
-						throw new LocalNodeException("State id " + idOfFinalStore + " has been just computed: it must have existed", e);
-					}
-				});
+				getEnvironment().executeInTransaction(txn -> persist(idOfFinalStore, transformation.getNow(), txn));
 
 				LOGGER.fine(() -> "persisted state " + idOfFinalStore);
 
@@ -425,7 +434,20 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		public void abortBlock(int groupId) throws UnknownGroupIdException, ClosedApplicationException {
 			try (var scope = mkScope()) {
 				var transformation = getTransformation(groupId);
+				var idOfFinalStore = finalStateIds.get(groupId);
 				exit(transformation.getInitialStore());
+
+				// the final store of the transformation is not useful anymore
+				getEnvironment().executeInTransaction(txn -> {
+					try {
+						free(idOfFinalStore, txn);
+					}
+					catch (UnknownStateIdException e) {
+						// impossible, we have just computed this id inside endBlock(), which was meant to be called before this method
+						throw new LocalNodeException("State id " + idOfFinalStore + " has been just computed: it must have existed", e);
+					}
+				});
+
 				transformations.remove(groupId);
 				finalStateIds.remove(groupId);
 			}

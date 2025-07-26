@@ -647,20 +647,13 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		@Override
 		protected ResponseCommit commit(RequestCommit request) throws InterruptedException {
 			transformation.deliverCoinbaseTransactions(behaving, misbehaving);
+			long now = transformation.getNow();
 
 			StateId idOfNewStoreOfHead = getEnvironment().computeInTransaction(txn -> {
 				StateId stateIdOfFinalStore = transformation.getIdOfFinalStore(txn);
 				setRootBranch(stateIdOfFinalStore, txn);
-
-				try {
-					persist(stateIdOfFinalStore, transformation.getNow(), txn);
-				}
-				catch (UnknownStateIdException e) {
-					// impossible, we have just computed this id for the final store
-					throw new LocalNodeException("State id " + stateIdOfFinalStore + " has been just computed: it must have existed", e);
-				}
-
-				keepPersistedOnlyNotOlderThan(transformation.getNow(), txn);
+				persist(stateIdOfFinalStore, now, txn);
+				keepPersistedOnlyNotOlderThan(now, txn);
 				return stateIdOfFinalStore;
 			});
 

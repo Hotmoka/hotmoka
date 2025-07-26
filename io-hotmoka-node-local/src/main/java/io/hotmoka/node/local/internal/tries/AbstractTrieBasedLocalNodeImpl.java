@@ -92,6 +92,18 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	private final io.hotmoka.xodus.env.Store storeOfHistories;
 
 	/**
+	 * The SHA256 algorithm used for hashing the nodes of the tries.
+	 * We store it here so that we can clone it wherever we need it, instead of
+	 * creating it every time and deal with a potential NoSuchAlgorithmException.
+	 */
+	private final HashingAlgorithm sha256;
+
+	/**
+	 * The hash of the empty node in the tries.
+	 */
+	private final byte[] hashOfEmpty = new byte[32]; // TODO: reuse in the tries
+
+	/**
 	 * The lock object used to avoid garbage-collecting stores that are currently used.
 	 */
 	private final Object lockGC = new Object();
@@ -105,18 +117,6 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	private final Map<StateId, Integer> storeUsers = new HashMap<>();
 
 	/**
-	 * The SHA256 algorithm used for hashing the nodes of the tries.
-	 * We store it here so that we can clone it wherever we need it, instead of
-	 * creating it every time and deal with a potential NoSuchAlgorithmException.
-	 */
-	private final HashingAlgorithm sha256;
-
-	/**
-	 * The hash of the empty node in the tries.
-	 */
-	private final byte[] hashOfEmpty = new byte[32]; // TODO: reuse in the tries
-
-	/**
 	 * The key used inside {@link #storeOfNode} to keep the list of old stores
 	 * that are candidate for garbage-collection, if they are not used by any running task.
 	 */
@@ -125,7 +125,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	/**
 	 * The key used inside {@link #storeOfNode} to keep the list of stores that this node
 	 * will not try to garbage collect. This list gets expanded when a new head is added to the
-	 * node and gets shrunk by calls to {@link #keepPersistentedOnly(Stream)}.
+	 * node and gets shrunk by calls to {@link #keepPersistedOnly(Stream)}.
 	 */
 	private final static ByteIterable STORES_NOT_TO_GC = ByteIterable.fromBytes("stores not to gc".getBytes());
 
@@ -167,7 +167,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 * 
 	 * @return the clone
 	 */
-	protected HashingAlgorithm mkSHA256() {
+	protected HashingAlgorithm mkSHA256() { // TODO: remove
 		return sha256.clone();
 	}
 
@@ -252,10 +252,8 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 * @param now the current time used for delivering the transactions that led to the
 	 *            store to persist
 	 * @param txn the Xodus transaction where the operation is performed
-	 * @param UnknownStateIdException if {@code stateId} cannot be found in store
 	 */
-	protected void persist(StateId stateId, long now, Transaction txn) throws UnknownStateIdException {
-		malloc(stateId, txn);
+	protected void persist(StateId stateId, long now, Transaction txn) {
 		addToStores(STORES_NOT_TO_GC, Set.of(new StateIdAndTime(stateId, now)), txn);
 	}
 
@@ -269,10 +267,11 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 * @param txn the Xodus transaction where the operation is performed
 	 */
 	protected void keepPersistedOnlyNotOlderThan(long limitCreationTime, Transaction txn) {
-		Set<StateIdAndTime> removedIds = retainOnlyNotOlderThan(STORES_NOT_TO_GC, limitCreationTime, txn);
+		Set<StateIdAndTime> removedIds = retainOnlyNotOlderThan(limitCreationTime, txn);
 		addToStores(STORES_TO_GC, removedIds, txn);
 	}
 
+	
 	/**
 	 * Factory method for creating a store for this node, checked out at the given state identifier.
 	 * If the cache is missing, it gets extracted from the store itself (which might be expensive).
@@ -310,7 +309,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 * @param txn the database transaction where the operation is performed
 	 * @param UnknownStateIdException if {@code stateId} cannot be found in store
 	 */
-	private void free(StateId stateId, Transaction txn) throws UnknownStateIdException {
+	protected void free(StateId stateId, Transaction txn) throws UnknownStateIdException {
 		var bytes = stateId.getBytes();
 		var rootOfResponses = new byte[32];
 		System.arraycopy(bytes, 0, rootOfResponses, 0, 32);
@@ -329,42 +328,6 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		}
 		catch (UnknownKeyException e) {
 			throw new UnknownStateIdException(stateId);
-		}
-	}
-
-	/**
-	 * Allocates the resources used for the given vision of the store.
-	 * 
-	 * @param stateId the identifier of the vision of the store to allocate
-	 * @param txn the database transaction where the operation is performed
-	 * @param UnknownStateIdException if {@code stateId} cannot be found in store
-	 */
-	private void malloc(StateId stateId, Transaction txn) throws UnknownStateIdException {
-		var bytes = stateId.getBytes();
-		var rootOfResponses = new byte[32];
-		System.arraycopy(bytes, 0, rootOfResponses, 0, 32);
-		var rootOfInfo = new byte[32];
-		System.arraycopy(bytes, 32, rootOfInfo, 0, 32);
-		var rootOfRequests = new byte[32];
-		System.arraycopy(bytes, 64, rootOfRequests, 0, 32);
-		var rootOfHistories = new byte[32];
-		System.arraycopy(bytes, 96, rootOfHistories, 0, 32);
-
-		try {
-			var trieOfRequests = mkTrieOfRequests(txn, rootOfRequests);
-			var trieOfResponses = mkTrieOfResponses(txn, rootOfResponses);
-			var trieOfHistories = mkTrieOfHistories(txn, rootOfHistories);
-			var trieOfInfo = mkTrieOfInfo(txn, rootOfInfo);
-
-			// we increment the reference count of the roots of the resulting tries, so that
-			// they do not get garbage collected until this store is freed
-			trieOfResponses.malloc();
-			trieOfInfo.malloc();
-			trieOfHistories.malloc();
-			trieOfRequests.malloc();
-		}
-		catch (UnknownKeyException e) {
-			throw new UnknownStateIdException(e);
 		}
 	}
 
@@ -411,12 +374,11 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		try {
 			while (!Thread.currentThread().isInterrupted()) {
 				Set<StateIdAndTime> toGC = env.computeInReadonlyTransaction(txn -> getStores(STORES_TO_GC, txn));
-
 				for (var stateIdAndTime: toGC)
-					synchronized (lockGC) {
-						if (storeUsers.getOrDefault(stateIdAndTime.stateId, 0) == 0)
-							gc(stateIdAndTime);
-					}
+					 synchronized (lockGC) {
+						 if (storeUsers.getOrDefault(stateIdAndTime.stateId, 0) == 0)
+							 gc(stateIdAndTime);
+					 }
 
 				Thread.sleep(5000L);
 			}
@@ -459,14 +421,13 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	/**
 	 * Retains only stores that are not older than the given time in the set identified by {@code which}.
 	 * 
-	 * @param which the identifier of the set
 	 * @param limitCreationTime the time limit: stores created at that time or later are retained;
 	 *                          this is in milliseconds from the Unix epoch
 	 * @param txn the Xodus transaction where the operation is performed
 	 * @return the stores that have been removed from the set, because they were older than {@code limitCreationTime}
 	 */
-	private Set<StateIdAndTime> retainOnlyNotOlderThan(ByteIterable which, long limitCreationTime, Transaction txn) {
-		SortedSet<StateIdAndTime> ids = getStores(which, txn);
+	private Set<StateIdAndTime> retainOnlyNotOlderThan(long limitCreationTime, Transaction txn) {
+		SortedSet<StateIdAndTime> ids = getStores(STORES_NOT_TO_GC, txn);
 		Set<StateIdAndTime> removedIds = new HashSet<>();
 
 		for (var id: ids)
@@ -477,7 +438,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 
 		if (!removedIds.isEmpty()) {
 			ids.removeAll(removedIds);
-			storeStateIdsAndTimes(which, ids, txn);
+			storeStateIdsAndTimes(STORES_NOT_TO_GC, ids, txn);
 		}
 
 		return removedIds;
