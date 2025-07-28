@@ -17,20 +17,31 @@ limitations under the License.
 package io.hotmoka.node.disk.internal;
 
 import java.nio.file.Path;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.api.requests.TransactionRequest;
+import io.hotmoka.node.api.responses.TransactionResponse;
+import io.hotmoka.node.api.responses.TransactionResponseWithUpdates;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.updates.Update;
+import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.disk.api.DiskNode;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.local.AbstractLocalNode;
@@ -60,6 +71,12 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 	private final Path storePath;
 
 	/**
+	 * A map that simulates the index of the node: for each object, it associates
+	 * the list of transactions that have modified the object.
+	 */
+	private final ConcurrentMap<StorageReference, List<TransactionReference>> index = new ConcurrentHashMap<>();
+
+	/**
 	 * Builds a new disk memory node.
 	 * 
 	 * @param config the configuration of the node
@@ -79,6 +96,18 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 		}
 	}
 
+	@Override
+	public Stream<TransactionReference> getIndex(StorageReference reference) throws UnknownReferenceException, ClosedNodeException, InterruptedException {
+		try (var scope = mkScope()) {
+			var idx = index.get(reference);
+			if (idx == null)
+				throw new UnknownReferenceException(reference);
+			else
+				return idx.stream();
+		}
+	}
+
+	
 	@Override
 	protected DiskStore mkEmptyStore() {
 		return new DiskStore(this, storePath);
@@ -102,6 +131,36 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 	@Override
 	protected void postRequest(TransactionRequest<?> request) throws InterruptedException, TimeoutException {
 		mempool.add(request);
+	}
+
+	/**
+	 * Expands the index of the node with the objects modified in the given transaction.
+	 * 
+	 * @param transaction the reference to the transaction
+	 * @param response the response of the {@code transaction}
+	 */
+	private void expandIndex(TransactionReference transaction, TransactionResponse response) {
+		if (response instanceof TransactionResponseWithUpdates trwu)
+			trwu.getUpdates().map(Update::getObject).distinct().forEach(object -> expandIndex(object, transaction));
+	}
+
+	/**
+	 * Expands the index of the node, at the given object, with the given transaction.
+	 * 
+	 * @param object the object whose index gets expanded
+	 * @param transaction the transaction added to the index of {@code index}
+	 */
+	private void expandIndex(StorageReference object, TransactionReference transaction) {
+		index.compute(object, (k, v) -> {
+			if (v == null)
+				v = new LinkedList<>();
+
+			v.add(transaction);
+			if (v.size() > 10) // TODO: define constant
+				v.remove(0);
+
+			return v;
+		});
 	}
 
 	/**
@@ -164,20 +223,20 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 				DiskStoreTransformation transaction = storeOfHead.beginTransformation(System.currentTimeMillis());
 
 				while (true) {
-					TransactionRequest<?> current = mempool.poll(2, TimeUnit.MILLISECONDS);
-					if (current == null)
+					TransactionRequest<?> request = mempool.poll(2, TimeUnit.MILLISECONDS);
+					if (request == null)
 						// if no request is available, we create a block, which increases the timestamp of the topmost block:
 						// this simulates the passing of the time
 						transaction = restartTransaction(transaction);
 					else {
 						try {
-							transaction.deliverTransaction(current);
+							transaction.deliverTransaction(request);
 
 							if (transaction.deliveredCount() == transactionsPerBlock - 1)
 								transaction = restartTransaction(transaction);
 						}
 						catch (TransactionRejectedException e) {
-							signalRejected(current, e);
+							signalRejected(request, e);
 						}
 					}
 				}
@@ -204,6 +263,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 				transformation.deliverCoinbaseTransactions();
 				storeOfHead = transformation.getFinalStore();
 				publishAllTransactionsDeliveredIn(transformation, storeOfHead);
+				transformation.forEachDeliveredTransaction(DiskNodeImpl.this::expandIndex);
 			}
 
 			return storeOfHead.beginTransformation(System.currentTimeMillis());

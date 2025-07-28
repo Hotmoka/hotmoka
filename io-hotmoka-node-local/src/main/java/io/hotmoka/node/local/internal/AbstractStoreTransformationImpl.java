@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
+import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -214,16 +215,9 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 		return cache;
 	}
 
-	/**
-	 * Yields the references of the transactions delivered into this transformation.
-	 * 
-	 * @return the references, in order of delivery
-	 */
-	protected final Stream<TransactionReference> getDeliveredTransactions() {
-		// we force the order of insertion
-		var result = new ArrayList<TransactionReference>();
-		deltaRequests.forEach((key, _entry) -> result.add(key));
-		return result.stream();
+	@Override
+	public final void forEachDeliveredTransaction(BiConsumer<TransactionReference, TransactionResponse> action) {
+		deltaResponses.forEach(action);
 	}
 
 	/**

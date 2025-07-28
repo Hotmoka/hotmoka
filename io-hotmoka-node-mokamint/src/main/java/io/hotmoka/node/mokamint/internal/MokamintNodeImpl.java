@@ -32,6 +32,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import io.hotmoka.annotations.GuardedBy;
 import io.hotmoka.annotations.ThreadSafe;
@@ -46,6 +47,8 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.api.requests.TransactionRequest;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractTrieBasedLocalNode;
 import io.hotmoka.node.local.LRUCache;
 import io.hotmoka.node.local.LocalNodeException;
@@ -179,6 +182,13 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		}
 		catch (io.mokamint.node.api.ClosedNodeException e) {
 			throw new ClosedNodeException(e);
+		}
+	}
+
+	@Override
+	public Stream<TransactionReference> getIndex(StorageReference reference) throws UnknownReferenceException, ClosedNodeException, InterruptedException {
+		try (var scope = mkScope()) {
+			return Stream.empty(); // TODO
 		}
 	}
 

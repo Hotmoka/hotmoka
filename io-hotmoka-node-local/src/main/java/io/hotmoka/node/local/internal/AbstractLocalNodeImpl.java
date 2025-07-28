@@ -333,6 +333,8 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		}
 	}
 
+	public abstract Stream<TransactionReference> getIndex(StorageReference reference) throws UnknownReferenceException, ClosedNodeException, InterruptedException;
+
 	@Override
 	public final TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException, ClosedNodeException, TimeoutException, InterruptedException {
 		try (var scope = mkScope()) {
@@ -519,7 +521,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	protected void publishAllTransactionsDeliveredIn(T transformation, S store) {
-		for (var tx: transformation.getDeliveredTransactions().toArray(TransactionReference[]::new)) {
+		transformation.forEachDeliveredTransaction((tx, _response) -> {
 			try {
 				publish(tx, store);
 			}
@@ -527,7 +529,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 				// the transactions have been delivered, if they cannot be found then there is a problem in the database or a bug in the code
 				throw new LocalNodeException("Delivered transactions should be in store", e);
 			}
-		}
+		});
 	}
 
 	/**

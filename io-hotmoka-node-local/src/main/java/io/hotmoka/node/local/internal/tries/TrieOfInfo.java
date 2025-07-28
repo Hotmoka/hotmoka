@@ -17,13 +17,16 @@ limitations under the License.
 package io.hotmoka.node.local.internal.tries;
 
 import java.io.ByteArrayInputStream;
+import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
 import io.hotmoka.crypto.HashingAlgorithms;
+import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
+import io.hotmoka.node.local.LocalNodeException;
 import io.hotmoka.patricia.AbstractPatriciaTrie;
 import io.hotmoka.patricia.api.KeyValueStore;
 import io.hotmoka.patricia.api.TrieException;
@@ -47,11 +50,20 @@ public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue, TrieOfI
 	public TrieOfInfo(KeyValueStore store, byte[] root, AbstractTrieBasedLocalNodeImpl<?,?,?,?> node) throws UnknownKeyException {
 		super(store, root, HashingAlgorithms.identity1().getHasher(key -> new byte[] { key }),
 			// we use a NodeUnmarshallingContext because that is the default used for marshalling storage values
-			node.mkSHA256(), new byte[32], StorageValue::toByteArray, bytes -> StorageValues.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))));
+			mkSHA256(), new byte[32], StorageValue::toByteArray, bytes -> StorageValues.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))));
 	}
 
 	private TrieOfInfo(TrieOfInfo cloned, byte[] root) throws UnknownKeyException {
 		super(cloned, root);
+	}
+
+	private static HashingAlgorithm mkSHA256() {
+		try {
+			return HashingAlgorithms.sha256();
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw new LocalNodeException(e);
+		}
 	}
 
 	@Override

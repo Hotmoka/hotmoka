@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.local.api;
 
 import java.util.Optional;
+import java.util.function.BiConsumer;
 
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.TransactionException;
@@ -87,4 +88,11 @@ public interface StoreTransformation<S extends Store<S,T>, T extends StoreTransf
 	 * @return the number of successfully delivered requests
 	 */
 	int deliveredCount();
+
+	/**
+	 * Performs the given action for each transaction delivered in this transformation.
+	 * 
+	 * @param action the action
+	 */
+	void forEachDeliveredTransaction(BiConsumer<TransactionReference, TransactionResponse> action);
 }

@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.local.internal.tries;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,11 +31,8 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.GuardedBy;
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.crypto.HashingAlgorithms;
-import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.local.AbstractLocalNode;
-import io.hotmoka.node.local.LocalNodeException;
 import io.hotmoka.node.local.StateIds;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StateId;
@@ -92,13 +88,6 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	private final io.hotmoka.xodus.env.Store storeOfHistories;
 
 	/**
-	 * The SHA256 algorithm used for hashing the nodes of the tries.
-	 * We store it here so that we can clone it wherever we need it, instead of
-	 * creating it every time and deal with a potential NoSuchAlgorithmException.
-	 */
-	private final HashingAlgorithm sha256;
-
-	/**
 	 * The hash of the empty node in the tries.
 	 */
 	private final byte[] hashOfEmpty = new byte[32]; // TODO: reuse in the tries
@@ -142,13 +131,6 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 
 		var path = config.getDir().resolve("hotmoka").resolve("store");
 
-		try {
-			this.sha256 = HashingAlgorithms.sha256();
-		}
-		catch (NoSuchAlgorithmException e) {
-			throw new LocalNodeException(e);
-		}
-
 		this.env = new Environment(path.toString());
 		this.storeOfNode = env.computeInTransaction(txn -> env.openStoreWithoutDuplicates("node", txn));
     	this.storeOfResponses = env.computeInTransaction(txn -> env.openStoreWithoutDuplicatesWithPrefixing("responses", txn));
@@ -160,15 +142,6 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		getExecutors().execute(this::gc);
 
 		LOGGER.info("opened the store database at " + path);
-	}
-
-	/**
-	 * Yields a clone of the SHA256 hashing algorithm.
-	 * 
-	 * @return the clone
-	 */
-	protected HashingAlgorithm mkSHA256() { // TODO: remove
-		return sha256.clone();
 	}
 
 	protected final io.hotmoka.xodus.env.Store getStoreOfNode() {
