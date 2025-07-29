@@ -34,6 +34,7 @@ module io.hotmoka.node.local {
 	requires io.hotmoka.instrumentation;
 	requires io.hotmoka.whitelisting;
 	requires io.hotmoka.exceptions;
+	requires io.hotmoka.marshalling;
 	requires io.hotmoka.closeables;
 	requires io.takamaka.code.constants;
 	requires toml4j;

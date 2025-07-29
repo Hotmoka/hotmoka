@@ -44,10 +44,9 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 	 * 
 	 * @param store the supporting key/value store
 	 * @param root the root of the trie to check out; use empty to create the empty trie
-	 * @param node the node for which the trie is being built
 	 * @throws UnknownKeyException if {@code root} cannot be found in the trie
 	 */
-	public TrieOfHistories(KeyValueStore store, byte[] root, AbstractTrieBasedLocalNodeImpl<?,?,?,?> node) throws UnknownKeyException {
+	public TrieOfHistories(KeyValueStore store, byte[] root) throws UnknownKeyException {
 		super(store, root, mkSHA256().getHasher(StorageReference::toByteArrayWithoutSelector),
 			mkSHA256(), new byte[32], TrieOfHistories::historyToBytes, TrieOfHistories::bytesToHistory);
 	}

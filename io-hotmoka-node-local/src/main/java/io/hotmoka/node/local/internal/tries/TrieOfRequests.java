@@ -42,10 +42,9 @@ public class TrieOfRequests extends AbstractPatriciaTrie<TransactionReference, T
 	 * 
 	 * @param store the supporting key/value store
 	 * @param root the root of the trie to check out
-	 * @param node the node for which the trie is being built
 	 * @throws UnknownKeyException if {@code root} cannot be found in the trie
 	 */
-	public TrieOfRequests(KeyValueStore store, byte[] root, AbstractTrieBasedLocalNodeImpl<?,?,?,?> node) throws UnknownKeyException {
+	public TrieOfRequests(KeyValueStore store, byte[] root) throws UnknownKeyException {
 		super(store, root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
 			// we use a NodeUnmarshallingContext because that is the default used for marshalling requests
 			mkSHA256(), new byte[32], TransactionRequest<?>::toByteArray, bytes -> TransactionRequests.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))));

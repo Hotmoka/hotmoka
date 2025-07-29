@@ -32,6 +32,10 @@ import java.util.stream.Stream;
 import io.hotmoka.annotations.GuardedBy;
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.api.ClosedNodeException;
+import io.hotmoka.node.api.UnknownReferenceException;
+import io.hotmoka.node.api.responses.TransactionResponse;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractLocalNode;
 import io.hotmoka.node.local.StateIds;
 import io.hotmoka.node.local.api.LocalNodeConfig;
@@ -92,6 +96,8 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 */
 	private final byte[] hashOfEmpty = new byte[32]; // TODO: reuse in the tries
 
+	private final Index index;
+
 	/**
 	 * The lock object used to avoid garbage-collecting stores that are currently used.
 	 */
@@ -137,11 +143,23 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
     	this.storeOfInfo = env.computeInTransaction(txn -> env.openStoreWithoutDuplicates("info", txn));
 		this.storeOfRequests = env.computeInTransaction(txn -> env.openStoreWithoutDuplicatesWithPrefixing("requests", txn));
 		this.storeOfHistories = env.computeInTransaction(txn -> env.openStoreWithoutDuplicatesWithPrefixing("histories", txn));
+		this.index = new Index(storeOfNode, env);
 
 		// we start the garbage-collection task
 		getExecutors().execute(this::gc);
 
 		LOGGER.info("opened the store database at " + path);
+	}
+
+	@Override
+	public final Stream<TransactionReference> getIndex(StorageReference object) throws UnknownReferenceException, ClosedNodeException {
+		try (var scope = mkScope()) {
+			return index.get(object).orElseThrow(() -> new UnknownReferenceException(object));
+		}
+	}
+
+	protected void addToIndex(TransactionReference transaction, TransactionResponse response, Transaction txn) {
+		index.add(transaction, response, txn);
 	}
 
 	protected final io.hotmoka.xodus.env.Store getStoreOfNode() {
@@ -305,15 +323,15 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	}
 
 	protected TrieOfResponses mkTrieOfResponses(Transaction txn, byte[] rootOfResponses) throws UnknownKeyException {
-		return new TrieOfResponses(new KeyValueStoreOnXodus(storeOfResponses, txn), rootOfResponses, this);
+		return new TrieOfResponses(new KeyValueStoreOnXodus(storeOfResponses, txn), rootOfResponses);
 	}
 
 	protected TrieOfInfo mkTrieOfInfo(Transaction txn, byte[] rootOfInfo) throws UnknownKeyException {
-		return new TrieOfInfo(new KeyValueStoreOnXodus(storeOfInfo, txn), rootOfInfo, this);
+		return new TrieOfInfo(new KeyValueStoreOnXodus(storeOfInfo, txn), rootOfInfo);
 	}
 
 	protected TrieOfRequests mkTrieOfRequests(Transaction txn, byte[] rootOfRequests) throws UnknownKeyException {
-		return new TrieOfRequests(new KeyValueStoreOnXodus(storeOfRequests, txn), rootOfRequests, this);
+		return new TrieOfRequests(new KeyValueStoreOnXodus(storeOfRequests, txn), rootOfRequests);
 	}
 
 	protected void checkExistenceOfRootOfRequests(Transaction txn, byte[] rootOfRequests) throws UnknownKeyException {
@@ -337,8 +355,10 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	}
 
 	protected TrieOfHistories mkTrieOfHistories(Transaction txn, byte[] rootOfHistories) throws UnknownKeyException {
-		return new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistories, txn), rootOfHistories, this);
+		return new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistories, txn), rootOfHistories);
 	}
+
+	
 
 	/**
 	 * The garbage-collection routine. It takes stores to garbage-collect and frees them.

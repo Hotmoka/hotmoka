@@ -44,10 +44,9 @@ public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue, TrieOfI
 	 * 
 	 * @param store the supporting key/value store
 	 * @param root the root of the trie to check out
-	 * @param node the node for which the trie is being built
 	 * @throws UnknownKeyException if {@code root} cannot be found in the trie
 	 */
-	public TrieOfInfo(KeyValueStore store, byte[] root, AbstractTrieBasedLocalNodeImpl<?,?,?,?> node) throws UnknownKeyException {
+	public TrieOfInfo(KeyValueStore store, byte[] root) throws UnknownKeyException {
 		super(store, root, HashingAlgorithms.identity1().getHasher(key -> new byte[] { key }),
 			// we use a NodeUnmarshallingContext because that is the default used for marshalling storage values
 			mkSHA256(), new byte[32], StorageValue::toByteArray, bytes -> StorageValues.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))));

@@ -61,7 +61,7 @@ public class TrieOfResponses extends AbstractPatriciaTrie<TransactionReference, 
 	 * @param root the root of the trie to check out
 	 * @throws UnknownKeyException if {@code root} cannot be found in the trie
 	 */
-	public TrieOfResponses(KeyValueStore store, byte[] root, AbstractTrieBasedLocalNodeImpl<?,?,?,?> node) throws UnknownKeyException {
+	public TrieOfResponses(KeyValueStore store, byte[] root) throws UnknownKeyException {
 		super(store, root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
 			// we use a NodeUnmarshallingContext because that is the default used for marshalling responses
 			mkSHA256(), new byte[32], TransactionResponse::toByteArray, bytes -> TransactionResponses.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))));

@@ -36,6 +36,11 @@
       <version>${io.hotmoka.annotations.version}</version>
     </dependency>
     <dependency>
+      <groupId>io.hotmoka.marshalling</groupId>
+      <artifactId>io-hotmoka-marshalling</artifactId>
+      <version>${io.hotmoka.marshalling.version}</version>
+    </dependency>
+    <dependency>
       <groupId>io.hotmoka.xodus</groupId>
       <artifactId>io-hotmoka-xodus</artifactId>
       <version>${io.hotmoka.xodus.version}</version>

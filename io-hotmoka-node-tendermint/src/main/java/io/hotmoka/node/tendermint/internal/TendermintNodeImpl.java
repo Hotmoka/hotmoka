@@ -44,14 +44,8 @@ import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.api.requests.TransactionRequest;
-import io.hotmoka.node.api.responses.TransactionResponse;
-import io.hotmoka.node.api.responses.TransactionResponseWithUpdates;
-import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.api.updates.Update;
-import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractTrieBasedLocalNode;
 import io.hotmoka.node.local.LocalNodeException;
 import io.hotmoka.node.local.StateIds;
@@ -178,13 +172,6 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	public NodeInfo getInfo() throws ClosedNodeException, TimeoutException, InterruptedException {
 		try (var scope = mkScope()) {
 			return NodeInfos.of(TendermintNode.class.getName(), Constants.HOTMOKA_VERSION, poster.getNodeID());
-		}
-	}
-
-	@Override
-	public Stream<TransactionReference> getIndex(StorageReference reference) throws UnknownReferenceException, ClosedNodeException, InterruptedException {
-		try (var scope = mkScope()) {
-			return Stream.empty(); // TODO
 		}
 	}
 
@@ -572,17 +559,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		}
 
 		private void expandIndex(Transaction txn) {
-			transformation.forEachDeliveredTransaction((transaction, response) -> expandIndex(transaction, response, txn));
-		}
-
-		private void expandIndex(TransactionReference transaction, TransactionResponse response, Transaction txn) {
-			if (response instanceof TransactionResponseWithUpdates trwu)
-				trwu.getUpdates().map(Update::getObject).distinct().forEach(object -> expandIndex(object, transaction, txn));
-		}
-
-		private void expandIndex(StorageReference object, TransactionReference transaction, Transaction txn) {
-			// TODO Auto-generated method stub
-			return;
+			transformation.forEachDeliveredTransaction((transaction, response) -> addToIndex(transaction, response, txn));
 		}
 
 		@Override
