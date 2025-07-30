@@ -77,6 +77,11 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 	private final ConcurrentMap<StorageReference, List<TransactionReference>> index = new ConcurrentHashMap<>();
 
 	/**
+	 * The size required for the index.
+	 */
+	private final int indexSize;
+
+	/**
 	 * Builds a new disk memory node.
 	 * 
 	 * @param config the configuration of the node
@@ -84,6 +89,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 	public DiskNodeImpl(DiskNodeConfig config) {
 		super(config, true);
 
+		this.indexSize = getLocalConfig().getIndexSize();
 		this.storePath = getLocalConfig().getDir().resolve("hotmoka").resolve("store");
 		this.storeOfHead = mkEmptyStore();
 		this.mempool = new Mempool();
@@ -140,7 +146,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 	 * @param response the response of the {@code transaction}
 	 */
 	private void expandIndex(TransactionReference transaction, TransactionResponse response) {
-		if (response instanceof TransactionResponseWithUpdates trwu) // TODO: check if index size is 0
+		if (indexSize > 0 && response instanceof TransactionResponseWithUpdates trwu)
 			trwu.getUpdates().map(Update::getObject).distinct().forEach(object -> expandIndex(object, transaction));
 	}
 
@@ -156,7 +162,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 				v = new LinkedList<>();
 
 			v.add(transaction);
-			if (v.size() > 10) // TODO: define constant
+			if (v.size() > indexSize)
 				v.remove(0);
 
 			return v;

@@ -136,7 +136,7 @@ public class DiskNodeConfigImpl extends AbstractLocalNodeConfig<DiskNodeConfig, 
 
 		private DiskNodeConfigBuilder setTransactionsPerBlock(long transactionsPerBlock) {
 			if (transactionsPerBlock <= 0L || transactionsPerBlock > Integer.MAX_VALUE)
-				throw new IllegalArgumentException("transactionsPerBlock must be between 0 and " + Integer.MAX_VALUE + " inclusive");
+				throw new IllegalArgumentException("transactionsPerBlock must be between 1 and " + Integer.MAX_VALUE + " inclusive");
 
 			this.transactionsPerBlock = (int) transactionsPerBlock;
 			return getThis();

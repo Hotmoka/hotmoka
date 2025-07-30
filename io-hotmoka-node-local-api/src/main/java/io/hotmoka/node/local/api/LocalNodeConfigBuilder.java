@@ -66,6 +66,16 @@ public interface LocalNodeConfigBuilder<C extends LocalNodeConfig<C,B>, B extend
 	B setPollingDelay(long pollingDelay);
 
 	/**
+	 * Sets the maximal size of the index kept for each object.
+	 * That is, the index, for each object, will keep at most this number of
+	 * transactions, that have affected the object, as history of the object.
+	 * 
+	 * @param indexSize the size; use 0 to disable the index
+	 * @return this builder
+	 */
+	B setIndexSize(int indexSize);
+
+	/**
 	 * Builds the configuration.
 	 * 
 	 * @return the configuration

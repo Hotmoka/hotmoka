@@ -39,14 +39,14 @@ import io.hotmoka.xodus.env.Store;
 import io.hotmoka.xodus.env.Transaction;
 
 public class Index {
-
 	private final Store store;
 	private final Environment env;
-	private final static int MAX = 10; // TODO: introduce configuration parameter
+	private final int size;
 
-	public Index(Store store, Environment env) {
+	public Index(Store store, Environment env, int size) {
 		this.store = store;
 		this.env = env;
+		this.size = size;
 	}
 
 	/**
@@ -71,7 +71,7 @@ public class Index {
 	 * @param txn the database transaction where the update occurs
 	 */
 	public void add(TransactionReference transaction, TransactionResponse response, Transaction txn) {
-		if (MAX > 0 && response instanceof TransactionResponseWithUpdates trwu) {
+		if (size > 0 && response instanceof TransactionResponseWithUpdates trwu) {
 			var affectedObjects = trwu.getUpdates().map(Update::getObject).distinct().toArray(StorageReference[]::new);
 
 			for (var object: affectedObjects)
@@ -119,11 +119,11 @@ public class Index {
 		else {
 			// add() will, internally, impose MAX as upper bound to the length of the array
 			var oldArray = new MarshallableArrayOfTransactionReferences(oldTxs);
-			result = oldArray.add(transaction);
+			result = oldArray.add(transaction, size);
 
 			// if transactions of the history of object overflow on the left and consequently get
 			// forgotten, the object gets unbound from the map (transaction -> objects)
-			for (int pos = oldArray.references.length - MAX; pos >= 0; pos--)
+			for (int pos = oldArray.references.length - size; pos >= 0; pos--)
 				unbind(result.references[pos], object, txn);
 		}
 
@@ -270,18 +270,20 @@ public class Index {
 		 * Adds the given reference at the end of this array.
 		 * 
 		 * @param reference the reference
+		 * @param size the maximal size for the resulting array; beyond this threshold,
+		 *             the first transaction in the array gets dropped
 		 * @return the resulting array of transaction references, in unchanged order
 		 */
-		private MarshallableArrayOfTransactionReferences add(TransactionReference reference) {
+		private MarshallableArrayOfTransactionReferences add(TransactionReference reference, int size) {
 			TransactionReference[] result;
-			if (references.length < MAX) {
+			if (references.length < size) {
 				result = new TransactionReference[references.length + 1];
 				System.arraycopy(references, 0, result, 0, references.length);
 			}
 			else {
-				result = new TransactionReference[MAX];
+				result = new TransactionReference[size];
 				// we only keep the last MAX-1 elements
-				System.arraycopy(references, references.length - (MAX - 1), result, 0, MAX - 1);
+				System.arraycopy(references, references.length - (size - 1), result, 0, size - 1);
 			}
 
 			result[result.length - 1] = reference;

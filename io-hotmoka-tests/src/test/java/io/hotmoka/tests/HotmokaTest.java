@@ -348,6 +348,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 				.setDir(Files.createTempDirectory("hotmoka-tendermint-chain-"))
 				.setTendermintConfigurationToClone(Paths.get("tendermint_config"))
 				.setMaxGasPerViewTransaction(_1_000_000_000)
+				.setIndexSize(10) // so that we test the index as well
 				.build();
 
 		Node node = TendermintNodes.init(config);
@@ -369,6 +370,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		var config = MokamintNodeConfigBuilders.defaults()
 				.setDir(hotmokaChainPath)
 				.setMaxGasPerViewTransaction(_1_000_000_000)
+				.setIndexSize(10) // so that we test the index as well
 				.build();
 
 		var mokamintConfig = LocalNodeConfigBuilders.defaults()
@@ -428,6 +430,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			var config = MokamintNodeConfigBuilders.defaults()
 					.setDir(hotmokaChainPath)
 					.setMaxGasPerViewTransaction(_1_000_000_000)
+					.setIndexSize(10) // so that we test the index as well
 					.build();
 
 			var mokamintConfig = LocalNodeConfigBuilders.defaults()
@@ -497,6 +500,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 				.setMaxGasPerViewTransaction(_1_000_000_000)
 				.setMaxPollingAttempts(100) // we fix these two so that we know the timeout in case of problems
 				.setPollingDelay(10)
+				.setIndexSize(10) // so that we test the index as well
 				.build();
 
 		Node node = DiskNodes.init(config);

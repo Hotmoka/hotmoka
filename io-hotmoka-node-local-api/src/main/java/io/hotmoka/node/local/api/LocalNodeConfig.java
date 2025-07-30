@@ -65,6 +65,15 @@ public interface LocalNodeConfig<C extends LocalNodeConfig<C,B>, B extends Local
 	BigInteger getMaxGasPerViewTransaction();
 
 	/**
+	 * Yields the maximal size of the index kept for each object.
+	 * That is, the index, for each object, will keep at most this number of
+	 * transactions, that have affected the object, as history of the object.
+	 * 
+	 * @return the maximal size of the index kept for each object; use 0 to disable the index
+	 */
+	int getIndexSize();
+
+	/**
 	 * Yields a TOML representation of this configuration.
 	 * 
 	 * @return the TOML representation, as a string

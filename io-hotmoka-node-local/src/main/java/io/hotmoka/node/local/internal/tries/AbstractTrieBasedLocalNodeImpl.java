@@ -130,7 +130,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	/**
 	 * Creates a new node.
 	 * 
-	 * @param config the configuration of the node
+	 * @param config the local configuration of the node
 	 * @param init if true, the working directory of the node gets initialized
 	 */
 	protected AbstractTrieBasedLocalNodeImpl(C config, boolean init) {
@@ -144,7 +144,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
     	this.storeOfInfo = env.computeInTransaction(txn -> env.openStoreWithoutDuplicates("info", txn));
 		this.storeOfRequests = env.computeInTransaction(txn -> env.openStoreWithoutDuplicatesWithPrefixing("requests", txn));
 		this.storeOfHistories = env.computeInTransaction(txn -> env.openStoreWithoutDuplicatesWithPrefixing("histories", txn));
-		this.index = new Index(storeOfNode, env);
+		this.index = new Index(storeOfNode, env, config.getIndexSize());
 
 		// we start the garbage-collection task
 		getExecutors().execute(this::gc);

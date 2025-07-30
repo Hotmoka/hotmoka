@@ -64,6 +64,13 @@ public abstract class LocalNodeConfigImpl<C extends LocalNodeConfig<C,B>, B exte
 	public final BigInteger maxGasPerViewTransaction;
 
 	/**
+	 * The maximal size of the index kept for each object.
+	 * That is, the index, for each object, will keep at most this number of
+	 * transactions, that have affected the object, as history of the object.
+	 */
+	public final int indexSize;
+
+	/**
 	 * Creates a new configuration object from its builder.
 	 * 
 	 * @param the builder
@@ -73,6 +80,7 @@ public abstract class LocalNodeConfigImpl<C extends LocalNodeConfig<C,B>, B exte
 		this.maxPollingAttempts = builder.maxPollingAttempts;
 		this.pollingDelay = builder.pollingDelay;
 		this.maxGasPerViewTransaction = builder.maxGasPerViewTransaction;
+		this.indexSize = builder.indexSize;
 	}
 
 	@Override
@@ -96,6 +104,11 @@ public abstract class LocalNodeConfigImpl<C extends LocalNodeConfig<C,B>, B exte
 	}
 
 	@Override
+	public int getIndexSize() {
+		return indexSize;
+	}
+
+	@Override
 	public String toToml() {
 		var sb = new StringBuilder();
 
@@ -116,6 +129,10 @@ public abstract class LocalNodeConfigImpl<C extends LocalNodeConfig<C,B>, B exte
 		sb.append("\n");
 		sb.append("# the maximal amount of gas that a view transaction can consume\n");
 		sb.append("max_gas_per_view_transaction = \"" + maxGasPerViewTransaction + "\"\n");
+		sb.append("\n");
+		sb.append("# the maximal number of transactions kept in the index for each object;\n");
+		sb.append("# use 0 to disable the index\n");
+		sb.append("index_size = " + indexSize + "\n");
 
 		return sb.toString();
 	}
@@ -126,14 +143,15 @@ public abstract class LocalNodeConfigImpl<C extends LocalNodeConfig<C,B>, B exte
 			return dir.equals(otherConfig.dir) &&
 				maxPollingAttempts == otherConfig.maxPollingAttempts &&
 				pollingDelay == otherConfig.pollingDelay &&
-				maxGasPerViewTransaction.equals(otherConfig.maxGasPerViewTransaction);
+				maxGasPerViewTransaction.equals(otherConfig.maxGasPerViewTransaction) &&
+				indexSize == otherConfig.indexSize;
 		else
 			return false;
 	}
 
 	@Override
 	public int hashCode() {
-		return dir.hashCode() ^ Long.hashCode(maxPollingAttempts) ^ maxGasPerViewTransaction.hashCode();
+		return dir.hashCode() ^ Long.hashCode(maxPollingAttempts) ^ maxGasPerViewTransaction.hashCode() ^ Integer.hashCode(indexSize);
 	}
 
 	@Override
@@ -149,6 +167,7 @@ public abstract class LocalNodeConfigImpl<C extends LocalNodeConfig<C,B>, B exte
 		private long maxPollingAttempts = 60;
 		private long pollingDelay = 10;
 		private BigInteger maxGasPerViewTransaction = BigInteger.valueOf(1_000_000_000);
+		private int indexSize = 0;
 
 		/**
 		 * Creates a builder with default values for the properties.
@@ -165,6 +184,7 @@ public abstract class LocalNodeConfigImpl<C extends LocalNodeConfig<C,B>, B exte
 			setMaxPollingAttempts(config.getMaxPollingAttempts());
 			setPollingDelay(config.getPollingDelay());
 			setMaxGasPerViewTransaction(config.getMaxGasPerViewTransaction());
+			setIndexSize(config.getIndexSize());
 		}
 
 		/**
@@ -189,6 +209,10 @@ public abstract class LocalNodeConfigImpl<C extends LocalNodeConfig<C,B>, B exte
 			var maxGasPerViewTransaction = toml.getString("max_gas_per_view_transaction");
 			if (maxGasPerViewTransaction != null)
 				setMaxGasPerViewTransaction(new BigInteger(maxGasPerViewTransaction));
+
+			var indexSize = toml.getLong("index_size");
+			if (indexSize != null)
+				setIndexSize(indexSize);
 		}
 
 		@Override
@@ -221,10 +245,26 @@ public abstract class LocalNodeConfigImpl<C extends LocalNodeConfig<C,B>, B exte
 		@Override
 		public B setPollingDelay(long pollingDelay) {
 			if (pollingDelay < 0)
-				throw new IllegalArgumentException("pollingDelay must non-negative");
+				throw new IllegalArgumentException("pollingDelay must be non-negative");
 
 			this.pollingDelay = pollingDelay;
 			return getThis();
+		}
+
+		@Override
+		public B setIndexSize(int indexSize) {
+			if (indexSize < 0)
+				throw new IllegalArgumentException("indexSize must be non-negative");
+
+			this.indexSize = indexSize;
+			return getThis();
+		}
+
+		private B setIndexSize(long indexSize) {
+			if (indexSize < 0L || indexSize > Integer.MAX_VALUE)
+				throw new IllegalArgumentException("indexSize must be between 0 and " + Integer.MAX_VALUE + " inclusive");
+
+			return setIndexSize((int) indexSize);
 		}
 
 		/**
