@@ -37,6 +37,7 @@ import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractLocalNode;
+import io.hotmoka.node.local.Index;
 import io.hotmoka.node.local.StateIds;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StateId;
@@ -160,6 +161,10 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 
 	protected void addToIndex(TransactionReference transaction, TransactionResponse response, Transaction txn) {
 		index.add(transaction, response, txn);
+	}
+
+	protected void removeFromIndex(TransactionReference transaction, Transaction txn) {
+		index.remove(transaction, txn);
 	}
 
 	protected final io.hotmoka.xodus.env.Store getStoreOfNode() {

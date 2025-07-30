@@ -140,7 +140,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 	 * @param response the response of the {@code transaction}
 	 */
 	private void expandIndex(TransactionReference transaction, TransactionResponse response) {
-		if (response instanceof TransactionResponseWithUpdates trwu)
+		if (response instanceof TransactionResponseWithUpdates trwu) // TODO: check if index size is 0
 			trwu.getUpdates().map(Update::getObject).distinct().forEach(object -> expandIndex(object, transaction));
 	}
 

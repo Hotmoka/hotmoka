@@ -47,7 +47,7 @@ public abstract class MokamintNodes {
 	 * @throws TimeoutException if the operation does not complete in time
 	 */
 	public static MokamintNode init(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair, boolean createGenesis) throws InterruptedException, TimeoutException {
-		return new MokamintNodeImpl(config, mokamintConfig, keyPair, true, createGenesis);
+		return new MokamintNodeImpl(config, mokamintConfig, keyPair, true, createGenesis); // TODO: distinguish init (createGenesis==true) and start (createGenesis==false)
 	}
 
 	/**

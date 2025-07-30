@@ -30,7 +30,7 @@ module io.hotmoka.node.local {
 	requires io.hotmoka.crypto;
 	requires io.hotmoka.patricia;
 	requires io.hotmoka.annotations;
-	requires io.hotmoka.xodus;
+	requires transitive io.hotmoka.xodus;
 	requires io.hotmoka.instrumentation;
 	requires io.hotmoka.whitelisting;
 	requires io.hotmoka.exceptions;

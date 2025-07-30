@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.local.internal.tries;
+package io.hotmoka.node.local;
 
 /**
  * An exception thrown when the index of the a Hotmoka node is corrupted.

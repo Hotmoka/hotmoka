@@ -558,10 +558,6 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 			return getEnvironment().computeInReadonlyTransaction(TendermintNodeImpl.this::getHeight);
 		}
 
-		private void expandIndex(Transaction txn) {
-			transformation.forEachDeliveredTransaction((transaction, response) -> addToIndex(transaction, response, txn));
-		}
-
 		@Override
 		protected ResponseInitChain initChain(RequestInitChain request) {
 			return ResponseInitChain.newBuilder().build();
@@ -658,7 +654,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 				setRootBranch(stateIdOfFinalStore, txn);
 				persist(stateIdOfFinalStore, now, txn);
 				keepPersistedOnlyNotOlderThan(now, txn);
-				expandIndex(txn);
+				transformation.forEachDeliveredTransaction((transaction, response) -> addToIndex(transaction, response, txn));
 				return stateIdOfFinalStore;
 			});
 

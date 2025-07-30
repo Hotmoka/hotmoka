@@ -72,6 +72,9 @@ import io.mokamint.nonce.api.Deadline;
 /**
  * An implementation of blockchain nodes that rely on the Mokamint proof of space engine.
  */
+// TODO: the (Mokamint) Hotmoka node and the underlying Mokamint engine are intertwined here.
+// This should change: let the Hotmoka node receive a Mokamint application in its constructor
+// and let the Mokamint application receive a supplier of a Hotmoka node
 @ThreadSafe
 public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImpl, MokamintNodeConfig, MokamintStore, MokamintStoreTransformation> implements MokamintNode {
 
@@ -150,7 +153,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		}
 
 		@Override
-		protected void onHeadChanged(Deque<Block> pathToNewHead) {
+		protected void onHeadChanged(Deque<Block> pathToNewHead) { // TODO: this redefinition must disappear otherwise it is not possible to use a remote application
 			super.onHeadChanged(pathToNewHead);
 
 			for (Block added: pathToNewHead)
@@ -159,7 +162,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 					try {
 						enter(si, Optional.ofNullable(lastCaches.get(si)));
-						toPublish.offer(ngb);
+						toPublish.offer(ngb); // TODO: add API method of Mokamint applications so that you can remote this redefinition
 					}
 					catch (UnknownStateIdException e) {
 						LOGGER.log(Level.WARNING, "Cannot publish the events in block " + ngb.getHexHash() + ": its state has been garbage-collected", e);
@@ -298,7 +301,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		}
 	}
 
-	private TransactionRequest<?> intoHotmokaRequest(Transaction transaction) throws io.mokamint.node.api.TransactionRejectedException {
+	private static TransactionRequest<?> intoHotmokaRequest(Transaction transaction) throws io.mokamint.node.api.TransactionRejectedException {
 		try (var context = NodeUnmarshallingContexts.of(new ByteArrayInputStream(transaction.getBytes()))) {
 			try {
         		return TransactionRequests.from(context);

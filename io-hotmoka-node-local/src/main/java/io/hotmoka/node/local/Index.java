@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.local.internal.tries;
+package io.hotmoka.node.local;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -89,7 +89,23 @@ public class Index {
 	 * @param txn the database transaction where the update occurs
 	 */
 	public void remove(TransactionReference transaction, Transaction txn) {
-		
+		var transactionBI = new MarshallableTransactionReference(transaction).toByteIterable();
+		var objectsBI = store.get(txn, transactionBI);
+		if (objectsBI != null) {
+			for (var object: new MarshallableArrayOfStorageReferences(objectsBI).references)
+				unbind(object, transaction, transactionBI, txn);
+
+			store.delete(txn, transactionBI);
+		}
+	}
+
+	private void unbind(StorageReference object, TransactionReference transaction, ByteIterable transactionBI, Transaction txn) {
+		var objectBI = new MarshallableStorageReference(object).toByteIterable();
+		var result = new MarshallableArrayOfTransactionReferences(store.get(txn, objectBI)).remove(transaction);
+		if (result.references.length == 0)
+			store.delete(txn, objectBI);
+		else
+			store.put(txn, objectBI, result.toByteIterable());
 	}
 
 	private void bind(StorageReference object, TransactionReference transaction, Transaction txn) {
@@ -232,10 +248,6 @@ public class Index {
 	private static class MarshallableArrayOfTransactionReferences extends MyMarshallable {
 		private final TransactionReference[] references;
 	
-		private MarshallableArrayOfTransactionReferences(Stream<TransactionReference> references) {
-			this.references = references.toArray(TransactionReference[]::new);
-		}
-	
 		private MarshallableArrayOfTransactionReferences(TransactionReference[] references) {
 			this.references = references;
 		}
@@ -310,10 +322,6 @@ public class Index {
 	private static class MarshallableArrayOfStorageReferences extends MyMarshallable {
 		private final StorageReference[] references;
 	
-		private MarshallableArrayOfStorageReferences(Stream<StorageReference> references) {
-			this.references = references.toArray(StorageReference[]::new);
-		}
-	
 		private MarshallableArrayOfStorageReferences(StorageReference[] references) {
 			this.references = references;
 		}
@@ -347,10 +355,6 @@ public class Index {
 					result[pos++] = reference2;
 
 			return new MarshallableArrayOfStorageReferences(result);
-		}
-
-		private Stream<StorageReference> stream() {
-			return Stream.of(references);
 		}
 
 		@Override
