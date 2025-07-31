@@ -407,7 +407,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		S store = enterHead();
 
 		try (var scope = mkScope()) {
-			var reference = TransactionReferences.of(hasher.hash(request));
+			var reference = referenceOf(request);
 			String referenceAsString = reference.toString();
 			LOGGER.info(referenceAsString + ": running start (" + request.getClass().getSimpleName() + " -> " + trim(request.getStaticTarget().getName()) + ')');
 			Optional<StorageValue> result = store.beginViewTransformation().runInstanceMethodCallTransaction(request, reference);
@@ -424,7 +424,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		S store = enterHead();
 
 		try (var scope = mkScope()) {
-			var reference = TransactionReferences.of(hasher.hash(request));
+			var reference = referenceOf(request);
 			String referenceAsString = reference.toString();
 			LOGGER.info(referenceAsString + ": running start (" + request.getClass().getSimpleName() + " -> " + trim(request.getStaticTarget().getName()) + ')');
 			Optional<StorageValue> result = store.beginViewTransformation().runStaticMethodCallTransaction(request, reference);
@@ -507,10 +507,20 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 * @param e the exception that explains why it has been rejected
 	 */
 	protected final void signalRejected(TransactionRequest<?> request, TransactionRejectedException e) {
-		var reference = TransactionReferences.of(hasher.hash(request));
+		var reference = referenceOf(request);
 		recentlyRejectedTransactionsMessages.put(reference, e.getMessage());
 		LOGGER.warning("transaction " + reference + " has been rejected: " + e.getMessage());
 		signalCompleted(reference);
+	}
+
+	/**
+	 * Yields the reference of the given transaction request.
+	 * 
+	 * @param request the transaction request
+	 * @return the reference of {@code request}
+	 */
+	protected TransactionReference referenceOf(TransactionRequest<?> request) {
+		return TransactionReferences.of(hasher.hash(request));
 	}
 
 	/**
@@ -620,7 +630,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 * @throws TransactionRejectedException if the request was already present in the store
 	 */
 	private TransactionReference post(TransactionRequest<?> request) throws TransactionRejectedException, ClosedNodeException, InterruptedException, TimeoutException {
-		var reference = TransactionReferences.of(hasher.hash(request));
+		var reference = referenceOf(request);
 		String simpleNameOfRequest = request.getClass().getSimpleName();
 
 		if (request instanceof MethodCallTransactionRequest mctr)

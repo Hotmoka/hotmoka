@@ -158,10 +158,10 @@ public class Index {
 	 * shared representation for data that contains many of them, which would be wrong here,
 	 * since they are marshalled in isolation.
 	 */
-	private static class MarshallableTransactionReference extends MyMarshallable {
+	public static class MarshallableTransactionReference extends MyMarshallable {
 		private final TransactionReference reference;
 	
-		private MarshallableTransactionReference(TransactionReference reference) {
+		public MarshallableTransactionReference(TransactionReference reference) {
 			this.reference = reference;
 		}
 	
@@ -170,14 +170,14 @@ public class Index {
 		 * 
 		 * @param bi the byte iterable
 		 */
-		private MarshallableTransactionReference(ByteIterable bi) {
+		/*private MarshallableTransactionReference(ByteIterable bi) {
 			try (var bais = new ByteArrayInputStream(bi.getBytes()); var context = UnmarshallingContexts.of(bais)) {
 				this.reference = new MarshallableTransactionReference(context).reference;
 			}
 			catch (IOException e) {
 				throw new IndexException(e);
 			}
-		}
+		}*/
 
 		private MarshallableTransactionReference(UnmarshallingContext context) {
 			try {
@@ -245,10 +245,10 @@ public class Index {
 	/**
 	 * A marshallable array of transaction references.
 	 */
-	private static class MarshallableArrayOfTransactionReferences extends MyMarshallable {
+	public static class MarshallableArrayOfTransactionReferences extends MyMarshallable {
 		private final TransactionReference[] references;
 	
-		private MarshallableArrayOfTransactionReferences(TransactionReference[] references) {
+		public MarshallableArrayOfTransactionReferences(TransactionReference[] references) {
 			this.references = references;
 		}
 
@@ -257,7 +257,7 @@ public class Index {
 		 * 
 		 * @param bi the byte iterable
 		 */
-		private MarshallableArrayOfTransactionReferences(ByteIterable bi) {
+		public MarshallableArrayOfTransactionReferences(ByteIterable bi) {
 			try (var bais = new ByteArrayInputStream(bi.getBytes()); var context = UnmarshallingContexts.of(bais)) {
 				this.references = context.readLengthAndArray(_context -> new MarshallableTransactionReference(_context).reference, TransactionReference[]::new);
 			}
@@ -308,7 +308,7 @@ public class Index {
 			return new MarshallableArrayOfTransactionReferences(result);
 		}
 
-		private Stream<TransactionReference> stream() {
+		public Stream<TransactionReference> stream() {
 			return Stream.of(references);
 		}
 

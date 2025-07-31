@@ -37,6 +37,7 @@ import io.hotmoka.annotations.GuardedBy;
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.api.Hasher;
+import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.TransactionReferences;
@@ -141,6 +142,11 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		this.mokamintNode.addOnCloseHandler(this::close);
 
 		getExecutors().execute(this::publishBlocks);
+
+		if (getLocalConfig().getIndexSize() > 0) {
+			var indexer = new Indexer(this, getStoreOfNode(), getEnvironment(), getLocalConfig().getIndexSize());
+			getExecutors().execute(indexer::run);
+		}
 	}
 
 	/**
@@ -288,26 +294,22 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 	private void publish(Transaction tx, Hasher<TransactionRequest<?>> hasher, MokamintStore store) {
 		try {
-			publish(TransactionReferences.of(hasher.hash(intoHotmokaRequest(tx))), store);
+			publish(TransactionReferences.of(hasher.hash(intoHotmokaRequest(tx, message -> new LocalNodeException("Already delivered transactions should not be rejected: " + message)))), store);
 		}
 		catch (UnknownReferenceException e) {
 			// the transactions have been delivered and the store is immutable, if they cannot be found
 			// then there is a problem in the database
 			throw new LocalNodeException("Already delivered transactions should be in store", e);
 		}
-		catch (io.mokamint.node.api.TransactionRejectedException e) {
-			// the transactions have been delivered, they must be legal
-			throw new LocalNodeException("Already delivered transactions should not be rejected", e);
-		}
 	}
 
-	private static TransactionRequest<?> intoHotmokaRequest(Transaction transaction) throws io.mokamint.node.api.TransactionRejectedException {
+	private static <E extends Exception> TransactionRequest<?> intoHotmokaRequest(Transaction transaction, ExceptionSupplierFromMessage<E> onRejected) throws E {
 		try (var context = NodeUnmarshallingContexts.of(new ByteArrayInputStream(transaction.getBytes()))) {
 			try {
         		return TransactionRequests.from(context);
         	}
         	catch (IOException e) {
-        		throw new io.mokamint.node.api.TransactionRejectedException(e.getMessage(), e);
+        		throw onRejected.apply(e.getMessage());
         	}
         }
 		catch (IOException e) {
@@ -358,7 +360,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		@Override
 		public String getRepresentation(Transaction transaction) throws io.mokamint.node.api.TransactionRejectedException, ClosedApplicationException {
 			try (var scope = mkScope()) {
-				return intoHotmokaRequest(transaction).toString();
+				return intoHotmokaRequest(transaction, io.mokamint.node.api.TransactionRejectedException::new).toString();
 			}
 		}
 
@@ -392,7 +394,7 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 		@Override
 		public void deliverTransaction(int groupId, Transaction transaction) throws io.mokamint.node.api.TransactionRejectedException, UnknownGroupIdException, ClosedApplicationException, InterruptedException {
 			try (var scope = mkScope()) {
-				TransactionRequest<?> hotmokaRequest = intoHotmokaRequest(transaction);
+				TransactionRequest<?> hotmokaRequest = intoHotmokaRequest(transaction, io.mokamint.node.api.TransactionRejectedException::new); // TODO: should I signalRejected also if this fails?
 				MokamintStoreTransformation transformation = getTransformation(groupId);
 
 				try {
