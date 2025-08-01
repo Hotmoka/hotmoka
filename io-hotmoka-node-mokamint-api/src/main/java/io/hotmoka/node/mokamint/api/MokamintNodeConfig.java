@@ -24,4 +24,25 @@ import io.hotmoka.node.local.api.LocalNodeConfig;
  */
 @Immutable
 public interface MokamintNodeConfig extends LocalNodeConfig<MokamintNodeConfig, MokamintNodeConfigBuilder> {
+
+	/**
+	 * Yields the depth of the indexing, that is, the number of uppermost blocks
+	 * for which indexing supporting data is maintained. The larger this number,
+	 * the more resilient is indexing to large history changes, but higher is
+	 * its computational cost and database usage.
+	 * 
+	 * @return the indexing depth; a negative value means that supporting data
+	 *         is kept forever, it is never deleted, which protects completely from
+	 *         history changes
+	 */
+	long getIndexingDepth();
+
+	/**
+	 * Yields the pausing time (in milliseconds) from an indexing iteration to the
+	 * next indexing iteration. Reducing this number will make indexing more
+	 * reactive to changes in the store, at an increased computational cost.
+	 * 
+	 * @return the pausing time, in milliseconds
+	 */
+	long getIndexingPause();
 }

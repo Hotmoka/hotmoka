@@ -85,8 +85,10 @@ public class Indexer {
 	 */
 	private final Hasher<byte[]> sha256;
 
-	private final static int MAX_DEPTH_OF_HISTORY_CHANGE = 20;
-	private final static int BLOCK_LOADING_CHUNK_SIZE = 10;
+	/**
+	 * The number of block hashes fetched from the blockchain, in a single call to the Mokamint engine.
+	 */
+	private final static int BLOCK_FETCHING_CHUNK_SIZE = 512;
 
 	/**
 	 * The constant key bound, in {@link #store}, to (one less than) the base height of the portion of the blockchain
@@ -133,7 +135,7 @@ public class Indexer {
 		try {
 			while (true) {
 				env.executeInTransaction(this::indexing);
-				Thread.sleep(20_000L);
+				Thread.sleep(node.getLocalConfig().getIndexingPause());
 			}
 		}
 		catch (InterruptedException e) {
@@ -153,6 +155,7 @@ public class Indexer {
 	private void indexing(io.hotmoka.xodus.env.Transaction txn) {
 		long base = getBase(txn);
 		long height = base;
+		long depth = node.getLocalConfig().getIndexingDepth();
 
 		try {
 			// we iterate on the blocks of the blockchain, from height base + 1 upwards
@@ -166,6 +169,7 @@ public class Indexer {
 					// this might be a change in history; we also require to delete data from the index
 					for (long cursor = height; unbind(cursor, true, txn); cursor++) {
 						final long cursorCopy = cursor;
+						//System.out.println("unbound supporting data at height " + cursorCopy + " because of a history change");
 						LOGGER.info(() -> LOG_PREFIX + "unbound supporting data at height " + cursorCopy + " because of a history change");
 					}
 
@@ -197,7 +201,7 @@ public class Indexer {
 
 					// if we have been indexing more than the maximal depth allowed for history changes,
 					// we increase the base and remove old information, below the new base
-					if (height == base + MAX_DEPTH_OF_HISTORY_CHANGE + 1) {
+					if (depth >= 0 && height == base + depth + 1) {
 						setBase(++base, txn);
 
 						// we do not require to delete data from the index, since this deep block is
@@ -206,6 +210,7 @@ public class Indexer {
 
 						final long baseCopy = base;
 						LOGGER.info(() -> LOG_PREFIX + "unbound supporting data at height " + baseCopy + " because it seems old enough to be stable");
+						//System.out.println("unbound supporting data at height " + baseCopy + " because it seems old enough to be stable");
 					}
 				}
 				// otherwise the block hash did not change wrt the previous indexing iteration
@@ -259,7 +264,7 @@ public class Indexer {
 		private BlockHashesIterator(long start) throws TimeoutException, InterruptedException, io.mokamint.node.api.ClosedNodeException {
 			this.start = start;
 			this.pos = 0;
-			this.hashes = mokamintNode.getChainPortion(start, BLOCK_LOADING_CHUNK_SIZE).getHashes().toArray(byte[][]::new);
+			this.hashes = mokamintNode.getChainPortion(start, BLOCK_FETCHING_CHUNK_SIZE).getHashes().toArray(byte[][]::new);
 		}
 
 		@Override
@@ -277,11 +282,11 @@ public class Indexer {
 				// to continue the previous one: otherwise, there has been a history change and we cannot proceed
 				// further with this indexing iteration
 				try {
-					byte[][] nextHashes = mokamintNode.getChainPortion(start + BLOCK_LOADING_CHUNK_SIZE - 1, BLOCK_LOADING_CHUNK_SIZE).getHashes().toArray(byte[][]::new);
+					byte[][] nextHashes = mokamintNode.getChainPortion(start + BLOCK_FETCHING_CHUNK_SIZE - 1, BLOCK_FETCHING_CHUNK_SIZE).getHashes().toArray(byte[][]::new);
 
 					if (nextHashes.length > 0 && Arrays.equals(nextHashes[0], result)) { // the chunks of hashes match over their overlapping
 						hashes = nextHashes;
-						start += BLOCK_LOADING_CHUNK_SIZE - 1;
+						start += BLOCK_FETCHING_CHUNK_SIZE - 1;
 						pos = 1; // we do not consider the overlapping hash, since we already did it
 					}
 					// otherwise, if the next chunk of hashes does not start with the last hash of the previous chunk, there must have been

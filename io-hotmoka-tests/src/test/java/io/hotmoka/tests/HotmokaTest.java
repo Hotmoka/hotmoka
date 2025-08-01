@@ -371,6 +371,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 				.setDir(hotmokaChainPath)
 				.setMaxGasPerViewTransaction(_1_000_000_000)
 				.setIndexSize(10) // so that we test the index as well
+				.setIndexingPause(5_000L) // so that the index is quite responsive in the tests
 				.build();
 
 		var mokamintConfig = LocalNodeConfigBuilders.defaults()
@@ -431,6 +432,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 					.setDir(hotmokaChainPath)
 					.setMaxGasPerViewTransaction(_1_000_000_000)
 					.setIndexSize(10) // so that we test the index as well
+					.setIndexingPause(5_000L) // so that the index is quite responsive in the tests
 					.build();
 
 			var mokamintConfig = LocalNodeConfigBuilders.defaults()
