@@ -18,9 +18,9 @@ package io.hotmoka.node.messages;
 
 import io.hotmoka.node.messages.api.GetManifestMessage;
 import io.hotmoka.node.messages.internal.GetManifestMessageImpl;
-import io.hotmoka.node.messages.internal.json.GetManifestMessageDecoder;
-import io.hotmoka.node.messages.internal.json.GetManifestMessageEncoder;
 import io.hotmoka.node.messages.internal.json.GetManifestMessageJson;
+import io.hotmoka.websockets.beans.MappedDecoder;
+import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
  * A provider of {@link GetManifestMessage}.
@@ -42,23 +42,27 @@ public abstract class GetManifestMessages {
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends GetManifestMessageEncoder {
+	public static class Encoder extends MappedEncoder<GetManifestMessage, Json> {
 
 		/**
 		 * Creates a new encoder.
 		 */
-		public Encoder() {}
+		public Encoder() {
+			super(Json::new);
+		}
 	}
 
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends GetManifestMessageDecoder {
+	public static class Decoder extends MappedDecoder<GetManifestMessage, Json> {
 
 		/**
 		 * Creates a new decoder.
 		 */
-		public Decoder() {}
+		public Decoder() {
+			super(Json.class);
+		}
 	}
 
 	/**

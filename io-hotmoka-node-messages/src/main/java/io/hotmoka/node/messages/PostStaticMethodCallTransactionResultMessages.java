@@ -19,9 +19,9 @@ package io.hotmoka.node.messages;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.messages.api.PostStaticMethodCallTransactionResultMessage;
 import io.hotmoka.node.messages.internal.PostStaticMethodCallTransactionResultMessageImpl;
-import io.hotmoka.node.messages.internal.json.PostStaticMethodCallTransactionResultMessageDecoder;
-import io.hotmoka.node.messages.internal.json.PostStaticMethodCallTransactionResultMessageEncoder;
 import io.hotmoka.node.messages.internal.json.PostStaticMethodCallTransactionResultMessageJson;
+import io.hotmoka.websockets.beans.MappedDecoder;
+import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
  * A provider of {@link PostStaticMethodCallTransactionResultMessage}.
@@ -44,23 +44,27 @@ public abstract class PostStaticMethodCallTransactionResultMessages {
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends PostStaticMethodCallTransactionResultMessageEncoder {
+	public static class Encoder extends MappedEncoder<PostStaticMethodCallTransactionResultMessage, Json> {
 
 		/**
 		 * Creates a new encoder.
 		 */
-		public Encoder() {}
+		public Encoder() {
+			super(Json::new);
+		}
 	}
 
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends PostStaticMethodCallTransactionResultMessageDecoder {
+	public static class Decoder extends MappedDecoder<PostStaticMethodCallTransactionResultMessage, Json> {
 
 		/**
 		 * Creates a new decoder.
 		 */
-		public Decoder() {}
+		public Decoder() {
+			super(Json.class);
+		}
 	}
 
 	/**

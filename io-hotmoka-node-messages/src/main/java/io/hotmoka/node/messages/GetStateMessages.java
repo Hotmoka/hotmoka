@@ -19,9 +19,9 @@ package io.hotmoka.node.messages;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.messages.api.GetStateMessage;
 import io.hotmoka.node.messages.internal.GetStateMessageImpl;
-import io.hotmoka.node.messages.internal.json.GetStateMessageDecoder;
-import io.hotmoka.node.messages.internal.json.GetStateMessageEncoder;
 import io.hotmoka.node.messages.internal.json.GetStateMessageJson;
+import io.hotmoka.websockets.beans.MappedDecoder;
+import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
  * A provider of {@link GetStateMessage}.
@@ -44,23 +44,27 @@ public abstract class GetStateMessages {
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends GetStateMessageEncoder {
+	public static class Encoder extends MappedEncoder<GetStateMessage, Json> {
 
 		/**
 		 * Creates a new encoder.
 		 */
-		public Encoder() {}
+		public Encoder() {
+			super(Json::new);
+		}
 	}
 
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends GetStateMessageDecoder {
+	public static class Decoder extends MappedDecoder<GetStateMessage, Json> {
 
 		/**
 		 * Creates a new decoder.
 		 */
-		public Decoder() {}
+		public Decoder() {
+			super(Json.class);
+		}
 	}
 
 	/**

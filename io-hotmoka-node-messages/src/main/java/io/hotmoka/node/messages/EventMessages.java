@@ -19,9 +19,9 @@ package io.hotmoka.node.messages;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.messages.api.EventMessage;
 import io.hotmoka.node.messages.internal.EventMessageImpl;
-import io.hotmoka.node.messages.internal.json.EventMessageDecoder;
-import io.hotmoka.node.messages.internal.json.EventMessageEncoder;
 import io.hotmoka.node.messages.internal.json.EventMessageJson;
+import io.hotmoka.websockets.beans.MappedDecoder;
+import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
  * A provider of {@link EventMessage}.
@@ -44,23 +44,27 @@ public abstract class EventMessages {
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends EventMessageEncoder {
+	public static class Encoder extends MappedEncoder<EventMessage, Json> {
 
 		/**
 		 * Creates a new encoder.
 		 */
-		public Encoder() {}
+		public Encoder() {
+			super(Json::new);
+		}
 	}
 
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends EventMessageDecoder {
+	public static class Decoder extends MappedDecoder<EventMessage, Json> {
 
 		/**
 		 * Creates a new decoder.
 		 */
-		public Decoder() {}
+		public Decoder() {
+			super(Json.class);
+		}
 	}
 
 	/**

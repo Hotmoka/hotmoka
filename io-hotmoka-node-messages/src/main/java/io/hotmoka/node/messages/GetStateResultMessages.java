@@ -21,9 +21,9 @@ import java.util.stream.Stream;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.messages.api.GetStateResultMessage;
 import io.hotmoka.node.messages.internal.GetStateResultMessageImpl;
-import io.hotmoka.node.messages.internal.json.GetStateResultMessageDecoder;
-import io.hotmoka.node.messages.internal.json.GetStateResultMessageEncoder;
 import io.hotmoka.node.messages.internal.json.GetStateResultMessageJson;
+import io.hotmoka.websockets.beans.MappedDecoder;
+import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
  * A provider of {@link GetStateResultMessage}.
@@ -46,23 +46,27 @@ public abstract class GetStateResultMessages {
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends GetStateResultMessageEncoder {
+	public static class Encoder extends MappedEncoder<GetStateResultMessage, Json> {
 
 		/**
 		 * Creates a new encoder.
 		 */
-		public Encoder() {}
+		public Encoder() {
+			super(Json::new);
+		}
 	}
 
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends GetStateResultMessageDecoder {
+	public static class Decoder extends MappedDecoder<GetStateResultMessage, Json> {
 
 		/**
 		 * Creates a new decoder.
 		 */
-		public Decoder() {}
+		public Decoder() {
+			super(Json.class);
+		}
 	}
 
 	/**

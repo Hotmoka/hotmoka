@@ -19,9 +19,9 @@ package io.hotmoka.node.messages;
 import io.hotmoka.node.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.node.messages.api.AddJarStoreTransactionMessage;
 import io.hotmoka.node.messages.internal.AddJarStoreTransactionMessageImpl;
-import io.hotmoka.node.messages.internal.json.AddJarStoreTransactionMessageDecoder;
-import io.hotmoka.node.messages.internal.json.AddJarStoreTransactionMessageEncoder;
 import io.hotmoka.node.messages.internal.json.AddJarStoreTransactionMessageJson;
+import io.hotmoka.websockets.beans.MappedDecoder;
+import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
  * A provider of {@link AddJarStoreTransactionMessage}.
@@ -44,23 +44,27 @@ public abstract class AddJarStoreTransactionMessages {
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends AddJarStoreTransactionMessageEncoder {
+	public static class Encoder extends MappedEncoder<AddJarStoreTransactionMessage, Json> {
 
 		/**
 		 * Creates a new encoder.
 		 */
-		public Encoder() {}
+		public Encoder() {
+			super(Json::new);
+		}
 	}
 
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends AddJarStoreTransactionMessageDecoder {
+	public static class Decoder extends MappedDecoder<AddJarStoreTransactionMessage, Json> {
 
 		/**
 		 * Creates a new decoder.
 		 */
-		public Decoder() {}
+		public Decoder() {
+			super(Json.class);
+		}
 	}
 
 	/**

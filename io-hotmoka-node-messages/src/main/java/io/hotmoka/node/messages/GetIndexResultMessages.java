@@ -21,9 +21,9 @@ import java.util.stream.Stream;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.messages.api.GetIndexResultMessage;
 import io.hotmoka.node.messages.internal.GetIndexResultMessageImpl;
-import io.hotmoka.node.messages.internal.json.GetIndexResultMessageDecoder;
-import io.hotmoka.node.messages.internal.json.GetIndexResultMessageEncoder;
 import io.hotmoka.node.messages.internal.json.GetIndexResultMessageJson;
+import io.hotmoka.websockets.beans.MappedDecoder;
+import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
  * A provider of {@link GetIndexResultMessage}.
@@ -46,23 +46,27 @@ public abstract class GetIndexResultMessages {
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends GetIndexResultMessageEncoder {
+	public static class Encoder extends MappedEncoder<GetIndexResultMessage, Json> {
 
 		/**
 		 * Creates a new encoder.
 		 */
-		public Encoder() {}
+		public Encoder() {
+			super(Json::new);
+		}
 	}
 
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends GetIndexResultMessageDecoder {
+	public static class Decoder extends MappedDecoder<GetIndexResultMessage, Json> {
 
 		/**
 		 * Creates a new decoder.
 		 */
-		public Decoder() {}
+		public Decoder() {
+			super(Json.class);
+		}
 	}
 
 	/**

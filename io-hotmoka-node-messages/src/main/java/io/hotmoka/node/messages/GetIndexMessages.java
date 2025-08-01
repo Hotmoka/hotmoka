@@ -19,9 +19,9 @@ package io.hotmoka.node.messages;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.messages.api.GetIndexMessage;
 import io.hotmoka.node.messages.internal.GetIndexMessageImpl;
-import io.hotmoka.node.messages.internal.json.GetIndexMessageDecoder;
-import io.hotmoka.node.messages.internal.json.GetIndexMessageEncoder;
 import io.hotmoka.node.messages.internal.json.GetIndexMessageJson;
+import io.hotmoka.websockets.beans.MappedDecoder;
+import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
  * A provider of {@link GetIndexMessage}.
@@ -44,23 +44,27 @@ public abstract class GetIndexMessages {
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends GetIndexMessageEncoder {
+	public static class Encoder extends MappedEncoder<GetIndexMessage, Json> {
 
 		/**
 		 * Creates a new encoder.
 		 */
-		public Encoder() {}
+		public Encoder() {
+			super(Json::new);
+		}
 	}
 
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends GetIndexMessageDecoder {
+	public static class Decoder extends MappedDecoder<GetIndexMessage, Json> {
 
 		/**
 		 * Creates a new decoder.
 		 */
-		public Decoder() {}
+		public Decoder() {
+			super(Json.class);
+		}
 	}
 
 	/**

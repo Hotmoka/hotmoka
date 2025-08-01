@@ -18,9 +18,9 @@ package io.hotmoka.node.messages;
 
 import io.hotmoka.node.messages.api.GetInfoMessage;
 import io.hotmoka.node.messages.internal.GetInfoMessageImpl;
-import io.hotmoka.node.messages.internal.json.GetInfoMessageDecoder;
-import io.hotmoka.node.messages.internal.json.GetInfoMessageEncoder;
 import io.hotmoka.node.messages.internal.json.GetInfoMessageJson;
+import io.hotmoka.websockets.beans.MappedDecoder;
+import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
  * A provider of {@link GetInfoMessage}.
@@ -42,23 +42,27 @@ public abstract class GetInfoMessages {
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends GetInfoMessageEncoder {
+	public static class Encoder extends MappedEncoder<GetInfoMessage, Json> {
 
 		/**
 		 * Creates a new encoder.
 		 */
-		public Encoder() {}
+		public Encoder() {
+			super(Json::new);
+		}
 	}
 
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends GetInfoMessageDecoder {
+	public static class Decoder extends  MappedDecoder<GetInfoMessage, Json> {
 
 		/**
 		 * Creates a new decoder.
 		 */
-		public Decoder() {}
+		public Decoder() {
+			super(Json.class);
+		}
 	}
 
 	/**

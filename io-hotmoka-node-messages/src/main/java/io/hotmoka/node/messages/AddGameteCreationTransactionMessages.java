@@ -19,9 +19,9 @@ package io.hotmoka.node.messages;
 import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.node.messages.api.AddGameteCreationTransactionMessage;
 import io.hotmoka.node.messages.internal.AddGameteCreationTransactionMessageImpl;
-import io.hotmoka.node.messages.internal.json.AddGameteCreationTransactionMessageDecoder;
-import io.hotmoka.node.messages.internal.json.AddGameteCreationTransactionMessageEncoder;
 import io.hotmoka.node.messages.internal.json.AddGameteCreationTransactionMessageJson;
+import io.hotmoka.websockets.beans.MappedDecoder;
+import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
  * A provider of {@link AddGameteCreationTransactionMessage}.
@@ -44,23 +44,27 @@ public abstract class AddGameteCreationTransactionMessages {
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends AddGameteCreationTransactionMessageEncoder {
+	public static class Encoder extends MappedEncoder<AddGameteCreationTransactionMessage, Json> {
 
 		/**
 		 * Creates a new encoder.
 		 */
-		public Encoder() {}
+		public Encoder() {
+			super(Json::new);
+		}
 	}
 
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends AddGameteCreationTransactionMessageDecoder {
+	public static class Decoder extends MappedDecoder<AddGameteCreationTransactionMessage, Json> {
 
 		/**
 		 * Creates a new decoder.
 		 */
-		public Decoder() {}
+		public Decoder() {
+			super(Json.class);
+		}
 	}
 
 	/**

@@ -18,9 +18,9 @@ package io.hotmoka.node.messages;
 
 import io.hotmoka.node.messages.api.GetTakamakaCodeMessage;
 import io.hotmoka.node.messages.internal.GetTakamakaCodeMessageImpl;
-import io.hotmoka.node.messages.internal.json.GetTakamakaCodeMessageDecoder;
-import io.hotmoka.node.messages.internal.json.GetTakamakaCodeMessageEncoder;
 import io.hotmoka.node.messages.internal.json.GetTakamakaCodeMessageJson;
+import io.hotmoka.websockets.beans.MappedDecoder;
+import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
  * A provider of {@link GetTakamakaCodeMessage}.
@@ -42,23 +42,27 @@ public abstract class GetTakamakaCodeMessages {
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends GetTakamakaCodeMessageEncoder {
+	public static class Encoder extends MappedEncoder<GetTakamakaCodeMessage, Json> {
 
 		/**
 		 * Creates a new encoder.
 		 */
-		public Encoder() {}
+		public Encoder() {
+			super(Json::new);
+		}
 	}
 
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends GetTakamakaCodeMessageDecoder {
+	public static class Decoder extends MappedDecoder<GetTakamakaCodeMessage, Json> {
 
 		/**
 		 * Creates a new decoder.
 		 */
-		public Decoder() {}
+		public Decoder() {
+			super(Json.class);
+		}
 	}
 
 	/**

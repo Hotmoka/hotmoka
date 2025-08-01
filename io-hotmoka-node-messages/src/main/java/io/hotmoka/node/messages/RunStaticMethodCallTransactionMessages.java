@@ -19,9 +19,9 @@ package io.hotmoka.node.messages;
 import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.messages.api.RunStaticMethodCallTransactionMessage;
 import io.hotmoka.node.messages.internal.RunStaticMethodCallTransactionMessageImpl;
-import io.hotmoka.node.messages.internal.json.RunStaticMethodCallTransactionMessageDecoder;
-import io.hotmoka.node.messages.internal.json.RunStaticMethodCallTransactionMessageEncoder;
 import io.hotmoka.node.messages.internal.json.RunStaticMethodCallTransactionMessageJson;
+import io.hotmoka.websockets.beans.MappedDecoder;
+import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
  * A provider of {@link RunStaticMethodCallTransactionMessage}.
@@ -44,23 +44,27 @@ public abstract class RunStaticMethodCallTransactionMessages {
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends RunStaticMethodCallTransactionMessageEncoder {
+	public static class Encoder extends MappedEncoder<RunStaticMethodCallTransactionMessage, Json> {
 
 		/**
 		 * Creates a new encoder.
 		 */
-		public Encoder() {}
+		public Encoder() {
+			super(Json::new);
+		}
 	}
 
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends RunStaticMethodCallTransactionMessageDecoder {
+	public static class Decoder extends MappedDecoder<RunStaticMethodCallTransactionMessage, Json> {
 
 		/**
 		 * Creates a new decoder.
 		 */
-		public Decoder() {}
+		public Decoder() {
+			super(Json.class);
+		}
 	}
 
 	/**

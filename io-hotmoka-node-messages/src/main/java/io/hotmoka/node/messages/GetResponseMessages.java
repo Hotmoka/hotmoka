@@ -19,9 +19,9 @@ package io.hotmoka.node.messages;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.messages.api.GetResponseMessage;
 import io.hotmoka.node.messages.internal.GetResponseMessageImpl;
-import io.hotmoka.node.messages.internal.json.GetResponseMessageDecoder;
-import io.hotmoka.node.messages.internal.json.GetResponseMessageEncoder;
 import io.hotmoka.node.messages.internal.json.GetResponseMessageJson;
+import io.hotmoka.websockets.beans.MappedDecoder;
+import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
  * A provider of {@link GetResponseMessage}.
@@ -44,23 +44,27 @@ public abstract class GetResponseMessages {
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends GetResponseMessageEncoder {
+	public static class Encoder extends MappedEncoder<GetResponseMessage, Json> {
 
 		/**
 		 * Creates a new encoder.
 		 */
-		public Encoder() {}
+		public Encoder() {
+			super(Json::new);
+		}
 	}
 
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends GetResponseMessageDecoder {
+	public static class Decoder extends MappedDecoder<GetResponseMessage, Json> {
 
 		/**
 		 * Creates a new decoder.
 		 */
-		public Decoder() {}
+		public Decoder() {
+			super(Json.class);
+		}
 	}
 
 	/**

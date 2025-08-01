@@ -21,9 +21,9 @@ import java.util.Optional;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.messages.api.AddInstanceMethodCallTransactionResultMessage;
 import io.hotmoka.node.messages.internal.AddInstanceMethodCallTransactionResultMessageImpl;
-import io.hotmoka.node.messages.internal.json.AddInstanceMethodCallTransactionResultMessageDecoder;
-import io.hotmoka.node.messages.internal.json.AddInstanceMethodCallTransactionResultMessageEncoder;
 import io.hotmoka.node.messages.internal.json.AddInstanceMethodCallTransactionResultMessageJson;
+import io.hotmoka.websockets.beans.MappedDecoder;
+import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
  * A provider of {@link AddInstanceMethodCallTransactionResultMessage}.
@@ -46,23 +46,27 @@ public abstract class AddInstanceMethodCallTransactionResultMessages {
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends AddInstanceMethodCallTransactionResultMessageEncoder {
+	public static class Encoder extends MappedEncoder<AddInstanceMethodCallTransactionResultMessage, Json> {
 
 		/**
 		 * Creates a new encoder.
 		 */
-		public Encoder() {}
+		public Encoder() {
+			super(Json::new);
+		}
 	}
 
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends AddInstanceMethodCallTransactionResultMessageDecoder {
+	public static class Decoder extends MappedDecoder<AddInstanceMethodCallTransactionResultMessage, Json> {
 
 		/**
 		 * Creates a new decoder.
 		 */
-		public Decoder() {}
+		public Decoder() {
+			super(Json.class);
+		}
 	}
 
 	/**

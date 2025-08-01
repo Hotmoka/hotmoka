@@ -18,9 +18,9 @@ package io.hotmoka.node.messages;
 
 import io.hotmoka.node.messages.api.AddInitializationTransactionResultMessage;
 import io.hotmoka.node.messages.internal.AddInitializationTransactionResultMessageImpl;
-import io.hotmoka.node.messages.internal.json.AddInitializationTransactionResultMessageDecoder;
-import io.hotmoka.node.messages.internal.json.AddInitializationTransactionResultMessageEncoder;
 import io.hotmoka.node.messages.internal.json.AddInitializationTransactionResultMessageJson;
+import io.hotmoka.websockets.beans.MappedDecoder;
+import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
  * A provider of {@link AddInitializationTransactionResultMessage}.
@@ -42,23 +42,27 @@ public abstract class AddInitializationTransactionResultMessages {
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends AddInitializationTransactionResultMessageEncoder {
+	public static class Encoder extends MappedEncoder<AddInitializationTransactionResultMessage, Json> {
 
 		/**
 		 * Creates a new encoder.
 		 */
-		public Encoder() {}
+		public Encoder() {
+			super(Json::new);
+		}
 	}
 
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends AddInitializationTransactionResultMessageDecoder {
+	public static class Decoder extends MappedDecoder<AddInitializationTransactionResultMessage, Json> {
 
 		/**
 		 * Creates a new decoder.
 		 */
-		public Decoder() {}
+		public Decoder() {
+			super(Json.class);
+		}
 	}
 
 	/**

@@ -19,9 +19,9 @@ package io.hotmoka.node.messages;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.messages.api.GetClassTagMessage;
 import io.hotmoka.node.messages.internal.GetClassTagMessageImpl;
-import io.hotmoka.node.messages.internal.json.GetClassTagMessageDecoder;
-import io.hotmoka.node.messages.internal.json.GetClassTagMessageEncoder;
 import io.hotmoka.node.messages.internal.json.GetClassTagMessageJson;
+import io.hotmoka.websockets.beans.MappedDecoder;
+import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
  * A provider of {@link GetClassTagMessage}.
@@ -44,23 +44,27 @@ public abstract class GetClassTagMessages {
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends GetClassTagMessageEncoder {
+	public static class Encoder extends MappedEncoder<GetClassTagMessage, Json> {
 
 		/**
 		 * Creates a new encoder.
 		 */
-		public Encoder() {}
+		public Encoder() {
+			super(Json::new);
+		}
 	}
 
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends GetClassTagMessageDecoder {
+	public static class Decoder extends MappedDecoder<GetClassTagMessage, Json> {
 
 		/**
 		 * Creates a new decoder.
 		 */
-		public Decoder() {}
+		public Decoder() {
+			super(Json.class);
+		}
 	}
 
 	/**

@@ -19,9 +19,9 @@ package io.hotmoka.node.messages;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.messages.api.GetPolledResponseMessage;
 import io.hotmoka.node.messages.internal.GetPolledResponseMessageImpl;
-import io.hotmoka.node.messages.internal.json.GetPolledResponseMessageDecoder;
-import io.hotmoka.node.messages.internal.json.GetPolledResponseMessageEncoder;
 import io.hotmoka.node.messages.internal.json.GetPolledResponseMessageJson;
+import io.hotmoka.websockets.beans.MappedDecoder;
+import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
  * A provider of {@link GetPolledResponseMessage}.
@@ -44,23 +44,27 @@ public abstract class GetPolledResponseMessages {
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends GetPolledResponseMessageEncoder {
+	public static class Encoder extends MappedEncoder<GetPolledResponseMessage, Json> {
 
 		/**
 		 * Creates a new encoder.
 		 */
-		public Encoder() {}
+		public Encoder() {
+			super(Json::new);
+		}
 	}
 
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends GetPolledResponseMessageDecoder {
+	public static class Decoder extends MappedDecoder<GetPolledResponseMessage, Json> {
 
 		/**
 		 * Creates a new decoder.
 		 */
-		public Decoder() {}
+		public Decoder() {
+			super(Json.class);
+		}
 	}
 
 	/**
