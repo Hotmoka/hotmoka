@@ -143,8 +143,9 @@ public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImp
 
 		getExecutors().execute(this::publishBlocks);
 
-		if (getLocalConfig().getIndexSize() > 0) {
-			var indexer = new Indexer(this, getStoreOfNode(), getEnvironment(), getLocalConfig().getIndexSize());
+		int size = getLocalConfig().getIndexSize();
+		if (size > 0) {
+			var indexer = new Indexer(this, getStoreOfNode(), getEnvironment(), size);
 			getExecutors().execute(indexer::run);
 		}
 	}

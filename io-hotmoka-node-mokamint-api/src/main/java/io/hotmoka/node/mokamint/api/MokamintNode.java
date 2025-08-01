@@ -30,5 +30,5 @@ public interface MokamintNode extends LocalNode<MokamintNodeConfig> {
 	 * 
 	 * @return the Mokamint engine
 	 */
-	io.mokamint.node.local.api.LocalNode getMokamintNode();
+	io.mokamint.node.local.api.LocalNode getMokamintNode(); // TODO: this will return a PublicNode in the future
 }

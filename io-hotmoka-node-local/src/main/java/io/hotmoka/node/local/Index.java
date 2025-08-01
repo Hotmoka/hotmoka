@@ -38,11 +38,40 @@ import io.hotmoka.xodus.env.Environment;
 import io.hotmoka.xodus.env.Store;
 import io.hotmoka.xodus.env.Transaction;
 
+/**
+ * An index of a Hotmoka node, kept in a database. It provides, for each object, a list of transactions
+ * that have affected that object, of a given maximal length provided at the time of creation
+ * of the index object. This list can be expanded with the addition of new transactions
+ * or shrunk with the removal of transactions. Internally, this object keeps, in the database,
+ * also a map from transactions to affected objects, which is useful only to implement
+ * the {@link #remove(TransactionReference, Transaction)} method. The two maps are kept
+ * consistent among them.
+ */
 public class Index {
+
+	/**
+	 * The store of the database where the index is kept.
+	 */
 	private final Store store;
+
+	/**
+	 * The environment of the database where the index is kept.
+	 */
 	private final Environment env;
+
+	/**
+	 * The maximal number of affecting transactions kept in the index for each given object.
+	 */
 	private final int size;
 
+	/**
+	 * Creates an index object. If its database already exists, if will
+	 * use the data contained in that database.
+	 * 
+	 * @param store the store of the database where the index is kept
+	 * @param env the environment of the database where the index is kept
+	 * @param size the maximal number of affecting transactions kept in the index for each given object
+	 */
 	public Index(Store store, Environment env, int size) {
 		this.store = store;
 		this.env = env;
@@ -50,7 +79,7 @@ public class Index {
 	}
 
 	/**
-	 * Yields, from the index, information about the transactions that have affected the given {@code object}.
+	 * Fetches from the index information about the transactions that have affected the given object.
 	 * 
 	 * @param object the object
 	 * @return the transactions that have affected {@code object}, in chronological order of inclusion
@@ -62,15 +91,16 @@ public class Index {
 	}
 
 	/**
-	 * Adds to the index the fact that {@code transaction} has been executed and provided the
+	 * Stores into the index the fact that {@code transaction} has been executed and provided the
 	 * given response. All objects modified in that response (if any) get marked in the index as
-	 * modified during {@code transaction}. The index is updated inside the database transaction {@code txn}.
+	 * affected by {@code transaction}. The index is updated inside the database transaction {@code txn}.
 	 * 
-	 * @param transaction the Hotmoka transaction that has modified the objects
+	 * @param transaction the reference of the Hotmoka transaction that has modified the objects
 	 * @param response the response of {@code transaction}
-	 * @param txn the database transaction where the update occurs
+	 * @param txn the database transaction where the database updates get accumulated
 	 */
 	public void add(TransactionReference transaction, TransactionResponse response, Transaction txn) {
+		// if size is 0, there is no need to store data in the database
 		if (size > 0 && response instanceof TransactionResponseWithUpdates trwu) {
 			var affectedObjects = trwu.getUpdates().map(Update::getObject).distinct().toArray(StorageReference[]::new);
 
@@ -84,9 +114,9 @@ public class Index {
 	/**
 	 * Removes the given Hotmoka transaction from the index.
 	 * 
-	 * @param transaction the Hotmoka transaction that must be removed from the index; information
-	 *                    about the objects modified by this transaction gets removed from the index
-	 * @param txn the database transaction where the update occurs
+	 * @param transaction the reference of the Hotmoka transaction that must be removed from the index; information
+	 *                    about the objects affected by that transaction gets removed from the index
+	 * @param txn the database transaction where the database updates get accumulated
 	 */
 	public void remove(TransactionReference transaction, Transaction txn) {
 		var transactionBI = new MarshallableTransactionReference(transaction).toByteIterable();
@@ -99,30 +129,54 @@ public class Index {
 		}
 	}
 
+	/**
+	 * Removes the given transaction from those affecting the given object.
+	 * 
+	 * @param object the object
+	 * @param transaction the reference of the transaction
+	 * @param transactionBI the same as {@code transaction}, but already as a byte iterable
+	 * @param txn the database transaction where the database updates get accumulated
+	 */
 	private void unbind(StorageReference object, TransactionReference transaction, ByteIterable transactionBI, Transaction txn) {
 		var objectBI = new MarshallableStorageReference(object).toByteIterable();
-		var result = new MarshallableArrayOfTransactionReferences(store.get(txn, objectBI)).remove(transaction);
-		if (result.references.length == 0)
-			store.delete(txn, objectBI);
+		var oldTransactionsBI = store.get(txn, objectBI);
+
+		if (oldTransactionsBI != null) {
+			var result = new MarshallableArrayOfTransactionReferences(oldTransactionsBI).remove(transaction);
+			if (result.references.length == 0)
+				store.delete(txn, objectBI);
+			else
+				store.put(txn, objectBI, result.toByteIterable());
+		}
 		else
-			store.put(txn, objectBI, result.toByteIterable());
+			throw new IndexException("Object " + object + " was expected to be in the index");
 	}
 
+	/**
+	 * Adds the given transaction to those affecting the given object.
+	 * 
+	 * @param object the object
+	 * @param transaction the reference to the transaction
+	 * @param txn the database transaction where the database updates get accumulated
+	 */
 	private void bind(StorageReference object, TransactionReference transaction, Transaction txn) {
 		var objectBI = new MarshallableStorageReference(object).toByteIterable();
 		var oldTxs = store.get(txn, objectBI);
 
 		MarshallableArrayOfTransactionReferences result;
 		if (oldTxs == null)
-			// MAX > 0, therefore length 1 is OK
+			// here size > 0, therefore length 1 is OK
 			result = new MarshallableArrayOfTransactionReferences(new TransactionReference[] { transaction });
 		else {
-			// add() will, internally, impose MAX as upper bound to the length of the array
-			var oldArray = new MarshallableArrayOfTransactionReferences(oldTxs);
+			MarshallableArrayOfTransactionReferences oldArray = new MarshallableArrayOfTransactionReferences(oldTxs);
+			// add() will, internally, impose size as upper bound to the length of the array
 			result = oldArray.add(transaction, size);
 
-			// if transactions of the history of object overflow on the left and consequently get
-			// forgotten, the object gets unbound from the map (transaction -> objects)
+			// if transactions overflow on the left, they get forgotten, so that we keep {@link #size}
+			// as maximal length of the list of transaction references in the index for object;
+			// note that we need a for rather than a simple if, since the length of the old list
+			// might actually be larger than size if the size parameter was changed between
+			// successive creations of the Index object
 			for (int pos = oldArray.references.length - size; pos >= 0; pos--)
 				unbind(result.references[pos], object, txn);
 		}
@@ -130,23 +184,51 @@ public class Index {
 		store.put(txn, objectBI, result.toByteIterable());
 	}
 
+	/**
+	 * Binds in the index the given transaction reference to the given list of objects that it might affect.
+	 * 
+	 * @param transaction the reference to the transaction
+	 * @param objects the reference to the objects
+	 * @param txn the database transaction where the database updates get accumulated
+	 */
 	private void bind(TransactionReference transaction, StorageReference[] objects, Transaction txn) {
 		var transactionBI = new MarshallableTransactionReference(transaction).toByteIterable();
 		store.put(txn, transactionBI, new MarshallableArrayOfStorageReferences(objects).toByteIterable());
 	}
 
+	/**
+	 * Removes from the index the given object from those affected by the given transaction.
+	 * 
+	 * @param transaction the reference to the transaction
+	 * @param object the reference to the object
+	 * @param txn the database transaction where the database updates get accumulated
+	 */
 	private void unbind(TransactionReference transaction, StorageReference object, Transaction txn) {
 		var transactionBI = new MarshallableTransactionReference(transaction).toByteIterable();
-		var result = new MarshallableArrayOfStorageReferences(store.get(txn, transactionBI)).remove(object);
+		var oldObjectsBI = store.get(txn, transactionBI);
 
-		if (result.references.length == 0)
-			store.delete(txn, transactionBI);
+		if (oldObjectsBI != null) {
+			var result = new MarshallableArrayOfStorageReferences(oldObjectsBI).remove(object);
+
+			if (result.references.length == 0)
+				store.delete(txn, transactionBI);
+			else
+				store.put(txn, transactionBI, result.toByteIterable());
+		}
 		else
-			store.put(txn, transactionBI, result.toByteIterable());
+			throw new IndexException("Transaction " + transaction + " was expected to be in the index");
 	}
 
-	private abstract static class MyMarshallable extends AbstractMarshallable {
+	/**
+	 * A marshallable object with an extra method to transform it into a byte iterable.
+	 */
+	private abstract static class IndexMarshallable extends AbstractMarshallable {
 
+		/**
+		 * Yields a byte iterable for the marshalling of this object.
+		 * 
+		 * @return the byte iterable
+		 */
 		public ByteIterable toByteIterable() {
 			return ByteIterable.fromBytes(toByteArray());
 		}
@@ -158,26 +240,12 @@ public class Index {
 	 * shared representation for data that contains many of them, which would be wrong here,
 	 * since they are marshalled in isolation.
 	 */
-	public static class MarshallableTransactionReference extends MyMarshallable {
+	private static class MarshallableTransactionReference extends IndexMarshallable {
 		private final TransactionReference reference;
 	
-		public MarshallableTransactionReference(TransactionReference reference) {
+		private MarshallableTransactionReference(TransactionReference reference) {
 			this.reference = reference;
 		}
-	
-		/**
-		 * Creates a transaction reference unmarshalled from the given byte iterable.
-		 * 
-		 * @param bi the byte iterable
-		 */
-		/*private MarshallableTransactionReference(ByteIterable bi) {
-			try (var bais = new ByteArrayInputStream(bi.getBytes()); var context = UnmarshallingContexts.of(bais)) {
-				this.reference = new MarshallableTransactionReference(context).reference;
-			}
-			catch (IOException e) {
-				throw new IndexException(e);
-			}
-		}*/
 
 		private MarshallableTransactionReference(UnmarshallingContext context) {
 			try {
@@ -201,7 +269,7 @@ public class Index {
 	 * shared representation for data that contains many of them, which would be wrong here,
 	 * since they are marshalled in isolation.
 	 */
-	private static class MarshallableStorageReference extends MyMarshallable {
+	private static class MarshallableStorageReference extends IndexMarshallable {
 		private final StorageReference reference;
 	
 		private MarshallableStorageReference(StorageReference reference) {
@@ -225,7 +293,7 @@ public class Index {
 		private MarshallableStorageReference(UnmarshallingContext context) {
 			try {
 				TransactionReference transaction = TransactionReferences.of
-						(context.readBytes(TransactionReference.REQUEST_HASH_LENGTH, "mismatched transaction hash length"));
+					(context.readBytes(TransactionReference.REQUEST_HASH_LENGTH, "mismatched transaction hash length"));
 				BigInteger progressive = context.readBigInteger();
 
 				this.reference = StorageValues.reference(transaction, progressive);
@@ -245,7 +313,7 @@ public class Index {
 	/**
 	 * A marshallable array of transaction references.
 	 */
-	public static class MarshallableArrayOfTransactionReferences extends MyMarshallable {
+	public static class MarshallableArrayOfTransactionReferences extends IndexMarshallable {
 		private final TransactionReference[] references;
 	
 		public MarshallableArrayOfTransactionReferences(TransactionReference[] references) {
@@ -282,30 +350,24 @@ public class Index {
 			}
 			else {
 				result = new TransactionReference[size];
-				// we only keep the last MAX-1 elements
+				// we only keep the last size-1 elements
 				System.arraycopy(references, references.length - (size - 1), result, 0, size - 1);
 			}
 
+			// we put the reference at the end of the array
 			result[result.length - 1] = reference;
 
 			return new MarshallableArrayOfTransactionReferences(result);
 		}
 
 		/**
-		 * Removes the given reference from this array. This method assumes that
-		 * the this array actually contains the reference.
+		 * Removes the given reference from this array.
 		 * 
-		 * @param reference the reference; this must belong to this array
+		 * @param reference the reference
 		 * @return the resulting array of transaction references, in unchanged order
 		 */
 		private MarshallableArrayOfTransactionReferences remove(TransactionReference reference) {
-			var result = new TransactionReference[references.length - 1];
-			int pos = 0;
-			for (var reference2: references)
-				if (!reference2.equals(reference))
-					result[pos++] = reference2;
-
-			return new MarshallableArrayOfTransactionReferences(result);
+			return new MarshallableArrayOfTransactionReferences(Stream.of(references).filter(reference2 -> !reference2.equals(reference)).toArray(TransactionReference[]::new));
 		}
 
 		public Stream<TransactionReference> stream() {
@@ -321,7 +383,7 @@ public class Index {
 	/**
 	 * A marshallable array of storage references.
 	 */
-	private static class MarshallableArrayOfStorageReferences extends MyMarshallable {
+	private static class MarshallableArrayOfStorageReferences extends IndexMarshallable {
 		private final StorageReference[] references;
 	
 		private MarshallableArrayOfStorageReferences(StorageReference[] references) {
@@ -343,20 +405,13 @@ public class Index {
 		}
 
 		/**
-		 * Removes the given reference from this array. This method assumes that
-		 * the this array actually contains the reference.
+		 * Removes the given reference from this array.
 		 * 
-		 * @param reference the reference; this must belong to this array
+		 * @param reference the reference
 		 * @return the resulting array of storage references, in unchanged order
 		 */
 		private MarshallableArrayOfStorageReferences remove(StorageReference reference) {
-			var result = new StorageReference[references.length - 1];
-			int pos = 0;
-			for (var reference2: references)
-				if (!reference2.equals(reference))
-					result[pos++] = reference2;
-
-			return new MarshallableArrayOfStorageReferences(result);
+			return new MarshallableArrayOfStorageReferences(Stream.of(references).filter(reference2 -> !reference2.equals(reference)).toArray(StorageReference[]::new));
 		}
 
 		@Override
