@@ -333,20 +333,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		}
 	}
 
-	/**
-	 * Yields information about the transactions that might have affected the given object.
-	 * Nodes can reply with full, partial, or no information about it, depending for instance
-	 * on the fact that they keep an index of the objects affected by each transaction, or that
-	 * such index is full or keeps only the latest transactions.
-	 * 
-	 * @param object the object whose affecting transactions are required
-	 * @return the transactions that have affected {@code object}; this can be full, partial or no information
-	 * @throws UnknownReferenceException if the given {@code object} is unknown
-	 * @throws ClosedNodeException if the node is already closed
-	 * @throws InterruptedException if the current thread gets interrupted before completing the operation
-	 */
-	public abstract Stream<TransactionReference> getIndex(StorageReference object) throws UnknownReferenceException, ClosedNodeException, InterruptedException; // TODO: move upwards into Node
-
 	@Override
 	public final TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException, ClosedNodeException, TimeoutException, InterruptedException {
 		try (var scope = mkScope()) {

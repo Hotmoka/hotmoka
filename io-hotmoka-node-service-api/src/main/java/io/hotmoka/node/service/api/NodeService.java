@@ -65,6 +65,11 @@ public interface NodeService extends AutoCloseable {
 	String GET_STATE_ENDPOINT = "/get_state";
 
 	/**
+	 * The network endpoint path where {@link Node#getIndex(StorageReference)} is published.
+	 */
+	String GET_INDEX_ENDPOINT = "/get_index";
+
+	/**
 	 * The network endpoint path where {@link Node#getRequest(TransactionReference)} is published.
 	 */
 	String GET_REQUEST_ENDPOINT = "/get_request";

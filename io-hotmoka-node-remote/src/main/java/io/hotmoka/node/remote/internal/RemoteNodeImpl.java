@@ -508,6 +508,12 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	}
 
 	@Override
+	public Stream<TransactionReference> getIndex(StorageReference object) throws UnknownReferenceException, ClosedNodeException, InterruptedException, TimeoutException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
 	public TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, ClosedNodeException, InterruptedException, TimeoutException {
 		ensureIsOpen(ClosedNodeException::new);
 		var id = nextId();

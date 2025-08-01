@@ -129,13 +129,18 @@ public abstract class NodeDecoratorImpl<N extends Node> implements Node {
 	}
 
 	@Override
-	public ClassTag getClassTag(StorageReference reference) throws ClosedNodeException, TimeoutException, InterruptedException, UnknownReferenceException {
-		return parent.getClassTag(reference);
+	public ClassTag getClassTag(StorageReference object) throws ClosedNodeException, TimeoutException, InterruptedException, UnknownReferenceException {
+		return parent.getClassTag(object);
 	}
 
 	@Override
-	public Stream<Update> getState(StorageReference reference) throws UnknownReferenceException, ClosedNodeException, TimeoutException, InterruptedException {
-		return parent.getState(reference);
+	public Stream<Update> getState(StorageReference object) throws UnknownReferenceException, ClosedNodeException, TimeoutException, InterruptedException {
+		return parent.getState(object);
+	}
+
+	@Override
+	public Stream<TransactionReference> getIndex(StorageReference object) throws UnknownReferenceException, ClosedNodeException, TimeoutException, InterruptedException {
+		return parent.getIndex(object);
 	}
 
 	@Override

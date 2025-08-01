@@ -135,6 +135,21 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	Stream<Update> getState(StorageReference object) throws UnknownReferenceException, ClosedNodeException, TimeoutException, InterruptedException;
 
 	/**
+	 * Yields information about the transactions that have affected the given object.
+	 * Nodes can reply with full, partial, or no information about it, depending for instance
+	 * on the fact that they keep an index of the objects affected by each transaction, or that
+	 * such index is full or that it keeps the latest transactions only.
+	 * 
+	 * @param object the object whose affecting transactions are required
+	 * @return the transactions that have affected {@code object}; this can be full, partial or no information
+	 * @throws UnknownReferenceException if the given {@code object} is unknown to the index
+	 * @throws ClosedNodeException if the node is already closed
+	 * @throws InterruptedException if the current thread gets interrupted before completing the operation
+	 * @throws TimeoutException if no answer arrives before a time window
+	 */
+	Stream<TransactionReference> getIndex(StorageReference object) throws UnknownReferenceException, ClosedNodeException, InterruptedException, TimeoutException;
+
+	/**
 	 * Yields the request that generated the transaction with the given reference.
 	 * If this node has some form of commit, then this method can only succeed
 	 * when the transaction has been definitely committed in this node.
@@ -179,7 +194,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @return the response computed for {@code request}
 	 * @throws TransactionRejectedException if the request failed to be committed
 	 * @throws ClosedNodeException if the node is already closed
-	 * @throws TimeoutException if the polling delay has expired but the request did not get committed
+	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread has been interrupted while waiting for the response
 	 */
 	TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, ClosedNodeException, TimeoutException, InterruptedException;
@@ -196,7 +211,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @return the reference to the transaction, that can be used to refer to the jar in a class path or as future dependency of other jars
 	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
 	 * @throws ClosedNodeException if the node is already closed
-	 * @throws TimeoutException if the polling delay has expired but the request did not get committed
+	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread has been interrupted while waiting for the response
 	 */
 	TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException, ClosedNodeException, TimeoutException, InterruptedException;
@@ -211,7 +226,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @return the reference to the freshly created gamete
 	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
 	 * @throws ClosedNodeException if the node is already closed
-	 * @throws TimeoutException if the polling delay has expired but the request did not get committed
+	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread has been interrupted while waiting for the response
 	 */
 	StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException, ClosedNodeException, TimeoutException, InterruptedException;
@@ -224,7 +239,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @param request the transaction request
 	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
 	 * @throws ClosedNodeException if the node is already closed
-	 * @throws TimeoutException if the polling delay has expired but the request did not get committed
+	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread has been interrupted while waiting for the response
 	 */
 	void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException, ClosedNodeException, TimeoutException, InterruptedException;

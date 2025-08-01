@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;
 import java.util.Optional;
+import java.util.Random;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DisplayName;
@@ -66,10 +67,12 @@ import io.hotmoka.node.messages.GetClassTagMessages;
 import io.hotmoka.node.messages.GetClassTagResultMessages;
 import io.hotmoka.node.messages.GetConfigMessages;
 import io.hotmoka.node.messages.GetConfigResultMessages;
-import io.hotmoka.node.messages.GetManifestMessages;
-import io.hotmoka.node.messages.GetManifestResultMessages;
+import io.hotmoka.node.messages.GetIndexMessages;
+import io.hotmoka.node.messages.GetIndexResultMessages;
 import io.hotmoka.node.messages.GetInfoMessages;
 import io.hotmoka.node.messages.GetInfoResultMessages;
+import io.hotmoka.node.messages.GetManifestMessages;
+import io.hotmoka.node.messages.GetManifestResultMessages;
 import io.hotmoka.node.messages.GetPolledResponseMessages;
 import io.hotmoka.node.messages.GetPolledResponseResultMessages;
 import io.hotmoka.node.messages.GetRequestMessages;
@@ -210,10 +213,39 @@ public class MessagesTests extends AbstractLoggedTests {
 		Update update1 = Updates.ofInt(OBJECT, FieldSignatures.of(clazz, "field1", StorageTypes.INT), 42);
 		Update update2 = Updates.ofBigInteger(OBJECT, FieldSignatures.of(clazz, "field2", StorageTypes.BIG_INTEGER), BigInteger.valueOf(13L));
 		Update update3 = Updates.ofString(OBJECT, FieldSignatures.of(clazz, "field3", StorageTypes.STRING), "hello");
-
+	
 		var expected = GetStateResultMessages.of(Stream.of(classTag, update1, update2, update3), "id");
 		String encoded = new GetStateResultMessages.Encoder().encode(expected);
 		var actual = new GetStateResultMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("getIndex messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForGetIndex() throws Exception {
+		var expected = GetIndexMessages.of(OBJECT, "id");
+		String encoded = new GetIndexMessages.Encoder().encode(expected);
+		var actual = new GetIndexMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("getIndexResult messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForGetIndexResult() throws Exception {
+		var random = new Random();
+		byte[] bytes1 = new byte[TransactionReference.REQUEST_HASH_LENGTH];
+		random.nextBytes(bytes1);
+		TransactionReference reference1 = TransactionReferences.of(bytes1);
+		byte[] bytes2 = new byte[TransactionReference.REQUEST_HASH_LENGTH];
+		random.nextBytes(bytes2);
+		TransactionReference reference2 = TransactionReferences.of(bytes2);
+		byte[] bytes3 = new byte[TransactionReference.REQUEST_HASH_LENGTH];
+		random.nextBytes(bytes3);
+		TransactionReference reference3 = TransactionReferences.of(bytes3);
+	
+		var expected = GetIndexResultMessages.of(Stream.of(reference1, reference2, reference3), "id");
+		String encoded = new GetIndexResultMessages.Encoder().encode(expected);
+		var actual = new GetIndexResultMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);
 	}
 
