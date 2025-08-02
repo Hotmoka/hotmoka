@@ -20,10 +20,10 @@ import java.io.IOException;
 
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.internal.json.TransactionReferenceDecoder;
-import io.hotmoka.node.internal.json.TransactionReferenceEncoder;
 import io.hotmoka.node.internal.json.TransactionReferenceJson;
 import io.hotmoka.node.internal.references.TransactionReferenceImpl;
+import io.hotmoka.websockets.beans.MappedDecoder;
+import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
  * Providers of transaction references.
@@ -66,23 +66,27 @@ public abstract class TransactionReferences {
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends TransactionReferenceEncoder {
+	public static class Encoder extends MappedEncoder<TransactionReference, Json> {
 
 		/**
 		 * Creates a new encoder.
 		 */
-		public Encoder() {}
+		public Encoder() {
+			super(Json::new);
+		}
 	}
 
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends TransactionReferenceDecoder {
+	public static class Decoder extends MappedDecoder<TransactionReference, Json> {
 
 		/**
 		 * Creates a new decoder.
 		 */
-		public Decoder() {}
+		public Decoder() {
+			super(Json.class);
+		}
 	}
 
     /**
