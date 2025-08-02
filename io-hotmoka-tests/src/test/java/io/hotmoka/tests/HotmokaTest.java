@@ -260,6 +260,12 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	private final static List<Node> nodes = new ArrayList<>();
 
 	/**
+	 * The time (in milliseconds) before the index of the node gets updated.
+	 * This depends on the kind of node.
+	 */
+	private static long delayBeforeIndexUpdate;
+
+	/**
 	 * The plots of the test nodes, if they are Mokamint nodes.
 	 */
 	private final static List<Plot> plots = new ArrayList<>();
@@ -343,12 +349,13 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	private static Node mkTendermintNode() throws Exception {
 		consensus = fillConsensusConfig(ValidatorsConsensusConfigBuilders.defaults()).build();
+		delayBeforeIndexUpdate = 0L; // the index is updated immediately with the Tendermint node
 
 		var config = TendermintNodeConfigBuilders.defaults()
 				.setDir(Files.createTempDirectory("hotmoka-tendermint-chain-"))
 				.setTendermintConfigurationToClone(Paths.get("tendermint_config"))
 				.setMaxGasPerViewTransaction(_1_000_000_000)
-				.setIndexSize(10) // so that we test the index as well
+				.setIndexSize(getIndexSize())
 				.build();
 
 		Node node = TendermintNodes.init(config);
@@ -364,14 +371,16 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	@SuppressWarnings("unused")
 	private static Node mkMokamintNodeConnectedToPeer() throws Exception {
 		consensus = fillConsensusConfig(ValidatorsConsensusConfigBuilders.defaults()).build();
+		long indexingPause = 5_000L;
+		delayBeforeIndexUpdate = indexingPause * 3;
 
 		Path hotmokaChainPath = Files.createTempDirectory("hotmoka-mokamint-chain-");
 
 		var config = MokamintNodeConfigBuilders.defaults()
 				.setDir(hotmokaChainPath)
 				.setMaxGasPerViewTransaction(_1_000_000_000)
-				.setIndexSize(10) // so that we test the index as well
-				.setIndexingPause(5_000L) // so that the index is quite responsive in the tests
+				.setIndexSize(getIndexSize()) // so that we test the index as well
+				.setIndexingPause(indexingPause) // so that the index is quite responsive in the tests
 				.build();
 
 		var mokamintConfig = LocalNodeConfigBuilders.defaults()
@@ -424,6 +433,8 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		URI firstUri = null;
 
 		consensus = fillConsensusConfig(ValidatorsConsensusConfigBuilders.defaults()).build();
+		long indexingPause = 5_000L;
+		delayBeforeIndexUpdate = indexingPause * 3;
 
 		for (int nodeNum = 1; nodeNum <= howManyNodes; nodeNum++) {
 			Path hotmokaChainPath = Files.createTempDirectory("hotmoka-mokamint-chain-" + nodeNum + "-");
@@ -431,8 +442,8 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			var config = MokamintNodeConfigBuilders.defaults()
 					.setDir(hotmokaChainPath)
 					.setMaxGasPerViewTransaction(_1_000_000_000)
-					.setIndexSize(10) // so that we test the index as well
-					.setIndexingPause(5_000L) // so that the index is quite responsive in the tests
+					.setIndexSize(getIndexSize()) // so that we test the index as well
+					.setIndexingPause(indexingPause) // so that the index is quite responsive in the tests
 					.build();
 
 			var mokamintConfig = LocalNodeConfigBuilders.defaults()
@@ -496,13 +507,14 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	private static Node mkDiskNode() throws Exception {
 		consensus = fillConsensusConfig(ConsensusConfigBuilders.defaults()).build();
+		delayBeforeIndexUpdate = 0L; // the index is updated immediately with the disk node
 
 		var config = DiskNodeConfigBuilders.defaults()
 				.setDir(Files.createTempDirectory("hotmoka-disk-chain-"))
 				.setMaxGasPerViewTransaction(_1_000_000_000)
 				.setMaxPollingAttempts(100) // we fix these two so that we know the timeout in case of problems
 				.setPollingDelay(10)
-				.setIndexSize(10) // so that we test the index as well
+				.setIndexSize(getIndexSize()) // so that we test the index as well
 				.build();
 
 		Node node = DiskNodes.init(config);
@@ -594,6 +606,14 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	protected static SignatureAlgorithm signature() {
 		return signature;
+	}
+
+	protected static long getDelayBeforeIndexUpdate() {
+		return delayBeforeIndexUpdate;
+	}
+
+	protected static int getIndexSize() {
+		return 2; // so that we test the index as well
 	}
 
 	protected final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, ClosedNodeException, TimeoutException, InterruptedException {

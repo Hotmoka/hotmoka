@@ -57,7 +57,7 @@ class Lambdas extends HotmokaTest {
 	private PrivateKey key;
 
 	/**
-	 * The base64 encoded public ket of the Lambdas being created.
+	 * The base64 encoded public key of the Lambdas being created.
 	 */
 	private String publicKey;
 

@@ -26,6 +26,7 @@ import static io.hotmoka.node.service.api.NodeService.ADD_STATIC_METHOD_CALL_TRA
 import static io.hotmoka.node.service.api.NodeService.EVENTS_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_CLASS_TAG_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_CONFIG_ENDPOINT;
+import static io.hotmoka.node.service.api.NodeService.GET_INDEX_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_INFO_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_MANIFEST_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_POLLED_RESPONSE_ENDPOINT;
@@ -98,6 +99,8 @@ import io.hotmoka.node.messages.GetClassTagMessages;
 import io.hotmoka.node.messages.GetClassTagResultMessages;
 import io.hotmoka.node.messages.GetConfigMessages;
 import io.hotmoka.node.messages.GetConfigResultMessages;
+import io.hotmoka.node.messages.GetIndexMessages;
+import io.hotmoka.node.messages.GetIndexResultMessages;
 import io.hotmoka.node.messages.GetInfoMessages;
 import io.hotmoka.node.messages.GetInfoResultMessages;
 import io.hotmoka.node.messages.GetManifestMessages;
@@ -143,6 +146,8 @@ import io.hotmoka.node.messages.api.GetClassTagMessage;
 import io.hotmoka.node.messages.api.GetClassTagResultMessage;
 import io.hotmoka.node.messages.api.GetConfigMessage;
 import io.hotmoka.node.messages.api.GetConfigResultMessage;
+import io.hotmoka.node.messages.api.GetIndexMessage;
+import io.hotmoka.node.messages.api.GetIndexResultMessage;
 import io.hotmoka.node.messages.api.GetInfoMessage;
 import io.hotmoka.node.messages.api.GetInfoResultMessage;
 import io.hotmoka.node.messages.api.GetManifestMessage;
@@ -216,6 +221,7 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
     	addSession(GET_MANIFEST_ENDPOINT, uri, GetManifestEndpoint::new);
     	addSession(GET_CLASS_TAG_ENDPOINT, uri, GetClassTagEndpoint::new);
     	addSession(GET_STATE_ENDPOINT, uri, GetStateEndpoint::new);
+    	addSession(GET_INDEX_ENDPOINT, uri, GetIndexEndpoint::new);
     	addSession(GET_REQUEST_ENDPOINT, uri, GetRequestEndpoint::new);
     	addSession(GET_RESPONSE_ENDPOINT, uri, GetResponseEndpoint::new);
     	addSession(GET_POLLED_RESPONSE_ENDPOINT, uri, GetPolledResponseEndpoint::new);
@@ -245,53 +251,36 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 
 	@Override
 	protected void notifyResult(RpcMessage message) {
-		if (message instanceof GetInfoResultMessage gnirm)
-			onGetInfoResult(gnirm);
-		else if (message instanceof GetConfigResultMessage gccrm)
-			onGetConfigResult(gccrm);
-		else if (message instanceof GetTakamakaCodeResultMessage gtcrm)
-			onGetTakamakaCodeResult(gtcrm);
-		else if (message instanceof GetManifestResultMessage gmrm)
-			onGetManifestResult(gmrm);
-		else if (message instanceof GetClassTagResultMessage gctrm)
-			onGetClassTagResult(gctrm);
-		else if (message instanceof GetStateResultMessage gsrm)
-			onGetStateResult(gsrm);
-		else if (message instanceof GetRequestResultMessage grrm)
-			onGetRequestResult(grrm);
-		else if (message instanceof GetResponseResultMessage grrm)
-			onGetResponseResult(grrm);
-		else if (message instanceof GetPolledResponseResultMessage gprrm)
-			onGetPolledResponseResult(gprrm);
-		else if (message instanceof AddJarStoreTransactionResultMessage ajstrm)
-			onAddJarStoreTransactionResult(ajstrm);
-		else if (message instanceof AddConstructorCallTransactionResultMessage acctrm)
-			onAddConstructorCallTransactionResult(acctrm);
-		else if (message instanceof AddInstanceMethodCallTransactionResultMessage aimctrm)
-			onAddInstanceMethodCallTransactionResult(aimctrm);
-		else if (message instanceof AddStaticMethodCallTransactionResultMessage asmctrm)
-			onAddStaticMethodCallTransactionResult(asmctrm);
-		else if (message instanceof AddGameteCreationTransactionResultMessage agctrm)
-			onAddGameteCreationTransactionResult(agctrm);
-		else if (message instanceof AddJarStoreInitialTransactionResultMessage ajsitrm)
-			onAddJarStoreInitialTransactionResult(ajsitrm);
-		else if (message instanceof AddInitializationTransactionResultMessage aitrm)
-			onAddInitializationTransactionResult(aitrm);
-		else if (message instanceof PostJarStoreTransactionResultMessage pjstrm)
-			onPostJarStoreTransactionResult(pjstrm);
-		else if (message instanceof PostConstructorCallTransactionResultMessage pcctrm)
-			onPostConstructorCallTransactionResult(pcctrm);
-		else if (message instanceof PostInstanceMethodCallTransactionResultMessage pimctrm)
-			onPostInstanceMethodCallTransactionResult(pimctrm);
-		else if (message instanceof PostStaticMethodCallTransactionResultMessage psmctrm)
-			onPostStaticMethodCallTransactionResult(psmctrm);
-		else if (message instanceof RunInstanceMethodCallTransactionResultMessage rimctrm)
-			onRunInstanceMethodCallTransactionResult(rimctrm);
-		else if (message instanceof RunStaticMethodCallTransactionResultMessage rsmctrm)
-			onRunStaticMethodCallTransactionResult(rsmctrm);
-		else if (message != null && !(message instanceof ExceptionMessage)) {
-			LOGGER.warning("unexpected message of class " + message.getClass().getName());
-			return;
+		switch (message) {
+		case GetInfoResultMessage gnirm -> onGetInfoResult(gnirm);
+		case GetConfigResultMessage gccrm -> onGetConfigResult(gccrm);
+		case GetTakamakaCodeResultMessage gtcrm -> onGetTakamakaCodeResult(gtcrm);
+		case GetManifestResultMessage gmrm -> onGetManifestResult(gmrm);
+		case GetClassTagResultMessage gctrm -> onGetClassTagResult(gctrm);
+		case GetStateResultMessage gsrm -> onGetStateResult(gsrm);
+		case GetIndexResultMessage girm -> onGetIndexResult(girm);
+		case GetRequestResultMessage grrm -> onGetRequestResult(grrm);
+		case GetResponseResultMessage grrm -> onGetResponseResult(grrm);
+		case GetPolledResponseResultMessage gprrm -> onGetPolledResponseResult(gprrm);
+		case AddJarStoreTransactionResultMessage ajstrm -> onAddJarStoreTransactionResult(ajstrm);
+		case AddConstructorCallTransactionResultMessage acctrm -> onAddConstructorCallTransactionResult(acctrm);
+		case AddInstanceMethodCallTransactionResultMessage aimctrm -> onAddInstanceMethodCallTransactionResult(aimctrm);
+		case AddStaticMethodCallTransactionResultMessage asmctrm -> onAddStaticMethodCallTransactionResult(asmctrm);
+		case AddGameteCreationTransactionResultMessage agctrm -> onAddGameteCreationTransactionResult(agctrm);
+		case AddJarStoreInitialTransactionResultMessage ajsitrm -> onAddJarStoreInitialTransactionResult(ajsitrm);
+		case AddInitializationTransactionResultMessage aitrm -> onAddInitializationTransactionResult(aitrm);
+		case PostJarStoreTransactionResultMessage pjstrm -> onPostJarStoreTransactionResult(pjstrm);
+		case PostConstructorCallTransactionResultMessage pcctrm -> onPostConstructorCallTransactionResult(pcctrm);
+		case PostInstanceMethodCallTransactionResultMessage pimctrm -> onPostInstanceMethodCallTransactionResult(pimctrm);
+		case PostStaticMethodCallTransactionResultMessage psmctrm -> onPostStaticMethodCallTransactionResult(psmctrm);
+		case RunInstanceMethodCallTransactionResultMessage rimctrm -> onRunInstanceMethodCallTransactionResult(rimctrm);
+		case RunStaticMethodCallTransactionResultMessage rsmctrm -> onRunStaticMethodCallTransactionResult(rsmctrm);
+		default -> {
+			if (message != null && !(message instanceof ExceptionMessage)) {
+				LOGGER.warning("unexpected message of class " + message.getClass().getName());
+				return;
+			}
+		}
 		}
 
 		super.notifyResult(message);
@@ -509,8 +498,35 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 
 	@Override
 	public Stream<TransactionReference> getIndex(StorageReference object) throws UnknownReferenceException, ClosedNodeException, InterruptedException, TimeoutException {
-		// TODO Auto-generated method stub
-		return null;
+		ensureIsOpen(ClosedNodeException::new);
+		var id = nextId();
+		sendGetIndex(object, id);
+		return waitForResult(id, GetIndexResultMessage.class, UnknownReferenceException.class);
+	}
+
+	/**
+	 * Sends a {@link GetIndexMessage} to the node service.
+	 * 
+	 * @param reference the reference to the object whose state is required
+	 * @param id the identifier of the message
+	 */
+	protected void sendGetIndex(StorageReference reference, String id) {
+		sendObjectAsync(GET_INDEX_ENDPOINT, GetIndexMessages.of(reference, id));
+	}
+
+	/**
+	 * Hook called when a {@link GetIndexResultMessage} has been received.
+	 * 
+	 * @param message the message
+	 */
+	protected void onGetIndexResult(GetIndexResultMessage message) {}
+
+	private class GetIndexEndpoint extends Endpoint {
+
+		@Override
+		protected Session deployAt(URI uri) throws FailedDeploymentException {
+			return deployAt(uri, GetIndexResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetIndexMessages.Encoder.class);		
+		}
 	}
 
 	@Override

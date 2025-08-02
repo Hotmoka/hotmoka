@@ -52,6 +52,8 @@ import io.hotmoka.node.messages.GetClassTagMessages;
 import io.hotmoka.node.messages.GetClassTagResultMessages;
 import io.hotmoka.node.messages.GetConfigMessages;
 import io.hotmoka.node.messages.GetConfigResultMessages;
+import io.hotmoka.node.messages.GetIndexMessages;
+import io.hotmoka.node.messages.GetIndexResultMessages;
 import io.hotmoka.node.messages.GetInfoMessages;
 import io.hotmoka.node.messages.GetInfoResultMessages;
 import io.hotmoka.node.messages.GetManifestMessages;
@@ -87,6 +89,7 @@ import io.hotmoka.node.messages.api.AddJarStoreTransactionMessage;
 import io.hotmoka.node.messages.api.AddStaticMethodCallTransactionMessage;
 import io.hotmoka.node.messages.api.GetClassTagMessage;
 import io.hotmoka.node.messages.api.GetConfigMessage;
+import io.hotmoka.node.messages.api.GetIndexMessage;
 import io.hotmoka.node.messages.api.GetInfoMessage;
 import io.hotmoka.node.messages.api.GetManifestMessage;
 import io.hotmoka.node.messages.api.GetPolledResponseMessage;
@@ -168,9 +171,9 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
     	startContainer("", port,
     			GetInfoEndpoint.config(this), GetConfigEndpoint.config(this), GetTakamakaCodeEndpoint.config(this),
     			GetManifestEndpoint.config(this), GetClassTagEndpoint.config(this), GetStateEndpoint.config(this),
-    			GetRequestEndpoint.config(this), GetResponseEndpoint.config(this), GetPolledResponseEndpoint.config(this),
-    			AddGameteCreationTransactionEndpoint.config(this), AddJarStoreInitialTransactionEndpoint.config(this),
-    			AddInitializationTransactionEndpoint.config(this),
+    			GetIndexEndpoint.config(this), GetRequestEndpoint.config(this), GetResponseEndpoint.config(this),
+    			GetPolledResponseEndpoint.config(this), AddGameteCreationTransactionEndpoint.config(this),
+    			AddJarStoreInitialTransactionEndpoint.config(this), AddInitializationTransactionEndpoint.config(this),
     			AddJarStoreTransactionEndpoint.config(this), AddConstructorCallTransactionEndpoint.config(this),
     			AddInstanceMethodCallTransactionEndpoint.config(this), AddStaticMethodCallTransactionEndpoint.config(this),
     			PostConstructorCallTransactionEndpoint.config(this), PostJarStoreTransactionEndpoint.config(this),
@@ -218,6 +221,7 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
     		case GetResponseMessage grm -> sendObjectAsync(session, GetResponseResultMessages.of(node.getResponse(grm.getReference()), id));
     		case GetPolledResponseMessage gprm -> sendObjectAsync(session, GetPolledResponseResultMessages.of(node.getPolledResponse(gprm.getReference()), id));
     		case GetInfoMessage gim -> sendObjectAsync(session, GetInfoResultMessages.of(node.getInfo(), id));
+    		case GetIndexMessage gim -> sendObjectAsync(session, GetIndexResultMessages.of(node.getIndex(gim.getReference()), id));
     		case RunInstanceMethodCallTransactionMessage rimctm -> sendObjectAsync(session, RunInstanceMethodCallTransactionResultMessages.of(node.runInstanceMethodCallTransaction(rimctm.getRequest()), id));
     		case RunStaticMethodCallTransactionMessage gsmctm -> sendObjectAsync(session, RunStaticMethodCallTransactionResultMessages.of(node.runStaticMethodCallTransaction(gsmctm.getRequest()), id));
     		case AddInstanceMethodCallTransactionMessage aimctm -> sendObjectAsync(session, AddInstanceMethodCallTransactionResultMessages.of(node.addInstanceMethodCallTransaction(aimctm.getRequest()), id));
@@ -395,6 +399,25 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
 			return simpleConfig(server, GetStateEndpoint.class, GET_STATE_ENDPOINT,
 				GetStateMessages.Decoder.class, GetStateResultMessages.Encoder.class, ExceptionMessages.Encoder.class);
+		}
+	}
+
+	protected void onGetIndex(GetIndexMessage message, Session session) {
+		LOGGER.info(logPrefix + "received a " + GET_INDEX_ENDPOINT + " request");
+		scheduleRequest(session, message);
+	};
+
+	public static class GetIndexEndpoint extends AbstractServerEndpoint<NodeServiceImpl> {
+
+		@Override
+	    public void onOpen(Session session, EndpointConfig config) {
+			var server = getServer();
+			addMessageHandler(session, (GetIndexMessage message) -> server.onGetIndex(message, session));
+	    }
+
+		private static ServerEndpointConfig config(NodeServiceImpl server) {
+			return simpleConfig(server, GetIndexEndpoint.class, GET_INDEX_ENDPOINT,
+				GetIndexMessages.Decoder.class, GetIndexResultMessages.Encoder.class, ExceptionMessages.Encoder.class);
 		}
 	}
 
