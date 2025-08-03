@@ -513,31 +513,19 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 * Publishes the given transaction, that is, takes note that it has been added to the store
 	 * of this node and became visible to its users. This method will signal all tasks waiting
 	 * for the completion of the transaction and will trigger all events contained
-	 * in the transaction. This method will be called, for instance, when one or more blocks
-	 * are added to the main chain of a blockchain, for each of the transactions in such blocks.
+	 * in the transaction. This method will be called, for instance, when a block
+	 * gets added to the main chain of a blockchain, for each of the transactions in such block.
 	 * 
-	 * @param reference the transaction to publish
+	 * @param transaction the transaction to publish
+	 * @param response the response computed for {@code transaction}
 	 * @param store the store where the transaction and its potential events can be found
-	 * @throws UnknownReferenceException if {@code reference} cannot be found in {@code store}
 	 */
-	protected final void publish(TransactionReference reference, S store) throws UnknownReferenceException {
-		signalCompleted(reference);
+	protected final void publish(TransactionReference transaction, TransactionResponse response, S store) {
+		signalCompleted(transaction);
 
-		if (store.getResponse(reference) instanceof TransactionResponseWithEvents trwe && trwe.hasEvents())
+		if (response instanceof TransactionResponseWithEvents trwe && trwe.hasEvents())
 			for (var event: trwe.getEvents().toArray(StorageReference[]::new))
 				notifyEvent(event, store);
-	}
-
-	protected void publishAllTransactionsDeliveredIn(T transformation, S store) {
-		transformation.forEachDeliveredTransaction((tx, _response) -> {
-			try {
-				publish(tx, store);
-			}
-			catch (UnknownReferenceException e) {
-				// the transactions have been delivered, if they cannot be found then there is a problem in the database or a bug in the code
-				throw new LocalNodeException("Delivered transactions should be in store", e);
-			}
-		});
 	}
 
 	/**

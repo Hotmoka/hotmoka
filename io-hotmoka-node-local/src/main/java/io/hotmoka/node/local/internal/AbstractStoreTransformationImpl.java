@@ -147,24 +147,19 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	public final TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException, InterruptedException {
 		var reference = TransactionReferences.of(getHasher().hash(request));
 		String referenceAsString = reference.toString();
-	
-		try {
-			LOGGER.info(referenceAsString + ": delivering start");
 
-			var responseCreation = responseBuilderFor(reference, request).getResponseCreation();
-			TransactionResponse response = responseCreation.getResponse();
-			push(reference, request, response);
-			responseCreation.replaceReverifiedResponses();
-			takeNoteForNextReward(request, response);
-			updateCaches(response, responseCreation.getClassLoader());
-	
-			LOGGER.info(referenceAsString + ": delivering success");
-			return response;
-		}
-		catch (TransactionRejectedException e) {
-			LOGGER.warning(referenceAsString + ": delivering failed: " + e.getMessage());
-			throw e;
-		}
+		LOGGER.info(referenceAsString + ": delivering start");
+
+		var responseCreation = responseBuilderFor(reference, request).getResponseCreation();
+		TransactionResponse response = responseCreation.getResponse();
+		push(reference, request, response);
+		responseCreation.replaceReverifiedResponses();
+		takeNoteForNextReward(request, response);
+		updateCaches(response, responseCreation.getClassLoader());
+
+		LOGGER.info(referenceAsString + ": delivering success");
+
+		return response;
 	}
 
 	@Override

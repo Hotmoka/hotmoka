@@ -669,7 +669,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 				throw new LocalNodeException(e);
 			}
 
-			publishAllTransactionsDeliveredIn(transformation, storeOfHead);
+			transformation.forEachDeliveredTransaction((transaction, response) -> publish(transaction, response, storeOfHead));
 
 			byte[] hash = getLastBlockApplicationHash();
 			LOGGER.info("committed Tendermint state " + Hex.toHexString(hash).toUpperCase());

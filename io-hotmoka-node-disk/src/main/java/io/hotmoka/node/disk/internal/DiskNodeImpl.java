@@ -268,7 +268,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 			if (transformation.deliveredCount() > 0) {
 				transformation.deliverCoinbaseTransactions();
 				storeOfHead = transformation.getFinalStore();
-				publishAllTransactionsDeliveredIn(transformation, storeOfHead);
+				transformation.forEachDeliveredTransaction((transaction, response) -> publish(transaction, response, storeOfHead));
 				transformation.forEachDeliveredTransaction(DiskNodeImpl.this::expandIndex);
 			}
 
