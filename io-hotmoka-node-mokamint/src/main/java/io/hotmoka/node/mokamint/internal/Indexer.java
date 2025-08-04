@@ -34,6 +34,7 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.Index;
 import io.hotmoka.node.local.Index.MarshallableArrayOfTransactionReferences;
 import io.hotmoka.node.local.LocalNodeException;
+import io.hotmoka.node.mokamint.api.MokamintNode;
 import io.hotmoka.xodus.ByteIterable;
 import io.hotmoka.xodus.env.Environment;
 import io.hotmoka.xodus.env.Store;
@@ -57,7 +58,7 @@ public class Indexer {
 	/**
 	 * The node this indexer is working for.
 	 */
-	private final MokamintHotmokaApplication.MokamintNodeImpl node; // TODO
+	private final MokamintNode node;
 
 	/**
 	 * The store of the database of {@code node} where indexing data can be kept.
@@ -106,7 +107,7 @@ public class Indexer {
 	 * @param size the size of the index; this is the maximal number of affecting transactions
 	 *             kept in the index for each object
 	 */
-	Indexer(MokamintHotmokaApplication.MokamintNodeImpl node, Store store, Environment env, int size) { // TODO
+	Indexer(MokamintNode node, Store store, Environment env, int size) {
 		this.node = node;
 		this.store = store;
 		this.env = env;
