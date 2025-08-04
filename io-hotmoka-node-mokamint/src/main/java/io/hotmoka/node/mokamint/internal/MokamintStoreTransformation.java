@@ -38,6 +38,7 @@ import io.hotmoka.node.local.LocalNodeException;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
+import io.hotmoka.node.mokamint.internal.MokamintHotmokaApplication.MokamintNodeImpl;
 import io.mokamint.nonce.api.Prolog;
 
 /**

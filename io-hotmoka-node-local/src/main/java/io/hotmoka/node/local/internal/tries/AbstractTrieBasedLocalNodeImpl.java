@@ -171,7 +171,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		return storeOfNode;
 	}
 
-	protected final Environment getEnvironment() {
+	protected Environment getEnvironment() {
 		return env;
 	}
 

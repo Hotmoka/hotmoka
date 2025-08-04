@@ -492,7 +492,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 * @param request the rejected transaction request
 	 * @param e the exception that explains why it has been rejected
 	 */
-	protected final void signalRejected(TransactionRequest<?> request, TransactionRejectedException e) {
+	protected void signalRejected(TransactionRequest<?> request, TransactionRejectedException e) {
 		var reference = referenceOf(request);
 		recentlyRejectedTransactionsMessages.put(reference, e.getMessage());
 		LOGGER.warning("transaction " + reference + " has been rejected: " + e.getMessage());
@@ -520,7 +520,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 * @param response the response computed for {@code transaction}
 	 * @param store the store where the transaction and its potential events can be found
 	 */
-	protected final void publish(TransactionReference transaction, TransactionResponse response, S store) {
+	protected void publish(TransactionReference transaction, TransactionResponse response, S store) {
 		signalCompleted(transaction);
 
 		if (response instanceof TransactionResponseWithEvents trwe && trwe.hasEvents())
@@ -554,7 +554,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 * @param request the request
 	 * @throws ClosedNodeException if the node is already closed
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
-	 * @throws TimeoutException if the operation could not be completed in time
+	 * @throws TimeoutException if the operation times out
 	 */
 	protected abstract void postRequest(TransactionRequest<?> request) throws ClosedNodeException, InterruptedException, TimeoutException;
 

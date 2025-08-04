@@ -99,21 +99,21 @@ public class Resume extends AbstractNodeResume {
 
 			try (var node = MokamintNodes.resume(localNodeConfig, mokamintConfig, keysOfNode); var plot = Plots.load(this.plot)) {
 				try (var miner = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, keysOfPlot) })) {
-					var mokamintNode = node.getMokamintNode();
-					mokamintNode.add(miner).orElseThrow(() -> new CommandException("Could not add a miner to the Mokamint node"));
+					var engine = (io.mokamint.node.local.api.LocalNode) node.getMokamintEngine().get(); // TODO
+					engine.add(miner).orElseThrow(() -> new CommandException("Could not add a miner to the Mokamint node"));
 
 					// the next services will be closed when the node will be closed
 					var mokamintNodePublicURI = URI.create("ws://localhost:" + mokamintPort);
 
 					try {
-						PublicNodeServices.open(mokamintNode, mokamintPort, 1800000, 1000, Optional.ofNullable(visibleAs));
+						PublicNodeServices.open(engine, mokamintPort, 1800000, 1000, Optional.ofNullable(visibleAs));
 					}
 					catch (FailedDeploymentException e) {
 						throw new CommandException("Cannot deploy the service at port " + mokamintPort);
 					}
 
 					try {
-						RestrictedNodeServices.open(mokamintNode, mokamintPortRestricted);
+						RestrictedNodeServices.open(engine, mokamintPortRestricted);
 					}
 					catch (FailedDeploymentException e) {
 						throw new CommandException("Cannot deploy the service at port " + mokamintPortRestricted);

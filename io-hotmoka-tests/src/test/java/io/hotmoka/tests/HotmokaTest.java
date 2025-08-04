@@ -397,7 +397,8 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		var miner = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, plotKeys) });
 		miners.add(miner);
 		var node = MokamintNodes.init(config, mokamintConfig, nodeKeys, true);
-		node.getMokamintNode().add(miner).orElseThrow(() -> new LocalNodeException("Could not add the miner to the test node"));
+		var engine = (io.mokamint.node.local.api.LocalNode) node.getMokamintEngine().get(); // TODO
+		engine.add(miner).orElseThrow(() -> new LocalNodeException("Could not add the miner to the test node"));
 
 		NodeServices.of(node, 8001);
 		System.out.println("Hotmoka node published at ws://localhost:8001");
@@ -405,12 +406,12 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		// we open a web service to the underlying Mokamint node, at port 8030; this is not necessary,
 		// but it allows developers to query the node during the execution of the tests
 		URI uri1 = URI.create("ws://localhost:8030");
-		PublicNodeServices.open(node.getMokamintNode(), 8030, 1800000, 1000, Optional.of(uri1));
+		PublicNodeServices.open(engine, 8030, 1800000, 1000, Optional.of(uri1));
 		System.out.println("Underlying Mokamint node published at " + uri1);
 
 		URI uri2 = URI.create("ws://localhost:8031");
 
-		if (node.getMokamintNode().add(Peers.of(uri2)).isPresent())
+		if (engine.add(Peers.of(uri2)).isPresent())
 			System.out.println("Added " + uri2 + " as a peer of " + uri1);
 		else
 			throw new LocalNodeException("Could not add " + uri2 + " as a peer of " + uri1);
@@ -482,12 +483,13 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			nodes.add(node);
 
 			int nodeNumCopy = nodeNum;
-			node.getMokamintNode().add(miner).orElseThrow(() -> new LocalNodeException("Could not add the miner to test node " + nodeNumCopy));
+			var engine = (io.mokamint.node.local.api.LocalNode) node.getMokamintEngine().get(); // TODO
+			engine.add(miner).orElseThrow(() -> new LocalNodeException("Could not add the miner to test node " + nodeNumCopy));
 
-			// we open a web service to the underlying Mokamint node; this is not necessary,
+			// we open a web service to the underlying Mokamint engine; this is not necessary,
 			// but it allows developers to query the node during the execution of the tests
 			var uri = URI.create("ws://localhost:" + (8029 + nodeNum));
-			PublicNodeServices.open(node.getMokamintNode(), 8029 + nodeNum, 1800000, 1000, Optional.of(uri));
+			PublicNodeServices.open(engine, 8029 + nodeNum, 1800000, 1000, Optional.of(uri));
 			System.out.println("Underlying Mokamint node " + nodeNum + " published at " + uri);
 
 			if (nodeNum == 1) {
@@ -496,7 +498,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 				System.out.println("Initializing Hotmoka node " + nodeNum);
 				initializeNodeIfNeeded(node);
 			}
-			else if (firstNode.getMokamintNode().add(Peers.of(uri)).isPresent())
+			else if (((io.mokamint.node.local.api.LocalNode) firstNode.getMokamintEngine().get()).add(Peers.of(uri)).isPresent()) // TODO
 				System.out.println("Added " + uri + " as a peer of " + firstUri);
 			else
 				throw new LocalNodeException("Could not add " + uri + " as a peer of " + firstUri);

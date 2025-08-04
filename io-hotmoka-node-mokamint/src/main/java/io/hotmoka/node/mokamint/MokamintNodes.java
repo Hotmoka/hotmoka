@@ -21,7 +21,8 @@ import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.node.mokamint.api.MokamintNode;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
-import io.hotmoka.node.mokamint.internal.MokamintNodeImpl;
+import io.hotmoka.node.mokamint.internal.MokamintHotmokaApplication;
+import io.mokamint.node.local.AbstractLocalNode;
 import io.mokamint.node.local.api.LocalNodeConfig;
 
 /**
@@ -46,8 +47,15 @@ public abstract class MokamintNodes {
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 * @throws TimeoutException if the operation does not complete in time
 	 */
+	// TODO: distinguish init (createGenesis==true) and start (createGenesis==false)
 	public static MokamintNode init(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair, boolean createGenesis) throws InterruptedException, TimeoutException {
-		return new MokamintNodeImpl(config, mokamintConfig, keyPair, true, createGenesis); // TODO: distinguish init (createGenesis==true) and start (createGenesis==false)
+		var app = new MokamintHotmokaApplication(config, true);
+		var engine = new AbstractLocalNode(mokamintConfig, keyPair, app, createGenesis) {};
+		MokamintNode node = app.getNode();
+		node.setMokamintEngine(engine);
+		node.addOnCloseHandler(engine::close);
+
+		return node;
 	}
 
 	/**
@@ -64,6 +72,12 @@ public abstract class MokamintNodes {
 	 * @throws TimeoutException if the operation does not complete in time
 	 */
 	public static MokamintNode resume(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws InterruptedException, TimeoutException {
-		return new MokamintNodeImpl(config, mokamintConfig, keyPair, false, false);
+		var app = new MokamintHotmokaApplication(config, false);
+		var engine = new AbstractLocalNode(mokamintConfig, keyPair, app, false) {};
+		MokamintNode node = app.getNode();
+		node.setMokamintEngine(engine);
+		node.addOnCloseHandler(engine::close);
+
+		return node;
 	}
 }

@@ -39,7 +39,6 @@ import io.hotmoka.xodus.env.Environment;
 import io.hotmoka.xodus.env.Store;
 import io.mokamint.node.api.Block;
 import io.mokamint.node.api.NonGenesisBlock;
-import io.mokamint.node.api.PublicNode;
 import io.mokamint.node.api.Transaction;
 
 /**
@@ -58,12 +57,7 @@ public class Indexer {
 	/**
 	 * The node this indexer is working for.
 	 */
-	private final MokamintNodeImpl node;
-
-	/**
-	 * The underlying Mokamint node.
-	 */
-	private final PublicNode mokamintNode;
+	private final MokamintHotmokaApplication.MokamintNodeImpl node; // TODO
 
 	/**
 	 * The store of the database of {@code node} where indexing data can be kept.
@@ -112,9 +106,8 @@ public class Indexer {
 	 * @param size the size of the index; this is the maximal number of affecting transactions
 	 *             kept in the index for each object
 	 */
-	Indexer(MokamintNodeImpl node, Store store, Environment env, int size) {
+	Indexer(MokamintHotmokaApplication.MokamintNodeImpl node, Store store, Environment env, int size) { // TODO
 		this.node = node;
-		this.mokamintNode = node.getMokamintNode();
 		this.store = store;
 		this.env = env;
 		this.index = new Index(store, env, size);
@@ -153,6 +146,12 @@ public class Indexer {
 	 * @param txn the database transaction where database updates are accumulated.
 	 */
 	private void indexing(io.hotmoka.xodus.env.Transaction txn) {
+		// the Mokamint node has not been set yet
+		var maybeEngine = node.getMokamintEngine();
+		if (maybeEngine.isEmpty())
+			return;
+
+		var engine = maybeEngine.get();
 		long base = getBase(txn);
 		long height = base;
 		long depth = node.getLocalConfig().getIndexingDepth();
@@ -173,7 +172,7 @@ public class Indexer {
 						LOGGER.info(() -> LOG_PREFIX + "unbound supporting data at height " + cursorCopy + " because of a history change");
 					}
 
-					Optional<Block> maybeBlock = mokamintNode.getBlock(hash);
+					Optional<Block> maybeBlock = engine.getBlock(hash);
 					if (maybeBlock.isEmpty())
 						break; // we stop this indexing iteration since we miss information
 
@@ -264,7 +263,7 @@ public class Indexer {
 		private BlockHashesIterator(long start) throws TimeoutException, InterruptedException, io.mokamint.node.api.ClosedNodeException {
 			this.start = start;
 			this.pos = 0;
-			this.hashes = mokamintNode.getChainPortion(start, BLOCK_FETCHING_CHUNK_SIZE).getHashes().toArray(byte[][]::new);
+			this.hashes = node.getMokamintEngine().get().getChainPortion(start, BLOCK_FETCHING_CHUNK_SIZE).getHashes().toArray(byte[][]::new);
 		}
 
 		@Override
@@ -282,7 +281,7 @@ public class Indexer {
 				// to continue the previous one: otherwise, there has been a history change and we cannot proceed
 				// further with this indexing iteration
 				try {
-					byte[][] nextHashes = mokamintNode.getChainPortion(start + BLOCK_FETCHING_CHUNK_SIZE - 1, BLOCK_FETCHING_CHUNK_SIZE).getHashes().toArray(byte[][]::new);
+					byte[][] nextHashes = node.getMokamintEngine().get().getChainPortion(start + BLOCK_FETCHING_CHUNK_SIZE - 1, BLOCK_FETCHING_CHUNK_SIZE).getHashes().toArray(byte[][]::new);
 
 					if (nextHashes.length > 0 && Arrays.equals(nextHashes[0], result)) { // the chunks of hashes match over their overlapping
 						hashes = nextHashes;

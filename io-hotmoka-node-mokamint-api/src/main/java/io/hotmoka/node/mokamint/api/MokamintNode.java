@@ -16,19 +16,29 @@ limitations under the License.
 
 package io.hotmoka.node.mokamint.api;
 
+import java.util.Optional;
+
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.local.api.LocalNode;
+import io.mokamint.node.api.PublicNode;
 
 /**
- * A node of a blockchain that relies on the Mokamint engine.
+ * A Hotmoka node that relies on the Mokamint proof of space engine.
  */
 @ThreadSafe
 public interface MokamintNode extends LocalNode<MokamintNodeConfig> {
 
 	/**
-	 * Yields the Mokamint engine underlying this Hotmoka node.
+	 * Sets the Mokamint engine that must be used by this node.
 	 * 
-	 * @return the Mokamint engine
+	 * @param engine the Mokamint engine
 	 */
-	io.mokamint.node.local.api.LocalNode getMokamintNode(); // TODO: this will return a PublicNode in the future
+	void setMokamintEngine(PublicNode engine);
+
+	/**
+	 * Yields the Mokamint engine used by this node, if it has been already set.
+	 * 
+	 * @return the Mokamint engine, if already set
+	 */
+	Optional<PublicNode> getMokamintEngine();
 }
