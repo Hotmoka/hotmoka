@@ -105,7 +105,7 @@ class ExampleCoinPausable extends HotmokaTest {
 
         BooleanValue paused = (BooleanValue) runInstanceNonVoidMethodCallTransaction(
                 investor1,
-                _100_000, jar(),
+                _500_000, jar(),
                 MethodSignatures.ofNonVoid(EXCP, "paused", BOOLEAN),
                 example_token);
         // paused = example_token.paused() == false
@@ -119,14 +119,14 @@ class ExampleCoinPausable extends HotmokaTest {
 
         addInstanceVoidMethodCallTransaction(
                 creator_prv_key, creator,
-                _100_000, panarea(1), jar(),
+                _500_000, panarea(1), jar(),
                 MethodSignatures.ofVoid(EXCP, "pause"),
                 example_token);
         // The contract has been put in the paused state
 
         BooleanValue paused = (BooleanValue) runInstanceNonVoidMethodCallTransaction(
                 investor2,
-                _100_000, jar(),
+                _500_000, jar(),
                 MethodSignatures.ofNonVoid(EXCP, "paused", BOOLEAN),
                 example_token);
         // paused = example_token.paused() == true
@@ -140,7 +140,7 @@ class ExampleCoinPausable extends HotmokaTest {
 
         addInstanceVoidMethodCallTransaction(
                 creator_prv_key, creator,
-                _100_000, panarea(1), jar(),
+                _500_000, panarea(1), jar(),
                 MethodSignatures.ofVoid(EXCP, "pause"),
                 example_token);
         // The contract has been put in the paused state
@@ -148,7 +148,7 @@ class ExampleCoinPausable extends HotmokaTest {
         throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
                 addInstanceVoidMethodCallTransaction(
                         creator_prv_key, creator,
-                        _100_000, panarea(1), jar(),
+                        _500_000, panarea(1), jar(),
                         MethodSignatures.ofVoid(EXCP, "pause"),
                         example_token)
                 // The contract cannot be put in the paused state if it was already paused --> Exception !!!
@@ -161,28 +161,28 @@ class ExampleCoinPausable extends HotmokaTest {
 
         addInstanceVoidMethodCallTransaction(
                 creator_prv_key, creator,
-                _100_000, panarea(1), jar(),
+                _500_000, panarea(1), jar(),
                 MethodSignatures.ofVoid(EXCP, "pause"),
                 example_token);
         // The contract has been put in the paused state
 
         BooleanValue paused_before = (BooleanValue) runInstanceNonVoidMethodCallTransaction(
                 investor2,
-                _100_000, jar(),
+                _500_000, jar(),
                 MethodSignatures.ofNonVoid(EXCP, "paused", BOOLEAN),
                 example_token);
         // paused_before = example_token.paused() == true
 
         addInstanceVoidMethodCallTransaction(
                 creator_prv_key, creator,
-                _100_000, panarea(1), jar(),
+                _500_000, panarea(1), jar(),
                 MethodSignatures.ofVoid(EXCP, "unpause"),
                 example_token);
         // The contract has been removed from the paused state
 
         BooleanValue paused_after = (BooleanValue) runInstanceNonVoidMethodCallTransaction(
                 investor2,
-                _100_000, jar(),
+                _500_000, jar(),
                 MethodSignatures.ofNonVoid(EXCP, "paused", BOOLEAN),
                 example_token);
         // paused_after = example_token.paused() == false
@@ -197,7 +197,7 @@ class ExampleCoinPausable extends HotmokaTest {
         throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
                         addInstanceVoidMethodCallTransaction(
                                 creator_prv_key, creator,
-                                _100_000, panarea(1), jar(),
+                                _500_000, panarea(1), jar(),
                                 MethodSignatures.ofVoid(EXCP, "unpause"),
                                 example_token)
                 // The contract cannot be removed from the paused state if it was not paused --> Exception !!!
@@ -207,9 +207,9 @@ class ExampleCoinPausable extends HotmokaTest {
     @Test @DisplayName("Test of ERC20 transfer method when the contract is not in the paused state")
     void transfer() throws Exception {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCP);
-        StorageReference ubi_check = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("199999999999999999995000"));
-        StorageReference ubi_5000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("5000"));
-        StorageReference ubi_0 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("0"));
+        StorageReference ubi_check = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("199999999999999999995000"));
+        StorageReference ubi_5000 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("5000"));
+        StorageReference ubi_0 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("0"));
 
         BooleanValue transfer_result = (BooleanValue) addInstanceNonVoidMethodCallTransaction(
                 creator_prv_key, creator,
@@ -220,31 +220,31 @@ class ExampleCoinPausable extends HotmokaTest {
 
         var balanceOf = MethodSignatures.ofNonVoid(EXCP, "balanceOf", UBI, StorageTypes.CONTRACT);
 
-        var creator_balance = runInstanceNonVoidMethodCallTransaction(creator, _100_000, jar(), balanceOf, example_token, creator).asReturnedReference(balanceOf, UnexpectedValueException::new);
+        var creator_balance = runInstanceNonVoidMethodCallTransaction(creator, _500_000, jar(), balanceOf, example_token, creator).asReturnedReference(balanceOf, UnexpectedValueException::new);
         // creator_balance = balances[creator] = 199999999999999999995000
         BooleanValue equals_result1 = (BooleanValue) runInstanceNonVoidMethodCallTransaction(
                 creator,
-                _100_000, classpath_takamaka_code,
+                _500_000, classpath_takamaka_code,
                 MethodSignatures.ofNonVoid(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
                 creator_balance,
                 ubi_check);
         // equals_result1 = creator_balance.equals(200'000*10^18-5000) = true
 
-        var investor1_balance = runInstanceNonVoidMethodCallTransaction(creator, _100_000, jar(), balanceOf, example_token, investor1).asReturnedReference(balanceOf, UnexpectedValueException::new);
+        var investor1_balance = runInstanceNonVoidMethodCallTransaction(creator, _500_000, jar(), balanceOf, example_token, investor1).asReturnedReference(balanceOf, UnexpectedValueException::new);
         // investor1_balance = balances[investor1] = 5000
         BooleanValue equals_result2 = (BooleanValue) runInstanceNonVoidMethodCallTransaction(
                 creator,
-                _100_000, classpath_takamaka_code,
+                _500_000, classpath_takamaka_code,
                 MethodSignatures.ofNonVoid(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
                 investor1_balance,
                 ubi_5000);
         // equals_result2 = investor1_balance.equals(5000) = true
 
-        var investor2_balance = runInstanceNonVoidMethodCallTransaction(creator, _100_000, jar(), balanceOf, example_token, investor2).asReturnedReference(balanceOf, UnexpectedValueException::new);
+        var investor2_balance = runInstanceNonVoidMethodCallTransaction(creator, _500_000, jar(), balanceOf, example_token, investor2).asReturnedReference(balanceOf, UnexpectedValueException::new);
         // investor2_balance = balances[investor2] = 0
         BooleanValue equals_result3 = (BooleanValue) runInstanceNonVoidMethodCallTransaction(
                 creator,
-                _100_000, classpath_takamaka_code,
+                _500_000, classpath_takamaka_code,
                 MethodSignatures.ofNonVoid(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
                 investor2_balance,
                 ubi_0);
@@ -256,11 +256,11 @@ class ExampleCoinPausable extends HotmokaTest {
     @Test @DisplayName("Test of ERC20 transfer method with the generation of an Exception when the contract is in the paused state")
     void transferException() throws Exception {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCP);
-        StorageReference ubi_5000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("5000"));
+        StorageReference ubi_5000 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("5000"));
 
         addInstanceVoidMethodCallTransaction(
                 creator_prv_key, creator,
-                _100_000, panarea(1), jar(),
+                _500_000, panarea(1), jar(),
                 MethodSignatures.ofVoid(EXCP, "pause"),
                 example_token);
         // The contract has been put in the paused state
@@ -268,7 +268,7 @@ class ExampleCoinPausable extends HotmokaTest {
         throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
                         addInstanceNonVoidMethodCallTransaction(
                                 creator_prv_key, creator,
-                                _100_000, panarea(1), jar(),
+                                _500_000, panarea(1), jar(),
                                 MethodSignatures.ofNonVoid(EXCP, "transfer", BOOLEAN, StorageTypes.CONTRACT, UBI),
                                 example_token, investor1, ubi_5000)
                 // token transfers cannot be made when the contract is paused state --> Exception !!!

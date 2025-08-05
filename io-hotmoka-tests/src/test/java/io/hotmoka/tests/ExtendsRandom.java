@@ -43,6 +43,6 @@ class ExtendsRandom extends HotmokaTest {
 	void callConstructor() throws Exception {
 		var constructor = ConstructorSignatures.of(StorageTypes.classNamed("io.hotmoka.examples.extendsrandom.ExtendsRandom"));
 		throwsTransactionExceptionWithCause(SerializationException.class, () ->
-			addConstructorCallTransaction(privateKey(0), account(0), _100_000, panarea(1), jar(), constructor));
+			addConstructorCallTransaction(privateKey(0), account(0), _500_000, panarea(1), jar(), constructor));
 	}
 }

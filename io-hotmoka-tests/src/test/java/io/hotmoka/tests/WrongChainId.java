@@ -49,7 +49,7 @@ class WrongChainId extends HotmokaTest {
 		throwsTransactionRejectedWithCause("Incorrect chain id", () ->
 			node.addConstructorCallTransaction(TransactionRequests.constructorCall(signature().getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature),
 				caller, BigInteger.ZERO, chainId() + "noise",
-				_100_000, panarea(1), takamakaCode(), ConstructorSignatures.EOA_CONSTRUCTOR,
+				_500_000, panarea(1), takamakaCode(), ConstructorSignatures.EOA_CONSTRUCTOR,
 				StorageValues.bigIntegerOf(_500_000), StorageValues.stringOf("ciao")))
 		);
 	}

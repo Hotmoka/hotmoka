@@ -88,18 +88,18 @@ class ExampleCoinCapped extends HotmokaTest {
     @Test @DisplayName("Test of ERC20Capped cap method: example_token.cap() == 1'000'000*10^18")
     void totalSupply() throws Exception {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCC);
-        StorageReference ubi_1M = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("1000000000000000000000000"));
+        StorageReference ubi_1M = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("1000000000000000000000000"));
 
         var cap = (StorageReference) runInstanceNonVoidMethodCallTransaction(
                 creator,
-                _100_000, jar(),
+                _500_000, jar(),
                 MethodSignatures.ofNonVoid(EXCC, "cap", UBI),
                 example_token);
         // cap = example_token.cap() == 1'000'000*10^18
 
         var equals_result = (BooleanValue) runInstanceNonVoidMethodCallTransaction(
                 creator,
-                _100_000, classpath_takamaka_code,
+                _500_000, classpath_takamaka_code,
                 MethodSignatures.ofNonVoid(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
                 cap, ubi_1M);
         // equals_result = cap.equals(1'000'000*10^18) = true
@@ -111,25 +111,25 @@ class ExampleCoinCapped extends HotmokaTest {
     @DisplayName("Test of ERC20Capped _mint method (under the cap): example_token.mint(account, 700'000) --> totalSupply+=700'000, balances[account]+=700'000")
     void mint() throws Exception {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCC);
-        StorageReference ubi_700000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("700000000000000000000000"));
-        StorageReference ubi_900000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("900000000000000000000000"));
+        StorageReference ubi_700000 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("700000000000000000000000"));
+        StorageReference ubi_900000 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("900000000000000000000000"));
 
         addInstanceVoidMethodCallTransaction(
                 creator_prv_key, creator,
-                _100_000, panarea(1), jar(),
+                _500_000, panarea(1), jar(),
                 MethodSignatures.ofVoid(EXCC, "mint", StorageTypes.CONTRACT, UBI),
                 example_token,
                 creator, ubi_700000);
         // balances = [creator:900000000000000000000000], totalSupply:900000000000000000000000
 
-        StorageReference creator_balance = (StorageReference) runInstanceNonVoidMethodCallTransaction(creator, _100_000, jar(), MethodSignatures.ofNonVoid(EXCC, "balanceOf", UBI, StorageTypes.CONTRACT), example_token, creator);
+        StorageReference creator_balance = (StorageReference) runInstanceNonVoidMethodCallTransaction(creator, _500_000, jar(), MethodSignatures.ofNonVoid(EXCC, "balanceOf", UBI, StorageTypes.CONTRACT), example_token, creator);
         // creator_balance = balances[creator] = 900000000000000000000000
-        BooleanValue equals_result1 = (BooleanValue) runInstanceNonVoidMethodCallTransaction(creator, _100_000, classpath_takamaka_code, MethodSignatures.ofNonVoid(UBI, "equals", BOOLEAN, StorageTypes.OBJECT), creator_balance, ubi_900000);
+        BooleanValue equals_result1 = (BooleanValue) runInstanceNonVoidMethodCallTransaction(creator, _500_000, classpath_takamaka_code, MethodSignatures.ofNonVoid(UBI, "equals", BOOLEAN, StorageTypes.OBJECT), creator_balance, ubi_900000);
         // equals_result1 = creator_balance.equals(900'000*10^18) = true
 
-        StorageReference supply = (StorageReference) runInstanceNonVoidMethodCallTransaction(creator, _100_000, jar(), MethodSignatures.ofNonVoid(EXCC, "totalSupply", UBI), example_token);
+        StorageReference supply = (StorageReference) runInstanceNonVoidMethodCallTransaction(creator, _500_000, jar(), MethodSignatures.ofNonVoid(EXCC, "totalSupply", UBI), example_token);
         // supply = example_token.totalSupply() == 900'000*10^18
-        BooleanValue equals_result2 = (BooleanValue) runInstanceNonVoidMethodCallTransaction(creator, _100_000, classpath_takamaka_code, MethodSignatures.ofNonVoid(UBI, "equals", BOOLEAN, StorageTypes.OBJECT), supply, ubi_900000);
+        BooleanValue equals_result2 = (BooleanValue) runInstanceNonVoidMethodCallTransaction(creator, _500_000, classpath_takamaka_code, MethodSignatures.ofNonVoid(UBI, "equals", BOOLEAN, StorageTypes.OBJECT), supply, ubi_900000);
         // equals_result2 = supply.equals(900'000*10^18) = true
 
         assertTrue(equals_result1.getValue() && equals_result2.getValue());
@@ -138,14 +138,14 @@ class ExampleCoinCapped extends HotmokaTest {
     @Test @DisplayName("Test of ERC20Capped _mint method with the generation of some Exceptions (over the cap)")
     void mintExceptions() throws Exception {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCC);
-        StorageReference ubi_200000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("200000000000000000000000"));
-        StorageReference ubi_800000_1 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("800000000000000000000001"));
-        StorageReference ubi_900000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("900000000000000000000000"));
+        StorageReference ubi_200000 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("200000000000000000000000"));
+        StorageReference ubi_800000_1 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("800000000000000000000001"));
+        StorageReference ubi_900000 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("900000000000000000000000"));
 
         throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
         		addInstanceVoidMethodCallTransaction(
                         creator_prv_key, creator,
-                        _100_000, panarea(1), jar(),
+                        _500_000, panarea(1), jar(),
                         MethodSignatures.ofVoid(EXCC, "mint", StorageTypes.CONTRACT, UBI),
                         example_token,
                         creator, ubi_800000_1)
@@ -155,21 +155,21 @@ class ExampleCoinCapped extends HotmokaTest {
         throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
         		addInstanceVoidMethodCallTransaction(
                         creator_prv_key, creator,
-                        _100_000, panarea(1), jar(),
+                        _500_000, panarea(1), jar(),
                         MethodSignatures.ofVoid(EXCC, "mint", StorageTypes.CONTRACT, UBI),
                         example_token,
                         creator, ubi_900000)
                 // creator cannot mine if the total supply exceeds the cap --> Exception !!!
         );
 
-        StorageReference creator_balance = (StorageReference) runInstanceNonVoidMethodCallTransaction(creator, _100_000, jar(), MethodSignatures.ofNonVoid(EXCC, "balanceOf", UBI, StorageTypes.CONTRACT), example_token, creator);
+        StorageReference creator_balance = (StorageReference) runInstanceNonVoidMethodCallTransaction(creator, _500_000, jar(), MethodSignatures.ofNonVoid(EXCC, "balanceOf", UBI, StorageTypes.CONTRACT), example_token, creator);
         // creator_balance = balances[creator] = 200000000000000000000000
-        BooleanValue equals_result1 = (BooleanValue) runInstanceNonVoidMethodCallTransaction(creator, _100_000, classpath_takamaka_code, MethodSignatures.ofNonVoid(UBI, "equals", BOOLEAN, StorageTypes.OBJECT), creator_balance, ubi_200000);
+        BooleanValue equals_result1 = (BooleanValue) runInstanceNonVoidMethodCallTransaction(creator, _500_000, classpath_takamaka_code, MethodSignatures.ofNonVoid(UBI, "equals", BOOLEAN, StorageTypes.OBJECT), creator_balance, ubi_200000);
         // equals_result1 = creator_balance.equals(200'000*10^18) = true
 
-        StorageReference supply = (StorageReference) runInstanceNonVoidMethodCallTransaction(creator, _100_000, jar(), MethodSignatures.ofNonVoid(EXCC, "totalSupply", UBI), example_token);
+        StorageReference supply = (StorageReference) runInstanceNonVoidMethodCallTransaction(creator, _500_000, jar(), MethodSignatures.ofNonVoid(EXCC, "totalSupply", UBI), example_token);
         // supply = example_token.totalSupply() == 200'000*10^18
-        BooleanValue equals_result2 = (BooleanValue) runInstanceNonVoidMethodCallTransaction(creator, _100_000, classpath_takamaka_code, MethodSignatures.ofNonVoid(UBI, "equals", BOOLEAN, StorageTypes.OBJECT), supply, ubi_200000);
+        BooleanValue equals_result2 = (BooleanValue) runInstanceNonVoidMethodCallTransaction(creator, _500_000, classpath_takamaka_code, MethodSignatures.ofNonVoid(UBI, "equals", BOOLEAN, StorageTypes.OBJECT), supply, ubi_200000);
         // equals_result2 = supply.equals(200'000*10^18) = true
 
         assertTrue(equals_result1.getValue() && equals_result2.getValue());

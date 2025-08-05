@@ -64,7 +64,7 @@ class WTSC2020 extends HotmokaTest {
 	@Test @DisplayName("two investors do not get their investment back yet")
 	void twoInvestors() throws Exception {
 		// account(0) creates a SimplePyramid object in blockchain and becomes the first investor
-		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
+		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 
 		// account(1) becomes the second investor
 		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _500_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
@@ -79,7 +79,7 @@ class WTSC2020 extends HotmokaTest {
 	@Test @DisplayName("with three investors the first gets its investment back")
 	void threeInvestors() throws Exception {
 		// account(0) creates a SimplePyramid object in blockchain and becomes the first investor
-		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
+		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 
 		// account(1) becomes the second investor
 		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _500_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
@@ -97,7 +97,7 @@ class WTSC2020 extends HotmokaTest {
 	@Test @DisplayName("three investors then check most frequent investor class")
 	void mostFrequentInvestorClass() throws Exception {
 		// account(0) creates a SimplePyramid object in blockchain and becomes the first investor
-		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
+		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 
 		// account(1) becomes the second investor
 		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _500_000, ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
@@ -117,7 +117,7 @@ class WTSC2020 extends HotmokaTest {
 	@Test @DisplayName("three investors then check most frequent investor")
 	void mostFrequentInvestor() throws Exception {
 		// account(0) creates a SimplePyramid object in blockchain and becomes the first investor
-		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
+		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 
 		// account(1) becomes the second investor
 		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _500_000, ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);

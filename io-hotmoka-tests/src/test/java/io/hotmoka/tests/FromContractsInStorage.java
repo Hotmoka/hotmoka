@@ -49,15 +49,15 @@ class FromContractsInStorage extends HotmokaTest {
 
 	@Test @DisplayName("new FromContracts().entry1() yields the eoa that calls the transaction")
 	void callFromContract1() throws Exception {
-		StorageReference entries = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), ConstructorSignatures.of(FROM_CONTRACTS));
-		StorageValue result = addInstanceNonVoidMethodCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), MethodSignatures.ofNonVoid(FROM_CONTRACTS, "entry1", StorageTypes.CONTRACT), entries);
+		StorageReference entries = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, jar(), ConstructorSignatures.of(FROM_CONTRACTS));
+		StorageValue result = addInstanceNonVoidMethodCallTransaction(privateKey(0), account(0), _500_000, ONE, jar(), MethodSignatures.ofNonVoid(FROM_CONTRACTS, "entry1", StorageTypes.CONTRACT), entries);
 		assertEquals(account(0), result);
 	}
 
 	@Test @DisplayName("new FromContracts().entry5() yields the eoa that calls the transaction")
 	void callFromContract5() throws Exception {
-		StorageReference entries = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), ConstructorSignatures.of(FROM_CONTRACTS));
-		StorageValue result = addInstanceNonVoidMethodCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), MethodSignatures.ofNonVoid(FROM_CONTRACTS, "entry5", StorageTypes.CONTRACT), entries);
+		StorageReference entries = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, jar(), ConstructorSignatures.of(FROM_CONTRACTS));
+		StorageValue result = addInstanceNonVoidMethodCallTransaction(privateKey(0), account(0), _500_000, ONE, jar(), MethodSignatures.ofNonVoid(FROM_CONTRACTS, "entry5", StorageTypes.CONTRACT), entries);
 		assertEquals(account(0), result);
 	}
 }

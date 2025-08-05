@@ -57,7 +57,7 @@ class WrongKey extends HotmokaTest {
 		TransactionRejectedException e = assertThrows(TransactionRejectedException.class, () ->
 			node.addConstructorCallTransaction(TransactionRequests.constructorCall(signature().getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature),
 				caller, BigInteger.ZERO, chainId(),
-				_100_000, panarea(1), takamakaCode(),
+				_500_000, panarea(1), takamakaCode(),
 				ConstructorSignatures.EOA_CONSTRUCTOR,
 				StorageValues.bigIntegerOf(_500_000), StorageValues.stringOf("ciao"))));
 		assertTrue(e.getMessage().contains("Invalid request signature"));

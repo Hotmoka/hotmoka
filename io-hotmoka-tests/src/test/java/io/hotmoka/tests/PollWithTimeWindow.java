@@ -145,7 +145,7 @@ class PollWithTimeWindow extends HotmokaTest {
 		long now = System.currentTimeMillis();
 		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, duration);
 
-		boolean isOver = runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll).asReturnedBoolean(IS_OVER, UnexpectedValueException::new);
+		boolean isOver = runInstanceNonVoidMethodCallTransaction(stakeholder0, _500_000, jar(), IS_OVER, poll).asReturnedBoolean(IS_OVER, UnexpectedValueException::new);
 		Assertions.assertFalse(isOver);
 		
 		assertThrows(TransactionException.class, () -> addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), CLOSE_POLL, poll));
@@ -159,7 +159,7 @@ class PollWithTimeWindow extends HotmokaTest {
 
 		sleep(expired - (System.currentTimeMillis() - now));
 
-		isOver = runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll).asReturnedBoolean(IS_OVER, UnexpectedValueException::new);
+		isOver = runInstanceNonVoidMethodCallTransaction(stakeholder0, _500_000, jar(), IS_OVER, poll).asReturnedBoolean(IS_OVER, UnexpectedValueException::new);
 		Assertions.assertTrue(isOver);
 
 		// with Mokamint, it is possible that the previous run succeeds (the poll is over) but the next call fails (the poll is not over):
@@ -198,7 +198,7 @@ class PollWithTimeWindow extends HotmokaTest {
 		addInstanceVoidMethodCallTransaction(privateKey(2), stakeholder2, _1_000_000, ZERO, jar(), VOTE_POLL, poll);
 		addInstanceVoidMethodCallTransaction(privateKey(3), stakeholder3, _1_000_000, ZERO, jar(), VOTE_POLL, poll);
 
-		boolean isOver = runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll).asReturnedBoolean(IS_OVER, UnexpectedValueException::new);
+		boolean isOver = runInstanceNonVoidMethodCallTransaction(stakeholder0, _500_000, jar(), IS_OVER, poll).asReturnedBoolean(IS_OVER, UnexpectedValueException::new);
 		Assertions.assertTrue(isOver);
 
 		addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), CLOSE_POLL, poll);
@@ -224,7 +224,7 @@ class PollWithTimeWindow extends HotmokaTest {
 		
 		assertThrows(TransactionException.class, () -> addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), VOTE_POLL, poll));
 
-		boolean isOver = runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll).asReturnedBoolean(IS_OVER, UnexpectedValueException::new);
+		boolean isOver = runInstanceNonVoidMethodCallTransaction(stakeholder0, _500_000, jar(), IS_OVER, poll).asReturnedBoolean(IS_OVER, UnexpectedValueException::new);
 		Assertions.assertTrue(isOver);
 		
 		addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), CLOSE_POLL, poll);
@@ -254,7 +254,7 @@ class PollWithTimeWindow extends HotmokaTest {
 
 		sleep(expired - (System.currentTimeMillis() - now));
 		
-		boolean isOver = runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll).asReturnedBoolean(IS_OVER, UnexpectedValueException::new);
+		boolean isOver = runInstanceNonVoidMethodCallTransaction(stakeholder0, _500_000, jar(), IS_OVER, poll).asReturnedBoolean(IS_OVER, UnexpectedValueException::new);
 		Assertions.assertTrue(isOver);
 
 		// with Mokamint, it is possible that the previous run succeeds (the poll is over) but the next call fails (the poll is not over):

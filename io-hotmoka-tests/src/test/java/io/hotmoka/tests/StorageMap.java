@@ -245,7 +245,7 @@ class StorageMap extends HotmokaTest {
 		int i = 0;
 		do {
 			addInstanceVoidMethodCallTransaction
-				(key, account0, _100_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT, map, accounts[i], StorageValues.bigIntegerOf(random.nextLong()));
+				(key, account0, _500_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT, map, accounts[i], StorageValues.bigIntegerOf(random.nextLong()));
 		}
 		while (++i < 10);
 

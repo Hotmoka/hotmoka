@@ -54,7 +54,7 @@ class Exceptions extends HotmokaTest {
 		TransactionReference exceptions = addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("exceptions.jar"), takamakaCode());
 
 		try {
-			addStaticVoidMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, exceptions, MethodSignatures.ofVoid(C, "foo1"));
+			addStaticVoidMethodCallTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, exceptions, MethodSignatures.ofVoid(C, "foo1"));
 		}
 		catch (Exception e) {
 			assertTrue(e instanceof TransactionException);
@@ -68,7 +68,7 @@ class Exceptions extends HotmokaTest {
 		TransactionReference exceptions = addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("exceptions.jar"), takamakaCode());
 
 		try {
-			addStaticVoidMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, exceptions, MethodSignatures.ofVoid(C, "foo2", StorageTypes.EOA), StorageValues.NULL);
+			addStaticVoidMethodCallTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, exceptions, MethodSignatures.ofVoid(C, "foo2", StorageTypes.EOA), StorageValues.NULL);
 		}
 		catch (Exception e) {
 			assertTrue(e instanceof TransactionException);
@@ -82,7 +82,7 @@ class Exceptions extends HotmokaTest {
 		TransactionReference exceptions = addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("exceptions.jar"), takamakaCode());
 
 		try {
-			addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, exceptions, ConstructorSignatures.of(BIG_ARRAY));
+			addConstructorCallTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, exceptions, ConstructorSignatures.of(BIG_ARRAY));
 		}
 		catch (Exception e) {
 			assertTrue(e instanceof TransactionException);

@@ -44,7 +44,7 @@ class IllegalTypeForStorageField4 extends HotmokaTest {
 	void triesToStoreNonStorageIntoInterfaceField() {
 		throwsTransactionExceptionWithCause(IllegalAssignmentToFieldInStorageException.class, () ->
 			addConstructorCallTransaction
-				(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(),
+				(privateKey(0), account(0), _500_000, BigInteger.ONE, jar(),
 				ConstructorSignatures.of(StorageTypes.classNamed("io.hotmoka.examples.errors.illegaltypeforstoragefield4.C")))
 		);
 	}

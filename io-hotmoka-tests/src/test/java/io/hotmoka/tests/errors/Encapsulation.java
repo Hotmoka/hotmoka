@@ -65,11 +65,11 @@ class Encapsulation extends HotmokaTest {
 			.get();
 
 		// we call clear() on list1, directly! This works since list1 is exported
-		addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(),
+		addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _500_000, ONE, jar(),
 				MethodSignatures.ofVoid(StorageTypes.classNamed(Constants.STORAGE_LIST_NAME), "clear"),
 			list1);
 
-		var result = (IntValue) runInstanceNonVoidMethodCallTransaction(account(0), _100_000, jar(),
+		var result = (IntValue) runInstanceNonVoidMethodCallTransaction(account(0), _500_000, jar(),
 			MethodSignatures.ofNonVoid(ENCAPSULATED, "size1", StorageTypes.INT),
 			encapsulated);
 
@@ -91,7 +91,7 @@ class Encapsulation extends HotmokaTest {
 			.get();
 
 		// we call clear() on list2, directly! This will fail since list2 is not exported
-		TransactionRejectedException e = assertThrows(TransactionRejectedException.class, () -> addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(),
+		TransactionRejectedException e = assertThrows(TransactionRejectedException.class, () -> addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _500_000, ONE, jar(),
 				MethodSignatures.ofVoid(StorageTypes.classNamed(Constants.STORAGE_LIST_NAME), "clear"), list2));
 		assertTrue(e.getMessage().contains("is not exported"));
 	}

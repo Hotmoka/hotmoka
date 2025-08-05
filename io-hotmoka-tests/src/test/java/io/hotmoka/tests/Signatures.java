@@ -84,7 +84,7 @@ class Signatures extends HotmokaTest {
 		StorageReference sha256dsaAccount = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, takamakaCode(), ConstructorSignatures.of(SHA256DSA, StorageTypes.INT, StorageTypes.STRING), amount, sha256dsaPublicKey);
 		var sha256dsaResult = node.addStaticMethodCallTransaction(TransactionRequests.staticMethodCall
 			(sha256dsa.getSigner(sha256dsaKeyPair.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature), sha256dsaAccount, ZERO, chainId(),
-			_100_000, ONE, takamakaCode(), callee, StorageValues.longOf(1973))).get().asReturnedBigInteger(callee, UnexpectedValueException::new);
+			_500_000, ONE, takamakaCode(), callee, StorageValues.longOf(1973))).get().asReturnedBigInteger(callee, UnexpectedValueException::new);
 		assertEquals(BigInteger.valueOf(1973), sha256dsaResult);
 
 		var qtesla1 = SignatureAlgorithms.qtesla1();

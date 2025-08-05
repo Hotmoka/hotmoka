@@ -267,7 +267,7 @@ class TicTacToe extends HotmokaTest {
 		addInstanceVoidMethodCallTransaction(
 			privateKey(2),
 			player1, 
-			_100_000,
+			_500_000,
 			panarea(1),
 			jar(),
 			PLAY,
@@ -277,7 +277,7 @@ class TicTacToe extends HotmokaTest {
 		addInstanceVoidMethodCallTransaction(
 			privateKey(3),
 			player2,
-			_100_000,
+			_500_000,
 			panarea(1),
 			jar(),
 			PLAY,
@@ -287,7 +287,7 @@ class TicTacToe extends HotmokaTest {
 		addInstanceVoidMethodCallTransaction(
 			privateKey(2),
 			player1, 
-			_100_000,
+			_500_000,
 			panarea(1),
 			jar(),
 			PLAY,
@@ -297,7 +297,7 @@ class TicTacToe extends HotmokaTest {
 		addInstanceVoidMethodCallTransaction(
 			privateKey(3),
 			player2,
-			_100_000,
+			_500_000,
 			panarea(1),
 			jar(),
 			PLAY,
@@ -307,7 +307,7 @@ class TicTacToe extends HotmokaTest {
 		addInstanceVoidMethodCallTransaction(
 			privateKey(2),
 			player1, 
-			_100_000,
+			_500_000,
 			panarea(1),
 			jar(),
 			PLAY,
@@ -319,7 +319,7 @@ class TicTacToe extends HotmokaTest {
 			addInstanceVoidMethodCallTransaction(
 				privateKey(3),
 				player2, 
-				_100_000,
+				_500_000,
 				panarea(1),
 				jar(),
 				PLAY,

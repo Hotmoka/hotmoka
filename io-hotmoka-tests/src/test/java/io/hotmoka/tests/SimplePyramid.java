@@ -58,17 +58,17 @@ class SimplePyramid extends HotmokaTest {
 
 	@Test @DisplayName("two investors do not get investment back yet")
 	void twoInvestors() throws Exception {
-		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
-		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _100_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _500_000, BigInteger.ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
+		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _500_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 		var balance0 = runInstanceNonVoidMethodCallTransaction(account(0), _500_000, jar(), BALANCE, account(0)).asReturnedBigInteger(BALANCE, UnexpectedValueException::new);
 		assertTrue(balance0.compareTo(BigInteger.valueOf(190_000)) <= 0);
 	}
 
 	@Test @DisplayName("with three investors the first gets its investment back")
 	void threeInvestors() throws Exception {
-		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
-		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _100_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
-		addInstanceVoidMethodCallTransaction(privateKey(2), account(2), _100_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _500_000, BigInteger.ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
+		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _500_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		addInstanceVoidMethodCallTransaction(privateKey(2), account(2), _500_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 		var balance0 = runInstanceNonVoidMethodCallTransaction(account(0), _500_000, jar(), MethodSignatures.BALANCE, account(0)).asReturnedBigInteger(BALANCE, UnexpectedValueException::new);
 		assertTrue(balance0.compareTo(BigInteger.valueOf(201_000)) >= 0);
 	}

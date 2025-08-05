@@ -81,18 +81,18 @@ class RemotePurchase extends HotmokaTest {
 	@Test @DisplayName("new Purchase(21)")
 	void oddDeposit() {
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
-			addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(21))
+			addConstructorCallTransaction(privateKey(0), seller, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(21))
 		);
 	}
 
 	@Test @DisplayName("new Purchase(20)")
 	void evenDeposit() throws Exception {
-		addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
+		addConstructorCallTransaction(privateKey(0), seller, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(18)")
 	void buyerCheats() throws Exception {
-		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
+		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
 			addInstanceVoidMethodCallTransaction(privateKey(1), buyer, _500_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, StorageValues.intOf(18))
@@ -101,7 +101,7 @@ class RemotePurchase extends HotmokaTest {
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(18); no event is generated")
 	void buyerCheatsNoEvent() throws Exception {
-		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
+		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
 
 		var ok = new CompletableFuture<Boolean>();
 
@@ -124,13 +124,13 @@ class RemotePurchase extends HotmokaTest {
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20)")
 	void buyerHonest() throws Exception {
-		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
+		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _500_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
 		addInstanceVoidMethodCallTransaction(privateKey(1), buyer, _500_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, StorageValues.intOf(20));
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20); a purchase event is generated")
 	void buyerHonestConfirmationEvent() throws Exception {
-		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
+		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _500_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
 
 		var received = new CompletableFuture<StorageReference>();
 		StorageReference event;
@@ -147,7 +147,7 @@ class RemotePurchase extends HotmokaTest {
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20); a purchase event is generated, subscription without key")
 	void buyerHonestConfirmationEventNoKey() throws Exception {
-		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
+		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _500_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
 
 		List<StorageReference> received = new ArrayList<>();
 
@@ -170,7 +170,7 @@ class RemotePurchase extends HotmokaTest {
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20); subscription is closed and no purchase event is handled")
 	void buyerHonestConfirmationEventSubscriptionClosed() throws Exception {
-		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
+		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _500_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
 
 		AtomicBoolean ok = new AtomicBoolean(true);
 
@@ -179,14 +179,14 @@ class RemotePurchase extends HotmokaTest {
 		}
 
 		// the subscription is closed now, hence the event generated below will not set ok to false
-		addInstanceVoidMethodCallTransaction(privateKey(1), buyer, _100_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, StorageValues.intOf(20));
+		addInstanceVoidMethodCallTransaction(privateKey(1), buyer, _500_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, StorageValues.intOf(20));
 
 		assertTrue(ok.get());
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmReceived()")
 	void confirmReceptionBeforePaying() throws Exception {
-		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
+		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
 			addInstanceVoidMethodCallTransaction(privateKey(1), buyer, _500_000, BigInteger.ONE, jar(), CONFIRM_RECEIVED, purchase)
@@ -195,7 +195,7 @@ class RemotePurchase extends HotmokaTest {
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20) and then purchase.confirmReceived()")
 	void buyerPaysAndConfirmReception() throws Exception {
-		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
+		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
 		addInstanceVoidMethodCallTransaction(privateKey(1), buyer, _500_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, StorageValues.intOf(20));
 		addInstanceVoidMethodCallTransaction(privateKey(1), buyer, _500_000, BigInteger.ONE, jar(), CONFIRM_RECEIVED, purchase);
 	}
