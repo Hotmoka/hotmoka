@@ -1,5 +1,5 @@
 /*
-Copyright 2024 Fausto Spoto
+Copyright 2025 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -24,21 +24,23 @@ import io.mokamint.node.api.PublicNode;
 
 /**
  * A Hotmoka node that relies on the Mokamint proof of space engine.
+ * 
+ * @param <E> the type of the underlying Mokamint engine
  */
 @ThreadSafe
-public interface MokamintNode extends LocalNode<MokamintNodeConfig> {
+public interface MokamintNode<E extends PublicNode> extends LocalNode<MokamintNodeConfig> {
 
 	/**
 	 * Sets the Mokamint engine that must be used by this node.
 	 * 
 	 * @param engine the Mokamint engine
 	 */
-	void setMokamintEngine(PublicNode engine);
+	void setMokamintEngine(E engine);
 
 	/**
 	 * Yields the Mokamint engine used by this node, if it has been already set.
 	 * 
 	 * @return the Mokamint engine, if already set
 	 */
-	Optional<PublicNode> getMokamintEngine();
+	Optional<E> getMokamintEngine();
 }

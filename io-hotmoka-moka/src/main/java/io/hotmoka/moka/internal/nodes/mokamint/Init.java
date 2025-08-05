@@ -114,7 +114,7 @@ public class Init extends AbstractNodeInit {
 
 			try (var node = MokamintNodes.init(localNodeConfig, mokamintConfig, keysOfNode); var plot = Plots.load(this.plot)) {
 				try (var miner = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, keysOfPlot) })) {
-					var engine = (io.mokamint.node.local.api.LocalNode) node.getMokamintEngine().get(); // TODO
+					var engine = node.getMokamintEngine().get();
 					engine.add(miner).orElseThrow(() -> new CommandException("Could not add a miner to the Mokamint node"));
 
 					// the next services will be closed when the node will be closed

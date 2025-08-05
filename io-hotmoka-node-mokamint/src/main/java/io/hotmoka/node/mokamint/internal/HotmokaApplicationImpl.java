@@ -56,8 +56,10 @@ import io.mokamint.nonce.api.Deadline;
  * Implementation of an application for the Mokamint engine, that supports a Hotmoka node.
  * Its constructor creates the Hotmoka node as well, which is later accessible
  * via the {@link #getNode()} method.
+ * 
+ * @param <E> the type of the underlying Mokamint engine
  */
-public class HotmokaApplicationImpl extends AbstractApplication implements Application {
+public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplication implements Application<E> {
 
 	/**
 	 * The current store transformations, for each group id of Hotmoka transactions.
@@ -111,7 +113,7 @@ public class HotmokaApplicationImpl extends AbstractApplication implements Appli
 	}
 
 	@Override
-	public MokamintNode getNode() {
+	public MokamintNode<E> getNode() {
 		return node;
 	}
 
@@ -316,12 +318,12 @@ public class HotmokaApplicationImpl extends AbstractApplication implements Appli
 	 * An implementation of a Hotmoka node that relies on the Mokamint proof of space engine.
 	 */
 	@ThreadSafe
-	class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImpl, MokamintNodeConfig, MokamintStore, MokamintStoreTransformation> implements MokamintNode {
+	class MokamintNodeImpl extends AbstractTrieBasedLocalNode<HotmokaApplicationImpl<?>.MokamintNodeImpl, MokamintNodeConfig, MokamintStore, MokamintStoreTransformation> implements MokamintNode<E> {
 
 		/**
 		 * The underlying Mokamint engine.
 		 */
-		private volatile PublicNode engine;
+		private volatile E engine;
 
 		/**
 		 * A lock for accessing {@link #lastHeadStateId} and {@link #storeOfHead}.
@@ -360,12 +362,12 @@ public class HotmokaApplicationImpl extends AbstractApplication implements Appli
 		}
 
 		@Override
-		public void setMokamintEngine(PublicNode engine) {
+		public void setMokamintEngine(E engine) {
 			this.engine = engine;
 		}
 
 		@Override
-		public Optional<PublicNode> getMokamintEngine() {
+		public Optional<E> getMokamintEngine() {
 			return Optional.ofNullable(engine);
 		}
 

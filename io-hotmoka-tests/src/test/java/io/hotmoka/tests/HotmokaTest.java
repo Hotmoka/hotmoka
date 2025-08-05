@@ -112,6 +112,7 @@ import io.mokamint.miner.api.Miner;
 import io.mokamint.miner.local.LocalMiners;
 import io.mokamint.node.Peers;
 import io.mokamint.node.local.LocalNodeConfigBuilders;
+import io.mokamint.node.local.api.LocalNode;
 import io.mokamint.node.service.PublicNodeServices;
 import io.mokamint.nonce.Prologs;
 import io.mokamint.plotter.PlotAndKeyPairs;
@@ -397,7 +398,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		var miner = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, plotKeys) });
 		miners.add(miner);
 		var node = MokamintNodes.init(config, mokamintConfig, nodeKeys);
-		var engine = (io.mokamint.node.local.api.LocalNode) node.getMokamintEngine().get(); // TODO
+		var engine = node.getMokamintEngine().get();
 		engine.add(miner).orElseThrow(() -> new LocalNodeException("Could not add the miner to the test node"));
 
 		NodeServices.of(node, 8001);
@@ -430,7 +431,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		final var PLOT_LENGTH = 500L;
 		final var MAX_HISTORY_CHANGE = 15L * 60 * 1000; // fifteen minutes, so that it is possible to see the effects of garbage-collection during the tests
 
-		MokamintNode firstNode = null;
+		MokamintNode<LocalNode> firstNode = null;
 		URI firstUri = null;
 
 		consensus = fillConsensusConfig(ValidatorsConsensusConfigBuilders.defaults()).build();
@@ -479,11 +480,11 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			var miner = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, plotKeys) });
 			miners.add(miner);
 
-			MokamintNode node = nodeNum == 1 ? MokamintNodes.init(config, mokamintConfig, nodeKeys) : MokamintNodes.start(config, mokamintConfig, nodeKeys); // we create a brand new genesis block, but only in node 1
+			MokamintNode<LocalNode> node = nodeNum == 1 ? MokamintNodes.init(config, mokamintConfig, nodeKeys) : MokamintNodes.start(config, mokamintConfig, nodeKeys); // we create a brand new genesis block, but only in node 1
 			nodes.add(node);
 
 			int nodeNumCopy = nodeNum;
-			var engine = (io.mokamint.node.local.api.LocalNode) node.getMokamintEngine().get(); // TODO
+			var engine = node.getMokamintEngine().get();
 			engine.add(miner).orElseThrow(() -> new LocalNodeException("Could not add the miner to test node " + nodeNumCopy));
 
 			// we open a web service to the underlying Mokamint engine; this is not necessary,
@@ -498,7 +499,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 				System.out.println("Initializing Hotmoka node " + nodeNum);
 				initializeNodeIfNeeded(node);
 			}
-			else if (((io.mokamint.node.local.api.LocalNode) firstNode.getMokamintEngine().get()).add(Peers.of(uri)).isPresent()) // TODO
+			else if (firstNode.getMokamintEngine().get().add(Peers.of(uri)).isPresent())
 				System.out.println("Added " + uri + " as a peer of " + firstUri);
 			else
 				throw new LocalNodeException("Could not add " + uri + " as a peer of " + firstUri);

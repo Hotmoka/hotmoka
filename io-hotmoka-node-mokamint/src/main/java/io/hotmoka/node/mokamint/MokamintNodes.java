@@ -22,6 +22,7 @@ import java.util.concurrent.TimeoutException;
 import io.hotmoka.node.mokamint.api.MokamintNode;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
 import io.hotmoka.node.mokamint.internal.MokamintNodesImpl;
+import io.mokamint.node.local.api.LocalNode;
 import io.mokamint.node.local.api.LocalNodeConfig;
 
 /**
@@ -43,7 +44,7 @@ public abstract class MokamintNodes {
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 * @throws TimeoutException if the operation does not complete in time
 	 */
-	public static MokamintNode init(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws InterruptedException, TimeoutException {
+	public static MokamintNode<LocalNode> init(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws InterruptedException, TimeoutException {
 		return MokamintNodesImpl.init(config, mokamintConfig, keyPair);
 	}
 
@@ -60,7 +61,7 @@ public abstract class MokamintNodes {
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 * @throws TimeoutException if the operation does not complete in time
 	 */
-	public static MokamintNode start(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws InterruptedException, TimeoutException {
+	public static MokamintNode<LocalNode> start(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws InterruptedException, TimeoutException {
 		return MokamintNodesImpl.start(config, mokamintConfig, keyPair);
 	}
 
@@ -77,7 +78,7 @@ public abstract class MokamintNodes {
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 * @throws TimeoutException if the operation does not complete in time
 	 */
-	public static MokamintNode resume(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws InterruptedException, TimeoutException {
+	public static MokamintNode<LocalNode> resume(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws InterruptedException, TimeoutException {
 		return MokamintNodesImpl.resume(config, mokamintConfig, keyPair);
 	}
 }

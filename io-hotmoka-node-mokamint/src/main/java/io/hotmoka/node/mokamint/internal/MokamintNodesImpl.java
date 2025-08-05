@@ -22,6 +22,7 @@ import java.util.concurrent.TimeoutException;
 import io.hotmoka.node.mokamint.api.MokamintNode;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
 import io.mokamint.node.local.AbstractLocalNode;
+import io.mokamint.node.local.api.LocalNode;
 import io.mokamint.node.local.api.LocalNodeConfig;
 
 /**
@@ -43,10 +44,10 @@ public abstract class MokamintNodesImpl {
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 * @throws TimeoutException if the operation does not complete in time
 	 */
-	public static MokamintNode init(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws InterruptedException, TimeoutException {
-		var app = new HotmokaApplicationImpl(config, true);
+	public static MokamintNode<LocalNode> init(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws InterruptedException, TimeoutException {
+		var app = new HotmokaApplicationImpl<LocalNode>(config, true);
 		var engine = new AbstractLocalNode(mokamintConfig, keyPair, app, true) {};
-		MokamintNode node = app.getNode();
+		MokamintNode<LocalNode> node = app.getNode();
 		node.setMokamintEngine(engine);
 		node.addOnCloseHandler(engine::close);
 
@@ -66,10 +67,10 @@ public abstract class MokamintNodesImpl {
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 * @throws TimeoutException if the operation does not complete in time
 	 */
-	public static MokamintNode start(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws InterruptedException, TimeoutException {
-		var app = new HotmokaApplicationImpl(config, true);
+	public static MokamintNode<LocalNode> start(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws InterruptedException, TimeoutException {
+		var app = new HotmokaApplicationImpl<LocalNode>(config, true);
 		var engine = new AbstractLocalNode(mokamintConfig, keyPair, app, false) {};
-		MokamintNode node = app.getNode();
+		MokamintNode<LocalNode> node = app.getNode();
 		node.setMokamintEngine(engine);
 		node.addOnCloseHandler(engine::close);
 
@@ -89,10 +90,10 @@ public abstract class MokamintNodesImpl {
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 * @throws TimeoutException if the operation does not complete in time
 	 */
-	public static MokamintNode resume(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws InterruptedException, TimeoutException {
-		var app = new HotmokaApplicationImpl(config, false);
+	public static MokamintNode<LocalNode> resume(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws InterruptedException, TimeoutException {
+		var app = new HotmokaApplicationImpl<LocalNode>(config, false);
 		var engine = new AbstractLocalNode(mokamintConfig, keyPair, app, false) {};
-		MokamintNode node = app.getNode();
+		MokamintNode<LocalNode> node = app.getNode();
 		node.setMokamintEngine(engine);
 		node.addOnCloseHandler(engine::close);
 

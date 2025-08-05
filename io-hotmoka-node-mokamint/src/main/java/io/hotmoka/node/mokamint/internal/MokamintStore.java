@@ -25,20 +25,19 @@ import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.UnknownStateIdException;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
-import io.hotmoka.node.mokamint.internal.HotmokaApplicationImpl.MokamintNodeImpl;
 
 /**
  * A trie-based store for Mokamint.
  */
 @Immutable
-public class MokamintStore extends AbstractTrieBasedStore<MokamintNodeImpl, MokamintNodeConfig, MokamintStore, MokamintStoreTransformation> {
+public class MokamintStore extends AbstractTrieBasedStore<HotmokaApplicationImpl<?>.MokamintNodeImpl, MokamintNodeConfig, MokamintStore, MokamintStoreTransformation> {
 
 	/**
      * Creates an empty store for the Mokamint blockchain, with empty cache.
 	 * 
 	 * @param node the node for which the store is created
 	 */
-    MokamintStore(MokamintNodeImpl node) {
+    MokamintStore(HotmokaApplicationImpl<?>.MokamintNodeImpl node) {
     	super(node);
     }
 

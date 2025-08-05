@@ -38,13 +38,12 @@ import io.hotmoka.node.local.LocalNodeException;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
-import io.hotmoka.node.mokamint.internal.HotmokaApplicationImpl.MokamintNodeImpl;
 import io.mokamint.nonce.api.Prolog;
 
 /**
  * A transformation of a store of a Mokamint node.
  */
-public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransformation<MokamintNodeImpl, MokamintNodeConfig, MokamintStore, MokamintStoreTransformation> {
+public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransformation<HotmokaApplicationImpl<?>.MokamintNodeImpl, MokamintNodeConfig, MokamintStore, MokamintStoreTransformation> {
 
 	private final static Logger LOGGER = Logger.getLogger(MokamintStoreTransformation.class.getName());
 
