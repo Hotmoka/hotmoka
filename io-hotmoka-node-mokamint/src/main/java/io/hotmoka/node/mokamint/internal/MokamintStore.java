@@ -25,7 +25,7 @@ import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.UnknownStateIdException;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
-import io.hotmoka.node.mokamint.internal.MokamintHotmokaApplication.MokamintNodeImpl;
+import io.hotmoka.node.mokamint.internal.HotmokaApplicationImpl.MokamintNodeImpl;
 
 /**
  * A trie-based store for Mokamint.

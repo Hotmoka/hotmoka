@@ -1,5 +1,5 @@
 /*
-Copyright 2024 Fausto Spoto
+Copyright 2025 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,22 +14,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.mokamint;
+package io.hotmoka.node.mokamint.internal;
 
 import java.security.KeyPair;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.node.mokamint.api.MokamintNode;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
-import io.hotmoka.node.mokamint.internal.MokamintNodesImpl;
+import io.mokamint.node.local.AbstractLocalNode;
 import io.mokamint.node.local.api.LocalNodeConfig;
 
 /**
  * Providers of blockchain nodes that rely on the Mokamint proof of space engine.
  */
-public abstract class MokamintNodes {
+public abstract class MokamintNodesImpl {
 
-	private MokamintNodes() {}
+	private MokamintNodesImpl() {}
 
 	/**
 	 * Creates and starts a node, with a brand new store, of a blockchain based on Mokamint.
@@ -44,7 +44,13 @@ public abstract class MokamintNodes {
 	 * @throws TimeoutException if the operation does not complete in time
 	 */
 	public static MokamintNode init(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws InterruptedException, TimeoutException {
-		return MokamintNodesImpl.init(config, mokamintConfig, keyPair);
+		var app = new HotmokaApplicationImpl(config, true);
+		var engine = new AbstractLocalNode(mokamintConfig, keyPair, app, true) {};
+		MokamintNode node = app.getNode();
+		node.setMokamintEngine(engine);
+		node.addOnCloseHandler(engine::close);
+
+		return node;
 	}
 
 	/**
@@ -61,7 +67,13 @@ public abstract class MokamintNodes {
 	 * @throws TimeoutException if the operation does not complete in time
 	 */
 	public static MokamintNode start(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws InterruptedException, TimeoutException {
-		return MokamintNodesImpl.start(config, mokamintConfig, keyPair);
+		var app = new HotmokaApplicationImpl(config, true);
+		var engine = new AbstractLocalNode(mokamintConfig, keyPair, app, false) {};
+		MokamintNode node = app.getNode();
+		node.setMokamintEngine(engine);
+		node.addOnCloseHandler(engine::close);
+
+		return node;
 	}
 
 	/**
@@ -78,6 +90,12 @@ public abstract class MokamintNodes {
 	 * @throws TimeoutException if the operation does not complete in time
 	 */
 	public static MokamintNode resume(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws InterruptedException, TimeoutException {
-		return MokamintNodesImpl.resume(config, mokamintConfig, keyPair);
+		var app = new HotmokaApplicationImpl(config, false);
+		var engine = new AbstractLocalNode(mokamintConfig, keyPair, app, false) {};
+		MokamintNode node = app.getNode();
+		node.setMokamintEngine(engine);
+		node.addOnCloseHandler(engine::close);
+
+		return node;
 	}
 }

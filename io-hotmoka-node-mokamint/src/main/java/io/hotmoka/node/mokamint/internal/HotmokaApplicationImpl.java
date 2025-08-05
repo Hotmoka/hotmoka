@@ -36,6 +36,7 @@ import io.hotmoka.node.local.StateIds;
 import io.hotmoka.node.local.api.StateId;
 import io.hotmoka.node.local.api.StoreCache;
 import io.hotmoka.node.local.api.UnknownStateIdException;
+import io.hotmoka.node.mokamint.api.Application;
 import io.hotmoka.node.mokamint.api.MokamintNode;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
 import io.hotmoka.xodus.env.Environment;
@@ -51,7 +52,12 @@ import io.mokamint.node.api.PublicNode;
 import io.mokamint.node.api.Transaction;
 import io.mokamint.nonce.api.Deadline;
 
-public class MokamintHotmokaApplication extends AbstractApplication {
+/**
+ * Implementation of an application for the Mokamint engine, that supports a Hotmoka node.
+ * Its constructor creates the Hotmoka node as well, which is later accessible
+ * via the {@link #getNode()} method.
+ */
+public class HotmokaApplicationImpl extends AbstractApplication implements Application {
 
 	/**
 	 * The current store transformations, for each group id of Hotmoka transactions.
@@ -59,7 +65,7 @@ public class MokamintHotmokaApplication extends AbstractApplication {
 	private final ConcurrentMap<Integer, MokamintStoreTransformation> transformations = new ConcurrentHashMap<>();
 
 	/**
-	 * The final state ids for the transformations in {@link #transformations}.
+	 * The final state identifiers for the {@link #transformations}.
 	 */
 	private final ConcurrentMap<Integer, StateId> finalStateIds = new ConcurrentHashMap<>();
 
@@ -85,7 +91,7 @@ public class MokamintHotmokaApplication extends AbstractApplication {
 	 */
 	private final MokamintNodeImpl node;
 
-	private final static Logger LOGGER = Logger.getLogger(MokamintHotmokaApplication.class.getName());
+	private final static Logger LOGGER = Logger.getLogger(HotmokaApplicationImpl.class.getName());
 
 	/**
 	 * Creates a Mokamint application that supports a Hotmoka node.
@@ -93,7 +99,7 @@ public class MokamintHotmokaApplication extends AbstractApplication {
 	 * @param config the configuration of the Hotmoka node
 	 * @param init if true, the working directory of the node gets initialized
 	 */
-	public MokamintHotmokaApplication(MokamintNodeConfig config, boolean init) {
+	public HotmokaApplicationImpl(MokamintNodeConfig config, boolean init) {
 		this.node = new MokamintNodeImpl(config, init);
 
 		try {
@@ -104,11 +110,7 @@ public class MokamintHotmokaApplication extends AbstractApplication {
 		}
 	}
 
-	/**
-	 * Yields the Hotmoka node connected to this application.
-	 * 
-	 * @return the Hotmoka node connected to this application
-	 */
+	@Override
 	public MokamintNode getNode() {
 		return node;
 	}
@@ -314,7 +316,7 @@ public class MokamintHotmokaApplication extends AbstractApplication {
 	 * An implementation of a Hotmoka node that relies on the Mokamint proof of space engine.
 	 */
 	@ThreadSafe
-	public class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImpl, MokamintNodeConfig, MokamintStore, MokamintStoreTransformation> implements MokamintNode {
+	class MokamintNodeImpl extends AbstractTrieBasedLocalNode<MokamintNodeImpl, MokamintNodeConfig, MokamintStore, MokamintStoreTransformation> implements MokamintNode {
 
 		/**
 		 * The underlying Mokamint engine.

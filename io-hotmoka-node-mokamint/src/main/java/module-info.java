@@ -22,7 +22,6 @@ module io.hotmoka.node.mokamint {
 	exports io.hotmoka.node.mokamint;
 
 	requires transitive io.hotmoka.node.mokamint.api;
-	requires transitive io.hotmoka.node.local.api;
 	requires io.hotmoka.node;
 	requires io.hotmoka.constants;
 	requires io.hotmoka.node.local;
@@ -31,11 +30,9 @@ module io.hotmoka.node.mokamint {
 	requires io.hotmoka.marshalling;
 	requires io.hotmoka.xodus;
 	requires io.hotmoka.crypto;
-	requires transitive io.mokamint.node.local.api;
 	requires io.mokamint.node.local;
 	requires io.mokamint.node;
 	requires io.mokamint.application;
 	requires toml4j;
 	requires java.logging;
-	requires io.hotmoka.node.api;
 }

@@ -112,7 +112,7 @@ public class Init extends AbstractNodeInit {
 			KeyPair keysOfPlot = mkKeysOfPlot(mokamintConfig);
 			askForConfirmation(localNodeConfig.getDir());
 
-			try (var node = MokamintNodes.init(localNodeConfig, mokamintConfig, keysOfNode, true); var plot = Plots.load(this.plot)) {
+			try (var node = MokamintNodes.init(localNodeConfig, mokamintConfig, keysOfNode); var plot = Plots.load(this.plot)) {
 				try (var miner = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, keysOfPlot) })) {
 					var engine = (io.mokamint.node.local.api.LocalNode) node.getMokamintEngine().get(); // TODO
 					engine.add(miner).orElseThrow(() -> new CommandException("Could not add a miner to the Mokamint node"));

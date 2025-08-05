@@ -29,6 +29,11 @@
       <artifactId>io-mokamint-node-local-api</artifactId>
       <version>${mokamint.version}</version>
     </dependency>
+    <dependency>
+      <groupId>io.mokamint</groupId>
+      <artifactId>io-mokamint-application-api</artifactId>
+      <version>${mokamint.version}</version>
+    </dependency>
   </dependencies>
 
   <profiles>

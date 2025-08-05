@@ -396,7 +396,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		plots.add(plot);
 		var miner = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, plotKeys) });
 		miners.add(miner);
-		var node = MokamintNodes.init(config, mokamintConfig, nodeKeys, true);
+		var node = MokamintNodes.init(config, mokamintConfig, nodeKeys);
 		var engine = (io.mokamint.node.local.api.LocalNode) node.getMokamintEngine().get(); // TODO
 		engine.add(miner).orElseThrow(() -> new LocalNodeException("Could not add the miner to the test node"));
 
@@ -479,7 +479,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			var miner = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, plotKeys) });
 			miners.add(miner);
 
-			MokamintNode node = MokamintNodes.init(config, mokamintConfig, nodeKeys, nodeNum == 1); // we create a brand new genesis block, but only in node 1
+			MokamintNode node = nodeNum == 1 ? MokamintNodes.init(config, mokamintConfig, nodeKeys) : MokamintNodes.start(config, mokamintConfig, nodeKeys); // we create a brand new genesis block, but only in node 1
 			nodes.add(node);
 
 			int nodeNumCopy = nodeNum;
