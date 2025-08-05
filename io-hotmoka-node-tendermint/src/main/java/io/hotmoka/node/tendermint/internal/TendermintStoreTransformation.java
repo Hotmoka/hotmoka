@@ -129,7 +129,7 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 		BigInteger reward = getReward().add(minted);
 
 		var request = TransactionRequests.instanceSystemMethodCall
-				(manifest, nonce, _100_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD, validators,
+				(manifest, nonce, _500_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD, validators,
 						StorageValues.bigIntegerOf(reward), StorageValues.bigIntegerOf(minted),
 						StorageValues.stringOf(behaving), StorageValues.stringOf(misbehaving),
 						StorageValues.bigIntegerOf(gasConsumed), StorageValues.bigIntegerOf(deliveredCount()));
@@ -168,12 +168,12 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 
 		try {
 			StorageReference shares = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_SHARES, validators))
+					(manifest, _500_000, takamakaCode, MethodSignatures.GET_SHARES, validators))
 					.orElseThrow(() -> new LocalNodeException(MethodSignatures.GET_SHARES + " should not return void"))
 					.asReturnedReference(MethodSignatures.GET_SHARES, LocalNodeException::new);
 
 			int numOfValidators = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SIZE, shares))
+					(manifest, _500_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SIZE, shares))
 					.orElseThrow(() -> new LocalNodeException(MethodSignatures.STORAGE_MAP_VIEW_SIZE + " should not return void"))
 					.asReturnedInt(MethodSignatures.STORAGE_MAP_VIEW_SIZE, LocalNodeException::new);
 
@@ -181,17 +181,17 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 
 			for (int num = 0; num < numOfValidators; num++) {
 				StorageReference validator = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-						(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SELECT, shares, StorageValues.intOf(num)))
+						(manifest, _500_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SELECT, shares, StorageValues.intOf(num)))
 						.orElseThrow(() -> new LocalNodeException(MethodSignatures.STORAGE_MAP_VIEW_SELECT + " should not return void"))
 						.asReturnedReference(MethodSignatures.STORAGE_MAP_VIEW_SELECT, LocalNodeException::new);
 
 				String id = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-						(manifest, _100_000, takamakaCode, MethodSignatures.ID, validator))
+						(manifest, _500_000, takamakaCode, MethodSignatures.ID, validator))
 						.orElseThrow(() -> new LocalNodeException(MethodSignatures.ID + " should not return void"))
 						.asReturnedString(MethodSignatures.ID, LocalNodeException::new);
 
 				long power = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-						(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_GET, shares, validator))
+						(manifest, _500_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_GET, shares, validator))
 						.orElseThrow(() -> new LocalNodeException(MethodSignatures.STORAGE_MAP_VIEW_GET + " should not return void"))
 						.asReturnedBigInteger(MethodSignatures.STORAGE_MAP_VIEW_GET, LocalNodeException::new)
 						.longValueExact();

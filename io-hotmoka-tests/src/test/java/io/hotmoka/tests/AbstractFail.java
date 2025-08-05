@@ -57,25 +57,25 @@ class AbstractFail extends HotmokaTest {
 	void createAbstractFail() {
 		throwsTransactionExceptionWithCause(UnmatchedTargetException.class, () ->
 			// cannot instantiate an abstract class
-			addConstructorCallTransaction(privateKey(0), account(0), _100_000, panarea(1), jar(), ConstructorSignatures.of(ABSTRACT_FAIL))
+			addConstructorCallTransaction(privateKey(0), account(0), _500_000, panarea(1), jar(), ConstructorSignatures.of(ABSTRACT_FAIL))
 		);
 	}
 
 	@Test @DisplayName("new AbstractFailImpl()")
 	void createAbstractFailImpl() throws Exception {
-		addConstructorCallTransaction(privateKey(0), account(0), _100_000, panarea(1), jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, StorageValues.intOf(42));
+		addConstructorCallTransaction(privateKey(0), account(0), _500_000, panarea(1), jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, StorageValues.intOf(42));
 	}
 
 	@Test @DisplayName("new AbstractFailImpl().method() yields an AbstractFailImpl")
 	void createAbstractFailImplThenCallAbstractMethod() throws Exception {
-		StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _100_000, panarea(1), jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, StorageValues.intOf(42));
+		StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _500_000, panarea(1), jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, StorageValues.intOf(42));
 
 		var abstractFailMethod = MethodSignatures.ofNonVoid(ABSTRACT_FAIL, "method", ABSTRACT_FAIL);
 		StorageReference result = addInstanceNonVoidMethodCallTransaction
-			(privateKey(0), account(0), _100_000, panarea(1), jar(), abstractFailMethod, abstractfail).asReturnedReference(abstractFailMethod, UnexpectedValueException::new);
+			(privateKey(0), account(0), _500_000, panarea(1), jar(), abstractFailMethod, abstractfail).asReturnedReference(abstractFailMethod, UnexpectedValueException::new);
 
 		var getClassName = MethodSignatures.ofNonVoid(StorageTypes.STORAGE, "getClassName", StorageTypes.STRING);
-		String className = runInstanceNonVoidMethodCallTransaction(account(0), _100_000, jar(), getClassName, result).asReturnedString(getClassName, UnexpectedValueException::new);
+		String className = runInstanceNonVoidMethodCallTransaction(account(0), _500_000, jar(), getClassName, result).asReturnedString(getClassName, UnexpectedValueException::new);
 
 		assertEquals("io.hotmoka.examples.abstractfail.AbstractFailImpl", className);
 	}

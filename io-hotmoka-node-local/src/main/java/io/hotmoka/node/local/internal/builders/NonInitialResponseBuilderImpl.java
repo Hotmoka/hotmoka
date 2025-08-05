@@ -146,7 +146,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 			BigInteger initialBalance = classLoader.getBalanceOf(deserializedCaller);
 			increaseNonceOfCaller();
 			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
-			chargeGasForStorage(BigInteger.valueOf(request.size()));
+			chargeGasForStorage(BigInteger.valueOf(request.size()).multiply(gasCostModel.storageCostOfByte()));
 			chargeGasForClassLoader();	
 			this.coinsInitiallyPaidForGas = chargePayerForAllGasPromised();
 			BigInteger balanceOfCallerInCaseOfFailure = classLoader.getBalanceOf(deserializedCaller);
@@ -493,7 +493,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * @param amount the amount of gas to consume
 		 */
 		private void chargeGasForStorage(BigInteger amount) {
-			charge(amount, x -> gasConsumedForStorage = gasConsumedForStorage.add(x.multiply(gasCostModel.storageCostOfByte())));
+			charge(amount, x -> gasConsumedForStorage = gasConsumedForStorage.add(x));
 		}
 
 		/**
@@ -502,7 +502,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * @param response the response
 		 */
 		protected final void chargeGasForStorageOf(Response response) {
-			chargeGasForStorage(BigInteger.valueOf(response.size()));
+			chargeGasForStorage(BigInteger.valueOf(response.size()).multiply(gasCostModel.storageCostOfByte()));
 		}
 
 		@Override

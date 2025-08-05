@@ -60,7 +60,7 @@ public class Faucet extends HotmokaTest {
 
 		var method = MethodSignatures.ofNonVoid(StorageTypes.GAMETE, "faucet", StorageTypes.EOA, StorageTypes.INT, StorageTypes.STRING);
 		var account = (StorageReference) node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall
-			(signer, gamete, getNonceOf(gamete), chainId(), _100_000, ONE, takamakaCode(),
+			(signer, gamete, getNonceOf(gamete), chainId(), _500_000, ONE, takamakaCode(),
 			method, gamete, StorageValues.intOf(100_000), StorageValues.stringOf(publicKey)))
 			.orElseThrow(() -> new UnexpectedVoidMethodException(method));
 

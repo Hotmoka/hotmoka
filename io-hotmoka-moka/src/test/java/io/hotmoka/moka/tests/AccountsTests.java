@@ -74,7 +74,7 @@ public class AccountsTests extends AbstractMokaTestWithNode {
 		assertEquals(accountsCreateOutput.getTransaction(), account.getTransaction());
 
 		BigInteger balance = node.runInstanceMethodCallTransaction(
-				TransactionRequests.instanceViewMethodCall(gamete, _100_000, takamakaCode, MethodSignatures.BALANCE, account))
+				TransactionRequests.instanceViewMethodCall(gamete, _200_000, takamakaCode, MethodSignatures.BALANCE, account))
 				.orElseThrow(() -> new IllegalStateException(MethodSignatures.BALANCE + " should not return void"))
 				.asReturnedBigInteger(MethodSignatures.BALANCE, IllegalStateException::new);
 
@@ -82,7 +82,7 @@ public class AccountsTests extends AbstractMokaTestWithNode {
 		assertEquals(BigInteger.valueOf(12345), balance);
 
 		String publicKeyBase64 = node.runInstanceMethodCallTransaction(
-				TransactionRequests.instanceViewMethodCall(gamete, _100_000, takamakaCode, MethodSignatures.PUBLIC_KEY, account))
+				TransactionRequests.instanceViewMethodCall(gamete, _200_000, takamakaCode, MethodSignatures.PUBLIC_KEY, account))
 				.orElseThrow(() -> new IllegalStateException(MethodSignatures.PUBLIC_KEY + " should not return void"))
 				.asReturnedString(MethodSignatures.PUBLIC_KEY, IllegalStateException::new);
 
@@ -119,7 +119,7 @@ public class AccountsTests extends AbstractMokaTestWithNode {
 		assertEquals(account, successfulResponse.getNewObject());
 
 		BigInteger balance = node.runInstanceMethodCallTransaction(
-				TransactionRequests.instanceViewMethodCall(gamete, _100_000, takamakaCode, MethodSignatures.BALANCE, account))
+				TransactionRequests.instanceViewMethodCall(gamete, _200_000, takamakaCode, MethodSignatures.BALANCE, account))
 				.orElseThrow(() -> new IllegalStateException(MethodSignatures.BALANCE + " should not return void"))
 				.asReturnedBigInteger(MethodSignatures.BALANCE, IllegalStateException::new);
 
@@ -127,7 +127,7 @@ public class AccountsTests extends AbstractMokaTestWithNode {
 		assertEquals(BigInteger.valueOf(12345), balance);
 
 		String publicKeyBase64 = node.runInstanceMethodCallTransaction(
-				TransactionRequests.instanceViewMethodCall(gamete, _100_000, takamakaCode, MethodSignatures.PUBLIC_KEY, account))
+				TransactionRequests.instanceViewMethodCall(gamete, _200_000, takamakaCode, MethodSignatures.PUBLIC_KEY, account))
 				.orElseThrow(() -> new IllegalStateException(MethodSignatures.PUBLIC_KEY + " should not return void"))
 				.asReturnedString(MethodSignatures.PUBLIC_KEY, IllegalStateException::new);
 

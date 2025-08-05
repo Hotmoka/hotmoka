@@ -49,29 +49,29 @@ class View extends HotmokaTest {
 
 	@Test @DisplayName("install jar then call to View.no1() fails")
 	void callNo1() throws Exception {
-		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), ConstructorSignatures.of(C));
+		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, jar(), ConstructorSignatures.of(C));
 
 		throwsTransactionExceptionWithCause(UnmatchedTargetException.class, () -> 
-			runInstanceNonVoidMethodCallTransaction(account(0), _100_000, jar(),
+			runInstanceNonVoidMethodCallTransaction(account(0), _500_000, jar(),
 				MethodSignatures.ofNonVoid(C, "no1", StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
 				c, StorageValues.intOf(13), StorageValues.intOf(17)));
 	}
 
 	@Test @DisplayName("install jar then call to View.no2() fails")
 	void callNo2() throws Exception {
-		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), ConstructorSignatures.of(C));
+		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, jar(), ConstructorSignatures.of(C));
 
 		throwsTransactionExceptionWithCause(SideEffectsInViewMethodException.class, () -> 
-			runInstanceNonVoidMethodCallTransaction(account(0), _100_000, jar(),
+			runInstanceNonVoidMethodCallTransaction(account(0), _500_000, jar(),
 				MethodSignatures.ofNonVoid(C, "no2", StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
 				c, StorageValues.intOf(13), StorageValues.intOf(17)));
 	}
 
 	@Test @DisplayName("install jar then call to View.yes() succeeds")
 	void callYes() throws Exception {
-		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), ConstructorSignatures.of(C));
+		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, jar(), ConstructorSignatures.of(C));
 
-		runInstanceNonVoidMethodCallTransaction(account(0), _100_000, jar(),
+		runInstanceNonVoidMethodCallTransaction(account(0), _500_000, jar(),
 			MethodSignatures.ofNonVoid(C, "yes", StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
 			c, StorageValues.intOf(13), StorageValues.intOf(17));
 	}

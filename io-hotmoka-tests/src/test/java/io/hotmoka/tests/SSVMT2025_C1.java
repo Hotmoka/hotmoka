@@ -31,7 +31,7 @@ class SSVMT2025_C1 extends HotmokaTest {
 
 	@Test @DisplayName("install jar")
 	void installJar() throws Exception {
-		addJarStoreTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, takamakaCode(), bytesOf("ssvmt2025c1.jar"), takamakaCode());
+		addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("ssvmt2025c1.jar"), takamakaCode());
 		if ("true".equals(System.getProperty("verbose")))
 			System.out.println("Test " + SSVMT2025_C1.class.getName() + ": the jar has been installed in the node without exception");
 	}

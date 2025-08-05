@@ -34,6 +34,6 @@ class CallerNotOnThis extends HotmokaTest {
 	@Test @DisplayName("install jar")
 	void installJar() {
 		throwsVerificationExceptionWithMessageContaining("caller() can only be called on \"this\"", () ->
-			addJarStoreTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, takamakaCode(), bytesOf("callernotonthis.jar"), takamakaCode()));
+			addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("callernotonthis.jar"), takamakaCode()));
 	}
 }

@@ -207,11 +207,12 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 	}
 
 	private StorageReference createGenericGasStationBuilder(InitializedNode node, ConsensusConfig<?,?> consensus, TransactionReference takamakaCode) throws ClosedNodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, UnexpectedCodeException, CodeExecutionException {
+		var _200_000 = BigInteger.valueOf(200_000);
 		BigInteger nonceOfGamete = getNonceOfGamete(node, takamakaCode);
 
 		// we create the builder of a generic gas station
 		var request = TransactionRequests.constructorCall
-				(new byte[0], gamete, nonceOfGamete, "", BigInteger.valueOf(100_000), ZERO, takamakaCode,
+				(new byte[0], gamete, nonceOfGamete, "", _200_000, ZERO, takamakaCode,
 						ConstructorSignatures.of(StorageTypes.classNamed("io.takamaka.code.governance.GenericGasStation$Builder"),
 								StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.BOOLEAN, StorageTypes.BIG_INTEGER, StorageTypes.LONG),
 						StorageValues.bigIntegerOf(consensus.getInitialGasPrice()), StorageValues.bigIntegerOf(consensus.getMaxGasPerTransaction()),

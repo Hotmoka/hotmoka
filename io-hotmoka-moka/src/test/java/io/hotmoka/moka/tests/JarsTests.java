@@ -92,7 +92,7 @@ public class JarsTests extends AbstractMokaTestWithNode {
 		assertTrue(basicInstallOutput.getJar().isPresent());
 
 		// finally we can call a static method without errors
-		node.runStaticMethodCallTransaction(TransactionRequests.staticViewMethodCall(gamete, _100_000, basicInstallOutput.getJar().get(), MethodSignatures.ofVoid(StorageTypes.classNamed("io.hotmoka.examples.basic.Sub"), "ms")));
+		node.runStaticMethodCallTransaction(TransactionRequests.staticViewMethodCall(gamete, _200_000, basicInstallOutput.getJar().get(), MethodSignatures.ofVoid(StorageTypes.classNamed("io.hotmoka.examples.basic.Sub"), "ms")));
 	}
 
 	@Test

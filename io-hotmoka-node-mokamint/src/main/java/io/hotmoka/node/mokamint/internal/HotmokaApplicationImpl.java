@@ -175,7 +175,9 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 	@Override
 	public void deliverTransaction(int groupId, Transaction transaction) throws io.mokamint.node.api.TransactionRejectedException, UnknownGroupIdException, ClosedApplicationException, InterruptedException {
 		try (var scope = mkScope()) {
-			TransactionRequest<?> hotmokaRequest = intoHotmokaRequest(transaction); // TODO: should I signalRejected also if this fails?
+			// no need to signalRejected() if the following fails, since it means that the transaction is not really
+			// a Hotmoka request, therefore nobody is waiting for it
+			TransactionRequest<?> hotmokaRequest = intoHotmokaRequest(transaction);
 			MokamintStoreTransformation transformation = getTransformation(groupId);
 
 			try {
@@ -387,7 +389,7 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 		}
 
 		@Override
-		protected MokamintStore getStoreOfHead() throws ClosedNodeException, InterruptedException {
+		protected MokamintStore getStoreOfHead() throws ClosedNodeException, InterruptedException, TimeoutException {
 			try {
 				var maybeHeadStateId = engine.getChainInfo().getHeadStateId();
 				if (maybeHeadStateId.isEmpty())
@@ -399,7 +401,7 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 				}
 
 				var si = StateIds.of(maybeHeadStateId.get());
-				MokamintStore result = mkStore(si, Optional.ofNullable(stateIdentifiersCache.get(si))); // TODO: who guarantees that the store at si has not been garbage-collected?
+				MokamintStore result = mkStore(si, Optional.ofNullable(stateIdentifiersCache.get(si)));
 
 				synchronized (headLock) {
 					lastHeadStateId = maybeHeadStateId.get();
@@ -411,11 +413,9 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 			catch (io.mokamint.node.api.ClosedNodeException e) {
 				throw new ClosedNodeException(e);
 			}
-			catch (TimeoutException e) {
-				throw new LocalNodeException(e); // TODO: throw this?
-			}
 			catch (UnknownStateIdException e) {
-				// this should not happen...
+				// this should not happen since this method is executed in mutual exclusion with garbage-collection;
+				// therefore, the state of the head should not be garbage-collected after the call to getHeadStateId()
 				throw new LocalNodeException("The state of the head block is unknown or has been garbage-collected!", e);
 			}
 		}

@@ -34,7 +34,7 @@ class FromContractOnNonStorage extends HotmokaTest {
 	@Test @DisplayName("install jar")
 	void installJar() {
 		throwsVerificationException(() ->
-			addJarStoreTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, takamakaCode(), bytesOf("fromcontractonnonstorage.jar"), takamakaCode())
+			addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("fromcontractonnonstorage.jar"), takamakaCode())
 		);
 	}
 }

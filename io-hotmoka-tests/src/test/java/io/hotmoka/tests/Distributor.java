@@ -69,12 +69,12 @@ class Distributor extends HotmokaTest {
 
 	@Test @DisplayName("new Distributor()")
 	void createDistributor() throws Exception {
-		addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), ConstructorSignatures.of(DISTRIBUTOR));
+		addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, jar(), ConstructorSignatures.of(DISTRIBUTOR));
 	}
 
 	@Test @DisplayName("new Distributor() then fails while adding a payee without enough coins")
 	void createDistributorThenFailsByAddingPayeeWithoutCoins() throws Exception {
-		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), ConstructorSignatures.of(DISTRIBUTOR));
+		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, jar(), ConstructorSignatures.of(DISTRIBUTOR));
 
 		assertThrows(TransactionRejectedException.class, () ->
 			addInstanceVoidMethodCallTransaction(
@@ -90,7 +90,7 @@ class Distributor extends HotmokaTest {
 
 	@Test @DisplayName("new Distributor() then adds three payees than first payee distributes")
 	void createDistributorAddsFourPayeesThenFirstPayeeDistributes() throws Exception {
-		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), ConstructorSignatures.of(DISTRIBUTOR));
+		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, jar(), ConstructorSignatures.of(DISTRIBUTOR));
 
 		final int numPayees = 3;
 
@@ -118,16 +118,16 @@ class Distributor extends HotmokaTest {
 	@Test @DisplayName("new Distributor() then add a special payee with its own classpath unrelated to that of the distributor and distributes")
 	void createDistributorAddsSpecialPayeeWithOwnClasspathThenDistributes() throws Exception {
 		// we create the distributor with classpath distributor.jar and then takamakaCode.jar
-		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), ConstructorSignatures.of(DISTRIBUTOR));
+		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, jar(), ConstructorSignatures.of(DISTRIBUTOR));
 
 		// we install specialaccount.jar with dependency distributor.jar and then takamakaCode.jar
-		TransactionReference classpathOfSpecialAccount = addJarStoreTransaction(privateKey(0), account(0), _100_000, ONE, takamakaCode(), bytesOf("specialaccount.jar"), jar());
+		TransactionReference classpathOfSpecialAccount = addJarStoreTransaction(privateKey(0), account(0), _500_000, ONE, takamakaCode(), bytesOf("specialaccount.jar"), jar());
 
 		// we create a special account with classpath specialaccount.jar then distributor.jar and then takamakaCode.jar
 		var signature = SignatureAlgorithms.ed25519();
 		KeyPair keysOfSpecialAccount = signature.getKeyPair();
 		var specialAccountClass = StorageTypes.classNamed("io.hotmoka.examples.specialaccount.SpecialAccount");
-		StorageReference specialAccount = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ZERO, classpathOfSpecialAccount,
+		StorageReference specialAccount = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ZERO, classpathOfSpecialAccount,
 				ConstructorSignatures.of(specialAccountClass, StorageTypes.INT, StorageTypes.STRING),
 				StorageValues.intOf(1_000_000),
 				StorageValues.stringOf(Base64.toBase64String(signature.encodingOf(keysOfSpecialAccount.getPublic()))));

@@ -126,6 +126,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	protected static final BigInteger _100_000 = BigInteger.valueOf(100_000);
 	protected static final BigInteger _500_000 = BigInteger.valueOf(500_000);
 	protected static final BigInteger _1_000_000 = BigInteger.valueOf(1_000_000);
+	protected static final BigInteger _5_000_000 = BigInteger.valueOf(5_000_000);
 	protected static final BigInteger _10_000_000 = BigInteger.valueOf(10_000_000);
 	protected static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
 	protected static final BigInteger _10_000_000_000 = BigInteger.valueOf(10_000_000_000L);
@@ -544,6 +545,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 				.setInitialSupply(Coin.level7(10000000)) // enough for all tests
 				.setFinalSupply(Coin.level7(10000000).multiply(BigInteger.TWO))
 				.setPublicKeyOfGamete(consensus.getPublicKeyOfGamete())
+				.setMaxGasPerTransaction(_1_000_000_000) // to allow large transactions
 				.skipVerification(skipVerification);
 	}
 

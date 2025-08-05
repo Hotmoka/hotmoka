@@ -40,7 +40,7 @@ public interface LocalNodeConfig<C extends LocalNodeConfig<C,B>, B extends Local
 
 	/**
 	 * Yields the maximal number of polling attempts, while waiting
-	 * for the result of a posted transaction. It defaults to 60.
+	 * for the result of a posted transaction.
 	 * 
 	 * @return the maximal number of polling attempts
 	 */
@@ -50,7 +50,6 @@ public interface LocalNodeConfig<C extends LocalNodeConfig<C,B>, B extends Local
 	 * Yields the delay of two subsequent polling attempts, in milliseconds,
 	 * while waiting for the result of a posted transaction.
 	 * This delay is then increased by 10% at each subsequent attempt.
-	 * It defaults to 10.
 	 * 
 	 * @return the delay of two subsequent polling attempts, in milliseconds
 	 */
@@ -58,7 +57,6 @@ public interface LocalNodeConfig<C extends LocalNodeConfig<C,B>, B extends Local
 
 	/**
 	 * Yields the maximal amount of gas that a view transaction can consume.
-	 * It defaults to 100_000_000.
 	 * 
 	 * @return the maximal amount of gas that a view transaction can consume
 	 */

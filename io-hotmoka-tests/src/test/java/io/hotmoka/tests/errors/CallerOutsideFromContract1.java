@@ -34,6 +34,6 @@ class CallerOutsideFromContract1 extends HotmokaTest {
 	@Test @DisplayName("install jar")
 	void installJar() {
 		throwsVerificationExceptionWithMessageContaining("caller() can only be used inside a @FromContract",
-			() -> addJarStoreTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, takamakaCode(), bytesOf("calleroutsidefromcontract1.jar"), takamakaCode()));
+			() -> addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("calleroutsidefromcontract1.jar"), takamakaCode()));
 	}
 }

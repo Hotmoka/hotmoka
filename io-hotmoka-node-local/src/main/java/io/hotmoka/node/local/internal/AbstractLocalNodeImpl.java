@@ -30,6 +30,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
 import java.util.logging.Logger;
@@ -183,7 +184,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	@Override
-	public final ConsensusConfig<?,?> getConfig() throws ClosedNodeException, InterruptedException {
+	public final ConsensusConfig<?,?> getConfig() throws ClosedNodeException, InterruptedException, TimeoutException {
 		S store = enterHead();
 
 		try (var scope = mkScope()) {
@@ -200,7 +201,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	@Override
-	public final TransactionReference getTakamakaCode() throws UninitializedNodeException, ClosedNodeException, InterruptedException {
+	public final TransactionReference getTakamakaCode() throws UninitializedNodeException, ClosedNodeException, InterruptedException, TimeoutException {
 		try (var scope = mkScope()) {
 			var manifest = getManifest();
 
@@ -214,7 +215,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	@Override
-	public final StorageReference getManifest() throws UninitializedNodeException, ClosedNodeException, InterruptedException {
+	public final StorageReference getManifest() throws UninitializedNodeException, ClosedNodeException, InterruptedException, TimeoutException {
 		S store = enterHead();
 
 		try (var scope = mkScope()) {
@@ -228,15 +229,17 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	@Override
 	public final TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException, ClosedNodeException {
 		try (var scope = mkScope()) {
+			var attempts = Math.max(1L, config.getMaxPollingAttempts());
+			var delay = config.getPollingDelay();
+
 			Semaphore semaphore = semaphores.get(Objects.requireNonNull(reference));
 			if (semaphore != null)
 				// if we are polling for the outcome of a request sent to this same node, it is better
 				// to wait until it is delivered (or its checking fails) and start polling only after:
 				// this optimizes the time of waiting
-				semaphore.acquire(); // TODO: possibly introduce a timeout here
+				semaphore.tryAcquire(attempts * delay, TimeUnit.MILLISECONDS);
 
-			var attempts = config.getMaxPollingAttempts();
-			for (long attempt = 1, delay = config.getPollingDelay(); attempt <= Math.max(1L, attempts); attempt++, delay = delay * 110 / 100) {
+			for (long attempt = 1; attempt <= attempts; attempt++, delay = delay * 110 / 100) {
 				S store = enterHead();
 
 				try {
@@ -260,7 +263,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	@Override
-	public final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, ClosedNodeException, InterruptedException {
+	public final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, ClosedNodeException, InterruptedException, TimeoutException {
 		S store = enterHead();
 
 		try (var scope = mkScope()) {
@@ -272,7 +275,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	@Override
-	public final TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, ClosedNodeException, InterruptedException {
+	public final TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, ClosedNodeException, InterruptedException, TimeoutException {
 		S store = enterHead();
 
 		try (var scope = mkScope()) {
@@ -284,7 +287,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	@Override
-	public final ClassTag getClassTag(StorageReference reference) throws UnknownReferenceException, ClosedNodeException, InterruptedException {
+	public final ClassTag getClassTag(StorageReference reference) throws UnknownReferenceException, ClosedNodeException, InterruptedException, TimeoutException {
 		S store = enterHead();
 
 		try (var scope = mkScope()) {
@@ -306,7 +309,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	@Override
-	public final Stream<Update> getState(StorageReference reference) throws UnknownReferenceException, ClosedNodeException, InterruptedException {
+	public final Stream<Update> getState(StorageReference reference) throws UnknownReferenceException, ClosedNodeException, InterruptedException, TimeoutException {
 		S store = enterHead();
 
 		try (var scope = mkScope()) {
@@ -389,7 +392,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	@Override
-	public final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, InterruptedException {
+	public final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, InterruptedException, TimeoutException {
 		S store = enterHead();
 
 		try (var scope = mkScope()) {
@@ -406,7 +409,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	}
 
 	@Override
-	public final Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, InterruptedException {
+	public final Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, InterruptedException, TimeoutException {
 		S store = enterHead();
 
 		try (var scope = mkScope()) {
@@ -458,8 +461,9 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 * @return the entered store of the head
 	 * @throws ClosedNodeException if this node is already closed
 	 * @throws InterruptedException if the current thread is interrupted while waiting for the result
+	 * @throws TimeoutException if the operation times out
 	 */
-	protected abstract S enterHead() throws ClosedNodeException, InterruptedException;
+	protected abstract S enterHead() throws ClosedNodeException, InterruptedException, TimeoutException;
 
 	/**
 	 * Called when this node finished executing something that needed the given store.

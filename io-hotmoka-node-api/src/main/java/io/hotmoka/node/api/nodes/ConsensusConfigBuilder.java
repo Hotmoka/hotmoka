@@ -68,7 +68,7 @@ public interface ConsensusConfigBuilder<C extends ConsensusConfig<C,B>, B extend
 	B setSignatureForRequests(SignatureAlgorithm signature);
 
 	/**
-	 * Sets the initial gas price. It defaults to 100.
+	 * Sets the initial gas price.
 	 * 
 	 * @param initialGasPrice the initial gas price to set.
 	 * @return this builder
@@ -77,7 +77,6 @@ public interface ConsensusConfigBuilder<C extends ConsensusConfig<C,B>, B extend
 
 	/**
 	 * Sets the maximal amount of gas that a non-view transaction can consume.
-	 * It defaults to 1_000_000_000.
 	 * 
 	 * @param maxGasPerTransaction the maximal amount of gas to set
 	 * @return this builder

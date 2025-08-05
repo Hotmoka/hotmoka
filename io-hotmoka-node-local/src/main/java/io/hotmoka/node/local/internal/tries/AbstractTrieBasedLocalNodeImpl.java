@@ -24,6 +24,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -191,7 +192,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	}
 
 	@Override
-	protected final S enterHead() throws ClosedNodeException, InterruptedException {
+	protected final S enterHead() throws ClosedNodeException, InterruptedException, TimeoutException {
 		synchronized (lockGC) {
 			S head = getStoreOfHead();
 			enter(head, head.getStateId());
@@ -200,7 +201,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	}
 
 	@GuardedBy("lockGC")
-	protected abstract S getStoreOfHead() throws ClosedNodeException, InterruptedException;
+	protected abstract S getStoreOfHead() throws ClosedNodeException, InterruptedException, TimeoutException;
 
 	/**
 	 * Called when this node is executing something that needs the store with the given state identifier.

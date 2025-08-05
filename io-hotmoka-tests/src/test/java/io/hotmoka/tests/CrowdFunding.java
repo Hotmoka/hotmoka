@@ -84,13 +84,13 @@ class CrowdFunding extends HotmokaTest {
 		beneficiary = account(1);
 		funder1 = account(2);
 		funder2 = account(3);
-		crowdFunding = addConstructorCallTransaction(privateKey(0), account0, _100_000, ONE, jar(), CONSTRUCTOR_CROWD_FUNDING);
+		crowdFunding = addConstructorCallTransaction(privateKey(0), account0, _500_000, ONE, jar(), CONSTRUCTOR_CROWD_FUNDING);
 	}
 
 	@Test @DisplayName("new CrowdFunding().newCampaign(beneficiary, 50) == 0")
 	void createCampaign() throws Exception {
 		IntValue id = (IntValue) addInstanceNonVoidMethodCallTransaction
-			(privateKey(0), account0, _100_000, ONE, jar(),
+			(privateKey(0), account0, _500_000, ONE, jar(),
 			MethodSignatures.ofNonVoid(CROWD_FUNDING, "newCampaign", INT, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
 			crowdFunding, beneficiary, StorageValues.bigIntegerOf(50L));
 
@@ -100,12 +100,12 @@ class CrowdFunding extends HotmokaTest {
 	@Test @DisplayName("new CrowdFunding().newCampaign(beneficiary, 50) twice == 1")
 	void createTwoCampaigns() throws Exception {
 		addInstanceNonVoidMethodCallTransaction
-			(privateKey(0), account0, _100_000, ONE, jar(),
+			(privateKey(0), account0, _500_000, ONE, jar(),
 			MethodSignatures.ofNonVoid(CROWD_FUNDING, "newCampaign", INT, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
 			crowdFunding, beneficiary, StorageValues.bigIntegerOf(50L));
 
 		IntValue id = (IntValue) addInstanceNonVoidMethodCallTransaction
-			(privateKey(0), account0, _100_000, ONE, jar(),
+			(privateKey(0), account0, _500_000, ONE, jar(),
 			MethodSignatures.ofNonVoid(CROWD_FUNDING, "newCampaign", INT, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
 			crowdFunding, beneficiary, StorageValues.bigIntegerOf(50L));
 
@@ -115,22 +115,22 @@ class CrowdFunding extends HotmokaTest {
 	@Test @DisplayName("contributions are not enough then checkGoalReached yields false")
 	void contributionsAreNotEnough() throws Exception {
 		IntValue id = (IntValue) addInstanceNonVoidMethodCallTransaction
-			(privateKey(0), account0, _100_000, ONE, jar(),
+			(privateKey(0), account0, _500_000, ONE, jar(),
 			MethodSignatures.ofNonVoid(CROWD_FUNDING, "newCampaign", INT, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
 			crowdFunding, beneficiary, StorageValues.bigIntegerOf(50L));
 
 		addInstanceVoidMethodCallTransaction
-			(privateKey(2), funder1, _100_000, ONE, jar(),
+			(privateKey(2), funder1, _500_000, ONE, jar(),
 			MethodSignatures.ofVoid(CROWD_FUNDING, "contribute", StorageTypes.BIG_INTEGER, INT),
 			crowdFunding, StorageValues.bigIntegerOf(48L), id);
 
 		addInstanceVoidMethodCallTransaction
-			(privateKey(3), funder2, _100_000, ONE, jar(),
+			(privateKey(3), funder2, _500_000, ONE, jar(),
 			MethodSignatures.ofVoid(CROWD_FUNDING, "contribute", StorageTypes.BIG_INTEGER, INT),
 			crowdFunding, StorageValues.bigIntegerOf(1L), id);
 
 		var reached = (BooleanValue) addInstanceNonVoidMethodCallTransaction
-			(privateKey(0), account0, _100_000, ONE, jar(),
+			(privateKey(0), account0, _500_000, ONE, jar(),
 			MethodSignatures.ofNonVoid(CROWD_FUNDING, "checkGoalReached", BOOLEAN, INT),
 			crowdFunding, id);
 
@@ -140,22 +140,22 @@ class CrowdFunding extends HotmokaTest {
 	@Test @DisplayName("contributions are enough then checkGoalReached yields false")
 	void contributionsAreEnough() throws Exception {
 		IntValue id = (IntValue) addInstanceNonVoidMethodCallTransaction
-			(privateKey(0), account0, _100_000, ONE, jar(),
+			(privateKey(0), account0, _500_000, ONE, jar(),
 			MethodSignatures.ofNonVoid(CROWD_FUNDING, "newCampaign", INT, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
 			crowdFunding, beneficiary, StorageValues.bigIntegerOf(50L));
 
 		addInstanceVoidMethodCallTransaction
-			(privateKey(2), funder1, _100_000, ONE, jar(),
+			(privateKey(2), funder1, _500_000, ONE, jar(),
 			MethodSignatures.ofVoid(CROWD_FUNDING, "contribute", StorageTypes.BIG_INTEGER, INT),
 			crowdFunding, StorageValues.bigIntegerOf(48L), id);
 
 		addInstanceVoidMethodCallTransaction
-			(privateKey(3), funder2, _100_000, ONE, jar(),
+			(privateKey(3), funder2, _500_000, ONE, jar(),
 			MethodSignatures.ofVoid(CROWD_FUNDING, "contribute", StorageTypes.BIG_INTEGER, INT),
 			crowdFunding, StorageValues.bigIntegerOf(2L), id);
 
 		var reached = (BooleanValue) addInstanceNonVoidMethodCallTransaction
-			(privateKey(0), account0, _100_000, ONE, jar(),
+			(privateKey(0), account0, _500_000, ONE, jar(),
 			MethodSignatures.ofNonVoid(CROWD_FUNDING, "checkGoalReached", BOOLEAN, INT),
 			crowdFunding, id);
 

@@ -82,13 +82,13 @@ class CrowdFundingSimplified extends HotmokaTest {
 		beneficiary = account(1);
 		funder1 = account(2);
 		funder2 = account(3);
-		crowdFunding = addConstructorCallTransaction(privateKey(0), account0, _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_CROWD_FUNDING_SIMPLIFIED);
+		crowdFunding = addConstructorCallTransaction(privateKey(0), account0, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_CROWD_FUNDING_SIMPLIFIED);
 	}
 
 	@Test @DisplayName("new CrowdFundingSimplified().newCampaign(beneficiary, 50) != null")
 	void createCampaign() throws Exception {
 		StorageReference campaign = (StorageReference) addInstanceNonVoidMethodCallTransaction
-			(privateKey(0), account0, _100_000, BigInteger.ONE, jar(),
+			(privateKey(0), account0, _500_000, BigInteger.ONE, jar(),
 			MethodSignatures.ofNonVoid(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
 			crowdFunding, beneficiary, StorageValues.bigIntegerOf(50L));
 
@@ -98,22 +98,22 @@ class CrowdFundingSimplified extends HotmokaTest {
 	@Test @DisplayName("contributions are not enough then checkGoalReached yields false")
 	void contributionsAreNotEnough() throws Exception {
 		var campaign = (StorageReference) addInstanceNonVoidMethodCallTransaction
-			(privateKey(0), account0, _100_000, BigInteger.ONE, jar(),
+			(privateKey(0), account0, _500_000, BigInteger.ONE, jar(),
 			MethodSignatures.ofNonVoid(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
 			crowdFunding, beneficiary, StorageValues.bigIntegerOf(50L));
 
 		addInstanceVoidMethodCallTransaction
-			(privateKey(2), funder1, _100_000, BigInteger.ONE, jar(),
+			(privateKey(2), funder1, _500_000, BigInteger.ONE, jar(),
 			MethodSignatures.ofVoid(CROWD_FUNDING_SIMPLIFIED, "contribute", StorageTypes.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, StorageValues.bigIntegerOf(48L), campaign);
 
 		addInstanceVoidMethodCallTransaction
-			(privateKey(3), funder2, _100_000, BigInteger.ONE, jar(),
+			(privateKey(3), funder2, _500_000, BigInteger.ONE, jar(),
 			MethodSignatures.ofVoid(CROWD_FUNDING_SIMPLIFIED, "contribute", StorageTypes.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, StorageValues.bigIntegerOf(1L), campaign);
 
 		var reached = (BooleanValue) addInstanceNonVoidMethodCallTransaction
-			(privateKey(0), account0, _100_000, BigInteger.ONE, jar(),
+			(privateKey(0), account0, _500_000, BigInteger.ONE, jar(),
 			MethodSignatures.ofNonVoid(CROWD_FUNDING_SIMPLIFIED, "checkGoalReached", BOOLEAN, CAMPAIGN),
 			crowdFunding, campaign);
 
@@ -123,22 +123,22 @@ class CrowdFundingSimplified extends HotmokaTest {
 	@Test @DisplayName("contributions are enough then checkGoalReached yields false")
 	void contributionsAreEnough() throws Exception {
 		var campaign = (StorageReference) addInstanceNonVoidMethodCallTransaction
-			(privateKey(0), account0, _100_000, BigInteger.ONE, jar(),
+			(privateKey(0), account0, _500_000, BigInteger.ONE, jar(),
 			MethodSignatures.ofNonVoid(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
 			crowdFunding, beneficiary, StorageValues.bigIntegerOf(50L));
 
 		addInstanceVoidMethodCallTransaction
-			(privateKey(2), funder1, _100_000, BigInteger.ONE, jar(),
+			(privateKey(2), funder1, _500_000, BigInteger.ONE, jar(),
 			MethodSignatures.ofVoid(CROWD_FUNDING_SIMPLIFIED, "contribute", StorageTypes.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, StorageValues.bigIntegerOf(48L), campaign);
 
 		addInstanceVoidMethodCallTransaction
-			(privateKey(3), funder2, _100_000, BigInteger.ONE, jar(),
+			(privateKey(3), funder2, _500_000, BigInteger.ONE, jar(),
 			MethodSignatures.ofVoid(CROWD_FUNDING_SIMPLIFIED, "contribute", StorageTypes.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, StorageValues.bigIntegerOf(2L), campaign);
 
 		var reached = (BooleanValue) addInstanceNonVoidMethodCallTransaction
-			(privateKey(0), account0, _100_000, BigInteger.ONE, jar(),
+			(privateKey(0), account0, _500_000, BigInteger.ONE, jar(),
 			MethodSignatures.ofNonVoid(CROWD_FUNDING_SIMPLIFIED, "checkGoalReached", BOOLEAN, CAMPAIGN),
 			crowdFunding, campaign);
 

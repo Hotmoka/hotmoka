@@ -24,5 +24,5 @@ import io.hotmoka.testing.AbstractLoggedTests;
  * Shared code of the tests for the moka tool.
  */
 public abstract class AbstractMokaTest extends AbstractLoggedTests {
-	public final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
+	public final static BigInteger _200_000 = BigInteger.valueOf(200_000L);
 }

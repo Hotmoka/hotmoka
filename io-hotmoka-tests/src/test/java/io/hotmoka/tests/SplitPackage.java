@@ -45,12 +45,12 @@ class SplitPackage extends HotmokaTest {
 
 	@Test @DisplayName("jars with distinct packages coexist")
 	void testDisjointJars() throws Exception {
-		addJarStoreTransaction(privateKey(0), account(0), _1_000_000, ONE, takamakaCode(), bytesOf("basic.jar"), jar());
+		addJarStoreTransaction(privateKey(0), account(0), _5_000_000, ONE, takamakaCode(), bytesOf("basic.jar"), jar());
 	}
 	
 	@Test @DisplayName("jars with packages split among them cannot be put together")
 	void testSplitPackages() {
 		assertThrows(TransactionRejectedException.class, () ->
-			addJarStoreTransaction(privateKey(0), account(0), _1_000_000, ONE, takamakaCode(), bytesOf("basicdependency.jar"), jar()));
+			addJarStoreTransaction(privateKey(0), account(0), _5_000_000, ONE, takamakaCode(), bytesOf("basicdependency.jar"), jar()));
 	}
 }

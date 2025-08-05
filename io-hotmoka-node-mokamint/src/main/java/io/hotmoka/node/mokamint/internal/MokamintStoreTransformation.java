@@ -110,7 +110,7 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 		BigInteger rewardForNode = reward.multiply(percentForNodeAsBI).divide(_100_000_000);
 
 		var request = TransactionRequests.instanceSystemMethodCall
-				(manifest, nonce, _100_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD_MOKAMINT_NODE, validators,
+				(manifest, nonce, _500_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD_MOKAMINT_NODE, validators,
 						StorageValues.bigIntegerOf(rewardForNode),
 						StorageValues.bigIntegerOf(minted),
 						StorageValues.stringOf(publicKeyOfNodeBase64),
@@ -136,7 +136,7 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 			nonce = nonce.add(BigInteger.ONE);
 
 			request = TransactionRequests.instanceSystemMethodCall
-					(manifest, nonce, _100_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD_MOKAMINT_MINER, validators,
+					(manifest, nonce, _500_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD_MOKAMINT_MINER, validators,
 							StorageValues.bigIntegerOf(rewardForMiner),
 							StorageValues.stringOf(publicKeyOfMinerBase64));
 

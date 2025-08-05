@@ -102,7 +102,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 
 	/**
 	 * The maximal amount of gas that a non-view transaction can consume.
-	 * It defaults to 1_000_000_000.
 	 */
 	public final BigInteger maxGasPerTransaction;
 
@@ -118,7 +117,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 	 * The units of gas that are aimed to be rewarded at each reward.
 	 * If the actual reward is smaller, the price of gas must decrease.
 	 * If it is larger, the price of gas must increase.
-	 * This defaults to 1_000_000.
 	 */
 	public final BigInteger targetGasAtReward;
 
@@ -415,7 +413,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		private LocalDateTime genesisTime = LocalDateTime.now(ZoneId.of("UTC"));
 		private boolean allowsUnsignedFaucet = false;
 		private SignatureAlgorithm signatureForRequests;
-		private BigInteger maxGasPerTransaction = BigInteger.valueOf(1_000_000_000L);
+		private BigInteger maxGasPerTransaction = BigInteger.valueOf(10_000_000L);
 		private int maxDependencies = 20;
 		private long maxCumulativeSizeOfDependencies = 1_000_000L;
 		private BigInteger initialGasPrice = BigInteger.valueOf(100L);

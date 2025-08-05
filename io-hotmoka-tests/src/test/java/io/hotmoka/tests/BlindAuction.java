@@ -126,7 +126,7 @@ class BlindAuction extends HotmokaTest {
 	@Test @DisplayName("three players put bids before end of bidding time")
 	void bids() throws Exception {
 		ConstructorFuture auction = postConstructorCallTransaction
-			(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_BLIND_AUCTION, StorageValues.intOf(BIDDING_TIME), StorageValues.intOf(REVEAL_TIME));
+			(privateKey(0), account(0), _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_BLIND_AUCTION, StorageValues.intOf(BIDDING_TIME), StorageValues.intOf(REVEAL_TIME));
 
 		var random = new Random();
 		for (int i = 1; i <= NUM_BIDS; i++) {
@@ -137,7 +137,7 @@ class BlindAuction extends HotmokaTest {
 			var salt = new byte[32];
 			random.nextBytes(salt);
 			StorageReference bytes32 = codeAsBytes32(player, value, fake, salt);
-			addInstanceVoidMethodCallTransaction(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), BID, auction.get(), StorageValues.bigIntegerOf(deposit), bytes32);
+			addInstanceVoidMethodCallTransaction(privateKey(player), account(player), _500_000, BigInteger.ONE, jar(), BID, auction.get(), StorageValues.bigIntegerOf(deposit), bytes32);
 			LOGGER.info("bidding " + i + "/" + NUM_BIDS);
 		}
 	}
@@ -145,7 +145,7 @@ class BlindAuction extends HotmokaTest {
 	@Test @DisplayName("three players put bids but bidding time expires")
 	void biddingTimeExpires() throws Exception {
 		ConstructorFuture auction = postConstructorCallTransaction
-			(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_BLIND_AUCTION, StorageValues.intOf(4000), StorageValues.intOf(REVEAL_TIME));
+			(privateKey(0), account(0), _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_BLIND_AUCTION, StorageValues.intOf(4000), StorageValues.intOf(REVEAL_TIME));
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
 		{
@@ -158,7 +158,7 @@ class BlindAuction extends HotmokaTest {
 				var salt = new byte[32];
 				random.nextBytes(salt);
 				StorageReference bytes32 = codeAsBytes32(player, value, fake, salt);
-				addInstanceVoidMethodCallTransaction(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), BID, auction.get(), StorageValues.bigIntegerOf(deposit), bytes32);
+				addInstanceVoidMethodCallTransaction(privateKey(player), account(player), _500_000, BigInteger.ONE, jar(), BID, auction.get(), StorageValues.bigIntegerOf(deposit), bytes32);
 				sleep(2000);
 				LOGGER.info("bidding " + i + "/" + NUM_BIDS);
 			}
@@ -185,7 +185,7 @@ class BlindAuction extends HotmokaTest {
 
 		private StorageReference intoStore() throws Exception {
 			return addConstructorCallTransaction
-        		(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_REVEALED_BID, StorageValues.bigIntegerOf(value), StorageValues.booleanOf(fake), bytes32);
+        		(privateKey(player), account(player), _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_REVEALED_BID, StorageValues.bigIntegerOf(value), StorageValues.booleanOf(fake), bytes32);
 		}
 
 		private void createBytes32() throws Exception {
@@ -206,7 +206,7 @@ class BlindAuction extends HotmokaTest {
 	void bidsThenReveal() throws Exception {
 		final long start = System.currentTimeMillis();
 		ConstructorFuture auction = postConstructorCallTransaction
-			(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_BLIND_AUCTION, StorageValues.intOf(BIDDING_TIME), StorageValues.intOf(REVEAL_TIME));
+			(privateKey(0), account(0), _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_BLIND_AUCTION, StorageValues.intOf(BIDDING_TIME), StorageValues.intOf(REVEAL_TIME));
 
 		List<BidToReveal> bids = new ArrayList<>();
 
@@ -234,13 +234,13 @@ class BlindAuction extends HotmokaTest {
 
 			// we store the explicit bid in memory, not yet in blockchain, since it would be visible there
 			bids.add(new BidToReveal(player, value, fake, salt));
-			addInstanceVoidMethodCallTransaction(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), BID, auction.get(), StorageValues.bigIntegerOf(deposit), bytes32);
+			addInstanceVoidMethodCallTransaction(privateKey(player), account(player), _500_000, BigInteger.ONE, jar(), BID, auction.get(), StorageValues.bigIntegerOf(deposit), bytes32);
 
 			LOGGER.info("bidding " + i + "/" + NUM_BIDS);
         	i++;
 		}
 
-		waitUntil(BIDDING_TIME + 5000, start);
+		waitUntil(BIDDING_TIME + 5_000, start);
 
 		// we create the revealed bids in the node; this is safe now, since the bidding time is over
 		for (BidToReveal bid: bids)
@@ -254,16 +254,16 @@ class BlindAuction extends HotmokaTest {
 		Iterator<BidToReveal> it = bids.iterator();
 		for (StorageReference bidInStore: bidsInStore) {
 			int player = it.next().player;
-			addInstanceVoidMethodCallTransaction(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), REVEAL, auction.get(), bidInStore);
+			addInstanceVoidMethodCallTransaction(privateKey(player), account(player), _500_000, BigInteger.ONE, jar(), REVEAL, auction.get(), bidInStore);
 			LOGGER.info("revealing " + counter + "/" + bids.size());
 			counter++;
 		}
 
-		waitUntil(BIDDING_TIME + REVEAL_TIME + 5000, start);
+		waitUntil(BIDDING_TIME + REVEAL_TIME + 5_000, start);
 
 		LOGGER.info("ending the auction");
 		// the winner can be a StorageReference but also a NullValue, if all bids were fake
-		StorageValue winner = addInstanceNonVoidMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), AUCTION_END, auction.get());
+		StorageValue winner = addInstanceNonVoidMethodCallTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, jar(), AUCTION_END, auction.get());
 		LOGGER.info("auction ended");
 		if (winner instanceof NullValue)
 			winner = null;

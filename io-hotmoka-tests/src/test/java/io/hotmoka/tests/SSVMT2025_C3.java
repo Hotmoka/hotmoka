@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.tests;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.math.BigInteger;
@@ -23,6 +24,8 @@ import java.math.BigInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import io.hotmoka.node.local.VerificationException;
 
 class SSVMT2025_C3 extends HotmokaTest {
 
@@ -34,10 +37,12 @@ class SSVMT2025_C3 extends HotmokaTest {
 	@Test @DisplayName("install jar")
 	void installJar() throws Exception {
 		try {
-			addJarStoreTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, takamakaCode(), bytesOf("ssvmt2025c3.jar"), takamakaCode());
+			addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("ssvmt2025c3.jar"), takamakaCode());
 			fail("Exception expected, but none was thrown");
 		}
 		catch (Exception e) {
+			assertTrue(e.getMessage().startsWith(VerificationException.class.getName()));
+
 			if ("true".equals(System.getProperty("verbose")))
 				System.out.println("Test " + SSVMT2025_C3.class.getName() + ": the installation of the jar threw exception: " + e.getMessage());
 		}

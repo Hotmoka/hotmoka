@@ -71,7 +71,6 @@ class Basic extends HotmokaTest {
 	private static final ConstructorSignature CONSTRUCTOR_INTERNATIONAL_TIME = ConstructorSignatures.of(StorageTypes.classNamed("io.hotmoka.examples.basicdependency.InternationalTime"), INT, INT, INT);
 	private static final NonVoidMethodSignature TIME_TO_STRING = MethodSignatures.ofNonVoid(StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Time"), "toString", StorageTypes.STRING);
 	private static final NonVoidMethodSignature WRAPPER_TO_STRING = MethodSignatures.ofNonVoid(WRAPPER, "toString", StorageTypes.STRING);
-	private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
 
 	/**
 	 * The account that holds all funds.
@@ -95,50 +94,50 @@ class Basic extends HotmokaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setAccounts(_1_000_000_000, BigInteger.ZERO);
+		setAccounts(_10_000_000_000, BigInteger.ZERO);
 		master = account(0);
 		key = privateKey(0);
-		classpath = addJarStoreTransaction(key, master, _1_000_000, ONE, takamakaCode(), bytesOf("basic.jar"), jar());
+		classpath = addJarStoreTransaction(key, master, _10_000_000, ONE, takamakaCode(), bytesOf("basic.jar"), jar());
 	}
 
 	@Test @DisplayName("new InternationalTime(13,25,40).toString().equals(\"13:25:40\")")
 	void testToStringInternationTime() throws Exception {
 		StorageReference internationalTime = addConstructorCallTransaction
-			(key, master, _200_000, ONE, classpath, CONSTRUCTOR_INTERNATIONAL_TIME, StorageValues.intOf(13), StorageValues.intOf(25), StorageValues.intOf(40));
-		assertEquals(StorageValues.stringOf("13:25:40"), runInstanceNonVoidMethodCallTransaction(master, _200_000, classpath, TIME_TO_STRING, internationalTime));
+			(key, master, _500_000, ONE, classpath, CONSTRUCTOR_INTERNATIONAL_TIME, StorageValues.intOf(13), StorageValues.intOf(25), StorageValues.intOf(40));
+		assertEquals(StorageValues.stringOf("13:25:40"), runInstanceNonVoidMethodCallTransaction(master, _500_000, classpath, TIME_TO_STRING, internationalTime));
 	}
 
 	@Test @DisplayName("new Wrapper(new InternationalTime(13,25,40)).toString().equals(\"wrapper(13:25:40,null,null,0)\")")
 	void testToStringWrapperInternationTime1() throws Exception {
 		StorageReference internationalTime = addConstructorCallTransaction
-			(key, master, _200_000, ONE, classpath, CONSTRUCTOR_INTERNATIONAL_TIME,
+			(key, master, _500_000, ONE, classpath, CONSTRUCTOR_INTERNATIONAL_TIME,
 			StorageValues.intOf(13), StorageValues.intOf(25), StorageValues.intOf(40));
-		StorageReference wrapper = addConstructorCallTransaction(key, master, _200_000, ONE, classpath, CONSTRUCTOR_WRAPPER_1, internationalTime);
+		StorageReference wrapper = addConstructorCallTransaction(key, master, _500_000, ONE, classpath, CONSTRUCTOR_WRAPPER_1, internationalTime);
 		assertEquals(StorageValues.stringOf("wrapper(13:25:40,null,null,0)"),
-			runInstanceNonVoidMethodCallTransaction(master, _200_000, classpath, WRAPPER_TO_STRING, wrapper));
+			runInstanceNonVoidMethodCallTransaction(master, _500_000, classpath, WRAPPER_TO_STRING, wrapper));
 	}
 
 	@Test @DisplayName("new Wrapper(new InternationalTime(13,25,40),\"hello\",13011973,12345L).toString().equals(\"wrapper(13:25:40, IllegalArgumentException::new,hello,13011973,12345)\")")
 	void testToStringWrapperInternationTime2() throws Exception {
 		StorageReference internationalTime = addConstructorCallTransaction
-			(key, master, _200_000, ONE, classpath, CONSTRUCTOR_INTERNATIONAL_TIME,
+			(key, master, _500_000, ONE, classpath, CONSTRUCTOR_INTERNATIONAL_TIME,
 			StorageValues.intOf(13), StorageValues.intOf(25), StorageValues.intOf(40));
 		StorageReference wrapper = addConstructorCallTransaction
-			(key, master, _200_000, ONE, classpath, CONSTRUCTOR_WRAPPER_2,
+			(key, master, _500_000, ONE, classpath, CONSTRUCTOR_WRAPPER_2,
 			internationalTime, StorageValues.stringOf("hello"), StorageValues.bigIntegerOf(BigInteger.valueOf(13011973)), StorageValues.longOf(12345L));
 		assertEquals(StorageValues.stringOf("wrapper(13:25:40,hello,13011973,12345)"),
-			runInstanceNonVoidMethodCallTransaction(master, _200_000, classpath, WRAPPER_TO_STRING, wrapper));
+			runInstanceNonVoidMethodCallTransaction(master, _500_000, classpath, WRAPPER_TO_STRING, wrapper));
 	}
 
 	@Test @DisplayName("new Sub(1973)")
 	void callPayableConstructor() throws Exception {
-		addConstructorCallTransaction(key, master, _200_000, ONE, classpath, ConstructorSignatures.of(SUB, INT), StorageValues.intOf(1973));
+		addConstructorCallTransaction(key, master, _500_000, ONE, classpath, ConstructorSignatures.of(SUB, INT), StorageValues.intOf(1973));
 	}
 
 	@Test @DisplayName("new Sub().m1() succeeds in calling an entry from same contract")
 	void callEntryFromSameContract() throws Exception {
 		StorageReference sub = addConstructorCallTransaction(key, master, _500_000, ONE, classpath, ConstructorSignatures.of(SUB));
-		runInstanceVoidMethodCallTransaction(master, _200_000, classpath, MethodSignatures.ofVoid(SUB, "m1"), sub);
+		runInstanceVoidMethodCallTransaction(master, _500_000, classpath, MethodSignatures.ofVoid(SUB, "m1"), sub);
 	}
 
 	@Test @DisplayName("new Sub().ms() throws TransactionException since UnmatchedTargetException")
@@ -146,83 +145,83 @@ class Basic extends HotmokaTest {
 		StorageReference sub = addConstructorCallTransaction(key, master, _500_000, ONE, classpath, ConstructorSignatures.of(SUB));
 
 		throwsTransactionExceptionWithCause(UnmatchedTargetException.class, () ->
-			runInstanceVoidMethodCallTransaction(master, _200_000, classpath, SUB_MS, sub)
+			runInstanceVoidMethodCallTransaction(master, _500_000, classpath, SUB_MS, sub)
 		);
 	}
 
 	@Test @DisplayName("Sub.ms()")
 	void callStaticAsStatic() throws Exception {
-		runStaticVoidMethodCallTransaction(master, _200_000, classpath, SUB_MS);
+		runStaticVoidMethodCallTransaction(master, _500_000, classpath, SUB_MS);
 	}
 
 	@Test @DisplayName("Sub.m5() throws TransactionException since NoSuchMethodException")
 	void callInstanceAsStatic() {
 		throwsTransactionExceptionWithCause(UnmatchedTargetException.class, () ->
-			runStaticVoidMethodCallTransaction(master, _200_000, classpath, SUB_M5)
+			runStaticVoidMethodCallTransaction(master, _500_000, classpath, SUB_M5)
 		);
 	}
 
 	@Test @DisplayName("new Sub(1973) without gas")
 	void callerHasNotEnoughFundsForGas() {
 		assertThrows(TransactionRejectedException.class, () ->
-			addConstructorCallTransaction(privateKey(1), account(1), _200_000, ONE, classpath, ConstructorSignatures.of(SUB, INT), StorageValues.intOf(1973))
+			addConstructorCallTransaction(privateKey(1), account(1), _500_000, ONE, classpath, ConstructorSignatures.of(SUB, INT), StorageValues.intOf(1973))
 		);
 	}
 
 	@Test @DisplayName("new Sub(1973) with gas but without enough coins to pay the @Entry")
 	void callerHasNotEnoughFundsForPayableEntry() throws Exception {
-		addInstanceVoidMethodCallTransaction(key, master, _200_000, ONE, classpath, RECEIVE_INT, account(1), StorageValues.intOf(200000));
+		addInstanceVoidMethodCallTransaction(key, master, _500_000, ONE, classpath, RECEIVE_INT, account(1), StorageValues.intOf(1_000));
 
 		throwsTransactionExceptionWithCause(Constants.INSUFFICIENT_FUNDS_ERROR_NAME, () ->
-			addConstructorCallTransaction(privateKey(1), account(1), _200_000, ONE, classpath, ConstructorSignatures.of(SUB, INT), StorageValues.intOf(1973))
+			addConstructorCallTransaction(privateKey(1), account(1), _500_000, BigInteger.ZERO, classpath, ConstructorSignatures.of(SUB, INT), StorageValues.intOf(1973))
 		);
 	}
 
 	@Test @DisplayName("new Sub(1973) with gas and enough coins to pay the @Entry")
 	void callerHasEnoughFundsForPayableEntry() throws Exception {
-		addInstanceVoidMethodCallTransaction(key, master, _200_000, ONE, classpath, RECEIVE_INT, account(1), StorageValues.intOf(200000));
-		addConstructorCallTransaction(privateKey(1), account(1), _100_000, ONE, classpath, ConstructorSignatures.of(SUB, INT), StorageValues.intOf(1973));
+		addInstanceVoidMethodCallTransaction(key, master, _500_000, ONE, classpath, RECEIVE_INT, account(1), StorageValues.intOf(2_000_000));
+		addConstructorCallTransaction(privateKey(1), account(1), _500_000, ONE, classpath, ConstructorSignatures.of(SUB, INT), StorageValues.intOf(1973));
 	}
 
 	@Test @DisplayName("new Sub(1973).print(new InternationalTime(13,25,40))")
 	void callInstanceMethod() throws Exception {
-		addInstanceVoidMethodCallTransaction(key, master, _200_000, ONE, classpath, RECEIVE_INT, account(1), StorageValues.intOf(200000));
+		addInstanceVoidMethodCallTransaction(key, master, _500_000, ONE, classpath, RECEIVE_INT, account(1), StorageValues.intOf(2_000_000));
 		StorageReference internationalTime = addConstructorCallTransaction
-			(key, master, _200_000, ONE, classpath, CONSTRUCTOR_INTERNATIONAL_TIME,
+			(key, master, _500_000, ONE, classpath, CONSTRUCTOR_INTERNATIONAL_TIME,
 			StorageValues.intOf(13), StorageValues.intOf(25), StorageValues.intOf(40));
 		StorageReference sub = addConstructorCallTransaction
-			(privateKey(1), account(1), _100_000, ONE, classpath, ConstructorSignatures.of(SUB, INT), StorageValues.intOf(1973));
+			(privateKey(1), account(1), _500_000, ONE, classpath, ConstructorSignatures.of(SUB, INT), StorageValues.intOf(1973));
 		addInstanceVoidMethodCallTransaction
-			(key, master, _200_000, ONE, classpath,
+			(key, master, _500_000, ONE, classpath,
 			MethodSignatures.ofVoid(SUB, "print", StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Time")), sub, internationalTime);
 	}
 
 	@Test @DisplayName("new Sub(1973).m4(13).equals(\"Sub.m4 receives 13 coins from an externally owned account with public balance\")")
 	void callPayableEntryWithInt() throws Exception {
-		addInstanceVoidMethodCallTransaction(key, master, _200_000, ONE, classpath, RECEIVE_INT, account(1), StorageValues.intOf(200000));
+		addInstanceVoidMethodCallTransaction(key, master, _500_000, ONE, classpath, RECEIVE_INT, account(1), StorageValues.intOf(2_000_000));
 		StorageReference sub = addConstructorCallTransaction
-			(privateKey(1), account(1), _100_000, ONE, classpath, ConstructorSignatures.of(SUB, INT), StorageValues.intOf(1973));
+			(privateKey(1), account(1), _500_000, ONE, classpath, ConstructorSignatures.of(SUB, INT), StorageValues.intOf(1973));
 		assertEquals(StorageValues.stringOf("Sub.m4 receives 13 coins from an externally owned account"), addInstanceNonVoidMethodCallTransaction
-			(key, master, _200_000, ONE, classpath, MethodSignatures.ofNonVoid(SUB, "m4", StorageTypes.STRING, INT), sub, StorageValues.intOf(13)));
+			(key, master, _500_000, ONE, classpath, MethodSignatures.ofNonVoid(SUB, "m4", StorageTypes.STRING, INT), sub, StorageValues.intOf(13)));
 	}
 
 	@Test @DisplayName("new Sub(1973).m4_1(13L).equals(\"Sub.m4_1 receives 13 coins from an externally owned account with public balance\")")
 	void callPayableEntryWithLong() throws Exception {
-		addInstanceVoidMethodCallTransaction(key, master, _200_000, ONE, classpath, RECEIVE_INT, account(1), StorageValues.intOf(2000000));
+		addInstanceVoidMethodCallTransaction(key, master, _500_000, ONE, classpath, RECEIVE_INT, account(1), StorageValues.intOf(2_000_000));
 		StorageReference sub = addConstructorCallTransaction
-			(privateKey(1), account(1), _200_000, ONE, classpath, ConstructorSignatures.of(SUB, INT), StorageValues.intOf(1973));
+			(privateKey(1), account(1), _500_000, ONE, classpath, ConstructorSignatures.of(SUB, INT), StorageValues.intOf(1973));
 		assertEquals(StorageValues.stringOf("Sub.m4_1 receives 13 coins from an externally owned account"),
 			addInstanceNonVoidMethodCallTransaction
-				(key, master, _200_000, ONE, classpath, MethodSignatures.ofNonVoid(SUB, "m4_1", StorageTypes.STRING, LONG), sub, StorageValues.longOf(13L)));
+				(key, master, _500_000, ONE, classpath, MethodSignatures.ofNonVoid(SUB, "m4_1", StorageTypes.STRING, LONG), sub, StorageValues.longOf(13L)));
 	}
 
 	@Test @DisplayName("new Sub(1973).m4_2(BigInteger.valueOf(13)).equals(\"Sub.m4_2 receives 13 coins from an externally owned account with public balance\")")
 	void callPayableEntryWithBigInteger() throws Exception {
-		addInstanceVoidMethodCallTransaction(key, master, _200_000, ONE, classpath, RECEIVE_INT, account(1), StorageValues.intOf(200000));
-		StorageReference sub = addConstructorCallTransaction(privateKey(1), account(1), _100_000, ONE, classpath, ConstructorSignatures.of(SUB, INT), StorageValues.intOf(1973));
+		addInstanceVoidMethodCallTransaction(key, master, _500_000, ONE, classpath, RECEIVE_INT, account(1), StorageValues.intOf(1_000_000));
+		StorageReference sub = addConstructorCallTransaction(privateKey(1), account(1), _500_000, ONE, classpath, ConstructorSignatures.of(SUB, INT), StorageValues.intOf(1973));
 		assertEquals(StorageValues.stringOf("Sub.m4_2 receives 13 coins from an externally owned account"),
 			addInstanceNonVoidMethodCallTransaction
-			(key, master, _200_000, ONE, classpath, MethodSignatures.ofNonVoid(SUB, "m4_2", StorageTypes.STRING, StorageTypes.BIG_INTEGER),
+			(key, master, _500_000, ONE, classpath, MethodSignatures.ofNonVoid(SUB, "m4_2", StorageTypes.STRING, StorageTypes.BIG_INTEGER),
 			sub, StorageValues.bigIntegerOf(BigInteger.valueOf(13L))));
 	}
 
@@ -318,17 +317,17 @@ class Basic extends HotmokaTest {
 
 	@Test @DisplayName("new WithList().toString().equals(\"[hello,how,are,you]\")")
 	void listCreation() throws Exception {
-		StorageReference wl = addConstructorCallTransaction(key, master, _200_000, ONE, classpath, ConstructorSignatures.of(WITH_LIST));
+		StorageReference wl = addConstructorCallTransaction(key, master, _500_000, ONE, classpath, ConstructorSignatures.of(WITH_LIST));
 		assertEquals(StorageValues.stringOf("[hello,how,are,you]"),
-			runInstanceNonVoidMethodCallTransaction(master, _200_000, classpath, MethodSignatures.ofNonVoid(WITH_LIST, "toString", StorageTypes.STRING), wl));
+			runInstanceNonVoidMethodCallTransaction(master, _500_000, classpath, MethodSignatures.ofNonVoid(WITH_LIST, "toString", StorageTypes.STRING), wl));
 	}
 
 	@Test @DisplayName("new WithList().illegal() throws TransactionException since UpdatesExtractionException")
 	void updatesExtractionException() throws Exception {
-		StorageReference wl = addConstructorCallTransaction(key, master, _200_000, ONE, classpath, ConstructorSignatures.of(WITH_LIST));
+		StorageReference wl = addConstructorCallTransaction(key, master, _500_000, ONE, classpath, ConstructorSignatures.of(WITH_LIST));
 		
 		throwsTransactionExceptionWithCause(IllegalAssignmentToFieldInStorageException.class, () ->
-			addInstanceVoidMethodCallTransaction(key, master, _200_000, ONE, classpath, MethodSignatures.ofVoid(WITH_LIST, "illegal"), wl)
+			addInstanceVoidMethodCallTransaction(key, master, _500_000, ONE, classpath, MethodSignatures.ofVoid(WITH_LIST, "illegal"), wl)
 		);
 	}
 

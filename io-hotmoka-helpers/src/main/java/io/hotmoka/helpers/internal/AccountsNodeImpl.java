@@ -113,6 +113,7 @@ public class AccountsNodeImpl extends AbstractNodeDecorator<Node> implements Acc
 
 		var signature = SignatureHelpers.of(this).signatureAlgorithmFor(payer);
 		Signer<SignedTransactionRequest<?>> signerOnBehalfOfPayer = signature.getSigner(privateKeyOfPayer, SignedTransactionRequest::toByteArrayWithoutSignature);
+		var _150_000 = BigInteger.valueOf(150_000L);
 		var _100_000 = BigInteger.valueOf(100_000L);
 		var _200_000 = BigInteger.valueOf(200_000L);
 
@@ -150,7 +151,7 @@ public class AccountsNodeImpl extends AbstractNodeDecorator<Node> implements Acc
 		}
 
 		// we provide an amount of gas that grows linearly with the number of accounts that get created
-		BigInteger gas = _200_000.multiply(BigInteger.valueOf(funds.length));
+		BigInteger gas = _200_000.add(_150_000.multiply(BigInteger.valueOf(funds.length)));
 
 		this.container = addConstructorCallTransaction(TransactionRequests.constructorCall
 			(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getSafeGasPrice(), classpath,

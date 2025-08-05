@@ -117,9 +117,9 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	private final long now;
 
 	/**
-	 * Enough gas for a simple get method.
+	 * Enough gas for a simple get method such as the coinbase transactions.
 	 */
-	protected final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
+	protected final static BigInteger _500_000 = BigInteger.valueOf(500_000L);
 
 	protected final static BigInteger _100_000_000 = BigInteger.valueOf(100_000_000L);
 

@@ -85,7 +85,7 @@ public class NodesTendermintValidatorsTests extends AbstractMokaTestWithNode {
 		assertEquals(accountsCreateOutput.getTransaction(), account.getTransaction());
 
 		BigInteger balance = node.runInstanceMethodCallTransaction(
-				TransactionRequests.instanceViewMethodCall(gamete, _100_000, takamakaCode, MethodSignatures.BALANCE, account))
+				TransactionRequests.instanceViewMethodCall(gamete, _200_000, takamakaCode, MethodSignatures.BALANCE, account))
 				.orElseThrow(() -> new IllegalStateException(MethodSignatures.BALANCE + " should not return void"))
 				.asReturnedBigInteger(MethodSignatures.BALANCE, IllegalStateException::new);
 
@@ -93,7 +93,7 @@ public class NodesTendermintValidatorsTests extends AbstractMokaTestWithNode {
 		assertEquals(BigInteger.valueOf(12345), balance);
 
 		String publicKeyBase64 = node.runInstanceMethodCallTransaction(
-				TransactionRequests.instanceViewMethodCall(gamete, _100_000, takamakaCode, MethodSignatures.PUBLIC_KEY, account))
+				TransactionRequests.instanceViewMethodCall(gamete, _200_000, takamakaCode, MethodSignatures.PUBLIC_KEY, account))
 				.orElseThrow(() -> new IllegalStateException(MethodSignatures.PUBLIC_KEY + " should not return void"))
 				.asReturnedString(MethodSignatures.PUBLIC_KEY, IllegalStateException::new);
 
@@ -133,7 +133,7 @@ public class NodesTendermintValidatorsTests extends AbstractMokaTestWithNode {
 		assertEquals(accountsCreateOutput.getTransaction(), account.getTransaction());
 
 		BigInteger balance = node.runInstanceMethodCallTransaction(
-				TransactionRequests.instanceViewMethodCall(gamete, _100_000, takamakaCode, MethodSignatures.BALANCE, account))
+				TransactionRequests.instanceViewMethodCall(gamete, _200_000, takamakaCode, MethodSignatures.BALANCE, account))
 				.orElseThrow(() -> new IllegalStateException(MethodSignatures.BALANCE + " should not return void"))
 				.asReturnedBigInteger(MethodSignatures.BALANCE, IllegalStateException::new);
 
@@ -141,7 +141,7 @@ public class NodesTendermintValidatorsTests extends AbstractMokaTestWithNode {
 		assertEquals(BigInteger.valueOf(12345), balance);
 
 		String publicKeyBase64 = node.runInstanceMethodCallTransaction(
-				TransactionRequests.instanceViewMethodCall(gamete, _100_000, takamakaCode, MethodSignatures.PUBLIC_KEY, account))
+				TransactionRequests.instanceViewMethodCall(gamete, _200_000, takamakaCode, MethodSignatures.PUBLIC_KEY, account))
 				.orElseThrow(() -> new IllegalStateException(MethodSignatures.PUBLIC_KEY + " should not return void"))
 				.asReturnedString(MethodSignatures.PUBLIC_KEY, IllegalStateException::new);
 
@@ -196,12 +196,12 @@ public class NodesTendermintValidatorsTests extends AbstractMokaTestWithNode {
 	private BigInteger sharesOnSaleBy(StorageReference seller) throws Exception {
 		var manifest = node.getManifest();
 		var validators = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest))
+				(manifest, _200_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_VALIDATORS))
 				.asReturnedReference(MethodSignatures.GET_VALIDATORS, UnexpectedValueException::new);
 		var sharesOnSale = MethodSignatures.ofNonVoid(StorageTypes.classNamed("io.takamaka.code.dao.SimpleSharedEntity"), "sharesOnSaleOf", StorageTypes.BIG_INTEGER, StorageTypes.PAYABLE_CONTRACT);
 		return node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, sharesOnSale, validators, seller))
+				(manifest, _200_000, takamakaCode, sharesOnSale, validators, seller))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(sharesOnSale))
 				.asReturnedBigInteger(sharesOnSale, UnexpectedValueException::new);
 	}
@@ -209,12 +209,12 @@ public class NodesTendermintValidatorsTests extends AbstractMokaTestWithNode {
 	private boolean isValidator(StorageReference validator) throws Exception {
 		var manifest = node.getManifest();
 		var validators = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest))
+				(manifest, _200_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_VALIDATORS))
 				.asReturnedReference(MethodSignatures.GET_VALIDATORS, UnexpectedValueException::new);
 		var isShareholder = MethodSignatures.ofNonVoid(StorageTypes.classNamed("io.takamaka.code.dao.SimpleSharedEntity"), "isShareholder", StorageTypes.BOOLEAN, StorageTypes.OBJECT);
 		return node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, isShareholder, validators, validator))
+				(manifest, _200_000, takamakaCode, isShareholder, validators, validator))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(isShareholder))
 				.asReturnedBoolean(isShareholder, UnexpectedValueException::new);
 	}
@@ -222,21 +222,21 @@ public class NodesTendermintValidatorsTests extends AbstractMokaTestWithNode {
 	private Optional<StorageReference> getFirstValidator() throws Exception {
 		var manifest = node.getManifest();
 		var validators = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest))
+				(manifest, _200_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_VALIDATORS))
 				.asReturnedReference(MethodSignatures.GET_VALIDATORS, UnexpectedValueException::new);
 		var shares = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_SHARES, validators))
+				(manifest, _200_000, takamakaCode, MethodSignatures.GET_SHARES, validators))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_SHARES))
 				.asReturnedReference(MethodSignatures.GET_SHARES, UnexpectedValueException::new);
 		int numOfValidators = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SIZE, shares))
+				(manifest, _200_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SIZE, shares))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.STORAGE_MAP_VIEW_SIZE))
 				.asReturnedInt(MethodSignatures.STORAGE_MAP_VIEW_SIZE, UnexpectedValueException::new);
 
 		if (numOfValidators > 0)
 			return Optional.of(node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SELECT, shares, StorageValues.intOf(0)))
+					(manifest, _200_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SELECT, shares, StorageValues.intOf(0)))
 					.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.STORAGE_MAP_VIEW_SELECT))
 					.asReturnedReference(MethodSignatures.STORAGE_MAP_VIEW_SELECT, UnexpectedValueException::new));
 		else
