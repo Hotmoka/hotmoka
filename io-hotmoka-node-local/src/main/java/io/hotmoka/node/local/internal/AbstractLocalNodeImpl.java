@@ -235,9 +235,9 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 			Semaphore semaphore = semaphores.get(Objects.requireNonNull(reference));
 			if (semaphore != null)
 				// if we are polling for the outcome of a request sent to this same node, it is better
-				// to wait until it is delivered (or its checking fails) and start polling only after:
+				// to wait until it is delivered (or rejected) and start polling only after:
 				// this optimizes the time of waiting
-				semaphore.tryAcquire(attempts * delay, TimeUnit.MILLISECONDS);
+				semaphore.tryAcquire(600L, TimeUnit.SECONDS); // TODO
 
 			for (long attempt = 1; attempt <= attempts; attempt++, delay = delay * 110 / 100) {
 				S store = enterHead();
