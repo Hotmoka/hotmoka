@@ -26,17 +26,22 @@ import io.hotmoka.node.local.api.LocalNodeConfig;
 public class TendermintConfigFile {
 
 	/**
-	 * The port of the ABCI application, as specified in Tendermint's configuration file.
+	 * The port of the ABCI application, as specified in the Tendermint's configuration file.
 	 */
 	private final int abciPort;
 
 	/**
-	 * The port of the Tendermint process, as specified in Tendermint's configuration file.
+	 * The port of the Tendermint process, as specified in the Tendermint's configuration file.
 	 */
 	private final int tendermintPort;
 
 	/**
-	 * Yields the port of the ABCI application, as specified in Tendermint's configuration file.
+	 * The time out commit (in milliseconds), as specified in the Tendermint's configuration file.
+	 */
+	private final long timeoutCommit;
+
+	/**
+	 * Yields the port of the ABCI application, as specified in the Tendermint's configuration file.
 	 * 
 	 * @return the port of the ABCI application
 	 */
@@ -45,12 +50,21 @@ public class TendermintConfigFile {
 	}
 
 	/**
-	 * Yields the port of the Tendermint process, as specified in Tendermint's configuration file.
+	 * Yields the port of the Tendermint process, as specified in the Tendermint's configuration file.
 	 * 
 	 * @return the port of the Tendermint process
 	 */
 	public int getTendermintPort() {
 		return tendermintPort;
+	}
+
+	/**
+	 * Yields the commit timeout, as specified in the Tendermint's configuration file.
+	 * 
+	 * @return the commit timeout, in milliseconds
+	 */
+	public long getTimeoutCommit() {
+		return timeoutCommit;
 	}
 
 	/**
@@ -82,5 +96,30 @@ public class TendermintConfigFile {
 		catch (NumberFormatException e) {
 			throw new TendermintException("The port of the laddr property in the Tendermint's configuration file cannot be parsed", e);
 		}
+
+		String timeoutCommit = toml.getTable("consensus").getString("timeout_commit");
+		if (timeoutCommit == null)
+			throw new TendermintException("The Tendermint configuration file must specify a commit timeout with timeout_commit");
+
+		long timeoutCommitMs;
+		if (timeoutCommit.endsWith("ms")) {
+			try {
+				timeoutCommitMs = Long.parseUnsignedLong(timeoutCommit.substring(0, timeoutCommit.length() - 2));
+			}
+			catch (NumberFormatException e) {
+				throw new TendermintException("The commit timeout in the Tendermint configuration file is not parsable");
+			}
+		}
+		else if (timeoutCommit.endsWith("s")) {
+			try {
+				timeoutCommitMs = Long.parseLong(timeoutCommit.substring(0, timeoutCommit.length() - 1)) * 1000L;
+			}
+			catch (NumberFormatException e) {
+				throw new TendermintException("The commit timeout in the Tendermint configuration file is not parsable");
+			}
+		}
+		else throw new TendermintException("The Tendermint configuration file must specify a commit timeout that ends with \"ms\" or with \"s\"");
+
+		this.timeoutCommit = timeoutCommitMs;
 	}
 }

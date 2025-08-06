@@ -229,17 +229,15 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	@Override
 	public final TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException, ClosedNodeException {
 		try (var scope = mkScope()) {
-			var attempts = Math.max(1L, config.getMaxPollingAttempts());
-			var delay = config.getPollingDelay();
-
 			Semaphore semaphore = semaphores.get(Objects.requireNonNull(reference));
 			if (semaphore != null)
 				// if we are polling for the outcome of a request sent to this same node, it is better
 				// to wait until it is delivered (or rejected) and start polling only after:
 				// this optimizes the time of waiting
-				semaphore.tryAcquire(600L, TimeUnit.SECONDS); // TODO
+				semaphore.tryAcquire(getResponseWaitingTime(), TimeUnit.MILLISECONDS);
 
-			for (long attempt = 1; attempt <= attempts; attempt++, delay = delay * 110 / 100) {
+			var attempts = Math.max(1L, config.getMaxPollingAttempts());
+			for (long attempt = 1, delay = config.getPollingDelay(); attempt <= attempts; attempt++, delay = delay * 110 / 100) {
 				S store = enterHead();
 
 				try {
@@ -452,6 +450,14 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 			return CodeFutures.ofMethod(post(request), this);
 		}
 	}
+
+	/**
+	 * Yields the waiting time for a response, for the {@link #getPolledResponse(TransactionReference)}.
+	 * After this time, polling starts.
+	 * 
+	 * @return the waiting time, in milliseconds
+	 */
+	protected abstract long getResponseWaitingTime();
 
 	/**
 	 * Called when this node is executing something that needs the store of the head.

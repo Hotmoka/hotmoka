@@ -19,6 +19,7 @@ package io.hotmoka.node.mokamint.internal;
 import java.security.KeyPair;
 import java.util.concurrent.TimeoutException;
 
+import io.hotmoka.node.local.LocalNodeException;
 import io.hotmoka.node.mokamint.api.MokamintNode;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
 import io.mokamint.node.local.AbstractLocalNode;
@@ -48,7 +49,15 @@ public abstract class MokamintNodesImpl {
 		var app = new HotmokaApplicationImpl<LocalNode>(config, true);
 		var engine = new AbstractLocalNode(mokamintConfig, keyPair, app, true) {};
 		MokamintNode<LocalNode> node = app.getNode();
-		node.setMokamintEngine(engine);
+
+		try {
+			node.setMokamintEngine(engine);
+		}
+		catch (io.mokamint.node.api.ClosedNodeException e) {
+			// this is impossible: nobody can have closed our local variable engine
+			throw new LocalNodeException(e);
+		}
+
 		node.addOnCloseHandler(engine::close);
 
 		return node;
@@ -71,7 +80,15 @@ public abstract class MokamintNodesImpl {
 		var app = new HotmokaApplicationImpl<LocalNode>(config, true);
 		var engine = new AbstractLocalNode(mokamintConfig, keyPair, app, false) {};
 		MokamintNode<LocalNode> node = app.getNode();
-		node.setMokamintEngine(engine);
+
+		try {
+			node.setMokamintEngine(engine);
+		}
+		catch (io.mokamint.node.api.ClosedNodeException e) {
+			// this is impossible: nobody can have closed our local variable engine
+			throw new LocalNodeException(e);
+		}
+
 		node.addOnCloseHandler(engine::close);
 
 		return node;
@@ -94,7 +111,15 @@ public abstract class MokamintNodesImpl {
 		var app = new HotmokaApplicationImpl<LocalNode>(config, false);
 		var engine = new AbstractLocalNode(mokamintConfig, keyPair, app, false) {};
 		MokamintNode<LocalNode> node = app.getNode();
-		node.setMokamintEngine(engine);
+
+		try {
+			node.setMokamintEngine(engine);
+		}
+		catch (io.mokamint.node.api.ClosedNodeException e) {
+			// this is impossible: nobody can have closed our local variable engine
+			throw new LocalNodeException(e);
+		}
+
 		node.addOnCloseHandler(engine::close);
 
 		return node;

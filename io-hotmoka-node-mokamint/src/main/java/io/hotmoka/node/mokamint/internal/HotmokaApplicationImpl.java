@@ -328,6 +328,11 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 		private volatile E engine;
 
 		/**
+		 * The target block creation time (in milliseconds) of {@link #engine}.
+		 */
+		private volatile long targetBlockCreationTime;
+
+		/**
 		 * A lock for accessing {@link #lastHeadStateId} and {@link #storeOfHead}.
 		 */
 		private final Object headLock = new Object();
@@ -353,7 +358,7 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 		 * @param config the configuration of the Hotmoka node
 		 * @param init if true, the working directory of the node gets initialized
 		 */
-		public MokamintNodeImpl(MokamintNodeConfig config, boolean init) {
+		private MokamintNodeImpl(MokamintNodeConfig config, boolean init) {
 			super(config, init);
 
 			int size = getLocalConfig().getIndexSize();
@@ -364,8 +369,9 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 		}
 
 		@Override
-		public void setMokamintEngine(E engine) {
+		public void setMokamintEngine(E engine) throws TimeoutException, InterruptedException, io.mokamint.node.api.ClosedNodeException {
 			this.engine = engine;
+			this.targetBlockCreationTime = engine.getConfig().getTargetBlockCreationTime();
 		}
 
 		@Override
@@ -386,6 +392,12 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 		@Override
 		protected MokamintStore mkEmptyStore() {
 			return new MokamintStore(this);
+		}
+
+		@Override
+		protected long getResponseWaitingTime() {
+			// 20 blocks
+			return targetBlockCreationTime * 20L;
 		}
 
 		@Override

@@ -115,6 +115,11 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	private final Tendermint tendermint;
 
 	/**
+	 * The configuration file of the Tendermint engine.
+	 */
+	private final TendermintConfigFile tendermintConfigFile;
+
+	/**
 	 * An object for posting requests to the Tendermint process.
 	 */
 	private final TendermintPoster poster;
@@ -149,7 +154,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 		else
 			checkOutRootBranch();
 
-		var tendermintConfigFile = new TendermintConfigFile(config);
+		this.tendermintConfigFile = new TendermintConfigFile(config);
 
 		this.poster = new TendermintPoster(config, tendermintConfigFile.getTendermintPort());
 		this.abci = new Server(tendermintConfigFile.getAbciPort(), new TendermintApplication());
@@ -193,6 +198,12 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	@Override
 	protected TendermintStore getStoreOfHead() {
 		return storeOfHead;
+	}
+
+	@Override
+	protected long getResponseWaitingTime() {
+		// 20 blocks
+		return tendermintConfigFile.getTimeoutCommit() * 20;
 	}
 
 	@Override

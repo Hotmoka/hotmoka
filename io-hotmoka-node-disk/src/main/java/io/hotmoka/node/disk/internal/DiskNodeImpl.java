@@ -115,6 +115,12 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 
 	
 	@Override
+	protected long getResponseWaitingTime() {
+		// one minute, but this node is actually immediately executing transactions, at maximal speed
+		return 60_000L;
+	}
+
+	@Override
 	protected DiskStore mkEmptyStore() {
 		return new DiskStore(this, storePath);
 	}

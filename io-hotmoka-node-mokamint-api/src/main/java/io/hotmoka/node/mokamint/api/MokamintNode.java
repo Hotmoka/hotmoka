@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.mokamint.api;
 
 import java.util.Optional;
+import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.local.api.LocalNode;
@@ -34,8 +35,11 @@ public interface MokamintNode<E extends PublicNode> extends LocalNode<MokamintNo
 	 * Sets the Mokamint engine that must be used by this node.
 	 * 
 	 * @param engine the Mokamint engine
+	 * @param io.mokamint.node.api.ClosedNodeException if {@code engine} is already closed
+	 * @param InterruptedException if the current thread gets interrupted while performing the operation
+	 * @param TimeoutException if the operation times out
 	 */
-	void setMokamintEngine(E engine);
+	void setMokamintEngine(E engine) throws TimeoutException, InterruptedException, io.mokamint.node.api.ClosedNodeException;
 
 	/**
 	 * Yields the Mokamint engine used by this node, if it has been already set.
