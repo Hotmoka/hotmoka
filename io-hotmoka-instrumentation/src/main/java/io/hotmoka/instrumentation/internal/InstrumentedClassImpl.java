@@ -51,6 +51,7 @@ import io.hotmoka.instrumentation.internal.instrumentationsOfClass.DesugarBootst
 import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.AddExtraArgsToCallsToFromContract;
 import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.AddGasUpdates;
 import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.InstrumentMethodsOfSupportClasses;
+import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.MakeStrictfp;
 import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.ReplaceFieldAccessesWithAccessors;
 import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.SetCallerAndBalanceAtTheBeginningOfFromContracts;
 import io.hotmoka.verification.AnnotationUtilities;
@@ -566,6 +567,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 				new AddExtraArgsToCallsToFromContract(this, method);
 				new SetCallerAndBalanceAtTheBeginningOfFromContracts(this, method);
 				new AddGasUpdates(this, method);
+				new MakeStrictfp(this, method);
 			}
 		}
 
