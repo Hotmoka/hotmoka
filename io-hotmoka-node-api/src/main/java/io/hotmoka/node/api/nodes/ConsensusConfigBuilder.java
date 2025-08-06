@@ -50,6 +50,14 @@ public interface ConsensusConfigBuilder<C extends ConsensusConfig<C,B>, B extend
 	B setMaxCumulativeSizeOfDependencies(long maxCumulativeSizeOfDependencies);
 
 	/**
+	 * Sets the maximal size (in bytes) of a request; larger requests will be rejected.
+	 * 
+	 * @param maxRequestSize the maximal size (in bytes) of a request
+	 * @return this builder
+	 */
+	B setMaxRequestSize(long maxRequestSize);
+
+	/**
 	 * Specifies to allow the {@code faucet()} methods of the gametes without a valid signature.
 	 * This is only useful for testing networks, where users can freely fill their accounts at the faucet.
 	 * 

@@ -64,6 +64,13 @@ public interface ConsensusConfig<C extends ConsensusConfig<C,B>, B extends Conse
 	long getMaxCumulativeSizeOfDependencies();
 
 	/**
+	 * Yields the maximum size of a request; larger requests will be rejected.
+	 * 
+	 * @return the maximum size of a request
+	 */
+	long getMaxRequestSize();
+
+	/**
 	 * Yields true if and only if the use of the faucet of the gamete is allowed without a valid signature.
 	 * 
 	 * @return true if and only if the condition holds

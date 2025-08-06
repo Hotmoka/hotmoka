@@ -58,6 +58,7 @@ public class BasicConsensusConfigBuilder extends AbstractConsensusConfigBuilder<
 			.setChainId(json.getChainId())
 			.setMaxDependencies(json.getMaxDependencies())
 			.setMaxCumulativeSizeOfDependencies(json.getMaxCumulativeSizeOfDependencies())
+			.setMaxRequestSize(json.getMaxRequestSize())
 			.allowUnsignedFaucet(json.isAllowsUnsignedFaucet())
 			.skipVerification(json.isSkipsVerification())
 			.setPublicKeyOfGamete(signature.publicKeyFromEncoding(Base64.fromBase64String(json.getPublicKeyOfGameteBase64(), InconsistentJsonException::new)))

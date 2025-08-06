@@ -34,6 +34,7 @@ public abstract class ConsensusConfigJson implements JsonRepresentation<Consensu
 	private final String chainId;
 	private final int maxDependencies;
 	private final long maxCumulativeSizeOfDependencies;
+	private final long maxRequestSize;
 	private final boolean allowsUnsignedFaucet;
 	private final boolean skipsVerification;
 	private final String publicKeyOfGameteBase64;
@@ -54,6 +55,7 @@ public abstract class ConsensusConfigJson implements JsonRepresentation<Consensu
 		this.chainId = config.getChainId();
 		this.maxDependencies = config.getMaxDependencies();
 		this.maxCumulativeSizeOfDependencies = config.getMaxCumulativeSizeOfDependencies();
+		this.maxRequestSize = config.getMaxRequestSize();
 		this.allowsUnsignedFaucet = config.allowsUnsignedFaucet();
 		this.skipsVerification = config.skipsVerification();
 		this.publicKeyOfGameteBase64 = config.getPublicKeyOfGameteBase64();
@@ -140,6 +142,10 @@ public abstract class ConsensusConfigJson implements JsonRepresentation<Consensu
 
 	public int getMaxDependencies() {
 		return maxDependencies;
+	}
+
+	public long getMaxRequestSize() {
+		return maxRequestSize;
 	}
 
 	@Override

@@ -29,6 +29,9 @@ public interface MokamintNodeConfigBuilder extends LocalNodeConfigBuilder<Mokami
 	 * the more resilient is indexing to large history changes, but higher is
 	 * its computational cost and database usage. A negative value means that supporting data
 	 * is kept forever, it is never deleted, which protects completely from history changes.
+	 * 
+	 * @param indexingDepth the depth of the indexing
+	 * @return this builder
 	 */
 	MokamintNodeConfigBuilder setIndexingDepth(long indexingDepth);
 

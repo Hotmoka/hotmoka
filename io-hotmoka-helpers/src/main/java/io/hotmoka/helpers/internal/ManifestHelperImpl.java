@@ -178,6 +178,13 @@ public class ManifestHelperImpl implements ManifestHelper {
 
 		builder.append("   ├─ max cumulative size of dependencies: ").append(maxCumulativeSizeOfDependencies).append("\n");
 
+		long maxRequestSize = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_REQUEST_SIZE, manifest))
+				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_MAX_REQUEST_SIZE))
+				.asReturnedLong(MethodSignatures.GET_MAX_REQUEST_SIZE, UnexpectedValueException::new);
+
+		builder.append("   ├─ max request size: ").append(maxRequestSize).append("\n");
+
 		boolean allowsUnsignedFaucet = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.ALLOWS_UNSIGNED_FAUCET, manifest))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.ALLOWS_UNSIGNED_FAUCET))

@@ -110,11 +110,12 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 		var request = TransactionRequests.constructorCall
 			(new byte[0], gamete, nonceOfGamete, "", BigInteger.valueOf(1_000_000), ZERO, takamakaCodeReference,
 					ConstructorSignatures.of(StorageTypes.MANIFEST, StorageTypes.STRING, StorageTypes.STRING,
-					StorageTypes.INT, StorageTypes.LONG, StorageTypes.BOOLEAN, StorageTypes.BOOLEAN,
+					StorageTypes.INT, StorageTypes.LONG, StorageTypes.LONG, StorageTypes.BOOLEAN, StorageTypes.BOOLEAN,
 					StorageTypes.STRING, StorageTypes.GAMETE, StorageTypes.LONG, function, function),
 					StorageValues.stringOf(consensus.getGenesisTime().toInstant(ZoneOffset.UTC).toString()),
 					StorageValues.stringOf(consensus.getChainId()), StorageValues.intOf(consensus.getMaxDependencies()),
 					StorageValues.longOf(consensus.getMaxCumulativeSizeOfDependencies()),
+					StorageValues.longOf(consensus.getMaxRequestSize()),
 					StorageValues.booleanOf(consensus.allowsUnsignedFaucet()), StorageValues.booleanOf(consensus.skipsVerification()),
 					StorageValues.stringOf(consensus.getSignatureForRequests().getName()), gamete, StorageValues.longOf(consensus.getVerificationVersion()),
 					builderOfValidators, builderOfGasStation);
@@ -164,11 +165,12 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 		var request = TransactionRequests.constructorCall
 			(new byte[0], gamete, nonceOfGamete, "", BigInteger.valueOf(1_000_000), ZERO, takamakaCodeReference,
 				ConstructorSignatures.of(StorageTypes.MANIFEST, StorageTypes.STRING, StorageTypes.STRING,
-				StorageTypes.INT, StorageTypes.LONG, StorageTypes.BOOLEAN, StorageTypes.BOOLEAN,
+				StorageTypes.INT, StorageTypes.LONG, StorageTypes.LONG, StorageTypes.BOOLEAN, StorageTypes.BOOLEAN,
 				StorageTypes.STRING, StorageTypes.GAMETE, StorageTypes.LONG, function, function),
 				StorageValues.stringOf(consensus.getGenesisTime().toString()),
 				StorageValues.stringOf(consensus.getChainId()), StorageValues.intOf(consensus.getMaxDependencies()),
 				StorageValues.longOf(consensus.getMaxCumulativeSizeOfDependencies()),
+				StorageValues.longOf(consensus.getMaxRequestSize()),
 				StorageValues.booleanOf(consensus.allowsUnsignedFaucet()), StorageValues.booleanOf(consensus.skipsVerification()),
 				StorageValues.stringOf(consensus.getSignatureForRequests().getName()), gamete, StorageValues.longOf(consensus.getVerificationVersion()),
 				builderOfValidators, builderOfGasStation);

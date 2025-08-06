@@ -315,7 +315,12 @@ public class Index {
 	 */
 	public static class MarshallableArrayOfTransactionReferences extends IndexMarshallable {
 		private final TransactionReference[] references;
-	
+
+		/**
+		 * Creates a marshallable array of the given transaction references.
+		 * 
+		 * @param references the transaction references
+		 */
 		public MarshallableArrayOfTransactionReferences(TransactionReference[] references) {
 			this.references = references;
 		}
@@ -370,6 +375,11 @@ public class Index {
 			return new MarshallableArrayOfTransactionReferences(Stream.of(references).filter(reference2 -> !reference2.equals(reference)).toArray(TransactionReference[]::new));
 		}
 
+		/**
+		 * Yields the transaction references in this marshallable array.
+		 * 
+		 * @return the transaction references
+		 */
 		public Stream<TransactionReference> stream() {
 			return Stream.of(references);
 		}

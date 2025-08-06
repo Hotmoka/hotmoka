@@ -184,6 +184,13 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 */
 		protected abstract Response body() throws TransactionRejectedException;
 
+		protected void checkConsistency() throws TransactionRejectedException {
+			long maxRequestSize = consensus.getMaxRequestSize();
+
+			if (request.size() > maxRequestSize)
+				throw new TransactionRejectedException("The transaction request is too large (" + request.size() + " bytes against a maximum of " + maxRequestSize + " bytes)");
+		}
+
 		/**
 		 * Yields the UTC time when the transaction is being run.
 		 * This might be for instance the time of creation of a block where the transaction

@@ -131,6 +131,8 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		}
 
 		protected void checkConsistency() throws TransactionRejectedException {
+			super.checkConsistency();
+
 			callerMustBeExternallyOwnedAccount();
 			gasLimitIsInsideBounds();
 			requestPromisesEnoughGas();

@@ -244,6 +244,11 @@ public abstract class ExecutionEnvironment {
 					.orElseThrow(() -> new LocalNodeException(MethodSignatures.GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES + " should not return void"))
 					.asReturnedLong(MethodSignatures.GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES, LocalNodeException::new);
 	
+			long maxRequestSize = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_REQUEST_SIZE, manifest))
+					.orElseThrow(() -> new LocalNodeException(MethodSignatures.GET_MAX_REQUEST_SIZE + " should not return void"))
+					.asReturnedLong(MethodSignatures.GET_MAX_REQUEST_SIZE, LocalNodeException::new);
+
 			boolean allowsFaucet = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.ALLOWS_UNSIGNED_FAUCET, manifest))
 					.orElseThrow(() -> new LocalNodeException(MethodSignatures.ALLOWS_UNSIGNED_FAUCET + " should not return void"))
@@ -342,6 +347,7 @@ public abstract class ExecutionEnvironment {
 					.setOblivion(oblivion)
 					.setMaxDependencies(maxDependencies)
 					.setMaxCumulativeSizeOfDependencies(maxCumulativeSizeOfDependencies)
+					.setMaxRequestSize(maxRequestSize)
 					.allowUnsignedFaucet(allowsFaucet)
 					.skipVerification(skipsVerification)
 					.setVerificationVersion(verificationVersion)

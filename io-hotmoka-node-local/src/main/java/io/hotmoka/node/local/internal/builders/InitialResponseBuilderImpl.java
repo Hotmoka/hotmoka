@@ -80,6 +80,8 @@ public abstract class InitialResponseBuilderImpl<Request extends InitialTransact
 		 * @throws TransactionRejectedException if the request should be rejected
 		 */
 		protected final void checkConsistency() throws TransactionRejectedException {
+			super.checkConsistency();
+
 			try {
 				checkBeforeExecution();
 			}

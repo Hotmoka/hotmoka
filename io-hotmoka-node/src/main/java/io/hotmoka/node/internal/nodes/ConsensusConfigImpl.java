@@ -74,6 +74,11 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 	public final long maxCumulativeSizeOfDependencies;
 
 	/**
+	 * The maximal size of a request.
+	 */
+	public final long maxRequestSize;
+
+	/**
 	 * True if and only if the use of the faucet of the gamete is allowed without a valid signature.
 	 * It defaults to false.
 	 */
@@ -174,6 +179,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		this.chainId = builder.chainId;
 		this.maxDependencies = builder.maxDependencies;
 		this.maxCumulativeSizeOfDependencies = builder.maxCumulativeSizeOfDependencies;
+		this.maxRequestSize = builder.maxRequestSize;
 		this.allowsUnsignedFaucet = builder.allowsUnsignedFaucet;
 		this.initialGasPrice = builder.initialGasPrice;
 		this.maxGasPerTransaction = builder.maxGasPerTransaction;
@@ -198,6 +204,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 			chainId.equals(occi.chainId) &&
 			maxDependencies == occi.maxDependencies &&
 			maxCumulativeSizeOfDependencies == occi.maxCumulativeSizeOfDependencies &&
+			maxRequestSize == occi.maxRequestSize &&
 			allowsUnsignedFaucet == occi.allowsUnsignedFaucet &&
 			initialGasPrice.equals(occi.initialGasPrice) &&
 			maxGasPerTransaction.equals(occi.maxGasPerTransaction) &&
@@ -217,7 +224,8 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 	@Override
 	public int hashCode() {
 		return genesisTime.hashCode() ^ chainId.hashCode() ^ Long.hashCode(maxDependencies)
-			^ Long.hashCode(maxCumulativeSizeOfDependencies) ^ publicKeyOfGameteBase64.hashCode() ^ initialGasPrice.hashCode()
+			^ Long.hashCode(maxCumulativeSizeOfDependencies) ^ Long.hashCode(maxRequestSize)
+			^ publicKeyOfGameteBase64.hashCode() ^ initialGasPrice.hashCode()
 			^ maxGasPerTransaction.hashCode() ^ targetGasAtReward.hashCode() ^ Long.hashCode(oblivion)
 			^ Long.hashCode(verificationVersion) ^ initialSupply.hashCode();
 	}
@@ -247,6 +255,9 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		sb.append("# the maximal cumulative size (in bytes) of the instrumented jars\n");
 		sb.append("# of the dependencies of a transaction\n");
 		sb.append("max_cumulative_size_of_dependencies = " + maxCumulativeSizeOfDependencies + "\n");
+		sb.append("\n");
+		sb.append("# the maximal size (in bytes) of a request\n");
+		sb.append("max_request_size = " + maxRequestSize + "\n");
 		sb.append("\n");
 		sb.append("# true if and only if the use of the faucet of the gamete is allowed without a valid signature\n");
 		sb.append("allows_unsigned_faucet = " + allowsUnsignedFaucet + "\n");
@@ -322,6 +333,11 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 	@Override
 	public long getMaxCumulativeSizeOfDependencies() {
 		return maxCumulativeSizeOfDependencies;
+	}
+
+	@Override
+	public long getMaxRequestSize() {
+		return maxRequestSize;
 	}
 
 	@Override
@@ -416,6 +432,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		private BigInteger maxGasPerTransaction = BigInteger.valueOf(10_000_000L);
 		private int maxDependencies = 20;
 		private long maxCumulativeSizeOfDependencies = 1_000_000L;
+		private long maxRequestSize = 500_000L;
 		private BigInteger initialGasPrice = BigInteger.valueOf(100L);
 		private boolean ignoresGasPrice = false;
 		private boolean skipsVerification = false;
@@ -466,6 +483,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 			setGenesisTime(config.getGenesisTime());
 			setMaxDependencies(config.getMaxDependencies());
 			setMaxCumulativeSizeOfDependencies(config.getMaxCumulativeSizeOfDependencies());
+			setMaxRequestSize(config.getMaxRequestSize());
 			allowUnsignedFaucet(config.allowsUnsignedFaucet());
 			setSignatureForRequests(config.getSignatureForRequests());
 			setMaxGasPerTransaction(config.getMaxGasPerTransaction());
@@ -510,6 +528,10 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 			var maxCumulativeSizeOfDependencies = toml.getLong("max_cumulative_size_of_dependencies");
 			if (maxCumulativeSizeOfDependencies != null)
 				setMaxCumulativeSizeOfDependencies(maxCumulativeSizeOfDependencies);
+
+			var maxRequestSize = toml.getLong("max_request_size");
+			if (maxRequestSize != null)
+				setMaxRequestSize(maxRequestSize);
 
 			var allowsUnsignedFaucet = toml.getBoolean("allows_unsigned_faucet");
 			if (allowsUnsignedFaucet != null)
@@ -600,9 +622,18 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		@Override
 		public B setMaxCumulativeSizeOfDependencies(long maxCumulativeSizeOfDependencies) {
 			if (maxCumulativeSizeOfDependencies < 0L)
-				throw new IllegalArgumentException("The max cumulative size opf the dependencies cannot be negative");
+				throw new IllegalArgumentException("The max cumulative size of the dependencies cannot be negative");
 
 			this.maxCumulativeSizeOfDependencies = maxCumulativeSizeOfDependencies;
+			return getThis();
+		}
+
+		@Override
+		public B setMaxRequestSize(long maxRequestSize) {
+			if (maxRequestSize < 0L)
+				throw new IllegalArgumentException("The max request size cannot be negative");
+
+			this.maxRequestSize = maxRequestSize;
 			return getThis();
 		}
 

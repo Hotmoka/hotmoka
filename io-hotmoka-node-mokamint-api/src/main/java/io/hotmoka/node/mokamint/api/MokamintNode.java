@@ -35,9 +35,9 @@ public interface MokamintNode<E extends PublicNode> extends LocalNode<MokamintNo
 	 * Sets the Mokamint engine that must be used by this node.
 	 * 
 	 * @param engine the Mokamint engine
-	 * @param io.mokamint.node.api.ClosedNodeException if {@code engine} is already closed
-	 * @param InterruptedException if the current thread gets interrupted while performing the operation
-	 * @param TimeoutException if the operation times out
+	 * @throws io.mokamint.node.api.ClosedNodeException if {@code engine} is already closed
+	 * @throws InterruptedException if the current thread gets interrupted while performing the operation
+	 * @throws TimeoutException if the operation times out
 	 */
 	void setMokamintEngine(E engine) throws TimeoutException, InterruptedException, io.mokamint.node.api.ClosedNodeException;
 

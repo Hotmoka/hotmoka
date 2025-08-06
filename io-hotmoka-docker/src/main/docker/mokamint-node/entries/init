@@ -14,7 +14,7 @@ then
 fi
 
 moka-print-logs nodes mokamint init \
-	/modules/explicit_or_automatic/io-takamaka-code-1.5.0.jar \
+	/modules/explicit_or_automatic/io-takamaka-code-1.6.0.jar \
 	hotmoka_mokamint/plot.plot \
 	hotmoka_mokamint/node.pem \
 	hotmoka_mokamint/miner.pem \

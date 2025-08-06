@@ -163,6 +163,11 @@ public abstract class MethodSignatures {
 	public final static NonVoidMethodSignature GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES = ofNonVoid(MANIFEST, "getMaxCumulativeSizeOfDependencies", LONG);
 
 	/**
+	 * The method {@code getMaxRequestSize} of the manifest.
+	 */
+	public final static NonVoidMethodSignature GET_MAX_REQUEST_SIZE = ofNonVoid(MANIFEST, "getMaxRequestSize", LONG);
+
+	/**
 	 * The method {@code getTicketForNewPoll} of the validators.
 	 */
 	public final static NonVoidMethodSignature GET_TICKET_FOR_NEW_POLL = ofNonVoid(VALIDATORS, "getTicketForNewPoll", BIG_INTEGER);
