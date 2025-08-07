@@ -259,7 +259,7 @@ class BlindAuction extends HotmokaTest {
 			counter++;
 		}
 
-		waitUntil(BIDDING_TIME + REVEAL_TIME + 5_000, start);
+		waitUntil(BIDDING_TIME + REVEAL_TIME + 10_000, start);
 
 		LOGGER.info("ending the auction");
 		// the winner can be a StorageReference but also a NullValue, if all bids were fake
