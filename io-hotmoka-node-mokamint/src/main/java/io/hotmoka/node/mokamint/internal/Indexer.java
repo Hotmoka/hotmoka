@@ -33,6 +33,7 @@ import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.Index;
 import io.hotmoka.node.local.Index.MarshallableArrayOfTransactionReferences;
+import io.hotmoka.node.local.IndexException;
 import io.hotmoka.node.local.LocalNodeException;
 import io.hotmoka.node.mokamint.api.MokamintNode;
 import io.hotmoka.xodus.ByteIterable;
@@ -40,6 +41,7 @@ import io.hotmoka.xodus.env.Environment;
 import io.hotmoka.xodus.env.Store;
 import io.mokamint.node.api.Block;
 import io.mokamint.node.api.NonGenesisBlock;
+import io.mokamint.node.api.PortionRejectedException;
 import io.mokamint.node.api.Transaction;
 
 /**
@@ -79,11 +81,6 @@ public class Indexer {
 	 * The hashing algorithm to transform transactions into their transaction reference.
 	 */
 	private final Hasher<byte[]> sha256;
-
-	/**
-	 * The number of block hashes fetched from the blockchain, in a single call to the Mokamint engine.
-	 */
-	private final static int BLOCK_FETCHING_CHUNK_SIZE = 512;
 
 	/**
 	 * The constant key bound, in {@link #store}, to (one less than) the base height of the portion of the blockchain
@@ -220,8 +217,11 @@ public class Indexer {
 		catch (io.mokamint.node.api.ClosedNodeException e) {
 			LOGGER.warning(LOG_PREFIX + "cannot index the store of the node further since the underlying Mokamint node is closed");
 		}
+		catch (PortionRejectedException e) {
+			LOGGER.warning(LOG_PREFIX + "cannot index the store of the node further since the underlying Mokamint node rejected a request for a portion of its chain: " + e.getMessage());
+		}
 		catch (UnknownReferenceException e) {
-			LOGGER.warning(LOG_PREFIX + "cannot index the store of the node further since it misses the response of a transaction");
+			LOGGER.warning(LOG_PREFIX + "cannot index the store of the node further since it misses the response of a transaction: " + e.getMessage());
 		}
 		catch (ClosedNodeException e) {
 			LOGGER.warning(LOG_PREFIX + "cannot index the store of the node further since the node is closed");
@@ -257,14 +257,23 @@ public class Indexer {
 		private byte[][] hashes;
 
 		/**
+		 * The number of block hashes that are fetched with a single call to the underlying Mokamint engine.
+		 */
+		private final int blockFetchingChunkSize;
+
+		/**
 		 * Creates the iterator, for the hashes of the blocks from {@code start} (included) upwards.
 		 * 
 		 * @param start the initial height of the required block hashes
 		 */
-		private BlockHashesIterator(long start) throws TimeoutException, InterruptedException, io.mokamint.node.api.ClosedNodeException {
+		private BlockHashesIterator(long start) throws TimeoutException, InterruptedException, io.mokamint.node.api.ClosedNodeException, PortionRejectedException {
 			this.start = start;
 			this.pos = 0;
-			this.hashes = node.getMokamintEngine().get().getChainPortion(start, BLOCK_FETCHING_CHUNK_SIZE).getHashes().toArray(byte[][]::new);
+			this.blockFetchingChunkSize = Math.min(node.getMokamintEngine().get().getConfig().getMaxChainPortionLength(), 512);
+			if (blockFetchingChunkSize < 2)
+				throw new IndexException("The maximal chain portion length is too small for keeping an index");
+
+			this.hashes = node.getMokamintEngine().get().getChainPortion(start, blockFetchingChunkSize).getHashes().toArray(byte[][]::new);
 		}
 
 		@Override
@@ -282,15 +291,19 @@ public class Indexer {
 				// to continue the previous one: otherwise, there has been a history change and we cannot proceed
 				// further with this indexing iteration
 				try {
-					byte[][] nextHashes = node.getMokamintEngine().get().getChainPortion(start + BLOCK_FETCHING_CHUNK_SIZE - 1, BLOCK_FETCHING_CHUNK_SIZE).getHashes().toArray(byte[][]::new);
+					byte[][] nextHashes = node.getMokamintEngine().get().getChainPortion(start + blockFetchingChunkSize - 1, blockFetchingChunkSize).getHashes().toArray(byte[][]::new);
 
 					if (nextHashes.length > 0 && Arrays.equals(nextHashes[0], result)) { // the chunks of hashes match over their overlapping
 						hashes = nextHashes;
-						start += BLOCK_FETCHING_CHUNK_SIZE - 1;
+						start += blockFetchingChunkSize - 1;
 						pos = 1; // we do not consider the overlapping hash, since we already did it
 					}
 					// otherwise, if the next chunk of hashes does not start with the last hash of the previous chunk, there must have been
 					// a history change and we do not proceed further: next indexing will have a chance to go further
+				}
+				catch (PortionRejectedException e) {
+					// this should not happen since we verified that blockFetchingChunkSize is not larger than the maximum allowed
+					LOGGER.warning(LOG_PREFIX + "stopping indexing since it was impossible to fetch a chain portion from the Mokamint node: " + e.getMessage());
 				}
 				catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
