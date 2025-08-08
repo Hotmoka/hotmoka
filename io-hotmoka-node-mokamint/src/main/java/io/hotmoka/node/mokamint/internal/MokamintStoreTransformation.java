@@ -18,7 +18,6 @@ package io.hotmoka.node.mokamint.internal;
 
 import java.math.BigInteger;
 import java.util.Optional;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.hotmoka.crypto.Base58;
@@ -29,8 +28,11 @@ import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
+import io.hotmoka.node.api.responses.MethodCallTransactionExceptionResponse;
 import io.hotmoka.node.api.responses.MethodCallTransactionFailedResponse;
+import io.hotmoka.node.api.responses.NonVoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
+import io.hotmoka.node.api.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractTrieBasedStoreTransformation;
@@ -74,6 +76,19 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 	 * @throws InterruptedException if the current thread is interrupted before delivering the transaction
 	 */
 	protected void deliverCoinbaseTransactions(Prolog prolog) throws InterruptedException {
+		// delivering this coinbase reward is conceptually simple: pay half of the amount to the
+		// node and the other half to the miner; both are identified through their public key,
+		// therefore these payments occur inside the accounts ledger;
+		// the only problem is that payments inside the accounts ledger create the
+		// destination account the first time that they occur: as a consequence,
+		// if both the accounts of the node and of the miner gets created in the coinbase
+		// transaction, the latter would have a non-zero progressive. To avoid this problem,
+		// the reward method for Mokamint informs us if it managed to pay both the node and the miner
+		// or only the miner; in the second case, a further transaction is needed, to finishes
+		// the process by paying the miner as well. Note that an alternative is to perform
+		// two payments transactions, always, one for the node and one for the miner.
+		// But this would increase the number of transactions kept in store
+
 		Optional<StorageReference> maybeManifest = getManifest();
 		if (maybeManifest.isEmpty())
 			return;
@@ -108,12 +123,15 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 		BigInteger percentForNodeAsBI = BigInteger.valueOf(percentForNode);
 		BigInteger reward = getReward().add(minted);
 		BigInteger rewardForNode = reward.multiply(percentForNodeAsBI).divide(_100_000_000);
+		BigInteger rewardForMiner = reward.subtract(rewardForNode);
 
 		var request = TransactionRequests.instanceSystemMethodCall
-				(manifest, nonce, _500_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD_MOKAMINT_NODE, validators,
+				(manifest, nonce, _500_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD_MOKAMINT, validators,
+						StorageValues.bigIntegerOf(reward),
 						StorageValues.bigIntegerOf(rewardForNode),
 						StorageValues.bigIntegerOf(minted),
 						StorageValues.stringOf(publicKeyOfNodeBase64),
+						StorageValues.stringOf(publicKeyOfMinerBase64),
 						StorageValues.bigIntegerOf(gasConsumed),
 						StorageValues.bigIntegerOf(deliveredCount()));
 
@@ -121,36 +139,48 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 
 		try {
 			response = deliverTransaction(request);
-			LOGGER.info("coinbase: rewarded " + rewardForNode + " to a node with public key " + publicKeyOfNodeBase58 + " (" + prolog.getSignatureForBlocks() + ", base58)");
 		}
 		catch (TransactionRejectedException e) {
-			LOGGER.log(Level.SEVERE, "the coinbase transaction for rewarding the node that created the new block has been rejected", e);
-			throw new LocalNodeException("The coinbase transaction for rewarding the node that created the new block has been rejected", e);
+			throw new LocalNodeException("The coinbase transaction has been rejected: " + e.getMessage());
 		}
 
-		if (response instanceof MethodCallTransactionFailedResponse responseAsFailed)
-			LOGGER.severe("coinbase: the coinbase transaction to reward the node that created the new block failed: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
-		else {
-			LOGGER.info("coinbase: units of coin minted since the previous reward: " + minted);
-			BigInteger rewardForMiner = reward.subtract(rewardForNode);
-			nonce = nonce.add(BigInteger.ONE);
+		if (response instanceof MethodCallTransactionFailedResponse mctfr)
+			throw new LocalNodeException("The coinbase transaction failed: " + mctfr.getWhere() + ": " + mctfr.getClassNameOfCause() + ": " + mctfr.getMessageOfCause());
+		else if (response instanceof MethodCallTransactionExceptionResponse mcter)
+			throw new LocalNodeException("The coinbase transaction threw an exception: " + mcter.getWhere() + ": " + mcter.getClassNameOfCause() + ": " + mcter.getMessageOfCause());
+		else if (response instanceof NonVoidMethodCallTransactionSuccessfulResponse nvmctsr) {
+			LOGGER.info("coinbase: rewarded " + rewardForNode + " to a node with public key " + publicKeyOfNodeBase58 + " (" + prolog.getSignatureForBlocks() + ", base58)");
 
-			request = TransactionRequests.instanceSystemMethodCall
-					(manifest, nonce, _500_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD_MOKAMINT_MINER, validators,
-							StorageValues.bigIntegerOf(rewardForMiner),
-							StorageValues.stringOf(publicKeyOfMinerBase64));
-
-			try {
-				response = deliverTransaction(request);
+			if (nvmctsr.getResult().equals(StorageValues.TRUE))
+				// a single coinbase transaction was enough to reward both node and miner
 				LOGGER.info("coinbase: rewarded " + rewardForMiner + " to a miner with public key " + publicKeyOfMinerBase58 + " (" + prolog.getSignatureForDeadlines() + ", base58)");
-			}
-			catch (TransactionRejectedException e) {
-				LOGGER.log(Level.SEVERE, "the coinbase transaction for rewarding the miner that provided the deadline in the new block has been rejected", e);
-				throw new LocalNodeException("The coinbase transaction for rewarding the miner that provided the deadline in the new block has been rejected", e);
+			else {
+				// only the node has been rewarded: we explicitly reward the miner; this is a trick to guarantee
+				// that accounts created during these calls pnly have a progressive equal to zero
+				request = TransactionRequests.instanceSystemMethodCall
+						(manifest, nonce.add(BigInteger.ONE), _500_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD_MOKAMINT_MINER, validators,
+						StorageValues.bigIntegerOf(rewardForMiner), StorageValues.stringOf(publicKeyOfMinerBase64));
+
+				try {
+					response = deliverTransaction(request);
+				}
+				catch (TransactionRejectedException e) {
+					throw new LocalNodeException("The coinbase transaction for rewarding the miner has been rejected: " + e.getMessage());
+				}
+
+				if (response instanceof MethodCallTransactionFailedResponse mctfr)
+					throw new LocalNodeException("The coinbase transaction for rewarding the miner failed: " + mctfr.getWhere() + ": " + mctfr.getClassNameOfCause() + ": " + mctfr.getMessageOfCause());
+				else if (response instanceof MethodCallTransactionExceptionResponse mcter)
+					throw new LocalNodeException("The coinbase transaction for rewarding the miner threw an exception: " + mcter.getWhere() + ": " + mcter.getClassNameOfCause() + ": " + mcter.getMessageOfCause());	
+				else if (response instanceof VoidMethodCallTransactionSuccessfulResponse)
+					LOGGER.info("coinbase: rewarded " + rewardForMiner + " to a miner with public key " + publicKeyOfMinerBase58 + " (" + prolog.getSignatureForDeadlines() + ", base58)");
+				else
+					throw new LocalNodeException("The coinbase transaction for rewarding the miner provided an unexpected response of class " + response.getClass().getName());
 			}
 
-			if (response instanceof MethodCallTransactionFailedResponse responseAsFailed)
-				LOGGER.severe("coinbase: the coinbase transaction to reward the miner that provided the deadline in the new block failed: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
+			LOGGER.info("coinbase: units of coin minted since the previous reward: " + minted);
 		}
+		else
+			throw new LocalNodeException("The coinbase transaction provided an unexpected response of class " + response.getClass().getName());
 	}
 }

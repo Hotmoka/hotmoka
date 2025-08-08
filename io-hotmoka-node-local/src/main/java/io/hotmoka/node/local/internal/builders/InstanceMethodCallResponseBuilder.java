@@ -211,7 +211,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		}
 
 		/**
-		 * Charges the caller of system calls for rewarding the validators, with the amount
+		 * Funds the caller of system calls for rewarding the validators, with the freshly minted amount
 		 * of coins that must be rewarded. That is, it creates "out of thin-air" as many coins
 		 * as must be distributed to the validators.
 		 */
@@ -220,8 +220,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				var staticTarget = request.getStaticTarget();
 				Optional<StorageReference> manifest;
 
-				if ((staticTarget.equals(MethodSignatures.VALIDATORS_REWARD) || staticTarget.equals(MethodSignatures.VALIDATORS_REWARD_MOKAMINT_NODE)
-						|| staticTarget.equals(MethodSignatures.VALIDATORS_REWARD_MOKAMINT_MINER))
+				if ((staticTarget.equals(MethodSignatures.VALIDATORS_REWARD) || staticTarget.equals(MethodSignatures.VALIDATORS_REWARD_MOKAMINT))
 						&& (manifest = environment.getManifest()).isPresent() && request.getCaller().equals(manifest.get())) {
 
 					// the rewarded coins are passed as first argument

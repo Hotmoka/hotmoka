@@ -18,12 +18,10 @@ package io.hotmoka.node.tendermint.internal;
 
 import java.math.BigInteger;
 import java.util.Optional;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.TransactionException;
@@ -31,10 +29,11 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.responses.InitializationTransactionResponse;
+import io.hotmoka.node.api.responses.MethodCallTransactionExceptionResponse;
 import io.hotmoka.node.api.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponseWithEvents;
-import io.hotmoka.node.api.responses.TransactionResponseWithUpdates;
+import io.hotmoka.node.api.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractTrieBasedStoreTransformation;
@@ -137,24 +136,22 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 		TransactionResponse response;
 
 		try {
-			response = responseBuilderFor(TransactionReferences.of(getHasher().hash(request)), request).getResponseCreation().getResponse();
-			// if there is only one update, it is the update of the nonce of the manifest: we prefer not to expand
-			// the store with the transaction, so that the state stabilizes, which might give
-			// to the underlying Tendermint engine the chance of suspending the generation of new blocks
-			if (!(response instanceof TransactionResponseWithUpdates trwu) || trwu.getUpdates().count() > 1L)
-				response = deliverTransaction(request);
+			response = deliverTransaction(request);
 		}
 		catch (TransactionRejectedException e) {
-			LOGGER.log(Level.SEVERE, "the coinbase transaction has been rejected", e);
-			throw new LocalNodeException("The coinbase transaction has been rejected", e);
+			throw new LocalNodeException("The coinbase transaction has been rejected: " + e.getMessage());
 		}
 
-		if (response instanceof MethodCallTransactionFailedResponse responseAsFailed)
-			LOGGER.severe("coinbase: the coinbase transaction failed: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
-		else {
-			LOGGER.info("coinbase: units of coin minted since the previous reward: " + minted);
+		if (response instanceof MethodCallTransactionFailedResponse mctfr)
+			throw new LocalNodeException("The coinbase transaction failed: " + mctfr.getWhere() + ": " + mctfr.getClassNameOfCause() + ": " + mctfr.getMessageOfCause());
+		else if (response instanceof MethodCallTransactionExceptionResponse mcter)
+			throw new LocalNodeException("The coinbase transaction threw an exception: " + mcter.getWhere() + ": " + mcter.getClassNameOfCause() + ": " + mcter.getMessageOfCause());
+		else if (response instanceof VoidMethodCallTransactionSuccessfulResponse) {
 			LOGGER.info("coinbase: units of coin rewarded to the validators for their work since the previous reward: " + reward);
+			LOGGER.info("coinbase: units of coin minted since the previous reward: " + minted);
 		}
+		else
+			throw new LocalNodeException("The coinbase transaction provided an unexpected response of class " + response.getClass().getName());
 	}
 
 	private void recomputeValidators() throws InterruptedException {

@@ -338,9 +338,9 @@ public abstract class MethodSignatures {
 	public final static VoidMethodSignature VALIDATORS_REWARD = ofVoid(VALIDATORS, "reward", BIG_INTEGER, BIG_INTEGER, STRING, STRING, BIG_INTEGER, BIG_INTEGER);
 
 	/**
-	 * The method {@code rewardMokamintNode} of the validators contract.
+	 * The method {@code rewardMokamint} of the validators contract.
 	 */
-	public final static VoidMethodSignature VALIDATORS_REWARD_MOKAMINT_NODE = ofVoid(VALIDATORS, "rewardMokamintNode", BIG_INTEGER, BIG_INTEGER, STRING, BIG_INTEGER, BIG_INTEGER);
+	public final static NonVoidMethodSignature VALIDATORS_REWARD_MOKAMINT = ofNonVoid(VALIDATORS, "rewardMokamint", BOOLEAN, BIG_INTEGER, BIG_INTEGER, BIG_INTEGER, STRING, STRING, BIG_INTEGER, BIG_INTEGER);
 
 	/**
 	 * The method {@code rewardMokamintMiner} of the validators contract.
