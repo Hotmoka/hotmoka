@@ -148,9 +148,9 @@ class Concurrency extends HotmokaTest {
 
 		// we create an array of THREAD_NUMBER workers
 		var workers = IntStream.range(0, NUMBER_OF_THREADS).mapToObj(Worker::new).toArray(Worker[]::new);
-		var customThreadPool = new ForkJoinPool(NUMBER_OF_THREADS);
-		customThreadPool.submit(() -> IntStream.range(0, NUMBER_OF_THREADS).parallel().forEach(i -> workers[i].run())).get();
-		customThreadPool.shutdown();
+		try (var customThreadPool = new ForkJoinPool(NUMBER_OF_THREADS)) {
+			customThreadPool.submit(() -> IntStream.range(0, NUMBER_OF_THREADS).parallel().forEach(i -> workers[i].run())).get();
+		}
 
 		// the workers are expected to throw no exceptions, or otherwise that is typically sign of a race condition
 		assertTrue(Stream.of(workers).noneMatch(worker -> worker.failed));

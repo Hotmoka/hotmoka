@@ -389,7 +389,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 				// we use the same chain id for the Hotmoka node and for the underlying Mokamint engine, although this is not necessary
 				.setChainId(consensus.getChainId())
 				.setTargetBlockCreationTime(2000)
-				.setMaximalHistoryChangeTime(300000L) // 5 minutes
+				.setMaxHistoryChangeTime(300000L) // 5 minutes
 				.setDir(hotmokaChainPath.resolve("mokamint")).build();
 		var nodeKeys = mokamintConfig.getSignatureForBlocks().getKeyPair();
 		var plotKeys = mokamintConfig.getSignatureForDeadlines().getKeyPair();
@@ -430,7 +430,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		// because the time for whispering is higher than the time for mining new blocks
 		final var TARGET_BLOCK_CREATION_TIME = 4_000;
 		final var PLOT_LENGTH = 500L;
-		final var MAX_HISTORY_CHANGE = 15L * 60 * 1000; // fifteen minutes, so that it is possible to see the effects of garbage-collection during the tests
+		final var MAX_HISTORY_CHANGE = 15L * 60 * 1000; // 15 minutes, so that it is possible to see the effects of garbage-collection during the tests
 
 		MokamintNode<LocalNode> firstNode = null;
 		URI firstUri = null;
@@ -453,7 +453,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 					// we use the same chain id for the Hotmoka node and for the underlying Mokamint engine, although this is not necessary
 					.setChainId(consensus.getChainId())
 					.setTargetBlockCreationTime(TARGET_BLOCK_CREATION_TIME)
-					.setMaximalHistoryChangeTime(MAX_HISTORY_CHANGE)
+					.setMaxHistoryChangeTime(MAX_HISTORY_CHANGE)
 					.setDir(hotmokaChainPath.resolve("mokamint")).build();
 
 			var entropyForNode = Entropies.random();

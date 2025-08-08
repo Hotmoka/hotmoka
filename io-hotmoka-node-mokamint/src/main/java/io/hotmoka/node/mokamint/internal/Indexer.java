@@ -269,7 +269,7 @@ public class Indexer {
 		private BlockHashesIterator(long start) throws TimeoutException, InterruptedException, io.mokamint.node.api.ClosedNodeException, PortionRejectedException {
 			this.start = start;
 			this.pos = 0;
-			this.blockFetchingChunkSize = Math.min(node.getMokamintEngine().get().getConfig().getMaxChainPortionLength(), 512);
+			this.blockFetchingChunkSize = Math.min(node.getMokamintEngine().get().getInfo().getMaxChainPortionLength(), 512);
 			if (blockFetchingChunkSize < 2)
 				throw new IndexException("The maximal chain portion length is too small for keeping an index");
 

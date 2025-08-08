@@ -89,9 +89,9 @@ public class Bombing extends HotmokaTest {
 	@DisplayName(NUMBER_OF_TRANSFERS + " random transfers between accounts")
 	void randomTransfers() throws Exception {
 		long start = System.currentTimeMillis();
-		var customThreadPool = new ForkJoinPool(NUMBER_OF_ACCOUNTS);
-		customThreadPool.submit(() -> IntStream.range(0, NUMBER_OF_ACCOUNTS).parallel().forEach(this::run)).get();
-		customThreadPool.shutdown();
+		try (var customThreadPool = new ForkJoinPool(NUMBER_OF_ACCOUNTS)) {
+			customThreadPool.submit(() -> IntStream.range(0, NUMBER_OF_ACCOUNTS).parallel().forEach(this::run)).get();
+		}
 		long time = System.currentTimeMillis() - start;
 		System.out.printf("%d money transfer transactions in %d ms [%d tx/s]\n", NUMBER_OF_TRANSFERS, time, NUMBER_OF_TRANSFERS * 1000L / time);
 
