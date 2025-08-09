@@ -232,7 +232,7 @@ public class Events {
       accounts[0], // payer
       nonceHelper.getNonceOf(accounts[0]), // payer's nonce
       chainId, // chain identifier
-      BigInteger.valueOf(1_000_000), // gas limit: enough for this very small jar
+      BigInteger.valueOf(5_000_000), // gas limit: enough for this jar
       gasHelper.getSafeGasPrice(), // gas price: at least the current gas price of the network
       takamakaCode, // class path for the execution of the transaction
       Files.readAllBytes(auctionPath), // bytes of the jar to install

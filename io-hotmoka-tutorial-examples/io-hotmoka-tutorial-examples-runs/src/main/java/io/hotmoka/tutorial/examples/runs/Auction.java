@@ -225,7 +225,7 @@ public class Auction {
       accounts[0], // payer
       nonceHelper.getNonceOf(accounts[0]), // payer's nonce
       chainId, // chain identifier
-      BigInteger.valueOf(1_000_000), // gas limit: enough for this very small jar
+      BigInteger.valueOf(5_000_000), // gas limit: enough for this jar
       gasHelper.getSafeGasPrice(), // gas price: at least the current gas price of the network
       takamakaCode, // class path for the execution of the transaction
       Files.readAllBytes(auctionPath), // bytes of the jar to install
@@ -314,11 +314,11 @@ public class Auction {
   }
 
   private void waitUntilEndOfBiddingTime() {
-    waitUntil(BIDDING_TIME + 5000, "Waiting until the end of the bidding time");
+    waitUntil(BIDDING_TIME + 10000, "Waiting until the end of the bidding time");
   }
 
   private void waitUntilEndOfRevealTime() {
-    waitUntil(BIDDING_TIME + REVEAL_TIME + 5000, "Waiting until the end of the revealing time");
+    waitUntil(BIDDING_TIME + REVEAL_TIME + 10000, "Waiting until the end of the revealing time");
   }
 
   /**

@@ -113,7 +113,7 @@ public class FamilyStorage {
           payer, // payer
           nonce, // payer's nonce: relevant since this is not a call to a @View method!
           chainId, // chain identifier: relevant since this is not a call to a @View method!
-          BigInteger.valueOf(300_000), // gas limit: enough for this very small jar
+          BigInteger.valueOf(1_000_000), // gas limit: enough for this small jar
           gasHelper.getSafeGasPrice(), // gas price: at least the current gas price of the network
           takamakaCode, // class path for the execution of the transaction
           Files.readAllBytes(familyPath), // bytes of the jar to install
@@ -130,7 +130,7 @@ public class FamilyStorage {
          payer, // payer
          nonce, // payer's nonce: relevant since this is not a call to a @View method!
          chainId, // chain identifier: relevant since this is not a call to a @View method!
-         BigInteger.valueOf(100_000), // gas limit: enough for a small object
+         BigInteger.valueOf(300_000), // gas limit: enough for a small object
          panarea(gasHelper.getSafeGasPrice()), // gas price, in panareas
          family, // class path for the execution of the transaction
 
