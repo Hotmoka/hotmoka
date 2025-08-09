@@ -45,16 +45,16 @@ echo -e "* ${RED}init:${NC}         create a node for a brand new blockchain, wh
 echo -e "    ${BLUE}VISIBLE_AS:${NC} a URI that the external world can use to contact the new node"
 echo
 echo "  For instance:"
-echo -e "  ${BOLD_CYAN}docker run -dit -p 8001:8001 -p 8025:8025 -p 8030:8030 -p 8031:8031 -v chain:/home/hotmoka/chain -v hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:VERSION init${NC}"
+echo -e "  ${BOLD_CYAN}docker run --log-driver local -dit -p 8001:8001 -p 8025:8025 -p 8030:8030 -p 8031:8031 -v chain:/home/hotmoka/chain -v hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:VERSION init${NC}"
 echo
 echo -e "* ${RED}start:${NC}        create a node that connects to an already existing node of a blockchain, whose configuration has been created with config-start"
 echo -e "    ${BLUE}VISIBLE_AS:${NC} a URI that the external world can use to contact the new node"
 echo
 echo "  For instance:"
-echo -e "  ${BOLD_CYAN}docker run -dit -p 8001:8001 -p 8025:8025 -p 8030:8030 -p 8031:8031 -v chain:/home/hotmoka/chain -v hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:VERSION start${NC}"
+echo -e "  ${BOLD_CYAN}docker run --log-driver local -dit -p 8001:8001 -p 8025:8025 -p 8030:8030 -p 8031:8031 -v chain:/home/hotmoka/chain -v hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:VERSION start${NC}"
 echo
 echo -e "* ${RED}resume:${NC}       resume a node whose container was previously turned off"
 echo -e "    ${BLUE}VISIBLE_AS:${NC} a URI that the external world can use to contact the node"
 echo
 echo "  For instance:"
-echo -e "  ${BOLD_CYAN}docker run -dit -p 8001:8001 -p 8025:8025 -p 8030:8030 -p 8031:8031 -v chain:/home/hotmoka/chain -v hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:VERSION resume${NC}"
+echo -e "  ${BOLD_CYAN}docker run --log-driver local -dit -p 8001:8001 -p 8025:8025 -p 8030:8030 -p 8031:8031 -v chain:/home/hotmoka/chain -v hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:VERSION resume${NC}"

@@ -40,14 +40,14 @@ echo
 echo -e "* ${RED}init:${NC}         create a node for a brand new blockchain, whose configuration has been created with config-init"
 echo
 echo "  For instance:"
-echo -e "  ${BOLD_CYAN}docker run -dit -p 8001:8001 -p 26656:26656 -v chain:/home/hotmoka/chain -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint hotmoka/tendermint-node:VERSION init${NC}"
+echo -e "  ${BOLD_CYAN}docker run --log-driver local -dit -p 8001:8001 -p 26656:26656 -v chain:/home/hotmoka/chain -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint hotmoka/tendermint-node:VERSION init${NC}"
 echo
 echo -e "* ${RED}start:${NC}        create a node that connects to an already existing node of a blockchain, whose configuration has been created with config-start"
 echo
 echo "  For instance:"
-echo -e "  ${BOLD_CYAN}docker run -dit -p 8001:8001 -p 26656:26656 -v chain:/home/hotmoka/chain -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint hotmoka/tendermint-node:VERSION start${NC}"
+echo -e "  ${BOLD_CYAN}docker run --log-driver local -dit -p 8001:8001 -p 26656:26656 -v chain:/home/hotmoka/chain -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint hotmoka/tendermint-node:VERSION start${NC}"
 echo
 echo -e "* ${RED}resume:${NC}       resume a node whose container was previously turned off"
 echo
 echo "  For instance:"
-echo -e "  ${BOLD_CYAN}docker run -dit -p 8001:8001 -p 26656:26656 -v chain:/home/hotmoka/chain -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint hotmoka/tendermint-node:VERSION resume${NC}"
+echo -e "  ${BOLD_CYAN}docker run --log-driver local -dit -p 8001:8001 -p 26656:26656 -v chain:/home/hotmoka/chain -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint hotmoka/tendermint-node:VERSION resume${NC}"
