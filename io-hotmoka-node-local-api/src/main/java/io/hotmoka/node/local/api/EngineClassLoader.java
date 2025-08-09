@@ -146,7 +146,7 @@ public interface EngineClassLoader extends TakamakaClassLoader {
 	 * @param amount the amount of coins
 	 * @throws RuntimeException in case of any possible exception thrown inside {@code io.takamaka.code.lang.Contract.fromPayableContract()}
 	 */
-	<E extends Exception> void payableFromContract(Object callee, Object caller, int amount);
+	void payableFromContract(Object callee, Object caller, int amount);
 
 	/**
 	 * Called at the beginning of the instrumentation of a payable {@code @@FromContract} method or constructor.
