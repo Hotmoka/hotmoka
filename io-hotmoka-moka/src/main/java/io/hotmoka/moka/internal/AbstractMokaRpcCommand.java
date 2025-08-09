@@ -231,9 +231,9 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 	protected BigInteger gasForTransactionWhosePayerHasSignature(SignatureAlgorithm signature) {
 		switch (signature.getName()) {
 		case "qtesla1":
-			return BigInteger.valueOf(1_000_000L);
+			return BigInteger.valueOf(3_000_000L);
 		case "qtesla3":
-			return BigInteger.valueOf(1_500_000L);
+			return BigInteger.valueOf(6_000_000L);
 		default:
 			return _500_000;
 		}

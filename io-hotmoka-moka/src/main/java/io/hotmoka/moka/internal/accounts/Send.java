@@ -498,9 +498,9 @@ public class Send extends AbstractGasCostCommand {
 			case "sha256dsa":
 				return BigInteger.valueOf(700_000L).add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
 			case "qtesla1":
-				return BigInteger.valueOf(3_500_000L).add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
+				return BigInteger.valueOf(4_000_000L).add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
 			case "qtesla3":
-				return BigInteger.valueOf(6_500_000L).add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
+				return BigInteger.valueOf(5_000_000L).add(gasForTransactionWhosePayerHasSignature(signatureOfPayer));
 			default:
 				throw new CommandException("Cannot create accounts with signature algorithm " + signatureOfDestination);
 			}

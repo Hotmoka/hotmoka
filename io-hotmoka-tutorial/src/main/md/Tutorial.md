@@ -1465,7 +1465,7 @@ public class Family {
           payer, // payer
           nonce, // payer's nonce: relevant since this is not a call to a @View method!
           chainId, // chain identifier: relevant since this is not a call to a @View method!
-          BigInteger.valueOf(300_000), // gas limit: enough for this very small jar
+          BigInteger.valueOf(1_000_000), // gas limit: enough for this small jar
           gasHelper.getSafeGasPrice(), // gas price: at least the current gas price of the network
           takamakaCode, // class path for the execution of the transaction
           Files.readAllBytes(familyPath), // bytes of the jar to install
@@ -1803,7 +1803,7 @@ public class FamilyStorage {
           payer, // payer
           nonce, // payer's nonce: relevant since this is not a call to a @View method!
           chainId, // chain identifier: relevant since this is not a call to a @View method!
-          BigInteger.valueOf(300_000), // gas limit: enough for this very small jar
+          BigInteger.valueOf(1_000_000), // gas limit: enough for this small jar
           gasHelper.getSafeGasPrice(), // gas price: at least the current gas price of the network
           takamakaCode, // class path for the execution of the transaction
           Files.readAllBytes(familyPath), // bytes of the jar to install
@@ -1820,7 +1820,7 @@ public class FamilyStorage {
          payer, // payer
          nonce, // payer's nonce: relevant since this is not a call to a @View method!
          chainId, // chain identifier: relevant since this is not a call to a @View method!
-         BigInteger.valueOf(100_000), // gas limit: enough for a small object
+         BigInteger.valueOf(300_000), // gas limit: enough for a small object
          panarea(gasHelper.getSafeGasPrice()), // gas price, in panareas
          family, // class path for the execution of the transaction
 
@@ -2113,7 +2113,7 @@ public class FamilyExported {
           payer, // payer
           nonce, // payer's nonce: relevant since this is not a call to a @View method!
           chainId, // chain identifier: relevant since this is not a call to a @View method!
-          BigInteger.valueOf(300_000), // gas limit: enough for this very small jar
+          BigInteger.valueOf(1_000_000), // gas limit: enough for this small jar
           gasHelper.getSafeGasPrice(), // gas price: at least the current gas price of the network
           takamakaCode, // class path for the execution of the transaction
           Files.readAllBytes(familyPath), // bytes of the jar to install
@@ -2130,7 +2130,7 @@ public class FamilyExported {
          payer, // payer
          nonce, // payer's nonce: relevant since this is not a call to a @View method!
          chainId, // chain identifier: relevant since this is not a call to a @View method!
-         BigInteger.valueOf(100_000), // gas limit: enough for a small object
+         BigInteger.valueOf(300_000), // gas limit: enough for a small object
          panarea(gasHelper.getSafeGasPrice()), // gas price, in panareas
          family, // class path for the execution of the transaction
 
@@ -2152,7 +2152,7 @@ public class FamilyExported {
           payer, // payer
           nonce, // payer's nonce: relevant since this is not a call to a @View method!
           chainId, // chain identifier: relevant since this is not a call to a @View method!
-          BigInteger.valueOf(100_000), // gas limit: enough for a small object
+          BigInteger.valueOf(100_000), // gas limit: enough for a simple call
           panarea(gasHelper.getSafeGasPrice()), // gas price, in panareas
           family, // class path for the execution of the transaction
 
@@ -4960,7 +4960,7 @@ public class Auction {
       accounts[0], // payer
       nonceHelper.getNonceOf(accounts[0]), // payer's nonce
       chainId, // chain identifier
-      BigInteger.valueOf(1_000_000), // gas limit: enough for this very small jar
+      BigInteger.valueOf(5_000_000), // gas limit: enough for this jar
       gasHelper.getSafeGasPrice(), // gas price: at least the current gas price of the network
       takamakaCode, // class path for the execution of the transaction
       Files.readAllBytes(auctionPath), // bytes of the jar to install
@@ -5049,11 +5049,11 @@ public class Auction {
   }
 
   private void waitUntilEndOfBiddingTime() {
-    waitUntil(BIDDING_TIME + 5000, "Waiting until the end of the bidding time");
+    waitUntil(BIDDING_TIME + 10000, "Waiting until the end of the bidding time");
   }
 
   private void waitUntilEndOfRevealTime() {
-    waitUntil(BIDDING_TIME + REVEAL_TIME + 5000, "Waiting until the end of the revealing time");
+    waitUntil(BIDDING_TIME + REVEAL_TIME + 10000, "Waiting until the end of the revealing time");
   }
 
   /**
