@@ -72,6 +72,11 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 	private final ConcurrentMap<Integer, StateId> finalStateIds = new ConcurrentHashMap<>();
 
 	/**
+	 * The database transaction that begins at {@link #endBlock(int, Deadline)} for each of the {@link #transformations}.
+	 */
+	private final ConcurrentMap<Integer, io.hotmoka.xodus.env.Transaction> txns = new ConcurrentHashMap<>();
+
+	/**
 	 * The next group id to use for the next transformation that will be started with this application.
 	 */
 	private final AtomicInteger nextId = new AtomicInteger();
@@ -195,9 +200,20 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 		try (var scope = mkScope()) {
 			MokamintStoreTransformation transformation = getTransformation(groupId);
 			transformation.deliverCoinbaseTransactions(deadline.getProlog());
-			StateId idOfFinalStore = node.getEnvironment().computeInTransaction(transformation::getIdOfFinalStore);
+			io.hotmoka.xodus.env.Transaction txn = node.getEnvironment().beginExclusiveTransaction();
+			StateId idOfFinalStore;
+
+			try {
+				idOfFinalStore = transformation.getIdOfFinalStore(txn);
+			}
+			catch (RuntimeException e) {
+				txn.abort();
+				throw e;
+			}
+
 			finalStateIds.put(groupId, idOfFinalStore);
 			stateIdentifiersCache.put(idOfFinalStore, transformation.getCache());
+			txns.put(groupId, txn);
 
 			return idOfFinalStore.getBytes();
 		}
@@ -208,13 +224,27 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 		try (var scope = mkScope()) {
 			var transformation = getTransformation(groupId);
 			var idOfFinalStore = finalStateIds.get(groupId);
-			node.exit(transformation.getInitialStore());
-			node.getEnvironment().executeInTransaction(txn -> node.persist(idOfFinalStore, transformation.getNow(), txn));
+			var txn = txns.remove(groupId);
+
+			try {
+				node.persist(idOfFinalStore, transformation.getNow(), txn);
+
+				if (!txn.commit())
+					// the transaction was exclusive, this should not happen then
+					throw new LocalNodeException("Could not commit the block");
+			}
+			catch (UnknownStateIdException e) {
+				// impossible, we have just computed this id inside endBlock(), which was meant to be called before this method
+				txn.abort();
+				throw new LocalNodeException("State id " + idOfFinalStore + " has been just computed: it must have existed", e);
+			}
+			finally {
+				node.exit(transformation.getInitialStore());
+				transformations.remove(groupId);
+				finalStateIds.remove(groupId);
+			}
 
 			LOGGER.fine(() -> "persisted state " + idOfFinalStore);
-
-			transformations.remove(groupId);
-			finalStateIds.remove(groupId);
 		}
 	}
 
@@ -222,22 +252,22 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 	public void abortBlock(int groupId) throws UnknownGroupIdException, ClosedApplicationException {
 		try (var scope = mkScope()) {
 			var transformation = getTransformation(groupId);
-			var idOfFinalStore = finalStateIds.get(groupId);
-			node.exit(transformation.getInitialStore());
+			var initialStore = transformation.getInitialStore();
+			var initialStateId = initialStore.getStateId();
+			var txn = txns.remove(groupId);
 
-			// the final store of the transformation is not useful anymore
-			node.getEnvironment().executeInTransaction(txn -> {
-				try {
-					node.free(idOfFinalStore, txn);
-				}
-				catch (UnknownStateIdException e) {
-					// impossible, we have just computed this id inside endBlock(), which was meant to be called before this method
-					throw new LocalNodeException("State id " + idOfFinalStore + " has been just computed: it must have existed", e);
-				}
-			});
+			try {
+				// txn might be null if abortBlock() is called before previously calling endBlock()
+				if (txn != null)
+					txn.abort();
+			}
+			finally {
+				node.exit(initialStore);
+				transformations.remove(groupId);
+				finalStateIds.remove(groupId);
+			}
 
-			transformations.remove(groupId);
-			finalStateIds.remove(groupId);
+			LOGGER.info(() -> "aborted block creation from state " + initialStateId);
 		}
 	}
 
@@ -480,7 +510,7 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 		}
 
 		@Override
-		protected void persist(StateId stateId, long now, io.hotmoka.xodus.env.Transaction txn) {
+		protected void persist(StateId stateId, long now, io.hotmoka.xodus.env.Transaction txn) throws UnknownStateIdException {
 			super.persist(stateId, now, txn);
 		}
 

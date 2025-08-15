@@ -195,7 +195,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	protected final S enterHead() throws ClosedNodeException, InterruptedException, TimeoutException {
 		synchronized (lockGC) {
 			S head = getStoreOfHead();
-			enter(head, head.getStateId());
+			storeUsers.compute(head.getStateId(), (_id, old) -> old == null ? 1 : (old + 1));
 			return head;
 		}
 	}
@@ -217,18 +217,9 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	protected S enter(StateId stateId, Optional<StoreCache> cache) throws UnknownStateIdException, InterruptedException {
 		synchronized (lockGC) {
 			S result = mkStore(stateId, cache);
-			enter(result, stateId);
+			storeUsers.compute(stateId, (_id, old) -> old == null ? 1 : (old + 1));
 			return result;
 		}
-	}
-
-	/**
-	 * Called when this node is executing something that needs the given store with the given state identifier.
-	 * It can be used, for instance, to take note that that store cannot be garbage-collected from that moment.
-	 */
-	@GuardedBy("lockGC")
-	private void enter(S store, StateId stateId) {
-		storeUsers.compute(stateId, (_id, old) -> old == null ? 1 : (old + 1));
 	}
 
 	@Override
@@ -249,9 +240,10 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 * @param now the current time used for delivering the transactions that led to the
 	 *            store to persist
 	 * @param txn the Xodus transaction where the operation is performed
+	 * @throws UnknownStateIdException if {@code stateId} is unknown or has been garbage-collected
 	 */
-	protected void persist(StateId stateId, long now, Transaction txn) {
-		addToStores(STORES_NOT_TO_GC, Set.of(new StateIdAndTime(stateId, now)), txn);
+	protected void persist(StateId stateId, long now, Transaction txn) throws UnknownStateIdException {
+		addToStoresNotToGC(new StateIdAndTime(stateId, now), txn);
 	}
 
 	/**
@@ -300,9 +292,10 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	}
 
 	/**
-	 * Deallocates all resources used for a given vision of the store.
+	 * Decrements the reference counter for the resources used for a given vision of the store.
+	 * This might lead to the deallocation of some data from the database.
 	 * 
-	 * @param stateId the identifier of the vision of the store to deallocate
+	 * @param stateId the identifier of the vision of the store to decrement
 	 * @param txn the database transaction where the operation is performed
 	 * @param UnknownStateIdException if {@code stateId} cannot be found in store
 	 */
@@ -322,6 +315,35 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 			mkTrieOfResponses(txn, rootOfResponses).free();
 			mkTrieOfHistories(txn, rootOfHistories).free();
 			mkTrieOfInfo(txn, rootOfInfo).free();
+		}
+		catch (UnknownKeyException e) {
+			throw new UnknownStateIdException(stateId);
+		}
+	}
+
+	/**
+	 * Increments the reference counter of the resources used for a given vision of the store.
+	 * 
+	 * @param stateId the identifier of the vision of the store to deallocate
+	 * @param txn the database transaction where the operation is performed
+	 * @param UnknownStateIdException if {@code stateId} cannot be found in store
+	 */
+	protected void malloc(StateId stateId, Transaction txn) throws UnknownStateIdException {
+		var bytes = stateId.getBytes();
+		var rootOfResponses = new byte[32];
+		System.arraycopy(bytes, 0, rootOfResponses, 0, 32);
+		var rootOfInfo = new byte[32];
+		System.arraycopy(bytes, 32, rootOfInfo, 0, 32);
+		var rootOfRequests = new byte[32];
+		System.arraycopy(bytes, 64, rootOfRequests, 0, 32);
+		var rootOfHistories = new byte[32];
+		System.arraycopy(bytes, 96, rootOfHistories, 0, 32);
+
+		try {
+			mkTrieOfRequests(txn, rootOfRequests).malloc();
+			mkTrieOfResponses(txn, rootOfResponses).malloc();
+			mkTrieOfHistories(txn, rootOfHistories).malloc();
+			mkTrieOfInfo(txn, rootOfInfo).malloc();
 		}
 		catch (UnknownKeyException e) {
 			throw new UnknownStateIdException(stateId);
@@ -375,7 +397,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 				Set<StateIdAndTime> toGC = env.computeInReadonlyTransaction(txn -> getStores(STORES_TO_GC, txn));
 				for (var stateIdAndTime: toGC)
 					 synchronized (lockGC) {
-						 if (storeUsers.getOrDefault(stateIdAndTime.stateId, 0) == 0)
+						 if (!storeUsers.containsKey(stateIdAndTime.stateId))
 							 gc(stateIdAndTime);
 					 }
 
@@ -394,9 +416,10 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		byte[] bytes = Optional.ofNullable(storeOfNode.get(txn, which)).map(ByteIterable::getBytes).orElse(new byte[0]);
 
 		var result = new TreeSet<StateIdAndTime>();
-		for (int pos = 0; pos < bytes.length; pos += StateIdAndTime.SIZE_IN_BYTES) {
-			var snippet = new byte[StateIdAndTime.SIZE_IN_BYTES];
-			System.arraycopy(bytes, pos, snippet, 0, StateIdAndTime.SIZE_IN_BYTES);
+		int size = StateIdAndTime.SIZE_IN_BYTES;
+		for (int pos = 0; pos < bytes.length; pos += size) {
+			var snippet = new byte[size];
+			System.arraycopy(bytes, pos, snippet, 0, size);
 			result.add(new StateIdAndTime(snippet));
 		}
 
@@ -463,9 +486,16 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 */
 	private void addToStores(ByteIterable which, Set<StateIdAndTime> toAdd, Transaction txn) {
 		SortedSet<StateIdAndTime> ids = getStores(which, txn);
-
 		if (ids.addAll(toAdd))
 			storeStateIdsAndTimes(which, ids, txn);
+	}
+
+	private void addToStoresNotToGC(StateIdAndTime toAdd, Transaction txn) throws UnknownStateIdException {
+		SortedSet<StateIdAndTime> ids = getStores(STORES_NOT_TO_GC, txn);
+		if (ids.add(toAdd)) {
+			storeStateIdsAndTimes(STORES_NOT_TO_GC, ids, txn);
+			malloc(toAdd.stateId, txn);
+		}
 	}
 
 	/**

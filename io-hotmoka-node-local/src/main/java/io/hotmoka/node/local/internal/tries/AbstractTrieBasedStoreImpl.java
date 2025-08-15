@@ -245,8 +245,6 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 			trieOfInfo = trieOfInfo.setManifest(addedManifest.get());
 			old.free();
 		}
-	
-		trieOfInfo.malloc();
 
 		return trieOfInfo.getRoot();
 	}
@@ -258,8 +256,6 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 			trieOfHistories = trieOfHistories.put(entry.getKey(), Stream.of(entry.getValue()));
 			old.free();
 		}
-	
-		trieOfHistories.malloc();
 
 		return trieOfHistories.getRoot();
 	}
@@ -271,8 +267,6 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 			trieOfResponses = trieOfResponses.put(entry.getKey(), entry.getValue());
 			old.free();
 		}
-	
-		trieOfResponses.malloc();
 
 		return trieOfResponses.getRoot();
 	}
@@ -282,10 +276,8 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 			trieOfRequests.malloc();
 			var old = trieOfRequests;
 			trieOfRequests = trieOfRequests.put(entry.getKey(), entry.getValue());
-			old.free();
+			old.free(); // this frees temporary tries built during the iteration
 		}
-	
-		trieOfRequests.malloc();
 
 		return trieOfRequests.getRoot();
 	}

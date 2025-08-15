@@ -661,12 +661,20 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 			long now = transformation.getNow();
 
 			StateId idOfNewStoreOfHead = getEnvironment().computeInTransaction(txn -> {
-				StateId stateIdOfFinalStore = transformation.getIdOfFinalStore(txn);
-				setRootBranch(stateIdOfFinalStore, txn);
-				persist(stateIdOfFinalStore, now, txn);
+				StateId idOfFinalStore = transformation.getIdOfFinalStore(txn);
+				setRootBranch(idOfFinalStore, txn);
+
+				try {
+					persist(idOfFinalStore, now, txn);
+				}
+				catch (UnknownStateIdException e) {
+					// impossible, we have just computed this id with getIdOfFinalStore()
+					throw new LocalNodeException("State id " + idOfFinalStore + " has been just computed: it must have existed", e);
+				}
+
 				keepPersistedOnlyNotOlderThan(now, txn);
 				transformation.forEachDeliveredTransaction((transaction, response) -> addToIndex(transaction, response, txn));
-				return stateIdOfFinalStore;
+				return idOfFinalStore;
 			});
 
 			try {
