@@ -271,6 +271,7 @@ public class InstanceMethodCallTransactionRequestImpl extends AbstractInstanceMe
 	
 			StorageValue howMuch = actuals().findFirst().get();
 	
+			// TODO: check exceptions below
 			if (receiveInt)
 				context.writeInt(howMuch.asInt(v -> new IllegalArgumentException("Incorrect argument for " + RECEIVE_INT + ": expected int but found " + v.getClass().getSimpleName())));
 			else if (receiveLong)
