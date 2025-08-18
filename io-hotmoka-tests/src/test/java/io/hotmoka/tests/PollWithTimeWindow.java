@@ -182,7 +182,7 @@ class PollWithTimeWindow extends HotmokaTest {
 		boolean isTendermint = type.contains("TendermintNode");
 		boolean isMokamint = type.contains("MokamintNode");
 		long start = isMokamint ? 40_000 : isTendermint ? 10_000 : 2000;
-		long duration = isMokamint ? 40_000 : isTendermint ? 10_000 : 3000;
+		long duration = isMokamint ? 45_000 : isTendermint ? 10_000 : 3000;
 		long now = System.currentTimeMillis();
 		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, duration);
 
@@ -191,7 +191,7 @@ class PollWithTimeWindow extends HotmokaTest {
 		assertThrows(TransactionException.class, () -> addInstanceVoidMethodCallTransaction(privateKey(2), stakeholder2, _1_000_000, ZERO, jar(), VOTE_POLL, poll));
 		assertThrows(TransactionException.class, () -> addInstanceVoidMethodCallTransaction(privateKey(3), stakeholder3, _1_000_000, ZERO, jar(), VOTE_POLL, poll));
 		
-		sleep(start - (System.currentTimeMillis() - now) + (isMokamint ? 10_000 : 2_000));
+		sleep(start - (System.currentTimeMillis() - now) + (isMokamint ? 15_000 : 2_000));
 		
 		addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), VOTE_POLL, poll);
 		addInstanceVoidMethodCallTransaction(privateKey(1), stakeholder1, _1_000_000, ZERO, jar(), VOTE_POLL, poll);

@@ -529,7 +529,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	private static Node mkRemoteNode(Node exposed) throws FailedDeploymentException {
 		NodeServices.of(exposed, 8000); // it will be closed when exposed will be closed
 		System.out.println("Hotmoka node published at ws://localhost:8000");
-		return RemoteNodes.of(URI.create("ws://localhost:8000"), 100_000);
+		return RemoteNodes.of(URI.create("ws://localhost:8000"), 150_000);
 	}
 
 	@SuppressWarnings("unused")

@@ -204,7 +204,7 @@ public class Send extends AbstractGasCostCommand {
 			try {
 				return TransactionRequests.instanceMethodCall
 						(signer, payer, nonce, chainId, gasLimit, gasPrice, classpath,
-						MethodSignatures.RECEIVE_BIG_INTEGER, receiver.asReference(), StorageValues.bigIntegerOf(amount));
+						MethodSignatures.RECEIVE_BIGINTEGER, receiver.asReference(), StorageValues.bigIntegerOf(amount));
 			}
 			catch (InvalidKeyException | SignatureException e) {
 				throw new CommandException("The key pair of " + payer + " seems corrupted!", e);

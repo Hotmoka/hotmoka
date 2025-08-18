@@ -22,6 +22,7 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
+import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.api.signatures.MethodSignature;
 import io.hotmoka.node.api.types.ClassType;
@@ -87,6 +88,13 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 		return super.hashCode() ^ name.hashCode();
 	}
 
+	final static byte SELECTOR_RECEIVE_INT = 0;
+	final static byte SELECTOR_RECEIVE_LONG = 1;
+	final static byte SELECTOR_RECEIVE_BIGINTEGER = 2;
+	final static byte SELECTOR_VALIDATORS_REWARD = 3;
+	final static byte SELECTOR_VALIDATORS_REWARD_MOKAMINT = 4;
+	
+
 	/**
 	 * Factory method that unmarshals a method signature from the given stream.
 	 * 
@@ -95,11 +103,21 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 	 * @throws IOException if the method signature cannot be unmarshalled
 	 */
 	public static MethodSignature from(UnmarshallingContext context) throws IOException {
-		// TODO: introduce optimized representation of methods
-		int length = context.readCompactInt();
+		int selector = context.readCompactInt();
+
+		// we deal with special, optimized cases
+		switch (selector) {
+		case SELECTOR_RECEIVE_INT: return MethodSignatures.RECEIVE_INT;
+		case SELECTOR_RECEIVE_LONG: return MethodSignatures.RECEIVE_LONG;
+		case SELECTOR_RECEIVE_BIGINTEGER: return MethodSignatures.RECEIVE_BIGINTEGER;
+		case SELECTOR_VALIDATORS_REWARD: return MethodSignatures.VALIDATORS_REWARD;
+		case SELECTOR_VALIDATORS_REWARD_MOKAMINT: return MethodSignatures.VALIDATORS_REWARD_MOKAMINT;
+		}
 
 		// we determine if the method is void or not, by looking at the parity of the number of formals
 		// (see the into() method in NonVoidMethodSignatureImpl and VoidMethodSignatureImpl)
+		int length = selector - SELECTOR_VALIDATORS_REWARD_MOKAMINT - 1;
+
 		if (length % 2 == 0)
 			return new VoidMethodSignatureImpl(context, length / 2);
 		else

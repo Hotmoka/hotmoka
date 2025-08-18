@@ -23,6 +23,7 @@ import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.exceptions.Objects;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
+import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.types.ClassType;
@@ -122,13 +123,17 @@ public final class NonVoidMethodSignatureImpl extends AbstractMethodSignature im
 
     @Override
     public void into(MarshallingContext context) throws IOException {
-    	var formals = getFormals().toArray(StorageType[]::new);
-    	context.writeCompactInt(formals.length * 2 + 1); // this signals that the method is non-void (see from() inside AbstractMethodSignature)
-    	for (var formal: formals)
-    		formal.into(context);
+    	if (MethodSignatures.VALIDATORS_REWARD_MOKAMINT.equals(this))
+    		context.writeCompactInt(SELECTOR_VALIDATORS_REWARD_MOKAMINT);
+    	else {
+    		var formals = getFormals().toArray(StorageType[]::new);
+    		context.writeCompactInt(formals.length * 2 + 1 + SELECTOR_VALIDATORS_REWARD_MOKAMINT + 1); // this signals that the method is non-void (see from() inside AbstractMethodSignature)
+    		for (var formal: formals)
+    			formal.into(context);
 
-    	getDefiningClass().into(context);
-    	context.writeStringUnshared(getName());
-    	returnType.into(context);
+    		getDefiningClass().into(context);
+    		context.writeStringUnshared(getName());
+    		returnType.into(context);
+    	}
     }
 }

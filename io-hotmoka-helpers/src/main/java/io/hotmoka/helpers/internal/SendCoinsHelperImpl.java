@@ -107,7 +107,7 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 			(signer,
 			payer, nonceHelper.getNonceOf(payer),
 			chainId, gas, gasHelper.getGasPrice(), takamakaCode,
-			MethodSignatures.RECEIVE_BIG_INTEGER,
+			MethodSignatures.RECEIVE_BIGINTEGER,
 			destination,
 			StorageValues.bigIntegerOf(amount));
 

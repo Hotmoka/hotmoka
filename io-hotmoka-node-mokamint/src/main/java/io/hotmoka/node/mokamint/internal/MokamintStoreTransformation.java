@@ -156,7 +156,7 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 				LOGGER.info("coinbase: rewarded " + rewardForMiner + " to a miner with public key " + publicKeyOfMinerBase58 + " (" + prolog.getSignatureForDeadlines() + ", base58)");
 			else {
 				// only the node has been rewarded: we explicitly reward the miner; this is a trick to guarantee
-				// that accounts created during these calls pnly have a progressive equal to zero
+				// that accounts created during these calls only have a progressive equal to zero
 				request = TransactionRequests.instanceSystemMethodCall
 						(manifest, nonce.add(BigInteger.ONE), _500_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD_MOKAMINT_MINER, validators,
 						StorageValues.bigIntegerOf(rewardForMiner), StorageValues.stringOf(publicKeyOfMinerBase64));

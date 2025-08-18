@@ -139,6 +139,22 @@
 
   <build>
     <plugins>
+      <plugin>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>3.5.0</version>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>.</directory>
+              <includes>
+                <include>**/*.log</include>
+                <include>**/*.pem</include>
+              </includes>
+              <followSymlinks>false</followSymlinks>
+            </fileset>
+          </filesets>
+        </configuration>
+	  </plugin>
 	  <!-- useless to install in the local Maven repository -->
 	  <plugin>
         <artifactId>maven-install-plugin</artifactId>

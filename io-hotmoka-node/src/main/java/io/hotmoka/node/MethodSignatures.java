@@ -320,7 +320,7 @@ public abstract class MethodSignatures {
 	/**
 	 * The method {@code receive} of a payable contract, with a big integer argument.
 	 */
-	public final static VoidMethodSignature RECEIVE_BIG_INTEGER = ofVoid(StorageTypes.PAYABLE_CONTRACT, "receive", BIG_INTEGER);
+	public final static VoidMethodSignature RECEIVE_BIGINTEGER = ofVoid(StorageTypes.PAYABLE_CONTRACT, "receive", BIG_INTEGER);
 
 	/**
 	 * The method {@code receive} of a payable contract, with an {@code int} argument.

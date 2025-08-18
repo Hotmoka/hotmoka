@@ -22,6 +22,7 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.exceptions.ExceptionSupplierFromMessage;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
+import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.api.signatures.VoidMethodSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
@@ -103,12 +104,22 @@ public final class VoidMethodSignatureImpl extends AbstractMethodSignature imple
 
     @Override
     public void into(MarshallingContext context) throws IOException {
-    	var formals = getFormals().toArray(StorageType[]::new);
-    	context.writeCompactInt(formals.length * 2); // this signals that the method is void (see from() inside AbstractMethodSignature)
-    	for (var formal: formals)
-    		formal.into(context);
+    	if (MethodSignatures.RECEIVE_INT.equals(this))
+    		context.writeCompactInt(SELECTOR_RECEIVE_INT);
+    	else if (MethodSignatures.RECEIVE_LONG.equals(this))
+    		context.writeCompactInt(SELECTOR_RECEIVE_LONG);
+    	else if (MethodSignatures.RECEIVE_BIGINTEGER.equals(this))
+    		context.writeCompactInt(SELECTOR_RECEIVE_BIGINTEGER);
+    	else if (MethodSignatures.VALIDATORS_REWARD.equals(this))
+    		context.writeCompactInt(SELECTOR_VALIDATORS_REWARD);
+    	else {
+    		var formals = getFormals().toArray(StorageType[]::new);
+    		context.writeCompactInt(formals.length * 2 + SELECTOR_VALIDATORS_REWARD_MOKAMINT + 1); // this signals that the method is void (see from() inside AbstractMethodSignature)
+    		for (var formal: formals)
+    			formal.into(context);
 
-    	getDefiningClass().into(context);
-    	context.writeStringUnshared(getName());
+    		getDefiningClass().into(context);
+    		context.writeStringUnshared(getName());
+    	}
     }
 }

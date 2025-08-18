@@ -63,10 +63,7 @@ public abstract class TransactionRequestImpl<R extends TransactionResponse> exte
 		switch (selector) {
 		case ConstructorCallTransactionRequestImpl.SELECTOR: return new ConstructorCallTransactionRequestImpl(context);
 		case InitializationTransactionRequestImpl.SELECTOR: return new InitializationTransactionRequestImpl(context);
-		case InstanceMethodCallTransactionRequestImpl.SELECTOR:
-		case InstanceMethodCallTransactionRequestImpl.SELECTOR_TRANSFER_INT:
-		case InstanceMethodCallTransactionRequestImpl.SELECTOR_TRANSFER_LONG:
-		case InstanceMethodCallTransactionRequestImpl.SELECTOR_TRANSFER_BIG_INTEGER: return new InstanceMethodCallTransactionRequestImpl(context, selector);
+		case InstanceMethodCallTransactionRequestImpl.SELECTOR: return new InstanceMethodCallTransactionRequestImpl(context, selector);
 		case JarStoreInitialTransactionRequestImpl.SELECTOR: return new JarStoreInitialTransactionRequestImpl(context);
 		case JarStoreTransactionRequestImpl.SELECTOR: return new JarStoreTransactionRequestImpl(context);
 		case GameteCreationTransactionRequestImpl.SELECTOR: return new GameteCreationTransactionRequestImpl(context);

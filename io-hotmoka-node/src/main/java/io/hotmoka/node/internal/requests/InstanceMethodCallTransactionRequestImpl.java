@@ -16,9 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.internal.requests;
 
-import static io.hotmoka.node.MethodSignatures.RECEIVE_BIG_INTEGER;
-import static io.hotmoka.node.MethodSignatures.RECEIVE_INT;
-import static io.hotmoka.node.MethodSignatures.RECEIVE_LONG;
 import static java.math.BigInteger.ZERO;
 
 import java.io.IOException;
@@ -52,11 +49,6 @@ import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 @Immutable
 public class InstanceMethodCallTransactionRequestImpl extends AbstractInstanceMethodCallTransactionRequestImpl implements InstanceMethodCallTransactionRequest {
 	final static byte SELECTOR = 5;
-
-	// selectors used for calls to coin transfer methods, for a more compact representation
-	final static byte SELECTOR_TRANSFER_INT = 7;
-	final static byte SELECTOR_TRANSFER_LONG = 8;
-	final static byte SELECTOR_TRANSFER_BIG_INTEGER = 9;
 
 	/**
 	 * The chain identifier where this request can be executed, to forbid transaction replay across chains.
@@ -221,9 +213,6 @@ public class InstanceMethodCallTransactionRequestImpl extends AbstractInstanceMe
 	private static MethodSignature unmarshalMethod(UnmarshallingContext context, byte selector) throws IOException {
 		switch (selector) {
 		case SELECTOR: return MethodSignatures.from(context);
-		case SELECTOR_TRANSFER_INT: return RECEIVE_INT;
-		case SELECTOR_TRANSFER_LONG: return RECEIVE_LONG;
-		case SELECTOR_TRANSFER_BIG_INTEGER: return RECEIVE_BIG_INTEGER;
 		default: throw new IllegalArgumentException("Unexpected selector " + selector + " for instance method call transaction");
 		}
 	}
@@ -231,9 +220,6 @@ public class InstanceMethodCallTransactionRequestImpl extends AbstractInstanceMe
 	private static StorageValue[] unmarshalActuals(UnmarshallingContext context, byte selector) throws IOException {
 		switch (selector) {
 		case SELECTOR: return context.readLengthAndArray(StorageValues::from, StorageValue[]::new);
-		case SELECTOR_TRANSFER_INT: return new StorageValue[] { StorageValues.intOf(context.readInt()) };
-		case SELECTOR_TRANSFER_LONG: return new StorageValue[] { StorageValues.longOf(context.readLong()) };
-		case SELECTOR_TRANSFER_BIG_INTEGER: return new StorageValue[] { StorageValues.bigIntegerOf(context.readBigInteger()) };
 		default: throw new IllegalArgumentException("Unexpected selector " + selector + " for instance method call transaction");
 		}
 	}
@@ -246,43 +232,10 @@ public class InstanceMethodCallTransactionRequestImpl extends AbstractInstanceMe
 
 	@Override
 	public void intoWithoutSignature(MarshallingContext context) throws IOException {
-		MethodSignature staticTarget = getStaticTarget();
-		boolean receiveInt = RECEIVE_INT.equals(staticTarget);
-		boolean receiveLong = RECEIVE_LONG.equals(staticTarget);
-		boolean receiveBigInteger = RECEIVE_BIG_INTEGER.equals(staticTarget);
-	
-		if (receiveInt)
-			context.writeByte(SELECTOR_TRANSFER_INT);
-		else if (receiveLong)
-			context.writeByte(SELECTOR_TRANSFER_LONG);
-		else if (receiveBigInteger)
-			context.writeByte(SELECTOR_TRANSFER_BIG_INTEGER);
-		else
-			context.writeByte(SELECTOR);
-	
+		context.writeByte(SELECTOR);
 		context.writeStringUnshared(chainId);
 	
-		if (receiveInt || receiveLong || receiveBigInteger) {
-			getCaller().intoWithoutSelector(context);
-			context.writeBigInteger(getGasLimit());
-			context.writeBigInteger(getGasPrice());
-			getClasspath().into(context);
-			context.writeBigInteger(getNonce());
-	
-			StorageValue howMuch = actuals().findFirst().get();
-	
-			// TODO: check exceptions below
-			if (receiveInt)
-				context.writeInt(howMuch.asInt(v -> new IllegalArgumentException("Incorrect argument for " + RECEIVE_INT + ": expected int but found " + v.getClass().getSimpleName())));
-			else if (receiveLong)
-				context.writeLong(howMuch.asLong(v -> new IllegalArgumentException("Incorrect argument for " + RECEIVE_LONG + ": expected long but found " + v.getClass().getSimpleName())));
-			else
-				context.writeBigInteger(howMuch.asBigInteger(v -> new IllegalArgumentException("Incorrect argument for " + RECEIVE_BIG_INTEGER + ": expected BigInteger but found " + v.getClass().getSimpleName())));
-
-			getReceiver().intoWithoutSelector(context);
-		}
-		else
-			super.intoWithoutSignature(context);
+		super.intoWithoutSignature(context);
 	}
 
 	@Override

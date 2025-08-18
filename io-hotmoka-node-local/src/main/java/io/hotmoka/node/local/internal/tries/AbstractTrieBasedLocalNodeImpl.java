@@ -17,13 +17,13 @@ limitations under the License.
 package io.hotmoka.node.local.internal.tries;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -101,17 +101,13 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	private final Index index;
 
 	/**
-	 * The lock object used to avoid garbage-collecting stores that are currently used.
-	 */
-	private final Object lockGC = new Object();
-
-	/**
 	 * A map from each state identifier of the store to the number of users of that store
 	 * at that state identifier. The goal of this information is to avoid garbage-collecting
 	 * store identifiers that are currently being used for some reason.
+	 * A negative value for a state identifier means that the store with that state identifier
+	 * is being garbage-collected and must be considered as missing already.
 	 */
-	@GuardedBy("lockGC")
-	private final Map<StateId, Integer> storeUsers = new HashMap<>();
+	private final ConcurrentMap<StateId, Integer> storeUsers = new ConcurrentHashMap<>();
 
 	/**
 	 * The key used inside {@link #storeOfNode} to keep the list of old stores
@@ -193,14 +189,18 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 
 	@Override
 	protected final S enterHead() throws ClosedNodeException, InterruptedException, TimeoutException {
-		synchronized (lockGC) {
+		while (true) {
 			S head = getStoreOfHead();
-			storeUsers.compute(head.getStateId(), (_id, old) -> old == null ? 1 : (old + 1));
-			return head;
+
+			// if the store of the head is currently being garbage-collected (negative mark), it means that the
+			// garbage-collection has been so aggressive to garbage-collect the head while we were trying
+			// to enter it; this is unrealistic but possible in theory; if that is the case, we just
+			// grasp the new head and try to access it, until we eventually succeed
+			if (storeUsers.compute(head.getStateId(), (_id, old) -> old == null ? 1 : (old < 0 ? old : (old + 1))) > 0)
+				return head;
 		}
 	}
 
-	@GuardedBy("lockGC")
 	protected abstract S getStoreOfHead() throws ClosedNodeException, InterruptedException, TimeoutException;
 
 	/**
@@ -215,19 +215,16 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 * @throws InterruptedException if the operation has been interrupted before being completed
 	 */
 	protected S enter(StateId stateId, Optional<StoreCache> cache) throws UnknownStateIdException, InterruptedException {
-		synchronized (lockGC) {
-			S result = mkStore(stateId, cache);
-			storeUsers.compute(stateId, (_id, old) -> old == null ? 1 : (old + 1));
-			return result;
-		}
+		// if the store identified by stateId is currently being garbage-collected (negative mark), we consider it as already missing
+		if (storeUsers.compute(stateId, (_id, old) -> old == null ? 1 : (old < 0 ? old : (old + 1))) < 0)
+			throw new UnknownStateIdException(stateId);
+		else
+			return mkStore(stateId, cache);
 	}
 
 	@Override
 	protected void exit(S store) {
-		synchronized (lockGC) {
-			storeUsers.compute(store.getStateId(), (_id, old) -> old == 1 ? null : (old - 1));
-		}
-
+		storeUsers.compute(store.getStateId(), (_id, old) -> old == 1 ? null : (old - 1));
 		super.exit(store);
 	}
 
@@ -396,11 +393,16 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 			while (!Thread.currentThread().isInterrupted()) {
 				Set<StateIdAndTime> toGC = env.computeInReadonlyTransaction(txn -> getStores(STORES_TO_GC, txn));
 				LOGGER.info("#toGC: " + toGC.size() + " with users " + storeUsers);
-				for (var stateIdAndTime: toGC)
-					 synchronized (lockGC) {
-						 if (!storeUsers.containsKey(stateIdAndTime.stateId))
-							 gc(stateIdAndTime);
-					 }
+				for (var stateIdAndTime: toGC) {
+					StateId stateId = stateIdAndTime.stateId;
+					// if nobody is using the store identified by stateId, then
+					// we mark it with -1, so that it is considered as being garbage-collected
+					if (storeUsers.compute(stateId, (_id, old) -> old == null ? -1 : old) < 0) {
+						gc(stateIdAndTime);
+						// after garbage-collection, we remove the mark for stateId
+						storeUsers.remove(stateId);
+					}
+				}
 
 				Thread.sleep(5000L);
 			}

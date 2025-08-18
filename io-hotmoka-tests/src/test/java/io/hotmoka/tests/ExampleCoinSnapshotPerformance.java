@@ -57,7 +57,6 @@ import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.NonInitialTransactionResponse;
-import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.signatures.MethodSignature;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -382,15 +381,12 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
         private final Object tracingLock = new Object();
 
         private void trace(TransactionReference reference) throws Exception {
-        	TransactionResponse response = node.getResponse(reference);
-
-        	synchronized (tracingLock) {
-        		if (response instanceof NonInitialTransactionResponse nitr) {
+        	if (node.getResponse(reference) instanceof NonInitialTransactionResponse nitr)
+        		synchronized (tracingLock) {
         			gasConsumedForCPU = gasConsumedForCPU.add(nitr.getGasConsumedForCPU());
         			gasConsumedForRAM = gasConsumedForRAM.add(nitr.getGasConsumedForRAM());
         			gasConsumedForStorage = gasConsumedForStorage.add(nitr.getGasConsumedForStorage());
         		}
-        	}
 
         	numberOfTransactions.getAndIncrement();
         }
