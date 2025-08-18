@@ -760,8 +760,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 
 		@Override
 		protected void freeDescendants(int cursor) {
-			int cursorOfNext = cursor + sharedNibbles.length;
-			freeNodeWithHash(next, cursorOfNext);
+			freeNodeWithHash(next, cursor + sharedNibbles.length);
 		}
 
 		@Override
@@ -789,7 +788,9 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 			if (lengthOfDistinctPortion == 0) {
 				AbstractNode oldNext = getNodeFromExistingHash(next, sharedNibbles.length + cursor);
 				AbstractNode newNext = oldNext.put(nibblesOfHashedKey, sharedNibbles.length + cursor, value); // we recur
-
+				// TODO
+				// in theory, newNext could be an Extension and consequently it could be merged with sharedNibbles:
+				// but it could not see a case when this happens and consequently I do not dare to optimize this case
 				return new Extension(sharedNibbles, hasherForNodes.hash(newNext), 0).putInStore(cursor);
 			}
 			else {
@@ -801,14 +802,11 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 				byte selection2 = nibblesOfHashedKey[lengthOfSharedPortion + cursor];
 				var children = new byte[16][];
 				byte[] hashOfChild1 = (sharedNibbles1.length == 0) ? next : hasherForNodes.hash(new Extension(sharedNibbles1, next, 0).putInStore(cursor + lengthOfSharedPortion + 1));
-				AbstractNode child2;
-
-				child2 = new Leaf(keyEnd2, valueToBytes.get(value), 0).putInStore(cursor + lengthOfSharedPortion + 1);
-
+				var child2 = new Leaf(keyEnd2, valueToBytes.get(value), 0).putInStore(cursor + lengthOfSharedPortion + 1);
 				children[selection1] = hashOfChild1;
 				children[selection2] = hasherForNodes.hash(child2);
 
-				AbstractNode branch = new Branch(children, 0).putInStore(cursor + lengthOfSharedPortion);
+				var branch = new Branch(children, 0).putInStore(cursor + lengthOfSharedPortion);
 
 				if (lengthOfSharedPortion > 0) {
 					// yield an extension node linked to a branch node with two alternatives
@@ -896,7 +894,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 				return bytesToValue.get(value);
 			}
 			catch (IOException e) {
-				throw new TrieException("The value has been previously marshalled into the trie: the database must be corrupted or the marshaller or unmarshaller is buggy", e);
+				throw new TrieException("The value was previously marshalled into the trie but cannot be unmarshalled now: the database must be corrupted or the marshaller or unmarshaller is buggy", e);
 			}
 		}
 
@@ -927,13 +925,13 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 				var branch = new Branch(children, 0).putInStore(cursor + lengthOfSharedPortion);
 
 				if (lengthOfSharedPortion > 0) {
-					// yield an extension node linked to a branch node with two alternatives leaves
+					// yield an extension node linked to a branch node with two alternative leaves
 					var sharedNibbles = new byte[lengthOfSharedPortion];
 					System.arraycopy(keyEnd, 0, sharedNibbles, 0, lengthOfSharedPortion);
 					return new Extension(sharedNibbles, hasherForNodes.hash(branch), 0).putInStore(cursor);
 				}
 				else
-					// yield a branch node with two alternatives leaves
+					// yield a branch node with two alternative leaves
 					return branch;
 			}
 		}

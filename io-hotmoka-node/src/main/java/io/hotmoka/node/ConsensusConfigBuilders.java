@@ -26,10 +26,10 @@ import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.nodes.ConsensusConfigBuilder;
-import io.hotmoka.node.internal.json.ConsensusConfigDecoder;
-import io.hotmoka.node.internal.json.ConsensusConfigEncoder;
 import io.hotmoka.node.internal.json.ConsensusConfigJson;
 import io.hotmoka.node.internal.nodes.BasicConsensusConfigBuilder;
+import io.hotmoka.websockets.beans.MappedDecoder;
+import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
  * Providers of consensus configurations.
@@ -78,23 +78,27 @@ public abstract class ConsensusConfigBuilders {
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends ConsensusConfigEncoder {
+	public static class Encoder extends MappedEncoder<ConsensusConfig<?,?>, Json> {
 
 		/**
 		 * Creates a new encoder.
 		 */
-		public Encoder() {}
+		public Encoder() {
+			super(Json::new);
+		}
 	}
 
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends ConsensusConfigDecoder {
+	public static class Decoder extends MappedDecoder<ConsensusConfig<?,?>, Json> {
 
 		/**
 		 * Creates a new decoder.
 		 */
-		public Decoder() {}
+		public Decoder() {
+			super(Json.class);
+		}
 	}
 
     /**

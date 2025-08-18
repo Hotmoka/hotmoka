@@ -17,10 +17,10 @@ limitations under the License.
 package io.hotmoka.node;
 
 import io.hotmoka.node.api.nodes.NodeInfo;
-import io.hotmoka.node.internal.json.NodeInfoDecoder;
-import io.hotmoka.node.internal.json.NodeInfoEncoder;
 import io.hotmoka.node.internal.json.NodeInfoJson;
 import io.hotmoka.node.internal.nodes.NodeInfoImpl;
+import io.hotmoka.websockets.beans.MappedDecoder;
+import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
  * Providers of node-specific information about a Hotmoka node.
@@ -44,23 +44,27 @@ public abstract class NodeInfos {
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends NodeInfoEncoder {
+	public static class Encoder extends MappedEncoder<NodeInfo, Json> {
 
 		/**
 		 * Creates a new encoder.
 		 */
-		public Encoder() {}
+		public Encoder() {
+			super(Json::new);
+		}
 	}
 
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends NodeInfoDecoder {
+	public static class Decoder extends MappedDecoder<NodeInfo, Json> {
 
 		/**
 		 * Creates a new decoder.
 		 */
-		public Decoder() {}
+		public Decoder() {
+			super(Json.class);
+		}
 	}
 
     /**

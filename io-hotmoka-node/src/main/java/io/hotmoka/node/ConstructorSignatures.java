@@ -22,10 +22,10 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
-import io.hotmoka.node.internal.json.ConstructorSignatureDecoder;
-import io.hotmoka.node.internal.json.ConstructorSignatureEncoder;
 import io.hotmoka.node.internal.json.ConstructorSignatureJson;
 import io.hotmoka.node.internal.signatures.ConstructorSignatureImpl;
+import io.hotmoka.websockets.beans.MappedDecoder;
+import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
  * Providers of constructor signatures.
@@ -59,26 +59,30 @@ public abstract class ConstructorSignatures {
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends ConstructorSignatureEncoder {
+	public static class Encoder extends MappedEncoder<ConstructorSignature, Json> {
 
 		/**
 		 * Creates a new encoder.
 		 */
-		public Encoder() {}
+		public Encoder() {
+			super(Json::new);
+		}
 	}
 
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends ConstructorSignatureDecoder {
+	public static class Decoder extends MappedDecoder<ConstructorSignature, Json> {
 
 		/**
 		 * Creates a new decoder.
 		 */
-		public Decoder() {}
+		public Decoder() {
+			super(Json.class);
+		}
 	}
 
-    /**
+	/**
      * JSON representation.
      */
     public static class Json extends ConstructorSignatureJson {

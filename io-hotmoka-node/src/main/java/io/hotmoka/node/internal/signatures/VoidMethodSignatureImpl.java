@@ -112,9 +112,11 @@ public final class VoidMethodSignatureImpl extends AbstractMethodSignature imple
     		context.writeCompactInt(SELECTOR_RECEIVE_BIGINTEGER);
     	else if (MethodSignatures.VALIDATORS_REWARD.equals(this))
     		context.writeCompactInt(SELECTOR_VALIDATORS_REWARD);
+    	else if (MethodSignatures.VALIDATORS_REWARD_MOKAMINT_MINER.equals(this))
+    		context.writeCompactInt(SELECTOR_VALIDATORS_REWARD_MOKAMINT_MINER);
     	else {
     		var formals = getFormals().toArray(StorageType[]::new);
-    		context.writeCompactInt(formals.length * 2 + SELECTOR_VALIDATORS_REWARD_MOKAMINT + 1); // this signals that the method is void (see from() inside AbstractMethodSignature)
+    		context.writeCompactInt(formals.length * 2 + SELECTOR_VALIDATORS_REWARD_MOKAMINT_MINER + 1); // this signals that the method is void (see from() inside AbstractMethodSignature)
     		for (var formal: formals)
     			formal.into(context);
 

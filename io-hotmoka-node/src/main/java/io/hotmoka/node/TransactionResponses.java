@@ -38,8 +38,6 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
-import io.hotmoka.node.internal.json.TransactionResponseDecoder;
-import io.hotmoka.node.internal.json.TransactionResponseEncoder;
 import io.hotmoka.node.internal.json.TransactionResponseJson;
 import io.hotmoka.node.internal.responses.ConstructorCallTransactionExceptionResponseImpl;
 import io.hotmoka.node.internal.responses.ConstructorCallTransactionFailedResponseImpl;
@@ -54,6 +52,8 @@ import io.hotmoka.node.internal.responses.MethodCallTransactionFailedResponseImp
 import io.hotmoka.node.internal.responses.NonVoidMethodCallTransactionSuccessfulResponseImpl;
 import io.hotmoka.node.internal.responses.TransactionResponseImpl;
 import io.hotmoka.node.internal.responses.VoidMethodCallTransactionSuccessfulResponseImpl;
+import io.hotmoka.websockets.beans.MappedDecoder;
+import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
  * Providers of transaction responses.
@@ -253,23 +253,27 @@ public abstract class TransactionResponses {
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends TransactionResponseEncoder {
+	public static class Encoder extends MappedEncoder<TransactionResponse, Json> {
 
 		/**
 		 * Creates a new encoder.
 		 */
-		public Encoder() {}
+		public Encoder() {
+			super(Json::new);
+		}
 	}
 
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends TransactionResponseDecoder {
+	public static class Decoder extends MappedDecoder<TransactionResponse, Json> {
 
 		/**
 		 * Creates a new decoder.
 		 */
-		public Decoder() {}
+		public Decoder() {
+			super(Json.class);
+		}
 	}
 
     /**

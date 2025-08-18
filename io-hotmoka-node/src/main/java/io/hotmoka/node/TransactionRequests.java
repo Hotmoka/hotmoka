@@ -37,8 +37,6 @@ import io.hotmoka.node.api.signatures.MethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
-import io.hotmoka.node.internal.json.TransactionRequestDecoder;
-import io.hotmoka.node.internal.json.TransactionRequestEncoder;
 import io.hotmoka.node.internal.json.TransactionRequestJson;
 import io.hotmoka.node.internal.requests.ConstructorCallTransactionRequestImpl;
 import io.hotmoka.node.internal.requests.GameteCreationTransactionRequestImpl;
@@ -49,6 +47,8 @@ import io.hotmoka.node.internal.requests.JarStoreInitialTransactionRequestImpl;
 import io.hotmoka.node.internal.requests.JarStoreTransactionRequestImpl;
 import io.hotmoka.node.internal.requests.StaticMethodCallTransactionRequestImpl;
 import io.hotmoka.node.internal.requests.TransactionRequestImpl;
+import io.hotmoka.websockets.beans.MappedDecoder;
+import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
  * Providers of transaction requests.
@@ -313,23 +313,27 @@ public abstract class TransactionRequests {
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends TransactionRequestEncoder {
+	public static class Encoder extends MappedEncoder<TransactionRequest<?>, Json> {
 
 		/**
 		 * Creates a new encoder.
 		 */
-		public Encoder() {}
+		public Encoder() {
+			super(Json::new);
+		}
 	}
 
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends TransactionRequestDecoder {
+	public static class Decoder extends MappedDecoder<TransactionRequest<?>, Json> {
 
 		/**
 		 * Creates a new decoder.
 		 */
-		public Decoder() {}
+		public Decoder() {
+			super(Json.class);
+		}
 	}
 
     /**

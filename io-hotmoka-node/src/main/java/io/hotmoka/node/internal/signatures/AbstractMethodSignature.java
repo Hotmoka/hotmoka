@@ -93,6 +93,7 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 	final static byte SELECTOR_RECEIVE_BIGINTEGER = 2;
 	final static byte SELECTOR_VALIDATORS_REWARD = 3;
 	final static byte SELECTOR_VALIDATORS_REWARD_MOKAMINT = 4;
+	final static byte SELECTOR_VALIDATORS_REWARD_MOKAMINT_MINER = 5;
 	
 
 	/**
@@ -112,11 +113,12 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 		case SELECTOR_RECEIVE_BIGINTEGER: return MethodSignatures.RECEIVE_BIGINTEGER;
 		case SELECTOR_VALIDATORS_REWARD: return MethodSignatures.VALIDATORS_REWARD;
 		case SELECTOR_VALIDATORS_REWARD_MOKAMINT: return MethodSignatures.VALIDATORS_REWARD_MOKAMINT;
+		case SELECTOR_VALIDATORS_REWARD_MOKAMINT_MINER: return MethodSignatures.VALIDATORS_REWARD_MOKAMINT_MINER;
 		}
 
 		// we determine if the method is void or not, by looking at the parity of the number of formals
 		// (see the into() method in NonVoidMethodSignatureImpl and VoidMethodSignatureImpl)
-		int length = selector - SELECTOR_VALIDATORS_REWARD_MOKAMINT - 1;
+		int length = selector - SELECTOR_VALIDATORS_REWARD_MOKAMINT_MINER - 1;
 
 		if (length % 2 == 0)
 			return new VoidMethodSignatureImpl(context, length / 2);

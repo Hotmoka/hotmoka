@@ -77,7 +77,7 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 	private static byte[] historyToBytes(Stream<TransactionReference> history) {
 		var toConcat = history.toArray(TransactionReference[]::new);
 		int requestHashLength = TransactionReference.REQUEST_HASH_LENGTH;
-		byte[] result = new byte[toConcat.length * requestHashLength];
+		var result = new byte[toConcat.length * requestHashLength];
 
 		int pos = 0;
 		for (TransactionReference reference: toConcat) {

@@ -35,12 +35,12 @@ import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.signatures.VoidMethodSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
-import io.hotmoka.node.internal.json.MethodSignatureDecoder;
-import io.hotmoka.node.internal.json.MethodSignatureEncoder;
 import io.hotmoka.node.internal.json.MethodSignatureJson;
 import io.hotmoka.node.internal.signatures.AbstractMethodSignature;
 import io.hotmoka.node.internal.signatures.NonVoidMethodSignatureImpl;
 import io.hotmoka.node.internal.signatures.VoidMethodSignatureImpl;
+import io.hotmoka.websockets.beans.MappedDecoder;
+import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
  * Providers of method signatures.
@@ -88,23 +88,27 @@ public abstract class MethodSignatures {
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends MethodSignatureEncoder {
+	public static class Encoder extends MappedEncoder<MethodSignature, Json> {
 
 		/**
 		 * Creates a new encoder.
 		 */
-		public Encoder() {}
+		public Encoder() {
+			super(Json::new);
+		}
 	}
 
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends MethodSignatureDecoder {
+	public static class Decoder extends MappedDecoder<MethodSignature, Json> {
 
 		/**
 		 * Creates a new decoder.
 		 */
-		public Decoder() {}
+		public Decoder() {
+			super(Json.class);
+		}
 	}
 
     /**

@@ -22,12 +22,12 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.api.types.BasicType;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
-import io.hotmoka.node.internal.json.StorageTypeDecoder;
-import io.hotmoka.node.internal.json.StorageTypeEncoder;
 import io.hotmoka.node.internal.json.StorageTypeJson;
 import io.hotmoka.node.internal.types.AbstractStorageType;
 import io.hotmoka.node.internal.types.BasicTypeImpl;
 import io.hotmoka.node.internal.types.ClassTypeImpl;
+import io.hotmoka.websockets.beans.MappedDecoder;
+import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
  * Providers of storage types.
@@ -90,23 +90,27 @@ public abstract class StorageTypes {
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends StorageTypeEncoder {
+	public static class Encoder extends MappedEncoder<StorageType, Json> {
 
 		/**
 		 * Creates a new encoder.
 		 */
-		public Encoder() {}
+		public Encoder() {
+			super(Json::new);
+		}
 	}
 
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends StorageTypeDecoder {
+	public static class Decoder extends MappedDecoder<StorageType, Json> {
 
 		/**
 		 * Creates a new decoder.
 		 */
-		public Decoder() {}
+		public Decoder() {
+			super(Json.class);
+		}
 	}
 
     /**

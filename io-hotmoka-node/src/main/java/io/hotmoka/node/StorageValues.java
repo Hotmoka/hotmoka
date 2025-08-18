@@ -35,8 +35,6 @@ import io.hotmoka.node.api.values.ShortValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.api.values.StringValue;
-import io.hotmoka.node.internal.json.StorageValueDecoder;
-import io.hotmoka.node.internal.json.StorageValueEncoder;
 import io.hotmoka.node.internal.json.StorageValueJson;
 import io.hotmoka.node.internal.values.AbstractStorageValue;
 import io.hotmoka.node.internal.values.BigIntegerValueImpl;
@@ -51,6 +49,8 @@ import io.hotmoka.node.internal.values.NullValueImpl;
 import io.hotmoka.node.internal.values.ShortValueImpl;
 import io.hotmoka.node.internal.values.StorageReferenceImpl;
 import io.hotmoka.node.internal.values.StringValueImpl;
+import io.hotmoka.websockets.beans.MappedDecoder;
+import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
  * Providers of storage types.
@@ -231,23 +231,27 @@ public abstract class StorageValues {
 	/**
 	 * JSON encoder.
 	 */
-	public static class Encoder extends StorageValueEncoder {
+	public static class Encoder extends MappedEncoder<StorageValue, Json> {
 
 		/**
 		 * Creates a new encoder.
 		 */
-		public Encoder() {}
+		public Encoder() {
+			super(Json::new);
+		}
 	}
 
 	/**
 	 * JSON decoder.
 	 */
-	public static class Decoder extends StorageValueDecoder {
+	public static class Decoder extends MappedDecoder<StorageValue, Json> {
 
 		/**
 		 * Creates a new decoder.
 		 */
-		public Decoder() {}
+		public Decoder() {
+			super(Json.class);
+		}
 	}
 
     /**

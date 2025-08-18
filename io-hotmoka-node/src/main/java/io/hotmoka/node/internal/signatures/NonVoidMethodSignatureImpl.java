@@ -127,7 +127,7 @@ public final class NonVoidMethodSignatureImpl extends AbstractMethodSignature im
     		context.writeCompactInt(SELECTOR_VALIDATORS_REWARD_MOKAMINT);
     	else {
     		var formals = getFormals().toArray(StorageType[]::new);
-    		context.writeCompactInt(formals.length * 2 + 1 + SELECTOR_VALIDATORS_REWARD_MOKAMINT + 1); // this signals that the method is non-void (see from() inside AbstractMethodSignature)
+    		context.writeCompactInt(formals.length * 2 + 1 + SELECTOR_VALIDATORS_REWARD_MOKAMINT_MINER + 1); // this signals that the method is non-void (see from() inside AbstractMethodSignature)
     		for (var formal: formals)
     			formal.into(context);
 

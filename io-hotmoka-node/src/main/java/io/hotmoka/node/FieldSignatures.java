@@ -22,10 +22,10 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
-import io.hotmoka.node.internal.json.FieldSignatureDecoder;
-import io.hotmoka.node.internal.json.FieldSignatureEncoder;
 import io.hotmoka.node.internal.json.FieldSignatureJson;
 import io.hotmoka.node.internal.signatures.FieldSignatureImpl;
+import io.hotmoka.websockets.beans.MappedDecoder;
+import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
  * Providers of field signatures.
@@ -60,23 +60,27 @@ public abstract class FieldSignatures {
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends FieldSignatureEncoder {
+	public static class Encoder extends MappedEncoder<FieldSignature, Json> {
 
 		/**
 		 * Creates a new encoder.
 		 */
-		public Encoder() {}
+		public Encoder() {
+			super(Json::new);
+		}
 	}
 
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends FieldSignatureDecoder {
+	public static class Decoder extends MappedDecoder<FieldSignature, Json> {
 
 		/**
 		 * Creates a new decoder.
 		 */
-		public Decoder() {}
+		public Decoder() {
+			super(Json.class);
+		}
 	}
 
     /**

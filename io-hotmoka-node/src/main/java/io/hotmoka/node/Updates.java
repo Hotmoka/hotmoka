@@ -38,8 +38,6 @@ import io.hotmoka.node.api.updates.UpdateOfStorage;
 import io.hotmoka.node.api.updates.UpdateOfString;
 import io.hotmoka.node.api.updates.UpdateToNull;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.internal.json.UpdateDecoder;
-import io.hotmoka.node.internal.json.UpdateEncoder;
 import io.hotmoka.node.internal.json.UpdateJson;
 import io.hotmoka.node.internal.updates.AbstractUpdate;
 import io.hotmoka.node.internal.updates.ClassTagImpl;
@@ -55,6 +53,8 @@ import io.hotmoka.node.internal.updates.UpdateOfShortImpl;
 import io.hotmoka.node.internal.updates.UpdateOfStorageImpl;
 import io.hotmoka.node.internal.updates.UpdateOfStringImpl;
 import io.hotmoka.node.internal.updates.UpdateToNullImpl;
+import io.hotmoka.websockets.beans.MappedDecoder;
+import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
  * Providers of updates.
@@ -233,23 +233,27 @@ public abstract class Updates {
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends UpdateEncoder {
+	public static class Encoder extends MappedEncoder<Update, Json> {
 
 		/**
 		 * Creates a new encoder.
 		 */
-		public Encoder() {}
+		public Encoder() {
+			super(Json::new);
+		}
 	}
 
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends UpdateDecoder {
+	public static class Decoder extends MappedDecoder<Update, Json> {
 
 		/**
 		 * Creates a new decoder.
 		 */
-		public Decoder() {}
+		public Decoder() {
+			super(Json.class);
+		}
 	}
 
     /**
