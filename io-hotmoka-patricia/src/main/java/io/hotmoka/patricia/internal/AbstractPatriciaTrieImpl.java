@@ -164,22 +164,49 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 	@Override
 	public Optional<Value> get(Key key) {
 		try {
-			byte[] hashedKey = hasherForKeys.hash(key);
-			byte[] nibblesOfHashedKey = toNibbles(hashedKey);
-			AbstractNode rootNode = getNodeFromExistingHash(root, 0);
-			return Optional.of(rootNode.get(nibblesOfHashedKey, 0));
+			return Optional.of(get(hasherForKeys.hash(key), bytesToValue));
 		}
 		catch (UnknownKeyException e) {
 			return Optional.empty();
 		}
+		catch (IOException e) {
+			throw new TrieException("The value was previously marshalled into the trie but cannot be unmarshalled now: the database must be corrupted or the marshaller or unmarshaller is buggy", e);
+		}
+	}
+
+	/**
+	 * Internal get operation that works at the byte level. The key is already hashed.
+	 * 
+	 * @param key the hashed key
+	 * @param bytesToValue the unmarshaller for the value bound to the key
+	 * @return the value bound to the key, if any
+	 * @throws UnknownKeyException if the key cannot be found in the trie
+	 * @throws IOException if the key is bound to a value that cannot be unmarshalled with {@code bytesToValue}
+	 */
+	protected <V> V get(byte[] key, FromBytes<V> bytesToValue) throws UnknownKeyException, IOException {
+		byte[] nibblesOfHashedKey = toNibbles(key);
+		AbstractNode rootNode = getNodeFromExistingHash(root, 0);
+		return bytesToValue.get(rootNode.get(nibblesOfHashedKey, 0));
 	}
 
 	@Override
 	public T put(Key key, Value value) {
-		byte[] hashedKey = hasherForKeys.hash(key);
-		byte[] nibblesOfHashedKey = toNibbles(hashedKey);
+		return put(hasherForKeys.hash(key), value, valueToBytes);
+	}
+
+	/**
+	 * Internal put operation that works at the byte level. The key
+	 * is already hashed and the value is already marshalled.
+	 * 
+	 * @param key the hashed key
+	 * @param value the value
+	 * @param valueToBytes the marshaller of the value
+	 * @return the resulting, modified Patricia trie
+	 */
+	protected <V> T put(byte[] key, V value, ToBytes<V> valueToBytes) {
+		byte[] nibblesOfHashedKey = toNibbles(key);
 		AbstractNode oldRoot = getNodeFromExistingHash(root, 0);
-		AbstractNode newRoot = oldRoot.put(nibblesOfHashedKey, 0, value);
+		AbstractNode newRoot = oldRoot.put(nibblesOfHashedKey, 0, valueToBytes.get(value));
 
 		try {
 			return checkoutAt(hasherForNodes.hash(newRoot));
@@ -549,7 +576,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		 * @return the value
 		 * @throws UnknownKeyException if there is not such value
 		 */
-		protected abstract Value get(byte[] nibblesOfHashedKey, int cursor) throws UnknownKeyException;
+		protected abstract byte[] get(byte[] nibblesOfHashedKey, int cursor) throws UnknownKeyException;
 
 		/**
 		 * Binds the given value to the given key.
@@ -558,11 +585,11 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		 * @param nibblesOfHashedKey the nibbles of the key to look up; only the 4 least significant bits
 		 *                           of each element are relevant; the 4 most significant bits must be 0
 		 * @param cursor the starting point of the significant portion of {@code nibblesOfHashedKey}
-		 * @param value the value
+		 * @param value the value, already marshalled into bytes
 		 * @return the new node that replaced this in the trie; if the key was already bound to the same
 		 *         value, then this node will coincide with this, that is, they have the same hash
 		 */
-		protected abstract AbstractNode put(byte[] nibblesOfHashedKey, int cursor, Value value);
+		protected abstract AbstractNode put(byte[] nibblesOfHashedKey, int cursor, byte[] value);
 
 		/**
 		 * Marshals this object into the given context, but does not report the reference counter.
@@ -674,7 +701,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		}
 
 		@Override
-		protected Value get(byte[] nibblesOfHashedKey, final int cursor) throws UnknownKeyException {
+		protected byte[] get(byte[] nibblesOfHashedKey, final int cursor) throws UnknownKeyException {
 			if (cursor >= nibblesOfHashedKey.length)
 				throw new TrieException("Inconsistent key length in Patricia trie nibblesOfHashedKey.length = " + nibblesOfHashedKey.length + ", cursor = " + cursor);
 
@@ -687,7 +714,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		}
 
 		@Override
-		protected AbstractNode put(byte[] nibblesOfHashedKey, final int cursor, Value value) {
+		protected AbstractNode put(byte[] nibblesOfHashedKey, final int cursor, byte[] value) {
 			if (cursor >= nibblesOfHashedKey.length)
 				throw new TrieException("Inconsistent key length in Patricia trie");
 
@@ -764,7 +791,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		}
 
 		@Override
-		protected Value get(byte[] nibblesOfHashedKey, int cursor) throws UnknownKeyException {
+		protected byte[] get(byte[] nibblesOfHashedKey, int cursor) throws UnknownKeyException {
 			int cursor1;
 			for (cursor1 = 0; cursor < nibblesOfHashedKey.length && cursor1 < sharedNibbles.length; cursor1++, cursor++)
 				if (sharedNibbles[cursor1] != nibblesOfHashedKey[cursor])
@@ -777,7 +804,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		}
 
 		@Override
-		protected AbstractNode put(byte[] nibblesOfHashedKey, final int cursor, Value value) {
+		protected AbstractNode put(byte[] nibblesOfHashedKey, final int cursor, byte[] value) {
 			int lengthOfSharedPortion = 0;
 
 			while (lengthOfSharedPortion < sharedNibbles.length && nibblesOfHashedKey[lengthOfSharedPortion + cursor] == sharedNibbles[lengthOfSharedPortion])
@@ -802,7 +829,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 				byte selection2 = nibblesOfHashedKey[lengthOfSharedPortion + cursor];
 				var children = new byte[16][];
 				byte[] hashOfChild1 = (sharedNibbles1.length == 0) ? next : hasherForNodes.hash(new Extension(sharedNibbles1, next, 0).putInStore(cursor + lengthOfSharedPortion + 1));
-				var child2 = new Leaf(keyEnd2, valueToBytes.get(value), 0).putInStore(cursor + lengthOfSharedPortion + 1);
+				var child2 = new Leaf(keyEnd2, value, 0).putInStore(cursor + lengthOfSharedPortion + 1);
 				children[selection1] = hashOfChild1;
 				children[selection2] = hasherForNodes.hash(child2);
 
@@ -881,7 +908,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		}
 
 		@Override
-		protected Value get(byte[] nibblesOfHashedKey, int cursor) throws UnknownKeyException {
+		protected byte[] get(byte[] nibblesOfHashedKey, int cursor) throws UnknownKeyException {
 			int cursor1;
 			for (cursor1 = 0; cursor < nibblesOfHashedKey.length && cursor1 < keyEnd.length; cursor1++, cursor++)
 				if (keyEnd[cursor1] != nibblesOfHashedKey[cursor])
@@ -890,16 +917,11 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 			if (cursor1 != keyEnd.length || cursor != nibblesOfHashedKey.length)
 				throw new TrieException("Inconsistent key length in Patricia trie: " + (cursor1 != keyEnd.length) + ", " + (cursor != nibblesOfHashedKey.length));
 
-			try {
-				return bytesToValue.get(value);
-			}
-			catch (IOException e) {
-				throw new TrieException("The value was previously marshalled into the trie but cannot be unmarshalled now: the database must be corrupted or the marshaller or unmarshaller is buggy", e);
-			}
+			return value;
 		}
 
 		@Override
-		protected AbstractNode put(byte[] nibblesOfHashedKey, int cursor, Value value) {
+		protected AbstractNode put(byte[] nibblesOfHashedKey, int cursor, byte[] value) {
 			int lengthOfSharedPortion = 0;
 
 			while (lengthOfSharedPortion < keyEnd.length && nibblesOfHashedKey[lengthOfSharedPortion + cursor] == keyEnd[lengthOfSharedPortion])
@@ -908,7 +930,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 			int lengthOfDistinctPortion = keyEnd.length - lengthOfSharedPortion;
 			if (lengthOfDistinctPortion == 0)
 				// the keys coincide
-				return new Leaf(keyEnd, valueToBytes.get(value), 0).putInStore(cursor);
+				return new Leaf(keyEnd, value, 0).putInStore(cursor);
 			else {
 				// since there is a distinct portion, there must be at least a nibble in keyEnd
 				var keyEnd1 = new byte[keyEnd.length - lengthOfSharedPortion - 1];
@@ -919,7 +941,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 				byte selection2 = nibblesOfHashedKey[lengthOfSharedPortion + cursor];
 				var children = new byte[16][];
 				var leaf1 = new Leaf(keyEnd1, this.value, 0).putInStore(cursor + lengthOfSharedPortion + 1);
-				var leaf2 = new Leaf(keyEnd2, valueToBytes.get(value), 0).putInStore(cursor + lengthOfSharedPortion + 1);
+				var leaf2 = new Leaf(keyEnd2, value, 0).putInStore(cursor + lengthOfSharedPortion + 1);
 				children[selection1] = hasherForNodes.hash(leaf1);
 				children[selection2] = hasherForNodes.hash(leaf2);
 				var branch = new Branch(children, 0).putInStore(cursor + lengthOfSharedPortion);
@@ -978,15 +1000,15 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 		}
 
 		@Override
-		protected Value get(byte[] nibblesOfHashedKey, int cursor) throws UnknownKeyException {
+		protected byte[] get(byte[] nibblesOfHashedKey, int cursor) throws UnknownKeyException {
 			throw new UnknownKeyException("Key not found in Patricia trie");
 		}
 
 		@Override
-		protected AbstractNode put(byte[] nibblesOfHashedKey, int cursor, Value value) {
+		protected AbstractNode put(byte[] nibblesOfHashedKey, int cursor, byte[] value) {
 			var nibblesEnd = new byte[nibblesOfHashedKey.length - cursor];
 			System.arraycopy(nibblesOfHashedKey, cursor, nibblesEnd, 0, nibblesEnd.length);
-			return new Leaf(nibblesEnd, valueToBytes.get(value), 0).putInStore(cursor);
+			return new Leaf(nibblesEnd, value, 0).putInStore(cursor);
 		}
 	}
 }
