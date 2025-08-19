@@ -18,18 +18,15 @@ package io.hotmoka.node.local.internal.tries;
 
 import java.io.ByteArrayInputStream;
 import java.security.NoSuchAlgorithmException;
-import java.util.Optional;
 
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.local.LocalNodeException;
 import io.hotmoka.patricia.AbstractPatriciaTrie;
 import io.hotmoka.patricia.api.KeyValueStore;
-import io.hotmoka.patricia.api.TrieException;
 import io.hotmoka.patricia.api.UnknownKeyException;
 
 /**
@@ -78,24 +75,5 @@ public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue, TrieOfI
 	@Override
 	public TrieOfInfo checkoutAt(byte[] root) throws UnknownKeyException {
 		return new TrieOfInfo(this, root);
-	}
-
-	/**
-	 * Yields the manifest.
-	 * 
-	 * @return the manifest, if any
-	 */
-	public Optional<StorageReference> getManifest() {
-		return get((byte) 0)
-			.map(value -> value.asReference(value2 -> new TrieException("This trie contains a manifest that is not a StorageReference but rather a " + value2.getClass().getName())));
-	}
-
-	/**
-	 * Sets the manifest.
-	 * 
-	 * @param manifest the manifest to set
-	 */
-	public TrieOfInfo setManifest(StorageReference manifest) {
-		return put((byte) 0, manifest);
 	}
 }

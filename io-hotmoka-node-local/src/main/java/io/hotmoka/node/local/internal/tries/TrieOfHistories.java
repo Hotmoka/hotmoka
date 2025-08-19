@@ -16,18 +16,25 @@ limitations under the License.
 
 package io.hotmoka.node.local.internal.tries;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.HashingAlgorithm;
+import io.hotmoka.node.NodeUnmarshallingContexts;
+import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.local.LocalNodeException;
 import io.hotmoka.patricia.AbstractPatriciaTrie;
+import io.hotmoka.patricia.FromBytes;
 import io.hotmoka.patricia.api.KeyValueStore;
+import io.hotmoka.patricia.api.TrieException;
 import io.hotmoka.patricia.api.UnknownKeyException;
 
 /**
@@ -125,6 +132,47 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 		var withoutLast = new TransactionReference[transactionsAsArray.length - 1];
 		System.arraycopy(transactionsAsArray, 0, withoutLast, 0, withoutLast.length);
 		return super.put(key, Stream.of(withoutLast));
+	}
+
+	/**
+	 * The special key used to bind the manifest.
+	 */
+	private final static byte[] MANIFEST_KEY;
+
+	static {
+		// the keys of a Patricia trie must all have the same length, equal to the size of their hashes
+		MANIFEST_KEY = new byte[mkSHA256().length()];
+	}
+
+	/**
+	 * Yields the manifest.
+	 * 
+	 * @return the manifest, if any
+	 */
+	public Optional<StorageReference> getManifest() {
+		try {
+			// we use a NodeUnmarshallingContext because that is the default used for marshalling storage values
+			FromBytes<StorageReference> bytesToStorageReference = bytes -> StorageValues.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes)))
+					.asReference(value -> new TrieException("The trie contains a manifest that is not a StorageReference but rather a " + value.getClass().getName()));
+
+			return Optional.of(get(MANIFEST_KEY, bytesToStorageReference));
+		}
+		catch (UnknownKeyException e) {
+			return Optional.empty();
+		}
+		catch (IOException e) {
+			throw new TrieException("The value was previously marshalled into the trie but cannot be unmarshalled now: the database must be corrupted or the marshaller or unmarshaller is buggy", e);
+		}
+	}
+
+	/**
+	 * Sets the manifest.
+	 * 
+	 * @param manifest the manifest to set
+	 * @return the resulting trie
+	 */
+	public TrieOfHistories setManifest(StorageReference manifest) {
+		return put(MANIFEST_KEY, manifest, StorageValue::toByteArray);
 	}
 
 	@Override

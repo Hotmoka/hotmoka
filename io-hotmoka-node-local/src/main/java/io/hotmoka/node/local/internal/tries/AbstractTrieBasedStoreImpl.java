@@ -135,8 +135,8 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 
     	var rootOfRequests = addDeltaOfRequests(mkTrieOfRequests(txn), addedRequests);
     	var rootOfResponses = addDeltaOfResponses(mkTrieOfResponses(txn), addedResponses);
-    	var rootOfHistories = addDeltaOfHistories(mkTrieOfHistories(txn), addedHistories);
-    	var rootOfInfo = addDeltaOfInfos(mkTrieOfInfo(txn), addedManifest);
+    	var rootOfHistories = addDeltaOfHistories(mkTrieOfHistories(txn), addedHistories, addedManifest);
+    	var rootOfInfo = addDeltaOfInfos(mkTrieOfInfo(txn));
 
     	var result = new byte[128];
     	System.arraycopy(rootOfResponses, 0, result, 0, 32);
@@ -197,7 +197,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 
     @Override
 	public final Optional<StorageReference> getManifest() {
-    	return getNode().getEnvironment().computeInReadonlyTransaction(txn -> mkTrieOfInfo(txn).getManifest());
+    	return getNode().getEnvironment().computeInReadonlyTransaction(txn -> mkTrieOfHistories(txn).getManifest());
 	}
 
 	@Override
@@ -238,22 +238,22 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 			throw maybeUnknownStateIdException.get();
 	}
 
-	private byte[] addDeltaOfInfos(TrieOfInfo trieOfInfo, Optional<StorageReference> addedManifest) {
-		if (addedManifest.isPresent()) {
-			trieOfInfo.malloc();
-			var old = trieOfInfo;
-			trieOfInfo = trieOfInfo.setManifest(addedManifest.get());
-			old.free();
-		}
-
+	private byte[] addDeltaOfInfos(TrieOfInfo trieOfInfo) {
 		return trieOfInfo.getRoot();
 	}
 
-	private byte[] addDeltaOfHistories(TrieOfHistories trieOfHistories, Map<StorageReference, TransactionReference[]> addedHistories) {
+	private byte[] addDeltaOfHistories(TrieOfHistories trieOfHistories, Map<StorageReference, TransactionReference[]> addedHistories, Optional<StorageReference> addedManifest) {
 		for (var entry: addedHistories.entrySet()) {
 			trieOfHistories.malloc();
 			var old = trieOfHistories;
 			trieOfHistories = trieOfHistories.put(entry.getKey(), Stream.of(entry.getValue()));
+			old.free();
+		}
+
+		if (addedManifest.isPresent()) {
+			trieOfHistories.malloc();
+			var old = trieOfHistories;
+			trieOfHistories = trieOfHistories.setManifest(addedManifest.get());
 			old.free();
 		}
 

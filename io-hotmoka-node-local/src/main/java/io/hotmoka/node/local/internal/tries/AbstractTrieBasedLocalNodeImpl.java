@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.local.internal.tries;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Optional;
@@ -112,14 +113,14 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 * The key used inside {@link #storeOfNode} to keep the list of old stores
 	 * that are candidate for garbage-collection, if they are not used by any running task.
 	 */
-	private final static ByteIterable STORES_TO_GC = ByteIterable.fromBytes("stores to gc".getBytes());
+	private final static ByteIterable STORES_TO_GC = ByteIterable.fromBytes("stores to gc".getBytes(StandardCharsets.UTF_8));
 
 	/**
 	 * The key used inside {@link #storeOfNode} to keep the list of stores that this node
 	 * will not try to garbage collect. This list gets expanded when a new head is added to the
 	 * node and gets shrunk by calls to {@link #keepPersistedOnly(Stream)}.
 	 */
-	private final static ByteIterable STORES_NOT_TO_GC = ByteIterable.fromBytes("stores not to gc".getBytes());
+	private final static ByteIterable STORES_NOT_TO_GC = ByteIterable.fromBytes("stores not to gc".getBytes(StandardCharsets.UTF_8));
 
 	private final static Logger LOGGER = Logger.getLogger(AbstractTrieBasedLocalNodeImpl.class.getName());
 

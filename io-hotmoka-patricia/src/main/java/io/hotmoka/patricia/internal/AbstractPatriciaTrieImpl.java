@@ -183,7 +183,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 	 * @throws UnknownKeyException if the key cannot be found in the trie
 	 * @throws IOException if the key is bound to a value that cannot be unmarshalled with {@code bytesToValue}
 	 */
-	protected <V> V get(byte[] key, FromBytes<V> bytesToValue) throws UnknownKeyException, IOException {
+	protected <V> V get(byte[] key, FromBytes<? extends V> bytesToValue) throws UnknownKeyException, IOException {
 		byte[] nibblesOfHashedKey = toNibbles(key);
 		AbstractNode rootNode = getNodeFromExistingHash(root, 0);
 		return bytesToValue.get(rootNode.get(nibblesOfHashedKey, 0));
@@ -203,7 +203,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 	 * @param valueToBytes the marshaller of the value
 	 * @return the resulting, modified Patricia trie
 	 */
-	protected <V> T put(byte[] key, V value, ToBytes<V> valueToBytes) {
+	protected <V> T put(byte[] key, V value, ToBytes<? super V> valueToBytes) {
 		byte[] nibblesOfHashedKey = toNibbles(key);
 		AbstractNode oldRoot = getNodeFromExistingHash(root, 0);
 		AbstractNode newRoot = oldRoot.put(nibblesOfHashedKey, 0, valueToBytes.get(value));
