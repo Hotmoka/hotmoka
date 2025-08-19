@@ -62,7 +62,7 @@ public class DiskStoreTransformation extends AbstractStoreTransformation<DiskNod
 	 * @return the final store
 	 */
 	public DiskStore getFinalStore() {
-		return getInitialStore().addDelta(getCache(), getDeltaRequests(), getDeltaResponses(), getDeltaHistories(), getDeltaManifest());
+		return getInitialStore().addDelta(getCache(), getDeltaRequests(), getDeltaResponses(), getDeltaHistories(), getDeltaManifest(), getDeltaTakamakaCode());
 	}
 
 	/**

@@ -180,6 +180,14 @@ public abstract class ExecutionEnvironment {
 	public abstract Optional<StorageReference> getManifest();
 
 	/**
+	 * Yields the Takamaka code of the node, that is, the reference to the jar
+	 * that installed its manifest.
+	 * 
+	 * @return the Takamaka code, if it is already set
+	 */
+	public abstract Optional<TransactionReference> getTakamakaCode();
+
+	/**
 	 * Yields the time to use as current time for the requests executed inside this environment.
 	 * 
 	 * @return the time, in milliseconds from the UNIX epoch time
@@ -599,25 +607,6 @@ public abstract class ExecutionEnvironment {
 		}
 		catch (UnknownReferenceException e) {
 			throw new LocalNodeException("The manifest is set but it cannot be found in store", e);
-		}
-	}
-
-	/**
-	 * Yields the Takamaka code of the node, that is, the reference to the jar
-	 * that installed its manifest.
-	 * 
-	 * @return the Takamaka code, if it is already set
-	 */
-	protected final Optional<TransactionReference> getTakamakaCode() {
-		var maybeManifest = getManifest();
-		if (maybeManifest.isEmpty())
-			return Optional.empty();
-
-		try {
-			return Optional.of(getClassTag(maybeManifest.get()).getJar());
-		}
-		catch (UnknownReferenceException e) {
-			throw new LocalNodeException("The manifest is set but its class tag cannot be found", e);
 		}
 	}
 

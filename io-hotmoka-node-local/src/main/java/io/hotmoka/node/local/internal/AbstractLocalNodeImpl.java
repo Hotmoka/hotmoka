@@ -202,15 +202,13 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 
 	@Override
 	public final TransactionReference getTakamakaCode() throws UninitializedNodeException, ClosedNodeException, InterruptedException, TimeoutException {
-		try (var scope = mkScope()) {
-			var manifest = getManifest();
+		S store = enterHead();
 
-			try {
-				return getClassTag(manifest).getJar();
-			}
-			catch (UnknownReferenceException e) {
-				throw new UninitializedNodeException();
-			}
+		try (var scope = mkScope()) {
+			return store.getTakamakaCode().orElseThrow(UninitializedNodeException::new);
+		}
+		finally {
+			exit(store);
 		}
 	}
 

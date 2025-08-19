@@ -60,11 +60,6 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 	private final byte[] rootOfResponses;
 
 	/**
-	 * The root of the trie of the miscellaneous info.
-	 */
-	private final byte[] rootOfInfo;
-
-	/**
 	 * The root of the trie of the requests.
 	 */
 	private final byte[] rootOfRequests;
@@ -83,7 +78,6 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
     	super(node);
 
     	this.rootOfResponses = new byte[32];
-    	this.rootOfInfo = new byte[32];
     	this.rootOfRequests = new byte[32];
     	this.rootOfHistories = new byte[32];
 
@@ -104,12 +98,10 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
     	var bytes = stateId.getBytes();
 		this.rootOfResponses = new byte[32];
 		System.arraycopy(bytes, 0, rootOfResponses, 0, 32);
-		this.rootOfInfo = new byte[32];
-		System.arraycopy(bytes, 32, rootOfInfo, 0, 32);
 		this.rootOfRequests = new byte[32];
-		System.arraycopy(bytes, 64, rootOfRequests, 0, 32);
+		System.arraycopy(bytes, 32, rootOfRequests, 0, 32);
 		this.rootOfHistories = new byte[32];
-		System.arraycopy(bytes, 96, rootOfHistories, 0, 32);
+		System.arraycopy(bytes, 64, rootOfHistories, 0, 32);
 
     	checkExistence();
     }
@@ -124,25 +116,25 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
     	super(toClone, cache);
 
     	this.rootOfResponses = toClone.rootOfResponses;
-    	this.rootOfInfo = toClone.rootOfInfo;
     	this.rootOfHistories = toClone.rootOfHistories;
     	this.rootOfRequests = toClone.rootOfRequests;
     }
 
     protected final StateId addDelta(StoreCache cache, LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests,
     		Map<TransactionReference, TransactionResponse> addedResponses,
-    		Map<StorageReference, TransactionReference[]> addedHistories, Optional<StorageReference> addedManifest, Transaction txn) {
+    		Map<StorageReference, TransactionReference[]> addedHistories,
+    		Optional<StorageReference> addedManifest,
+    		Optional<TransactionReference> addedTakamakaCode,
+    		Transaction txn) {
 
     	var rootOfRequests = addDeltaOfRequests(mkTrieOfRequests(txn), addedRequests);
     	var rootOfResponses = addDeltaOfResponses(mkTrieOfResponses(txn), addedResponses);
-    	var rootOfHistories = addDeltaOfHistories(mkTrieOfHistories(txn), addedHistories, addedManifest);
-    	var rootOfInfo = addDeltaOfInfos(mkTrieOfInfo(txn));
+    	var rootOfHistories = addDeltaOfHistories(mkTrieOfHistories(txn), addedHistories, addedManifest, addedTakamakaCode);
 
-    	var result = new byte[128];
+    	var result = new byte[96];
     	System.arraycopy(rootOfResponses, 0, result, 0, 32);
-    	System.arraycopy(rootOfInfo, 0, result, 32, 32);
-    	System.arraycopy(rootOfRequests, 0, result, 64, 32);
-    	System.arraycopy(rootOfHistories, 0, result, 96, 32);
+    	System.arraycopy(rootOfRequests, 0, result, 32, 32);
+    	System.arraycopy(rootOfHistories, 0, result, 64, 32);
 
     	return StateIds.of(result);
     }
@@ -200,7 +192,12 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
     	return getNode().getEnvironment().computeInReadonlyTransaction(txn -> mkTrieOfHistories(txn).getManifest());
 	}
 
-	@Override
+    @Override
+	public final Optional<TransactionReference> getTakamakaCode() {
+    	return getNode().getEnvironment().computeInReadonlyTransaction(txn -> mkTrieOfHistories(txn).getTakamakaCode());
+	}
+
+    @Override
 	public final Stream<TransactionReference> getHistory(StorageReference object) throws UnknownReferenceException {
 		return getNode().getEnvironment().computeInReadonlyTransaction(txn -> mkTrieOfHistories(txn).get(object))
 			.orElseThrow(() -> new UnknownReferenceException(object));
@@ -208,11 +205,10 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 
 	@Override
 	public final StateId getStateId() {
-		var result = new byte[128];
+		var result = new byte[96];
 		System.arraycopy(rootOfResponses, 0, result, 0, 32);
-		System.arraycopy(rootOfInfo, 0, result, 32, 32);
-		System.arraycopy(rootOfRequests, 0, result, 64, 32);
-		System.arraycopy(rootOfHistories, 0, result, 96, 32);
+		System.arraycopy(rootOfRequests, 0, result, 32, 32);
+		System.arraycopy(rootOfHistories, 0, result, 64, 32);
 
 		return StateIds.of(result);
 	}
@@ -225,7 +221,6 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 				node.checkExistenceOfRootOfRequests(txn, rootOfRequests);
 				node.checkExistenceOfRootOfResponses(txn, rootOfResponses);
 				node.checkExistenceOfRootOfHistories(txn, rootOfHistories);
-				node.checkExistenceOfRootOfInfo(txn, rootOfInfo);
 				return Optional.empty();
 			}
 			catch (UnknownKeyException e) {
@@ -238,11 +233,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 			throw maybeUnknownStateIdException.get();
 	}
 
-	private byte[] addDeltaOfInfos(TrieOfInfo trieOfInfo) {
-		return trieOfInfo.getRoot();
-	}
-
-	private byte[] addDeltaOfHistories(TrieOfHistories trieOfHistories, Map<StorageReference, TransactionReference[]> addedHistories, Optional<StorageReference> addedManifest) {
+	private byte[] addDeltaOfHistories(TrieOfHistories trieOfHistories, Map<StorageReference, TransactionReference[]> addedHistories, Optional<StorageReference> addedManifest, Optional<TransactionReference> addedTakamakaCode) {
 		for (var entry: addedHistories.entrySet()) {
 			trieOfHistories.malloc();
 			var old = trieOfHistories;
@@ -254,6 +245,13 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 			trieOfHistories.malloc();
 			var old = trieOfHistories;
 			trieOfHistories = trieOfHistories.setManifest(addedManifest.get());
+			old.free();
+		}
+
+		if (addedTakamakaCode.isPresent()) {
+			trieOfHistories.malloc();
+			var old = trieOfHistories;
+			trieOfHistories = trieOfHistories.setTakamakaCode(addedTakamakaCode.get());
 			old.free();
 		}
 
@@ -285,16 +283,6 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 	private TrieOfResponses mkTrieOfResponses(Transaction txn) {
 		try {
 			return getNode().mkTrieOfResponses(txn, rootOfResponses);
-		}
-		catch (UnknownKeyException e) {
-			// the constructors enforce the existence of the root, therefore this is a database problem
-			throw new LocalNodeException("The root was expected to be in store");
-		}
-	}
-
-	private TrieOfInfo mkTrieOfInfo(Transaction txn) {
-		try {
-			return getNode().mkTrieOfInfo(txn, rootOfInfo);
 		}
 		catch (UnknownKeyException e) {
 			// the constructors enforce the existence of the root, therefore this is a database problem

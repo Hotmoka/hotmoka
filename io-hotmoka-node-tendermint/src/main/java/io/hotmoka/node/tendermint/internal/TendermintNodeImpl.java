@@ -24,6 +24,7 @@ import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
@@ -97,12 +98,12 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 	/**
 	 * The key used inside {@link #storeOfHead} to keep the height of the head of this node.
 	 */
-	private final static ByteIterable HEIGHT = ByteIterable.fromBytes("height".getBytes());
+	private final static ByteIterable HEIGHT = ByteIterable.fromBytes("height".getBytes(StandardCharsets.UTF_8));
 
 	/**
 	 * The key used inside {@link #storeOfHead} to keep the root of the store of this node.
 	 */
-	private final static ByteIterable ROOT = ByteIterable.fromBytes("root".getBytes());
+	private final static ByteIterable ROOT = ByteIterable.fromBytes("root".getBytes(StandardCharsets.UTF_8));
 
 	/**
 	 * The GRPC server that runs the ABCI process.

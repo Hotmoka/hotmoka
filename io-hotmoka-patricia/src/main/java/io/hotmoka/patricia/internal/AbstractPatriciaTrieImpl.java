@@ -815,8 +815,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 			if (lengthOfDistinctPortion == 0) {
 				AbstractNode oldNext = getNodeFromExistingHash(next, sharedNibbles.length + cursor);
 				AbstractNode newNext = oldNext.put(nibblesOfHashedKey, sharedNibbles.length + cursor, value); // we recur
-				// TODO
-				// in theory, newNext could be an Extension and consequently it could be merged with sharedNibbles:
+				// TODO: in theory, newNext could be an Extension and consequently it could be merged with sharedNibbles:
 				// but it could not see a case when this happens and consequently I do not dare to optimize this case
 				return new Extension(sharedNibbles, hasherForNodes.hash(newNext), 0).putInStore(cursor);
 			}

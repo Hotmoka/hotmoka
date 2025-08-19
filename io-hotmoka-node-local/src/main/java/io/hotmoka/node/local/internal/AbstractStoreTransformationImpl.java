@@ -97,6 +97,11 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	private volatile StorageReference deltaManifest;
 
 	/**
+	 * The reference to the transaction that installed the jar of the class of the manifest, if any.
+	 */
+	private volatile TransactionReference deltaTakamakaCode;
+
+	/**
 	 * The cache used during this transformation.
 	 */
 	private volatile StoreCache cache;
@@ -196,6 +201,13 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	}
 
 	@Override
+	public final Optional<TransactionReference> getTakamakaCode() {
+		// first we check in the delta, then in the initial store
+		TransactionReference takamakaCode = deltaTakamakaCode;
+		return takamakaCode != null ? Optional.of(takamakaCode) : store.getTakamakaCode();
+	}
+
+	@Override
 	public final long getNow() {
 		return now;
 	}
@@ -249,6 +261,15 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	 */
 	protected final Optional<StorageReference> getDeltaManifest() {
 		return Optional.ofNullable(deltaManifest);
+	}
+
+	/**
+	 * Yields the reference to the transaction that installed the class of the manifest, if any.
+	 * 
+	 * @return the reference to the transaction that installed the class of the manifest, if any
+	 */
+	protected final Optional<TransactionReference> getDeltaTakamakaCode() {
+		return Optional.ofNullable(deltaTakamakaCode);
 	}
 
 	@Override
@@ -423,6 +444,13 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	 */
 	private void setManifest(StorageReference manifest) {
 		this.deltaManifest = manifest;
+
+		try {
+			this.deltaTakamakaCode = getClassTag(manifest).getJar();
+		}
+		catch (UnknownReferenceException e) {
+			throw new LocalNodeException("The manifest has been set but it cannot be found in store");
+		}
 	}
 
 	/*

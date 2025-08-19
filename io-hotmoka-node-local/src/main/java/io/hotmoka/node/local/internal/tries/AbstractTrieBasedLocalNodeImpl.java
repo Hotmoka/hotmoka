@@ -77,11 +77,6 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	private final io.hotmoka.xodus.env.Store storeOfResponses;
 
 	/**
-	 * The Xodus store that holds miscellaneous information about the store.
-	 */
-    private final io.hotmoka.xodus.env.Store storeOfInfo;
-
-	/**
 	 * The Xodus store that holds the Merkle-Patricia trie of the requests.
 	 */
 	private final io.hotmoka.xodus.env.Store storeOfRequests;
@@ -138,7 +133,6 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		this.env = new Environment(path.toString());
 		this.storeOfNode = env.computeInTransaction(txn -> env.openStoreWithoutDuplicates("node", txn));
     	this.storeOfResponses = env.computeInTransaction(txn -> env.openStoreWithoutDuplicatesWithPrefixing("responses", txn));
-    	this.storeOfInfo = env.computeInTransaction(txn -> env.openStoreWithoutDuplicates("info", txn));
 		this.storeOfRequests = env.computeInTransaction(txn -> env.openStoreWithoutDuplicatesWithPrefixing("requests", txn));
 		this.storeOfHistories = env.computeInTransaction(txn -> env.openStoreWithoutDuplicatesWithPrefixing("histories", txn));
 		this.index = new Index(storeOfNode, env, config.getIndexSize());
@@ -300,18 +294,15 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		var bytes = stateId.getBytes();
 		var rootOfResponses = new byte[32];
 		System.arraycopy(bytes, 0, rootOfResponses, 0, 32);
-		var rootOfInfo = new byte[32];
-		System.arraycopy(bytes, 32, rootOfInfo, 0, 32);
 		var rootOfRequests = new byte[32];
-		System.arraycopy(bytes, 64, rootOfRequests, 0, 32);
+		System.arraycopy(bytes, 32, rootOfRequests, 0, 32);
 		var rootOfHistories = new byte[32];
-		System.arraycopy(bytes, 96, rootOfHistories, 0, 32);
+		System.arraycopy(bytes, 64, rootOfHistories, 0, 32);
 
 		try {
 			mkTrieOfRequests(txn, rootOfRequests).free();
 			mkTrieOfResponses(txn, rootOfResponses).free();
 			mkTrieOfHistories(txn, rootOfHistories).free();
-			mkTrieOfInfo(txn, rootOfInfo).free();
 		}
 		catch (UnknownKeyException e) {
 			throw new UnknownStateIdException(stateId);
@@ -329,18 +320,15 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		var bytes = stateId.getBytes();
 		var rootOfResponses = new byte[32];
 		System.arraycopy(bytes, 0, rootOfResponses, 0, 32);
-		var rootOfInfo = new byte[32];
-		System.arraycopy(bytes, 32, rootOfInfo, 0, 32);
 		var rootOfRequests = new byte[32];
-		System.arraycopy(bytes, 64, rootOfRequests, 0, 32);
+		System.arraycopy(bytes, 32, rootOfRequests, 0, 32);
 		var rootOfHistories = new byte[32];
-		System.arraycopy(bytes, 96, rootOfHistories, 0, 32);
+		System.arraycopy(bytes, 64, rootOfHistories, 0, 32);
 
 		try {
 			mkTrieOfRequests(txn, rootOfRequests).malloc();
 			mkTrieOfResponses(txn, rootOfResponses).malloc();
 			mkTrieOfHistories(txn, rootOfHistories).malloc();
-			mkTrieOfInfo(txn, rootOfInfo).malloc();
 		}
 		catch (UnknownKeyException e) {
 			throw new UnknownStateIdException(stateId);
@@ -349,10 +337,6 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 
 	protected TrieOfResponses mkTrieOfResponses(Transaction txn, byte[] rootOfResponses) throws UnknownKeyException {
 		return new TrieOfResponses(new KeyValueStoreOnXodus(storeOfResponses, txn), rootOfResponses);
-	}
-
-	protected TrieOfInfo mkTrieOfInfo(Transaction txn, byte[] rootOfInfo) throws UnknownKeyException {
-		return new TrieOfInfo(new KeyValueStoreOnXodus(storeOfInfo, txn), rootOfInfo);
 	}
 
 	protected TrieOfRequests mkTrieOfRequests(Transaction txn, byte[] rootOfRequests) throws UnknownKeyException {
@@ -374,16 +358,9 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 			new KeyValueStoreOnXodus(storeOfHistories, txn).get(rootOfHistories);
 	}
 
-	protected void checkExistenceOfRootOfInfo(Transaction txn, byte[] rootOfInfo) throws UnknownKeyException {
-		if (!Arrays.equals(rootOfInfo, hashOfEmpty))
-			new KeyValueStoreOnXodus(storeOfInfo, txn).get(rootOfInfo);
-	}
-
 	protected TrieOfHistories mkTrieOfHistories(Transaction txn, byte[] rootOfHistories) throws UnknownKeyException {
 		return new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistories, txn), rootOfHistories);
 	}
-
-	
 
 	/**
 	 * The garbage-collection routine. It takes stores to garbage-collect and frees them.
@@ -507,7 +484,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	private static class StateIdAndTime implements Comparable<StateIdAndTime> {
 		private final StateId stateId;
 		private final long time;
-		private final static int SIZE_IN_BYTES = 128 + 8;
+		private final static int SIZE_IN_BYTES = 96 + 8;
 
 		private StateIdAndTime(StateId stateId, long time) {
 			this.stateId = stateId;
@@ -515,14 +492,14 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		}
 
 		private StateIdAndTime(byte[] bytes) {
-			var bytesForStateId = new byte[128];
-			System.arraycopy(bytes, 0, bytesForStateId, 0, 128);
+			var bytesForStateId = new byte[96];
+			System.arraycopy(bytes, 0, bytesForStateId, 0, 96);
 			this.stateId = StateIds.of(bytesForStateId);
 
 			long t = 0;
 		    for (int i = 0; i < 8; i++) {
 		        t <<= 8;
-		        t |= (bytes[128 + i] & 0xFF);
+		        t |= (bytes[96 + i] & 0xFF);
 		    }
 
 		    this.time = t;
@@ -530,10 +507,10 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 
 		private byte[] getBytes() {
 			var result = new byte[SIZE_IN_BYTES];
-			System.arraycopy(stateId.getBytes(), 0, result, 0, 128);
+			System.arraycopy(stateId.getBytes(), 0, result, 0, 96);
 
 			long l = time;
-			for (int i = 128 + 7; i >= 128; i--) {
+			for (int i = 96 + 7; i >= 96; i--) {
 		        result[i] = (byte) (l & 0xFF);
 		        l >>= 8;
 		    }

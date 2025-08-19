@@ -91,6 +91,11 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
 	private final Optional<StorageReference> manifest;
 
 	/**
+	 * The storage reference of the takamaka code in this store, if any.
+	 */
+	private final Optional<TransactionReference> takamakaCode;
+
+	/**
 	 * The height of the block having this store.
 	 */
 	private final int height;
@@ -112,6 +117,7 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
     	this.deltaResponses = new ConcurrentHashMap<>();
     	this.deltaHistories = new ConcurrentHashMap<>();
     	this.manifest = Optional.empty();
+    	this.takamakaCode = Optional.empty();
     	this.height = 0;
     }
 
@@ -130,6 +136,7 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
     	this.deltaResponses = toClone.deltaResponses;
     	this.deltaHistories = toClone.deltaHistories;
     	this.manifest = toClone.manifest;
+    	this.takamakaCode = toClone.takamakaCode;
     	this.height = toClone.height;
     }
 
@@ -141,7 +148,8 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
     		LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests,
     		Map<TransactionReference, TransactionResponse> addedResponses,
     		Map<StorageReference, TransactionReference[]> addedHistories,
-    		Optional<StorageReference> addedManifest) {
+    		Optional<StorageReference> addedManifest,
+    		Optional<TransactionReference> addedTakamakaCode) {
 
     	super(toClone, cache);
 
@@ -187,6 +195,7 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
     	}
 
     	this.manifest = addedManifest.or(() -> toClone.manifest);
+    	this.takamakaCode = addedTakamakaCode.or(() -> toClone.takamakaCode);
     	this.height = toClone.height + 1;
 
 		int progressive = 0;
@@ -238,6 +247,11 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
 	}
 
 	@Override
+	public Optional<TransactionReference> getTakamakaCode() {
+		return takamakaCode;
+	}
+
+	@Override
 	protected DiskStoreTransformation beginTransformation(ConsensusConfig<?,?> consensus, long now) {
 		return new DiskStoreTransformation(this, consensus, now);
 	}
@@ -251,11 +265,12 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
 	 * @param addedResponses the responses to add
 	 * @param addedHistories the histories to add
 	 * @param addedManifest the manifest to add, if any
+	 * @param addedTakamakaCode the takamaka code to add, if any
 	 * @return the resulting store
 	 */
 	protected DiskStore addDelta(StoreCache cache, LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests,
 			Map<TransactionReference, TransactionResponse> addedResponses,
-			Map<StorageReference, TransactionReference[]> addedHistories, Optional<StorageReference> addedManifest) {
+			Map<StorageReference, TransactionReference[]> addedHistories, Optional<StorageReference> addedManifest, Optional<TransactionReference> addedTakamakaCode) {
 
 		// optimization: if we are adding no requests (and therefore no responses and no histories) then
 		// we reuse the same store; moreover, the block height will remain unchanged, so that no empty blocks
@@ -263,7 +278,7 @@ class DiskStore extends AbstractStore<DiskNodeImpl, DiskNodeConfig, DiskStore, D
 		if (addedRequests.isEmpty())
 			return this;
 		else
-			return new DiskStore(this, cache, addedRequests, addedResponses, addedHistories, addedManifest);
+			return new DiskStore(this, cache, addedRequests, addedResponses, addedHistories, addedManifest, addedTakamakaCode);
 	}
 
 	@Override

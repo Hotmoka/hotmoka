@@ -51,6 +51,6 @@ public abstract class AbstractTrieBasedStoreTransformationImpl<N extends Abstrac
 	 * @return the state identifier of the final store
 	 */
 	public final StateId getIdOfFinalStore(Transaction txn) {
-		return getInitialStore().addDelta(getCache(), getDeltaRequests(), getDeltaResponses(), getDeltaHistories(), getDeltaManifest(), txn);
+		return getInitialStore().addDelta(getCache(), getDeltaRequests(), getDeltaResponses(), getDeltaHistories(), getDeltaManifest(), getDeltaTakamakaCode(), txn);
 	}
 }

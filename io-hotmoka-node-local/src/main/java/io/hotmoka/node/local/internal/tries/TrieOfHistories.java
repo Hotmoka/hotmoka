@@ -39,9 +39,9 @@ import io.hotmoka.patricia.api.UnknownKeyException;
 
 /**
  * A map from storage references to an array of transaction references (their <i>history</i>),
- * backed by a Merkle-Patricia trie.
- * It uses the sha256 hashing algorithm for the trie's nodes and an array of 0's to represent
- * the empty trie.
+ * backed by a Merkle-Patricia trie. It also contains some miscellaneous information about
+ * the state, such as the reference to the manifest and that to the takamaka code of the node.
+ * It uses the sha256 hashing algorithm for the trie's nodes and an array of 0's to represent the empty trie.
  */
 public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stream<TransactionReference>, TrieOfHistories> {
 
@@ -139,9 +139,16 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 	 */
 	private final static byte[] MANIFEST_KEY;
 
+	/**
+	 * The special key used to bind the takamaka code.
+	 */
+	private final static byte[] TAKAMAKA_CODE_KEY;
+
 	static {
 		// the keys of a Patricia trie must all have the same length, equal to the size of their hashes
-		MANIFEST_KEY = new byte[mkSHA256().length()];
+		MANIFEST_KEY = new byte[32];
+		TAKAMAKA_CODE_KEY = new byte[32];
+		TAKAMAKA_CODE_KEY[0]++;
 	}
 
 	/**
@@ -173,6 +180,33 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 	 */
 	public TrieOfHistories setManifest(StorageReference manifest) {
 		return put(MANIFEST_KEY, manifest, StorageValue::toByteArray);
+	}
+
+	/**
+	 * Yields the takamaka code.
+	 * 
+	 * @return the takamaka code, if any
+	 */
+	public Optional<TransactionReference> getTakamakaCode() {
+		try {
+			return Optional.of(get(TAKAMAKA_CODE_KEY, TransactionReferences::of));
+		}
+		catch (UnknownKeyException e) {
+			return Optional.empty();
+		}
+		catch (IOException e) {
+			throw new TrieException("The value was previously marshalled into the trie but cannot be unmarshalled now: the database must be corrupted or the marshaller or unmarshaller is buggy", e);
+		}
+	}
+
+	/**
+	 * Sets the takamaka code.
+	 * 
+	 * @param takamakaCode the takamaka code to set
+	 * @return the resulting trie
+	 */
+	public TrieOfHistories setTakamakaCode(TransactionReference takamakaCode) {
+		return put(TAKAMAKA_CODE_KEY, takamakaCode, TransactionReference::getHash);
 	}
 
 	@Override
