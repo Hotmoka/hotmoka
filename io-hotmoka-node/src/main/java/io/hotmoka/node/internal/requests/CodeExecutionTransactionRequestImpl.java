@@ -18,6 +18,7 @@ package io.hotmoka.node.internal.requests;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.stream.Stream;
@@ -101,9 +102,7 @@ public abstract class CodeExecutionTransactionRequestImpl<R extends CodeExecutio
 			return baos.toByteArray();
 		}
 		catch (IOException e) {
-			// TODO: this actually happens if the request contains for instance large strings
-			// impossible with a byte array output stream
-			throw new RuntimeException("Unexpected exception", e);
+			throw new UncheckedIOException("Unexpected exception", e);
 		}
 	}
 

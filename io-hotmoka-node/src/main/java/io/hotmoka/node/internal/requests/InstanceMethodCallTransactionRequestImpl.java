@@ -234,7 +234,6 @@ public class InstanceMethodCallTransactionRequestImpl extends AbstractInstanceMe
 	public void intoWithoutSignature(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
 		context.writeStringUnshared(chainId);
-	
 		super.intoWithoutSignature(context);
 	}
 
