@@ -23,7 +23,7 @@ import java.util.OptionalLong;
 
 import io.hotmoka.exceptions.functions.FunctionWithExceptions1;
 import io.hotmoka.exceptions.functions.FunctionWithExceptions2;
-import io.hotmoka.node.TendermintConsensusConfigBuilders;
+import io.hotmoka.node.ConsensusConfigBuilders;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -98,7 +98,7 @@ public class StoreCacheImpl implements StoreCache {
 	 */
 	public StoreCacheImpl() {
 		try {
-			this.consensus = TendermintConsensusConfigBuilders.defaults().build();
+			this.consensus = ConsensusConfigBuilders.defaults().build();
 		}
 		catch (NoSuchAlgorithmException e) {
 			throw new LocalNodeException(e);

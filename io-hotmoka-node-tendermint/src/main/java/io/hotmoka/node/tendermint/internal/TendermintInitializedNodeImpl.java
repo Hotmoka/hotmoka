@@ -41,10 +41,10 @@ import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.nodes.TendermintConsensusConfig;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.tendermint.api.TendermintConsensusConfig;
 import io.hotmoka.node.tendermint.api.TendermintInitializedNode;
 import io.hotmoka.node.tendermint.api.TendermintNode;
 

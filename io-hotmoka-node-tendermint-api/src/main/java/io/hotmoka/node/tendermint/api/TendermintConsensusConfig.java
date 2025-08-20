@@ -14,9 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.api.nodes;
+package io.hotmoka.node.tendermint.api;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.node.api.nodes.ConsensusConfig;
 
 /**
  * A specification of the consensus parameters of a Hotmoka node based on Tendermint.

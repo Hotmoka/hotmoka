@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.internal.nodes;
+package io.hotmoka.node.tendermint.internal;
 
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -27,9 +27,9 @@ import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.node.AbstractConsensusConfig;
 import io.hotmoka.node.AbstractConsensusConfigBuilder;
-import io.hotmoka.node.api.nodes.TendermintConsensusConfig;
-import io.hotmoka.node.api.nodes.TendermintConsensusConfigBuilder;
-import io.hotmoka.node.internal.nodes.TendermintConsensusConfigImpl.TendermintConsensusConfigBuilderImpl;
+import io.hotmoka.node.tendermint.api.TendermintConsensusConfig;
+import io.hotmoka.node.tendermint.api.TendermintConsensusConfigBuilder;
+import io.hotmoka.node.tendermint.internal.TendermintConsensusConfigImpl.TendermintConsensusConfigBuilderImpl;
 
 /**
  * Implementation of the consensus parameters of a Hotmoka node based on Tendermint.

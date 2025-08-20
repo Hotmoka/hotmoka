@@ -1,4 +1,6 @@
-package io.hotmoka.node.api.nodes;
+package io.hotmoka.node.tendermint.api;
+
+import io.hotmoka.node.api.nodes.ConsensusConfigBuilder;
 
 /**
  * The builder of a configuration object of a Hotmoka node based on Tendermint.

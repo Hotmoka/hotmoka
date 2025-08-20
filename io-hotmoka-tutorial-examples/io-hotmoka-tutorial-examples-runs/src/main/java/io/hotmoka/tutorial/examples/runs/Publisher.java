@@ -22,8 +22,8 @@ import java.security.KeyPair;
 
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.SignatureAlgorithms;
-import io.hotmoka.node.TendermintConsensusConfigBuilders;
 import io.hotmoka.node.service.NodeServices;
+import io.hotmoka.node.tendermint.TendermintConsensusConfigBuilders;
 import io.hotmoka.node.tendermint.TendermintInitializedNodes;
 import io.hotmoka.node.tendermint.TendermintNodeConfigBuilders;
 import io.hotmoka.node.tendermint.TendermintNodes;

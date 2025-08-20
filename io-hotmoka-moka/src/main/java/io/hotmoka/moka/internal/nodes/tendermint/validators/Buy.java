@@ -234,9 +234,9 @@ public class Buy extends AbstractGasCostCommand {
 		private int getBuyerSurcharge() throws CommandException, ClosedNodeException, TimeoutException, InterruptedException {
 			try {
 				return remote.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _500_000, takamakaCode, MethodSignatures.VALIDATORS_GET_BUYER_SURCHARGE, validators))
-					.orElseThrow(() -> new CommandException(MethodSignatures.VALIDATORS_GET_BUYER_SURCHARGE + " should not return void"))
-					.asReturnedInt(MethodSignatures.VALIDATORS_GET_BUYER_SURCHARGE, CommandException::new);
+					(manifest, _500_000, takamakaCode, MethodSignatures.TENDERMINT_VALIDATORS_GET_BUYER_SURCHARGE, validators))
+					.orElseThrow(() -> new CommandException(MethodSignatures.TENDERMINT_VALIDATORS_GET_BUYER_SURCHARGE + " should not return void"))
+					.asReturnedInt(MethodSignatures.TENDERMINT_VALIDATORS_GET_BUYER_SURCHARGE, CommandException::new);
 			}
 			catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
 				throw new CommandException("Cannot determine the buyer surcharge of the network", e);

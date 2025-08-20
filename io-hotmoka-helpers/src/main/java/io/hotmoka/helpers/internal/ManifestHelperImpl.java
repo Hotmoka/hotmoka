@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Logger;
 
 import io.hotmoka.helpers.UnexpectedValueException;
 import io.hotmoka.helpers.UnexpectedVoidMethodException;
@@ -59,6 +60,8 @@ public class ManifestHelperImpl implements ManifestHelper {
 	private final StorageReference accountsLedger;
 	private final StorageReference gamete;
 	private final String toString;
+
+	private final static Logger LOGGER = Logger.getLogger(ManifestHelperImpl.class.getName());
 
 	/**
 	 * Creates an object that helps with the access to the manifest of a node.
@@ -297,47 +300,40 @@ public class ManifestHelperImpl implements ManifestHelper {
 				.asReturnedInt(MethodSignatures.STORAGE_SET_VIEW_SIZE, UnexpectedValueException::new);
 
 		int buyerSurcharge;
-		{
-			NonVoidMethodSignature method = MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getBuyerSurcharge", StorageTypes.INT);
+
+		try {
 			buyerSurcharge = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, method, validators))
-					.orElseThrow(() -> new UnexpectedVoidMethodException(method))
-					.asReturnedInt(method, UnexpectedValueException::new);
+					(manifest, _100_000, takamakaCode, MethodSignatures.TENDERMINT_VALIDATORS_GET_BUYER_SURCHARGE, validators))
+					.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.TENDERMINT_VALIDATORS_GET_BUYER_SURCHARGE))
+					.asReturnedInt(MethodSignatures.TENDERMINT_VALIDATORS_GET_BUYER_SURCHARGE, UnexpectedValueException::new);
+
+			builder.append(String.format("   │  ├─ surcharge for buying validation power: %d (ie. %.6f%%)\n", buyerSurcharge, buyerSurcharge / 1_000_000.0));
+
+			int slashingForMisbehaving = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, MethodSignatures.TENDERMINT_VALIDATORS_GET_SLASHING_FOR_MISBEHAVING, validators))
+					.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.TENDERMINT_VALIDATORS_GET_SLASHING_FOR_MISBEHAVING))
+					.asReturnedInt(MethodSignatures.TENDERMINT_VALIDATORS_GET_SLASHING_FOR_MISBEHAVING, UnexpectedValueException::new);
+
+			builder.append(String.format("   │  ├─ slashing for misbehaving validators: %d (ie. %.6f%%)\n", slashingForMisbehaving, slashingForMisbehaving / 1_000_000.0));
+
+			int slashingForNotBehaving = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+					(manifest, _100_000, takamakaCode, MethodSignatures.TENDERMINT_VALIDATORS_GET_SLASHING_FOR_NOT_BEHAVING, validators))
+					.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.TENDERMINT_VALIDATORS_GET_SLASHING_FOR_NOT_BEHAVING))
+					.asReturnedInt(MethodSignatures.TENDERMINT_VALIDATORS_GET_SLASHING_FOR_NOT_BEHAVING, UnexpectedValueException::new);
+
+			builder.append(String.format("   │  ├─ slashing for not behaving validators: %d (ie. %.6f%%)\n", slashingForNotBehaving, slashingForNotBehaving / 1_000_000.0));
+
+			int percentStaked = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+					(manifest, _100_000, takamakaCode, MethodSignatures.TENDERMINT_VALIDATORS_GET_PERCENT_STAKED, validators))
+					.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.TENDERMINT_VALIDATORS_GET_PERCENT_STAKED))
+					.asReturnedInt(MethodSignatures.TENDERMINT_VALIDATORS_GET_PERCENT_STAKED, UnexpectedValueException::new);
+
+			builder.append(String.format("   │  ├─ percent of validators' reward that gets staked: %d (ie. %.6f%%)\n", percentStaked, percentStaked / 1_000_000.0));
 		}
-
-		builder.append(String.format("   │  ├─ surcharge for buying validation power: %d (ie. %.6f%%)\n", buyerSurcharge, buyerSurcharge / 1_000_000.0));
-
-		int slashingForMisbehaving;
-		{
-			NonVoidMethodSignature method = MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getSlashingForMisbehaving", StorageTypes.INT);
-			slashingForMisbehaving = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, method, validators))
-					.orElseThrow(() -> new UnexpectedVoidMethodException(method))
-					.asReturnedInt(method, UnexpectedValueException::new);
+		catch (TransactionException e) {
+			// this occurs if the node has no such fields, which is well possible: Mokamint or disk nodes do not have them in their validators object
+			LOGGER.info("could not find buyerSyrcharge, slashingForMisbehaving, slashingForNotBehaving and percentStaked in the validators object");
+			buyerSurcharge = 0;
 		}
-
-		builder.append(String.format("   │  ├─ slashing for misbehaving validators: %d (ie. %.6f%%)\n", slashingForMisbehaving, slashingForMisbehaving / 1_000_000.0));
-
-		int slashingForNotBehaving;
-		{
-			NonVoidMethodSignature method = MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getSlashingForNotBehaving", StorageTypes.INT);
-			slashingForNotBehaving = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, method, validators))
-					.orElseThrow(() -> new UnexpectedVoidMethodException(method))
-					.asReturnedInt(method, UnexpectedValueException::new);
-		}
-
-		builder.append(String.format("   │  ├─ slashing for not behaving validators: %d (ie. %.6f%%)\n", slashingForNotBehaving, slashingForNotBehaving / 1_000_000.0));
-
-		int percentStaked;
-		{
-			NonVoidMethodSignature method = MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getPercentStaked", StorageTypes.INT);
-			percentStaked = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, method, validators))
-					.orElseThrow(() -> new UnexpectedVoidMethodException(method))
-					.asReturnedInt(method, UnexpectedValueException::new);
-		}
-
-		builder.append(String.format("   │  ├─ percent of validators' reward that gets staked: %d (ie. %.6f%%)\n", percentStaked, percentStaked / 1_000_000.0));
 
 		builder.append("   │  ├─ number of validators: ").append(numOfValidators).append("\n");
 

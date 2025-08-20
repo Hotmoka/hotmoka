@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.tests;
+package io.hotmoka.node.tendermint.tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -32,38 +32,25 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import io.hotmoka.crypto.Base64ConversionException;
-import io.hotmoka.node.ConsensusConfigBuilders;
+import io.hotmoka.node.tendermint.TendermintConsensusConfigBuilders;
 import io.hotmoka.testing.AbstractLoggedTests;
-import jakarta.websocket.DecodeException;
-import jakarta.websocket.EncodeException;
 
 public class ConsensusConfigTests extends AbstractLoggedTests {
 
 	@Test
-	@DisplayName("configs are correctly dumped into TOML and reloaded from TOML")
-	public void configDumpLoadTOMLWorks(@TempDir Path dir) throws IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException, Base64ConversionException {
-		var path = dir.resolve("config.toml");
-		var config1 = ConsensusConfigBuilders.defaults()
+	@DisplayName("Tendermint consensus configs are correctly dumped into TOML and reloaded from TOML")
+	public void tendermintConsensusConfigDumpLoadTOMLWorks(@TempDir Path dir) throws IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException, Base64ConversionException {
+		var path = dir.resolve("validators_config.toml");
+		var config1 = TendermintConsensusConfigBuilders.defaults()
 			.setChainId("my-chain")
+			.setBuyerSurcharge(123456)
+			.setSlashingForMisbehaving(98768)
 			.setInitialGasPrice(BigInteger.valueOf(1233L))
 			.setInitialSupply(BigInteger.valueOf(45678L))
 			.setMaxCumulativeSizeOfDependencies(345678L)
 			.build();
 		Files.writeString(path, config1.toToml(), StandardCharsets.UTF_8);
-		var config2 = ConsensusConfigBuilders.load(path).build();
+		var config2 = TendermintConsensusConfigBuilders.load(path).build();
 		assertEquals(config1, config2);
-	}
-
-	@Test
-	@DisplayName("configs are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForConfig() throws EncodeException, DecodeException, NoSuchAlgorithmException {
-		var expected = ConsensusConfigBuilders.defaults()
-			.setChainId("my chain")
-			.setInitialSupply(BigInteger.valueOf(100L))
-			.build();
-
-		String encoded = new ConsensusConfigBuilders.Encoder().encode(expected);
-		var actual = new ConsensusConfigBuilders.Decoder().decode(encoded);
-		assertEquals(expected, actual);
 	}
 }

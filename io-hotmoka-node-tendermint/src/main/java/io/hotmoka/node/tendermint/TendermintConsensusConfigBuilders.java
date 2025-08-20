@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node;
+package io.hotmoka.node.tendermint;
 
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
@@ -24,7 +24,8 @@ import java.security.spec.InvalidKeySpecException;
 
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.node.api.nodes.TendermintConsensusConfigBuilder;
+import io.hotmoka.node.tendermint.api.TendermintConsensusConfigBuilder;
+import io.hotmoka.node.tendermint.internal.TendermintConsensusConfigImpl;
 
 /**
  * Providers of consensus configuration builders for Hotmoka nodes with validators.
@@ -33,7 +34,7 @@ public abstract class TendermintConsensusConfigBuilders {
 
 	private TendermintConsensusConfigBuilders() {}
 
-	private static class MyConsensusConfig extends AbstractValidatorsConsensusConfig<MyConsensusConfig, MyConsensusConfigBuilder> {
+	private static class MyConsensusConfig extends TendermintConsensusConfigImpl<MyConsensusConfig, MyConsensusConfigBuilder> {
 		
 		/**
 		 * Full constructor for the builder pattern.
@@ -53,7 +54,7 @@ public abstract class TendermintConsensusConfigBuilders {
 	/**
 	 * The builder of consensus configurations, according to the builder pattern.
 	 */
-	private static class MyConsensusConfigBuilder extends AbstractValidatorsConsensusConfigBuilder<MyConsensusConfig, MyConsensusConfigBuilder> {
+	private static class MyConsensusConfigBuilder extends TendermintConsensusConfigImpl.TendermintConsensusConfigBuilderImpl<MyConsensusConfig, MyConsensusConfigBuilder> {
 
 		private MyConsensusConfigBuilder() throws NoSuchAlgorithmException {
 		}

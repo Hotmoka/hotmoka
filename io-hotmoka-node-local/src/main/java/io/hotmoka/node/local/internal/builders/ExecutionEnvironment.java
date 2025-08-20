@@ -40,11 +40,11 @@ import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.node.ConsensusConfigBuilders;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.TendermintConsensusConfigBuilders;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -322,29 +322,9 @@ public abstract class ExecutionEnvironment {
 					.orElseThrow(() -> new LocalNodeException(MethodSignatures.GET_HEIGHT_AT_FINAL_SUPPLY + " should not return void"))
 					.asReturnedBigInteger(MethodSignatures.GET_HEIGHT_AT_FINAL_SUPPLY, LocalNodeException::new);
 
-			int buyerSurcharge = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.VALIDATORS_GET_BUYER_SURCHARGE, validators))
-					.orElseThrow(() -> new LocalNodeException(MethodSignatures.VALIDATORS_GET_BUYER_SURCHARGE + " should not return void"))
-					.asReturnedInt(MethodSignatures.VALIDATORS_GET_BUYER_SURCHARGE, LocalNodeException::new);
-	
-			int slashingForMisbehaving = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.VALIDATORS_GET_SLASHING_FOR_MISBEHAVING, validators))
-					.orElseThrow(() -> new LocalNodeException(MethodSignatures.VALIDATORS_GET_SLASHING_FOR_MISBEHAVING + " should not return void"))
-					.asReturnedInt(MethodSignatures.VALIDATORS_GET_SLASHING_FOR_MISBEHAVING, LocalNodeException::new);
-	
-			int slashingForNotBehaving = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.VALIDATORS_GET_SLASHING_FOR_NOT_BEHAVING, validators))
-					.orElseThrow(() -> new LocalNodeException(MethodSignatures.VALIDATORS_GET_SLASHING_FOR_NOT_BEHAVING + " should not return void"))
-					.asReturnedInt(MethodSignatures.VALIDATORS_GET_SLASHING_FOR_NOT_BEHAVING, LocalNodeException::new);
-	
-			int percentStaked = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.VALIDATORS_GET_PERCENT_STAKED, validators))
-					.orElseThrow(() -> new LocalNodeException(MethodSignatures.VALIDATORS_GET_PERCENT_STAKED + " should not return void"))
-					.asReturnedInt(MethodSignatures.VALIDATORS_GET_PERCENT_STAKED, LocalNodeException::new);
-	
 			var signatureAlgorithm = SignatureAlgorithms.of(signature);
 	
-			return TendermintConsensusConfigBuilders.defaults()
+			return ConsensusConfigBuilders.defaults()
 					.setGenesisTime(LocalDateTime.parse(genesisTime, DateTimeFormatter.ISO_DATE_TIME))
 					.setChainId(chainId)
 					.setMaxGasPerTransaction(maxGasPerTransaction)
@@ -364,10 +344,6 @@ public abstract class ExecutionEnvironment {
 					.setFinalSupply(finalSupply)
 					.setHeightAtFinalSupply(heightAtFinalSupply)
 					.setPublicKeyOfGamete(signatureAlgorithm.publicKeyFromEncoding(Base64.fromBase64String(publicKeyOfGamete)))
-					.setPercentStaked(percentStaked)
-					.setBuyerSurcharge(buyerSurcharge)
-					.setSlashingForMisbehaving(slashingForMisbehaving)
-					.setSlashingForNotBehaving(slashingForNotBehaving)
 					.build();
 		}
 		catch (TransactionRejectedException | TransactionException | CodeExecutionException | NoSuchAlgorithmException | InvalidKeyException | InvalidKeySpecException | Base64ConversionException | DateTimeParseException e) {

@@ -23,8 +23,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
 import io.hotmoka.crypto.Base64ConversionException;
-import io.hotmoka.node.TendermintConsensusConfigBuilders;
-import io.hotmoka.node.api.nodes.TendermintConsensusConfig;
+import io.hotmoka.node.tendermint.TendermintConsensusConfigBuilders;
+import io.hotmoka.node.tendermint.api.TendermintConsensusConfig;
 import picocli.CommandLine.ITypeConverter;
 
 /**

@@ -372,8 +372,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 		BigInteger finalSupply = config.getFinalSupply();
 		BigInteger heightAtFinalSupply = config.getHeightAtFinalSupply();
 
-		// in order to compute how much must be minted at this reward, we use the following formula, which models
-		// a parabolic curve:
+		// in order to compute how much must be minted at this reward, we use the following formula, which models a parabolic curve:
 		// 1) passing at (heightAtFinalHeight,0)
 		// 2) passing at (0,first mint)
 		// 3) whose derivative is zero at (heightAtFinalHeight,0)

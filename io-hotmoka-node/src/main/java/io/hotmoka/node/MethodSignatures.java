@@ -362,22 +362,22 @@ public abstract class MethodSignatures {
 	/**
 	 * The method {@code getBuyerSurcharge} of the validators contract.
 	 */
-	public final static NonVoidMethodSignature VALIDATORS_GET_BUYER_SURCHARGE = ofNonVoid(VALIDATORS, "getBuyerSurcharge", INT);
+	public final static NonVoidMethodSignature TENDERMINT_VALIDATORS_GET_BUYER_SURCHARGE = ofNonVoid(TENDERMINT_VALIDATORS, "getBuyerSurcharge", INT);
 
 	/**
 	 * The method {@code getSlashingForMisbehaving} of the validators contract.
 	 */
-	public final static NonVoidMethodSignature VALIDATORS_GET_SLASHING_FOR_MISBEHAVING = ofNonVoid(VALIDATORS, "getSlashingForMisbehaving", INT);
+	public final static NonVoidMethodSignature TENDERMINT_VALIDATORS_GET_SLASHING_FOR_MISBEHAVING = ofNonVoid(TENDERMINT_VALIDATORS, "getSlashingForMisbehaving", INT);
 
 	/**
 	 * The method {@code getSlashingForNotBehaving} of the validators contract.
 	 */
-	public final static NonVoidMethodSignature VALIDATORS_GET_SLASHING_FOR_NOT_BEHAVING = ofNonVoid(VALIDATORS, "getSlashingForNotBehaving", INT);
+	public final static NonVoidMethodSignature TENDERMINT_VALIDATORS_GET_SLASHING_FOR_NOT_BEHAVING = ofNonVoid(TENDERMINT_VALIDATORS, "getSlashingForNotBehaving", INT);
 
 	/**
 	 * The method {@code getPercentStaked} of the validators contract.
 	 */
-	public final static NonVoidMethodSignature VALIDATORS_GET_PERCENT_STAKED = ofNonVoid(VALIDATORS, "getPercentStaked", INT);
+	public final static NonVoidMethodSignature TENDERMINT_VALIDATORS_GET_PERCENT_STAKED = ofNonVoid(TENDERMINT_VALIDATORS, "getPercentStaked", INT);
 
 	/**
 	 * The method {@code newPoll} of the generic validators contract.
