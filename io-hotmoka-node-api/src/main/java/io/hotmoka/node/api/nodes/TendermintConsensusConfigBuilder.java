@@ -1,12 +1,12 @@
 package io.hotmoka.node.api.nodes;
 
 /**
- * The builder of a configuration object of a Hotmoka node that uses validators.
+ * The builder of a configuration object of a Hotmoka node based on Tendermint.
  * 
  * @param <C> the concrete type of the configuration
  * @param <B> the concrete type of the builder
  */
-public interface ValidatorsConsensusConfigBuilder<C extends ValidatorsConsensusConfig<C,B>, B extends ValidatorsConsensusConfigBuilder<C,B>> extends ConsensusConfigBuilder<C,B>{
+public interface TendermintConsensusConfigBuilder<C extends TendermintConsensusConfig<C,B>, B extends TendermintConsensusConfigBuilder<C,B>> extends ConsensusConfigBuilder<C,B>{
 
 	/**
 	 * Sets the amount of validators' rewards that gets staked. The rest is sent to the validators immediately.

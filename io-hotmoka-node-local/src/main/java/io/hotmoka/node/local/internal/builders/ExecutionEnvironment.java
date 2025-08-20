@@ -44,7 +44,7 @@ import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
+import io.hotmoka.node.TendermintConsensusConfigBuilders;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -344,7 +344,7 @@ public abstract class ExecutionEnvironment {
 	
 			var signatureAlgorithm = SignatureAlgorithms.of(signature);
 	
-			return ValidatorsConsensusConfigBuilders.defaults()
+			return TendermintConsensusConfigBuilders.defaults()
 					.setGenesisTime(LocalDateTime.parse(genesisTime, DateTimeFormatter.ISO_DATE_TIME))
 					.setChainId(chainId)
 					.setMaxGasPerTransaction(maxGasPerTransaction)

@@ -75,31 +75,6 @@ public class MokamintInitializedNodeImpl extends AbstractNodeDecorator<Initializ
 		super(mkParent(parent, consensus, null, takamakaCode));
 	}
 
-	/**
-	 * Creates a decorated node with basic Takamaka classes, gamete and manifest.
-	 * Uses the given keys to control the gamete. It allows to specify the gas station to use.
-	 * 
-	 * @param parent the node to decorate
-	 * @param consensus the consensus parameters that will be set for the node
-	 * @param producerOfGasStationBuilder an algorithm that creates the builder of the gas station
-	 *                                    to be installed in the manifest of the node;
-	 *                                    if this is {@code null}, a generic gas station is created
-	 * @param takamakaCode the jar containing the basic Takamaka classes
-	 * @throws TransactionRejectedException if some transaction that installs the jar or creates the accounts is rejected
-	 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
-	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
-	 * @throws IOException if the jar file cannot be accessed
-	 * @throws TimeoutException if no answer arrives before a time window
-	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
-	 * @throws UnexpectedCodeException if the Takamaka runtime installed in the node contains unexpected code
-	 * @throws ClosedNodeException if the node is already closed
-	 */
-	public MokamintInitializedNodeImpl(MokamintNode<?> parent, ConsensusConfig<?,?> consensus, ProducerOfStorageObject producerOfGasStationBuilder, Path takamakaCode)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, ClosedNodeException, UnexpectedCodeException {
-
-		super(mkParent(parent, consensus, producerOfGasStationBuilder, takamakaCode));
-	}
-
 	private static InitializedNode mkParent(MokamintNode<?> parent, ConsensusConfig<?,?> consensus, ProducerOfStorageObject producerOfGasStationBuilder, Path takamakaCode) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, ClosedNodeException, UnexpectedCodeException {
 		return InitializedNodes.of(parent, consensus, takamakaCode,
 			(node, takamakaCodeReference) -> createMokamintValidatorsBuilder(node, consensus, takamakaCodeReference),

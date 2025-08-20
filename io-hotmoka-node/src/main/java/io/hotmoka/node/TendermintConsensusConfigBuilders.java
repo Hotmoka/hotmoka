@@ -24,14 +24,14 @@ import java.security.spec.InvalidKeySpecException;
 
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.node.api.nodes.ValidatorsConsensusConfigBuilder;
+import io.hotmoka.node.api.nodes.TendermintConsensusConfigBuilder;
 
 /**
  * Providers of consensus configuration builders for Hotmoka nodes with validators.
  */
-public abstract class ValidatorsConsensusConfigBuilders {
+public abstract class TendermintConsensusConfigBuilders {
 
-	private ValidatorsConsensusConfigBuilders() {}
+	private TendermintConsensusConfigBuilders() {}
 
 	private static class MyConsensusConfig extends AbstractValidatorsConsensusConfig<MyConsensusConfig, MyConsensusConfigBuilder> {
 		
@@ -87,7 +87,7 @@ public abstract class ValidatorsConsensusConfigBuilders {
 	 * @return the builder
 	 * @throws NoSuchAlgorithmException if some cryptographic algorithm is not available
 	 */
-	public static ValidatorsConsensusConfigBuilder<?,?> defaults() throws NoSuchAlgorithmException {
+	public static TendermintConsensusConfigBuilder<?,?> defaults() throws NoSuchAlgorithmException {
 		return new MyConsensusConfigBuilder();
 	}
 
@@ -97,7 +97,7 @@ public abstract class ValidatorsConsensusConfigBuilders {
 	 * @param signatureForRequests the signature algorithm to use for signing the requests
 	 * @return the builder
 	 */
-	public static ValidatorsConsensusConfigBuilder<?,?> defaults(SignatureAlgorithm signatureForRequests) {
+	public static TendermintConsensusConfigBuilder<?,?> defaults(SignatureAlgorithm signatureForRequests) {
 		return new MyConsensusConfigBuilder(signatureForRequests);
 	}
 
@@ -114,7 +114,7 @@ public abstract class ValidatorsConsensusConfigBuilders {
 	 * @throws InvalidKeySpecException if the specification of some public key in the TOML file is illegal
 	 * @throws InvalidKeyException if some public key in the TOML file is invalid
 	 */
-	public static ValidatorsConsensusConfigBuilder<?,?> load(Path path) throws FileNotFoundException, NoSuchAlgorithmException, InvalidKeySpecException, Base64ConversionException, InvalidKeyException {
+	public static TendermintConsensusConfigBuilder<?,?> load(Path path) throws FileNotFoundException, NoSuchAlgorithmException, InvalidKeySpecException, Base64ConversionException, InvalidKeyException {
 		return new MyConsensusConfigBuilder(path);
 	}
 }

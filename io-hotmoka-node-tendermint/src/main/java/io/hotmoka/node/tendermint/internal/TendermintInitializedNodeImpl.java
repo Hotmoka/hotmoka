@@ -41,7 +41,7 @@ import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
+import io.hotmoka.node.api.nodes.TendermintConsensusConfig;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
@@ -75,39 +75,13 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 	 * @throws UnexpectedCodeException if the Takamaka runtime installed in the node contains unexpected code
 	 * @throws ClosedNodeException if the node is already closed
 	 */
-	public TendermintInitializedNodeImpl(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, Path takamakaCode)
+	public TendermintInitializedNodeImpl(TendermintNode parent, TendermintConsensusConfig<?,?> consensus, Path takamakaCode)
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, ClosedNodeException, UnexpectedCodeException {
 
 		super(mkParent(parent, consensus, null, takamakaCode));
 	}
 
-	/**
-	 * Creates a decorated node with basic Takamaka classes, gamete and manifest.
-	 * Uses the given keys to control the gamete. Uses the chain id, the genesis time and the validators
-	 * of the underlying Tendermint engine. It allows to specify the gas station to use.
-	 * 
-	 * @param parent the node to decorate
-	 * @param consensus the consensus parameters that will be set for the node
-	 * @param producerOfGasStationBuilder an algorithm that creates the builder of the gas station
-	 *                                    to be installed in the manifest of the node;
-	 *                                    if this is {@code null}, a generic gas station is created
-	 * @param takamakaCode the jar containing the basic Takamaka classes
-	 * @throws TransactionRejectedException if some transaction that installs the jar or creates the accounts is rejected
-	 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
-	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
-	 * @throws IOException if the jar file cannot be accessed
-	 * @throws TimeoutException if no answer arrives before a time window
-	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
-	 * @throws UnexpectedCodeException if the Takamaka runtime installed in the node contains unexpected code
-	 * @throws ClosedNodeException if the node is already closed
-	 */
-	public TendermintInitializedNodeImpl(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, ProducerOfStorageObject producerOfGasStationBuilder, Path takamakaCode)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, ClosedNodeException, UnexpectedCodeException {
-
-		super(mkParent(parent, consensus, producerOfGasStationBuilder, takamakaCode));
-	}
-
-	private static InitializedNode mkParent(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, ProducerOfStorageObject producerOfGasStationBuilder, Path takamakaCode) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, ClosedNodeException, UnexpectedCodeException {
+	private static InitializedNode mkParent(TendermintNode parent, TendermintConsensusConfig<?,?> consensus, ProducerOfStorageObject producerOfGasStationBuilder, Path takamakaCode) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, ClosedNodeException, UnexpectedCodeException {
 		var tendermintConfigFile = new TendermintConfigFile(parent.getLocalConfig());
 		var poster = new TendermintPoster(parent.getLocalConfig(), tendermintConfigFile.getTendermintPort());
 
@@ -122,7 +96,7 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 			producerOfGasStationBuilder);
 	}
 
-	private static StorageReference createTendermintValidatorsBuilder(TendermintPoster poster, InitializedNode node, ValidatorsConsensusConfig<?,?> consensus, TransactionReference takamakaCodeReference)
+	private static StorageReference createTendermintValidatorsBuilder(TendermintPoster poster, InitializedNode node, TendermintConsensusConfig<?,?> consensus, TransactionReference takamakaCodeReference)
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, UnexpectedCodeException, TimeoutException, InterruptedException {
 
 		StorageReference gamete = node.gamete();

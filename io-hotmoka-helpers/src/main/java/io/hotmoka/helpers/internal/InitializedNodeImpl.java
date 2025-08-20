@@ -65,8 +65,7 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 	 * @param parent the node to decorate
 	 * @param consensus the consensus parameters that will be set for the node
 	 * @param takamakaCode the jar containing the basic Takamaka classes
-	 * @param producerOfValidatorsBuilder an algorithm that creates the builder of the validators to be installed in the manifest of the node;
-	 *                                    if this is {@code null}, a generic empty set of validators is created
+	 * @param producerOfValidatorsBuilder an algorithm that creates the builder of the validators to be installed in the manifest of the node
 	 * @param producerOfGasStationBuilder an algorithm that creates the builder of the gas station to be installed in the manifest of the node;
 	 *                                    if this is {@code null}, a generic gas station is created
 	 * @throws TransactionRejectedException if some transaction gets rejected
@@ -89,9 +88,6 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 
 		// we create a gamete with both red and green coins
 		this.gamete = parent.addGameteCreationTransaction(TransactionRequests.gameteCreation(takamakaCodeReference, consensus.getInitialSupply(), consensus.getPublicKeyOfGameteBase64()));
-
-		if (producerOfValidatorsBuilder == null)
-			producerOfValidatorsBuilder = (node, _takamakaCode) -> createEmptyValidatorsBuilder(node, consensus, _takamakaCode);
 
 		if (producerOfGasStationBuilder == null)
 			producerOfGasStationBuilder = (node, _takamakaCode) -> createGenericGasStationBuilder(node, consensus, _takamakaCode);
@@ -125,61 +121,6 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 		parent.addInitializationTransaction(TransactionRequests.initialization(takamakaCodeReference, manifest));
 	}
 
-	/**
-	 * Creates a decorated node with basic Takamaka classes, gamete and manifest.
-	 * Uses the given key pair for controlling the gamete. It installs empty validators.
-	 * 
-	 * @param parent the node to decorate
-	 * @param consensus the consensus parameters that will be set for the node
-	 * @param takamakaCode the jar containing the basic Takamaka classes
-	 * @throws TransactionRejectedException if some transaction gets rejected
-	 * @throws TransactionException if some transaction fails
-	 * @throws IOException if the jar file cannot be accessed
-	 * @throws ClosedNodeException if the node is already closed
-	 * @throws TimeoutException if no answer arrives before a time window
-	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
-	 * @throws TransactionException if some transaction fails
-	 * @throws CodeExecutionException if some transaction throws an exception
-	 * @throws UnexpectedCodeException if the Takamaka support code in the node is unexpected
-	 */
-	public InitializedNodeImpl(Node parent, ConsensusConfig<?,?> consensus, Path takamakaCode) throws TransactionRejectedException, TransactionException, IOException, ClosedNodeException, TimeoutException, InterruptedException, CodeExecutionException, UnexpectedCodeException {
-		super(parent);
-
-		// we install the jar containing the basic Takamaka classes
-		TransactionReference takamakaCodeReference = parent.addJarStoreInitialTransaction(TransactionRequests.jarStoreInitial(Files.readAllBytes(takamakaCode)));
-
-		// we create a gamete with both red and green coins
-		this.gamete = parent.addGameteCreationTransaction(TransactionRequests.gameteCreation(takamakaCodeReference, consensus.getInitialSupply(), consensus.getPublicKeyOfGameteBase64()));
-
-		// we create the builder of the validators
-		StorageReference builderOfValidators = createEmptyValidatorsBuilder(this, consensus, takamakaCodeReference);
-
-		// we create the builder of the gas station
-		StorageReference builderOfGasStation = createGenericGasStationBuilder(this, consensus, takamakaCodeReference);
-
-		BigInteger nonceOfGamete = getNonceOfGamete(parent, takamakaCodeReference);
-		var function = StorageTypes.fromClass(Function.class);
-
-		// we create the manifest, passing the storage array of validators in store and their powers
-		var request = TransactionRequests.constructorCall
-			(new byte[0], gamete, nonceOfGamete, "", BigInteger.valueOf(1_000_000), ZERO, takamakaCodeReference,
-				ConstructorSignatures.of(StorageTypes.MANIFEST, StorageTypes.STRING, StorageTypes.STRING,
-				StorageTypes.INT, StorageTypes.LONG, StorageTypes.LONG, StorageTypes.BOOLEAN, StorageTypes.BOOLEAN,
-				StorageTypes.STRING, StorageTypes.GAMETE, StorageTypes.LONG, function, function),
-				StorageValues.stringOf(consensus.getGenesisTime().toString()),
-				StorageValues.stringOf(consensus.getChainId()), StorageValues.intOf(consensus.getMaxDependencies()),
-				StorageValues.longOf(consensus.getMaxCumulativeSizeOfDependencies()),
-				StorageValues.longOf(consensus.getMaxRequestSize()),
-				StorageValues.booleanOf(consensus.allowsUnsignedFaucet()), StorageValues.booleanOf(consensus.skipsVerification()),
-				StorageValues.stringOf(consensus.getSignatureForRequests().getName()), gamete, StorageValues.longOf(consensus.getVerificationVersion()),
-				builderOfValidators, builderOfGasStation);
-
-		StorageReference manifest = parent.addConstructorCallTransaction(request);
-
-		// we install the manifest and initialize the node
-		parent.addInitializationTransaction(TransactionRequests.initialization(takamakaCodeReference, manifest));
-	}
-
 	private BigInteger getNonceOfGamete(Node node, TransactionReference takamakaCode) throws ClosedNodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, UnexpectedCodeException, CodeExecutionException {
 		var _1_000_000 = BigInteger.valueOf(1_000_000);
 		InstanceMethodCallTransactionRequest request;
@@ -188,23 +129,6 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 		return node.runInstanceMethodCallTransaction(request)
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.NONCE))
 				.asReturnedBigInteger(MethodSignatures.NONCE, UnexpectedValueException::new);
-	}
-
-	private StorageReference createEmptyValidatorsBuilder(InitializedNode node, ConsensusConfig<?,?> consensus, TransactionReference takamakaCode) throws ClosedNodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, CodeExecutionException, UnexpectedCodeException {
-		var _200_000 = BigInteger.valueOf(200_000);
-		var nonceOfGamete = getNonceOfGamete(node, takamakaCode);
-
-		// we create the builder of zero validators
-		var request = TransactionRequests.constructorCall
-				(new byte[0], gamete, nonceOfGamete, "", _200_000, ZERO, takamakaCode,
-						ConstructorSignatures.of(StorageTypes.classNamed("io.takamaka.code.governance.GenericValidators$Builder"), StorageTypes.STRING,
-								StorageTypes.STRING, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER,
-								StorageTypes.INT, StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
-						StorageValues.stringOf(""), StorageValues.stringOf(""), StorageValues.bigIntegerOf(consensus.getTicketForNewPoll()),
-						StorageValues.bigIntegerOf(consensus.getFinalSupply()), StorageValues.bigIntegerOf(consensus.getHeightAtFinalSupply()),
-						StorageValues.intOf(0), StorageValues.intOf(0), StorageValues.intOf(0), StorageValues.intOf(0));
-
-		return node.addConstructorCallTransaction(request);
 	}
 
 	private StorageReference createGenericGasStationBuilder(InitializedNode node, ConsensusConfig<?,?> consensus, TransactionReference takamakaCode) throws ClosedNodeException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, UnexpectedCodeException, CodeExecutionException {

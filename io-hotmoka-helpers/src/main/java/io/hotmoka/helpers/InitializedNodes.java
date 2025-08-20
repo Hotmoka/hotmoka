@@ -42,35 +42,13 @@ public abstract class InitializedNodes {
 
 	/**
 	 * Yields an initialized node with basic Takamaka classes, gamete and manifest.
-	 * It uses a generic empty set of validators and a generic gas station.
-	 * 
-	 * @param parent the node to decorate
-	 * @param consensus the consensus parameters that will be set for the node
-	 * @param takamakaCode the jar containing the basic Takamaka classes
-	 * @return an initialized view of {@code parent}
-	 * @throws TransactionRejectedException if some transaction gets rejected
-	 * @throws TransactionException if some transaction fails
-	 * @throws IOException if the jar file cannot be accessed
-	 * @throws TimeoutException if no answer arrives before a time window
-	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
-	 * @throws CodeExecutionException if some transaction throws an exception
-	 * @throws ClosedNodeException if the node is already closed
-	 * @throws UnexpectedCodeException if the Takamaka code in the store of the node is unexpected
-	 */
-	public static InitializedNode of(Node parent, ConsensusConfig<?,?> consensus, Path takamakaCode) throws TransactionRejectedException, TransactionException, IOException, TimeoutException, InterruptedException, CodeExecutionException, ClosedNodeException, UnexpectedCodeException {
-		return new InitializedNodeImpl(parent, consensus, takamakaCode);
-	}
-
-	/**
-	 * Yields an initialized node with basic Takamaka classes, gamete and manifest.
 	 * Uses the given key pair for controlling the gamete. It allows one to specify how
 	 * the validators and the gas station of the node are being created.
 	 * 
 	 * @param parent the node to decorate
 	 * @param consensus the consensus parameters that will be set for the node
 	 * @param takamakaCode the jar containing the basic Takamaka classes
-	 * @param producerOfValidatorsBuilder an algorithm that creates the builder of the validators to be installed in the manifest of the node;
-	 *                                    if this is {@code null}, a generic empty validators set is created
+	 * @param producerOfValidatorsBuilder an algorithm that creates the builder of the validators to be installed in the manifest of the node
 	 * @param producerOfGasStation an algorithm that creates the builder of the gas station to be installed in the manifest of the node;
 	 *                             if this is {@code null}, a generic gas station is created
 	 * @return an initialized view of {@code parent}

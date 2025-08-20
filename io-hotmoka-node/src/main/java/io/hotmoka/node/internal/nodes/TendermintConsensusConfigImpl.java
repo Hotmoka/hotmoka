@@ -27,21 +27,20 @@ import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.node.AbstractConsensusConfig;
 import io.hotmoka.node.AbstractConsensusConfigBuilder;
-import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
-import io.hotmoka.node.api.nodes.ValidatorsConsensusConfigBuilder;
-import io.hotmoka.node.internal.nodes.ValidatorsConsensusConfigImpl.ValidatorsConsensusConfigBuilderImpl;
+import io.hotmoka.node.api.nodes.TendermintConsensusConfig;
+import io.hotmoka.node.api.nodes.TendermintConsensusConfigBuilder;
+import io.hotmoka.node.internal.nodes.TendermintConsensusConfigImpl.TendermintConsensusConfigBuilderImpl;
 
 /**
- * Implementation of the consensus parameters of a Hotmoka node that uses validators.
- * This information is typically contained in the manifest of the node.
+ * Implementation of the consensus parameters of a Hotmoka node based on Tendermint.
  * 
  * @param <C> the type of this consensus configuration
  * @param <B> the type of the builder of this consensus configuration
  */
 @Immutable
-public abstract class ValidatorsConsensusConfigImpl<C extends ValidatorsConsensusConfigImpl<C,B>, B extends ValidatorsConsensusConfigBuilderImpl<C,B>>
+public abstract class TendermintConsensusConfigImpl<C extends TendermintConsensusConfigImpl<C,B>, B extends TendermintConsensusConfigBuilderImpl<C,B>>
 		extends AbstractConsensusConfig<C,B>
-		implements ValidatorsConsensusConfig<C,B> {
+		implements TendermintConsensusConfig<C,B> {
 
 	/**
 	 * The amount of validators' rewards that gets staked. The rest is sent to the validators immediately.
@@ -72,7 +71,7 @@ public abstract class ValidatorsConsensusConfigImpl<C extends ValidatorsConsensu
 	 * 
 	 * @param builder the builder where information is extracted from
 	 */
-	public ValidatorsConsensusConfigImpl(ValidatorsConsensusConfigBuilderImpl<C,B> builder) {
+	public TendermintConsensusConfigImpl(TendermintConsensusConfigBuilderImpl<C,B> builder) {
 		super(builder);
 
 		this.percentStaked = builder.percentStaked;
@@ -83,7 +82,7 @@ public abstract class ValidatorsConsensusConfigImpl<C extends ValidatorsConsensu
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof ValidatorsConsensusConfigImpl<?,?> vcci && super.equals(other) &&
+		return other instanceof TendermintConsensusConfigImpl<?,?> vcci && super.equals(other) &&
 			percentStaked == vcci.percentStaked &&
 			buyerSurcharge == vcci.buyerSurcharge &&
 			slashingForMisbehaving == vcci.slashingForMisbehaving &&
@@ -139,9 +138,9 @@ public abstract class ValidatorsConsensusConfigImpl<C extends ValidatorsConsensu
 	 * @param <C> the type of the consensus configuration
 	 * @param <B> the type of this builder of the consensus configuration
 	 */
-	public abstract static class ValidatorsConsensusConfigBuilderImpl<C extends ValidatorsConsensusConfigImpl<C,B>, B extends ValidatorsConsensusConfigBuilderImpl<C,B>>
+	public abstract static class TendermintConsensusConfigBuilderImpl<C extends TendermintConsensusConfigImpl<C,B>, B extends TendermintConsensusConfigBuilderImpl<C,B>>
 			extends AbstractConsensusConfigBuilder<C,B>
-			implements ValidatorsConsensusConfigBuilder<C,B> {
+			implements TendermintConsensusConfigBuilder<C,B> {
 
 		private int percentStaked = 75_000_000;
 		private int buyerSurcharge = 50_000_000;
@@ -153,7 +152,7 @@ public abstract class ValidatorsConsensusConfigImpl<C extends ValidatorsConsensu
 		 * 
 		 * @throws NoSuchAlgorithmException if some cryptographic algorithm is not available
 		 */
-		protected ValidatorsConsensusConfigBuilderImpl() throws NoSuchAlgorithmException {}
+		protected TendermintConsensusConfigBuilderImpl() throws NoSuchAlgorithmException {}
 
 		/**
 		 * Creates a builder containing default data. but for the given signature.
@@ -161,7 +160,7 @@ public abstract class ValidatorsConsensusConfigImpl<C extends ValidatorsConsensu
 		 * @param signatureForRequests the signature algorithm to use for signing the requests
 		 * @return the builder
 		 */
-		protected ValidatorsConsensusConfigBuilderImpl(SignatureAlgorithm signatureForRequests) {
+		protected TendermintConsensusConfigBuilderImpl(SignatureAlgorithm signatureForRequests) {
 			super(signatureForRequests);
 		}
 
@@ -170,7 +169,7 @@ public abstract class ValidatorsConsensusConfigImpl<C extends ValidatorsConsensu
 		 * 
 		 * @param config the configuration object
 		 */
-		protected ValidatorsConsensusConfigBuilderImpl(C config) {
+		protected TendermintConsensusConfigBuilderImpl(C config) {
 			super(config);
 
 			setBuyerSurcharge(config.getBuyerSurcharge());
@@ -189,7 +188,7 @@ public abstract class ValidatorsConsensusConfigImpl<C extends ValidatorsConsensu
 		 * @throws InvalidKeySpecException if the specification of some public key in the TOML file is illegal
 		 * @throws InvalidKeyException if some public key in the TOML file is invalid
 		 */
-		protected ValidatorsConsensusConfigBuilderImpl(Toml toml) throws NoSuchAlgorithmException, InvalidKeySpecException, Base64ConversionException, InvalidKeyException {
+		protected TendermintConsensusConfigBuilderImpl(Toml toml) throws NoSuchAlgorithmException, InvalidKeySpecException, Base64ConversionException, InvalidKeyException {
 			super(toml);
 
 			var percentStaked = toml.getLong("percent_staked");

@@ -67,7 +67,7 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
+import io.hotmoka.node.TendermintConsensusConfigBuilders;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.ConstructorFuture;
@@ -80,7 +80,7 @@ import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.nodes.ConsensusConfigBuilder;
-import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
+import io.hotmoka.node.api.nodes.TendermintConsensusConfig;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
@@ -148,7 +148,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	    		var password = "";
 	    		var localSignature = signature = SignatureAlgorithms.ed25519det();  // good for testing
 	    		var keys = entropy.keys(password, localSignature);
-	    		consensus = ValidatorsConsensusConfigBuilders.defaults()
+	    		consensus = TendermintConsensusConfigBuilders.defaults()
 	    				.setSignatureForRequests(signature)
 	    				.allowUnsignedFaucet(true) // good for testing
 	    				.ignoreGasPrice(true) // good for testing
@@ -346,7 +346,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			// with the Takamaka runtime, that we can find in the Maven repository
 			var takamakaCode = Maven.resolver().resolve("io.hotmoka:io-takamaka-code:" + Constants.TAKAMAKA_VERSION).withoutTransitivity().asSingleFile().toPath();
 			if (node instanceof TendermintNode tn)
-				TendermintInitializedNodes.of(tn, (ValidatorsConsensusConfig<?,?>) consensus, takamakaCode);
+				TendermintInitializedNodes.of(tn, (TendermintConsensusConfig<?,?>) consensus, takamakaCode);
 			else if (node instanceof DiskNode dn)
 				DiskInitializedNodes.of(dn, consensus, takamakaCode);
 			else if (node instanceof MokamintNode mn)
@@ -357,7 +357,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	}
 
 	private static Node mkTendermintNode() throws Exception {
-		consensus = fillConsensusConfig(ValidatorsConsensusConfigBuilders.defaults()).build();
+		consensus = fillConsensusConfig(TendermintConsensusConfigBuilders.defaults()).build();
 		delayBeforeIndexUpdate = 0L; // the index is updated immediately with the Tendermint node
 
 		var config = TendermintNodeConfigBuilders.defaults()
@@ -379,7 +379,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	 */
 	@SuppressWarnings("unused")
 	private static Node mkMokamintNodeConnectedToPeer() throws Exception {
-		consensus = fillConsensusConfig(ValidatorsConsensusConfigBuilders.defaults()).build();
+		consensus = fillConsensusConfig(TendermintConsensusConfigBuilders.defaults()).build();
 		long indexingPause = 5_000L;
 		delayBeforeIndexUpdate = indexingPause * 3;
 
@@ -442,7 +442,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		MokamintNode<LocalNode> firstNode = null;
 		URI firstUri = null;
 
-		consensus = fillConsensusConfig(ValidatorsConsensusConfigBuilders.defaults()).build();
+		consensus = fillConsensusConfig(TendermintConsensusConfigBuilders.defaults()).build();
 		long indexingPause = 5_000L;
 		delayBeforeIndexUpdate = indexingPause * 3;
 

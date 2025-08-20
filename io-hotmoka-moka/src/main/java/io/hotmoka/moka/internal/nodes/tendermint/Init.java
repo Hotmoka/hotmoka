@@ -43,21 +43,21 @@ import io.hotmoka.moka.api.nodes.tendermint.NodesTendermintInitOutput;
 import io.hotmoka.moka.api.nodes.tendermint.NodesTendermintInitOutput.ValidatorDescription;
 import io.hotmoka.moka.internal.AbstractNodeInit;
 import io.hotmoka.moka.internal.converters.TendermintNodeConfigOptionConverter;
-import io.hotmoka.moka.internal.converters.ValidatorsConsensusConfigOptionConverter;
+import io.hotmoka.moka.internal.converters.TendermintConsensusConfigOptionConverter;
 import io.hotmoka.moka.internal.json.NodesTendermintInitOutputJson;
 import io.hotmoka.moka.internal.json.NodesTendermintInitOutputJson.ValidatorDescriptionJson;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
+import io.hotmoka.node.TendermintConsensusConfigBuilders;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UninitializedNodeException;
-import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
+import io.hotmoka.node.api.nodes.TendermintConsensusConfig;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.service.NodeServices;
 import io.hotmoka.node.tendermint.TendermintInitializedNodes;
@@ -81,8 +81,8 @@ public class Init extends AbstractNodeInit {
 	@Option(names = "--local-config", paramLabel = "<path>", description = "the local configuration of the Hotmoka node, in TOML format", converter = TendermintNodeConfigOptionConverter.class)
 	private TendermintNodeConfig localConfig;
 
-	@Option(names = "--consensus-config", paramLabel = "<path>", description = "the consensus configuration of the Hotmoka network, in TOML format", converter = ValidatorsConsensusConfigOptionConverter.class)
-	private ValidatorsConsensusConfig<?, ?> consensusConfig;
+	@Option(names = "--consensus-config", paramLabel = "<path>", description = "the consensus configuration of the Hotmoka network, in TOML format", converter = TendermintConsensusConfigOptionConverter.class)
+	private TendermintConsensusConfig<?, ?> consensusConfig;
 
 	@Option(names = "--percent-staked", description = "amount of validators' rewards that gets staked; the rest is sent to the validators immediately (0 = 0%%, 1000000 = 1%%)")
 	private Integer percentStaked;
@@ -105,7 +105,7 @@ public class Init extends AbstractNodeInit {
 	@Override
 	protected void execute() throws CommandException {
 		TendermintNodeConfig localNodeConfig = mkLocalConfig();
-		ValidatorsConsensusConfig<?, ?> consensus = mkConsensusConfig();
+		TendermintConsensusConfig<?, ?> consensus = mkConsensusConfig();
 		askForConfirmation(localNodeConfig.getDir());
 
 		try (var node = TendermintNodes.init(localNodeConfig);
@@ -166,9 +166,9 @@ public class Init extends AbstractNodeInit {
 		return builder.build();
 	}
 
-	private ValidatorsConsensusConfig<?, ?> mkConsensusConfig() throws CommandException {
+	private TendermintConsensusConfig<?, ?> mkConsensusConfig() throws CommandException {
 		try {
-			var builder = consensusConfig != null ? consensusConfig.toBuilder() : ValidatorsConsensusConfigBuilders.defaults();
+			var builder = consensusConfig != null ? consensusConfig.toBuilder() : TendermintConsensusConfigBuilders.defaults();
 			fillConsensusConfig(builder);
 
 			if (percentStaked != null)

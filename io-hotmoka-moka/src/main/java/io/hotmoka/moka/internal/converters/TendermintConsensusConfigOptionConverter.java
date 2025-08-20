@@ -23,18 +23,18 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
 import io.hotmoka.crypto.Base64ConversionException;
-import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
-import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
+import io.hotmoka.node.TendermintConsensusConfigBuilders;
+import io.hotmoka.node.api.nodes.TendermintConsensusConfig;
 import picocli.CommandLine.ITypeConverter;
 
 /**
- * A converter of a string option into a Hotmoka node validators consensus configuration.
+ * A converter of a string option into a configuration for a Hotmoka node based on Tendermint.
  */
-public class ValidatorsConsensusConfigOptionConverter implements ITypeConverter<ValidatorsConsensusConfig<?, ?>> {
+public class TendermintConsensusConfigOptionConverter implements ITypeConverter<TendermintConsensusConfig<?, ?>> {
 
 	@Override
-	public ValidatorsConsensusConfig<?, ?> convert(String value) throws FileNotFoundException, InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, Base64ConversionException {
-		return ValidatorsConsensusConfigBuilders.load(Paths.get(value))
+	public TendermintConsensusConfig<?, ?> convert(String value) throws FileNotFoundException, InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, Base64ConversionException {
+		return TendermintConsensusConfigBuilders.load(Paths.get(value))
 			.build();
 	}
 }

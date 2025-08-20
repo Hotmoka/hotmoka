@@ -24,7 +24,7 @@ import com.moandjiezana.toml.Toml;
 
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.node.internal.nodes.ValidatorsConsensusConfigImpl;
+import io.hotmoka.node.internal.nodes.TendermintConsensusConfigImpl;
 
 /**
  * The builder of a configuration object for a Hotmoka node that uses validators.
@@ -32,7 +32,7 @@ import io.hotmoka.node.internal.nodes.ValidatorsConsensusConfigImpl;
  * @param <C> the concrete type of the configuration
  * @param <B> the concrete type of the builder
  */
-public abstract class AbstractValidatorsConsensusConfigBuilder<C extends AbstractValidatorsConsensusConfig<C,B>, B extends AbstractValidatorsConsensusConfigBuilder<C,B>> extends ValidatorsConsensusConfigImpl.ValidatorsConsensusConfigBuilderImpl<C,B> {
+public abstract class AbstractValidatorsConsensusConfigBuilder<C extends AbstractValidatorsConsensusConfig<C,B>, B extends AbstractValidatorsConsensusConfigBuilder<C,B>> extends TendermintConsensusConfigImpl.TendermintConsensusConfigBuilderImpl<C,B> {
 
 	/**
 	 * Creates the builder.

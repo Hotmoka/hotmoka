@@ -33,7 +33,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.node.ConsensusConfigBuilders;
-import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
+import io.hotmoka.node.TendermintConsensusConfigBuilders;
 import io.hotmoka.testing.AbstractLoggedTests;
 import jakarta.websocket.DecodeException;
 import jakarta.websocket.EncodeException;
@@ -59,7 +59,7 @@ public class ConsensusConfigTests extends AbstractLoggedTests {
 	@DisplayName("validators configs are correctly dumped into TOML and reloaded from TOML")
 	public void validatorsConfigDumpLoadTOMLWorks(@TempDir Path dir) throws IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException, Base64ConversionException {
 		var path = dir.resolve("validators_config.toml");
-		var config1 = ValidatorsConsensusConfigBuilders.defaults()
+		var config1 = TendermintConsensusConfigBuilders.defaults()
 			.setChainId("my-chain")
 			.setBuyerSurcharge(123456)
 			.setSlashingForMisbehaving(98768)
@@ -68,7 +68,7 @@ public class ConsensusConfigTests extends AbstractLoggedTests {
 			.setMaxCumulativeSizeOfDependencies(345678L)
 			.build();
 		Files.writeString(path, config1.toToml(), StandardCharsets.UTF_8);
-		var config2 = ValidatorsConsensusConfigBuilders.load(path).build();
+		var config2 = TendermintConsensusConfigBuilders.load(path).build();
 		assertEquals(config1, config2);
 	}
 

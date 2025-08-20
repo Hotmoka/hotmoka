@@ -19,14 +19,13 @@ package io.hotmoka.node.api.nodes;
 import io.hotmoka.annotations.Immutable;
 
 /**
- * A specification of the consensus parameters of a Hotmoka node that uses validators.
- * This information is typically contained in the manifest of the node.
+ * A specification of the consensus parameters of a Hotmoka node based on Tendermint.
  * 
  * @param <C> the concrete type of the configuration
  * @param <B> the concrete type of the builder
  */
 @Immutable
-public interface ValidatorsConsensusConfig<C extends ValidatorsConsensusConfig<C,B>, B extends ValidatorsConsensusConfigBuilder<C,B>> extends ConsensusConfig<C,B> {
+public interface TendermintConsensusConfig<C extends TendermintConsensusConfig<C,B>, B extends TendermintConsensusConfigBuilder<C,B>> extends ConsensusConfig<C,B> {
 
 	/**
 	 * Yields the amount of validators' rewards that gets staked. The rest is sent to the validators immediately.

@@ -70,7 +70,7 @@ public abstract class AbstractMokaTestWithNode extends AbstractMokaTest {
 
 		/*
 		var nodeConfig = TendermintNodeConfigBuilders.defaults().setDir(dir.resolve("chain")).setTendermintConfigurationToClone(Paths.get("src", "test", "resources", "tendermint_configs", "v1n0", "node0")).build();
-		var consensus = ValidatorsConsensusConfigBuilders.defaults(signature)
+		var consensus = TendermintConsensusConfigBuilders.defaults(signature)
 		.allowUnsignedFaucet(true)
 		.setInitialGasPrice(BigInteger.valueOf(100L))
 		.setSignatureForRequests(signature)

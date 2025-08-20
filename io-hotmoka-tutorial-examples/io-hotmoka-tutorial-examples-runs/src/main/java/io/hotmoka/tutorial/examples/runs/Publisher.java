@@ -22,7 +22,7 @@ import java.security.KeyPair;
 
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.SignatureAlgorithms;
-import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
+import io.hotmoka.node.TendermintConsensusConfigBuilders;
 import io.hotmoka.node.service.NodeServices;
 import io.hotmoka.node.tendermint.TendermintInitializedNodes;
 import io.hotmoka.node.tendermint.TendermintNodeConfigBuilders;
@@ -58,7 +58,7 @@ public class Publisher {
     var signature = SignatureAlgorithms.ed25519();
     var entropy = Entropies.random();
 	KeyPair keys = entropy.keys("password", signature);
-	var consensus = ValidatorsConsensusConfigBuilders.defaults()
+	var consensus = TendermintConsensusConfigBuilders.defaults()
       .setPublicKeyOfGamete(keys.getPublic())
       .setInitialSupply(BigInteger.valueOf(100_000_000))
       .build();

@@ -17,7 +17,7 @@ limitations under the License.
 package io.hotmoka.node;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.node.internal.nodes.ValidatorsConsensusConfigImpl;
+import io.hotmoka.node.internal.nodes.TendermintConsensusConfigImpl;
 
 /**
  * Implementation of the consensus parameters of a Hotmoka node that uses validators.
@@ -27,7 +27,7 @@ import io.hotmoka.node.internal.nodes.ValidatorsConsensusConfigImpl;
  * @param <B> the concrete type of the builder
  */
 @Immutable
-public abstract class AbstractValidatorsConsensusConfig<C extends AbstractValidatorsConsensusConfig<C,B>, B extends AbstractValidatorsConsensusConfigBuilder<C,B>> extends ValidatorsConsensusConfigImpl<C,B> {
+public abstract class AbstractValidatorsConsensusConfig<C extends AbstractValidatorsConsensusConfig<C,B>, B extends AbstractValidatorsConsensusConfigBuilder<C,B>> extends TendermintConsensusConfigImpl<C,B> {
 
 	/**
 	 * Full constructor for the builder pattern.
