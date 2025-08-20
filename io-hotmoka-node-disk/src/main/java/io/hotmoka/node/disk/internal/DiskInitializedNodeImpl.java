@@ -23,15 +23,9 @@ import java.math.BigInteger;
 import java.nio.file.Path;
 import java.util.concurrent.TimeoutException;
 
-import io.hotmoka.helpers.AbstractNodeDecorator;
-import io.hotmoka.helpers.InitializedNodes;
-import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
-import io.hotmoka.helpers.UnexpectedValueException;
-import io.hotmoka.helpers.UnexpectedVoidMethodException;
-import io.hotmoka.helpers.api.InitializedNode;
+import io.hotmoka.helpers.AbstractInitializedNode;
 import io.hotmoka.helpers.api.UnexpectedCodeException;
 import io.hotmoka.node.ConstructorSignatures;
-import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
@@ -51,7 +45,7 @@ import io.hotmoka.node.disk.api.DiskNode;
  * Compared to the {@link io.hotmoka.helpers.api.InitializedNode} interface, this
  * class uses a disk validators object.
  */
-public class DiskInitializedNodeImpl extends AbstractNodeDecorator<InitializedNode> implements DiskInitializedNode {
+public class DiskInitializedNodeImpl extends AbstractInitializedNode<DiskNode, ConsensusConfig<?,?>> implements DiskInitializedNode {
 
 	/**
 	 * Creates a decorated node with basic Takamaka classes, gamete and manifest.
@@ -72,40 +66,21 @@ public class DiskInitializedNodeImpl extends AbstractNodeDecorator<InitializedNo
 	public DiskInitializedNodeImpl(DiskNode parent, ConsensusConfig<?,?> consensus, Path takamakaCode)
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, ClosedNodeException, UnexpectedCodeException {
 
-		super(mkParent(parent, consensus, null, takamakaCode));
+		super(parent, consensus, takamakaCode);
 	}
 
-	private static InitializedNode mkParent(DiskNode parent, ConsensusConfig<?,?> consensus, ProducerOfStorageObject producerOfGasStationBuilder, Path takamakaCode) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, ClosedNodeException, UnexpectedCodeException {
-		return InitializedNodes.of(parent, consensus, takamakaCode,
-			(node, takamakaCodeReference) -> createDiskValidatorsBuilder(node, consensus, takamakaCodeReference),
-			producerOfGasStationBuilder);
-	}
-
-	private static StorageReference createDiskValidatorsBuilder(InitializedNode node, ConsensusConfig<?,?> consensus, TransactionReference takamakaCodeReference)
+	@Override
+	protected StorageReference mkValidatorsBuilder(ConsensusConfig<?, ?> consensus, TransactionReference takamakaCode) 
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, UnexpectedCodeException, TimeoutException, InterruptedException {
 
-		StorageReference gamete = node.gamete();
-		var getNonceRequest = TransactionRequests.instanceViewMethodCall(gamete, BigInteger.valueOf(50_000), takamakaCodeReference, MethodSignatures.NONCE, gamete);
-		BigInteger nonce = node.runInstanceMethodCallTransaction(getNonceRequest)
-			.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.NONCE))
-			.asReturnedBigInteger(MethodSignatures.NONCE, UnexpectedValueException::new);
-
-		// we create the builder of the validators object
-		var _200_000 = BigInteger.valueOf(200_000);
 		ClassType builderClass = StorageTypes.classNamed(StorageTypes.DISK_VALIDATORS + "$Builder");
 
 		var request = TransactionRequests.constructorCall
-			(new byte[0], gamete, nonce, "", _200_000, ZERO, takamakaCodeReference,
+			(new byte[0], gamete(), getNonceOfGamete(takamakaCode), "", BigInteger.valueOf(200_000), ZERO, takamakaCode,
 				ConstructorSignatures.of(builderClass, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER),
 					StorageValues.bigIntegerOf(consensus.getTicketForNewPoll()), StorageValues.bigIntegerOf(consensus.getFinalSupply()),
 					StorageValues.bigIntegerOf(consensus.getHeightAtFinalSupply()));
 
-		return node.addConstructorCallTransaction(request);
-	}
-
-	@Override
-	public StorageReference gamete() throws ClosedNodeException, TimeoutException, InterruptedException {
-		ensureNotClosed();
-		return getParent().gamete();
+		return addConstructorCallTransaction(request);
 	}
 }

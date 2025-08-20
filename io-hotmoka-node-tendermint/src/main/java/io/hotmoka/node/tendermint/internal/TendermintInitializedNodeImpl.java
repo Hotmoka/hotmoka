@@ -25,12 +25,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
 import io.hotmoka.crypto.Base64;
-import io.hotmoka.helpers.AbstractNodeDecorator;
-import io.hotmoka.helpers.InitializedNodes;
-import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
-import io.hotmoka.helpers.UnexpectedValueException;
-import io.hotmoka.helpers.UnexpectedVoidMethodException;
-import io.hotmoka.helpers.api.InitializedNode;
+import io.hotmoka.helpers.AbstractInitializedNode;
 import io.hotmoka.helpers.api.UnexpectedCodeException;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
@@ -54,7 +49,7 @@ import io.hotmoka.node.tendermint.api.TendermintNode;
  * class feeds the initialized node with the chain identifier and the
  * validators set of the underlying Tendermint network.
  */
-public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<InitializedNode> implements TendermintInitializedNode {
+public class TendermintInitializedNodeImpl extends AbstractInitializedNode<TendermintNode, TendermintConsensusConfig<?,?>> implements TendermintInitializedNode {
 
 	private final static Logger LOGGER = Logger.getLogger(TendermintInitializedNodeImpl.class.getName());
 
@@ -78,32 +73,21 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 	public TendermintInitializedNodeImpl(TendermintNode parent, TendermintConsensusConfig<?,?> consensus, Path takamakaCode)
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, ClosedNodeException, UnexpectedCodeException {
 
-		super(mkParent(parent, consensus, null, takamakaCode));
+		super(parent, consensus, takamakaCode);
 	}
 
-	private static InitializedNode mkParent(TendermintNode parent, TendermintConsensusConfig<?,?> consensus, ProducerOfStorageObject producerOfGasStationBuilder, Path takamakaCode) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, ClosedNodeException, UnexpectedCodeException {
-		var tendermintConfigFile = new TendermintConfigFile(parent.getLocalConfig());
-		var poster = new TendermintPoster(parent.getLocalConfig(), tendermintConfigFile.getTendermintPort());
-
-		// we modify the consensus parameters, by setting the chain identifier and the genesis time to that of the underlying Tendermint network
-		final var consensus2 = consensus.toBuilder()
-			.setChainId(poster.getTendermintChainId())
-			.setGenesisTime(poster.getGenesisTime())
-			.build();
-
-		return InitializedNodes.of(parent, consensus, takamakaCode,
-			(node, takamakaCodeReference) -> createTendermintValidatorsBuilder(poster, node, consensus2, takamakaCodeReference),
-			producerOfGasStationBuilder);
-	}
-
-	private static StorageReference createTendermintValidatorsBuilder(TendermintPoster poster, InitializedNode node, TendermintConsensusConfig<?,?> consensus, TransactionReference takamakaCodeReference)
+	@Override
+	protected StorageReference mkValidatorsBuilder(TendermintConsensusConfig<?, ?> consensus, TransactionReference takamakaCode) 
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, UnexpectedCodeException, TimeoutException, InterruptedException {
 
-		StorageReference gamete = node.gamete();
-		var getNonceRequest = TransactionRequests.instanceViewMethodCall(gamete, BigInteger.valueOf(50_000), takamakaCodeReference, MethodSignatures.NONCE, gamete);
-		BigInteger nonce = node.runInstanceMethodCallTransaction(getNonceRequest)
-			.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.NONCE))
-			.asReturnedBigInteger(MethodSignatures.NONCE, UnexpectedValueException::new);
+		var localConfig = getParent().getLocalConfig();
+		var tendermintConfigFile = new TendermintConfigFile(localConfig);
+		var poster = new TendermintPoster(localConfig, tendermintConfigFile.getTendermintPort());
+
+		consensus = consensus.toBuilder()
+				.setChainId(poster.getTendermintChainId())
+				.setGenesisTime(poster.getGenesisTime())
+				.build();
 
 		// we create validators corresponding to those declared in the configuration file of the Tendermint node
 		TendermintValidator[] tendermintValidators = poster.getTendermintValidators();
@@ -112,16 +96,19 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 		var _200_000 = BigInteger.valueOf(200_000);
 		ClassType builderClass = StorageTypes.classNamed(StorageTypes.TENDERMINT_VALIDATORS + "$Builder");
 
-		var request = TransactionRequests.constructorCall
-			(new byte[0], gamete, nonce, "", _200_000, ZERO, takamakaCodeReference,
-				ConstructorSignatures.of(builderClass, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER,
-					StorageTypes.INT, StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
-					StorageValues.bigIntegerOf(consensus.getTicketForNewPoll()), StorageValues.bigIntegerOf(consensus.getFinalSupply()),
-					StorageValues.bigIntegerOf(consensus.getHeightAtFinalSupply()),
-					StorageValues.intOf(consensus.getPercentStaked()), StorageValues.intOf(consensus.getBuyerSurcharge()),
-					StorageValues.intOf(consensus.getSlashingForMisbehaving()), StorageValues.intOf(consensus.getSlashingForNotBehaving()));
+		var gamete = gamete();
+		var nonce = getNonceOfGamete(takamakaCode);
 
-		StorageReference builder = node.addConstructorCallTransaction(request);
+		var request = TransactionRequests.constructorCall
+				(new byte[0], gamete, nonce, "", _200_000, ZERO, takamakaCode,
+						ConstructorSignatures.of(builderClass, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER,
+							StorageTypes.INT, StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
+							StorageValues.bigIntegerOf(consensus.getTicketForNewPoll()), StorageValues.bigIntegerOf(consensus.getFinalSupply()),
+							StorageValues.bigIntegerOf(consensus.getHeightAtFinalSupply()),
+							StorageValues.intOf(consensus.getPercentStaked()), StorageValues.intOf(consensus.getBuyerSurcharge()),
+							StorageValues.intOf(consensus.getSlashingForMisbehaving()), StorageValues.intOf(consensus.getSlashingForNotBehaving()));
+
+		StorageReference builder = addConstructorCallTransaction(request);
 		nonce = nonce.add(BigInteger.ONE);
 
 		// we populate the builder with a Tendermint validator at a time; this guarantees that they are created with 0 as progressive identifier 
@@ -130,19 +117,13 @@ public class TendermintInitializedNodeImpl extends AbstractNodeDecorator<Initial
 		for (TendermintValidator tv: tendermintValidators) {
 			String publicKeyBase64 = Base64.toBase64String(tv.getPubliKeyEncoded());
 			var addValidator = TransactionRequests.instanceMethodCall
-				(new byte[0], gamete, nonce, "", _200_000, ZERO, takamakaCodeReference,
-				addValidatorMethod, builder, StorageValues.stringOf(publicKeyBase64), StorageValues.longOf(tv.power));
-			node.addInstanceMethodCallTransaction(addValidator);
-			LOGGER.info("added Tendermint validator with address " + tv.address + " and power " + tv.power);
+					(new byte[0], gamete, nonce, "", _200_000, ZERO, takamakaCode,
+							addValidatorMethod, builder, StorageValues.stringOf(publicKeyBase64), StorageValues.longOf(tv.power));
+			addInstanceMethodCallTransaction(addValidator);
+			LOGGER.info("added a Tendermint validator with address " + tv.address + " and power " + tv.power);
 			nonce = nonce.add(BigInteger.ONE);
 		}
 
 		return builder;
-	}
-
-	@Override
-	public StorageReference gamete() throws ClosedNodeException, TimeoutException, InterruptedException {
-		ensureNotClosed();
-		return getParent().gamete();
 	}
 }
