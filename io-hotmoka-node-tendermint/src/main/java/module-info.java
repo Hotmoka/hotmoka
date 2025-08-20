@@ -30,7 +30,7 @@ module io.hotmoka.node.tendermint {
 	requires io.hotmoka.annotations;
 	requires io.hotmoka.exceptions;
 	requires io.hotmoka.crypto;
-	requires io.hotmoka.helpers;
+	requires transitive io.hotmoka.helpers;
 	requires io.hotmoka.node.local;
 	requires com.google.gson;
 	requires com.google.protobuf;

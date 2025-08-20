@@ -123,7 +123,7 @@ public final class NonVoidMethodSignatureImpl extends AbstractMethodSignature im
 
     @Override
     public void into(MarshallingContext context) throws IOException {
-    	if (MethodSignatures.VALIDATORS_REWARD_MOKAMINT.equals(this))
+    	if (MethodSignatures.MOKAMINT_VALIDATORS_REWARD.equals(this))
     		context.writeCompactInt(SELECTOR_VALIDATORS_REWARD_MOKAMINT);
     	else {
     		var formals = getFormals().toArray(StorageType[]::new);

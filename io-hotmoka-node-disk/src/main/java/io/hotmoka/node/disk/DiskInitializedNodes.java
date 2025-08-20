@@ -14,34 +14,33 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.tendermint;
+package io.hotmoka.node.disk;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
-import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.helpers.api.UnexpectedCodeException;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
-import io.hotmoka.node.tendermint.api.TendermintNode;
-import io.hotmoka.node.tendermint.internal.TendermintInitializedNodeImpl;
+import io.hotmoka.node.api.nodes.ConsensusConfig;
+import io.hotmoka.node.disk.api.DiskInitializedNode;
+import io.hotmoka.node.disk.api.DiskNode;
+import io.hotmoka.node.disk.internal.DiskInitializedNodeImpl;
 
 /**
- * Providers of Tendermint nodes where the jar with the basic Takamaka classes have been installed,
+ * Providers of disk nodes where the jar with the basic Takamaka classes have been installed,
  * along with a gamete and a manifest.
  */
-public abstract class TendermintInitializedNodes {
+public abstract class DiskInitializedNodes {
 
-	private TendermintInitializedNodes() {}
+	private DiskInitializedNodes() {}
 
 	/**
-	 * Yields a decorated node with basic Takamaka classes, gamete and manifest.
-	 * Uses the chain id and the validators of the underlying Tendermint network. It uses a generic gas station.
+	 * Yields a decorated node with basic Takamaka classes, gamete and manifest. It uses a generic gas station.
 	 * 
 	 * @param parent the node to decorate
 	 * @param consensus the consensus parameters that will be set for the node
@@ -56,15 +55,14 @@ public abstract class TendermintInitializedNodes {
 	 * @throws UnexpectedCodeException if the jar file contains unexpected code
 	 * @throws ClosedNodeException if the node is already closed
 	 */
-	public static InitializedNode of(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, Path takamakaCode)
+	public static DiskInitializedNode of(DiskNode parent, ConsensusConfig<?,?> consensus, Path takamakaCode)
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, ClosedNodeException, UnexpectedCodeException {
 
-		return new TendermintInitializedNodeImpl(parent, consensus, null, takamakaCode);
+		return new DiskInitializedNodeImpl(parent, consensus, null, takamakaCode);
 	}
 
 	/**
-	 * Yields a decorated node with basic Takamaka classes, gamete and manifest. Uses the chain id and the validators
-	 * of the underlying Tendermint network. It allows one to specify the gas station to use.
+	 * Yields a decorated node with basic Takamaka classes, gamete and manifest. It allows one to specify the gas station to use.
 	 * 
 	 * @param parent the node to decorate
 	 * @param consensus the consensus parameters that will be set for the node
@@ -81,9 +79,9 @@ public abstract class TendermintInitializedNodes {
 	 * @throws UnexpectedCodeException if the jar file contains unexpected code
 	 * @throws ClosedNodeException if the node is already closed
 	 */
-	public static InitializedNode of(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, ProducerOfStorageObject producerOfGasStation, Path takamakaCode)
+	public static DiskInitializedNode of(DiskNode parent, ConsensusConfig<?,?> consensus, ProducerOfStorageObject producerOfGasStation, Path takamakaCode)
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, ClosedNodeException, UnexpectedCodeException {
 
-		return new TendermintInitializedNodeImpl(parent, consensus, producerOfGasStation, takamakaCode);
+		return new DiskInitializedNodeImpl(parent, consensus, producerOfGasStation, takamakaCode);
 	}
 }

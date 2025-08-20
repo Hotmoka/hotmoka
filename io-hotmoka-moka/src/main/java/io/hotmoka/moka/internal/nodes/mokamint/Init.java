@@ -28,7 +28,6 @@ import java.util.concurrent.TimeoutException;
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.exceptions.Objects;
-import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.helpers.api.UnexpectedCodeException;
 import io.hotmoka.moka.NodesMokamintInitOutputs;
 import io.hotmoka.moka.api.nodes.mokamint.NodesMokamintInitOutput;
@@ -44,6 +43,7 @@ import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.mokamint.MokamintInitializedNodes;
 import io.hotmoka.node.mokamint.MokamintNodeConfigBuilders;
 import io.hotmoka.node.mokamint.MokamintNodes;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
@@ -134,7 +134,7 @@ public class Init extends AbstractNodeInit {
 						throw new CommandException("Cannot deploy the service at port " + mokamintPortRestricted);
 					}
 
-					try (var initialized = InitializedNodes.of(node, consensus, getTakamakaCode()); var service = NodeServices.of(node, getPort())) {
+					try (var initialized = MokamintInitializedNodes.of(node, consensus, getTakamakaCode()); var service = NodeServices.of(node, getPort())) {
 						var output = new Output(initialized.gamete(), URI.create("ws://localhost:" + getPort()), mokamintNodePublicURI, URI.create("ws://localhost:" + mokamintPortRestricted));
 						report(json(), output, NodesMokamintInitOutputs.Encoder::new);
 						waitForEnterKey();

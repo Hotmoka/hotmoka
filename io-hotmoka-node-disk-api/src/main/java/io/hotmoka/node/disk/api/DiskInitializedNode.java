@@ -1,5 +1,5 @@
 /*
-Copyright 2024 Fausto Spoto
+Copyright 2025 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,16 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-/**
- * This module defines the API of Hotmoka nodes running over the Mokamint engine.
- * They can be used to build an actual blockchain network based on proof of space.
- */
-module io.hotmoka.node.mokamint.api {
-	exports io.hotmoka.node.mokamint.api;
+package io.hotmoka.node.disk.api;
 
-	requires io.hotmoka.annotations;
-	requires transitive io.hotmoka.node.local.api;
-	requires transitive io.mokamint.node.local.api;
-	requires transitive io.mokamint.application.api;
-	requires io.hotmoka.helpers.api;
+import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.helpers.api.InitializedNode;
+
+/**
+ * A node where the jar with the basic Takamaka classes have been installed,
+ * along with a gamete and a manifest. It uses the validators object of a disk node.
+ */
+@ThreadSafe
+public interface DiskInitializedNode extends InitializedNode {
 }

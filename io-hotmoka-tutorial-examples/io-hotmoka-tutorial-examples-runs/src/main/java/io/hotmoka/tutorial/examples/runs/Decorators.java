@@ -26,9 +26,9 @@ import java.security.KeyPair;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.helpers.AccountsNodes;
-import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.helpers.JarsNodes;
 import io.hotmoka.node.ConsensusConfigBuilders;
+import io.hotmoka.node.disk.DiskInitializedNodes;
 import io.hotmoka.node.disk.DiskNodeConfigBuilders;
 import io.hotmoka.node.disk.DiskNodes;
 
@@ -73,7 +73,7 @@ public class Decorators {
 
 	try (var node = DiskNodes.init(config)) {
       // first view: store the io-takamaka-code jar and create manifest and gamete
-	  var initialized = InitializedNodes.of(node, consensus, takamakaCodePath);
+	  var initialized = DiskInitializedNodes.of(node, consensus, takamakaCodePath);
 
       // second view: store the family jar: the gamete will pay for that
       var nodeWithJars = JarsNodes.of(node, initialized.gamete(), keys.getPrivate(), familyPath);

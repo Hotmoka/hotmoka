@@ -95,9 +95,8 @@ public class DiskStoreTransformation extends AbstractStoreTransformation<DiskNod
 		LOGGER.info("coinbase: units of gas consumed for CPU, RAM or storage since the previous reward: " + gasConsumed);
 
 		var request = TransactionRequests.instanceSystemMethodCall
-				(manifest, nonce, _500_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD, validators,
+				(manifest, nonce, _500_000, takamakaCode, MethodSignatures.DISK_VALIDATORS_REWARD, validators,
 						StorageValues.bigIntegerOf(getReward().add(minted)), StorageValues.bigIntegerOf(minted),
-						StorageValues.stringOf(""), StorageValues.stringOf(""),
 						StorageValues.bigIntegerOf(gasConsumed), StorageValues.bigIntegerOf(deliveredCount()));
 
 		TransactionResponse response;

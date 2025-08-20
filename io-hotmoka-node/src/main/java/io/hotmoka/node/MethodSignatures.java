@@ -26,6 +26,9 @@ import static io.hotmoka.node.StorageTypes.MANIFEST;
 import static io.hotmoka.node.StorageTypes.OBJECT;
 import static io.hotmoka.node.StorageTypes.STRING;
 import static io.hotmoka.node.StorageTypes.VALIDATORS;
+import static io.hotmoka.node.StorageTypes.DISK_VALIDATORS;
+import static io.hotmoka.node.StorageTypes.MOKAMINT_VALIDATORS;
+import static io.hotmoka.node.StorageTypes.TENDERMINT_VALIDATORS;
 
 import java.io.IOException;
 
@@ -337,19 +340,24 @@ public abstract class MethodSignatures {
 	public final static VoidMethodSignature RECEIVE_LONG = ofVoid(StorageTypes.PAYABLE_CONTRACT, "receive", LONG);
 
 	/**
-	 * The method {@code reward} of the validators contract.
+	 * The method {@code reward} of the Tendermint validators contract.
 	 */
-	public final static VoidMethodSignature VALIDATORS_REWARD = ofVoid(VALIDATORS, "reward", BIG_INTEGER, BIG_INTEGER, STRING, STRING, BIG_INTEGER, BIG_INTEGER);
+	public final static VoidMethodSignature TENDERMINT_VALIDATORS_REWARD = ofVoid(TENDERMINT_VALIDATORS, "reward", BIG_INTEGER, BIG_INTEGER, STRING, STRING, BIG_INTEGER, BIG_INTEGER);
+
+	/**
+	 * The method {@code reward} of the disk node validators contract.
+	 */
+	public final static VoidMethodSignature DISK_VALIDATORS_REWARD = ofVoid(DISK_VALIDATORS, "reward", BIG_INTEGER, BIG_INTEGER, BIG_INTEGER, BIG_INTEGER);
 
 	/**
 	 * The method {@code rewardMokamint} of the validators contract.
 	 */
-	public final static NonVoidMethodSignature VALIDATORS_REWARD_MOKAMINT = ofNonVoid(VALIDATORS, "rewardMokamint", BOOLEAN, BIG_INTEGER, BIG_INTEGER, BIG_INTEGER, STRING, STRING, BIG_INTEGER, BIG_INTEGER);
+	public final static NonVoidMethodSignature MOKAMINT_VALIDATORS_REWARD = ofNonVoid(MOKAMINT_VALIDATORS, "rewardMokamint", BOOLEAN, BIG_INTEGER, BIG_INTEGER, BIG_INTEGER, STRING, STRING, BIG_INTEGER, BIG_INTEGER);
 
 	/**
 	 * The method {@code rewardMokamintMiner} of the validators contract.
 	 */
-	public final static VoidMethodSignature VALIDATORS_REWARD_MOKAMINT_MINER = ofVoid(VALIDATORS, "rewardMokamintMiner", BIG_INTEGER, STRING);
+	public final static VoidMethodSignature MOKAMINT_VALIDATORS_REWARD_MINER = ofVoid(MOKAMINT_VALIDATORS, "rewardMokamintMiner", BIG_INTEGER, STRING);
 
 	/**
 	 * The method {@code getBuyerSurcharge} of the validators contract.

@@ -289,9 +289,19 @@ public abstract class StorageTypes {
 	public final static ClassType GENERIC_GAS_STATION = ClassTypeImpl.GENERIC_GAS_STATION;
 
 	/**
+	 * The frequently used class type for {@code io.takamaka.code.governance.mokamint.MokamintValidators}.
+	 */
+	public final static ClassType MOKAMINT_VALIDATORS = ClassTypeImpl.MOKAMINT_VALIDATORS;
+
+	/**
 	 * The frequently used class type for {@code io.takamaka.code.governance.tendermint.TendermintValidators}.
 	 */
 	public final static ClassType TENDERMINT_VALIDATORS = ClassTypeImpl.TENDERMINT_VALIDATORS;
+
+	/**
+	 * The frequently used class type for {@code io.takamaka.code.governance.disk.DiskValidators}.
+	 */
+	public final static ClassType DISK_VALIDATORS = ClassTypeImpl.DISK_VALIDATORS;
 
 	/**
 	 * The frequently used class type for {@code io.takamaka.code.governance.tendermint.TendermintED25519Validator}.

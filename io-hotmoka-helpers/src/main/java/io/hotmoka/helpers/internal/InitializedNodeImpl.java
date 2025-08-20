@@ -27,9 +27,9 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 
 import io.hotmoka.helpers.AbstractNodeDecorator;
+import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
 import io.hotmoka.helpers.UnexpectedValueException;
 import io.hotmoka.helpers.UnexpectedVoidMethodException;
-import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
 import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.helpers.api.UnexpectedCodeException;
 import io.hotmoka.node.ConstructorSignatures;
@@ -43,7 +43,6 @@ import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
-import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
@@ -79,8 +78,8 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 	 * @throws ClosedNodeException if the node is already closed
 	 * @throws UnexpectedCodeException if the Takamaka code in the store of the node is unexpected
 	 */
-	public InitializedNodeImpl(Node parent, ValidatorsConsensusConfig<?,?> consensus, Path takamakaCode,
-			ProducerOfStorageObject<ValidatorsConsensusConfig<?,?>> producerOfValidatorsBuilder, ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStationBuilder)
+	public InitializedNodeImpl(Node parent, ConsensusConfig<?,?> consensus, Path takamakaCode,
+			ProducerOfStorageObject producerOfValidatorsBuilder, ProducerOfStorageObject producerOfGasStationBuilder)
 				throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, ClosedNodeException, UnexpectedCodeException {
 
 		super(parent);
@@ -92,16 +91,16 @@ public class InitializedNodeImpl extends AbstractNodeDecorator<Node> implements 
 		this.gamete = parent.addGameteCreationTransaction(TransactionRequests.gameteCreation(takamakaCodeReference, consensus.getInitialSupply(), consensus.getPublicKeyOfGameteBase64()));
 
 		if (producerOfValidatorsBuilder == null)
-			producerOfValidatorsBuilder = this::createEmptyValidatorsBuilder;
+			producerOfValidatorsBuilder = (node, _takamakaCode) -> createEmptyValidatorsBuilder(node, consensus, _takamakaCode);
 
 		if (producerOfGasStationBuilder == null)
-			producerOfGasStationBuilder = this::createGenericGasStationBuilder;
+			producerOfGasStationBuilder = (node, _takamakaCode) -> createGenericGasStationBuilder(node, consensus, _takamakaCode);
 
 		// we create the builder of the validators
-		StorageReference builderOfValidators = producerOfValidatorsBuilder.apply(this, consensus, takamakaCodeReference);
+		StorageReference builderOfValidators = producerOfValidatorsBuilder.apply(this, takamakaCodeReference);
 
 		// we create the builder of the gas station
-		StorageReference builderOfGasStation = producerOfGasStationBuilder.apply(this, consensus, takamakaCodeReference);
+		StorageReference builderOfGasStation = producerOfGasStationBuilder.apply(this, takamakaCodeReference);
 
 		BigInteger nonceOfGamete = getNonceOfGamete(parent, takamakaCodeReference);
 		var function = StorageTypes.fromClass(Function.class);

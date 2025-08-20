@@ -22,7 +22,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.cli.CommandException;
-import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.helpers.api.UnexpectedCodeException;
 import io.hotmoka.moka.NodesDiskInitOutputs;
 import io.hotmoka.moka.api.nodes.disk.NodesDiskInitOutput;
@@ -37,6 +36,7 @@ import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.disk.DiskInitializedNodes;
 import io.hotmoka.node.disk.DiskNodeConfigBuilders;
 import io.hotmoka.node.disk.DiskNodes;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
@@ -65,7 +65,7 @@ public class Init extends AbstractNodeInit {
 		askForConfirmation(localNodeConfig.getDir());
 			
 		try (var node = DiskNodes.init(localNodeConfig);
-			var initialized = InitializedNodes.of(node, consensus, getTakamakaCode());
+			var initialized = DiskInitializedNodes.of(node, consensus, getTakamakaCode());
 			var service = NodeServices.of(node, getPort())) {
 
 			report(json(), new Output(initialized.gamete(), URI.create("ws://localhost:" + getPort())), NodesDiskInitOutputs.Encoder::new);

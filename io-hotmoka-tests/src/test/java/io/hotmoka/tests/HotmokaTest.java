@@ -56,7 +56,6 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.AccountsNodes;
 import io.hotmoka.helpers.Coin;
-import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.helpers.JarsNodes;
 import io.hotmoka.helpers.UnexpectedValueException;
 import io.hotmoka.helpers.UnexpectedVoidMethodException;
@@ -92,10 +91,13 @@ import io.hotmoka.node.api.signatures.VoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
+import io.hotmoka.node.disk.DiskInitializedNodes;
 import io.hotmoka.node.disk.DiskNodeConfigBuilders;
 import io.hotmoka.node.disk.DiskNodes;
+import io.hotmoka.node.disk.api.DiskNode;
 import io.hotmoka.node.local.LocalNodeException;
 import io.hotmoka.node.local.VerificationException;
+import io.hotmoka.node.mokamint.MokamintInitializedNodes;
 import io.hotmoka.node.mokamint.MokamintNodeConfigBuilders;
 import io.hotmoka.node.mokamint.MokamintNodes;
 import io.hotmoka.node.mokamint.api.MokamintNode;
@@ -332,6 +334,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		void run() throws Exception;
 	}
 
+	@SuppressWarnings("resource")
 	private static void initializeNodeIfNeeded(Node node) throws TransactionRejectedException, TransactionException,
 			CodeExecutionException, IOException, TimeoutException, InterruptedException, ClosedNodeException, UnexpectedCodeException {
 
@@ -344,8 +347,12 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			var takamakaCode = Maven.resolver().resolve("io.hotmoka:io-takamaka-code:" + Constants.TAKAMAKA_VERSION).withoutTransitivity().asSingleFile().toPath();
 			if (node instanceof TendermintNode tn)
 				TendermintInitializedNodes.of(tn, (ValidatorsConsensusConfig<?,?>) consensus, takamakaCode);
+			else if (node instanceof DiskNode dn)
+				DiskInitializedNodes.of(dn, consensus, takamakaCode);
+			else if (node instanceof MokamintNode mn)
+				MokamintInitializedNodes.of(mn, consensus, takamakaCode);
 			else
-				InitializedNodes.of(node, consensus, takamakaCode);
+				throw new LocalNodeException("I don't know how to initialize a " + node.getClass().getName());
 		}
 	}
 

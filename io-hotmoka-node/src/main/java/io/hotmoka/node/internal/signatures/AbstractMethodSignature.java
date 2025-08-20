@@ -111,9 +111,9 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 		case SELECTOR_RECEIVE_INT: return MethodSignatures.RECEIVE_INT;
 		case SELECTOR_RECEIVE_LONG: return MethodSignatures.RECEIVE_LONG;
 		case SELECTOR_RECEIVE_BIGINTEGER: return MethodSignatures.RECEIVE_BIGINTEGER;
-		case SELECTOR_VALIDATORS_REWARD: return MethodSignatures.VALIDATORS_REWARD;
-		case SELECTOR_VALIDATORS_REWARD_MOKAMINT: return MethodSignatures.VALIDATORS_REWARD_MOKAMINT;
-		case SELECTOR_VALIDATORS_REWARD_MOKAMINT_MINER: return MethodSignatures.VALIDATORS_REWARD_MOKAMINT_MINER;
+		case SELECTOR_VALIDATORS_REWARD: return MethodSignatures.TENDERMINT_VALIDATORS_REWARD;
+		case SELECTOR_VALIDATORS_REWARD_MOKAMINT: return MethodSignatures.MOKAMINT_VALIDATORS_REWARD;
+		case SELECTOR_VALIDATORS_REWARD_MOKAMINT_MINER: return MethodSignatures.MOKAMINT_VALIDATORS_REWARD_MINER;
 		}
 
 		// we determine if the method is void or not, by looking at the parity of the number of formals

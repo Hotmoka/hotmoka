@@ -29,7 +29,6 @@ import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
-import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 
@@ -84,8 +83,8 @@ public abstract class InitializedNodes {
 	 * @throws ClosedNodeException if the node is already closed
 	 * @throws UnexpectedCodeException if the Takamaka code in the store of the node is unexpected
 	 */
-	public static InitializedNode of(Node parent, ValidatorsConsensusConfig<?,?> consensus,
-			Path takamakaCode, ProducerOfStorageObject<ValidatorsConsensusConfig<?,?>> producerOfValidatorsBuilder, ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStation)
+	public static InitializedNode of(Node parent, ConsensusConfig<?,?> consensus,
+			Path takamakaCode, ProducerOfStorageObject producerOfValidatorsBuilder, ProducerOfStorageObject producerOfGasStation)
 					throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, ClosedNodeException, UnexpectedCodeException {
 
 		return new InitializedNodeImpl(parent, consensus, takamakaCode, producerOfValidatorsBuilder, producerOfGasStation);
@@ -94,16 +93,13 @@ public abstract class InitializedNodes {
 	/**
 	 * An algorithm that yields an object in the store of a node, given
 	 * the node and the reference to the basic classes in its store.
-	 * 
-	 * @param <C> the type of the consensus parameters of the node
 	 */
-	public interface ProducerOfStorageObject<C extends ConsensusConfig<?,?>> {
+	public interface ProducerOfStorageObject {
 
 		/**
 		 * Runs some transactions in the node, that yield the object.
 		 * 
 		 * @param node the node in whose store the object is being created
-		 * @param consensus the consensus parameters of the node
 		 * @param takamakaCode the reference to the transaction that installed the Takamaka base classes in the node
 		 * @return the reference of the object
 		 * @throws TransactionRejectedException if some transaction gets rejected
@@ -114,7 +110,7 @@ public abstract class InitializedNodes {
 		 * @throws TimeoutException if no answer arrives before a time window
 		 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 		 */
-		StorageReference apply(InitializedNode node, C consensus, TransactionReference takamakaCode)
+		StorageReference apply(InitializedNode node, TransactionReference takamakaCode)
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, UnexpectedCodeException, TimeoutException, InterruptedException;
 	}
 }

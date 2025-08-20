@@ -123,10 +123,9 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 		BigInteger percentForNodeAsBI = BigInteger.valueOf(percentForNode);
 		BigInteger reward = getReward().add(minted);
 		BigInteger rewardForNode = reward.multiply(percentForNodeAsBI).divide(_100_000_000);
-		BigInteger rewardForMiner = reward.subtract(rewardForNode);
 
 		var request = TransactionRequests.instanceSystemMethodCall
-				(manifest, nonce, _500_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD_MOKAMINT, validators,
+				(manifest, nonce, _500_000, takamakaCode, MethodSignatures.MOKAMINT_VALIDATORS_REWARD, validators,
 						StorageValues.bigIntegerOf(reward),
 						StorageValues.bigIntegerOf(rewardForNode),
 						StorageValues.bigIntegerOf(minted),
@@ -151,6 +150,8 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 		else if (response instanceof NonVoidMethodCallTransactionSuccessfulResponse nvmctsr) {
 			LOGGER.info("coinbase: rewarded " + rewardForNode + " to a node with public key " + publicKeyOfNodeBase58 + " (" + prolog.getSignatureForBlocks() + ", base58)");
 
+			BigInteger rewardForMiner = reward.subtract(rewardForNode);
+
 			if (nvmctsr.getResult().equals(StorageValues.TRUE))
 				// a single coinbase transaction was enough to reward both node and miner
 				LOGGER.info("coinbase: rewarded " + rewardForMiner + " to a miner with public key " + publicKeyOfMinerBase58 + " (" + prolog.getSignatureForDeadlines() + ", base58)");
@@ -158,7 +159,7 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 				// only the node has been rewarded: we explicitly reward the miner; this is a trick to guarantee
 				// that accounts created during these calls only have a progressive equal to zero
 				request = TransactionRequests.instanceSystemMethodCall
-						(manifest, nonce.add(BigInteger.ONE), _500_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD_MOKAMINT_MINER, validators,
+						(manifest, nonce.add(BigInteger.ONE), _500_000, takamakaCode, MethodSignatures.MOKAMINT_VALIDATORS_REWARD_MINER, validators,
 						StorageValues.bigIntegerOf(rewardForMiner), StorageValues.stringOf(publicKeyOfMinerBase64));
 
 				try {

@@ -456,9 +456,19 @@ public final class ClassTypeImpl extends AbstractStorageType implements ClassTyp
 	public final static ClassType GENERIC_GAS_STATION = new ClassTypeImpl(Constants.GENERIC_GAS_STATION_NAME, IllegalArgumentException::new);
 
 	/**
+	 * The frequently used class type for {@link io.takamaka.code.governance.mokamint.MokamintValidators}.
+	 */
+	public final static ClassType MOKAMINT_VALIDATORS = new ClassTypeImpl(Constants.MOKAMINT_VALIDATORS_NAME, IllegalArgumentException::new);
+
+	/**
 	 * The frequently used class type for {@link io.takamaka.code.governance.tendermint.TendermintValidators}.
 	 */
 	public final static ClassType TENDERMINT_VALIDATORS = new ClassTypeImpl(Constants.TENDERMINT_VALIDATORS_NAME, IllegalArgumentException::new);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.governance.disk.DiskValidators}.
+	 */
+	public final static ClassType DISK_VALIDATORS = new ClassTypeImpl(Constants.DISK_VALIDATORS_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.governance.tendermint.TendermintED25519Validator}.

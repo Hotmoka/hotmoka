@@ -220,7 +220,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				var staticTarget = request.getStaticTarget();
 				Optional<StorageReference> manifest;
 
-				if ((staticTarget.equals(MethodSignatures.VALIDATORS_REWARD) || staticTarget.equals(MethodSignatures.VALIDATORS_REWARD_MOKAMINT))
+				if ((staticTarget.equals(MethodSignatures.MOKAMINT_VALIDATORS_REWARD) || staticTarget.equals(MethodSignatures.TENDERMINT_VALIDATORS_REWARD) || staticTarget.equals(MethodSignatures.DISK_VALIDATORS_REWARD))
 						&& (manifest = environment.getManifest()).isPresent() && request.getCaller().equals(manifest.get())) {
 
 					// the rewarded coins are passed as first argument

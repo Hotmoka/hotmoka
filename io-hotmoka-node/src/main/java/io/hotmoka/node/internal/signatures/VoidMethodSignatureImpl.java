@@ -110,9 +110,9 @@ public final class VoidMethodSignatureImpl extends AbstractMethodSignature imple
     		context.writeCompactInt(SELECTOR_RECEIVE_LONG);
     	else if (MethodSignatures.RECEIVE_BIGINTEGER.equals(this))
     		context.writeCompactInt(SELECTOR_RECEIVE_BIGINTEGER);
-    	else if (MethodSignatures.VALIDATORS_REWARD.equals(this))
+    	else if (MethodSignatures.TENDERMINT_VALIDATORS_REWARD.equals(this))
     		context.writeCompactInt(SELECTOR_VALIDATORS_REWARD);
-    	else if (MethodSignatures.VALIDATORS_REWARD_MOKAMINT_MINER.equals(this))
+    	else if (MethodSignatures.MOKAMINT_VALIDATORS_REWARD_MINER.equals(this))
     		context.writeCompactInt(SELECTOR_VALIDATORS_REWARD_MOKAMINT_MINER);
     	else {
     		var formals = getFormals().toArray(StorageType[]::new);

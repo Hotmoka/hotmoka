@@ -22,9 +22,9 @@ import java.security.KeyPair;
 
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.SignatureAlgorithms;
-import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.service.NodeServices;
+import io.hotmoka.node.tendermint.TendermintInitializedNodes;
 import io.hotmoka.node.tendermint.TendermintNodeConfigBuilders;
 import io.hotmoka.node.tendermint.TendermintNodes;
 import io.takamaka.code.constants.Constants;
@@ -65,7 +65,7 @@ public class Publisher {
 
 	try (var original = TendermintNodes.init(config);
       // remove the next line if you want to publish an uninitialized node
-      var initialized = InitializedNodes.of(original, consensus, takamakaCodePath);
+      var initialized = TendermintInitializedNodes.of(original, consensus, takamakaCodePath);
       var service = NodeServices.of(original, 8001)) {
 
       System.out.println("\nPress ENTER to turn off the server and exit this program");

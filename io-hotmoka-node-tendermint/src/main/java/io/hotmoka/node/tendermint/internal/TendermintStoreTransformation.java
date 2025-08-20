@@ -128,7 +128,7 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 		BigInteger reward = getReward().add(minted);
 
 		var request = TransactionRequests.instanceSystemMethodCall
-				(manifest, nonce, _500_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD, validators,
+				(manifest, nonce, _500_000, takamakaCode, MethodSignatures.TENDERMINT_VALIDATORS_REWARD, validators,
 						StorageValues.bigIntegerOf(reward), StorageValues.bigIntegerOf(minted),
 						StorageValues.stringOf(behaving), StorageValues.stringOf(misbehaving),
 						StorageValues.bigIntegerOf(gasConsumed), StorageValues.bigIntegerOf(deliveredCount()));

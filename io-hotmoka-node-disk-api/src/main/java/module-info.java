@@ -21,6 +21,7 @@ limitations under the License.
 module io.hotmoka.node.disk.api {
 	exports io.hotmoka.node.disk.api;
 
+	requires io.hotmoka.helpers.api;
 	requires io.hotmoka.annotations;
 	requires transitive io.hotmoka.node.local.api;
 }

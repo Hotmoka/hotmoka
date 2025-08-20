@@ -27,12 +27,12 @@ import org.junit.jupiter.api.io.TempDir;
 
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.SignatureAlgorithms;
-import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.moka.Moka;
 import io.hotmoka.node.ConsensusConfigBuilders;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.disk.DiskInitializedNodes;
 import io.hotmoka.node.disk.DiskNodeConfigBuilders;
 import io.hotmoka.node.disk.DiskNodes;
 import io.hotmoka.node.service.NodeServices;
@@ -80,7 +80,7 @@ public abstract class AbstractMokaTestWithNode extends AbstractMokaTest {
 		.setPublicKeyOfGamete(keysOfGamete.getPublic())
 		.build();
 		var node = TendermintNodes.init(nodeConfig);
-		var init = TendermintInitializedNodes.of(node, consensus, takamakaCodePath);
+		var init = MokamintInitializedNodes.of(node, consensus, takamakaCodePath);
 		*/
 
 		var nodeConfig = DiskNodeConfigBuilders.defaults().setDir(dir.resolve("chain")).build();
@@ -94,7 +94,7 @@ public abstract class AbstractMokaTestWithNode extends AbstractMokaTest {
 				.setPublicKeyOfGamete(keysOfGamete.getPublic())
 				.build();
 		var node = DiskNodes.init(nodeConfig);
-		var init = InitializedNodes.of(node, consensus, takamakaCodePath);
+		var init = DiskInitializedNodes.of(node, consensus, takamakaCodePath);
 
 		AbstractMokaTestWithNode.node = node;
 		gamete = init.gamete();

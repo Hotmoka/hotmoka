@@ -22,9 +22,11 @@ module io.hotmoka.node.disk {
 	exports io.hotmoka.node.disk;
 
 	requires transitive io.hotmoka.node.disk.api;
+	requires transitive io.hotmoka.helpers.api;
 	requires io.hotmoka.node;
 	requires io.hotmoka.annotations;
 	requires io.hotmoka.node.local;
+	requires transitive io.hotmoka.helpers;
 	requires io.hotmoka.constants;
 	requires toml4j;
 	requires java.logging;
