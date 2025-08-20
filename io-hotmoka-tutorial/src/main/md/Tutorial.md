@@ -6506,9 +6506,9 @@ import java.security.KeyPair;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.helpers.AccountsNodes;
-import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.helpers.JarsNodes;
 import io.hotmoka.node.ConsensusConfigBuilders;
+import io.hotmoka.node.disk.DiskInitializedNodes;
 import io.hotmoka.node.disk.DiskNodeConfigBuilders;
 import io.hotmoka.node.disk.DiskNodes;
 
@@ -6539,7 +6539,7 @@ public class Decorators {
 
 	 try (var node = DiskNodes.init(config)) {
       // first view: store the io-takamaka-code jar and create manifest and gamete
-      var initialized = InitializedNodes.of(node, consensus, takamakaCodePath);
+      var initialized = DiskInitializedNodes.of(node, consensus, takamakaCodePath);
 
       // second view: store the family jar: the gamete will pay for that
       var nodeWithJars = JarsNodes.of(node, initialized.gamete(), keys.getPrivate(), familyPath);
@@ -6621,9 +6621,9 @@ import java.security.KeyPair;
 
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.SignatureAlgorithms;
-import io.hotmoka.helpers.InitializedNodes;
-import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.service.NodeServices;
+import io.hotmoka.node.tendermint.TendermintConsensusConfigBuilders;
+import io.hotmoka.node.tendermint.TendermintInitializedNodes;
 import io.hotmoka.node.tendermint.TendermintNodeConfigBuilders;
 import io.hotmoka.node.tendermint.TendermintNodes;
 import io.takamaka.code.constants.Constants;
@@ -6642,14 +6642,14 @@ public class Publisher {
     var signature = SignatureAlgorithms.ed25519();
     var entropy = Entropies.random();
     KeyPair keys = entropy.keys("password", signature);
-    var consensus = ValidatorsConsensusConfigBuilders.defaults()
+    var consensus = TendermintConsensusConfigBuilders.defaults()
       .setPublicKeyOfGamete(keys.getPublic())
       .setInitialSupply(BigInteger.valueOf(100_000_000))
       .build();
 
     try (var original = TendermintNodes.init(config);
       // remove the next line if you want to publish an uninitialized node
-      // var initialized = InitializedNodes.of(original, consensus, takamakaCodePath);
+      // var initialized = TendermintInitializedNodes.of(original, consensus, takamakaCodePath);
       var service = NodeServices.of(original, 8001)) {
 
       System.out.println("\nPress ENTER to turn off the server and exit this program");
@@ -6834,7 +6834,7 @@ parameter. For instance, the code
 
 ```java
 var config = TendermintNodeConfigBuilders.defaults().build();
-var consensus = ValidatorsConsensusConfigBuilders.defaults()
+var consensus = TendermintConsensusConfigBuilders.defaults()
   .setPublicKeyOfGamete(keys.getPublic())
   .setInitialSupply(SUPPLY)
   ....
@@ -6842,7 +6842,7 @@ var consensus = ValidatorsConsensusConfigBuilders.defaults()
   .build();
 
 try (Node node = TendermintNodes.init(config);
-     Node initialized = InitializedNodes.of(node, consensus, takamakaCodePath)) {
+     Node initialized = TendermintInitializedNodes.of(node, consensus, takamakaCodePath)) {
   ...
 }
 ```
@@ -6882,7 +6882,7 @@ It is possible to configure nodes with other default signature algorithms.
 For instance:
 
 ```java
-var consensus = ValidatorsConsensusConfigBuilders.defaults()
+var consensus = TendermintConsensusConfigBuilders.defaults()
   .setPublicKeyOfGamete(keys.getPublic())
   .setInitialSupply(SUPPLY)
   ....
@@ -6893,7 +6893,7 @@ var consensus = ValidatorsConsensusConfigBuilders.defaults()
 configures a node that uses sha256dsa as default signature algorithm, while
 
 ```java
-var consensus = ValidatorsConsensusConfigBuilders.defaults()
+var consensus = TendermintConsensusConfigBuilders.defaults()
   .setPublicKeyOfGamete(keys.getPublic())
   .setInitialSupply(SUPPLY)
   ....
@@ -6910,7 +6910,7 @@ a family of algorithms that are expected to be immune from attacks performed thr
 a quantistic computer. For instance,
 
 ```java
-var consensus = ValidatorsConsensusConfigBuilders.defaults()
+var consensus = TendermintConsensusConfigBuilders.defaults()
   .setPublicKeyOfGamete(keys.getPublic())
   .setInitialSupply(SUPPLY)
   ....
@@ -6922,7 +6922,7 @@ configures a node that uses the quantum-resistant qtesla-p-I algorithm as defaul
 while
 
 ```java
-var consensus = ValidatorsConsensusConfigBuilders.defaults()
+var consensus = TendermintConsensusConfigBuilders.defaults()
   .setPublicKeyOfGamete(keys.getPublic())
   .setInitialSupply(SUPPLY)
   ....
