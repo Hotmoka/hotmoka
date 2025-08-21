@@ -94,10 +94,6 @@ public final class LRUCache<K, V> {
 	 */
 	private final Object lock = new Object();
 
-	/*private LRUCache(int maxCapacity) {
-		this(16, maxCapacity);
-	}*/
-
 	/**
 	 * Creates an LRU cache with the given capacities.
 	 * 
@@ -116,7 +112,7 @@ public final class LRUCache<K, V> {
 			this.map = new HashMap<>(toClone.map.size());
 
 			for (var entry: toClone.map.entrySet())
-				put(entry.getKey(), entry.getValue().value); // TODO: is it possible to inherit the LRU information in the copy?
+				put(entry.getKey(), entry.getValue().value); // is it possible to inherit the LRU information in the copy?
 		}
 		finally {
 			toClone.lock.readLock().unlock();

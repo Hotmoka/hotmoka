@@ -209,7 +209,6 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 	 * @throws InterruptedException if the operation gets interrupted before completion
 	 * @throws CommandException if {@code object} does not exist in store, or if it has not been created with a transaction that creates object, in which case the remote node is corrupted
 	 */
-	// TODO: add a component to the ClassTag of the object, so that we do not need to look for the classpath of the creation transaction of the objects
 	protected TransactionReference getClasspathAtCreationTimeOf(StorageReference object, RemoteNode node) throws ClosedNodeException, TimeoutException, InterruptedException, CommandException {
 		TransactionRequest<?> request;
 

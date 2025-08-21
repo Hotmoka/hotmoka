@@ -32,6 +32,7 @@ import java.util.stream.Stream;
 import io.hotmoka.instrumentation.api.InstrumentationFields;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.StorageTypes;
+import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.CodeExecutionTransactionRequest;
@@ -58,19 +59,33 @@ public class UpdatesExtractor {
 	 */
 	private final EngineClassLoader classLoader;
 
+	/**
+	 * The execution environment that performed the updates.
+	 */
 	private final ExecutionEnvironment environment;
 
+	/**
+	 * The request that is currently executing in {@link #environment} and for which the updates will be extracted
+	 */
 	private final TransactionRequest<?> request;
 
 	/**
-	 * Builds an extractor of the updates to the state reachable from some storage objects.
+	 * The reference to the request currently executing inside the {@code environment}.
+	 */
+	private final TransactionReference referenceOfCurrentRequest;
+
+	/**
+	 * Builds an extractor of updates to the state.
 	 * 
 	 * @param classLoader the class loader used to load the objects later passed to {@link #extractUpdatesFrom(Iterable)}
+	 * @param environment the execution environment that performed the updates
+	 * @param request the request that is currently executing in {@code environment} and for which the updates will be extracted
 	 */
-	public UpdatesExtractor(EngineClassLoader classLoader, ExecutionEnvironment environment, TransactionRequest<?> request) {
+	UpdatesExtractor(EngineClassLoader classLoader, ExecutionEnvironment environment, TransactionRequest<?> request) {
 		this.classLoader = classLoader;
 		this.environment = environment;
 		this.request = request;
+		this.referenceOfCurrentRequest = TransactionReferences.of(environment.getHasher().hash(request));
 	}
 
 	/**
@@ -217,14 +232,18 @@ public class UpdatesExtractor {
 					throw new IllegalAssignmentToFieldInStorageException("Field " + field + " of " + storageReference + " cannot hold a " + newValue.getClass().getName());
 			}
 
-			// TODO: add a component to the ClassTag of the object, so that we do not need to look for the classpath of the creation transaction of the objects
 			private TransactionReference getClasspathAtCreationTimeOf(StorageReference storageReference) {
 				TransactionRequest<?> request;
+
 				try {
 					request = environment.getRequest(storageReference.getTransaction());
 				}
 				catch (UnknownReferenceException e) {
-					request = UpdatesExtractor.this.request;
+					// it might be an object created during the currently executing request itself
+					if (referenceOfCurrentRequest.equals(storageReference.getTransaction()))
+						request = UpdatesExtractor.this.request;
+					else
+						throw new LocalNodeException("Object " + storageReference + " is a storage object in RAM but its reference cannot be found", e);
 				}
 
 				if (request instanceof CodeExecutionTransactionRequest<?> cetr)

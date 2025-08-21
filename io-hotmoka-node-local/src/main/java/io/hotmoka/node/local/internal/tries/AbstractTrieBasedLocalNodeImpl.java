@@ -91,8 +91,11 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	/**
 	 * The hash of the empty node in the tries.
 	 */
-	private final byte[] hashOfEmpty = new byte[32]; // TODO: reuse in the tries
+	private final byte[] hashOfEmpty = new byte[32];
 
+	/**
+	 * The index of the node, that contains the last history of the objects in its store.
+	 */
 	private final Index index;
 
 	/**

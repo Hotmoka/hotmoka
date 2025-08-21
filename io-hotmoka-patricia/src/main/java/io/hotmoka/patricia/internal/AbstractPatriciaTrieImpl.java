@@ -102,16 +102,18 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends AbstractPat
 	 *                     previously marshalled by {@code valueToBytes}
 	 * @throws UnknownKeyException if {@code root} cannot be found in {@code store}
 	 */
-	public AbstractPatriciaTrieImpl(KeyValueStore store, byte[] root,
+	protected AbstractPatriciaTrieImpl(KeyValueStore store, byte[] root,
 			Hasher<? super Key> hasherForKeys, HashingAlgorithm hashingForNodes, byte[] hashOfEmpty,
 			ToBytes<? super Value> valueToBytes, FromBytes<? extends Value> bytesToValue) throws UnknownKeyException {
 
 		this.store = store;
 		this.hasherForKeys = hasherForKeys;
-		// the hashing of the nodes does not consider the reference counter
-		var hasher = hashingForNodes.getHasher(AbstractNode::toByteArrayWithoutReferenceCounter);
 		this.hashOfEmpty = hashOfEmpty.clone();
+
 		this.hasherForNodes = new Hasher<>() {
+
+			// the hashing of the nodes does not consider the reference counter
+			private final Hasher<AbstractNode> hasher = hashingForNodes.getHasher(AbstractNode::toByteArrayWithoutReferenceCounter);
 
 			@Override
 			public byte[] hash(AbstractNode what) {

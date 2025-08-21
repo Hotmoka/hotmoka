@@ -62,8 +62,7 @@ public class WhiteListingClassLoaderImpl extends ClassLoader implements WhiteLis
 	 */
 	private final ClassLoader systemClassLoader;
 
-	// getPackageName() is not working under Android! // TODO: check if still the case
-	private final static String WHITELISTING_PACKAGE_NAME = WhiteListingClassLoaders.class.getPackage().getName() + '.';
+	private final static String WHITELISTING_PACKAGE_NAME = WhiteListingClassLoaders.class.getPackageName() + '.';
 
 	private final static String DUMMY_NAME_WITH_SLASHES = WhitelistingConstants.DUMMY_NAME.replace('.', '/') + ".class";
 

@@ -34,7 +34,6 @@ public abstract class UpdateJson implements JsonRepresentation<Update> {
 
 	/**
 	 * The updated object: this always exists.
-	 * // TODO: possibly represent this directly with a string (storage reference address and progressive) 
 	 */
 	private final StorageValues.Json object;
 
