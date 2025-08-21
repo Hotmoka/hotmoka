@@ -46,6 +46,7 @@ import io.hotmoka.moka.NodesTakamakaAddressOutputs;
 import io.hotmoka.moka.ObjectsCallOutputs;
 import io.hotmoka.moka.ObjectsCreateOutputs;
 import io.hotmoka.moka.ObjectsShowOutputs;
+import io.hotmoka.moka.api.jars.JarsInstallOutput;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -374,10 +375,17 @@ public class UpdateForNewNode {
 			StorageReference account10 = output54.getAccount().get();
 			report("sed -i 's/@transaction_account10/" + output54.getTransaction() + "/g' target/Tutorial.md");
 			report("sed -i 's/@account10/" + account10 + "/g' target/Tutorial.md");
-			System.out.println("I wait one minute since the previous command might have increased the gas cost too much");
-			Thread.sleep(60_000L);
 			Path jar7 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family_exported/" + HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family_exported-" + HOTMOKA_VERSION + ".jar");
-			var output55 = JarsInstallOutputs.from(Moka.jarsInstall(account9 + " " + jar7 + " --password-of-payer=quantum1 --dir=" + dir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
+			JarsInstallOutput output55;
+
+			do {
+				System.out.println("I wait one minute since the previous command might have increased the gas cost too much");
+				Thread.sleep(60_000L);
+				System.out.println("Installing a jar with a qtesla1 account: this might be repeated if it fails because of a sudden gas change price");
+				output55 = JarsInstallOutputs.from(Moka.jarsInstall(account9 + " " + jar7 + " --password-of-payer=quantum1 --dir=" + dir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
+			}
+			while (output55.getJar().isEmpty());
+
 			report("sed -i 's/@family3_install_transaction/" + output55.getTransaction() + "/g' target/Tutorial.md");
 			TransactionReference family3Address = output55.getJar().get();
 			report("sed -i 's/@family3_address/" + family3Address + "/g' target/Tutorial.md");
