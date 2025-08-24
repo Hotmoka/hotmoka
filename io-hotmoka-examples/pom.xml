@@ -179,6 +179,12 @@
             </configuration>
           </execution>
 
+	      <execution><id>storagesimplemap</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>storagesimplemap</classifier>
+              <includes><include>io/hotmoka/examples/storagesimplemap/**</include></includes>
+            </configuration>
+          </execution>
+
 		  <execution><id>payablefailure</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>payablefailure</classifier>
               <includes><include>io/hotmoka/examples/payablefailure/**</include></includes>
