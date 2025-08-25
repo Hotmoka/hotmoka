@@ -216,7 +216,7 @@ public final class FieldSignatureImpl extends AbstractSignature implements Field
 	public final static FieldSignature ABSTRACT_VALIDATORS_NUMBER_OF_TRANSACTIONS_FIELD = FieldSignatures.of(StorageTypes.ABSTRACT_VALIDATORS, "numberOfTransactions", StorageTypes.BIG_INTEGER);
 
 	/**
-	 * The field that holds the gas price inside a {@code io.takamaka.code.math.UnsignedBigInteger.value}.
+	 * The field that holds the value inside a {@code io.takamaka.code.math.UnsignedBigInteger}.
 	 */
 	public final static FieldSignature UNSIGNED_BIG_INTEGER_VALUE_FIELD = FieldSignatures.of(StorageTypes.UNSIGNED_BIG_INTEGER, "value", StorageTypes.BIG_INTEGER);
 

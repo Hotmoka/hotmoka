@@ -160,7 +160,7 @@ public abstract class FieldSignatures {
 	public final static FieldSignature ABSTRACT_VALIDATORS_NUMBER_OF_TRANSACTIONS_FIELD = FieldSignatureImpl.ABSTRACT_VALIDATORS_NUMBER_OF_TRANSACTIONS_FIELD;
 
 	/**
-	 * The field that holds the gas price inside a {@code io.takamaka.code.math.UnsignedBigInteger.value}.
+	 * The field that holds the value inside a {@code io.takamaka.code.math.UnsignedBigInteger}.
 	 */
 	public final static FieldSignature UNSIGNED_BIG_INTEGER_VALUE_FIELD = FieldSignatureImpl.UNSIGNED_BIG_INTEGER_VALUE_FIELD;
 
