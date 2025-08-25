@@ -105,6 +105,7 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 		case UpdateOfIntImpl.SELECTOR_SMALL:
 		case UpdateOfIntImpl.SELECTOR_VERY_SMALL:
 		case UpdateOfIntImpl.SELECTOR_STORAGE_TREE_MAP_NODE_SIZE:
+		case UpdateOfIntImpl.SELECTOR_SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_SIZE:
 		case UpdateOfIntImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_SIZE:
 		case UpdateOfIntImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_KEY: return new UpdateOfIntImpl(context, selector);
 
@@ -117,11 +118,16 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_NODE_RIGHT:
 		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_NODE_KEY:
 		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_NODE_VALUE:
+		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_ROOT:
+		case UpdateOfStorageImpl.SELECTOR_SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_LEFT:
+		case UpdateOfStorageImpl.SELECTOR_SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_RIGHT:
+		case UpdateOfStorageImpl.SELECTOR_SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_KEY:
+		case UpdateOfStorageImpl.SELECTOR_SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_VALUE:
+		case UpdateOfStorageImpl.SELECTOR_SNAPSHOTTABLE_STORAGE_TREE_MAP_ROOT:
 		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_INTMAP_ROOT:
 		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_VALUE:
 		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_LEFT:
 		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE_RIGHT:
-		case UpdateOfStorageImpl.SELECTOR_STORAGE_TREE_MAP_ROOT:
 		case UpdateOfStorageImpl.SELECTOR_EVENT_CREATOR: return new UpdateOfStorageImpl(context, selector);
 
 		case UpdateOfStringImpl.SELECTOR_PUBLIC_KEY:

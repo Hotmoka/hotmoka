@@ -42,6 +42,7 @@ public final class UpdateOfIntImpl extends UpdateOfFieldImpl implements UpdateOf
 	final static byte SELECTOR_SMALL = 21;
 	final static byte SELECTOR_VERY_SMALL = 22;
 	final static byte SELECTOR_STORAGE_TREE_MAP_NODE_SIZE = 27;
+	final static byte SELECTOR_SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_SIZE = 46;
 	final static byte SELECTOR_STORAGE_TREE_INTMAP_NODE_SIZE = 29;
 	final static byte SELECTOR_STORAGE_TREE_INTMAP_NODE_KEY = 30;
 
@@ -116,6 +117,7 @@ public final class UpdateOfIntImpl extends UpdateOfFieldImpl implements UpdateOf
 		case SELECTOR_SMALL:
 		case SELECTOR_VERY_SMALL: return FieldSignatures.from(context);
 		case SELECTOR_STORAGE_TREE_MAP_NODE_SIZE: return FieldSignatures.STORAGE_TREE_MAP_NODE_SIZE_FIELD;
+		case SELECTOR_SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_SIZE: return FieldSignatures.SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_SIZE_FIELD;
 		case SELECTOR_STORAGE_TREE_INTMAP_NODE_SIZE: return FieldSignatures.STORAGE_TREE_INTMAP_NODE_SIZE_FIELD;
 		case SELECTOR_STORAGE_TREE_INTMAP_NODE_KEY: return FieldSignatures.STORAGE_TREE_INTMAP_NODE_KEY_FIELD;
 		default: throw new IllegalArgumentException("Unexpected selector " + selector + " for an int field update");
@@ -128,6 +130,7 @@ public final class UpdateOfIntImpl extends UpdateOfFieldImpl implements UpdateOf
 		case SELECTOR_SMALL: return context.readShort();
 		case SELECTOR_VERY_SMALL: return context.readByte();
 		case SELECTOR_STORAGE_TREE_MAP_NODE_SIZE:
+		case SELECTOR_SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_SIZE:
 		case SELECTOR_STORAGE_TREE_INTMAP_NODE_SIZE:
 		case SELECTOR_STORAGE_TREE_INTMAP_NODE_KEY: return context.readCompactInt();
 		default: throw new IllegalArgumentException("Unexpected selector " + selector + " for an int field update");
@@ -162,6 +165,11 @@ public final class UpdateOfIntImpl extends UpdateOfFieldImpl implements UpdateOf
 	public void into(MarshallingContext context) throws IOException {
 		if (FieldSignatures.STORAGE_TREE_MAP_NODE_SIZE_FIELD.equals(field)) {
 			context.writeByte(SELECTOR_STORAGE_TREE_MAP_NODE_SIZE);
+			intoWithoutField(context);
+			context.writeCompactInt(value);
+		}
+		else if (FieldSignatures.SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_SIZE_FIELD.equals(field)) {
+			context.writeByte(SELECTOR_SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_SIZE);
 			intoWithoutField(context);
 			context.writeCompactInt(value);
 		}

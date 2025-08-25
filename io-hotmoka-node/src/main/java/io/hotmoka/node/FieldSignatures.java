@@ -170,6 +170,11 @@ public abstract class FieldSignatures {
 	public final static FieldSignature STORAGE_TREE_MAP_ROOT_FIELD = FieldSignatureImpl.STORAGE_TREE_MAP_ROOT_FIELD;
 
 	/**
+	 * The field that holds the root of a {@code io.takamaka.code.util.SnapshottableStorageTreeMap}.
+	 */
+	public final static FieldSignature SNAPSHOTTABLE_STORAGE_TREE_MAP_ROOT_FIELD = FieldSignatureImpl.SNAPSHOTTABLE_STORAGE_TREE_MAP_ROOT_FIELD;
+
+	/**
 	 * The field that holds the root of a {@code io.takamaka.code.util.StorageIntTreeMap}.
 	 */
 	public final static FieldSignature STORAGE_TREE_INTMAP_ROOT_FIELD = FieldSignatureImpl.STORAGE_TREE_INTMAP_ROOT_FIELD;
@@ -178,6 +183,11 @@ public abstract class FieldSignatures {
 	 * The field that holds the size of a {@code io.takamaka.code.util.StorageTreeMap.Node}.
 	 */
 	public final static FieldSignature STORAGE_TREE_MAP_NODE_SIZE_FIELD = FieldSignatureImpl.STORAGE_TREE_MAP_NODE_SIZE_FIELD;
+
+	/**
+	 * The field that holds the size of a {@code io.takamaka.code.util.SnapshottableStorageTreeMap.Node}.
+	 */
+	public final static FieldSignature SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_SIZE_FIELD = FieldSignatureImpl.SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_SIZE_FIELD;
 
 	/**
 	 * The field that holds the size of a {@code io.takamaka.code.util.StorageTreeIntMap.Node}.
@@ -203,6 +213,26 @@ public abstract class FieldSignatures {
 	 * The field that holds the key of a {@code io.takamaka.code.util.StorageTreeIntMap.Node}.
 	 */
 	public final static FieldSignature STORAGE_TREE_INTMAP_NODE_KEY_FIELD = FieldSignatureImpl.STORAGE_TREE_INTMAP_NODE_KEY_FIELD;
+
+	/**
+	 * The field that holds the left tree of a {@code io.takamaka.code.util.SnapshottableStorageTreeMap.Node}.
+	 */
+	public final static FieldSignature SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_LEFT_FIELD = FieldSignatureImpl.SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_LEFT_FIELD;
+
+	/**
+	 * The field that holds the right tree of a {@code io.takamaka.code.util.SnapshottableStorageTreeMap.Node}.
+	 */
+	public final static FieldSignature SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_RIGHT_FIELD = FieldSignatureImpl.SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_RIGHT_FIELD;
+
+	/**
+	 * The field that holds the key of a {@code io.takamaka.code.util.SnapshottableStorageTreeMap.Node}.
+	 */
+	public final static FieldSignature SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_KEY_FIELD = FieldSignatureImpl.SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_KEY_FIELD;
+
+	/**
+	 * The field that holds the value of a {@code io.takamaka.code.util.SnapshottableStorageTreeMap.Node}.
+	 */
+	public final static FieldSignature SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_VALUE_FIELD = FieldSignatureImpl.SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_VALUE_FIELD;
 
 	/**
 	 * The field that holds the left tree of a {@code io.takamaka.code.util.StorageTreeMap.Node}.

@@ -27,11 +27,8 @@ import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.StringSupport;
 import io.takamaka.code.lang.View;
 import io.takamaka.code.math.BigIntegerSupport;
-import io.takamaka.code.util.SnapshottableStorageMap;
-import io.takamaka.code.util.SnapshottableStorageTreeMap;
 import io.takamaka.code.util.StorageLinkedList;
 import io.takamaka.code.util.StorageList;
-import io.takamaka.code.util.StorageMap;
 import io.takamaka.code.util.StorageTreeMap;
 
 /**

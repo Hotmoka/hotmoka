@@ -389,6 +389,11 @@ public abstract class StorageTypes {
 	public final static ClassType STORAGE_TREE_MAP = ClassTypeImpl.STORAGE_TREE_MAP;
 
 	/**
+	 * The frequently used class type for {@code io.takamaka.code.util.SnapshottableStorageTreeMap}.
+	 */
+	public final static ClassType SNAPSHOTTABLE_STORAGE_TREE_MAP = ClassTypeImpl.SNAPSHOTTABLE_STORAGE_TREE_MAP;
+
+	/**
 	 * The frequently used class type for {@code io.takamaka.code.util.StorageTreeArray}.
 	 */
 	public final static ClassType STORAGE_TREE_ARRAY = ClassTypeImpl.STORAGE_TREE_ARRAY;
@@ -442,6 +447,11 @@ public abstract class StorageTypes {
 	 * The frequently used class type for {@code io.takamaka.code.util.StorageTreeMap.Node}.
 	 */
 	public final static ClassType STORAGE_TREE_MAP_NODE = ClassTypeImpl.STORAGE_TREE_MAP_NODE;
+
+	/**
+	 * The frequently used class type for {@code io.takamaka.code.util.SnapshottableStorageTreeMap.Node}.
+	 */
+	public final static ClassType SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE = ClassTypeImpl.SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE;
 
 	/**
 	 * The frequently used class type for {@code io.takamaka.code.util.StorageTreeIntMap.Node}.

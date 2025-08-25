@@ -48,6 +48,11 @@ public final class UpdateOfStorageImpl extends UpdateOfFieldImpl implements Upda
 	final static byte SELECTOR_STORAGE_TREE_INTMAP_NODE_LEFT = 34;
 	final static byte SELECTOR_STORAGE_TREE_INTMAP_NODE_RIGHT = 35;
 	final static byte SELECTOR_STORAGE_TREE_INTMAP_ROOT = 36;
+	final static byte SELECTOR_SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_LEFT = 41;
+	final static byte SELECTOR_SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_RIGHT = 42;
+	final static byte SELECTOR_SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_KEY = 43;
+	final static byte SELECTOR_SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_VALUE = 44;
+	final static byte SELECTOR_SNAPSHOTTABLE_STORAGE_TREE_MAP_ROOT = 45;
 
 	/**
 	 * The new value of the field.
@@ -117,17 +122,22 @@ public final class UpdateOfStorageImpl extends UpdateOfFieldImpl implements Upda
 	private static FieldSignature unmarshalField(UnmarshallingContext context, int selector) throws IOException {
 		switch (selector) {
 		case SELECTOR: return FieldSignatures.from(context);
+		case SELECTOR_STORAGE_TREE_MAP_ROOT: return FieldSignatures.STORAGE_TREE_MAP_ROOT_FIELD;
 		case SELECTOR_STORAGE_TREE_MAP_NODE_LEFT: return FieldSignatures.STORAGE_TREE_MAP_NODE_LEFT_FIELD;
 		case SELECTOR_STORAGE_TREE_MAP_NODE_RIGHT: return FieldSignatures.STORAGE_TREE_MAP_NODE_RIGHT_FIELD;
 		case SELECTOR_STORAGE_TREE_MAP_NODE_KEY: return FieldSignatures.STORAGE_TREE_MAP_NODE_KEY_FIELD;
 		case SELECTOR_STORAGE_TREE_MAP_NODE_VALUE: return FieldSignatures.STORAGE_TREE_MAP_NODE_VALUE_FIELD;
+		case SELECTOR_SNAPSHOTTABLE_STORAGE_TREE_MAP_ROOT: return FieldSignatures.SNAPSHOTTABLE_STORAGE_TREE_MAP_ROOT_FIELD;
+		case SELECTOR_SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_LEFT: return FieldSignatures.SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_LEFT_FIELD;
+		case SELECTOR_SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_RIGHT: return FieldSignatures.SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_RIGHT_FIELD;
+		case SELECTOR_SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_KEY: return FieldSignatures.SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_KEY_FIELD;
+		case SELECTOR_SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_VALUE: return FieldSignatures.SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_VALUE_FIELD;
 		case SELECTOR_STORAGE_TREE_INTMAP_ROOT: return FieldSignatures.STORAGE_TREE_INTMAP_ROOT_FIELD;
 		case SELECTOR_STORAGE_TREE_INTMAP_NODE_VALUE: return FieldSignatures.STORAGE_TREE_INTMAP_NODE_VALUE_FIELD;
 		case SELECTOR_STORAGE_TREE_INTMAP_NODE_LEFT: return FieldSignatures.STORAGE_TREE_INTMAP_NODE_LEFT_FIELD;
 		case SELECTOR_STORAGE_TREE_INTMAP_NODE_RIGHT: return FieldSignatures.STORAGE_TREE_INTMAP_NODE_RIGHT_FIELD;
-		case SELECTOR_STORAGE_TREE_MAP_ROOT: return FieldSignatures.STORAGE_TREE_MAP_ROOT_FIELD;
 		case SELECTOR_EVENT_CREATOR: return FieldSignatures.EVENT_CREATOR_FIELD;
-		default: throw new IllegalArgumentException("Unexpected selector " + selector + " for a storage field update");
+		default: throw new IOException("Unexpected selector " + selector + " for a storage field update");
 		}
 	}
 
@@ -167,13 +177,13 @@ public final class UpdateOfStorageImpl extends UpdateOfFieldImpl implements Upda
 			intoWithoutField(context);
 			value.intoWithoutSelector(context);
 		}
-		else if (FieldSignatures.STORAGE_TREE_MAP_ROOT_FIELD.equals(field)) {
-			context.writeByte(SELECTOR_STORAGE_TREE_MAP_ROOT);
+		else if (FieldSignatures.STORAGE_TREE_INTMAP_ROOT_FIELD.equals(field)) {
+			context.writeByte(SELECTOR_STORAGE_TREE_INTMAP_ROOT);
 			intoWithoutField(context);
 			value.intoWithoutSelector(context);
 		}
-		else if (FieldSignatures.STORAGE_TREE_INTMAP_ROOT_FIELD.equals(field)) {
-			context.writeByte(SELECTOR_STORAGE_TREE_INTMAP_ROOT);
+		else if (FieldSignatures.STORAGE_TREE_MAP_ROOT_FIELD.equals(field)) {
+			context.writeByte(SELECTOR_STORAGE_TREE_MAP_ROOT);
 			intoWithoutField(context);
 			value.intoWithoutSelector(context);
 		}
@@ -194,6 +204,31 @@ public final class UpdateOfStorageImpl extends UpdateOfFieldImpl implements Upda
 		}
 		else if (FieldSignatures.STORAGE_TREE_MAP_NODE_VALUE_FIELD.equals(field)) {
 			context.writeByte(SELECTOR_STORAGE_TREE_MAP_NODE_VALUE);
+			intoWithoutField(context);
+			value.intoWithoutSelector(context);
+		}
+		else if (FieldSignatures.SNAPSHOTTABLE_STORAGE_TREE_MAP_ROOT_FIELD.equals(field)) {
+			context.writeByte(SELECTOR_SNAPSHOTTABLE_STORAGE_TREE_MAP_ROOT);
+			intoWithoutField(context);
+			value.intoWithoutSelector(context);
+		}
+		else if (FieldSignatures.SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_LEFT_FIELD.equals(field)) {
+			context.writeByte(SELECTOR_SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_LEFT);
+			intoWithoutField(context);
+			value.intoWithoutSelector(context);
+		}
+		else if (FieldSignatures.SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_RIGHT_FIELD.equals(field)) {
+			context.writeByte(SELECTOR_SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_RIGHT);
+			intoWithoutField(context);
+			value.intoWithoutSelector(context);
+		}
+		else if (FieldSignatures.SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_KEY_FIELD.equals(field)) {
+			context.writeByte(SELECTOR_SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_KEY);
+			intoWithoutField(context);
+			value.intoWithoutSelector(context);
+		}
+		else if (FieldSignatures.SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_VALUE_FIELD.equals(field)) {
+			context.writeByte(SELECTOR_SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_VALUE);
 			intoWithoutField(context);
 			value.intoWithoutSelector(context);
 		}

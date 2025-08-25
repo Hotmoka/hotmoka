@@ -226,14 +226,64 @@ public final class FieldSignatureImpl extends AbstractSignature implements Field
 	public final static FieldSignature STORAGE_TREE_MAP_ROOT_FIELD = FieldSignatures.of(StorageTypes.STORAGE_TREE_MAP, "root", StorageTypes.STORAGE_TREE_MAP_NODE);
 
 	/**
-	 * The field that holds the root of a {@code io.takamaka.code.util.StorageIntTreeMap}.
-	 */
-	public final static FieldSignature STORAGE_TREE_INTMAP_ROOT_FIELD = FieldSignatures.of(StorageTypes.STORAGE_TREE_INTMAP, "root", StorageTypes.STORAGE_TREE_INTMAP_NODE);
-
-	/**
 	 * The field that holds the size of a {@code io.takamaka.code.util.StorageTreeMap.Node}.
 	 */
 	public final static FieldSignature STORAGE_TREE_MAP_NODE_SIZE_FIELD = FieldSignatures.of(StorageTypes.STORAGE_TREE_MAP_NODE, "size", StorageTypes.INT);
+
+	/**
+	 * The field that holds the left tree of a {@code io.takamaka.code.util.StorageTreeMap.Node}.
+	 */
+	public final static FieldSignature STORAGE_TREE_MAP_NODE_LEFT_FIELD = FieldSignatures.of(StorageTypes.STORAGE_TREE_MAP_NODE, "left", StorageTypes.STORAGE_TREE_MAP_NODE);
+
+	/**
+	 * The field that holds the right tree of a {@code io.takamaka.code.util.StorageTreeMap.Node}.
+	 */
+	public final static FieldSignature STORAGE_TREE_MAP_NODE_RIGHT_FIELD = FieldSignatures.of(StorageTypes.STORAGE_TREE_MAP_NODE, "right", StorageTypes.STORAGE_TREE_MAP_NODE);
+
+	/**
+	 * The field that holds the key of a {@code io.takamaka.code.util.StorageTreeMap.Node}.
+	 */
+	public final static FieldSignature STORAGE_TREE_MAP_NODE_KEY_FIELD = FieldSignatures.of(StorageTypes.STORAGE_TREE_MAP_NODE, "key", StorageTypes.OBJECT);
+
+	/**
+	 * The field that holds the value of a {@code io.takamaka.code.util.StorageTreeMap.Node}.
+	 */
+	public final static FieldSignature STORAGE_TREE_MAP_NODE_VALUE_FIELD = FieldSignatures.of(StorageTypes.STORAGE_TREE_MAP_NODE, "value", StorageTypes.OBJECT);
+
+	/**
+	 * The field that holds the root of a {@code io.takamaka.code.util.SnapshottableStorageTreeMap}.
+	 */
+	public final static FieldSignature SNAPSHOTTABLE_STORAGE_TREE_MAP_ROOT_FIELD = FieldSignatures.of(StorageTypes.SNAPSHOTTABLE_STORAGE_TREE_MAP, "root", StorageTypes.SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE);
+
+	/**
+	 * The field that holds the size of a {@code io.takamaka.code.util.SnapshottableStorageTreeMap.Node}.
+	 */
+	public final static FieldSignature SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_SIZE_FIELD = FieldSignatures.of(StorageTypes.SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE, "size", StorageTypes.INT);
+
+	/**
+	 * The field that holds the left tree of a {@code io.takamaka.code.util.StorageTreeMap.Node}.
+	 */
+	public final static FieldSignature SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_LEFT_FIELD = FieldSignatures.of(StorageTypes.SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE, "left", StorageTypes.SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE);
+
+	/**
+	 * The field that holds the right tree of a {@code io.takamaka.code.util.StorageTreeMap.Node}.
+	 */
+	public final static FieldSignature SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_RIGHT_FIELD = FieldSignatures.of(StorageTypes.SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE, "right", StorageTypes.SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE);
+
+	/**
+	 * The field that holds the key of a {@code io.takamaka.code.util.StorageTreeMap.Node}.
+	 */
+	public final static FieldSignature SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_KEY_FIELD = FieldSignatures.of(StorageTypes.SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE, "key", StorageTypes.OBJECT);
+
+	/**
+	 * The field that holds the value of a {@code io.takamaka.code.util.StorageTreeMap.Node}.
+	 */
+	public final static FieldSignature SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_VALUE_FIELD = FieldSignatures.of(StorageTypes.SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE, "value", StorageTypes.OBJECT);
+
+	/**
+	 * The field that holds the root of a {@code io.takamaka.code.util.StorageIntTreeMap}.
+	 */
+	public final static FieldSignature STORAGE_TREE_INTMAP_ROOT_FIELD = FieldSignatures.of(StorageTypes.STORAGE_TREE_INTMAP, "root", StorageTypes.STORAGE_TREE_INTMAP_NODE);
 
 	/**
 	 * The field that holds the size of a {@code io.takamaka.code.util.StorageTreeIntMap.Node}.
@@ -259,24 +309,4 @@ public final class FieldSignatureImpl extends AbstractSignature implements Field
 	 * The field that holds the key of a {@code io.takamaka.code.util.StorageTreeIntMap.Node}.
 	 */
 	public final static FieldSignature STORAGE_TREE_INTMAP_NODE_KEY_FIELD = FieldSignatures.of(StorageTypes.STORAGE_TREE_INTMAP_NODE, "key", StorageTypes.INT);
-
-	/**
-	 * The field that holds the left tree of a {@code io.takamaka.code.util.StorageTreeMap.Node}.
-	 */
-	public final static FieldSignature STORAGE_TREE_MAP_NODE_LEFT_FIELD = FieldSignatures.of(StorageTypes.STORAGE_TREE_MAP_NODE, "left", StorageTypes.STORAGE_TREE_MAP_NODE);
-
-	/**
-	 * The field that holds the right tree of a {@code io.takamaka.code.util.StorageTreeMap.Node}.
-	 */
-	public final static FieldSignature STORAGE_TREE_MAP_NODE_RIGHT_FIELD = FieldSignatures.of(StorageTypes.STORAGE_TREE_MAP_NODE, "right", StorageTypes.STORAGE_TREE_MAP_NODE);
-
-	/**
-	 * The field that holds the key of a {@code io.takamaka.code.util.StorageTreeMap.Node}.
-	 */
-	public final static FieldSignature STORAGE_TREE_MAP_NODE_KEY_FIELD = FieldSignatures.of(StorageTypes.STORAGE_TREE_MAP_NODE, "key", StorageTypes.OBJECT);
-
-	/**
-	 * The field that holds the value of a {@code io.takamaka.code.util.StorageTreeMap.Node}.
-	 */
-	public final static FieldSignature STORAGE_TREE_MAP_NODE_VALUE_FIELD = FieldSignatures.of(StorageTypes.STORAGE_TREE_MAP_NODE, "value", StorageTypes.OBJECT);
 }

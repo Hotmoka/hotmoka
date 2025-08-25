@@ -556,6 +556,11 @@ public final class ClassTypeImpl extends AbstractStorageType implements ClassTyp
 	public final static ClassType STORAGE_TREE_MAP = new ClassTypeImpl(Constants.STORAGE_TREE_MAP_NAME, IllegalArgumentException::new);
 
 	/**
+	 * The frequently used class type for {@link io.takamaka.code.util.SnapshottableStorageTreeMap}.
+	 */
+	public final static ClassType SNAPSHOTTABLE_STORAGE_TREE_MAP = new ClassTypeImpl(Constants.SNAPSHOTTABLE_STORAGE_TREE_MAP_NAME, IllegalArgumentException::new);
+
+	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeArray}.
 	 */
 	public final static ClassType STORAGE_TREE_ARRAY = new ClassTypeImpl(Constants.STORAGE_TREE_ARRAY_NAME, IllegalArgumentException::new);
@@ -609,6 +614,11 @@ public final class ClassTypeImpl extends AbstractStorageType implements ClassTyp
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeMap.Node}.
 	 */
 	public final static ClassType STORAGE_TREE_MAP_NODE = new ClassTypeImpl(Constants.STORAGE_TREE_MAP_NODE_NAME, IllegalArgumentException::new);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.util.SnapshottableStorageTreeMap.Node}.
+	 */
+	public final static ClassType SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE = new ClassTypeImpl(Constants.SNAPSHOTTABLE_STORAGE_TREE_MAP_NODE_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeIntMap.Node}.
