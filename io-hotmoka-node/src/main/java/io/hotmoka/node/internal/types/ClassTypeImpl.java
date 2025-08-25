@@ -546,6 +546,11 @@ public final class ClassTypeImpl extends AbstractStorageType implements ClassTyp
 	public final static ClassType STORAGE_MAP_VIEW = new ClassTypeImpl(Constants.STORAGE_MAP_VIEW_NAME, IllegalArgumentException::new);
 
 	/**
+	 * The frequently used class type for {@link io.takamaka.code.util.SnapshottableStorageMapView}.
+	 */
+	public final static ClassType SNAPSHOTTABLE_STORAGE_MAP_VIEW = new ClassTypeImpl(Constants.SNAPSHOTTABLE_STORAGE_MAP_VIEW_NAME, IllegalArgumentException::new);
+
+	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeMap}.
 	 */
 	public final static ClassType STORAGE_TREE_MAP = new ClassTypeImpl(Constants.STORAGE_TREE_MAP_NAME, IllegalArgumentException::new);
@@ -589,6 +594,11 @@ public final class ClassTypeImpl extends AbstractStorageType implements ClassTyp
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageMap}.
 	 */
 	public final static ClassType STORAGE_MAP = new ClassTypeImpl(Constants.STORAGE_MAP_NAME, IllegalArgumentException::new);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.util.SnapshottableStorageMap}.
+	 */
+	public final static ClassType SNAPSHOTTABLE_STORAGE_MAP = new ClassTypeImpl(Constants.SNAPSHOTTABLE_STORAGE_MAP_NAME, IllegalArgumentException::new);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageLinkedList.Node}.

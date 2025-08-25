@@ -26,10 +26,10 @@ import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.StringSupport;
 import io.takamaka.code.math.BigIntegerSupport;
+import io.takamaka.code.util.StorageLinkedList;
 import io.takamaka.code.util.StorageList;
 import io.takamaka.code.util.StorageMap;
 import io.takamaka.code.util.StorageTreeMap;
-import io.takamaka.code.util.StorageLinkedList;
 
 /**
  * A contract for a Ponzi investment scheme:

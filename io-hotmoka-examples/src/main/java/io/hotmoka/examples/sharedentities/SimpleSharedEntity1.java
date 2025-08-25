@@ -27,10 +27,10 @@ import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.View;
 import io.takamaka.code.math.BigIntegerSupport;
+import io.takamaka.code.util.SnapshottableStorageTreeMap;
 import io.takamaka.code.util.StorageMapView;
 import io.takamaka.code.util.StorageSet;
 import io.takamaka.code.util.StorageSetView;
-import io.takamaka.code.util.StorageTreeMap;
 import io.takamaka.code.util.StorageTreeSet;
 
 /**
@@ -44,7 +44,7 @@ public class SimpleSharedEntity1<O extends SharedEntity1.Offer> extends PayableC
 	/**
 	 * The shares of each shareholder. These are always positive.
 	 */
-	private final StorageTreeMap<PayableContract, BigInteger> shares = new StorageTreeMap<>();
+	private final SnapshottableStorageTreeMap<PayableContract, BigInteger> shares = new SnapshottableStorageTreeMap<>();
 
 	/**
 	 * The set of offers of sale of shares.

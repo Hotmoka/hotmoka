@@ -1,5 +1,5 @@
 /*
-Copyright 2025 Fausto Spoto
+Copyright 2021 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,17 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.examples.storagesimplemap;
+package io.hotmoka.examples.snapshottablestoragemap;
 
-import io.takamaka.code.util.StorageSimpleMap;
-import io.takamaka.code.util.StorageSimpleTreeMap;
+import io.takamaka.code.util.SnapshottableStorageMap;
+import io.takamaka.code.util.SnapshottableStorageTreeMap;
 
 /**
  * A static method for creating an exported storage map, so that it can be used for calling its methods in tests.
  */
-public class ExportedStorageSimpleMapMaker {
+public class ExportedSnapshottableStorageMapMaker {
 
-	public static <K,V> StorageSimpleMap<K,V> mkEmptyExportedStorageSimpleMap() {
-		return new ExportedModifiableStorageSimpleMap<>(new StorageSimpleTreeMap<>());
+	public static <K,V> SnapshottableStorageMap<K,V> mkEmptyExportedSnapshottableStorageMap() {
+		return new ExportedModifiableSnapshottableStorageMap<>(new SnapshottableStorageTreeMap<>());
 	}
 }

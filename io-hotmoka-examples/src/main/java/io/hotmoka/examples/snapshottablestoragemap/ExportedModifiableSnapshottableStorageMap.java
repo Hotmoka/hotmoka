@@ -1,5 +1,5 @@
 /*
-Copyright 2025 Fausto Spoto
+Copyright 2021 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.examples.storagesimplemap;
+package io.hotmoka.examples.snapshottablestoragemap;
 
 import java.util.Iterator;
 import java.util.function.Consumer;
@@ -24,8 +24,9 @@ import java.util.function.UnaryOperator;
 
 import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.Storage;
-import io.takamaka.code.util.StorageSimpleMap;
-import io.takamaka.code.util.StorageSimpleMapView;
+import io.takamaka.code.util.SnapshottableStorageMap;
+import io.takamaka.code.util.SnapshottableStorageMapView;
+import io.takamaka.code.util.StorageMapView;
 
 /**
  * A view of a parent storage map. A view contains the same bindings
@@ -38,9 +39,9 @@ import io.takamaka.code.util.StorageSimpleMapView;
  */
 
 @Exported
-public class ExportedModifiableStorageSimpleMap<K,V> extends Storage implements StorageSimpleMap<K,V> {
+public class ExportedModifiableSnapshottableStorageMap<K,V> extends Storage implements SnapshottableStorageMap<K,V> {
 
-	private final StorageSimpleMap<K,V> parent;
+	private final SnapshottableStorageMap<K,V> parent;
 
 	/**
 	 * Builds a view of the given parent map. Any change to the parent map will be
@@ -48,7 +49,7 @@ public class ExportedModifiableStorageSimpleMap<K,V> extends Storage implements 
 	 * 
 	 * @param parent the reflected parent map
 	 */
-	public ExportedModifiableStorageSimpleMap(StorageSimpleMap<K,V> parent) {
+	public ExportedModifiableSnapshottableStorageMap(SnapshottableStorageMap<K,V> parent) {
 		this.parent = parent;
 	}
 
@@ -163,8 +164,13 @@ public class ExportedModifiableStorageSimpleMap<K,V> extends Storage implements 
 	}
 
 	@Override
-	public StorageSimpleMapView<K,V> view() {
+	public SnapshottableStorageMapView<K,V> view() {
 		return this;
+	}
+
+	@Override
+	public StorageMapView<K,V> snapshot() {
+		return parent.snapshot();
 	}
 
 	@Override

@@ -150,6 +150,16 @@ public abstract class FieldSignatures {
 	public final static FieldSignature ABSTRACT_VALIDATORS_CURRENT_SUPPLY_FIELD = FieldSignatureImpl.ABSTRACT_VALIDATORS_CURRENT_SUPPLY_FIELD;
 
 	/**
+	 * The field that holds the height inside a {@code io.takamaka.code.governance.AbstractValidators}.
+	 */
+	public final static FieldSignature ABSTRACT_VALIDATORS_HEIGHT_FIELD = FieldSignatureImpl.ABSTRACT_VALIDATORS_HEIGHT_FIELD;
+
+	/**
+	 * The field that holds the number of transactions inside a {@code io.takamaka.code.governance.AbstractValidators}.
+	 */
+	public final static FieldSignature ABSTRACT_VALIDATORS_NUMBER_OF_TRANSACTIONS_FIELD = FieldSignatureImpl.ABSTRACT_VALIDATORS_NUMBER_OF_TRANSACTIONS_FIELD;
+
+	/**
 	 * The field that holds the gas price inside a {@code io.takamaka.code.math.UnsignedBigInteger.value}.
 	 */
 	public final static FieldSignature UNSIGNED_BIG_INTEGER_VALUE_FIELD = FieldSignatureImpl.UNSIGNED_BIG_INTEGER_VALUE_FIELD;

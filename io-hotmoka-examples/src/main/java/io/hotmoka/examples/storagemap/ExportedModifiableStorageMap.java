@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2025 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -165,11 +165,6 @@ public class ExportedModifiableStorageMap<K,V> extends Storage implements Storag
 	@Override
 	public StorageMapView<K,V> view() {
 		return this;
-	}
-
-	@Override
-	public StorageMapView<K,V> snapshot() {
-		return parent.snapshot();
 	}
 
 	@Override

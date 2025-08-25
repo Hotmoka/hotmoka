@@ -26,7 +26,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>21</maven.compiler.release>
     <hotmoka.version>1.11.1</hotmoka.version>
-    <io.takamaka.code.version>1.7.1</io.takamaka.code.version>
+    <io.takamaka.code.version>1.8.0</io.takamaka.code.version>
     <io.hotmoka.annotations.version>1.4.1</io.hotmoka.annotations.version>
     <io.hotmoka.cli.version>1.5.3</io.hotmoka.cli.version>
     <io.hotmoka.crypto.version>1.5.1</io.hotmoka.crypto.version>

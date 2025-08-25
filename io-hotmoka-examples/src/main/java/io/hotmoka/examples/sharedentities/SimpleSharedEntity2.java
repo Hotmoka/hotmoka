@@ -27,10 +27,10 @@ import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.View;
 import io.takamaka.code.math.BigIntegerSupport;
+import io.takamaka.code.util.SnapshottableStorageTreeMap;
 import io.takamaka.code.util.StorageMapView;
 import io.takamaka.code.util.StorageSet;
 import io.takamaka.code.util.StorageSetView;
-import io.takamaka.code.util.StorageTreeMap;
 import io.takamaka.code.util.StorageTreeSet;
 
 /**
@@ -45,7 +45,7 @@ public class SimpleSharedEntity2<S extends PayableContract, O extends SharedEnti
 	/**
 	 * The shares of each shareholder. These are always positive.
 	 */
-	private final StorageTreeMap<S, BigInteger> shares = new StorageTreeMap<>();
+	private final SnapshottableStorageTreeMap<S, BigInteger> shares = new SnapshottableStorageTreeMap<>();
 
 	/**
 	 * The set of offers of sale of shares.
@@ -96,7 +96,7 @@ public class SimpleSharedEntity2<S extends PayableContract, O extends SharedEnti
     	require(share != null && share.signum() > 0, "shares must be positive big integers");
     	addShares(shareholder, share);
 
-    	this.snapshotOfShares = this.shares.snapshot();
+    	this.snapshotOfShares = shares.snapshot();
 		this.snapshotOfOffers = offers.snapshot();
 	}
 
@@ -116,7 +116,7 @@ public class SimpleSharedEntity2<S extends PayableContract, O extends SharedEnti
     	require(share2 != null && share2.signum() > 0, "shares must be positive big integers");
     	addShares(shareholder2, share2);
 
-    	this.snapshotOfShares = this.shares.snapshot();
+    	this.snapshotOfShares = shares.snapshot();
 		this.snapshotOfOffers = offers.snapshot();
     }
 
@@ -141,7 +141,7 @@ public class SimpleSharedEntity2<S extends PayableContract, O extends SharedEnti
     	require(share3 != null && share3.signum() > 0, "shares must be positive big integers");
     	addShares(shareholder3, share3);
 
-    	this.snapshotOfShares = this.shares.snapshot();
+    	this.snapshotOfShares = shares.snapshot();
 		this.snapshotOfOffers = offers.snapshot();
     }
 
@@ -171,7 +171,7 @@ public class SimpleSharedEntity2<S extends PayableContract, O extends SharedEnti
     	require(share4 != null && share4.signum() > 0, "shares must be positive big integers");
     	addShares(shareholder4, share4);
 
-    	this.snapshotOfShares = this.shares.snapshot();
+    	this.snapshotOfShares = shares.snapshot();
 		this.snapshotOfOffers = offers.snapshot();
     }
 

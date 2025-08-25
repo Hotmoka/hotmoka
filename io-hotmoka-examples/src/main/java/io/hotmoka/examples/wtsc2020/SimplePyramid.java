@@ -27,6 +27,8 @@ import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.StringSupport;
 import io.takamaka.code.lang.View;
 import io.takamaka.code.math.BigIntegerSupport;
+import io.takamaka.code.util.SnapshottableStorageMap;
+import io.takamaka.code.util.SnapshottableStorageTreeMap;
 import io.takamaka.code.util.StorageLinkedList;
 import io.takamaka.code.util.StorageList;
 import io.takamaka.code.util.StorageMap;
@@ -72,7 +74,7 @@ public class SimplePyramid extends Contract {
 	}
 
 	public @View String mostFrequentInvestorClass() {
-		StorageMap<String, Integer> frequencies = new StorageTreeMap<>();
+		var frequencies = new StorageTreeMap<String, Integer>();
 		for (PayableContract investor: investors) {
 			String className = investor.getClass().getName();
 			frequencies.putIfAbsent(className, 0);
@@ -98,7 +100,7 @@ public class SimplePyramid extends Contract {
 	}
 
 	public @View PayableContract mostFrequentInvestor() {
-		StorageMap<PayableContract, Integer> frequencies = new StorageTreeMap<>();
+		var frequencies = new StorageTreeMap<PayableContract, Integer>();
 		for (PayableContract investor: investors) {
 			frequencies.putIfAbsent(investor, 0);
 			frequencies.put(investor, frequencies.get(investor) + 1);

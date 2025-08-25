@@ -379,6 +379,11 @@ public abstract class StorageTypes {
 	public final static ClassType STORAGE_MAP_VIEW = ClassTypeImpl.STORAGE_MAP_VIEW;
 
 	/**
+	 * The frequently used class type for {@code io.takamaka.code.util.SnapshottableStorageMapView}.
+	 */
+	public final static ClassType SNAPSHOTTABLE_STORAGE_MAP_VIEW = ClassTypeImpl.SNAPSHOTTABLE_STORAGE_MAP_VIEW;
+
+	/**
 	 * The frequently used class type for {@code io.takamaka.code.util.StorageTreeMap}.
 	 */
 	public final static ClassType STORAGE_TREE_MAP = ClassTypeImpl.STORAGE_TREE_MAP;
@@ -422,6 +427,11 @@ public abstract class StorageTypes {
 	 * The frequently used class type for {@code io.takamaka.code.util.StorageMap}.
 	 */
 	public final static ClassType STORAGE_MAP = ClassTypeImpl.STORAGE_MAP;
+
+	/**
+	 * The frequently used class type for {@code io.takamaka.code.util.SnapshottableStorageMap}.
+	 */
+	public final static ClassType SNAPSHOTTABLE_STORAGE_MAP = ClassTypeImpl.SNAPSHOTTABLE_STORAGE_MAP;
 
 	/**
 	 * The frequently used class type for {@code io.takamaka.code.util.StorageLinkedList.Node}.

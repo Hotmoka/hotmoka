@@ -85,6 +85,9 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 		case UpdateOfBigIntegerImpl.SELECTOR_BALANCE_TO_ZERO:
 		case UpdateOfBigIntegerImpl.SELECTOR_NONCE_TO_ZERO:
 		case UpdateOfBigIntegerImpl.SELECTOR_NONCE:
+		case UpdateOfBigIntegerImpl.SELECTOR_CURRENT_SUPPLY:
+		case UpdateOfBigIntegerImpl.SELECTOR_HEIGHT:
+		case UpdateOfBigIntegerImpl.SELECTOR_NUMBER_OF_TRANSACTIONS:
 		case UpdateOfBigIntegerImpl.SELECTOR: return new UpdateOfBigIntegerImpl(context, selector);
 
 		case UpdateOfBooleanImpl.SELECTOR_FALSE:

@@ -17,9 +17,6 @@ limitations under the License.
 package io.hotmoka.tests;
 
 import static io.hotmoka.node.StorageTypes.BOOLEAN;
-import static io.hotmoka.node.StorageTypes.INT;
-import static io.hotmoka.node.StorageTypes.STORAGE_MAP;
-import static io.hotmoka.node.StorageTypes.STORAGE_MAP_VIEW;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -43,6 +40,7 @@ import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.signatures.VoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 
@@ -50,12 +48,14 @@ import io.hotmoka.node.api.values.StorageValue;
  * A test for the storage map Takamaka class.
  */
 class StorageMap extends HotmokaTest {
+	private static final ClassType STORAGE_MAP = StorageTypes.classNamed("io.takamaka.code.util.StorageMap");
+	private static final ClassType STORAGE_MAP_VIEW = StorageTypes.classNamed("io.takamaka.code.util.StorageMapView");
 	private static final ConstructorSignature STORAGE_TREE_MAP_INIT = ConstructorSignatures.of(StorageTypes.classNamed("io.takamaka.code.util.StorageTreeMap"));
 	private static final NonVoidMethodSignature MK_EMPTY_EXPORTED_STORAGE_MAP = MethodSignatures.ofNonVoid(StorageTypes.classNamed("io.hotmoka.examples.storagemap.ExportedStorageMapMaker"), "mkEmptyExportedStorageMap", STORAGE_MAP);
 	private static final NonVoidMethodSignature STORAGE_MAP_ISEMPTY = MethodSignatures.ofNonVoid(STORAGE_MAP_VIEW, "isEmpty", BOOLEAN);
 	private static final NonVoidMethodSignature STORAGE_MAP_MIN = MethodSignatures.ofNonVoid(STORAGE_MAP_VIEW, "min", StorageTypes.OBJECT);
-	private static final NonVoidMethodSignature STORAGE_MAP_SIZE = MethodSignatures.ofNonVoid(STORAGE_MAP_VIEW, "size", INT);
-	private static final NonVoidMethodSignature STORAGE_MAP_GET = MethodSignatures.ofNonVoid(STORAGE_MAP_VIEW, "get", StorageTypes.OBJECT, StorageTypes.OBJECT);
+	private static final NonVoidMethodSignature STORAGE_MAP_SIZE = MethodSignatures.STORAGE_MAP_VIEW_SIZE;
+	private static final NonVoidMethodSignature STORAGE_MAP_GET = MethodSignatures.STORAGE_MAP_VIEW_GET;
 	private static final VoidMethodSignature STORAGE_MAP_PUT = MethodSignatures.ofVoid(STORAGE_MAP, "put", StorageTypes.OBJECT, StorageTypes.OBJECT);
 	private static final VoidMethodSignature STORAGE_MAP_REMOVE = MethodSignatures.ofVoid(STORAGE_MAP, "remove", StorageTypes.OBJECT);
 	private static final StorageValue ONE = StorageValues.bigIntegerOf(1);

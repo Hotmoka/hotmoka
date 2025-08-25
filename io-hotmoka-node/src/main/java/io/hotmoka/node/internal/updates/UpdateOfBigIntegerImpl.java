@@ -44,6 +44,9 @@ public final class UpdateOfBigIntegerImpl extends UpdateOfFieldImpl implements U
 	final static byte SELECTOR = 2;
 	final static byte SELECTOR_BALANCE = 1;
 	final static byte SELECTOR_NONCE = 12;
+	final static byte SELECTOR_HEIGHT = 13;
+	final static byte SELECTOR_NUMBER_OF_TRANSACTIONS = 9;
+	final static byte SELECTOR_CURRENT_SUPPLY = 14;
 	final static byte SELECTOR_GAS_PRICE = 37;
 	final static byte SELECTOR_UBI_VALUE = 38;
 	final static byte SELECTOR_BALANCE_TO_ZERO = 39;
@@ -102,25 +105,31 @@ public final class UpdateOfBigIntegerImpl extends UpdateOfFieldImpl implements U
 		switch (selector) {
 		case SELECTOR_BALANCE: return FieldSignatures.BALANCE_FIELD;
 		case SELECTOR_GAS_PRICE: return FieldSignatures.GENERIC_GAS_STATION_GAS_PRICE_FIELD;
+		case SELECTOR_CURRENT_SUPPLY: return FieldSignatures.ABSTRACT_VALIDATORS_CURRENT_SUPPLY_FIELD;
+		case SELECTOR_HEIGHT: return FieldSignatures.ABSTRACT_VALIDATORS_HEIGHT_FIELD;
+		case SELECTOR_NUMBER_OF_TRANSACTIONS: return FieldSignatures.ABSTRACT_VALIDATORS_NUMBER_OF_TRANSACTIONS_FIELD;
 		case SELECTOR_UBI_VALUE: return FieldSignatures.UNSIGNED_BIG_INTEGER_VALUE_FIELD;
 		case SELECTOR_BALANCE_TO_ZERO: return FieldSignatures.BALANCE_FIELD;
 		case SELECTOR_NONCE_TO_ZERO: return FieldSignatures.EOA_NONCE_FIELD;
 		case SELECTOR_NONCE: return FieldSignatures.EOA_NONCE_FIELD;
 		case SELECTOR: return FieldSignatures.from(context);
-		default: throw new IllegalArgumentException("Unexpected selector " + selector + " for a BigInteger field update");
+		default: throw new IOException("Unexpected selector " + selector + " for a BigInteger field update");
 		}
 	}
 
 	private static BigInteger unmarshalValue(UnmarshallingContext context, int selector) throws IOException {
 		switch (selector) {
-		case SELECTOR_BALANCE: return context.readBigInteger();
-		case SELECTOR_GAS_PRICE: return context.readBigInteger();
-		case SELECTOR_UBI_VALUE: return context.readBigInteger();
+		case SELECTOR_BALANCE:
+		case SELECTOR_GAS_PRICE:
+		case SELECTOR_CURRENT_SUPPLY:
+		case SELECTOR_HEIGHT:
+		case SELECTOR_NUMBER_OF_TRANSACTIONS:
+		case SELECTOR_UBI_VALUE:
+		case SELECTOR_NONCE:
+		case SELECTOR: return context.readBigInteger();
 		case SELECTOR_BALANCE_TO_ZERO: return BigInteger.ZERO;
 		case SELECTOR_NONCE_TO_ZERO: return BigInteger.ZERO;
-		case SELECTOR_NONCE: return context.readBigInteger();
-		case SELECTOR: return context.readBigInteger();
-		default: throw new IllegalArgumentException("Unexpected selector " + selector + " for a BigInteger field update");
+		default: throw new IOException("Unexpected selector " + selector + " for a BigInteger field update");
 		}
 	}
 
@@ -194,6 +203,18 @@ public final class UpdateOfBigIntegerImpl extends UpdateOfFieldImpl implements U
 		}
 		else if (FieldSignatures.GENERIC_GAS_STATION_GAS_PRICE_FIELD.equals(field)) {
 			context.writeByte(SELECTOR_GAS_PRICE);
+			super.intoWithoutField(context);
+		}
+		else if (FieldSignatures.ABSTRACT_VALIDATORS_CURRENT_SUPPLY_FIELD.equals(field)) {
+			context.writeByte(SELECTOR_CURRENT_SUPPLY);
+			super.intoWithoutField(context);
+		}
+		else if (FieldSignatures.ABSTRACT_VALIDATORS_HEIGHT_FIELD.equals(field)) {
+			context.writeByte(SELECTOR_HEIGHT);
+			super.intoWithoutField(context);
+		}
+		else if (FieldSignatures.ABSTRACT_VALIDATORS_NUMBER_OF_TRANSACTIONS_FIELD.equals(field)) {
+			context.writeByte(SELECTOR_NUMBER_OF_TRANSACTIONS);
 			super.intoWithoutField(context);
 		}
 		else if (FieldSignatures.UNSIGNED_BIG_INTEGER_VALUE_FIELD.equals(field)) {

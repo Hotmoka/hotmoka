@@ -48,7 +48,7 @@ public interface SharedEntity1<O extends SharedEntity1.Offer> {
 	@View StorageSetView<O> getOffers();
 
 	/**
-	 * Yields the current shares, for each current shareholder.
+	 * Yields a snapshot of the current shares, for each current shareholder.
 	 * 
 	 * @return the shares
 	 */

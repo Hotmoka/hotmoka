@@ -173,15 +173,15 @@
             </configuration>
           </execution>
 
-		  <execution><id>storagemap</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>storagemap</classifier>
-              <includes><include>io/hotmoka/examples/storagemap/**</include></includes>
+		  <execution><id>snapshottablestoragemap</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>snapshottablestoragemap</classifier>
+              <includes><include>io/hotmoka/examples/snapshottablestoragemap/**</include></includes>
             </configuration>
           </execution>
 
-	      <execution><id>storagesimplemap</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>storagesimplemap</classifier>
-              <includes><include>io/hotmoka/examples/storagesimplemap/**</include></includes>
+	      <execution><id>storagemap</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>storagemap</classifier>
+              <includes><include>io/hotmoka/examples/storagemap/**</include></includes>
             </configuration>
           </execution>
 

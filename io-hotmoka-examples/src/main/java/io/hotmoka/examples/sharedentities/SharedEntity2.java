@@ -51,7 +51,7 @@ public interface SharedEntity2<S extends PayableContract, O extends SharedEntity
 	@View StorageSetView<O> getOffers();
 
 	/**
-	 * Yields the current shares, for each current shareholder.
+	 * Yields a snapshot of the current shares, for each current shareholder.
 	 * 
 	 * @return the shares
 	 */
