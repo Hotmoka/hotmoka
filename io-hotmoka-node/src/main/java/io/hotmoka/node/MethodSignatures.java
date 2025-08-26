@@ -410,6 +410,11 @@ public abstract class MethodSignatures {
 	public final static VoidMethodSignature VOTE_WITH_SHARE = ofVoid(StorageTypes.POLL, "vote", BIG_INTEGER);
 
 	/**
+	 * The method {@code isEmpty} of a {@code StorageMapView} contract.
+	 */
+	public final static NonVoidMethodSignature STORAGE_MAP_VIEW_ISEMPTY = ofNonVoid(StorageTypes.STORAGE_MAP_VIEW, "isEmpty", BOOLEAN);
+
+	/**
 	 * The method {@code size} of a {@code StorageMapView} contract.
 	 */
 	public final static NonVoidMethodSignature STORAGE_MAP_VIEW_SIZE = ofNonVoid(StorageTypes.STORAGE_MAP_VIEW, "size", INT);

@@ -52,7 +52,7 @@ import io.hotmoka.node.api.values.StorageValue;
 class SnapshottableStorageMap extends HotmokaTest {
 	private static final ConstructorSignature SNAPSHOTTABLE_STORAGE_TREE_MAP_INIT = ConstructorSignatures.of(StorageTypes.classNamed("io.takamaka.code.util.SnapshottableStorageTreeMap"));
 	private static final NonVoidMethodSignature MK_EMPTY_EXPORTED_SNAPSHOTTABLE_STORAGE_MAP = MethodSignatures.ofNonVoid(StorageTypes.classNamed("io.hotmoka.examples.snapshottablestoragemap.ExportedSnapshottableStorageMapMaker"), "mkEmptyExportedSnapshottableStorageMap", SNAPSHOTTABLE_STORAGE_MAP);
-	private static final NonVoidMethodSignature STORAGE_MAP_ISEMPTY = MethodSignatures.ofNonVoid(STORAGE_MAP_VIEW, "isEmpty", BOOLEAN);
+	private static final NonVoidMethodSignature STORAGE_MAP_ISEMPTY = MethodSignatures.STORAGE_MAP_VIEW_ISEMPTY;
 	private static final NonVoidMethodSignature STORAGE_MAP_MIN = MethodSignatures.ofNonVoid(STORAGE_MAP_VIEW, "min", StorageTypes.OBJECT);
 	private static final NonVoidMethodSignature STORAGE_MAP_SIZE = MethodSignatures.STORAGE_MAP_VIEW_SIZE;
 	private static final NonVoidMethodSignature STORAGE_MAP_GET = MethodSignatures.STORAGE_MAP_VIEW_GET;

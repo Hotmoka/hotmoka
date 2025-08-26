@@ -52,7 +52,7 @@ class StorageMap extends HotmokaTest {
 	private static final ClassType STORAGE_MAP_VIEW = StorageTypes.classNamed("io.takamaka.code.util.StorageMapView");
 	private static final ConstructorSignature STORAGE_TREE_MAP_INIT = ConstructorSignatures.of(StorageTypes.classNamed("io.takamaka.code.util.StorageTreeMap"));
 	private static final NonVoidMethodSignature MK_EMPTY_EXPORTED_STORAGE_MAP = MethodSignatures.ofNonVoid(StorageTypes.classNamed("io.hotmoka.examples.storagemap.ExportedStorageMapMaker"), "mkEmptyExportedStorageMap", STORAGE_MAP);
-	private static final NonVoidMethodSignature STORAGE_MAP_ISEMPTY = MethodSignatures.ofNonVoid(STORAGE_MAP_VIEW, "isEmpty", BOOLEAN);
+	private static final NonVoidMethodSignature STORAGE_MAP_ISEMPTY = MethodSignatures.STORAGE_MAP_VIEW_ISEMPTY;
 	private static final NonVoidMethodSignature STORAGE_MAP_MIN = MethodSignatures.ofNonVoid(STORAGE_MAP_VIEW, "min", StorageTypes.OBJECT);
 	private static final NonVoidMethodSignature STORAGE_MAP_SIZE = MethodSignatures.STORAGE_MAP_VIEW_SIZE;
 	private static final NonVoidMethodSignature STORAGE_MAP_GET = MethodSignatures.STORAGE_MAP_VIEW_GET;

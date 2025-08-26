@@ -44,7 +44,9 @@ import io.hotmoka.node.api.values.StorageValue;
  */
 class Collections extends HotmokaTest {
 	private static final ClassType MAP_TESTS = StorageTypes.classNamed("io.hotmoka.examples.collections.MapTests");
+	private static final ClassType SNAPSHOTTABLE_MAP_TESTS = StorageTypes.classNamed("io.hotmoka.examples.collections.SnapshottableMapTests");
 	private static final ClassType INT_MAP_TESTS = StorageTypes.classNamed("io.hotmoka.examples.collections.IntMapTests");
+	private static final ClassType SNAPSHOTTABLE_INT_MAP_TESTS = StorageTypes.classNamed("io.hotmoka.examples.collections.SnapshottableIntMapTests");
 	private static final ClassType ARRAY_TESTS = StorageTypes.classNamed("io.hotmoka.examples.collections.ArrayTests");
 	private static final ClassType SET_TESTS = StorageTypes.classNamed("io.hotmoka.examples.collections.SetTests");
 	private static final ClassType MAP_HOLDER = StorageTypes.classNamed("io.hotmoka.examples.collections.MapHolder");
@@ -91,6 +93,24 @@ class Collections extends HotmokaTest {
 		assertEquals(100L, runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), method).asReturnedLong(method, UnexpectedValueException::new));
 	}
 
+	@Test @DisplayName("SnapshottableMapTests.testIteration1() == 4950")
+	void geometricSnapshottableSum() throws Exception {
+		var testIteration1 = MethodSignatures.ofNonVoid(SNAPSHOTTABLE_MAP_TESTS, "testIteration1", INT);
+		assertEquals(4950, runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), testIteration1).asReturnedInt(testIteration1, UnexpectedValueException::new));
+	}
+
+	@Test @DisplayName("SnapshottableMapTests.testUpdate2() == 5050")
+	void geometricSnapshottableSumAfterUpdateWithStream() throws Exception {
+		var testUpdate2 = MethodSignatures.ofNonVoid(SNAPSHOTTABLE_MAP_TESTS, "testUpdate2", INT);
+		assertEquals(5050, runStaticNonVoidMethodCallTransaction(eoa, _1_000_000_000, jar(), testUpdate2).asReturnedInt(testUpdate2, UnexpectedValueException::new));
+	}
+
+	@Test @DisplayName("SnapshottableMapTests.testNullValues() == 100L")
+	void nullValuesInSnalshottableMap() throws Exception {
+		var method = MethodSignatures.ofNonVoid(SNAPSHOTTABLE_MAP_TESTS, "testNullValues", LONG);
+		assertEquals(100L, runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), method).asReturnedLong(method, UnexpectedValueException::new));
+	}
+
 	@Test @DisplayName("IntMapTests.testIteration1() == 4950")
 	void geometricSumIntKeys() throws Exception {
 		var testIteration1 = MethodSignatures.ofNonVoid(INT_MAP_TESTS, "testIteration1", INT);
@@ -106,6 +126,24 @@ class Collections extends HotmokaTest {
 	@Test @DisplayName("IntMapTests.testNullValues() == 100L()")
 	void nullValuesInMapIntKeys() throws Exception {
 		var testNullValues = MethodSignatures.ofNonVoid(INT_MAP_TESTS, "testNullValues", LONG);
+		assertEquals(100L, runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), testNullValues).asReturnedLong(testNullValues, UnexpectedValueException::new));
+	}
+
+	@Test @DisplayName("SnapshottableIntMapTests.testIteration1() == 4950")
+	void geometricSumSnapshottableIntKeys() throws Exception {
+		var testIteration1 = MethodSignatures.ofNonVoid(SNAPSHOTTABLE_INT_MAP_TESTS, "testIteration1", INT);
+		assertEquals(4950, runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), testIteration1).asReturnedInt(testIteration1, UnexpectedValueException::new));
+	}
+
+	@Test @DisplayName("SnapshottableIntMapTests.testUpdate2() == 5050")
+	void geometricSumAfterUpdateSnapshottableIntKeysWithStream() throws Exception {
+		var method = MethodSignatures.ofNonVoid(SNAPSHOTTABLE_INT_MAP_TESTS, "testUpdate2", INT);
+		assertEquals(5050, runStaticNonVoidMethodCallTransaction(eoa, _1_000_000_000, jar(), method).asReturnedInt(method, UnexpectedValueException::new));
+	}
+
+	@Test @DisplayName("SnapshottableIntMapTests.testNullValues() == 100L()")
+	void nullValuesInSnapshottableMapIntKeys() throws Exception {
+		var testNullValues = MethodSignatures.ofNonVoid(SNAPSHOTTABLE_INT_MAP_TESTS, "testNullValues", LONG);
 		assertEquals(100L, runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), testNullValues).asReturnedLong(testNullValues, UnexpectedValueException::new));
 	}
 
