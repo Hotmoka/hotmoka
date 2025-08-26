@@ -121,11 +121,6 @@ public class Encapsulated extends Storage {
 		}
 
 		@Override
-		public StorageListView<T> snapshot() {
-			return backing.snapshot();
-		}
-
-		@Override
 		public void forEach(Consumer<? super T> action) {
 			backing.forEach(action);
 		}
