@@ -27,11 +27,11 @@ import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.View;
 import io.takamaka.code.math.BigIntegerSupport;
+import io.takamaka.code.util.SnapshottableStorageSet;
 import io.takamaka.code.util.SnapshottableStorageTreeMap;
+import io.takamaka.code.util.SnapshottableStorageTreeSet;
 import io.takamaka.code.util.StorageMapView;
-import io.takamaka.code.util.StorageSet;
 import io.takamaka.code.util.StorageSetView;
-import io.takamaka.code.util.StorageTreeSet;
 
 /**
  * A simple implementation of a shared entity. Shareholders hold, sell and buy shares of a shared entity.
@@ -49,7 +49,7 @@ public class SimpleSharedEntity1<O extends SharedEntity1.Offer> extends PayableC
 	/**
 	 * The set of offers of sale of shares.
 	 */
-	private final StorageSet<O> offers = new StorageTreeSet<>();
+	private final SnapshottableStorageSet<O> offers = new SnapshottableStorageTreeSet<>();
 
 	/**
 	 * A snapshot of the current shares.
