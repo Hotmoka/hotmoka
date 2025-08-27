@@ -90,7 +90,7 @@ public class VerifiedJarImpl implements VerifiedJar {
 		errors.forEach(onError);
 
 		if (!errors.isEmpty())
-			throw new VerificationException(errors.getFirst().getMessage());
+			throw new VerificationException(errors.getFirst().toString());
 	}
 
 	@Override

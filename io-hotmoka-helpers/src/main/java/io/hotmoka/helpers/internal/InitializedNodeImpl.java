@@ -49,6 +49,9 @@ import io.hotmoka.node.api.values.StorageReference;
 /**
  * Shared implementation of a node where the jar with the basic Takamaka classes have been installed,
  * along with a gamete and a manifest.
+ * 
+ * @param <N> the type of the original node that gets decorated with its initialization
+ * @param <C> the type of the consensus configuration of the node that gets decorated with its initialization
  */
 public abstract class InitializedNodeImpl<N extends Node, C extends ConsensusConfig<?,?>> extends AbstractNodeDecorator<N> implements InitializedNode {
 

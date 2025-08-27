@@ -37,7 +37,7 @@ public class FromContractCodeIsInstanceAndInStorageClassCheck extends CheckOnMet
 				issue(new IllegalFromContractArgumentError(inferSourceFile(), method));
 
 			if (method.isStatic())
-				issue(new FromContractNotInStorageError(inferSourceFile(), methodName));
+				issue(new FromContractNotInStorageError(inferSourceFile(), method));
 
 			if (!isInterface && !isStorage)
 				issue(new FromContractNotInStorageError(inferSourceFile(), methodName));

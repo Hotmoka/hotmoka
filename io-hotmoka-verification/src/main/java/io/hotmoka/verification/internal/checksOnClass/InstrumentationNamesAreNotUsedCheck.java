@@ -18,7 +18,6 @@ package io.hotmoka.verification.internal.checksOnClass;
 
 import java.util.stream.Stream;
 
-import org.apache.bcel.classfile.Field;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 
@@ -48,9 +47,9 @@ public class InstrumentationNamesAreNotUsedCheck extends CheckOnClasses {
 		// used to define non-instrumented methods, constructors or fields
 		String forbiddenPrefixAsString = VerifiedClass.FORBIDDEN_PREFIX;
 
-		getFields().map(Field::getName)
-			.filter(name -> name.startsWith(forbiddenPrefixAsString))
-			.forEachOrdered(name -> issue(new IllegalFieldNameError(inferSourceFile(), name)));
+		getFields()
+			.filter(field -> field.getName().startsWith(forbiddenPrefixAsString))
+			.forEachOrdered(field -> issue(new IllegalFieldNameError(inferSourceFile(), field)));
 
 		getMethods()
 			.filter(method -> method.getName().startsWith(forbiddenPrefixAsString))

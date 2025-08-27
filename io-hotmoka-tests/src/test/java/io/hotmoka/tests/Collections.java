@@ -166,9 +166,15 @@ class Collections extends HotmokaTest {
 	}
 
 	@Test @DisplayName("ArrayTests.testByteArrayThenIncrease() == 1375")
-	void randomArrayThenIncrease() throws Exception {
+	void randomByteArrayThenIncrease() throws Exception {
 		var testByteArrayThenIncrease = MethodSignatures.ofNonVoid(ARRAY_TESTS, "testByteArrayThenIncrease", INT);
 		assertEquals(1375, runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), testByteArrayThenIncrease).asReturnedInt(testByteArrayThenIncrease, UnexpectedValueException::new));
+	}
+
+	@Test @DisplayName("ArrayTests.testSnapshottableByteArrayThenIncrease() == 1375")
+	void randomSnapshottableByteArrayThenIncrease() throws Exception {
+		var testSnapshottableByteArrayThenIncrease = MethodSignatures.ofNonVoid(ARRAY_TESTS, "testSnapshottableByteArrayThenIncrease", INT);
+		assertEquals(1375, runStaticNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), testSnapshottableByteArrayThenIncrease).asReturnedInt(testSnapshottableByteArrayThenIncrease, UnexpectedValueException::new));
 	}
 
 	@Test @DisplayName("ArrayTests.testUpdateWithDefault2() == 1225")

@@ -21,6 +21,7 @@ import java.util.Random;
 
 import io.takamaka.code.lang.View;
 import io.takamaka.code.math.BigIntegerSupport;
+import io.takamaka.code.util.SnapshottableStorageTreeByteArray;
 import io.takamaka.code.util.StorageTreeArray;
 import io.takamaka.code.util.StorageTreeByteArray;
 
@@ -131,6 +132,33 @@ public class ArrayTests {
 
 		int sum = 0;
 		for (byte b: array)
+			sum += b;
+
+		return sum;
+	}
+
+	public static @View int testSnapshottableByteArrayThenIncrease() {
+		var array = new SnapshottableStorageTreeByteArray(100);
+		var random = new Random(12345L);
+
+		for (byte i = 1; i <= 50; i++) {
+			int index;
+
+			do {
+				index = random.nextInt(array.length);
+			}
+			while (array.get(index) != 0);
+			
+			array.set(index, i);
+		}
+
+		for (int i = 0; i < array.length; i++)
+			array.set(i, (byte) (array.get(i) + 1));
+
+		var snapshot = array.snapshot();
+
+		int sum = 0;
+		for (byte b: snapshot)
 			sum += b;
 
 		return sum;

@@ -32,6 +32,6 @@ public class ThrowsExceptionsCodeIsPublicCheck extends CheckOnMethods {
 		super(builder, method);
 
 		if (!method.isPublic() && methodIsThrowsExceptionsIn(className))
-			issue(new ThrowsExceptionsOnNonPublicError(inferSourceFile(), method.getName()));
+			issue(new ThrowsExceptionsOnNonPublicError(inferSourceFile(), method));
 	}
 }
