@@ -802,7 +802,7 @@ public abstract class ExecutionEnvironment {
 	 * @param transaction the reference to the transaction; this is assumed to be a transaction of the history of {@code object}
 	 * @return the update, if any; if the field of {@code object} was not modified during
 	 *         the {@code transaction}, the result is empty
-	 * @throws UnknownReferenceException if the response of {@code reference} cannot be found in store
+	 * @throws UnknownReferenceException if the response of {@code transaction} cannot be found in store
 	 */
 	private Optional<UpdateOfField> getUpdateFromTransactionInHistory(StorageReference object, FieldSignature field, TransactionReference transaction) throws UnknownReferenceException {
 		if (getResponse(transaction) instanceof TransactionResponseWithUpdates trwu)

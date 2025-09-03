@@ -86,15 +86,10 @@ public class Deserializer {
 	 * @return the RAM image of {@code value}
 	 */
 	protected Object deserialize(StorageValue value) {
-		if (value instanceof StorageReference sr) {
+		if (value instanceof StorageReference sr)
 			// we use a cache to provide the same value if the same reference gets deserialized twice; putIfAbsent is clumsy because of the exceptions,
 			// so we just get and put; in any case, this object is not meant to be thread-safe
-			Object result = cache.get(sr);
-			if (result == null)
-				cache.put(sr, result = createStorageObject(sr));
-
-			return result;
-		}
+			return cache.computeIfAbsent(sr, this::createStorageObject);
 		else if (value instanceof IntValue iv)
 			return iv.getValue();
 		else if (value instanceof BooleanValue bv)

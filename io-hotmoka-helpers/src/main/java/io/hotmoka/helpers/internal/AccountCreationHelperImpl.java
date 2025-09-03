@@ -136,9 +136,13 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 			throw new RuntimeException("Transaction signing failed, unexpectedly, for the empty signature", e);
 		}
 
-		return node.addInstanceMethodCallTransaction(request)
+		var account = node.addInstanceMethodCallTransaction(request)
 			.orElseThrow(() -> new UnexpectedVoidMethodException(method))
 			.asReturnedReference(method, UnexpectedValueException::new);
+
+		requestsHandler.accept(new TransactionRequest<?>[] { request });
+
+		return account;
 	}
 
 	@Override

@@ -35,6 +35,7 @@ import io.hotmoka.patricia.api.UnknownKeyException;
  * It uses sha256 as hashing algorithm for the trie's nodes and an array of 0's to represent
  * the empty trie.
  */
+// TODO: merge with the TrieOfResponses into a single TrieOfTransactions; evaluate if to merge with TrieOfHistories
 public class TrieOfRequests extends AbstractPatriciaTrie<TransactionReference, TransactionRequest<?>, TrieOfRequests> {
 
 	/**
