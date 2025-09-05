@@ -674,7 +674,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 				}
 
 				keepPersistedOnlyNotOlderThan(now, txn);
-				transformation.forEachDeliveredTransaction((transaction, response) -> addToIndex(transaction, response, txn));
+				transformation.forEachDeliveredTransaction((reference, transaction) -> addToIndex(reference, transaction.getResponse(), txn));
 				return idOfFinalStore;
 			});
 
@@ -689,7 +689,7 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 				throw new LocalNodeException(e);
 			}
 
-			transformation.forEachDeliveredTransaction((transaction, response) -> publish(transaction, response, storeOfHead));
+			transformation.forEachDeliveredTransaction((reference, transaction) -> publish(reference, transaction.getResponse(), storeOfHead));
 
 			byte[] hash = getLastBlockApplicationHash();
 			LOGGER.info("committed Tendermint state " + Hex.toHexString(hash).toUpperCase());

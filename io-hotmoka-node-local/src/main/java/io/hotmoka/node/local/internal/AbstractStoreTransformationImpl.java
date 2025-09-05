@@ -34,6 +34,7 @@ import java.util.stream.Stream;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.TransactionReferences;
+import io.hotmoka.node.Transactions;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
@@ -48,6 +49,7 @@ import io.hotmoka.node.api.responses.NonInitialTransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponseWithEvents;
 import io.hotmoka.node.api.responses.TransactionResponseWithUpdates;
+import io.hotmoka.node.api.transactions.Transaction;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
@@ -77,14 +79,9 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	private final S store;
 
 	/**
-	 * The requests added during this transformation. They are kept in order of addition.
+	 * The transactions added during this transformation. They are kept in order of addition.
 	 */
-	private final LinkedHashMap<TransactionReference, TransactionRequest<?>> deltaRequests = new LinkedHashMap<>();
-
-	/**
-	 * The responses added during this transformation.
-	 */
-	private final Map<TransactionReference, TransactionResponse> deltaResponses = new HashMap<>();
+	private final LinkedHashMap<TransactionReference, Transaction> deltaTransactions = new LinkedHashMap<>();
 
 	/**
 	 * The histories of the objects created during this transformation.
@@ -168,22 +165,22 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	}
 
 	@Override
-	public final int deliveredCount() {
-		return deltaRequests.size();
+	public final int deliveredCount() { // TODO: this also includes the replaced!
+		return deltaTransactions.size();
 	}
 
 	@Override
 	public final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException {
 		// first we check in the delta, then in the initial store
-		var request = deltaRequests.get(reference);
-		return request != null ? request : store.getRequest(reference);
+		var transaction = deltaTransactions.get(reference);
+		return transaction != null ? transaction.getRequest() : store.getRequest(reference);
 	}
 
 	@Override
 	public final TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException {
 		// first we check in the delta, then in the initial store
-		var response = deltaResponses.get(reference);
-		return response != null ? response : store.getResponse(reference);
+		var transaction = deltaTransactions.get(reference);
+		return transaction != null ? transaction.getResponse() : store.getResponse(reference);
 	}
 
 	@Override
@@ -223,26 +220,17 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	}
 
 	@Override
-	public final void forEachDeliveredTransaction(BiConsumer<TransactionReference, TransactionResponse> action) {
-		deltaResponses.forEach(action);
+	public final void forEachDeliveredTransaction(BiConsumer<TransactionReference, Transaction> action) {
+		deltaTransactions.forEach(action);
 	}
 
 	/**
-	 * Yields the requests added during this transformation. They are kept in order of addition.
+	 * Yields the transactions added during this transformation. They are kept in order of addition.
 	 * 
 	 * @return the requests
 	 */
-	protected final LinkedHashMap<TransactionReference, TransactionRequest<?>> getDeltaRequests() {
-		return deltaRequests;
-	}
-
-	/**
-	 * Yields the responses added during this transformation.
-	 * 
-	 * @return the responses
-	 */
-	protected final Map<TransactionReference, TransactionResponse> getDeltaResponses() {
-		return deltaResponses;
+	protected final LinkedHashMap<TransactionReference, Transaction> getDeltaTransactions() {
+		return deltaTransactions;
 	}
 
 	/**
@@ -333,13 +321,14 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	}
 
 	/**
-	 * Writes in this transformation the given response for the given transaction reference, that already exists in store.
+	 * Writes in this transformation the given transaction for the given transaction reference.
 	 * 
 	 * @param reference the reference of the transaction
+	 * @param request the request of the transaction
 	 * @param response the response of the transaction
 	 */
-	private void setResponse(TransactionReference reference, TransactionResponse response) {
-		deltaResponses.put(reference, response);
+	private void setTransaction(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
+		deltaTransactions.put(reference, Transactions.of(request, response));
 	}
 
 	/**
@@ -350,9 +339,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	 * @throws UnknownReferenceException if {@code reference} is unknown
 	 */
 	protected final void replaceResponse(TransactionReference reference, TransactionResponse response) throws UnknownReferenceException {
-		// we populate the delta of the requests as well
-		deltaRequests.put(reference, getRequest(reference));
-		deltaResponses.put(reference, response);
+		deltaTransactions.put(reference, Transactions.of(getRequest(reference), response));
 	}
 
 	/**
@@ -422,16 +409,6 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 			// since reference is assumed to refer to a validators object in store, it must exist and have a currentSupply field
 			throw new LocalNodeException(e);
 		}
-	}
-
-	/**
-	 * Writes in this transformation the given request for the given transaction reference.
-	 * 
-	 * @param reference the reference of the transaction
-	 * @param request the request of the transaction
-	 */
-	private void setRequest(TransactionReference reference, TransactionRequest<?> request) {
-		deltaRequests.put(reference, request);
 	}
 
 	/**
@@ -594,8 +571,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	 */
 	private void push(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
 		if (response instanceof TransactionResponseWithUpdates trwu) {
-			setRequest(reference, request);
-			setResponse(reference, trwu);
+			setTransaction(reference, request, trwu);
 			expandHistory(reference, trwu);
 	
 			if (response instanceof GameteCreationTransactionResponse gctr)
@@ -603,8 +579,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 		}
 		else if (response instanceof InitializationTransactionResponse) {
 			if (request instanceof InitializationTransactionRequest itr) {
-				setRequest(reference, request);
-				setResponse(reference, response);
+				setTransaction(reference, request, response);
 				StorageReference manifest = itr.getManifest();
 				setManifest(manifest);
 				LOGGER.info(reference + ": " + manifest + " set as manifest");
@@ -613,10 +588,8 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 			else
 				throw new LocalNodeException("Trying to initialize the node with a request of class " + request.getClass().getSimpleName());
 		}
-		else {
-			setRequest(reference, request);
-			setResponse(reference, response);
-		}
+		else
+			setTransaction(reference, request, response);
 	}
 
 	/**

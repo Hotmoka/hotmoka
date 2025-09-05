@@ -23,7 +23,6 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.node.Transactions;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
@@ -112,14 +111,13 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
     	this.rootOfTransactions = toClone.rootOfTransactions;
     }
 
-    protected final StateId addDelta(StoreCache cache, LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests,
-    		Map<TransactionReference, TransactionResponse> addedResponses,
+    protected final StateId addDelta(StoreCache cache, LinkedHashMap<TransactionReference, io.hotmoka.node.api.transactions.Transaction> addedTransactions,
     		Map<StorageReference, TransactionReference[]> addedHistories,
     		Optional<StorageReference> addedManifest,
     		Optional<TransactionReference> addedTakamakaCode,
     		Transaction txn) {
 
-    	var rootOfTransactions = addDeltaOfTransactions(mkTrieOfTransactions(txn), addedRequests, addedResponses);
+    	var rootOfTransactions = addDeltaOfTransactions(mkTrieOfTransactions(txn), addedTransactions);
     	var rootOfHistories = addDeltaOfHistories(mkTrieOfHistories(txn), addedHistories, addedManifest, addedTakamakaCode);
 
     	var result = new byte[64];
@@ -248,11 +246,11 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 		return trieOfHistories.getRoot();
 	}
 
-	private byte[] addDeltaOfTransactions(TrieOfTransactions trieOfTransactions, LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests, Map<TransactionReference, TransactionResponse> addedResponses) {
-		for (var entry: addedRequests.entrySet()) {
+	private byte[] addDeltaOfTransactions(TrieOfTransactions trieOfTransactions, LinkedHashMap<TransactionReference, io.hotmoka.node.api.transactions.Transaction> addedTransactions) {
+		for (var entry: addedTransactions.entrySet()) {
 			trieOfTransactions.malloc();
 			var old = trieOfTransactions;
-			trieOfTransactions = trieOfTransactions.put(entry.getKey(), Transactions.of(entry.getValue(), addedResponses.get(entry.getKey())));
+			trieOfTransactions = trieOfTransactions.put(entry.getKey(), entry.getValue());
 			old.free(); // this frees temporary tries built during the iteration
 		}
 

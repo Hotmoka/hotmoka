@@ -37,8 +37,8 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.api.requests.TransactionRequest;
-import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponseWithUpdates;
+import io.hotmoka.node.api.transactions.Transaction;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
@@ -148,12 +148,12 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 	/**
 	 * Expands the index of the node with the objects modified in the given transaction.
 	 * 
-	 * @param transaction the reference to the transaction
+	 * @param reference the reference to the transaction
 	 * @param response the response of the {@code transaction}
 	 */
-	private void expandIndex(TransactionReference transaction, TransactionResponse response) {
-		if (indexSize > 0 && response instanceof TransactionResponseWithUpdates trwu)
-			trwu.getUpdates().map(Update::getObject).distinct().forEach(object -> expandIndex(object, transaction));
+	private void expandIndex(TransactionReference reference, Transaction transaction) {
+		if (indexSize > 0 && transaction.getResponse() instanceof TransactionResponseWithUpdates trwu)
+			trwu.getUpdates().map(Update::getObject).distinct().forEach(object -> expandIndex(object, reference));
 	}
 
 	/**
@@ -274,7 +274,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 			if (transformation.deliveredCount() > 0) {
 				transformation.deliverCoinbaseTransactions();
 				storeOfHead = transformation.getFinalStore();
-				transformation.forEachDeliveredTransaction((transaction, response) -> publish(transaction, response, storeOfHead));
+				transformation.forEachDeliveredTransaction((reference, transaction) -> publish(reference, transaction.getResponse(), storeOfHead));
 				transformation.forEachDeliveredTransaction(DiskNodeImpl.this::expandIndex);
 			}
 

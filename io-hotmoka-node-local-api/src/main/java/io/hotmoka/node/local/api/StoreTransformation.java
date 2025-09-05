@@ -26,6 +26,7 @@ import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
+import io.hotmoka.node.api.transactions.Transaction;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageValue;
 
@@ -94,5 +95,5 @@ public interface StoreTransformation<S extends Store<S,T>, T extends StoreTransf
 	 * 
 	 * @param action the action
 	 */
-	void forEachDeliveredTransaction(BiConsumer<TransactionReference, TransactionResponse> action);
+	void forEachDeliveredTransaction(BiConsumer<TransactionReference, Transaction> action);
 }
