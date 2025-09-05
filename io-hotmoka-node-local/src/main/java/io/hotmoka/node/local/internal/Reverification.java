@@ -115,7 +115,7 @@ public class Reverification {
 
 				try {
 					environment.getRequest(reference);
-					ast.setResponse(reference, entry.getValue());
+					ast.replaceResponse(reference, entry.getValue());
 				}
 				catch (UnknownReferenceException e) {
 					throw new LocalNodeException(e); // the response for this transaction has been reverified but it disappeared! The store looks corrupted

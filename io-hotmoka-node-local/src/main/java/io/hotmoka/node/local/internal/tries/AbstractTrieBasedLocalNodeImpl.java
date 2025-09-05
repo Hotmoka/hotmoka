@@ -77,9 +77,9 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	private final io.hotmoka.xodus.env.Store storeOfResponses;
 
 	/**
-	 * The Xodus store that holds the Merkle-Patricia trie of the requests.
+	 * The Xodus store that holds the Merkle-Patricia trie of the transactions.
 	 */
-	private final io.hotmoka.xodus.env.Store storeOfRequests;
+	private final io.hotmoka.xodus.env.Store storeOfTransactions;
 
 	/**
 	 * The Xodus store that holds the history of each storage reference, ie, a list of
@@ -136,7 +136,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		this.env = new Environment(path.toString());
 		this.storeOfNode = env.computeInTransaction(txn -> env.openStoreWithoutDuplicates("node", txn));
     	this.storeOfResponses = env.computeInTransaction(txn -> env.openStoreWithoutDuplicatesWithPrefixing("responses", txn));
-		this.storeOfRequests = env.computeInTransaction(txn -> env.openStoreWithoutDuplicatesWithPrefixing("requests", txn));
+		this.storeOfTransactions = env.computeInTransaction(txn -> env.openStoreWithoutDuplicatesWithPrefixing("requests", txn));
 		this.storeOfHistories = env.computeInTransaction(txn -> env.openStoreWithoutDuplicatesWithPrefixing("histories", txn));
 		this.index = new Index(storeOfNode, env, config.getIndexSize());
 
@@ -295,16 +295,13 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 */
 	protected void free(StateId stateId, Transaction txn) throws UnknownStateIdException {
 		var bytes = stateId.getBytes();
-		var rootOfResponses = new byte[32];
-		System.arraycopy(bytes, 0, rootOfResponses, 0, 32);
 		var rootOfRequests = new byte[32];
 		System.arraycopy(bytes, 32, rootOfRequests, 0, 32);
 		var rootOfHistories = new byte[32];
 		System.arraycopy(bytes, 64, rootOfHistories, 0, 32);
 
 		try {
-			mkTrieOfRequests(txn, rootOfRequests).free();
-			mkTrieOfResponses(txn, rootOfResponses).free();
+			mkTrieOfTransactions(txn, rootOfRequests).free();
 			mkTrieOfHistories(txn, rootOfHistories).free();
 		}
 		catch (UnknownKeyException e) {
@@ -321,16 +318,13 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 */
 	protected void malloc(StateId stateId, Transaction txn) throws UnknownStateIdException {
 		var bytes = stateId.getBytes();
-		var rootOfResponses = new byte[32];
-		System.arraycopy(bytes, 0, rootOfResponses, 0, 32);
-		var rootOfRequests = new byte[32];
-		System.arraycopy(bytes, 32, rootOfRequests, 0, 32);
+		var rootOfTransactions = new byte[32];
+		System.arraycopy(bytes, 32, rootOfTransactions, 0, 32);
 		var rootOfHistories = new byte[32];
 		System.arraycopy(bytes, 64, rootOfHistories, 0, 32);
 
 		try {
-			mkTrieOfRequests(txn, rootOfRequests).malloc();
-			mkTrieOfResponses(txn, rootOfResponses).malloc();
+			mkTrieOfTransactions(txn, rootOfTransactions).malloc();
 			mkTrieOfHistories(txn, rootOfHistories).malloc();
 		}
 		catch (UnknownKeyException e) {
@@ -338,17 +332,13 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		}
 	}
 
-	protected TrieOfResponses mkTrieOfResponses(Transaction txn, byte[] rootOfResponses) throws UnknownKeyException {
-		return new TrieOfResponses(new KeyValueStoreOnXodus(storeOfResponses, txn), rootOfResponses);
+	protected TrieOfTransactions mkTrieOfTransactions(Transaction txn, byte[] rootOfTransactions) throws UnknownKeyException {
+		return new TrieOfTransactions(new KeyValueStoreOnXodus(storeOfTransactions, txn), rootOfTransactions);
 	}
 
-	protected TrieOfRequests mkTrieOfRequests(Transaction txn, byte[] rootOfRequests) throws UnknownKeyException {
-		return new TrieOfRequests(new KeyValueStoreOnXodus(storeOfRequests, txn), rootOfRequests);
-	}
-
-	protected void checkExistenceOfRootOfRequests(Transaction txn, byte[] rootOfRequests) throws UnknownKeyException {
-		if (!Arrays.equals(rootOfRequests, hashOfEmpty))
-			new KeyValueStoreOnXodus(storeOfRequests, txn).get(rootOfRequests);
+	protected void checkExistenceOfRootOfTransactions(Transaction txn, byte[] rootOfTransactions) throws UnknownKeyException {
+		if (!Arrays.equals(rootOfTransactions, hashOfEmpty))
+			new KeyValueStoreOnXodus(storeOfTransactions, txn).get(rootOfTransactions);
 	}
 
 	protected void checkExistenceOfRootOfResponses(Transaction txn, byte[] rootOfResponses) throws UnknownKeyException {

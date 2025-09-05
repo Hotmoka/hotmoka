@@ -56,14 +56,9 @@ import io.hotmoka.xodus.env.Transaction;
 public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLocalNodeImpl<N,C,S,T>, C extends LocalNodeConfig<C,?>, S extends AbstractTrieBasedStoreImpl<N,C,S,T>, T extends AbstractTrieBasedStoreTransformationImpl<N,C,S,T>> extends AbstractStore<N,C,S,T> implements CheckableStore<S, T> {
 
 	/**
-	 * The root of the trie of the responses.
+	 * The root of the trie of the transactions.
 	 */
-	private final byte[] rootOfResponses;
-
-	/**
-	 * The root of the trie of the requests.
-	 */
-	private final byte[] rootOfRequests;
+	private final byte[] rootOfTransactions;
 
 	/**
 	 * The root of the trie of histories.
@@ -78,8 +73,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
     protected AbstractTrieBasedStoreImpl(N node) {
     	super(node);
 
-    	this.rootOfResponses = new byte[32];
-    	this.rootOfRequests = new byte[32];
+    	this.rootOfTransactions = new byte[32];
     	this.rootOfHistories = new byte[32];
 
     	// no need to check existence here, since the empty pointer is always an existing trie
@@ -97,10 +91,8 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
     	super(toClone, cache);
   
     	var bytes = stateId.getBytes();
-		this.rootOfResponses = new byte[32];
-		System.arraycopy(bytes, 0, rootOfResponses, 0, 32);
-		this.rootOfRequests = new byte[32];
-		System.arraycopy(bytes, 32, rootOfRequests, 0, 32);
+		this.rootOfTransactions = new byte[32];
+		System.arraycopy(bytes, 32, rootOfTransactions, 0, 32);
 		this.rootOfHistories = new byte[32];
 		System.arraycopy(bytes, 64, rootOfHistories, 0, 32);
 
@@ -116,9 +108,8 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
     protected AbstractTrieBasedStoreImpl(AbstractTrieBasedStoreImpl<N,C,S,T> toClone, StoreCache cache) {
     	super(toClone, cache);
 
-    	this.rootOfResponses = toClone.rootOfResponses;
     	this.rootOfHistories = toClone.rootOfHistories;
-    	this.rootOfRequests = toClone.rootOfRequests;
+    	this.rootOfTransactions = toClone.rootOfTransactions;
     }
 
     protected final StateId addDelta(StoreCache cache, LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests,
@@ -128,13 +119,11 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
     		Optional<TransactionReference> addedTakamakaCode,
     		Transaction txn) {
 
-    	var rootOfRequests = addDeltaOfRequests(mkTrieOfRequests(txn), addedRequests, addedResponses);
-    	var rootOfResponses = addDeltaOfResponses(mkTrieOfResponses(txn), addedResponses);
+    	var rootOfTransactions = addDeltaOfTransactions(mkTrieOfTransactions(txn), addedRequests, addedResponses);
     	var rootOfHistories = addDeltaOfHistories(mkTrieOfHistories(txn), addedHistories, addedManifest, addedTakamakaCode);
 
     	var result = new byte[96];
-    	System.arraycopy(rootOfResponses, 0, result, 0, 32);
-    	System.arraycopy(rootOfRequests, 0, result, 32, 32);
+    	System.arraycopy(rootOfTransactions, 0, result, 32, 32);
     	System.arraycopy(rootOfHistories, 0, result, 64, 32);
 
     	return StateIds.of(result);
@@ -170,7 +159,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 
     @Override
 	public final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException {
-    	return getNode().getEnvironment().computeInReadonlyTransaction(txn -> mkTrieOfRequests(txn).get(reference))
+    	return getNode().getEnvironment().computeInReadonlyTransaction(txn -> mkTrieOfTransactions(txn).get(reference))
     		.orElseThrow(() -> new UnknownReferenceException(reference))
     		.getRequest();
 	}
@@ -185,7 +174,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 	}
 
     private TransactionResponse getResponseInternal(TransactionReference reference) throws UnknownReferenceException {
-    	return getNode().getEnvironment().computeInReadonlyTransaction(txn -> mkTrieOfRequests(txn).get(reference))
+    	return getNode().getEnvironment().computeInReadonlyTransaction(txn -> mkTrieOfTransactions(txn).get(reference))
     		.orElseThrow(() -> new UnknownReferenceException(reference))
     		.getResponse();
 	}
@@ -209,8 +198,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 	@Override
 	public final StateId getStateId() {
 		var result = new byte[96];
-		System.arraycopy(rootOfResponses, 0, result, 0, 32);
-		System.arraycopy(rootOfRequests, 0, result, 32, 32);
+		System.arraycopy(rootOfTransactions, 0, result, 32, 32);
 		System.arraycopy(rootOfHistories, 0, result, 64, 32);
 
 		return StateIds.of(result);
@@ -221,8 +209,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 			var node = getNode();
 
 			try {
-				node.checkExistenceOfRootOfRequests(txn, rootOfRequests);
-				node.checkExistenceOfRootOfResponses(txn, rootOfResponses);
+				node.checkExistenceOfRootOfTransactions(txn, rootOfTransactions);
 				node.checkExistenceOfRootOfHistories(txn, rootOfHistories);
 				return Optional.empty();
 			}
@@ -261,41 +248,20 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 		return trieOfHistories.getRoot();
 	}
 
-	private byte[] addDeltaOfResponses(TrieOfResponses trieOfResponses, Map<TransactionReference, TransactionResponse> addedResponses) {
-		for (var entry: addedResponses.entrySet()) {
-			trieOfResponses.malloc();
-			var old = trieOfResponses;
-			trieOfResponses = trieOfResponses.put(entry.getKey(), entry.getValue());
-			old.free();
-		}
-
-		return trieOfResponses.getRoot();
-	}
-
-	private byte[] addDeltaOfRequests(TrieOfRequests trieOfRequests, LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests, Map<TransactionReference, TransactionResponse> addedResponses) {
+	private byte[] addDeltaOfTransactions(TrieOfTransactions trieOfTransactions, LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests, Map<TransactionReference, TransactionResponse> addedResponses) {
 		for (var entry: addedRequests.entrySet()) {
-			trieOfRequests.malloc();
-			var old = trieOfRequests;
-			trieOfRequests = trieOfRequests.put(entry.getKey(), Transactions.of(entry.getValue(), addedResponses.get(entry.getKey())));
+			trieOfTransactions.malloc();
+			var old = trieOfTransactions;
+			trieOfTransactions = trieOfTransactions.put(entry.getKey(), Transactions.of(entry.getValue(), addedResponses.get(entry.getKey())));
 			old.free(); // this frees temporary tries built during the iteration
 		}
 
-		return trieOfRequests.getRoot();
+		return trieOfTransactions.getRoot();
 	}
 
-	private TrieOfResponses mkTrieOfResponses(Transaction txn) {
+	private TrieOfTransactions mkTrieOfTransactions(Transaction txn) {
 		try {
-			return getNode().mkTrieOfResponses(txn, rootOfResponses);
-		}
-		catch (UnknownKeyException e) {
-			// the constructors enforce the existence of the root, therefore this is a database problem
-			throw new LocalNodeException("The root was expected to be in store");
-		}
-	}
-
-	private TrieOfRequests mkTrieOfRequests(Transaction txn) {
-		try {
-			return getNode().mkTrieOfRequests(txn, rootOfRequests);
+			return getNode().mkTrieOfTransactions(txn, rootOfTransactions);
 		}
 		catch (UnknownKeyException e) {
 			// the constructors enforce the existence of the root, therefore this is a database problem

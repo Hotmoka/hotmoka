@@ -333,12 +333,25 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	}
 
 	/**
-	 * Writes in this transformation the given response for the given transaction reference.
+	 * Writes in this transformation the given response for the given transaction reference, that already exists in store.
 	 * 
 	 * @param reference the reference of the transaction
 	 * @param response the response of the transaction
 	 */
-	protected final void setResponse(TransactionReference reference, TransactionResponse response) {
+	private void setResponse(TransactionReference reference, TransactionResponse response) {
+		deltaResponses.put(reference, response);
+	}
+
+	/**
+	 * Writes in this transformation the given response for the given transaction reference, that already exists in store.
+	 * 
+	 * @param reference the reference of the transaction
+	 * @param response the response of the transaction
+	 * @throws UnknownReferenceException if {@code reference} is unknown
+	 */
+	protected final void replaceResponse(TransactionReference reference, TransactionResponse response) throws UnknownReferenceException {
+		// we populate the delta of the requests as well
+		deltaRequests.put(reference, getRequest(reference));
 		deltaResponses.put(reference, response);
 	}
 

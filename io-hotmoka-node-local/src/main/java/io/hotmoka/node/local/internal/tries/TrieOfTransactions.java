@@ -31,12 +31,10 @@ import io.hotmoka.patricia.api.KeyValueStore;
 import io.hotmoka.patricia.api.UnknownKeyException;
 
 /**
- * A Merkle-Patricia trie that maps references to transaction requests into their request itself.
- * It uses sha256 as hashing algorithm for the trie's nodes and an array of 0's to represent
- * the empty trie.
+ * A Merkle-Patricia trie that maps transaction references to transactions. It uses sha256 as hashing algorithm
+ * for the trie's nodes and an array of 0's to represent the empty trie.
  */
-// TODO: merge with the TrieOfResponses into a single TrieOfTransactions; evaluate if to merge with TrieOfHistories
-public class TrieOfRequests extends AbstractPatriciaTrie<TransactionReference, Transaction, TrieOfRequests> {
+public class TrieOfTransactions extends AbstractPatriciaTrie<TransactionReference, Transaction, TrieOfTransactions> {
 
 	/**
 	 * Builds a Merkle-Patricia trie that maps references to transaction requests into their responses.
@@ -45,13 +43,13 @@ public class TrieOfRequests extends AbstractPatriciaTrie<TransactionReference, T
 	 * @param root the root of the trie to check out
 	 * @throws UnknownKeyException if {@code root} cannot be found in the trie
 	 */
-	public TrieOfRequests(KeyValueStore store, byte[] root) throws UnknownKeyException {
+	public TrieOfTransactions(KeyValueStore store, byte[] root) throws UnknownKeyException {
 		super(store, root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
 			// we use a NodeUnmarshallingContext because that is the default used for marshalling transactions
 			mkSHA256(), new byte[32], Transaction::toByteArray, bytes -> Transactions.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))));
 	}
 
-	private TrieOfRequests(TrieOfRequests cloned, byte[] root) throws UnknownKeyException {
+	private TrieOfTransactions(TrieOfTransactions cloned, byte[] root) throws UnknownKeyException {
 		super(cloned, root);
 	}
 
@@ -75,7 +73,7 @@ public class TrieOfRequests extends AbstractPatriciaTrie<TransactionReference, T
 	}
 
 	@Override
-	public TrieOfRequests checkoutAt(byte[] root) throws UnknownKeyException {
-		return new TrieOfRequests(this, root);
+	public TrieOfTransactions checkoutAt(byte[] root) throws UnknownKeyException {
+		return new TrieOfTransactions(this, root);
 	}
 }
