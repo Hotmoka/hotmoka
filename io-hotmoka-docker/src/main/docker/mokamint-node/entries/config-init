@@ -46,12 +46,12 @@ echo -e "${RED}done${NC}"
 echo -n "Creating the node.pem key pair for signing the blocks... "
 PUBLIC_KEY_NODE_BASE58=$(moka keys create --output-dir=hotmoka_mokamint --name=node.pem --json | python3 -c "import sys, json; print(json.load(sys.stdin)['publicKeyBase58'])")
 chmod og-rwx hotmoka_mokamint/node.pem
-echo -e "${RED}done: ${BOLD_GREEN}the public key is ${PUBLIC_KEY_NODE_BASE58} (ed25519, base58)${NC}"
+echo -e "${RED}done:${NC} the public key is ${BOLD_GREEN}${PUBLIC_KEY_NODE_BASE58}${NC} (ed25519, base58)"
 
 echo -n "Creating the miner.pem key pair for signing the deadlines... "
 PUBLIC_KEY_MINER_BASE58=$(moka keys create --output-dir=hotmoka_mokamint --name=miner.pem --json | python3 -c "import sys, json; print(json.load(sys.stdin)['publicKeyBase58'])")
 chmod og-rwx hotmoka_mokamint/miner.pem
-echo -e "${RED}done: ${BOLD_GREEN}the public key is ${PUBLIC_KEY_MINER_BASE58} (ed25519, base58)${NC}"
+echo -e "${RED}done:${NC} the public key is ${BOLD_GREEN}${PUBLIC_KEY_MINER_BASE58}${NC} (ed25519, base58)"
 
 echo -n "Creating the local Hotmoka node configuration file... "
 touch hotmoka_mokamint/local_config.toml
