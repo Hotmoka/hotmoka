@@ -524,12 +524,12 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 * in the transaction. This method will be called, for instance, when a block
 	 * gets added to the main chain of a blockchain, for each of the transactions in such block.
 	 * 
-	 * @param transaction the transaction to publish
+	 * @param reference the transaction to publish
 	 * @param response the response computed for {@code transaction}
 	 * @param store the store where the transaction and its potential events can be found
 	 */
-	protected void publish(TransactionReference transaction, TransactionResponse response, S store) {
-		signalCompleted(transaction);
+	protected void publish(TransactionReference reference, TransactionResponse response, S store) {
+		signalCompleted(reference);
 
 		if (response instanceof TransactionResponseWithEvents trwe && trwe.hasEvents())
 			for (var event: trwe.getEvents().toArray(StorageReference[]::new))

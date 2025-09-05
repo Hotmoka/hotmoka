@@ -19,6 +19,7 @@ package io.hotmoka.node.local.internal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,9 +80,18 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	private final S store;
 
 	/**
-	 * The transactions added during this transformation. They are kept in order of addition.
+	 * The transactions added during this transformation. We use a linked hash map so that
+	 * they are kept and iterated in order of addition, which guarantees determinism.
 	 */
 	private final LinkedHashMap<TransactionReference, Transaction> deltaTransactions = new LinkedHashMap<>();
+
+	/**
+	 * The references of the transactions delivered during this transformation. Normally, this set
+	 * coincides with the set of keys of {@link #deltaTransactions}, but when transactions get reverified
+	 * and replaced, in which case they are part of {@link #deltaTransactions} (since they must be applied
+	 * to the final store of this transaction) but they are not considered as delivered during this transformation.
+	 */
+	private final Set<TransactionReference> deliveredTransactions = new HashSet<>();
 
 	/**
 	 * The histories of the objects created during this transformation.
@@ -165,8 +175,9 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	}
 
 	@Override
-	public final int deliveredCount() { // TODO: this also includes the replaced!
-		return deltaTransactions.size();
+	public final int deliveredCount() {
+		// we do not consider the replaced transactions
+		return deliveredTransactions.size();
 	}
 
 	@Override
@@ -210,6 +221,14 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	}
 
 	@Override
+	public final void forEachDeliveredTransaction(BiConsumer<TransactionReference, Transaction> action) {
+		deltaTransactions.entrySet().stream()
+			// we do not consider the replaced transactions
+			.filter(entry -> deliveredTransactions.contains(entry.getKey()))
+			.forEachOrdered(entry -> action.accept(entry.getKey(), entry.getValue()));
+	}
+
+	@Override
 	protected final <X> Future<X> submit(Callable<X> task) {
 		return store.getNode().getExecutors().submit(task);
 	}
@@ -217,11 +236,6 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	@Override
 	protected StoreCache getCache() {
 		return cache;
-	}
-
-	@Override
-	public final void forEachDeliveredTransaction(BiConsumer<TransactionReference, Transaction> action) {
-		deltaTransactions.forEach(action);
 	}
 
 	/**
@@ -321,17 +335,6 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	}
 
 	/**
-	 * Writes in this transformation the given transaction for the given transaction reference.
-	 * 
-	 * @param reference the reference of the transaction
-	 * @param request the request of the transaction
-	 * @param response the response of the transaction
-	 */
-	private void setTransaction(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
-		deltaTransactions.put(reference, Transactions.of(request, response));
-	}
-
-	/**
 	 * Writes in this transformation the given response for the given transaction reference, that already exists in store.
 	 * 
 	 * @param reference the reference of the transaction
@@ -392,6 +395,18 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 		}
 
 		return minted;
+	}
+
+	/**
+	 * Writes in this transformation the given transaction for the given transaction reference.
+	 * 
+	 * @param reference the reference of the transaction
+	 * @param request the request of the transaction
+	 * @param response the response of the transaction
+	 */
+	private void setTransaction(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
+		deltaTransactions.put(reference, Transactions.of(request, response));
+		deliveredTransactions.add(reference);
 	}
 
 	/**
