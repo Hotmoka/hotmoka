@@ -22,8 +22,8 @@ import java.security.NoSuchAlgorithmException;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.node.NodeUnmarshallingContexts;
-import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.api.requests.TransactionRequest;
+import io.hotmoka.node.Transactions;
+import io.hotmoka.node.api.transactions.Transaction;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.LocalNodeException;
 import io.hotmoka.patricia.AbstractPatriciaTrie;
@@ -36,7 +36,7 @@ import io.hotmoka.patricia.api.UnknownKeyException;
  * the empty trie.
  */
 // TODO: merge with the TrieOfResponses into a single TrieOfTransactions; evaluate if to merge with TrieOfHistories
-public class TrieOfRequests extends AbstractPatriciaTrie<TransactionReference, TransactionRequest<?>, TrieOfRequests> {
+public class TrieOfRequests extends AbstractPatriciaTrie<TransactionReference, Transaction, TrieOfRequests> {
 
 	/**
 	 * Builds a Merkle-Patricia trie that maps references to transaction requests into their responses.
@@ -47,8 +47,8 @@ public class TrieOfRequests extends AbstractPatriciaTrie<TransactionReference, T
 	 */
 	public TrieOfRequests(KeyValueStore store, byte[] root) throws UnknownKeyException {
 		super(store, root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
-			// we use a NodeUnmarshallingContext because that is the default used for marshalling requests
-			mkSHA256(), new byte[32], TransactionRequest<?>::toByteArray, bytes -> TransactionRequests.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))));
+			// we use a NodeUnmarshallingContext because that is the default used for marshalling transactions
+			mkSHA256(), new byte[32], Transaction::toByteArray, bytes -> Transactions.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))));
 	}
 
 	private TrieOfRequests(TrieOfRequests cloned, byte[] root) throws UnknownKeyException {

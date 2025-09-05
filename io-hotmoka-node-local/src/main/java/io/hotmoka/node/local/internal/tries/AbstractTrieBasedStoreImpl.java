@@ -23,6 +23,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.node.Transactions;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
@@ -127,7 +128,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
     		Optional<TransactionReference> addedTakamakaCode,
     		Transaction txn) {
 
-    	var rootOfRequests = addDeltaOfRequests(mkTrieOfRequests(txn), addedRequests);
+    	var rootOfRequests = addDeltaOfRequests(mkTrieOfRequests(txn), addedRequests, addedResponses);
     	var rootOfResponses = addDeltaOfResponses(mkTrieOfResponses(txn), addedResponses);
     	var rootOfHistories = addDeltaOfHistories(mkTrieOfHistories(txn), addedHistories, addedManifest, addedTakamakaCode);
 
@@ -170,7 +171,8 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
     @Override
 	public final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException {
     	return getNode().getEnvironment().computeInReadonlyTransaction(txn -> mkTrieOfRequests(txn).get(reference))
-    		.orElseThrow(() -> new UnknownReferenceException(reference));
+    		.orElseThrow(() -> new UnknownReferenceException(reference))
+    		.getRequest();
 	}
 
     // TODO: this cache should be moved into the StoreCache, but only after the latter has become a store-local object, not shared among stores
@@ -183,8 +185,9 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 	}
 
     private TransactionResponse getResponseInternal(TransactionReference reference) throws UnknownReferenceException {
-    	return getNode().getEnvironment().computeInReadonlyTransaction(txn -> mkTrieOfResponses(txn).get(reference))
-    		.orElseThrow(() -> new UnknownReferenceException(reference));
+    	return getNode().getEnvironment().computeInReadonlyTransaction(txn -> mkTrieOfRequests(txn).get(reference))
+    		.orElseThrow(() -> new UnknownReferenceException(reference))
+    		.getResponse();
 	}
 
     @Override
@@ -269,11 +272,11 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 		return trieOfResponses.getRoot();
 	}
 
-	private byte[] addDeltaOfRequests(TrieOfRequests trieOfRequests, LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests) {
+	private byte[] addDeltaOfRequests(TrieOfRequests trieOfRequests, LinkedHashMap<TransactionReference, TransactionRequest<?>> addedRequests, Map<TransactionReference, TransactionResponse> addedResponses) {
 		for (var entry: addedRequests.entrySet()) {
 			trieOfRequests.malloc();
 			var old = trieOfRequests;
-			trieOfRequests = trieOfRequests.put(entry.getKey(), entry.getValue());
+			trieOfRequests = trieOfRequests.put(entry.getKey(), Transactions.of(entry.getValue(), addedResponses.get(entry.getKey())));
 			old.free(); // this frees temporary tries built during the iteration
 		}
 
