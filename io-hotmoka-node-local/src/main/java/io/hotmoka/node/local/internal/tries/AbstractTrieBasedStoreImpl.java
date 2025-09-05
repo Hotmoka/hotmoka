@@ -92,9 +92,9 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
   
     	var bytes = stateId.getBytes();
 		this.rootOfTransactions = new byte[32];
-		System.arraycopy(bytes, 32, rootOfTransactions, 0, 32);
+		System.arraycopy(bytes, 0, rootOfTransactions, 0, 32);
 		this.rootOfHistories = new byte[32];
-		System.arraycopy(bytes, 64, rootOfHistories, 0, 32);
+		System.arraycopy(bytes, 32, rootOfHistories, 0, 32);
 
     	checkExistence();
     }
@@ -122,9 +122,9 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
     	var rootOfTransactions = addDeltaOfTransactions(mkTrieOfTransactions(txn), addedRequests, addedResponses);
     	var rootOfHistories = addDeltaOfHistories(mkTrieOfHistories(txn), addedHistories, addedManifest, addedTakamakaCode);
 
-    	var result = new byte[96];
-    	System.arraycopy(rootOfTransactions, 0, result, 32, 32);
-    	System.arraycopy(rootOfHistories, 0, result, 64, 32);
+    	var result = new byte[64];
+    	System.arraycopy(rootOfTransactions, 0, result, 0, 32);
+    	System.arraycopy(rootOfHistories, 0, result, 32, 32);
 
     	return StateIds.of(result);
     }
@@ -197,9 +197,9 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 
 	@Override
 	public final StateId getStateId() {
-		var result = new byte[96];
-		System.arraycopy(rootOfTransactions, 0, result, 32, 32);
-		System.arraycopy(rootOfHistories, 0, result, 64, 32);
+		var result = new byte[64];
+		System.arraycopy(rootOfTransactions, 0, result, 0, 32);
+		System.arraycopy(rootOfHistories, 0, result, 32, 32);
 
 		return StateIds.of(result);
 	}

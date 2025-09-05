@@ -72,11 +72,6 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	private final io.hotmoka.xodus.env.Store storeOfNode;
 
 	/**
-	 * The Xodus store that holds the Merkle-Patricia trie of the responses to the requests.
-	 */
-	private final io.hotmoka.xodus.env.Store storeOfResponses;
-
-	/**
 	 * The Xodus store that holds the Merkle-Patricia trie of the transactions.
 	 */
 	private final io.hotmoka.xodus.env.Store storeOfTransactions;
@@ -123,6 +118,11 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	private final static Logger LOGGER = Logger.getLogger(AbstractTrieBasedLocalNodeImpl.class.getName());
 
 	/**
+	 * The size of a state identifier with this node.
+	 */
+	public final static int SIZE_OF_STATE_ID = 64;
+
+	/**
 	 * Creates a new node.
 	 * 
 	 * @param config the local configuration of the node
@@ -135,8 +135,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 
 		this.env = new Environment(path.toString());
 		this.storeOfNode = env.computeInTransaction(txn -> env.openStoreWithoutDuplicates("node", txn));
-    	this.storeOfResponses = env.computeInTransaction(txn -> env.openStoreWithoutDuplicatesWithPrefixing("responses", txn));
-		this.storeOfTransactions = env.computeInTransaction(txn -> env.openStoreWithoutDuplicatesWithPrefixing("requests", txn));
+		this.storeOfTransactions = env.computeInTransaction(txn -> env.openStoreWithoutDuplicatesWithPrefixing("transactions", txn));
 		this.storeOfHistories = env.computeInTransaction(txn -> env.openStoreWithoutDuplicatesWithPrefixing("histories", txn));
 		this.index = new Index(storeOfNode, env, config.getIndexSize());
 
@@ -295,13 +294,13 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 */
 	protected void free(StateId stateId, Transaction txn) throws UnknownStateIdException {
 		var bytes = stateId.getBytes();
-		var rootOfRequests = new byte[32];
-		System.arraycopy(bytes, 32, rootOfRequests, 0, 32);
+		var rootOfTransactions = new byte[32];
+		System.arraycopy(bytes, 0, rootOfTransactions, 0, 32);
 		var rootOfHistories = new byte[32];
-		System.arraycopy(bytes, 64, rootOfHistories, 0, 32);
+		System.arraycopy(bytes, 32, rootOfHistories, 0, 32);
 
 		try {
-			mkTrieOfTransactions(txn, rootOfRequests).free();
+			mkTrieOfTransactions(txn, rootOfTransactions).free();
 			mkTrieOfHistories(txn, rootOfHistories).free();
 		}
 		catch (UnknownKeyException e) {
@@ -319,9 +318,9 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	protected void malloc(StateId stateId, Transaction txn) throws UnknownStateIdException {
 		var bytes = stateId.getBytes();
 		var rootOfTransactions = new byte[32];
-		System.arraycopy(bytes, 32, rootOfTransactions, 0, 32);
+		System.arraycopy(bytes, 0, rootOfTransactions, 0, 32);
 		var rootOfHistories = new byte[32];
-		System.arraycopy(bytes, 64, rootOfHistories, 0, 32);
+		System.arraycopy(bytes, 32, rootOfHistories, 0, 32);
 
 		try {
 			mkTrieOfTransactions(txn, rootOfTransactions).malloc();
@@ -339,11 +338,6 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	protected void checkExistenceOfRootOfTransactions(Transaction txn, byte[] rootOfTransactions) throws UnknownKeyException {
 		if (!Arrays.equals(rootOfTransactions, hashOfEmpty))
 			new KeyValueStoreOnXodus(storeOfTransactions, txn).get(rootOfTransactions);
-	}
-
-	protected void checkExistenceOfRootOfResponses(Transaction txn, byte[] rootOfResponses) throws UnknownKeyException {
-		if (!Arrays.equals(rootOfResponses, hashOfEmpty))
-			new KeyValueStoreOnXodus(storeOfResponses, txn).get(rootOfResponses);
 	}
 
 	protected void checkExistenceOfRootOfHistories(Transaction txn, byte[] rootOfHistories) throws UnknownKeyException {
@@ -374,7 +368,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 					}
 				}
 
-				Thread.sleep(5000L);
+				Thread.sleep(10000L);
 			}
 		}
 		catch (InterruptedException e) {
@@ -408,7 +402,6 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 */
 	private void removeFromStores(ByteIterable which, StateIdAndTime toRemove, Transaction txn) {
 		SortedSet<StateIdAndTime> ids = getStores(which, txn);
-
 		if (ids.remove(toRemove))
 			storeStateIdsAndTimes(which, ids, txn);
 	}
@@ -423,7 +416,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 */
 	private Set<StateIdAndTime> retainOnlyNotOlderThan(long limitCreationTime, Transaction txn) {
 		SortedSet<StateIdAndTime> ids = getStores(STORES_NOT_TO_GC, txn);
-		Set<StateIdAndTime> removedIds = new HashSet<>();
+		var removedIds = new HashSet<StateIdAndTime>();
 
 		for (var id: ids)
 			if (id.time < limitCreationTime)
@@ -477,7 +470,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	private static class StateIdAndTime implements Comparable<StateIdAndTime> {
 		private final StateId stateId;
 		private final long time;
-		private final static int SIZE_IN_BYTES = 96 + 8;
+		private final static int SIZE_IN_BYTES = 64 + 8;
 
 		private StateIdAndTime(StateId stateId, long time) {
 			this.stateId = stateId;
@@ -485,14 +478,14 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		}
 
 		private StateIdAndTime(byte[] bytes) {
-			var bytesForStateId = new byte[96];
-			System.arraycopy(bytes, 0, bytesForStateId, 0, 96);
+			var bytesForStateId = new byte[64];
+			System.arraycopy(bytes, 0, bytesForStateId, 0, 64);
 			this.stateId = StateIds.of(bytesForStateId);
 
 			long t = 0;
 		    for (int i = 0; i < 8; i++) {
 		        t <<= 8;
-		        t |= (bytes[96 + i] & 0xFF);
+		        t |= (bytes[64 + i] & 0xFF);
 		    }
 
 		    this.time = t;
@@ -500,10 +493,10 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 
 		private byte[] getBytes() {
 			var result = new byte[SIZE_IN_BYTES];
-			System.arraycopy(stateId.getBytes(), 0, result, 0, 96);
+			System.arraycopy(stateId.getBytes(), 0, result, 0, 64);
 
 			long l = time;
-			for (int i = 96 + 7; i >= 96; i--) {
+			for (int i = 64 + 7; i >= 64; i--) {
 		        result[i] = (byte) (l & 0xFF);
 		        l >>= 8;
 		    }

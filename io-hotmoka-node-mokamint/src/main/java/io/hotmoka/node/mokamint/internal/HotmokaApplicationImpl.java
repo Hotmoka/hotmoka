@@ -153,7 +153,7 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 	@Override
 	public byte[] getInitialStateId() throws ClosedApplicationException {
 		try (var scope = mkScope()) {
-			return new byte[96];
+			return new byte[MokamintNodeImpl.SIZE_OF_STATE_ID];
 		}
 	}
 
