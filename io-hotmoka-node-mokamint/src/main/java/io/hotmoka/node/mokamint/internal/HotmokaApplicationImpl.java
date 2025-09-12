@@ -55,6 +55,8 @@ import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
 import io.hotmoka.xodus.env.Environment;
 import io.mokamint.application.AbstractApplication;
 import io.mokamint.application.api.ClosedApplicationException;
+import io.mokamint.application.api.Description;
+import io.mokamint.application.api.Name;
 import io.mokamint.application.api.UnknownGroupIdException;
 import io.mokamint.application.api.UnknownStateException;
 import io.mokamint.node.Transactions;
@@ -72,6 +74,8 @@ import io.mokamint.nonce.api.Deadline;
  * 
  * @param <E> the type of the underlying Mokamint engine
  */
+@Name("Hotmoka")
+@Description("an application running Hotmoka transactions")
 public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplication implements Application<E> {
 
 	/**

@@ -22,6 +22,7 @@ import java.util.concurrent.TimeoutException;
 import io.hotmoka.node.local.LocalNodeException;
 import io.hotmoka.node.mokamint.api.MokamintNode;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
+import io.mokamint.application.api.ClosedApplicationException;
 import io.mokamint.node.local.AbstractLocalNode;
 import io.mokamint.node.local.api.LocalNode;
 import io.mokamint.node.local.api.LocalNodeConfig;
@@ -43,18 +44,31 @@ public abstract class MokamintNodesImpl {
 	 * @param keyPair the keys of the Mokamint engine, used to sign the blocks that it mines
 	 * @return the Mokamint node
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
-	 * @throws TimeoutException if the operation does not complete in time
 	 */
-	public static MokamintNode<LocalNode> init(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws InterruptedException, TimeoutException {
+	public static MokamintNode<LocalNode> init(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws InterruptedException {
 		var app = new HotmokaApplicationImpl<LocalNode>(config, true);
-		var engine = new AbstractLocalNode(mokamintConfig, keyPair, app, true) {};
+		AbstractLocalNode engine;
+
+		try {
+			engine = new AbstractLocalNode(mokamintConfig, keyPair, app, true) {};
+		}
+		catch (ClosedApplicationException e) {
+			// this is impossible: nobody can have closed our local application
+			throw new LocalNodeException(e);
+		}
+
+		// TODO: simplify below: I think that the TimeoutException could be shown impossible statically; also in the other methods
 		MokamintNode<LocalNode> node = app.getNode();
 
 		try {
 			node.setMokamintEngine(engine);
 		}
 		catch (io.mokamint.node.api.ClosedNodeException e) {
-			// this is impossible: nobody can have closed our local variable engine
+			// this is impossible: nobody can have closed our local engine
+			throw new LocalNodeException(e);
+		}
+		catch (TimeoutException e) {
+			// this is impossible for a local node (such as a MokamintNode) and a local engine
 			throw new LocalNodeException(e);
 		}
 
@@ -74,18 +88,30 @@ public abstract class MokamintNodesImpl {
 	 * @param keyPair the keys of the Mokamint engine, used to sign the blocks that it mines
 	 * @return the Mokamint node
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
-	 * @throws TimeoutException if the operation does not complete in time
 	 */
-	public static MokamintNode<LocalNode> start(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws InterruptedException, TimeoutException {
+	public static MokamintNode<LocalNode> start(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws InterruptedException {
 		var app = new HotmokaApplicationImpl<LocalNode>(config, true);
-		var engine = new AbstractLocalNode(mokamintConfig, keyPair, app, false) {};
+		AbstractLocalNode engine;
+
+		try {
+			engine = new AbstractLocalNode(mokamintConfig, keyPair, app, false) {};
+		}
+		catch (ClosedApplicationException e) {
+			// this is impossible: nobody can have closed our local application
+			throw new LocalNodeException(e);
+		}
+
 		MokamintNode<LocalNode> node = app.getNode();
 
 		try {
 			node.setMokamintEngine(engine);
 		}
 		catch (io.mokamint.node.api.ClosedNodeException e) {
-			// this is impossible: nobody can have closed our local variable engine
+			// this is impossible: nobody can have closed our local engine
+			throw new LocalNodeException(e);
+		}
+		catch (TimeoutException e) {
+			// this is impossible for a local node (such as a MokamintNode) and a local engine
 			throw new LocalNodeException(e);
 		}
 
@@ -105,18 +131,30 @@ public abstract class MokamintNodesImpl {
 	 * @param keyPair the keys of the Mokamint engine, used to sign the blocks that it mines
 	 * @return the Mokamint node
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
-	 * @throws TimeoutException if the operation does not complete in time
 	 */
-	public static MokamintNode<LocalNode> resume(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws InterruptedException, TimeoutException {
+	public static MokamintNode<LocalNode> resume(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws InterruptedException {
 		var app = new HotmokaApplicationImpl<LocalNode>(config, false);
-		var engine = new AbstractLocalNode(mokamintConfig, keyPair, app, false) {};
+		AbstractLocalNode engine;
+
+		try {
+			engine = new AbstractLocalNode(mokamintConfig, keyPair, app, false) {};
+		}
+		catch (ClosedApplicationException e) {
+			// this is impossible: nobody can have closed our local application
+			throw new LocalNodeException(e);
+		}
+
 		MokamintNode<LocalNode> node = app.getNode();
 
 		try {
 			node.setMokamintEngine(engine);
 		}
 		catch (io.mokamint.node.api.ClosedNodeException e) {
-			// this is impossible: nobody can have closed our local variable engine
+			// this is impossible: nobody can have closed our local engine
+			throw new LocalNodeException(e);
+		}
+		catch (TimeoutException e) {
+			// this is impossible for a local node (such as a MokamintNode) and a local engine
 			throw new LocalNodeException(e);
 		}
 

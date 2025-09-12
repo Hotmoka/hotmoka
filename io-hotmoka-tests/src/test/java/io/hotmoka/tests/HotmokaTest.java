@@ -110,6 +110,7 @@ import io.hotmoka.node.tendermint.api.TendermintNode;
 import io.hotmoka.testing.AbstractLoggedTests;
 import io.hotmoka.websockets.api.FailedDeploymentException;
 import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
+import io.mokamint.application.service.ApplicationServices;
 import io.mokamint.miner.api.Miner;
 import io.mokamint.miner.local.LocalMiners;
 import io.mokamint.node.Peers;
@@ -395,7 +396,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		var prolog = Prologs.of(mokamintConfig.getChainId(), mokamintConfig.getSignatureForBlocks(), nodeKeys.getPublic(), mokamintConfig.getSignatureForDeadlines(), plotKeys.getPublic(), new byte[0]);
 		var plot = Plots.create(hotmokaChainPath.resolve("test.plot"), prolog, 1000, 4000, mokamintConfig.getHashingForDeadlines(), __ -> {});
 		plots.add(plot);
-		var miner = LocalMiners.of((_signature, _publicKey) -> Optional.empty(), new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, plotKeys) });
+		var miner = LocalMiners.of("Hotmoka testing", "Hotmoka testing mining endpoint", (_signature, _publicKey) -> Optional.empty(), new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, plotKeys) });
 		miners.add(miner);
 		var node = MokamintNodes.init(config, mokamintConfig, nodeKeys);
 		var engine = node.getMokamintEngine().get();
@@ -477,7 +478,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			var plot = Plots.create(hotmokaChainPath.resolve("test.plot"), prolog, 1000, PLOT_LENGTH * nodeNum, mokamintConfig.getHashingForDeadlines(), __ -> {});
 			plots.add(plot);
 
-			var miner = LocalMiners.of((_signature, _publicKey) -> Optional.empty(), new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, plotKeys) });
+			var miner = LocalMiners.of("Hotmoka testing", "Hotmoka testing mining endpoint", (_signature, _publicKey) -> Optional.empty(), new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, plotKeys) });
 			miners.add(miner);
 
 			MokamintNode<LocalNode> node = nodeNum == 1 ? MokamintNodes.init(config, mokamintConfig, nodeKeys) : MokamintNodes.start(config, mokamintConfig, nodeKeys); // we create a brand new genesis block, but only in node 1
@@ -489,17 +490,20 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			if (nodeNum == 1) {
 				engine.openMiner(8025);
 				var minerURI = URI.create("ws://localhost:8025");
-				System.out.println(minerURI + ": remote Mokamint miner");
+				System.out.println(minerURI + ": Mokamint miner");
 			}
 
 			// we open a web service to the underlying Mokamint engine; this is not necessary,
 			// but it allows developers to interact with the node during the execution of the tests
-			var publicURI = URI.create("ws://localhost:" + (8028 + nodeNum * 2));
-			var restrictedURI = URI.create("ws://localhost:" + (8029 + nodeNum * 2));
-			PublicNodeServices.open(engine, 8028 + nodeNum * 2, 1800000, 1000, Optional.of(publicURI));
-			RestrictedNodeServices.open(engine, 8029 + nodeNum * 2);
+			final var publicURI = URI.create("ws://localhost:" + (8027 + nodeNum * 3));
+			final var restrictedURI = URI.create("ws://localhost:" + (8028 + nodeNum * 3));
+			final var applicationURI = URI.create("ws://localhost:" + (8029 + nodeNum * 3));
+			PublicNodeServices.open(engine, 8027 + nodeNum * 3, 1800000, 1000, Optional.of(publicURI));
+			RestrictedNodeServices.open(engine, 8028 + nodeNum * 3);
+			ApplicationServices.open(engine.getApplication(), 8029 + nodeNum * 3);
 			System.out.println(publicURI + ": underlying Mokamint node " + nodeNum + " (public)");
 			System.out.println(restrictedURI + ": underlying Mokamint node " + nodeNum + " (restricted)");
+			System.out.println(applicationURI + ": Mokamint application of Mokamint node " + nodeNum);
 
 			if (nodeNum == 1) {
 				firstNode = node;
