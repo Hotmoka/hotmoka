@@ -2,7 +2,10 @@ package io.hotmoka.node.mokamint.internal;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.math.BigInteger;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Arrays;
@@ -16,19 +19,29 @@ import java.util.logging.Logger;
 import io.hotmoka.annotations.GuardedBy;
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.constants.Constants;
+import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.HashingAlgorithm;
+import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.NodeUnmarshallingContexts;
+import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.ClosedNodeException;
+import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UninitializedNodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.values.NullValue;
+import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.local.AbstractTrieBasedLocalNode;
 import io.hotmoka.node.local.LRUCache;
 import io.hotmoka.node.local.LocalNodeException;
@@ -120,6 +133,16 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 	@Override
 	public MokamintNode<E> getNode() {
 		return node;
+	}
+
+	@Override
+	public Optional<BigInteger> getBalance(SignatureAlgorithm signature, PublicKey publicKey) throws ClosedApplicationException, InterruptedException {
+		try (var scope = mkScope()) {
+			return node.getBalance(signature, publicKey);
+		}
+		catch (ClosedNodeException e) {
+			throw new ClosedApplicationException(e);
+		}
 	}
 
 	@Override
@@ -301,6 +324,12 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 				}
 			}
 		}
+	}
+
+	@Override
+	protected void closeResources() {
+		node.close();
+		super.closeResources();
 	}
 
 	private void publish(Transaction tx, MokamintStore store) {
@@ -517,6 +546,64 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 		@Override
 		protected void free(StateId stateId, io.hotmoka.xodus.env.Transaction txn) throws UnknownStateIdException {
 			super.free(stateId, txn);
+		}
+
+		private Optional<BigInteger> getBalance(SignatureAlgorithm signature, PublicKey publicKey) throws ClosedNodeException, InterruptedException {
+			try {
+				String publicKeyBase64;
+
+				try {
+					publicKeyBase64 = Base64.toBase64String(signature.encodingOf(publicKey));
+				}
+				catch (InvalidKeyException e) {
+					LOGGER.warning("could not determine the balance of the public key since it is invalid for signature " + signature);
+					return Optional.empty();
+				}
+
+				StorageReference manifest = getManifest();
+				TransactionReference takamakaCode = getTakamakaCode();
+				StorageValue account;
+				var _500_000 = BigInteger.valueOf(500_000L);
+
+				try {
+					// we look for the accounts ledger
+					var ledger = runInstanceMethodCallTransaction
+							(TransactionRequests.instanceViewMethodCall(manifest, _500_000, takamakaCode, MethodSignatures.GET_ACCOUNTS_LEDGER, manifest))
+							.orElseThrow(() -> new LocalNodeException(MethodSignatures.GET_ACCOUNTS_LEDGER + " should not return void"))
+							.asReturnedReference(MethodSignatures.GET_ACCOUNTS_LEDGER, LocalNodeException::new);
+
+					// we look for the public key inside the accounts ledger
+					account = runInstanceMethodCallTransaction
+							(TransactionRequests.instanceViewMethodCall(manifest, _500_000, takamakaCode, MethodSignatures.GET_FROM_ACCOUNTS_LEDGER, ledger, StorageValues.stringOf(publicKeyBase64)))
+							.orElseThrow(() -> new LocalNodeException(MethodSignatures.GET_FROM_ACCOUNTS_LEDGER + " should not return void"));
+				}
+				catch (CodeExecutionException | TransactionException | TransactionRejectedException e) {
+					throw new LocalNodeException("Could not access the accounts ledger", e);
+				}
+
+				if (account instanceof StorageReference sr) {
+					try {
+						BigInteger balance = runInstanceMethodCallTransaction
+								(TransactionRequests.instanceViewMethodCall(manifest, _500_000, takamakaCode, MethodSignatures.BALANCE, sr))
+								.orElseThrow(() -> new LocalNodeException(MethodSignatures.BALANCE + " should not return void"))
+								.asReturnedBigInteger(MethodSignatures.BALANCE, LocalNodeException::new);
+
+						return Optional.of(balance);
+					}
+					catch (CodeExecutionException | TransactionException | TransactionRejectedException e) {
+						throw new LocalNodeException("Could not determine the balance of account " + sr + " found in the accounts ledger", e);
+					}
+				}
+				else if (account instanceof NullValue)
+					// there is no account in the accounts ledger for the given public key
+					return Optional.empty();
+				else
+					throw new LocalNodeException("An unexpected value of type " + account.getClass().getSimpleName() + " has been found in the accounts ledger");
+			}
+			catch (TimeoutException | UninitializedNodeException e) {
+				LOGGER.warning("could not determine the balance of a public key: " + e.getMessage());
+				return Optional.empty();
+			}
 		}
 	}
 }

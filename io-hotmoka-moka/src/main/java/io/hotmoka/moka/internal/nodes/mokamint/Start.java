@@ -99,7 +99,7 @@ public class Start extends AbstractNodeStart {
 			askForConfirmation(localNodeConfig.getDir());
 
 			try (var node = MokamintNodes.start(localNodeConfig, mokamintConfig, keysOfNode); var plot = Plots.load(this.plot)) {
-				try (var miner = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, keysOfPlot) })) {
+				try (var miner = LocalMiners.of((_signature, _publicKey) -> Optional.empty(), new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, keysOfPlot) })) {
 					var engine = node.getMokamintEngine().get();
 					engine.add(miner).orElseThrow(() -> new CommandException("Could not add a miner to the Mokamint node"));
 

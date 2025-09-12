@@ -116,6 +116,7 @@ import io.mokamint.node.Peers;
 import io.mokamint.node.local.LocalNodeConfigBuilders;
 import io.mokamint.node.local.api.LocalNode;
 import io.mokamint.node.service.PublicNodeServices;
+import io.mokamint.node.service.RestrictedNodeServices;
 import io.mokamint.nonce.Prologs;
 import io.mokamint.plotter.PlotAndKeyPairs;
 import io.mokamint.plotter.Plots;
@@ -176,17 +177,8 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	    			node = wrapped = mkDiskNode();
 	    		else if ("disk-remote".equals(requestedNodeType))
 	    			node = mkRemoteNode(wrapped = mkDiskNode());
-	    		else {
-	    			//node = wrapped = mkDiskNode();
-	    			//node = wrapped = mkMokamintNodeConnectedToPeer();
-	    			//node = wrapped = mkMokamintNetwork(4);
-	    			//node = wrapped = mkTendermintNode();
-	    			node = mkRemoteNode(wrapped = mkDiskNode());
-	    			//node = mkRemoteNode(wrapped = mkMokamintNetwork(1));
-	    			//node = mkRemoteNode(wrapped = mkTendermintNode());
-	    			//node = wrapped = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
-	    			//node = wrapped = mkRemoteNode("localhost:8080");
-	    		}
+	    		else
+	    			node = mkRemoteNode(wrapped = mkDiskNode()); // default
 
 	    		initializeNodeIfNeeded(wrapped);
 
@@ -403,7 +395,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		var prolog = Prologs.of(mokamintConfig.getChainId(), mokamintConfig.getSignatureForBlocks(), nodeKeys.getPublic(), mokamintConfig.getSignatureForDeadlines(), plotKeys.getPublic(), new byte[0]);
 		var plot = Plots.create(hotmokaChainPath.resolve("test.plot"), prolog, 1000, 4000, mokamintConfig.getHashingForDeadlines(), __ -> {});
 		plots.add(plot);
-		var miner = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, plotKeys) });
+		var miner = LocalMiners.of((_signature, _publicKey) -> Optional.empty(), new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, plotKeys) });
 		miners.add(miner);
 		var node = MokamintNodes.init(config, mokamintConfig, nodeKeys);
 		var engine = node.getMokamintEngine().get();
@@ -440,7 +432,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		final var MAX_HISTORY_CHANGE = 15L * 60 * 1000; // 15 minutes, so that it is possible to see the effects of garbage-collection during the tests
 
 		MokamintNode<LocalNode> firstNode = null;
-		URI firstUri = null;
+		URI firstPublicUri = null;
 
 		consensus = fillConsensusConfig(TendermintConsensusConfigBuilders.defaults()).build();
 		long indexingPause = 5_000L;
@@ -485,7 +477,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			var plot = Plots.create(hotmokaChainPath.resolve("test.plot"), prolog, 1000, PLOT_LENGTH * nodeNum, mokamintConfig.getHashingForDeadlines(), __ -> {});
 			plots.add(plot);
 
-			var miner = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, plotKeys) });
+			var miner = LocalMiners.of((_signature, _publicKey) -> Optional.empty(), new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, plotKeys) });
 			miners.add(miner);
 
 			MokamintNode<LocalNode> node = nodeNum == 1 ? MokamintNodes.init(config, mokamintConfig, nodeKeys) : MokamintNodes.start(config, mokamintConfig, nodeKeys); // we create a brand new genesis block, but only in node 1
@@ -493,24 +485,32 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 			int nodeNumCopy = nodeNum;
 			var engine = node.getMokamintEngine().get();
-			engine.add(miner).orElseThrow(() -> new LocalNodeException("Could not add the miner to test node " + nodeNumCopy));
+			engine.add(miner).orElseThrow(() -> new LocalNodeException("Could not add the local miner to test node " + nodeNumCopy));
+			if (nodeNum == 1) {
+				engine.openMiner(8025);
+				var minerURI = URI.create("ws://localhost:8025");
+				System.out.println(minerURI + ": remote Mokamint miner");
+			}
 
 			// we open a web service to the underlying Mokamint engine; this is not necessary,
-			// but it allows developers to query the node during the execution of the tests
-			var uri = URI.create("ws://localhost:" + (8029 + nodeNum));
-			PublicNodeServices.open(engine, 8029 + nodeNum, 1800000, 1000, Optional.of(uri));
-			System.out.println("Underlying Mokamint node " + nodeNum + " published at " + uri);
+			// but it allows developers to interact with the node during the execution of the tests
+			var publicURI = URI.create("ws://localhost:" + (8028 + nodeNum * 2));
+			var restrictedURI = URI.create("ws://localhost:" + (8029 + nodeNum * 2));
+			PublicNodeServices.open(engine, 8028 + nodeNum * 2, 1800000, 1000, Optional.of(publicURI));
+			RestrictedNodeServices.open(engine, 8029 + nodeNum * 2);
+			System.out.println(publicURI + ": underlying Mokamint node " + nodeNum + " (public)");
+			System.out.println(restrictedURI + ": underlying Mokamint node " + nodeNum + " (restricted)");
 
 			if (nodeNum == 1) {
 				firstNode = node;
-				firstUri = uri;
+				firstPublicUri = publicURI;
 				System.out.println("Initializing Hotmoka node " + nodeNum);
 				initializeNodeIfNeeded(node);
 			}
-			else if (firstNode.getMokamintEngine().get().add(Peers.of(uri)).isPresent())
-				System.out.println("Added " + uri + " as a peer of " + firstUri);
+			else if (firstNode.getMokamintEngine().get().add(Peers.of(publicURI)).isPresent())
+				System.out.println("Added " + publicURI + " as a peer of " + firstPublicUri);
 			else
-				throw new LocalNodeException("Could not add " + uri + " as a peer of " + firstUri);
+				throw new LocalNodeException("Could not add " + publicURI + " as a peer of " + firstPublicUri);
 		}
 
 		return nodes.get(0);
@@ -535,8 +535,10 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	private static Node mkRemoteNode(Node exposed) throws FailedDeploymentException {
 		NodeServices.of(exposed, 8000); // it will be closed when exposed will be closed
-		System.out.println("Hotmoka node published at ws://localhost:8000");
-		return RemoteNodes.of(URI.create("ws://localhost:8000"), 150_000);
+		var uri = URI.create("ws://localhost:8000");
+		var result = RemoteNodes.of(uri, 150_000);
+		System.out.println(uri + ": Hotmoka node");
+		return result;
 	}
 
 	@SuppressWarnings("unused")

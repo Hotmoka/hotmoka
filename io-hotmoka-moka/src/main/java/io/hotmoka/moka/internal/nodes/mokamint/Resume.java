@@ -98,7 +98,7 @@ public class Resume extends AbstractNodeResume {
 			KeyPair keysOfPlot = mkKeysOfPlot(mokamintConfig);
 
 			try (var node = MokamintNodes.resume(localNodeConfig, mokamintConfig, keysOfNode); var plot = Plots.load(this.plot)) {
-				try (var miner = LocalMiners.of(new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, keysOfPlot) })) {
+				try (var miner = LocalMiners.of((_signature, _publicKey) -> Optional.empty(), new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, keysOfPlot) })) {
 					var engine = node.getMokamintEngine().get();
 					engine.add(miner).orElseThrow(() -> new CommandException("Could not add a miner to the Mokamint node"));
 
