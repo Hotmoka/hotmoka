@@ -74,7 +74,7 @@ public class UpdateForNewNode {
 	 * The timeout (in milliseconds) used for the communication to the remote nodes. Better to use a relatively high
 	 * value, since the Mokamint node has a varying block creation rate.
 	 */
-	public final static int TIMEOUT = 150000;
+	public final static int TIMEOUT = 250000;
 
 	private UpdateForNewNode() {}
 
