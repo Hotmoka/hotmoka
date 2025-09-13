@@ -119,7 +119,7 @@ public class Sell extends AbstractGasCostCommand {
 				askForConfirmation("place a sale offer of " + power + " units of validation power at the price of " + panas(price), gasLimit, gasPrice, yes || json());
 				this.nonce = determineNonceOf(payer, remote);
 				this.request = mkRequest();
-				report(json(), executeRequest(), NodesTendermintValidatorsSellOutputs.Encoder::new);
+				report(executeRequest(), NodesTendermintValidatorsSellOutputs.Encoder::new);
 			}
 			finally {
 				passwordOfPayerAsString = null;

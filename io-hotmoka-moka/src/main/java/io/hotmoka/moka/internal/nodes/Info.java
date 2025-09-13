@@ -37,7 +37,7 @@ public class Info extends AbstractMokaRpcCommand {
 
 	@Override
 	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, ClosedNodeException {
-		report(json(), new Output(remote.getInfo()), NodesInfoOutputs.Encoder::new);
+		report(new Output(remote.getInfo()), NodesInfoOutputs.Encoder::new);
 	}
 
 	/**

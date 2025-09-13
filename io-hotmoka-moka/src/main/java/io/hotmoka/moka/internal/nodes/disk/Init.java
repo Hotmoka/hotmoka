@@ -68,7 +68,7 @@ public class Init extends AbstractNodeInit {
 			var initialized = DiskInitializedNodes.of(node, consensus, getTakamakaCode());
 			var service = NodeServices.of(node, getPort())) {
 
-			report(json(), new Output(initialized.gamete(), URI.create("ws://localhost:" + getPort())), NodesDiskInitOutputs.Encoder::new);
+			report(new Output(initialized.gamete(), URI.create("ws://localhost:" + getPort())), NodesDiskInitOutputs.Encoder::new);
 			waitForEnterKey();
 		}
 		catch (IOException e) {

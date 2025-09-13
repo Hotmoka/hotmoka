@@ -49,9 +49,6 @@ public class Import extends AbstractMokaCommand {
 	@Option(names = "--output-dir", paramLabel = "<path>", description = "the directory where the key pair file of the account will be written", defaultValue = "")
     private Path outputDir;
 
-	@Option(names = "--json", description = "print the output in JSON", defaultValue = "false")
-	private boolean json;
-
 	@Override
 	protected void execute() throws CommandException {
 		if (words.size() != 36)
@@ -71,7 +68,7 @@ public class Import extends AbstractMokaCommand {
 			throw new CommandException("Could not write the key pair file of the account into " + file + ".pem", e);
 		}
 
-		report(json, new Output(file, account.getReference()), KeysImportOutputs.Encoder::new);
+		report(new Output(file, account.getReference()), KeysImportOutputs.Encoder::new);
 	}
 
 	/**

@@ -192,7 +192,7 @@ public class Send extends AbstractGasCostCommand {
 				askForConfirmation("send " + amount + " panas from " + payer + " to " + receiver, gasLimit, gasPrice, yes || json());
 				this.nonce = determineNonceOf(payer, remote);
 				this.request = mkRequest();
-				report(json(), executeRequest(), AccountsSendOutputs.Encoder::new);
+				report(executeRequest(), AccountsSendOutputs.Encoder::new);
 			}
 			finally {
 				passwordOfPayerAsString = null;
@@ -281,7 +281,7 @@ public class Send extends AbstractGasCostCommand {
 			this.gasPrice = determineGasPrice(remote);
 			this.classpath = getClasspath(remote);
 			this.request = mkRequest();
-			report(json(), executeRequest(), AccountsSendOutputs.Encoder::new);
+			report(executeRequest(), AccountsSendOutputs.Encoder::new);
 		}
 	
 		private InstanceMethodCallTransactionRequest mkRequest() {
@@ -390,7 +390,7 @@ public class Send extends AbstractGasCostCommand {
 				askForConfirmation("send " + amount + " panas from " + payer + " to " + receiver, gasLimit, gasPrice, yes || json());
 				this.nonce = determineNonceOf(payer, remote);
 				this.request = mkRequest();
-				report(json(), executeRequest(), AccountsSendOutputs.Encoder::new);
+				report(executeRequest(), AccountsSendOutputs.Encoder::new);
 			}
 			finally {
 				passwordOfPayerAsString = null;

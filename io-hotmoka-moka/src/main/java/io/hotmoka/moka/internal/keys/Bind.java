@@ -77,7 +77,7 @@ public class Bind extends AbstractMokaRpcCommand {
 	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, MisbehavingNodeException, ClosedNodeException, UninitializedNodeException {
 		StorageReference reference = this.reference != null ? verifyPublicKey(remote) : getFromAccountsLedger(remote);
 		Path file = bindKeysToAccount(key, reference, outputDir);
-		report(json(), new Output(reference, file), KeysBindOutputs.Encoder::new);
+		report(new Output(reference, file), KeysBindOutputs.Encoder::new);
 	}
 
 	/**

@@ -62,9 +62,6 @@ public class Show extends AbstractMokaCommand {
 	@Option(names = "--show-private", description = "show the private key")
 	private boolean showPrivate;
 
-	@Option(names = "--json", description = "print the output in JSON", defaultValue = "false")
-	private boolean json;
-
 	@Override
 	protected void execute() throws CommandException {
 		String passwordAsString = new String(password);
@@ -73,7 +70,7 @@ public class Show extends AbstractMokaCommand {
 			KeyPair keys = Entropies.load(this.keys).keys(passwordAsString, signature);
 
 			try {
-				report(json, new Output(signature, keys, showPrivate), KeysShowOutputs.Encoder::new);
+				report(new Output(signature, keys, showPrivate), KeysShowOutputs.Encoder::new);
 			}
 			catch (NoSuchAlgorithmException e) {
 				throw new CommandException("The sha256 hashing algorithm is not available in this machine!");

@@ -87,7 +87,7 @@ public class Show extends AbstractMokaRpcCommand {
 			String publicKeyBase64 = getPublicKeyBase64();
 
 			try {
-				report(json(), new Output(account, balance, signature, publicKeyBase64), AccountsShowOutputs.Encoder::new);
+				report(new Output(account, balance, signature, publicKeyBase64), AccountsShowOutputs.Encoder::new);
 			}
 			catch (Base64ConversionException e) {
 				throw new CommandException("The key in the account object " + account + " is not in base64 format", e);

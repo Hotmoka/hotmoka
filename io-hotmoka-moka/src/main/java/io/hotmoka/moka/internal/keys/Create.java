@@ -67,9 +67,6 @@ public class Create extends AbstractMokaCommand {
 	@Option(names = "--show-private", description = "show the private key")
 	private boolean showPrivate;
 
-	@Option(names = "--json", description = "print the output in JSON", defaultValue = "false")
-	private boolean json;
-
 	@Override
 	protected void execute() throws CommandException {
 		String passwordAsString;
@@ -103,7 +100,7 @@ public class Create extends AbstractMokaCommand {
 			}
 
 			try {
-				report(json, new Output(file, signature, keys, showPrivate), KeysCreateOutputs.Encoder::new);
+				report(new Output(file, signature, keys, showPrivate), KeysCreateOutputs.Encoder::new);
 			}
 			catch (NoSuchAlgorithmException e) {
 				throw new CommandException("The sha256 hashing algorithm is not available in this machine!");

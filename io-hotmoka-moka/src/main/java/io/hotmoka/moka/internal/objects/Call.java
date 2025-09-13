@@ -160,7 +160,7 @@ public class Call extends AbstractGasCostCommand {
 					this.nonce = Optional.of(determineNonceOf(payer, remote));
 				}
 				this.request = mkRequest();
-				report(json(), executeRequest(), ObjectsCallOutputs.Encoder::new);
+				report(executeRequest(), ObjectsCallOutputs.Encoder::new);
 			}
 			finally {
 				passwordOfPayerAsString = null;

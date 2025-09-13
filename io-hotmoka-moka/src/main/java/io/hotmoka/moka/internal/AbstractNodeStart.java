@@ -44,9 +44,6 @@ public abstract class AbstractNodeStart extends AbstractMokaCommand {
 	@Option(names = "--chain-dir", description = "the directory that will contain blocks and state of the node", defaultValue = "chain")
 	private Path chainDir;
 
-	@Option(names = "--json", description = "print the output in JSON", defaultValue = "false")
-	private boolean json;
-
 	/**
 	 * Asks the user about the real intention to proceed with the destruction of the given directory.
 	 * 
@@ -54,12 +51,8 @@ public abstract class AbstractNodeStart extends AbstractMokaCommand {
 	 * @throws CommandException if the user replies negatively
 	 */
 	protected final void askForConfirmation(Path dir) throws CommandException {
-		if (!yes && !json && !answerIsYes(asInteraction("Do you really want to start a new node at \"" + dir + "\" (old blocks and store will be lost) [Y/N] ")))
+		if (!yes && !json() && !answerIsYes(asInteraction("Do you really want to start a new node at \"" + dir + "\" (old blocks and store will be lost) [Y/N] ")))
 			throw new CommandException("Stopped");
-	}
-
-	protected boolean json() {
-		return json;
 	}
 
 	protected int getPort() {

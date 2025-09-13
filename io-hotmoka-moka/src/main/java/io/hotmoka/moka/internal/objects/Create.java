@@ -142,7 +142,7 @@ public class Create extends AbstractGasCostCommand {
 				askForConfirmation("call constructor " + constructor, gasLimit, gasPrice, yes || json());
 				this.nonce = determineNonceOf(payer, remote);
 				this.request = mkRequest();
-				report(json(), executeRequest(), ObjectsCreateOutputs.Encoder::new);
+				report(executeRequest(), ObjectsCreateOutputs.Encoder::new);
 			}
 			finally {
 				passwordOfPayerAsString = null;

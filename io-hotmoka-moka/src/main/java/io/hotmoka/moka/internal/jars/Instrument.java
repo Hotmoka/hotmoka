@@ -66,9 +66,6 @@ public class Instrument extends AbstractMokaCommand {
 	@Option(names = "--skip-verification", description = "skip the preliminary verification of the jar")
 	private boolean skipVerification;
 
-	@Option(names = "--json", description = "print the output in JSON", defaultValue = "false")
-	private boolean json;
-
 	@Override
 	protected void execute() throws CommandException {
 		byte[][] classpath = new byte[libs== null ? 1 : (libs.size() + 1)][];
@@ -112,7 +109,7 @@ public class Instrument extends AbstractMokaCommand {
 			throw new CommandException("Cannot create file " + destination, e);
 		}
 
-		report(json, new Output(), JarsInstrumentOutputs.Encoder::new);
+		report(new Output(), JarsInstrumentOutputs.Encoder::new);
 	}
 
 	/**

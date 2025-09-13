@@ -60,9 +60,6 @@ public class Verify extends AbstractMokaCommand {
 	@Option(names = "--version", description = "use the given version of the verification rules", defaultValue = "0")
 	private int version;
 
-	@Option(names = "--json", description = "print the output in JSON", defaultValue = "false")
-	private boolean json;
-
 	@Override
 	protected void execute() throws CommandException {
 		byte[][] classpath = new byte[libs== null ? 1 : (libs.size() + 1)][];
@@ -111,7 +108,7 @@ public class Verify extends AbstractMokaCommand {
 		catch (VerificationException e) {
 		}
 		finally {
-			report(json, new Output(errors), JarsVerifyOutputs.Encoder::new);
+			report(new Output(errors), JarsVerifyOutputs.Encoder::new);
 		}
 	}
 

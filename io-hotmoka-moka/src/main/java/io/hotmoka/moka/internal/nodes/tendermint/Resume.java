@@ -49,7 +49,7 @@ public class Resume extends AbstractNodeResume {
 		try (var node = TendermintNodes.resume(localNodeConfig); var service = NodeServices.of(node, getPort())) {
 			//cleanUp();
 			var output = new Output(URI.create("ws://localhost:" + getPort()));
-			report(json(), output, NodesTendermintResumeOutputs.Encoder::new);
+			report(output, NodesTendermintResumeOutputs.Encoder::new);
 
 			waitForEnterKey();
 		}

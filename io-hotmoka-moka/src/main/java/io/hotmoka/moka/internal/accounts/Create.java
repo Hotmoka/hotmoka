@@ -77,7 +77,7 @@ public class Create extends AbstractAccountCreation<Create.Output> {
 
 	@Override
 	protected void reportOutput(Output output) throws CommandException {
-		report(json(), output, AccountsCreateOutputs.Encoder::new);
+		report(output, AccountsCreateOutputs.Encoder::new);
 	}
 
 	/**

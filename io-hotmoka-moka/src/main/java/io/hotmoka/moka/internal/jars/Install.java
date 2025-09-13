@@ -93,7 +93,7 @@ public class Install extends AbstractGasCostCommand {
 			askForConfirmation("install the jar", gasLimit, gasPrice, yes || json());
 			BigInteger nonce = determineNonceOf(payer, remote);
 			JarStoreTransactionRequest request = mkRequest(chainId, bytesOfJar, dependencies, signer, classpath, gasLimit, gasPrice, nonce);
-			report(json(), executeRequest(remote, request, gasPrice), JarsInstallOutputs.Encoder::new);
+			report(executeRequest(remote, request, gasPrice), JarsInstallOutputs.Encoder::new);
 		}
 		finally {
 			passwordOfPayerAsString = null;

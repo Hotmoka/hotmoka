@@ -84,9 +84,6 @@ public abstract class AbstractNodeInit extends AbstractMokaCommand {
 	@Option(names = "--chain-dir", paramLabel = "<path>", description = "the directory that will contain blocks and state of the node", defaultValue = "chain")
 	private Path chainDir;
 
-	@Option(names = "--json", description = "print the output in JSON", defaultValue = "false")
-	private boolean json;
-
 	/**
 	 * Fills the consensus configuration, either from the explicit configuration file or
 	 * from defaults. In any case, applies the specific updates contained in the options of this command.
@@ -147,12 +144,8 @@ public abstract class AbstractNodeInit extends AbstractMokaCommand {
 	 * @throws CommandException if the user replies negatively
 	 */
 	protected final void askForConfirmation(Path dir) throws CommandException {
-		if (!yes && !json && !answerIsYes(asInteraction("Do you really want to start a new node at \"" + dir + "\" (old blocks and store will be lost) [Y/N] ")))
+		if (!yes && !json() && !answerIsYes(asInteraction("Do you really want to start a new node at \"" + dir + "\" (old blocks and store will be lost) [Y/N] ")))
 			throw new CommandException("Stopped");
-	}
-
-	protected boolean json() {
-		return json;
 	}
 
 	protected Path getTakamakaCode() {

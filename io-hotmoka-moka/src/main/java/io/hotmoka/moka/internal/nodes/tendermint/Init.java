@@ -114,7 +114,7 @@ public class Init extends AbstractNodeInit {
 
 			cleanUp();
 			var output = new Output(initialized.gamete(), URI.create("ws://localhost:" + getPort()), scanValidators(node));
-			report(json(), output, NodesTendermintInitOutputs.Encoder::new);
+			report(output, NodesTendermintInitOutputs.Encoder::new);
 
 			waitForEnterKey();
 		}

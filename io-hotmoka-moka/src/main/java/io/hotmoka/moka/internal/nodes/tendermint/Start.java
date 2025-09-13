@@ -58,13 +58,10 @@ public class Start extends AbstractNodeStart {
 		TendermintNodeConfig localNodeConfig = mkLocalConfig();
 		askForConfirmation(localNodeConfig.getDir());
 
-		try (var node = TendermintNodes.init(localNodeConfig);
-			 var service = NodeServices.of(node, getPort())) {
-
+		try (var node = TendermintNodes.init(localNodeConfig); var service = NodeServices.of(node, getPort())) {
 			cleanUp();
 			var output = new Output(URI.create("ws://localhost:" + getPort()));
-			report(json(), output, NodesTendermintStartOutputs.Encoder::new);
-
+			report(output, NodesTendermintStartOutputs.Encoder::new);
 			waitForEnterKey();
 		}
 		catch (FailedDeploymentException e) {

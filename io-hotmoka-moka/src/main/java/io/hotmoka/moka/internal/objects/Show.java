@@ -70,7 +70,7 @@ public class Show extends AbstractMokaRpcCommand {
 
 	@Override
 	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, ClosedNodeException, MisbehavingNodeException {
-		report(json(), new Output(remote, object, api), ObjectsShowOutputs.Encoder::new);
+		report(new Output(remote, object, api), ObjectsShowOutputs.Encoder::new);
 	}
 
 	private static String annotationsAsString(Executable executable) {

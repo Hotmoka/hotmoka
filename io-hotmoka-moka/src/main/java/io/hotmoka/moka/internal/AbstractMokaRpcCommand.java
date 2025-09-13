@@ -19,6 +19,7 @@ package io.hotmoka.moka.internal;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.URI;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
@@ -67,13 +68,20 @@ import picocli.CommandLine.Option;
  * to the public API of the remote.
  */
 public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNode> {
+
+	@Option(names = "--uri", description = "the network URI where the API of the Hotmoka node service is published", defaultValue = "ws://localhost:8001")
+	private URI uri;
+
+	@Option(names = "--redirection", paramLabel = "<path>", description = "the path where the output must be redirected, if any; if missing, the output is printed to the standard output")
+	private Path redirection;
+
+	@Option(names = "--json", description = "print the output in JSON", defaultValue = "false")
+	private boolean json;
+
 	protected final static BigInteger _500_000 = BigInteger.valueOf(500_000L);
 
 	protected AbstractMokaRpcCommand() {
 	}
-
-	@Option(names = "--uri", description = "the network URI where the API of the Hotmoka node service is published", defaultValue = "ws://localhost:8001")
-	private URI uri;
 
 	/**
 	 * Yields the URI of the public API of the remote service.
@@ -82,6 +90,15 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 	 */
 	protected final URI uri() {
 		return uri;
+	}
+
+	/**
+	 * Determines if the output is required in JSON format.
+	 * 
+	 * @return true if and only if that condition holds
+	 */
+	protected final boolean json() {
+		return json;
 	}
 
 	@Override
@@ -133,26 +150,40 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommand<RemoteNo
 	protected abstract void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, ClosedNodeException, UninitializedNodeException, MisbehavingNodeException, UnexpectedCodeException;
 
 	/**
-	 * Reports on the standard output the given output of a command.
+	 * Reports on the given output of a command.
 	 * 
 	 * @param <O> the type of the output to report
 	 * @param json true if and only if the output must be reported in JSON format
+	 * @param where the path where the output must be dumped; if empty, it will be printed on the standard output
 	 * @param output the output to report
 	 * @param encoder a supplier of a converter of the output into JSON representation; this will
 	 *                be used only if {@code json} is true
 	 * @throws CommandException if reporting failed
 	 */
-	protected <O> void report(boolean json, O output, Supplier<MappedEncoder<O, ? extends JsonRepresentation<O>>> encoder) throws CommandException {
+	protected <O> void report(O output, Supplier<MappedEncoder<O, ? extends JsonRepresentation<O>>> encoder) throws CommandException {
+		String textualOutput;
+
 		if (json) {
 			try {
-				System.out.println(encoder.get().encode(output));
+				textualOutput = encoder.get().encode(output) + "\n";
 			}
 			catch (EncodeException e) {
 				throw new CommandException("Cannot encode the output of the command in JSON format", e);
 			}
 		}
 		else
-			System.out.print(output);
+			textualOutput = output.toString();
+
+		if (redirection == null)
+			System.out.print(textualOutput);
+		else {
+			try {
+				Files.writeString(redirection, textualOutput);
+			}
+			catch (IOException e) {
+				throw new CommandException("Cannot write the JSON output as \"" + redirection + "\"");
+			}
+		}
 	}
 
 	protected TransactionReference computeTransaction(TransactionRequest<?> request) throws CommandException {

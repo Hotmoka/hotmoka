@@ -18,6 +18,8 @@ moka-print-logs nodes mokamint start \
 	hotmoka_mokamint/node.pem \
 	hotmoka_mokamint/miner.pem \
 	--yes \
+	--password-of-mokamint-node \
+	--password-of-plot \
 	--mokamint-config=hotmoka_mokamint/mokamint_config.toml \
 	--local-config=hotmoka_mokamint/local_config.toml \
 	$VISIBLE_AS

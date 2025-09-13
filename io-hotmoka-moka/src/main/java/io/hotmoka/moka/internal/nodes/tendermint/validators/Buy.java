@@ -120,7 +120,7 @@ public class Buy extends AbstractGasCostCommand {
 				askForConfirmation("accept a sale offer of " + power + " units of validation power at the price of " + panas(priceWithSurcharge) + " including surcharge", gasLimit, gasPrice, yes || json());				
 				this.nonce = determineNonceOf(payer, remote);
 				this.request = mkRequest();
-				report(json(), executeRequest(), NodesTendermintValidatorsBuyOutputs.Encoder::new);
+				report(executeRequest(), NodesTendermintValidatorsBuyOutputs.Encoder::new);
 			}
 			finally {
 				passwordOfPayerAsString = null;

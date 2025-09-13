@@ -40,13 +40,6 @@ public abstract class AbstractNodeResume extends AbstractMokaCommand {
 	@Option(names = "--chain-dir", description = "the directory that contains blocks and state of the node", defaultValue = "chain")
 	private Path chainDir;
 
-	@Option(names = "--json", description = "print the output in JSON", defaultValue = "false")
-	private boolean json;
-
-	protected boolean json() {
-		return json;
-	}
-
 	protected int getPort() {
 		return port;
 	}

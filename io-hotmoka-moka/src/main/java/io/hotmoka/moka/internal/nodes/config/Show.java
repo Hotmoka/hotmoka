@@ -37,7 +37,7 @@ public class Show extends AbstractMokaRpcCommand {
 
 	@Override
 	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, ClosedNodeException {
-		report(json(), new Output(remote.getConfig()), NodesConfigShowOutputs.Encoder::new);
+		report(new Output(remote.getConfig()), NodesConfigShowOutputs.Encoder::new);
 	}
 
 	/**

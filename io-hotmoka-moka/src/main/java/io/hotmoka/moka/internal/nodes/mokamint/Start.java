@@ -122,7 +122,7 @@ public class Start extends AbstractNodeStart {
 
 					try (var service = NodeServices.of(node, getPort())) {
 						var output = new Output(URI.create("ws://localhost:" + getPort()), mokamintNodePublicURI, URI.create("ws://localhost:" + mokamintPortRestricted));
-						report(json(), output, NodesMokamintStartOutputs.Encoder::new);
+						report(output, NodesMokamintStartOutputs.Encoder::new);
 						waitForEnterKey();
 					}
 					catch (FailedDeploymentException e) {

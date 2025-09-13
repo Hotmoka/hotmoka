@@ -46,9 +46,6 @@ public class Export extends AbstractMokaCommand {
 	@Option(names = "--dir", paramLabel = "<path>", description = "the path of the directory where the key pair of the account can be found", defaultValue = "")
     private Path dir;
 
-	@Option(names = "--json", description = "print the output in JSON", defaultValue = "false")
-	private boolean json;
-
 	@Override
 	protected void execute() throws CommandException {
         Account account;
@@ -60,7 +57,7 @@ public class Export extends AbstractMokaCommand {
         	throw new CommandException("Cannot read the key pair of the account: it was expected to be in file \"" + dir.resolve(reference.toString()) + ".pem\"", e);
         }
 
-        report(json, new Output(account.bip39Words()), KeysExportOutputs.Encoder::new);
+        report(new Output(account.bip39Words()), KeysExportOutputs.Encoder::new);
 	}
 
 	/**

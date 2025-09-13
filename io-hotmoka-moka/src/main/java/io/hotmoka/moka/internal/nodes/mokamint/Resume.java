@@ -121,7 +121,7 @@ public class Resume extends AbstractNodeResume {
 
 					try (var service = NodeServices.of(node, getPort())) {
 						var output = new Output(URI.create("ws://localhost:" + getPort()), mokamintNodePublicURI, URI.create("ws://localhost:" + mokamintPortRestricted));
-						report(json(), output, NodesMokamintResumeOutputs.Encoder::new);
+						report(output, NodesMokamintResumeOutputs.Encoder::new);
 						waitForEnterKey();
 					}
 					catch (FailedDeploymentException e) {

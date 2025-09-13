@@ -146,7 +146,7 @@ public class Faucet extends AbstractMokaRpcCommand {
 			throw new CommandException("The gamete object cannot be found in the node");
 		}
 
-		report(json(), new Output(), NodesFaucetOutputs.Encoder::new);
+		report(new Output(), NodesFaucetOutputs.Encoder::new);
 	}
 
 	/**

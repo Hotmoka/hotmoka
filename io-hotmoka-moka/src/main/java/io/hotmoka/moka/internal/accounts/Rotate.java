@@ -113,7 +113,7 @@ public class Rotate extends AbstractGasCostCommand {
 				askForConfirmation("rotate the public key of " + account, gasLimit, gasPrice, yes || json());
 				this.nonce = determineNonceOf(account, remote);
 				this.request = mkRequest();
-				report(json(), executeRequest(remote), AccountsRotateOutputs.Encoder::new);
+				report(executeRequest(remote), AccountsRotateOutputs.Encoder::new);
 			}
 			finally {
 				passwordOfAccountAsString = null;

@@ -36,7 +36,7 @@ public class Address extends AbstractMokaRpcCommand {
 
 	@Override
 	protected void body(RemoteNode remote) throws TimeoutException, InterruptedException, CommandException, UninitializedNodeException, ClosedNodeException {
-		report(json(), new Output(remote.getManifest()), NodesManifestAddressOutputs.Encoder::new);
+		report(new Output(remote.getManifest()), NodesManifestAddressOutputs.Encoder::new);
 	}
 
 	/**

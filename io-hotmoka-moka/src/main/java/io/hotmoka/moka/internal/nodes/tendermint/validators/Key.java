@@ -64,9 +64,6 @@ public class Key extends AbstractMokaCommand {
 	@Option(names = "--password", description = "the password of the key pair", interactive = true, defaultValue = "")
     private char[] password;
 
-	@Option(names = "--json", description = "print the output in JSON", defaultValue = "false")
-	private boolean json;
-
 	@Override
 	protected void execute() throws CommandException {
 		String passwordAsString = new String(password);
@@ -135,7 +132,7 @@ public class Key extends AbstractMokaCommand {
 				throw new CommandException("Cannot write into \"" + path + "\"", e);
 			}
 
-			report(json, new Output(path), NodesTendermintValidatorsKeyOutputs.Encoder::new);
+			report(new Output(path), NodesTendermintValidatorsKeyOutputs.Encoder::new);
 		}
 		finally {
 			passwordAsString = null;

@@ -33,6 +33,7 @@ rm -rf hotmoka_tendermint/*
 echo -e "${RED}done${NC}"
 
 echo -n "Creating the validator.pem key pair of the node as validator... "
+# Tendermint's validators have no password
 VALIDATOR_ACCOUNT_CREATION=$(moka keys create --output-dir=hotmoka_tendermint --name=validator.pem --json)
 chmod og-rwx hotmoka_tendermint/validator.pem
 PUBLIC_KEY_BASE64=$(echo ${VALIDATOR_ACCOUNT_CREATION} | python3 -c "import sys, json; print(json.load(sys.stdin)['publicKeyBase64'])")
