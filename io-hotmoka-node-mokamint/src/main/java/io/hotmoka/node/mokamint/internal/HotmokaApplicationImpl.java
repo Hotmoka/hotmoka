@@ -75,7 +75,7 @@ import io.mokamint.nonce.api.Deadline;
  * @param <E> the type of the underlying Mokamint engine
  */
 @Name("Hotmoka")
-@Description("an application running Hotmoka transactions")
+@Description("A blockchain with Takamaka smart contracts")
 public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplication implements Application<E> {
 
 	/**
